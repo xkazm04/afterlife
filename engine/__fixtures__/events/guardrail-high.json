@@ -1,0 +1,7 @@
+{
+  "trigger": "guardrail_high",
+  "agent": "ai-patcher-acme",
+  "class": "dep-bump.patch",
+  "at": "2026-10-21T14:20:05Z",
+  "evidence": "!44#note_5"
+}

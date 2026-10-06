@@ -1,0 +1,12 @@
+{
+  "task": { "flow": "medic", "run_id": "flow-run-9103", "project_id": 70123456, "trailer": "Belay-Task: 01J9ZR3C4D5E6F7G8H9J0K1M2N" },
+  "sha": "0a1b2c3d4e5f",
+  "job": "test:payments",
+  "claims": [{ "id": "m1", "text": "test:payments is a flake" }],
+  "claim": { "classification": "flake" },
+  "runs": [
+    { "job_id": "9400031", "sha": "0a1b2c3d4e5f", "status": "failed", "failure_reason": "script_failure" },
+    { "job_id": "9400032", "sha": "0a1b2c3d4e5f", "status": "success" },
+    { "job_id": "9400033", "sha": "9f8e7d6c5b4a", "status": "success" }
+  ]
+}

@@ -22,6 +22,9 @@ classes:
   report.submit:    { agent: cra,                              ceiling: human_only }
   ci-config.change: { agent: maturity, proof: score-delta,     ceiling: assisted }
   patch-bump:       { agent: gardener, proof: bench-delta,     ceiling: supervised }
+# Pipeline medic (rerun-stats proof): at least min_runs usable reruns of one SHA; a failure rate at or
+# above real_failure_rate is a real failure, below it (and above zero) a flake. Policy numbers, not measurements.
+rerun_stats: { min_runs: 5, real_failure_rate: 0.8 }
 envelope:
   # DECISIONS.md D3: the hands-off loop reaches production, only for mechanical proof classes.
   hands_off: { max_files: 6, max_lines: 120, environments: ["review/*", "staging", "production"] }

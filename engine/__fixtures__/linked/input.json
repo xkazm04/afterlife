@@ -1,0 +1,20 @@
+{
+  "task": { "flow": "cra", "run_id": "flow-run-9201", "project_id": 70123456, "trailer": "Belay-Task: 01J9ZS1A2B3C4D5E6F7G8H9J0K" },
+  "allowed_hosts": ["gitlab.com"],
+  "claims": [
+    { "id": "s1", "text": "The path traversal was reported in issue 12.", "links": ["https://gitlab.com/afterlife3274741/ledgerline/-/issues/12"] },
+    { "id": "s2", "text": "The fix is merged in MR 41 and deployed by pipeline 1234.", "links": ["https://gitlab.com/afterlife3274741/ledgerline/-/merge_requests/41", "https://gitlab.com/afterlife3274741/ledgerline/-/pipelines/1234"] },
+    { "id": "s3", "text": "Users are not expected to have been affected, based on access logs.", "links": ["https://gitlab.com/afterlife3274741/ledgerline/-/issues/12#note_88"], "human_review": true }
+  ],
+  "resolutions": {
+    "https://gitlab.com/afterlife3274741/ledgerline/-/issues/12": { "status": "resolved", "type": "issue" },
+    "https://gitlab.com/afterlife3274741/ledgerline/-/merge_requests/41": { "status": "resolved", "type": "merge_request" },
+    "https://gitlab.com/afterlife3274741/ledgerline/-/pipelines/1234": { "status": "resolved", "type": "pipeline" },
+    "https://gitlab.com/afterlife3274741/ledgerline/-/issues/12#note_88": { "status": "resolved", "type": "note" }
+  },
+  "clock": {
+    "kind": "vulnerability",
+    "aware_at": "2026-10-09T09:00:00Z",
+    "due": { "early_warning": "2026-10-10T09:00:00Z", "notification": "2026-10-12T09:00:00Z", "final": null }
+  }
+}

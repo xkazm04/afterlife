@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-21T14:20:05Z",
+  "agent": "ai-patcher-acme",
+  "action_class": "code-fix.patch",
+  "kind": "tier_decision",
+  "tier_at_time": "supervised",
+  "subject": { "project_id": 70123456, "type": "mr", "iid": 44 },
+  "payload_ref": "proofs/01J9ZP6M2Q8E4V7K3N5R1T0XAB.json",
+  "observed_by": "govern_hook"
+}

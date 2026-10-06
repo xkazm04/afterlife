@@ -1,0 +1,17 @@
+{
+  "task": { "flow": "medic", "run_id": "flow-run-9101", "project_id": 70123456, "trailer": "Belay-Task: 01J9ZR1A2B3C4D5E6F7G8H9J0K" },
+  "sha": "4be1c0d7a9e2",
+  "job": "test:statements",
+  "claims": [{ "id": "m1", "text": "test:statements is a flake on 4be1c0d7a9e2" }],
+  "claim": { "classification": "flake", "passes": 4, "fails": 2 },
+  "runs": [
+    { "job_id": "9200011", "sha": "4be1c0d7a9e2", "status": "failed", "failure_reason": "script_failure" },
+    { "job_id": "9200012", "sha": "4be1c0d7a9e2", "status": "success" },
+    { "job_id": "9200013", "sha": "4be1c0d7a9e2", "status": "success" },
+    { "job_id": "9200014", "sha": "4be1c0d7a9e2", "status": "failed", "failure_reason": "script_failure" },
+    { "job_id": "9200015", "sha": "4be1c0d7a9e2", "status": "success" },
+    { "job_id": "9200016", "sha": "4be1c0d7a9e2", "status": "success" },
+    { "job_id": "9200017", "sha": "4be1c0d7a9e2", "status": "failed", "failure_reason": "runner_system_failure" },
+    { "job_id": "9200018", "sha": "4be1c0d7a9e2", "status": "canceled" }
+  ]
+}

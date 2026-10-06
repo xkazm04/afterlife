@@ -1,0 +1,19 @@
+{
+  "task": { "flow": "cra", "run_id": "flow-run-9202", "project_id": 70123456, "trailer": "Belay-Task: 01J9ZS2B3C4D5E6F7G8H9J0K1M" },
+  "allowed_hosts": ["gitlab.com"],
+  "claims": [
+    { "id": "s1", "text": "Reported in issue 99.", "links": ["https://gitlab.com/afterlife3274741/ledgerline/-/issues/99"] },
+    { "id": "s2", "text": "Fixed in MR 41 (not resolved yet).", "links": ["https://gitlab.com/afterlife3274741/ledgerline/-/merge_requests/41"] },
+    { "id": "s3", "text": "An unsupported statement.", "links": [] },
+    { "id": "s4", "text": "Evidence on a foreign host.", "links": ["https://example.com/report"] }
+  ],
+  "resolutions": {
+    "https://gitlab.com/afterlife3274741/ledgerline/-/issues/99": { "status": "not_found" },
+    "https://example.com/report": { "status": "resolved" }
+  },
+  "clock": {
+    "kind": "vulnerability",
+    "aware_at": "2026-10-09T09:00:00Z",
+    "due": { "early_warning": "2026-10-10T09:00:00Z", "notification": "2026-10-13T09:00:00Z", "final": null }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "trigger": "revert",
+  "agent": "ai-patcher-acme",
+  "class": "code-fix.patch",
+  "at": "2026-10-21T14:20:05Z",
+  "evidence": "!44 reverted by !47"
+}
