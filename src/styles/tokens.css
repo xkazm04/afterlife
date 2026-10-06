@@ -1,17 +1,18 @@
-/* Belay palette: colour, radius and motion tokens. Copied from the design kit's tokens (the --fs-* type tokens are
+/* Afterlife palette in its Ghostwire theme (graphite, icy phosphor lead, one hot-pink hairline): colour, radius and
+   motion tokens. Copied from the design kit's tokens (the --fs-* type tokens are
    dropped on purpose: text sizes come from text-size.css, decision D10). Colour literals live ONLY in this file;
    components use tokens and color-mix() of tokens. */
 :root {
   /* ground */
-  --bg: #0a0d13;
-  --bg-grad: linear-gradient(168deg, #0a0e14 0%, #0d1018 45%, #090b11 100%);
+  --bg: #030405;
+  --bg-grad: linear-gradient(168deg, #050607 0%, #030405 60%, #020203 100%);
   --surface-1: rgba(255, 255, 255, 0.025);
   --surface-2: rgba(255, 255, 255, 0.045);
   --surface-3: color-mix(in srgb, #0a0d13, #fff 7%);
   --surface-sunk: rgba(0, 0, 0, 0.45);
-  --border-1: rgba(255, 255, 255, 0.05);
-  --border-2: rgba(255, 255, 255, 0.09);
-  --border-3: rgba(255, 255, 255, 0.14);
+  --border-1: rgba(125, 249, 255, 0.05);
+  --border-2: rgba(125, 249, 255, 0.09);
+  --border-3: rgba(125, 249, 255, 0.2);
 
   /* text tiers (AA on --bg; never dim text with opacity) */
   --text-1: #f0f2f7;
@@ -20,8 +21,8 @@
   --text-4: #7a8292;
 
   /* voices */
-  --accent: #22c3e6; /* lead: Belay's rope/light */
-  --accent-2: #a78bfa; /* second voice */
+  --accent: #7df9ff; /* lead: icy phosphor */
+  --accent-2: #ff2e88; /* second voice: the one hot-pink hairline */
   --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
 
   /* tiers: always a letter mark plus colour, never colour alone */
@@ -41,7 +42,7 @@
 
   /* ink on filled chips */
   --on-accent: #fff;
-  --ink-accent: #031418;
+  --ink-accent: #021416;
   --ink-quarantined: #1d0609;
 
   /* shape */
@@ -63,10 +64,10 @@
 
   /* neutral mixing stocks */
   --white: #fff;
-  --tint-win: #1b2230;
-  --tint-chrome: #2a3242;
-  --tint-side: #121823;
-  --tint-menu: #1a2130;
+  --tint-win: #10161a;
+  --tint-chrome: #182026;
+  --tint-side: #0a0f12;
+  --tint-menu: #121a1f;
   --veil: rgba(4, 6, 10, 0.45);
 
   /* black shades: window edges, shadows */
@@ -77,19 +78,19 @@
   --shade-60: rgba(0, 0, 0, 0.6);
 
   /* macOS window palette (derived) */
-  --win: color-mix(in oklab, var(--bg) 90%, var(--tint-win));
+  --win: color-mix(in oklab, var(--bg) 50%, transparent);
   --win-content: color-mix(in oklab, var(--bg) 96.5%, var(--white));
   --chrome: color-mix(in oklab, var(--bg) 82%, var(--tint-chrome));
   --chrome-glass: color-mix(in oklab, var(--chrome) 72%, transparent);
-  --side-glass: color-mix(in oklab, var(--tint-side) 62%, transparent);
-  --sep: rgba(255, 255, 255, 0.08);
+  --side-glass: color-mix(in oklab, var(--tint-side) 46%, transparent);
+  --sep: rgba(125, 249, 255, 0.09);
   --sep-body: rgba(255, 255, 255, 0.035);
   --alt: rgba(255, 255, 255, 0.022);
-  --sel: color-mix(in oklab, var(--accent) 32%, var(--bg));
-  --sel-dim: color-mix(in oklab, var(--accent) 13%, var(--bg));
+  --sel: color-mix(in oklab, var(--accent) 22%, var(--bg));
+  --sel-dim: color-mix(in oklab, var(--accent) 9%, var(--bg));
   --sel-side: color-mix(in oklab, var(--accent) 22%, transparent);
   --hover: rgba(255, 255, 255, 0.035);
-  --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 50%, transparent);
+  --ring: 0 0 0 1px var(--accent), 0 0 8px color-mix(in oklab, var(--accent) 55%, transparent);
   --ctl: rgba(255, 255, 255, 0.07);
   --ctl-hi: rgba(255, 255, 255, 0.12);
   --ctl-hover: rgba(255, 255, 255, 0.16);
@@ -101,13 +102,22 @@
   --menu: color-mix(in oklab, var(--tint-menu) 94%, transparent);
   --hatch: repeating-linear-gradient(135deg, color-mix(in oklab, var(--stale) 16%, transparent) 0 1px, transparent 1px 5px);
 
-  /* brand hooks: inert here; the Afterlife variants (styles/brand/) fill them in */
-  --win-inset: 6px;
-  --win-halo: 0 0 0 transparent;
-  --win-overlay: none;
-  --edge-glow: 0 0 0 transparent;
-  --sel-edge: none;
-  --title-glow: none;
+  /* Ghostwire's frame: window inset and halo, HUD brackets over the window, the toolbar's chromatic split, the
+     selected row's edge, the title's split glow (Window, Toolbar, table use these) */
+  --win-inset: 12px;
+  --win-halo: 0 0 0 1px color-mix(in oklab, var(--accent) 45%, transparent), 0 0 14px color-mix(in oklab, var(--accent) 16%, transparent);
+  --win-overlay: linear-gradient(var(--accent-2), var(--accent-2)) top left / 18px 1px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) top left / 1px 18px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) top right / 18px 1px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) top right / 1px 18px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom left / 18px 1px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom left / 1px 18px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom right / 18px 1px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom right / 1px 18px no-repeat,
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.008) 0 1px, transparent 1px 2px);
+  --edge-glow: 0 1px 0 color-mix(in oklab, var(--accent) 60%, transparent), 0 2px 0 color-mix(in oklab, var(--accent-2) 35%, transparent);
+  --sel-edge: inset 1px 0 0 var(--accent), inset -1px 0 0 color-mix(in oklab, var(--accent) 35%, transparent);
+  --title-glow: 1px 0 0 color-mix(in oklab, var(--accent-2) 55%, transparent), -1px 0 0 color-mix(in oklab, var(--accent) 55%, transparent);
 }
 
 /* Tier colour roles: any element with data-tier gets --tc (the tier colour). Used by marks, chips, pips and counts. */

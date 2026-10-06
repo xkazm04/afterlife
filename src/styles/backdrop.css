@@ -1,0 +1,54 @@
+/* Ghostwire's backdrop behind the app window: a cold vignette, circuit traces in the margins (they read through the
+   glass sidebar) and one slow scan line. Static gradients plus a single transformed line; the layer is rendered behind every
+   window by components/shell/Window (the front door has its own scene). */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 50%, transparent 55%, var(--shade-60) 100%),
+    radial-gradient(30% 60% at 0% 30%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%);
+}
+.backdrop > .traces {
+  position: absolute;
+  inset: 0;
+  opacity: 0.7;
+  background-image:
+    linear-gradient(90deg, color-mix(in oklab, var(--accent) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in oklab, var(--accent) 40%, transparent) 1px, transparent 1px),
+    radial-gradient(color-mix(in oklab, var(--accent) 70%, transparent) 1.5px, transparent 2px);
+  background-size: 160px 96px, 96px 160px, 32px 32px;
+  background-position: 0 0, 40px 0, 0 0;
+  mask-image: linear-gradient(90deg, #000 0 18%, transparent 30% 82%, #000 100%);
+}
+.backdrop > .scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--accent) 50%, transparent), transparent);
+  will-change: transform;
+  animation: backdrop-scan 7s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+@keyframes backdrop-scan {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .backdrop > .scan {
+    display: none;
+  }
+}

@@ -5,6 +5,7 @@ import { Icon } from '@/components/icons/Icon';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { HelpButton } from '@/components/overlays/HelpButton';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
+import { Backdrop } from './Backdrop';
 import { Inspector } from './bars/Inspector';
 import { Sidebar } from './sidebar/Sidebar';
 import { StatusBar } from './bars/StatusBar';
@@ -38,7 +39,8 @@ export interface WindowProps {
 /**
  * The macOS window every screen lives in: sidebar with the app navigation, toolbar, content pane, optional
  * inspector and status bar. The active nav item comes from the route. Cmd/Ctrl+I toggles the inspector.
- * Mount inside ToastProvider (the root layout does) so status messages reach the status bar.
+ * Mount inside ToastProvider (the root layout does) so status messages reach the status bar. Ghostwire's backdrop
+ * (circuit traces, the scan line) is drawn behind every window here; the front door, which has no window, has its own.
  */
 export function Window(p: WindowProps) {
   const [sideOpen, setSideOpen] = useState(true);
@@ -72,20 +74,23 @@ export function Window(p: WindowProps) {
   ) : null;
 
   return (
-    <div className={cls}>
-      <Sidebar active={active} onToggle={() => setSideOpen((v) => !v)}>
-        {p.sidebar}
-      </Sidebar>
-      <div className={styles.right}>
-        <Toolbar title={p.title} subtitle={p.subtitle} end={inspToggle}>
-          {p.toolbar}
-        </Toolbar>
-        <div className={styles.main}>
-          <div className={styles.pane}>{p.children}</div>
-          {hasInsp ? <Inspector open={inspOpen}>{p.inspector}</Inspector> : null}
+    <>
+      <Backdrop />
+      <div className={cls}>
+        <Sidebar active={active} onToggle={() => setSideOpen((v) => !v)}>
+          {p.sidebar}
+        </Sidebar>
+        <div className={styles.right}>
+          <Toolbar title={p.title} subtitle={p.subtitle} end={inspToggle}>
+            {p.toolbar}
+          </Toolbar>
+          <div className={styles.main}>
+            <div className={styles.pane}>{p.children}</div>
+            {hasInsp ? <Inspector open={inspOpen}>{p.inspector}</Inspector> : null}
+          </div>
+          <StatusBar help={p.help ? <HelpButton title={p.helpTitle}>{p.help}</HelpButton> : null}>{p.status}</StatusBar>
         </div>
-        <StatusBar help={p.help ? <HelpButton title={p.helpTitle}>{p.help}</HelpButton> : null}>{p.status}</StatusBar>
       </div>
-    </div>
+    </>
   );
 }

@@ -10,7 +10,7 @@ import './globals.css';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Belay',
+  title: 'Afterlife',
   description: 'Proof-carrying agents for the post-code lifecycle on GitLab.',
 };
 
