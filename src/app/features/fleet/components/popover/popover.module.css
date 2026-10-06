@@ -1,0 +1,20 @@
+.pl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: calc(18px * var(--ui-scale));
+}
+.pl code {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-2);
+}
+.rec {
+  margin-left: auto;
+  padding-left: 12px;
+  color: var(--text-3);
+  font-size: var(--t-small);
+}
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}

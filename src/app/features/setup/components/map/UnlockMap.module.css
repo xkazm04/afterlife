@@ -1,0 +1,23 @@
+/* The canvas fills the pane (min-height 100%), centres its columns, and scales with the text size (--ui-scale). */
+.map {
+  --nh: calc(clamp(22px, 3.1vh, 30px) * var(--ui-scale));
+  position: relative;
+  min-height: 100%;
+  display: grid;
+  align-content: center;
+  padding: calc(18px * var(--ui-scale)) calc(12px * var(--ui-scale)) calc(22px * var(--ui-scale));
+  background-image: radial-gradient(var(--sep) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.cols {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-content: center;
+  grid-template-columns:
+    minmax(calc(150px * var(--ui-scale)), calc(300px * var(--ui-scale)))
+    minmax(calc(24px * var(--ui-scale)), calc(150px * var(--ui-scale)))
+    minmax(calc(190px * var(--ui-scale)), calc(340px * var(--ui-scale)))
+    minmax(calc(24px * var(--ui-scale)), calc(150px * var(--ui-scale)))
+    minmax(calc(150px * var(--ui-scale)), calc(300px * var(--ui-scale)));
+}

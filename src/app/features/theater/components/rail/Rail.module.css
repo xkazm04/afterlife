@@ -1,0 +1,148 @@
+/* right rail: autonomy, stages with evidence, CRA early warning */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sG);
+  overflow: hidden auto;
+}
+.blk {
+  padding: calc(var(--sG) * 0.7) var(--sG) calc(var(--sG) * 0.8);
+  min-width: 0;
+}
+.bh {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--fA);
+  font-weight: 600;
+  color: var(--text-4);
+  margin-bottom: 4px;
+}
+.aux {
+  margin-left: auto;
+  font-size: var(--fE);
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1;
+}
+.aux small {
+  font-size: var(--fB);
+  font-weight: 500;
+  color: var(--text-4);
+}
+
+/* autonomy: one action class per row */
+.cls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--rowS);
+  min-width: 0;
+}
+.id {
+  font: 400 var(--idSize) var(--mono);
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.id span {
+  color: var(--text-4);
+  margin-right: 4px;
+}
+.tier {
+  margin-left: auto;
+  flex: none;
+}
+.drop .tier {
+  animation: drop 1100ms var(--ease);
+}
+@keyframes drop {
+  0% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(10px);
+  }
+  55% {
+    transform: translateY(6px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* stages with evidence */
+.stgb {
+  display: flex;
+  flex-direction: column;
+  flex-grow: var(--grow);
+  min-height: 0;
+}
+.srows {
+  display: grid;
+  grid-template-rows: var(--stageRows);
+  align-content: start;
+  flex-grow: var(--grow);
+}
+.srow {
+  display: grid;
+  grid-template-columns: 5.4em 1fr;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--fB);
+  color: var(--text-4);
+  text-transform: capitalize;
+}
+.srow.evd {
+  color: var(--text-2);
+}
+.bar {
+  display: flex;
+  gap: 2px;
+}
+.bar i {
+  flex: 1;
+  height: var(--stageBar);
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+.bar i.on {
+  background: var(--text-4);
+  box-shadow: none;
+}
+.evd .bar i.on {
+  background: var(--accent);
+}
+.up .bar {
+  animation: lift 1.4s var(--ease);
+}
+@keyframes lift {
+  40% {
+    box-shadow: 0 0 14px 2px var(--accent);
+  }
+}
+
+/* CRA early warning: seeded drill on a simulated clock */
+.cv {
+  font-size: var(--fD);
+  font-weight: 600;
+  color: var(--text-1);
+}
+.cv small {
+  font-size: var(--fB);
+  font-weight: 500;
+  color: var(--text-3);
+  margin-left: 4px;
+}
+.tags {
+  display: flex;
+  gap: 5px;
+  margin-top: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .drop .tier,
+  .up .bar {
+    animation: none;
+  }
+}

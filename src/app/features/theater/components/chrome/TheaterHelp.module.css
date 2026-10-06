@@ -1,0 +1,23 @@
+.keys {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 5px 8px;
+  align-items: center;
+}
+.keys > :nth-child(odd) {
+  justify-self: start;
+}
+.marks {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 8px;
+  align-items: center;
+}
+.marks > :nth-child(odd) {
+  justify-self: start;
+}
+.hr {
+  border: 0;
+  border-top: 1px solid var(--sep);
+  margin: 7px 0;
+}

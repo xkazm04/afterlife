@@ -1,0 +1,39 @@
+.tbtn {
+  height: var(--ctl-h);
+  min-width: calc(28px * var(--ui-scale));
+  padding: 0 7px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text-2);
+  cursor: default;
+  white-space: nowrap;
+  flex: none;
+}
+.tbtn:hover {
+  background: var(--ctl);
+}
+.tbtn[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+/* popup button: a filled pill with a label and a chevron */
+.pu {
+  background: var(--ctl);
+  padding: 0 6px 0 8px;
+  font-size: var(--t-head);
+}
+.pu:hover {
+  background: var(--ctl-hi);
+}
+.on {
+  color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 16%, transparent);
+}
+.chev {
+  opacity: 0.75;
+}

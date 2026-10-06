@@ -1,0 +1,9 @@
+.untrusted {
+  margin: 0;
+  font: 400 var(--t-head) / 1.45 var(--mono);
+  color: var(--text-3);
+  border-left: 2px dashed var(--unknown);
+  padding: 4px 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

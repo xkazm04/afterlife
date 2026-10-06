@@ -1,0 +1,23 @@
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--ctl);
+  gap: 1px;
+  flex: none;
+}
+.seg button {
+  height: var(--seg-h);
+  padding: 0 11px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  font-size: var(--t-head);
+  color: var(--text-2);
+  cursor: default;
+}
+.seg button[aria-checked="true"] {
+  background: var(--ctl-hi);
+  color: var(--text-1);
+  box-shadow: 0 1px 1px var(--shade-35), inset 0 0 0 0.5px var(--border-2);
+}

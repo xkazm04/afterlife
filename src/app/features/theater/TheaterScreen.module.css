@@ -1,0 +1,18 @@
+/* While presenting, the Window stays mounted (its state survives) but is taken out of the layout; the stage
+   moves to a fixed full-viewport layer above everything. */
+.window {
+  display: contents;
+}
+.hidden {
+  display: none;
+}
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--win-content);
+  overflow: hidden;
+}
+.idle {
+  cursor: none;
+}

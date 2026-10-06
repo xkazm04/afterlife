@@ -1,0 +1,46 @@
+.meter {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: calc(13px * var(--ui-scale));
+}
+.meter i {
+  width: calc(4px * var(--ui-scale));
+  border-radius: 1px;
+  background: var(--border-2);
+  display: block;
+}
+.meter i:nth-child(1) {
+  height: calc(4px * var(--ui-scale));
+}
+.meter i:nth-child(2) {
+  height: calc(7px * var(--ui-scale));
+}
+.meter i:nth-child(3) {
+  height: calc(10px * var(--ui-scale));
+}
+.meter i:nth-child(4) {
+  height: calc(13px * var(--ui-scale));
+}
+.meter i.on {
+  background: var(--accent);
+}
+.rn {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  margin-left: 4px;
+  align-self: center;
+}
+[data-stale="true"] .meter i.on {
+  opacity: 0.45;
+}
+.qbox {
+  display: inline-grid;
+  place-items: center;
+  width: calc(18px * var(--ui-scale));
+  height: calc(13px * var(--ui-scale));
+  border: 1px dashed var(--unknown);
+  border-radius: 3px;
+  font-size: var(--t-small);
+  color: var(--unknown);
+}

@@ -1,0 +1,50 @@
+/* Inspector chrome shared by the class and group views. */
+.cidh {
+  font: 700 var(--t-head) var(--mono);
+}
+.gid {
+  font: 600 var(--t-head) var(--mono);
+  color: var(--accent);
+}
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.off {
+  opacity: 0.45;
+}
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+.cl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto calc(17px * var(--ui-scale)) calc(70px * var(--ui-scale));
+  align-items: center;
+  gap: 6px;
+  height: var(--row-h);
+  font-size: var(--t-head);
+}
+.clId {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clRec {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.clTier {
+  color: var(--text-2);
+  font-size: var(--t-small);
+}
+
+.none {
+  padding: 12px 14px;
+  color: var(--text-3);
+  font-size: var(--t-head);
+}

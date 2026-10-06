@@ -1,0 +1,98 @@
+/* Shared by the inspector panels. Sizes come from the text-size variables (D10). */
+.chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.does {
+  margin: 6px 0 0;
+  font-size: var(--t-head);
+  color: var(--text-3);
+  line-height: 1.4;
+}
+.acts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+.cm {
+  margin: 4px 0 0;
+  font: 400 var(--t-small) / 1.4 var(--mono);
+  color: var(--text-4);
+}
+.cmdh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 4px;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.cmdh span {
+  margin-left: auto;
+  color: var(--text-4);
+}
+.trs {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.trow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-head);
+}
+.trow code {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-2);
+  flex: 1;
+}
+.mk {
+  flex: none;
+  width: calc(18px * var(--ui-scale));
+  height: calc(18px * var(--ui-scale));
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 650 var(--t-small) / 1 var(--sys);
+  border: 1px solid var(--border-3);
+  color: var(--text-3);
+}
+.mkYou {
+  background: var(--needs-you);
+  border-color: var(--needs-you);
+  color: var(--needs-you-ink);
+}
+.mkOk {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.tid {
+  font: 650 var(--t-head) / 1 var(--mono);
+  color: var(--accent);
+}
+.probe {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+.pt {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-3);
+  flex: none;
+}
+.ok {
+  color: var(--ok);
+}
+.no {
+  color: var(--text-4);
+}

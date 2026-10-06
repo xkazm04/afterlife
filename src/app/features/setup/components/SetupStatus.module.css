@@ -1,0 +1,4 @@
+.stale {
+  color: var(--stale);
+  font-weight: 600;
+}

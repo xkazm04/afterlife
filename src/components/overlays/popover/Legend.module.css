@@ -1,0 +1,14 @@
+.legend {
+  display: grid;
+  gap: 5px;
+}
+.row {
+  display: grid;
+  grid-template-columns: calc(22px * var(--ui-scale)) 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.gl {
+  display: grid;
+  place-items: center;
+}

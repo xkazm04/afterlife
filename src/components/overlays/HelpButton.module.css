@@ -1,0 +1,18 @@
+.help {
+  width: calc(17px * var(--ui-scale));
+  height: calc(17px * var(--ui-scale));
+  border-radius: 50%;
+  border: 0;
+  background: var(--ctl-hi);
+  color: var(--text-2);
+  font-size: var(--t-small);
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  padding: 0;
+  flex: none;
+}
+.help:hover {
+  background: var(--ctl-hover);
+}

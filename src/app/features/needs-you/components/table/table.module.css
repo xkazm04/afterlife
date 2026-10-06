@@ -1,0 +1,79 @@
+/* Cells of the decisions table. Kit rows and cells supply the grid, the selection and the header. */
+.lead {
+  gap: calc(6px * var(--ui-scale));
+}
+.spacer {
+  width: calc(13px * var(--ui-scale));
+  flex: none;
+}
+.nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.writes {
+  font-size: var(--t-head);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5px * var(--ui-scale));
+}
+.none {
+  color: var(--text-4);
+}
+.mono {
+  font-family: var(--mono);
+  font-size: var(--t-head);
+}
+.track {
+  color: var(--text-3);
+}
+.when {
+  color: var(--text-3);
+}
+.due {
+  color: var(--needs-you);
+  font-weight: 650;
+}
+.stx {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5px * var(--ui-scale));
+  color: var(--text-2);
+  font-size: var(--t-head);
+}
+.ok {
+  color: var(--ok);
+}
+.stg {
+  color: var(--accent);
+}
+.dim {
+  color: var(--text-4);
+}
+.unk {
+  color: var(--unknown);
+}
+.act {
+  padding-right: calc(8px * var(--ui-scale));
+}
+.hist .nm,
+.hist .when,
+.hist .writes {
+  color: var(--text-3);
+}
+.fresh .nm {
+  color: var(--text-1);
+}
+.fresh .when {
+  color: var(--accent);
+}
+.ref {
+  font: 400 var(--t-small) var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.empty {
+  padding: 8px 8px 8px calc(24px * var(--ui-scale));
+  color: var(--text-3);
+  font-size: var(--t-head);
+}

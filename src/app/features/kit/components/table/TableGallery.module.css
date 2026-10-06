@@ -1,0 +1,12 @@
+.box {
+  position: relative;
+  width: 100%;
+  height: calc(300px * var(--ui-scale));
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+.nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

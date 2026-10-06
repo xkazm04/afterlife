@@ -1,0 +1,21 @@
+.section {
+  margin-top: 18px;
+  scroll-margin-top: 8px;
+}
+.section:first-child {
+  margin-top: 0;
+}
+.h {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-4);
+  margin: 0 0 6px;
+}
+.card {
+  border-radius: 8px;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--sep);
+  padding: 12px 14px;
+  display: grid;
+  gap: 12px;
+}

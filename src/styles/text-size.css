@@ -1,0 +1,52 @@
+/* D10: three text-size scales. ONE attribute switches them: html[data-text-size="smaller" | "standard" | "larger"].
+   Every component sizes itself from these variables, never from literal px. Standard is the default; the inline
+   boot script (lib/settings/TextSizeBoot) sets the attribute before first paint. */
+:root,
+html[data-text-size="standard"] {
+  --t-body: 15px; /* table, sidebar, inspector body */
+  --t-head: 14px; /* column headers, captions */
+  --t-small: 13px; /* badges, status bar, section headings */
+  --row-h: 26px;
+  --hdr-h: 28px;
+  --tb-h: 56px;
+  --sb-h: 26px;
+  --sbw: 224px;
+  --iw: clamp(340px, 24vw, 430px);
+  --ui-scale: 1.15;
+}
+html[data-text-size="smaller"] {
+  --t-body: 13px;
+  --t-head: 12px;
+  --t-small: 11px;
+  --row-h: 22px;
+  --hdr-h: 24px;
+  --tb-h: 52px;
+  --sb-h: 22px;
+  --sbw: 200px;
+  --iw: clamp(300px, 21vw, 380px);
+  --ui-scale: 1;
+}
+html[data-text-size="larger"] {
+  --t-body: 17px;
+  --t-head: 16px;
+  --t-small: 14px;
+  --row-h: 30px;
+  --hdr-h: 32px;
+  --tb-h: 60px;
+  --sb-h: 28px;
+  --sbw: 248px;
+  --iw: clamp(380px, 27vw, 480px);
+  --ui-scale: 1.3;
+}
+
+/* Derived control metrics: the prototype's pixel sizes times --ui-scale (identical at Smaller). */
+:root {
+  --ctl-h: round(calc(26px * var(--ui-scale)), 1px); /* toolbar buttons, search, sidebar items */
+  --seg-h: round(calc(22px * var(--ui-scale)), 1px); /* segmented / lozenge buttons, small buttons */
+  --lozenge-h: round(calc(28px * var(--ui-scale)), 1px);
+  --mini-h: round(calc(18px * var(--ui-scale)), 1px); /* row buttons, chips */
+  --chip-h: round(calc(16px * var(--ui-scale)), 1px);
+  --sum-h: round(calc(26px * var(--ui-scale)), 1px); /* inspector section summary */
+  --ico: round(calc(15px * var(--ui-scale)), 1px);
+  --t-title: calc(var(--t-body) + 2px); /* inspector title (15px at Smaller) */
+}

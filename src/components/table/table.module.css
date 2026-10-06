@@ -1,0 +1,181 @@
+/* The outline table. Grid columns come from --cols; every size comes from the text-size variables. */
+.tbl {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.tbl:focus-visible {
+  box-shadow: none;
+}
+.thead,
+.rows {
+  min-width: var(--minw);
+}
+.r {
+  display: grid;
+  grid-template-columns: var(--cols);
+  height: var(--row-h);
+  align-items: stretch;
+}
+.c {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  box-shadow: inset -1px 0 0 var(--sep-body);
+}
+.c:last-child,
+.fill {
+  box-shadow: none;
+}
+.fill {
+  padding: 0;
+}
+.ctr {
+  justify-content: center;
+}
+.rt {
+  justify-content: flex-end;
+}
+
+/* header */
+.thead {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+.thead .r {
+  height: var(--hdr-h);
+  background: color-mix(in oklab, var(--win-content) 96%, var(--white));
+  box-shadow: 0 1px 0 var(--shade-50), 0 2px 0 var(--sep);
+}
+.th {
+  border: 0;
+  background: none;
+  font-size: var(--t-head);
+  font-weight: 600;
+  color: var(--text-3);
+  gap: 4px;
+  cursor: default;
+  position: relative;
+  box-shadow: none;
+}
+.th::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 5px;
+  bottom: 5px;
+  width: 1px;
+  background: var(--sep);
+}
+.th.fill::after,
+.th:last-child::after {
+  display: none;
+}
+.th:hover {
+  color: var(--text-1);
+}
+.th[aria-sort="ascending"],
+.th[aria-sort="descending"] {
+  color: var(--text-1);
+}
+.srt {
+  margin-left: auto;
+  color: var(--text-3);
+  flex: none;
+}
+.ctr .srt {
+  margin-left: 2px;
+}
+.lab {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ranked {
+  background: color-mix(in oklab, var(--tc) 14%, transparent);
+}
+.th:focus-visible {
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+/* rows */
+.row {
+  color: var(--text-1);
+  cursor: default;
+}
+.row.alt {
+  background: var(--alt);
+}
+.row:hover {
+  background: var(--hover);
+}
+.row[aria-selected="true"] {
+  background: var(--sel-dim);
+}
+.tbl:focus .row[aria-selected="true"],
+.menuing .row[aria-selected="true"] {
+  background: var(--sel);
+}
+.tbl:focus .row[aria-selected="true"] .c {
+  box-shadow: none;
+}
+.grp > .g {
+  position: sticky;
+  top: var(--hdr-h);
+  z-index: 2;
+  background: color-mix(in oklab, var(--win-content) 94%, var(--white));
+  box-shadow: 0 1px 0 var(--sep), 0 -1px 0 var(--sep);
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: default;
+}
+.grp > .g[aria-selected="true"] {
+  background: var(--sel-dim);
+}
+.tbl:focus .grp > .g[aria-selected="true"],
+.menuing .grp > .g[aria-selected="true"] {
+  background: var(--sel);
+  color: var(--text-1);
+}
+.disc {
+  width: calc(14px * var(--ui-scale));
+  height: calc(14px * var(--ui-scale));
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  color: var(--text-3);
+  transition: transform var(--t-fast) var(--ease);
+}
+.g[aria-expanded="true"] .disc {
+  transform: rotate(90deg);
+}
+.gct {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  font-weight: 500;
+  margin-left: 6px;
+}
+.nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.indent {
+  padding-left: 24px;
+}
+.flat .indent {
+  padding-left: 8px;
+}
+.nsu .nm {
+  color: var(--text-3);
+}
+[data-stale="true"] .nm {
+  color: var(--text-2);
+}
+/* hatched body cells of a stale row (Cell with the `data` prop) */
+.row[data-stale="true"] .d {
+  background-image: var(--hatch);
+}

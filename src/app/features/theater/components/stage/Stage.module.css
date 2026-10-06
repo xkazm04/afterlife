@@ -1,0 +1,84 @@
+/* One stage, two scales. Normal mode takes its type and spacing from the text-size variables (D10). Present
+   (data-present) swaps in a viewport-scaled set: same palette, same layout, bigger type. The --f* variables
+   are the prototype's type steps; --s* its spacing. The shared parts inside (tier chips, honesty chips,
+   untrusted text) read --t-small, --t-head, --chip-h and --mini-h, so Present re-points those too. */
+.stage {
+  --fA: var(--t-small);
+  --fB: var(--t-head);
+  --fC: var(--t-body);
+  --fD: calc(var(--t-body) + 2px);
+  --fE: calc(22px * var(--ui-scale));
+  --fF: calc(28px * var(--ui-scale));
+  --sG: calc(10px * var(--ui-scale));
+  --sP: calc(12px * var(--ui-scale));
+  --padX: calc(16px * var(--ui-scale));
+  --padB: calc(14px * var(--ui-scale));
+  --bolt: calc(22px * var(--ui-scale));
+  --railw: min(calc(236px * var(--ui-scale)), 36cqw);
+  --rowS: calc(22px * var(--ui-scale));
+  --ropeX: 30%;
+  --sideX: 38%;
+  /* what Present changes beyond size */
+  --numSize: 1em;
+  --numLh: normal;
+  --grow: 0;
+  --stageRows: repeat(9, calc(20px * var(--ui-scale)));
+  --stageBar: calc(var(--fA) * 0.6);
+  --idSize: var(--fA);
+  --chipPad: 3px 7px;
+  --ansGap: 3px;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) var(--railw);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--sG);
+  padding: var(--sP) var(--padX) var(--padB);
+  font-size: var(--fC);
+  color: var(--text-2);
+}
+.stage > * {
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage[data-present] {
+  --k: min(1vh, 0.5625vw);
+  --fA: max(14px, calc(var(--k) * 1.5));
+  --fB: max(15px, calc(var(--k) * 1.75));
+  --fC: max(16px, calc(var(--k) * 2));
+  --fD: max(20px, calc(var(--k) * 2.6));
+  --fE: calc(var(--k) * 4);
+  --fF: calc(var(--k) * 6);
+  --sG: calc(var(--k) * 1.5);
+  --sP: calc(var(--k) * 2.2);
+  --padX: calc(var(--k) * 3.1);
+  --padB: var(--sP);
+  --bolt: calc(var(--k) * 3.4);
+  --railw: clamp(300px, 24vw, 460px);
+  --rowS: calc(var(--k) * 3.4);
+  --numSize: var(--fE);
+  --numLh: 1;
+  --grow: 1;
+  --stageRows: repeat(9, minmax(0, 1fr));
+  --stageBar: 0.55em;
+  --idSize: var(--fB);
+  --chipPad: 0.3em 0.65em;
+  --ansGap: calc(var(--k) * 0.5);
+  --t-small: var(--fA);
+  --t-head: var(--fB);
+  --chip-h: calc(var(--fA) + 7px);
+  --mini-h: calc(var(--fA) * 1.8);
+}
+
+/* the shared tier chip, scaled with the type in Present (its own padding and mark are in px) */
+.stage[data-present] [data-tier] {
+  gap: 0.35em;
+  padding: 0 0.55em 0 0.3em;
+}
+.stage[data-present] [data-tier] > span {
+  width: 1.3em;
+  height: 1.1em;
+  font-size: var(--fA);
+}

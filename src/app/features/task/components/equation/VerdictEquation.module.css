@@ -1,0 +1,68 @@
+.eq {
+  display: grid;
+  grid-template-columns: calc(128px * var(--ui-scale)) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 14px;
+  padding: 10px 12px 10px 16px;
+  min-height: calc(56px * var(--ui-scale));
+  border-radius: 8px;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+.fail {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fail) 55%, transparent);
+  background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--fail) 9%, transparent) 0 10px, color-mix(in oklab, var(--fail) 3%, transparent) 10px 20px);
+}
+.v {
+  font: 800 calc(34px * var(--ui-scale)) / 1 var(--mono);
+  letter-spacing: 0.04em;
+  color: var(--ok);
+}
+.fail .v {
+  color: var(--fail);
+}
+.wait {
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--unknown);
+  letter-spacing: 0;
+}
+.f {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 4px;
+  font: 400 var(--t-head) / 1 var(--mono);
+  color: var(--text-4);
+  min-width: 0;
+}
+.lhs {
+  margin-right: 6px;
+}
+.slot {
+  display: inline-flex;
+  align-items: center;
+}
+.op {
+  margin: 0 5px;
+  color: var(--text-4);
+}
+.tally {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 var(--t-head) / 1 var(--mono);
+}
+.ok {
+  color: var(--ok);
+}
+.bad {
+  color: var(--fail);
+}
+.unk {
+  color: var(--unknown);
+}
+.eng {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-3);
+}

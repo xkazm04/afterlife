@@ -1,0 +1,4 @@
+/* unknown is drawn dashed, never as zero */
+.unknown {
+  border-bottom: 1px dashed var(--unknown);
+}

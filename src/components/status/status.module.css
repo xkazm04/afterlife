@@ -1,0 +1,42 @@
+/* needs-you badge */
+.ny {
+  display: inline-grid;
+  place-items: center;
+  min-width: calc(20px * var(--ui-scale));
+  height: var(--chip-h);
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--needs-you);
+  color: var(--needs-you-ink);
+  font-size: var(--t-small);
+  font-weight: 750;
+}
+.ny.outline {
+  background: none;
+  color: var(--needs-you);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--needs-you) 58%, transparent);
+}
+.ny.small {
+  min-width: calc(18px * var(--ui-scale));
+  height: calc(15px * var(--ui-scale));
+}
+
+/* state glyph */
+.sg {
+  width: calc(10px * var(--ui-scale));
+  height: calc(10px * var(--ui-scale));
+  display: block;
+  flex: none;
+}
+
+/* feed age */
+.fa {
+  color: var(--text-3);
+}
+.failing {
+  color: var(--stale);
+  font-weight: 600;
+}
+.never {
+  color: var(--text-4);
+}

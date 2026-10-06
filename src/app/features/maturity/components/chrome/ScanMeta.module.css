@@ -1,0 +1,51 @@
+.meta {
+  display: flex;
+  align-items: center;
+  height: var(--lozenge-h);
+  padding: 0 4px;
+  gap: 2px;
+  border-radius: 7px;
+  background: var(--surface-sunk);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+  flex: none;
+}
+.meta > span {
+  height: var(--seg-h);
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-head);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.meta b {
+  color: var(--text-1);
+  font-weight: 600;
+}
+.dot {
+  width: calc(6px * var(--ui-scale));
+  height: calc(6px * var(--ui-scale));
+  border-radius: 50%;
+  background: var(--ok);
+}
+.meta > .div {
+  width: 1px;
+  height: calc(14px * var(--ui-scale));
+  padding: 0;
+  background: var(--sep);
+}
+.fresh {
+  color: var(--ok);
+}
+/* the toolbar is crowded: at the largest size, or on a narrow window, the age is left to the tooltip */
+@media (max-width: 1250px) {
+  .meta > span:last-child,
+  .meta > .div {
+    display: none;
+  }
+}
+:global(html[data-text-size="larger"]) .meta > span:last-child,
+:global(html[data-text-size="larger"]) .meta > .div {
+  display: none;
+}

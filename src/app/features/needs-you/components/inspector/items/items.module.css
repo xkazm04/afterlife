@@ -1,0 +1,120 @@
+/* Rows inside the inspector sections of Needs you. Sizes follow the text-size variables. */
+.subrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.rl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto calc(14px * var(--ui-scale));
+  gap: 8px;
+  align-items: center;
+  min-height: calc(20px * var(--ui-scale));
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+.rl .v {
+  font: 600 var(--t-head) var(--mono);
+  color: var(--text-1);
+}
+.yes {
+  color: var(--ok);
+  text-align: right;
+}
+.no {
+  color: var(--fail);
+  text-align: right;
+}
+.pr {
+  display: grid;
+  grid-template-columns: calc(34px * var(--ui-scale)) minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  min-height: calc(19px * var(--ui-scale));
+  font-size: var(--t-head);
+}
+.pr .m {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--accent);
+}
+.pr .w {
+  font-size: var(--t-small);
+  color: var(--text-4);
+  white-space: nowrap;
+}
+.lk {
+  display: grid;
+  grid-template-columns: calc(14px * var(--ui-scale)) minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  min-height: calc(20px * var(--ui-scale));
+  font-size: var(--t-head);
+}
+.lk .y {
+  color: var(--ok);
+}
+.lk .s {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-4);
+  white-space: nowrap;
+}
+.t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+.lk .t {
+  color: var(--text-1);
+}
+.ul {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: var(--t-small);
+  color: var(--text-4);
+  font-weight: 600;
+}
+.gl3 {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 8px;
+  align-items: center;
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.voice {
+  font-size: var(--t-head);
+  color: var(--text-2);
+  line-height: 1.45;
+  margin: 0;
+}
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+.gap {
+  margin-top: 6px;
+}
+.ev {
+  display: grid;
+  grid-template-columns: calc(36px * var(--ui-scale)) calc(24px * var(--ui-scale)) 1fr;
+  gap: 6px;
+  font-size: var(--t-head);
+  padding: 2px 0;
+  align-items: baseline;
+}
+.ev .tm {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-3);
+}
+.ev .tk {
+  font-size: var(--t-small);
+  color: var(--accent);
+  font-weight: 600;
+}
+.ev .tx {
+  color: var(--text-2);
+}

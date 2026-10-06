@@ -1,0 +1,22 @@
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: calc(16px * var(--ui-scale));
+  height: calc(15px * var(--ui-scale));
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--ink-accent);
+  font-size: var(--t-small);
+  font-weight: 700;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.keys {
+  color: var(--text-3);
+  font-size: var(--t-head);
+  line-height: 1.5;
+}

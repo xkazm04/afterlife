@@ -1,0 +1,55 @@
+/* tier counts: the number and its pips take the tier colour (--tc, from data-tier) */
+.tc {
+  gap: calc(5px * var(--ui-scale));
+}
+.n {
+  color: var(--tc);
+  font-weight: 600;
+  min-width: calc(12px * var(--ui-scale));
+  text-align: right;
+}
+.pips {
+  display: inline-flex;
+  gap: calc(2px * var(--ui-scale));
+}
+.pips i {
+  width: calc(3px * var(--ui-scale));
+  height: calc(9px * var(--ui-scale));
+  border-radius: 1px;
+  background: var(--tc);
+}
+/* a stale row shows last known counts, faded */
+[data-stale="true"] .n {
+  color: color-mix(in oklab, var(--tc) 45%, var(--text-4));
+}
+[data-stale="true"] .pips i {
+  opacity: 0.4;
+}
+/* ranking by a tier tints its column and dims the other four */
+.rk {
+  background: color-mix(in oklab, var(--tc) 7%, transparent);
+}
+.dimcol {
+  --tc: var(--text-4) !important;
+}
+.dimcol .pips i {
+  opacity: 0.35;
+}
+.total .n {
+  color: var(--text-2);
+}
+
+/* proofs: count, mini bar, failures */
+.pc {
+  gap: calc(5px * var(--ui-scale));
+}
+.pn {
+  min-width: calc(18px * var(--ui-scale));
+  text-align: right;
+  color: var(--text-2);
+}
+.pf {
+  color: var(--fail);
+  font-weight: 600;
+  min-width: calc(8px * var(--ui-scale));
+}

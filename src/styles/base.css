@@ -1,0 +1,69 @@
+/* Reset, body, scrollbars, focus ring, reduced motion. Palette lives in tokens.css, sizes in text-size.css. */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(60% 70% at 12% 18%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 88% 92%, color-mix(in oklab, var(--accent-2) 20%, transparent), transparent 70%),
+    var(--bg-grad);
+  color: var(--text-1);
+  font: 400 var(--t-body) / 1.3 var(--sys);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+a {
+  color: inherit;
+}
+:focus {
+  outline: none;
+}
+:focus-visible {
+  box-shadow: var(--ring);
+}
+[hidden] {
+  display: none !important;
+}
+::selection {
+  background: var(--sel);
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--thumb);
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--thumb-hover);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

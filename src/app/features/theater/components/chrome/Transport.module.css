@@ -1,0 +1,51 @@
+/* the transport lozenge (Play, Roll, Loop, readout) and the Present button */
+.btn {
+  height: var(--seg-h);
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-head);
+  color: var(--text-2);
+  cursor: default;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: var(--ctl);
+}
+.btn[aria-pressed="true"] {
+  background: var(--sel-side);
+  color: var(--text-1);
+}
+.rec {
+  width: calc(8px * var(--ui-scale));
+  height: calc(8px * var(--ui-scale));
+  border-radius: 50%;
+  background: var(--fail);
+  flex: none;
+}
+.ico {
+  flex: none;
+}
+.state {
+  min-width: calc(92px * var(--ui-scale));
+  padding: 0 8px;
+  font-size: var(--t-small);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.live {
+  color: var(--fail);
+  font-weight: 600;
+}
+button.present {
+  background: var(--ctl);
+  padding: 0 8px;
+  font-size: var(--t-head);
+}
+button.present:hover {
+  background: var(--ctl-hi);
+}

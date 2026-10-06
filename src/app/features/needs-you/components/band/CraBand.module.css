@@ -1,0 +1,102 @@
+/* The CRA band: the one dominant element. Everything is sized from the text-size variables. */
+.band {
+  flex: none;
+  margin: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale)) 0;
+  padding: calc(10px * var(--ui-scale)) calc(14px * var(--ui-scale)) calc(10px * var(--ui-scale)) calc(16px * var(--ui-scale));
+  border-radius: 9px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) calc(156px * var(--ui-scale));
+  gap: 0 calc(20px * var(--ui-scale));
+  align-items: center;
+  background:
+    radial-gradient(90% 160% at 0% 0%, color-mix(in oklab, var(--needs-you) 11%, transparent), transparent 62%),
+    var(--surface-1);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--needs-you) 42%, transparent),
+    0 0 34px color-mix(in oklab, var(--needs-you) 6%, transparent);
+  cursor: default;
+}
+.on {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--needs-you) 60%, transparent),
+    0 0 0 2px color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.signed {
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ok) 40%, transparent);
+}
+.signed.on {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--ok) 40%, transparent),
+    0 0 0 2px color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.eb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.bmeta {
+  font: 400 var(--t-small) / 1.3 var(--mono);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.trk {
+  min-width: 0;
+  display: grid;
+  gap: calc(7px * var(--ui-scale));
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: stretch;
+  justify-content: center;
+  padding-left: calc(14px * var(--ui-scale));
+  border-left: 1px solid var(--sep);
+}
+.side button {
+  width: 100%;
+}
+.side button:disabled {
+  background: none;
+  color: var(--text-4);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+.st {
+  font-size: var(--t-head);
+  color: var(--text-2);
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+}
+.st b {
+  flex: none;
+}
+.stAccent {
+  color: var(--accent);
+}
+.stOk {
+  color: var(--ok);
+}
+@container pane (max-width: 880px) {
+  .band {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .side {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 8px;
+    padding: 8px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--sep);
+  }
+  .side button {
+    width: auto;
+  }
+}

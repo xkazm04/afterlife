@@ -1,0 +1,50 @@
+.gate {
+  display: grid;
+  grid-template-columns: calc(16px * var(--ui-scale)) minmax(0, 1fr) auto;
+  gap: 1px 8px;
+  align-items: center;
+  width: calc(100% + 12px);
+  margin: 0 -6px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  text-align: left;
+  font: inherit;
+  cursor: default;
+  color: var(--text-1);
+}
+.gate:hover {
+  background: var(--hover);
+}
+.gl {
+  grid-row: span 2;
+  width: calc(16px * var(--ui-scale));
+  height: calc(16px * var(--ui-scale));
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 var(--t-small) / 1 var(--sys);
+  background: var(--needs-you);
+  color: var(--needs-you-ink);
+}
+.t {
+  font-size: var(--t-head);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.s {
+  grid-row: span 2;
+  font-size: var(--t-small);
+  color: var(--needs-you);
+  font-weight: 600;
+}
+.m {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

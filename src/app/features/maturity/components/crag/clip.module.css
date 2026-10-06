@@ -1,0 +1,41 @@
+/* pickable gap tag: ring + pill + id; weights from --ui-scale */
+.ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: calc(1.2px * var(--ui-scale));
+  stroke-dasharray: calc(2.5px * var(--ui-scale)) calc(2.5px * var(--ui-scale));
+}
+.clip {
+  cursor: default;
+}
+.pill {
+  fill: var(--ctl-hi);
+  stroke: var(--border-3);
+  stroke-width: calc(1px * var(--ui-scale));
+}
+.clip text {
+  font: 600 calc(11px * var(--ui-scale)) var(--mono);
+  fill: var(--text-1);
+}
+.clip:hover .pill,
+.clip:focus-visible .pill {
+  stroke: var(--text-1);
+}
+.clip:focus-visible {
+  outline: none;
+}
+.clip.picked .pill {
+  fill: var(--needs-you);
+  stroke: var(--needs-you);
+}
+.clip.picked text {
+  fill: var(--needs-you-ink);
+}
+.clip.picked .ring {
+  stroke: var(--needs-you);
+  stroke-dasharray: none;
+}
+.clip.sent .pill {
+  fill: color-mix(in oklab, var(--accent) 22%, var(--win-content));
+  stroke: color-mix(in oklab, var(--accent) 70%, transparent);
+}

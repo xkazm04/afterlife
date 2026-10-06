@@ -1,0 +1,15 @@
+.struck {
+  display: inline-flex;
+  align-items: center;
+  height: var(--chip-h);
+  padding: 0 4px;
+  border-radius: 5px;
+  border: 1px dashed var(--unknown);
+  color: var(--unknown);
+  text-decoration: line-through;
+  font: 600 var(--t-small) / 1 var(--mono);
+}
+.keys {
+  color: var(--text-3);
+  line-height: 1.8;
+}

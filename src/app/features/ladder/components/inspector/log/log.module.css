@@ -1,0 +1,127 @@
+/* The ledger as a list, and the to-scale axis above it. */
+.k-gitlab { --k: var(--accent-2); }
+.k-you { --k: var(--accent); }
+.k-belay { --k: var(--text-3); }
+.k-person { --k: var(--tier-human); }
+
+.lg {
+  display: grid;
+  grid-template-columns: calc(52px * var(--ui-scale)) minmax(0, 1fr);
+  gap: 0 6px;
+  padding: 5px 0;
+  border-top: 1px solid var(--sep-body);
+  font-size: var(--t-head);
+}
+.lg:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.t {
+  font: 400 var(--t-small) / 1.6 var(--mono);
+  color: var(--text-3);
+}
+.who {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 0;
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--text-3);
+}
+.who::before {
+  content: "";
+  width: calc(6px * var(--ui-scale));
+  height: calc(6px * var(--ui-scale));
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--k);
+  flex: none;
+}
+.who b {
+  color: var(--text-1);
+  font-weight: 600;
+  margin-right: 4px;
+}
+.chip {
+  margin-left: 6px;
+  display: inline-flex;
+}
+.x {
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.quote {
+  margin-top: 4px;
+}
+.dim .x,
+.dim .who b {
+  color: var(--text-4);
+}
+.new {
+  animation: fresh 1.6s var(--ease);
+}
+@keyframes fresh {
+  from {
+    background: color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+}
+
+.axis {
+  position: relative;
+  height: calc(58px * var(--ui-scale));
+  margin: 0 2px 6px;
+}
+.axis::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(21px * var(--ui-scale));
+  height: 1px;
+  background: var(--border-3);
+}
+.gap {
+  position: absolute;
+  top: calc(19px * var(--ui-scale));
+  height: calc(5px * var(--ui-scale));
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--stale) 55%, transparent);
+}
+.gapl {
+  position: absolute;
+  top: calc(2px * var(--ui-scale));
+  transform: translateX(-50%);
+  font: 600 var(--t-small) / 1 var(--mono);
+  color: var(--stale);
+  white-space: nowrap;
+}
+.dot {
+  position: absolute;
+  top: calc(17px * var(--ui-scale));
+  width: calc(9px * var(--ui-scale));
+  height: calc(9px * var(--ui-scale));
+  margin-left: calc(-4.5px * var(--ui-scale));
+  border-radius: 50%;
+  background: var(--k);
+  box-shadow: 0 0 6px var(--k);
+}
+.al {
+  position: absolute;
+  transform: translateX(-50%);
+  font: 400 var(--t-small) / 1 var(--mono);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.b1 { top: calc(31px * var(--ui-scale)); }
+.b2 { top: calc(45px * var(--ui-scale)); }
+.first { transform: translateX(-4px); }
+.last { transform: translateX(calc(-100% + 4px)); }
+@media (prefers-reduced-motion: reduce) {
+  .new { animation: none; }
+}
+
+.empty {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}

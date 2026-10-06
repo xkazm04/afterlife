@@ -1,0 +1,21 @@
+/* The pane: the crag takes the height that is left, the gaps table sits under it; the pane scrolls if both do not fit. */
+.content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.rescan {
+  background: var(--ctl);
+  padding: 0 8px;
+  font-size: var(--t-head);
+}
+.rescan:hover {
+  background: var(--ctl-hi);
+}
+.rescanIcon {
+  width: calc(12px * var(--ui-scale));
+  height: calc(12px * var(--ui-scale));
+}

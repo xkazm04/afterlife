@@ -1,0 +1,147 @@
+.cd {
+  position: relative;
+  width: 100%;
+  padding: 6px 10px 7px;
+  border-radius: 7px;
+  border: 1px solid var(--sep);
+  cursor: default;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), opacity var(--t-med) var(--ease), transform var(--t-med) var(--ease);
+}
+.cd:hover {
+  border-color: var(--border-3);
+}
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: var(--mini-h);
+  margin-bottom: 3px;
+}
+
+/* claims: the agent's words, dashed violet rule on the left */
+.claim {
+  background: var(--surface-sunk);
+  padding-left: 14px;
+}
+.claim::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  background: repeating-linear-gradient(180deg, var(--accent-2) 0 3px, transparent 3px 6px);
+}
+.id {
+  font: 700 var(--t-small) var(--mono);
+  color: var(--accent-2);
+}
+.quoted {
+  font: 400 var(--t-head) / 1.45 var(--mono);
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+  font-variant-ligatures: none;
+  font-feature-settings: "calt" 0, "liga" 0;
+}
+.quoted::before,
+.quoted::after {
+  color: var(--text-4);
+}
+.quoted::before {
+  content: "\201C";
+}
+.quoted::after {
+  content: "\201D";
+}
+
+/* checks: the engine's findings */
+.check {
+  background: var(--hover);
+}
+.nm {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: 600 var(--t-small) var(--mono);
+  color: var(--text-3);
+}
+.g {
+  width: calc(16px * var(--ui-scale));
+  height: calc(16px * var(--ui-scale));
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  font: 800 var(--t-small) / 1 var(--mono);
+}
+.txt {
+  font-size: var(--t-body);
+  line-height: 1.35;
+  color: var(--text-1);
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  margin-top: 3px;
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.check_ok .g {
+  color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 12%, transparent);
+}
+.check_bad {
+  border-color: color-mix(in oklab, var(--fail) 60%, transparent);
+  background: color-mix(in oklab, var(--fail) 10%, transparent);
+}
+.check_bad .g {
+  color: var(--bg);
+  background: var(--fail);
+  border-color: var(--fail);
+}
+.check_bad .txt {
+  color: var(--fail);
+}
+.check_unk {
+  border-style: dashed;
+  border-color: color-mix(in oklab, var(--unknown) 60%, transparent);
+}
+.check_unk .g {
+  color: var(--unknown);
+  border-style: dashed;
+}
+.check_unk .txt {
+  color: var(--text-3);
+}
+
+/* selection: the card, what ties to it, and the rest dimmed */
+.cd.sel {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+.cd.rel {
+  border-color: color-mix(in oklab, var(--accent) 50%, transparent);
+}
+.cd.dim {
+  background: none;
+  border-color: var(--sep-body);
+}
+.dim .txt,
+.dim .nm,
+.dim .meta,
+.dim .id,
+.dim .quoted {
+  color: var(--text-4);
+}
+.dim .g {
+  color: var(--text-4);
+  background: none;
+  border-color: var(--border-2);
+}
+.hidden {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+}

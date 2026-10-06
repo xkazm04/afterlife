@@ -1,0 +1,134 @@
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+
+/* preview bar (step 2) */
+.pv {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--sep);
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.pv > :last-child {
+  margin-left: auto;
+}
+
+/* evidence: one row per rung, top rung first like the crag */
+.rg {
+  display: grid;
+  grid-template-columns: calc(14px * var(--ui-scale)) 1fr auto;
+  align-items: center;
+  gap: 6px;
+  min-height: calc(20px * var(--ui-scale));
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+.aux {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.off {
+  color: var(--text-4);
+}
+.nx {
+  color: var(--text-1);
+}
+.nx .aux {
+  color: var(--accent);
+}
+.ob {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: calc(20px * var(--ui-scale));
+  padding-left: calc(20px * var(--ui-scale));
+  font-size: var(--t-head);
+}
+.ob a {
+  color: var(--text-1);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ob a:hover {
+  color: var(--accent);
+}
+.ob a:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: 3px;
+}
+.kd {
+  font: 500 var(--t-small) / 1 var(--mono);
+  color: var(--accent);
+  padding: 2px 4px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent);
+  white-space: nowrap;
+}
+.file {
+  color: var(--text-3);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+}
+.lack {
+  margin: 3px 0 6px calc(20px * var(--ui-scale));
+  padding: 4px 8px;
+  border-left: 2px dashed color-mix(in oklab, var(--accent) 60%, transparent);
+  font-size: var(--t-head);
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.bolt {
+  width: calc(12px * var(--ui-scale));
+  height: calc(12px * var(--ui-scale));
+}
+.boltOn {
+  fill: var(--accent);
+}
+.boltDeep {
+  fill: var(--ok);
+}
+.boltNext {
+  fill: none;
+  stroke: var(--accent);
+  stroke-dasharray: 2 2;
+}
+.boltOff {
+  fill: none;
+  stroke: var(--border-3);
+}
+
+/* credit history */
+.hr {
+  display: grid;
+  grid-template-columns: calc(34px * var(--ui-scale)) calc(62px * var(--ui-scale)) 1fr;
+  gap: 6px;
+  min-height: calc(19px * var(--ui-scale));
+  align-items: center;
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.mono {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-2);
+}
+.cre {
+  color: var(--ok);
+}
+.rej {
+  color: var(--fail);
+}
+.hr > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.why {
+  color: var(--text-3);
+}

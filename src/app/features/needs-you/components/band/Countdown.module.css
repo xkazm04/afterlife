@@ -1,0 +1,19 @@
+.digits {
+  margin: 3px 0 2px;
+  font: 750 calc(clamp(44px, 3.7vw, 66px) * var(--ui-scale)) / 1 var(--mono);
+  letter-spacing: -0.04em;
+  color: var(--needs-you);
+  white-space: nowrap;
+  text-shadow: 0 0 34px color-mix(in oklab, var(--needs-you) 22%, transparent);
+}
+.signed {
+  color: var(--text-2);
+  text-shadow: none;
+}
+.u {
+  font-size: calc(14px * var(--ui-scale));
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-3);
+  margin: 0 0.5em 0 0.12em;
+}

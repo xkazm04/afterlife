@@ -1,0 +1,29 @@
+.mk {
+  display: inline-grid;
+  place-items: center;
+  width: calc(17px * var(--ui-scale));
+  height: calc(15px * var(--ui-scale));
+  border-radius: 4px;
+  flex: none;
+  font-size: var(--t-small);
+  font-weight: 750;
+  line-height: 1;
+  color: var(--tc);
+  background: color-mix(in oklab, var(--tc) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--tc) 46%, transparent);
+}
+.mk[data-tier="quarantined"] {
+  background: var(--tier-quarantined);
+  color: var(--ink-quarantined);
+  box-shadow: none;
+}
+.mk[data-tier="human_only"] {
+  background: none;
+  color: var(--tier-human);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--tier-human) 55%, transparent);
+}
+.mk[data-stale="true"],
+[data-stale="true"] .mk {
+  color: color-mix(in oklab, var(--tc) 50%, var(--text-4));
+  background: none;
+}

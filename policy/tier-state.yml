@@ -1,0 +1,8 @@
+# tier-state.yml - where each agent's action classes stand now. Written by the tripwire (down)
+# and by promotion MRs a person merges (up). Agents cannot edit it. Illustrative values.
+version: 1
+policy_sha: a1b2c3
+agents:
+  ai-patcher-acme:
+    dep-bump.patch: { tier: supervised, since: "2026-10-09", by: "start tier + record" }
+    code-fix.patch: { tier: supervised, since: "2026-10-09", by: "start tier + record" }

@@ -1,0 +1,69 @@
+/* the caption card rides beside the climber of the current scene */
+.cap {
+  position: absolute;
+  left: calc(var(--sideX) + 9%);
+  right: var(--sP);
+  bottom: var(--y);
+  transform: translateY(50%);
+  z-index: 4;
+  padding: calc(var(--sG) * 0.8) var(--sG);
+  border-radius: 8px;
+  background: var(--menu);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 40%, transparent), 0 10px 28px var(--shade-45);
+  transition: bottom var(--t-slow) var(--ease);
+}
+.cut {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--tier-quarantined) 55%, transparent), 0 10px 28px var(--shade-45);
+}
+.who {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  font-size: var(--fB);
+  font-weight: 650;
+  color: var(--accent);
+}
+.cut .who {
+  color: var(--tier-quarantined);
+}
+.sq {
+  margin-left: auto;
+  font: 400 var(--fA) var(--mono);
+  color: var(--text-3);
+}
+.x {
+  margin-top: 4px;
+  font-size: var(--fD);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-1);
+  animation: rise var(--t-slow) var(--ease);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.qh {
+  margin-top: 7px;
+  font-size: var(--fA);
+  color: var(--text-4);
+}
+.quote {
+  margin-top: 3px;
+}
+.quote blockquote {
+  font-size: var(--fB);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cap {
+    transition: none;
+  }
+  .x {
+    animation: none;
+  }
+}

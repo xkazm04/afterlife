@@ -1,0 +1,14 @@
+/* kit-candidate: CountDot - the cyan count on a toolbar button that has filters applied. */
+.dot {
+  display: inline-grid;
+  place-items: center;
+  min-width: calc(16px * var(--ui-scale));
+  height: calc(15px * var(--ui-scale));
+  padding: 0 4px;
+  margin-left: 4px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--ink-accent);
+  font-size: var(--t-small);
+  font-weight: 700;
+}

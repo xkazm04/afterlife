@@ -1,0 +1,37 @@
+.details {
+  border-bottom: 1px solid var(--sep);
+}
+.summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--sum-h);
+  padding: 0 10px;
+  font-size: var(--t-head);
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: default;
+  user-select: none;
+}
+.summary::-webkit-details-marker {
+  display: none;
+}
+.disc {
+  color: var(--text-3);
+  transition: transform var(--t-fast) var(--ease);
+}
+.details[open] > .summary .disc {
+  transform: rotate(90deg);
+}
+.aux {
+  margin-left: auto;
+  font-weight: 500;
+  font-size: var(--t-small);
+  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+}
+.sec {
+  padding: 0 14px 10px;
+}

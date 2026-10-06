@@ -1,0 +1,24 @@
+.diff {
+  font: 400 var(--t-small) / 1.55 var(--mono);
+  border-radius: 6px;
+  background: var(--surface-sunk);
+  box-shadow: inset 0 0 0 1px var(--sep);
+  padding: 4px 0;
+}
+.diff div {
+  padding: 0 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text-3);
+}
+.diff .file {
+  color: var(--text-4);
+}
+.diff .add {
+  color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 9%, transparent);
+}
+.diff .del {
+  color: var(--fail);
+  background: color-mix(in oklab, var(--fail) 9%, transparent);
+}

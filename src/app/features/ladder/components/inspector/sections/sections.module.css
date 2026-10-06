@@ -1,0 +1,110 @@
+/* Sections of the class inspector: the promotion rule counts, the write and the diff, the actor toggles. */
+.rl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto calc(12px * var(--ui-scale));
+  gap: 2px 8px;
+  align-items: center;
+  padding: 4px 0;
+  border-top: 1px solid var(--sep-body);
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+.rl:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.v {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-1);
+}
+.ok {
+  color: var(--ok);
+  font-weight: 700;
+}
+.no {
+  color: var(--text-4);
+}
+.cells {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 2px;
+}
+.cells i {
+  flex: 1;
+  height: calc(4px * var(--ui-scale));
+  border-radius: 1px;
+  background: var(--surface-2);
+}
+.cells i.f {
+  background: color-mix(in oklab, var(--ok) 75%, transparent);
+}
+.foot {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.note {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+
+/* the diff under the commands */
+.diff {
+  margin: 4px 0 0;
+  font: 400 var(--t-head) / 1.45 var(--mono);
+  color: var(--text-2);
+  background: var(--surface-sunk);
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-shadow: inset 0 0 0 1px var(--sep);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.head {
+  color: var(--text-4);
+}
+.add {
+  color: var(--ok);
+}
+.del {
+  color: var(--fail);
+}
+
+/* actor toggles of All moves */
+.kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.kb {
+  height: var(--mini-h);
+  padding: 0 7px;
+  border: 0;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-small);
+  color: var(--text-3);
+  background: var(--ctl);
+  cursor: default;
+}
+.kb::before {
+  content: "";
+  width: calc(6px * var(--ui-scale));
+  height: calc(6px * var(--ui-scale));
+  border-radius: 50%;
+  background: var(--k);
+}
+.kb[aria-pressed="true"] {
+  background: var(--sel-side);
+  color: var(--text-1);
+}
+.kb[aria-pressed="false"]::before {
+  opacity: 0.35;
+}
+.k-gitlab { --k: var(--accent-2); }
+.k-you { --k: var(--accent); }
+.k-belay { --k: var(--text-3); }
+.k-person { --k: var(--tier-human); }

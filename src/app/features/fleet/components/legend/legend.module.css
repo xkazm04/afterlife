@@ -1,0 +1,35 @@
+.proofs {
+  display: flex;
+  width: calc(20px * var(--ui-scale));
+  height: calc(6px * var(--ui-scale));
+  border-radius: 3px;
+  overflow: hidden;
+  gap: 1px;
+  background: var(--surface-2);
+}
+.proofs i {
+  display: block;
+  min-width: 0;
+}
+.ok {
+  flex: 3;
+  background: var(--ok);
+}
+.fl {
+  flex: 1;
+  background: var(--fail);
+}
+.inc {
+  flex: 1;
+  background: repeating-linear-gradient(90deg, var(--unknown) 0 2px, transparent 2px 4px);
+}
+.hatch {
+  display: block;
+  width: calc(20px * var(--ui-scale));
+  height: calc(12px * var(--ui-scale));
+  background-image: var(--hatch);
+}
+.keys {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}

@@ -1,0 +1,131 @@
+/* Inspector bits for the Task screen. Agent text (claims, words, hunks, trace) is shown exactly as typed: no ligatures. */
+.mono {
+  font-family: var(--mono);
+}
+.push {
+  margin-left: auto;
+}
+.muted {
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.tl {
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.c_ok {
+  color: var(--ok);
+}
+.c_bad {
+  color: var(--fail);
+}
+.c_unk {
+  color: var(--unknown);
+}
+.claimId {
+  color: var(--accent-2);
+}
+
+/* ruling */
+.rl {
+  font-size: var(--t-head);
+  color: var(--text-2);
+  line-height: 1.45;
+}
+.hh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 4px;
+}
+.kv {
+  margin: 6px 0 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 10px;
+}
+.kv dt {
+  color: var(--text-3);
+}
+.kv dd {
+  margin: 0;
+  color: var(--text-1);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.quote {
+  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: var(--t-small);
+}
+.words {
+  max-height: calc(180px * var(--ui-scale));
+  overflow: auto;
+}
+.wordsNote {
+  margin-top: 6px;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+
+/* ledger + trace */
+.lr {
+  display: grid;
+  grid-template-columns: calc(34px * var(--ui-scale)) calc(36px * var(--ui-scale)) minmax(0, 1fr) calc(50px * var(--ui-scale));
+  gap: 4px;
+  height: var(--mini-h);
+  align-items: center;
+  padding: 0 4px;
+  margin: 0 -4px;
+  border-radius: 4px;
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-3);
+}
+.lr span:nth-child(3) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-2);
+}
+.lr span:last-child {
+  color: var(--text-4);
+  text-align: right;
+}
+.lr.on {
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  color: var(--text-1);
+}
+.trace {
+  font: 400 var(--t-small) / 1.5 var(--mono);
+  color: var(--text-3);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--surface-sunk);
+  border-radius: 6px;
+  padding: 5px 8px;
+  box-shadow: inset 0 0 0 1px var(--sep);
+  margin: 0;
+}
+.counts {
+  margin-top: 6px;
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.ladder {
+  color: var(--accent);
+  text-decoration: none;
+}
+.ladder:hover {
+  text-decoration: underline;
+}
+
+/* agent text exactly as typed: after every `font` shorthand, which would reset these */
+.noLig,
+.noLig *,
+.quote,
+.trace {
+  font-variant-ligatures: none;
+  font-feature-settings: "calt" 0, "liga" 0;
+}

@@ -1,0 +1,140 @@
+/* Rows inside the inspector sections. Sizes are the prototype's px times --ui-scale. */
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+.folder {
+  color: var(--accent);
+  display: inline-flex;
+}
+
+/* autonomy by class: id, record, tier mark, tier name */
+.cl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto calc(17px * var(--ui-scale)) calc(72px * var(--ui-scale));
+  align-items: center;
+  gap: 6px;
+  height: calc(20px * var(--ui-scale));
+  font-size: var(--t-head);
+}
+.id {
+  font-family: var(--mono);
+  font-size: var(--t-small);
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rec {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.tn {
+  color: var(--text-2);
+  font-size: var(--t-small);
+}
+.none .id {
+  color: var(--text-4);
+}
+
+/* stages: name, meter, rung */
+.stg {
+  display: grid;
+  grid-template-columns: calc(64px * var(--ui-scale)) auto 1fr;
+  align-items: center;
+  gap: 8px;
+  height: calc(19px * var(--ui-scale));
+  font-size: var(--t-head);
+}
+.rung {
+  color: var(--text-3);
+  font-size: var(--t-small);
+  text-align: right;
+}
+
+/* proofs */
+.prf {
+  display: flex;
+  gap: 14px;
+  font-size: var(--t-head);
+  margin-bottom: 6px;
+}
+.prf b {
+  font-size: var(--t-title);
+  font-weight: 650;
+  display: block;
+}
+.prf span {
+  color: var(--text-3);
+  font-size: var(--t-small);
+}
+.ok b {
+  color: var(--ok);
+}
+.fl b {
+  color: var(--fail);
+}
+.inc b {
+  color: var(--unknown);
+}
+
+/* needs you */
+.nyi {
+  padding: 7px 0;
+  border-top: 1px solid var(--sep-body);
+}
+.nyi:first-child {
+  border-top: 0;
+  padding-top: 2px;
+}
+.t {
+  font-size: var(--t-head);
+  color: var(--text-1);
+  font-weight: 600;
+}
+.m {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.acts {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.done {
+  font-size: var(--t-small);
+  color: var(--ok);
+}
+
+/* events and tracks */
+.ev {
+  display: grid;
+  grid-template-columns: calc(36px * var(--ui-scale)) calc(24px * var(--ui-scale)) 1fr;
+  gap: 6px;
+  font-size: var(--t-head);
+  padding: 2px 0;
+  align-items: baseline;
+}
+.tm {
+  font-family: var(--mono);
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.tk {
+  font-size: var(--t-small);
+  color: var(--accent);
+  font-weight: 600;
+}
+.tx {
+  color: var(--text-2);
+}
+.wide {
+  grid-column: 2 / 4;
+}
+.needs {
+  color: var(--needs-you);
+}
+.err {
+  color: var(--fail);
+}

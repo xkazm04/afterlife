@@ -1,0 +1,41 @@
+.preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(calc(160px * var(--ui-scale)), 0.5fr);
+  gap: 12px;
+  align-items: start;
+}
+.table {
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--win-content);
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+.r {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) calc(40px * var(--ui-scale)) minmax(0, 1.6fr) calc(52px * var(--ui-scale));
+  align-items: center;
+  height: var(--row-h);
+  padding: 0 8px;
+  gap: 6px;
+  font-size: var(--t-body);
+  color: var(--text-1);
+}
+.head {
+  height: var(--hdr-h);
+  font-size: var(--t-head);
+  font-weight: 600;
+  color: var(--text-3);
+  box-shadow: 0 1px 0 var(--sep);
+}
+.sel {
+  background: var(--sel-dim);
+}
+.rt {
+  text-align: right;
+}
+.insp {
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--sep);
+}

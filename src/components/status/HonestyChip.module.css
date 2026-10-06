@@ -1,0 +1,30 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: var(--chip-h);
+  padding: 0 5px;
+  border-radius: 4px;
+  flex: none;
+  font-size: var(--t-small);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.seeded {
+  color: var(--accent-2);
+  border: 1px dashed var(--accent-2);
+}
+.simulated,
+.unknown {
+  color: var(--unknown);
+  border: 1px dashed var(--unknown);
+}
+.stale {
+  color: var(--stale);
+  border: 1px solid color-mix(in oklab, var(--stale) 55%, transparent);
+  background-image: var(--hatch);
+}
+.age {
+  font-weight: 500;
+  margin-left: 3px;
+}

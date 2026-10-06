@@ -1,0 +1,40 @@
+{
+  "name": "belay",
+  "version": "0.1.0",
+  "description": "Belay - proof-carrying agents for the post-code lifecycle on GitLab. Set up eight agents, watch every one, and take autonomy back with one click.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "belay": "./cli/belay.mjs"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "npm run typecheck && npm run lint && npm run check:structure && npm run test && npm run build",
+    "doctor": "node cli/belay.mjs doctor",
+    "demo:data": "node scripts/build-demo.mjs",
+    "check:structure": "node scripts/check-structure.mjs src"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.3",
+    "next": "^16.3.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^16.3.3",
+    "typescript": "^5",
+    "vitest": "^4.1.8"
+  }
+}

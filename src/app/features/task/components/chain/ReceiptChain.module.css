@@ -1,0 +1,86 @@
+.chain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-radius: 8px;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+.lk {
+  position: relative;
+  min-width: 0;
+  padding: 5px 9px 6px;
+  box-shadow: inset -1px 0 0 var(--sep-body);
+  transition: background var(--t-med) var(--ease);
+}
+.lk:first-child {
+  border-radius: 8px 0 0 8px;
+}
+.lk:last-child {
+  border-radius: 0 8px 8px 0;
+  box-shadow: none;
+}
+.lk:not(:last-child)::after {
+  content: "›";
+  position: absolute;
+  right: -4px;
+  top: 4px;
+  z-index: 1;
+  font-size: var(--t-head);
+  color: var(--text-4);
+}
+.s {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-3);
+}
+.s > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.at {
+  flex: none;
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-4);
+}
+.o {
+  margin: 3px 0 2px;
+  font-size: var(--t-head);
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rf {
+  height: var(--mini-h);
+  font-size: var(--t-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.na::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px dashed var(--border-3);
+  border-radius: 5px;
+  pointer-events: none;
+}
+.na .o {
+  color: var(--text-4);
+  font-style: italic;
+}
+.lk.lit {
+  background: color-mix(in oklab, var(--accent) 15%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.lk.lit .s {
+  color: var(--accent);
+}

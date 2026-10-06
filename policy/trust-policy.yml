@@ -1,0 +1,29 @@
+# trust-policy.yml - the rules the governor reads. Changes only by merge request (Code Owners).
+# Thresholds are policy numbers, not measurements.
+version: 1
+profile: standard            # 'demo' compresses windows; shown on screen when active
+start_tier: assisted
+cooldown_days: 7
+grant_ttl_days: 14           # optional lease on a hands-off grant; lapses to supervised unless re-confirmed
+promotion:
+  assisted_to_supervised: { accepted: 5, reverts: 0, guardrail_blocks: 0, window_last: 5 }
+  supervised_to_hands_off: { accepted: 15, no_edit_ratio: 0.90, clean_days: 14, human_key: true }
+demotion:
+  one_step_on: [revert, reopened_finding, post_merge_proof_fail, default_branch_red_1h]
+  quarantine_on: [guardrail_high, budget_breach_x2]
+classes:
+  dep-bump.patch:   { agent: patcher,  proof: exploit-test,    ceiling: hands_off, deny_paths: [".gitlab-ci.yml", ".gitlab/**", "CODEOWNERS"] }
+  code-fix.patch:   { agent: patcher,  proof: exploit-test,    ceiling: supervised }
+  guard.block:      { agent: guardrail, proof: cited-diff,     ceiling: hands_off }
+  pipeline.retry:   { agent: medic,    proof: rerun-stats,     ceiling: hands_off }
+  test.quarantine:  { agent: medic,    proof: rerun-stats,     ceiling: supervised }
+  qa.file-bug:      { agent: qa,       proof: repro,           ceiling: hands_off }
+  report.draft:     { agent: cra,      proof: linked-evidence, ceiling: hands_off }
+  report.submit:    { agent: cra,                              ceiling: human_only }
+  ci-config.change: { agent: maturity, proof: score-delta,     ceiling: assisted }
+  patch-bump:       { agent: gardener, proof: bench-delta,     ceiling: supervised }
+envelope:
+  # DECISIONS.md D3: the hands-off loop reaches production, only for mechanical proof classes.
+  hands_off: { max_files: 6, max_lines: 120, environments: ["review/*", "staging", "production"] }
+  production_requires_proof: [exploit-test, rerun-stats]
+labels: { tier: "belay::tier::*", proof: "proof::*", guardrail: "guardrail::*" }

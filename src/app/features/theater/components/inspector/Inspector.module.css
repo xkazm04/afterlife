@@ -1,0 +1,121 @@
+/* inspector: the current beat */
+.x {
+  margin-top: 8px;
+  font-size: var(--t-body);
+  line-height: 1.35;
+  color: var(--text-1);
+}
+.qh {
+  margin-top: 8px;
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.quote {
+  margin-top: 6px;
+}
+.beat {
+  font-size: var(--t-head);
+  color: var(--text-2);
+  line-height: 1.4;
+  margin-top: 6px;
+}
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+
+/* proof checks */
+.ck {
+  display: grid;
+  grid-template-columns: calc(14px * var(--ui-scale)) minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  height: calc(20px * var(--ui-scale));
+  font-size: var(--t-head);
+}
+.nm {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-2);
+}
+.rs {
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.pass .rs {
+  color: var(--ok);
+  font-weight: 600;
+}
+.g {
+  width: calc(10px * var(--ui-scale));
+  height: calc(10px * var(--ui-scale));
+  border-radius: 50%;
+  border: 1px dashed var(--unknown);
+}
+.pass .g {
+  border: 0;
+  background: var(--ok);
+}
+
+/* needs me */
+.nyi {
+  padding: 7px 0;
+  border-top: 1px solid var(--sep-body);
+}
+.nyi:first-child {
+  border-top: 0;
+  padding-top: 2px;
+}
+.nyi .t {
+  font-size: var(--t-head);
+  color: var(--text-1);
+  font-weight: 600;
+}
+.nyi .m {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* the ledger list: click a row to cue it */
+.lg {
+  display: grid;
+  grid-template-columns: calc(54px * var(--ui-scale)) calc(38px * var(--ui-scale)) minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  width: calc(100% + 8px);
+  height: calc(20px * var(--ui-scale));
+  padding: 0 4px;
+  margin: 0 -4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  text-align: left;
+  cursor: default;
+  font-size: var(--t-head);
+  color: inherit;
+}
+.lg:hover {
+  background: var(--hover);
+}
+.lg.cur {
+  background: var(--sel-dim);
+}
+.tm {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-3);
+}
+.by {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--accent);
+}
+.tx {
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fut .tx,
+.fut .tm {
+  color: var(--text-4);
+}

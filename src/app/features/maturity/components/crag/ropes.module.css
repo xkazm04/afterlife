@@ -1,0 +1,83 @@
+/* Ropes, bolts, climber, chalk, unknown, next ring: drawn in CSS pixels, weights from --ui-scale.
+   --rope, --rope-deep and --chalk are defined on the crag wrapper. */
+.rope {
+  fill: none;
+  stroke: var(--rope);
+  stroke-width: calc(1.75px * var(--ui-scale));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.deep {
+  stroke: var(--rope-deep);
+}
+.ghost {
+  stroke: color-mix(in oklab, var(--accent) 65%, transparent);
+  stroke-dasharray: calc(4px * var(--ui-scale)) calc(5px * var(--ui-scale));
+  stroke-width: calc(1.5px * var(--ui-scale));
+}
+.unk {
+  stroke: var(--unknown);
+  stroke-dasharray: calc(3px * var(--ui-scale)) calc(4px * var(--ui-scale));
+  stroke-width: calc(1.25px * var(--ui-scale));
+}
+/* the rope draws itself bottom to top (pathLength is normalised to 1); not at all with reduced motion */
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: draw var(--t-slow) var(--ease) both;
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw {
+    animation: none;
+  }
+}
+
+.bolt {
+  fill: var(--win-content);
+  stroke: color-mix(in oklab, var(--white) 26%, transparent);
+  stroke-width: calc(1.1px * var(--ui-scale));
+}
+.on {
+  fill: var(--rope);
+  stroke: var(--rope);
+}
+.on.deep {
+  fill: var(--rope-deep);
+  stroke: var(--rope-deep);
+}
+.climber {
+  fill: var(--text-1);
+  stroke: var(--win-content);
+  stroke-width: calc(2px * var(--ui-scale));
+}
+.chalk {
+  stroke: var(--chalk);
+  stroke-width: calc(1.6px * var(--ui-scale));
+  stroke-linecap: round;
+}
+.chalkt {
+  font: 500 calc(11px * var(--ui-scale)) var(--mono);
+  fill: var(--chalk);
+}
+.qmark {
+  fill: var(--win-content);
+  stroke: var(--unknown);
+  stroke-dasharray: calc(2.5px * var(--ui-scale)) calc(2.5px * var(--ui-scale));
+  stroke-width: calc(1.1px * var(--ui-scale));
+}
+.qtext {
+  font: 700 calc(11px * var(--ui-scale)) var(--sys);
+  fill: var(--unknown);
+}
+.ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: calc(1.2px * var(--ui-scale));
+  stroke-dasharray: calc(2.5px * var(--ui-scale)) calc(2.5px * var(--ui-scale));
+}
+

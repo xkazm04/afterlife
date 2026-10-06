@@ -1,0 +1,28 @@
+.pop {
+  position: fixed;
+  z-index: 40;
+  max-width: calc(300px * var(--ui-scale));
+  padding: 8px 10px;
+  background: var(--menu);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  border-radius: 8px;
+  border: 1px solid var(--shade-60);
+  box-shadow: inset 0 0 0 1px var(--border-2), 0 10px 28px var(--shade-50);
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+/* helpers for popover content */
+.pop h4 {
+  margin: 0 0 5px;
+  font-size: var(--t-head);
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pop hr {
+  border: 0;
+  border-top: 1px solid var(--sep);
+  margin: 7px 0;
+}

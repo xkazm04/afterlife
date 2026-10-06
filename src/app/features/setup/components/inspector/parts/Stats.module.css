@@ -1,0 +1,24 @@
+.prf {
+  display: flex;
+  gap: 14px;
+  font-size: var(--t-head);
+  margin-bottom: 6px;
+}
+.cell b {
+  display: block;
+  font-size: var(--t-title);
+  font-weight: 650;
+}
+.cell span {
+  color: var(--text-3);
+  font-size: var(--t-small);
+}
+.ok b {
+  color: var(--ok);
+}
+.accent b {
+  color: var(--accent);
+}
+.you b {
+  color: var(--needs-you);
+}

@@ -1,0 +1,26 @@
+.replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: calc(var(--t-small) + 7px);
+  padding: 0 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-size: var(--t-small);
+  font-weight: 650;
+  color: var(--text-1);
+  background: color-mix(in oklab, var(--accent-2) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent-2) 55%, transparent);
+}
+.replay::before {
+  content: "";
+  width: 0.6em;
+  height: 0.6em;
+  border: 1.5px solid var(--accent-2);
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+.note {
+  color: var(--text-3);
+  font-weight: 500;
+}

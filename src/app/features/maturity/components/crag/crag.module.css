@@ -1,0 +1,110 @@
+/* The crag is drawn 1:1 in CSS pixels (viewBox = its box). Label sizes and stroke weights are the Smaller-setting
+   pixels times --ui-scale; the geometry in JS uses the same scale. */
+.wrap {
+  --rope: var(--accent);
+  --rope-deep: var(--ok);
+  --chalk: var(--text-3);
+  position: relative;
+  flex: 1 1 auto;
+  min-height: calc(340px * var(--ui-scale));
+}
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.mode {
+  position: absolute;
+  top: 9px;
+  left: 14px;
+  font-size: var(--t-small);
+  color: var(--text-4);
+  pointer-events: none;
+}
+.help {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 2;
+  width: calc(16px * var(--ui-scale));
+  height: calc(16px * var(--ui-scale));
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ctl-hi);
+  color: var(--text-2);
+  font-size: var(--t-small);
+  font-weight: 600;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+.help:hover {
+  background: var(--ctl-hover);
+}
+
+.inert {
+  pointer-events: none;
+}
+.contour {
+  fill: none;
+  stroke: color-mix(in oklab, var(--white) 4.5%, transparent);
+  stroke-width: calc(0.75px * var(--ui-scale));
+}
+.main {
+  stroke: color-mix(in oklab, var(--white) 8.5%, transparent);
+}
+.hatchLine {
+  stroke: color-mix(in oklab, var(--white) 6%, transparent);
+  stroke-width: calc(1.5px * var(--ui-scale));
+}
+.rlab {
+  font: 600 calc(12px * var(--ui-scale)) var(--sys);
+  fill: var(--text-3);
+}
+.rlab2 {
+  font: 400 calc(11px * var(--ui-scale)) var(--sys);
+  fill: var(--text-4);
+}
+.lineup {
+  fill: none;
+  stroke: color-mix(in oklab, var(--white) 12%, transparent);
+  stroke-width: calc(1px * var(--ui-scale));
+  stroke-dasharray: calc(1.5px * var(--ui-scale)) calc(4px * var(--ui-scale));
+}
+
+/* a stage's whole column is its click target */
+.col {
+  fill: transparent;
+}
+.col:hover {
+  fill: var(--hover);
+}
+.sel {
+  fill: color-mix(in oklab, var(--accent) 6%, transparent);
+  stroke: color-mix(in oklab, var(--accent) 16%, transparent);
+  stroke-width: calc(1px * var(--ui-scale));
+}
+.col:focus-visible {
+  outline: none;
+  stroke: var(--accent);
+  stroke-width: calc(1.5px * var(--ui-scale));
+}
+.slab {
+  font: 600 calc(12px * var(--ui-scale)) var(--sys);
+  fill: var(--text-2);
+  text-transform: capitalize;
+}
+.slabSel {
+  fill: var(--text-1);
+}
+.slab2 {
+  font: 500 calc(11px * var(--ui-scale)) var(--mono);
+  fill: var(--text-3);
+}
+.slab2.deepText {
+  fill: var(--rope-deep);
+}

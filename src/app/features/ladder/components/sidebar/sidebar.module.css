@@ -1,0 +1,12 @@
+.icon {
+  width: calc(13px * var(--ui-scale));
+  height: calc(13px * var(--ui-scale));
+}
+.tid {
+  font: 600 var(--t-small) var(--mono);
+  color: var(--accent);
+}
+.all {
+  display: inline-grid;
+  color: var(--accent);
+}

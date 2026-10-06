@@ -1,0 +1,51 @@
+.btn {
+  height: var(--seg-h);
+  padding: 0 10px;
+  border-radius: 5px;
+  border: 0;
+  background: var(--ctl-hi);
+  color: var(--text-1);
+  font-size: var(--t-head);
+  cursor: default;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 var(--shade-35), inset 0 0 0 0.5px var(--border-2);
+}
+.btn:hover:not(:disabled) {
+  background: var(--ctl-hover);
+}
+.btn:disabled {
+  color: var(--text-4);
+}
+.mini {
+  height: var(--mini-h);
+  padding: 0 8px;
+  border-radius: 4px;
+}
+.primary {
+  background: var(--needs-you);
+  color: var(--needs-you-ink);
+  font-weight: 600;
+}
+.primary:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--needs-you) 88%, var(--white));
+}
+.accent {
+  background: color-mix(in oklab, var(--accent) 70%, var(--bg));
+  color: var(--on-accent);
+}
+.accent:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--accent) 78%, var(--bg));
+}
+.ghost {
+  background: none;
+  color: var(--text-2);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+.danger {
+  color: var(--text-1);
+  background: color-mix(in oklab, var(--fail) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fail) 42%, transparent);
+}
+.danger:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--fail) 28%, transparent);
+}

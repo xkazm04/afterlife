@@ -1,0 +1,68 @@
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--ctl);
+  flex: none;
+}
+.item {
+  display: inline-flex;
+  align-items: center;
+}
+.chv {
+  color: var(--text-4);
+  flex: none;
+  margin: 0 1px;
+}
+.step {
+  height: var(--seg-h);
+  padding: 0 8px 0 4px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-head);
+  color: var(--text-2);
+  cursor: default;
+  white-space: nowrap;
+}
+.step:hover:not(:disabled) {
+  background: var(--ctl);
+}
+.step[aria-current="step"] {
+  background: var(--ctl-hi);
+  color: var(--text-1);
+  box-shadow: 0 1px 1px var(--shade-35), inset 0 0 0 0.5px var(--border-2);
+}
+.step:disabled {
+  color: var(--text-4);
+}
+.n {
+  width: calc(15px * var(--ui-scale));
+  height: calc(15px * var(--ui-scale));
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: var(--t-small);
+  font-weight: 700;
+  font-style: normal;
+  color: var(--text-3);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+}
+.step[aria-current="step"] .n {
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.past .n {
+  background: color-mix(in oklab, var(--accent) 70%, var(--bg));
+  color: var(--on-accent);
+  box-shadow: none;
+}
+.q {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  min-width: 8px;
+}

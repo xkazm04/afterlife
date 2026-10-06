@@ -1,0 +1,31 @@
+.term {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: calc(21px * var(--ui-scale));
+  padding: 0 7px;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+  background: color-mix(in oklab, currentColor 11%, transparent);
+  font: 600 var(--t-head) / 1 var(--mono);
+  cursor: default;
+}
+.ok {
+  color: var(--ok);
+}
+.bad {
+  color: var(--fail);
+}
+.unk {
+  color: var(--unknown);
+  border-style: dashed;
+  text-decoration: line-through;
+}
+.off {
+  color: var(--text-4);
+  border-style: dotted;
+  background: none;
+}
+.sel {
+  box-shadow: 0 0 0 2px var(--accent);
+}

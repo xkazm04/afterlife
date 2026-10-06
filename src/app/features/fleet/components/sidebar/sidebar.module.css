@@ -1,0 +1,8 @@
+.folder {
+  color: var(--accent);
+  display: inline-flex;
+}
+.needs {
+  color: var(--needs-you);
+  display: inline-flex;
+}

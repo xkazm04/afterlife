@@ -1,0 +1,41 @@
+.cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.glyph {
+  font-weight: 700;
+}
+.available {
+  color: var(--ok);
+}
+.unavailable {
+  color: var(--fail);
+}
+.unknown {
+  display: inline-grid;
+  place-items: center;
+  width: calc(13px * var(--ui-scale));
+  height: calc(13px * var(--ui-scale));
+  border: 1px dashed var(--unknown);
+  border-radius: 50%;
+  color: var(--unknown);
+  font-size: var(--t-small);
+}
+/* button.probe outranks the kit's .tbtn so the pill background wins whatever the stylesheet order */
+button.probe {
+  background: var(--ctl);
+  font-size: var(--t-head);
+  padding: 0 8px;
+}
+button.probe:hover:not(:disabled) {
+  background: var(--ctl-hi);
+}
+button.probe:disabled {
+  color: var(--text-4);
+}
+.ico {
+  width: calc(12px * var(--ui-scale));
+  height: calc(12px * var(--ui-scale));
+  flex: none;
+}

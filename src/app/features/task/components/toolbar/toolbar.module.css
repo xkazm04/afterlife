@@ -1,0 +1,18 @@
+.ok {
+  color: var(--ok);
+}
+.bad {
+  color: var(--fail);
+}
+.replay {
+  background: var(--ctl);
+  padding: 0 6px 0 8px;
+  font-size: var(--t-head);
+}
+.replay:hover {
+  background: var(--ctl-hi);
+}
+.play {
+  width: calc(11px * var(--ui-scale));
+  height: calc(12px * var(--ui-scale));
+}

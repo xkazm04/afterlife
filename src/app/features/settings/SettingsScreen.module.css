@@ -1,0 +1,7 @@
+.col {
+  max-width: calc(760px * var(--ui-scale));
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+  padding-bottom: 24px;
+}

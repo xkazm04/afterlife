@@ -1,0 +1,67 @@
+/* The 24 h rail: how much of the legal window has passed. */
+.tl {
+  position: relative;
+  height: calc(36px * var(--ui-scale));
+}
+.rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(12px * var(--ui-scale));
+  height: calc(8px * var(--ui-scale));
+  border-radius: 4px;
+  background: var(--surface-sunk);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+  overflow: hidden;
+}
+.fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--needs-you) 62%, transparent) 0 5px,
+    color-mix(in oklab, var(--needs-you) 30%, transparent) 5px 10px
+  );
+}
+.signed .fill {
+  filter: saturate(0.3);
+  opacity: 0.6;
+}
+.now {
+  position: absolute;
+  top: calc(6px * var(--ui-scale));
+  width: 2px;
+  height: calc(20px * var(--ui-scale));
+  background: var(--needs-you);
+  box-shadow: 0 0 8px var(--needs-you);
+  transform: translateX(-1px);
+}
+.now b {
+  position: absolute;
+  top: calc(-7px * var(--ui-scale));
+  left: 5px;
+  font: 700 var(--t-small) / 1 var(--mono);
+  color: var(--needs-you);
+}
+.tk {
+  position: absolute;
+  top: calc(24px * var(--ui-scale));
+  font: 400 var(--t-small) / 1 var(--mono);
+  color: var(--text-4);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.start {
+  transform: none;
+}
+.end {
+  transform: translateX(-100%);
+  color: var(--text-2);
+}
+@container pane (max-width: 880px) {
+  .mid {
+    display: none;
+  }
+}

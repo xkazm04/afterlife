@@ -1,0 +1,22 @@
+.ih {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--sep);
+}
+.h2 {
+  margin: 0;
+  font-size: var(--t-title);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sub {
+  margin-top: 3px;
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.path {
+  margin-top: 5px;
+  font: 400 var(--t-small) / 1.3 var(--mono);
+  color: var(--text-3);
+}

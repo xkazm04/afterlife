@@ -1,0 +1,110 @@
+/* Belay palette: colour, radius and motion tokens. Copied from the design kit's tokens (the --fs-* type tokens are
+   dropped on purpose: text sizes come from text-size.css, decision D10). Colour literals live ONLY in this file;
+   components use tokens and color-mix() of tokens. */
+:root {
+  /* ground */
+  --bg: #0a0d13;
+  --bg-grad: linear-gradient(168deg, #0a0e14 0%, #0d1018 45%, #090b11 100%);
+  --surface-1: rgba(255, 255, 255, 0.025);
+  --surface-2: rgba(255, 255, 255, 0.045);
+  --surface-3: color-mix(in srgb, #0a0d13, #fff 7%);
+  --surface-sunk: rgba(0, 0, 0, 0.45);
+  --border-1: rgba(255, 255, 255, 0.05);
+  --border-2: rgba(255, 255, 255, 0.09);
+  --border-3: rgba(255, 255, 255, 0.14);
+
+  /* text tiers (AA on --bg; never dim text with opacity) */
+  --text-1: #f0f2f7;
+  --text-2: #c6ccd8;
+  --text-3: #9aa3b2;
+  --text-4: #7a8292;
+
+  /* voices */
+  --accent: #22c3e6; /* lead: Belay's rope/light */
+  --accent-2: #a78bfa; /* second voice */
+  --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+
+  /* tiers: always a letter mark plus colour, never colour alone */
+  --tier-assisted: #60a5fa;
+  --tier-supervised: #c4a1ff;
+  --tier-handsoff: #34d399;
+  --tier-quarantined: #fb7185;
+  --tier-human: #e2e8f0;
+
+  /* status */
+  --ok: #34d399;
+  --fail: #f87171;
+  --unknown: #8b93a3; /* drawn dashed wherever possible */
+  --stale: #d4a24c; /* drawn hatched */
+  --needs-you: #fbbf24; /* the one loud colour: only what waits for a person */
+  --needs-you-ink: #1a1405;
+
+  /* ink on filled chips */
+  --on-accent: #fff;
+  --ink-accent: #031418;
+  --ink-quarantined: #1d0609;
+
+  /* shape */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-pill: 9999px;
+  --glow: 0 0 40px color-mix(in oklab, var(--accent) 14%, transparent);
+
+  /* motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 150ms;
+  --t-med: 250ms;
+  --t-slow: 400ms;
+
+  /* system fonts (the macOS window look) */
+  --sys: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+
+  /* neutral mixing stocks */
+  --white: #fff;
+  --tint-win: #1b2230;
+  --tint-chrome: #2a3242;
+  --tint-side: #121823;
+  --tint-menu: #1a2130;
+  --veil: rgba(4, 6, 10, 0.45);
+
+  /* black shades: window edges, shadows */
+  --shade-35: rgba(0, 0, 0, 0.35);
+  --shade-45: rgba(0, 0, 0, 0.45);
+  --shade-50: rgba(0, 0, 0, 0.5);
+  --shade-55: rgba(0, 0, 0, 0.55);
+  --shade-60: rgba(0, 0, 0, 0.6);
+
+  /* macOS window palette (derived) */
+  --win: color-mix(in oklab, var(--bg) 90%, var(--tint-win));
+  --win-content: color-mix(in oklab, var(--bg) 96.5%, var(--white));
+  --chrome: color-mix(in oklab, var(--bg) 82%, var(--tint-chrome));
+  --chrome-glass: color-mix(in oklab, var(--chrome) 72%, transparent);
+  --side-glass: color-mix(in oklab, var(--tint-side) 62%, transparent);
+  --sep: rgba(255, 255, 255, 0.08);
+  --sep-body: rgba(255, 255, 255, 0.035);
+  --alt: rgba(255, 255, 255, 0.022);
+  --sel: color-mix(in oklab, var(--accent) 32%, var(--bg));
+  --sel-dim: color-mix(in oklab, var(--accent) 13%, var(--bg));
+  --sel-side: color-mix(in oklab, var(--accent) 22%, transparent);
+  --hover: rgba(255, 255, 255, 0.035);
+  --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 50%, transparent);
+  --ctl: rgba(255, 255, 255, 0.07);
+  --ctl-hi: rgba(255, 255, 255, 0.12);
+  --ctl-hover: rgba(255, 255, 255, 0.16);
+  --thumb: rgba(255, 255, 255, 0.16);
+  --thumb-hover: rgba(255, 255, 255, 0.28);
+  --tl-close: color-mix(in oklab, var(--fail) 52%, var(--bg));
+  --tl-min: color-mix(in oklab, var(--stale) 52%, var(--bg));
+  --tl-zoom: color-mix(in oklab, var(--ok) 48%, var(--bg));
+  --menu: color-mix(in oklab, var(--tint-menu) 94%, transparent);
+  --hatch: repeating-linear-gradient(135deg, color-mix(in oklab, var(--stale) 16%, transparent) 0 1px, transparent 1px 5px);
+}
+
+/* Tier colour roles: any element with data-tier gets --tc (the tier colour). Used by marks, chips, pips and counts. */
+[data-tier="hands_off"] { --tc: var(--tier-handsoff); }
+[data-tier="supervised"] { --tc: var(--tier-supervised); }
+[data-tier="assisted"] { --tc: var(--tier-assisted); }
+[data-tier="quarantined"] { --tc: var(--tier-quarantined); }
+[data-tier="human_only"] { --tc: var(--tier-human); }

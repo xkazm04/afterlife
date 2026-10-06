@@ -1,0 +1,8 @@
+.insp {
+  min-width: 0;
+  overflow: auto;
+  border-left: 1px solid var(--shade-60);
+  box-shadow: inset 1px 0 0 var(--sep);
+  background: color-mix(in oklab, var(--win-content) 97.5%, var(--white));
+  font-size: var(--t-body);
+}

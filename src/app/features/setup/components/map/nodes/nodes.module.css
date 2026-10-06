@@ -1,0 +1,161 @@
+/* Nodes of the unlock map. --nh (node height) is set by the map. Sizes scale with --ui-scale (D10). */
+.nd {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(7px * var(--ui-scale));
+  width: 100%;
+  min-height: var(--nh);
+  padding: 0 calc(8px * var(--ui-scale)) 0 calc(5px * var(--ui-scale));
+  border: 1px solid var(--sep);
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--win-content) 88%, transparent);
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--t-body);
+  text-align: left;
+  cursor: default;
+  white-space: nowrap;
+  transition: opacity var(--t-med) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.nd:hover {
+  border-color: var(--border-3);
+}
+.nd[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.lb {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dim {
+  opacity: 0.3;
+}
+.hot {
+  opacity: 1;
+}
+
+/* steps */
+.m {
+  flex: none;
+  width: calc(17px * var(--ui-scale));
+  height: calc(17px * var(--ui-scale));
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 650 var(--t-small) / 1 var(--sys);
+  border: 1px solid var(--border-3);
+  color: var(--text-3);
+}
+.sdone {
+  color: var(--text-3);
+}
+.sdone .m {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.human {
+  border-color: color-mix(in oklab, var(--needs-you) 38%, transparent);
+}
+.human .m {
+  background: var(--needs-you);
+  border-color: var(--needs-you);
+  color: var(--needs-you-ink);
+  animation: halo 2.2s var(--ease) infinite;
+}
+.x {
+  font-size: var(--t-small);
+  font-weight: 650;
+  color: var(--needs-you);
+}
+.sn.probing .m {
+  border-color: var(--accent);
+}
+@keyframes halo {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--needs-you) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+/* tracks */
+.tn {
+  min-height: calc(var(--nh) + 6px * var(--ui-scale));
+  padding: 0 calc(8px * var(--ui-scale)) 0 calc(9px * var(--ui-scale));
+  gap: calc(8px * var(--ui-scale));
+}
+.id {
+  flex: none;
+  font: 650 var(--t-head) / 1 var(--mono);
+  color: var(--accent);
+}
+.tn .lb {
+  color: var(--text-1);
+  font-weight: 500;
+}
+.st {
+  flex: none;
+  font-size: var(--t-small);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ny {
+  color: var(--needs-you);
+}
+.armed {
+  border-color: color-mix(in oklab, var(--ok) 40%, transparent);
+  background: linear-gradient(90deg, color-mix(in oklab, var(--ok) 10%, var(--win-content)), var(--win-content));
+}
+.armed .st {
+  color: var(--ok);
+}
+.ready {
+  border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 11%, var(--win-content)), var(--win-content));
+}
+.ready .st {
+  color: var(--accent);
+}
+.open,
+.tn.probing {
+  border-color: color-mix(in oklab, var(--needs-you) 70%, transparent);
+}
+.locked {
+  border-style: dashed;
+  border-color: var(--border-3);
+  background: repeating-linear-gradient(135deg, var(--win-content) 0 6px, color-mix(in oklab, var(--win-content) 94%, var(--white)) 6px 7px);
+}
+.locked .id {
+  color: var(--text-4);
+}
+.locked .lb {
+  color: var(--text-3);
+  font-weight: 400;
+}
+.locked .st {
+  color: var(--text-4);
+  font-weight: 500;
+}
+
+/* capabilities: the glyph carries the state; unknown is dashed, never rounded up */
+.cn.unknown {
+  border-style: dashed;
+  border-color: color-mix(in oklab, var(--unknown) 55%, transparent);
+}
+.cn.unavailable {
+  color: var(--text-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .human .m {
+    animation: none;
+  }
+}

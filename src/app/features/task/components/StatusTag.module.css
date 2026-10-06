@@ -1,0 +1,22 @@
+.st {
+  display: inline-flex;
+  align-items: center;
+  height: var(--chip-h);
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  font-size: var(--t-small);
+  font-weight: 650;
+  white-space: nowrap;
+}
+.ok {
+  color: var(--ok);
+}
+.bad {
+  color: var(--fail);
+  background: color-mix(in oklab, var(--fail) 14%, transparent);
+}
+.unk {
+  color: var(--unknown);
+  border-style: dashed;
+}

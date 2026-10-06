@@ -1,0 +1,46 @@
+/* Rows under the rail: the grade ladder and the evidence strip share a label column. */
+.bl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 5px;
+  min-width: 0;
+}
+.lbx {
+  width: calc(74px * var(--ui-scale));
+  flex: none;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-4);
+  white-space: nowrap;
+}
+.ar {
+  color: var(--text-4);
+  font-size: var(--t-small);
+  padding: 0 1px;
+}
+.evd {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, calc(34px * var(--ui-scale))));
+  gap: 3px;
+  flex: 1;
+}
+.evd i {
+  height: calc(16px * var(--ui-scale));
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font: 700 var(--t-small) / 1 var(--mono);
+  font-style: normal;
+  color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ok) 40%, transparent);
+}
+.sub {
+  margin-left: auto;
+}
+@container pane (max-width: 880px) {
+  .lbx {
+    width: calc(70px * var(--ui-scale));
+  }
+}

@@ -1,0 +1,110 @@
+/* Cells of the class table. Layout, header, selection and groups come from the shared OutlineTable. */
+.cid {
+  font: 500 var(--t-head) var(--mono);
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.trk {
+  margin-left: 6px;
+  font: 600 var(--t-small) var(--mono);
+  color: var(--accent);
+}
+.tn {
+  margin-left: 6px;
+  font-size: var(--t-head);
+  color: var(--tc);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dn {
+  color: var(--text-3);
+}
+.bad {
+  color: var(--fail);
+  font-weight: 600;
+}
+.z {
+  color: var(--text-4);
+}
+.cn {
+  margin-left: 5px;
+  min-width: calc(13px * var(--ui-scale));
+  text-align: right;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.mv {
+  min-width: calc(24px * var(--ui-scale));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+.trip {
+  color: var(--tier-quarantined);
+}
+.pend {
+  margin-left: 6px;
+  flex: none;
+}
+
+/* the act column: revoke split button + promote */
+.act {
+  gap: 4px;
+  padding-right: 8px;
+}
+.split {
+  display: inline-flex;
+  flex: none;
+}
+.split .rv,
+.split .dd,
+.act .promote {
+  font-size: var(--t-small);
+  font-weight: 600;
+}
+.split .rv {
+  border-radius: 4px 0 0 4px;
+}
+.split .dd {
+  border-radius: 0 4px 4px 0;
+  padding: 0 4px;
+  margin-left: -1px;
+}
+.act .promote {
+  flex: none;
+}
+.act .promoteOff {
+  color: var(--text-4);
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+/* a row that is neither selected nor hovered quiets its buttons, so the table reads as data first */
+:global([role="row"]):not([aria-selected="true"]):not(:hover) .dim {
+  opacity: 0.5;
+}
+
+/* the row whose revoke just landed flashes once */
+.just {
+  animation: just 1.6s var(--ease);
+}
+@keyframes just {
+  from {
+    background: color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .just {
+    animation: none;
+  }
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--row-h);
+  padding-left: 24px;
+  color: var(--text-3);
+}

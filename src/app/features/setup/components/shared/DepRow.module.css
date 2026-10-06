@@ -1,0 +1,69 @@
+.dep {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: calc(22px * var(--ui-scale));
+  padding: 0 6px;
+  margin: 0 -6px;
+  width: calc(100% + 12px);
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: var(--t-head);
+  color: var(--text-2);
+  cursor: default;
+}
+.dep:hover {
+  background: var(--hover);
+}
+.gl {
+  flex: none;
+  width: calc(15px * var(--ui-scale));
+  height: calc(15px * var(--ui-scale));
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 var(--t-small) / 1 var(--sys);
+  border: 1px solid currentColor;
+  color: var(--text-3);
+}
+.lb {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.s {
+  flex: none;
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.met .gl {
+  color: var(--ok);
+}
+.you .gl {
+  background: var(--needs-you);
+  border-color: var(--needs-you);
+  color: var(--needs-you-ink);
+}
+.you .s {
+  color: var(--needs-you);
+  font-weight: 600;
+}
+.unknown .gl {
+  color: var(--unknown);
+  border-style: dashed;
+}
+.no .gl {
+  color: var(--fail);
+}
+.ready .gl {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.ready .s {
+  color: var(--accent);
+}

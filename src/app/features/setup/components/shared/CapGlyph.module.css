@@ -1,0 +1,20 @@
+.g {
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 var(--t-small) / 1 var(--sys);
+  border: 1px solid currentColor;
+}
+.available {
+  color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 12%, transparent);
+}
+.unavailable {
+  color: var(--fail);
+  background: color-mix(in oklab, var(--fail) 10%, transparent);
+}
+.unknown {
+  color: var(--unknown);
+  border-style: dashed;
+}

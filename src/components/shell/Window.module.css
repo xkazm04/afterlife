@@ -1,0 +1,40 @@
+/* The window frame: sidebar | (toolbar / main / status bar). Every screen = this. */
+.win {
+  position: fixed;
+  inset: 6px;
+  display: grid;
+  grid-template-columns: var(--sbw) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--win);
+  border: 1px solid var(--border-3);
+  box-shadow: 0 0 0 1px var(--shade-60), 0 24px 60px var(--shade-55);
+}
+.noSide {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+.noSide > :first-child {
+  visibility: hidden;
+}
+.right {
+  display: grid;
+  grid-template-rows: var(--tb-h) minmax(0, 1fr) var(--sb-h);
+  min-width: 0;
+  background: var(--win-content);
+}
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--iw);
+  min-height: 0;
+}
+.noInsp .main {
+  grid-template-columns: minmax(0, 1fr) 0;
+}
+/* the content pane: a size container, positioned so tables and sheets can fill it */
+.pane {
+  container: pane / inline-size;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+}

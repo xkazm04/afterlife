@@ -1,0 +1,9 @@
+/* The table fills the pane above the docked strip. */
+.host {
+  position: absolute;
+  inset: 0 0 calc(28px * var(--ui-scale)) 0;
+}
+/* the search field sits in a wrapper that only listens for Enter and the down arrow */
+.search {
+  display: contents;
+}

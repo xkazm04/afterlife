@@ -1,0 +1,22 @@
+.strip {
+  display: inline-flex;
+  gap: 1px;
+  width: calc(76px * var(--ui-scale));
+  height: calc(8px * var(--ui-scale));
+  flex: none;
+}
+.strip i {
+  flex: 1;
+  border-radius: 1px;
+  background: var(--surface-2);
+}
+.strip i.f {
+  background: color-mix(in oklab, var(--ok) 75%, transparent);
+}
+.strip i.x {
+  background: var(--fail);
+}
+.unk {
+  border: 1px dashed var(--unknown);
+  border-radius: 2px;
+}

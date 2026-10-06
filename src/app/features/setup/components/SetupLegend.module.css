@@ -1,0 +1,46 @@
+.n {
+  width: calc(20px * var(--ui-scale));
+  height: calc(12px * var(--ui-scale));
+  border-radius: 3px;
+  border: 1px solid var(--border-3);
+  display: block;
+}
+.arm {
+  border-color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 14%, transparent);
+}
+.rdy {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+}
+.lck {
+  border-style: dashed;
+  background: repeating-linear-gradient(135deg, transparent 0 3px, var(--border-2) 3px 4px);
+}
+.you {
+  background: var(--needs-you);
+  border-color: var(--needs-you);
+}
+.unk {
+  border: 1px dashed var(--unknown);
+}
+.e {
+  stroke-width: 2;
+}
+.needs {
+  stroke: var(--accent);
+}
+.wait {
+  stroke: var(--needs-you);
+}
+.dep {
+  stroke: var(--accent-2);
+}
+path.unk {
+  stroke: var(--unknown);
+  stroke-dasharray: 3 3;
+}
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+}

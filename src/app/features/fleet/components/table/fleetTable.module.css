@@ -1,0 +1,41 @@
+/* Cells of the Fleet table that the shared table does not style. */
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.unwatched {
+  color: var(--text-3);
+}
+[data-stale="true"] .name {
+  color: var(--text-2);
+}
+/* the Classes view: a tier mark in a narrow cell */
+.cc {
+  padding: 0 2px;
+}
+.empty {
+  padding: 0 0 0 24px;
+  height: var(--row-h);
+  display: flex;
+  align-items: center;
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+
+/* header glyphs and tier names */
+.tname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--tc);
+}
+.needsHead {
+  color: var(--needs-you);
+  display: inline-flex;
+}
+
+/* the 42px class columns: the header label borrows the cell's side padding (the prototype's .cc padding) */
+.ccLab {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 calc(-4px * var(--ui-scale));
+}

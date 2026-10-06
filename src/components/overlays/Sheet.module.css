@@ -1,0 +1,58 @@
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: var(--veil);
+}
+.sheet {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 21;
+  width: min(calc(600px * var(--ui-scale)), calc(100% - 32px));
+  max-height: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in oklab, var(--win) 94%, var(--white));
+  border-radius: 0 0 10px 10px;
+  border: 1px solid var(--shade-60);
+  border-top: 0;
+  box-shadow: inset 0 0 0 1px var(--border-2), 0 18px 48px var(--shade-60);
+  animation: drop var(--t-med) var(--ease);
+}
+@keyframes drop {
+  from {
+    transform: translate(-50%, -16px);
+    opacity: 0;
+  }
+}
+.sh {
+  padding: 14px 16px 6px;
+}
+.sh h2 {
+  margin: 0;
+  font-size: var(--t-body);
+  font-weight: 700;
+}
+.sub {
+  margin-top: 3px;
+  font-size: var(--t-head);
+  color: var(--text-3);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.sb {
+  padding: 4px 16px 8px;
+  overflow: auto;
+  min-height: 0;
+}
+.sf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 12px;
+  border-top: 1px solid var(--sep);
+}

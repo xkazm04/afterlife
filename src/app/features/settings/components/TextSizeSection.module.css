@@ -1,0 +1,34 @@
+.line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.note {
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.spec {
+  border-collapse: collapse;
+  font-size: var(--t-head);
+  width: 100%;
+}
+.spec th,
+.spec td {
+  padding: 3px 8px;
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--sep-body);
+}
+.spec thead th {
+  color: var(--text-3);
+  font-weight: 600;
+}
+.spec tbody th {
+  color: var(--text-3);
+}
+.spec .cur {
+  color: var(--text-1);
+  background: var(--sel-side);
+}
