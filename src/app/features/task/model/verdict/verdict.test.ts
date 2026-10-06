@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { loadTasks } from '../build/loadTasks';
 import type { TaskView } from '../types';
 import { equationTerms, verdictWord } from './equation';
-import { claimStatus, deriveVerdict, tally } from './verdict';
+import { verdictOf } from '@/schemas';
+import { claimStatus, isStruck, tally, taskVerdict, verdictLabel } from './verdict';
 
 const tasks = loadTasks();
 const get = (id: string): TaskView => {
@@ -11,16 +12,21 @@ const get = (id: string): TaskView => {
   return t;
 };
 
-describe('deriveVerdict', () => {
-  it('fails on any failed check or an envelope breach, otherwise passes', () => {
-    expect(deriveVerdict([{ ok: true }, { ok: true }])).toBe('PASS');
-    expect(deriveVerdict([{ ok: true }, { ok: false }])).toBe('FAIL');
-    expect(deriveVerdict([{ ok: true }], false)).toBe('FAIL');
+describe('verdict of a task', () => {
+  const c = (ok: boolean | null, decidedBy?: 'engine' | 'human') => ({ claim_id: null, name: 'c', ok, detail: '', decidedBy });
+
+  it('words the schema verdict, and reads the struck terms from decidedBy', () => {
+    expect(verdictLabel('pass')).toBe('PASS');
+    expect(verdictLabel('fail')).toBe('FAIL');
+    expect(isStruck({ decidedBy: 'human' })).toBe(true);
+    expect(isStruck({})).toBe(false);
   });
 
-  it('never counts an undecided check as a pass or as a fail', () => {
-    expect(deriveVerdict([{ ok: true }, { ok: null }])).toBe('PASS');
-    expect(deriveVerdict([{ ok: null }, { ok: false }])).toBe('FAIL');
+  it('never counts a check a person decides as a pass or as a fail', () => {
+    expect(verdictOf([c(true), c(null, 'human')], true)).toBe('pass');
+    expect(verdictOf([c(null, 'human'), c(false)], true)).toBe('fail');
+    expect(taskVerdict(get('01J8QC'))).toBe('PASS');
+    expect(taskVerdict(get('01J8Q8'))).toBe('FAIL');
     expect(tally(get('01J8QC'))).toEqual({ ok: 3, bad: 0, unk: 1 });
   });
 });

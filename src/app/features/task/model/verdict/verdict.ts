@@ -1,16 +1,26 @@
-import type { CheckKind, CheckResult, TaskClaim, TaskView, Verdict } from '../types';
+import { verdictOf, type Check, type Verdict as ProofVerdict } from '@/schemas';
+import type { CheckKind, CheckResult, TaskCheck, TaskClaim, TaskView } from '../types';
 
 export const checkKind = (ok: CheckResult): CheckKind => (ok === true ? 'ok' : ok === false ? 'bad' : 'unk');
 export const checkGlyph = (ok: CheckResult): string => (ok === true ? '✓' : ok === false ? '✗' : '?');
 
 /**
- * The verdict is the AND of the engine's checks: one failed check fails it. A check nobody could decide (null) is a
- * struck term: it is not a pass and not a fail, a person decides. Claims are never terms.
+ * The word the screen shows for a schema verdict (`verdictOf` from `@/schemas`). The verdict itself is derived there:
+ * the AND of the engine's checks. A check a person decides (`decidedBy: 'human'`) is a struck term, never a pass and
+ * never a fail. Claims are never terms. The demo has no inconclusive task; it would read "INCONCLUSIVE".
  */
-export function deriveVerdict(checks: readonly { ok: CheckResult }[], envelopeWithin = true): Verdict {
-  if (!envelopeWithin) return 'FAIL';
-  return checks.some((c) => c.ok === false) ? 'FAIL' : 'PASS';
-}
+export const verdictLabel = (v: ProofVerdict): string => v.toUpperCase();
+
+/** The screen's checks as schema checks, so the one `verdictOf` derives the verdict for every consumer. */
+export const proofChecks = (checks: readonly TaskCheck[]): Check[] =>
+  checks.map((c) => ({ claim_id: c.claims[0] ?? null, name: c.id, ok: c.ok, decidedBy: c.decidedBy, detail: c.text, ref: c.ref }));
+
+/** The verdict of a task as the screen words it, derived by the schema's `verdictOf` from its checks and envelope. */
+export const taskVerdict = (task: Pick<TaskView, 'proof' | 'envelope'>): string =>
+  verdictLabel(verdictOf(proofChecks(task.proof.checks), task.envelope.within));
+
+/** Whether a check is a struck term: a person decides it, so it does not weigh on the verdict. */
+export const isStruck = (c: { decidedBy?: 'engine' | 'human' }): boolean => c.decidedBy === 'human';
 
 export interface Tally {
   ok: number;

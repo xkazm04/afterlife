@@ -38,7 +38,7 @@ function buildTask(id: string, input: BuildInput): TaskView | null {
 
   const checks: TaskCheck[] = proofIn.checks.map((c) => {
     const [claims, link] = detail.checkMap[c.id] ?? [[], 0];
-    return { id: c.id, text: c.text, ok: c.ok, ref: c.ref, claims: [...claims], link };
+    return { id: c.id, text: c.text, ok: c.ok, decidedBy: c.decidedBy ?? 'engine', ref: c.ref, claims: [...claims], link };
   });
   const claims: TaskClaim[] = claimTexts.map((text, i) => {
     const cid = detail.claimIds[i] ?? `c${i + 1}`;

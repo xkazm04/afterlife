@@ -26,7 +26,7 @@ export const QC: TaskDetail = {
       { id: 'links', text: 'every statement links to a GitLab object: 6 / 6 resolve by API', ok: true, ref: 'job #9864' },
       { id: 'clock', text: 'clock recomputed: aware 09:34 + 24 h = due 09:34 tomorrow', ok: true, ref: 'cra.ts due()' },
       { id: 'release', text: 'affected release 4.2.0 matches the SBOM asset', ok: true, ref: 'release 4.2.0' },
-      { id: 'wording', text: 'legal wording: not machine-checkable, a person reads it', ok: null, ref: 'sign-off' },
+      { id: 'wording', text: 'legal wording: not machine-checkable, a person reads it', ok: null, decidedBy: 'human', ref: 'sign-off' },
     ],
   },
   checkMap: {

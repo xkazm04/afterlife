@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getTasks } from '@/lib/demo';
 import { TASK_ORDER } from '../../data/details';
-import { deriveVerdict } from '../verdict/verdict';
+import { taskVerdict } from '../verdict/verdict';
 import { ledgerIntact } from './ledger';
 import { firstTaskId, loadTasks } from './loadTasks';
 
@@ -25,7 +25,7 @@ describe('loadTasks', () => {
   });
 
   it('keeps every stored verdict equal to the one derived from its checks', () => {
-    for (const t of tasks) expect(deriveVerdict(t.proof.checks, t.envelope.within)).toBe(t.proof.verdict);
+    for (const t of tasks) expect(taskVerdict(t)).toBe(t.proof.verdict);
   });
 
   it('has a 7-link chain, with the unreached links marked n/a', () => {
@@ -67,6 +67,12 @@ describe('loadTasks', () => {
       expect(t.ledger.length).toBeGreaterThan(0);
       expect(ledgerIntact(t.ledger)).toBe(true);
     }
+  });
+
+  it('decides every undecided check by a person, so none is an undecided engine check', () => {
+    for (const t of tasks) for (const c of t.proof.checks) if (c.ok === null) expect(c.decidedBy).toBe('human');
+    expect(byId('01J8QC').proof.checks.find((c) => c.id === 'wording')?.decidedBy).toBe('human');
+    expect(byId('01J8Q4').proof.checks.every((c) => c.decidedBy === 'engine')).toBe(true);
   });
 
   it('keeps an untested claim and an unknown check where the fixtures put them', () => {

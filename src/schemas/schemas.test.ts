@@ -15,6 +15,20 @@ describe('proof verdict', () => {
     expect(verdictOf([check(true)], false)).toBe('fail');
     expect(verdictOf([], true)).toBe('inconclusive');
   });
+
+  it('ignores a check a human decides, but never an engine check that could not be determined', () => {
+    const human = (ok: boolean | null): Check => ({ ...check(ok), decidedBy: 'human' });
+    expect(verdictOf([check(true), human(null)], true)).toBe('pass');
+    expect(verdictOf([check(true), human(false)], true)).toBe('pass');
+    expect(verdictOf([check(false), human(null)], true)).toBe('fail');
+    expect(verdictOf([check(null), human(true)], true)).toBe('inconclusive');
+    expect(verdictOf([{ ...check(true), decidedBy: 'engine' }, human(null)], true)).toBe('pass');
+    expect(verdictOf([check(true), human(null)], false)).toBe('fail');
+  });
+
+  it('has no verdict from human-decided checks alone', () => {
+    expect(verdictOf([{ ...check(true), decidedBy: 'human' }], true)).toBe('inconclusive');
+  });
 });
 
 describe('ledger chain', () => {

@@ -23,6 +23,12 @@ export interface Check {
   claim_id: string | null; // null for checks that do not answer one claim (envelope, rescan)
   name: string;
   ok: boolean | null; // null = could not be determined; never treated as pass
+  /**
+   * Who settles this check. 'engine' (default): the model-free engine decides it, so it counts toward the verdict.
+   * 'human': a person decides it (legal wording, a re-check not yet run): it is a struck term, not a pass and not a
+   * fail, and verdictOf ignores it.
+   */
+  decidedBy?: 'engine' | 'human';
   detail: string;
   ref?: string; // job, artifact, note or commit that the check read
 }
@@ -40,11 +46,15 @@ export interface ProofBlock {
   engine: { version: string; sha256: string }; // pins the checker that produced the verdict
 }
 
-/** A verdict is derived from checks only: any false fails, any unknown is inconclusive. */
+/**
+ * A verdict is derived from the engine's checks only. A check a human decides (`decidedBy: 'human'`) is ignored.
+ * Of the rest: an envelope breach or any false fails, any null is inconclusive, and none at all is inconclusive.
+ */
 export function verdictOf(checks: readonly Check[], envelopeWithin: boolean): Verdict {
   if (!envelopeWithin) return 'fail';
-  if (checks.length === 0) return 'inconclusive';
-  if (checks.some((c) => c.ok === false)) return 'fail';
-  if (checks.some((c) => c.ok === null)) return 'inconclusive';
+  const engine = checks.filter((c) => (c.decidedBy ?? 'engine') === 'engine');
+  if (engine.length === 0) return 'inconclusive';
+  if (engine.some((c) => c.ok === false)) return 'fail';
+  if (engine.some((c) => c.ok === null)) return 'inconclusive';
   return 'pass';
 }

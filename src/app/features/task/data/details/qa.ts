@@ -34,7 +34,7 @@ export const QA: TaskDetail = {
       { id: 'replay', text: 'scripted browser replayed 4 steps: same outcome', ok: true, ref: 'job #9868' },
       { id: 'shot-hash', text: 'screenshot hash matches the filed one', ok: true, ref: 'sha256:51aa…e09c' },
       { id: 'on-base', text: 'reproduces on main too: not a regression of !41', ok: true, ref: 'pipeline #9867' },
-      { id: 'recheck', text: 're-check after the next push: not run yet', ok: null, ref: 'scheduled' },
+      { id: 'recheck', text: 're-check after the next push: not run yet', ok: null, decidedBy: 'human', ref: 'scheduled' },
     ],
   },
   checkMap: {

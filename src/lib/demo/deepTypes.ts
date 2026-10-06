@@ -5,6 +5,8 @@ export interface ProofCheck {
   id: string;
   text: string;
   ok: boolean;
+  /** Absent means the engine decides it. */
+  decidedBy?: 'engine' | 'human';
   ref: string;
 }
 

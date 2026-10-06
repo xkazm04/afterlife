@@ -11,7 +11,7 @@ Route `/task/[id]` (`/task` redirects to the first task). Ported from the approv
 - `hooks/`: `useSelection`, `useReplay` (timers, toast, status), `useTaskKeys`, `useTieGeometry`
   (measures cards, re-measures on resize, inspector toggle and text size).
 - `model/` (pure, tested): `build/` merges the demo dataset with the fixtures into `TaskView` and chains
-  the ledger hashes; `verdict/` derivation, equation terms, replay sequence; `court/` selection,
+  the ledger hashes; `verdict/` the verdict (the schema's `verdictOf` over the checks; a `decidedBy: 'human'` check is a struck term), equation terms, replay sequence; `court/` selection,
   arrow keys, tie classification; `docket/` filters, stepping, key map; `exhibits.ts`.
 
 ## Data

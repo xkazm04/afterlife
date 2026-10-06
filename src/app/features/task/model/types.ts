@@ -1,5 +1,6 @@
 // Types for the Task screen: the typed fixtures (TaskDetail) and the merged view model (TaskView).
 import type { Task, TierKey } from '@/lib/demo';
+import type { Check } from '@/schemas';
 
 export type Verdict = 'PASS' | 'FAIL';
 /** true holds, false fails, null = could not be machine-checked (a person decides; never a pass). */
@@ -19,6 +20,8 @@ export interface CheckSeed {
   id: string;
   text: string;
   ok: CheckResult;
+  /** 'human': a person decides it (a struck term, ignored by the verdict). Default 'engine'. */
+  decidedBy?: Check['decidedBy'];
   ref: string;
 }
 
