@@ -1,0 +1,30 @@
+{
+  "_shape": "recorded live 2026-10-06 (glab 1.120.0, gitlab.com 19.5.0-pre); tokens/emails scrubbed",
+  "_endpoint": "GET /api/v4/namespaces/144060371",
+  "_status": 200,
+  "data": {
+    "id": 144060371,
+    "name": "afterlife",
+    "path": "afterlife3274741",
+    "kind": "group",
+    "full_path": "afterlife3274741",
+    "parent_id": null,
+    "web_url": "https://gitlab.com/groups/afterlife3274741",
+    "members_count_with_descendants": 1,
+    "root_repository_size": null,
+    "projects_count": 0,
+    "ci_minutes_usage": {
+      "total_minutes_used": 0,
+      "monthly_minutes_used": 0,
+      "purchased_minutes_used": 0
+    },
+    "billable_members_count": 1,
+    "seats_in_use": 1,
+    "max_seats_used": 0,
+    "max_seats_used_changed_at": null,
+    "end_date": null,
+    "plan": "free",
+    "trial_ends_on": null,
+    "trial": false
+  }
+}

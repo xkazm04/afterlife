@@ -1,36 +1,30 @@
 #!/usr/bin/env node
 // belay - command-line companion of the app: doctor | pair | scan | replay.
-// Every write it will ever make prints the exact command first; today only `doctor` runs.
-import { execFileSync } from 'node:child_process';
+// Every write it will ever make prints the exact command first; today only `doctor` runs, and it
+// only reads. The doctor logic is TypeScript (src/server/gitlab), run here through tsx.
+import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 const [, , cmd = 'help'] = process.argv;
-
-function probe(bin, args) {
-  try {
-    return { ok: true, out: execFileSync(bin, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim().split('\n')[0] };
-  } catch (e) {
-    return { ok: false, out: String(e.stderr || e.message).trim().split('\n')[0] };
-  }
-}
+const root = fileURLToPath(new URL('..', import.meta.url));
 
 function doctor() {
-  // Local preflight only. GitLab capability probes (flows, service accounts, vulnerability API,
-  // deployment approvals) land with the GitLab client; until then they print as unknown.
-  const rows = [
-    ['git', probe('git', ['--version'])],
-    ['glab', probe('glab', ['--version'])],
-    ['glab auth', probe('glab', ['auth', 'status'])],
-    ['node', { ok: true, out: process.version }],
-  ];
-  for (const [name, r] of rows) console.log(`${r.ok ? 'available  ' : 'unavailable'}  ${name.padEnd(10)} ${r.out}`);
-  for (const cap of ['custom flows', 'service accounts', 'vulnerability API', 'deployment approvals']) {
-    console.log(`unknown      ${cap.padEnd(10)} not probed yet`);
+  let tsx;
+  try {
+    tsx = createRequire(import.meta.url).resolve('tsx/cli');
+  } catch {
+    console.error('belay doctor needs tsx (a dev dependency): run `npm install` first.');
+    return 2;
   }
+  const entry = fileURLToPath(new URL('../src/server/gitlab/doctorCli.ts', import.meta.url));
+  const r = spawnSync(process.execPath, [tsx, entry], { cwd: root, stdio: 'inherit', env: process.env });
+  return r.status ?? 2;
 }
 
 switch (cmd) {
   case 'doctor':
-    doctor();
+    process.exitCode = doctor();
     break;
   case 'pair':
   case 'scan':

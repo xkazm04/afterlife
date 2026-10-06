@@ -1,0 +1,20 @@
+{
+  "_shape": "recorded live 2026-10-06 (glab 1.120.0, gitlab.com 19.5.0-pre); tokens/emails scrubbed",
+  "_endpoint": "GET /api/v4/groups/144060371/members/all?per_page=5",
+  "_status": 200,
+  "data": [
+    {
+      "id": 35338952,
+      "username": "kazdanm",
+      "name": "Mi Ka",
+      "state": "active",
+      "locked": false,
+      "web_url": "https://gitlab.com/kazdanm",
+      "access_level": 50,
+      "created_at": "2026-10-06T11:47:57.716Z",
+      "expires_at": null,
+      "two_factor_enabled": false,
+      "membership_state": "active"
+    }
+  ]
+}

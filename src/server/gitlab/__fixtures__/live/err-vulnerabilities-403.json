@@ -1,0 +1,9 @@
+{
+  "_shape": "recorded live 2026-10-06 (glab 1.120.0, gitlab.com 19.5.0-pre); tokens/emails scrubbed",
+  "_endpoint": "GET /api/v4/projects/80272565/vulnerabilities?per_page=1",
+  "_status": 403,
+  "_glab_stderr": "glab: 403 Forbidden (HTTP 403)",
+  "data": {
+    "message": "403 Forbidden"
+  }
+}
