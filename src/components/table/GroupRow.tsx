@@ -6,7 +6,7 @@ import { groupNavId, rowDomId } from './model/rowNavigation';
 import styles from './table.module.css';
 
 /**
- * A group header row: disclosure triangle, name and count in the first cell, then your aggregate `children`
+ * A group header row: disclosure triangle, name (text, or a node with an accent) and count in the first cell, then your aggregate `children`
  * (cells for the remaining columns, in order). Sticky under the header. `id` is the bare group id; its selection id
  * is "g:<id>" (use groupNavId). Click the triangle or double-click to toggle.
  */
@@ -22,7 +22,7 @@ export function GroupRow({
   children,
 }: {
   id: string;
-  label: string;
+  label: ReactNode;
   count?: number;
   expanded: boolean;
   selected?: boolean;

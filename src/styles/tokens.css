@@ -100,6 +100,14 @@
   --tl-zoom: color-mix(in oklab, var(--ok) 48%, var(--bg));
   --menu: color-mix(in oklab, var(--tint-menu) 94%, transparent);
   --hatch: repeating-linear-gradient(135deg, color-mix(in oklab, var(--stale) 16%, transparent) 0 1px, transparent 1px 5px);
+
+  /* brand hooks: inert here; the Afterlife variants (styles/brand/) fill them in */
+  --win-inset: 6px;
+  --win-halo: 0 0 0 transparent;
+  --win-overlay: none;
+  --edge-glow: 0 0 0 transparent;
+  --sel-edge: none;
+  --title-glow: none;
 }
 
 /* Tier colour roles: any element with data-tier gets --tc (the tier colour). Used by marks, chips, pips and counts. */

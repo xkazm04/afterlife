@@ -1,4 +1,4 @@
-/* The docked command strip: always shows what r will run. */
+/* The docked command strip: the exact line a key would run, and the keys, under a table pane. */
 .dock {
   position: absolute;
   left: 0;
@@ -23,16 +23,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.p {
-  color: var(--accent);
-  font-weight: 600;
-}
 .ln b {
   color: var(--text-1);
   font-weight: 600;
-}
-.as {
-  color: var(--text-4);
 }
 .keys {
   display: flex;
@@ -42,10 +35,17 @@
   font: 400 var(--t-small) var(--sys);
   color: var(--text-4);
 }
-.keys > span {
+.key {
   display: inline-flex;
   align-items: center;
   gap: 3px;
+}
+.p {
+  color: var(--accent);
+  font-weight: 600;
+}
+.as {
+  color: var(--text-4);
 }
 @container (max-width: 820px) {
   .opt {

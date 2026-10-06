@@ -1,7 +1,7 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierChip } from '@/components/status/TierChip';
-import { Chip } from '../Chip';
-import { ObjectLink } from '../ObjectLink';
+import { Chip } from '@/components/status/chip/Chip';
+import { ObjectLink } from '@/components/controls/ObjectLink';
 import type { TaskView } from '../../model/types';
 import styles from './TaskHeader.module.css';
 

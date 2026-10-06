@@ -10,3 +10,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.accent {
+  color: var(--accent);
+  font-weight: 600;
+}

@@ -1,4 +1,4 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierChip } from '@/components/status/TierChip';
 import { plural } from '@/lib/format/plural';
 import { clockElapsed, exhibitKinds, isDenyPath } from '../../model/exhibits';

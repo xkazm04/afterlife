@@ -1,7 +1,7 @@
 import { TierChip } from '@/components/status/TierChip';
 import { SHOW_CLASSES, TIER_WHY } from '../../data/constants';
 import type { Snapshot } from '../../model/derive/snapshots';
-import { Card } from '../parts/Card';
+import { Card } from '@/components/surface/Card';
 import styles from './Rail.module.css';
 
 /** Autonomy: the three action classes of the loop with their tier chips. A demotion makes its chip drop. */

@@ -1,6 +1,6 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { WHO } from '../../data/constants';
 import type { Snapshot } from '../../model/derive/snapshots';
 import type { TheaterDemo } from '../../model/types';

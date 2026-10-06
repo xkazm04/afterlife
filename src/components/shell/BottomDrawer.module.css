@@ -1,0 +1,56 @@
+.drawer {
+  flex: none;
+  height: clamp(calc(170px * var(--ui-scale)), 35%, calc(360px * var(--ui-scale)));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-top: 1px solid var(--shade-60);
+  box-shadow: inset 0 1px 0 var(--sep);
+  background: color-mix(in oklab, var(--win-content) 97.5%, var(--white));
+}
+.compact {
+  height: auto;
+}
+.head {
+  flex: none;
+  height: calc(26px * var(--ui-scale));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 12px;
+  border-bottom: 1px solid var(--sep);
+  font-size: var(--t-head);
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.head b {
+  color: var(--text-1);
+  font-weight: 650;
+}
+.n {
+  min-width: calc(18px * var(--ui-scale));
+  height: calc(15px * var(--ui-scale));
+  padding: 0 5px;
+  border-radius: 8px;
+  display: inline-grid;
+  place-items: center;
+  font-size: var(--t-small);
+  font-weight: 700;
+  color: var(--text-2);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+}
+.on {
+  background: var(--accent);
+  color: var(--ink-accent);
+  box-shadow: none;
+}
+.close {
+  margin-left: auto;
+}
+.body {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 12px 10px;
+  overscroll-behavior: contain;
+}

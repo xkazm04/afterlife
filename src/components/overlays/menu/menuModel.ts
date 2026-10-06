@@ -1,17 +1,23 @@
 // Pure model of a menu: entries and keyboard navigation over the enabled ones.
+import type { ReactNode } from 'react';
 
-export interface MenuAction {
+/** `D` is what the caller hangs on an item (`data`) to recognise it again in `onHighlight`. */
+export interface MenuAction<D = unknown> {
   label: string;
   run: () => void;
+  /** A glyph before the label (a TierMark, an icon), after the tick column. */
+  glyph?: ReactNode;
+  /** Whatever the caller wants back when this item is highlighted (see useMenu's onHighlight). */
+  data?: D;
   /** Shortcut text shown right-aligned, e.g. "↩" or "⌘I". */
   sc?: string;
   /** Present (true or false) makes it a checkable item with a leading tick. */
   checked?: boolean;
   disabled?: boolean;
 }
-export type MenuEntry = MenuAction | { sep: true } | { head: string };
+export type MenuEntry<D = unknown> = MenuAction<D> | { sep: true } | { head: string };
 
-export const isAction = (e: MenuEntry): e is MenuAction => 'label' in e;
+export const isAction = <D,>(e: MenuEntry<D>): e is MenuAction<D> => 'label' in e;
 
 /** Indexes of the entries that can be highlighted and run. */
 export function enabledIndexes(items: readonly MenuEntry[]): number[] {

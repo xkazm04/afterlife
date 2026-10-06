@@ -1,5 +1,5 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
-import { ObjectLink } from '../ObjectLink';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
+import { ObjectLink } from '@/components/controls/ObjectLink';
 import type { TaskView } from '../../model/types';
 import styles from './ReceiptChain.module.css';
 

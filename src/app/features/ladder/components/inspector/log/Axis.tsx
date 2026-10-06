@@ -2,7 +2,7 @@ import { layoutAxis } from '../../../model/view/timeline';
 import type { LedgerEntry } from '../../../model/types';
 import styles from './log.module.css';
 
-// kit-candidate: the prototype's .axis, a to-scale timeline of who acted when (the lag of a poll is a visible gap).
+/** A to-scale timeline of who acted when: the lag of a poll is a visible gap. */
 export function Axis({ events }: { events: readonly LedgerEntry[] }) {
   const { points, gap, span } = layoutAxis(events);
   return (

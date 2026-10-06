@@ -7,7 +7,7 @@ import { CAP_NOTE, CAP_SHORT, CAP_USES } from '../../data/capabilities';
 import { useSetup } from '../../hooks/SetupContext';
 import { capSt } from '../../model/flow/state';
 import { CapGlyph } from '../shared/CapGlyph';
-import { Chip } from '../shared/Chip';
+import { Chip } from '@/components/status/chip/Chip';
 import { Spinner } from '../shared/Spinner';
 import styles from './inspector.module.css';
 import { TrackDep } from './parts/TrackDep';
@@ -23,7 +23,7 @@ export function CapPanel({ name, section }: { name: string; section: ReturnType<
     <>
       <InspectorHeader title={CAP_SHORT[name] ?? name} icon={<CapGlyph st={st} size={18} />} sub={name}>
         <div className={styles.chips}>
-          <Chip tone={st === 'available' ? 'ok' : st === 'unknown' ? 'unknown' : 'fail'}>{st}</Chip>
+          <Chip tone={st === 'available' ? 'ok' : st === 'unknown' ? 'unknown' : 'bad'}>{st}</Chip>
           <Chip>belay doctor · {state.group}</Chip>
         </div>
         {note ? <p className={styles.does}>{note}</p> : null}

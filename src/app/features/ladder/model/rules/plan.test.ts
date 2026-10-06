@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ClassRow } from '../types';
-import { buildPlan, commitText, diffKind } from './plan';
+import { buildPlan, commitText } from './plan';
 
 const base: ClassRow = {
   id: 'dep-bump.patch',
@@ -31,9 +31,8 @@ describe('buildPlan', () => {
     expect(plain).toContain('-   tier: supervised');
     expect(plain).toContain('+   tier: assisted');
   });
-  it('ignores unknown ids and labels diff lines', () => {
+  it('ignores unknown ids', () => {
     expect(buildPlan(byId, [{ id: 'nope', to: 'assisted' }]).rows).toEqual([]);
-    expect(['+ a', '- b', '  c'].map(diffKind)).toEqual(['add', 'del', 'ctx']);
   });
   it('words the ledger line with tier names', () => {
     const p = buildPlan(byId, [{ id: 'dep-bump.patch', to: 'supervised' }]);

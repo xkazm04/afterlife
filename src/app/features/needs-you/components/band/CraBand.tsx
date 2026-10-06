@@ -1,4 +1,4 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { CRA } from '../../data/cra';
 import { gradeIndex } from '../../model/clock/grades';
 import type { Action, NeedsState } from '../../model/types';

@@ -29,7 +29,7 @@ Route `/`, port of the approved Fleet prototype. `src/app/page.tsx` loads the de
 - Below 900px of pane the Tiers view drops pips and shows letter marks. Below ~1190px x scale of
   toolbar the lozenge drops its words (counts and tooltips stay).
 
-## Kit candidates
+## Local parts that other screens might want
 - `components/toolbar/CountDot.tsx` the cyan count on a filtered toolbar button.
 - `hooks/useEvent.ts` a stable callback that runs the latest function (for memoised rows).
 - `hooks/useNarrow.ts` width-threshold flag via ResizeObserver.

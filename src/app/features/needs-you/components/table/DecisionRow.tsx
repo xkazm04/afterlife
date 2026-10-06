@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import { Button } from '@/components/controls/Button';
 import { Checkbox } from '@/components/controls/Checkbox';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { Cell } from '@/components/table/Cell';
 import { Row } from '@/components/table/Row';
 import type { NeedsYouDemo } from '../../data/types';

@@ -47,6 +47,13 @@
   color: var(--text-4);
   margin: 12px 8px 3px;
   letter-spacing: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.aux {
+  margin-left: auto;
+  font-weight: 500;
 }
 .section:first-child .h3 {
   margin-top: 4px;

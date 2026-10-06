@@ -1,4 +1,4 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { POLICY } from '../../data/policy';
 import type { Head } from '../../model/types';
 import styles from './help.module.css';

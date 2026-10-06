@@ -8,7 +8,7 @@ one change climbing the nine holds of the loop. Ported from the approved "The Pi
   status line, "?" legend. Present mode moves the stage to a fixed full-viewport layer (`F`, `Esc`).
 - `components/stage/` stage, four answers, pitch, closing board. `wall/` the rope, holds, climbers and the
   riding caption. `rail/` autonomy chips, stages with evidence, CRA clock. `chrome/` transport, takes
-  sidebar, status line, help. `inspector/` the current beat. `parts/` Card, ReplayChip.
+  sidebar, status line, help. `inspector/` the current beat. `parts/` ReplayChip.
 - `hooks/` the store and its frame clock (`useReplayStore`), slice subscription, present mode, keys, actions.
 
 ## Model (pure, tested)
@@ -25,6 +25,6 @@ one change climbing the nine holds of the loop. Ported from the approved "The Pi
 - The !41 chip at beat 0 sits one bolt below hold 1 and the wall keeps room for it (prototype clipped it).
 - Home/End and a looped take: any operator action cancels a pending roll or loop restart.
 
-## Kit candidates
-`parts/Card`, `parts/ReplayChip`, `chrome/Transport` (TransportButton in a Lozenge), and a `SidebarItem`
-that hides an empty count (take names truncate otherwise).
+## On the shared kit
+`Card` is `surface/Card`, and a take with no rolls has no count column (`SidebarItem` hides an empty count).
+`parts/ReplayChip` and `chrome/Transport` (TransportButton in a Lozenge) stay local.

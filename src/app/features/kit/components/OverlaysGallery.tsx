@@ -16,7 +16,9 @@ export function OverlaysGallery({ onOpenSheet }: { onOpenSheet: () => void }) {
   const [checked, setChecked] = useState(true);
   const toast = useToast();
   const pop = usePopover();
+  const [lit, setLit] = useState('nothing');
   const menu = useMenu();
+  const tiers = useMenu<string>(undefined, { onHighlight: (it) => setLit(it?.data ?? 'nothing'), vimKeys: true });
   const items = (): MenuEntry[] => [
     { head: 'Row' },
     { label: 'Open', sc: '↩', run: () => toast.status('Open') },
@@ -39,6 +41,25 @@ export function OverlaysGallery({ onOpenSheet }: { onOpenSheet: () => void }) {
         </div>
         <Button onClick={(e) => menu.openFrom(e.currentTarget, { items: items(), highlightFirst: true })}>Open menu</Button>
         {menu.menu}
+      </Specimen>
+      <Specimen label="Menu with a glyph per item, onHighlight (j / k also move)">
+        <Button
+          onClick={(e) =>
+            tiers.openFrom(e.currentTarget, {
+              highlightFirst: true,
+              items: [
+                { head: 'Take it to · runs at once' },
+                { label: 'Supervised', sc: 'r', glyph: <TierMark tier="supervised" />, data: 'supervised', run: () => toast.status('Supervised') },
+                { label: 'Assisted', glyph: <TierMark tier="assisted" />, data: 'assisted', run: () => toast.status('Assisted') },
+                { label: 'Quarantined', sc: 'q', glyph: <TierMark tier="quarantined" />, data: 'quarantined', run: () => toast.status('Quarantined') },
+              ],
+            })
+          }
+        >
+          Take it to…
+        </Button>
+        <span>highlighted: {lit}</span>
+        {tiers.menu}
       </Specimen>
       <Specimen label="Popover: hover for the tooltip, click for a sticky one">
         <span

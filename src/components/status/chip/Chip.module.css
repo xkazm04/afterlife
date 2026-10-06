@@ -1,0 +1,69 @@
+.chip {
+  --cc: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  height: var(--mini-h);
+  padding: 0 6px;
+  border-radius: 5px;
+  font-size: var(--t-small);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-2);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+.compact {
+  height: var(--chip-h);
+  padding: 0 5px;
+  border-radius: 4px;
+  line-height: 1;
+  color: var(--text-3);
+}
+.push {
+  margin-left: auto;
+}
+.invariant {
+  color: var(--text-3);
+  font-weight: 500;
+}
+.neutral {
+  color: var(--text-2);
+  background: var(--ctl);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+}
+.ok,
+.bad,
+.accent,
+.pending,
+.lag {
+  color: var(--cc);
+  font-weight: 650;
+  background: color-mix(in oklab, var(--cc) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cc) 40%, transparent);
+}
+.ok {
+  --cc: var(--ok);
+}
+.bad {
+  --cc: var(--fail);
+}
+.accent,
+.pending {
+  --cc: var(--accent);
+}
+.lag {
+  --cc: var(--stale);
+}
+.you {
+  background: var(--needs-you);
+  color: var(--needs-you-ink);
+  font-weight: 650;
+  box-shadow: none;
+}
+.unknown {
+  color: var(--unknown);
+  font-weight: 650;
+  box-shadow: none;
+  border: 1px dashed var(--unknown);
+}

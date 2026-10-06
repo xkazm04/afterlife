@@ -8,7 +8,7 @@ import type { Readout } from '../../model/replay/state';
 import type { TheaterActions } from '../../hooks/useTheaterActions';
 import styles from './Transport.module.css';
 
-// kit-candidate: TransportButton / the transport lozenge (a Lozenge cell that holds an icon, a word and a Kbd).
+/** A transport lozenge cell: an icon, a word and a Kbd. */
 function TransportButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button type="button" className={styles.btn} {...props} />;
 }

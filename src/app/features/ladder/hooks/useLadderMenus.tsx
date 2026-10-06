@@ -2,11 +2,11 @@
 
 import { useCallback, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMenu } from '@/components/overlays/menu/useMenu';
+import type { MenuAction, MenuEntry } from '@/components/overlays/menu/menuModel';
 import { TierMark } from '@/components/status/TierMark';
 import { rowDomId } from '@/components/table/model/rowNavigation';
 import { TIER_META } from '@/lib/tiers';
-import { useLadderMenu } from '../components/menu/useLadderMenu';
-import type { LadderMenuAction, LadderMenuEntry } from '../components/menu/menuTypes';
 import { buildPlan } from '../model/rules/plan';
 import { revokeTargets } from '../model/rules/tiers';
 import type { Tier } from '../model/types';
@@ -23,9 +23,9 @@ export function useLadderMenus({ data, actions, onHover }: { data: LadderData; a
   const router = useRouter();
   const { state, dispatch, byId, trackIds } = data;
 
-  const highlight = useCallback((item: LadderMenuAction | null) => onHover(item?.to ?? null), [onHover]);
+  const onHighlight = useCallback((item: MenuAction<Tier> | null) => onHover(item?.data ?? null), [onHover]);
 
-  const sortMenu = useLadderMenu(
+  const sortMenu = useMenu<Tier>(
     () => [
       { head: 'Sort by' },
       ...SORT_KEYS.map((k) => ({ label: SORT_NAMES[k], checked: state.sort.key === k, run: () => dispatch({ type: 'sortSet', sort: { key: k, dir: defaultDir(k) } }) })),
@@ -35,20 +35,20 @@ export function useLadderMenus({ data, actions, onHover }: { data: LadderData; a
       { sep: true as const },
       { label: 'Group by Track', checked: state.grouped, run: () => dispatch({ type: 'grouped', value: !state.grouped }) },
     ],
-    highlight,
+    { onHighlight, vimKeys: true },
   );
-  const ctx = useLadderMenu(undefined, highlight);
+  const ctx = useMenu<Tier>(undefined, { onHighlight, vimKeys: true });
 
   const targetEntries = useCallback(
-    (id: string): LadderMenuEntry[] => {
+    (id: string): MenuEntry<Tier>[] => {
       const lower = revokeTargets(byId[id]?.tier ?? 'human_only');
       return [
         { head: 'Take it to · runs at once' },
         ...lower.map((to, i) => ({
           label: TIER_META[to].name,
-          lead: <TierMark tier={to} />,
+          glyph: <TierMark tier={to} />,
           sc: i === 0 ? 'r' : to === 'quarantined' ? 'q' : undefined,
-          to,
+          data: to,
           run: () => actions.revoke(id, to),
         })),
       ];
@@ -57,7 +57,7 @@ export function useLadderMenus({ data, actions, onHover }: { data: LadderData; a
   );
 
   const rowEntries = useCallback(
-    (id: string): LadderMenuEntry[] => {
+    (id: string): MenuEntry<Tier>[] => {
       const c = byId[id];
       if (!c) return [];
       const lower = revokeTargets(c.tier);
@@ -83,7 +83,7 @@ export function useLadderMenus({ data, actions, onHover }: { data: LadderData; a
   );
 
   const groupEntries = useCallback(
-    (tid: string): LadderMenuEntry[] => [
+    (tid: string): MenuEntry<Tier>[] => [
       { label: state.collapsed.includes(tid) ? 'Expand' : 'Collapse', run: () => dispatch({ type: 'toggleGroup', id: tid }) },
       { label: 'Collapse All', run: () => dispatch({ type: 'collapseAll', ids: trackIds }) },
       { label: 'Expand All', run: () => dispatch({ type: 'expandAll' }) },

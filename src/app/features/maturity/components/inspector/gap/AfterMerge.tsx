@@ -1,11 +1,11 @@
 import { Button } from '@/components/controls/Button';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { MaturityCtx, Gap } from '../../../model/ctx';
 import { creditChecks, timeline, type Phase } from '../../../model/flow/credit';
 import type { Action } from '../../../model/reducer';
 import { rungText, type Level } from '../../../model/rungs';
 import { cx } from '../../cx';
-import { Verdict } from '../Verdict';
+import { Chip } from '@/components/status/chip/Chip';
 import styles from './gap.module.css';
 
 const MARK = { ok: ['✓', styles.mok], no: ['✗', styles.mno], q: ['·', styles.mq] } as const;
@@ -24,7 +24,7 @@ export function AfterMerge({ ctx, gap, phase, now, dispatch }: { ctx: MaturityCt
           <span className={cx(styles.m, styles.mq)}>?</span>
           <span>{x.probeResult}</span>
         </div>
-        <Verdict ok={false}>{`no rung change · ${gap.stage} stays ${rungText(now)}`}</Verdict>
+        <Chip tone="neutral">{`no rung change · ${gap.stage} stays ${rungText(now)}`}</Chip>
       </>
     );
   }
@@ -51,9 +51,9 @@ export function AfterMerge({ ctx, gap, phase, now, dispatch }: { ctx: MaturityCt
             ))}
           </div>
           {phase === 'credited' ? (
-            <Verdict ok>{`credited · ${gap.stage} ${rungText(gap.from)} → ${rungText(gap.to)}`}</Verdict>
+            <Chip tone="ok">{`credited · ${gap.stage} ${rungText(gap.from)} → ${rungText(gap.to)}`}</Chip>
           ) : (
-            <Verdict ok={false}>{`no lift · ${gap.stage} stays ${rungText(gap.from)}`}</Verdict>
+            <Chip tone="neutral">{`no lift · ${gap.stage} stays ${rungText(gap.from)}`}</Chip>
           )}
         </>
       ) : null}

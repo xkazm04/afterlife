@@ -25,10 +25,10 @@ Claims, agent words, the hunk and the trace are untrusted: rendered as text, lig
 term of the verdict. Unknown is dashed, an undecided check is a struck term (never a pass), unreached
 chain links are dashed n/a, replay re-derives from the ledger and never re-runs the agent.
 
-## Kit candidates
-- `components/Chip.tsx` neutral chip (`.chp`); `components/ObjectLink.tsx` read-only object link (`.ln`).
-- `components/equation/Term.tsx` the equation term.
-- `components/docket/Docket.tsx`: wants `SidebarSection` with a right-aligned `aux` count.
+## On the shared kit
+- Chips are `Chip` (plain, invariant), the object link is `controls/ObjectLink`, and the docket's "2 / 7" is the
+  `aux` of its `SidebarSection`.
+- `components/equation/Term.tsx` (the equation term) stays local.
 - The lozenge-as-filter and the class menu already work with the shared parts.
 
 ## Tests

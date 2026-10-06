@@ -1,7 +1,7 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { craLeft } from '../../model/derive/time';
 import type { Snapshot } from '../../model/derive/snapshots';
-import { Card } from '../parts/Card';
+import { Card } from '@/components/surface/Card';
 import styles from './Rail.module.css';
 
 /** CRA early warning: the clock to the 24 h report, counting down as the slice plays. Seeded drill, simulated clock. */

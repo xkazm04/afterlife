@@ -1,5 +1,6 @@
 'use client';
 
+import { Stats } from '@/components/inspector/blocks/Stats';
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
@@ -11,7 +12,6 @@ import { DepRow } from '../shared/DepRow';
 import { GateRow } from '../shared/GateRow';
 import styles from './inspector.module.css';
 import { CapDep } from './parts/CapDep';
-import { Stats } from './parts/Stats';
 import type { useOpenSections } from './parts/useOpenSections';
 
 /** Nothing picked: the counts, the gates only you can open (and what each frees), the tracks ready, the unknowns. */

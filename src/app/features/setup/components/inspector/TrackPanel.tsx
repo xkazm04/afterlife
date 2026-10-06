@@ -11,7 +11,7 @@ import { useSetup } from '../../hooks/SetupContext';
 import { unmet } from '../../model/flow/state';
 import { GRAPH } from '../../model/map/appGraph';
 import { capsOf, downstream, isStepKey, stepOf } from '../../model/map/graph';
-import { Chip, type ChipTone } from '../shared/Chip';
+import { Chip, type ChipTone } from '@/components/status/chip/Chip';
 import styles from './inspector.module.css';
 import { CapDep } from './parts/CapDep';
 import { StepDep } from './parts/StepDep';

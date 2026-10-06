@@ -2,7 +2,6 @@ import styles from './ReplayChip.module.css';
 
 /**
  * The always-visible REPLAY chip: this screen shows a recorded ledger slice, not live data.
- * kit-candidate: ReplayChip (the prototype's `.replay`). `note` adds "illustrative" (Present mode).
  */
 export function ReplayChip({ from, to, note }: { from: number; to: number; note?: boolean }) {
   return (

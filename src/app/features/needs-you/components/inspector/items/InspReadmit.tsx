@@ -2,11 +2,11 @@ import { CommandBlock } from '@/components/inspector/CommandBlock';
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { READMIT } from '../../../data/readmit';
-import { Chip } from '../../shared/Chip';
-import { DiffBlock } from '../../shared/DiffBlock';
+import { Chip } from '@/components/status/chip/Chip';
+import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
 import { ActBtn, Acts } from '../Acts';
 import type { InspProps } from '../props';
 import { ClickSec, CommandSec, Sec } from '../Sec';
@@ -23,7 +23,7 @@ export function InspReadmit(p: InspProps) {
         title={demo.readmit.title}
         sub={
           <span className={styles.subrow}>
-            {st === 'retired' ? <Chip>retired</Chip> : <TierMark tier="quarantined" />}
+            {st === 'retired' ? <Chip compact>retired</Chip> : <TierMark tier="quarantined" />}
             <span>{demo.readmit.reason}</span>
             <HonestyChip kind="seeded" />
           </span>
@@ -80,10 +80,10 @@ export function InspReadmit(p: InspProps) {
         />
       </Sec>
       <Sec k="n4-diff" title="Re-admission MR diff" aux={READMIT.readmit.ref} p={p}>
-        <DiffBlock file={READMIT.readmit.file} diff={READMIT.readmit.diff} />
+        <DiffBlock file={READMIT.readmit.file} lines={READMIT.readmit.diff} />
       </Sec>
       <Sec k="n4-retire" title="Retire · runs on the click" aux="no outbox" def={false} p={p}>
-        <DiffBlock file={READMIT.retire.file} diff={READMIT.retire.diff} />
+        <DiffBlock file={READMIT.retire.file} lines={READMIT.retire.diff} />
         <div className={styles.gap}>
           <CommandBlock commands={READMIT.retire.commands} label="Retire commands" />
         </div>

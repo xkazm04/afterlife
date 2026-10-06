@@ -45,9 +45,6 @@ export function buildPlan(byId: Readonly<Record<string, ClassRow>>, changes: rea
   return { rows, msg, cmd, diff };
 }
 
-export type DiffKind = 'add' | 'del' | 'ctx';
-export const diffKind = (line: string): DiffKind => (line.startsWith('+') ? 'add' : line.startsWith('-') ? 'del' : 'ctx');
-
 /** The ledger text of a commit: "commit e7f1 in belay-policy: a Supervised → Assisted". */
 export function commitText(sha: string, rows: readonly PlanRow[]): string {
   return `commit ${sha} in belay-policy: ` + rows.map((r) => `${r.cls.id} ${TIER_META[r.from].name} → ${TIER_META[r.to].name}`).join(' · ');

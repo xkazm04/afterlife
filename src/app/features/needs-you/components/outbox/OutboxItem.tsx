@@ -2,7 +2,7 @@ import { Button } from '@/components/controls/Button';
 import { Icon } from '@/components/icons/Icon';
 import { CommandBlock } from '@/components/inspector/CommandBlock';
 import type { Action, OutItem } from '../../model/types';
-import { DiffBlock } from '../shared/DiffBlock';
+import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
 import styles from './OutboxItem.module.css';
 
 /** One staged write: its kind, title and write ref, Run and Remove, and (open) the exact commands and diff. */
@@ -38,7 +38,7 @@ export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; 
       {open ? (
         <div className={styles.body}>
           <CommandBlock commands={item.commands} label={`Commands for ${item.title}`} />
-          {item.diff ? <DiffBlock file={item.file} diff={item.diff} /> : null}
+          {item.diff ? <DiffBlock file={item.file} lines={item.diff} /> : null}
         </div>
       ) : null}
     </div>

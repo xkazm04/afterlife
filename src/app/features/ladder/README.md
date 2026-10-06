@@ -12,19 +12,19 @@ and the exact write is always on screen first (the docked strip, the inspector's
   - `state/` the reducer: revoke commits, 6 s later the simulated tier-gate read settles it.
 - `hooks/`: data (reducer and derived rows), actions (writes, toasts, timers), menus, keys, popovers, sim clock.
 - `components/`: `table/` (class rows, split Revoke button), `inspector/` (class and track, `log/`, `sections/`),
-  `chrome/` (tier filter, policy lozenge), `sidebar/`, `dock/`, `help/`, `menu/`, `common/`.
+  `chrome/` (tier filter, policy lozenge), `sidebar/`, `dock/` (the line of the shared `CommandDock`), `help/`.
 
 Keys: j k move, r revoke one step, q quarantine, p promote, Enter rule and write, 1-5 / 0 tier filter, / search,
 ? keys and legend, Esc closes. Arrows, Home/End, Enter and the menu key act on the focused table.
 
-## Kit candidates (marked `// kit-candidate:` in the file)
+## On the shared kit
 
-`menu/` (Menu with a glyph per item and `onHighlight`), `chrome/TierFilter` (SegmentedControl with rich options),
-`common/Chip` (pending and lag chips), `common/ActionLink` (Button as a link), `dock/Dock` (command strip),
-`inspector/log/Axis` (to-scale timeline), the diff block in `sections/WriteSection`.
+The menus are the shared `useMenu` (a `glyph` per item, `onHighlight` previews the write in the dock, `vimKeys`);
+`chrome/TierFilter` is a `SegmentedControl` with node labels and counts; the pending and lag chips are `Chip compact`;
+"Re-admit…" is `Button href`; the dock is `CommandDock`; the diff under the commands is `DiffBlock`; the group rows
+pass a node label (the track id in the accent colour). `inspector/log/Axis` (to-scale timeline) stays local.
 
 ## Not ported / differences
 
 - The legend `?` lives in the dock (as in the prototype), not the status bar; `Window` gets no `help`.
-- Group rows show "T8 Upgrade gardener" in one colour (GroupRow takes a string label), no accent on the track id.
 - Toast sits at the shared offset, not above the dock.

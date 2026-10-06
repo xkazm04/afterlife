@@ -10,7 +10,7 @@ import { CreditHistory } from './CreditHistory';
 import { EvidenceSection } from './EvidenceSection';
 import { GapSection } from './gap/GapSection';
 import styles from './inspector.module.css';
-import { Verdict } from './Verdict';
+import { Chip } from '@/components/status/chip/Chip';
 
 /** Layer 2 for the selected stage: evidence per rung, its gap (diff, then the after-merge checks), day 0, credit history. */
 export function InspectorPanel({ api }: { api: MaturityApi }) {
@@ -42,9 +42,9 @@ export function InspectorPanel({ api }: { api: MaturityApi }) {
         title={
           <>
             {capitalize(stage)}
-            <Verdict ok={now != null && now >= 3} push>
+            <Chip tone={now != null && now >= 3 ? 'ok' : 'neutral'} push>
               {`${rungText(now)} ${now != null ? (ctx.rungNames[now] ?? '') : 'unknown'}`}
-            </Verdict>
+            </Chip>
           </>
         }
         sub={`day 0 ${rungText(base.day0)} · now ${rungText(now)} · next ${now != null && nx <= now ? '—' : rungText(nx)}`}

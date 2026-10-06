@@ -1,5 +1,5 @@
 import { Legend } from '@/components/overlays/popover/Legend';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import type { TierKey } from '@/lib/demo/types';

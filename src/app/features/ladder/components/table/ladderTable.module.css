@@ -108,3 +108,9 @@
   padding-left: 24px;
   color: var(--text-3);
 }
+
+/* the track id in a group row's name */
+.trackId {
+  color: var(--accent);
+  font-weight: 600;
+}

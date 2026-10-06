@@ -4,7 +4,7 @@ import type { Ref } from 'react';
 import { Lozenge } from '@/components/controls/lozenge/Lozenge';
 import { LozengeButton } from '@/components/controls/lozenge/LozengeButton';
 import { LozengeDivider } from '@/components/controls/lozenge/LozengeDivider';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { THRESHOLD_NOTE, POLICY } from '../../data/policy';
 import type { Head } from '../../model/types';
 import styles from './chrome.module.css';

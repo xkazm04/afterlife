@@ -3,7 +3,6 @@ import styles from './DepRow.module.css';
 
 export type DepTone = 'none' | 'met' | 'you' | 'unknown' | 'no' | 'ready';
 
-// kit-candidate: DepRow (notes/setup.md lists .dep)
 /** A clickable dependency line in the inspector: a ringed glyph, a label, a right-hand state word. */
 export function DepRow({ tone = 'none', glyph, label, state, onGo }: { tone?: DepTone; glyph: ReactNode; label: ReactNode; state: string; onGo: () => void }) {
   return (

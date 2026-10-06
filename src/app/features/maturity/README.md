@@ -8,7 +8,7 @@ the approved "Nine pitches" prototype. All data is illustrative demo data.
   content (`Crag` over `GapsTable`), `SendSheet`, inspector, status counts.
 - `components/crag/` the SVG: `Backdrop`, `Route` (rope, bolts, d0 chalk, climber, `?`), `Clip` (pickable gap tag),
   `LegendButton`. Drawn 1:1 in CSS px; strokes and labels use `--ui-scale`, geometry uses the same scale in JS.
-- `components/chrome/` Stepper, ScanMeta, StageList, StatusCounts. `components/marks/` RungMeter, GapBadge.
+- `components/chrome/` ScanMeta, StageList, StatusCounts (the Stepper, the rung meter and the gap badge are shared).
 - `components/gaps/` the picked-gaps table. `components/sheet/` Send as you (exact commands first).
 - `components/inspector/` evidence per rung, gap (diff tabs, after-merge checks), day 0, credit history.
 - `hooks/` `useMaturity` (reducer + toasts), `useMaturityKeys` (arrows, P, 1-4, D/N/T, R), `useElementSize`, `useUiScale`.
@@ -22,9 +22,9 @@ the approved "Nine pitches" prototype. All data is illustrative demo data.
 `data/` typed fixtures for the prototype's `MAT_EXTRA`: stage evidence, the four proposals (with their diffs),
 credit history, meta. The shared dataset (`getMaturity()`) supplies rungs, engine, scan time and the gap list.
 
-## Kit candidates
-`Stepper`, `Verdict` (`.vd` chip), `RungMeter` (StageMeter with `deep`), `GapBadge` (NeedsYouBadge with a label),
-`SendSheet`'s command block with comment lines (CommandBlock option).
+## On the shared kit
+`Stepper` (controls/toolbar), the verdict chip is `Chip tone="ok"|"neutral"`, the rung meter is `StageMeter deep`, the
+gap badge is `NeedsYouBadge label`, and Send as you uses `CommandBlock prompt={false}` with note lines.
 
 ## Not wired
 Merge, pipeline run and probe are simulated (marked "simulated"); evidence links only toast where they would open.

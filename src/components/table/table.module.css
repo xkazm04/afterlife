@@ -119,6 +119,7 @@
 .tbl:focus .row[aria-selected="true"],
 .menuing .row[aria-selected="true"] {
   background: var(--sel);
+  box-shadow: var(--sel-edge);
 }
 .tbl:focus .row[aria-selected="true"] .c {
   box-shadow: none;

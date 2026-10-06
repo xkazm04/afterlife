@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { WHO } from '../../data/constants';
 import type { LedgerEntry } from '../../model/types';
 import styles from './Cap.module.css';

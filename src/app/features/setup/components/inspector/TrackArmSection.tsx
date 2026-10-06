@@ -27,8 +27,7 @@ export function TrackArmSection({ id, section }: { id: string; section: (key: st
   if (a.st === 'ready') {
     return (
       <InspectorSection title="Arm" aux="preview · nothing sent" {...section('arm')}>
-        <CommandBlock commands={[armCmd(id, t.key)]} />
-        <p className={styles.cm}># opens {t.armedBy} as @you · one MR, so a revert disarms</p>
+        <CommandBlock commands={[armCmd(id, t.key), { note: `# opens ${t.armedBy} as @you · one MR, so a revert disarms` }]} />
         <div className={styles.acts}>
           <Button variant="accent" onClick={() => actions.armSend(id)}>
             Arm · send as you

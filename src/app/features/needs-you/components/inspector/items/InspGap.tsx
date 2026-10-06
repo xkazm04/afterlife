@@ -1,7 +1,7 @@
 import { CommandBlock } from '@/components/inspector/CommandBlock';
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { GAP_DETAIL } from '../../../data/gaps';
 import { gapCommand } from '../../../model/outbox/commands';

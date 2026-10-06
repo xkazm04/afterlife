@@ -3,7 +3,6 @@
 import type { MouseEvent } from 'react';
 import { Button } from '@/components/controls/Button';
 import { TIER_META } from '@/lib/tiers';
-import { ActionLink } from '../common/ActionLink';
 import { promoteTitle, type Promotion } from '../../model/rules/promotion';
 import { revokeTargets } from '../../model/rules/tiers';
 import type { ClassRow, Tier } from '../../model/types';
@@ -39,9 +38,9 @@ export function ActionCell({
   if (cls.tier === 'human_only') return <span className={styles.z}>never an agent</span>;
   if (cls.tier === 'quarantined') {
     return (
-      <ActionLink href="/needs-you" size="mini" tabIndex={-1} title="Re-admit in Needs you · at Assisted at most">
+      <Button href="/needs-you" variant="primary" size="mini" tabIndex={-1} title="Re-admit in Needs you · at Assisted at most">
         Re-admit…
-      </ActionLink>
+      </Button>
     );
   }
   const first = revokeTargets(cls.tier)[0];

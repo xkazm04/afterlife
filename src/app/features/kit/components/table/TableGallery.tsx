@@ -96,7 +96,19 @@ export function TableGallery() {
         >
           {groups.map((g) => (
             <RowGroup key={g.id}>
-              <GroupRow id={g.id} label={g.id} count={g.rows.length} expanded={g.open} selected={selected === groupNavId(g.id)} onSelect={setSelected} onToggle={(id) => flip(id)}>
+              <GroupRow
+                id={g.id}
+                label={
+                  <>
+                    <span className={styles.accent}>{g.id}</span> (a node label)
+                  </>
+                }
+                count={g.rows.length}
+                expanded={g.open}
+                selected={selected === groupNavId(g.id)}
+                onSelect={setSelected}
+                onToggle={(id) => flip(id)}
+              >
                 <Cell />
                 <Cell align="center">
                   <NeedsYouBadge count={g.rows.reduce((a, p) => a + (p.state === 'not-set-up' ? 0 : p.needsYou), 0)} variant="group" />

@@ -24,6 +24,7 @@ import { TierMark } from '@/components/status/TierMark';
 import { Icon } from '@/components/icons/Icon';
 import { ControlsGallery } from './components/ControlsGallery';
 import { OverlaysGallery } from './components/OverlaysGallery';
+import { ShellGallery } from './components/ShellGallery';
 import { StatusGallery } from './components/StatusGallery';
 import { VizGallery } from './components/VizGallery';
 import { InspectorGallery } from './components/inspector/InspectorGallery';
@@ -74,16 +75,17 @@ export function KitScreen() {
       }
       sidebar={
         <>
-          <SidebarSection title="Sources">
+          <SidebarSection title="Sources" aux="4 / 9">
             <SidebarItem icon={<Icon name="folder" />} label="All projects" count={184} current />
             <SidebarItem icon={<Icon name="folder" />} label="core-banking" count={38} />
             <SidebarItem icon={<StateGlyph state="stale" />} label="Stale" count={11} />
             <SidebarItem icon={<TierMark tier="quarantined" />} label="Has quarantine" count={25} />
+            <SidebarItem icon={<Icon name="folder" />} label="An item with no count gives the label the whole row" />
           </SidebarSection>
         </>
       }
       inspector={<InspectorGallery />}
-      status="kit gallery · 5 sections · text size follows Settings"
+      status="kit gallery · 6 sections · text size follows Settings"
       help={
         <Legend
           rows={[
@@ -99,6 +101,7 @@ export function KitScreen() {
         <VizGallery />
         <ControlsGallery />
         <OverlaysGallery onOpenSheet={() => setSheet(true)} />
+        <ShellGallery />
         <TableGallery />
       </PaneScroll>
       {sheet ? (

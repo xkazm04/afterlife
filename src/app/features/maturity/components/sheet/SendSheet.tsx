@@ -1,7 +1,6 @@
-// kit-candidate: CommandPre - a command block with dim comment lines and trailing notes (CommandBlock prefixes every
-// line with "$ ", which is wrong for comments). Promote as an option of inspector/CommandBlock.
 import { Button } from '@/components/controls/Button';
 import { Spacer } from '@/components/controls/Spacer';
+import { CommandBlock } from '@/components/inspector/CommandBlock';
 import { Sheet } from '@/components/overlays/Sheet';
 import { TierChip } from '@/components/status/TierChip';
 import { commandLines, sendLabel } from '../../model/flow/commands';
@@ -38,15 +37,7 @@ export function SendSheet({ gaps, onCancel, onSend }: { gaps: readonly Gap[]; on
             <span className={styles.title}>{g.title}</span>
             {g.x.kind === 'mr' ? <TierChip tier="assisted" /> : <span className={styles.ro}>probe · read only</span>}
           </div>
-          <pre className={styles.cmd} aria-label={`Commands for gap ${g.id}`}>
-            {commandLines(g).map((l, i) => (
-              <span key={i} className={styles.line}>
-                {l.code}
-                {l.note ? <span className={styles.note}>{l.code ? `   ${l.note}` : l.note}</span> : null}
-                {'\n'}
-              </span>
-            ))}
-          </pre>
+          <CommandBlock commands={commandLines(g)} prompt={false} label={`Commands for gap ${g.id}`} />
         </div>
       ))}
     </Sheet>

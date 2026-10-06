@@ -1,8 +1,8 @@
 'use client';
 
 import { useRef } from 'react';
-import { HonestyChip } from '@/components/status/HonestyChip';
-import { Chip } from '../Chip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
+import { Chip } from '@/components/status/chip/Chip';
 import { useTieGeometry } from '../../hooks/useTieGeometry';
 import type { TaskView } from '../../model/types';
 import { emphasis, type Selection } from '../../model/court/selection';

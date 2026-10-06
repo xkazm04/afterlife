@@ -1,5 +1,6 @@
 import { FeedAge } from '@/components/status/FeedAge';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { Chip, type ChipTone } from '@/components/status/chip/Chip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierChip } from '@/components/status/TierChip';
@@ -7,6 +8,8 @@ import { TierMark } from '@/components/status/TierMark';
 import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { GallerySection } from './GallerySection';
 import { Specimen } from './Specimen';
+
+const TONES: readonly ChipTone[] = ['plain', 'invariant', 'neutral', 'ok', 'bad', 'accent', 'pending', 'lag', 'you', 'unknown'];
 
 export function StatusGallery() {
   return (
@@ -32,6 +35,24 @@ export function StatusGallery() {
         <NeedsYouBadge count={24} variant="group" />
         <NeedsYouBadge count={5} small />
         <NeedsYouBadge count={0} showZero />
+      </Specimen>
+      <Specimen label="NeedsYouBadge with a label (a picked gap's id), outlined / solid">
+        <NeedsYouBadge label="G-12" small variant="group" title="gap picked, waits for you" />
+        <NeedsYouBadge label="G-12" small title="gap picked, waits for you" />
+      </Specimen>
+      <Specimen label="Chip tones (18 px)">
+        {TONES.map((t) => (
+          <Chip key={t} tone={t}>
+            {t}
+          </Chip>
+        ))}
+      </Specimen>
+      <Specimen label="Chip compact (16 px, table cells)">
+        {TONES.map((t) => (
+          <Chip key={t} tone={t} compact>
+            {t}
+          </Chip>
+        ))}
       </Specimen>
       <Specimen label="StateGlyph watching / setting-up / stale / not-set-up">
         <StateGlyph state="watching" />

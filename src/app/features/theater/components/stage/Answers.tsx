@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { demotionWord, deriveAnswers, needsIncreased } from '../../model/derive/answers';
 import type { Snapshot } from '../../model/derive/snapshots';
-import { Card } from '../parts/Card';
+import { Card } from '@/components/surface/Card';
 import styles from './Answers.module.css';
 
 /** Running / Doing now / Going well / Needs me, all derived from the snapshot at the playhead. */

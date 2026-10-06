@@ -1,6 +1,6 @@
 import { EVIDENCE_RUNG, type Snapshot } from '../../model/derive/snapshots';
 import type { TheaterDemo } from '../../model/types';
-import { Card } from '../parts/Card';
+import { Card } from '@/components/surface/Card';
 import styles from './Rail.module.css';
 
 /** Stages with evidence: nine rows of four rung steps, "n / 9" on top. A stage that just crossed into evidence lifts. */

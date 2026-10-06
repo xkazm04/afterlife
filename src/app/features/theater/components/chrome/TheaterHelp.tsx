@@ -1,5 +1,5 @@
 import { Kbd } from '@/components/controls/Kbd';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { KEYS } from '../../data/constants';
 import { FIRST_SEQ, LAST_SEQ } from '../../model/replay/state';
 import { ReplayChip } from '../parts/ReplayChip';

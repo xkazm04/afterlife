@@ -1,7 +1,7 @@
 import { Kbd } from '@/components/controls/Kbd';
 import { Legend } from '@/components/overlays/popover/Legend';
-import { HonestyChip } from '@/components/status/HonestyChip';
-import { Chip } from '../Chip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
+import { Chip } from '@/components/status/chip/Chip';
 import styles from './TaskLegend.module.css';
 
 const Tie = ({ color, dashed }: { color: string; dashed?: boolean }) => (

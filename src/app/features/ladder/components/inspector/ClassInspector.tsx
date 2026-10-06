@@ -8,7 +8,6 @@ import type { Promotion } from '../../model/rules/promotion';
 import { revokeTargets } from '../../model/rules/tiers';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, Track } from '../../model/types';
 import { entriesFor } from '../../model/view/moves';
-import { ActionLink } from '../common/ActionLink';
 import { WhoActed } from './log/WhoActed';
 import { Sec, type SectionState } from './Sec';
 import { AllMoves } from './sections/AllMoves';
@@ -57,9 +56,9 @@ export function ClassInspector(p: ClassInspectorProps) {
             </>
           ) : null}
           {c.tier === 'quarantined' ? (
-            <ActionLink href="/needs-you" title="at Assisted at most">
+            <Button href="/needs-you" variant="primary" title="at Assisted at most">
               Re-admit…
-            </ActionLink>
+            </Button>
           ) : null}
           {c.tier !== 'human_only' && c.tier !== 'quarantined' ? (
             <Button variant={eligible ? 'primary' : 'default'} className={eligible ? undefined : styles.off} aria-disabled={!eligible} title="p" onClick={() => p.onPromote(c.id)}>

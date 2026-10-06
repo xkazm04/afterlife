@@ -1,5 +1,5 @@
 import { KeyValue } from '@/components/inspector/KeyValue';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { APP_VERSION } from '@/lib/version';
 import { TEXT_SIZE_STORAGE_KEY } from '@/lib/settings/textSize';
 import { SettingsSection } from './SettingsSection';

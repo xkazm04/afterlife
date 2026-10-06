@@ -1,7 +1,7 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { PROJECT_REPO } from '../../../data/constants';
 import { CRA, EVIDENCE, GRADES, GRADE_NEVER } from '../../../data/cra';

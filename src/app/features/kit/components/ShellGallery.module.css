@@ -1,0 +1,46 @@
+.frame {
+  display: flex;
+  flex-direction: column;
+  width: calc(420px * var(--ui-scale));
+  height: calc(250px * var(--ui-scale));
+  border-radius: 6px;
+  background: var(--win-content);
+  box-shadow: inset 0 0 0 1px var(--sep);
+  overflow: hidden;
+}
+.pane {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 10px;
+  color: var(--text-4);
+  font-size: var(--t-small);
+}
+.row {
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+.again {
+  margin: 8px;
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: var(--t-head);
+  cursor: default;
+}
+.dockFrame {
+  position: relative;
+  width: calc(520px * var(--ui-scale));
+  height: calc(60px * var(--ui-scale));
+  border-radius: 6px;
+  background: var(--win-content);
+  box-shadow: inset 0 0 0 1px var(--sep);
+  overflow: hidden;
+}
+.card {
+  padding: 8px 12px;
+  color: var(--text-2);
+  font-size: var(--t-head);
+}

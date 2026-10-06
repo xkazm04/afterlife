@@ -1,7 +1,7 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { PROMOTE, PROOFS } from '../../../data/promote';
-import { Chip } from '../../shared/Chip';
-import { DiffBlock } from '../../shared/DiffBlock';
+import { Chip } from '@/components/status/chip/Chip';
+import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
 import { TierMove } from '../../shared/MoveMarks';
 import { ActBtn, Acts } from '../Acts';
 import type { InspProps } from '../props';
@@ -77,14 +77,14 @@ export function InspPromote(p: InspProps) {
           <div key={pr.mr} className={styles.pr}>
             <span className={styles.m}>{pr.mr}</span>
             <span className={styles.t} title={pr.title}>
-              {pr.title} {pr.edited ? <Chip>edited</Chip> : null}
+              {pr.title} {pr.edited ? <Chip compact>edited</Chip> : null}
             </span>
             <span className={styles.w}>{pr.when}</span>
           </div>
         ))}
       </Sec>
       <Sec k="n1-diff" title="Policy MR diff" aux={PROMOTE.write.ref} p={p}>
-        <DiffBlock file={PROMOTE.write.file} diff={PROMOTE.write.diff} />
+        <DiffBlock file={PROMOTE.write.file} lines={PROMOTE.write.diff} />
       </Sec>
       <ClickSec k="n1-click" p={p} does={PROMOTE.does} doesNot={PROMOTE.doesNot} />
       <CommandSec k="n1-cmd" p={p} commands={PROMOTE.write.commands} def={false} />

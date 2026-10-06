@@ -8,7 +8,7 @@ tracks, and Belay writes only on a click, after showing the exact command. Every
 - `components/map/` canvas, edge layer (SVG, measured from `[data-node]`), `columns/`, `nodes/`.
 - `components/inspector/` default / step / track / capability panels; `parts/` dep lists, stats, probe line.
 - `components/toolbar/` group menu, doctor lozenge (lights capabilities), Re-probe.
-- `components/shared/` Chip, DepRow, GateRow, Spinner, CapGlyph. `SetupStatus` (progress, probe age), `SetupLegend`.
+- `components/shared/` DepRow, GateRow, Spinner, CapGlyph. `SetupStatus` (progress, probe age), `SetupLegend`.
 - `hooks/` `useSetupFlow` (reducer + async probes + toasts), `useSetupView` (pick, hover, filter, Esc), `SetupContext`.
 - `model/map/` graph closure (needs, frees), hot sets, edge paths. `model/flow/` state, reducer, probe age, wording. All pure, tested.
 - `data/` the prototype constants as typed fixtures (step detail, arm needs, capability reliance, timing).
@@ -18,7 +18,8 @@ State: step `todo|human|probing|done` (done only on a probe; step 6 fails its fi
 A doctor probe is stale after 2 min (amber, with its age); a never-probed group is all unknown.
 Keys: Esc clears, Tab walks the map, Cmd/Ctrl+I toggles the inspector. Sizes follow `--ui-scale` (D10).
 
-Kit-candidates (marked `// kit-candidate:`): `shared/Chip`, `shared/DepRow`, `shared/GateRow`, `inspector/parts/Stats`.
+On the shared kit: `Chip` (status/chip), `Stats` (inspector/blocks) and the comment lines under a command (`CommandBlock` notes).
+`shared/DepRow` and `shared/GateRow` stay local.
 Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn edges), `map/EdgeLayer`.
 
 Not ported: the hero heading, legend strip and per-node "why" lines (cut in the notes). Capability edges stay

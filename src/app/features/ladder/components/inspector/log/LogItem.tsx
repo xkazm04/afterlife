@@ -1,6 +1,6 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
-import { Chip } from '../../common/Chip';
+import { Chip } from '@/components/status/chip/Chip';
 import type { LedgerEntry } from '../../../model/types';
 import styles from './log.module.css';
 
@@ -14,7 +14,7 @@ export function LogItem({ entry, dim }: { entry: LedgerEntry; dim?: boolean }) {
           <b>{entry.actor}</b>· {entry.where}
           {entry.lag ? (
             <span className={styles.chip}>
-              <Chip tone="lag" title="Belay polls; it was not in the loop">
+              <Chip compact tone="lag" title="Belay polls; it was not in the loop">
                 {entry.lag}
               </Chip>
             </span>

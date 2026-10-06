@@ -10,7 +10,7 @@ import type { Stage } from '@/schemas';
 import { Crag } from './components/crag/Crag';
 import { ScanMeta } from './components/chrome/ScanMeta';
 import { StageList } from './components/chrome/StageList';
-import { Stepper } from './components/chrome/Stepper';
+import { Stepper } from '@/components/controls/toolbar/Stepper';
 import { GapsTable } from './components/gaps/GapsTable';
 import { InspectorPanel } from './components/inspector/InspectorPanel';
 import { SendSheet } from './components/sheet/SendSheet';
@@ -55,7 +55,7 @@ export function MaturityScreen({ maturity, stages }: { maturity: DemoData['matur
         <>
           <SegmentedControl label="Crag shows" options={MODES} value={state.mode} onChange={setMode} />
           <Spacer />
-          <Stepper steps={steps} onGo={onGo} />
+          <Stepper steps={steps} onGo={onGo} label="Next move" />
           <Spacer />
           <ScanMeta engine={ctx.engine} scannedAt={state.scannedAt} ageMin={state.ageMin} cadence={MAT_META.rescanEvery} />
           <ToolbarButton className={styles.rescan} title="Rescan, read only (R)" onClick={() => dispatch({ type: 'rescanAll' })}>

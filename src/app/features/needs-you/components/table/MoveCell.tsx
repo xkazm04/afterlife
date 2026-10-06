@@ -1,6 +1,6 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { MoveView } from '../../model/rows/rowData';
-import { Chip } from '../shared/Chip';
+import { Chip } from '@/components/status/chip/Chip';
 import { GradeChip } from '../shared/GradeChip';
 import { RungMove, TierMove } from '../shared/MoveMarks';
 
@@ -21,6 +21,6 @@ export function MoveCell({ move }: { move: MoveView }) {
           </span>
         );
       }
-      return <Chip tone={move.tone === 'ok' ? 'ok' : 'plain'}>{move.label}</Chip>;
+      return <Chip compact tone={move.tone === 'ok' ? 'ok' : 'plain'}>{move.label}</Chip>;
   }
 }

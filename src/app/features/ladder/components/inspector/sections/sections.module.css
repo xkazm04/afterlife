@@ -48,26 +48,10 @@
   font-size: var(--t-head);
 }
 
-/* the diff under the commands */
-.diff {
-  margin: 4px 0 0;
-  font: 400 var(--t-head) / 1.45 var(--mono);
-  color: var(--text-2);
-  background: var(--surface-sunk);
-  border-radius: 6px;
-  padding: 6px 8px;
-  box-shadow: inset 0 0 0 1px var(--sep);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.head {
-  color: var(--text-4);
-}
-.add {
-  color: var(--ok);
-}
-.del {
-  color: var(--fail);
+/* the commands, then the diff under them */
+.write {
+  display: grid;
+  gap: 4px;
 }
 
 /* actor toggles of All moves */

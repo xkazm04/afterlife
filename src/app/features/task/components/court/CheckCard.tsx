@@ -1,5 +1,5 @@
-import { ObjectLink } from '../ObjectLink';
-import { Chip } from '../Chip';
+import { ObjectLink } from '@/components/controls/ObjectLink';
+import { Chip } from '@/components/status/chip/Chip';
 import type { CheckKind, TaskCheck, TaskView } from '../../model/types';
 import type { Emphasis } from '../../model/court/selection';
 import { checkGlyph } from '../../model/verdict/verdict';

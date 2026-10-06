@@ -21,5 +21,6 @@ The route file reads the demo slice on the server (`data/pick.ts`) and renders `
 `data/*.ts` are the prototype's invented constants (CRA detail, 16 proofs, diffs, week ledger). Titles, rungs, rules and
 the !44 incident come from `@/lib/demo`. Everything on the screen is illustrative and says so.
 
-## Kit candidates (`// kit-candidate:`)
-`shared/Chip` (plain/ok/accent tones), `shared/DiffBlock`, `shared/DecisionGlyph`, `outbox/OutboxDrawer` (bottom drawer).
+## On the shared kit
+Chips are `Chip compact`, the diff is `DiffBlock`, and `outbox/OutboxDrawer` is the content of the shared `BottomDrawer`.
+`shared/DecisionGlyph` (the 10 px state glyph) stays local.

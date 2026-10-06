@@ -1,26 +1,4 @@
-/* Small marks the screen repeats: chips, the tier-move arrow, rung pairs. */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  height: var(--chip-h);
-  padding: 0 5px;
-  border-radius: 4px;
-  flex: none;
-  font-size: var(--t-small);
-  font-weight: 600;
-  line-height: 1;
-  color: var(--text-3);
-  box-shadow: inset 0 0 0 1px var(--border-2);
-  white-space: nowrap;
-}
-.ok {
-  color: var(--ok);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ok) 45%, transparent);
-}
-.accent {
-  color: var(--accent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 45%, transparent);
-}
+/* Small marks the screen repeats: the tier-move arrow, rung pairs. */
 .move {
   display: inline-flex;
   align-items: center;

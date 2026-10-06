@@ -21,3 +21,16 @@
   color: var(--text-1);
   box-shadow: 0 1px 1px var(--shade-35), inset 0 0 0 0.5px var(--border-2);
 }
+/* an option with a count (or a node label): label and count on one line */
+.seg button.counted {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+}
+.ct {
+  color: var(--text-3);
+}
+.seg button[aria-checked="true"] .ct {
+  color: var(--text-1);
+}

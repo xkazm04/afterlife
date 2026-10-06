@@ -1,6 +1,5 @@
 import styles from './GateRow.module.css';
 
-// kit-candidate: GateRow (notes/setup.md lists .gate)
 /** A thing only you can do: an amber number, its title, what it frees underneath, a tag on the right. */
 export function GateRow({ glyph, title, sub, tag, onGo }: { glyph: string | number; title: string; sub: string; tag: string; onGo: () => void }) {
   return (

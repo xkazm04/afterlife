@@ -25,6 +25,9 @@
 .meter i.on {
   background: var(--accent);
 }
+.meter.deep i.on {
+  background: var(--ok);
+}
 .rn {
   font-size: var(--t-small);
   color: var(--text-3);

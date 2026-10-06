@@ -49,3 +49,9 @@
 .danger:hover:not(:disabled) {
   background: color-mix(in oklab, var(--fail) 28%, transparent);
 }
+/* a link drawn as a button */
+.link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}

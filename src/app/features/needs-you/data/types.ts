@@ -1,8 +1,8 @@
 // Typed fixtures for Needs you. The prototype's invented constants (DET, WEEK) live here as plain data.
+import type { DiffLine } from '@/components/inspector/blocks/diff';
 import type { ClassRecord, MaturityProposal, TierKey } from '@/lib/demo/types';
 
-export type DiffMark = ' ' | '+' | '-';
-export type DiffLine = readonly [DiffMark, string];
+export type { DiffLine, DiffMark } from '@/components/inspector/blocks/diff';
 
 /** The "The click" section: what the button does, and what it will not do. */
 export interface ClickCopy {

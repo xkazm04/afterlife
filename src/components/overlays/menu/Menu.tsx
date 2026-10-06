@@ -7,30 +7,40 @@ import { isAction, moveActive, type MenuAction, type MenuEntry, type MenuMove } 
 import styles from './Menu.module.css';
 
 const MOVES: Record<string, MenuMove | undefined> = { ArrowDown: 'next', ArrowUp: 'prev', Home: 'first', End: 'last' };
+const VIM_MOVES: Record<string, MenuMove | undefined> = { ...MOVES, j: 'next', k: 'prev' };
 
 /**
  * The context / popup menu surface. Normally used through useMenu(); it is exported for custom cases.
- * It takes focus on mount; ArrowUp/Down/Home/End move, Enter and Space run, Escape and Tab close.
+ * It takes focus on mount; ArrowUp/Down/Home/End move (plus j / k with `vimKeys`), Enter and Space run, Escape and
+ * Tab close. `onHighlight` hears the highlighted action (or null when none, or on close).
  */
-export function Menu({
+export function Menu<D = unknown>({
   items,
   x,
   y,
   onRun,
   onClose,
+  onHighlight,
+  vimKeys,
   initialActive = -1,
 }: {
-  items: readonly MenuEntry[];
+  items: readonly MenuEntry<D>[];
   x: number;
   y: number;
-  onRun: (item: MenuAction) => void;
+  onRun: (item: MenuAction<D>) => void;
   /** `refocus` is false when the menu closed because the pointer went elsewhere. */
   onClose: (refocus: boolean) => void;
+  onHighlight?: (item: MenuAction<D> | null) => void;
+  vimKeys?: boolean;
   initialActive?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(initialActive);
   const [pos, setPos] = useState({ x, y });
+  const latest = useRef({ items, onHighlight });
+  useEffect(() => {
+    latest.current = { items, onHighlight };
+  });
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -47,12 +57,19 @@ export function Menu({
     return () => document.removeEventListener('mousedown', away, true);
   }, [onClose]);
 
+  useEffect(() => {
+    const { items: list, onHighlight: hear } = latest.current;
+    const it = list[active];
+    hear?.(it && isAction(it) && !it.disabled ? it : null);
+  }, [active]);
+  useEffect(() => () => latest.current.onHighlight?.(null), []);
+
   const run = (i: number) => {
     const it = items[i];
     if (it && isAction(it) && !it.disabled) onRun(it);
   };
   const onKey = (e: KeyboardEvent) => {
-    const move = MOVES[e.key];
+    const move = (vimKeys ? VIM_MOVES : MOVES)[e.key];
     if (move) setActive(moveActive(items, active, move));
     else if (e.key === 'Enter' || e.key === ' ') {
       if (active >= 0) run(active);
@@ -84,6 +101,7 @@ export function Menu({
             onClick={() => run(i)}
           >
             <span className={styles.ck}>{it.checked ? '✓' : ''}</span>
+            {it.glyph}
             <span>{it.label}</span>
             {it.sc ? <span className={styles.sc}>{it.sc}</span> : null}
           </div>

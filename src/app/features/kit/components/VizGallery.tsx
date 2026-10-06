@@ -20,6 +20,12 @@ export function VizGallery() {
         <StageMeter rung={null} />
         <StageMeter rung={3} showNumber />
       </Specimen>
+      <Specimen label="StageMeter deep (lit bars green: R3 and above have evidence)">
+        {[0, 1, 2, 3, 4].map((r) => (
+          <StageMeter key={r} rung={r} deep={r >= 3} />
+        ))}
+        <StageMeter rung={null} deep />
+      </Specimen>
       <Specimen label="ProofBar mixed / all pass / fails / empty / unknown">
         <ProofBar proofs={{ pass: 31, fail: 2, inconclusive: 1 }} />
         <ProofBar proofs={{ pass: 12, fail: 0, inconclusive: 0 }} />

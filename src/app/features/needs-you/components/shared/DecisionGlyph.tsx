@@ -10,7 +10,7 @@ const BODY: Record<GlyphKind, ReactNode> = {
   open: <circle cx="5" cy="5" r="3.6" fill="none" stroke="var(--text-4)" strokeWidth="1.2" />,
 };
 
-// kit-candidate: DecisionGlyph, the 10 px state glyph (waiting, staged, done, unknown, set aside, open).
+/** The 10 px state glyph of a decision: waiting, staged, done, unknown, set aside, open. */
 export function DecisionGlyph({ kind }: { kind: GlyphKind }) {
   const size = 'calc(10px * var(--ui-scale))';
   return (

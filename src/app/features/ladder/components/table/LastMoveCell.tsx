@@ -1,4 +1,4 @@
-import { Chip } from '../common/Chip';
+import { Chip } from '@/components/status/chip/Chip';
 import type { ClassRow } from '../../model/types';
 import styles from './ladderTable.module.css';
 
@@ -17,7 +17,7 @@ export function LastMoveCell({ cls }: { cls: ClassRow }) {
       </span>
       {cls.pending ? (
         <span className={styles.pend}>
-          <Chip tone="pending" title={`commit ${cls.pending} pushed · the next MR pipeline reads it`}>
+          <Chip compact tone="pending" title={`commit ${cls.pending} pushed · the next MR pipeline reads it`}>
             {cls.pending} · pending
           </Chip>
         </span>

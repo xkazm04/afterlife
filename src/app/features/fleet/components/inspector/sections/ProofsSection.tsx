@@ -1,5 +1,5 @@
 import { InspectorSection } from '@/components/inspector/InspectorSection';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { ProofBar } from '@/components/viz/ProofBar';
 import type { FleetProject } from '@/lib/demo/types';
 import type { SectionProps } from '../../../hooks/useSectionOpen';

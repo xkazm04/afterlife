@@ -1,7 +1,7 @@
 /* The window frame: sidebar | (toolbar / main / status bar). Every screen = this. */
 .win {
   position: fixed;
-  inset: 6px;
+  inset: var(--win-inset);
   display: grid;
   grid-template-columns: var(--sbw) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
@@ -9,7 +9,16 @@
   overflow: hidden;
   background: var(--win);
   border: 1px solid var(--border-3);
-  box-shadow: 0 0 0 1px var(--shade-60), 0 24px 60px var(--shade-55);
+  box-shadow: 0 0 0 1px var(--shade-60), 0 24px 60px var(--shade-55), var(--win-halo);
+}
+/* brand overlay (scanlines, grain): inert unless a brand variant sets --win-overlay */
+.win::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: var(--win-overlay);
 }
 .noSide {
   grid-template-columns: 0 minmax(0, 1fr);

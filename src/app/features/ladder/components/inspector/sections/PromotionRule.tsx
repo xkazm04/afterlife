@@ -1,8 +1,8 @@
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TIER_META } from '@/lib/tiers';
 import { NO_ETA_NOTE, THRESHOLD_NOTE } from '../../../data/policy';
 import { NO_RULES, type Promotion } from '../../../model/rules/promotion';
-import { Chip } from '../../common/Chip';
+import { Chip } from '@/components/status/chip/Chip';
 import { Sec, type SectionState } from '../Sec';
 import styles from './sections.module.css';
 
@@ -34,7 +34,7 @@ export function PromotionRule({ promotion, sections }: { promotion: Promotion; s
             <span title={THRESHOLD_NOTE}>
               <HonestyChip kind="unknown">policy numbers</HonestyChip>
             </span>
-            <Chip title={NO_ETA_NOTE}>no ETA</Chip>
+            <Chip compact title={NO_ETA_NOTE}>no ETA</Chip>
           </div>
         </>
       ) : (

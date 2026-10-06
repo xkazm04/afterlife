@@ -1,14 +1,14 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
-import { HonestyChip } from '@/components/status/HonestyChip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { RUNNER } from '../../../data/runner';
-import { Chip } from '../../shared/Chip';
+import { Chip } from '@/components/status/chip/Chip';
 import { ActBtn, Acts } from '../Acts';
 import type { InspProps } from '../props';
 import { ClickSec, CommandSec, Sec } from '../Sec';
 
 function RunnerChip({ check }: { check: 'ok' | 'none' | null }) {
-  if (check === 'ok') return <Chip tone="ok">online · job #9911</Chip>;
+  if (check === 'ok') return <Chip compact tone="ok">online · job #9911</Chip>;
   return <HonestyChip kind="unknown">{check === 'none' ? '? not seen yet' : '? unknown · 2 h old'}</HonestyChip>;
 }
 

@@ -11,7 +11,7 @@ import { STEP_DETAIL } from '../../data/stepDetail';
 import { useSetup } from '../../hooks/SetupContext';
 import { GRAPH } from '../../model/map/appGraph';
 import { stepFreesAll } from '../../model/map/graph';
-import { Chip } from '../shared/Chip';
+import { Chip } from '@/components/status/chip/Chip';
 import styles from './inspector.module.css';
 import { ProbeLine } from './parts/ProbeLine';
 import { TrackDep } from './parts/TrackDep';
@@ -63,8 +63,7 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
         </InspectorSection>
       ) : (
         <InspectorSection title="Next write" aux="preview · nothing sent" {...section('write')}>
-          <CommandBlock commands={d.cmd ?? []} />
-          <p className={styles.cm}># runs as @you via glab · flags illustrative</p>
+          <CommandBlock commands={[...(d.cmd ?? []), { note: '# runs as @you via glab · flags illustrative' }]} />
           <div className={styles.acts}>
             <Button variant="accent" disabled={busy} title="Or your coding agent runs it via adopt-belay. Done only on the probe." onClick={() => void actions.send(n)}>
               Send as you

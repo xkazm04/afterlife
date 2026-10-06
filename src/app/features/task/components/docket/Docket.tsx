@@ -8,10 +8,9 @@ import styles from './Docket.module.css';
  * The docket: every task as a sidebar link to /task/<id>, a verdict glyph, the title and its track. Filters only hide
  * rows; the open task is marked. Titles truncate: the full one is in the tooltip.
  */
-// kit-candidate: SidebarSection with a right-aligned `aux` (here the "2 / 7" count) instead of folding it into the title.
 export function Docket({ tasks, visible, currentId }: { tasks: readonly TaskView[]; visible: readonly TaskView[]; currentId: string }) {
   return (
-    <SidebarSection title={`Docket · ${docketCount(visible.length, tasks.length)}`}>
+    <SidebarSection title="Docket" aux={docketCount(visible.length, tasks.length)}>
       <nav data-docket aria-label="Tasks">
         {visible.length ? (
           visible.map((t) => {

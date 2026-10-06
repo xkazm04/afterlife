@@ -1,10 +1,10 @@
+import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
+import { StageMeter } from '@/components/viz/StageMeter';
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import type { Stage } from '@/schemas';
 import type { RouteView } from '../../model/crag/routes';
 import { capitalize, rungText } from '../../model/rungs';
-import { GapBadge } from '../marks/GapBadge';
-import { RungMeter } from '../marks/RungMeter';
 
 /** The nine stages as a source list: rung meter, name, and the rung (or the picked gap's id, which waits for you). */
 export function StageList({
@@ -27,9 +27,9 @@ export function StageList({
           return (
             <SidebarItem
               key={v.stage}
-              icon={<RungMeter rung={v.lv} />}
+              icon={<StageMeter rung={v.lv} deep={v.lv !== null && v.lv >= 3} />}
               label={capitalize(v.stage)}
-              count={gap ? <GapBadge>{gap}</GapBadge> : rungText(v.lv)}
+              count={gap ? <NeedsYouBadge small variant="group" label={gap} title="gap picked, waits for you" /> : rungText(v.lv)}
               current={selected === v.stage}
               onClick={() => onSelect(v.stage)}
             />

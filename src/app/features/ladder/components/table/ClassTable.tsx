@@ -87,7 +87,11 @@ export function ClassTable(p: ClassTableProps) {
             {p.grouped ? (
               <GroupRow
                 id={g.id}
-                label={`${g.id} ${p.tracks[g.id]?.name ?? ''}`}
+                label={
+                  <>
+                    <span className={styles.trackId}>{g.id}</span> {p.tracks[g.id]?.name ?? ''}
+                  </>
+                }
                 count={g.items.length}
                 expanded={g.open}
                 selected={p.sel === `g:${g.id}`}

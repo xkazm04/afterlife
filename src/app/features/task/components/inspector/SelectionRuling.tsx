@@ -1,7 +1,7 @@
 import { Kbd } from '@/components/controls/Kbd';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
-import { Chip } from '../Chip';
-import { ObjectLink } from '../ObjectLink';
+import { Chip } from '@/components/status/chip/Chip';
+import { ObjectLink } from '@/components/controls/ObjectLink';
 import { StatusTag } from '../StatusTag';
 import type { TaskView } from '../../model/types';
 import type { Selection } from '../../model/court/selection';

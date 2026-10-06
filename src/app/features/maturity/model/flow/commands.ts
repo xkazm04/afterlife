@@ -1,10 +1,8 @@
+import type { CommandLineParts } from '@/components/inspector/CommandBlock';
 import type { Gap } from '../ctx';
 
 /** One line of the exact commands Belay shows before it writes: code, an optional trailing note, or a comment. */
-export interface CommandLine {
-  code?: string;
-  note?: string;
-}
+export type CommandLine = CommandLineParts;
 
 /** The commands "Send as you" will run for one gap, in the order they run. Belay writes only on the click. */
 export function commandLines(g: Gap): CommandLine[] {

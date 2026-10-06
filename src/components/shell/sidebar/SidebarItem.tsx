@@ -3,8 +3,9 @@ import type { ReactNode } from 'react';
 import styles from './Sidebar.module.css';
 
 /**
- * One source-list row: icon, label, optional right-aligned count (or any node, e.g. a NeedsYouBadge). With `href`
- * it is a link (navigation); otherwise a button (a filter). `current` highlights it.
+ * One source-list row: icon, label, optional right-aligned count (or any node, e.g. a NeedsYouBadge). An empty count
+ * (undefined, null, false or "") takes no room, so the label gets it. With `href` it is a link (navigation);
+ * otherwise a button (a filter). `current` highlights it.
  */
 export function SidebarItem({
   icon,
@@ -27,7 +28,7 @@ export function SidebarItem({
     <>
       <span className={styles.ico}>{icon}</span>
       <span className={styles.lb}>{label}</span>
-      <span className={styles.ct}>{count}</span>
+      {count === undefined || count === null || count === false || count === '' ? null : <span className={styles.ct}>{count}</span>}
     </>
   );
   if (href) {
