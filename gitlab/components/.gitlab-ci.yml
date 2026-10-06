@@ -1,0 +1,34 @@
+# CI of the belay-pack component project (this folder is its root). A tag pipeline does two things:
+#   1. includes every component at this very commit, so a syntax or input error stops the release at pipeline creation
+#      (the pattern from https://docs.gitlab.com/ci/components/ "Testing components": component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/<name>@$CI_COMMIT_SHA) [S]
+#   2. publishes the release, which is what puts a version in the CI/CD catalog (same page) [S].
+# Pipelines run for tags only, so the components' own rules (merge requests, default branch) never start jobs here.
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+
+include:
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/proof-engine@$CI_COMMIT_SHA
+    inputs: { class: exploit-test, engine_ref: main }
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/tier-gate@$CI_COMMIT_SHA
+    inputs: { engine_ref: main, proof_authors: belay-bot }
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/tripwire@$CI_COMMIT_SHA
+    inputs: { engine_ref: main }
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/maturity-scan@$CI_COMMIT_SHA
+    inputs: { engine_ref: main }
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/ledger-append@$CI_COMMIT_SHA
+    inputs: { engine_ref: main }
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/flow-dispatch@$CI_COMMIT_SHA
+    inputs: { engine_ref: main, consumer_id: 1 }
+
+stages: [.pre, test, release, .post]
+
+create-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  script: echo "Creating release $CI_COMMIT_TAG"
+  rules:
+    - if: $CI_COMMIT_TAG
+  release:
+    tag_name: $CI_COMMIT_TAG
+    description: "Belay components $CI_COMMIT_TAG"

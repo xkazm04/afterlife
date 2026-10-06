@@ -1,0 +1,176 @@
+# Component: proof-engine. Re-derives a Proof Block with the model-free Belay engine, posts it on the MR.
+# Syntax checked 2026-10-06 against:
+#   spec:inputs (type, default, options, regex, description) ... https://docs.gitlab.com/ci/yaml/#specinputs  [S]
+#   $[[ inputs.x ]] interpolation, also in job names ............ https://docs.gitlab.com/ci/components/        [S]
+#   id_tokens / rules:if / artifacts:reports / resource_group ... https://docs.gitlab.com/ci/yaml/           [S]
+#   rules:variables (set BELAY_PHASE per matching rule) ........... https://docs.gitlab.com/ci/yaml/#rulesvariables [R]
+#   CI_JOB_TOKEN cannot write MR notes or labels; it can git-clone another project that allowlists this one
+#       .......................................................... https://docs.gitlab.com/ci/jobs/ci_job_token/ [S]
+#   glab auth login --job-token, glab mr note create / update, glab api ... https://docs.gitlab.com/cli/ [S]
+# [R?] verify: arrays interpolated into `tags:` (runner_tags) and the glab release asset URL below.
+spec:
+  inputs:
+    stage:
+      default: test
+      description: Run after the jobs that produce the evidence (their artifacts are passed on by stage order).
+    class:
+      type: string
+      description: The proof class to derive (src/schemas/proof.ts). One include per class.
+      options: [exploit-test, cited-diff, rerun-stats, repro, bench-delta, linked-evidence, score-delta, ledger-record]
+    engine_ref:
+      type: string
+      description: Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned.
+    engine_commit:
+      default: ''
+      description: Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch.
+    engine_project:
+      default: '$CI_PROJECT_ROOT_NAMESPACE/belay-engine'
+      description: Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token.
+    policy_project:
+      default: '$CI_PROJECT_ROOT_NAMESPACE/belay-policy'
+    policy_ref:
+      default: main
+    agent_prefix:
+      default: 'ai-'
+      description: Only MRs from accounts with this prefix and a Belay-Task trailer are proven; others are skipped.
+    evidence_mode:
+      default: auto
+      options: [auto, provided]
+      description: auto builds the prove input with scripts/proof/build-evidence.mjs (exploit-test, cited-diff, rerun-stats). provided uses evidence_file as an earlier job or prepare_script wrote it.
+    evidence_file:
+      default: belay-evidence.json
+      description: Only for evidence_mode provided. The `prove --input` file, relative to the project root.
+    build_args:
+      default: ''
+      description: Extra arguments for build-evidence.mjs, e.g. for exploit-test "--base-junit base/junit.xml --head-junit head/junit.xml --base-ref URL --head-ref URL --rescan-base base/scan.json --rescan-head head/scan.json".
+    block_authors:
+      default: ''
+      description: Accounts whose belay-guardrail / belay-medic block counts. Empty means ai-guardrail-<group> or ai-medic-<group>. [R?] the exact ai-<flow>-<group> username form.
+    prepare_script:
+      default: ''
+      description: Optional shell run before the evidence is built. Sees BELAY_MR_IID, BELAY_TASK_ID, BELAY_ACTION_CLASS, BELAY_AGENT, BELAY_BASE_SHA, BELAY_HEAD_SHA, BELAY_DIFF_FILE, BELAY_POLICY_FILE, BELAY_PHASE.
+    post:
+      type: boolean
+      default: true
+      description: Post the Proof Block note and the proof label (needs BELAY_BOT_TOKEN).
+    post_merge:
+      type: boolean
+      default: false
+      description: Also re-derive on the default branch after merge; a red result is the tripwire's post_merge_proof_fail. Turn it on only when the evidence jobs also run on the default branch, or the missing evidence reads as a failure and demotes the agent.
+    node_image:
+      default: 'node:22-bookworm'
+      description: Needs git, curl and node 20+. The -slim image has no git.
+    glab_version:
+      default: '1.120.0'
+    glab_sha256:
+      default: ''
+      description: Optional SHA-256 of the glab linux amd64 tarball; checked when set.
+    runner_tags:
+      type: array
+      default: []
+---
+.belay-boot-proof-engine:
+  image: $[[ inputs.node_image ]]
+  tags: $[[ inputs.runner_tags ]]
+  variables:
+    GIT_DEPTH: "0"
+    BELAY_ENGINE_PROJECT: "$[[ inputs.engine_project ]]"
+    BELAY_ENGINE_REF: "$[[ inputs.engine_ref ]]"
+    BELAY_ENGINE_COMMIT: "$[[ inputs.engine_commit ]]"
+    BELAY_POLICY_PROJECT: "$[[ inputs.policy_project ]]"
+    BELAY_POLICY_REF: "$[[ inputs.policy_ref ]]"
+    BELAY_GLAB_VERSION: "$[[ inputs.glab_version ]]"
+    BELAY_GLAB_SHA256: "$[[ inputs.glab_sha256 ]]"
+  cache:
+    key: belay-engine-$[[ inputs.engine_ref ]]
+    paths: [.belay-engine/node_modules/]
+  before_script:
+    - |
+      set -eu
+      HOSTURL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}"
+      export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
+      export BELAY_GLUE="$BELAY_DIR/gitlab/components/scripts"
+      git init -q "$BELAY_DIR"
+      git -C "$BELAY_DIR" fetch -q --depth 1 "$HOSTURL/${BELAY_ENGINE_PROJECT}.git" "$BELAY_ENGINE_REF"
+      git -C "$BELAY_DIR" checkout -q FETCH_HEAD
+      if [ -n "$BELAY_ENGINE_COMMIT" ] && [ "$(git -C "$BELAY_DIR" rev-parse HEAD)" != "$BELAY_ENGINE_COMMIT" ]; then
+        echo "belay engine is at $(git -C "$BELAY_DIR" rev-parse HEAD), not the pinned $BELAY_ENGINE_COMMIT" >&2; exit 2
+      fi
+      (cd "$BELAY_DIR" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error)
+      if ! command -v glab >/dev/null 2>&1; then
+        V="$BELAY_GLAB_VERSION"; T="$(mktemp -d)"
+        curl -fsSL -o "$T/glab.tgz" "https://gitlab.com/gitlab-org/cli/-/releases/v${V}/downloads/glab_${V}_linux_amd64.tar.gz" # [R?]
+        if [ -n "$BELAY_GLAB_SHA256" ]; then echo "$BELAY_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -; fi
+        tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
+      fi
+      if [ -n "${BELAY_BOT_TOKEN:-}" ]; then export GITLAB_TOKEN="$BELAY_BOT_TOKEN"
+      else glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"; fi
+
+"belay-proof-$[[ inputs.class ]]":
+  extends: .belay-boot-proof-engine
+  stage: $[[ inputs.stage ]]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables: { BELAY_PHASE: pre-merge }
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"
+      variables: { BELAY_PHASE: post-merge }
+  variables:
+    BELAY_CLASS: "$[[ inputs.class ]]"
+    BELAY_AGENT_PREFIX: "$[[ inputs.agent_prefix ]]"
+    BELAY_EVIDENCE_MODE: "$[[ inputs.evidence_mode ]]"
+    BELAY_EVIDENCE_FILE: "$[[ inputs.evidence_file ]]"
+    BELAY_BUILD_ARGS: "$[[ inputs.build_args ]]"
+    BELAY_BLOCK_AUTHORS: "$[[ inputs.block_authors ]]"
+    BELAY_PREPARE: "$[[ inputs.prepare_script ]]"
+    BELAY_POST: "$[[ inputs.post ]]"
+    BELAY_POST_MERGE: "$[[ inputs.post_merge ]]"
+  script:
+    - |
+      set -eu
+      mkdir -p .belay
+      if [ "$BELAY_PHASE" = "post-merge" ] && [ "$BELAY_POST_MERGE" != "true" ]; then echo "post-merge proof is off"; exit 0; fi
+      rc=0
+      if [ "$BELAY_PHASE" = "pre-merge" ]; then
+        node "$BELAY_GLUE/proof/mr-context.mjs" --mr "$CI_MERGE_REQUEST_IID" --agent-prefix "$BELAY_AGENT_PREFIX" || rc=$?
+      else
+        node "$BELAY_GLUE/proof/mr-context.mjs" --commit "$CI_COMMIT_SHA" --agent-prefix "$BELAY_AGENT_PREFIX" || rc=$?
+      fi
+      if [ "$rc" -eq 10 ]; then exit 0; fi
+      if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+      . ./.belay/mr.env
+      if [ "$BELAY_PHASE" = "post-merge" ]; then BELAY_BASE_SHA="$CI_COMMIT_BEFORE_SHA"; BELAY_HEAD_SHA="$CI_COMMIT_SHA"; fi
+      git clone -q --depth 1 --branch "$BELAY_POLICY_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${BELAY_POLICY_PROJECT}.git" .belay-policy
+      export BELAY_POLICY_FILE="$CI_PROJECT_DIR/.belay-policy/trust-policy.yml"
+      export BELAY_DIFF_FILE="$CI_PROJECT_DIR/.belay/diff.patch"
+      git diff "$BELAY_BASE_SHA" "$BELAY_HEAD_SHA" > "$BELAY_DIFF_FILE"
+      export BELAY_MR_IID BELAY_TASK_ID BELAY_ACTION_CLASS BELAY_AGENT BELAY_BASE_SHA BELAY_HEAD_SHA BELAY_PHASE
+      if [ -n "$BELAY_PREPARE" ]; then sh -c "$BELAY_PREPARE"; fi
+      finish() {   # post the proof (or an inconclusive note when there is none), then exit with the engine's code
+        if [ "$BELAY_POST" = "true" ] && [ "$BELAY_PHASE" = "pre-merge" ]; then
+          node "$BELAY_GLUE/proof/post-proof.mjs" --proof .belay/proof.json --mr "$BELAY_MR_IID" --code "$1"
+        fi
+        exit "$1"   # 0 pass, 1 fail, 2 inconclusive or error: only a pass leaves the job green
+      }
+      EVIDENCE="$CI_PROJECT_DIR/$BELAY_EVIDENCE_FILE"
+      if [ "$BELAY_EVIDENCE_MODE" = "auto" ]; then
+        EVIDENCE="$CI_PROJECT_DIR/.belay/evidence.json"
+        case "$BELAY_CLASS" in
+          cited-diff) TAG=belay-guardrail; AUTH="${BELAY_BLOCK_AUTHORS:-ai-guardrail-$CI_PROJECT_ROOT_NAMESPACE}"; HS="--head-sha $BELAY_HEAD_SHA" ;;
+          rerun-stats) TAG=belay-medic; AUTH="${BELAY_BLOCK_AUTHORS:-ai-medic-$CI_PROJECT_ROOT_NAMESPACE}"; HS="" ;;
+          *) TAG=""; AUTH=""; HS="" ;;
+        esac
+        rc=0
+        if [ -n "$TAG" ]; then
+          node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag "$TAG" --authors "$AUTH" $HS --out .belay/verdict.json >/dev/null || rc=$?
+          if [ "$rc" -eq 3 ]; then rc=0; node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag "$TAG" --authors "$AUTH" $HS --from description --out .belay/verdict.json >/dev/null || rc=$?; fi
+          if [ "$rc" -ne 0 ]; then : > .belay/proof.json; finish 2; fi
+        fi
+        node "$BELAY_GLUE/proof/build-evidence.mjs" --class "$BELAY_CLASS" --out "$EVIDENCE" --verdict .belay/verdict.json $BELAY_BUILD_ARGS || { : > .belay/proof.json; finish 2; }
+      fi
+      rc=0
+      (cd "$BELAY_DIR" && npx tsx engine/cli.ts prove --class "$BELAY_CLASS" --input "$EVIDENCE" --policy "$BELAY_POLICY_FILE") > .belay/proof.json || rc=$?
+      finish "$rc"
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths: [.belay/proof.json, .belay/mr.env, .belay/diff.patch]

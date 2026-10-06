@@ -1,0 +1,149 @@
+# Component: tier-gate. On MR pipelines of agent MRs: reads tier-state.yml from belay-policy, runs the engine gate, approves, sets auto-merge or waits.
+# Syntax checked 2026-10-06 against:
+#   spec:inputs, $[[ inputs.x ]] ........ https://docs.gitlab.com/ci/yaml/#specinputs , https://docs.gitlab.com/ci/components/ [S]
+#   rules, resource_group, artifacts, needs ... https://docs.gitlab.com/ci/yaml/ [S]
+#   CI_JOB_TOKEN cannot write MR notes/labels, approve or merge; it can clone an allowlisting project
+#       .......................................... https://docs.gitlab.com/ci/jobs/ci_job_token/ [S]
+#   glab mr note create / update / approve / merge, glab api ... https://docs.gitlab.com/cli/ [S]
+# [R?] verify: arrays interpolated into `tags:` (runner_tags); the glab release asset URL in the boot step.
+spec:
+  inputs:
+    stage:
+      default: '.post'
+    engine_ref:
+      type: string
+      description: Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned.
+    engine_commit:
+      default: ''
+      description: Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch.
+    engine_project:
+      default: '$CI_PROJECT_ROOT_NAMESPACE/belay-engine'
+      description: Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token.
+    policy_project:
+      default: '$CI_PROJECT_ROOT_NAMESPACE/belay-policy'
+    policy_ref:
+      default: main
+    node_image:
+      default: 'node:22-bookworm'
+    glab_version:
+      default: '1.120.0'
+    glab_sha256:
+      default: ''
+    runner_tags:
+      type: array
+      default: []
+    proof_authors:
+      type: string
+      description: Comma-separated usernames allowed to post the Proof Block note (the BELAY_BOT_TOKEN user). A note by anyone else is ignored.
+    guardrail_authors:
+      default: 'ai-guardrail-$CI_PROJECT_ROOT_NAMESPACE'
+      description: Comma-separated usernames of the guardrail flow service account. [R?] the exact ai-<flow>-<group> form.
+    agent_prefix:
+      default: 'ai-'
+    class:
+      default: ''
+      description: Action class id (trust-policy.yml classes). Empty reads the Belay-Class trailer from the MR description.
+    wait_minutes:
+      type: number
+      default: 10
+      description: How long to wait for the guardrail verdict before leaving the MR waiting for a person.
+    emit_events:
+      type: boolean
+      default: true
+      description: Write ledger event bodies to .belay/events for the ledger-append component.
+---
+.belay-boot-tier-gate:
+  image: $[[ inputs.node_image ]]
+  tags: $[[ inputs.runner_tags ]]
+  variables:
+    GIT_DEPTH: "0"
+    BELAY_ENGINE_PROJECT: "$[[ inputs.engine_project ]]"
+    BELAY_ENGINE_REF: "$[[ inputs.engine_ref ]]"
+    BELAY_ENGINE_COMMIT: "$[[ inputs.engine_commit ]]"
+    BELAY_POLICY_PROJECT: "$[[ inputs.policy_project ]]"
+    BELAY_POLICY_REF: "$[[ inputs.policy_ref ]]"
+    BELAY_GLAB_VERSION: "$[[ inputs.glab_version ]]"
+    BELAY_GLAB_SHA256: "$[[ inputs.glab_sha256 ]]"
+  cache:
+    key: belay-engine-$[[ inputs.engine_ref ]]
+    paths: [.belay-engine/node_modules/]
+  before_script:
+    - |
+      set -eu
+      HOSTURL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}"
+      export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
+      export BELAY_GLUE="$BELAY_DIR/gitlab/components/scripts"
+      git init -q "$BELAY_DIR"
+      git -C "$BELAY_DIR" fetch -q --depth 1 "$HOSTURL/${BELAY_ENGINE_PROJECT}.git" "$BELAY_ENGINE_REF"
+      git -C "$BELAY_DIR" checkout -q FETCH_HEAD
+      if [ -n "$BELAY_ENGINE_COMMIT" ] && [ "$(git -C "$BELAY_DIR" rev-parse HEAD)" != "$BELAY_ENGINE_COMMIT" ]; then
+        echo "belay engine is at $(git -C "$BELAY_DIR" rev-parse HEAD), not the pinned $BELAY_ENGINE_COMMIT" >&2; exit 2
+      fi
+      (cd "$BELAY_DIR" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error)
+      if ! command -v glab >/dev/null 2>&1; then
+        V="$BELAY_GLAB_VERSION"; T="$(mktemp -d)"
+        curl -fsSL -o "$T/glab.tgz" "https://gitlab.com/gitlab-org/cli/-/releases/v${V}/downloads/glab_${V}_linux_amd64.tar.gz" # [R?]
+        if [ -n "$BELAY_GLAB_SHA256" ]; then echo "$BELAY_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -; fi
+        tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
+      fi
+      if [ -n "${BELAY_BOT_TOKEN:-}" ]; then export GITLAB_TOKEN="$BELAY_BOT_TOKEN"
+      else glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"; fi
+
+belay-tier-gate:
+  extends: .belay-boot-tier-gate
+  stage: $[[ inputs.stage ]]
+  interruptible: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    BELAY_PROOF_AUTHORS: "$[[ inputs.proof_authors ]]"
+    BELAY_GUARDRAIL_AUTHORS: "$[[ inputs.guardrail_authors ]]"
+    BELAY_AGENT_PREFIX: "$[[ inputs.agent_prefix ]]"
+    BELAY_CLASS_INPUT: "$[[ inputs.class ]]"
+    BELAY_WAIT_MINUTES: "$[[ inputs.wait_minutes ]]"
+    BELAY_EMIT: "$[[ inputs.emit_events ]]"
+  script:
+    - |
+      set -eu
+      mkdir -p .belay/events
+      rc=0
+      node "$BELAY_GLUE/proof/mr-context.mjs" --mr "$CI_MERGE_REQUEST_IID" --agent-prefix "$BELAY_AGENT_PREFIX" || rc=$?
+      if [ "$rc" -eq 10 ]; then exit 0; fi   # a person's MR: the gate has nothing to say
+      if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+      . ./.belay/mr.env
+      CLASS="${BELAY_CLASS_INPUT:-$BELAY_ACTION_CLASS}"
+      EMIT=""; if [ "$BELAY_EMIT" = "true" ]; then EMIT="--emit-dir .belay/events"; fi
+      apply() { node "$BELAY_GLUE/decide/apply-gate.mjs" --mr "$BELAY_MR_IID" --sha "$BELAY_HEAD_SHA" "$@"; }
+      if [ -z "$CLASS" ]; then apply --force wait --reason "this MR has no Belay-Class trailer"; exit 0; fi
+
+      git clone -q --depth 1 --branch "$BELAY_POLICY_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${BELAY_POLICY_PROJECT}.git" .belay-policy
+      P="$CI_PROJECT_DIR/.belay-policy"
+
+      rc=0
+      node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag belay-proof --authors "$BELAY_PROOF_AUTHORS" --out .belay/proof.json || rc=$?
+      if [ "$rc" -eq 3 ]; then apply --force wait --reason "no trusted Proof Block on this MR yet"; exit 0; fi
+      if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+
+      deadline=$(( $(date +%s) + BELAY_WAIT_MINUTES * 60 ))
+      while :; do
+        rc=0
+        node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag belay-guardrail --authors "$BELAY_GUARDRAIL_AUTHORS" --head-sha "$BELAY_HEAD_SHA" \
+          --schema "$BELAY_DIR/gitlab/flows/schemas/guardrail-verdict.schema.json" --out .belay/guardrail.json --gate-out .belay/guardrail-gate.json || rc=$?
+        if [ "$rc" -ne 3 ] || [ "$(date +%s)" -ge "$deadline" ]; then break; fi
+        sleep 30
+      done
+      if [ "$rc" -eq 3 ]; then apply --force wait --reason "the guardrail has not reviewed this MR: no verdict, nothing granted"; exit 0; fi
+      if [ "$rc" -eq 4 ]; then apply --force block --reason "the guardrail verdict does not match its schema: treated as inconclusive"; fi
+      if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+
+      git diff "$BELAY_BASE_SHA" "$BELAY_HEAD_SHA" > .belay/diff.patch
+      grc=0
+      # exit 0 merge or approve, 1 block, 2 wait or an error: the JSON says which (an error prints {"error": ...}); apply-gate refuses anything else
+      (cd "$BELAY_DIR" && npx tsx engine/cli.ts gate --policy "$P/trust-policy.yml" --state "$P/tier-state.yml" --class "$CLASS" --agent "$BELAY_AGENT" \
+        --proof "$CI_PROJECT_DIR/.belay/proof.json" --guardrail "$CI_PROJECT_DIR/.belay/guardrail-gate.json" --diff "$CI_PROJECT_DIR/.belay/diff.patch") > .belay/decision.json || grc=$?
+      echo "engine gate exited $grc" >&2
+      apply --decision .belay/decision.json --guardrail .belay/guardrail.json --agent "$BELAY_AGENT" --class "$CLASS" $EMIT
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths: [.belay/decision.json, .belay/proof.json, .belay/guardrail.json, .belay/guardrail-gate.json, .belay/diff.patch, .belay/events/]

@@ -1,0 +1,71 @@
+{
+  "$comment": "Posted by the CRA drafter in a belay-cra block on the clock work item. A draft only: submission is a person (report.submit is human_only). Every statement links to a GitLab object; the engine resolves each link (linked-evidence).",
+  "type": "object",
+  "required": [
+    "schema",
+    "clock_id",
+    "stage",
+    "drill",
+    "awaiting_signoff",
+    "statements"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "belay.cra/1"
+    },
+    "clock_id": {
+      "type": "string",
+      "pattern": "^CRA-[0-9]{4}-[0-9]{4}$"
+    },
+    "stage": {
+      "enum": [
+        "early_warning",
+        "notification",
+        "final"
+      ]
+    },
+    "drill": {
+      "type": "boolean"
+    },
+    "awaiting_signoff": {
+      "const": true
+    },
+    "aware_at": {
+      "type": "string",
+      "minLength": 10
+    },
+    "statements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "evidence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 800
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^https://"
+            }
+          }
+        }
+      }
+    }
+  }
+}

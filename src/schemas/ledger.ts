@@ -22,7 +22,7 @@ export interface LedgerEvent {
   tier_at_time: Tier;
   subject: { project_id: number; type: 'mr' | 'issue' | 'pipeline' | 'vulnerability' | 'deployment'; iid: number };
   payload_ref: string; // path to the Proof Block / trace in belay-ledger
-  observed_by: 'poll' | 'flows_api' | 'govern_hook' | 'webhook';
+  observed_by: 'poll' | 'flows_api' | 'govern_hook' | 'webhook' | 'ci_job'; // ci_job: written by a Belay CI component (gate, tripwire)
   prev_hash: string;
   hash: string; // sha256(prev_hash + canonical(event without hash))
 }

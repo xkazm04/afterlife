@@ -9,7 +9,7 @@ import { EngineError, rec, str, num, type CommandResult, type Ctx } from '../cor
 import { TIER_ORDER, type Tier } from '../../src/schemas/tier';
 
 const KINDS: readonly LedgerKind[] = ['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event'];
-const OBSERVED: readonly LedgerEvent['observed_by'][] = ['poll', 'flows_api', 'govern_hook', 'webhook'];
+const OBSERVED: readonly LedgerEvent['observed_by'][] = ['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job'];
 const SUBJECTS: readonly LedgerEvent['subject']['type'][] = ['mr', 'issue', 'pipeline', 'vulnerability', 'deployment'];
 
 function oneOf<T extends string>(v: unknown, allowed: readonly T[], what: string): T {

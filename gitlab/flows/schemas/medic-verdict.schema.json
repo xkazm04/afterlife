@@ -1,0 +1,91 @@
+{
+  "$comment": "Posted by the medic flow in a belay-medic block. Counts are recomputed by the engine (rerun-stats); these are claims.",
+  "type": "object",
+  "required": [
+    "schema",
+    "pipeline_id",
+    "sha",
+    "classification",
+    "action",
+    "evidence"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "belay.medic/1"
+    },
+    "pipeline_id": {
+      "type": "integer"
+    },
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "classification": {
+      "enum": [
+        "infrastructure",
+        "flaky",
+        "real",
+        "expected-red"
+      ]
+    },
+    "action": {
+      "enum": [
+        "retry",
+        "quarantine",
+        "report",
+        "none"
+      ]
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "file"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "retries_used": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "job_id",
+          "quote"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "job_id": {
+            "type": "integer"
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          }
+        }
+      }
+    },
+    "job": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

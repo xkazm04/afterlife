@@ -1,0 +1,42 @@
+# .gitlab/duo/agent-config.yml - how every custom flow of this project runs. Template for the bootstrap MR.
+# Fields and limits checked 2026-10-06 against https://docs.gitlab.com/user/duo_agent_platform/flows/execution/ and
+# .../flows/execution/images/ [S]:
+#   - read from the DEFAULT BRANCH only: a file on another branch is ignored, so a flow cannot be reconfigured from an MR
+#   - predefined CI/CD variables cannot be used in this file
+#   - the image needs git and curl (the Duo CLI is downloaded at flow start); runners need the gitlab--duo tag and a docker,
+#     docker-autoscaler or kubernetes executor
+#   - setup_script runs BEFORE the sandbox and outside it, with every environment variable of the flow, including the
+#     triggering user's OAuth token. Keep it short, pinned and free of anything fetched from a branch or an issue.
+#   - coding_environment: none flows (guardrail, medic, cra, qa) skip setup and cache but still use this image.
+image: node:22-bookworm        # node for the claim and task-id snippets in the flow prompts; has git and curl
+
+setup_script:
+  - node --version
+  # Add only what the target's own build needs, for example a JDK or gradle wrapper warm-up. [R?] The QA flow drives a browser
+  # through run_command: give it an image that already contains Playwright and its browsers, because setup is skipped for it.
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+
+# OIDC tokens for the flow job (Google Cloud Workload Identity Federation, no stored keys). Each becomes an environment
+# variable named after its key. The audience below is a placeholder; spike S10 confirms the exact string and how the
+# token is exchanged. [R?]
+id_tokens:
+  GCP_ID_TOKEN:
+    aud: https://iam.googleapis.com/projects/000000000000/locations/global/workloadIdentityPools/belay/providers/gitlab
+
+# Domains the sandbox may reach. Everything else is blocked, which is the main limit on a flow that reads untrusted text.
+# The GitLab instance itself is reached through the platform. [R?] whether wildcards such as *.run.app are accepted.
+network_policy:
+  allowed_domains:
+    - registry.npmjs.org
+    - repo.maven.apache.org
+    - plugins.gradle.org
+    - services.gradle.org
+    - github.com                  # gardener: upstream changelogs
+    - raw.githubusercontent.com
+    - ledgerline-review.example.run.app   # QA: the review app host only (replace with the real review host)

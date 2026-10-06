@@ -1,0 +1,103 @@
+# Example .gitlab-ci.yml for the target project (ledgerline) with every Belay component wired in.
+# Replace: acme (the group), v0.1.0 and the commit (a Belay release), 4711 (the guardrail flow's consumer id).
+# Syntax: include:component, inputs, workflow:rules, rules, needs - https://docs.gitlab.com/ci/yaml/ and https://docs.gitlab.com/ci/components/ [S]
+#
+# Needs in the target project's Settings:
+#   CI/CD variables (masked): BELAY_BOT_TOKEN, and protected+masked: BELAY_POLICY_TOKEN, BELAY_DISPATCH_TOKEN
+#   CI/CD > Job token permissions: belay-engine and belay-policy allow this project (inbound allowlist)
+#   Repository: protected branches main and belay/* (see components/README.md, "Exposure"); CODEOWNERS on .gitlab-ci.yml and .gitlab/
+#   Schedules (default branch): "security" (daily, no variable), "tripwire" every 10 min with BELAY_TRIPWIRE=sweep,
+#                               "maturity" daily with BELAY_SCAN=maturity. Owners of schedules should be people.
+#   .gitignore: .belay-engine/ .belay-policy/ .belay/ evidence/
+stages: [build, test, review, deploy]
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE =~ /^(schedule|api|trigger)$/
+
+include:
+  # Scanners the patcher needs findings from. Template names as in the research brief [S: GitLab blog, GCP agent deployment];
+  # [R?] confirm Jobs/ vs Security/ names on the instance version.
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+
+  # The proof: one include per class. Patcher MRs (exploit-test) read the belay-claims block in the MR description and the
+  # JUnit/scan files from belay-replay below. The guardrail's verdict is proven with cited-diff.
+  - component: $CI_SERVER_FQDN/acme/belay-pack/proof-engine@1.0.0
+    inputs:
+      class: exploit-test
+      engine_ref: v0.1.0
+      engine_commit: '0000000000000000000000000000000000000000'   # the commit v0.1.0 resolves to
+      stage: review
+      build_args: >-
+        --base-junit evidence/base/junit.xml --head-junit evidence/head/junit.xml
+        --base-ref $CI_PIPELINE_URL --head-ref $CI_PIPELINE_URL
+        --rescan-base evidence/base/scan.json --rescan-head evidence/head/scan.json
+  - component: $CI_SERVER_FQDN/acme/belay-pack/proof-engine@1.0.0
+    inputs:
+      class: cited-diff
+      engine_ref: v0.1.0
+      engine_commit: '0000000000000000000000000000000000000000'
+      stage: review
+  - component: $CI_SERVER_FQDN/acme/belay-pack/proof-engine@1.0.0
+    inputs:
+      class: rerun-stats
+      engine_ref: v0.1.0
+      engine_commit: '0000000000000000000000000000000000000000'
+      stage: review
+
+  # Start the guardrail on agent-authored MRs (a bot-opened MR does not fire the flow's own trigger).
+  - component: $CI_SERVER_FQDN/acme/belay-pack/flow-dispatch@1.0.0
+    inputs: { engine_ref: v0.1.0, consumer_id: 4711, stage: build }
+
+  # The decision, after the proof. Waits up to 10 minutes for the guardrail's verdict.
+  - component: $CI_SERVER_FQDN/acme/belay-pack/tier-gate@1.0.0
+    inputs: { engine_ref: v0.1.0, engine_commit: '0000000000000000000000000000000000000000', proof_authors: belay-bot }
+
+  # Always on: the tripwire demotes, the ledger records, the scan scores.
+  - component: $CI_SERVER_FQDN/acme/belay-pack/tripwire@1.0.0
+    inputs: { engine_ref: v0.1.0, engine_commit: '0000000000000000000000000000000000000000' }
+  - component: $CI_SERVER_FQDN/acme/belay-pack/ledger-append@1.0.0
+    inputs: { engine_ref: v0.1.0, engine_commit: '0000000000000000000000000000000000000000' }
+  - component: $CI_SERVER_FQDN/acme/belay-pack/maturity-scan@1.0.0
+    inputs: { engine_ref: v0.1.0 }
+
+# The target's own jobs (shortened; the build image and commands are the project's own [R?]).
+# belay-replay runs the exploit test at the MR's base and head and keeps the evidence the proof-engine reads. It uses only the
+# test id and path from the claims block, after a strict pattern check, and never the agent's own `command`: the agent's text
+# must not become a shell command. Two jobs because the Gradle image has no Node and the glue is Node.
+belay-replay-vars:
+  stage: build
+  image: node:22-bookworm
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^belay\//
+  variables: { BELAY_ENGINE_PROJECT: acme/belay-engine, BELAY_ENGINE_REF: v0.1.0 }
+  script:
+    - git clone -q --depth 1 --branch "$BELAY_ENGINE_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${BELAY_ENGINE_PROJECT}.git" .belay-engine
+    - mkdir -p .belay && node .belay-engine/gitlab/components/scripts/proof/replay-vars.mjs --mr "$CI_MERGE_REQUEST_IID" > .belay/replay.env
+  artifacts: { paths: [.belay/replay.env] }
+
+belay-replay:
+  stage: test
+  image: gradle:8-jdk21
+  needs: [belay-replay-vars]
+  variables: { GIT_DEPTH: "0" }
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^belay\//
+  script:
+    - . ./.belay/replay.env
+    - mkdir -p evidence/base evidence/head
+    # base = the MR's target branch tip at fork point; the test file comes from the MR head, the code under test stays at base
+    - git worktree add ../base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"
+    - git show "$CI_COMMIT_SHA:$TEST_PATH" > "../base/$TEST_PATH"
+    - (cd ../base && ./gradlew test --tests "$TEST_ID" || true)
+    - cp ../base/build/test-results/test/*.xml evidence/base/ || true
+    - ./gradlew test --tests "$TEST_ID" || true
+    - cp build/test-results/test/*.xml evidence/head/ || true
+    # rescan evidence [R?]: run normalize-sast.mjs --report gl-sast-report.json --out evidence/base/scan.json on the default branch's last report and again for this pipeline's (evidence/head/scan.json)
+  artifacts:
+    when: always
+    paths: [evidence/]

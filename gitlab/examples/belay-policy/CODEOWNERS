@@ -1,0 +1,15 @@
+# CODEOWNERS of the belay-policy project. File locations and syntax: https://docs.gitlab.com/user/project/codeowners/ [S]
+# (CODEOWNERS at the root; [Section] and ^[Optional section] headers; @user and @group owners; the last matching entry wins).
+#
+# The rules and the agents' standing are changed by people through merge requests, never by an agent.
+# tier-state.yml is written two ways: down by the tripwire's bot (a direct push by an account that is "Allowed to push and
+# merge" skips code-owner approval, [S] same page, which is exactly what an instant demotion needs), and up by a promotion MR
+# that a person approves. Owning tier-state.yml here makes every MR that touches it need the owners, so a promotion cannot be
+# merged by the agent's own account or by a contributor.
+
+[Policy]
+trust-policy.yml  @acme/belay-owners
+CODEOWNERS        @acme/belay-owners
+
+[Standing]
+tier-state.yml    @acme/belay-owners

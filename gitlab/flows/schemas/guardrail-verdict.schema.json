@@ -1,0 +1,75 @@
+{
+  "$comment": "Posted by the guardrail flow in a belay-guardrail fenced block. Checked in CI (tier-gate, tripwire) because custom flows cannot set response_schema_id. A block with no findings, or a quote not found in the diff, is rejected by the engine (cited-diff).",
+  "type": "object",
+  "required": [
+    "schema",
+    "verdict",
+    "head_sha",
+    "findings"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "belay.guardrail/1"
+    },
+    "verdict": {
+      "enum": [
+        "pass",
+        "block"
+      ]
+    },
+    "head_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "rule",
+          "severity",
+          "file",
+          "quote",
+          "explanation"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "rule": {
+            "enum": [
+              "prompt-injection",
+              "ci-tamper",
+              "permission-change",
+              "secret-leak",
+              "dependency-hijack",
+              "test-weakening",
+              "path-violation",
+              "out-of-scope"
+            ]
+          },
+          "severity": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "explanation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      }
+    }
+  }
+}
