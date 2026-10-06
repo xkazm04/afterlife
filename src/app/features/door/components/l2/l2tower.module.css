@@ -1,0 +1,99 @@
+/* The L2 cutaway. Floors ramp from dark to lit cyan with their rung; unknown is dashed; stale is amber-hatched. */
+.svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+.ring {
+  fill: none;
+  stroke: var(--d-cy-dim);
+}
+.dash {
+  stroke-dasharray: 4 6;
+}
+.foot {
+  fill: color-mix(in oklab, var(--bg) 80%, var(--accent));
+  stroke: var(--d-cy-mid);
+}
+.ghostFoot {
+  fill: none;
+  stroke: var(--d-unk-line);
+  stroke-dasharray: 6 5;
+}
+.flTop {
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.r0 .flTop { fill: color-mix(in oklab, var(--bg) 92%, var(--accent)); stroke: var(--d-cy-dim); }
+.r0 .lip { fill: color-mix(in oklab, var(--bg) 90%, var(--accent)); }
+.r1 .flTop { fill: color-mix(in oklab, var(--bg) 86%, var(--accent)); stroke: var(--d-cy-mid); }
+.r1 .lip { fill: color-mix(in oklab, var(--bg) 74%, var(--accent)); }
+.r2 .flTop { fill: color-mix(in oklab, var(--bg) 70%, var(--accent)); stroke: var(--d-cy-edge); }
+.r2 .lip { fill: color-mix(in oklab, var(--bg) 58%, var(--accent)); }
+.r3 .flTop { fill: color-mix(in oklab, var(--bg) 50%, var(--accent)); stroke: var(--accent); }
+.r3 .lip { fill: color-mix(in oklab, var(--bg) 40%, var(--accent)); }
+.r4 .flTop { fill: color-mix(in oklab, var(--bg) 30%, var(--accent)); stroke: var(--accent); }
+.r4 .lip { fill: color-mix(in oklab, var(--bg) 22%, var(--accent)); }
+.rnull .flTop { fill: none; stroke: var(--d-unk-line); stroke-dasharray: 5 4; }
+.lip2 { fill: none; stroke: var(--d-unk-line); stroke-dasharray: 5 4; }
+.isStale .flTop { stroke: var(--d-stale-line); }
+.q { font: 700 20px var(--sys); fill: var(--unknown); }
+.glass { fill: color-mix(in oklab, var(--accent) 3%, transparent); }
+.wall { fill: color-mix(in oklab, var(--bg) 72%, var(--tint-chrome)); }
+.open { fill: none; }
+.roof { fill: var(--d-f-top); }
+.roofSt { fill: color-mix(in oklab, var(--bg) 85%, var(--stale)); }
+.e2 { fill: none; stroke: var(--d-cy-edge); stroke-width: 1.4; stroke-linejoin: round; }
+.e2h { fill: none; stroke: var(--d-cy-faint); stroke-width: 5; stroke-linejoin: round; }
+.e2.st { stroke: var(--d-stale-line); }
+.e2.scaf { stroke-dasharray: 7 5; }
+.e2.ghost { stroke: var(--d-unk-line); stroke-dasharray: 7 6; }
+
+/* class windows, lettered with their tier */
+.win { stroke-width: 1.2; }
+.win.on { stroke-width: 2.6; }
+.w_hands_off { fill: color-mix(in oklab, var(--tier-handsoff) 20%, var(--bg)); stroke: var(--tier-handsoff); }
+.w_supervised { fill: color-mix(in oklab, var(--tier-supervised) 20%, var(--bg)); stroke: var(--tier-supervised); }
+.w_assisted { fill: color-mix(in oklab, var(--tier-assisted) 20%, var(--bg)); stroke: var(--tier-assisted); }
+.w_quarantined { fill: color-mix(in oklab, var(--tier-quarantined) 26%, var(--bg)); stroke: var(--tier-quarantined); }
+.w_human_only { fill: color-mix(in oklab, var(--tier-human) 14%, var(--bg)); stroke: var(--tier-human); }
+.w_null { fill: none; stroke: var(--d-unk-line); stroke-dasharray: 4 3; }
+.wl { font: 700 20px var(--sys); text-anchor: middle; pointer-events: none; stroke: none; }
+.wl.w_hands_off { fill: var(--tier-handsoff); }
+.wl.w_supervised { fill: var(--tier-supervised); }
+.wl.w_assisted { fill: var(--tier-assisted); }
+.wl.w_quarantined { fill: var(--tier-quarantined); }
+.wl.w_human_only { fill: var(--tier-human); }
+
+/* the antenna is the feed */
+.mast { stroke: var(--accent); stroke-width: 2; }
+.mast.ghost { stroke: var(--d-unk-line); stroke-dasharray: 5 4; }
+.mastH { fill: url(#d-hatch); stroke: var(--d-stale-line); }
+.tip { fill: var(--accent); }
+.tipSt { fill: var(--stale); }
+.tipGhost { fill: none; stroke: var(--unknown); stroke-dasharray: 3 2; }
+.tagBg { fill: var(--d-plate); stroke: var(--border-3); }
+.tagT { font: 19px var(--sys); fill: var(--text-2); }
+.t_ok { fill: var(--accent); }
+.t_st { fill: var(--stale); }
+.t_u { fill: var(--unknown); }
+
+/* the beacon: this project's decisions */
+.lamp { fill: var(--d-amber-hot); }
+.lampSt { fill: color-mix(in oklab, var(--needs-you) 55%, var(--bg)); }
+.bcBg { fill: var(--needs-you); }
+.bcBgSt { fill: url(#d-hatch-amber); stroke: var(--needs-you); }
+.bcT,
+.bcTSt { font: 700 22px var(--sys); text-anchor: middle; }
+.bcT { fill: var(--needs-you-ink); }
+.bcTSt { fill: var(--needs-you); }
+.light { fill: var(--accent); opacity: 0.8; }
+
+/* floor labels and the legend */
+.flName { font: 20px var(--sys); fill: var(--text-2); }
+.rung { font: 18px var(--mono); fill: var(--accent); }
+.rungU { fill: var(--unknown); }
+.rungZ { fill: var(--text-4); }
+.tick { stroke: var(--d-cy-dim); }
+.leg { font: 18px var(--sys); fill: var(--text-3); }

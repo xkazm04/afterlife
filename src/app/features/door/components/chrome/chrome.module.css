@@ -1,0 +1,128 @@
+/* The chrome in the four corners: fixed to the viewport, scaled with the stage (--s) from its own corner. */
+.chrome {
+  position: fixed;
+  z-index: 20;
+  transform: scale(var(--s, 1));
+}
+.tl {
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  padding: 22px 0 0 28px;
+}
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 4px 14px 6px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--d-plate);
+  box-shadow: var(--edge-glow);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text-1);
+  text-shadow: var(--title-glow);
+}
+.brand small {
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-shadow: none;
+}
+.tr {
+  right: 0;
+  top: 0;
+  transform-origin: 100% 0;
+  padding: 22px 28px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.enter {
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: var(--r-sm);
+  font-size: 21px;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--ink-accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+.enter:hover {
+  background: color-mix(in oklab, var(--accent) 85%, var(--white));
+}
+.menuBtn {
+  height: 42px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--d-plate-solid);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+  font-size: 20px;
+  cursor: pointer;
+}
+.menuBtn:hover {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.cv {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--accent);
+  transition: transform 200ms;
+}
+.menuBtn[aria-expanded="true"] .cv {
+  transform: rotate(180deg);
+}
+.enter:focus-visible,
+.menuBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.menu {
+  min-width: 240px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  border: 1px solid var(--border-3);
+  border-radius: var(--r-md);
+  background: var(--d-plate-solid);
+  box-shadow: var(--win-halo), 0 18px 40px var(--shade-60);
+}
+.menu a {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  font-size: 20px;
+  text-decoration: none;
+  color: var(--text-1);
+}
+.menu a span {
+  color: var(--text-4);
+  font-family: var(--mono);
+  font-size: 18px;
+}
+.menu a:hover,
+.menu a:focus-visible {
+  background: var(--sel);
+  outline: none;
+}
+.note {
+  padding: 3px 10px;
+  border: 1px solid var(--border-1);
+  border-radius: 6px;
+  background: var(--d-plate);
+  font-size: 18px;
+  color: var(--text-3);
+}

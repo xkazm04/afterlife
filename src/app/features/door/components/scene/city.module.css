@@ -1,0 +1,138 @@
+/* The city's districts and towers, in Night Shift's vocabulary. The derived colours (--d-*) are set on the door's
+   root (door.module.css), all color-mix() of the theme tokens. */
+.svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+.plate {
+  cursor: pointer;
+}
+.plTop {
+  fill: var(--d-pl-top);
+}
+.plL {
+  fill: var(--d-pl-l);
+}
+.plR {
+  fill: var(--d-pl-r);
+}
+.plCells {
+  fill: none;
+  stroke: var(--d-cy-ghost);
+}
+.plBack {
+  fill: none;
+  stroke: var(--d-cy-faint);
+}
+.plEdge {
+  fill: none;
+  stroke: var(--d-cy-mid);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+/* towers */
+.tw {
+  cursor: pointer;
+  outline: none;
+}
+.tw:focus-visible .tEdge {
+  stroke: var(--accent-2);
+  stroke-width: 2;
+}
+.tTop {
+  fill: var(--d-f-top);
+}
+.tL {
+  fill: var(--d-f-l);
+}
+.tR {
+  fill: var(--d-f-r);
+}
+.stale .tTop,
+.stale .tL,
+.stale .tR {
+  fill: color-mix(in oklab, var(--bg) 88%, var(--stale));
+}
+.stale .tEdge {
+  stroke: var(--d-stale-line);
+}
+.tHatch {
+  fill: url(#d-hatch);
+}
+.tHalo {
+  fill: none;
+  stroke: var(--d-cy-faint);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+}
+.tEdge {
+  fill: none;
+  stroke: var(--d-cy-edge);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.dashed {
+  stroke-dasharray: 2.5 2;
+}
+.pole {
+  fill: none;
+  stroke: var(--d-cy-mid);
+  stroke-dasharray: 2 2;
+}
+.hit {
+  fill: transparent;
+  pointer-events: all;
+}
+.nsuFoot {
+  fill: none;
+  stroke: var(--d-unk-line);
+  stroke-dasharray: 3 2.5;
+}
+.nsuGhost {
+  fill: none;
+  stroke: color-mix(in oklab, var(--unknown) 50%, transparent);
+  stroke-dasharray: 3 3;
+}
+.dimx {
+  opacity: 0.18;
+}
+
+/* class windows: tier colours, faint at the fleet level, full in an open district */
+.win {
+  opacity: 0.3;
+}
+.svg[data-open] .win {
+  opacity: 1;
+}
+.wHandsOff {
+  fill: var(--tier-handsoff);
+}
+.wSupervised {
+  fill: var(--tier-supervised);
+}
+.wAssisted {
+  fill: var(--tier-assisted);
+}
+.wQuarantined {
+  fill: var(--tier-quarantined);
+}
+.wHuman {
+  fill: var(--tier-human);
+}
+.wNull {
+  fill: color-mix(in oklab, var(--bg) 70%, transparent);
+  stroke: color-mix(in oklab, var(--unknown) 35%, transparent);
+  stroke-width: 0.5;
+}
+.qLamp {
+  fill: var(--tier-quarantined);
+}
+.qBloom {
+  fill: color-mix(in oklab, var(--tier-quarantined) 35%, transparent);
+}
+.svg[data-open] .qLamp {
+  opacity: 0;
+}

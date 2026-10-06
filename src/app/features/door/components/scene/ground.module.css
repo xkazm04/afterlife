@@ -1,0 +1,72 @@
+/* The ground layer and its pulses. */
+.svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.trace,
+.bus {
+  fill: none;
+  stroke: var(--d-cy-dim);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.bus {
+  stroke: color-mix(in oklab, var(--accent) 30%, transparent);
+}
+.via {
+  fill: var(--bg);
+  stroke: var(--d-cy-mid);
+  stroke-width: 1;
+}
+.skyline {
+  fill: color-mix(in oklab, var(--bg) 90%, var(--accent));
+  stroke: color-mix(in oklab, var(--accent) 13%, transparent);
+  stroke-width: 1;
+}
+.skylit {
+  fill: color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.hz {
+  stroke: var(--d-cy-mid);
+  stroke-width: 1;
+}
+.hz2 {
+  stroke: var(--d-pink-ghost);
+  stroke-width: 1;
+}
+.pulse {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.03 0.97;
+  opacity: 0.55;
+}
+.wide {
+  stroke-width: 6;
+  opacity: 0.12;
+}
+.pulseG > .pulse {
+  animation-name: run;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: inherit;
+  animation-delay: inherit;
+}
+@keyframes run {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulseG {
+    display: none;
+  }
+}

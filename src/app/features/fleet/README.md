@@ -1,6 +1,6 @@
 # Fleet (F1)
 
-Route `/`, port of the approved Fleet prototype. `src/app/page.tsx` loads the demo on the server
+Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` loads the demo on the server
 (`data/loadFleetData.ts`) and renders the client `FleetScreen`.
 
 ## Parts
@@ -22,7 +22,7 @@ Route `/`, port of the approved Fleet prototype. `src/app/page.tsx` loads the de
   re-poll, status line. `model/inspector.ts` the inspector's wording.
 
 ## Data
-`data/needsActions.ts` button labels of the ledgerline decisions. Everything else is `@/lib/demo`.
+Button labels of the ledgerline decisions are shared, in `@/lib/demo/needsActions`. Everything else is `@/lib/demo` too.
 
 ## Behaviour to know
 - Resolving a decision and re-polling only change this screen's state; nothing is written.

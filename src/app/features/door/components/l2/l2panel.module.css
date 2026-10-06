@@ -1,0 +1,75 @@
+/* The L2 panel, right of the cutaway, and the class list beside the tower. */
+.panel {
+  position: absolute;
+  left: 806px;
+  top: 108px;
+  width: 764px;
+  height: 826px;
+  display: flex;
+  flex-direction: column;
+  animation: panelIn 700ms var(--ease) 200ms both;
+}
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+.scroll { flex: 0 1 auto; min-height: 0; overflow: auto; padding: 4px 8px 6px 2px; scrollbar-width: thin; }
+.name { margin: 0; font-size: 54px; font-weight: 750; line-height: 1.05; text-shadow: var(--title-glow); word-break: break-word; }
+.sub { margin-top: 6px; font-size: 22px; color: var(--text-2); }
+.state { margin-top: 6px; font-size: 22px; color: var(--text-1); }
+.st { color: var(--stale); }
+.u { color: var(--unknown); }
+.ok { color: var(--accent); }
+.f { color: var(--fail); }
+.a { color: var(--needs-you); font-weight: 700; }
+.nums { display: flex; margin-top: 16px; border-top: 1px solid var(--border-2); border-bottom: 1px solid var(--border-2); box-shadow: var(--edge-glow); }
+.num { flex: 1; min-width: 0; padding: 10px 12px 10px 0; }
+.num + .num { padding-left: 16px; border-left: 1px solid var(--border-1); }
+.v { font-size: 40px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.v small { font-size: 26px; font-weight: 600; color: var(--text-3); }
+.v.a { text-shadow: 0 0 22px var(--d-amber-glow); }
+.v.u { padding-top: 10px; font-size: 30px; text-decoration: underline dashed var(--d-unk-line); text-underline-offset: 6px; }
+.k { margin-top: 4px; font-size: 19px; line-height: 1.25; color: var(--text-3); }
+.block { margin-top: 12px; }
+.block h3 { margin: 0 0 6px; font-size: 20px; font-weight: 600; color: var(--text-3); }
+.ck { display: grid; grid-template-columns: 140px 1fr; row-gap: 2px; margin: 12px 0 0; font-size: 21px; }
+.ck dt { color: var(--text-3); }
+.ck dd { margin: 0; color: var(--text-1); }
+.dec { display: flex; align-items: center; gap: 12px; width: 100%; padding: 2px 10px; border: 0; border-radius: var(--r-sm); background: none; font-size: 21px; text-align: left; color: var(--text-1); cursor: default; }
+.dec:hover,
+.dec.on { background: var(--hover); box-shadow: var(--sel-edge); }
+.dec:focus-visible { outline: none; box-shadow: var(--ring); }
+.dmark { flex: none; width: 9px; height: 9px; background: var(--needs-you); transform: rotate(45deg); box-shadow: 0 0 8px var(--d-amber-glow); }
+.seeded { flex: none; padding: 0 6px; border: 1px dashed var(--d-pink-ghost); border-radius: 4px; font-size: 18px; color: var(--accent-2); }
+.does { min-height: 54px; margin: 6px 0 0; padding: 8px 12px; border-left: 2px solid var(--needs-you); background: var(--d-plate); font-size: 20px; color: var(--text-2); }
+.does b { color: var(--text-1); font-weight: 600; }
+.tracks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 10px; }
+.trk { display: flex; align-items: center; gap: 9px; font-size: 19px; color: var(--text-2); }
+.trk i { flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px color-mix(in oklab, var(--accent) 60%, transparent); }
+.trk i.off { background: none; box-shadow: inset 0 0 0 1px var(--d-cy-mid); }
+.trk i.blk { background: var(--tier-quarantined); box-shadow: 0 0 10px color-mix(in oklab, var(--tier-quarantined) 50%, transparent); }
+.trk b { font-family: var(--mono); font-weight: 600; color: var(--text-1); }
+.nd { flex: none; width: 8px; height: 8px; background: var(--needs-you); transform: rotate(45deg); }
+.line { margin-top: 4px; font-size: 21px; color: var(--text-2); }
+.line b { color: var(--text-1); font-weight: 600; }
+.mono { font-family: var(--mono); font-size: 19px; }
+.tiers { display: flex; flex-wrap: wrap; gap: 14px; font-size: 20px; color: var(--text-2); }
+.tiers span { display: inline-flex; align-items: center; gap: 7px; }
+.exits { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 14px; border-top: 1px solid var(--border-2); }
+.enter,
+.exit { display: inline-flex; align-items: center; border-radius: var(--r-sm); text-decoration: none; }
+.enter { height: 42px; padding: 0 18px; font-size: 21px; font-weight: 700; color: var(--ink-accent); background: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 18px color-mix(in oklab, var(--accent) 35%, transparent); }
+.exit { height: 38px; padding: 0 11px; font-size: 19px; color: var(--text-1); background: var(--ctl); box-shadow: inset 0 0 0 1px var(--border-3); }
+.exit:hover { box-shadow: inset 0 0 0 1px var(--accent); }
+.exit span { margin-left: 6px; color: var(--accent); }
+.enter:focus-visible,
+.exit:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* the class list beside the tower */
+.classes { position: absolute; left: 512px; top: 336px; width: 272px; }
+.classes h3 { margin: 0 0 6px; font-size: 20px; font-weight: 600; color: var(--text-3); }
+.cl { display: flex; align-items: center; gap: 10px; height: 37px; padding: 0 8px; border-radius: 6px; background: var(--d-plate); font: 18px var(--mono); color: var(--text-2); }
+.cl.on { background: var(--sel-dim); color: var(--text-1); box-shadow: var(--sel-edge); }
+.cl.unk { color: var(--unknown); }

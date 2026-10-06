@@ -1,0 +1,191 @@
+/* The answer block, the district labels and the HUD readout (stage px; the stage scales as a whole). */
+.answer {
+  position: absolute;
+  left: 64px;
+  top: 104px;
+  width: 520px;
+  transition: opacity 500ms var(--ease), transform 600ms var(--ease);
+  pointer-events: auto;
+}
+:global([data-level="1"]) .answer,
+:global([data-level="2"]) .answer {
+  opacity: 0;
+  transform: translateX(-40px);
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 400ms var(--ease), transform 500ms var(--ease), visibility 0s 500ms;
+}
+.big {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 118px;
+  line-height: 0.92;
+  font-weight: 700;
+  color: var(--needs-you);
+  text-shadow: 0 0 34px var(--d-amber-glow), 0 0 2px var(--d-amber-glow);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.bigSub {
+  margin-top: 6px;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.top {
+  margin-top: 12px;
+  font-size: 21px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.top b {
+  color: var(--text-1);
+  font-weight: 600;
+}
+.n {
+  color: var(--needs-you);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.marks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.mk {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: max-content;
+  padding: 5px 8px 5px 2px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  font-size: 21px;
+  color: var(--text-2);
+  text-align: left;
+  cursor: default;
+}
+.mk:hover,
+.mk:focus-visible {
+  background: var(--hover);
+  color: var(--text-1);
+}
+.mk b {
+  color: var(--text-1);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.mk svg {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  overflow: visible;
+}
+.proof {
+  width: 470px;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-2);
+  border-radius: 0;
+}
+.fl {
+  color: var(--fail);
+  font-weight: 700;
+}
+.big:focus-visible,
+.mk:focus-visible,
+.dlabel:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+/* district labels: a stem up to the plate, the name, the amber count and the stale chip */
+.labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 500ms var(--ease);
+}
+:global([data-level="1"]) .labels,
+:global([data-level="2"]) .labels {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 300ms, visibility 0s 300ms;
+}
+.dlabel {
+  position: absolute;
+  transform: translateX(-50%);
+  padding: 6px 12px 7px;
+  border: 1px solid var(--border-3);
+  border-radius: var(--r-sm);
+  background: var(--d-plate);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: border-color 200ms, box-shadow 200ms;
+}
+.dlabel::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -15px;
+  width: 1px;
+  height: 14px;
+  background: var(--d-cy-mid);
+}
+.dlabel:hover,
+.hot {
+  border-color: var(--accent);
+  box-shadow: var(--edge-glow);
+}
+.dl1 {
+  display: block;
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.2;
+  color: var(--text-1);
+}
+.dl1 span {
+  margin-left: 8px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.dl2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 3px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+.a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--needs-you);
+  font-weight: 700;
+}
+.dmark {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: var(--needs-you);
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px var(--d-amber-glow);
+}
+.hchip {
+  padding: 0 6px;
+  border: 1px solid var(--d-stale-line);
+  border-radius: 4px;
+  background: var(--hatch), var(--d-plate);
+  color: var(--stale);
+  font-weight: 600;
+}

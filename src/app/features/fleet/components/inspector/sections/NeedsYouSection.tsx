@@ -4,7 +4,7 @@ import { Button } from '@/components/controls/Button';
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
-import { DEFAULT_NEEDS_ACTION, NEEDS_ACTIONS } from '../../../data/needsActions';
+import { DEFAULT_NEEDS_ACTION, NEEDS_ACTIONS } from '@/lib/demo/needsActions';
 import type { SectionProps } from '../../../hooks/useSectionOpen';
 import { gitlabUrl, needsMeta, waitingTitle } from '../../../model/inspector';
 import type { DeepProject } from '../../../model/types';

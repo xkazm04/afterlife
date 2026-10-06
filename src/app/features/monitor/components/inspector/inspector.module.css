@@ -1,0 +1,88 @@
+/* The Monitor's inspector rows. Sizes come from the text-size variables, like every other inspector. */
+.muted {
+  color: var(--text-3);
+  font-size: var(--t-head);
+  padding: 6px 12px;
+}
+.line {
+  margin-top: 4px;
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+.line[data-state="stale"] {
+  color: var(--stale);
+}
+.line[data-state="not-set-up"] {
+  color: var(--unknown);
+}
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0 8px;
+  border-bottom: 1px solid var(--sep-body);
+}
+.item:last-child {
+  border-bottom: 0;
+}
+.t {
+  font-size: var(--t-body);
+  color: var(--text-1);
+}
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 4px;
+}
+.done {
+  color: var(--ok);
+  font-size: var(--t-head);
+}
+.tiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+.tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-head);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* the overview's "most waiting" list: each row picks its beat */
+.pick {
+  display: grid;
+  grid-template-columns: calc(26px * var(--ui-scale)) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: var(--ctl-h);
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-1);
+  font-size: var(--t-body);
+  text-align: left;
+  cursor: default;
+}
+.pick:hover {
+  background: var(--hover);
+}
+.n {
+  border-radius: 6px;
+  background: var(--needs-you);
+  color: var(--needs-you-ink);
+  font-size: var(--t-small);
+  font-weight: 800;
+  text-align: center;
+}
+.g {
+  color: var(--text-3);
+  font-size: var(--t-small);
+}

@@ -1,0 +1,53 @@
+/* The HUD readout: a plate with four pink corner brackets, top centre of the stage. */
+.hud {
+  background:
+    linear-gradient(var(--accent-2), var(--accent-2)) top left / 16px 1px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) top left / 1px 16px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) top right / 16px 1px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) top right / 1px 16px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom left / 16px 1px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom left / 1px 16px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom right / 16px 1px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom right / 1px 16px no-repeat,
+    var(--d-plate);
+}
+.readout {
+  position: absolute;
+  left: 800px;
+  top: 24px;
+  max-width: 760px;
+  padding: 12px 30px 15px;
+  border: 1px solid var(--border-1);
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  pointer-events: none;
+  transition: opacity 220ms var(--ease), transform 300ms var(--ease);
+}
+.on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+:global([data-level="2"]) .readout {
+  opacity: 0;
+}
+.roName {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1.08;
+  color: var(--text-1);
+  text-shadow: var(--title-glow);
+  white-space: nowrap;
+}
+.roLine {
+  margin-top: 4px;
+  font-size: 22px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.roTiers {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 9px;
+}

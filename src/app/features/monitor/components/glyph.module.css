@@ -1,0 +1,13 @@
+/* A mark glyph: a piece of trace, not an icon. .glyph is the legend size; .icon fits the sidebar icon slot. */
+.glyph {
+  width: calc(30px * var(--ui-scale));
+  height: calc(18px * var(--ui-scale));
+  flex: none;
+  overflow: visible;
+}
+.icon {
+  width: var(--ico);
+  height: var(--ico);
+  flex: none;
+  overflow: visible;
+}

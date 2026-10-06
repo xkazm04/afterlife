@@ -1,0 +1,10 @@
+/* The Monitor's pane: the answer band on top, the leads filling the rest; it scrolls only when a lead is open. */
+.pane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(12px * var(--ui-scale));
+  padding: calc(14px * var(--ui-scale)) calc(16px * var(--ui-scale));
+  overflow: auto;
+}

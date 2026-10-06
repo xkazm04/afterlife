@@ -1,0 +1,41 @@
+/* Tier letters, as the front door draws them: a tinted chip with the tier's letter in its colour. */
+.tl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 26px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font: 700 18px var(--sys);
+  font-style: normal;
+}
+.handsOff {
+  background: color-mix(in oklab, var(--tier-handsoff) 22%, transparent);
+  color: var(--tier-handsoff);
+  box-shadow: inset 0 0 0 1px var(--tier-handsoff);
+}
+.supervised {
+  background: color-mix(in oklab, var(--tier-supervised) 22%, transparent);
+  color: var(--tier-supervised);
+  box-shadow: inset 0 0 0 1px var(--tier-supervised);
+}
+.assisted {
+  background: color-mix(in oklab, var(--tier-assisted) 22%, transparent);
+  color: var(--tier-assisted);
+  box-shadow: inset 0 0 0 1px var(--tier-assisted);
+}
+.quarantined {
+  background: color-mix(in oklab, var(--tier-quarantined) 22%, transparent);
+  color: var(--tier-quarantined);
+  box-shadow: inset 0 0 0 1px var(--tier-quarantined);
+}
+.human {
+  background: color-mix(in oklab, var(--tier-human) 18%, transparent);
+  color: var(--tier-human);
+  box-shadow: inset 0 0 0 1px var(--tier-human);
+}
+.null {
+  color: var(--unknown);
+  border: 1px dashed var(--d-unk-line);
+}

@@ -1,4 +1,4 @@
-// Button labels of the ledgerline decisions in the inspector: [what resolves it, the quiet alternative].
+// Button labels of the ledgerline decisions (Fleet and Monitor inspectors): [what resolves it, the quiet alternative].
 export const NEEDS_ACTIONS: Record<string, readonly [string, string]> = {
   n1: ['Open policy MR', 'Not now'],
   n2: ['Mark ready to sign', 'Open packet'],

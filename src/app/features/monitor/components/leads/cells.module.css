@@ -1,0 +1,92 @@
+/* The open lead's cells: a name under each beat. Body-size names, never truncated below the cell's width. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(150px * var(--ui-scale)), 1fr));
+  gap: calc(6px * var(--ui-scale));
+  padding: 4px 0;
+}
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 6px 8px 8px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  background: color-mix(in oklab, var(--bg) 94%, transparent);
+  color: var(--text-2);
+  text-align: center;
+  cursor: default;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.cell:hover {
+  background: color-mix(in oklab, var(--accent) 6%, var(--bg));
+}
+.cell[aria-pressed="true"] {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent-2) 40%, transparent), 0 0 14px color-mix(in oklab, var(--accent-2) 25%, transparent);
+}
+.cell[data-match] {
+  border-style: dashed;
+  border-color: color-mix(in oklab, var(--accent-2) 70%, transparent);
+}
+.grid[data-marked] .cell:not([data-match]) {
+  opacity: 0.45;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: calc(20px * var(--ui-scale));
+}
+.badge {
+  min-width: calc(24px * var(--ui-scale));
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--needs-you);
+  color: var(--needs-you-ink);
+  font-weight: 800;
+  font-size: var(--t-small);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 12px color-mix(in oklab, var(--needs-you) 50%, transparent);
+}
+.tag {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  padding: 0 6px;
+  border: 1px dashed var(--border-3);
+  border-radius: 5px;
+}
+.cell[data-state="stale"] .tag {
+  color: var(--stale);
+  border-style: solid;
+  border-color: color-mix(in oklab, var(--stale) 45%, transparent);
+}
+.cell[data-state="not-set-up"] .tag {
+  color: var(--unknown);
+  border-color: var(--unknown);
+}
+.q {
+  margin-left: auto;
+  width: calc(18px * var(--ui-scale));
+  border: 1px solid var(--tier-quarantined);
+  border-radius: 4px;
+  color: var(--tier-quarantined);
+  font-size: var(--t-small);
+  font-weight: 800;
+}
+.beat {
+  width: 100%;
+  height: calc(46px * var(--ui-scale));
+  overflow: visible;
+}
+.name {
+  font-size: var(--t-body);
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cell[data-state="not-set-up"] .name {
+  color: var(--text-3);
+}

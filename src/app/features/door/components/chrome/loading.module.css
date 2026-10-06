@@ -1,0 +1,45 @@
+/* The door's loading frame: the same ground and horizon the city stands on, so the city fades in, not pops in. */
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: var(--bg-grad);
+}
+.horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 33%;
+  height: 1px;
+  background: color-mix(in oklab, var(--accent) 42%, transparent);
+  box-shadow: 0 1.5px 0 color-mix(in oklab, var(--accent-2) 45%, transparent), 0 0 30px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+.brand {
+  position: absolute;
+  left: 28px;
+  top: 22px;
+  padding: 4px 14px 6px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-1);
+  text-shadow: var(--title-glow);
+  box-shadow: var(--edge-glow);
+}
+.scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 34vh;
+  background: linear-gradient(transparent, color-mix(in oklab, var(--accent) 5%, transparent) 50%, transparent);
+  animation: scan 2.4s linear infinite;
+}
+@keyframes scan {
+  from {
+    transform: translateY(-40vh);
+  }
+  to {
+    transform: translateY(120vh);
+  }
+}

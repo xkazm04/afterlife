@@ -1,0 +1,167 @@
+/* The front door's frame: Night Shift's derived colours (all color-mix() of the theme), the fitted stage, the dimming
+   at L2, and the full-bleed overlays (vignette, one scan band, grain), each a static or transform-only layer. */
+.root {
+  --d-plate: color-mix(in oklab, var(--bg) 94%, transparent);
+  --d-plate-solid: color-mix(in oklab, var(--bg) 97%, var(--tint-side));
+  --d-amber-glow: color-mix(in oklab, var(--needs-you) 50%, transparent);
+  --d-amber-hot: color-mix(in oklab, var(--needs-you) 55%, var(--white));
+  --d-cy-edge: color-mix(in oklab, var(--accent) 74%, transparent);
+  --d-cy-mid: color-mix(in oklab, var(--accent) 42%, transparent);
+  --d-cy-dim: color-mix(in oklab, var(--accent) 22%, transparent);
+  --d-cy-faint: color-mix(in oklab, var(--accent) 10%, transparent);
+  --d-cy-ghost: color-mix(in oklab, var(--accent) 5%, transparent);
+  --d-f-top: color-mix(in oklab, var(--tint-chrome) 78%, var(--accent));
+  --d-f-l: color-mix(in oklab, var(--tint-win) 86%, var(--accent));
+  --d-f-r: color-mix(in oklab, var(--bg) 62%, var(--tint-chrome));
+  --d-pl-top: color-mix(in oklab, var(--bg) 80%, var(--tint-chrome));
+  --d-pl-l: color-mix(in oklab, var(--bg) 88%, var(--accent));
+  --d-pl-r: color-mix(in oklab, var(--bg) 94%, var(--accent));
+  --d-stale-line: color-mix(in oklab, var(--stale) 46%, transparent);
+  --d-stale-hatch: color-mix(in oklab, var(--stale) 40%, transparent);
+  --d-unk-line: color-mix(in oklab, var(--unknown) 75%, transparent);
+  --d-pink-ghost: color-mix(in oklab, var(--accent-2) 45%, transparent);
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  background: var(--bg-grad);
+  color: var(--text-1);
+  font-family: var(--sys);
+  /* the winner set none: the app body's 1.3 would make every line taller (style contract) */
+  line-height: normal;
+}
+/* zero-specificity resets, so every component's own colour wins */
+:where(.root) button {
+  font-family: var(--sys);
+  color: inherit;
+}
+.stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1600px;
+  height: 1000px;
+  transform-origin: 0 0;
+  transform: translate(var(--ox, 0px), var(--oy, 0px)) scale(var(--s, 1));
+}
+.artStage {
+  z-index: 1;
+}
+.uiStage {
+  z-index: 5;
+  pointer-events: none;
+}
+.art {
+  position: absolute;
+  inset: 0;
+  transition: opacity 700ms var(--ease);
+}
+/* at L2 the city falls away entirely: nothing behind the project is drawn or composited */
+.root[data-level="2"] .art {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 600ms var(--ease), visibility 0s 600ms;
+}
+/* the left column's backing: text never sits on the art */
+.scrim {
+  position: absolute;
+  left: -2000px;
+  top: -2000px;
+  width: 2660px;
+  height: 4000px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--bg) 97%, transparent) 0, color-mix(in oklab, var(--bg) 95%, transparent) 2008px, transparent 2660px);
+  mask-image: linear-gradient(180deg, #000 0, #000 2560px, transparent 2700px);
+  pointer-events: none;
+  transition: opacity 600ms var(--ease);
+}
+.root[data-level="1"] .scrim,
+.root[data-level="2"] .scrim {
+  opacity: 0;
+}
+.ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.skip {
+  position: absolute;
+  left: 800px;
+  top: 930px;
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--d-plate-solid);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+  transform: translateX(-50%);
+  font-size: 20px;
+  color: var(--text-2);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.skip:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.fx {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+.vig {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 70% at 58% 58%, transparent 55%, var(--shade-60) 100%);
+}
+.scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 34vh;
+  background: linear-gradient(transparent, color-mix(in oklab, var(--accent) 4%, transparent) 48%, color-mix(in oklab, var(--accent) 6%, transparent) 50%, transparent);
+  will-change: transform;
+  animation: scan 13s linear infinite;
+}
+@keyframes scan {
+  from {
+    transform: translateY(-40vh);
+  }
+  to {
+    transform: translateY(120vh);
+  }
+}
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, color-mix(in oklab, var(--white) 1.2%, transparent) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, color-mix(in oklab, var(--white) 0.8%, transparent) 0 1px, transparent 1px 4px);
+}
+/* Weak GPUs pay for every frame anything moves, so ambient motion runs only when it can be afforded:
+   - focus: in a district or a project, the city's ambient motion pauses (the project's own pings keep going);
+   - rest: after 15 s without input, everything ambient pauses;
+   - lite: on a machine that could not hold the intro's frame rate, ambient motion, grain and bloom are off.
+   Every selector ends on the marked element itself (no universal), so flipping data-level or data-still on the root
+   restyles only the dozen elements that animate. */
+.root[data-level="1"] [data-ambient="city"],
+.root[data-level="2"] [data-ambient="city"],
+.root[data-still] [data-ambient] {
+  animation-play-state: paused !important;
+}
+:global(html[data-door-q="lite"]) .root [data-ambient] {
+  animation: none !important;
+}
+:global(html[data-door-q="lite"]) .root [data-lite="off"] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan {
+    display: none;
+  }
+}

@@ -1,0 +1,127 @@
+/* The scene's layers. Every motion here is transform or opacity on a whole layer: the compositor's work, no repaint. */
+.scene {
+  position: absolute;
+  inset: 0;
+}
+.ground,
+.cam {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1600px;
+  height: 1000px;
+  transform-origin: 0 0;
+  transition: transform var(--cam-ms, 850ms) var(--ease);
+}
+/* Each static drawing gets its own cached layer (will-change: opacity, not transform: a transform hint would freeze
+   the raster scale and blur the zoomed district). Damage from the few moving things never reaches them. */
+.district {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 500ms var(--ease);
+}
+.district svg > * {
+  pointer-events: auto;
+}
+.cold {
+  opacity: 0.55;
+}
+/* far districts and the beams keep their raster through the zoom (a transform hint freezes the raster scale): faded
+   or glowing, a scaled bitmap is invisible, and only the open district re-rasters */
+.far {
+  opacity: 0.15;
+  will-change: opacity, transform;
+}
+:global([data-level="1"]) .beams,
+:global([data-level="2"]) .beams {
+  will-change: opacity, transform;
+}
+.haze {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 500ms;
+}
+:global([data-level="1"]) .haze,
+:global([data-level="2"]) .haze {
+  opacity: 0;
+}
+.beams {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 500ms;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+:global([data-level="1"]) .beams {
+  opacity: 0.8;
+}
+.breathe {
+  position: absolute;
+  inset: 0;
+  animation: breathe 7s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.86;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* the intro: districts rise in turn, then the light comes on; skipped by any key or click, and under reduced motion */
+:global([data-intro="on"]) .district {
+  animation: rise 650ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation-delay: calc(400ms + var(--i) * 170ms);
+}
+:global([data-intro="on"]) .beams {
+  animation: ignite 700ms var(--ease) both;
+  animation-delay: 2.3s;
+}
+:global([data-intro="on"]) .ground {
+  animation: fade 800ms var(--ease) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+@keyframes ignite {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+:global(html[data-door-q="lite"]) .district,
+:global(html[data-door-q="lite"]) .beams,
+:global(html[data-door-q="lite"]) .ground {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ground,
+  .cam {
+    transition: none;
+  }
+  .breathe {
+    animation: none;
+  }
+}

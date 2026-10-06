@@ -1,0 +1,112 @@
+/* The leads: one row per group (plate | strip | counts). The strip itself is styled in strip.module.css. */
+.leads {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6px * var(--ui-scale));
+  flex: 1;
+  min-height: 0;
+  outline: none;
+}
+.row {
+  display: grid;
+  grid-template-columns: calc(168px * var(--ui-scale)) minmax(0, 1fr) calc(92px * var(--ui-scale));
+  align-items: center;
+  gap: calc(10px * var(--ui-scale));
+  flex: 1 1 calc(86px * var(--ui-scale));
+  min-height: calc(64px * var(--ui-scale));
+}
+.row[data-thin] {
+  flex: 0 0 calc(30px * var(--ui-scale));
+  min-height: 0;
+}
+/* the open lead takes the room left by the thin ones: plate and counts on top, the cells across the whole row,
+   scrolling inside so the other leads stay in view */
+.row[data-open] {
+  flex: 1 1 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: start;
+}
+.row[data-open] > :nth-child(2) {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  height: 100%;
+  overflow: auto;
+}
+.row[data-open] > :nth-child(3) {
+  grid-column: 3;
+  grid-row: 1;
+  flex-direction: row;
+  align-items: center;
+}
+
+/* lead plate: the group's name, a button that opens the lead into cells */
+.plate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  max-height: calc(48px * var(--ui-scale));
+  padding: 0 12px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: color-mix(in oklab, var(--bg) 94%, transparent);
+  color: var(--text-1);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: default;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.plate:hover,
+.plate[aria-expanded="true"] {
+  border-color: color-mix(in oklab, var(--accent) 35%, transparent);
+  background: color-mix(in oklab, var(--bg) 88%, var(--accent) 4%);
+}
+.row[data-thin] .plate {
+  max-height: calc(26px * var(--ui-scale));
+  font-weight: 500;
+  color: var(--text-2);
+}
+.pn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pc {
+  margin-left: auto;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* right column: the lead's amber count and its stale chip */
+.counts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.row[data-thin] .counts {
+  flex-direction: row;
+  align-items: center;
+}
+.amber {
+  font-size: calc(var(--t-body) + 6px);
+  font-weight: 750;
+  color: var(--needs-you);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 14px color-mix(in oklab, var(--needs-you) 50%, transparent);
+}
+.row[data-thin] .amber {
+  font-size: var(--t-body);
+}
+.staleChip {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--stale);
+  padding: 0 6px;
+  border: 1px solid color-mix(in oklab, var(--stale) 50%, transparent);
+  border-radius: 5px;
+  background: var(--hatch);
+  white-space: nowrap;
+}
+.row[data-thin] .staleChip {
+  display: none;
+}

@@ -1,0 +1,17 @@
+/* Tones inside a line of words. */
+.amber {
+  color: var(--needs-you);
+  font-weight: 700;
+}
+.stale {
+  color: var(--stale);
+}
+.unknown {
+  color: var(--unknown);
+}
+.fail {
+  color: var(--fail);
+}
+.ok {
+  color: var(--accent);
+}

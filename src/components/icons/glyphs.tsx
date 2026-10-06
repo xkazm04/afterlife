@@ -26,6 +26,7 @@ const panel = (divider: string, lines: string): Glyph => ({
 export const GLYPHS = {
   // app navigation (15 box)
   fleet: nav(<path d="M1.5 3.5h12M1.5 7.5h12M1.5 11.5h12" />),
+  monitor: nav(<path d="M1 8h3l1.6-4 2.6 8.5 2-6.5 1.1 2H14" />),
   needsYou: nav(
     <>
       <path d="M7.5 1.5l6 11h-12z" />

@@ -1,0 +1,195 @@
+/* The L1 rail: a HUD plate on the right of the stage, sliding in after the camera starts to move. */
+.rail {
+  position: absolute;
+  left: 1112px;
+  top: 150px;
+  width: 456px;
+  max-height: 770px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-3);
+  background: var(--d-plate);
+  box-shadow: var(--win-halo);
+  animation: railIn 700ms var(--ease) 200ms both;
+  pointer-events: auto;
+}
+@keyframes railIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+.head {
+  padding: 18px 22px 12px;
+  border-bottom: 1px solid var(--border-2);
+  box-shadow: var(--edge-glow);
+}
+.head h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  text-shadow: var(--title-glow);
+}
+.head p {
+  margin: 4px 0 0;
+  font-size: 20px;
+  color: var(--text-3);
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 10px 10px;
+  scrollbar-width: thin;
+}
+.sec {
+  margin-top: 10px;
+}
+.sec h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 12px 4px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.c {
+  color: var(--text-2);
+}
+.ca {
+  color: var(--needs-you);
+}
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-1);
+  font-size: 22px;
+  text-align: left;
+  cursor: pointer;
+}
+.row:hover,
+.hot {
+  background: var(--hover);
+  box-shadow: var(--sel-edge);
+}
+.row:focus-visible,
+.enter:focus-visible,
+.exit:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.cnt {
+  flex: none;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: var(--needs-you);
+  color: var(--needs-you-ink);
+  font-weight: 700;
+  font-size: 20px;
+}
+.nm {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 20px;
+  color: var(--text-3);
+  white-space: normal;
+}
+.st {
+  color: var(--stale);
+}
+.tag {
+  flex: none;
+  padding: 0 6px;
+  border: 1px solid var(--d-stale-line);
+  border-radius: 4px;
+  background: var(--hatch);
+  color: var(--stale);
+  font-size: 18px;
+}
+.ico {
+  flex: none;
+  align-self: center;
+  width: 22px;
+  height: 22px;
+}
+.calm {
+  margin: 12px 12px 4px;
+  font-size: 22px;
+  color: var(--text-2);
+}
+.calm b {
+  color: var(--text-1);
+}
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px 14px;
+  border-top: 1px solid var(--border-2);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 6px;
+  font-size: 18px;
+  color: var(--text-3);
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.enter,
+.exit {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-sm);
+  text-decoration: none;
+}
+.enter {
+  height: 42px;
+  padding: 0 18px;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--ink-accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+.exit {
+  height: 38px;
+  padding: 0 11px;
+  font-size: 19px;
+  color: var(--text-1);
+  background: var(--ctl);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+}
+.exit:hover {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.exit span {
+  margin-left: 6px;
+  color: var(--accent);
+}

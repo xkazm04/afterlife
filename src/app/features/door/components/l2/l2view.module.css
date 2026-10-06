@@ -1,0 +1,58 @@
+/* L2's frame: fades in over the dimmed city; the cutaway lifts from its tower with one transform transition. */
+.l2 {
+  position: absolute;
+  inset: 0;
+  animation: l2In 600ms var(--ease) 200ms both;
+  pointer-events: auto;
+}
+@keyframes l2In {
+  from {
+    opacity: 0;
+  }
+}
+.lift {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1600px;
+  height: 1000px;
+  transform-origin: 0 0;
+  transition: transform 900ms var(--ease);
+}
+.pings {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.pings i {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  animation: ping 2.8s ease-out infinite;
+}
+.pings i + i {
+  animation-delay: -1.4s;
+}
+@keyframes ping {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.4);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lift {
+    transition: none;
+  }
+  .pings {
+    display: none;
+  }
+}

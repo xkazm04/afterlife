@@ -1,0 +1,76 @@
+/* Beams, lamps, glows and bloom; the setup lights; the hover marks. */
+.svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.bloom {
+  opacity: 0.9;
+}
+.body {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+:global([data-level="1"]) .body {
+  transform: scaleX(0.5);
+}
+:global([data-level="1"]) .glows {
+  opacity: 0.35;
+}
+.lamp {
+  fill: var(--d-amber-hot);
+}
+.lampStale {
+  fill: color-mix(in oklab, var(--needs-you) 55%, var(--bg));
+}
+.dimx {
+  opacity: 0.18;
+}
+
+/* the setup lights: one compositor opacity animation for the whole layer */
+.light {
+  fill: var(--accent);
+}
+.blink {
+  animation: blink 2.6s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* hover marks */
+.hotEdge {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.hotGhost {
+  fill: none;
+  stroke: var(--accent-2);
+  opacity: 0.55;
+}
+.hotBack {
+  fill: none;
+  stroke: var(--d-cy-dim);
+}
+.brk {
+  fill: none;
+  stroke: var(--accent-2);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+@media (prefers-reduced-motion: reduce) {
+  .blink {
+    animation: none;
+    opacity: 0.8;
+  }
+}
