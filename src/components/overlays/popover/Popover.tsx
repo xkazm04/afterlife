@@ -5,9 +5,12 @@ import { createPortal } from 'react-dom';
 import { placeNear, type Box } from '../position';
 import styles from './Popover.module.css';
 
+export type PopoverCloseCause = 'escape' | 'press';
+
 /**
  * A floating panel next to an anchor (tooltips with structure, legends). Normally used through usePopover().
- * With `onClose` it also closes on Escape (the key is consumed) and on a press outside it.
+ * With `onClose` it also closes on Escape (the key is consumed) and on a press outside it. `onClose` is told the
+ * cause and, for a press, what was pressed (usePopover uses it to keep the trigger's own click from reopening).
  */
 export function Popover({
   anchor,
@@ -18,7 +21,7 @@ export function Popover({
 }: {
   anchor: Box;
   placement?: 'below' | 'above';
-  onClose?: () => void;
+  onClose?: (cause: PopoverCloseCause, target?: EventTarget | null) => void;
   label?: string;
   children: ReactNode;
 }) {
@@ -37,10 +40,10 @@ export function Popover({
       if (e.key !== 'Escape') return;
       e.preventDefault();
       e.stopPropagation();
-      onClose();
+      onClose('escape');
     };
     const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose('press', e.target);
     };
     document.addEventListener('keydown', onKey, true);
     document.addEventListener('mousedown', onDown, true);

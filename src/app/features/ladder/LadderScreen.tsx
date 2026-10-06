@@ -79,15 +79,15 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
   const actions = useLadderActions({ data, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi });
   const menus = useLadderMenus({ data, actions, onHover: setHoverTo });
 
-  const toggleHelp = (fromPointer = false) => {
+  const toggleHelp = () => {
     const anchor = helpRef.current;
-    if (anchor) pop.toggle('help', anchor, <HelpContent means={means} onReset={actions.reset} />, 'above', fromPointer);
+    if (anchor) pop.toggle('help', anchor, <HelpContent means={means} onReset={actions.reset} />, 'above');
   };
   const togglePolicy = () => {
     const anchor = policyRef.current;
-    if (anchor) pop.toggle('policy', anchor, <PolicyContent head={state.head} />, 'below', true);
+    if (anchor) pop.toggle('policy', anchor, <PolicyContent head={state.head} />, 'below');
   };
-  useLadderKeys({ data, actions, searchRef, enabled: !menus.isOpen, toggleHelp: () => toggleHelp(), closeInspector: () => setInspectorOpen(false) });
+  useLadderKeys({ data, actions, searchRef, enabled: !menus.isOpen, toggleHelp, closeInspector: () => setInspectorOpen(false) });
 
   const onKeyDown = useRowNavigation({
     items: data.view.nav,
@@ -177,7 +177,7 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
           tableRef={tableRef}
         />
       </div>
-      <Dock model={dockModel(data.sel, byId, tracks, hoverTo)} onHelp={() => toggleHelp(true)} helpRef={helpRef} />
+      <Dock model={dockModel(data.sel, byId, tracks, hoverTo)} onHelp={toggleHelp} helpRef={helpRef} />
       {menus.menus}
       {pop.popover}
     </Window>
