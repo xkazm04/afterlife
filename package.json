@@ -19,13 +19,15 @@
     "verify": "npm run typecheck && npm run lint && npm run check:structure && npm run test && npm run build",
     "doctor": "node cli/belay.mjs doctor",
     "demo:data": "node scripts/build-demo.mjs",
-    "check:structure": "node scripts/check-structure.mjs src"
+    "check:structure": "node scripts/check-structure.mjs src && node scripts/check-structure.mjs engine",
+    "engine": "tsx engine/cli.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.3",
     "next": "^16.3.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "server-only": "^0.0.1",
     "yaml": "^2.8.1"
   },
   "devDependencies": {
@@ -34,6 +36,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^16.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^4.1.8"
   }
