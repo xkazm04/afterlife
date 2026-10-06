@@ -1,0 +1,11 @@
+{
+  "_shape": "[R] from docs: file contents (served base64 by the fake) and Ultimate vulnerabilities of ledgerline",
+  "files": {
+    ".gitlab-ci.yml": "stages: [build, test, deploy]\ninclude:\n  - template: Security/SAST.gitlab-ci.yml\nunit-tests:\n  stage: test\n  script: [npm ci, npx vitest run]\n",
+    "README.md": "# ledgerline\n\nDemo bank for Belay.\n"
+  },
+  "vulnerabilities": [
+    { "id": 6001, "title": "Use of a broken or risky cryptographic algorithm", "severity": "high", "state": "detected", "report_type": "sast", "created_at": "2026-10-08T09:30:00.000Z", "web_url": "https://gitlab.com/afterlife3274741/ledgerline/-/security/vulnerabilities/6001" },
+    { "id": 6002, "title": "Regular expression denial of service in minimatch", "severity": "medium", "state": "detected", "report_type": "dependency_scanning", "created_at": "2026-10-08T09:30:05.000Z", "web_url": "https://gitlab.com/afterlife3274741/ledgerline/-/security/vulnerabilities/6002" }
+  ]
+}

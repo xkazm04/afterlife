@@ -67,3 +67,8 @@ export async function listProofsFor(db: Queryable, taskIds: readonly string[]): 
     }]),
   );
 }
+
+/** Removes a task's proofs: the MR moved on, or the note that carried the proof is gone. */
+export async function deleteProofs(db: Queryable, taskId: string): Promise<void> {
+  await db.query('delete from proof where task_id = $1', [taskId]);
+}

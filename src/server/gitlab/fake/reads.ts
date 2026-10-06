@@ -1,4 +1,5 @@
 // GET routes of the fake. Plan-gated endpoints answer 403/404 exactly where the live Free group did.
+import { createHash } from 'node:crypto';
 import type { FakeState, Plan, ProjectData } from './dataset';
 import { fail, findProject, ok, paged, type Handler, type Req, type Res, type Route } from './server';
 
@@ -17,13 +18,16 @@ export const inProject = (fn: ProjectHandler): Handler => (st, m, req) => {
 const list = (items: unknown[], q: URLSearchParams): Res => ok(paged(items, q));
 const byId = (items: Record<string, unknown>[]) => [...items].sort((a, b) => Number(b.id) - Number(a.id));
 
+/** A content hash, like a git blob id: it changes when the file does (the poller skips an unchanged ledger by it). */
+const blobId = (content: string): string => createHash('sha1').update(content).digest('hex');
+
 function dirEntries(p: ProjectData, dir: string, recursive: boolean): Record<string, string>[] {
   const out = new Map<string, Record<string, string>>();
   const prefix = dir ? `${dir.replace(/\/$/, '')}/` : '';
   for (const path of Object.keys(p.files).filter((f) => f.startsWith(prefix))) {
     const rest = path.slice(prefix.length);
     const [head = '', ...tail] = rest.split('/');
-    if (recursive || tail.length === 0) out.set(path, { id: `blob-${path}`, name: rest.split('/').at(-1) ?? head, type: 'blob', path });
+    if (recursive || tail.length === 0) out.set(path, { id: blobId(p.files[path] ?? ''), name: rest.split('/').at(-1) ?? head, type: 'blob', path });
     if (!recursive && tail.length > 0) out.set(prefix + head, { id: `tree-${prefix + head}`, name: head, type: 'tree', path: prefix + head });
   }
   return [...out.values()];
@@ -34,7 +38,7 @@ function fileJson(p: ProjectData, path: string, ref: string): Res {
   if (content === undefined) return fail(404, 'File Not Found');
   return ok({
     file_name: path.split('/').at(-1), file_path: path, size: Buffer.byteLength(content), encoding: 'base64', ref,
-    blob_id: `blob-${path}`, content: Buffer.from(content, 'utf8').toString('base64'),
+    blob_id: blobId(content), content: Buffer.from(content, 'utf8').toString('base64'),
   });
 }
 

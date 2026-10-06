@@ -16,7 +16,9 @@ export interface PlannedCommand {
 export interface CreateMrInput { project: ProjectRef; sourceBranch: string; targetBranch: string; title: string; description?: string; labels?: string[] }
 export interface AddNoteInput { project: ProjectRef; iid: number; body: string }
 export interface SetLabelsInput { project: ProjectRef; iid: number; add?: string[]; remove?: string[] }
-export interface CommitFileInput { project: ProjectRef; path: string; branch: string; content: string; message: string; action: 'create' | 'update' }
+/** startBranch: create `branch` from it in the same call (GitLab's `start_branch`); without it the branch must exist. */
+export interface CommitFileInput { project: ProjectRef; path: string; branch: string; content: string; message: string; action: 'create' | 'update'; startBranch?: string }
+export interface SetIssueLabelsInput { project: ProjectRef; iid: number; add?: string[]; remove?: string[] }
 export interface PauseScheduleInput { project: ProjectRef; scheduleId: number }
 export interface ApproveDeploymentInput { project: ProjectRef; deploymentId: number; status: 'approved' | 'rejected'; comment?: string }
 
@@ -24,6 +26,8 @@ export interface PlanBuilders {
   createMr(i: CreateMrInput): PlannedCommand;
   addNote(i: AddNoteInput): PlannedCommand;
   setLabels(i: SetLabelsInput): PlannedCommand;
+  /** Labels on an issue or work item (the CRA clock). */
+  setIssueLabels(i: SetIssueLabelsInput): PlannedCommand;
   commitFile(i: CommitFileInput): PlannedCommand;
   pauseSchedule(i: PauseScheduleInput): PlannedCommand;
   approveDeployment(i: ApproveDeploymentInput): PlannedCommand;

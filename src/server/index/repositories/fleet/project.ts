@@ -77,3 +77,9 @@ export async function getProjectRow(db: Queryable, id: string): Promise<ProjectR
   const r = rows[0];
   return r ? fromDb(r) : null;
 }
+
+/** Moves a project between states (the poller marks a failed feed 'stale' and a good one 'watching'). Returns false if unknown. */
+export async function setProjectState(db: Queryable, id: string, state: ProjectState): Promise<boolean> {
+  const { rows } = await db.query<{ id: string }>('update project set state = $2 where id = $1 returning id', [id, state]);
+  return rows.length === 1;
+}

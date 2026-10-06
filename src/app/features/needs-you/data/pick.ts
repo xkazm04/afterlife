@@ -1,24 +1,29 @@
-// Server-side slice of the shared demo dataset. The route file calls this, so the client bundle never carries
-// the whole JSON. Throws when the fixture lacks what the screen needs.
-import { getActionClasses, getMaturity, getNeedsYou, getTasks, getTiers, type NeedsYouItem } from '@/lib/demo';
+// Server-side slice of the data source (demo fixture or live index). The route file calls this, so the client bundle
+// never carries the whole dataset. This screen is built around five specific inbox items and the !44 incident:
+// `pickNeedsYouDemo` throws when the source lacks them, `loadNeedsYou` answers null so the page can say so.
+import type { NeedsYouItem } from '@/lib/demo';
+import { getDataSource } from '@/server/data';
 import type { NeedsYouDemo } from './types';
+
+export class MissingNeedsYouData extends Error {}
 
 function item(items: readonly NeedsYouItem[], id: string): NeedsYouItem {
   const found = items.find((n) => n.id === id);
-  if (!found) throw new Error(`demo: needsYou item ${id} is missing`);
+  if (!found) throw new MissingNeedsYouData(`needsYou item ${id} is missing`);
   return found;
 }
 
 export function pickNeedsYouDemo(): NeedsYouDemo {
-  const items = getNeedsYou();
+  const ds = getDataSource();
+  const items = ds.getNeedsYou();
   const n1 = item(items, 'n1');
   const n2 = item(items, 'n2');
   const n4 = item(items, 'n4');
-  const maturity = getMaturity();
-  const task = getTasks().find((t) => t.mr === '!44');
-  const record = getActionClasses().find((c) => c.id === 'patch-bump')?.record;
-  if (!n1.from || !n1.to || !task || !record) throw new Error('demo: promote item, incident !44 or patch-bump record is missing');
-  const tiers = getTiers();
+  const maturity = ds.getMaturity();
+  const task = ds.getTasks().find((t) => t.mr === '!44');
+  const record = ds.getActionClasses().find((c) => c.id === 'patch-bump')?.record;
+  if (!n1.from || !n1.to || !task || !record) throw new MissingNeedsYouData('promote item, incident !44 or patch-bump record is missing');
+  const tiers = ds.getTiers();
   return {
     promote: { title: n1.title, from: n1.from, to: n1.to, rules: n1.rules ?? [] },
     signoff: { title: n2.title, linksResolved: n2.linksResolved ?? '' },
@@ -36,4 +41,14 @@ export function pickNeedsYouDemo(): NeedsYouDemo {
       human_only: tiers.human_only.means,
     },
   };
+}
+
+/** The screen's data, or null when the source does not hold the items it is built around (a live group with none of them yet). */
+export function loadNeedsYou(): NeedsYouDemo | null {
+  try {
+    return pickNeedsYouDemo();
+  } catch (e) {
+    if (e instanceof MissingNeedsYouData) return null;
+    throw e;
+  }
 }

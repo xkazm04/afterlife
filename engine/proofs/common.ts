@@ -49,6 +49,8 @@ export function parseBase(input: unknown): ProofBase {
   };
   if (!Number.isFinite(task.project_id)) throw new EngineError('task.project_id must be a number');
   if (typeof t.mr_iid === 'number') task.mr_iid = t.mr_iid;
+  const headSha = optStr(t.head_sha, 'task.head_sha');
+  if (headSha) task.head_sha = headSha;
   const claims = Array.isArray(i.claims) ? i.claims.map(parseClaim) : [];
   return {
     id: optStr(i.id, 'id'),

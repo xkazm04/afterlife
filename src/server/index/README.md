@@ -36,3 +36,7 @@ different event at a stored seq is rejected as a fork. `verifyStoredChain` re-ve
 ## Not yet served
 Tracks, loop, setup phases, cockpit and the event feed have no view yet; `pairing`/`setup_step` have repositories
 only. Times are formatted in UTC.
+
+## Added by B6
+`setProjectState` (the poller marks a failed feed `stale`), `deleteProofs` (a proof for an older head is removed), and `openIndex`
+now creates the data folder and its parents (PGlite only made the last one, so a first start with no `.belay/` failed).

@@ -1,6 +1,6 @@
-import { getActionClasses, getSetup, getTracks } from '@/lib/demo';
+import { loadSetupData } from '../features/setup/data/loadSetupData';
 import { SetupScreen } from '../features/setup/SetupScreen';
 
 export default function SetupPage() {
-  return <SetupScreen setup={getSetup()} tracks={getTracks()} classes={getActionClasses()} />;
+  return <SetupScreen {...loadSetupData()} />;
 }

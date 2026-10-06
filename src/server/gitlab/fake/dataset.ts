@@ -35,6 +35,8 @@ export interface SeedOptions {
   plan?: Plan;
   /** false reproduces the real group today: no projects yet. */
   projects?: boolean;
+  /** Replaces the recorded group and the [R] demo projects (see fake/demo/: a GitLab built from the demo dataset). */
+  custom?: { group: Rec; projects: ProjectData[] };
 }
 
 const data = (fx: unknown): unknown => structuredClone(rec(fx, 'fixture').data);
@@ -43,7 +45,7 @@ const strMap = (fx: unknown, k: string): Record<string, string> => part(fx, k) a
 const lists = (fx: unknown, k: string): Rec[] => recs(structuredClone(rec(fx, 'fixture')[k] ?? []), k);
 const keyed = (fx: unknown, k: string): Record<string, Rec[]> => part(fx, k) as Record<string, Rec[]>;
 
-function project(raw: Rec, over: Partial<ProjectData> = {}): ProjectData {
+export function project(raw: Rec, over: Partial<ProjectData> = {}): ProjectData {
   return {
     raw, pipelines: [], jobs: {}, traces: {}, testReports: {}, mrs: [], notes: {}, diffs: {},
     environments: [], deployments: [], releases: [], schedules: [], files: {}, vulnerabilities: [], approvals: {},
@@ -53,6 +55,7 @@ function project(raw: Rec, over: Partial<ProjectData> = {}): ProjectData {
 
 export function seedState(o: SeedOptions = {}): FakeState {
   const plan = o.plan ?? 'ultimate';
+  if (o.custom) return customState(o, plan, o.custom);
   const raws = recs(data(projectsFx), 'projects');
   const [ledgerline, policy, ledger] = raws;
   const projects: ProjectData[] =
@@ -74,5 +77,14 @@ export function seedState(o: SeedOptions = {}): FakeState {
     plan, user: rec(data(userFx), 'user'), instance: rec(data(metadataFx), 'metadata'), group: rec(data(groupFx), 'group'),
     namespace: { ...rec(data(namespaceFx), 'namespace'), plan, projects_count: projects.length },
     projects, writes: [], nextId: 1_000_000,
+  };
+}
+
+function customState(o: SeedOptions, plan: Plan, c: NonNullable<SeedOptions['custom']>): FakeState {
+  const base = seedState({ ...o, custom: undefined, projects: false });
+  const projects = structuredClone(c.projects);
+  return {
+    ...base, group: { ...base.group, ...c.group }, projects,
+    namespace: { ...base.namespace, name: c.group.name, path: c.group.path, full_path: c.group.full_path, plan, projects_count: projects.length },
   };
 }

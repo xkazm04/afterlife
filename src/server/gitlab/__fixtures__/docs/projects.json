@@ -1,0 +1,8 @@
+{
+  "_shape": "[R] from docs: GET /groups/:id/projects, three projects in the demo group (the real group has none yet)",
+  "data": [
+    { "id": 90010001, "name": "ledgerline", "path": "ledgerline", "path_with_namespace": "afterlife3274741/ledgerline", "default_branch": "main", "web_url": "https://gitlab.com/afterlife3274741/ledgerline", "visibility": "private", "archived": false },
+    { "id": 90010002, "name": "belay-policy", "path": "belay-policy", "path_with_namespace": "afterlife3274741/belay-policy", "default_branch": "main", "web_url": "https://gitlab.com/afterlife3274741/belay-policy", "visibility": "private", "archived": false },
+    { "id": 90010003, "name": "belay-ledger", "path": "belay-ledger", "path_with_namespace": "afterlife3274741/belay-ledger", "default_branch": "main", "web_url": "https://gitlab.com/afterlife3274741/belay-ledger", "visibility": "private", "archived": false }
+  ]
+}

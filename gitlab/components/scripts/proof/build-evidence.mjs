@@ -16,7 +16,7 @@ const env = process.env;
 const cls = need('class');
 const out = arg('out', 'belay-evidence.json');
 const projectId = env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set');
-const task = (flow) => ({ flow, run_id: `pipeline-${env.CI_PIPELINE_ID}`, project_id: Number(projectId), mr_iid: Number(env.BELAY_MR_IID), trailer: `Belay-Task: ${env.BELAY_TASK_ID}` });
+const task = (flow) => ({ flow, run_id: `pipeline-${env.CI_PIPELINE_ID}`, project_id: Number(projectId), mr_iid: Number(env.BELAY_MR_IID), ...(env.BELAY_HEAD_SHA ? { head_sha: env.BELAY_HEAD_SHA } : {}), trailer: `Belay-Task: ${env.BELAY_TASK_ID}` });
 const file = (f) => ({ $file: path.resolve(f) }); // the engine inlines the file's text
 const json = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
 const optFile = (flag) => (arg(flag) && fs.existsSync(arg(flag)) ? file(arg(flag)) : undefined);

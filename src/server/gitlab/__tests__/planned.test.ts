@@ -37,6 +37,19 @@ describe('PlannedCommand builders: exact argv', () => {
     expect(plan.setLabels({ project: 7, iid: 3, add: ['belay::tier::hands_off'] }).risk).toBe('policy');
   });
 
+  it('commitFile with startBranch creates the branch in the same call', () => {
+    const c = plan.commitFile({ project: 7, path: 'tier-state.yml', branch: 'belay/promote-x', startBranch: 'main', content: 'a', message: 'm', action: 'update' });
+    expect(c.argv.slice(-2)).toEqual(['-f', 'start_branch=main']);
+    expect(plan.commitFile({ project: 7, path: 'a', branch: 'b', content: 'a', message: 'm', action: 'create' }).argv.join(' ')).not.toContain('start_branch');
+  });
+
+  it('setIssueLabels edits an issue (the CRA clock), low risk', () => {
+    expect(plan.setIssueLabels({ project: 7, iid: 12, add: ['cra::ready-to-sign'], remove: ['cra::drafting'] }).argv).toEqual([
+      'api', '--method', 'PUT', 'projects/7/issues/12', '-f', 'add_labels=cra::ready-to-sign', '-f', 'remove_labels=cra::drafting',
+    ]);
+    expect(plan.setIssueLabels({ project: 7, iid: 12, add: ['x'] }).risk).toBe('low');
+  });
+
   it('commitFile: POST creates, PUT updates, policy files are policy risk', () => {
     const upd = plan.commitFile({ project: 9, path: 'belay-policy/tier-state.yml', branch: 'main', content: 'a: 1\n', message: 'tripwire', action: 'update' });
     expect(upd.argv).toEqual([

@@ -42,6 +42,8 @@ export const writeRoutes: Route[] = [
     mr.updated_at = nowIso();
     return ok(mr);
   })],
+  // Issues are not modelled by the fake: the write is logged (st.writes) and acknowledged.
+  ['PUT', new RegExp(`^${P}/issues/(\\d+)$`), inProject((_p, m, req) => ok({ iid: Number(m[2]), labels: labelsOf(req.fields.add_labels) }))],
   ['POST', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req) => {
     const path = decodeURIComponent(m[2] ?? '');
     if (path in p.files) return fail(400, 'A file with this name already exists');

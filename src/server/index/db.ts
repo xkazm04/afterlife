@@ -2,6 +2,7 @@
 // `index/` folder; pass `{ memory: true }` for tests. The index is a cache: deleting the folder loses nothing
 // that GitLab and the exported ledger cannot rebuild (see README).
 import 'server-only';
+import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import { migrate } from './migrations/migrate';
@@ -20,6 +21,7 @@ export function indexDir(dataDir?: string): string {
 
 /** Opens a fresh handle and applies migrations. Use `getIndex()` in the app; this is for tests and tools. */
 export async function openIndex(opts: OpenOptions = {}): Promise<PGlite> {
+  if (!opts.memory) mkdirSync(indexDir(opts.dataDir), { recursive: true }); // PGlite creates only the last folder
   const db = opts.memory ? new PGlite() : new PGlite(indexDir(opts.dataDir));
   await db.waitReady;
   await migrate(db);

@@ -1,0 +1,101 @@
+// preview, then confirm. The first call plans the commands and returns them with a digest; the second call plans again and
+// runs them only if the digest still matches what the operator saw. Live: each command is written to commands_run
+// BEFORE it runs, then finished with its exit code; a poll follows. Demo: nothing runs, the result says "simulated".
+import { createHash } from 'node:crypto';
+import type { PGlite } from '@electric-sql/pglite';
+import { GitLabError } from '@/server/gitlab/errors';
+import type { GitLabPort } from '@/server/gitlab/port';
+import type { PlannedCommand, Risk } from '@/server/gitlab/plan/types';
+import { finishCommand, recordCommand } from '@/server/index/repositories/commandsRun';
+import { closeProposal } from '@/server/index/repositories/work/proposal';
+import type { PollerConfig } from '@/server/poller/config';
+import { parseIntent } from './intents';
+import { ActionRefused, planIntent, type Plan, type PlanContext } from './plans';
+import type { ActionIntent, ActionPreview, ActionResponse, CommandOutcome } from './types';
+
+export interface ActionDeps {
+  mode: 'demo' | 'live';
+  /** Reads (and, in live mode only, executes). In demo mode it is the seeded fake group and is never executed against. */
+  port: GitLabPort;
+  /** The index: null in demo mode, so a demo click leaves no record. */
+  db: PGlite | null;
+  groupId: string | number;
+  cfg: PollerConfig;
+  now: () => Date;
+  /** One poll cycle, then a fresh snapshot: run after the commands so the screens show what GitLab now says. */
+  refresh: () => Promise<void>;
+  gitlabId: PlanContext['gitlabId'];
+}
+
+const RANK: Record<Risk, number> = { low: 0, policy: 1, merge: 2 };
+const refused = (reason: string): ActionResponse => ({ status: 'refused', reason });
+
+const digest = (kind: string, commands: readonly PlannedCommand[]): string =>
+  createHash('sha256').update(JSON.stringify([kind, ...commands.map((c) => c.argv)])).digest('hex');
+
+function previewOf(deps: ActionDeps, intent: ActionIntent, plan: Plan): ActionPreview {
+  return {
+    kind: intent.kind, title: plan.title, summary: plan.summary, diff: plan.diff, mode: deps.mode,
+    commands: plan.commands.map((c) => ({ display: c.display, argv: c.argv, risk: c.risk })),
+    risk: plan.commands.reduce<Risk>((r, c) => (RANK[c.risk] > RANK[r] ? c.risk : r), 'low'),
+    previewId: digest(intent.kind, plan.commands),
+  };
+}
+
+type Built = { ok: true; intent: ActionIntent; plan: Plan; preview: ActionPreview; operator: string } | { ok: false; response: ActionResponse };
+
+async function build(deps: ActionDeps, raw: unknown): Promise<Built> {
+  const parsed = parseIntent(raw);
+  if (!parsed.ok) return { ok: false, response: refused(parsed.reason) };
+  try {
+    const operator = (await deps.port.currentUser()).username;
+    const ctx: PlanContext = { port: deps.port, groupId: deps.groupId, cfg: deps.cfg, now: deps.now(), operator, gitlabId: deps.gitlabId };
+    const plan = await planIntent(ctx, parsed.intent);
+    return { ok: true, intent: parsed.intent, plan, preview: previewOf(deps, parsed.intent, plan), operator };
+  } catch (e) {
+    if (e instanceof ActionRefused) return { ok: false, response: refused(e.message) };
+    if (e instanceof GitLabError) return { ok: false, response: refused(`GitLab said no while planning: ${e.message}`) };
+    throw e;
+  }
+}
+
+/** Step 1: the exact commands, and nothing else. */
+export async function previewIntent(deps: ActionDeps, raw: unknown): Promise<ActionResponse> {
+  const b = await build(deps, raw);
+  return b.ok ? { status: 'preview', preview: b.preview } : b.response;
+}
+
+async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promise<ActionResponse> {
+  const db = deps.db;
+  if (!db) return refused('live mode has no index to record the command in');
+  const results: CommandOutcome[] = [];
+  for (const cmd of b.plan.commands) {
+    const id = await recordCommand(db, { at: deps.now(), operator: b.operator, projectId: b.intent.project, proposalId: b.intent.proposal, display: cmd.display, argv: cmd.argv, risk: cmd.risk });
+    try {
+      await deps.port.execute(cmd);
+      await finishCommand(db, id, 0, deps.now());
+      results.push({ display: cmd.display, exit: 0, ok: true, simulated: false });
+    } catch (e) {
+      const exit = e instanceof GitLabError && e.status ? e.status : 1;
+      await finishCommand(db, id, exit, deps.now());
+      results.push({ display: cmd.display, exit, ok: false, simulated: false, error: e instanceof Error ? e.message : String(e) });
+      break; // later commands depend on earlier ones (a branch, then its MR)
+    }
+  }
+  const ok = results.length === b.plan.commands.length && results.every((r) => r.ok);
+  if (ok && b.intent.proposal) await closeProposal(db, b.intent.proposal, 'acted', deps.now(), b.operator);
+  await deps.refresh().catch(() => undefined); // GitLab may have changed even when a later command failed
+  return { status: ok ? 'done' : 'failed', preview: b.preview, results };
+}
+
+/** Step 2: runs what `previewId` names, if and only if the plan is still exactly that. */
+export async function confirmIntent(deps: ActionDeps, raw: unknown, previewId: string): Promise<ActionResponse> {
+  const b = await build(deps, raw);
+  if (!b.ok) return b.response;
+  if (b.preview.previewId !== previewId) return { status: 'changed', preview: b.preview };
+  if (deps.mode === 'demo') {
+    const results = b.plan.commands.map((c): CommandOutcome => ({ display: c.display, exit: 0, ok: true, simulated: true }));
+    return { status: 'done', preview: b.preview, results };
+  }
+  return execute(deps, b);
+}

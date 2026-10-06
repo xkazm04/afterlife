@@ -1,0 +1,19 @@
+{
+  "_shape": "[R] from docs: environments, deployments (one blocked on approval), releases, schedules of ledgerline",
+  "environments": [
+    { "id": 301, "name": "review/fix-rounding", "slug": "review-fix-rounding-abc", "state": "available", "tier": "development", "external_url": "https://review-fix-rounding.ledgerline.example" },
+    { "id": 302, "name": "staging", "slug": "staging", "state": "available", "tier": "staging", "external_url": "https://staging.ledgerline.example" },
+    { "id": 303, "name": "production", "slug": "production", "state": "available", "tier": "production", "external_url": "https://ledgerline.example" }
+  ],
+  "deployments": [
+    { "id": 4003, "iid": 3, "status": "blocked", "ref": "main", "sha": "c0ffee0000000000000000000000000000000003", "environment": { "id": 303, "name": "production" }, "deployable": { "id": 80020 }, "created_at": "2026-10-08T09:27:00.000Z", "updated_at": "2026-10-08T09:27:10.000Z" },
+    { "id": 4002, "iid": 2, "status": "success", "ref": "main", "sha": "c0ffee0000000000000000000000000000000003", "environment": { "id": 302, "name": "staging" }, "deployable": { "id": 80019 }, "created_at": "2026-10-08T09:23:00.000Z", "updated_at": "2026-10-08T09:25:00.000Z" },
+    { "id": 4001, "iid": 1, "status": "success", "ref": "main", "sha": "c0ffee0000000000000000000000000000000001", "environment": { "id": 303, "name": "production" }, "deployable": { "id": 80011 }, "created_at": "2026-10-07T15:00:00.000Z", "updated_at": "2026-10-07T15:03:00.000Z" }
+  ],
+  "releases": [
+    { "tag_name": "v0.3.0", "name": "ledgerline 0.3.0", "description": "Fee calculation, decimal.js 10.5.0", "created_at": "2026-10-07T14:55:00.000Z", "released_at": "2026-10-07T14:55:00.000Z", "_links": { "self": "https://gitlab.com/afterlife3274741/ledgerline/-/releases/v0.3.0" } }
+  ],
+  "schedules": [
+    { "id": 12, "description": "nightly dependency bump", "ref": "main", "cron": "0 3 * * *", "active": true, "next_run_at": "2026-10-09T03:00:00.000Z" }
+  ]
+}

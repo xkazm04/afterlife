@@ -2,7 +2,7 @@
 import type { ProjectRef } from '../types';
 import type {
   AddNoteInput, ApproveDeploymentInput, CommitFileInput, CreateMrInput, PauseScheduleInput,
-  PlanBuilders, PlannedCommand, Risk, SetLabelsInput,
+  PlanBuilders, PlannedCommand, Risk, SetIssueLabelsInput, SetLabelsInput,
 } from './types';
 
 const proj = (p: ProjectRef): string => encodeURIComponent(String(p));
@@ -38,10 +38,15 @@ export function planBuilders(hostname?: string): PlanBuilders {
         ...optional('add_labels', i.add?.length ? i.add.join(',') : undefined),
         ...optional('remove_labels', i.remove?.length ? i.remove.join(',') : undefined),
       ], [...(i.add ?? []), ...(i.remove ?? [])].some((l) => l.startsWith('belay::tier::')) ? 'policy' : 'low'),
+    setIssueLabels: (i: SetIssueLabelsInput) =>
+      build(hostname, 'PUT', `projects/${proj(i.project)}/issues/${i.iid}`, [
+        ...optional('add_labels', i.add?.length ? i.add.join(',') : undefined),
+        ...optional('remove_labels', i.remove?.length ? i.remove.join(',') : undefined),
+      ], 'low'),
     commitFile: (i: CommitFileInput) =>
       build(hostname, i.action === 'create' ? 'POST' : 'PUT',
         `projects/${proj(i.project)}/repository/files/${encodeURIComponent(i.path)}`,
-        [['branch', i.branch], ['commit_message', i.message], ['content', i.content]],
+        [['branch', i.branch], ['commit_message', i.message], ['content', i.content], ...optional('start_branch', i.startBranch)],
         POLICY_FILE.test(i.path) ? 'policy' : 'low'),
     pauseSchedule: (i: PauseScheduleInput) =>
       build(hostname, 'PUT', `projects/${proj(i.project)}/pipeline_schedules/${i.scheduleId}`, [['active', 'false']], 'policy'),

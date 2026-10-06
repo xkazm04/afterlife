@@ -1,0 +1,23 @@
+{
+  "_shape": "[R] from docs: merge requests, notes (incl. a belay-proof block) and diffs of ledgerline",
+  "mrs": [
+    { "id": 500008, "iid": 8, "project_id": 90010001, "title": "Draft: round half to even in fee calc", "description": "Fixes #12", "state": "opened", "draft": true, "source_branch": "fix/rounding", "target_branch": "main", "author": { "username": "kazdanm" }, "labels": ["proof::fail"], "web_url": "https://gitlab.com/afterlife3274741/ledgerline/-/merge_requests/8", "sha": "c0ffee0000000000000000000000000000000002", "detailed_merge_status": "ci_must_pass", "created_at": "2026-10-08T10:00:00.000Z", "updated_at": "2026-10-08T10:07:00.000Z", "merged_at": null, "head_pipeline": { "id": 70002 } },
+    { "id": 500007, "iid": 7, "project_id": 90010001, "title": "chore(deps): bump decimal.js 10.4.3 to 10.5.0", "description": "Belay-Task: 01J9ZK3Q7M8E2V4N6R1T5XWABC", "state": "merged", "draft": false, "source_branch": "belay/dep-bump-decimal", "target_branch": "main", "author": { "username": "ai-patcher-afterlife3274741" }, "labels": ["proof::pass", "guardrail::pass", "belay::tier::supervised"], "web_url": "https://gitlab.com/afterlife3274741/ledgerline/-/merge_requests/7", "sha": "c0ffee0000000000000000000000000000000001", "detailed_merge_status": "not_open", "created_at": "2026-10-08T09:00:00.000Z", "updated_at": "2026-10-08T09:21:03.000Z", "merged_at": "2026-10-08T09:21:03.000Z", "head_pipeline": { "id": 70001 } }
+  ],
+  "notes": {
+    "7": [
+      { "id": 910001, "body": "Belay proof (dep-bump.patch): PASS\n\n```belay-proof\n{\"class\":\"dep-bump.patch\",\"verdict\":\"pass\"}\n```\n\nBelay-Task: 01J9ZK3Q7M8E2V4N6R1T5XWABC", "author": { "username": "ai-proof-afterlife3274741" }, "system": false, "created_at": "2026-10-08T09:06:41.000Z" },
+      { "id": 910002, "body": "added label ~\"belay::tier::supervised\"", "author": { "username": "ai-proof-afterlife3274741" }, "system": true, "created_at": "2026-10-08T09:06:42.000Z" }
+    ],
+    "8": []
+  },
+  "diffs": {
+    "7": [
+      { "old_path": "package.json", "new_path": "package.json", "new_file": false, "renamed_file": false, "deleted_file": false, "diff": "@@ -12,7 +12,7 @@\n   \"dependencies\": {\n-    \"decimal.js\": \"^10.4.3\"\n+    \"decimal.js\": \"^10.5.0\"\n   }\n }\n" },
+      { "old_path": "package-lock.json", "new_path": "package-lock.json", "new_file": false, "renamed_file": false, "deleted_file": false, "diff": "@@ -40,9 +40,9 @@\n     \"node_modules/decimal.js\": {\n-      \"version\": \"10.4.3\",\n+      \"version\": \"10.5.0\",\n     }\n" }
+    ],
+    "8": [
+      { "old_path": "src/rounding.ts", "new_path": "src/rounding.ts", "new_file": false, "renamed_file": false, "deleted_file": false, "diff": "@@ -3,3 +3,4 @@\n export function round(x: number) {\n-  return Math.round(x);\n+  const r = Math.round(x);\n+  return Math.abs(x % 1) === 0.5 && r % 2 !== 0 ? r - 1 : r;\n }\n" }
+    ]
+  }
+}

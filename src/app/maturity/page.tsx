@@ -1,6 +1,6 @@
-import { getMaturity, getStages } from '@/lib/demo';
+import { loadMaturityData } from '../features/maturity/data/loadMaturityData';
 import { MaturityScreen } from '../features/maturity/MaturityScreen';
 
 export default function MaturityPage() {
-  return <MaturityScreen maturity={getMaturity()} stages={getStages()} />;
+  return <MaturityScreen {...loadMaturityData()} />;
 }

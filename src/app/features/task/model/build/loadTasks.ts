@@ -1,14 +1,15 @@
-import { getActionClasses, getTasks, getTracks } from '@/lib/demo';
+import { getDataSource } from '@/server/data';
 import { TASK_DETAIL, TASK_ORDER } from '../../data/details';
 import type { TaskView } from '../types';
 import { buildTasks } from './buildTasks';
 
-/** The seven docket tasks: the demo dataset merged with this screen's fixtures. Runs on the server (route files). */
+/** The docket: the data source's tasks merged with this screen's fixtures (a task with no fixture is not drawn). Runs on the server. */
 export function loadTasks(): TaskView[] {
+  const ds = getDataSource();
   return buildTasks({
-    tasks: getTasks(),
-    tracks: getTracks(),
-    actionClasses: getActionClasses(),
+    tasks: ds.getTasks(),
+    tracks: ds.getTracks(),
+    actionClasses: ds.getActionClasses(),
     details: TASK_DETAIL,
     order: TASK_ORDER,
   });
