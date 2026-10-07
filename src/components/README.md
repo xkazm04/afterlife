@@ -23,6 +23,7 @@ The rest of the shell works without props:
 - The active navigation item comes from the route.
 - ⌘I (Ctrl+I on Windows) toggles the inspector.
 - Settings is pinned at the bottom of the sidebar.
+- The status bar's right-hand label follows the data (`ShellInfo.data`, set by the root layout; `bars/dataLabel`). Demo, and any render without a `ShellProvider`: "illustrative demo data". Live: "live data · <group>", plus "some parts still demo, marked" while the source declares illustrative parts. Live on the seeded fake GitLab: "live mode · seeded fake GitLab, not a real group". Live never says "illustrative demo data".
 - `PaneScroll({padded?})` is a scrolling pane for screens that are not tables.
 - `SidebarSection({title, aux?})` and `SidebarItem({icon?, label, count?, current?, href?, title?,
   onClick?})` build sidebar content. `aux` is a dim note right-aligned on the heading's line ("2 / 7").
