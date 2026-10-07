@@ -10,6 +10,8 @@ export interface BuildInput {
   details: Readonly<Record<string, TaskDetail>>;
   /** The fixtures' docket order. Data-source tasks with no fixture follow, in the source's order. */
   order: readonly string[];
+  /** Live mode: only the source's own tasks are drawn; a fixture with no source task of its id is neither drawn nor counted. */
+  live?: boolean;
 }
 
 /** What a task with no fixture says it does not know. */
@@ -142,11 +144,12 @@ export function sourceTask(base: Task, input: Pick<BuildInput, 'tracks' | 'actio
 /**
  * Every task the screen can draw: the fixtures in docket order (the dataset row wins where it has a value), then every
  * other data-source task in the source's order. A source task whose fixture cannot be built is drawn from its own fields
- * at its fixture's place; a fixture with no base row or no proof is dropped, never invented.
+ * at its fixture's place; a fixture with no base row or no proof is dropped, never invented. In live mode a fixture with no source task is dropped too.
  */
 export function buildTasks(input: BuildInput): TaskView[] {
   const fixtures = new Set(input.order);
-  const listed = input.order.flatMap((id) => {
+  const ids = input.live ? input.order.filter((id) => input.tasks.some((t) => t.id === id)) : input.order;
+  const listed = ids.flatMap((id) => {
     const row = input.tasks.find((t) => t.id === id);
     const t = buildTask(id, input) ?? (row ? sourceTask(row, input) : null);
     return t ? [t] : [];

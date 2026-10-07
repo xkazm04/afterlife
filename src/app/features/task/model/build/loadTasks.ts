@@ -5,7 +5,7 @@ import { buildTasks } from './buildTasks';
 
 /**
  * The docket: the data source's tasks merged with this screen's fixtures, and every source task with no fixture drawn from
- * its own fields. Runs on the server.
+ * its own fields. In live mode only the source's own tasks are drawn. Runs on the server.
  */
 export function loadTasks(): TaskView[] {
   const ds = getDataSource();
@@ -15,10 +15,11 @@ export function loadTasks(): TaskView[] {
     actionClasses: ds.getActionClasses(),
     details: TASK_DETAIL,
     order: TASK_ORDER,
+    live: ds.mode === 'live',
   });
 }
 
-/** The id /task redirects to: the data source's first task (every one is drawn), or null when it has none. */
+/** The id /task redirects to: the first task the docket draws, or null when it draws none. */
 export function firstTaskId(): string | null {
-  return getDataSource().getTasks()[0]?.id ?? null;
+  return loadTasks()[0]?.id ?? null;
 }
