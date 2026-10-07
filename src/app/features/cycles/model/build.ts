@@ -15,6 +15,8 @@ export interface CyclesData {
   scanned: Rungs;
   /** The rung each stage reaches for next. */
   next: Rungs;
+  /** R0..R4 in words ("absent" .. "self-proving"). */
+  rungNames: string[];
   /** Closed cycles, then the running one, then the planned one. */
   cycles: Cycle[];
   today: number;
@@ -47,6 +49,7 @@ export function buildCycles(
     day0,
     scanned,
     next: rungsOf(maturity, 'next'),
+    rungNames: maturity.rungNames,
     cycles: [...closed, running, planned],
     today: meta.today,
     cadence: meta.cadence,

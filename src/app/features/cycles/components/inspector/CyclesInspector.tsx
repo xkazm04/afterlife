@@ -32,7 +32,7 @@ function numbers(c: Cycle) {
 }
 
 /** The inspector for one cycle: its numbers, when it ran, the rule that closes it, and the one thing to do next. */
-export function CyclesInspector({ cycle, data }: { cycle: Cycle; data: CyclesData }) {
+export function CyclesInspector({ cycle, data, designed, onDesign }: { cycle: Cycle; data: CyclesData; designed: boolean; onDesign: () => void }) {
   const running = data.cycles.find((c) => c.state === 'running');
   const closesOn = cycle.state === 'closed' ? `day ${cycle.closedDay}` : `the day ${cycle.openedDay + data.cadence} rescan, if every MR has merged`;
   return (
@@ -74,8 +74,11 @@ export function CyclesInspector({ cycle, data }: { cycle: Cycle; data: CyclesDat
           <div className={styles.next}>
             <p>
               Starts when {running?.id ?? 'the running cycle'} closes: one cycle at a time, so every rung it credits is measured against a settled scan.
+              {designed ? ' Designed here in this session (demo: kept in this browser only).' : ''}
             </p>
-            <Button href="/maturity">Pick gaps in Maturity</Button>
+            <Button variant="accent" onClick={onDesign}>
+              {designed ? `Redesign ${cycle.id}` : `Design ${cycle.id}`}
+            </Button>
           </div>
         ) : (
           <div className={styles.next}>

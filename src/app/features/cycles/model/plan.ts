@@ -81,9 +81,14 @@ export function openCycles(
 }
 
 function themeOf(ps: readonly MaturityProposal[]): string {
-  if (!ps.length) return 'Nothing picked yet';
-  const stages = [...new Set(ps.map((p) => p.stage))];
-  return stages.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' and ');
+  return ps.length ? stageTheme(ps.map((p) => p.stage)) : 'Nothing picked yet';
+}
+
+/** A cycle's theme from its stages: "Secure and Create", or "Release, Monitor and 2 more" past two. */
+export function stageTheme(stages: readonly Stage[]): string {
+  const names = [...new Set(stages)].map((s) => s.charAt(0).toUpperCase() + s.slice(1));
+  if (names.length <= 2) return names.join(' and ');
+  return `${names.slice(0, 2).join(', ')} and ${names.length - 2} more`;
 }
 
 /** One step of the loop rail. */

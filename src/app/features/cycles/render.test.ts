@@ -20,7 +20,7 @@ describe('Cycles parts render for every cycle', () => {
       const out = [
         html(createElement(LoopRail, { cycle })),
         html(createElement(ChangesTable, { cycle })),
-        html(createElement(CyclesInspector, { cycle, data })),
+        html(createElement(CyclesInspector, { cycle, data, designed: false, onDesign: () => {} })),
       ].join('');
       expect(out).toContain(cycle.id);
       for (const c of cycle.changes) expect(out).toContain(c.title.replace(/&/g, '&amp;'));
@@ -33,11 +33,11 @@ describe('Cycles parts render for every cycle', () => {
   });
   it('a closed cycle never ticks a check its own changes failed', () => {
     const c5 = data.cycles.find((c) => c.id === 'C5')!;
-    const out = html(createElement(CyclesInspector, { cycle: c5, data }));
+    const out = html(createElement(CyclesInspector, { cycle: c5, data, designed: false, onDesign: () => {} }));
     expect(out).toMatch(/data-failed="true"[^>]*><span aria-hidden="true">✗<\/span><span><b>Not detector-only/);
     expect(out).toContain('1 change stopped');
     const c6 = data.cycles.find((c) => c.id === 'C6')!;
-    expect(html(createElement(CyclesInspector, { cycle: c6, data }))).not.toContain('✗');
+    expect(html(createElement(CyclesInspector, { cycle: c6, data, designed: false, onDesign: () => {} }))).not.toContain('✗');
   });
   it('the trajectory survives an all-zero history', () => {
     const flat = gridView(Object.fromEntries(Object.keys(data.day0).map((k) => [k, 0])) as typeof data.day0, []);
@@ -50,7 +50,7 @@ describe('Cycles parts render for every cycle', () => {
   });
   it('the running cycle sends you to Maturity, and only the running one is amber', () => {
     const running = data.cycles.find((c) => c.state === 'running')!;
-    expect(html(createElement(CyclesInspector, { cycle: running, data }))).toContain('Send in Maturity');
+    expect(html(createElement(CyclesInspector, { cycle: running, data, designed: false, onDesign: () => {} }))).toContain('Send in Maturity');
     expect(html(createElement(LoopRail, { cycle: running }))).toContain('data-you="true"');
     expect(html(createElement(LoopRail, { cycle: data.cycles[0]! }))).not.toContain('data-you');
   });

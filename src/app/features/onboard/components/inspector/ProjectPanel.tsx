@@ -42,7 +42,12 @@ export function ProjectPanel({ p, run, org, onResolve }: { p: FleetProject; run:
             ) : null}
           </div>
         ) : (
-          <p className={styles.p}>In improvement cycles. See Cycles.</p>
+          <div className={styles.next}>
+            <p className={styles.p}>In improvement cycles: every round is on the record.</p>
+            <Button size="mini" href="/cycles">
+              Open Cycles
+            </Button>
+          </div>
         )}
       </InspectorSection>
     </>
