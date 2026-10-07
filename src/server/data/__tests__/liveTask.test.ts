@@ -46,9 +46,10 @@ describe('a poller-derived task with no Task fixture', () => {
     });
   });
 
-  it('buildTasks draws it after the fixtures, from its own fields, so /task/01J8QD has data', () => {
+  it('buildTasks draws the source’s tasks and no demo-only fixture, 01J8QD from its own fields, so /task/01J8QD has data', () => {
     const tasks = loadTasks();
-    expect(tasks.map((t) => t.id)).toEqual([...TASK_ORDER, EXTRA_TASK.id]);
+    expect(tasks.map((t) => t.id)).toEqual(['01J8Q4', '01J8Q9', '01J8QB', '01J8QC', '01J8QD']);
+    for (const id of ['01J8Q7', '01J8Q8', '01J8QA']) expect(tasks.map((t) => t.id)).not.toContain(id);
     const t = tasks.find((x) => x.id === EXTRA_TASK.id);
     expect(t).toMatchObject({
       fixture: false, mr: '!45', cls: 'dep-bump.patch', track: 'T1', tierAtTime: 'hands_off', state: 'proved · awaiting merge',
@@ -63,12 +64,15 @@ describe('a poller-derived task with no Task fixture', () => {
     ]);
   });
 
-  it('/task still opens the source’s first task, and the fixtures are drawn exactly as in demo mode', () => {
+  it('firstTaskId() is the first task the docket draws, and each drawn task with a fixture equals its demo rendering', () => {
+    const drawn = asProps(loadTasks()) as { id: string }[];
+    expect(firstTaskId()).toBe(drawn[0]?.id);
     expect(firstTaskId()).toBe(live.getTasks()[0]?.id);
-    const drawn = asProps(loadTasks().slice(0, TASK_ORDER.length));
     setDataSource(demoSource);
-    const demo = asProps(loadTasks());
+    const demo = asProps(loadTasks()) as { id: string }[];
     setDataSource(live);
-    expect(drawn).toEqual(demo);
+    const withFixture = drawn.filter((t) => (TASK_ORDER as readonly string[]).includes(t.id));
+    expect(withFixture.length).toBeGreaterThan(0);
+    for (const t of withFixture) expect(t).toEqual(demo.find((x) => x.id === t.id));
   });
 });

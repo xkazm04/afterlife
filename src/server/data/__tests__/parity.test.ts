@@ -75,11 +75,6 @@ describe('every screen loader gets the same data from the live source as from th
     expect(l).toEqual(d);
   });
 
-  it('Task: the docket, merged with the screen’s own fixtures', () => {
-    const [d, l] = both(() => asProps(loadTasks()));
-    expect(l).toEqual(d);
-  });
-
   it('Ladder: classes, tiers, leases, records, last moves, the means of each tier, the thresholds, the poll age and the subtitle', () => {
     // What live marks demo, and its clock, are listed below; everything else is the same.
     const strip = (p: ReturnType<typeof loadLadderData>) => ({
@@ -135,6 +130,15 @@ describe('where live differs from demo, on purpose', () => {
   it('the stage list is the schema’s, not the catalogue’s (the same nine stages)', () => {
     expect(live.getStages()).toEqual([...STAGES]);
     expect(live.getStages()).not.toBe(DEMO.stages);
+  });
+
+  it('Task: live draws only the source’s own tasks, never a demo-only fixture; each one with a fixture is drawn as in demo', () => {
+    const [d, l] = both(() => asProps(loadTasks()) as { id: string }[]);
+    expect(l.map((t) => t.id)).toEqual(['01J8Q4', '01J8Q9', '01J8QB', '01J8QC']);
+    for (const id of ['01J8Q7', '01J8Q8', '01J8QA']) expect(l.map((t) => t.id)).not.toContain(id);
+    const withFixture = l.filter((t) => d.some((x) => x.id === t.id));
+    expect(withFixture.length).toBeGreaterThan(0);
+    for (const t of withFixture) expect(t).toEqual(d.find((x) => x.id === t.id));
   });
 
   it('the Door labels the cockpit text and the tracks it shows beside live data as demo; demo mode labels nothing', () => {
