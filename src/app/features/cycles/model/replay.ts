@@ -84,6 +84,15 @@ function moveOf(prev: number | null, now: number | null): HeatCell['move'] {
   return now > prev ? 'up' : 'down';
 }
 
+/**
+ * The rung steps a change would add if it earns what it aims for. A probe on a known rung adds nothing (it only
+ * turns an unknown into a known); a probe on an unknown adds the rung it finds.
+ */
+export function reach(c: CycleChange): number {
+  if (c.kind === 'probe') return c.from == null ? c.to : 0;
+  return Math.max(0, c.to - (c.from ?? 0));
+}
+
 /** The numbers for one cycle. `net` counts rung steps, so R0 -> R2 is 2. */
 export function summarize(cycle: Cycle): CycleSummary {
   const s: CycleSummary = { sent: 0, credited: 0, missed: 0, regressed: 0, resolved: 0, net: 0 };

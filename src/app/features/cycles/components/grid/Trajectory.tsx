@@ -12,8 +12,8 @@ const H = 48;
  */
 export function Trajectory({ columns, selected }: { columns: readonly GridColumn[]; selected: string }) {
   const n = columns.length;
-  const top = Math.min(MAX_TOTAL, Math.ceil(Math.max(...columns.map((c) => c.projected ?? c.total)) * 1.15));
-  const y = (v: number) => H - 4 - (v / top) * (H - 8);
+  const top = Math.max(1, Math.min(MAX_TOTAL, Math.ceil(Math.max(...columns.map((c) => c.projected ?? c.total)) * 1.15)));
+  const y = (v: number) => H - 4 - (Math.min(v, top) / top) * (H - 8);
   const pts = columns.map((c, i) => ({ x: i + 0.5, y: y(c.projected ?? c.total), open: c.projected != null, key: c.key }));
   const firstOpen = pts.findIndex((p) => p.open);
   const record = firstOpen < 0 ? pts : pts.slice(0, firstOpen);

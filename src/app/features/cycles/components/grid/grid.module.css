@@ -118,7 +118,8 @@
   box-shadow: inset 0 0 0 1.5px var(--accent-2);
 }
 .cell[data-move="found"] .sq {
-  box-shadow: inset 0 0 0 1px dashed var(--accent);
+  outline: 1px dashed var(--accent);
+  outline-offset: -1px;
 }
 /* corner marks: a lift, a regression, a try that did not earn */
 .up,

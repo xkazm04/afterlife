@@ -1,7 +1,7 @@
 // The view model of the stage x cycle grid: one column for day 0 and one per cycle, the trajectory above it. Open
 // cycles (running, planned) draw their targets as ghosts on top of the last replayed rung. Pure.
 import { STAGES, type Stage } from '@/schemas/stages';
-import { heatGrid, summarize, total } from './replay';
+import { heatGrid, reach, summarize } from './replay';
 import type { Cycle, CycleState, HeatCell, Rungs } from './types';
 
 export interface GridColumn {
@@ -45,7 +45,7 @@ export function gridView(day0: Rungs, cycles: readonly Cycle[]): GridView {
   ];
   let projected = held;
   for (const c of open) {
-    projected += c.changes.reduce((n, ch) => n + Math.max(0, ch.to - (ch.from ?? 0)), 0);
+    projected += c.changes.reduce((n, ch) => n + reach(ch), 0);
     columns.push({ key: c.id, label: c.id, sub: c.state === 'running' ? 'now' : 'next', state: c.state, total: held, projected, net: null });
   }
 
@@ -61,6 +61,3 @@ export function gridView(day0: Rungs, cycles: readonly Cycle[]): GridView {
   }));
   return { columns, rows };
 }
-
-/** Rungs held now, as a share of the most a project can hold. */
-export const share = (r: Rungs): number => total(r) / (STAGES.length * 4);

@@ -5,7 +5,7 @@ import { KeyValue } from '@/components/inspector/KeyValue';
 import { Stats } from '@/components/inspector/blocks/Stats';
 import { Chip } from '@/components/status/chip/Chip';
 import type { CyclesData } from '../../model/build';
-import { summarize } from '../../model/replay';
+import { reach, summarize } from '../../model/replay';
 import type { Cycle } from '../../model/types';
 import { STATE_WORD } from '../../model/words';
 import { ClosingRule } from './ClosingRule';
@@ -17,13 +17,14 @@ function numbers(c: Cycle) {
   const s = summarize(c);
   if (c.state === 'closed') {
     return [
-      { n: s.credited + s.resolved, label: 'credited', tone: 'ok' as const },
+      { n: s.credited, label: 'credited', tone: 'ok' as const },
+      ...(s.resolved ? [{ n: s.resolved, label: 'resolved' }] : []),
       { n: s.missed, label: 'not earned' },
       { n: s.regressed, label: 'drift caught' },
       { n: s.net, label: 'net rungs', tone: 'accent' as const },
     ];
   }
-  const aim = c.changes.reduce((n, ch) => n + Math.max(0, ch.to - (ch.from ?? 0)), 0);
+  const aim = c.changes.reduce((n, ch) => n + reach(ch), 0);
   return [
     { n: c.changes.length, label: c.state === 'running' ? 'picked' : 'proposed', tone: c.state === 'running' ? ('you' as const) : undefined },
     { n: aim, label: 'rungs in reach', tone: 'accent' as const },

@@ -5,7 +5,8 @@ import { CREDIT_HISTORY } from '../../maturity/data/credit';
 import { CADENCE_DAYS, CLOSED_CYCLES, TODAY } from '../data/history';
 import { buildCycles } from './build';
 import { carried, rail } from './plan';
-import { applyCycle, chainBreaks, heatGrid, MAX_TOTAL, reconcile, replay, summarize, total } from './replay';
+import { gridView } from './grid';
+import { applyCycle, chainBreaks, heatGrid, MAX_TOTAL, reach, reconcile, replay, summarize, total } from './replay';
 import type { Cycle, Rungs } from './types';
 
 const data = buildCycles(DEMO.maturity, CLOSED_CYCLES, { project: 'acme-lab/ledgerline', today: TODAY, cadence: CADENCE_DAYS });
@@ -93,6 +94,17 @@ describe('replay', () => {
 describe('plan', () => {
   it('stops carrying a missed change once the stage reaches its rung', () => {
     expect(carried(CLOSED_CYCLES, data.scanned).map((c) => c.mr)).toEqual(['!21']);
+  });
+  it('carries one change per stage and target (the newest try), rebased to where the stage stands now', () => {
+    const miss = (mr: string, from: number) => ({ mr, kind: 'mr' as const, stage: 'plan' as const, from, to: 2, title: '', verdict: 'nolift' as const, why: '' });
+    const out = carried([cycle({ id: 'C1', changes: [miss('!1', 0)] }), cycle({ id: 'C2', changes: [miss('!2', 0)] })], { ...zero, plan: 1 });
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ mr: '!2', from: 1, from_cycle: 'C2' });
+  });
+  it('counts a probe on a known rung as nothing in reach, and on an unknown as the rung it finds', () => {
+    const probe = (from: number | null) => ({ mr: null, kind: 'probe' as const, stage: 'monitor' as const, from, to: 2, title: '', verdict: 'planned' as const, why: '' });
+    expect([reach(probe(1)), reach(probe(null))]).toEqual([0, 2]);
+    expect(gridView(data.day0, data.cycles).columns.map((c) => c.projected).slice(-2)).toEqual([21, 22]);
   });
   it('walks the rail: closed all done, running up to its phase, planned all to do', () => {
     const [closed, running, planned] = [data.cycles[0]!, data.cycles.at(-2)!, data.cycles.at(-1)!];

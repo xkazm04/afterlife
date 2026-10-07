@@ -9,15 +9,22 @@ export interface OpenCycles {
   planned: Cycle;
 }
 
-/** Changes a closed cycle tried and did not earn, whose stage has not reached that rung since. Oldest first. */
+/**
+ * Changes a closed cycle tried and did not earn, whose stage has not reached that rung since. One per stage and
+ * target (the newest try wins), rebased to start where the stage stands now. Oldest first.
+ */
 export function carried(closed: readonly Cycle[], now: Readonly<Record<Stage, number | null>>): (CycleChange & { from_cycle: string })[] {
-  const out: (CycleChange & { from_cycle: string })[] = [];
+  const out = new Map<string, CycleChange & { from_cycle: string }>();
   for (const cy of closed) {
     for (const c of cy.changes) {
-      if ((c.verdict === 'rejected' || c.verdict === 'nolift') && (now[c.stage] ?? -1) < c.to) out.push({ ...c, from_cycle: cy.id });
+      if ((c.verdict === 'rejected' || c.verdict === 'nolift') && (now[c.stage] ?? -1) < c.to) {
+        const key = `${c.stage}:${c.to}`;
+        out.delete(key);
+        out.set(key, { ...c, from: now[c.stage] ?? null, from_cycle: cy.id });
+      }
     }
   }
-  return out;
+  return [...out.values()];
 }
 
 const fromProposal = (p: MaturityProposal, verdict: 'pending' | 'planned', why: string): CycleChange => ({

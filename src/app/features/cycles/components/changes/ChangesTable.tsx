@@ -30,7 +30,7 @@ export function ChangesTable({ cycle }: { cycle: Cycle }) {
         </div>
       ) : null}
       {cycle.changes.map((c, i) => (
-        <div key={`${c.stage}-${c.mr ?? c.gap ?? c.kind}`} className={i % 2 ? `${styles.row} ${styles.alt}` : styles.row} data-verdict={c.verdict} role="row">
+        <div key={`${i}-${c.stage}-${c.mr ?? c.gap ?? c.kind}`} className={i % 2 ? `${styles.row} ${styles.alt}` : styles.row} data-verdict={c.verdict} role="row">
           <div role="cell" className={`${styles.cell} ${styles.id}`}>
             {c.mr ?? c.gap ?? (c.kind === 'mr' ? '—' : KIND_WORD[c.kind])}
           </div>

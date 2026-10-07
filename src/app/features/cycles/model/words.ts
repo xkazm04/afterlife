@@ -36,9 +36,17 @@ export function phaseDetail(c: Cycle, p: Phase): string {
     pick: `${n} change${n === 1 ? '' : 's'}`,
     send: `${s.sent} MR${s.sent === 1 ? '' : 's'}`,
     merge: `${s.sent} merged`,
-    prove: s.regressed ? `${s.regressed} drift found` : 'evidence on main',
+    prove: proveDetail(c),
     credit: `${s.net >= 0 ? '+' : ''}${s.net} · day ${c.closedDay}`,
   }[p];
+}
+
+/** What the Prove phase found: changes that left no evidence, drift, or evidence on main for everything. */
+function proveDetail(c: Cycle): string {
+  const bare = c.changes.filter((x) => x.verdict === 'nolift').length;
+  const drift = c.changes.filter((x) => x.verdict === 'regressed').length;
+  const parts = [bare ? `${bare} not exercised` : '', drift ? `${drift} drift found` : ''].filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'evidence on main';
 }
 
 export const VERDICT_WORD: Record<Verdict, string> = {

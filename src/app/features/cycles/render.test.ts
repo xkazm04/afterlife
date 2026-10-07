@@ -31,6 +31,18 @@ describe('Cycles parts render for every cycle', () => {
     expect(out.match(/role="columnheader"/g)).toHaveLength(data.cycles.length + 2);
     expect(out.match(/role="rowheader"/g)).toHaveLength(9 + 1);
   });
+  it('a closed cycle never ticks a check its own changes failed', () => {
+    const c5 = data.cycles.find((c) => c.id === 'C5')!;
+    const out = html(createElement(CyclesInspector, { cycle: c5, data }));
+    expect(out).toMatch(/data-failed="true"[^>]*><span aria-hidden="true">✗<\/span><span><b>Not detector-only/);
+    expect(out).toContain('1 change stopped');
+    const c6 = data.cycles.find((c) => c.id === 'C6')!;
+    expect(html(createElement(CyclesInspector, { cycle: c6, data }))).not.toContain('✗');
+  });
+  it('the trajectory survives an all-zero history', () => {
+    const flat = gridView(Object.fromEntries(Object.keys(data.day0).map((k) => [k, 0])) as typeof data.day0, []);
+    expect(html(createElement(CycleGrid, { view: flat, selected: '', onSelect: () => {} }))).not.toContain('NaN');
+  });
   it('the answer band states both proofs', () => {
     const out = html(createElement(Answer, { data }));
     expect(out).toContain('replay = 14:02 scan');

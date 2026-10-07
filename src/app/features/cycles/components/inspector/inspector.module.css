@@ -26,6 +26,14 @@
 .rules li[data-met] > span:first-child {
   color: var(--ok);
 }
+.rules li[data-failed] > span:first-child,
+.stopped {
+  color: var(--accent-2);
+}
+.stopped {
+  font-style: normal;
+  font-weight: 600;
+}
 .rules b,
 .notes b {
   color: var(--text-1);
