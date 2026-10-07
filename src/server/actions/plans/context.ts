@@ -45,7 +45,11 @@ export interface Located {
  */
 export async function locate(ctx: PlanContext, indexId: string): Promise<Located> {
   const [all, gid, group] = await Promise.all([ctx.port.listProjects(ctx.groupId), ctx.gitlabId(indexId), ctx.port.getGroup(ctx.groupId)]);
-  const project = all.find((p) => (gid !== null ? p.id === gid : p.path === indexId));
+  const matches = all.filter((p) => (gid !== null ? p.id === gid : p.path === indexId));
+  if (matches.length > 1) { // a path is unique in its namespace only: two subgroups may each hold one (F48)
+    throw new ActionRefused(`${indexId} names ${matches.length} projects (${matches.map((p) => p.pathWithNamespace).join(', ')}) and the index has no GitLab id for it: poll first`);
+  }
+  const project = matches[0];
   const policyPath = `${group.fullPath}/${ctx.cfg.policyProject}`;
   const policy = all.find((p) => p.pathWithNamespace === policyPath);
   if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);

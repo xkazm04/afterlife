@@ -57,4 +57,9 @@ describe('locate: the target is a project of the paired group', () => {
     expect(summary(await previewIntent(deps, revoke))).toMatch(/refused: outsider\/ledgerline is not in acme-lab/);
   });
 
+  it('refuses a path that names two projects when the index has no GitLab id for it', async () => {
+    const twin = listing((all) => [...all, ...all.filter((p) => p.path === 'ledgerline').map((p) => ({ ...p, id: 90019999, pathWithNamespace: 'acme-lab/other/ledgerline' }))]);
+    const { deps } = await liveRig(twin);
+    expect(summary(await previewIntent({ ...deps, gitlabId: async () => null }, cra))).toMatch(/refused: .*ledgerline names 2 projects/);
+  });
 });
