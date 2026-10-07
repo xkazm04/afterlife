@@ -3,7 +3,7 @@
 // write carries the file's last_commit_id as it was read: if tier-state.yml moved in between (a tripwire demotion, another
 // operator's revoke), GitLab refuses it instead of the stale content landing over theirs.
 import { TIER_ORDER } from '@/schemas/tier';
-import { holderOf } from '@/server/poller/derive/tiers';
+import { standingOf } from '../../../../engine/decide/standing';
 import { readPolicy } from '@/server/poller/derive/policy';
 import type { RevokeClass } from '../types';
 import { ActionRefused, dateOnly, lastCommitOf, locate, type Plan, type PlanContext } from './context';
@@ -21,11 +21,12 @@ export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise
   const edits: RecordEdit[] = [];
   const moves: string[] = [];
   for (const change of intent.changes) {
-    const cls = read.policy.classes[change.class];
-    if (!cls) throw new ActionRefused(`${change.class} is not an action class in trust-policy.yml`);
-    if (cls.ceiling === 'human_only') throw new ActionRefused(`${change.class} is human only: no agent holds it`);
-    const held = holderOf(read.state, change.class, cls.agent);
-    if (!held) throw new ActionRefused(`${change.class} has no tier record: it is already not trusted`);
+    const st = standingOf(read.policy.classes, read.state, change.class, ctx.now); // the gate's own class and holder rule
+    if (st.kind === 'unknown_class') throw new ActionRefused(`${change.class} is not an action class in trust-policy.yml`);
+    if (st.kind === 'human_only') throw new ActionRefused(`${change.class} is human only: no agent holds it`);
+    if (st.kind === 'refused') throw new ActionRefused(st.why);
+    if (st.kind === 'no_record') throw new ActionRefused(`${change.class} has no tier record: it is already not trusted`);
+    const held = st;
     if (TIER_ORDER.indexOf(change.to) >= TIER_ORDER.indexOf(held.record.tier)) {
       throw new ActionRefused(`${change.class} is ${held.record.tier}: Belay only lowers a tier directly. Raising one is a promotion MR a person merges.`);
     }

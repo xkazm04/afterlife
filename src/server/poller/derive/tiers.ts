@@ -3,10 +3,10 @@
 // never shows a tier the gate would not grant. A class no agent holds is stored quarantined with move 'no_record'; a class
 // several agents hold with none named for the role is stored quarantined with move 'refused' (the gate blocks both).
 // What GitLab cannot tell Belay (the record's counters, a moves note) is kept from the row already in the index.
-import type { Ceiling, DemotionTrigger, TierRecord, TierState } from '@/schemas/tier';
+import type { Ceiling, DemotionTrigger, TierState } from '@/schemas/tier';
 import type { ClassTierRow } from '@/server/index/repositories/fleet/classTier';
 import type { TrustClassRow } from '@/server/index/repositories/fleet/taxonomy';
-import { findHolder, standingOf } from '../../../../engine/decide/standing';
+import { standingOf } from '../../../../engine/decide/standing';
 import type { EnginePolicy } from '../../../../engine/policy/load';
 
 /** The eight tracks, by the agent role trust-policy.yml names. */
@@ -43,13 +43,6 @@ const when = (s: string | undefined): Date | null => {
   const t = s ? Date.parse(s) : Number.NaN;
   return Number.isNaN(t) ? null : new Date(t);
 };
-
-/** The agent and record that hold a class, by the gate's rule (engine/decide/standing.ts); null when the gate would find none. */
-export function holderOf(state: TierState, classId: string, role: string): { agent: string; record: TierRecord } | null {
-  const { agent } = findHolder(state, classId, role);
-  const record = agent ? state.agents[agent]?.[classId] : undefined;
-  return agent && record ? { agent, record } : null;
-}
 
 /** The classes in the policy's order, with the track their agent role belongs to. */
 export const trustClassesOf = (policy: EnginePolicy): TrustClassRow[] =>
