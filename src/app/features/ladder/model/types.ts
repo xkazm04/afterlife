@@ -1,12 +1,19 @@
 // Shared types of the Ladder model. Plain data, no logic.
-import type { ActionClass, Track } from '@/lib/demo';
+import type { ActionClass, ClassRecord, Track } from '@/lib/demo';
 import type { SortState } from '@/components/table/model/sort';
 import type { Ceiling, Tier } from '@/schemas';
 
 export type { Ceiling, Tier, Track };
 
-/** An action class as the table holds it: the demo class plus the "commit pushed, tier-gate not read yet" marker. */
-export interface ClassRow extends ActionClass {
+/** A record's counters, each on its own: null is a counter no task or ledger event states (never zero). */
+export type Counters = { [K in keyof ClassRecord]: ClassRecord[K] | null };
+
+/**
+ * An action class as the table holds it: the demo class plus the "commit pushed, tier-gate not read yet" marker. A
+ * record may know some counters only (each unknown one null).
+ */
+export interface ClassRow extends Omit<ActionClass, 'record'> {
+  record: Counters | null;
   pending: string | null;
 }
 

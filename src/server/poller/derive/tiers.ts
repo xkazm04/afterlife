@@ -4,13 +4,16 @@
 // gate blocks it). A class several agents hold, one of them named for the role or none, is stored with move 'refused' and
 // every holder at the tier gate({..., agent: holder}) grants: CI gates each MR at its author's own record. The row's
 // tier is the most restrictive holder's. views/standing.ts writes and reads both standings.
-// What GitLab cannot tell Belay (the record's counters, a moves note) is kept from the row already in the index.
+// What GitLab cannot tell Belay (the record's stored counters, a moves note) is kept from the row already in the index. A
+// class one agent holds also gets its counters counted from the project's tasks and ledger (./counters.ts) when the caller
+// passes them: returned beside the rows, for the promotion asks, not stored.
 import type { Ceiling, DemotionTrigger, TierState } from '@/schemas/tier';
 import type { ClassTierRow } from '@/server/index/repositories/fleet/classTier';
 import type { TrustClassRow } from '@/server/index/repositories/fleet/taxonomy';
 import { noRecordRow, splitRow } from '@/server/index/views/standing';
 import { holderStandings, standingOf } from '../../../../engine/decide/standing';
 import type { EnginePolicy } from '../../../../engine/policy/load';
+import { countRecord, type ClassCounters, type CounterSource } from './counters';
 
 /** The eight tracks, by the agent role trust-policy.yml names. */
 export const ROLE_TRACK: Readonly<Record<string, number>> = {
@@ -33,7 +36,11 @@ export interface TierDerivation {
   /** Records the tripwire wrote within `windowMs` of `now`. */
   demotions: number;
   quarantines: Quarantine[];
+  /** The classes one agent holds with a record, with their counters (all null when no source was passed). */
+  held: Map<string, ClassCounters>;
 }
+
+const NO_SOURCE: CounterSource = { tasks: [], events: [], revertDemotes: false };
 
 /** The move already in the index, except the moves this function writes itself: they last only while their cause does. */
 const keptMove = (prev: ClassTierRow | undefined): ClassTierRow['move'] => {
@@ -56,10 +63,12 @@ export const trustClassesOf = (policy: EnginePolicy): TrustClassRow[] =>
 
 export function deriveTiers(
   policy: EnginePolicy, state: TierState, projectId: string, now: Date, existing: ReadonlyMap<string, ClassTierRow>, windowMs: number,
+  counters?: CounterSource,
 ): TierDerivation {
   const classes = trustClassesOf(policy);
   const rows: ClassTierRow[] = [];
   const quarantines: Quarantine[] = [];
+  const held = new Map<string, ClassCounters>();
   Object.entries(policy.classes).forEach(([id, c]) => {
     const track = ROLE_TRACK[c.agent] ?? null;
     const prev = existing.get(id);
@@ -83,11 +92,12 @@ export function deriveTiers(
     } else if (st.kind === 'no_record') {
       ({ tier, move } = noRecordRow());
     } else tier = 'human_only'; // human_only (no agent ever holds it); 'refused' always has two holders, handled above
+    if (rec && st.kind === 'held') held.set(id, countRecord(counters ?? NO_SOURCE, { agent: st.agent, classId: id, since: counters ? since : null }, now));
     rows.push({ projectId, classId: id, tier, since, setBy: byOf(rec), leaseExpires: lease, record: prev?.record ?? null, move });
   });
   const cutoff = now.getTime() - windowMs;
   const demotions = Object.values(state.agents)
     .flatMap((classes) => Object.values(classes))
     .filter((r) => byOf(r)?.startsWith('tripwire') && (when(r.since)?.getTime() ?? 0) >= cutoff).length;
-  return { classes, rows, demotions, quarantines };
+  return { classes, rows, demotions, quarantines, held };
 }

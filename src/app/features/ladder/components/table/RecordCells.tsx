@@ -5,12 +5,18 @@ import type { ClassRow } from '../../model/types';
 import styles from './ladderTable.module.css';
 
 const NO_RECORD = 'No record yet · not scored';
+const NOT_RECORDED = 'Not recorded · no task or ledger event states it';
 
-/** Lease, Acc, No-edit, Rv and the 14-day strip. No record is a dim dash (never zero); Human only has no record. */
+/** Lease, Acc, No-edit, Rv and the 14-day strip. No record, or a counter not recorded, is a dim dash (never zero); Human only has no record. */
 export function RecordCells({ cls, className }: { cls: ClassRow; className?: string }) {
   const r = cls.record;
   const none = r || cls.tier === 'human_only' ? null : (
     <span className={styles.z} title={NO_RECORD}>
+      —
+    </span>
+  );
+  const unknown = (
+    <span className={styles.z} title={NOT_RECORDED}>
       —
     </span>
   );
@@ -22,23 +28,27 @@ export function RecordCells({ cls, className }: { cls: ClassRow; className?: str
       </Cell>
       <Cell align="end" className={className}>
         {r ? (
-          <>
-            {r.accepted}
-            {r.needed ? <span className={styles.dn}>/{r.needed}</span> : null}
-          </>
+          r.accepted === null ? (
+            unknown
+          ) : (
+            <>
+              {r.accepted}
+              {r.needed ? <span className={styles.dn}>/{r.needed}</span> : null}
+            </>
+          )
         ) : (
           none
         )}
       </Cell>
       <Cell align="end" className={className}>
-        {r ? <span className={r.noEdit < 0.9 ? styles.dn : undefined}>{pct(r.noEdit)}</span> : none}
+        {r ? r.noEdit === null ? unknown : <span className={r.noEdit < 0.9 ? styles.dn : undefined}>{pct(r.noEdit)}</span> : none}
       </Cell>
       <Cell align="center" className={className}>
-        {r ? <span className={r.reverts ? styles.bad : styles.z}>{r.reverts}</span> : none}
+        {r ? r.reverts === null ? unknown : <span className={r.reverts ? styles.bad : styles.z}>{r.reverts}</span> : none}
       </Cell>
       <Cell className={className}>
-        {r || cls.tier !== 'human_only' ? <DayStrip clean={r ? r.cleanDays : null} revertedToday={!!r && r.reverts > 0} /> : null}
-        {r ? <span className={styles.cn}>{r.cleanDays}</span> : null}
+        {r || cls.tier !== 'human_only' ? <DayStrip clean={r ? r.cleanDays : null} revertedToday={!!r && (r.reverts ?? 0) > 0} /> : null}
+        {r && r.cleanDays !== null ? <span className={styles.cn}>{r.cleanDays}</span> : null}
       </Cell>
     </>
   );

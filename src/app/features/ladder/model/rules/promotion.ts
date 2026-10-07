@@ -35,6 +35,16 @@ export const pct = (x: number): string => `${Math.round(x * 100)} %`;
 
 type Subject = Pick<ClassRow, 'tier' | 'ceiling' | 'record' | 'cell' | 'holders'>;
 
+/** A counter no row or event states: its rule is never met. */
+export const NOT_RECORDED = 'not recorded';
+
+const counted = (v: number | null, show: (n: number) => string, meets: (n: number) => boolean): Pick<PromotionRule, 'value' | 'met'> =>
+  v === null ? { value: NOT_RECORDED, met: false } : { value: show(v), met: meets(v) };
+
+/** "accepted outputs 3 / 5" with its cells; a counter that is not recorded draws no cells. */
+const countRule = (name: string, v: number | null, need: number): PromotionRule =>
+  v === null ? { name, value: NOT_RECORDED, met: false } : { name, value: `${v} / ${need}`, met: v >= need, cells: [Math.min(v, need), need] };
+
 /** `rules`: trust-policy.yml's thresholds, as the server read them; null when it could not (the counts are then not drawn). */
 export function promotion(c: Subject, proofClass: string, rules: PolicyRules | null): Promotion {
   const tier = cellOf(c);
@@ -53,18 +63,15 @@ export function promotion(c: Subject, proofClass: string, rules: PolicyRules | n
   if (next === 'hands_off') {
     const { accepted: need, noEditRatio, cleanDays } = rules.toHandsOff;
     counts = [
-      { name: 'accepted outputs', value: `${r.accepted} / ${need}`, met: r.accepted >= need, cells: [Math.min(r.accepted, need), need] },
-      { name: `merged without edits ≥ ${pct(noEditRatio)}`, value: pct(r.noEdit), met: r.noEdit >= noEditRatio },
-      { name: 'clean days', value: `${r.cleanDays} / ${cleanDays}`, met: r.cleanDays >= cleanDays, cells: [Math.min(r.cleanDays, cleanDays), cleanDays] },
-      { name: 'reverts or incidents', value: String(r.reverts), met: r.reverts === 0 },
+      countRule('accepted outputs', r.accepted, need),
+      { name: `merged without edits ≥ ${pct(noEditRatio)}`, ...counted(r.noEdit, pct, (n) => n >= noEditRatio) },
+      countRule('clean days', r.cleanDays, cleanDays),
+      { name: 'reverts or incidents', ...counted(r.reverts, String, (n) => n === 0) },
       { name: 'mechanical proof class', value: proofClass, met: isMechanical(proofClass) },
     ];
   } else {
     const { accepted: need, reverts } = rules.toSupervised;
-    counts = [
-      { name: 'accepted outputs', value: `${r.accepted} / ${need}`, met: r.accepted >= need, cells: [Math.min(r.accepted, need), need] },
-      { name: 'reverts', value: String(r.reverts), met: r.reverts <= reverts },
-    ];
+    counts = [countRule('accepted outputs', r.accepted, need), { name: 'reverts', ...counted(r.reverts, String, (n) => n <= reverts) }];
   }
   return { kind: counts.every((x) => x.met) ? 'eligible' : 'notyet', next, rules: counts };
 }
