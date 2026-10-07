@@ -6,6 +6,7 @@ import type { ActionResponse } from '@/server/actions/types';
 import { commandLines, mrOf, NO_ANSWER, outcomeOf } from '@/server/actions/words';
 import { STEP_DETAIL } from '../data/stepDetail';
 import { BASE_MIN, DOCTOR_MS, PROBE_MS, REDUCED_MAX_MS } from '../data/timing';
+import { copyText } from '../model/clipboard/copy';
 import { clockLabel } from '../model/flow/probeAge';
 import { probeWillPass, setupReducer } from '../model/flow/reducer';
 import { verdictOf } from '../model/flow/verify';
@@ -56,12 +57,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
 
   const actions = useMemo<FlowActions>(() => {
     const copy = (text: string) => {
-      const done = () => toast('Copied · nothing sent');
-      try {
-        navigator.clipboard.writeText(text).then(done, done);
-      } catch {
-        done();
-      }
+      void copyText(text, typeof navigator === 'undefined' ? undefined : navigator.clipboard).then((r) => toast(r.text));
     };
     const probe = async (n: number) => {
       const cur = ref.current.steps[n];
