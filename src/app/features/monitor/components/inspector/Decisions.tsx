@@ -53,7 +53,7 @@ export function Decisions({
           <div className={styles.acts}>
             {live ? (
               <Button variant="primary" href="/needs-you" title={`Opens Needs you, where this is decided; nothing is decided here. ${d.does}`}>
-                Decide in Needs you�
+                Decide in Needs you…
               </Button>
             ) : done.has(d.id) ? (
               <span className={styles.done}>✓ Done</span>

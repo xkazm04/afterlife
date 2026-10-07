@@ -118,7 +118,7 @@ describe('the poll really did write what the parity rests on (it is not just the
 });
 
 describe('where live differs from demo, on purpose', () => {
-  it('the Needs-you count (the layout badge, the deep project’s Fleet row) excludes the seeded items live; demo counts all five', () => {
+  it('the Needs-you count (the layout badge, the deep project\'s Fleet row) excludes the seeded items live; demo counts all five', () => {
     expect([live.getNeedsYouCount(), live.deepProjectId(), live.mode]).toEqual([0, 'ledgerline', 'live']);
     expect([demoSource.getNeedsYouCount(), demoSource.deepProjectId(), demoSource.mode]).toEqual([5, 'ledgerline', 'demo']);
     expect(live.getFleet().projects.find((p) => p.id === 'ledgerline')?.needsYou).toBe(0);

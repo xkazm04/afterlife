@@ -53,11 +53,11 @@ from the start:
 
 - `MonitorData.mode` ('demo' | 'live', from the DataSource) decides what the actions claim:
   - **Resolve.** Demo simulates: the decision shows Done and the count goes down, in this screen only. Live claims
-    nothing: the decision button ("Decide in Needs you…") opens `/needs-you`. Live also drops the demo's seeded
+    nothing: the decision button ("Decide in Needs youâ€¦") opens `/needs-you`. Live also drops the demo's seeded
     decisions from the deep project's list (`isSeeded`), as `/needs-you` does.
   - **Re-poll.** Demo simulates: a healthy feed's age resets to 0 in this screen only. Live calls the `repollAction`
-    server action (one real poll cycle, a read): "Re-polling <name>…", then "Re-polled <name>" only when it resolved
-    ok, else "Re-poll failed · <name> · <reason>". The route renders again and its fresh data replaces the screen's
+    server action (one real poll cycle, a read): "Re-polling <name>â€¦", then "Re-polled <name>" only when it resolved
+    ok, else "Re-poll failed Â· <name> Â· <reason>". The route renders again and its fresh data replaces the screen's
     copy; nothing is reset locally. An unwatched project has nothing to poll in either mode.
   - **Poll age.** The status line's "polled N s ago" is the deep project's own feed age; with no good poll it says
     "no good poll yet". Demo loops the counter at 60 s; live never wraps.
