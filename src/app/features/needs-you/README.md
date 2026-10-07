@@ -4,7 +4,14 @@ Every decision that waits for a person, and nothing else. Port of the approved "
 The route file reads the view on the server (`data/pick.ts`, `loadNeedsYouView`). Demo: the desk, `NeedsYouScreen`. Live:
 never the desk (it is built around the demo's seeded n1/n2/n4/n5, the !44 incident and the patch-bump record): the
 group's own open items (`NeedsYouLive`, minus any the demo seeded into the index), or `NeedsYouEmpty`, which says how many
-seeded ones it does not show. The live list sends nothing.
+seeded ones it does not show.
+
+Live acts (`NeedsYouLive`, `components/live/LiveAct`, `hooks/useLiveActs`, `model/live.ts`): a promotion or a re-admit has
+one action, a promote-class policy MR through `write/promote.ts` (the desk's door). Selecting it asks `previewAction`; the
+server's commands and diff are shown; Run is `confirmAction(intent, previewId)` for that preview only. The answer is only
+what the response says (done names the MR GitLab opened; refused, changed and failed say so); a failed preview shows why
+and can be asked again. `?item=<id>` opens an item selected (Ladder's p). Sign-offs, gaps and setup steps stay read-only
+and say where to act.
 
 ## Parts
 - `components/band/` the CRA band: live countdown, 24 h rail, grade ladder (attested struck out), 6/6 evidence.

@@ -61,7 +61,7 @@ export function pickNeedsYouDemo(): NeedsYouDemo {
 /** What the route draws: the desk (demo), the group's own open items (live), or the honest empty state. */
 export type NeedsYouView =
   | { kind: 'desk'; demo: NeedsYouDemo }
-  | { kind: 'live'; items: readonly NeedsYouItem[]; seeded: number }
+  | { kind: 'live'; items: readonly NeedsYouItem[]; seeded: number; project: string }
   | { kind: 'empty'; seeded: number };
 
 /** The inbox items the demo seeds: the data source owns the predicate; re-exported for this screen's importers. */
@@ -78,7 +78,7 @@ export function loadNeedsYouView(): NeedsYouView {
     const all = ds.getNeedsYou();
     const items = all.filter((n) => !isSeeded(n.id));
     const seeded = all.length - items.length;
-    return items.length ? { kind: 'live', items, seeded } : { kind: 'empty', seeded };
+    return items.length ? { kind: 'live', items, seeded, project: ds.deepProjectId() } : { kind: 'empty', seeded };
   }
   try {
     return { kind: 'desk', demo: pickNeedsYouDemo() };

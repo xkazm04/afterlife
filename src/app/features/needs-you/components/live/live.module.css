@@ -1,0 +1,33 @@
+/* A selected live item: its rule counts, the server's write, Run and the answer. */
+.act {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}
+.note {
+  color: var(--text-3);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font: 400 var(--t-small) var(--mono);
+}
+.met {
+  color: var(--text-2);
+}
+.unmet {
+  color: var(--text-3);
+}
+.done {
+  color: var(--text-1);
+}
+.bad {
+  color: var(--needs-you);
+}
