@@ -1,13 +1,13 @@
 // Verify never arms on its own: only a read of the default branch that saw the arm block (or, for a disarm, its absence)
 // settles a track. Anything else leaves the MR open and says what was found. Demo mode is simulated and labelled so.
 import { describe, expect, it } from 'vitest';
-import { getSetup, getTracks } from '@/lib/demo';
+import { getSetup } from '@/lib/demo';
 import type { SetupState } from '../types';
 import { setupReducer, type SetupAction } from './reducer';
 import { createSetupState } from './state';
 import { verdictOf } from './verify';
 
-const fresh = () => createSetupState(getSetup(), getTracks(), 1000);
+const fresh = () => createSetupState(getSetup(), 1000);
 const run = (s: SetupState, ...actions: SetupAction[]) => actions.reduce(setupReducer, s);
 const sent = (id: string, revert = false): SetupAction => ({ t: 'arm-sent', id, revert, mr: '!22', url: null, simulated: false });
 const verify = (s: SetupState, id: string, check: Parameters<typeof verdictOf>[0]) =>

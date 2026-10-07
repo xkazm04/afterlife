@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getSetup, getTracks } from '@/lib/demo';
+import { getSetup } from '@/lib/demo';
 import { clockLabel, formatAgo, isStale, probeAgeText } from './probeAge';
 import { createSetupState } from './state';
 import { setupReducer } from './reducer';
 import { STALE_AFTER_MS } from '../../data/timing';
 
-const s0 = createSetupState(getSetup(), getTracks(), 0);
+const s0 = createSetupState(getSetup(), 0);
 
 describe('probe age', () => {
   it('formats the demo clock from real minutes', () => {

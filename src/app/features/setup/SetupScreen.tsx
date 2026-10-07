@@ -23,7 +23,7 @@ import { createSetupState, type SetupDemo } from './model/flow/state';
  */
 export function SetupScreen({ setup, tracks, classes }: { setup: SetupDemo; tracks: readonly Track[]; classes: readonly ActionClass[] }) {
   const byId = useMemo(() => Object.fromEntries(tracks.map((t) => [t.id, t])), [tracks]);
-  const [initial] = useState(() => createSetupState(setup, tracks, Date.now()));
+  const [initial] = useState(() => createSetupState(setup, Date.now()));
   const writes = useArmWrite(initial.project);
   const { state, actions } = useSetupFlow(initial, writes);
   const view = useSetupView(state.doctor);

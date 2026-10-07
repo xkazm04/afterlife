@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getSetup, getTracks } from '@/lib/demo';
+import { getSetup } from '@/lib/demo';
 import { createSetupState } from '../flow/state';
 import { GRAPH } from './appGraph';
 import { arc, buildEdges, curve, type Geometry } from './edges';
 import { hotSets } from './hot';
 
-const s = createSetupState(getSetup(), getTracks(), 0);
+const s = createSetupState(getSetup(), 0);
 const box = (y: number, x = 0) => ({ l: { x, y }, r: { x: x + 100, y } });
 const geom: Geometry = {
   steps: Object.fromEntries(Array.from({ length: 15 }, (_, n) => [n, box(n * 30)])),

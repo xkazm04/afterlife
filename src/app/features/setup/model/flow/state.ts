@@ -5,10 +5,6 @@ import { isStepKey, stepOf } from '../map/graph';
 import type { ArmState, ArmStatus, CapStatus, DoctorRow, SetupState, StepState, StepStatus } from '../types';
 
 export type SetupDemo = DemoData['setup'];
-export interface TrackLite {
-  id: string;
-  armedBy: string;
-}
 
 const toStepStatus = (s: string): StepStatus => (s === 'done' || s === 'human' ? s : 'todo');
 const toArmStatus = (s: string): ArmStatus => (s === 'armed' || s === 'ready' ? s : 'locked');
@@ -16,8 +12,11 @@ export const toCapStatus = (s: string): CapStatus => (s === 'available' || s ===
 
 const doctorRows = (rows: readonly (readonly [string, string])[]): DoctorRow[] => rows.map(([name, st]) => ({ name, st: toCapStatus(st) }));
 
-/** The opening state: the demo's probed steps, arm order and doctor rows, probed at 14:02. */
-export function createSetupState(setup: SetupDemo, tracks: readonly TrackLite[], now: number): SetupState {
+/**
+ * The opening state: the demo's probed steps, arm order and doctor rows, probed at 14:02. A track's armed state and its
+ * MR come from one record, `setup.arm`; it names no MR, so none is shown until a confirm's answer names one.
+ */
+export function createSetupState(setup: SetupDemo, now: number): SetupState {
   const steps: Record<number, StepState> = {};
   for (const ph of setup.phases) {
     for (const [n, title, raw] of ph.steps) {
@@ -29,13 +28,12 @@ export function createSetupState(setup: SetupDemo, tracks: readonly TrackLite[],
   }
   const arm: Record<string, ArmState> = {};
   setup.arm.forEach(([id, raw], order) => {
-    const st = toArmStatus(raw);
-    arm[id] = { id, order, st, mr: st === 'armed' ? (tracks.find((t) => t.id === id)?.armedBy ?? null) : null, url: null, revert: false, simulated: false, found: null };
+    arm[id] = { id, order, st: toArmStatus(raw), mr: null, url: null, revert: false, simulated: false, found: null };
   });
   const home = doctorRows(setup.doctor.rows);
   return {
     group: setup.group, project: setup.project, homeGroup: setup.group, homeDoctor: home,
-    steps, arm, armMrs: Object.fromEntries(tracks.map((t) => [t.id, t.armedBy])), attempts: {}, doctor: home, doctorAt: now, doctorProbedAt: '14:02', doctorNever: false, doctorBusy: false,
+    steps, arm, attempts: {}, doctor: home, doctorAt: now, doctorProbedAt: '14:02', doctorNever: false, doctorBusy: false,
   };
 }
 

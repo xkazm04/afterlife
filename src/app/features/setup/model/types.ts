@@ -51,8 +51,6 @@ export interface SetupState {
   homeDoctor: readonly DoctorRow[];
   steps: Readonly<Record<number, StepState>>;
   arm: Readonly<Record<string, ArmState>>;
-  /** The MR each track is armed by, from the demo (what Arm opens). */
-  armMrs: Readonly<Record<string, string>>;
   /** Probe attempts per step: the demo's first runner probe fails. */
   attempts: Readonly<Record<number, number>>;
   doctor: readonly DoctorRow[];

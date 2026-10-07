@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { getSetup, getTracks } from '@/lib/demo';
+import { getSetup } from '@/lib/demo';
 import type { SetupState } from '../types';
 import { probeWillPass, setupReducer, type SetupAction } from './reducer';
 import { armList, armedCount, createSetupState, doctorCounts, doneCount, needYouCount, stepList, unmet } from './state';
 
-const fresh = () => createSetupState(getSetup(), getTracks(), 1000);
+const fresh = () => createSetupState(getSetup(), 1000);
 const run = (s: SetupState, ...actions: SetupAction[]) => actions.reduce(setupReducer, s);
 const probe = (s: SetupState, n: number, at = '14:05') => run(s, { t: 'probe-start', n }, { t: 'probe-end', n, at });
 
@@ -15,7 +15,8 @@ describe('the opening state', () => {
     expect(doneCount(s)).toBe(3);
     expect(armedCount(s)).toBe(1);
     expect(armList(s).map((a) => a.st)).toEqual(['armed', 'ready', 'ready', 'locked', 'locked', 'locked', 'locked', 'locked']);
-    expect(s.arm.T4?.mr).toBe('!3');
+    // One record: setup.arm says T4 is armed and names no MR, so none is shown (tracks[].armedBy is not read).
+    expect(s.arm.T4).toMatchObject({ st: 'armed', mr: null, simulated: false });
   });
   it('counts gates and doctor rows', () => {
     const s = fresh();
