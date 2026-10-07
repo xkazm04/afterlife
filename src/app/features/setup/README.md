@@ -15,6 +15,9 @@ plan and preview door (`src/server/actions`); the steps and the doctor are still
   summary, the branch the plan creates, the commands, the `.gitlab-ci.yml` diff and, for T4, the BELAY_BOT_TOKEN notes);
   `confirmAction` with that preview's id on the click. The MR number and its address come from the confirm's answer, never
   from the demo. A track the repo does not define yet shows the server's refusal.
+- "I merged it · verify" calls `verifyArmAction`: a read of the target's default branch. A track arms (or disarms) only when
+  the read saw its block there (or saw it gone); otherwise the MR stays open with what was found (`model/flow/verify.ts`).
+  Demo mode reads nothing and the track says simulated.
 - `model/map/` graph closure (needs, frees), hot sets, edge paths. `model/flow/` state, reducer, probe age, wording. All pure, tested.
 - `data/` the prototype constants as typed fixtures (step detail, arm needs, capability reliance, timing).
 

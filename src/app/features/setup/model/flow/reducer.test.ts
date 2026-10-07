@@ -67,14 +67,15 @@ describe('probing a step', () => {
 
 describe('arm, merge, verify, disarm', () => {
   const sent = (id: string, revert = false, mr: string | null = '!22'): SetupAction => ({ t: 'arm-sent', id, revert, mr, url: mr ? `https://gitlab.example/mr/${mr.slice(1)}` : null, simulated: mr === null });
-  const arm = (s: SetupState, id: string) => run(s, sent(id), { t: 'verify-start', id }, { t: 'verify-end', id });
+  const seen = { ok: true, simulated: false, text: 'on main' };
+  const arm = (s: SetupState, id: string) => run(s, sent(id), { t: 'verify-start', id }, { t: 'verify-end', id, verdict: seen });
   it('arm sends an MR as you, then a person merges, then Belay verifies', () => {
     let s = run(fresh(), sent('T3'));
     expect(s.arm.T3).toMatchObject({ st: 'open', mr: '!22', url: 'https://gitlab.example/mr/22', revert: false, simulated: false });
     expect(needYouCount(s)).toBe(6);
     s = run(s, { t: 'verify-start', id: 'T3' });
     expect(s.arm.T3?.st).toBe('probing');
-    s = run(s, { t: 'verify-end', id: 'T3' });
+    s = run(s, { t: 'verify-end', id: 'T3', verdict: seen });
     expect(s.arm.T3?.st).toBe('armed');
   });
   it('the MR is the one the confirm named: none, in demo mode, is shown as simulated', () => {
@@ -97,7 +98,7 @@ describe('arm, merge, verify, disarm', () => {
     let s = arm(arm(fresh(), 'T3'), 'T6');
     s = run(s, sent('T3', true, '!23'));
     expect(s.arm.T3).toMatchObject({ st: 'open', revert: true, mr: '!23' });
-    s = run(s, { t: 'verify-start', id: 'T3' }, { t: 'verify-end', id: 'T3' });
+    s = run(s, { t: 'verify-start', id: 'T3' }, { t: 'verify-end', id: 'T3', verdict: seen });
     expect(s.arm.T3).toMatchObject({ st: 'ready', mr: null, revert: false });
     expect(s.arm.T1?.st).toBe('locked');
     expect(s.arm.T8?.st).toBe('locked');

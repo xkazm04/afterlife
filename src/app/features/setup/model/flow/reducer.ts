@@ -2,6 +2,7 @@ import { CAP_FLOW_API, CAP_VULN, OTHER_GROUP } from '../../data/capabilities';
 import { STEP_DETAIL } from '../../data/stepDetail';
 import type { ArmState, DoctorRow, SetupState, StepState } from '../types';
 import { toCapStatus, recomputeLocks, unmet, armList } from './state';
+import type { Verdict } from './verify';
 
 /** Every change to the setup. Probes are the only thing that moves a step to done; Belay writes only on a click. */
 export type SetupAction =
@@ -10,7 +11,8 @@ export type SetupAction =
   /** A confirmed arm (or, `revert`, disarm) MR: what the server's answer named, nothing else. */
   | { t: 'arm-sent'; id: string; revert: boolean; mr: string | null; url: string | null; simulated: boolean }
   | { t: 'verify-start'; id: string }
-  | { t: 'verify-end'; id: string }
+  /** What the read of the default branch settled (verify.ts). Only an ok verdict arms or disarms. */
+  | { t: 'verify-end'; id: string; verdict: Verdict }
   | { t: 'doctor-start' }
   | { t: 'doctor-end'; now: number; at: string }
   | { t: 'pick-group'; group: string; now: number; at: string };
@@ -43,9 +45,11 @@ function probeEnd(s: SetupState, n: number, at: string): SetupState {
   return recomputeLocks(next);
 }
 
-function verifyEnd(s: SetupState, id: string): SetupState {
+/** Verify settles a track only on what it read: otherwise the MR stays open, with what was found. */
+function verifyEnd(s: SetupState, id: string, v: Verdict): SetupState {
   const a = s.arm[id];
   if (!a || a.st !== 'probing') return s;
+  if (!v.ok) return setArm(s, id, { st: 'open', found: v.text });
   if (!a.revert) return recomputeLocks(setArm(s, id, { st: 'armed', found: null }));
   // A merged revert disarms it; anything ready that leaned on it locks again.
   const disarmed = setArm(s, id, { st: 'ready', mr: null, url: null, revert: false, simulated: false, found: null });
@@ -76,7 +80,7 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
     case 'verify-start':
       return s.arm[a.id]?.st === 'open' ? setArm(s, a.id, { st: 'probing' }) : s;
     case 'verify-end':
-      return verifyEnd(s, a.id);
+      return verifyEnd(s, a.id, a.verdict);
     case 'doctor-start':
       return s.doctorBusy ? s : { ...s, doctorBusy: true };
     case 'doctor-end': {

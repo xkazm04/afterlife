@@ -8,9 +8,10 @@ import { STEP_DETAIL } from '../data/stepDetail';
 import { BASE_MIN, DOCTOR_MS, PROBE_MS, REDUCED_MAX_MS } from '../data/timing';
 import { clockLabel } from '../model/flow/probeAge';
 import { probeWillPass, setupReducer } from '../model/flow/reducer';
+import { verdictOf } from '../model/flow/verify';
 import { mrName } from '../model/flow/wording';
 import type { SetupState } from '../model/types';
-import { sendArm } from '../write/arm';
+import { checkArm, sendArm } from '../write/arm';
 import type { ArmWrites } from './useArmWrite';
 
 export interface FlowActions {
@@ -135,10 +136,13 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
         const revert = a.revert;
         const mr = nameOf(id);
         dispatch({ t: 'verify-start', id });
-        await wait(PROBE_MS);
-        dispatch({ t: 'verify-end', id });
-        say(revert ? `${id} disarmed · revert merged` : `${id} armed · ${mr} merged on main`);
-        toast(revert ? `${id} disarmed · revert merged` : `${id} armed · revert ${mr} to disarm`);
+        // A read of the default branch, never an arm on its own. Demo mode reads nothing and says so.
+        const v = verdictOf(await checkArm(ref.current.project, id, revert), revert);
+        dispatch({ t: 'verify-end', id, verdict: v });
+        const settled = revert ? `${id} disarmed · the revert is on main` : `${id} armed · ${mr} is on main`;
+        const text = !v.ok ? `${id} not ${revert ? 'disarmed' : 'armed'} yet · ${v.text}` : v.simulated ? `${v.text} · ${id} marked ${revert ? 'disarmed' : 'armed'}` : `${settled} · ${v.text}`;
+        say(text);
+        toast(text);
       },
       openMr: (id) => {
         const a = ref.current.arm[id];
