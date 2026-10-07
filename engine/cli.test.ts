@@ -71,7 +71,7 @@ describe('exit codes: 0 pass, 1 fail, 2 inconclusive or error', () => {
 });
 
 describe('envelope', () => {
-  const run = (...extra: string[]) => cli('envelope', '--policy', 'policy/trust-policy.yml', '--class', 'dep-bump.patch', '--diff', fx('exploit', 'fix.diff'), ...extra);
+  const run = (...extra: string[]) => cli('envelope', '--policy', 'policy/trust-policy.yml', '--class', 'code-fix.patch', '--diff', fx('exploit', 'fix.diff'), ...extra);
   it('0 inside the envelope, 1 outside it, listing the violations', () => {
     expect(run().code).toBe(0);
     expect(run('--env', 'review/mr-41', '--env', 'staging', '--env', 'production').code).toBe(0);
@@ -103,8 +103,11 @@ describe('gate, tripwire and ledger through the CLI', () => {
   });
 
   it('gate: measures the diff itself when given one, and takes a production target', () => {
-    expect(gate(handsOff, 'guardrail-pass.json', '--diff', fx('exploit', 'fix.diff'), '--env', 'production').code).toBe(0);
-    expect(gate(handsOff, 'guardrail-pass.json', '--diff', fx('exploit', 'fix.diff'), '--env', 'eu-prod').code).toBe(1);
+    const bump = path.join(tmp, 'bump.diff');
+    fs.writeFileSync(bump, 'diff --git a/package.json b/package.json\n--- a/package.json\n+++ b/package.json\n@@ -1 +1 @@\n-a\n+b\n');
+    expect(gate(handsOff, 'guardrail-pass.json', '--diff', bump, '--env', 'production').code).toBe(0);
+    expect(gate(handsOff, 'guardrail-pass.json', '--diff', bump, '--env', 'eu-prod').code).toBe(1);
+    expect(gate(handsOff, 'guardrail-pass.json', '--diff', fx('exploit', 'fix.diff')).code).toBe(1); // a source fix is not a dep-bump
   });
 
   it('gate: a file that is not a Proof Block is an error, not a decision', () => {

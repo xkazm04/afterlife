@@ -35,12 +35,12 @@ describe('globs', () => {
 describe('envelope', () => {
   const p = policy();
   it('accepts the patcher fix inside the hands-off envelope', () => {
-    const r = checkEnvelope(p, 'dep-bump.patch', fs.readFileSync(fx('exploit', 'fix.diff'), 'utf8'), ['review/mr-41', 'staging']);
+    const r = checkEnvelope(p, 'code-fix.patch', fs.readFileSync(fx('exploit', 'fix.diff'), 'utf8'), ['review/mr-41', 'staging']);
     expect(r).toMatchObject({ within: true, files: 2, lines: 35, violations: [] });
   });
   it('rejects too many files and too many lines, at the policy limits', () => {
-    expect(checkEnvelope(p, 'dep-bump.patch', diffOf(Array.from({ length: 6 }, (_, i) => [`a${i}.kt`, 1] as [string, number]))).within).toBe(true);
-    const seven = checkEnvelope(p, 'dep-bump.patch', diffOf(Array.from({ length: 7 }, (_, i) => [`a${i}.kt`, 1] as [string, number])));
+    expect(checkEnvelope(p, 'code-fix.patch', diffOf(Array.from({ length: 6 }, (_, i) => [`a${i}.kt`, 1] as [string, number]))).within).toBe(true);
+    const seven = checkEnvelope(p, 'code-fix.patch', diffOf(Array.from({ length: 7 }, (_, i) => [`a${i}.kt`, 1] as [string, number])));
     expect(seven.within).toBe(false);
     expect(seven.violations[0]).toMatch(/7 files changed, envelope allows 6/);
     expect(checkEnvelope(p, 'code-fix.patch', diffOf([['a.kt', 120]])).within).toBe(true);
@@ -55,6 +55,21 @@ describe('envelope', () => {
     const rename = 'diff --git a/CODEOWNERS b/owners.txt\nrename from CODEOWNERS\nrename to owners.txt\n';
     expect(checkEnvelope(p, 'dep-bump.patch', rename).within).toBe(false);
     expect(checkEnvelope(p, 'code-fix.patch', diffOf([['.gitlab-ci.yml', 1]])).within).toBe(true); // only dep-bump denies it
+  });
+  it('binds dep-bump.patch to manifests, lockfiles and test paths (allow_paths), fail-closed', () => {
+    const src = checkEnvelope(p, 'dep-bump.patch', diffOf([['src/main/App.kt', 3]]));
+    expect(src.within).toBe(false);
+    expect(src.violations[0]).toMatch(/outside allow_paths.*src\/main\/App.kt/);
+    expect(checkEnvelope(p, 'dep-bump.patch', diffOf([['package.json', 1], ['package-lock.json', 2], ['svc/src/test/kotlin/XTest.kt', 5]])).within).toBe(true);
+    expect(checkEnvelope(p, 'dep-bump.patch', diffOf([['build.gradle.kts', 1], ['gradle/libs.versions.toml', 1], ['pom.xml', 1], ['yarn.lock', 1], ['pnpm-lock.yaml', 1]])).within).toBe(true);
+    expect(checkEnvelope(p, 'dep-bump.patch', diffOf([['package.json', 1], ['scripts/run.sh', 1]])).within).toBe(false);
+    const rename = 'diff --git a/package.json b/src/App.kt\nrename from package.json\nrename to src/App.kt\n';
+    expect(checkEnvelope(p, 'dep-bump.patch', rename).within).toBe(false);
+    expect(checkEnvelope(p, 'code-fix.patch', diffOf([['src/main/App.kt', 3]])).within).toBe(true); // no allow_paths: as before
+  });
+  it('validates allow_paths as a list of strings', () => {
+    const base = { version: 1, classes: { x: { agent: 'a', ceiling: 'supervised', allow_paths: 'package.json' } }, demotion: { one_step_on: [], quarantine_on: [] }, envelope: { hands_off: { max_files: 1, max_lines: 1, environments: [] } }, cooldown_days: 1 };
+    expect(() => parsePolicy(base)).toThrow(/allow_paths/);
   });
   it('allows review and staging for any class, production only for mechanical proof classes', () => {
     const d = diffOf([['a.kt', 1]]);

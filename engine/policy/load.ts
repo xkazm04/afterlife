@@ -12,6 +12,7 @@ export interface RerunThresholds {
 
 export interface EnginePolicy extends TrustPolicy {
   envelope: TrustPolicy['envelope'] & { production_requires_proof?: string[] };
+  classes: Record<string, TrustPolicy['classes'][string] & { allow_paths?: string[] }>;
   rerun_stats?: Partial<RerunThresholds>;
 }
 
@@ -26,6 +27,7 @@ export function parsePolicy(raw: unknown): EnginePolicy {
     if (typeof cls.agent !== 'string') throw new EngineError(`classes.${id}.agent must be a string`);
     if (typeof cls.ceiling !== 'string' || !CEILINGS.includes(cls.ceiling)) throw new EngineError(`classes.${id}.ceiling is not a tier`);
     if (cls.deny_paths !== undefined) strList(cls.deny_paths, `classes.${id}.deny_paths`);
+    if (cls.allow_paths !== undefined) strList(cls.allow_paths, `classes.${id}.allow_paths`);
   }
   const demotion = rec(p.demotion, 'trust-policy.demotion');
   strList(demotion.one_step_on, 'demotion.one_step_on');

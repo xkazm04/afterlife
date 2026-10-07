@@ -12,7 +12,10 @@ demotion:
   one_step_on: [revert, reopened_finding, post_merge_proof_fail, default_branch_red_1h]
   quarantine_on: [guardrail_high, budget_breach_x2]
 classes:
-  dep-bump.patch:   { agent: patcher,  proof: exploit-test,    ceiling: hands_off, deny_paths: [".gitlab-ci.yml", ".gitlab/**", "CODEOWNERS"] }
+  # allow_paths binds a class to what its diff may touch: a changed file matching none of them fails the envelope.
+  # dep-bump.patch: dependency manifests and lockfiles (npm, pnpm, yarn, Gradle, Maven), plus test paths because the
+  # exploit-test proof needs the red-at-base test to arrive inside the patch (engine/__fixtures__/exploit/fix.diff).
+  dep-bump.patch:   { agent: patcher,  proof: exploit-test,    ceiling: hands_off, deny_paths: [".gitlab-ci.yml", ".gitlab/**", "CODEOWNERS"], allow_paths: ["package.json", "package-lock.json", "npm-shrinkwrap.json", "pnpm-lock.yaml", "yarn.lock", "pom.xml", "build.gradle", "build.gradle.kts", "gradle.properties", "libs.versions.toml", "gradle.lockfile", "verification-metadata.xml", "**/src/test/**", "**/test/**", "**/tests/**", "**/__tests__/**", "*.test.*", "*.spec.*"] }
   code-fix.patch:   { agent: patcher,  proof: exploit-test,    ceiling: supervised }
   guard.block:      { agent: guardrail, proof: cited-diff,     ceiling: hands_off }
   pipeline.retry:   { agent: medic,    proof: rerun-stats,     ceiling: hands_off }

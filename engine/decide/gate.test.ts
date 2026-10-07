@@ -68,14 +68,14 @@ describe('gate: what hands-off merging needs', () => {
     const r = decide({ envelope: checkEnvelope(P, 'dep-bump.patch', diff) });
     expect(r.decision).toBe('block');
     expect(r.reasons.join(' ')).toMatch(/denied path/);
-    expect(decide({ envelope: checkEnvelope(P, 'dep-bump.patch', diff.replace(/CODEOWNERS/g, 'a.kt')) }).decision).toBe('merge');
+    expect(decide({ envelope: checkEnvelope(P, 'dep-bump.patch', diff.replace(/CODEOWNERS/g, 'package.json')) }).decision).toBe('merge');
   });
 
   it('blocks production for a class without a mechanical proof, through the envelope result', () => {
     const d = 'diff --git a/a.kt b/a.kt\n--- a/a.kt\n+++ b/a.kt\n@@ -1 +1 @@\n-a\n+b\n';
     const r = decide({ classId: 'guard.block', proof: proof('cited-diff', true), envelope: checkEnvelope(P, 'guard.block', d, ['production']) });
     expect(r.decision).toBe('block');
-    expect(decide({ envelope: checkEnvelope(P, 'dep-bump.patch', d, ['production']) }).decision).toBe('merge');
+    expect(decide({ envelope: checkEnvelope(P, 'dep-bump.patch', d.replace(/a.kt/g, 'package.json'), ['production']) }).decision).toBe('merge');
   });
 });
 

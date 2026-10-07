@@ -40,6 +40,11 @@ export function checkEnvelope(
     const hit = m.paths.filter((p) => matchesPath(pattern, p));
     if (hit.length) violations.push(`touches denied path ${pattern}: ${hit.join(', ')}`);
   }
+  const allow = cls?.allow_paths;
+  if (allow) {
+    const stray = m.paths.filter((p) => !allow.some((pattern) => matchesPath(pattern, p)));
+    if (stray.length) violations.push(`touches paths outside allow_paths of ${classId}: ${stray.join(", ")}`);
+  }
   for (const env of environments) {
     if (!limits.environments.some((pat) => matchesEnvironment(pat, env))) {
       violations.push(`environment "${env}" is outside the envelope (${limits.environments.join(', ')})`);
