@@ -20,29 +20,19 @@ import { useLadderMenus } from './hooks/useLadderMenus';
 import { useLadderPopovers } from './hooks/useLadderPopovers';
 import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
-import { pollAge } from './model/clock';
+import { livePollAge, pollAge } from './model/clock';
+import { DemoChip } from './components/chrome/DemoChip';
 import { dockModel } from './model/rules/dock';
-import type { Ceiling, Tier, Track } from './model/types';
+import type { Tier } from './model/types';
+import type { LadderScreenProps } from './props';
 import { filterCount } from './model/view/filters';
-import type { LadderSeed } from './model/state/state';
 import styles from './LadderScreen.module.css';
 
-export interface LadderScreenProps {
-  /** The project the classes belong to: the id the server actions plan the writes for. */
-  project: string;
-  seed: LadderSeed;
-  tracks: readonly Track[];
-  /** What each tier means, for the legend. */
-  means: Readonly<Record<Ceiling, string>>;
-  /** How old the last poll was when the demo opened, in seconds. */
-  feedAgeSec: number;
-  /** "acme-lab / ledgerline". */
-  subtitle: string;
-}
+export type { LadderScreenProps } from './props';
 
 /** The Ladder: every action class, its tier and ceiling, the record behind it, and what you can revoke or promote. */
-export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeSec, subtitle }: LadderScreenProps) {
-  const data = useLadderData(seed, trackList);
+export function LadderScreen({ project, seed, tracks: trackList, means, policy, illustrative, live, feedAgeSec, subtitle }: LadderScreenProps) {
+  const data = useLadderData(seed, trackList, policy);
   const { state, dispatch, byId, tracks } = data;
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -55,7 +45,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeS
   const writes = useRevokeWrite(project, data.selected, shownTo);
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [open, setOpenMap] = useState<Readonly<Record<string, boolean>>>({});
-  const clock = useSimClock();
+  const clock = useSimClock(live);
   const pop = useLadderPopovers();
 
   const sections: SectionState = useMemo(
@@ -90,7 +80,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeS
   };
   const togglePolicy = () => {
     const anchor = policyRef.current;
-    if (anchor) pop.toggle('policy', anchor, <PolicyContent head={state.head} />, 'below');
+    if (anchor) pop.toggle('policy', anchor, <PolicyContent head={state.head} rules={policy} history={illustrative.history} />, 'below');
   };
   useLadderKeys({ data, actions, searchRef, enabled: !menus.isOpen, toggleHelp, closeInspector: () => setInspectorOpen(false) });
 
@@ -115,7 +105,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeS
   const total = state.classes.length;
   const shown = data.visible.length;
   const filters = filterCount({ src: state.src, filt: state.filt, q: state.q });
-  const age = pollAge(clock.elapsed, feedAgeSec);
+  const age = live ? livePollAge(clock.elapsed, feedAgeSec) : pollAge(clock.elapsed, feedAgeSec);
 
   return (
     <Window
@@ -127,7 +117,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeS
           total={total}
           filt={state.filt}
           onFilter={actions.setFilter}
-          lozenge={<PolicyLozenge head={state.head} onOpen={togglePolicy} anchorRef={policyRef} />}
+          lozenge={<PolicyLozenge head={state.head} history={illustrative.history} onOpen={togglePolicy} anchorRef={policyRef} />}
           sort={state.sort}
           onSortMenu={menus.openSort}
           q={state.q}
@@ -136,7 +126,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeS
           onSearchKey={onSearchKey}
         />
       }
-      sidebar={<LadderSidebar classes={state.classes} tracks={tracks} trackIds={data.trackIds} src={state.src} onSource={actions.setSource} />}
+      sidebar={<LadderSidebar classes={state.classes} tracks={tracks} trackIds={data.trackIds} src={state.src} policy={policy} onSource={actions.setSource} />}
       inspector={
         <LadderInspector
           sel={data.sel}
@@ -146,6 +136,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeS
           ledger={state.ledger}
           promotionOf={data.promotionOf}
           sections={sections}
+          demoRecords={illustrative.records}
           writeTo={shownTo}
           viewOf={writes.viewOf}
           onRevoke={actions.revoke}
@@ -157,7 +148,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeS
       onInspectorOpenChange={setInspectorOpen}
       status={
         <>
-          {shown === total ? total : `${shown} of ${total}`} classes · {filters} {pluralWord(filters, 'filter')} · tier-state.yml @ {state.head.sha} · polled {age} s ago
+          {shown === total ? total : `${shown} of ${total}`} classes · {filters} {pluralWord(filters, 'filter')} · tier-state.yml @ {state.head.sha} <DemoChip on={!!state.head.demo} what="The tier-state.yml head" /> · polled {age} s ago
         </>
       }
     >
@@ -171,6 +162,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeS
           sel={data.sel}
           just={state.just}
           promotionOf={data.promotionOf}
+          demoRecords={illustrative.records}
           empty={shown === 0}
           menuing={menus.isOpen}
           onSelect={actions.select}

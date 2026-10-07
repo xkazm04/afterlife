@@ -3,7 +3,8 @@
 Every screen's server loader reads through one interface, `DataSource` (`types.ts`). It has the surface `@/lib/demo` always
 had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActionClasses`, `getMaturity`, `getLoop`, `getTasks`,
 `getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`) plus `mode`, `deepProjectId()` and
-`illustrative` (the demo narrative it serves beside live data, for the screens to label). Reads are
+`illustrative` (the demo narrative it serves beside live data, for the screens to label) and `getPolicy()` (trust-policy.yml's
+rules: the promotion thresholds, the demotion triggers, the envelope). Reads are
 **synchronous**: the live source serves a snapshot that is rebuilt after every poll, so a page never waits on GitLab or the index.
 
 | Env | Values | Default |
@@ -42,10 +43,17 @@ ages to the demo's moment, so the screens are identical to demo mode, and visibl
 Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live), the setup phases and doctor rows
 (only group and project are live): the live source declares these in `illustrative` (`tracks`, `loop`, `cockpit`,
 `setup`), and the Door and Fleet mark what they show of them "demo" (the demo source declares nothing: all of it is the
-demo). The tier meanings are the product's tier vocabulary, the same in every mode, and are not marked. The stage list is
-the schema's (`@/schemas/stages`). The Ladder's seeded ledger, the Task docket's
-per-task fixtures (a live task with no fixture is drawn from its own fields after them) and the Needs-you screen (built around five specific items;
-`NeedsYouEmpty` is drawn when they are missing) are the screens' own data and unchanged. The footer chip "illustrative demo
+demo). It also declares what the Ladder still shows of the demo: `policy-history` (its opening ledger, the tier-state.yml
+head, the policy's revision and merge age, and the commit ids they name: the poller reads belay-policy's files, never its
+history) and `records` (the class records' counters: GitLab cannot restate them, so the poller keeps the seed's). The
+Ladder marks each with the kit's `Chip` ("demo"); a class with no record says "No record yet". The tier meanings are the product's tier vocabulary, the same in every mode, and are not marked. The stage list is
+the schema's (`@/schemas/stages`). The Task docket's per-task fixtures (a live task with no fixture is drawn from its own
+fields after them) are the screen's own data. Needs you never draws its desk in live mode (it is built around the demo's
+five seeded items): it lists the group's own open items, minus any the demo seeded, or `NeedsYouEmpty`.
+
+`getPolicy()`: demo, this checkout's `policy/trust-policy.yml` (`policy.ts`, checked by the engine's parser); live, the
+trust-policy.yml the last poll read from belay-policy (`CycleResult.policy`, kept on the snapshot; a cycle that could
+not read one keeps the last good one). Null until one was read: the Ladder then draws no counts and says why. The footer chip "illustrative demo
 data" is a client component and still says so.
 
 The recent events are the index's own (`getEvents` in `../index/views/events.ts`): a task's MR opened and merged, the last

@@ -5,6 +5,7 @@ import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
 import { clock, getActionClasses, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
 import { getPairing } from '@/server/index/repositories/pairing';
 import type { Queryable } from '@/server/index/repositories/sql';
+import type { PolicyRules } from '../types';
 import { actionClass, maturity, task } from './narrow';
 
 export interface LiveData {
@@ -18,6 +19,8 @@ export interface LiveData {
   needsYou: NeedsYouItem[];
   cockpit: DemoData['cockpit'];
   setup: DemoData['setup'];
+  /** trust-policy.yml's rules as the last poll read them from belay-policy; null until one was read. */
+  policy: PolicyRules | null;
 }
 
 export interface LiveSnapshot {
@@ -26,7 +29,7 @@ export interface LiveSnapshot {
   data: LiveData;
 }
 
-export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData): Promise<LiveSnapshot> {
+export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData, policy: PolicyRules | null = null): Promise<LiveSnapshot> {
   const [fleet, classes, mat, tasks, events, needsYou, pairing] = await Promise.all([
     getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getEvents(db, deep), getNeedsYou(db, deep, at),
     getPairing(db, 'default'),
@@ -45,6 +48,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       needsYou,
       cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? 0 } },
       setup: { ...catalogue.setup, group, project: deep },
+      policy,
     },
   };
 }

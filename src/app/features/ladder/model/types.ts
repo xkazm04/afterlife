@@ -29,6 +29,8 @@ export interface LedgerEntry {
   lag?: string;
   /** Appended just now: plays the highlight once. */
   isNew?: boolean;
+  /** The demo's own history shown beside live data (live mode): it carries a demo mark. */
+  demo?: boolean;
 }
 
 export type SortKey = 'move' | 'name' | 'track' | 'tier' | 'ceiling' | 'lease' | 'acc' | 'noedit' | 'rv' | 'clean';
@@ -37,6 +39,8 @@ export type LadderSort = SortState<SortKey>;
 export interface Head {
   sha: string;
   by: string;
+  /** The demo's head, not read from belay-policy (live mode, until a revoke here names a real commit): marked demo. */
+  demo?: boolean;
 }
 
 export type TrackMap = Readonly<Record<string, Track>>;

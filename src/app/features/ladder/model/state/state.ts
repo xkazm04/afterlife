@@ -30,6 +30,8 @@ export interface LadderSeed {
   ledger: readonly LedgerSeedEntry[];
   /** Quote of the guardrail's finding, by merge request ("!44"). */
   quotes: Readonly<Record<string, string>>;
+  /** tier-state.yml's head when the screen opens. */
+  head: Head;
 }
 
 export type LadderAction =

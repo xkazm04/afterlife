@@ -4,7 +4,7 @@ import { pct } from '../../model/rules/promotion';
 import type { ClassRow } from '../../model/types';
 import styles from './ladderTable.module.css';
 
-const NO_RECORD = 'no record · not scored';
+const NO_RECORD = 'No record yet · not scored';
 
 /** Lease, Acc, No-edit, Rv and the 14-day strip. No record is a dim dash (never zero); Human only has no record. */
 export function RecordCells({ cls, className }: { cls: ClassRow; className?: string }) {

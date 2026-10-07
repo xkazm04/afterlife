@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Track } from '@/lib/demo';
+import { repoPolicy } from '@/server/data/policy';
 import type { ClassRow, TrackMap } from '../types';
 import { SMART_FILTERS, filterCount, matchesQuery, tierCounts, visibleClasses } from './filters';
 
@@ -36,8 +37,13 @@ describe('visibleClasses', () => {
   });
   it('Below ceiling ignores Quarantined and Human only', () => {
     const below = SMART_FILTERS.find((s) => s.id === 'below');
-    expect(below?.test(classes[1] as ClassRow, '')).toBe(false);
-    expect(below?.test(classes[3] as ClassRow, '')).toBe(false);
+    expect(below?.test(classes[1] as ClassRow, '', null)).toBe(false);
+    expect(below?.test(classes[3] as ClassRow, '', null)).toBe(false);
+  });
+  it('Can promote counts against trust-policy.yml, and finds nothing without it', () => {
+    const promotable = (policy: ReturnType<typeof repoPolicy>) => visibleClasses(order, byId, { src: 'promote', filt: null, q: '' }, tracks, policy).map((c) => c.id);
+    expect(promotable(repoPolicy())).toEqual(['c']);
+    expect(promotable(null)).toEqual([]);
   });
   it('searches the id, track id, key and name', () => {
     expect(ids({ q: 'patch' })).toEqual(['a', 'c', 'd']);

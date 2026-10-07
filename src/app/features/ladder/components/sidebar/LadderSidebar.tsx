@@ -4,6 +4,7 @@ import { Icon } from '@/components/icons/Icon';
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import { ALL_SOURCE, SMART_FILTERS, matchesSource } from '../../model/view/filters';
+import type { PolicyRules } from '@/server/data/types';
 import type { ClassRow, TrackMap } from '../../model/types';
 import { SMART_ICONS } from './smartIcons';
 import styles from './sidebar.module.css';
@@ -14,15 +15,18 @@ export function LadderSidebar({
   tracks,
   trackIds,
   src,
+  policy,
   onSource,
 }: {
   classes: readonly ClassRow[];
   tracks: TrackMap;
   trackIds: readonly string[];
   src: string;
+  /** trust-policy.yml's thresholds ("Can promote" counts against them). */
+  policy: PolicyRules | null;
   onSource: (src: string) => void;
 }) {
-  const count = (s: string) => classes.filter((c) => matchesSource(c, s, tracks)).length;
+  const count = (s: string) => classes.filter((c) => matchesSource(c, s, tracks, policy)).length;
   return (
     <>
       <SidebarSection title="Tracks">

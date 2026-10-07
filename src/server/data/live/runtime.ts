@@ -9,6 +9,7 @@ import { createMemory, pollIntervalMs, runPollCycle, startScheduler, type CycleR
 import type { DataConfig } from '../config';
 import type { Clock } from './clock';
 import { createLivePort } from './ports';
+import { rulesOf } from '../policy';
 import { buildSnapshot, type LiveSnapshot } from './snapshot';
 
 export interface LiveRuntime {
@@ -47,7 +48,9 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<L
       } catch (e) {
         onError(e); // a cycle that throws (not one that reports a failed project) still leaves the index readable
       }
-      rt.snapshot = await buildSnapshot(db, clock.read(), cfg.deepProject, DEMO);
+      // The policy the cycle read; a cycle that could not read one keeps the last good one, as the class tiers do.
+      const policy = rt.last?.policy ? rulesOf(rt.last.policy) : (rt.snapshot?.data.policy ?? null);
+      rt.snapshot = await buildSnapshot(db, clock.read(), cfg.deepProject, DEMO, policy);
     })().finally(() => {
       inFlight = null;
     });

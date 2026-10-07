@@ -1,4 +1,3 @@
-import { INITIAL_HEAD } from '../../data/policy';
 import type { ClassRow, LedgerEntry } from '../types';
 import { INITIAL_SORT, computeOrder } from '../view/sort';
 import type { LadderSeed, LadderState } from './state';
@@ -18,7 +17,7 @@ export function initialState(seed: LadderSeed): LadderState {
   return {
     classes,
     ledger,
-    head: { ...INITIAL_HEAD },
+    head: { ...seed.head },
     shaIdx: 0,
     sort: INITIAL_SORT,
     order: computeOrder(classes, ledger, INITIAL_SORT),

@@ -1,7 +1,10 @@
 # Needs you (`/needs-you`)
 
 Every decision that waits for a person, and nothing else. Port of the approved "Desk + outbox" prototype.
-The route file reads the demo slice on the server (`data/pick.ts`) and renders `NeedsYouScreen`.
+The route file reads the view on the server (`data/pick.ts`, `loadNeedsYouView`). Demo: the desk, `NeedsYouScreen`. Live:
+never the desk (it is built around the demo's seeded n1/n2/n4/n5, the !44 incident and the patch-bump record): the
+group's own open items (`NeedsYouLive`, minus any the demo seeded into the index), or `NeedsYouEmpty`, which says how many
+seeded ones it does not show. The live list sends nothing.
 
 ## Parts
 - `components/band/` the CRA band: live countdown, 24 h rail, grade ladder (attested struck out), 6/6 evidence.

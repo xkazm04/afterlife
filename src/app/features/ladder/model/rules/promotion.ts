@@ -1,4 +1,6 @@
-// Promotion eligibility: counts against the policy's thresholds. A count is shown, never a forecast (no ETA).
+// Promotion eligibility: counts against trust-policy.yml's thresholds, which the server reads and hands the screen (never
+// a constant here). A count is shown, never a forecast (no ETA).
+import type { PolicyRules } from '@/server/data/types';
 import type { ClassRow, Tier } from '../types';
 import { RUNGS, rungIndex } from './tiers';
 
@@ -14,12 +16,6 @@ export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set([
 
 export const isMechanical = (proofClass: string): boolean => MECHANICAL_PROOFS.has(proofClass);
 
-/** The thresholds Belay did not measure: trust-policy.yml sets them. */
-export const HANDS_OFF_DEFAULT_NEEDED = 15;
-export const ASSISTED_NEEDED = 5;
-export const CLEAN_DAYS_NEEDED = 14;
-export const NO_EDIT_NEEDED = 0.9;
-
 export interface PromotionRule {
   name: string;
   value: string;
@@ -30,14 +26,16 @@ export interface PromotionRule {
 
 export type Promotion =
   | { kind: 'never' | 'readmit' | 'ceiling' }
-  | { kind: 'unknown'; next: Tier }
+  /** unknown: the class has no record yet. nopolicy: trust-policy.yml was not read, so there are no thresholds. */
+  | { kind: 'unknown' | 'nopolicy'; next: Tier }
   | { kind: 'eligible' | 'notyet'; next: Tier; rules: PromotionRule[] };
 
 export const pct = (x: number): string => `${Math.round(x * 100)} %`;
 
 type Subject = Pick<ClassRow, 'tier' | 'ceiling' | 'record'>;
 
-export function promotion(c: Subject, proofClass: string): Promotion {
+/** `rules`: trust-policy.yml's thresholds, as the server read them; null when it could not (the counts are then not drawn). */
+export function promotion(c: Subject, proofClass: string, rules: PolicyRules | null): Promotion {
   if (c.tier === 'human_only') return { kind: 'never' };
   if (c.tier === 'quarantined') return { kind: 'readmit' };
   const i = rungIndex(c.tier);
@@ -45,23 +43,25 @@ export function promotion(c: Subject, proofClass: string): Promotion {
   if (!next || i >= rungIndex(c.ceiling)) return { kind: 'ceiling' };
   const r = c.record;
   if (!r) return { kind: 'unknown', next };
-  let rules: PromotionRule[];
+  if (!rules) return { kind: 'nopolicy', next };
+  let counts: PromotionRule[];
   if (next === 'hands_off') {
-    const need = r.needed || HANDS_OFF_DEFAULT_NEEDED;
-    rules = [
+    const { accepted: need, noEditRatio, cleanDays } = rules.toHandsOff;
+    counts = [
       { name: 'accepted outputs', value: `${r.accepted} / ${need}`, met: r.accepted >= need, cells: [Math.min(r.accepted, need), need] },
-      { name: 'merged without edits ≥ 90 %', value: pct(r.noEdit), met: r.noEdit >= NO_EDIT_NEEDED },
-      { name: 'clean days', value: `${r.cleanDays} / 14`, met: r.cleanDays >= CLEAN_DAYS_NEEDED, cells: [r.cleanDays, CLEAN_DAYS_NEEDED] },
+      { name: `merged without edits ≥ ${pct(noEditRatio)}`, value: pct(r.noEdit), met: r.noEdit >= noEditRatio },
+      { name: 'clean days', value: `${r.cleanDays} / ${cleanDays}`, met: r.cleanDays >= cleanDays, cells: [Math.min(r.cleanDays, cleanDays), cleanDays] },
       { name: 'reverts or incidents', value: String(r.reverts), met: r.reverts === 0 },
       { name: 'mechanical proof class', value: proofClass, met: isMechanical(proofClass) },
     ];
   } else {
-    rules = [
-      { name: 'accepted outputs', value: `${r.accepted} / ${ASSISTED_NEEDED}`, met: r.accepted >= ASSISTED_NEEDED, cells: [Math.min(r.accepted, ASSISTED_NEEDED), ASSISTED_NEEDED] },
-      { name: 'reverts', value: String(r.reverts), met: r.reverts === 0 },
+    const { accepted: need, reverts } = rules.toSupervised;
+    counts = [
+      { name: 'accepted outputs', value: `${r.accepted} / ${need}`, met: r.accepted >= need, cells: [Math.min(r.accepted, need), need] },
+      { name: 'reverts', value: String(r.reverts), met: r.reverts <= reverts },
     ];
   }
-  return { kind: rules.every((x) => x.met) ? 'eligible' : 'notyet', next, rules };
+  return { kind: counts.every((x) => x.met) ? 'eligible' : 'notyet', next, rules: counts };
 }
 
 export const isEligible = (p: Promotion): boolean => p.kind === 'eligible';
@@ -73,6 +73,7 @@ export const WHY_NOT: Record<Exclude<Promotion['kind'], 'eligible'>, string> = {
   readmit: 'it is quarantined: re-admit in Needs you, at Assisted at most',
   never: 'it is never an agent',
   unknown: 'there is no record yet',
+  nopolicy: 'trust-policy.yml has not been read, so there are no thresholds',
 };
 
 /** Tooltip of the row's Promote button. */
@@ -82,9 +83,10 @@ export function promoteTitle(kind: Promotion['kind']): string {
 }
 
 /** The muted line shown instead of rule counts. */
-export const NO_RULES: Record<'ceiling' | 'readmit' | 'never' | 'unknown', string> = {
+export const NO_RULES: Record<'ceiling' | 'readmit' | 'never' | 'unknown' | 'nopolicy', string> = {
   ceiling: 'At its ceiling · higher is a track rebuild',
   readmit: 'Quarantined · re-admit at Assisted at most',
   never: 'Never an agent',
   unknown: 'No record yet',
+  nopolicy: 'No thresholds · trust-policy.yml has not been read',
 };

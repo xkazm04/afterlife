@@ -1,6 +1,7 @@
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
 import { Chip } from '@/components/status/chip/Chip';
+import { DemoChip } from '../../chrome/DemoChip';
 import type { LedgerEntry } from '../../../model/types';
 import styles from './log.module.css';
 
@@ -22,6 +23,11 @@ export function LogItem({ entry, dim }: { entry: LedgerEntry; dim?: boolean }) {
           {entry.chip ? (
             <span className={styles.chip}>
               <HonestyChip kind={entry.chip} />
+            </span>
+          ) : null}
+          {entry.demo ? (
+            <span className={styles.chip}>
+              <DemoChip what="The demo's own ledger" />
             </span>
           ) : null}
         </div>

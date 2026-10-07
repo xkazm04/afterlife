@@ -37,7 +37,7 @@ export function GroupInspector({
         {mine.map((c) => (
           <div key={c.id} className={styles.cl}>
             <span className={styles.clId}>{c.id}</span>
-            <span className={styles.clRec}>{c.record ? `${c.record.accepted}${c.record.needed ? `/${c.record.needed}` : ''}` : ''}</span>
+            <span className={styles.clRec}>{c.record ? `${c.record.accepted}${c.record.needed ? `/${c.record.needed}` : ''}` : c.tier === 'human_only' ? '' : 'No record yet'}</span>
             <TierMark tier={c.tier} />
             <span className={styles.clTier}>{TIER_META[c.tier].name}</span>
           </div>

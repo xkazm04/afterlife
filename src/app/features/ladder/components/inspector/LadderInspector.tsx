@@ -19,6 +19,8 @@ export interface LadderInspectorProps {
   ledger: readonly LedgerEntry[];
   promotionOf: (c: ClassRow) => Promotion;
   sections: SectionState;
+  /** The records are the demo's (live mode): their counts carry a demo mark. */
+  demoRecords: boolean;
   /** The revoke target whose write is on screen instead of r's (highlighted in a menu, or pinned by q). */
   writeTo: Tier | null;
   viewOf: (id: string, to: Tier) => WriteView | undefined;
@@ -49,6 +51,7 @@ export function LadderInspector(p: LadderInspectorProps) {
       kinds={kinds}
       onToggleKind={toggleKind}
       sections={p.sections}
+      demoRecords={p.demoRecords}
       writeTo={p.writeTo}
       viewOf={p.viewOf}
       onRevoke={p.onRevoke}

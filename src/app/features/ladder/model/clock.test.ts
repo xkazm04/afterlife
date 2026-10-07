@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { START_SEC, hms, isClockTime, pollAge, toSec } from './clock';
+import { START_SEC, hms, isClockTime, livePollAge, pollAge, toSec, wallTime } from './clock';
 
 describe('clock', () => {
   it('formats and parses the demo start', () => {
@@ -16,5 +16,9 @@ describe('clock', () => {
     expect(pollAge(2, 12)).toBe(14);
     expect(pollAge(3, 12)).toBe(0);
     expect(pollAge(18, 12)).toBe(0);
+  });
+  it('live: the poll age counts up from the snapshot’s and never wraps; entries take the wall clock', () => {
+    expect([livePollAge(0, 12), livePollAge(3, 12), livePollAge(600, 12)]).toEqual([12, 15, 612]);
+    expect(wallTime(new Date(2026, 9, 7, 9, 5, 7))).toBe('09:05:07');
   });
 });

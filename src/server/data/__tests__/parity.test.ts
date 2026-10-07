@@ -9,7 +9,7 @@ import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadFleetSource } from '@/app/features/fleet/data/loadFleetSource';
 import { loadMaturityData } from '@/app/features/maturity/data/loadMaturityData';
-import { pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
+import { loadNeedsYouView, pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
 import { loadTasks } from '@/app/features/task/model/build/loadTasks';
 import { loadTheaterData } from '@/app/features/theater/data/loadTheaterData';
@@ -25,6 +25,7 @@ import { demoSource } from '../demoSource';
 import { replayClock } from '../live/clock';
 import { liveSource } from '../live/liveSource';
 import { buildSnapshot } from '../live/snapshot';
+import { repoPolicy, rulesOf } from '../policy';
 import { setDataSource } from '../select';
 import type { DataSource } from '../types';
 
@@ -36,7 +37,7 @@ beforeAll(async () => {
   const gl = createDemoGitLab(SEED_NOW);
   const cycle = await runPollCycle(gl.port, db, replayClock.poll(), { cfg: readPollerConfig(144060371, {}) });
   expect(cycle.projects.every((p) => p.ok)).toBe(true);
-  const snap = await buildSnapshot(db, replayClock.read(), 'ledgerline', DEMO);
+  const snap = await buildSnapshot(db, replayClock.read(), 'ledgerline', DEMO, cycle.policy ? rulesOf(cycle.policy) : null);
   live = liveSource(() => snap);
 }, 60_000);
 afterAll(() => setDataSource(null));
@@ -79,8 +80,12 @@ describe('every screen loader gets the same data from the live source as from th
     expect(l).toEqual(d);
   });
 
-  it('Ladder: classes, tiers, leases, records, last moves, the means of each tier, the poll age and the subtitle', () => {
-    const [d, l] = both(() => asProps(loadLadderData()));
+  it('Ladder: classes, tiers, leases, records, last moves, the means of each tier, the thresholds, the poll age and the subtitle', () => {
+    // What live marks demo, and its clock, are listed below; everything else is the same.
+    const strip = (p: ReturnType<typeof loadLadderData>) => ({
+      ...p, illustrative: null, live: null, seed: { ...p.seed, ledger: p.seed.ledger.map((e) => ({ ...e, demo: undefined })), head: { ...p.seed.head, demo: undefined } },
+    });
+    const [d, l] = both(() => asProps(strip(loadLadderData())));
     expect(l).toEqual(d);
   });
 
@@ -124,7 +129,7 @@ describe('where live differs from demo, on purpose', () => {
     expect(live.getTracks()).toBe(DEMO.tracks);
     expect(live.getLoop()).toBe(DEMO.loop);
     expect(live.getCockpit().running).toBe(DEMO.cockpit.running);
-    expect([live.illustrative, demoSource.illustrative]).toEqual([['tracks', 'loop', 'cockpit', 'setup'], []]);
+    expect([live.illustrative, demoSource.illustrative]).toEqual([['tracks', 'loop', 'cockpit', 'setup', 'policy-history', 'records'], []]);
   });
 
   it('the stage list is the schema’s, not the catalogue’s (the same nine stages)', () => {
@@ -148,6 +153,23 @@ describe('where live differs from demo, on purpose', () => {
       ['09:29', 'T1', '!41 merged · in production · proof PASS'],
       ['09:02', 'T1', '!41 opened · Fix path traversal in statement export'],
     ]);
+  });
+
+  it('the policy’s rules: the checkout’s trust-policy.yml in demo, the one the poll read from belay-policy in live', () => {
+    expect(demoSource.getPolicy()).toEqual(repoPolicy());
+    expect(live.getPolicy()).toMatchObject({ toHandsOff: { accepted: 15, noEditRatio: 0.9, cleanDays: 14 }, toSupervised: { accepted: 5, reverts: 0 } });
+  });
+
+  it('the Ladder marks its opening history and the records demo in live, and keeps its own clock in demo', () => {
+    const [d, l] = both(() => loadLadderData());
+    expect([d.illustrative, d.live, d.seed.head.demo, d.seed.ledger.some((e) => e.demo)]).toEqual([{ history: false, records: false }, false, undefined, false]);
+    expect([l.illustrative, l.live, l.seed.head.demo, l.seed.ledger.every((e) => e.demo)]).toEqual([{ history: true, records: true }, true, true, true]);
+  });
+
+  it('Needs you draws the desk in demo, and in live never the seeded desk: only the group’s own items, here none', () => {
+    const [d, l] = both(() => loadNeedsYouView());
+    expect(d.kind).toBe('desk');
+    expect(l).toEqual({ kind: 'empty', seeded: 5 });
   });
 
   it('the Fleet reads the mode, the recent events and what to label demo beside its loader; the demo keeps its feed', () => {

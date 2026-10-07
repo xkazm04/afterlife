@@ -10,6 +10,7 @@ import { listProjects, setProjectState } from '@/server/index/repositories/fleet
 import { getPairing, upsertPairing } from '@/server/index/repositories/pairing';
 import { projectSource, recordPollError, recordPollOk } from '@/server/index/repositories/pollState';
 import { readPollerConfig, type PollerConfig } from './config';
+import type { EnginePolicy } from '../../../engine/policy/load';
 import { readPolicy, type PolicyRead } from './derive/policy';
 import { trustClassesOf } from './derive/tiers';
 import { groupPathOf, pollProject, type ProjectPoll } from './project';
@@ -23,6 +24,8 @@ export interface CycleResult {
   projects: ProjectPoll[];
   /** Things worth saying that are not failures: a missing policy file, a project without a ledger. */
   warnings: string[];
+  /** trust-policy.yml as this cycle read it from belay-policy, when the engine's parser accepted it. */
+  policy?: EnginePolicy;
 }
 
 export interface CycleOptions {
@@ -75,6 +78,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   else {
     policy = await readPolicy(port, policyProject.id, cfg.policyRef).catch((e: unknown): PolicyRead => ({ ok: false, reason: e instanceof Error ? e.message : String(e) }));
     if (!policy.ok) result.warnings.push(`policy: ${policy.reason}; class tiers are not updated`);
+    else result.policy = policy.policy;
   }
   const ledger: LedgerSource | null = ledgerProject ? { port, project: ledgerProject.id, ref: cfg.ledgerRef } : null;
   if (!ledger) result.warnings.push(`no ${cfg.ledgerProject} project in the group: the ledger is not imported`);

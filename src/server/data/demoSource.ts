@@ -1,5 +1,7 @@
-// The demo data source: exactly what the screens read from src/lib/demo before B6. No index, no GitLab.
+// The demo data source: exactly what the screens read from src/lib/demo before B6. No index, no GitLab. The policy's
+// rules are this checkout's policy/trust-policy.yml.
 import * as demo from '@/lib/demo';
+import { repoPolicy } from './policy';
 import type { DataSource } from './types';
 
 export const demoSource: DataSource = {
@@ -20,4 +22,5 @@ export const demoSource: DataSource = {
   getSetup: demo.getSetup,
   getEvents: demo.getEvents,
   getCockpit: demo.getCockpit,
+  getPolicy: () => repoPolicy(),
 };

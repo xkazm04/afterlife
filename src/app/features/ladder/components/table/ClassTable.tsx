@@ -12,6 +12,7 @@ import { rowDomId } from '@/components/table/model/rowNavigation';
 import type { GroupView } from '../../model/view/rows';
 import type { ClassRow, LadderSort, SortKey, TrackMap } from '../../model/types';
 import type { Promotion } from '../../model/rules/promotion';
+import { DemoChip } from '../chrome/DemoChip';
 import { ClassLine, type LineHandlers } from './ClassLine';
 import styles from './ladderTable.module.css';
 
@@ -44,6 +45,8 @@ export interface ClassTableProps extends Omit<LineHandlers, 'onMenu'> {
   sel: string | null;
   just: string | null;
   promotionOf: (c: ClassRow) => Promotion;
+  /** The records' counters are the demo's (live mode): the record columns carry a demo mark. */
+  demoRecords: boolean;
   empty: boolean;
   menuing: boolean;
   onToggleGroup: (id: string) => void;
@@ -53,13 +56,19 @@ export interface ClassTableProps extends Omit<LineHandlers, 'onMenu'> {
   tableRef: Ref<HTMLDivElement>;
 }
 
-/** The class table: groups T1-T8 with sortable headers, one row per action class. */
+/** The class table: groups T1-T8 with sortable headers, one row per action class. The last record column marks the records demo when they are. */
 export function ClassTable(p: ClassTableProps) {
   const header = (
     <>
       {HEADERS.map((h) => (
         <HeaderCell key={h.label} sortKey={h.key ?? undefined} sort={p.sort} onSort={p.onSort} align={h.align} tip={h.tip}>
           {h.label}
+          {h.key === 'clean' && p.demoRecords ? (
+            <>
+              {' '}
+              <DemoChip what="The records (Acc, No-edit, Rv, Clean)" />
+            </>
+          ) : null}
         </HeaderCell>
       ))}
       <HeaderCell />

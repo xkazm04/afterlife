@@ -1,0 +1,35 @@
+/* The live list: one row per open inbox item read from the group. */
+.list {
+  list-style: none;
+  margin: var(--row-h) 0;
+  padding: 0;
+  display: grid;
+  gap: calc(var(--row-h) / 2);
+}
+.item {
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: var(--surface-1);
+  display: grid;
+  gap: 2px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.title {
+  color: var(--text-1);
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.due {
+  margin-left: auto;
+  font: 400 var(--t-small) var(--mono);
+  color: var(--needs-you);
+  white-space: nowrap;
+}

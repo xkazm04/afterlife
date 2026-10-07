@@ -26,6 +26,8 @@ export interface ClassInspectorProps {
   kinds: readonly ActorKind[];
   onToggleKind: (kind: ActorKind) => void;
   sections: SectionState;
+  /** The records are the demo's (live mode): their counts carry a demo mark. */
+  demoRecords: boolean;
   writeTo: Tier | null;
   viewOf: (id: string, to: Tier) => WriteView | undefined;
   onRevoke: (id: string, to: Tier) => void;
@@ -73,7 +75,7 @@ export function ClassInspector(p: ClassInspectorProps) {
       <Sec id="why" title="Who acted" aux={mine.length || ''} sections={p.sections}>
         <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />
       </Sec>
-      <PromotionRule promotion={p.promotion} sections={p.sections} />
+      <PromotionRule promotion={p.promotion} demoRecords={p.demoRecords && !!c.record} sections={p.sections} />
       <WriteSection cls={c} to={p.writeTo ?? first ?? null} viewOf={p.viewOf} sections={p.sections} />
       <GrantSection cls={c} proofClass={p.track?.proof.cls ?? ''} sections={p.sections} />
       <AllMoves ledger={p.ledger} current={c.id} kinds={p.kinds} onToggleKind={p.onToggleKind} sections={p.sections} />
