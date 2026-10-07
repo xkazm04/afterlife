@@ -28,7 +28,8 @@ export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
     instance: async () => mapInstance(rec(await c.getJson('metadata'), 'metadata')),
     getGroup: async (g) => mapGroup(rec(await c.getJson(`groups/${id(g)}`), 'group')),
     getNamespace: async (g) => mapNamespace(rec(await c.getJson(`namespaces/${id(g)}`), 'namespace')),
-    listProjects: (g) => list(`groups/${id(g)}/projects`, mapProject, { include_subgroups: true }),
+    // with_shared defaults to true: a project shared in from another namespace is not one of the group's (F45).
+    listProjects: (g) => list(`groups/${id(g)}/projects`, mapProject, { include_subgroups: true, with_shared: false }),
 
     listPipelines: (p, f = {}) => list(`projects/${id(p)}/pipelines`, mapPipeline, { ref: f.ref, status: f.status }, f.limit),
     listJobs: (p, pipelineId) => list(`projects/${id(p)}/pipelines/${pipelineId}/jobs`, mapJob),
