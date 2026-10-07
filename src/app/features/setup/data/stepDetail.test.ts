@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { BELAY_PROJECTS } from '@/server/data/setup/read';
 import { STEP_DETAIL } from './stepDetail';
 
 const SKILL = readFileSync(join(process.cwd(), 'skills/adopt-belay/SKILL.md'), 'utf8');
@@ -17,5 +18,13 @@ describe('step 9 protects the agents’ branches (F38 part 4)', () => {
 
   it('the skill’s step 9 says the same', () => {
     expect(skillStep(9)).toMatch(/`belay\/\*` a protected branch pattern that only Maintainers and the flow accounts can push to/);
+  });
+});
+
+describe('step 4 creates the same projects in Setup and the skill', () => {
+  it('the skill creates every project Setup’s step 4 does, belay-engine included (components clone it at engine_ref)', () => {
+    // Live Setup's step 4 names the target and BELAY_PROJECTS (the paired read), which include belay-engine.
+    expect(BELAY_PROJECTS).toContain('belay-engine');
+    for (const p of ['target', ...BELAY_PROJECTS]) expect(skillStep(4)).toContain(p);
   });
 });

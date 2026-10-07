@@ -28,7 +28,7 @@ licence, a card, a secret or a legal identity is handed back to a person as a nu
 | 1 | Agent | Clone Belay, `npm install`, `npm run dev` |
 | 2 | Agent | Questions: group, target project, tier ceiling, model route, Google Cloud project, credit cap, CRA drill mode |
 | 3 | **Human** | Licence and access: Ultimate trial, hackathon group |
-| 4 | Agent | Create projects: target, belay-pack, belay-policy, belay-ledger |
+| 4 | Agent | Create projects: target, belay-pack, belay-policy, belay-ledger, belay-engine (every component job clones belay-engine at `engine_ref`) |
 | 5 | Agent | Push the demo bank (`ledgerline`) and pair the checkout |
 | 6 | **Human** | Runner and billing on Google Cloud |
 | 7 | **Human** | Google Cloud OIDC, using the Cloud Shell script |
