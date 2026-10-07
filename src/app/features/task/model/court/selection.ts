@@ -31,6 +31,12 @@ export function litLink(task: TaskView, sel: Selection): number {
   return task.proof.checks.find((c) => c.id === sel.id)?.link ?? -1;
 }
 
+/** "link 3 · Act" for a check's evidence link, or "link unknown" when the task has no receipt chain to point into. */
+export function linkLabel(task: TaskView, link: number): string {
+  const l = task.chain[link];
+  return l ? `link ${link + 1} · ${l.step}` : 'link unknown';
+}
+
 /** One arrow press. Up/down walk the column; left/right cross to the other column along a tie. No selection: first check. */
 export function arrowSelection(task: TaskView, sel: Selection, key: ArrowKey): Selection {
   const first = task.proof.checks[0];

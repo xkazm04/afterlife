@@ -92,18 +92,18 @@ export function TaskInspector({
         <Exhibits task={task} />
       </InspectorSection>
       <InspectorSection title="Ledger" aux={`${task.ledger.length} rows · reads only`} open={open.ledger} onOpenChange={(o) => onOpen('ledger', o)}>
-        <LedgerRows rows={task.ledger} active={row} />
+        {task.ledger.length ? <LedgerRows rows={task.ledger} active={row} /> : <div className={styles.muted}>No ledger rows are held for this task</div>}
       </InspectorSection>
       <InspectorSection title="trace.jsonl" aux={task.flowRun} open={open.trace} onOpenChange={(o) => onOpen('trace', o)}>
-        <pre className={styles.trace}>{task.trace.join('\n')}</pre>
+        {task.trace.length ? <pre className={styles.trace}>{task.trace.join('\n')}</pre> : <div className={styles.muted}>No trace is held for this task</div>}
       </InspectorSection>
       <InspectorSection title="Proof" defaultOpen={false}>
         <KeyValue
           rows={[
             ['Engine', `${task.proof.engine} · no model`],
             ['Digest', <span key="d" className={styles.mono}>{task.proof.digest}</span>],
-            ['Policy', <ObjectLink key="p" target={`policy @${POLICY_SHA}`} />],
-            ['Ledger read', `${LEDGER_AGE_SEC} s ago · ${PAGE_NOW}`],
+            ['Policy', task.fixture ? <ObjectLink key="p" target={`policy @${POLICY_SHA}`} /> : <HonestyChip key="p" kind="unknown" />],
+            ['Ledger read', task.fixture ? `${LEDGER_AGE_SEC} s ago · ${PAGE_NOW}` : <HonestyChip key="l" kind="unknown">no rows</HonestyChip>],
           ]}
         />
       </InspectorSection>

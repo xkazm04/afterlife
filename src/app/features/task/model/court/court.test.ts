@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadTasks } from '../build/loadTasks';
 import type { TaskView } from '../types';
-import { arrowSelection, emphasis, litLink, relatedIds, toggleSelection } from './selection';
+import { arrowSelection, emphasis, linkLabel, litLink, relatedIds, toggleSelection } from './selection';
 import { tieKind, tieOpacity, tiePath, ties, untestedClaims } from './ties';
 
 const tasks = loadTasks();
@@ -41,6 +41,8 @@ describe('selection', () => {
     expect(litLink(q4, { side: 'check', id: 'envelope' })).toBe(1);
     expect(litLink(q4, { side: 'claim', id: 'c1' })).toBe(-1);
     expect(litLink(q4, null)).toBe(-1);
+    expect(linkLabel(q4, 2)).toBe('link 3 · Act');
+    expect([linkLabel(q4, -1), linkLabel({ ...q4, chain: [] }, 2)]).toEqual(['link unknown', 'link unknown']); // no chain to point into
   });
 });
 

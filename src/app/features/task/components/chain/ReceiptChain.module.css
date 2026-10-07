@@ -84,3 +84,16 @@
 .lk.lit .s {
   color: var(--accent);
 }
+
+/* a task the source holds no chain for */
+.none {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--sep);
+  font-size: var(--t-head);
+  color: var(--text-3);
+}

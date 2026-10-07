@@ -52,3 +52,10 @@
   color: var(--text-4);
   white-space: nowrap;
 }
+
+/* a column with nothing held for the task */
+.none {
+  padding: 2px;
+  font-size: var(--t-head);
+  color: var(--text-3);
+}

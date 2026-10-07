@@ -40,7 +40,7 @@ ages to the demo's moment, so the screens are identical to demo mode, and visibl
 
 Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live), the setup phases and doctor rows
 (only group and project are live), the tier meanings and the stage list. The Ladder's seeded ledger, the Task docket's
-per-task fixtures (a live task with no fixture is not drawn) and the Needs-you screen (built around five specific items;
+per-task fixtures (a live task with no fixture is drawn from its own fields after them) and the Needs-you screen (built around five specific items;
 `NeedsYouEmpty` is drawn when they are missing) are the screens' own data and unchanged. The footer chip "illustrative demo
 data" is a client component and still says so.
 

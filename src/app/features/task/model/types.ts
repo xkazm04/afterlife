@@ -86,7 +86,7 @@ export interface ChainLink {
 export interface TaskCheck extends CheckSeed {
   /** Claim ids this check tests; empty = an engine invariant. */
   claims: string[];
-  /** 0-based chain link the evidence comes from. */
+  /** 0-based chain link the evidence comes from; -1 = unknown (the task has no receipt chain). */
   link: number;
 }
 
@@ -119,14 +119,21 @@ export interface TaskView {
   tierNow: TierKey | null;
   state: string;
   seeded: boolean;
+  /**
+   * false: the data source has this task but the screen has no fixture for it, so it is drawn from the source's fields
+   * alone. What only a fixture holds (agent, flow run, chain, ledger, trace, envelope, policy) is unknown: empty or null.
+   */
+  fixture: boolean;
   agent: string;
   flowRun: string;
+  /** Empty when the source holds no receipt chain for the task. */
   chain: ChainLink[];
   claims: TaskClaim[];
   proof: { cls: string; verdict: Verdict; engine: string; digest: string; checks: TaskCheck[] };
   agentWords: string;
   countsToward: string;
-  envelope: Envelope;
+  /** null: unknown (the source does not hand the screen a task's envelope); never read as inside it. */
+  envelope: Envelope | null;
   hunk: Hunk | null;
   stats: Task['stats'] | null;
   clock: Task['clock'] | null;

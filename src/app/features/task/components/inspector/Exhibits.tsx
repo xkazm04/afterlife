@@ -67,8 +67,7 @@ function ClockExhibit({ task, clock }: { task: TaskView; clock: NonNullable<Task
   );
 }
 
-function EnvelopeExhibit({ task }: { task: TaskView }) {
-  const e = task.envelope;
+function EnvelopeExhibit({ task, e }: { task: TaskView; e: NonNullable<TaskView['envelope']> }) {
   return (
     <div className={styles.paths}>
       <span className={e.within ? styles.c_ok : styles.c_bad}>
@@ -97,7 +96,7 @@ export function Exhibits({ task }: { task: TaskView }) {
         if (k === 'hunk' && task.hunk) return <HunkExhibit key={k} hunk={task.hunk} />;
         if (k === 'reruns' && task.stats) return <RerunExhibit key={k} stats={task.stats} />;
         if (k === 'clock' && task.clock) return <ClockExhibit key={k} task={task} clock={task.clock} />;
-        if (k === 'envelope') return <EnvelopeExhibit key={k} task={task} />;
+        if (k === 'envelope' && task.envelope) return <EnvelopeExhibit key={k} task={task} e={task.envelope} />;
         return null;
       })}
     </div>

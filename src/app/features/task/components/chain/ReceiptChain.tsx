@@ -5,9 +5,17 @@ import styles from './ReceiptChain.module.css';
 
 /**
  * The receipt chain: Event, Route, Act, Prove, Decide, Deploy, Record. A link not reached (nothing shipped) is dashed n/a.
- * `lit` is the link the selected check's evidence comes from.
+ * `lit` is the link the selected check's evidence comes from. A task the source holds no chain for says so: that is
+ * unknown, not "nothing shipped".
  */
 export function ReceiptChain({ task, lit }: { task: TaskView; lit: number }) {
+  if (!task.chain.length) {
+    return (
+      <div className={styles.none} aria-label="Receipt chain">
+        <HonestyChip kind="unknown" /> No receipt chain is held for this task
+      </div>
+    );
+  }
   return (
     <ol className={styles.chain} aria-label="Receipt chain">
       {task.chain.map((l, i) => (

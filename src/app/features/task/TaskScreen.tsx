@@ -84,7 +84,7 @@ export function TaskScreen({ tasks, task }: { tasks: readonly TaskView[]; task: 
           <VerdictLozenge counts={verdictCounts(tasks)} value={filters.verdict} onChange={(verdict) => applyFilters({ ...filters, verdict })} />
           <ClassMenuButton tasks={tasks} value={filters.cls} onChange={(cls) => applyFilters({ ...filters, cls })} />
           <Spacer />
-          <ReplayButton running={replay.running} onClick={replay.start} />
+          <ReplayButton running={replay.running} disabled={!task.ledger.length} onClick={replay.start} />
         </>
       }
       sidebar={<Docket tasks={tasks} visible={visible} currentId={task.id} />}

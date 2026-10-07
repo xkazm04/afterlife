@@ -22,6 +22,7 @@ export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; s
       </div>
       <div className={styles.f}>
         <span className={styles.lhs}>verdict =</span>
+        {terms.length ? null : <span className={styles.none}>no checks held</span>}
         {terms.map((t, i) => (
           <span key={t.id} className={styles.slot}>
             {i > 0 ? <span className={styles.op}>∧</span> : null}

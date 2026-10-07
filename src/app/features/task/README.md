@@ -1,6 +1,6 @@
 # Task (F5)
 
-Route `/task/[id]` (`/task` redirects to the first task). Ported from the approved "Cross-examination" prototype. Reads only: nothing on this screen writes.
+Route `/task/[id]` (`/task` redirects to the data source's first task). Ported from the approved "Cross-examination" prototype. Reads only: nothing on this screen writes.
 
 ## Parts
 - `TaskScreen.tsx` composes the Window: toolbar (verdict lozenge, proof-class menu, Replay), docket in
@@ -16,9 +16,12 @@ Route `/task/[id]` (`/task` redirects to the first task). Ported from the approv
 
 ## Data
 `data/details/*.ts` is the prototype's `TASK_DETAIL`, one typed file per task (7, including the seeded
-FAIL `01J8Q8`). The demo dataset wins where it has a value (`lib/demo` tasks); three tasks
-(`01J8Q8`, `01J8QA`, `01J8Q7`) carry their own base row. `data/pageFacts.ts` has the page clock and
-the proof-class list. Unknown ids call `notFound()`.
+FAIL `01J8Q8`). The data source wins where it has a value (`getTasks()`); three tasks
+(`01J8Q8`, `01J8QA`, `01J8Q7`) carry their own base row. Every other data-source task (a live task the
+fixtures do not know) is drawn after them from its own fields alone (`sourceTask`, `fixture: false`):
+its proof's checks keep the claim each answers, and what only a fixture holds (agent, flow run, chain,
+ledger, trace, envelope, policy) is shown as not held, never borrowed. Demo mode draws exactly the seven.
+`data/pageFacts.ts` has the page clock and the proof-class list. Ids the docket does not draw call `notFound()`.
 
 ## Honesty
 Claims, agent words, the hunk and the trace are untrusted: rendered as text, ligatures off, never a

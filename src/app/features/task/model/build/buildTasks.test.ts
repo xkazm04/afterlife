@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { getTasks } from '@/lib/demo';
-import { TASK_ORDER } from '../../data/details';
+import { getActionClasses, getTasks, getTracks, type Task } from '@/lib/demo';
+import { TASK_DETAIL, TASK_ORDER } from '../../data/details';
 import { taskVerdict } from '../verdict/verdict';
-import { toVerdict } from './buildTasks';
+import { buildTasks, toVerdict } from './buildTasks';
 import { ledgerIntact } from './ledger';
 import { firstTaskId, loadTasks } from './loadTasks';
 
@@ -87,5 +87,36 @@ describe('toVerdict', () => {
     expect(['pass', 'FAIL', 'inconclusive', 'UNKNOWN', '', 'passed', null, undefined].map(toVerdict)).toEqual([
       'PASS', 'FAIL', 'INCONCLUSIVE', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN',
     ]);
+  });
+});
+
+describe('a data-source task with no fixture', () => {
+  const row: Task = { id: '01J9ZZ', track: 'T3', cls: 'patch-bump', mr: '!77', title: 'Bump okio 3.9.0 → 3.9.1', tierAtTime: 'supervised', state: 'waiting for proof' };
+  const build = (tasks: readonly Task[], order: readonly string[] = TASK_ORDER) =>
+    buildTasks({ tasks, tracks: getTracks(), actionClasses: getActionClasses(), details: TASK_DETAIL, order });
+
+  it('is drawn from its own fields after the fixtures, and what it lacks is empty, never borrowed', () => {
+    const tasks = build([...getTasks(), row]);
+    expect(tasks.map((t) => t.id)).toEqual([...TASK_ORDER, '01J9ZZ']);
+    expect(tasks.at(-1)).toMatchObject({
+      id: '01J9ZZ', fixture: false, trackName: getTracks().find((k) => k.id === 'T3')?.name, tierNow: 'quarantined', chain: [], claims: [],
+      envelope: null, hunk: null, ledger: [], trace: [], agentWords: '', countsToward: '', stats: null, clock: null,
+    });
+  });
+
+  it('with no proof stored, its verdict is UNKNOWN with no checks: never a pass, and an unknown envelope is not inside', () => {
+    const t = build([row]).at(-1);
+    expect(t?.proof).toEqual({ cls: 'no proof', verdict: 'UNKNOWN', engine: 'no engine', digest: '', checks: [] });
+    expect(t && taskVerdict(t)).toBe('FAIL'); // re-derived: an unknown envelope is never read as inside it
+  });
+
+  it('a source task whose fixture cannot be built is drawn from its own fields at the fixture’s place', () => {
+    const q9 = getTasks().find((t) => t.id === '01J8Q9');
+    if (!q9) throw new Error('no 01J8Q9');
+    const fixture = TASK_DETAIL['01J8Q9'];
+    if (!fixture) throw new Error('no fixture 01J8Q9');
+    const details = { '01J8Q9': { ...fixture, proof: undefined } }; // neither the row nor the fixture has a proof
+    const tasks = buildTasks({ tasks: [q9], tracks: [], actionClasses: [], details, order: ['01J8Q9', '01J8Q8'] });
+    expect(tasks.map((t) => [t.id, t.fixture, t.proof.verdict])).toEqual([['01J8Q9', false, 'UNKNOWN']]); // 01J8Q8: no row, no fixture
   });
 });

@@ -41,3 +41,6 @@ export function replayStepStatus(task: TaskView, row: number): string {
 }
 
 export const REPLAY_DONE_STATUS = 'replayed · identical to the record';
+
+/** A task with no ledger rows has nothing to re-derive its verdict from: the replay does not start. */
+export const REPLAY_NOTHING = 'Nothing to replay: no ledger rows are held for this task';

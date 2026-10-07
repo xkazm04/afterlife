@@ -1,7 +1,7 @@
 import { ObjectLink } from '@/components/controls/ObjectLink';
 import { Chip } from '@/components/status/chip/Chip';
 import type { CheckKind, TaskCheck, TaskView } from '../../model/types';
-import type { Emphasis } from '../../model/court/selection';
+import { linkLabel, type Emphasis } from '../../model/court/selection';
 import { checkGlyph } from '../../model/verdict/verdict';
 import { activateOnKey } from './ClaimCard';
 import styles from './cards.module.css';
@@ -52,9 +52,7 @@ export function CheckCard({
         <span>
           <ObjectLink target={check.ref} />
         </span>
-        <span>
-          link {check.link + 1} · {task.chain[check.link]?.step}
-        </span>
+        <span>{linkLabel(task, check.link)}</span>
       </div>
     </div>
   );

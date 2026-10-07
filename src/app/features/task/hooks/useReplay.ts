@@ -6,6 +6,7 @@ import type { TaskView } from '../model/types';
 import {
   REPLAY_CLEAR_MS,
   REPLAY_DONE_STATUS,
+  REPLAY_NOTHING,
   REPLAY_START,
   REPLAY_STEP_MS,
   ledgerRowAt,
@@ -62,6 +63,10 @@ export function useReplay(task: TaskView, opts: { onStart: () => void }) {
 
   const { onStart } = opts;
   const start = useCallback(() => {
+    if (!task.ledger.length) {
+      toast(REPLAY_NOTHING);
+      return;
+    }
     onStart();
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setRun(IDLE);

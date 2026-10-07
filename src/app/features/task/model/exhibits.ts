@@ -25,7 +25,7 @@ export function exhibitKinds(task: TaskView): ('hunk' | 'reruns' | 'clock' | 'en
   if (task.hunk) kinds.push('hunk');
   if (task.stats) kinds.push('reruns');
   if (task.clock) kinds.push('clock');
-  if (task.envelope.files > 0) kinds.push('envelope');
+  if (task.envelope && task.envelope.files > 0) kinds.push('envelope');
   return kinds;
 }
 

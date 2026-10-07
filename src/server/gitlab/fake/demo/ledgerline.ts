@@ -10,19 +10,19 @@ import { ACCOUNT, DAY, GROUP_PATH, iso, LEDGERLINE_GID, MIN, SHA } from './ids';
 import { guardrailNote, proofNote } from './notes';
 
 const WEB = `https://gitlab.com/${GROUP_PATH}/core-banking/ledgerline`;
-const at = (anchor: Date, hhmm: string): string => {
+export const at = (anchor: Date, hhmm: string): string => {
   const [h = 0, m = 0] = hhmm.split(':').map(Number);
   const d = new Date(anchor);
   d.setUTCHours(h, m, 0, 0);
   return d.toISOString();
 };
 
-interface MrInput {
+export interface MrInput {
   iid: number; title: string; description: string; author: string; state: 'opened' | 'merged'; labels: string[]; sha: string;
   created: string; updated: string; merged?: string;
 }
 
-function mr(i: MrInput): Rec {
+export function mr(i: MrInput): Rec {
   return {
     id: 500_000 + i.iid, iid: i.iid, project_id: LEDGERLINE_GID, title: i.title, description: i.description, state: i.state,
     draft: false, source_branch: `belay/mr-${i.iid}`, target_branch: 'main', author: { username: i.author }, labels: i.labels,
@@ -31,7 +31,7 @@ function mr(i: MrInput): Rec {
   };
 }
 
-const note = (id: number, author: string, body: string, created: string): Rec => ({ id, body, author: { username: author }, system: false, created_at: created });
+export const note = (id: number, author: string, body: string, created: string): Rec => ({ id, body, author: { username: author }, system: false, created_at: created });
 
 function proofBlock(t: Task, mrIid: number, headSha: string): ProofBlock {
   const p = t.proof;

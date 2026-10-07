@@ -32,9 +32,13 @@ export function Court({ task, sel, rv, onPick }: { task: TaskView; sel: Selectio
             <HonestyChip kind="unknown">untrusted</HonestyChip>
           </span>
         </div>
-        {task.claims.map((c) => (
-          <ClaimCard key={c.id} task={task} claim={c} emphasis={emphasis(task, sel, 'claim', c.id)} done={done} onSelect={() => onPick('claim', c.id)} />
-        ))}
+        {task.claims.length ? (
+          task.claims.map((c) => (
+            <ClaimCard key={c.id} task={task} claim={c} emphasis={emphasis(task, sel, 'claim', c.id)} done={done} onSelect={() => onPick('claim', c.id)} />
+          ))
+        ) : (
+          <div className={styles.none}>No claims held for this task</div>
+        )}
       </div>
       <div className={styles.lane} data-lane>
         <span>tested by</span>
@@ -47,6 +51,7 @@ export function Court({ task, sel, rv, onPick }: { task: TaskView; sel: Selectio
             <Chip title="only checks decide">decide</Chip>
           </span>
         </div>
+        {task.proof.checks.length ? null : <div className={styles.none}>No proof checks held for this task</div>}
         {task.proof.checks.map((c, i) => (
           <CheckCard
             key={c.id}

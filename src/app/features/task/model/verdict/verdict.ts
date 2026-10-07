@@ -18,9 +18,12 @@ export const verdictLabel = (v: ProofVerdict): string => v.toUpperCase();
 export const proofChecks = (checks: readonly TaskCheck[]): Check[] =>
   checks.map((c) => ({ claim_id: c.claims[0] ?? null, name: c.id, ok: c.ok, decidedBy: c.decidedBy, detail: c.text, ref: c.ref }));
 
-/** The verdict of a task as the screen words it, derived by the schema's `verdictOf` from its checks and envelope. */
+/**
+ * The verdict of a task as the screen words it, derived by the schema's `verdictOf` from its checks and envelope. An
+ * unknown envelope is never read as inside it.
+ */
 export const taskVerdict = (task: Pick<TaskView, 'proof' | 'envelope'>): string =>
-  verdictLabel(verdictOf(proofChecks(task.proof.checks), task.envelope.within));
+  verdictLabel(verdictOf(proofChecks(task.proof.checks), task.envelope?.within ?? false));
 
 /** Whether a check is a struck term: a person decides it, so it does not weigh on the verdict. */
 export const isStruck = (c: { decidedBy?: 'engine' | 'human' }): boolean => c.decidedBy === 'human';

@@ -4,7 +4,7 @@ import { Chip } from '@/components/status/chip/Chip';
 import { ObjectLink } from '@/components/controls/ObjectLink';
 import { StatusTag } from '../StatusTag';
 import type { TaskView } from '../../model/types';
-import type { Selection } from '../../model/court/selection';
+import { linkLabel, type Selection } from '../../model/court/selection';
 import { checkGlyph, checkKind, claimStatus, ruleWord } from '../../model/verdict/verdict';
 import styles from './inspector.module.css';
 
@@ -30,7 +30,13 @@ function CheckRuling({ task, id }: { task: TaskView; id: string }) {
         </dd>
         <dt>From</dt>
         <dd>
-          link {c.link + 1} · {link?.step} · {link?.at ?? '—'} {link?.ref ? <ObjectLink target={link.ref} /> : null}
+          {link ? (
+            <>
+              {linkLabel(task, c.link)} · {link.at ?? '—'} {link.ref ? <ObjectLink target={link.ref} /> : null}
+            </>
+          ) : (
+            linkLabel(task, c.link)
+          )}
         </dd>
         <dt>Tests</dt>
         <dd>
