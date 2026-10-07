@@ -30,6 +30,12 @@ Server-only. The app imports `@/server/gitlab` (index.ts); tests and `belay doct
   of commits (a clean checkout could not build). It is now `/docs/`.
 - A fake tree entry's `id` and file `blob_id` are content hashes, like git blob ids: the ledger importer skips an unchanged file by it.
 
+## Decisions from F38
+
+- `createMr` takes an optional `removeSourceBranch`; when it is absent the argv is unchanged (`plan/builders.ts:32`, `plan/types.ts:18-19`).
+- The fake knows branch heads and answers the branch read (`fake/reads.ts:102`, `fake/dataset.ts:27-28`). Like GitLab, it refuses
+  `start_branch` onto an existing branch without `force` (`fake/writes.ts:21-25`).
+
 ## Gates
 
 `npx tsc --noEmit`, `npx eslint src/server/gitlab cli`, `node scripts/check-structure.mjs src/server/gitlab`,
