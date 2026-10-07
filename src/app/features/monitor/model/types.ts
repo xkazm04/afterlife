@@ -2,6 +2,8 @@
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 
 export interface MonitorData {
+  /** Whether the data is the demo fixture or the live index: what Resolve, Re-poll and the poll age may claim. */
+  mode: 'demo' | 'live';
   /** The GitLab group ("acme-lab") and the time the data describes ("14:22"). */
   org: string;
   asOf: string;
