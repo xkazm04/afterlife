@@ -110,3 +110,25 @@ describe('guardrail block validation', () => {
     expect(parseGuardrailBlock(null)).toBeNull();
   });
 });
+
+describe('fenced blocks on hostile text', () => {
+  const hostile = '```belay-proof\nx '.repeat(70_000); // 1 MB of unclosed openers
+
+  it('withoutBlocks scans 1 MB of unclosed openers in under 500 ms', () => {
+    const t = performance.now();
+    expect(withoutBlocks(hostile)).toBe(hostile);
+    expect(performance.now() - t).toBeLessThan(500);
+  });
+
+  it('extractBlocks scans 1 MB of unclosed openers in under 500 ms', () => {
+    const t = performance.now();
+    expect(extractBlocks(hostile, 'belay-proof')).toEqual([]);
+    expect(performance.now() - t).toBeLessThan(500);
+  });
+
+  it('withoutBlocks stays linear on openers with no line break at all', () => {
+    const t = performance.now();
+    expect(withoutBlocks('```'.repeat(350_000))).toBe('```'.repeat(350_000));
+    expect(performance.now() - t).toBeLessThan(500);
+  });
+});
