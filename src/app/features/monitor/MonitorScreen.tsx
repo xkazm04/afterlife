@@ -17,13 +17,15 @@ import styles from './monitor.module.css';
 
 /**
  * Monitor: the whole fleet as seven phosphor leads, one per group, every project a beat. Amber pips are what waits
- * for you; pick a beat and act on it in the inspector. Demo data; nothing leaves the browser.
+ * for you; pick a beat and act on it in the inspector. Demo: nothing leaves the browser. Live: Resolve opens Needs you and Re-poll runs a real poll.
  */
 export function MonitorScreen({ data }: { data: MonitorData }) {
   const { status } = useToast();
   const m = useMonitor(data);
   const [paused, setPaused] = useState(false);
   const { setSelected, setHover } = m;
+  // the deep project's own feed age (null: no good poll yet); a fresh snapshot restarts the counter
+  const deepAge = m.byId.get(data.deepId)?.feed.ageSec ?? null;
 
   const onPick = useCallback((id: string) => setSelected(id), [setSelected]);
   const onHover = useCallback((id: string | null) => setHover(id ? { kind: 'project', id } : null), [setHover]);
@@ -51,6 +53,7 @@ export function MonitorScreen({ data }: { data: MonitorData }) {
           stages={data.stages}
           deepId={data.deepId}
           needs={data.needs}
+          live={data.mode === 'live'}
           done={m.done}
           onPick={onPick}
           onResolve={(needId, does) => {
@@ -58,10 +61,19 @@ export function MonitorScreen({ data }: { data: MonitorData }) {
             status(does);
           }}
           onFlash={status}
-          onRepoll={(id) => status(m.repoll(id))}
+          onRepoll={(id) => m.repoll(id, status)}
         />
       }
-      status={<MonitorStatus n={m.totals.n} leads={m.leads.length} waiting={m.totals.needs} startSec={data.lastPollSec} />}
+      status={
+        <MonitorStatus
+          key={deepAge ?? 'none'}
+          n={m.totals.n}
+          leads={m.leads.length}
+          waiting={m.totals.needs}
+          mode={data.mode}
+          ageSec={deepAge}
+        />
+      }
       help={<MonitorLegend />}
       helpTitle="Beat grammar"
     >

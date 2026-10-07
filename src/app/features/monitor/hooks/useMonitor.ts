@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
-import { formatAge } from '@/lib/format/time';
+import { repollAction } from '@/server/actions/repollAction';
+import { notWatchedMessage, rejectedMessage, repollMessage, repollPlan, repollingMessage, simulateRepoll } from '../model/mode';
 import { leadsOf, totalsOf } from '../model/totals';
 import type { MarkKind, MonitorData } from '../model/types';
 
@@ -10,11 +11,19 @@ import type { MarkKind, MonitorData } from '../model/types';
 export type Hover = { kind: 'project'; id: string } | { kind: 'lead'; group: string } | null;
 
 /**
- * The Monitor as the screen holds it: the projects (resolving a decision counts it down), the selected beat, the lead
- * opened into named cells, and the lit mark. Nothing leaves the browser.
+ * The Monitor as the screen holds it: the projects, the selected beat, the lead opened into named cells, and the lit mark.
+ * Demo: resolving a decision counts it down and re-polling resets a feed's age, both in the browser only. Live: neither
+ * is claimed here; Resolve opens Needs you and Re-poll runs a real poll on the server (repollAction), and the route's
+ * fresh data replaces this screen's copy.
  */
 export function useMonitor(data: MonitorData) {
   const [projects, setProjects] = useState<readonly FleetProject[]>(data.projects);
+  const [seen, setSeen] = useState(data.projects);
+  if (seen !== data.projects) {
+    // the route rendered again with a fresh snapshot (a live re-poll, a reload): it replaces this screen's copy
+    setSeen(data.projects);
+    setProjects(data.projects);
+  }
   const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
   const [selected, setSelected] = useState<string | null>(data.deepId);
   const [openLead, setOpenLead] = useState<string | null>(null);
@@ -25,27 +34,35 @@ export function useMonitor(data: MonitorData) {
   const leads = useMemo(() => leadsOf(data.groups, projects), [data.groups, projects]);
   const totals = useMemo(() => totalsOf(projects), [projects]);
 
-  /** Marks one of the deep project's decisions done and lowers its count. A decision resolves once. */
+  /** Demo only: marks one of the deep project's decisions done and lowers its count. A decision resolves once. Live claims nothing. */
   const resolve = useCallback(
     (needId: string) => {
-      if (done.has(needId)) return;
+      if (data.mode === 'live' || done.has(needId)) return;
       setDone((d) => new Set(d).add(needId));
       setProjects((list) => list.map((p) => (p.id === data.deepId ? { ...p, needsYou: Math.max(0, p.needsYou - 1) } : p)));
     },
-    [done, data.deepId],
+    [done, data.deepId, data.mode],
   );
 
-  /** Re-polls one feed: a healthy watched feed answers (age 0), a broken one says why. Returns the status sentence. */
+  /** Re-polls one feed and says how it went through `say`. Live: the server polls; "Re-polled" only once it resolved ok. */
   const repoll = useCallback(
-    (id: string): string => {
+    (id: string, say: (message: string) => void) => {
       const p = byId.get(id);
-      if (!p) return '';
-      if (p.state === 'not-set-up') return `${p.name}: not watched, nothing to poll`;
-      if (!p.feed.ok) return `Re-poll failed · ${p.name} · ${p.feed.error ?? 'no answer'} · last good ${formatAge(p.feed.ageSec)} ago`;
-      setProjects((list) => list.map((x) => (x.id === id ? { ...x, feed: { ...x.feed, ageSec: 0 } } : x)));
-      return `Re-polled ${p.name}`;
+      if (!p) return;
+      const plan = repollPlan(data.mode, p);
+      if (plan === 'none') return say(notWatchedMessage(p.name));
+      if (plan === 'simulate') {
+        const r = simulateRepoll(p);
+        if (r.reset) setProjects((list) => list.map((x) => (x.id === id ? { ...x, feed: { ...x.feed, ageSec: 0 } } : x)));
+        return say(r.message);
+      }
+      say(repollingMessage(p.name));
+      repollAction(id).then(
+        (r) => say(repollMessage(p.name, r)),
+        (e: unknown) => say(rejectedMessage(p.name, e)),
+      );
     },
-    [byId],
+    [byId, data.mode],
   );
 
   const toggleLead = useCallback((group: string) => setOpenLead((g) => (g === group ? null : group)), []);

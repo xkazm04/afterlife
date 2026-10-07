@@ -13,7 +13,6 @@ export interface MonitorData {
   /** The one project with deep data; its decisions resolve on a click. */
   deepId: string;
   needs: readonly NeedsYouItem[];
-  lastPollSec: number;
 }
 
 /** The six signals the sidebar lights across every lead. */

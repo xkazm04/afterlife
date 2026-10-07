@@ -9,13 +9,14 @@ import { decisionsWord, liveNeeds } from '../../model/totals';
 import styles from './inspector.module.css';
 
 /**
- * The items to act on, for the selected beat. The deep project lists its real decisions, each resolved on a click
- * (the button's tooltip says what the click does); another project says how many wait and where to take them.
+ * The items to act on, for the selected beat. The deep project lists its real decisions. Demo resolves one on a click
+ * (the button's tooltip says what it does); live claims nothing: the button opens Needs you, where it is decided; another project says how many wait and where to take them.
  */
 export function Decisions({
   p,
   isDeep,
   needs,
+  live,
   done,
   onResolve,
   onFlash,
@@ -24,6 +25,7 @@ export function Decisions({
   p: FleetProject;
   isDeep: boolean;
   needs: readonly NeedsYouItem[];
+  live: boolean;
   done: ReadonlySet<string>;
   onResolve: (needId: string, does: string) => void;
   onFlash: (message: string) => void;
@@ -49,7 +51,11 @@ export function Decisions({
         <div key={d.id} className={styles.item}>
           <div className={styles.t}>{d.title}</div>
           <div className={styles.acts}>
-            {done.has(d.id) ? (
+            {live ? (
+              <Button variant="primary" href="/needs-you" title={`Opens Needs you, where this is decided; nothing is decided here. ${d.does}`}>
+                Decide in Needs you…
+              </Button>
+            ) : done.has(d.id) ? (
               <span className={styles.done}>âœ“ Done</span>
             ) : (
               <>

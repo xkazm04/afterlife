@@ -56,6 +56,7 @@ export function MonitorInspector(props: {
   stages: readonly string[];
   deepId: string;
   needs: readonly NeedsYouItem[];
+  live: boolean;
   done: ReadonlySet<string>;
   onPick: (id: string) => void;
   onResolve: (needId: string, does: string) => void;
@@ -78,7 +79,7 @@ export function MonitorInspector(props: {
         </div>
       </InspectorHeader>
       {watched ? <Stats cells={cells} /> : <div className={styles.muted}>Not watched: proofs, tiers and stages are unknown.</div>}
-      <Decisions p={p} isDeep={p.id === props.deepId} needs={props.needs} done={props.done} onResolve={props.onResolve} onFlash={props.onFlash} onRepoll={props.onRepoll} />
+      <Decisions p={p} isDeep={p.id === props.deepId} needs={props.needs} live={props.live} done={props.done} onResolve={props.onResolve} onFlash={props.onFlash} onRepoll={props.onRepoll} />
       {watched ? (
         <InspectorSection title="Signal" aux={<FeedAge ageSec={p.feed.ageSec} ok={p.feed.ok} error={p.feed.error} />}>
           <StageTicks rungs={p.stages} labels={props.stages} />

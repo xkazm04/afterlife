@@ -17,6 +17,5 @@ export function loadMonitorData(): MonitorData {
     stages: ds.getStages(),
     deepId: ds.deepProjectId(),
     needs: visibleNeeds(ds.mode, ds.getNeedsYou(), isSeeded),
-    lastPollSec: ds.getCockpit().feed.lastPollSec,
   };
 }
