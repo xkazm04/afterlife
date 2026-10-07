@@ -46,5 +46,25 @@ On the shared kit: `Chip` (status/chip), `Stats` (inspector/blocks) and the comm
 `shared/DepRow` and `shared/GateRow` stay local.
 Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn edges), `map/EdgeLayer`.
 
+## Decisions
+
+- Setup's subject for M2 is T4 only. The other seven tracks read "not defined yet" until each one is defined.
+- Where Setup and `skills/adopt-belay` disagree, Setup's live reads decide and the skill follows. A command Setup shows must
+  run, or Setup shows no command.
+
+Known disagreements (file:line on main at 502d268; the skill is `skills/adopt-belay/SKILL.md`):
+
+| | Step | Skill | Setup |
+|---|---|---|---|
+| a | all | `:17` "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1 and 4 itself (`src/server/data/setup/read.ts:26,107-118`) |
+| b | 1 | `:28` no pairing | pairs the checkout (`data/stepDetail.ts:17`) |
+| c | 5 | `:32` pairs the checkout | shows `npx belay pair` (`data/stepDetail.ts:30`); `cli/belay.mjs:29-33` does not run it |
+| d | 0 | `:27` checks the GitLab version | does not (`data/stepDetail.ts:16`, `read.ts:53`) |
+| e | 2 | `:29` asks for a CRA drill mode | does not (`data/stepDetail.ts:18`) |
+| f | 9 | `:36` no author-cannot-approve | turns it on (`data/stepDetail.ts:48`) |
+| g | 10 | `:37` Agent, then Human | human (`data/stepDetail.ts:57`) |
+| h | 11, 12, 14 | | shows `flows enable`, `scan --propose`, `doctor --json` (`data/stepDetail.ts:63,67,75`); `cli/belay.mjs:26-36` runs only `doctor`, with no flags |
+| i | 4 | `:31` creates belay-engine too | `DEMO_NAMES.projects` has no belay-engine (`data/stepDetail.ts:12`); the live read has it (`read.ts:22`) |
+
 Not ported: the hero heading, legend strip and per-node "why" lines (cut in the notes). Capability edges stay
 illustrative, and demo only: a live probe row is not tied to tracks. No arrow-key walk (as in the prototype).
