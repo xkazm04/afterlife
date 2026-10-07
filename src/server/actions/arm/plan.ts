@@ -2,6 +2,8 @@
 // Arm adds the track's include lines to .gitlab-ci.yml (content.ts), between markers; disarm removes exactly those lines.
 // Both commits carry the file's last_commit_id as read, so a commit landing in between is refused by GitLab, not
 // overwritten. Neither reads, writes or names a token value, and neither sets a CI variable: the person does that.
+// The branch is new or the plan refuses (F38): a commit is never planned onto an existing branch, and force is never set.
+import { isKind } from '@/server/gitlab/errors';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { GlFile, GlProject } from '@/server/gitlab/types';
 import { ActionRefused, COMMIT_ID, type Plan, type PlanContext } from '../plans/context';
@@ -67,6 +69,23 @@ async function noOpenMr(ctx: PlanContext, t: Target, branch: string): Promise<vo
   if (open) throw new ActionRefused(`!${open.iid} from ${branch} is already open: merge or close it first`);
 }
 
+/**
+ * The arm or disarm branch must not exist yet (F38). A 404 is the only "absent": any other failure refuses, because a branch
+ * left by an earlier MR, a half-run confirm or anyone else would fail the confirm after the click, or carry commits nobody saw.
+ */
+async function noBranch(ctx: PlanContext, t: Target, branch: string): Promise<void> {
+  let body: unknown;
+  try {
+    body = await ctx.port.get(`projects/${encodeURIComponent(String(t.project.id))}/repository/branches/${encodeURIComponent(branch)}`);
+  } catch (e) {
+    if (isKind(e, 'not-found')) return;
+    throw new ActionRefused(`Belay could not read whether ${branch} exists in ${t.project.pathWithNamespace} (${e instanceof Error ? e.message : String(e)}): nothing is planned`);
+  }
+  const id = (body as { commit?: { id?: unknown } } | null)?.commit?.id;
+  const head = typeof id === 'string' && COMMIT_ID.test(id) ? `its head is ${id.slice(0, 8)}` : 'GitLab did not say its head';
+  throw new ActionRefused(`${branch} already exists in ${t.project.pathWithNamespace} (${head}): Belay commits only to a new branch, so delete the branch, or merge or close its MR, then try again`);
+}
+
 const description = (ctx: PlanContext, what: string, notes: readonly string[]): string =>
   [`Prepared by Belay for ${ctx.operator}.`, what, ...(notes.length ? [notes.map((n) => `- ${n}`).join('\n')] : []), 'A person merges this; Belay never does.'].join('\n\n');
 
@@ -85,6 +104,7 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   if (blocker) throw new ActionRefused(blocker);
   const branch = `belay/arm-${a.key}`;
   await noOpenMr(ctx, t, branch);
+  await noBranch(ctx, t, branch);
   const ins = insertBlock(file.content, a, t.group, pin, at);
   if (!ins.ok) throw new ActionRefused(ins.reason);
   if (!holdsBlock(ins.content, wanted)) throw new ActionRefused(`Belay could not add ${a.track}'s lines to ${CI_FILE} without breaking it: nothing is planned`);
@@ -117,6 +137,7 @@ export async function planDisarm(ctx: PlanContext, intent: DisarmTrack): Promise
   if (!rm.ok) throw new ActionRefused(`the ${a.track} block on ${t.base} was edited after it was added: Belay removes only exactly what it added, so revert it by hand`);
   const branch = `belay/disarm-${a.key}`;
   await noOpenMr(ctx, t, branch);
+  await noBranch(ctx, t, branch);
 
   const title = `Disarm ${a.track} ${a.key}: revert its arm block`;
   const what = `Removes exactly the ${rm.removed.length} lines ${a.track}'s arm MR added to ${CI_FILE} (markers included), and nothing else.`;

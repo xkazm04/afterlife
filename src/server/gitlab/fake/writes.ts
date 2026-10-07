@@ -10,11 +10,19 @@ const nowIso = (): string => new Date().toISOString();
 
 const findMr = (p: ProjectData, iid: string) => p.mrs.find((r) => String(r.iid) === iid);
 
-/** A file write is a commit: the content changes, and so does the file's last_commit_id. */
-function writeFile(p: ProjectData, path: string, content: string, st: FakeState): void {
+/** A file write is a commit: the content changes, and so do the file's last_commit_id and its branch's head. */
+function writeFile(p: ProjectData, path: string, content: string, st: FakeState, branch: string | undefined): void {
   p.files[path] = content;
-  (p.fileCommits ??= {})[path] = createHash('sha1').update(`commit ${st.nextId++}`).digest('hex');
+  const commit = createHash('sha1').update(`commit ${st.nextId++}`).digest('hex');
+  (p.fileCommits ??= {})[path] = commit;
+  if (branch) (p.branches ??= {})[branch] = commit;
 }
+
+/** GitLab's check (Commits::CreateService): start_branch onto a branch that already exists, without force, is refused. */
+const branchTaken = (p: ProjectData, f: Record<string, string>): string | null =>
+  f.start_branch !== undefined && f.branch !== undefined && f.branch !== f.start_branch && p.branches?.[f.branch] !== undefined && f.force !== 'true'
+    ? `A branch called '${f.branch}' already exists. Switch to that branch in order to make changes`
+    : null;
 
 export const writeRoutes: Route[] = [
   ['POST', new RegExp(`^${P}/merge_requests$`), inProject((p, _m, req, st) => {
@@ -24,7 +32,7 @@ export const writeRoutes: Route[] = [
       id: st.nextId++, iid, project_id: p.raw.id, title: f.title ?? '', description: f.description ?? '', state: 'opened',
       draft: false, source_branch: f.source_branch ?? '', target_branch: f.target_branch ?? '',
       author: { username: String((st.user as { username?: unknown }).username) }, labels: labelsOf(f.labels),
-      web_url: `${String(p.raw.web_url)}/-/merge_requests/${iid}`, sha: null, detailed_merge_status: 'checking',
+      web_url: `${String(p.raw.web_url)}/-/merge_requests/${iid}`, sha: p.branches?.[f.source_branch ?? ''] ?? null, detailed_merge_status: 'checking',
       created_at: nowIso(), updated_at: nowIso(), merged_at: null, head_pipeline: null,
     };
     p.mrs.push(mr);
@@ -54,7 +62,9 @@ export const writeRoutes: Route[] = [
   ['POST', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req, st) => {
     const path = decodeURIComponent(m[2] ?? '');
     if (path in p.files) return fail(400, 'A file with this name already exists');
-    writeFile(p, path, req.fields.content ?? '', st);
+    const taken = branchTaken(p, req.fields);
+    if (taken) return fail(400, taken);
+    writeFile(p, path, req.fields.content ?? '', st, req.fields.branch);
     return created({ file_path: path, branch: req.fields.branch });
   })],
   ['PUT', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req, st) => {
@@ -64,7 +74,9 @@ export const writeRoutes: Route[] = [
     // nothing is written. The fake has one branch, so it compares with the file as it is.
     const known = req.fields.last_commit_id;
     if (known !== undefined && known !== lastCommitOf(p, path)) return fail(400, 'You are attempting to update a file that has changed since you started editing it.');
-    writeFile(p, path, req.fields.content ?? '', st);
+    const taken = branchTaken(p, req.fields);
+    if (taken) return fail(400, taken);
+    writeFile(p, path, req.fields.content ?? '', st, req.fields.branch);
     return ok({ file_path: path, branch: req.fields.branch });
   })],
   ['PUT', new RegExp(`^${P}/pipeline_schedules/(\\d+)$`), inProject((p, m, req) => {

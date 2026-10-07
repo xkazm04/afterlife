@@ -24,6 +24,8 @@ export interface ProjectData {
   approvals: Record<string, Rec>;
   /** The commit a write through the fake made, by file path. A file no write touched has one derived from its content. */
   fileCommits?: Record<string, string>;
+  /** Branch heads a write through the fake made (or a test set), by name. The fake keeps one tree, so files do not differ by branch. */
+  branches?: Record<string, string>;
 }
 
 export interface WriteLog { method: string; path: string; fields: Record<string, string> }

@@ -99,5 +99,10 @@ export const readRoutes: Route[] = [
   ['GET', new RegExp(`^${P}/vulnerabilities$`), inProject((p, _m, { query: q }, st) => (atLeast(st, 'ultimate') ? list(p.vulnerabilities, q) : fail(403, 'Forbidden')))],
 
   ['GET', new RegExp(`^${P}/repository/tree$`), inProject((p, _m, { query: q }) => list(dirEntries(p, q.get('path') ?? '', q.get('recursive') === 'true'), q))],
+  ['GET', new RegExp(`^${P}/repository/branches/([^/]+)$`), inProject((p, m) => {
+    const name = decodeURIComponent(m[2] ?? '');
+    const head = p.branches?.[name];
+    return head ? ok({ name, commit: { id: head } }) : fail(404, 'Branch Not Found');
+  })],
   ['GET', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, { query: q }) => fileJson(p, decodeURIComponent(m[2] ?? ''), q.get('ref') ?? 'main'))],
 ];
