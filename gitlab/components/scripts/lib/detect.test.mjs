@@ -72,8 +72,53 @@ describe('post_merge_proof_fail', () => {
   });
 
   it('the newest run of a commit is its verdict: a proof that failed and then passed on a retry is no failure', () => {
-    const g = group({ pipelines: [pipeline(504), pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob()] } });
+    const g = group({ pipelines: [pipeline(504), pipeline(501, { status: 'failed' })], jobs: { 504: [proofJob({ id: 9002, status: 'success' })], 501: [proofJob()] } });
     expect(run(g)).toEqual([]);
+  });
+});
+
+// The sweep is what retries an event the push pipeline could not commit (exit 3, a moved tier-state.yml) or never ran.
+// Only a pipeline that ran the proof is a run of it: the proof job runs in default-branch push pipelines only.
+describe('post_merge_proof_fail: a newer pipeline of the same commit that ran no proof hides nothing', () => {
+  const failed = pipeline(501, { status: 'failed' });
+
+  it.each([
+    ['a child pipeline (trigger: include)', 'parent_pipeline'],
+    ['an API pipeline (a maturity scan, a ledger event)', 'api'],
+    ['a pipeline run from the web UI', 'web'],
+    ['a trigger-token pipeline', 'trigger'],
+  ])('%s', (_what, source) => {
+    const newer = pipeline(502, { source, status: 'success', updated_at: ago(5) });
+    const events = run(group({ pipelines: [newer, failed], jobs: { 501: [proofJob()] } }), { ownPipelineId: '600' });
+    expect(events.map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);
+  });
+
+  it('a newer push pipeline of the same commit with no proof job (a tag named like the branch [R?]) hides nothing either', () => {
+    const tag = pipeline(502, { status: 'success', updated_at: ago(5) });
+    expect(run(group({ pipelines: [tag, failed], jobs: { 501: [proofJob()] } })).map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);
+  });
+
+  it('asks GitLab for push pipelines, so ten-minute sweep schedules do not push a failed proof out of the window', () => {
+    const g = group({ pipelines: [failed], jobs: { 501: [proofJob()] } });
+    run(g);
+    expect(g.calls.filter((c) => c.startsWith('projects/1/pipelines?')).some((c) => /[?&]source=push(&|$)/.test(c))).toBe(true);
+  });
+
+  it('finds a failed proof job past the first 100 jobs of its pipeline', () => {
+    const many = Array.from({ length: 100 }, (_, i) => ({ id: i + 1, name: `test ${i + 1}/100`, status: 'failed', finished_at: ago(13) }));
+    const g = group({ pipelines: [failed], jobs: { 501: [] } });
+    const pages = (p) => (/[?&]page=2(&|$)/.test(p) ? [proofJob()] : many);
+    const api = (p, o) => (p.startsWith('projects/1/pipelines/501/jobs') ? pages(p) : g.api(p, o));
+    const apiAll = (p, maxPages = 5) => {
+      const rows = [];
+      for (let page = 1; page <= maxPages; page++) {
+        const got = api(`${p}${p.includes('?') ? '&' : '?'}per_page=100&page=${page}`);
+        rows.push(...got);
+        if (got.length < 100) break;
+      }
+      return rows;
+    };
+    expect(run({ ...g, api, apiAll }).map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);
   });
 });
 
