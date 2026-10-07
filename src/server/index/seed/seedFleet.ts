@@ -1,7 +1,10 @@
-// Loads the fixture's fleet (all 184 projects) into the index.
+// Loads the fixture's fleet (all 184 projects) into the index. Each class tier goes through the gate's rule
+// (engine/decide/standing.ts effectiveOf) under its ceiling, so the demo never shows a tier the gate would cap.
 import { DEMO } from '@/lib/demo';
 import type { FleetProject } from '@/lib/demo/types';
-import { isStanding } from '@/lib/tiers';
+import { isStanding, type ClassCell } from '@/lib/tiers';
+import type { Ceiling } from '@/schemas/tier';
+import { effectiveOf } from '../../../../engine/decide/standing';
 import type { ClassTierRow } from '../repositories/fleet/classTier';
 import { upsertClassTiers } from '../repositories/fleet/classTier';
 import { upsertProjects, type ProjectRow } from '../repositories/fleet/project';
@@ -12,6 +15,13 @@ import type { Queryable } from '../repositories/sql';
 import { onDayAt } from './parse';
 
 const trackNumber = (t: string): number | null => (/^T(\d)$/.test(t) ? Number(t.slice(1)) : null);
+
+/** A fixture cell as the gate would grant it under the class ceiling (the fixture records no lease, so none lapses). */
+export function cappedCell(cell: ClassCell, ceiling: Ceiling, now: Date): ClassCell {
+  if (cell === null || isStanding(cell)) return cell;
+  if (ceiling === 'human_only' || cell === 'human_only') return 'human_only'; // no agent ever holds it
+  return effectiveOf({ tier: cell }, ceiling, now).tier;
+}
 
 function projectRow(p: FleetProject, ord: number, now: Date): ProjectRow {
   return {
@@ -34,22 +44,26 @@ function pollRow(p: FleetProject, now: Date): PollStateRow | null {
 
 export async function seedFleet(db: Queryable, now: Date): Promise<void> {
   const { fleet, actionClasses } = DEMO;
+  const ceiling = (id: string): Ceiling => actionClasses.find((a) => a.id === id)?.ceiling ?? 'human_only';
   await upsertGroups(db, fleet.groups);
   await upsertTrustClasses(
     db,
     fleet.classes.map((id, ord) => {
       const c = actionClasses.find((a) => a.id === id);
-      return { id, ord, track: c ? trackNumber(c.track) : null, agent: null, ceiling: c?.ceiling ?? 'human_only' };
+      return { id, ord, track: c ? trackNumber(c.track) : null, agent: null, ceiling: ceiling(id) };
     }),
   );
   await upsertProjects(db, fleet.projects.map((p, i) => projectRow(p, i, now)));
   await setProjectStages(db, new Map(fleet.projects.map((p) => [p.id, p.stages])));
   const tiers: ClassTierRow[] = fleet.projects.flatMap((p) =>
-    Object.entries(p.classTiers).map(([classId, cell]): ClassTierRow => ({
-      projectId: p.id, classId, since: null, setBy: null, leaseExpires: null, record: null,
-      // a standing is stored as the poller stores it: quarantined, as the gate acts, with the standing as its move
-      ...(isStanding(cell) ? { tier: 'quarantined', move: { kind: cell, at: null, note: null } } : { tier: cell, move: null }),
-    })),
+    Object.entries(p.classTiers).map(([classId, raw]): ClassTierRow => {
+      const cell = cappedCell(raw, ceiling(classId), now);
+      return {
+        projectId: p.id, classId, since: null, setBy: null, leaseExpires: null, record: null,
+        // a standing is stored as the poller stores it: quarantined, as the gate acts, with the standing as its move
+        ...(isStanding(cell) ? { tier: 'quarantined', move: { kind: cell, at: null, note: null } } : { tier: cell, move: null }),
+      };
+    }),
   );
   await upsertClassTiers(db, tiers);
   await setPollStates(db, fleet.projects.flatMap((p) => pollRow(p, now) ?? []));
