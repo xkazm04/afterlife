@@ -79,9 +79,12 @@ On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (
 - `.env.local` for the app: `BELAY_MODE=live`, `BELAY_GROUP_ID=<the group V-204 runs in>` (the default is not that group),
   `BELAY_PROJECT=<target project path>`, `BELAY_PROOF_AUTHORS=<operator username>`
   (`src/server/data/README.md:12-15`, `src/server/poller/config.ts:44`).
-- Every component defaults `engine_project`, `policy_project` and `ledger_project` to `$CI_PROJECT_ROOT_NAMESPACE/belay-*`, the
-  **top-level** group (`tier-gate/template.yml:20,23`, `ledger-append/template.yml:36`). A target in a subgroup must pass all
-  three explicitly with its own group path. Filed for the security charter as F30; the templates are unchanged.
+- Every component defaults `engine_project`, `policy_project` and `ledger_project` to `$CI_PROJECT_NAMESPACE/belay-*`, the
+  namespace the target itself sits in (F30; `tier-gate/template.yml:20,23`, `ledger-append/template.yml:36`). For a top-level
+  target that is the group, as before. A target whose `belay-*` projects sit elsewhere passes all three inputs explicitly.
+- The author defaults (`guardrail_authors`, and the `ai-guardrail-` / `ai-medic-` fallbacks for `BELAY_BLOCK_AUTHORS`) still
+  use `$CI_PROJECT_ROOT_NAMESPACE`: a namespace path holds slashes and cannot be a username. A subgroup install checks the
+  flow service account's real username and passes `guardrail_authors` (and `BELAY_BLOCK_AUTHORS`) explicitly.
 
 **1. Fetch the proof** from the `belay-proof-exploit-test` job (its id is in the job's URL, `.../-/jobs/<id>`):
 

@@ -24,8 +24,8 @@ Schedule it daily on the default branch with `BELAY_SCAN=maturity`.
 | `stage` | string | `".post"` |  |
 | `engine_ref` | string | **required** | Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned. |
 | `engine_commit` | string | `""` | Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch. |
-| `engine_project` | string | `"$CI_PROJECT_ROOT_NAMESPACE/belay-engine"` | Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
-| `policy_project` | string | `"$CI_PROJECT_ROOT_NAMESPACE/belay-policy"` |  |
+| `engine_project` | string | `"$CI_PROJECT_NAMESPACE/belay-engine"` | Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
+| `policy_project` | string | `"$CI_PROJECT_NAMESPACE/belay-policy"` |  |
 | `policy_ref` | string | `"main"` |  |
 | `node_image` | string | `"node:22-bookworm"` |  |
 | `glab_version` | string | `"1.120.0"` |  |

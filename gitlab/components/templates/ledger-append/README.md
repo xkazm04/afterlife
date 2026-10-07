@@ -25,14 +25,14 @@ The events come from `.belay/events/*.json` (the gate's artifact, in name order)
 | `stage` | string | `".post"` |  |
 | `engine_ref` | string | **required** | Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned. |
 | `engine_commit` | string | `""` | Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch. |
-| `engine_project` | string | `"$CI_PROJECT_ROOT_NAMESPACE/belay-engine"` | Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
-| `policy_project` | string | `"$CI_PROJECT_ROOT_NAMESPACE/belay-policy"` |  |
+| `engine_project` | string | `"$CI_PROJECT_NAMESPACE/belay-engine"` | Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
+| `policy_project` | string | `"$CI_PROJECT_NAMESPACE/belay-policy"` |  |
 | `policy_ref` | string | `"main"` |  |
 | `node_image` | string | `"node:22-bookworm"` |  |
 | `glab_version` | string | `"1.120.0"` |  |
 | `glab_sha256` | string | `""` |  |
 | `runner_tags` | array | `[]` |  |
-| `ledger_project` | string | `"$CI_PROJECT_ROOT_NAMESPACE/belay-ledger"` |  |
+| `ledger_project` | string | `"$CI_PROJECT_NAMESPACE/belay-ledger"` |  |
 | `ledger_branch` | string | `"main"` |  |
 | `write_token_var` | string | `"BELAY_BOT_TOKEN"` | Name of the CI variable holding a token that may write belay-ledger. |
 

@@ -24,10 +24,10 @@ spec:
       default: ''
       description: Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch.
     engine_project:
-      default: '$CI_PROJECT_ROOT_NAMESPACE/belay-engine'
+      default: '$CI_PROJECT_NAMESPACE/belay-engine'
       description: Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token.
     policy_project:
-      default: '$CI_PROJECT_ROOT_NAMESPACE/belay-policy'
+      default: '$CI_PROJECT_NAMESPACE/belay-policy'
     policy_ref:
       default: main
     agent_prefix:

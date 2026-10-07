@@ -54,8 +54,8 @@ Classes with no real checker in the engine yet (`repro`, `bench-delta`, `score-d
 | `class` | string | **required** | The proof class to derive (src/schemas/proof.ts). One include per class. One of `exploit-test`, `cited-diff`, `rerun-stats`, `repro`, `bench-delta`, `linked-evidence`, `score-delta`, `ledger-record`. |
 | `engine_ref` | string | **required** | Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned. |
 | `engine_commit` | string | `""` | Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch. |
-| `engine_project` | string | `"$CI_PROJECT_ROOT_NAMESPACE/belay-engine"` | Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
-| `policy_project` | string | `"$CI_PROJECT_ROOT_NAMESPACE/belay-policy"` |  |
+| `engine_project` | string | `"$CI_PROJECT_NAMESPACE/belay-engine"` | Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
+| `policy_project` | string | `"$CI_PROJECT_NAMESPACE/belay-policy"` |  |
 | `policy_ref` | string | `"main"` |  |
 | `agent_prefix` | string | `"ai-"` | Only MRs from accounts with this prefix and a Belay-Task trailer are proven; others are skipped. |
 | `evidence_mode` | string | `"auto"` | auto builds the prove input with scripts/proof/build-evidence.mjs (exploit-test, cited-diff, rerun-stats). provided uses evidence_file as an earlier job or prepare_script wrote it. One of `auto`, `provided`. |
