@@ -30,6 +30,18 @@ from the same branch, an arm block already there (or edited). Neither intent rea
 a CI variable. `arm/verifyAction.ts` (`'use server'`, `verifyArmAction(intent)`) is Setup's verify: a read of the default
 branch's `.gitlab-ci.yml` that answers whether the block is there; demo mode reads nothing and says it is simulated.
 
+Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
+
+- A commit goes only to a new branch. If `belay/arm-<key>` or `belay/disarm-<key>` exists, the preview refuses and names the
+  branch, its head and what to do (`arm/plan.ts:72-84`). Force is never set.
+- A 404 on the branch read means the branch is absent. Any other failure refuses (`arm/plan.ts:73-80`).
+- A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`arm/head.ts:33-42`). Only
+  `arm-track` and `disarm-track` are checked (`arm/head.ts:9`); every other intent is unchanged (`run.ts:4`).
+- The arm or disarm MR sets `remove_source_branch` (`arm/plan.ts:123`, `arm/plan.ts:153`).
+- `belay/*` is a protected branch pattern (Setup step 9).
+- Known residual: GitLab's Files API answer names no commit, so the commit is read back with `getFile` right after the write.
+  Moving arm and disarm to the Commits API is queued.
+
 Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran).
 
 ## Responses
