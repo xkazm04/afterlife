@@ -36,7 +36,7 @@ const CHIP: Record<string, { tone: ChipTone; word: (a: ArmState) => string }> = 
 
 /** A picked track: arm, merge, disarm or why it is locked; the tier it arms at; what it needs, relies on and frees. */
 export function TrackPanel({ id, section }: { id: string; section: ReturnType<typeof useOpenSections> }) {
-  const { state, tracks, classes } = useSetup();
+  const { state, tracks, classes, illustrative } = useSetup();
   const a = state.arm[id];
   const t = tracks[id];
   if (!a || !t) return null;
@@ -51,6 +51,7 @@ export function TrackPanel({ id, section }: { id: string; section: ReturnType<ty
         <div className={styles.chips}>
           <Chip>arm #{a.order + 1}</Chip>
           {chip ? <Chip tone={chip.tone}>{chip.word(a)}</Chip> : null}
+          {illustrative.tracks ? <Chip title="The track's name and what it does are the demo catalogue's: live mode does not read them from GitLab">name · demo</Chip> : null}
         </div>
       </InspectorHeader>
       <TrackArmSection id={id} section={section} />

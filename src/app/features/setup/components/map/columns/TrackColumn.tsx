@@ -11,11 +11,16 @@ import styles from './columns.module.css';
 
 /** The eight tracks in arm order. */
 export function TrackColumn({ events }: { events: NodeEvents }) {
-  const { state, view, tracks } = useSetup();
+  const { state, view, tracks, illustrative } = useSetup();
   const arms = armList(state);
   return (
     <div className={`${styles.col} ${styles.tracks}`}>
-      <ColumnHead name="Tracks" sub="arm order" aux={`${armedCount(state)}/${arms.length} armed`} />
+      <ColumnHead
+        name="Tracks"
+        sub="arm order"
+        aux={`${armedCount(state)}/${arms.length} armed`}
+        demo={illustrative.tracks ? "The tracks' names and arm order are the demo catalogue's; each state is a read of the target's main" : undefined}
+      />
       {arms.map((a) => (
         <TrackNode
           key={a.id}

@@ -121,7 +121,7 @@ describe('the live steps show what a read saw, and unknown for every other', () 
   });
 });
 
-describe("Setup's loader: demo reads nothing; live reads each state", () => {
+describe("Setup's loader: demo reads nothing; live reads each state and marks the catalogue parts demo", () => {
   afterEach(() => setDataSource(null));
 
   it('live: T4 from checkArm, the doctor from the probe, the steps from reads; demo: none of it', async () => {
@@ -131,7 +131,8 @@ describe("Setup's loader: demo reads nothing; live reads each state", () => {
     const l = await loadSetupData();
     setDataSource(demoSource);
     const d = await loadSetupData();
-    expect(d.live).toBeNull();
+    expect([d.live, d.illustrative]).toEqual([null, { steps: false, tracks: false }]);
+    expect(l.illustrative).toEqual({ steps: true, tracks: true });
     const r = l.live!;
     // Not setup.arm (T4 armed, the rest ready or locked), nor DEMO.tracks (all eight armed): the read of ledgerline's main.
     expect(r.tracks.T4?.state).toBe('armed');

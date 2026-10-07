@@ -29,7 +29,7 @@ function StateChip({ st, gate }: { st: string; gate: boolean }) {
  * sends a step's write from here (Copy only), and its commands name the paired group and project.
  */
 export function StepPanel({ n, section }: { n: number; section: ReturnType<typeof useOpenSections> }) {
-  const { state, actions } = useSetup();
+  const { state, actions, illustrative } = useSetup();
   const s = state.steps[n];
   const d = stepDetail(state, n);
   if (!s || !d) return null;
@@ -50,6 +50,7 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
         <div className={styles.chips}>
           <StateChip st={s.st} gate={gate} />
           {d.write ? <Chip>writes</Chip> : null}
+          {illustrative.steps ? <Chip title="The step's title and phase are the demo catalogue's; its state is what the read saw">title · demo</Chip> : null}
         </div>
         <p className={styles.does}>{d.does}</p>
       </InspectorHeader>

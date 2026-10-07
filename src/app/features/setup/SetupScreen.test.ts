@@ -33,7 +33,7 @@ describe('SetupScreen (server render)', () => {
   });
 });
 
-// Live mode: the same screen from what the server read. No demo state, no demo group.
+// Live mode: the same screen from what the server read. No demo state, no demo group, the catalogue parts marked demo.
 describe('SetupScreen in live mode (server render)', () => {
   const at = { at: '2026-10-07T09:30:00.000Z', label: '11:30' };
   const steps: Record<number, { state: 'unknown'; reason: string } | { state: 'done'; text: string }> = {};
@@ -47,7 +47,7 @@ describe('SetupScreen in live mode (server render)', () => {
     steps: { ...at, steps },
   };
   const html = renderToString(
-    createElement(ToastProvider, null, createElement(SetupScreen, { setup: getSetup(), tracks: getTracks(), classes: getActionClasses(), live })),
+    createElement(ToastProvider, null, createElement(SetupScreen, { setup: getSetup(), tracks: getTracks(), classes: getActionClasses(), live, illustrative: { steps: true, tracks: true } })),
   );
 
   it('opens on the paired group with T4 ready to arm, the probe’s rows, and no demo group or demo state', () => {
@@ -57,5 +57,8 @@ describe('SetupScreen in live mode (server render)', () => {
     expect(html.match(/data-node="cap:/g)).toHaveLength(1);
     expect(html).toContain('not defined');
     expect(html).not.toMatch(/acme-lab|acme-sandbox|14:02/);
+  });
+  it('marks what is still the demo catalogue’s, per part', () => {
+    expect(html.match(/>demo</g)).toHaveLength(2);
   });
 });

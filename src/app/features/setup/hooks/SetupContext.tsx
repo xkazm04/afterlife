@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import type { ActionClass, Track } from '@/lib/demo/types';
+import type { SetupIllustrative } from '@/server/data/setup/types';
 import type { SetupState } from '../model/types';
 import type { ArmWrites } from './useArmWrite';
 import type { FlowActions } from './useSetupFlow';
@@ -11,6 +12,8 @@ export interface SetupApi {
   state: SetupState;
   tracks: Readonly<Record<string, Track>>;
   classes: readonly ActionClass[];
+  /** Live mode: the parts still drawn from the demo catalogue, each marked "demo" where it is shown. */
+  illustrative: SetupIllustrative;
   view: SetupView;
   actions: FlowActions;
   /** The arm and disarm MRs as the server planned them. */

@@ -6,6 +6,8 @@ had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActio
 `illustrative` (the demo narrative it serves beside live data, for the screens to label) and `getPolicy()` (trust-policy.yml's
 rules: the promotion thresholds, the demotion triggers, the envelope). Reads are
 **synchronous**: the live source serves a snapshot that is rebuilt after every poll, so a page never waits on GitLab or the index.
+One exception, Setup: `setupReads()` is a synchronous getter (null in demo mode) for read-only port calls the Setup loader
+awaits per load (see `setup/` below).
 
 | Env | Values | Default |
 |---|---|---|
@@ -28,6 +30,7 @@ rules: the promotion thresholds, the demotion triggers, the envelope). Reads are
 | `live/seeded.ts` | `SEEDED_ITEMS` and `isSeeded(id)`: the ids the demo seeds into an index, which a real group's index never holds. `getNeedsYouCount()` and the deep project's fleet row exclude them, as `/needs-you` does (`getNeedsYou()` still returns them) |
 | `live/narrow.ts` | where the screens' types have no "unknown": quarantined for an unknown tier, 9 null rungs for a scan that never ran, an unclassified task is not listed |
 | `live/runtime.ts`, `boot.ts` | one port + index + poller + snapshot per process, kept on `globalThis`; started by `src/instrumentation.ts` (`register`) |
+| `setup/` | Setup's live reads (`read.ts`): each track's arm block on the target's main (`checkArm`; a track with no arm content is "not defined yet", a refused or failed read is unknown with its reason), the belay doctor (`probeCapabilities` on the configured group, stamped with the real time), and the steps a read observes: 0 (`glab api user`), 1 (the snapshot's pairing row), 4 (the target and belay-pack, -policy, -ledger, -engine in the group). Every other step is unknown, "not probed". `rereadAction.ts` (`'use server'`, localhost only, read only) is Re-probe and a step's verify. `types.ts` is what the screen receives |
 | `live/clock.ts`, `ports.ts` | system clock vs the fake group's **replay clock** (polled 14:21:48, read 14:22:00, always) |
 
 ## The fake group and parity
@@ -35,14 +38,13 @@ rules: the promotion thresholds, the demotion triggers, the envelope). Reads are
 `BELAY_GITLAB=fake` starts an in-memory index, seeds it with `seedDemo` (what GitLab cannot express: the other 183 projects,
 scan, records, narrative), and polls `gitlab/fake/demo/` (a GitLab built from the demo dataset: ledgerline's MRs, notes,
 labels, deployments, policy files and a verifying ledger). The poller's rows then overwrite the seed where they derive the
-same values, which `__tests__/parity.test.ts` proves for every loader (`loadFleetData`, `pickNeedsYouDemo`, `loadLadderData`, `loadMaturityData`, `loadSetupData`, `loadTheaterData`; `loadTasks` and the Needs-you count are listed where live differs from demo: live draws only the source's tasks, and counts only unseeded Needs-you items, so the layout badge and the deep project's Fleet and Door rows read 0 where demo reads 5). The replay clock pins the countdowns and feed
+same values, which `__tests__/parity.test.ts` proves for every loader (`loadFleetData`, `pickNeedsYouDemo`, `loadLadderData`, `loadMaturityData`, `loadTheaterData`, and `loadSetupData`'s catalogue parts; `loadTasks` and the Needs-you count are listed where live differs from demo: live draws only the source's tasks, and counts only unseeded Needs-you items, so the layout badge and the deep project's Fleet and Door rows read 0 where demo reads 5). The replay clock pins the countdowns and feed
 ages to the demo's moment, so the screens are identical to demo mode, and visibly a replay.
 
 ## Live, what is still the demo catalogue
 
-Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live), the setup phases and doctor rows
-(only group and project are live): the live source declares these in `illustrative` (`tracks`, `loop`, `cockpit`,
-`setup`), and the Door and Fleet mark what they show of them "demo" (the demo source declares nothing: all of it is the
+Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live), the setup phases: the live source declares these in
+`illustrative` (`tracks`, `loop`, `cockpit`, `setup`), and the Door and Fleet mark what they show of them "demo" (the demo source declares nothing: all of it is the
 demo). It also declares what the Ladder still shows of the demo: `policy-history` (its opening ledger, the tier-state.yml
 head, the policy's revision and merge age, and the commit ids they name: the poller reads belay-policy's files, never its
 history) and `records` (the class records' counters: GitLab cannot restate them, so the poller keeps the seed's). The
@@ -50,6 +52,12 @@ Ladder marks each with the kit's `Chip` ("demo"); a class with no record says "N
 the schema's (`@/schemas/stages`). The Task docket's per-task fixtures are the screen's own render detail for a live task that has one; a fixture with no
 source task is not drawn in live mode, and a live task with no fixture is drawn from its own fields. Needs you never draws its desk in live mode (it is built around the demo's
 five seeded items): it lists the group's own open items, minus any the demo seeded, or `NeedsYouEmpty`.
+
+Setup in live mode reads every state it shows (`setup/`): a track's arm state is the read of the target's main, never
+`setup.arm` or `tracks[].armed`; the doctor's rows are the probe's; a step is done, failed or unknown as a read saw it, never
+the catalogue's done, human or todo. What it still draws from the catalogue (the steps' titles and phases, the tracks' names
+and arm order) it marks "demo" where it shows it. `parity.test.ts` lists Setup where live differs (`setupLive.test.ts`
+holds the reads).
 
 `getPolicy()`: demo, this checkout's `policy/trust-policy.yml` (`policy.ts`, checked by the engine's parser); live, the
 trust-policy.yml the last poll read from belay-policy (`CycleResult.policy`, kept on the snapshot; a cycle that could

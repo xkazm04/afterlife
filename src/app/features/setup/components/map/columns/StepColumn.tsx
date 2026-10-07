@@ -12,11 +12,16 @@ import styles from './columns.module.css';
 
 /** Steps 0-14, grouped by phase. */
 export function StepColumn({ events }: { events: NodeEvents }) {
-  const { state, view } = useSetup();
+  const { state, view, illustrative } = useSetup();
   const steps = stepList(state);
   return (
     <div className={styles.col}>
-      <ColumnHead name="Path" sub="steps 0–14" aux={`${doneCount(state)}/${steps.length}`} />
+      <ColumnHead
+        name="Path"
+        sub="steps 0–14"
+        aux={`${doneCount(state)}/${steps.length}`}
+        demo={illustrative.steps ? "The steps' titles and phases are the demo catalogue's; each state is what a read saw, or unknown" : undefined}
+      />
       {steps.map((s, i) => (
         <Fragment key={s.n}>
           {s.phase !== steps[i - 1]?.phase ? <div className={styles.ph}>{s.phase}</div> : null}
