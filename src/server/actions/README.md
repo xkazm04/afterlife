@@ -27,7 +27,7 @@ Each of `results` is `{display, exit, ok, simulated, error?, made?, url?}`. `mad
 answer: an MR (`!22`, with its `url`), or for a file write the commit that file now has on that branch (`commit 1a2b3c4d`,
 read back right after the write, because the repository-files API answers only `{file_path, branch}`). Demo results are
 `simulated` and name nothing.
-`previewId` is a sha-256 of the commands. If the files moved between the two calls, the second call plans again, the ids
+`previewId` is a sha-256 of the commands and of the `proposal` they settle. If the files moved between the two calls, the second call plans again, the ids
 differ, **nothing runs**, and `changed` returns the new preview to show again. A commit can still land between that
 second read and the write: every `tier-state.yml` write therefore carries `last_commit_id` (repository-files API: "Last
 known file commit ID"), and GitLab refuses it (400) rather than let a stale write land over an operator's revoke or a

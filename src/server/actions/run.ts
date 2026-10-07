@@ -30,15 +30,16 @@ export interface ActionDeps {
 const RANK: Record<Risk, number> = { low: 0, policy: 1, merge: 2 };
 const refused = (reason: string): ActionResponse => ({ status: 'refused', reason });
 
-const digest = (kind: string, commands: readonly PlannedCommand[]): string =>
-  createHash('sha256').update(JSON.stringify([kind, ...commands.map((c) => c.argv)])).digest('hex');
+/** Everything a confirm does: the commands, and the inbox item it settles once they ran. */
+const digest = (intent: ActionIntent, commands: readonly PlannedCommand[]): string =>
+  createHash('sha256').update(JSON.stringify([intent.kind, intent.proposal ?? null, ...commands.map((c) => c.argv)])).digest('hex');
 
 function previewOf(deps: ActionDeps, intent: ActionIntent, plan: Plan): ActionPreview {
   return {
     kind: intent.kind, title: plan.title, summary: plan.summary, diff: plan.diff, mode: deps.mode,
     commands: plan.commands.map((c) => ({ display: c.display, argv: c.argv, risk: c.risk })),
     risk: plan.commands.reduce<Risk>((r, c) => (RANK[c.risk] > RANK[r] ? c.risk : r), 'low'),
-    previewId: digest(intent.kind, plan.commands),
+    previewId: digest(intent, plan.commands),
   };
 }
 

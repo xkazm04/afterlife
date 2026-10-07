@@ -169,3 +169,14 @@ describe('demo mode never executes', () => {
     expect((await confirmIntent(deps, revoke, 'a'.repeat(64))).status).toBe('changed');
   });
 });
+
+describe('the preview id binds everything a confirm does', () => {
+  it('a confirm that names another inbox item than its preview runs nothing and settles nothing', async () => {
+    const { gl, db, deps } = await liveRig();
+    const previewed = { kind: 'mark-cra-ready', project: 'ledgerline', issue: 12, proposal: 'n2' };
+    const p = preview(await previewIntent(deps, previewed));
+    expect((await confirmIntent(deps, { ...previewed, proposal: 'n1' }, p.previewId)).status).toBe('changed');
+    expect(gl.state.writes).toEqual([]);
+    expect((await listOpenProposals(db, 'ledgerline')).map((x) => x.id)).toEqual(expect.arrayContaining(['n1', 'n2']));
+  });
+});
