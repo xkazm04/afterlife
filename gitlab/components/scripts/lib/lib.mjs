@@ -94,12 +94,23 @@ export function trailer(text, key, shape = /^\S+$/) {
 export const ULID = /^[0-9A-HJKMNP-TV-Z]{26}$/;
 export const CLASS_ID = /^[a-z][a-z0-9.-]*$/;
 
-/** Notes written by one of the allowed accounts, newest first. Anyone else's note is data, not evidence. */
-export function trustedNotes(projectId, mr, authors) {
+const NOTE_PAGES = 200; // 20,000 notes; running past it is an error, never a silent "no trusted note"
+
+/**
+ * Notes written by one of the allowed accounts, newest first. Anyone else's note is data, not evidence.
+ * Lazy: a page is fetched only when the caller has not yet found what it wants, so a bot block beyond the first
+ * pages is still reached. Fails closed: an unreadable page throws (glab exits non-zero) and the page cap throws.
+ */
+export function* trustedNotes(projectId, mr, authors) {
   const allowed = new Set(authors.split(',').map((s) => s.trim()).filter(Boolean));
-  return apiAll(`projects/${projectId}/merge_requests/${mr}/notes?sort=desc&order_by=created_at`)
-    .filter((n) => !n.system && allowed.has(n.author?.username))
-    .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  const path = `projects/${projectId}/merge_requests/${mr}/notes?sort=desc&order_by=created_at`;
+  for (let page = 1; page <= NOTE_PAGES; page++) {
+    const got = api(`${path}&per_page=100&page=${page}`);
+    if (!Array.isArray(got) || got.length === 0) return;
+    for (const n of got) if (!n.system && allowed.has(n.author?.username)) yield n;
+    if (got.length < 100) return;
+  }
+  throw new Error(`more than ${NOTE_PAGES * 100} notes on !${mr}: refusing to guess`);
 }
 
 /** Keeps a reason from pinging people or breaking out of the note. */
