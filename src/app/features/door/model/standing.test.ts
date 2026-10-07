@@ -13,8 +13,9 @@ const norecord = P('norecord', { a: 'no_record', b: 'refused' }, 0);
 const unknown = P('unknown', { a: null, b: null }, 3); // counts with no rows behind them are not read
 
 describe('the door: no record yet is not a quarantine, unknown is not a count', () => {
-  it('counts tripwire quarantines and no-record classes apart', () => {
-    expect(fleetTotals([tripwire, norecord, unknown])).toMatchObject({ quar: 1, norec: 2 });
+  it('counts tripwire quarantines, no-record classes and split classes apart', () => {
+    expect(fleetTotals([tripwire, norecord, unknown])).toMatchObject({ quar: 1, norec: 2, split: 1 });
+    expect([tripwire, norecord, unknown].map((p) => MARK_TEST.split(p))).toEqual([false, true, false]);
   });
   it('lights the quarantine mark for a tripwire only, and the no-record mark apart', () => {
     expect([tripwire, norecord, unknown].map((p) => [MARK_TEST.quar(p), MARK_TEST.norec(p)])).toEqual([[true, true], [false, true], [false, false]]);

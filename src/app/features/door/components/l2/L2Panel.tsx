@@ -19,7 +19,7 @@ export interface Deep {
 }
 
 const TIERS = ['hands_off', 'supervised', 'assisted', 'quarantined', 'human_only', 'no_record', 'refused'] as const;
-const TIER_NAME: Record<string, string> = { hands_off: 'hands-off', supervised: 'supervised', assisted: 'assisted', quarantined: 'quarantined', human_only: 'human only', no_record: 'no record yet', refused: 'blocked' };
+const TIER_NAME: Record<string, string> = { hands_off: 'hands-off', supervised: 'supervised', assisted: 'assisted', quarantined: 'quarantined', human_only: 'human only', no_record: 'no record yet', refused: 'split, each holder at its own tier' };
 
 function Num({ v, k, tone }: { v: React.ReactNode; k: string; tone?: string }) {
   return (
@@ -50,7 +50,7 @@ export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: s
   const isDeep = p.id === deep.id;
   const n = needsOf(p);
   const nulls = classes.filter((k) => p.classTiers?.[k] == null).length;
-  const at = (t: string): number => classes.filter((k) => p.classTiers?.[k] === t).length; // no record / blocked: never a quarantine
+  const at = (t: string): number => classes.filter((k) => p.classTiers?.[k] === t).length; // no record / split: never a quarantine
   const known = p.stages.filter((x) => x != null).length;
   const d = deep.needs[pick] ?? deep.needs[0];
   return (

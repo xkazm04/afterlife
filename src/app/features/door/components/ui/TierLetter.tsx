@@ -1,11 +1,6 @@
-import { STANDING_META } from '@/lib/tiers';
+import { cellLetter, cellName, isCeiling, isStanding, type ClassCell, type Holder } from '@/lib/tiers';
 import styles from './tier.module.css';
 
-const LETTER: Record<string, string> = {
-  hands_off: 'H', supervised: 'S', assisted: 'A', quarantined: 'Q', human_only: 'P',
-  no_record: STANDING_META.no_record.letter, refused: STANDING_META.refused.letter,
-};
-const NAME: Record<string, string | undefined> = { no_record: STANDING_META.no_record.name, refused: STANDING_META.refused.name };
 const CLS: Record<string, string | undefined> = {
   hands_off: styles.handsOff,
   supervised: styles.supervised,
@@ -16,14 +11,18 @@ const CLS: Record<string, string | undefined> = {
   refused: styles.refused,
 };
 
+const cellOf = (t: string | null): ClassCell => (isCeiling(t) || t === 'no_record' || t === 'refused' ? t : null);
+
 /**
- * A tier as its letter in its colour (never colour alone); a dashed "?" when the class is unknown. A class the gate grants
- * nothing is not a Q: a dashed "–" for no record yet, an outlined "!" for blocked.
+ * A tier as its letter in its colour (never colour alone); a dashed "?" when the class is unknown. No record yet is not a
+ * Q: a dashed "–". A class several agents hold shows its most restrictive holder's letter then "÷", every holder in the
+ * title ("÷" alone when the holders are not known).
  */
-export function TierLetter({ tier, title }: { tier: string | null; title?: string }) {
+export function TierLetter({ tier, holders, title }: { tier: string | null; holders?: readonly Holder[]; title?: string }) {
+  const c = cellOf(tier);
   return (
-    <i className={`${styles.tl} ${tier ? (CLS[tier] ?? '') : styles.null}`} title={title ?? (tier ? NAME[tier] : undefined)}>
-      {tier ? LETTER[tier] : '?'}
+    <i className={`${styles.tl} ${c ? (CLS[c] ?? '') : styles.null}`} title={title ?? (c && (isStanding(c) || holders) ? cellName(c, holders) : undefined)}>
+      {cellLetter(c, holders)}
     </i>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cellName, cellRank, isCeiling, splitTier, standingCount, STANDING_META, TIER_DISPLAY_ORDER, TIER_META, TIER_RANK, tiersKnown, type ClassCell } from './tiers';
+import { cellLetter, cellName, cellRank, isCeiling, splitTier, standingCount, STANDING_META, TIER_DISPLAY_ORDER, TIER_META, TIER_RANK, tiersKnown, type ClassCell } from './tiers';
 
 describe('tier metadata', () => {
   it('covers every displayed tier with a unique letter', () => {
@@ -44,6 +44,8 @@ describe('a class several agents hold', () => {
   });
   it('summarises at the most restrictive holder', () => {
     expect(splitTier(holders)).toBe('assisted');
+    expect(cellLetter('refused', holders)).toBe('A÷');
+    expect([cellLetter('refused'), cellLetter('no_record'), cellLetter('quarantined'), cellLetter(null)]).toEqual(['÷', '–', 'Q', '?']);
     expect(splitTier([{ agent: 'a', tier: 'hands_off' }, { agent: 'b', tier: 'quarantined' }])).toBe('quarantined');
     expect(cellRank('refused', holders)).toBe(cellRank('assisted'));
     expect(cellRank('refused')).toBe(0);

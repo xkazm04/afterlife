@@ -56,9 +56,10 @@ function MiddleCells({ p, view, ranked, narrow, meta, h }: Pick<ProjectRowProps,
   if (view === 'classes') {
     return meta.classes.map((c) => {
       const t = p.classTiers[c];
+      const holders = p.holders?.[c];
       return (
-        <Cell key={c} data align="center" className={styles.cc} title={t ? `${c}: ${cellName(t)}` : undefined}>
-          <TierMark tier={t} />
+        <Cell key={c} data align="center" className={styles.cc} title={t ? `${c}: ${cellName(t, holders)}` : undefined}>
+          <TierMark tier={t} holders={holders} />
         </Cell>
       );
     });

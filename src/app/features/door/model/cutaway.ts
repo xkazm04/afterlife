@@ -51,7 +51,7 @@ export function cutawayOf(p: FleetProject, classes: readonly string[], stages: r
     const s2 = s1 + 0.32;
     const zt = H - 22 - row * 74;
     const zb = zt - 44;
-    return { k, i, tier: ghost ? null : (p.classTiers?.[k] ?? null), poly: points([W(s1, zb), W(s2, zb), W(s2, zt), W(s1, zt)]), c: W((s1 + s2) / 2, (zt + zb) / 2) };
+    return { k, i, tier: ghost ? null : (p.classTiers?.[k] ?? null), holders: ghost ? undefined : p.holders?.[k], poly: points([W(s1, zb), W(s2, zb), W(s2, zt), W(s1, zt)]), c: W((s1 + s2) / 2, (zt + zb) / 2) };
   });
   const am = Rz(H);
   const tip: Pt = [am[0], am[1] - 128];

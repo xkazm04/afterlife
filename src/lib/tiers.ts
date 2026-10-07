@@ -72,6 +72,13 @@ export const cellName = (c: ClassCell | undefined, holders?: readonly Holder[]):
   return isStanding(c) ? STANDING_META[c].name : TIER_META[c].name;
 };
 
+/** A cell as letters: the tier's, the standing's, a split class's most restrictive holder then "÷", or "?" for unknown. */
+export const cellLetter = (c: ClassCell | undefined, holders?: readonly Holder[]): string => {
+  if (c == null) return '?';
+  if (splitKnown(c, holders)) return `${TIER_META[splitTier(holders)].letter}${STANDING_META.refused.letter}`;
+  return isStanding(c) ? STANDING_META[c].letter : TIER_META[c].letter;
+};
+
 /** Sort rank of a cell: a split class ranks at its most restrictive holder, a standing below every tier; unknown is null. */
 export const cellRank = (c: ClassCell | undefined, holders?: readonly Holder[]): number | null => {
   if (c == null) return null;

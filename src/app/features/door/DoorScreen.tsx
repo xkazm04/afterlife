@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
+import type { Holder } from '@/lib/tiers';
 import { BottomChrome, TopChrome } from './components/chrome/Chrome';
 import { L2View } from './components/l2/L2View';
 import type { Deep } from './components/l2/L2Panel';
@@ -59,10 +60,12 @@ export function DoorScreen({ data }: { data: DoorData }) {
   let name: string | null = null;
   let line: Part[] = [];
   let tiers: (string | null)[] | null = null;
+  let holders: (readonly Holder[] | undefined)[] | undefined;
   if (s.level < 2 && hot) {
     name = hot.t.p.name;
     line = projectLine(hot.t.p);
     tiers = hot.t.p.state === 'not-set-up' ? null : data.classes.map((k) => hot.t.p.classTiers?.[k] ?? null);
+    holders = data.classes.map((k) => hot.t.p.holders?.[k]);
   } else if (s.level === 0 && s.hotG != null && s.ds[s.hotG]) {
     name = s.ds[s.hotG]!.name;
     line = districtLine(s.ds[s.hotG]!);
@@ -112,7 +115,7 @@ export function DoorScreen({ data }: { data: DoorData }) {
         <div className={styles.ui}>
           <Answer totals={totals} tiers={tiersTop} staleTop={staleTop} intro={s.intro} tabbable={s.level === 0} onMark={s.setMark} onOpen={onOpenTop} />
           <Labels ds={s.ds} hotG={s.hotG} tabbable={s.level === 0} onHover={onLabelHover} onOpen={s.openG} />
-          <Readout name={name} line={line} tiers={tiers} />
+          <Readout name={name} line={line} tiers={tiers} holders={holders} />
           {s.level === 1 && cur ? <Rail key={cur.gi} d={cur} hotId={s.hotId} onHover={s.setHotId} onOpen={s.openP} /> : null}
           {s.level === 2 && open && s.liftFrom ? (
             <L2View key={open.t.p.id} p={open.t.p} group={open.d.name} classes={data.classes} stages={data.stages} deep={data.deep} from={s.liftFrom} />

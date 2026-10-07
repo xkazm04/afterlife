@@ -31,8 +31,20 @@
 }
 .mk[data-tier="refused"] {
   background: none;
-  color: var(--fail);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fail) 60%, transparent);
+  color: var(--text-2);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--text-2) 50%, transparent);
+}
+/* A class several agents hold: its most restrictive holder's letter, then the split mark. Not a failure: no red. */
+.mk[data-split="true"] {
+  width: auto;
+  padding: 0 2px 0 3px;
+  grid-auto-flow: column;
+  gap: 1px;
+}
+.split {
+  font-size: 0.8em;
+  font-weight: 600;
+  opacity: 0.8;
 }
 .mk[data-stale="true"],
 [data-stale="true"] .mk {

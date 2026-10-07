@@ -130,7 +130,7 @@
 }
 .wRefused {
   fill: none;
-  stroke: var(--fail);
+  stroke: var(--text-2);
   stroke-width: 0.8;
 }
 .wNull {

@@ -1,6 +1,6 @@
 import { TierMark } from '@/components/status/TierMark';
 import type { FleetProject, TierKey } from '@/lib/demo/types';
-import { STANDING_META, TIER_META, type Standing } from '@/lib/tiers';
+import { holdersText, STANDING_META, TIER_META, type Standing } from '@/lib/tiers';
 import { acceptedLabel } from '../../model/inspector';
 import type { DeepProject } from '../../model/types';
 import styles from './popover.module.css';
@@ -9,7 +9,8 @@ const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
 
 /**
  * What the hover card on a tier count says: which classes of this project sit at that tier (and their record). The
- * Quarantined card then lists, set apart, the classes the gate grants nothing without a quarantine: no record yet, blocked.
+ * Quarantined card then lists, set apart, the classes that are not a quarantine: no record yet, and split (several agents
+ * hold it, each at its own tier).
  */
 export function TierPopover({ p, tier, classes, deep }: { p: FleetProject; tier: TierKey; classes: readonly string[]; deep: DeepProject }) {
   const here = classes.filter((c) => p.classTiers[c] === tier);
@@ -33,9 +34,12 @@ export function TierPopover({ p, tier, classes, deep }: { p: FleetProject; tier:
       )}
       {apart.map(([c, s]) => (
         <div key={c} className={styles.pl}>
-          <TierMark tier={s} />
+          <TierMark tier={s} holders={p.holders?.[c]} />
           <code>{c}</code>
-          <span className={styles.rec}>{STANDING_META[s].name} · not quarantined</span>
+          <span className={styles.rec}>
+            {STANDING_META[s].name}
+            {s === 'refused' && p.holders?.[c] ? `: ${holdersText(p.holders[c])}` : ''} · not quarantined
+          </span>
         </div>
       ))}
     </>

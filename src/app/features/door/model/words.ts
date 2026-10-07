@@ -65,9 +65,12 @@ export function topTiers(projects: readonly FleetProject[]): { n: number; names:
 /** Tiers are counted only where they are known (tiersKnown); unknown is never 0 and never quarantined. */
 const knownTiers = (p: FleetProject): boolean => p.state !== 'not-set-up' && tiersKnown(p);
 
-/** Fleet-wide counts for the answer block. A class with no record yet is counted apart (norec), never as quarantined. */
+/**
+ * Fleet-wide counts for the answer block. A class with no record yet (norec) and a class several agents hold (split: each
+ * holder gated at its own tier) are counted apart, never as quarantined.
+ */
 export function fleetTotals(projects: readonly FleetProject[]) {
-  const t = { n: projects.length, needs: 0, stale: 0, setup: 0, nsu: 0, watch: 0, quar: 0, norec: 0, pass: 0, fail: 0 };
+  const t = { n: projects.length, needs: 0, stale: 0, setup: 0, nsu: 0, watch: 0, quar: 0, norec: 0, split: 0, pass: 0, fail: 0 };
   for (const p of projects) {
     t.needs += needsOf(p);
     if (p.state === 'stale') t.stale++;
@@ -77,6 +80,7 @@ export function fleetTotals(projects: readonly FleetProject[]) {
     if (knownTiers(p)) {
       t.quar += p.tiers?.quarantined ?? 0;
       t.norec += standingCount(p, 'no_record');
+      t.split += standingCount(p, 'refused');
     }
     if (p.proofs7d) {
       t.pass += p.proofs7d.pass;
@@ -88,12 +92,13 @@ export function fleetTotals(projects: readonly FleetProject[]) {
 export type FleetTotals = ReturnType<typeof fleetTotals>;
 
 /** The answer marks: each lights its towers across the city. */
-export type MarkKind = 'needs' | 'stale' | 'quar' | 'norec' | 'setup' | 'nsu' | 'watch';
+export type MarkKind = 'needs' | 'stale' | 'quar' | 'norec' | 'split' | 'setup' | 'nsu' | 'watch';
 export const MARK_TEST: Record<MarkKind, (p: FleetProject) => boolean> = {
   needs: (p) => needsOf(p) > 0,
   stale: (p) => p.state === 'stale',
   quar: (p) => knownTiers(p) && (p.tiers?.quarantined ?? 0) > 0,
   norec: (p) => knownTiers(p) && standingCount(p, 'no_record') > 0,
+  split: (p) => knownTiers(p) && standingCount(p, 'refused') > 0,
   setup: (p) => p.state === 'setting-up',
   nsu: (p) => p.state === 'not-set-up',
   watch: (p) => p.state === 'watching',

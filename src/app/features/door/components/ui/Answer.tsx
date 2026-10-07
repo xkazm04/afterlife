@@ -12,6 +12,7 @@ const MARKS: readonly { kind: MarkKind; words: (t: FleetTotals, staleTop: Distri
   { kind: 'stale', n: (t) => t.stale, words: (_, s) => ` stale${s ? ` · ${s.stale} in ${s.name}` : ''}` },
   { kind: 'quar', n: (t) => t.quar, words: () => ' classes quarantined' },
   { kind: 'norec', n: (t) => t.norec, words: (t) => ` ${t.norec === 1 ? 'class' : 'classes'} with no record yet · not quarantined`, quiet: true },
+  { kind: 'split', n: (t) => t.split, words: (t) => ` ${t.split === 1 ? 'class' : 'classes'} split between agents · each at its own tier`, quiet: true },
   { kind: 'setup', n: (t) => t.setup, words: () => ' setting up' },
   { kind: 'nsu', n: (t) => t.nsu, words: () => ' not watched · unknown, not zero' },
   { kind: 'watch', n: (t) => t.watch, words: () => ' watching' },

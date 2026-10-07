@@ -1,9 +1,8 @@
 'use client';
 
+import { cellLetter } from '@/lib/tiers';
 import { CX, CY, type Cutaway } from '../../model/cutaway';
 import styles from './l2tower.module.css';
-
-const LETTER: Record<string, string> = { hands_off: 'H', supervised: 'S', assisted: 'A', quarantined: 'Q', human_only: 'P', no_record: '–', refused: '!' };
 
 /** The cutaway (Night Shift's L2): floors lit by rung, tier windows, the antenna and its tag, the roof beacon. */
 export function L2Tower({ c, hotClass, onClass }: { c: Cutaway; hotClass: number | null; onClass: (i: number | null) => void }) {
@@ -35,7 +34,7 @@ export function L2Tower({ c, hotClass, onClass }: { c: Cutaway; hotClass: number
             <polygon className={`${styles.win} ${styles[`w_${w.tier ?? 'null'}`]} ${hotClass === w.i ? styles.on : ''}`} points={w.poly} />
             {w.tier ? (
               <text className={`${styles.wl} ${styles[`w_${w.tier}`]}`} x={w.c[0]} y={w.c[1] + 7}>
-                {LETTER[w.tier]}
+                {cellLetter(w.tier, w.holders)}
               </text>
             ) : null}
           </g>

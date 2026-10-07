@@ -21,7 +21,7 @@ export function sortValue(p: FleetProject, key: SortKey): SortValue {
   if (key === 'state') return STATE_RANK[p.state];
   if (key === 'needs') return p.state === 'not-set-up' ? null : p.needsYou;
   if (key.startsWith('tier:')) return tiersKnown(p) ? p.tiers[key.slice(5) as TierKey] : null;
-  if (key.startsWith('class:')) return cellRank(p.classTiers[key.slice(6)]);
+  if (key.startsWith('class:')) return cellRank(p.classTiers[key.slice(6)], p.holders?.[key.slice(6)]);
   if (key.startsWith('stage:')) return p.stages[Number(key.slice(6))] ?? null;
   if (key === 'stages') {
     const v = p.stages.filter((x): x is number => x != null);

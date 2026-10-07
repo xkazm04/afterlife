@@ -6,7 +6,7 @@ const box = (style: React.CSSProperties) => {
   return <path d={d} style={style} />;
 };
 
-/** The answer's drawn marks, in the city's own vocabulary: a hatched tile, a Q, a dashed tile with a dash, a dashed or solid little tower, a tick. */
+/** The answer's drawn marks, in the city's own vocabulary: a hatched tile, a Q, a dashed tile with a dash, a tile with a split mark, a dashed or solid little tower, a tick. */
 export function MarkIcon({ kind }: { kind: MarkKind | 'proof' }) {
   let body;
   if (kind === 'stale') body = <rect x="3" y="3" width="24" height="24" rx="3" style={{ fill: 'url(#d-hatch)', stroke: 'var(--stale)' }} />;
@@ -24,6 +24,15 @@ export function MarkIcon({ kind }: { kind: MarkKind | 'proof' }) {
       <>
         <rect x="2" y="2" width="26" height="26" rx="4" style={{ fill: 'none', stroke: 'var(--unknown)', strokeDasharray: '3 2.5' }} />
         <path d="M9 15 H21" style={{ stroke: 'var(--unknown)', strokeWidth: 2.4, strokeLinecap: 'round' }} />
+      </>
+    );
+  else if (kind === 'split')
+    body = (
+      <>
+        <rect x="2" y="2" width="26" height="26" rx="4" style={{ fill: 'none', stroke: 'var(--text-2)' }} />
+        <text x="15" y="21.5" textAnchor="middle" style={{ font: '700 18px var(--sys)', fill: 'var(--text-2)' }}>
+          ÷
+        </text>
       </>
     );
   else if (kind === 'setup') body = box({ fill: 'none', stroke: 'var(--accent)', strokeDasharray: '2.5 2' });

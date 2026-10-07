@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { STANDING_META } from '@/lib/tiers';
 import { needsOf, type District } from '../../model/city';
 import { plural } from '../../model/words';
 import { TierLetter } from '../ui/TierLetter';
@@ -12,8 +13,8 @@ const TIERS = [
   ['assisted', 'Assisted'],
   ['quarantined', 'Quarantined'],
   ['human_only', 'Human only'],
-  ['no_record', 'No record yet'],
-  ['refused', 'Blocked'],
+  ['no_record', STANDING_META.no_record.name],
+  ['refused', STANDING_META.refused.name],
 ] as const;
 
 function Ico({ kind }: { kind: 'stale' | 'setup' | 'nsu' }) {

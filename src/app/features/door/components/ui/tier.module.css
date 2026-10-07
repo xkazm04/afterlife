@@ -41,8 +41,8 @@
   border: 1px dashed var(--unknown);
 }
 .refused {
-  color: var(--fail);
-  box-shadow: inset 0 0 0 1px var(--fail);
+  color: var(--text-2);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--text-2) 50%, transparent);
 }
 .null {
   color: var(--unknown);

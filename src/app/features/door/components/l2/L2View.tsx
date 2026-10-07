@@ -54,7 +54,7 @@ export function L2View({
           const t = p.state === 'not-set-up' ? null : (p.classTiers?.[k] ?? null);
           return (
             <div key={k} className={`${styles.cl} ${t ? '' : styles.unk} ${hotClass === i ? styles.on : ''}`} onPointerEnter={() => setHotClass(i)} onPointerLeave={() => setHotClass(null)}>
-              <TierLetter tier={t} />
+              <TierLetter tier={t} holders={p.state === 'not-set-up' ? undefined : p.holders?.[k]} />
               {k}
             </div>
           );
