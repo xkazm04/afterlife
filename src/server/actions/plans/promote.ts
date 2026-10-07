@@ -6,7 +6,7 @@ import { TIER_ORDER } from '@/schemas/tier';
 import { holderOf } from '@/server/poller/derive/tiers';
 import { readPolicy } from '@/server/poller/derive/policy';
 import type { PromoteClass } from '../types';
-import { ActionRefused, dateOnly, locate, NO_LAST_COMMIT, type Plan, type PlanContext } from './context';
+import { ActionRefused, dateOnly, lastCommitOf, locate, type Plan, type PlanContext } from './context';
 import { editRecords, lineDiff } from './tierEdit';
 
 export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promise<Plan> {
@@ -15,7 +15,7 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
   const file = await ctx.port.getFile(repo.id, 'tier-state.yml', base);
   const read = await readPolicy(ctx.port, repo.id, base);
   if (!file || !read.ok) throw new ActionRefused(read.ok ? 'tier-state.yml is not in belay-policy' : read.reason);
-  if (!file.lastCommitId) throw new ActionRefused(NO_LAST_COMMIT);
+  const lastCommitId = lastCommitOf(file);
 
   const cls = read.policy.classes[intent.class];
   if (!cls) throw new ActionRefused(`${intent.class} is not an action class in trust-policy.yml`);
@@ -39,7 +39,7 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
     title: `Promote ${intent.class} to ${intent.to}`,
     summary: `Opens a policy MR in ${repo.pathWithNamespace} as ${ctx.operator}. You merge it; the next MR pipeline reads the new tier.`,
     commands: [
-      ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, startBranch: base, content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId: file.lastCommitId }),
+      ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, startBranch: base, content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }),
       ctx.port.plan.createMr({
         project: repo.id, sourceBranch: branch, targetBranch: base, title, labels: ['belay::promotion'],
         description: `Prepared by Belay for ${ctx.operator}.\n\nBelay-Class: ${intent.class}\n\nA person merges this; Belay never does.`,

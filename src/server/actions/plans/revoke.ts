@@ -6,7 +6,7 @@ import { TIER_ORDER } from '@/schemas/tier';
 import { holderOf } from '@/server/poller/derive/tiers';
 import { readPolicy } from '@/server/poller/derive/policy';
 import type { RevokeClass } from '../types';
-import { ActionRefused, dateOnly, locate, NO_LAST_COMMIT, type Plan, type PlanContext } from './context';
+import { ActionRefused, dateOnly, lastCommitOf, locate, type Plan, type PlanContext } from './context';
 import { editRecords, lineDiff, type RecordEdit } from './tierEdit';
 
 export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise<Plan> {
@@ -15,7 +15,7 @@ export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise
   const file = await ctx.port.getFile(repo.id, 'tier-state.yml', branch);
   const read = await readPolicy(ctx.port, repo.id, branch);
   if (!file || !read.ok) throw new ActionRefused(read.ok ? 'tier-state.yml is not in belay-policy' : read.reason);
-  if (!file.lastCommitId) throw new ActionRefused(NO_LAST_COMMIT);
+  const lastCommitId = lastCommitOf(file);
 
   const why = intent.why ?? 'manual revoke';
   const edits: RecordEdit[] = [];
@@ -44,7 +44,7 @@ export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise
   return {
     title: moves.length === 1 ? `Revoke ${intent.changes[0]?.class}` : `Revoke ${moves.length} classes`,
     summary: `Commits tier-state.yml to ${repo.pathWithNamespace} on ${branch} as ${ctx.operator}. The next MR pipeline reads the new tier.`,
-    commands: [ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, content, message, action: 'update', lastCommitId: file.lastCommitId })],
+    commands: [ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, content, message, action: 'update', lastCommitId })],
     diff: lineDiff(file.content, content),
   };
 }

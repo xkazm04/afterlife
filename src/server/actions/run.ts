@@ -11,6 +11,7 @@ import { closeProposal } from '@/server/index/repositories/work/proposal';
 import type { PollerConfig } from '@/server/poller/config';
 import { parseIntent } from './intents';
 import { ActionRefused, planIntent, type Plan, type PlanContext } from './plans';
+import { COMMIT_ID } from './plans/context';
 import type { ActionIntent, ActionPreview, ActionResponse, CommandOutcome } from './types';
 
 export interface ActionDeps {
@@ -66,13 +67,30 @@ export async function previewIntent(deps: ActionDeps, raw: unknown): Promise<Act
   return b.ok ? { status: 'preview', preview: b.preview } : b.response;
 }
 
-/** What a command that ran made, from GitLab's answer: an MR's iid, or (a file write) the commit the file now has. */
+/** An address a screen may link to: http(s) only, never javascript: or data:. */
+function webUrl(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  try {
+    const u = new URL(v);
+    return u.protocol === 'https:' || u.protocol === 'http:' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * What a command that ran made, from GitLab's answer: an MR's iid, or (a file write) the commit the file now has. Named only
+ * when the answer has the shape GitLab documents (a positive iid, an http(s) address, a commit id).
+ */
 async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Promise<Pick<CommandOutcome, 'made' | 'url'>> {
   const b = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
-  if (typeof b.iid === 'number') return { made: `!${b.iid}`, ...(typeof b.web_url === 'string' ? { url: b.web_url } : {}) };
+  if (Number.isSafeInteger(b.iid) && (b.iid as number) > 0) {
+    const url = webUrl(b.web_url);
+    return { made: `!${b.iid as number}`, ...(url ? { url } : {}) };
+  }
   if (!cmd.file) return {};
   const f = await deps.port.getFile(cmd.file.project, cmd.file.path, cmd.file.branch).catch(() => null);
-  return f?.lastCommitId ? { made: `commit ${f.lastCommitId.slice(0, 8)}` } : {};
+  return f?.lastCommitId && COMMIT_ID.test(f.lastCommitId) ? { made: `commit ${f.lastCommitId.slice(0, 8)}` } : {};
 }
 
 async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promise<ActionResponse> {

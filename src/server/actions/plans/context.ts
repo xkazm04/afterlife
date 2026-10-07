@@ -2,7 +2,7 @@
 // the operator is, and where the project and the policy project live.
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { PlannedCommand } from '@/server/gitlab/plan/types';
-import type { GlProject } from '@/server/gitlab/types';
+import type { GlFile, GlProject } from '@/server/gitlab/types';
 import type { PollerConfig } from '@/server/poller/config';
 
 /** A request the action refuses, with the reason the operator reads. Nothing has run. */
@@ -46,3 +46,12 @@ export const dateOnly = (d: Date): string => d.toISOString().slice(0, 10);
 /** Without the file's last commit, GitLab cannot be asked to refuse a stale write: such a write is not planned at all. */
 export const NO_LAST_COMMIT =
   'GitLab did not say which commit last changed tier-state.yml, so a write from a stale read could not be refused; nothing is planned';
+
+/** A commit id as GitLab gives one: 40 hex digits, or 64 in a SHA-256 repository. */
+export const COMMIT_ID = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
+
+/** The file's last commit, as it goes into last_commit_id: anything that is not a commit id is no answer. */
+export function lastCommitOf(file: GlFile): string {
+  if (!file.lastCommitId || !COMMIT_ID.test(file.lastCommitId)) throw new ActionRefused(NO_LAST_COMMIT);
+  return file.lastCommitId;
+}
