@@ -1,5 +1,6 @@
 // Picks the data source for a request: BELAY_MODE=demo (default) or live. The choice is read per call, so a page rendered
 // for a request always follows the running server's environment, never the one the build ran in.
+import { actionDeps } from '@/server/actions/deps';
 import { demoSource } from './demoSource';
 import { readDataConfig } from './config';
 import { liveSource } from './live/liveSource';
@@ -20,5 +21,5 @@ export function getDataSource(env: Record<string, string | undefined> = process.
     const snap = readyRuntime()?.snapshot;
     if (!snap) throw new Error('BELAY_MODE=live, but the first poll has not finished: the server starts it in instrumentation.ts');
     return snap;
-  });
+  }, undefined, () => actionDeps(env));
 }

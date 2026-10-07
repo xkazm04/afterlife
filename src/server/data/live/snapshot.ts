@@ -3,7 +3,7 @@
 // catalogue, unchanged: see data/README.md for the list.
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
 import { clock, getActionClasses, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
-import { getPairing } from '@/server/index/repositories/pairing';
+import { getPairing, type PairingRow } from '@/server/index/repositories/pairing';
 import type { Queryable } from '@/server/index/repositories/sql';
 import type { PolicyRules } from '../types';
 import { isSeeded } from './seeded';
@@ -22,6 +22,8 @@ export interface LiveData {
   setup: DemoData['setup'];
   /** trust-policy.yml's rules as the last poll read them from belay-policy; null until one was read. */
   policy: PolicyRules | null;
+  /** The pairing row the last poll wrote (group, host, checkout), for Setup's reads; null before any poll paired one. */
+  pairing: PairingRow | null;
 }
 
 export interface LiveSnapshot {
@@ -53,6 +55,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? 0 } },
       setup: { ...catalogue.setup, group, project: deep },
       policy,
+      pairing,
     },
   };
 }

@@ -6,14 +6,18 @@
 import { DEMO } from '@/lib/demo';
 import type { DemoData } from '@/lib/demo/types';
 import { STAGES } from '@/schemas/stages';
+import { setupReads, type SetupPort } from '../setup/read';
 import type { DataSource, IllustrativePart } from '../types';
 import { isSeeded } from './seeded';
 import type { LiveSnapshot } from './snapshot';
 
 export const LIVE_ILLUSTRATIVE: readonly IllustrativePart[] = ['tracks', 'loop', 'cockpit', 'setup', 'policy-history', 'records'];
 
-/** `snapshot` throws when the first poll has not finished: a page must not show an empty fleet as if it were real. */
-export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = DEMO): DataSource {
+/**
+ * `snapshot` throws when the first poll has not finished: a page must not show an empty fleet as if it were real.
+ * `port` is what Setup's live reads go through (null: each read says it has none).
+ */
+export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = DEMO, port: () => SetupPort | null = () => null): DataSource {
   const data = () => snapshot().data;
   return {
     mode: 'live',
@@ -34,5 +38,6 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getEvents: () => data().events,
     getCockpit: () => data().cockpit,
     getPolicy: () => data().policy,
+    setupReads: () => setupReads(port(), data().pairing, snapshot().deep),
   };
 }

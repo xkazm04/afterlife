@@ -2,6 +2,7 @@
 // loader changes one import and nothing else. Reads are synchronous: the live source serves a snapshot that the poller
 // refreshes after every cycle, so a page never waits on GitLab or on the index.
 import type { DemoData, Task } from '@/lib/demo/types';
+import type { SetupReads } from './setup/read';
 
 export type DataMode = 'demo' | 'live';
 
@@ -59,4 +60,10 @@ export interface DataSource {
    * belay-policy; null until a poll has read one the engine accepts.
    */
   getPolicy(): PolicyRules | null;
+  /**
+   * Setup's live reads (its tracks' arm blocks, the belay doctor, the steps a read can observe), bound to the port and
+   * the snapshot's pairing row. The getter is synchronous; the reads are port calls the Setup loader awaits. Null in demo
+   * mode, where Setup reads nothing.
+   */
+  setupReads(): SetupReads | null;
 }
