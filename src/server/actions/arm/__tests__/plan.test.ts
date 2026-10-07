@@ -95,6 +95,21 @@ describe('arm-track T4', () => {
     expect(reason(await previewIntent(deps, arm))).toBe('!77 from belay/arm-guardrail is already open: merge or close it first');
   });
 
+  it('refuses a project outside the paired group, such as one shared into it, and verify reads nothing there (F37)', async () => {
+    const { gl, deps } = await rig();
+    // GitLab lists projects shared into the group too (with_shared defaults to true): this one lives in another namespace.
+    const port = new Proxy(deps.port, {
+      get: (t, k, r) => (k === 'listProjects'
+        ? async (g: string | number) => (await t.listProjects(g)).map((p) => (p.path === 'ledgerline' ? { ...p, pathWithNamespace: 'outsider/ledgerline' } : p))
+        : Reflect.get(t, k, r)),
+    });
+    const away = { ...deps, port };
+    expect(reason(await previewIntent(away, arm))).toMatch(/outsider\/ledgerline is not in acme-lab/);
+    expect(reason(await previewIntent(away, disarm))).toMatch(/outsider\/ledgerline is not in acme-lab/);
+    expect(await checkArm(away, arm)).toMatchObject({ status: 'refused', reason: expect.stringMatching(/outsider\/ledgerline is not in acme-lab/) });
+    expect(gl.state.writes).toEqual([]);
+  });
+
   it('refuses a track the repo does not define, and says so', async () => {
     const { deps } = await rig();
     expect(reason(await previewIntent(deps, { ...arm, track: 'T3' }))).toMatch(/does not define T3's arm content/);

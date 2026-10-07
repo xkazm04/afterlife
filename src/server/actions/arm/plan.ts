@@ -24,15 +24,24 @@ export function trackArm(track: string): TrackArm {
 export interface Target {
   project: GlProject;
   base: string;
+  /** The paired group's full path: the arm's include names its belay-pack. */
+  group: string;
 }
 
-/** The paired target project, by its index id. Read only. */
+/**
+ * The paired target project, by its index id. Read only. GitLab lists projects shared into the group as well, so a project
+ * whose path is not under the group's is refused (F37): an arm writes as the operator only inside the paired group.
+ */
 export async function targetOf(port: GitLabPort, groupId: string | number, gitlabId: PlanContext['gitlabId'], indexId: string): Promise<Target> {
   const all = await port.listProjects(groupId);
   const gid = await gitlabId(indexId);
   const project = all.find((p) => (gid !== null ? p.id === gid : p.path === indexId));
   if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);
-  return { project, base: project.defaultBranch ?? 'main' };
+  const group = (await port.getGroup(groupId)).fullPath;
+  if (!project.pathWithNamespace.startsWith(`${group}/`)) {
+    throw new ActionRefused(`${project.pathWithNamespace} is not in ${group} (it is shared into it from elsewhere): Belay arms only a project of the paired group`);
+  }
+  return { project, base: project.defaultBranch ?? 'main', group };
 }
 
 function pinFor(ctx: PlanContext, a: TrackArm): ArmPin {
@@ -76,8 +85,7 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   if (blocker) throw new ActionRefused(blocker);
   const branch = `belay/arm-${a.key}`;
   await noOpenMr(ctx, t, branch);
-  const group = (await ctx.port.getGroup(ctx.groupId)).fullPath;
-  const ins = insertBlock(file.content, a, group, pin, at);
+  const ins = insertBlock(file.content, a, t.group, pin, at);
   if (!ins.ok) throw new ActionRefused(ins.reason);
   if (!holdsBlock(ins.content, wanted)) throw new ActionRefused(`Belay could not add ${a.track}'s lines to ${CI_FILE} without breaking it: nothing is planned`);
 
