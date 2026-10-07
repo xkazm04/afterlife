@@ -13,9 +13,12 @@ export type Standing =
   | { kind: 'no_record'; agent: string | null; why: string }
   | { kind: 'held'; agent: string; record: TierRecord; ceiling: Tier; tier: Tier; leaseLapsed: boolean };
 
+/** A key the object itself holds: a class or agent id read from an MR (`constructor`) never reaches Object.prototype. */
+const own = <T>(o: Readonly<Record<string, T>>, k: string): T | undefined => (Object.hasOwn(o, k) ? o[k] : undefined);
+
 /** The agent whose record counts: the one given, the only holder, or the unique holder whose name includes the role. */
 export function findHolder(state: TierState, classId: string, role: string, agent?: string): { agent: string | null; holders: string[]; why?: string } {
-  const holders = Object.entries(state.agents).filter(([, classes]) => classId in classes).map(([a]) => a);
+  const holders = Object.entries(state.agents).filter(([, classes]) => Object.hasOwn(classes, classId)).map(([a]) => a);
   if (agent) return { agent, holders };
   if (holders.length === 1) return { agent: holders[0] ?? null, holders };
   const named = holders.filter((a) => a.includes(role));
@@ -45,12 +48,13 @@ export function effectiveOf(record: Pick<TierRecord, 'tier' | 'lease_expires'>, 
 export function standingOf(
   classes: Readonly<Record<string, { agent: string; ceiling: Ceiling }>>, state: TierState, classId: string, now: Date, agent?: string,
 ): Standing {
-  const cls = classes[classId];
+  const cls = own(classes, classId);
   if (!cls) return { kind: 'unknown_class', why: `unknown action class "${classId}"` };
   if (cls.ceiling === 'human_only') return { kind: 'human_only', why: `${classId} is human_only: a person acts, the gate never does` };
   const h = findHolder(state, classId, cls.agent, agent);
   if (!h.agent && h.holders.length > 1) return { kind: 'refused', holders: h.holders, why: h.why ?? '' };
-  const record = h.agent ? state.agents[h.agent]?.[classId] : undefined;
+  const records = h.agent ? own(state.agents, h.agent) : undefined;
+  const record = records ? own(records, classId) : undefined;
   if (!h.agent || !record) {
     return { kind: 'no_record', agent: h.agent, why: h.why ?? `${h.agent ?? 'agent'} has no tier record for ${classId}; an unlisted class is not trusted` };
   }

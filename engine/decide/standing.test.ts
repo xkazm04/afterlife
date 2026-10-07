@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { TierRecord, TierState } from '../../src/schemas/tier';
 import { NOW, policy } from '../__tests__/helpers';
+import { checkEnvelope } from '../policy/envelope';
 import { gate } from './gate';
-import { effectiveOf, standingOf } from './standing';
+import { effectiveOf, findHolder, standingOf } from './standing';
 
 const P = policy();
 const AGENT = 'ai-patcher-acme';
@@ -32,5 +33,26 @@ describe('standing: a hands-off lease the gate cannot read', () => {
       guardrail: { verdict: 'pass' }, proof: undefined });
     expect(r.tier).toBe('supervised');
     expect(standingOf(P.classes, held({ lease_expires: 'next friday' }), 'dep-bump.patch', NOW)).toMatchObject({ kind: 'held', tier: 'supervised', leaseLapsed: true });
+  });
+});
+
+describe('standing: only the policy’s own classes are classes', () => {
+  // `constructor` passes the components' CLASS_ID pattern, so an agent's Belay-Class trailer can name it.
+  const everyone: TierState = { version: 1, policy_sha: 'x', agents: { [AGENT]: {}, 'ai-medic-acme': {} } };
+
+  it.each(['constructor', 'hasOwnProperty', '__proto__'])('%s is an unknown class, held by no one', (id) => {
+    expect(standingOf(P.classes, everyone, id, NOW)).toMatchObject({ kind: 'unknown_class' });
+    expect(findHolder(everyone, id, 'patcher').holders).toEqual([]);
+  });
+
+  it('the gate blocks a prototype key as an unknown class, with or without --agent', () => {
+    for (const agent of [AGENT, undefined]) {
+      const r = gate({ policy: P, state: held({}), classId: 'constructor', agent, now: NOW, guardrail: { verdict: 'pass' } });
+      expect(r).toMatchObject({ decision: 'block', tier: null, agent: null, reasons: ['unknown action class "constructor"'] });
+    }
+  });
+
+  it('the envelope names a prototype key an unknown class', () => {
+    expect(checkEnvelope(P, 'constructor', '').violations).toContain('unknown action class "constructor"');
   });
 });

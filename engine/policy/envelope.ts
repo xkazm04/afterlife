@@ -26,7 +26,7 @@ export function checkEnvelope(
   diffText: string,
   environments: readonly string[] = [],
 ): EnvelopeResult {
-  const cls = policy.classes[classId];
+  const cls = Object.hasOwn(policy.classes, classId) ? policy.classes[classId] : undefined; // never Object.prototype's `constructor`
   const parsed = parseDiff(diffText);
   const m = measure(parsed);
   const limits = policy.envelope.hands_off;
