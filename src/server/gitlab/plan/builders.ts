@@ -43,11 +43,13 @@ export function planBuilders(hostname?: string): PlanBuilders {
         ...optional('add_labels', i.add?.length ? i.add.join(',') : undefined),
         ...optional('remove_labels', i.remove?.length ? i.remove.join(',') : undefined),
       ], 'low'),
-    commitFile: (i: CommitFileInput) =>
-      build(hostname, i.action === 'create' ? 'POST' : 'PUT',
+    commitFile: (i: CommitFileInput) => ({
+      ...build(hostname, i.action === 'create' ? 'POST' : 'PUT',
         `projects/${proj(i.project)}/repository/files/${encodeURIComponent(i.path)}`,
         [['branch', i.branch], ['commit_message', i.message], ['content', i.content], ...optional('start_branch', i.startBranch)],
         POLICY_FILE.test(i.path) ? 'policy' : 'low'),
+      file: { project: i.project, path: i.path, branch: i.branch },
+    }),
     pauseSchedule: (i: PauseScheduleInput) =>
       build(hostname, 'PUT', `projects/${proj(i.project)}/pipeline_schedules/${i.scheduleId}`, [['active', 'false']], 'policy'),
     approveDeployment: (i: ApproveDeploymentInput) =>

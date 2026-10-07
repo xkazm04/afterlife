@@ -98,6 +98,6 @@ export function mapFile(r: Rec): GlFile {
   if (encoding !== 'base64') throw new GitLabError('parse', `file encoding ${encoding}`, 'repository/files');
   return {
     path: str(r, 'file_path'), ref: strOr(r, 'ref', ''), blobId: strOr(r, 'blob_id', ''), size: numN(r, 'size') ?? 0,
-    content: Buffer.from(str(r, 'content'), 'base64').toString('utf8'),
+    content: Buffer.from(str(r, 'content'), 'base64').toString('utf8'), lastCommitId: strN(r, 'last_commit_id'),
   };
 }

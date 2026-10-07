@@ -65,6 +65,15 @@ export async function previewIntent(deps: ActionDeps, raw: unknown): Promise<Act
   return b.ok ? { status: 'preview', preview: b.preview } : b.response;
 }
 
+/** What a command that ran made, from GitLab's answer: an MR's iid, or (a file write) the commit the file now has. */
+async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Promise<Pick<CommandOutcome, 'made' | 'url'>> {
+  const b = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
+  if (typeof b.iid === 'number') return { made: `!${b.iid}`, ...(typeof b.web_url === 'string' ? { url: b.web_url } : {}) };
+  if (!cmd.file) return {};
+  const f = await deps.port.getFile(cmd.file.project, cmd.file.path, cmd.file.branch).catch(() => null);
+  return f?.lastCommitId ? { made: `commit ${f.lastCommitId.slice(0, 8)}` } : {};
+}
+
 async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promise<ActionResponse> {
   const db = deps.db;
   if (!db) return refused('live mode has no index to record the command in');
@@ -72,9 +81,9 @@ async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promi
   for (const cmd of b.plan.commands) {
     const id = await recordCommand(db, { at: deps.now(), operator: b.operator, projectId: b.intent.project, proposalId: b.intent.proposal, display: cmd.display, argv: cmd.argv, risk: cmd.risk });
     try {
-      await deps.port.execute(cmd);
+      const out = await deps.port.execute(cmd);
       await finishCommand(db, id, 0, deps.now());
-      results.push({ display: cmd.display, exit: 0, ok: true, simulated: false });
+      results.push({ display: cmd.display, exit: 0, ok: true, simulated: false, ...(await madeBy(deps, cmd, out.body)) });
     } catch (e) {
       const exit = e instanceof GitLabError && e.status ? e.status : 1;
       await finishCommand(db, id, exit, deps.now());

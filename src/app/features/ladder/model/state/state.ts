@@ -1,13 +1,14 @@
 // The Ladder's state and the actions that change it. The reducer is pure: time and the commit id come in as data.
 import type { ActionClass } from '@/lib/demo';
 import type { LedgerSeedEntry } from '../../data/ledgerSeed';
+import type { Sent } from './commit';
 import type { Ceiling, ClassRow, Head, LadderSort, LedgerEntry, SortKey, Tier } from '../types';
 
 export interface LadderState {
   classes: ClassRow[];
   ledger: LedgerEntry[];
   head: Head;
-  /** How many commits this session has made (picks the next commit id). */
+  /** How many simulated commits this session has made (picks the demo's next commit id). */
   shaIdx: number;
   sort: LadderSort;
   /** Class ids in display order, frozen until the sort changes. */
@@ -42,7 +43,8 @@ export type LadderAction =
   | { type: 'filter'; tier: Ceiling | null }
   | { type: 'source'; src: string }
   | { type: 'query'; q: string }
-  | { type: 'revoke'; id: string; to: Tier; t: string }
+  /** The server answered done: `sent` says whether it was simulated, and the commit GitLab made if not. */
+  | { type: 'revoke'; id: string; to: Tier; t: string; sent: Sent }
   | { type: 'settle'; sha: string; t: string }
   | { type: 'clearFresh' }
   | { type: 'reset'; seed: LadderSeed };

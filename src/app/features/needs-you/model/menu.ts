@@ -21,10 +21,10 @@ export function rowMenuPlan(s: NeedsState, id: string, demo: NeedsYouDemo): read
   if (a) items.push({ label: a.label, intent: { kind: 'act', action: a.action } });
   if (id === 'n1' && s.status.n1 === 'open') items.push({ label: 'Not yet', intent: { kind: 'act', action: 'snooze-n1' } });
   if (id === 'n4' && (s.status.n4 === 'open' || s.status.n4 === 'staged')) {
-    items.push({ sep: true }, { label: 'Retire (runs now)', intent: { kind: 'act', action: 'retire-n4' } });
+    items.push({ sep: true }, { label: 'Retire (no write)', intent: { kind: 'act', action: 'retire-n4' } });
   }
   if (isGapId(id) && !s.gapStatus[id]) items.push({ label: s.gaps[id] ? 'Untick' : 'Pick', sc: 'Space', intent: { kind: 'act', action: `tick:${id}` } });
-  const cmds = commandsFor(id, demo);
+  const cmds = commandsFor(id, demo, s.writes);
   if (cmds) items.push({ sep: true }, { label: 'Copy Command', intent: { kind: 'copy', text: cmds.join('\n') } });
   const g = groupOf(s.group, s, id);
   if (g) items.push({ sep: true }, { label: `Collapse “${g.name}”`, intent: { kind: 'collapse', group: g.id } });

@@ -8,6 +8,7 @@ import type { Promotion } from '../../model/rules/promotion';
 import { revokeTargets } from '../../model/rules/tiers';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, Track } from '../../model/types';
 import { entriesFor } from '../../model/view/moves';
+import type { WriteView } from '../../write/revoke';
 import { WhoActed } from './log/WhoActed';
 import { Sec, type SectionState } from './Sec';
 import { AllMoves } from './sections/AllMoves';
@@ -25,6 +26,8 @@ export interface ClassInspectorProps {
   kinds: readonly ActorKind[];
   onToggleKind: (kind: ActorKind) => void;
   sections: SectionState;
+  writeTo: Tier | null;
+  viewOf: (id: string, to: Tier) => WriteView | undefined;
   onRevoke: (id: string, to: Tier) => void;
   onTargets: (id: string, el: HTMLElement) => void;
   onPromote: (id: string) => void;
@@ -71,7 +74,7 @@ export function ClassInspector(p: ClassInspectorProps) {
         <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />
       </Sec>
       <PromotionRule promotion={p.promotion} sections={p.sections} />
-      <WriteSection cls={c} byId={p.byId} sections={p.sections} />
+      <WriteSection cls={c} to={p.writeTo ?? first ?? null} viewOf={p.viewOf} sections={p.sections} />
       <GrantSection cls={c} proofClass={p.track?.proof.cls ?? ''} sections={p.sections} />
       <AllMoves ledger={p.ledger} current={c.id} kinds={p.kinds} onToggleKind={p.onToggleKind} sections={p.sections} />
     </>

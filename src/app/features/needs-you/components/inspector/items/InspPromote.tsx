@@ -1,11 +1,11 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { PROMOTE, PROOFS } from '../../../data/promote';
 import { Chip } from '@/components/status/chip/Chip';
-import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
 import { TierMove } from '../../shared/MoveMarks';
 import { ActBtn, Acts } from '../Acts';
 import type { InspProps } from '../props';
-import { ClickSec, CommandSec, Sec } from '../Sec';
+import { PolicyCmdSec, PolicyDiffSec } from '../PolicyWrite';
+import { ClickSec, Sec } from '../Sec';
 import styles from './items.module.css';
 
 /** n1: promote a class from Supervised to Hands-off. Rules, the 16 accepted proofs, the policy-MR diff. */
@@ -83,11 +83,9 @@ export function InspPromote(p: InspProps) {
           </div>
         ))}
       </Sec>
-      <Sec k="n1-diff" title="Policy MR diff" aux={PROMOTE.write.ref} p={p}>
-        <DiffBlock file={PROMOTE.write.file} lines={PROMOTE.write.diff} />
-      </Sec>
+      <PolicyDiffSec k="n1" title="Policy MR diff" p={p} />
       <ClickSec k="n1-click" p={p} does={PROMOTE.does} doesNot={PROMOTE.doesNot} />
-      <CommandSec k="n1-cmd" p={p} commands={PROMOTE.write.commands} def={false} />
+      <PolicyCmdSec k="n1" p={p} />
     </>
   );
 }

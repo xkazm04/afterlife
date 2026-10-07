@@ -1,6 +1,6 @@
 // Typed fixtures for Needs you. The prototype's invented constants (DET, WEEK) live here as plain data.
-import type { DiffLine } from '@/components/inspector/blocks/diff';
 import type { ClassRecord, MaturityProposal, TierKey } from '@/lib/demo/types';
+import type { Tier } from '@/schemas/tier';
 
 export type { DiffLine, DiffMark } from '@/components/inspector/blocks/diff';
 
@@ -10,20 +10,15 @@ export interface ClickCopy {
   doesNot: readonly string[];
 }
 
-/** One staged write: the exact commands, the file it changes, the diff and the line shown after Run. */
-export interface WriteSpec {
-  ref: string;
-  commands: readonly string[];
-  file: string;
-  diff: readonly DiffLine[];
-  result: string;
-}
-
 /** The slice of the shared demo dataset this screen reads. The server page builds it (data/pick.ts). */
 export interface NeedsYouDemo {
-  promote: { title: string; from: TierKey; to: TierKey; rules: readonly (readonly [string, string, boolean])[] };
+  /** The project the decisions belong to: the id the server actions plan the writes for. */
+  project: string;
+  /** `cls`: the action class the promotion raises, to `to`. */
+  promote: { title: string; cls: string; from: TierKey; to: Tier; rules: readonly (readonly [string, string, boolean])[] };
   signoff: { title: string; linksResolved: string };
-  readmit: { title: string; reason: string };
+  /** `cls`: the quarantined action class a re-admission raises to Assisted. */
+  readmit: { title: string; cls: string; reason: string };
   runner: { title: string };
   gaps: readonly MaturityProposal[];
   rungNames: readonly string[];

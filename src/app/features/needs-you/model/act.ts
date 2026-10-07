@@ -1,20 +1,24 @@
 // Every button on the screen is an ActionId. Staging puts the exact write in the outbox and sends nothing;
-// Retire, Not yet and the runner check are the only actions that skip it.
+// Retire, Not yet and the runner check are the only actions that skip it. None of them writes anything.
 import { CRA } from '../data/cra';
-import { READMIT } from '../data/readmit';
 import { RUNNER } from '../data/runner';
 import type { NeedsYouDemo } from '../data/types';
 import { buildOutItem, stageItem, unstageItem } from './outbox/outbox';
 import { decided } from './rows/history';
 import { ranToast } from './run';
+import { TIER_META } from '@/lib/tiers';
 import { notify, revealSection } from './state';
 import type { ActionId, DecisionKey, NeedsState } from './types';
+
+/** What Retire says: it is decided here only, and the class stays quarantined in belay-policy. */
+export const retireText = (cls: string): string =>
+  `Retired here only · Belay has no retire write (tier-state.yml has no retired tier), so ${cls} stays quarantined in belay-policy. Nothing was sent.`;
 
 /** Gaps that are ticked and not yet staged. */
 export const pickedGaps = (s: NeedsState, demo: NeedsYouDemo) => demo.gaps.filter((g) => s.gaps[g.id] && !s.gapStatus[g.id]);
 
 function stage(s: NeedsState, key: string, demo: NeedsYouDemo): NeedsState {
-  const item = buildOutItem(key, demo);
+  const item = buildOutItem(key, demo, s.writes);
   return item ? { ...s, out: stageItem(s.out, item), outboxOpen: true } : s;
 }
 const setStatus = (s: NeedsState, key: DecisionKey, v: NeedsState['status'][DecisionKey]): NeedsState => ({ ...s, status: { ...s.status, [key]: v } });
@@ -62,10 +66,11 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
     case 'unsnooze-n1':
       return { ...setStatus(s, 'n1', 'open'), session: s.session.slice(1) };
     case 'merge-n1':
-      return notify(setStatus(s, 'n1', 'merged'), 'toast', 'belay-policy!21 merged (simulated) · next pipeline reads Hands-off');
+      return notify(setStatus(s, 'n1', 'merged'), 'toast', `The policy MR merged (simulated) · the next MR pipeline reads ${TIER_META[demo.promote.to].name}`);
     case 'retire-n4': {
-      const next = { ...setStatus({ ...s, out: unstageItem(s.out, 'n4') }, 'n4', 'retired'), sent: ['belay-policy main · retired patch-bump', ...s.sent] };
-      return ranToast(decided(next, 'readmit', 'patch-bump · T8 gardener', 'retired', 'belay-policy main · commit'), READMIT.retire.result);
+      // Belay has no retire write: tier-state.yml has no "retired" tier. The decision is recorded here, nothing is sent.
+      const next = setStatus({ ...s, out: unstageItem(s.out, 'n4') }, 'n4', 'retired');
+      return notify(decided(next, 'readmit', `${demo.readmit.cls} · T8 gardener`, 'retired · no write', 'nothing sent'), 'toast', retireText(demo.readmit.cls));
     }
     case 'open-runner':
       return notify({ ...s, runner: { ...s.runner, opened: true } }, 'toast', `Opened ${RUNNER.url} · nothing written`);

@@ -35,10 +35,11 @@ export function ladderReducer(s: LadderState, a: LadderAction): LadderState {
     case 'query':
       return { ...s, q: a.q };
     case 'revoke': {
+      // Dispatched once the server answered done: simulated (demo, the demo hands out the commit id) or the real commit.
       if (!s.classes.some((c) => c.id === a.id)) return s;
-      const sha = nextSha(s.shaIdx);
-      const done = commitRevoke(s.classes, s.ledger, a.id, a.to, sha, a.t);
-      return { ...s, ...done, shaIdx: s.shaIdx + 1, sel: a.id, just: a.id };
+      const sha = a.sent.simulated ? nextSha(s.shaIdx) : a.sent.commit;
+      const done = commitRevoke(s.classes, s.ledger, a.id, a.to, a.sent, sha, a.t);
+      return { ...s, ...done, shaIdx: s.shaIdx + (a.sent.simulated ? 1 : 0), sel: a.id, just: a.id };
     }
     case 'settle':
       return { ...s, ...settleCommit(s.classes, s.ledger, a.sha, a.t) };

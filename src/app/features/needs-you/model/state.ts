@@ -22,6 +22,7 @@ export function initialState(demo: NeedsYouDemo): NeedsState {
     session: [],
     runner: { opened: false, check: null },
     submitted: false,
+    writes: {},
     notice: null,
     reveal: null,
   };

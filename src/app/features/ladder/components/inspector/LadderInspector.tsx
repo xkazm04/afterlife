@@ -5,6 +5,7 @@ import { isGroupNavId } from '@/components/table/model/rowNavigation';
 import type { Promotion } from '../../model/rules/promotion';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, TrackMap } from '../../model/types';
 import { ALL_KINDS } from '../../model/view/moves';
+import type { WriteView } from '../../write/revoke';
 import { ClassInspector } from './ClassInspector';
 import { GroupInspector } from './GroupInspector';
 import type { SectionState } from './Sec';
@@ -18,6 +19,9 @@ export interface LadderInspectorProps {
   ledger: readonly LedgerEntry[];
   promotionOf: (c: ClassRow) => Promotion;
   sections: SectionState;
+  /** The revoke target whose write is on screen instead of r's (highlighted in a menu, or pinned by q). */
+  writeTo: Tier | null;
+  viewOf: (id: string, to: Tier) => WriteView | undefined;
   onRevoke: (id: string, to: Tier) => void;
   onTargets: (id: string, el: HTMLElement) => void;
   onPromote: (id: string) => void;
@@ -45,6 +49,8 @@ export function LadderInspector(p: LadderInspectorProps) {
       kinds={kinds}
       onToggleKind={toggleKind}
       sections={p.sections}
+      writeTo={p.writeTo}
+      viewOf={p.viewOf}
       onRevoke={p.onRevoke}
       onTargets={p.onTargets}
       onPromote={p.onPromote}

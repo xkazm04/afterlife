@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../data/pick';
+import type { ActionPreview } from '@/server/actions/types';
 import { commandsFor, gapCommand } from './commands';
 
 const demo = pickNeedsYouDemo();
@@ -26,8 +27,9 @@ describe('gap commands', () => {
 describe('commandsFor (Copy Command)', () => {
   it('returns the exact staged commands per decision', () => {
     expect(commandsFor('n2', demo)?.[0]).toContain('glab issue update 131');
-    expect(commandsFor('n1', demo)).toHaveLength(4);
-    expect(commandsFor('n4', demo)?.[3]).toContain('quarantined → assisted');
+    expect(commandsFor('n1', demo)).toBeNull(); // the server has not planned it yet
+    const preview = { commands: [{ display: 'a' }, { display: 'b' }] } as unknown as ActionPreview;
+    expect(commandsFor('n4', demo, { n4: { kind: 'preview', preview } })).toEqual(['a', 'b']);
     expect(commandsFor('n5', demo)).toEqual(['npx belay doctor --only runner --json']);
   });
   it('has nothing for a row that writes nothing', () => {

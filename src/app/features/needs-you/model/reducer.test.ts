@@ -47,14 +47,16 @@ describe('staging and running', () => {
     const s = run(start(), act('stage-n1'), act('read-draft'), act('stage-n2'));
     expect(keys(s)).toEqual(['n2', 'n1']);
   });
-  it('Run sends it: marks it sent, records it in the ledger and toasts who it ran as', () => {
-    const s = run(start(), act('stage-n1'), { type: 'run', key: 'n1' });
+  it('Run sends the sign-off: marks it sent, records it in the ledger and toasts who it ran as', () => {
+    const s = run(start(), act('read-draft'), act('stage-n2'), { type: 'run', key: 'n2' });
     expect(s.out).toHaveLength(0);
-    expect(s.status.n1).toBe('sent');
-    expect(s.sent[0]).toBe('belay-policy!21 · promotion MR opened');
-    expect(s.session[0]).toMatchObject({ kind: 'promote', result: 'policy MR opened', fresh: true });
-    expect(s.notice?.channel).toBe('toast');
+    expect(s.status.n2).toBe('sent');
+    expect(s.session[0]).toMatchObject({ kind: 'signoff', fresh: true });
     expect(s.notice?.text.startsWith('✓ ran as @operator')).toBe(true);
+  });
+  it('a policy MR never runs in the reducer: Run waits for the server (confirmAction)', () => {
+    const staged = run(start(), act('stage-n1'));
+    expect(run(staged, { type: 'run', key: 'n1' })).toBe(staged);
   });
   it('Run on something that is not staged does nothing', () => {
     expect(run(start(), { type: 'run', key: 'n1' })).toEqual(start());
@@ -102,13 +104,13 @@ describe('gaps', () => {
 });
 
 describe('the actions that skip the outbox', () => {
-  it('Retire runs now: no staging, a sent line, a ledger row, and the class is retired', () => {
+  it('Retire writes nothing: no staging, nothing sent, a ledger row that says so, and a toast that says so', () => {
     const s = run(start(), act('read-note'), act('stage-n4'), act('retire-n4'));
     expect(s.status.n4).toBe('retired');
     expect(s.out).toHaveLength(0);
-    expect(s.sent[0]).toBe('belay-policy main · retired patch-bump');
-    expect(s.session[0]).toMatchObject({ kind: 'readmit', result: 'retired' });
-    expect(s.notice?.channel).toBe('toast');
+    expect(s.sent).toHaveLength(0);
+    expect(s.session[0]).toMatchObject({ kind: 'readmit', result: 'retired · no write', ref: 'nothing sent' });
+    expect(s.notice).toMatchObject({ channel: 'toast', text: expect.stringMatching(/stays quarantined in belay-policy. Nothing was sent.$/) });
   });
   it('Not yet leaves a ledger row and no write; Show again takes the row back out', () => {
     const snoozed = run(start(), act('snooze-n1'));

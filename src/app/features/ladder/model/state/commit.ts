@@ -1,13 +1,18 @@
-// A revoke is a commit to belay-policy as you. Six seconds later the (simulated) tier-gate job reads it.
+// A revoke lands in the state only once the server answered done. Demo: the write was simulated, so the commit id is the
+// demo's own and six seconds later a simulated tier-gate read settles it. Live: the commit is the one GitLab made (read
+// back from belay-policy), and nothing settles it: Belay is not told when the next MR pipeline reads tier-state.yml.
 import { COMMIT_SHAS } from '../../data/policy';
-import { buildPlan, commitText, MANUAL_REVOKE } from '../rules/plan';
+import { commitText, planRows } from '../rules/plan';
 import type { ClassRow, Head, LedgerEntry, Tier } from '../types';
 
-/** The commit id the next revoke will get. */
+/** The demo's commit id for the next simulated revoke. */
 export const nextSha = (shaIdx: number): string => COMMIT_SHAS[shaIdx % COMMIT_SHAS.length] ?? 'e7f1';
 
-/** How long a commit stays "pending" before the simulated tier-gate read. */
+/** How long a simulated commit stays "pending" before the simulated tier-gate read. */
 export const PENDING_MS = 6000;
+
+/** What the server said about a revoke that is done: simulated (demo), or the commit GitLab made (null: not read back). */
+export type Sent = { simulated: true } | { simulated: false; commit: string | null };
 
 export interface Committed {
   classes: ClassRow[];
@@ -15,15 +20,22 @@ export interface Committed {
   head: Head;
 }
 
-/** The classes, ledger and head after revoking `id` to `to` at clock time `t`. Nothing else moves. */
-export function commitRevoke(classes: readonly ClassRow[], ledger: readonly LedgerEntry[], id: string, to: Tier, sha: string, t: string): Committed {
+/**
+ * The classes, ledger and head after revoking `id` to `to` at clock time `t`, with `sha` the commit id to show (the
+ * demo's id when simulated). Nothing else moves. Only a simulated commit waits for the (simulated) tier-gate read.
+ */
+export function commitRevoke(classes: readonly ClassRow[], ledger: readonly LedgerEntry[], id: string, to: Tier, sent: Sent, sha: string | null, t: string): Committed {
   const byId = Object.fromEntries(classes.map((c) => [c.id, c]));
-  const plan = buildPlan(byId, [{ id, to }], MANUAL_REVOKE);
-  const ids = new Set(plan.rows.map((r) => r.cls.id));
+  const rows = planRows(byId, [{ id, to }]);
+  const ids = new Set(rows.map((r) => r.cls.id));
+  const pending = sent.simulated ? sha : null;
   return {
-    classes: classes.map((c) => (ids.has(c.id) ? { ...c, tier: to, lease_days: null, lastMove: `revoked by you · ${t}`, pending: sha } : c)),
-    ledger: [...ledger, { t, ids: [...ids], actor: 'you', where: 'Belay, on your key', kind: 'you', isNew: true, text: commitText(sha, plan.rows) }],
-    head: { sha, by: 'you' },
+    classes: classes.map((c) => (ids.has(c.id) ? { ...c, tier: to, lease_days: null, lastMove: `revoked by you · ${t}`, pending } : c)),
+    ledger: [
+      ...ledger,
+      { t, ids: [...ids], actor: 'you', where: 'Belay, on your key', kind: 'you', isNew: true, text: commitText(sha, rows), ...(sent.simulated ? { chip: 'simulated' as const } : {}) },
+    ],
+    head: { sha: sha ?? '?', by: 'you' },
   };
 }
 

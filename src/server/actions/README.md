@@ -23,6 +23,10 @@ Every intent may carry `proposal`: the inbox item it settles (closed as `acted` 
 
 `{status: 'preview', preview}` -> `{status: 'done' | 'failed', preview, results}` | `{status: 'changed', preview}` | `{status: 'refused', reason}`.
 `preview` = `{kind, title, summary, commands: [{display, argv, risk}], risk, diff, previewId, mode}`.
+Each of `results` is `{display, exit, ok, simulated, error?, made?, url?}`. `made` is what GitLab made, from its own
+answer: an MR (`!22`, with its `url`), or for a file write the commit that file now has on that branch (`commit 1a2b3c4d`,
+read back right after the write, because the repository-files API answers only `{file_path, branch}`). Demo results are
+`simulated` and name nothing.
 `previewId` is a sha-256 of the commands. If the files moved between the two calls, the second call plans again, the ids
 differ, **nothing runs**, and `changed` returns the new preview to show again.
 
@@ -45,9 +49,19 @@ for: in live mode it runs the live runtime's `refresh()` (one poll cycle, then a
 (not ready, the cycle did not finish, the group failed, the project failed or is not in the polled group). It writes
 nothing, to GitLab or the index beyond what a poll writes. Demo mode answers that it has nothing to poll.
 
-## Not done
+## Screens that call them
 
-No UI button calls these yet. The next step wires the Ladder revoke, the Needs-you rows and the Maturity sheet:
-`previewAction` on open, the preview into the existing command block, `confirmAction(intent, preview.previewId)` on the click.
+`words.ts` (pure, client-safe) words an answer with only what it says: `outcomeOf(response, what)` gives the toast text
+(a demo done says "Simulated", never "pushed"; a live done names `made`), and `viewOf` turns a preview answer into what a
+screen holds (`{kind: preview}` or `{kind: refused, reason}`).
+
+- **Ladder** revoke (`app/features/ladder/write/revoke.ts`): `previewAction` as soon as a revoke target is in view
+  (the selected class, the highlighted menu target, or a `q` press), the preview in the inspector and the dock;
+  `confirmAction(intent, preview.previewId)` on r, the button or the menu item.
+- **Needs you** n1 (promote) and n4 (re-admit, a promote-class to Assisted) (`app/features/needs-you/write/promote.ts`):
+  `previewAction` when the decision is selected or staged, the preview in the outbox and the inspector, `confirmAction` on Run.
+
+Not wired yet: the CRA sign-off (`mark-cra-ready`), the gap MRs (`stage-gap-mr`) and the Maturity sheet still show the
+screens' own illustrative commands.
 Not verified live: `start_branch` on the repository-files API, `PUT /projects/:id/issues/:iid` for a work item, and the
 policy branch being pushable by the operator (spike S8). The fake does not model branches, issues or protections.

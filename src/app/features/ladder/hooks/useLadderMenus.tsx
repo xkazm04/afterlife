@@ -7,19 +7,20 @@ import type { MenuAction, MenuEntry } from '@/components/overlays/menu/menuModel
 import { TierMark } from '@/components/status/TierMark';
 import { rowDomId } from '@/components/table/model/rowNavigation';
 import { TIER_META } from '@/lib/tiers';
-import { buildPlan } from '../model/rules/plan';
+import { commandLines } from '@/server/actions/words';
 import { revokeTargets } from '../model/rules/tiers';
 import type { Tier } from '../model/types';
 import { SORT_KEYS, SORT_NAMES, defaultDir } from '../model/view/sort';
 import type { LadderActions } from './useLadderActions';
 import type { LadderData } from './useLadderData';
+import type { RevokeWrites } from './useRevokeWrite';
 
 /**
  * The menus of the table: the sort menu (checks stay open), the row and group context menus and the "take it to"
  * target menu. Entries are built when the menu opens, from the state at that moment. The target of the highlighted
  * item is reported through `onHover` so the docked strip can preview its write.
  */
-export function useLadderMenus({ data, actions, onHover }: { data: LadderData; actions: LadderActions; onHover: (to: Tier | null) => void }) {
+export function useLadderMenus({ data, actions, writes, onHover }: { data: LadderData; actions: LadderActions; writes: RevokeWrites; onHover: (to: Tier | null) => void }) {
   const router = useRouter();
   const { state, dispatch, byId, trackIds } = data;
 
@@ -43,7 +44,7 @@ export function useLadderMenus({ data, actions, onHover }: { data: LadderData; a
     (id: string): MenuEntry<Tier>[] => {
       const lower = revokeTargets(byId[id]?.tier ?? 'human_only');
       return [
-        { head: 'Take it to · runs at once' },
+        { head: 'Take it to · runs the write shown' },
         ...lower.map((to, i) => ({
           label: TIER_META[to].name,
           glyph: <TierMark tier={to} />,
@@ -62,11 +63,13 @@ export function useLadderMenus({ data, actions, onHover }: { data: LadderData; a
       if (!c) return [];
       const lower = revokeTargets(c.tier);
       const eligible = data.promotionOf(c).kind === 'eligible';
+      // The exact commands the server planned for the one-step revoke, once they are on screen.
+      const first = lower[0];
+      const view = first ? writes.viewOf(id, first) : undefined;
+      const cmd = view?.kind === 'preview' ? commandLines(view.preview).join('\n') : null;
       const copy = () => {
-        const to = lower[0];
-        const cmd = to ? buildPlan(byId, [{ id, to }]).cmd[1] : undefined;
         if (!cmd) return;
-        navigator.clipboard?.writeText(cmd).then(() => actions.flash(`Copied ${cmd}`), () => actions.flash(cmd));
+        navigator.clipboard?.writeText(cmd).then(() => actions.flash(`Copied the write for ${id}`), () => actions.flash(cmd));
       };
       return [
         { label: 'Show Rule and Write', sc: '↩', run: () => { actions.select(id); actions.openDetail(id); } },
@@ -75,11 +78,11 @@ export function useLadderMenus({ data, actions, onHover }: { data: LadderData; a
         c.tier === 'quarantined'
           ? { label: 'Re-admit in Needs you…', run: () => router.push('/needs-you') }
           : { label: 'Promote…', sc: 'p', disabled: !eligible, run: () => actions.promote(id) },
-        { label: 'Copy yq Command', disabled: !lower.length, run: copy },
+        { label: 'Copy Command', disabled: !cmd, run: copy },
         ...(state.grouped ? [{ sep: true as const }, { label: `Collapse ${c.track}`, run: () => dispatch({ type: 'toggleGroup', id: c.track, open: false }) }] : []),
       ];
     },
-    [byId, data, actions, targetEntries, router, state.grouped, dispatch],
+    [byId, data, actions, writes, targetEntries, router, state.grouped, dispatch],
   );
 
   const groupEntries = useCallback(

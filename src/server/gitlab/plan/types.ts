@@ -11,6 +11,8 @@ export interface PlannedCommand {
   /** The same command as the operator would type it, for the preview. */
   display: string;
   risk: Risk;
+  /** A file write names its file, so the commit it made can be read back afterwards (GitLab's answer does not name it). */
+  file?: { project: ProjectRef; path: string; branch: string };
 }
 
 export interface CreateMrInput { project: ProjectRef; sourceBranch: string; targetBranch: string; title: string; description?: string; labels?: string[] }

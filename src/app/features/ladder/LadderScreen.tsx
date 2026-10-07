@@ -1,14 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { Spacer } from '@/components/controls/Spacer';
-import { PopupButton } from '@/components/controls/toolbar/PopupButton';
-import { SearchField } from '@/components/controls/toolbar/SearchField';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { Window } from '@/components/shell/Window';
 import { pluralWord } from '@/lib/format/plural';
+import { LadderToolbar } from './components/chrome/LadderToolbar';
 import { PolicyLozenge } from './components/chrome/PolicyLozenge';
-import { TierFilter } from './components/chrome/TierFilter';
 import { Dock } from './components/dock/Dock';
 import { HelpContent } from './components/help/HelpContent';
 import { PolicyContent } from './components/help/PolicyContent';
@@ -21,16 +18,18 @@ import { useLadderData } from './hooks/useLadderData';
 import { useLadderKeys } from './hooks/useLadderKeys';
 import { useLadderMenus } from './hooks/useLadderMenus';
 import { useLadderPopovers } from './hooks/useLadderPopovers';
+import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
 import { pollAge } from './model/clock';
 import { dockModel } from './model/rules/dock';
 import type { Ceiling, Tier, Track } from './model/types';
 import { filterCount } from './model/view/filters';
-import { SORT_NAMES } from './model/view/sort';
 import type { LadderSeed } from './model/state/state';
 import styles from './LadderScreen.module.css';
 
 export interface LadderScreenProps {
+  /** The project the classes belong to: the id the server actions plan the writes for. */
+  project: string;
   seed: LadderSeed;
   tracks: readonly Track[];
   /** What each tier means, for the legend. */
@@ -42,7 +41,7 @@ export interface LadderScreenProps {
 }
 
 /** The Ladder: every action class, its tier and ceiling, the record behind it, and what you can revoke or promote. */
-export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subtitle }: LadderScreenProps) {
+export function LadderScreen({ project, seed, tracks: trackList, means, feedAgeSec, subtitle }: LadderScreenProps) {
   const data = useLadderData(seed, trackList);
   const { state, dispatch, byId, tracks } = data;
   const tableRef = useRef<HTMLDivElement>(null);
@@ -50,6 +49,10 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
   const helpRef = useRef<HTMLButtonElement>(null);
   const policyRef = useRef<HTMLDivElement>(null);
   const [hoverTo, setHoverTo] = useState<Tier | null>(null);
+  // A target r cannot send yet (q, an unhovered menu item): its write is put on screen first, until the selection moves.
+  const [pinned, setPinned] = useState<{ id: string; to: Tier } | null>(null);
+  const shownTo = hoverTo ?? (pinned && pinned.id === data.sel ? pinned.to : null);
+  const writes = useRevokeWrite(project, data.selected, shownTo);
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [open, setOpenMap] = useState<Readonly<Record<string, boolean>>>({});
   const clock = useSimClock();
@@ -75,9 +78,11 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
   const resetUi = useCallback(() => {
     pop.close();
     setHoverTo(null);
+    setPinned(null);
   }, [pop]);
-  const actions = useLadderActions({ data, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi });
-  const menus = useLadderMenus({ data, actions, onHover: setHoverTo });
+  const onShow = useCallback((id: string, to: Tier) => setPinned({ id, to }), []);
+  const actions = useLadderActions({ project, data, writes, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi, onShow });
+  const menus = useLadderMenus({ data, actions, writes, onHover: setHoverTo });
 
   const toggleHelp = () => {
     const anchor = helpRef.current;
@@ -117,18 +122,19 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
       title="Ladder"
       subtitle={subtitle}
       toolbar={
-        <>
-          <TierFilter counts={data.counts} total={total} value={state.filt} onChange={actions.setFilter} />
-          <Spacer />
-          <PolicyLozenge head={state.head} onOpen={togglePolicy} anchorRef={policyRef} />
-          <Spacer />
-          <PopupButton icon="sort" title="Sort" onClick={(e) => menus.openSort(e.currentTarget)}>
-            {SORT_NAMES[state.sort.key]}
-          </PopupButton>
-          <div className={styles.search} onKeyDown={onSearchKey}>
-            <SearchField value={state.q} onChange={(q) => dispatch({ type: 'query', q })} placeholder="Filter classes" label="Filter classes by name" inputRef={searchRef} />
-          </div>
-        </>
+        <LadderToolbar
+          counts={data.counts}
+          total={total}
+          filt={state.filt}
+          onFilter={actions.setFilter}
+          lozenge={<PolicyLozenge head={state.head} onOpen={togglePolicy} anchorRef={policyRef} />}
+          sort={state.sort}
+          onSortMenu={menus.openSort}
+          q={state.q}
+          onQuery={(q) => dispatch({ type: 'query', q })}
+          searchRef={searchRef}
+          onSearchKey={onSearchKey}
+        />
       }
       sidebar={<LadderSidebar classes={state.classes} tracks={tracks} trackIds={data.trackIds} src={state.src} onSource={actions.setSource} />}
       inspector={
@@ -140,6 +146,8 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
           ledger={state.ledger}
           promotionOf={data.promotionOf}
           sections={sections}
+          writeTo={shownTo}
+          viewOf={writes.viewOf}
           onRevoke={actions.revoke}
           onTargets={menus.openTargets}
           onPromote={actions.promote}
@@ -177,7 +185,7 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
           tableRef={tableRef}
         />
       </div>
-      <Dock model={dockModel(data.sel, byId, tracks, hoverTo)} onHelp={toggleHelp} helpRef={helpRef} />
+      <Dock model={dockModel(data.sel, byId, tracks, shownTo, writes.viewOf)} onHelp={toggleHelp} helpRef={helpRef} />
       {menus.menus}
       {pop.popover}
     </Window>

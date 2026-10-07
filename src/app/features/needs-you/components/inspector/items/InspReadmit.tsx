@@ -1,4 +1,3 @@
-import { CommandBlock } from '@/components/inspector/CommandBlock';
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
@@ -6,10 +5,11 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { READMIT } from '../../../data/readmit';
 import { Chip } from '@/components/status/chip/Chip';
-import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
 import { ActBtn, Acts } from '../Acts';
 import type { InspProps } from '../props';
-import { ClickSec, CommandSec, Sec } from '../Sec';
+import { retireText } from '../../../model/act';
+import { PolicyCmdSec, PolicyDiffSec } from '../PolicyWrite';
+import { ClickSec, Sec } from '../Sec';
 import styles from './items.module.css';
 
 /** n4: re-admit a quarantined class (or retire it). The incident note is read before Re-admit is allowed. */
@@ -79,17 +79,12 @@ export function InspReadmit(p: InspProps) {
           ]}
         />
       </Sec>
-      <Sec k="n4-diff" title="Re-admission MR diff" aux={READMIT.readmit.ref} p={p}>
-        <DiffBlock file={READMIT.readmit.file} lines={READMIT.readmit.diff} />
-      </Sec>
-      <Sec k="n4-retire" title="Retire · runs on the click" aux="no outbox" def={false} p={p}>
-        <DiffBlock file={READMIT.retire.file} lines={READMIT.retire.diff} />
-        <div className={styles.gap}>
-          <CommandBlock commands={READMIT.retire.commands} label="Retire commands" />
-        </div>
+      <PolicyDiffSec k="n4" title="Re-admission MR diff" p={p} />
+      <Sec k="n4-retire" title="Retire · no write" aux="no outbox" def={false} p={p}>
+        <div className={styles.muted}>{retireText(demo.readmit.cls)}</div>
       </Sec>
       <ClickSec k="n4-click" p={p} does={READMIT.does} doesNot={READMIT.doesNot} />
-      <CommandSec k="n4-cmd" p={p} commands={READMIT.readmit.commands} title="Command · re-admit" def={false} />
+      <PolicyCmdSec k="n4" title="Command · re-admit" p={p} />
     </>
   );
 }

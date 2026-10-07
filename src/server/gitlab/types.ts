@@ -66,8 +66,12 @@ export interface GlVulnerability {
 
 export interface GlSchedule { id: number; description: string; ref: string; cron: string; active: boolean; nextRunAt: string | null }
 
-/** A repository file with its decoded UTF-8 content. */
-export interface GlFile { path: string; ref: string; blobId: string; size: number; content: string }
+/**
+ * A repository file with its decoded UTF-8 content. `lastCommitId` is GitLab's `last_commit_id`: the last commit that
+ * changed the file at that ref (a write sends it back, so GitLab refuses the write if the file moved since). null when
+ * GitLab did not say.
+ */
+export interface GlFile { path: string; ref: string; blobId: string; size: number; content: string; lastCommitId: string | null }
 
 export interface GlTreeEntry { id: string; name: string; path: string; type: 'blob' | 'tree' | 'commit' }
 

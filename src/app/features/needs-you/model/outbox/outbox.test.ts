@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../data/pick';
+import type { ActionPreview } from '@/server/actions/types';
 import type { OutItem } from '../types';
 import { buildOutItem, stageItem, unstageItem } from './outbox';
 
 const demo = pickNeedsYouDemo();
+const preview = { mode: 'live', summary: 'Opens a policy MR in acme-lab/belay-policy as kazdanm.', commands: [{ display: 'glab api --method PUT projects/2/repository/files/tier-state.yml' }, { display: 'glab api --method POST projects/2/merge_requests' }], diff: ['-     qa.file-bug: { tier: supervised }', '+     qa.file-bug: { tier: hands_off }'] } as unknown as ActionPreview;
 const item = (key: string, clock = false): OutItem => ({ key, kind: 'k', title: key, ref: key, commands: ['c'], clock });
 
 describe('outbox list', () => {
@@ -34,9 +36,21 @@ describe('what each decision stages', () => {
     expect(o?.commands).toHaveLength(2);
     expect(o?.diff).toBeUndefined();
   });
-  it('a promotion and a re-admission carry the exact diff of tier-state.yml', () => {
-    expect(buildOutItem('n1', demo)).toMatchObject({ ref: 'belay-policy!21', file: 'belay-policy/tier-state.yml' });
-    expect(buildOutItem('n4', demo)?.diff?.some(([m]) => m === '+')).toBe(true);
+  it('a promotion or a re-admission carries the server’s commands and diff, exactly as planned', () => {
+    const o = buildOutItem('n1', demo, { n1: { kind: 'preview', preview } });
+    expect(o).toMatchObject({ kind: 'policy MR', title: 'Promote dep-bump.patch to Hands-off', file: 'belay-policy · tier-state.yml', note: preview.summary });
+    expect(o?.commands).toEqual(preview.commands.map((c) => c.display));
+    expect(o?.diff).toEqual([['-', '    qa.file-bug: { tier: supervised }'], ['+', '    qa.file-bug: { tier: hands_off }']]);
+    expect(buildOutItem('n4', demo, { n4: { kind: 'preview', preview } })?.title).toBe('Re-admit patch-bump as Assisted');
+  });
+  it('before the server answered, or when it refused, there is nothing to run and the note says why', () => {
+    expect(buildOutItem('n1', demo)).toMatchObject({ commands: [], note: 'Asking Belay for the exact write…' });
+    expect(buildOutItem('n1', demo)?.diff).toBeUndefined();
+    const refused = buildOutItem('n1', demo, { n1: { kind: 'refused', reason: 'dep-bump.patch is already hands_off: a promotion goes up' } });
+    expect(refused).toMatchObject({ commands: [], note: 'Belay refuses this write: dep-bump.patch is already hands_off: a promotion goes up. Nothing can run.' });
+  });
+  it('a demo preview says Run only simulates', () => {
+    expect(buildOutItem('n4', demo, { n4: { kind: 'preview', preview: { ...preview, mode: 'demo' } } })?.note).toBe('Demo: Run simulates this write; nothing is sent to GitLab.');
   });
   it('a gap is an MR when it has a diff and an issue when it does not', () => {
     expect(buildOutItem('g1', demo)).toMatchObject({ kind: 'gap MR', ref: '!45' });

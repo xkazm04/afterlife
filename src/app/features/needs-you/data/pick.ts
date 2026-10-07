@@ -2,6 +2,7 @@
 // never carries the whole dataset. This screen is built around five specific inbox items and the !44 incident:
 // `pickNeedsYouDemo` throws when the source lacks them, `loadNeedsYou` answers null so the page can say so.
 import type { NeedsYouItem } from '@/lib/demo';
+import { TIER_ORDER, type Tier } from '@/schemas/tier';
 import { getDataSource } from '@/server/data';
 import type { NeedsYouDemo } from './types';
 
@@ -13,6 +14,15 @@ function item(items: readonly NeedsYouItem[], id: string): NeedsYouItem {
   return found;
 }
 
+/** The action class an inbox title names after its last " · " ("Promote T1 patcher · dep-bump.patch"), if the source has it. */
+function classOf(title: string, classes: readonly { id: string }[]): string {
+  const id = title.split(' · ').at(-1) ?? '';
+  if (!classes.some((c) => c.id === id)) throw new MissingNeedsYouData(`no action class ${id} for "${title}"`);
+  return id;
+}
+
+const tierOf = (t: string | undefined): Tier | null => TIER_ORDER.find((x) => x === t) ?? null;
+
 export function pickNeedsYouDemo(): NeedsYouDemo {
   const ds = getDataSource();
   const items = ds.getNeedsYou();
@@ -22,12 +32,15 @@ export function pickNeedsYouDemo(): NeedsYouDemo {
   const maturity = ds.getMaturity();
   const task = ds.getTasks().find((t) => t.mr === '!44');
   const record = ds.getActionClasses().find((c) => c.id === 'patch-bump')?.record;
-  if (!n1.from || !n1.to || !task || !record) throw new MissingNeedsYouData('promote item, incident !44 or patch-bump record is missing');
+  const to = tierOf(n1.to);
+  if (!n1.from || !to || !task || !record) throw new MissingNeedsYouData('promote item, incident !44 or patch-bump record is missing');
   const tiers = ds.getTiers();
+  const classes = ds.getActionClasses();
   return {
-    promote: { title: n1.title, from: n1.from, to: n1.to, rules: n1.rules ?? [] },
+    project: ds.deepProjectId(),
+    promote: { title: n1.title, cls: classOf(n1.title, classes), from: n1.from, to, rules: n1.rules ?? [] },
     signoff: { title: n2.title, linksResolved: n2.linksResolved ?? '' },
-    readmit: { title: n4.title, reason: n4.reason ?? '' },
+    readmit: { title: n4.title, cls: classOf(n4.title, classes), reason: n4.reason ?? '' },
     runner: { title: item(items, 'n5').title },
     gaps: maturity.proposals,
     rungNames: maturity.rungNames,

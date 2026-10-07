@@ -82,6 +82,13 @@ export interface CommandOutcome {
   /** True in demo mode: nothing was executed. */
   simulated: boolean;
   error?: string;
+  /**
+   * What the command made, from GitLab's own answer: an MR ("!22"), or for a file write the commit the file now has on
+   * that branch ("commit 1a2b3c4d", read back right after the write). Absent when simulated, failed, or GitLab did not say.
+   */
+  made?: string;
+  /** The web address of what was made, when GitLab gave one (an MR). */
+  url?: string;
 }
 
 export type ActionResponse =

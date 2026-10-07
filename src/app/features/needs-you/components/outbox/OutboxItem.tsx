@@ -5,7 +5,10 @@ import type { Action, OutItem } from '../../model/types';
 import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
 import styles from './OutboxItem.module.css';
 
-/** One staged write: its kind, title and write ref, Run and Remove, and (open) the exact commands and diff. */
+/**
+ * One staged write: its kind, title and write ref, Run and Remove, and (open) the exact commands and diff. With no
+ * commands (a policy MR whose write the server has not planned, or refused) Run is off and the note says why.
+ */
 export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; open: boolean; selected: boolean; dispatch: (a: Action) => void }) {
   const cls = [styles.oi, item.clock ? styles.clock : '', selected ? styles.sel : '', open ? styles.open : ''].filter(Boolean).join(' ');
   return (
@@ -28,7 +31,7 @@ export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; 
           {item.title}
         </span>
         <span className={styles.ref}>{item.ref}</span>
-        <Button variant={item.clock ? 'primary' : 'accent'} onClick={() => dispatch({ type: 'run', key: item.key })}>
+        <Button variant={item.clock ? 'primary' : 'accent'} disabled={!item.commands.length} title={item.commands.length ? undefined : item.note} onClick={() => dispatch({ type: 'run', key: item.key })}>
           Run
         </Button>
         <Button variant="ghost" onClick={() => dispatch({ type: 'remove', key: item.key })}>
@@ -37,7 +40,8 @@ export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; 
       </div>
       {open ? (
         <div className={styles.body}>
-          <CommandBlock commands={item.commands} label={`Commands for ${item.title}`} />
+          {item.note ? <div className={styles.note}>{item.note}</div> : null}
+          {item.commands.length ? <CommandBlock commands={item.commands} label={`Commands for ${item.title}`} /> : null}
           {item.diff ? <DiffBlock file={item.file} lines={item.diff} /> : null}
         </div>
       ) : null}

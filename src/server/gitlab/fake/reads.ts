@@ -21,6 +21,10 @@ const byId = (items: Record<string, unknown>[]) => [...items].sort((a, b) => Num
 /** A content hash, like a git blob id: it changes when the file does (the poller skips an unchanged ledger by it). */
 const blobId = (content: string): string => createHash('sha1').update(content).digest('hex');
 
+/** GitLab's last_commit_id of a file: the commit the fake's last write of it made, else one derived from its content. */
+export const lastCommitOf = (p: ProjectData, path: string): string =>
+  p.fileCommits?.[path] ?? createHash('sha1').update(`commit\0${path}\0${p.files[path] ?? ''}`).digest('hex');
+
 function dirEntries(p: ProjectData, dir: string, recursive: boolean): Record<string, string>[] {
   const out = new Map<string, Record<string, string>>();
   const prefix = dir ? `${dir.replace(/\/$/, '')}/` : '';
@@ -38,7 +42,7 @@ function fileJson(p: ProjectData, path: string, ref: string): Res {
   if (content === undefined) return fail(404, 'File Not Found');
   return ok({
     file_name: path.split('/').at(-1), file_path: path, size: Buffer.byteLength(content), encoding: 'base64', ref,
-    blob_id: blobId(content), content: Buffer.from(content, 'utf8').toString('base64'),
+    blob_id: blobId(content), last_commit_id: lastCommitOf(p, path), content: Buffer.from(content, 'utf8').toString('base64'),
   });
 }
 

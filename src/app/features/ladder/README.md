@@ -1,18 +1,29 @@
 # Ladder (`/ladder`)
 
 Port of the approved "Policy ledger" prototype: every action class by track, with its tier, the rung inside its
-ceiling, the record behind it, and what you can revoke or promote. Demo data only. Belay writes on a click or a key,
-and the exact write is always on screen first (the docked strip, the inspector's "write behind r").
+ceiling, the record behind it, and what you can revoke or promote. Belay writes on a click or a key, and the exact write
+is always on screen first (the docked strip, the inspector's "write behind r"): the server's own preview, never a
+command the screen spells.
 
 - `LadderScreen.tsx`: composes the `Window`. The route (`app/ladder/page.tsx`) reads the demo on the server.
 - `data/`: the invented ledger the demo opens with, commit ids, policy text, key rows. Plain data.
+- `write/revoke.ts`: the round trip with the server actions. `previewAction({kind: 'revoke-class', ...})` as soon as a
+  revoke target is in view (`hooks/useRevokeWrite.ts` asks once per target); `confirmAction(intent, previewId)` on r, the
+  button or a menu target, and only for a preview on screen. A target that is not on screen yet (`q`, an unhovered menu
+  item) is put on screen first and nothing is sent; press again to send it.
 - `model/`: pure, tested logic.
-  - `rules/` revoke targets, promotion counts, the plan (yq + commit + diff), the dock line.
+  - `rules/` revoke targets, promotion counts, the rows a revoke moves and its ledger line, the dock line.
   - `view/` frozen sort, filters, grouping and j/k walk, the to-scale timeline, ledger queries.
-  - `state/` the reducer: revoke commits, 6 s later the simulated tier-gate read settles it.
-- `hooks/`: data (reducer and derived rows), actions (writes, toasts, timers), menus, keys, popovers, sim clock.
+  - `state/` the reducer: a revoke lands only when the server answered done. Demo: the write was simulated, its commit id
+    is the demo's, and 6 s later a simulated tier-gate read settles it. Live: the commit GitLab made, nothing simulated.
+- `hooks/`: data (reducer and derived rows), the writes on screen (`useRevokeWrite`), actions (sends, toasts, timers),
+  menus, keys, popovers, sim clock.
 - `components/`: `table/` (class rows, split Revoke button), `inspector/` (class and track, `log/`, `sections/`),
-  `chrome/` (tier filter, policy lozenge), `sidebar/`, `dock/` (the line of the shared `CommandDock`), `help/`.
+  `chrome/` (toolbar, tier filter, policy lozenge), `sidebar/`, `dock/` (the line of the shared `CommandDock`), `help/`.
+
+The toast says what the answer says (`@/server/actions/words`): done (simulated in demo, else naming the commit read back
+from belay-policy), failed (GitLab's answer), changed (the files moved: the new write replaces the old one on screen, nothing
+ran) or refused (the reason).
 
 Keys: j k move, r revoke one step, q quarantine, p promote, Enter rule and write, 1-5 / 0 tier filter, / search,
 ? keys and legend, Esc closes. Arrows, Home/End, Enter and the menu key act on the focused table.

@@ -1,4 +1,6 @@
 // State of the Needs you screen. Pure data: the reducer in reducer.ts is the only thing that changes it.
+import type { ActionResponse } from '@/server/actions/types';
+import type { WriteView } from '@/server/actions/words';
 import type { DiffLine, WeekRow } from '../data/types';
 
 export type GroupMode = 'kind' | 'project' | 'deadline';
@@ -7,6 +9,8 @@ export type ShowFilter = 'all' | 'waiting' | 'outbox' | 'sent';
 export type DecisionKey = 'n1' | 'n2' | 'n4' | 'n5';
 export type DecisionStatus = 'open' | 'staged' | 'sent' | 'snoozed' | 'merged' | 'retired' | 'done';
 export type GapStatus = 'staged' | 'sent';
+/** The decisions whose write is a policy MR, planned and run by the server (previewAction, then confirmAction). */
+export type PolicyKey = 'n1' | 'n4';
 
 export type ActionId =
   | 'read-draft'
@@ -40,6 +44,8 @@ export interface OutItem {
   clock?: boolean;
   file?: string;
   diff?: readonly DiffLine[];
+  /** Shown above the commands: whether Run simulates (demo) or runs as you, that the write is still being asked for, or why there is none. */
+  note?: string;
 }
 
 /** A row of "Decided this week". `fresh` marks one decided in this session. */
@@ -77,6 +83,8 @@ export interface NeedsState {
   session: readonly HistRow[];
   runner: { opened: boolean; check: null | 'none' | 'ok' };
   submitted: boolean;
+  /** The exact write of each policy-MR decision, as the server planned it. Absent while it is being asked for. */
+  writes: Readonly<Partial<Record<PolicyKey, WriteView>>>;
   notice: Notice | null;
   /** Set when an action wants the inspector open on a section: the screen reveals it once per id. */
   reveal: { id: number; key: string } | null;
@@ -85,6 +93,10 @@ export interface NeedsState {
 export type Action =
   | { type: 'act'; action: ActionId }
   | { type: 'run'; key: string }
+  /** The server planned (or refused) a policy-MR decision's write. */
+  | { type: 'write'; key: PolicyKey; view: WriteView }
+  /** The server answered Run on a policy-MR decision. */
+  | { type: 'ran'; key: PolicyKey; response: ActionResponse }
   | { type: 'remove'; key: string }
   | { type: 'select'; id: string }
   | { type: 'group'; mode: GroupMode }

@@ -1,5 +1,6 @@
 // Write routes of the fake: the six PlannedCommands Belay builds, applied to the in-memory state.
-import type { ProjectData } from './dataset';
+import { createHash } from 'node:crypto';
+import type { FakeState, ProjectData } from './dataset';
 import { atLeast, inProject } from './reads';
 import { created, fail, ok, type Route } from './server';
 
@@ -8,6 +9,12 @@ const labelsOf = (s: string | undefined): string[] => (s ?? '').split(',').map((
 const nowIso = (): string => new Date().toISOString();
 
 const findMr = (p: ProjectData, iid: string) => p.mrs.find((r) => String(r.iid) === iid);
+
+/** A file write is a commit: the content changes, and so does the file's last_commit_id. */
+function writeFile(p: ProjectData, path: string, content: string, st: FakeState): void {
+  p.files[path] = content;
+  (p.fileCommits ??= {})[path] = createHash('sha1').update(`commit ${st.nextId++}`).digest('hex');
+}
 
 export const writeRoutes: Route[] = [
   ['POST', new RegExp(`^${P}/merge_requests$`), inProject((p, _m, req, st) => {
@@ -44,16 +51,16 @@ export const writeRoutes: Route[] = [
   })],
   // Issues are not modelled by the fake: the write is logged (st.writes) and acknowledged.
   ['PUT', new RegExp(`^${P}/issues/(\\d+)$`), inProject((_p, m, req) => ok({ iid: Number(m[2]), labels: labelsOf(req.fields.add_labels) }))],
-  ['POST', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req) => {
+  ['POST', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req, st) => {
     const path = decodeURIComponent(m[2] ?? '');
     if (path in p.files) return fail(400, 'A file with this name already exists');
-    p.files[path] = req.fields.content ?? '';
+    writeFile(p, path, req.fields.content ?? '', st);
     return created({ file_path: path, branch: req.fields.branch });
   })],
-  ['PUT', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req) => {
+  ['PUT', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req, st) => {
     const path = decodeURIComponent(m[2] ?? '');
     if (!(path in p.files)) return fail(400, 'A file with this name doesn\'t exist');
-    p.files[path] = req.fields.content ?? '';
+    writeFile(p, path, req.fields.content ?? '', st);
     return ok({ file_path: path, branch: req.fields.branch });
   })],
   ['PUT', new RegExp(`^${P}/pipeline_schedules/(\\d+)$`), inProject((p, m, req) => {

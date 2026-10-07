@@ -11,6 +11,7 @@ export function loadLadderData(): LadderScreenProps {
   // The guardrail's quoted finding, by merge request: the Ladder shows it as untrusted text in the ledger.
   const quotes = Object.fromEntries(ds.getTasks().flatMap((t) => (t.mr && t.quote ? [[t.mr, t.quote] as const] : [])));
   return {
+    project: ds.deepProjectId(),
     seed: { classes: ds.getActionClasses(), ledger: LEDGER_SEED, quotes },
     tracks: ds.getTracks(),
     means: Object.fromEntries(TIER_DISPLAY_ORDER.map((t) => [t, tiers[t].means])) as LadderScreenProps['means'],

@@ -7,7 +7,7 @@ import { CommandDock } from '@/components/shell/dock/CommandDock';
 import { DockKey } from '@/components/shell/dock/DockKey';
 import { DockText } from '@/components/shell/dock/DockText';
 import { TIER_META } from '@/lib/tiers';
-import type { DockModel } from '../../model/rules/dock';
+import { commandHead, type DockModel } from '../../model/rules/dock';
 
 function Line({ model }: { model: DockModel }) {
   switch (model.kind) {
@@ -32,20 +32,33 @@ function Line({ model }: { model: DockModel }) {
           <b>{model.id}</b> · nothing to revoke: {model.reason}
         </>
       );
-    case 'write':
-      return (
+    case 'write': {
+      const v = model.view;
+      const lead = (
         <>
-          <DockText tone="prompt">{model.previewing ? '↵' : 'r'} ▸</DockText> <b>{model.id}</b> → {TIER_META[model.to].name} · git commit -am &quot;{model.msg}&quot; &amp;&amp; git
-          push origin main <DockText tone="note">(belay-policy, as you)</DockText>
+          <DockText tone="prompt">{model.previewing ? '↵' : 'r'} ▸</DockText> <b>{model.id}</b> → {TIER_META[model.to].name} ·{' '}
         </>
       );
+      if (!v) return <>{lead}<DockText tone="note">asking Belay for the exact write…</DockText></>;
+      if (v.kind === 'refused') return <>{lead}Belay refuses this write: {v.reason}</>;
+      const note = v.preview.mode === 'demo' ? '(demo: simulated, nothing is sent)' : '(belay-policy, as you)';
+      return (
+        <>
+          {lead}
+          {v.preview.commands.map((c) => commandHead(c.display)).join(' && ')} <DockText tone="note">{note}</DockText>
+        </>
+      );
+    }
   }
 }
 
-/** The docked strip: the exact write `r` (or the highlighted menu item) would run, and the keys. */
+const fullWrite = (model: DockModel): string | undefined =>
+  model.kind === 'write' && model.view?.kind === 'preview' ? model.view.preview.commands.map((c) => c.display).join('\n') : undefined;
+
+/** The docked strip: the exact write `r` (or the highlighted menu item) would run, as the server planned it, and the keys. */
 export function Dock({ model, onHelp, helpRef }: { model: DockModel; onHelp: () => void; helpRef: Ref<HTMLButtonElement> }) {
   return (
-    <CommandDock line={<Line model={model} />} title={model.kind === 'write' ? model.cmd.join('\n') : undefined}>
+    <CommandDock line={<Line model={model} />} title={fullWrite(model)}>
       <DockKey>
         <Kbd>j</Kbd>
         <Kbd>k</Kbd> move
