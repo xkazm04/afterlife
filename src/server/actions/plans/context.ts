@@ -4,6 +4,7 @@ import type { GitLabPort } from '@/server/gitlab/port';
 import type { PlannedCommand } from '@/server/gitlab/plan/types';
 import type { GlFile, GlProject } from '@/server/gitlab/types';
 import type { PollerConfig } from '@/server/poller/config';
+import type { ArmConfig } from '../arm/config';
 
 /** A request the action refuses, with the reason the operator reads. Nothing has run. */
 export class ActionRefused extends Error {}
@@ -17,6 +18,8 @@ export interface PlanContext {
   operator: string;
   /** The GitLab project id of an index project, when the index knows it. */
   gitlabId: (indexId: string) => Promise<number | null>;
+  /** The per-install values an arm MR names (arm/config.ts). Absent: an arm is refused. */
+  arm?: ArmConfig;
 }
 
 export interface Plan {
@@ -24,6 +27,10 @@ export interface Plan {
   summary: string;
   commands: PlannedCommand[];
   diff: string[];
+  /** The branch the commands create, when they create one. */
+  branch?: string;
+  /** What the operator must know before the click, in order. */
+  notes?: readonly string[];
 }
 
 export interface Located {

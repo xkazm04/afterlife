@@ -1,3 +1,4 @@
+import { planArm, planDisarm } from '../arm/plan';
 import type { ActionIntent } from '../types';
 import type { Plan, PlanContext } from './context';
 import { planCraReady } from './cra';
@@ -14,5 +15,7 @@ export function planIntent(ctx: PlanContext, intent: ActionIntent): Promise<Plan
     case 'promote-class': return planPromote(ctx, intent);
     case 'mark-cra-ready': return planCraReady(ctx, intent);
     case 'stage-gap-mr': return planGapMr(ctx, intent);
+    case 'arm-track': return planArm(ctx, intent);
+    case 'disarm-track': return planDisarm(ctx, intent);
   }
 }

@@ -26,6 +26,8 @@ export interface ActionDeps {
   /** One poll cycle, then a fresh snapshot: run after the commands so the screens show what GitLab now says. */
   refresh: () => Promise<void>;
   gitlabId: PlanContext['gitlabId'];
+  /** The per-install values an arm MR names. Absent: an arm is refused with the reason. */
+  arm?: PlanContext['arm'];
 }
 
 const RANK: Record<Risk, number> = { low: 0, policy: 1, merge: 2 };
@@ -41,6 +43,8 @@ function previewOf(deps: ActionDeps, intent: ActionIntent, plan: Plan): ActionPr
     commands: plan.commands.map((c) => ({ display: c.display, argv: c.argv, risk: c.risk })),
     risk: plan.commands.reduce<Risk>((r, c) => (RANK[c.risk] > RANK[r] ? c.risk : r), 'low'),
     previewId: digest(intent, plan.commands),
+    ...(plan.branch ? { branch: plan.branch } : {}),
+    ...(plan.notes ? { notes: [...plan.notes] } : {}),
   };
 }
 
@@ -51,7 +55,7 @@ async function build(deps: ActionDeps, raw: unknown): Promise<Built> {
   if (!parsed.ok) return { ok: false, response: refused(parsed.reason) };
   try {
     const operator = (await deps.port.currentUser()).username;
-    const ctx: PlanContext = { port: deps.port, groupId: deps.groupId, cfg: deps.cfg, now: deps.now(), operator, gitlabId: deps.gitlabId };
+    const ctx: PlanContext = { port: deps.port, groupId: deps.groupId, cfg: deps.cfg, now: deps.now(), operator, gitlabId: deps.gitlabId, ...(deps.arm ? { arm: deps.arm } : {}) };
     const plan = await planIntent(ctx, parsed.intent);
     return { ok: true, intent: parsed.intent, plan, preview: previewOf(deps, parsed.intent, plan), operator };
   } catch (e) {

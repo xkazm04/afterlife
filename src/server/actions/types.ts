@@ -50,7 +50,20 @@ export interface StageGapMr extends Base {
   workItem?: number;
 }
 
-export type ActionIntent = RevokeClass | PromoteClass | MarkCraReady | StageGapMr;
+/** Arm a Setup track: one MR, as the operator, that adds the track's include lines to the target's .gitlab-ci.yml. */
+export interface ArmTrack extends Base {
+  kind: 'arm-track';
+  /** "T1" to "T8". Only a track whose arm content the repo defines is planned. */
+  track: string;
+}
+
+/** Disarm a Setup track: one MR that removes exactly the lines its arm MR added. */
+export interface DisarmTrack extends Base {
+  kind: 'disarm-track';
+  track: string;
+}
+
+export type ActionIntent = RevokeClass | PromoteClass | MarkCraReady | StageGapMr | ArmTrack | DisarmTrack;
 export type ActionKind = ActionIntent['kind'];
 
 export interface PreviewCommand {
@@ -69,6 +82,10 @@ export interface ActionPreview {
   risk: Risk;
   /** What changes in the files, as "- old" / "+ new" lines. */
   diff: string[];
+  /** The branch the commands create, when they create one. */
+  branch?: string;
+  /** What the operator must know before the click, in order. */
+  notes?: string[];
   /** Pass this back to confirm. It is a digest of the commands: if the plan changes before confirming, it no longer matches. */
   previewId: string;
   /** demo: confirming only simulates. live: confirming runs the commands as the operator's own glab login. */

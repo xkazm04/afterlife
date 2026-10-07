@@ -7,6 +7,7 @@ import { readyRuntime } from '@/server/data/live/runtime';
 import { getProjectRow } from '@/server/index/repositories/fleet/project';
 import { SEED_NOW } from '@/server/index/seed/parse';
 import { readPollerConfig } from '@/server/poller/config';
+import { DEMO_PIN, readArmConfig } from './arm/config';
 import type { ActionDeps } from './run';
 
 let planner: ReturnType<typeof createDemoGitLab> | null = null;
@@ -19,13 +20,13 @@ export function actionDeps(env: Record<string, string | undefined> = process.env
     const groupId = readConfig(env).groupId;
     return {
       mode: 'live', port: rt.port, db: rt.db, groupId, cfg: readPollerConfig(groupId, env), now: rt.clock.read, refresh: rt.refresh,
-      gitlabId: async (id) => (await getProjectRow(rt.db, id))?.gitlabId ?? null,
+      gitlabId: async (id) => (await getProjectRow(rt.db, id))?.gitlabId ?? null, arm: readArmConfig(env),
     };
   }
   planner ??= createDemoGitLab(SEED_NOW);
   const groupId = readConfig(env).groupId;
   return {
     mode: 'demo', port: planner.port, db: null, groupId, cfg: readPollerConfig(groupId, env), now: () => SEED_NOW,
-    refresh: () => Promise.resolve(), gitlabId: () => Promise.resolve(null),
+    refresh: () => Promise.resolve(), gitlabId: () => Promise.resolve(null), arm: { ok: true, pin: DEMO_PIN },
   };
 }

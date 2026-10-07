@@ -1,4 +1,4 @@
-// A fake GitLab group built from the demo dataset (src/lib/demo): `acme-lab` with ledgerline (MRs, notes, deployments),
+// A fake GitLab group built from the demo dataset (src/lib/demo): `acme-lab` with ledgerline (MRs, notes, deployments, .gitlab-ci.yml),
 // belay-policy (trust-policy.yml, tier-state.yml) and belay-ledger (a verifying hash chain). Polling it reproduces what
 // the demo shows for the deep project, which is how live mode is demoable without a real group.
 // Not recorded from GitLab: every shape is [R] from the docs, like fake/__fixtures__/docs.
@@ -6,6 +6,7 @@ import { SEED_NOW } from '@/server/index/seed/parse';
 import type { Rec } from '../../adapter/fields';
 import { createFakeGitLab, type FakeGitLab, type FakeOptions } from '../fakeGitLab';
 import { project } from '../dataset';
+import { LEDGERLINE_CI } from './ciFile';
 import { extraTaskMr } from './extraTask';
 import { GROUP_ID, GROUP_PATH, LEDGER_GID, LEDGERLINE_GID, POLICY_GID } from './ids';
 import { ledgerlineData } from './ledgerline';
@@ -29,6 +30,7 @@ export interface DemoOptions extends Omit<FakeOptions, 'custom'> {
 /** The demo group as a fake GitLab. `anchor` is the instant every relative time is measured from (the demo's 14:22). */
 export function createDemoGitLab(anchor: Date = SEED_NOW, { extraTask, ...o }: DemoOptions = {}): FakeGitLab {
   const ledgerline = ledgerlineData(raw(LEDGERLINE_GID, 'ledgerline', `${GROUP_PATH}/core-banking`), anchor);
+  ledgerline.files['.gitlab-ci.yml'] = LEDGERLINE_CI;
   if (extraTask) {
     const extra = extraTaskMr(anchor);
     ledgerline.mrs.unshift(extra.mr);

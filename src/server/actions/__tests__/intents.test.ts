@@ -48,6 +48,15 @@ describe('an intent is validated before it is planned', () => {
     expect(bad({ from: 9 })).toBe(false);
   });
 
+  it('takes an arm or a disarm of one track, T1 to T8, and nothing else from it', () => {
+    for (const kind of ['arm-track', 'disarm-track']) {
+      const r = parseIntent({ kind, project: 'ledgerline', track: 'T4', branch: 'main', content: 'x', token: 'secret' });
+      expect(r.ok && r.intent).toEqual({ kind, project: 'ledgerline', track: 'T4' });
+      for (const track of [undefined, 'T0', 'T9', 't4', 'T4 ', 'T44', 4, 'guardrail']) expect(parseIntent({ kind, project: 'ledgerline', track }).ok).toBe(false);
+      expect(parseIntent({ kind, project: '../x', track: 'T4' }).ok).toBe(false);
+    }
+  });
+
   it('drops fields it does not know instead of passing them on', () => {
     const r = parseIntent({ kind: 'mark-cra-ready', project: 'ledgerline', issue: 3, argv: ['rm', '-rf'], token: 'secret' });
     expect(r.ok && Object.keys(r.intent).sort()).toEqual(['issue', 'kind', 'project']);
@@ -64,6 +73,16 @@ describe('the server actions (demo mode, the default)', () => {
     expect(p.preview.mode).toBe('demo');
     const r = await confirmAction(revoke, p.preview.previewId);
     expect(r).toMatchObject({ status: 'done', results: [{ simulated: true, ok: true }] });
+  });
+
+  it('previews the T4 arm MR in demo mode from the demo group, and confirms it only as a simulation', async () => {
+    const arm = { kind: 'arm-track', project: 'ledgerline', track: 'T4' };
+    expect(await previewAction(arm)).toMatchObject({ status: 'refused', reason: expect.stringContaining('T4 is already armed') });
+    const disarm = { kind: 'disarm-track', project: 'ledgerline', track: 'T4' };
+    const p = await previewAction(disarm);
+    if (p.status !== 'preview') throw new Error(p.status);
+    expect(p.preview).toMatchObject({ mode: 'demo', branch: 'belay/disarm-guardrail' });
+    expect(await confirmAction(disarm, p.preview.previewId)).toMatchObject({ status: 'done', results: [{ simulated: true }, { simulated: true }] });
   });
 
   it('refuses a bad intent and a bad preview id', async () => {

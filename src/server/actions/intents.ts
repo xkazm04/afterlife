@@ -20,6 +20,7 @@ const ONE_LINE = /^[^\r\n]+$/;
 const BRANCH = /^belay\/[A-Za-z0-9._/-]+$/;
 const FILE_PATH = /^[A-Za-z0-9._][A-Za-z0-9._/-]*$/;
 const MAX_FILE = 64 * 1024;
+const TRACK = /^T[1-8]$/;
 
 function files(v: unknown): GapFile[] | null {
   if (!Array.isArray(v) || v.length < 1 || v.length > 8) return null;
@@ -73,6 +74,11 @@ export function parseIntent(raw: unknown): IntentParse {
         return no('gap, stage, title, branch (belay/...), from/to (0-4) and 1 to 8 files are required');
       }
       return { ok: true, intent: { kind: 'stage-gap-mr', ...base, gap, stage, from, to, title, branch, files: fs, ...(workItem ? { workItem } : {}) } };
+    }
+    case 'arm-track':
+    case 'disarm-track': {
+      const track = str(raw.track, TRACK, 2);
+      return track ? { ok: true, intent: { kind: raw.kind, ...base, track } } : no('track must be T1 to T8');
     }
     default:
       return no('unknown intent kind');

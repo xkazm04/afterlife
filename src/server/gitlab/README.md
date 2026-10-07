@@ -7,7 +7,7 @@ Server-only. The app imports `@/server/gitlab` (index.ts); tests and `belay doct
 | `port.ts`, `types.ts` | `GitLabPort`: typed reads (group, projects, pipelines, jobs, trace, test summary, MRs, notes, diffs, environments, deployments, releases, schedules, files, tree, vulnerabilities, current user) and `execute(planned)` |
 | `plan/` | Pure builders for the seven writes (B6 added `setIssueLabels` and `start_branch` on `commitFile`). Each returns `PlannedCommand {argv, display, risk}` and runs nothing |
 | `adapter/` | Real: `glab api` through `execFile` (no shell). Pagination, 429 backoff, typed `GitLabError`. No token is read or stored; glab's keyring is the login |
-| `fake/` | Fake: the same adapter over an in-memory `glab api` server seeded from `__fixtures__`. Writes (via `execute`) change its state. `fake/demo/` builds a whole fake group (`acme-lab`) from the demo dataset, for live mode without a real group |
+| `fake/` | Fake: the same adapter over an in-memory `glab api` server seeded from `__fixtures__`. Writes (via `execute`) change its state. `fake/demo/` builds a whole fake group (`acme-lab`) from the demo dataset, for live mode without a real group (ledgerline has a `.gitlab-ci.yml` with T4 armed, for Setup's arm, disarm and verify) |
 | `capabilities.ts` | `belay doctor` probes: available / unavailable / unknown, each with a basis (endpoint, plan, version, none) and a reason |
 | `doctorCli.ts` | The doctor entry that `cli/belay.mjs doctor` runs through tsx. GET-only |
 | `config.ts` | `BELAY_GLAB` (binary; else PATH; else `%LOCALAPPDATA%\Programs\glab\glab.exe`), `BELAY_GITLAB_HOST`, `BELAY_GROUP_ID` (default 144060371) |
