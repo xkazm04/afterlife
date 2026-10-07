@@ -65,6 +65,12 @@ export async function locate(ctx: PlanContext, indexId: string): Promise<Located
 
 export const dateOnly = (d: Date): string => d.toISOString().slice(0, 10);
 
+/**
+ * The minute a record is stamped with. Confirm plans again and runs only if the commands are the preview's to the byte
+ * (previewId): a stamp to the millisecond changed with every click, so a revoke or a promotion never ran live (F52).
+ */
+export const minuteOf = (d: Date): Date => new Date(Math.floor(d.getTime() / 60_000) * 60_000);
+
 /** Without the file's last commit, GitLab cannot be asked to refuse a stale write: such a write is not planned at all. */
 export const NO_LAST_COMMIT =
   'GitLab did not say which commit last changed tier-state.yml, so a write from a stale read could not be refused; nothing is planned';

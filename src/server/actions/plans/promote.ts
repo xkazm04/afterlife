@@ -6,7 +6,7 @@ import { TIER_ORDER } from '@/schemas/tier';
 import { standingOf } from '../../../../engine/decide/standing';
 import { readPolicy } from '@/server/poller/derive/policy';
 import type { PromoteClass } from '../types';
-import { ActionRefused, dateOnly, lastCommitOf, locate, type Plan, type PlanContext } from './context';
+import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, type PlanContext } from './context';
 import { editRecords, lineDiff } from './tierEdit';
 
 export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promise<Plan> {
@@ -28,9 +28,10 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
   if (rank(intent.to) > rank(held.ceiling)) throw new ActionRefused(`${intent.class} has a ${held.ceiling} ceiling in trust-policy.yml: ${intent.to} is above it`);
 
   const ttl = read.policy.grant_ttl_days;
+  const at = minuteOf(ctx.now);
   const record: Record<string, string> = {
-    tier: intent.to, since: ctx.now.toISOString(), by: `operator ${ctx.operator} via promotion MR`,
-    ...(intent.to === 'hands_off' && ttl ? { lease_expires: new Date(ctx.now.getTime() + ttl * 86_400_000).toISOString() } : {}),
+    tier: intent.to, since: at.toISOString(), by: `operator ${ctx.operator} via promotion MR`,
+    ...(intent.to === 'hands_off' && ttl ? { lease_expires: new Date(at.getTime() + ttl * 86_400_000).toISOString() } : {}),
   };
   const content = editRecords(file.content, [{ agent: held.agent, class: intent.class, record }]);
   const move = `${intent.class} ${held.record.tier} -> ${intent.to}`;

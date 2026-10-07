@@ -8,7 +8,7 @@ import { TIER_ORDER } from '@/schemas/tier';
 import { holderStandings, standingOf } from '../../../../engine/decide/standing';
 import { readPolicy } from '@/server/poller/derive/policy';
 import type { RevokeClass } from '../types';
-import { ActionRefused, dateOnly, lastCommitOf, locate, type Plan, type PlanContext } from './context';
+import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, type PlanContext } from './context';
 import { editRecords, lineDiff, type RecordEdit } from './tierEdit';
 
 export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise<Plan> {
@@ -38,7 +38,7 @@ export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise
       edits.push({
         agent: h.agent, class: change.class,
         record: {
-          tier: change.to, since: ctx.now.toISOString(), by: `operator ${ctx.operator} via Belay`, evidence: why,
+          tier: change.to, since: minuteOf(ctx.now).toISOString(), by: `operator ${ctx.operator} via Belay`, evidence: why,
           cooldown_until: dateOnly(new Date(ctx.now.getTime() + read.policy.cooldown_days * 86_400_000)),
         },
       });
