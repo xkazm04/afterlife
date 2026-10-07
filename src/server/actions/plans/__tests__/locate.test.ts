@@ -25,6 +25,7 @@ async function impostor(where: string, ownPolicy = true) {
 
 const revoke = { kind: 'revoke-class', project: 'ledgerline', changes: [{ class: 'qa.file-bug', to: 'assisted' }], why: 'manual revoke' };
 const promote = { kind: 'promote-class', project: 'ledgerline', class: 'qa.file-bug', to: 'hands_off' };
+const cra = { kind: 'mark-cra-ready', project: 'ledgerline', issue: 3 };
 type R = Awaited<ReturnType<typeof previewIntent>>;
 const summary = (r: R): string => (r.status === 'preview' ? r.preview.summary : r.status === 'refused' ? `refused: ${r.reason}` : r.status);
 const argv = (r: R): string => (r.status === 'preview' ? r.preview.commands.map((c) => c.argv.join(' ')).join('\n') : '');
@@ -47,4 +48,13 @@ describe('locate: the policy project is the group\'s own belay-policy', () => {
       expect(gl.state.writes).toEqual([]);
     });
   }
+});
+
+describe('locate: the target is a project of the paired group', () => {
+  it('refuses a target shared in from another namespace', async () => {
+    const { deps } = await liveRig(listing((all) => all.map((p) => (p.path === 'ledgerline' ? { ...p, pathWithNamespace: 'outsider/ledgerline' } : p))));
+    expect(summary(await previewIntent(deps, cra))).toMatch(/refused: outsider\/ledgerline is not in acme-lab/);
+    expect(summary(await previewIntent(deps, revoke))).toMatch(/refused: outsider\/ledgerline is not in acme-lab/);
+  });
+
 });
