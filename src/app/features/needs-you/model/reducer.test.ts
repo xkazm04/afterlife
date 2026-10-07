@@ -91,15 +91,20 @@ describe('gaps', () => {
     expect(s.notice?.text).toBe('2 gaps staged · 1 write each');
   });
   it('staging one gap ticks it, and taking it back clears its status', () => {
-    const s = run(start(), act('stage-gap:g4'));
-    expect(s.gaps.g4).toBe(true);
-    expect(s.gapStatus.g4).toBe('staged');
-    expect(run(s, act('unstage:g4')).gapStatus.g4).toBeUndefined();
+    const s = run(start(), act('stage-gap:g3'));
+    expect(s.gaps.g3).toBe(true);
+    expect(s.gapStatus.g3).toBe('staged');
+    expect(run(s, act('unstage:g3')).gapStatus.g3).toBeUndefined();
   });
-  it('running a gap records an MR (or an issue) as waiting for your review', () => {
-    const s = run(start(), act('stage-gap:g1'), { type: 'run', key: 'g1' });
-    expect(s.gapStatus.g1).toBe('sent');
-    expect(s.session[0]).toMatchObject({ kind: 'gaps', ref: '!45 · waits for your review' });
+  it('the probe has no server door: it is not staged, and says why', () => {
+    const s = run(start(), act('stage-gap:g4'));
+    expect(s.out).toHaveLength(0);
+    expect(s.gapStatus.g4).toBeUndefined();
+    expect(s.notice?.text).toMatch(/^Not staged · Not built yet/);
+  });
+  it('Run on a gap never sends it from the reducer: only the server runs it', () => {
+    const staged = run(start(), act('stage-gap:g1'));
+    expect(run(staged, { type: 'run', key: 'g1' })).toBe(staged);
   });
 });
 

@@ -52,9 +52,9 @@ describe('what each decision stages', () => {
   it('a demo preview says Run only simulates', () => {
     expect(buildOutItem('n4', demo, { n4: { kind: 'preview', preview: { ...preview, mode: 'demo' } } })?.note).toBe('Demo: Run simulates this write; nothing is sent to GitLab.');
   });
-  it('a gap is an MR when it has a diff and an issue when it does not', () => {
-    expect(buildOutItem('g1', demo)).toMatchObject({ kind: 'gap MR', ref: '!45' });
-    expect(buildOutItem('g4', demo)).toMatchObject({ kind: 'gap issue', ref: '#132' });
+  it('a gap stages its draft MR with no command of its own, and the probe stages nothing', () => {
+    expect(buildOutItem('g1', demo)).toMatchObject({ kind: 'gap MR', commands: [], note: 'Asking Belay for the exact write…' });
+    expect(buildOutItem('g4', demo)).toBeNull();
   });
   it('stages nothing for a row that has no write', () => {
     expect(buildOutItem('n5', demo)).toBeNull();

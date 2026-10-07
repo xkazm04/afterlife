@@ -1,10 +1,14 @@
 import { CommandBlock } from '@/components/inspector/CommandBlock';
+import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
+import { parseDiff } from '@/components/inspector/blocks/diff';
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { GAP_DETAIL } from '../../../data/gaps';
-import { gapCommand } from '../../../model/outbox/commands';
+import { commandsFor } from '../../../model/outbox/commands';
+import { gapBlock } from '../../../write/desk';
+import { PROPOSAL_EXTRAS } from '@/app/features/maturity/data/proposals';
 import { ActBtn, Acts } from '../Acts';
 import type { InspProps } from '../props';
 import { ClickSec, Sec } from '../Sec';
@@ -16,6 +20,9 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
   const g = demo.gaps.find((x) => x.id === id);
   if (!g) return null;
   const gs = s.gapStatus[id];
+  const block = gapBlock(id, demo);
+  const view = s.writes[id];
+  const cmds = commandsFor(id, demo, s.writes);
   const fromName = demo.rungNames[g.from] ?? '';
   const toName = demo.rungNames[g.to] ?? '';
   return (
@@ -34,16 +41,18 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
             </span>
           </span>
         }
-        path={`${GAP_DETAIL.branch[id] ?? 'issue · no branch'} · ${GAP_DETAIL.mrNo[id] ?? ''}`}
+        path={PROPOSAL_EXTRAS[id]?.branch ?? 'no branch · nothing is sent'}
       />
       {!gs ? (
         <Acts>
           <ActBtn dispatch={dispatch} action={`tick:${id}`}>
             {s.gaps[id] ? 'Picked ✓ · untick' : 'Pick this gap'}
           </ActBtn>
-          <ActBtn dispatch={dispatch} action={`stage-gap:${id}`} variant="accent">
-            Stage this gap
-          </ActBtn>
+          {block ? null : (
+            <ActBtn dispatch={dispatch} action={`stage-gap:${id}`} variant="accent">
+              Stage this gap
+            </ActBtn>
+          )}
         </Acts>
       ) : null}
       {gs === 'staged' ? (
@@ -62,7 +71,7 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
       <Sec k="gap-w" title="Writes" p={p}>
         <KeyValue
           rows={[
-            ['As', g.diffLines ? 'one draft MR' : 'one issue (probe)'],
+            ['As', block ? 'nothing yet (no door for it)' : 'one draft MR'],
             ['Diff', g.diffLines ? `${g.diffLines} lines` : <HonestyChip key="d" kind="unknown">unknown until the probe runs</HonestyChip>],
             [
               'Class',
@@ -75,7 +84,16 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
       </Sec>
       <ClickSec k="gap-click" p={p} does={GAP_DETAIL.does} doesNot={GAP_DETAIL.doesNot} />
       <Sec k="gap-cmd" title="Command" p={p}>
-        <CommandBlock commands={gapCommand(g, demo.rungNames)} />
+        {block ? (
+          <p className={styles.voice}>Not sent: {block}</p>
+        ) : cmds && view?.kind === 'preview' ? (
+          <>
+            <CommandBlock commands={cmds} />
+            <DiffBlock file={`gap ${id}`} lines={parseDiff(view.preview.diff)} />
+          </>
+        ) : (
+          <p className={styles.voice}>{view?.kind === 'refused' ? `Belay refuses this write: ${view.reason}. Nothing can run.` : 'Asking Belay for the exact write…'}</p>
+        )}
       </Sec>
     </>
   );

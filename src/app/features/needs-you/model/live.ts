@@ -27,7 +27,7 @@ export const writeName = (intent: PromoteClass): string => `${intent.class} → 
 
 const ELSEWHERE: Readonly<Record<string, string>> = {
   signoff: 'Read-only here: sign off on the CRA clock work item in GitLab. This list does not send the sign-off yet.',
-  gaps: 'Read-only here: pick and open the gap merge requests in GitLab. This list does not send them yet.',
+  gaps: 'Read-only here: open a gap merge request from Maturity, which previews it first. A gap sends from this list only when it carries its files from the live source, and none does yet.',
   setup: 'Read-only here: finish this step in Setup or in GitLab.',
 };
 

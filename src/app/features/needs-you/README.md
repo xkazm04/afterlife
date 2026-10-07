@@ -11,7 +11,7 @@ one action, a promote-class policy MR through `write/promote.ts` (the desk's doo
 server's commands and diff are shown; Run is `confirmAction(intent, previewId)` for that preview only. The answer is only
 what the response says (done names the MR GitLab opened; refused, changed and failed say so); a failed preview shows why
 and can be asked again. `?item=<id>` opens an item selected (Ladder's p). Sign-offs, gaps and setup steps stay read-only
-and say where to act.
+and say where to act. A gap item is read-only here until it carries its files from the live source (none does yet); its line points to Maturity.
 
 ## Parts
 - `components/band/` the CRA band: live countdown, 24 h rail, grade ladder (attested struck out), 6/6 evidence.
@@ -22,6 +22,9 @@ and say where to act.
   inspector show (`model/outbox/policy.ts`); Run is `confirmAction(intent, previewId)` (`hooks/useNeedsYou.ts`), and the
   reducer records only the answer: done names the MR GitLab opened (or says simulated in demo), failed, changed (the new
   write replaces the old) and refused say so.
+- `write/desk.ts` the gaps (g1..g4), through Maturity's gap door (`maturity/write/gap.ts`, the server's stage-gap-mr): the same
+  ask-when-in-view, confirm-by-previewId, answer-only-what-the-response-says as the policy MRs. The probe (g4) and a gap with no
+  proposal files are not sent and say why. The files are Maturity's proposal data, not copied here. Nothing moves a rung.
 - `components/inspector/` one view per selection; "The click" lists what a button will and will not do.
 - `components/chrome/` toolbar, sidebar filters, legend. `components/shared/` marks used by the above.
 - `hooks/` reducer + notices, right-click menus, keyboard map, 1 s clock tick.

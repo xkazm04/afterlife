@@ -83,8 +83,8 @@ export interface NeedsState {
   session: readonly HistRow[];
   runner: { opened: boolean; check: null | 'none' | 'ok' };
   submitted: boolean;
-  /** The exact write of each policy-MR decision, as the server planned it. Absent while it is being asked for. */
-  writes: Readonly<Partial<Record<PolicyKey, WriteView>>>;
+  /** The exact write of each decision the server plans (a policy MR, a gap MR), as it planned it. Absent while it is being asked for. */
+  writes: Readonly<Partial<Record<string, WriteView>>>;
   notice: Notice | null;
   /** Set when an action wants the inspector open on a section: the screen reveals it once per id. */
   reveal: { id: number; key: string } | null;
@@ -93,10 +93,10 @@ export interface NeedsState {
 export type Action =
   | { type: 'act'; action: ActionId }
   | { type: 'run'; key: string }
-  /** The server planned (or refused) a policy-MR decision's write. */
-  | { type: 'write'; key: PolicyKey; view: WriteView }
-  /** The server answered Run on a policy-MR decision. */
-  | { type: 'ran'; key: PolicyKey; response: ActionResponse }
+  /** The server planned (or refused) a decision's write: a policy MR (n1, n4) or a gap MR (g1..). */
+  | { type: 'write'; key: string; view: WriteView }
+  /** The server answered Run on such a decision. */
+  | { type: 'ran'; key: string; response: ActionResponse }
   | { type: 'remove'; key: string }
   | { type: 'select'; id: string }
   | { type: 'group'; mode: GroupMode }

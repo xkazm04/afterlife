@@ -1,5 +1,4 @@
 // What a row says in its State column, and the three questions the filters ask of it.
-import { GAP_DETAIL } from '../../data/gaps';
 import { DECISION_IDS } from '../../data/constants';
 import type { NeedsState } from '../types';
 
@@ -23,7 +22,7 @@ export const isDecisionId = (id: string): boolean => /^(n\d+|g\d+)$/.test(id);
 function gapState(s: NeedsState, id: string): RowState {
   const gs = s.gapStatus[id];
   if (gs === 'staged') return staged;
-  if (gs === 'sent') return ok(`sent ${GAP_DETAIL.mrNo[id] ?? ''}`.trim());
+  if (gs === 'sent') return ok('sent');
   return s.gaps[id] ? wait('picked') : { tone: 'dim', glyph: 'open', label: 'you pick' };
 }
 

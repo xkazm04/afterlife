@@ -3,6 +3,7 @@
 import { CRA } from '../data/cra';
 import { RUNNER } from '../data/runner';
 import type { NeedsYouDemo } from '../data/types';
+import { gapBlock } from '../write/desk';
 import { buildOutItem, stageItem, unstageItem } from './outbox/outbox';
 import { decided } from './rows/history';
 import { ranToast } from './run';
@@ -49,13 +50,16 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
     case 'stage-gap': {
       const g = demo.gaps.find((x) => x.id === arg);
       if (!g) return s;
+      const block = gapBlock(arg, demo);
+      if (block) return notify(s, 'status', `Not staged · ${block}`);
       const next = { ...s, gaps: { ...s.gaps, [arg]: true }, gapStatus: { ...s.gapStatus, [arg]: 'staged' as const } };
-      return notify(stage(next, arg, demo), 'status', `${g.stage} gap staged · 1 ${g.diffLines ? 'MR' : 'issue'}`);
+      return notify(stage(next, arg, demo), 'status', `${g.stage} gap staged · 1 MR`);
     }
     case 'stage-gaps': {
-      const picked = pickedGaps(s, demo);
+      const all = pickedGaps(s, demo);
+      const picked = all.filter((g) => !gapBlock(g.id, demo));
       const next = picked.reduce((acc, g) => stage({ ...acc, gapStatus: { ...acc.gapStatus, [g.id]: 'staged' as const } }, g.id, demo), s);
-      return notify(next, 'status', `${picked.length} gaps staged · 1 write each`);
+      return notify(next, 'status', `${picked.length} gaps staged · 1 write each${all.length > picked.length ? ` · ${all.length - picked.length} not sent (no door for it)` : ''}`);
     }
     case 'tick':
       return { ...s, gaps: { ...s.gaps, [arg]: !s.gaps[arg] } };
