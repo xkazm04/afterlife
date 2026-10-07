@@ -21,10 +21,13 @@ project, `ledgerline`. The GitLab flows, the proof engine and the tripwire come 
 
 | Route | Screen | Answers |
 |---|---|---|
-| `/` | Fleet | Across all projects: who may act alone, what is stale, what needs me? |
+| `/` | Front door | The fleet as a city at night: how many decisions wait, and where? Enter Afterlife goes to Fleet. |
+| `/fleet` | Fleet | Across all projects: who may act alone, what is stale, what needs me? |
+| `/monitor` | Monitor | The fleet as seven phosphor leads, every project a beat: pick one and act on what waits. |
 | `/needs-you` | Needs you | What is waiting for me, and what will my click do? Includes the CRA legal clock and the outbox. |
 | `/ladder` | Ladder | What may each agent do right now, and how do I take it away? |
 | `/maturity` | Maturity | Which DevSecOps stages are real, and which gap do we close next? |
+| `/cycles` | Cycles | What has each improvement round earned, does the history add up to the scan, and what runs next? |
 | `/task/[id]` | Task | What did this agent do, and why may I believe it? Shows the claims against the checks. |
 | `/setup` | Setup | What blocks each track, and what only I can do. |
 | `/theater` | Theater | Deterministic replay for recording, with present mode (`F`). |

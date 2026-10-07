@@ -132,3 +132,14 @@
 .why {
   color: var(--text-3);
 }
+/* the way out to the Cycles screen, under the credit history */
+.toCycles {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: var(--t-small);
+  color: var(--accent);
+  text-decoration: none;
+}
+.toCycles:hover {
+  text-decoration: underline;
+}

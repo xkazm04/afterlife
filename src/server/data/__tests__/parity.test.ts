@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
+import { loadCyclesData } from '@/app/features/cycles/data/loadCyclesData';
 import { loadMaturityData } from '@/app/features/maturity/data/loadMaturityData';
 import { pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
@@ -84,6 +85,12 @@ describe('every screen loader gets the same data from the live source as from th
   it('Maturity: the nine rungs and the gap proposals', () => {
     const [d, l] = both(() => asProps(loadMaturityData()));
     expect(l).toEqual(d);
+  });
+
+  it('Cycles: the replayed history over the live scan reconciles exactly as it does over the demo one', () => {
+    const [d, l] = both(() => asProps(loadCyclesData()));
+    expect(l).toEqual(d);
+    expect((l as { drift: string[] }).drift).toEqual([]);
   });
 
   it('Setup and Theater', () => {

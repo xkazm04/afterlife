@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import type { CreditEntry } from '../../data/types';
 import { shortMr } from '../../model/rungs';
@@ -32,6 +33,9 @@ export function CreditHistory({
       ) : (
         <div className={styles.muted}>No earlier cycles on this stage.</div>
       )}
+      <Link href="/cycles" className={styles.toCycles}>
+        Every cycle, every stage ›
+      </Link>
     </InspectorSection>
   );
 }
