@@ -17,7 +17,9 @@ interface XNode {
   text: string;
 }
 
-const TOKEN = /<!--[\s\S]*?-->|<!\[CDATA\[([\s\S]*?)\]\]>|<\?[\s\S]*?\?>|<!DOCTYPE[^>]*>|<(\/?)([A-Za-z_][\w:.-]*)((?:\s+[^\s=/>]+\s*=\s*(?:"[^"]*"|'[^']*'))*)\s*(\/?)>|([^<]+)|</g;
+// Tags, text and a lone "<" are matched by regex; comments, processing instructions, doctypes and CDATA are found with
+// indexOf, because a lazy [\s\S]*? over an unclosed opener repeated across the file is quadratic.
+const TOKEN = /<(\/?)([A-Za-z_][\w:.-]*)((?:\s+[^\s=/>]+\s*=\s*(?:"[^"]*"|'[^']*'))*)\s*(\/?)>|([^<]+)|</y;
 const ATTR = /([^\s=/>]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
 
 export function decodeEntities(s: string): string {
@@ -32,24 +34,76 @@ export function decodeEntities(s: string): string {
   });
 }
 
+interface Tok {
+  cdata?: string;
+  closing?: boolean;
+  name?: string;
+  attrs?: string;
+  selfClosing?: boolean;
+  text?: string;
+}
+
+/** Finds the closer of an opener at i. Once a closer is missing from some point on, no later opener of that kind can close either. */
+function scanner(xml: string) {
+  const dead = new Set<string>();
+  const close = (i: number, open: string, end: string): number => {
+    if (dead.has(open) || !xml.startsWith(open, i)) return -1;
+    const e = xml.indexOf(end, i + open.length);
+    if (e === -1) dead.add(open);
+    return e;
+  };
+  /** The skipped markup (comment, PI, doctype) or CDATA at i, as [next index, cdata text]; null when i opens none that closes. */
+  return (i: number): [number, string?] | null => {
+    let e = close(i, '<!--', '-->');
+    if (e !== -1) return [e + 3];
+    e = close(i, '<![CDATA[', ']]>');
+    if (e !== -1) return [e + 3, xml.slice(i + 9, e)];
+    e = close(i, '<?', '?>');
+    if (e !== -1) return [e + 2];
+    e = close(i, '<!DOCTYPE', '>');
+    return e === -1 ? null : [e + 1];
+  };
+}
+
+function* tokens(xml: string): Generator<Tok> {
+  const markup = scanner(xml);
+  let i = 0;
+  while (i < xml.length) {
+    if (xml.charCodeAt(i) === 60 /* < */) {
+      const skip = markup(i);
+      if (skip) {
+        if (skip[1] !== undefined) yield { cdata: skip[1] };
+        i = skip[0];
+        continue;
+      }
+    }
+    TOKEN.lastIndex = i;
+    const m = TOKEN.exec(xml);
+    if (!m) break;
+    i = TOKEN.lastIndex;
+    if (m[2] !== undefined) yield { closing: m[1] === '/', name: m[2], attrs: m[3] ?? '', selfClosing: m[4] === '/' };
+    else if (m[5] !== undefined) yield { text: m[5] };
+  }
+}
+
 function parseTree(xml: string): XNode {
   const root: XNode = { name: '#root', attrs: {}, children: [], text: '' };
   const stack: XNode[] = [root];
-  for (const m of xml.matchAll(TOKEN)) {
+  for (const t of tokens(xml)) {
     const top = stack.at(-1) ?? root;
-    if (m[1] !== undefined) top.text += m[1];
-    else if (m[3] !== undefined) {
-      if (m[2] === '/') {
-        const at = stack.map((n) => n.name).lastIndexOf(m[3]);
+    if (t.cdata !== undefined) top.text += t.cdata;
+    else if (t.name !== undefined) {
+      if (t.closing) {
+        const at = stack.map((n) => n.name).lastIndexOf(t.name);
         if (at > 0) stack.length = at; // tolerate unbalanced closers
         continue;
       }
       const attrs: Record<string, string> = {};
-      for (const a of (m[4] ?? '').matchAll(ATTR)) attrs[a[1] ?? ''] = decodeEntities(a[2] ?? a[3] ?? '');
-      const node: XNode = { name: m[3], attrs, children: [], text: '' };
+      for (const a of (t.attrs ?? '').matchAll(ATTR)) attrs[a[1] ?? ''] = decodeEntities(a[2] ?? a[3] ?? '');
+      const node: XNode = { name: t.name, attrs, children: [], text: '' };
       top.children.push(node);
-      if (m[5] !== '/') stack.push(node);
-    } else if (m[6] !== undefined) top.text += decodeEntities(m[6]);
+      if (!t.selfClosing) stack.push(node);
+    } else if (t.text !== undefined) top.text += decodeEntities(t.text);
   }
   return root;
 }

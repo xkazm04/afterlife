@@ -59,16 +59,26 @@ export function fence(tag, value) {
   return '```' + tag + '\n' + JSON.stringify(value, null, 2).replaceAll('`', '\\u0060') + '\n```';
 }
 
-/** Every parseable fenced block with this tag in a text, in order. */
+/** Every parseable fenced block with this tag in a text, in order. Linear: indexOf only, no lazy regex over hostile text. */
 export function blocks(text, tag) {
-  const re = new RegExp('```' + tag + '\\r?\\n([\\s\\S]*?)\\r?\\n```', 'g');
+  const src = String(text ?? '');
+  const open = '```' + tag;
   const out = [];
-  for (const m of String(text ?? '').matchAll(re)) {
+  let at = 0;
+  while ((at = src.indexOf(open, at)) !== -1) {
+    const nl = src.startsWith('\r\n', at + open.length) ? at + open.length + 2 : src[at + open.length] === '\n' ? at + open.length + 1 : -1;
+    if (nl === -1) {
+      at += open.length;
+      continue;
+    }
+    const end = src.indexOf('\n```', nl); // a missing closer here is missing for every later opener too
+    if (end === -1) break;
     try {
-      out.push(JSON.parse(m[1]));
+      out.push(JSON.parse(src.slice(nl, src[end - 1] === '\r' && end > nl ? end - 1 : end)));
     } catch {
       /* a malformed block is ignored, never repaired */
     }
+    at = end + 4;
   }
   return out;
 }

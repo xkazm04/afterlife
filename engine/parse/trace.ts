@@ -6,9 +6,11 @@ import type { CaseStatus, TestCase } from './junit';
 const ANSI = /\x1b\[[0-9;?]*[A-Za-z]/g;
 const SECTION = /section_(?:start|end):\d+:[\w.-]+\r?/g;
 const MAX_OUTPUT_LINES = 40;
+const MAX_LINE = 4096; // a hostile log line must not cost more than this much regex work
+const DURATION = /\s\(?\d+(?:\.\d+)?\s?m?s\)?$/; // Jest / Vitest print the time after the name
 
 export function cleanTrace(raw: string): string[] {
-  return raw.replace(SECTION, '').replace(ANSI, '').replace(/\r/g, '\n').split('\n').map((l) => l.replace(/\s+$/, ''));
+  return raw.replace(SECTION, '').replace(ANSI, '').replace(/\r/g, '\n').split('\n').map((l) => l.slice(0, MAX_LINE).trimEnd());
 }
 
 interface Hit {
@@ -22,14 +24,14 @@ const STATUS: Record<string, CaseStatus> = { PASSED: 'passed', FAILED: 'failed',
 function hitOf(line: string): Hit | null {
   let m = /^\s*(\S+) > (.+?) (PASSED|FAILED|SKIPPED)$/.exec(line); // Gradle
   if (m) return { classname: m[1] ?? '', name: (m[2] ?? '').replace(/\(\)$/, ''), status: STATUS[m[3] ?? ''] ?? 'error' };
-  m = /^(?:\[(?:ERROR|WARNING|INFO)\]\s+)?(?:Tests run:.*\s+)?([\w.$]+)\.(\w+)\s+Time elapsed: [\d.]+ s\s+<<< (FAILURE|ERROR)!/.exec(line); // Surefire
+  m = /^(?:\[(?:ERROR|WARNING|INFO)\]\s+)?([\w.$]+)\.(\w+)\s+Time elapsed: [\d.]+ s\s+<<< (FAILURE|ERROR)!/.exec(line); // Surefire
   if (m) return { classname: m[1] ?? '', name: m[2] ?? '', status: m[3] === 'FAILURE' ? 'failed' : 'error' };
   m = /^(\S+\.py)::(\S+)\s+(PASSED|FAILED|SKIPPED|ERROR)\b/.exec(line); // pytest -v
   if (m) return { classname: m[1] ?? '', name: m[2] ?? '', status: STATUS[m[3] ?? ''] ?? 'error' };
   m = /^\s*--- (PASS|FAIL|SKIP): (\S+)/.exec(line); // go test -v
   if (m) return { classname: '', name: m[2] ?? '', status: STATUS[m[1] ?? ''] ?? 'error' };
-  m = /^\s*(✓|✔|√|✕|✗|×)\s+(.+?)(?:\s+\(?\d+(?:\.\d+)?\s?m?s\)?)?$/.exec(line); // Jest / Vitest verbose
-  if (m) return { classname: '', name: m[2] ?? '', status: /[✓✔√]/.test(m[1] ?? '') ? 'passed' : 'failed' };
+  m = /^\s*(✓|✔|√|✕|✗|×)\s+(.+)$/.exec(line); // Jest / Vitest verbose
+  if (m) return { classname: '', name: (m[2] ?? '').replace(DURATION, '').trimEnd(), status: /[✓✔√]/.test(m[1] ?? '') ? 'passed' : 'failed' };
   return null;
 }
 
