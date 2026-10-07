@@ -6,7 +6,7 @@
 import { api, die, need } from '../lib/lib.mjs';
 
 const goal = need('goal');
-if (!/^[A-Za-z0-9 _.:/#!-]{1,200}$/.test(goal)) die('goal must be short plain text (an MR iid or a URL), never free text from an MR');
+if (!/^(\d+|https:\/\/[^\s]+)$/.test(goal)) die('goal must be an MR iid or an https URL, never free text from an MR');
 const consumer = Number(need('consumer-id'));
 if (!Number.isInteger(consumer)) die('--consumer-id must be the integer id of the flow enabled in this project');
 
