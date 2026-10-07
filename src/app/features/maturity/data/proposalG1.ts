@@ -18,10 +18,9 @@ export const PROPOSAL_G1: ProposalExtra = {
     {
       path: '.gitlab-ci.yml',
       lines: [
-        ' include:',
         '   - template: Jobs/SAST.gitlab-ci.yml',
-        '   - template: Jobs/Secret-Detection.gitlab-ci.yml',
         '   - template: Jobs/Dependency-Scanning.gitlab-ci.yml',
+        '   - template: Jobs/Secret-Detection.gitlab-ci.yml',
         '+  - local: .gitlab/belay/sbom-rederive.yml',
         '+    rules:',
         '+      - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH',
