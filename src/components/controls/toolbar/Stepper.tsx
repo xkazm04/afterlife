@@ -18,7 +18,8 @@ export interface StepperStep<K extends string | number> {
 
 /**
  * Segmented step progress for a toolbar ("Pick › Preview › Send › After merge"). The current step is raised, past
- * steps show a tick, and a loud count is the one amber element. `label` names the group for assistive tech.
+ * steps show a tick, and a loud count is the one amber element. `label` names the group for assistive tech. On a narrow
+ * toolbar only the current step keeps its name on screen (the others keep it for assistive tech and the tooltip).
  */
 export function Stepper<K extends string | number>({
   steps,
@@ -43,7 +44,7 @@ export function Stepper<K extends string | number>({
             onClick={() => onGo(s.k)}
           >
             <i className={styles.n}>{s.past ? '✓' : s.k}</i>
-            {s.name}
+            <span className={styles.nm}>{s.name}</span>
             {s.count != null && s.loud ? (
               <NeedsYouBadge small count={s.count} title={`${s.count} picked, waits for you`} />
             ) : s.loud ? null : (

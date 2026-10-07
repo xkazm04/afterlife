@@ -12,3 +12,9 @@
   height: calc(12px * var(--ui-scale));
   flex: none;
 }
+/* the narrowest toolbar (large text, small window): "policy numbers" is left to the policy popover */
+@container toolbar (max-width: 62em) {
+  .anchor [role="group"] > :nth-last-child(-n + 2) {
+    display: none;
+  }
+}

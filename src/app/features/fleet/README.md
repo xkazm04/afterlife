@@ -13,7 +13,7 @@ Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` l
   The deep project (ledgerline) has resolvable decisions, class records, events, tracks.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
-  handlers, narrow / compact measuring, section open state.
+  handlers, narrow measuring, section open state. The toolbar folds its words in CSS (`@container toolbar`).
 
 ## Model (pure, tested)
 - `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank).

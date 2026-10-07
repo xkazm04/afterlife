@@ -37,3 +37,14 @@
 .chev {
   opacity: 0.75;
 }
+/* a popup button with an icon goes icon-only on a narrow toolbar; the label stays for assistive tech */
+@container toolbar (max-width: 72em) {
+  .lbl {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

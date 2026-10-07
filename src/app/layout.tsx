@@ -10,7 +10,8 @@ import './globals.css';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Afterlife',
+  // Each screen names itself; the tab reads "Fleet · Afterlife".
+  title: { default: 'Afterlife', template: '%s · Afterlife' },
   description: 'Proof-carrying agents for the post-code lifecycle on GitLab.',
 };
 
