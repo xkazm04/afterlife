@@ -152,6 +152,12 @@ function sweepMr(t, iid) {
     args.push('--verdict', path.join(dir, 'medic.json'));
   }
 
+  // The ledger's record of this head: read, like every other read, before the first write.
+  const ledgerKey = `${t.id}!${iid}@${head}`;
+  const ledgerFile = `events/${t.id}.jsonl`;
+  const ledgerDone = apiAll(`projects/${enc(cfg.ledger.project)}/repository/commits?ref_name=${enc(cfg.ledger.branch)}&path=${enc(ledgerFile)}`, 5)
+    .some((c) => String(c.message ?? '').split('\n').includes(`Belay-Head: ${ledgerKey}`));
+
   // The Proof Block, re-derived here. Never one a target pipeline made.
   const evidence = path.join(dir, 'evidence.json');
   const be = glue('proof/build-evidence.mjs', ['--class', proofClass, '--out', evidence, ...args], { ...env, CI_PIPELINE_ID: pipelineId, BELAY_DIFF_FILE: diffFile }, dir);
@@ -195,10 +201,6 @@ function sweepMr(t, iid) {
   if (gr.code === 4) return force('block', 'the guardrail verdict does not match its schema: treated as inconclusive');
 
   // The gate, decided here, and its ledger events.
-  const ledgerKey = `${t.id}!${iid}@${head}`;
-  const ledgerFile = `events/${t.id}.jsonl`;
-  const ledgerDone = apiAll(`projects/${enc(cfg.ledger.project)}/repository/commits?ref_name=${enc(cfg.ledger.branch)}&path=${enc(ledgerFile)}`, 5)
-    .some((c) => String(c.message ?? '').split('\n').includes(`Belay-Head: ${ledgerKey}`));
   if (gateDone && ledgerDone) return say(`${tag}: gate and ledger already applied for this head`);
   const g = engine(['gate', '--policy', policyFile, '--state', statesFile, '--class', actionClass, '--agent', mr.BELAY_AGENT,
     '--proof', proofFile, '--guardrail', path.join(dir, 'guardrail-gate.json'), '--diff', diffFile]);
