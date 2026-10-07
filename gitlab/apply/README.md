@@ -29,7 +29,7 @@ are not part of the project.
 | 1 | No target job can read a write token: the target example and every belay-pack component name none, and `GITLAB_TOKEN` is set only by `glab auth login --job-token` | `../components/scripts/target-tokens.test.mjs` |
 | 2 | Runs only its own CI config, from its protected default branch. Never checks out, includes or runs a target's code or CI config | `.gitlab-ci.yml` `workflow:rules`; the scripts read targets through the API only |
 | 3 | Trusts nothing a target pipeline computed: reads author, head, diff, trailers and notes itself, re-derives the Proof Block with its own pinned engine from the evidence, runs the gate itself | `sweep.mjs`; test (v) |
-| 4 | Evidence counts only from a finished pipeline whose sha is the MR's head. An MR that changes `.gitlab-ci.yml` (or the project's CI file), anything under `.gitlab/`, or a file the CI config includes locally gets no proof, no `proof::pass`, no approve, no merge: a WAIT note gives the reason | `ci-touch.mjs`; tests (iii), (iv) |
+| 4 | Evidence counts only from a finished merge request pipeline (`merge_request_event`) whose sha is the MR's head and that ran with no pipeline variables (F63). An MR that changes `.gitlab-ci.yml` (or the project's CI file), anything under `.gitlab/`, or a file the CI config includes locally gets no proof, no `proof::pass`, no approve, no merge: a WAIT note gives the reason | `ci-touch.mjs`; tests (iii), (iv) |
 | 5 | Takes no value from pipeline variables, trigger variables or a webhook. A schedule is the baseline | `apply.json` holds every setting, including the engine pin; the settings below |
 | 6 | Acts only on projects of the paired group (a shared-in project is skipped, F37) and only on agent MRs (`agent_prefix` and the `Belay-Task` trailer, `mr-context.mjs`) | `lib.mjs` `targetsOf`; test (vi) |
 | 7 | Each write once per project, MR and head; a second sweep writes nothing | read-back below; test (i) |
@@ -46,7 +46,10 @@ are not part of the project.
 4. If the MR changes CI configuration: WAIT, with the reason, and `proof::pass` removed if an older head had it. Stop.
 5. Takes the proof class from `trust-policy.yml` (the `Belay-Class` trailer's class) and the evidence:
    - `exploit-test`: the artifacts of the `belay-replay` job (`evidence/base|head/junit.xml`, `evidence/*/scan.json`;
-     per target in `apply.json`), in the newest pipeline of the MR whose sha is the head, once that pipeline is finished.
+     per target in `apply.json`), in the newest merge request pipeline of the MR whose sha is the head, once that pipeline
+     is finished. A pipeline of another source (Run pipeline, API, trigger, schedule, push, downstream) is never read: each
+     can carry pipeline variables, which outrank the evidence job's own. A merge request pipeline that ran with a pipeline
+     variable is a WAIT (F63).
    - `cited-diff`: the guardrail's block.
    - `rerun-stats`: the medic's block plus the jobs API.
 
@@ -152,6 +155,10 @@ push after the sweep read the head is never merged. The ledger records the proof
   A merged-results pipeline runs on a merge commit, not on the head, so its evidence never counts. A target that uses
   merged-results pipelines needs a detached pipeline of the head as well.
 - `[R?]` `GET /projects/:id/jobs/:job_id/artifacts/*artifact_path` for a single artifact file.
+- `[R?]` `GET /projects/:id/pipelines/:id/variables` lists every variable a pipeline was created with (Run pipeline,
+  API, trigger, push option, downstream), and a merge request pipeline can carry none (push options pass variables to
+  branch pipelines only). A list row without `source` is checked through `GET /projects/:id/pipelines/:id`. Job-level
+  variables of a manual job are not listed there: the evidence job must not be `when: manual`.
 - `[R?]` `ci_config_path` in `GET /projects/:id`. A CI file in another project (`path@group/project`) is treated as out of
   the MR's reach, and files matched by a wildcard local include are not followed into their own includes.
 - `[R?]` A group access token's approval counts toward the target's approval rules (spike S2). Auto-merge set after the

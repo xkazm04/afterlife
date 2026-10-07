@@ -3,7 +3,8 @@
 // the Proof Block with its own pinned engine, runs the gate itself, and applies the result with the components' own write
 // scripts (post-proof, apply-gate, ledger-append, dispatch), so every note is byte-identical to the one CI used to post.
 // It never reads a proof.json, a decision or any other result a target pipeline computed: only its evidence (the artifacts
-// of the evidence job, belay-replay), from a finished pipeline whose sha is the MR's current head.
+// of the evidence job, belay-replay), from a finished merge request pipeline of the MR's current head that ran with no
+// pipeline variables (F63).
 //
 // Once per project, MR and head (a second sweep writes nothing), by reading back what the bot already wrote:
 //   proof    the bot's newest belay-proof note, if its task.head_sha = head (else it is posted again, F62)
@@ -29,6 +30,7 @@ const work = path.resolve(arg('work', '.belay'));
 const WRITE = Boolean(process.env.BELAY_BOT_TOKEN);
 const SCHEMAS = path.resolve(import.meta.dirname, '..', 'flows', 'schemas');
 const FINISHED = new Set(['success', 'failed', 'canceled', 'skipped']);
+const EVIDENCE_SOURCE = 'merge_request_event';
 const say = (m) => console.error(`belay-apply: ${m}`);
 if (!WRITE) say('BELAY_BOT_TOKEN is not set: reporting only, nothing is written');
 
@@ -141,8 +143,16 @@ function sweepMr(t, iid) {
   let pipelineId = 'none';
   if (proofClass === 'exploit-test') {
     const ev = { job: 'belay-replay', base_junit: 'evidence/base/junit.xml', head_junit: 'evidence/head/junit.xml', rescan_base: 'evidence/base/scan.json', rescan_head: 'evidence/head/scan.json', ...(t.conf.evidence ?? {}) };
-    const p = apiAll(`projects/${t.id}/merge_requests/${iid}/pipelines`, 1).find((x) => x.sha === head);
-    if (!p || !FINISHED.has(p.status)) return say(`${tag}: no finished pipeline for this head yet: nothing to prove`);
+    // Only a merge request pipeline (F63). Anyone who may push to the MR's branch can start another pipeline of the same
+    // sha (Run pipeline, the API, a trigger, a schedule, a push option, a downstream trigger), and each of those can carry
+    // pipeline variables, which outrank the job's own and so change what the evidence job ran without a CI file change.
+    // And a merge request pipeline that still carries one is not evidence either: the MR waits for a person.
+    const row = apiAll(`projects/${t.id}/merge_requests/${iid}/pipelines`, 1).find((x) => x.sha === head && (x.source ?? EVIDENCE_SOURCE) === EVIDENCE_SOURCE);
+    const p = row ? api(`projects/${t.id}/pipelines/${row.id}`) : null;
+    if (!p || p.sha !== head || p.source !== EVIDENCE_SOURCE || !FINISHED.has(p.status)) return say(`${tag}: no finished merge request pipeline for this head yet: nothing to prove`);
+    const vars = api(`projects/${t.id}/pipelines/${p.id}/variables`);
+    if (!Array.isArray(vars)) throw new Error(`the variables of pipeline ${p.id} could not be read`);
+    if (vars.length) return force('wait', `pipeline ${p.id} of this head ran with ${vars.length} pipeline variable(s), which can change what its evidence job ran, so Belay gives it no proof; a person reviews it.`);
     pipelineId = String(p.id);
     const job = apiAll(`projects/${t.id}/pipelines/${p.id}/jobs`, 5).find((j) => j.name === ev.job);
     if (job) {

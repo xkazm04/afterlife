@@ -86,7 +86,9 @@ function group({ desc = description, notes = [guardrailNote('pass')], pipelineSh
     'projects/1/repository/compare': compareOf(diff),
     'projects/1/repository/files/.gitlab-ci.yml/raw': { __raw: 'stages: [build, test, review]\ninclude:\n  - local: /ci/replay.yml\n' },
     'projects/1/repository/files/ci%2Freplay.yml/raw': { __raw: 'belay-replay:\n  script: ./gradlew test\n' },
-    'projects/1/merge_requests/7/pipelines': [{ id: 500, sha: pipelineSha, status: 'success' }],
+    'projects/1/merge_requests/7/pipelines': [{ id: 500, sha: pipelineSha, status: 'success', source: 'merge_request_event' }],
+    'projects/1/pipelines/500': { id: 500, sha: pipelineSha, status: 'success', source: 'merge_request_event' },
+    'projects/1/pipelines/500/variables': [],
     'projects/1/pipelines/500/jobs': [
       { id: 9001, name: 'belay-replay', status: 'success', web_url: `${URL_}/-/jobs/9001` },
       { id: 9002, name: 'belay-proof-exploit-test', status: 'success', web_url: `${URL_}/-/jobs/9002` },
@@ -239,6 +241,35 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     const r = sweep(group({ notes: [bot(103, '**Belay gate: APPROVE** | tier `supervised`\n- proof pass'), proofFor(102, OLD), proofFor(101, HEAD), guardrailNote('block', HEAD, [finding])] }));
     blocked(r);
     expect(glabWrites(r, 'note create').map((n) => n.body.message.slice(0, 20))).toEqual(['**Belay proof: PASS*', '**Belay gate: BLOCK*']);
+  });
+
+  it('(ix) F63: evidence only from a merge request pipeline of the head that ran with no pipeline variables', () => {
+    // A newer pipeline of the same head that the agent started through the API, its evidence job passing; the merge
+    // request pipeline's own evidence fails (the exploit test is green at base).
+    const api = { id: 501, sha: HEAD, status: 'success', source: 'api' };
+    const green = fixture('head.junit.xml');
+    const r = sweep(group({ baseJunit: green, extra: {
+      'projects/1/merge_requests/7/pipelines': [api, { id: 500, sha: HEAD, status: 'success', source: 'merge_request_event' }],
+      'projects/1/pipelines/501': api,
+      'projects/1/pipelines/501/jobs': [{ id: 9101, name: 'belay-replay', status: 'success', web_url: `${URL_}/-/jobs/9101` }],
+      'projects/1/jobs/9101/artifacts/evidence/base/junit.xml': { __raw: fixture('base.junit.xml') },
+      'projects/1/jobs/9101/artifacts/evidence/head/junit.xml': { __raw: fixture('head.junit.xml') },
+      'projects/1/jobs/9101/artifacts/evidence/base/scan.json': scan(['GL-SAST-4417', 'GL-SAST-4102']),
+      'projects/1/jobs/9101/artifacts/evidence/head/scan.json': scan(['GL-SAST-4102']),
+    } }));
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.reads.some((p) => p.includes('jobs/9101') || p.includes('pipelines/501/jobs'))).toBe(false);
+    expect(proofOf(glabWrites(r, 'note create')[0]).verdict).toBe('fail');
+    expect(granted(r)).toEqual([]);
+
+    // The merge request pipeline itself ran with a pipeline variable: no evidence is read, the MR waits for a person.
+    const vars = sweep(group({ extra: { 'projects/1/pipelines/500/variables': [{ key: 'CI_MERGE_REQUEST_DIFF_BASE_SHA', value: OLD, variable_type: 'env_var' }] } }));
+    expect(vars.code, vars.stderr).toBe(0);
+    expect(vars.reads.some((p) => p.includes('/artifacts/'))).toBe(false);
+    const notes = glabWrites(vars, 'note create');
+    expect(notes).toHaveLength(1);
+    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay gate: WAIT\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: pipeline 500 of this head ran with 1 pipeline variable`));
+    expect(granted(vars)).toEqual([]);
   });
 
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
