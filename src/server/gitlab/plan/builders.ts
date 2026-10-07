@@ -29,6 +29,7 @@ export function planBuilders(hostname?: string): PlanBuilders {
       build(hostname, 'POST', `projects/${proj(i.project)}/merge_requests`, [
         ['source_branch', i.sourceBranch], ['target_branch', i.targetBranch], ['title', i.title],
         ...optional('description', i.description), ...optional('labels', i.labels?.join(',')),
+        ...optional('remove_source_branch', i.removeSourceBranch ? 'true' : undefined),
       ], 'low'),
     addNote: (i: AddNoteInput) =>
       build(hostname, 'POST', `projects/${proj(i.project)}/merge_requests/${i.iid}/notes`, [['body', i.body]], 'low'),

@@ -100,7 +100,7 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
         project: t.project.id, path: CI_FILE, branch, startBranch: t.base, content: ins.content, action: 'update', lastCommitId: file.lastCommitId,
         message: `${a.title}\n\nBelay-Track: ${a.track}\nOperator: ${ctx.operator}`,
       }),
-      ctx.port.plan.createMr({ project: t.project.id, sourceBranch: branch, targetBranch: t.base, title: a.title, labels: [MR_LABEL], description: description(ctx, what, a.notes) }),
+      ctx.port.plan.createMr({ project: t.project.id, sourceBranch: branch, targetBranch: t.base, title: a.title, labels: [MR_LABEL], removeSourceBranch: true, description: description(ctx, what, a.notes) }),
     ],
     diff: [`@@ ${CI_FILE} · after line ${ins.after}`, ...ins.added.map((l) => `+ ${l}`)],
   };
@@ -129,7 +129,7 @@ export async function planDisarm(ctx: PlanContext, intent: DisarmTrack): Promise
         project: t.project.id, path: CI_FILE, branch, startBranch: t.base, content: rm.content, action: 'update', lastCommitId: file.lastCommitId,
         message: `${title}\n\nBelay-Track: ${a.track}\nOperator: ${ctx.operator}`,
       }),
-      ctx.port.plan.createMr({ project: t.project.id, sourceBranch: branch, targetBranch: t.base, title, labels: [MR_LABEL], description: description(ctx, what, [DISARM_NOTE]) }),
+      ctx.port.plan.createMr({ project: t.project.id, sourceBranch: branch, targetBranch: t.base, title, labels: [MR_LABEL], removeSourceBranch: true, description: description(ctx, what, [DISARM_NOTE]) }),
     ],
     diff: [`@@ ${CI_FILE} · lines ${rm.from + 1}-${rm.from + rm.removed.length}`, ...rm.removed.map((l) => `- ${l}`)],
   };

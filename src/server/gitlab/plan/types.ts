@@ -15,7 +15,8 @@ export interface PlannedCommand {
   file?: { project: ProjectRef; path: string; branch: string };
 }
 
-export interface CreateMrInput { project: ProjectRef; sourceBranch: string; targetBranch: string; title: string; description?: string; labels?: string[] }
+/** removeSourceBranch: GitLab deletes the source branch when the MR merges, so a later plan does not find it left over. */
+export interface CreateMrInput { project: ProjectRef; sourceBranch: string; targetBranch: string; title: string; description?: string; labels?: string[]; removeSourceBranch?: boolean }
 export interface AddNoteInput { project: ProjectRef; iid: number; body: string }
 export interface SetLabelsInput { project: ProjectRef; iid: number; add?: string[]; remove?: string[] }
 /**

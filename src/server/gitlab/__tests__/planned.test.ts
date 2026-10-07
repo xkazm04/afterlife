@@ -23,6 +23,12 @@ describe('PlannedCommand builders: exact argv', () => {
     expect(c.argv.filter((a) => a.startsWith('description=') || a.startsWith('labels='))).toEqual([]);
   });
 
+  it('createMr asks GitLab to delete the source branch on merge only when told to (F38)', () => {
+    const c = plan.createMr({ project: 42, sourceBranch: 'belay/arm-x', targetBranch: 'main', title: 'T', removeSourceBranch: true });
+    expect(c.argv.slice(-2)).toEqual(['-f', 'remove_source_branch=true']);
+    expect(plan.createMr({ project: 42, sourceBranch: 's', targetBranch: 't', title: 'T' }).argv.some((a) => a.startsWith('remove_source_branch='))).toBe(false);
+  });
+
   it('addNote', () => {
     const c = plan.addNote({ project: 7, iid: 3, body: 'hi' });
     expect(c.argv).toEqual(['api', '--method', 'POST', 'projects/7/merge_requests/3/notes', '-f', 'body=hi']);

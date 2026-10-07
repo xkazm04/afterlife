@@ -45,6 +45,7 @@ describe('arm-track T4', () => {
     expect(commit).toMatch(/-f last_commit_id=[0-9a-f]{40}/);
     expect(mr).toContain('-f source_branch=belay/arm-guardrail');
     expect(mr).toContain('-f labels=belay::arm');
+    expect(mr).toContain('-f remove_source_branch=true');
     expect(p.diff[0]).toBe('@@ .gitlab-ci.yml · after line 9');
     expect(p.diff).toContain('+   - component: $CI_SERVER_FQDN/acme-lab/belay-pack/flow-dispatch@1.0.0');
     expect(p.diff.every((l, i) => i === 0 || l.startsWith('+ '))).toBe(true);
@@ -72,6 +73,7 @@ describe('arm-track T4', () => {
     ledgerline(gl).mrs.find((m) => m.source_branch === 'belay/arm-guardrail')!.state = 'merged';
     const d = preview(await previewIntent(deps, disarm));
     expect(d).toMatchObject({ kind: 'disarm-track', branch: 'belay/disarm-guardrail' });
+    expect(d.commands[1]?.argv.join(' ')).toContain('-f remove_source_branch=true');
     expect(d.diff.slice(1)).toEqual(added.map((l) => `- ${l}`));
     expect((await confirmIntent(deps, disarm, d.previewId)).status).toBe('done');
     expect(files(gl)['.gitlab-ci.yml']).toBe(UNARMED);
