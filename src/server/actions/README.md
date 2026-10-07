@@ -46,7 +46,8 @@ host must equal the Host) lets a request with no Origin through, and a page reac
 name as both. So in live mode `previewAction`, `confirmAction` and `repollAction` answer only a request whose Host,
 X-Forwarded-Host and Origin name `localhost`, `127.0.0.1` or `[::1]` (`local.ts`); anything else is refused before anything
 is planned or read. A process that reaches the port can forge those headers, and `next dev` / `next start` listen on
-0.0.0.0 by default: run Belay with `-H 127.0.0.1`, and do not expose its port. Demo mode is not held to it (it never runs
+0.0.0.0 by default, so `npm run dev` and `npm start` now pass `-H 127.0.0.1` (`package.json`, `__tests__/listen.test.ts`).
+That check still depends on the server listening on loopback only: do not start it another way, and do not expose its port. Demo mode is not held to it (it never runs
 anything, and the hosted replay is served under its own name).
 
 ## Re-poll (a read)

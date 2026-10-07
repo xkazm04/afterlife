@@ -8,3 +8,4 @@
   must stay up until about 16 November.
 
 The Terraform lands in week 2. The deployment code must be in the public repo for the +0.2 bonus.
+- The hosted replay container (`BELAY_MODE=replay`, no tokens, no write path) must listen on `0.0.0.0:$PORT` through its own entry point, and must not use `npm start`, which binds loopback only (F24).
