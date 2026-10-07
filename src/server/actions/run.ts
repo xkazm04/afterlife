@@ -1,6 +1,7 @@
 // preview, then confirm. The first call plans the commands and returns them with a digest; the second call plans again and
 // runs them only if the digest still matches what the operator saw. Live: each command is written to commands_run
 // BEFORE it runs, then finished with its exit code; a poll follows. Demo: nothing runs, the result says "simulated".
+// An arm or disarm is done only when the MR it opened is headed by the commit it made (arm/head.ts, F38).
 import { createHash } from 'node:crypto';
 import type { PGlite } from '@electric-sql/pglite';
 import { GitLabError } from '@/server/gitlab/errors';
@@ -9,6 +10,7 @@ import type { PlannedCommand, Risk } from '@/server/gitlab/plan/types';
 import { finishCommand, recordCommand } from '@/server/index/repositories/commandsRun';
 import { closeProposal } from '@/server/index/repositories/work/proposal';
 import type { PollerConfig } from '@/server/poller/config';
+import { headChecked, headMismatch } from './arm/head';
 import { parseIntent } from './intents';
 import { ActionRefused, planIntent, type Plan, type PlanContext } from './plans';
 import { COMMIT_ID } from './plans/context';
@@ -86,27 +88,41 @@ function webUrl(v: unknown): string | null {
  * What a command that ran made, from GitLab's answer: an MR's iid, or (a file write) the commit the file now has. Named only
  * when the answer has the shape GitLab documents (a positive iid, an http(s) address, a commit id).
  */
-async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Promise<Pick<CommandOutcome, 'made' | 'url'>> {
+async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Promise<{ named: Pick<CommandOutcome, 'made' | 'url'>; commit?: string }> {
   const b = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
   if (Number.isSafeInteger(b.iid) && (b.iid as number) > 0) {
     const url = webUrl(b.web_url);
-    return { made: `!${b.iid as number}`, ...(url ? { url } : {}) };
+    return { named: { made: `!${b.iid as number}`, ...(url ? { url } : {}) } };
   }
-  if (!cmd.file) return {};
+  if (!cmd.file) return { named: {} };
   const f = await deps.port.getFile(cmd.file.project, cmd.file.path, cmd.file.branch).catch(() => null);
-  return f?.lastCommitId && COMMIT_ID.test(f.lastCommitId) ? { made: `commit ${f.lastCommitId.slice(0, 8)}` } : {};
+  return f?.lastCommitId && COMMIT_ID.test(f.lastCommitId) ? { named: { made: `commit ${f.lastCommitId.slice(0, 8)}` }, commit: f.lastCommitId } : { named: {} };
+}
+
+/** Arm and disarm only (F38): the MR this confirm opened must be headed by the commit it made, or the confirm failed. */
+async function checkHead(deps: ActionDeps, b: Extract<Built, { ok: true }>, results: CommandOutcome[], commit: string | null, mrBody: unknown): Promise<void> {
+  const last = results.at(-1);
+  const file = b.plan.commands.find((c) => c.file)?.file;
+  if (!headChecked(b.intent.kind) || !last?.ok || results.length !== b.plan.commands.length || !file) return;
+  const wrong = await headMismatch(deps.port, file.project, b.plan.branch ?? file.branch, commit, mrBody);
+  if (wrong) results[results.length - 1] = { ...last, ok: false, error: wrong };
 }
 
 async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promise<ActionResponse> {
   const db = deps.db;
   if (!db) return refused('live mode has no index to record the command in');
   const results: CommandOutcome[] = [];
+  let commit: string | null = null;
+  let body: unknown = null;
   for (const cmd of b.plan.commands) {
     const id = await recordCommand(db, { at: deps.now(), operator: b.operator, projectId: b.intent.project, proposalId: b.intent.proposal, display: cmd.display, argv: cmd.argv, risk: cmd.risk });
     try {
       const out = await deps.port.execute(cmd);
       await finishCommand(db, id, 0, deps.now());
-      results.push({ display: cmd.display, exit: 0, ok: true, simulated: false, ...(await madeBy(deps, cmd, out.body)) });
+      const m = await madeBy(deps, cmd, out.body);
+      if (m.commit) commit = m.commit;
+      body = out.body;
+      results.push({ display: cmd.display, exit: 0, ok: true, simulated: false, ...m.named });
     } catch (e) {
       const exit = e instanceof GitLabError && e.status ? e.status : 1;
       await finishCommand(db, id, exit, deps.now());
@@ -114,6 +130,7 @@ async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promi
       break; // later commands depend on earlier ones (a branch, then its MR)
     }
   }
+  await checkHead(deps, b, results, commit, body);
   const ok = results.length === b.plan.commands.length && results.every((r) => r.ok);
   if (ok && b.intent.proposal) await closeProposal(db, b.intent.proposal, 'acted', deps.now(), b.operator);
   await deps.refresh().catch(() => undefined); // GitLab may have changed even when a later command failed

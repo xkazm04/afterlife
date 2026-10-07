@@ -73,3 +73,53 @@ describe('an arm or disarm branch that already exists (F38 part 1)', () => {
     expect(r.status === 'preview' && r.preview.commands.flatMap((c) => c.argv).some((a) => a.startsWith('force='))).toBe(false);
   });
 });
+
+describe('a confirm is done only when its own commit heads the MR (F38 part 2)', () => {
+  /** Someone pushes to the branch between Belay's commit and its MR: the MR GitLab opens is headed by their commit. */
+  const pushedBetween = (gl: () => FakeGitLab) => (port: GitLabPort): GitLabPort => new Proxy(port, {
+    get: (t, k, r) => (k === 'execute'
+      ? async (c: PlannedCommand) => {
+        if (c.argv.includes('POST') && c.argv.some((a) => a.endsWith('/merge_requests'))) (ledgerline(gl()).branches ??= {})['belay/arm-guardrail'] = LEFT;
+        return t.execute(c);
+      }
+      : Reflect.get(t, k, r)),
+  });
+
+  it('an MR headed by the commit this confirm made is done', async () => {
+    const { gl, deps } = await rig();
+    const r = await confirmIntent(deps, arm, previewId(await previewIntent(deps, arm)));
+    expect(r.status).toBe('done');
+    expect(ledgerline(gl).mrs.at(-1)?.sha).toBe(lastCommitOf(ledgerline(gl), '.gitlab-ci.yml'));
+  });
+
+  it('an MR headed by any other commit fails, naming both commits', async () => {
+    let fake: FakeGitLab | null = null;
+    const r0 = await rig({ wrap: pushedBetween(() => fake!) });
+    fake = r0.gl;
+    const made = await (async () => {
+      const r = await confirmIntent(r0.deps, arm, previewId(await previewIntent(r0.deps, arm)));
+      return { r, commit: lastCommitOf(ledgerline(r0.gl), '.gitlab-ci.yml') };
+    })();
+    expect(made.r.status).toBe('failed');
+    const last = made.r.status === 'failed' ? made.r.results.at(-1) : undefined;
+    expect(last).toMatchObject({ ok: false, made: expect.stringMatching(/^!\d+$/) });
+    expect(last?.error).toContain(LEFT);
+    expect(last?.error).toContain(made.commit);
+  });
+
+  it('GitLab not naming the MR head fails rather than reports done', async () => {
+    const noHead = (port: GitLabPort): GitLabPort => new Proxy(port, {
+      get: (t, k, r) => (k === 'execute'
+        ? async (c: PlannedCommand) => {
+          const out = await t.execute(c);
+          return c.argv.some((a) => a.endsWith('/merge_requests')) ? { ...out, body: { ...(out.body as object), sha: null, diff_refs: null } } : out;
+        }
+        : k === 'get' ? async () => { throw new GitLabError('not-found', '404 Not Found', 'x', 404); } : Reflect.get(t, k, r)),
+    });
+    const { deps } = await rig();
+    const p = previewId(await previewIntent(deps, arm));
+    const r = await confirmIntent({ ...deps, port: noHead(deps.port) }, arm, p);
+    expect(r.status).toBe('failed');
+    expect(r.status === 'failed' && r.results.at(-1)?.error).toMatch(/did not say which commit heads/);
+  });
+});
