@@ -36,3 +36,32 @@ describe('src/app holds no hand-written write to belay-policy', () => {
     expect(hits).toEqual([]);
   });
 });
+
+// A gap is opened through the server's gap door (stage-gap-mr): one commit per file, a draft MR labelled maturity::gap. A screen
+// that spelled `glab mr create` or a commit to repository/commits drifted from it in commit shape, base branch, title and
+// work-item link, and `belay probe` / `belay scan` are commands that do not exist.
+const HAND_WRITTEN_GAP: readonly [string, RegExp][] = [
+  ['a glab mr create', /\bglab mr create\b/],
+  ['a commit through glab api to repository/commits', /repository\/commits/],
+  ['a glab issue create', /\bglab issue create\b/],
+  ['a belay probe', /\bbelay probe\b/],
+  ['a belay scan', /\bbelay scan\b/],
+];
+
+/**
+ * Text that is not a write and that no task here may change: the kit's component gallery shows sample command text, and
+ * Setup's step details are prose for steps it does not send. Setup's own task replaces them; until then they are named here
+ * so a new one anywhere else still fails.
+ */
+const NOT_A_SEND: readonly string[] = [path.join('features', 'kit'), path.join('features', 'setup', 'data', 'stepDetail.ts')];
+
+describe('src/app holds no hand-written gap MR, gap issue, probe or scan', () => {
+  const files = sources(APP).filter((f) => !NOT_A_SEND.some((n) => f.includes(n)));
+  it.each(HAND_WRITTEN_GAP)('no %s', (_what, re) => {
+    const hits = files.flatMap((f) => fs.readFileSync(f, 'utf8').split('\n').flatMap((line, i) => (re.test(line) ? [`${path.relative(APP, f)}:${i + 1}: ${line.trim()}`] : [])));
+    expect(hits).toEqual([]);
+  });
+  it('the allowance names files that exist', () => {
+    for (const n of NOT_A_SEND) expect(sources(APP).some((f) => f.includes(n)), n).toBe(true);
+  });
+});
