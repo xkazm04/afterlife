@@ -21,7 +21,7 @@ import path from 'node:path';
 import { parse } from 'yaml';
 import { api, apiAll, arg, blocks, enc, glab, httpStatus, need, trustedNotes } from '../components/scripts/lib/lib.mjs';
 import { engine } from '../components/scripts/lib/engine.mjs';
-import { readFile } from '../components/scripts/lib/repo-write.mjs';
+import { fileHead, readFile } from '../components/scripts/lib/repo-write.mjs';
 import { touchesCi } from './ci-touch.mjs';
 import { clonePolicy, glue, loadConfig, targetsOf } from './lib.mjs';
 
@@ -37,7 +37,6 @@ if (!WRITE) say('BELAY_BOT_TOKEN is not set: reporting only, nothing is written'
 fs.mkdirSync(work, { recursive: true });
 const policyDir = clonePolicy(cfg, arg('policy-remote'), path.join(work, 'policy'), 1);
 const policyFile = path.join(policyDir, 'trust-policy.yml');
-const statesFile = path.join(policyDir, 'tier-state.yml');
 const proofClassOf = (actionClass) => parse(fs.readFileSync(policyFile, 'utf8'))?.classes?.[actionClass]?.proof ?? null;
 
 /** A raw file or artifact, or null on GitLab's 404. Anything else throws (unknown, never absent). */
@@ -181,6 +180,13 @@ function sweepMr(t, iid) {
   const ledgerFile = `events/${t.id}.jsonl`;
   const ledgerDone = apiAll(`projects/${enc(cfg.ledger.project)}/repository/commits?ref_name=${enc(cfg.ledger.branch)}&path=${enc(ledgerFile)}`, 5)
     .some((c) => String(c.message ?? '').split('\n').includes(`Belay-Head: ${ledgerKey}`));
+
+  // tier-state.yml as belay-policy has it now, not as cloned when the sweep began: a revoke committed while the sweep ran
+  // is what the gate reads before it grants anything (F66).
+  const live = fileHead(cfg.policy.project, 'tier-state.yml', cfg.policy.branch);
+  if (!live) throw new Error(`${cfg.policy.project} has no tier-state.yml`);
+  const statesFile = path.join(dir, 'tier-state.yml');
+  fs.writeFileSync(statesFile, live.content);
 
   // The Proof Block, re-derived here. Never one a target pipeline made.
   const evidence = path.join(dir, 'evidence.json');

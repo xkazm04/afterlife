@@ -59,7 +59,8 @@ are not part of the project.
 7. No guardrail verdict for the head yet: dispatches the guardrail (`dispatch.mjs`, the target's `guardrail_consumer_id`,
    `BELAY_DISPATCH_TOKEN`) once, marks it with the note `**Belay: guardrail review requested** for head <sha>`, and the gate
    waits.
-8. `engine gate` over `tier-state.yml`, then `apply-gate.mjs`: note, `belay::tier::*`, `guardrail::*`, approve or
+8. `engine gate` over `tier-state.yml` as belay-policy has it when this MR is read, not as cloned when the sweep began, so
+   a revoke made during a sweep is seen before anything is granted (F66). Then `apply-gate.mjs`: note, `belay::tier::*`, `guardrail::*`, approve or
    auto-merge pinned to the head (`--sha`). Then `ledger-append.mjs` with the gate's events, in one commit.
 
 A forced decision (CI change, no class, no proof derivable, a guardrail block that fails its schema) is one gate note that

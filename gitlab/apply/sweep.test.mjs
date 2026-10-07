@@ -18,6 +18,7 @@ const URL_ = 'https://gitlab.example/acme/ledgerline';
 const FIX = path.join(ROOT, 'engine/__fixtures__/exploit');
 const fixture = (f) => fs.readFileSync(path.join(FIX, f), 'utf8');
 const LEDGER = `projects/${encodeURIComponent('acme/belay-ledger')}`;
+const POLICY_API = `projects/${encodeURIComponent('acme/belay-policy')}`;
 const STATE = 'version: 1\npolicy_sha: a1b2c3\nagents:\n  ai-patcher-acme:\n    code-fix.patch: { tier: supervised, since: "2026-10-01", by: "start tier + record" }\n';
 
 const git = (cwd, ...args) => execFileSync('git', ['-c', 'core.autocrlf=false', '-C', cwd, ...args], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@x', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@x' } });
@@ -73,7 +74,7 @@ const scan = (ids) => ({ __raw: JSON.stringify({ engine_version: 'semgrep-sast 5
 const ART = 'projects/1/jobs/9001/artifacts';
 
 /** The group as GitLab answers. Every option is one fact a case changes. */
-function group({ desc = description, notes = [guardrailNote('pass')], pipelineSha = HEAD, diff = fixture('fix.diff'), labels = [], baseJunit = fixture('base.junit.xml'), extra = {}, ledgerCommits = [] } = {}) {
+function group({ desc = description, notes = [guardrailNote('pass')], pipelineSha = HEAD, diff = fixture('fix.diff'), labels = [], baseJunit = fixture('base.junit.xml'), extra = {}, ledgerCommits = [], state = STATE } = {}) {
   return {
     'groups/acme/projects': [
       { id: 1, path_with_namespace: 'acme/ledgerline', web_url: URL_, default_branch: 'main' },
@@ -97,6 +98,7 @@ function group({ desc = description, notes = [guardrailNote('pass')], pipelineSh
     [`${ART}/evidence/head/junit.xml`]: { __raw: fixture('head.junit.xml') },
     [`${ART}/evidence/base/scan.json`]: scan(['GL-SAST-4417', 'GL-SAST-4102']),
     [`${ART}/evidence/head/scan.json`]: scan(['GL-SAST-4102']),
+    [`${POLICY_API}/repository/files/tier-state.yml`]: { file_path: 'tier-state.yml', encoding: 'base64', content: Buffer.from(state).toString('base64'), last_commit_id: '1'.repeat(40) },
     [`${LEDGER}/repository/commits`]: ledgerCommits,
     [`${LEDGER}/repository/files/events%2F1.jsonl`]: { __http: 404, message: '404 File Not Found' },
     [`POST ${LEDGER}/repository/commits`]: { reply: { id: 'f'.repeat(40) } },
@@ -270,6 +272,14 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(notes).toHaveLength(1);
     expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay gate: WAIT\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: pipeline 500 of this head ran with 1 pipeline variable`));
     expect(granted(vars)).toEqual([]);
+  });
+
+  it('(x) F66: a revoke committed while the sweep runs is read before anything is granted', () => {
+    // The clone (at the start of the sweep) says supervised; belay-policy now says quarantined.
+    const r = sweep(group({ state: STATE.replace('tier: supervised', 'tier: quarantined') }));
+    expect(r.code, r.stderr).toBe(0);
+    expect(granted(r)).toEqual([]);
+    expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: (WAIT|BLOCK)\*\* \| tier `quarantined`/);
   });
 
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
