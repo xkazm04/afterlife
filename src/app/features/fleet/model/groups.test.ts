@@ -5,7 +5,7 @@ import { makeProject } from './testProject';
 const P = [
   makeProject({ id: 'a', group: 'core', needsYou: 2 }),
   makeProject({ id: 'b', group: 'pay', needsYou: 1, proofs7d: { pass: 5, fail: 1, inconclusive: 2 } }),
-  makeProject({ id: 'c', group: 'pay', state: 'not-set-up', armed: 0, needsYou: 4, proofs7d: null, stages: [null, 3, null, null, null, null, null, null, null] }),
+  makeProject({ id: 'c', group: 'pay', state: 'not-set-up', armed: 0, classTiers: {}, needsYou: 4, proofs7d: null, stages: [null, 3, null, null, null, null, null, null, null] }),
 ];
 
 describe('groupBlocks', () => {
@@ -37,8 +37,11 @@ describe('group totals', () => {
   it('sums needs-you over watched projects only', () => {
     expect(needsSum(P)).toBe(3);
   });
-  it('sums tier counts over armed projects only', () => {
+  it('sums tier counts over projects whose tiers are known; none known is unknown, not 0', () => {
     expect(tierTotal(P, 'hands_off')).toBe(2);
+    expect(tierTotal([P[2]!], 'hands_off')).toBeNull();
+    // a live project: armed 0 (nothing writes it), its tiers known from its class tier rows
+    expect(tierTotal([makeProject({ id: 'live', armed: 0 })], 'hands_off')).toBe(1);
   });
   it('sums proofs and ignores unknown ones', () => {
     expect(proofsSum(P)).toEqual({ pass: 8, fail: 1, inconclusive: 2 });

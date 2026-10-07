@@ -58,6 +58,8 @@
 .w_assisted { fill: color-mix(in oklab, var(--tier-assisted) 20%, var(--bg)); stroke: var(--tier-assisted); }
 .w_quarantined { fill: color-mix(in oklab, var(--tier-quarantined) 26%, var(--bg)); stroke: var(--tier-quarantined); }
 .w_human_only { fill: color-mix(in oklab, var(--tier-human) 14%, var(--bg)); stroke: var(--tier-human); }
+.w_no_record { fill: none; stroke: var(--unknown); stroke-dasharray: 2 2; }
+.w_refused { fill: none; stroke: var(--fail); }
 .w_null { fill: none; stroke: var(--d-unk-line); stroke-dasharray: 4 3; }
 .wl { font: 700 20px var(--sys); text-anchor: middle; pointer-events: none; stroke: none; }
 .wl.w_hands_off { fill: var(--tier-handsoff); }
@@ -65,6 +67,8 @@
 .wl.w_assisted { fill: var(--tier-assisted); }
 .wl.w_quarantined { fill: var(--tier-quarantined); }
 .wl.w_human_only { fill: var(--tier-human); }
+.wl.w_no_record { fill: var(--unknown); }
+.wl.w_refused { fill: var(--fail); }
 
 /* the antenna is the feed */
 .mast { stroke: var(--accent); stroke-width: 2; }

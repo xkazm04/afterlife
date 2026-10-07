@@ -22,6 +22,18 @@
   color: var(--tier-human);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--tier-human) 55%, transparent);
 }
+.mk[data-tier="no_record"] {
+  background: none;
+  color: var(--unknown);
+  box-shadow: none;
+  outline: 1px dashed color-mix(in oklab, var(--unknown) 70%, transparent);
+  outline-offset: -1px;
+}
+.mk[data-tier="refused"] {
+  background: none;
+  color: var(--fail);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fail) 60%, transparent);
+}
 .mk[data-stale="true"],
 [data-stale="true"] .mk {
   color: color-mix(in oklab, var(--tc) 50%, var(--text-4));

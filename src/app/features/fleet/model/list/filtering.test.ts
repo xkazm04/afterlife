@@ -6,7 +6,7 @@ import { countSmart, smartFilter } from './smartFilters';
 const P = [
   makeProject({ id: 'a', needsYou: 2, what: 'Core API', group: 'core' }),
   makeProject({ id: 'b', state: 'stale', group: 'pay', tiers: { hands_off: 0, supervised: 0, assisted: 2, quarantined: 1, human_only: 0 } }),
-  makeProject({ id: 'c', state: 'not-set-up', armed: 0, group: 'pay', tiers: { hands_off: 0, supervised: 0, assisted: 0, quarantined: 0, human_only: 0 } }),
+  makeProject({ id: 'c', state: 'not-set-up', armed: 0, classTiers: {}, group: 'pay', tiers: { hands_off: 0, supervised: 0, assisted: 0, quarantined: 0, human_only: 0 } }),
   makeProject({ id: 'd', state: 'setting-up', group: 'data' }),
 ];
 

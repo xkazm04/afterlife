@@ -5,16 +5,22 @@ import { TierMark } from '@/components/status/TierMark';
 import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { ProjectState, TierInfo, TierKey } from '@/lib/demo/types';
-import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
+import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
 import styles from './legend.module.css';
 
 const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
+const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
 
 /** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching and the keys. */
 export function FleetLegend({ tiers }: { tiers: Record<TierKey, TierInfo> }) {
   return (
     <>
-      <Legend rows={TIER_DISPLAY_ORDER.map((t) => [<TierMark key={t} tier={t} />, `${TIER_META[t].name} — ${tiers[t].means}`] as const)} />
+      <Legend
+        rows={[
+          ...TIER_DISPLAY_ORDER.map((t) => [<TierMark key={t} tier={t} />, `${TIER_META[t].name} — ${tiers[t].means}`] as const),
+          ...STANDINGS.map((s) => [<TierMark key={s} tier={s} />, `${STANDING_META[s].name} — ${STANDING_META[s].means}; not a quarantine`] as const),
+        ]}
+      />
       <hr />
       <Legend
         rows={[

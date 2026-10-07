@@ -18,8 +18,8 @@ export interface Deep {
   illustrative: { cockpit: boolean; tracks: boolean };
 }
 
-const TIERS = ['hands_off', 'supervised', 'assisted', 'quarantined', 'human_only'] as const;
-const TIER_NAME: Record<string, string> = { hands_off: 'hands-off', supervised: 'supervised', assisted: 'assisted', quarantined: 'quarantined', human_only: 'human only' };
+const TIERS = ['hands_off', 'supervised', 'assisted', 'quarantined', 'human_only', 'no_record', 'refused'] as const;
+const TIER_NAME: Record<string, string> = { hands_off: 'hands-off', supervised: 'supervised', assisted: 'assisted', quarantined: 'quarantined', human_only: 'human only', no_record: 'no record yet', refused: 'blocked' };
 
 function Num({ v, k, tone }: { v: React.ReactNode; k: string; tone?: string }) {
   return (
@@ -50,6 +50,7 @@ export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: s
   const isDeep = p.id === deep.id;
   const n = needsOf(p);
   const nulls = classes.filter((k) => p.classTiers?.[k] == null).length;
+  const at = (t: string): number => classes.filter((k) => p.classTiers?.[k] === t).length; // no record / blocked: never a quarantine
   const known = p.stages.filter((x) => x != null).length;
   const d = deep.needs[pick] ?? deep.needs[0];
   return (
@@ -144,10 +145,10 @@ export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: s
             <div className={styles.block}>
               <h3>Autonomy by class</h3>
               <div className={styles.tiers}>
-                {TIERS.filter((t) => (p.tiers?.[t] ?? 0) > 0).map((t) => (
+                {TIERS.filter((t) => at(t) > 0).map((t) => (
                   <span key={t}>
                     <TierLetter tier={t} />
-                    {p.tiers[t]} {TIER_NAME[t]}
+                    {at(t)} {TIER_NAME[t]}
                   </span>
                 ))}
                 {nulls ? (
@@ -187,7 +188,7 @@ export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: s
           Enter Afterlife
         </Exit>
         {n > 0 ? <Exit href="/needs-you">Needs you</Exit> : null}
-        {(p.tiers?.quarantined ?? 0) > 0 ? <Exit href="/ladder">Ladder</Exit> : null}
+        {at('quarantined') > 0 ? <Exit href="/ladder">Ladder</Exit> : null}
         {!nsu ? <Exit href="/maturity">Maturity</Exit> : null}
         {isDeep ? <Exit href="/task">Task</Exit> : null}
         {isDeep ? <Exit href="/theater">Theater</Exit> : null}

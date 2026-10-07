@@ -1,6 +1,7 @@
 // The words of the front door: the answer block's lines, the readout's line for a tower or a district, stale texts.
 // Lines come back as tone-tagged parts so the components colour them without parsing strings. Pure.
 import type { FleetProject } from '@/lib/demo/types';
+import { standingCount, tiersKnown } from '@/lib/tiers';
 import { needsOf, type District } from './city';
 
 export type Tone = 'plain' | 'amber' | 'stale' | 'unknown' | 'fail' | 'ok';
@@ -61,16 +62,22 @@ export function topTiers(projects: readonly FleetProject[]): { n: number; names:
   return out;
 }
 
-/** Fleet-wide counts for the answer block. */
+/** Tiers are counted only where they are known (tiersKnown); unknown is never 0 and never quarantined. */
+const knownTiers = (p: FleetProject): boolean => p.state !== 'not-set-up' && tiersKnown(p);
+
+/** Fleet-wide counts for the answer block. A class with no record yet is counted apart (norec), never as quarantined. */
 export function fleetTotals(projects: readonly FleetProject[]) {
-  const t = { n: projects.length, needs: 0, stale: 0, setup: 0, nsu: 0, watch: 0, quar: 0, pass: 0, fail: 0 };
+  const t = { n: projects.length, needs: 0, stale: 0, setup: 0, nsu: 0, watch: 0, quar: 0, norec: 0, pass: 0, fail: 0 };
   for (const p of projects) {
     t.needs += needsOf(p);
     if (p.state === 'stale') t.stale++;
     else if (p.state === 'setting-up') t.setup++;
     else if (p.state === 'not-set-up') t.nsu++;
     else t.watch++;
-    if (p.state !== 'not-set-up') t.quar += p.tiers?.quarantined ?? 0;
+    if (knownTiers(p)) {
+      t.quar += p.tiers?.quarantined ?? 0;
+      t.norec += standingCount(p, 'no_record');
+    }
     if (p.proofs7d) {
       t.pass += p.proofs7d.pass;
       t.fail += p.proofs7d.fail;
@@ -81,11 +88,12 @@ export function fleetTotals(projects: readonly FleetProject[]) {
 export type FleetTotals = ReturnType<typeof fleetTotals>;
 
 /** The answer marks: each lights its towers across the city. */
-export type MarkKind = 'needs' | 'stale' | 'quar' | 'setup' | 'nsu' | 'watch';
+export type MarkKind = 'needs' | 'stale' | 'quar' | 'norec' | 'setup' | 'nsu' | 'watch';
 export const MARK_TEST: Record<MarkKind, (p: FleetProject) => boolean> = {
   needs: (p) => needsOf(p) > 0,
   stale: (p) => p.state === 'stale',
-  quar: (p) => p.state !== 'not-set-up' && (p.tiers?.quarantined ?? 0) > 0,
+  quar: (p) => knownTiers(p) && (p.tiers?.quarantined ?? 0) > 0,
+  norec: (p) => knownTiers(p) && standingCount(p, 'no_record') > 0,
   setup: (p) => p.state === 'setting-up',
   nsu: (p) => p.state === 'not-set-up',
   watch: (p) => p.state === 'watching',

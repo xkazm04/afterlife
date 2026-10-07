@@ -12,6 +12,8 @@ const TIER_CLASS: Record<string, string> = {
   assisted: styles.wAssisted!,
   quarantined: styles.wQuarantined!,
   human_only: styles.wHuman!,
+  no_record: styles.wNoRecord!,
+  refused: styles.wRefused!,
   null: styles.wNull!,
 };
 

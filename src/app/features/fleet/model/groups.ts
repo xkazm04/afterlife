@@ -1,6 +1,7 @@
 // Grouping and the numbers on a group row: tier totals, needs-you sum, proofs sum, average rung.
 import type { FleetProject, ProofCounts, TierKey } from '@/lib/demo/types';
 import { groupNavId, type NavItem } from '@/components/table/model/rowNavigation';
+import { tiersKnown } from '@/lib/tiers';
 import type { GroupBlock } from './types';
 
 /** Visible projects split by group, in the fleet's group order; groups with nothing visible are left out. */
@@ -22,7 +23,11 @@ export function navItems(blocks: readonly GroupBlock[], collapsed: ReadonlySet<s
 /** Decisions waiting in a list; an unwatched project's count is not shown anywhere, so it is not summed. */
 export const needsSum = (list: readonly FleetProject[]): number => list.reduce((a, p) => a + (p.state === 'not-set-up' ? 0 : p.needsYou), 0);
 
-export const tierTotal = (list: readonly FleetProject[], t: TierKey): number => list.reduce((a, p) => a + (p.armed ? p.tiers[t] : 0), 0);
+/** A tier summed over the projects whose tiers are known; null (unknown, not 0) when none is. */
+export function tierTotal(list: readonly FleetProject[], t: TierKey): number | null {
+  const known = list.filter(tiersKnown);
+  return known.length ? known.reduce((a, p) => a + p.tiers[t], 0) : null;
+}
 
 /** Proofs summed; projects with unknown proofs add nothing. */
 export const proofsSum = (list: readonly FleetProject[]): ProofCounts =>

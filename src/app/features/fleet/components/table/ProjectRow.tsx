@@ -11,7 +11,7 @@ import { StageMeter } from '@/components/viz/StageMeter';
 import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { FleetProject, TierKey } from '@/lib/demo/types';
-import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
+import { cellName, standingCount, TIER_DISPLAY_ORDER, tiersKnown, type Standing } from '@/lib/tiers';
 import { columnRole } from '../../model/list/sorting';
 import type { FleetMeta, FleetView } from '../../model/types';
 import { ProofsCell } from './cells/ProofsCell';
@@ -32,16 +32,20 @@ export interface ProjectRowProps {
   h: RowHandlers;
 }
 
+const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
+
 /** The view-dependent middle cells: tier counts, the tier of each class, or the rung of each stage. */
 function MiddleCells({ p, view, ranked, narrow, meta, h }: Pick<ProjectRowProps, 'p' | 'view' | 'ranked' | 'narrow' | 'meta' | 'h'>) {
   const unwatched = p.state === 'not-set-up';
   if (view === 'tiers') {
+    const apart = STANDINGS.map((s) => [s, standingCount(p, s)] as const).filter(([, n]) => n > 0);
     return TIER_DISPLAY_ORDER.map((t) => (
       <TierCountCell
         key={t}
         tier={t}
         count={p.tiers[t]}
-        armed={p.armed > 0}
+        known={tiersKnown(p)}
+        apart={t === 'quarantined' ? apart : undefined}
         role={columnRole(t, ranked)}
         narrow={narrow}
         onEnter={(e) => h.onTierEnter(e.currentTarget, p, t)}
@@ -53,7 +57,7 @@ function MiddleCells({ p, view, ranked, narrow, meta, h }: Pick<ProjectRowProps,
     return meta.classes.map((c) => {
       const t = p.classTiers[c];
       return (
-        <Cell key={c} data align="center" className={styles.cc} title={t ? `${c}: ${TIER_META[t].name}` : undefined}>
+        <Cell key={c} data align="center" className={styles.cc} title={t ? `${c}: ${cellName(t)}` : undefined}>
           <TierMark tier={t} />
         </Cell>
       );

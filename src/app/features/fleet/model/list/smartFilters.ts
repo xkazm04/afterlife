@@ -1,5 +1,6 @@
 // The six smart filters: the sidebar list and the toolbar lozenge both use them.
 import type { FleetProject } from '@/lib/demo/types';
+import { tiersKnown } from '@/lib/tiers';
 import type { SmartId } from '../types';
 
 export interface SmartFilter {
@@ -13,8 +14,9 @@ export const SMART_FILTERS: readonly SmartFilter[] = [
   { id: 'stale', label: 'Stale', test: (p) => p.state === 'stale' },
   { id: 'setup', label: 'Setting up', test: (p) => p.state === 'setting-up' },
   { id: 'unwatched', label: 'Not watched', test: (p) => p.state === 'not-set-up' },
-  { id: 'quar', label: 'Has quarantine', test: (p) => p.tiers.quarantined > 0 },
-  { id: 'handsoff', label: 'Hands-off', test: (p) => p.tiers.hands_off > 0 },
+  // a tripwire quarantine only: a class with no record yet is not quarantined, and unknown tiers match nothing
+  { id: 'quar', label: 'Has quarantine', test: (p) => tiersKnown(p) && p.tiers.quarantined > 0 },
+  { id: 'handsoff', label: 'Hands-off', test: (p) => tiersKnown(p) && p.tiers.hands_off > 0 },
 ];
 
 export const smartFilter = (id: SmartId): SmartFilter => SMART_FILTERS.find((s) => s.id === id) ?? SMART_FILTERS[0]!;

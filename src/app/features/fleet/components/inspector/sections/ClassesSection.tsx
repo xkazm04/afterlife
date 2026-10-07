@@ -1,7 +1,7 @@
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { TierMark } from '@/components/status/TierMark';
 import type { FleetProject } from '@/lib/demo/types';
-import { TIER_META } from '@/lib/tiers';
+import { cellName } from '@/lib/tiers';
 import type { SectionProps } from '../../../hooks/useSectionOpen';
 import { classTip, recordLabel } from '../../../model/inspector';
 import type { DeepProject } from '../../../model/types';
@@ -23,7 +23,7 @@ export function ClassesSection({ p, classes, deep, sec }: { p: FleetProject; cla
               <span className={styles.id}>{c}</span>
               <span className={styles.rec}>{recordLabel(dc)}</span>
               {t ? <TierMark tier={t} /> : <span />}
-              <span className={styles.tn}>{t ? TIER_META[t].name : 'not armed'}</span>
+              <span className={styles.tn}>{cellName(t)}</span>
             </div>
           );
         })

@@ -3,7 +3,7 @@
 import { CX, CY, type Cutaway } from '../../model/cutaway';
 import styles from './l2tower.module.css';
 
-const LETTER: Record<string, string> = { hands_off: 'H', supervised: 'S', assisted: 'A', quarantined: 'Q', human_only: 'P' };
+const LETTER: Record<string, string> = { hands_off: 'H', supervised: 'S', assisted: 'A', quarantined: 'Q', human_only: 'P', no_record: '–', refused: '!' };
 
 /** The cutaway (Night Shift's L2): floors lit by rung, tier windows, the antenna and its tag, the roof beacon. */
 export function L2Tower({ c, hotClass, onClass }: { c: Cutaway; hotClass: number | null; onClass: (i: number | null) => void }) {

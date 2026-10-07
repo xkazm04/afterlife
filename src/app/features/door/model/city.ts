@@ -1,6 +1,7 @@
 // The city's layout, from the contest winner "Night Shift": a 2:1 isometric lattice, one district plate per group
 // (four on the front row, three on the back), one tower per project, decisions as amber beams. Pure.
 import type { FleetProject } from '@/lib/demo/types';
+import { tiersKnown } from '@/lib/tiers';
 
 /** Lattice half-width/height, plate margin and thickness, tower footprint, horizon, beam px per decision. */
 export const HW = 23;
@@ -97,7 +98,7 @@ export function districtsOf(groups: readonly string[], projects: readonly FleetP
       stale: ps.filter((p) => p.state === 'stale').length,
       setup: ps.filter((p) => p.state === 'setting-up').length,
       nsu: ps.filter((p) => p.state === 'not-set-up').length,
-      quar: sum((p) => (p.state !== 'not-set-up' ? (p.tiers?.quarantined ?? 0) : 0)),
+      quar: sum((p) => (p.state !== 'not-set-up' && tiersKnown(p) ? (p.tiers?.quarantined ?? 0) : 0)),
       w: (cols + rows + 4 * M) * HW,
       cx: 0,
       cy: 0,

@@ -1,5 +1,6 @@
 // Which projects the list shows: the source (all / a group / a smart filter), the search text and the two menus.
 import type { FleetProject, ProjectState, TierKey } from '@/lib/demo/types';
+import { tiersKnown } from '@/lib/tiers';
 import { smartFilter } from './smartFilters';
 import type { FleetFilters, SmartId, Source } from '../types';
 
@@ -24,7 +25,7 @@ export function filterProjects(projects: readonly FleetProject[], f: FleetFilter
     (p) =>
       matchesSource(p, f.source) &&
       (f.states.size === 0 || f.states.has(p.state)) &&
-      (f.tiers.size === 0 || [...f.tiers].some((t) => p.tiers[t] > 0)) &&
+      (f.tiers.size === 0 || (tiersKnown(p) && [...f.tiers].some((t) => p.tiers[t] > 0))) &&
       matchesSearch(p, f.q),
   );
 }

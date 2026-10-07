@@ -53,3 +53,11 @@
   font-weight: 600;
   min-width: calc(8px * var(--ui-scale));
 }
+/* beside the Quarantined count, never in it: classes with no record yet / blocked */
+.apart {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2px * var(--ui-scale));
+  color: var(--text-3);
+  font-size: var(--t-small);
+}

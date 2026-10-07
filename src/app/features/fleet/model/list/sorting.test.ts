@@ -6,7 +6,7 @@ const STAGES = ['plan', 'create', 'verify'];
 const a = makeProject({ id: 'a', name: 'alpha', needsYou: 0 });
 const b = makeProject({ id: 'b', name: 'bravo', needsYou: 3 });
 const c = makeProject({ id: 'c', name: 'charlie', needsYou: 3, state: 'stale' });
-const d = makeProject({ id: 'd', name: 'delta', state: 'not-set-up', armed: 0, needsYou: 9, proofs7d: null, feed: { ageSec: null, ok: null } });
+const d = makeProject({ id: 'd', name: 'delta', state: 'not-set-up', armed: 0, classTiers: {}, needsYou: 9, proofs7d: null, feed: { ageSec: null, ok: null } });
 
 describe('attention rank', () => {
   it('puts needs-you first, then the sickest state, then the name', () => {

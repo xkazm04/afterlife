@@ -35,6 +35,15 @@
   color: var(--tier-human);
   box-shadow: inset 0 0 0 1px var(--tier-human);
 }
+/* the gate grants nothing, and it is not a quarantine: no record yet (dashed), blocked (outlined) */
+.noRecord {
+  color: var(--unknown);
+  border: 1px dashed var(--unknown);
+}
+.refused {
+  color: var(--fail);
+  box-shadow: inset 0 0 0 1px var(--fail);
+}
 .null {
   color: var(--unknown);
   border: 1px dashed var(--d-unk-line);

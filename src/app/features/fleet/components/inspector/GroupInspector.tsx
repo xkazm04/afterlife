@@ -35,7 +35,7 @@ export function GroupInspector({ group, list, section }: { group: string; list: 
             <span className={styles.id}>{TIER_META[t].name}</span>
             <span className={styles.rec} />
             <TierMark tier={t} />
-            <span className={styles.tn}>{tierTotal(list, t)}</span>
+            <span className={styles.tn}>{tierTotal(list, t) ?? 'unknown'}</span>
           </div>
         ))}
       </InspectorSection>

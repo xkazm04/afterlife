@@ -122,6 +122,17 @@
 .wHuman {
   fill: var(--tier-human);
 }
+.wNoRecord {
+  fill: none;
+  stroke: var(--unknown);
+  stroke-width: 0.6;
+  stroke-dasharray: 1.2 1;
+}
+.wRefused {
+  fill: none;
+  stroke: var(--fail);
+  stroke-width: 0.8;
+}
 .wNull {
   fill: color-mix(in oklab, var(--bg) 70%, transparent);
   stroke: color-mix(in oklab, var(--unknown) 35%, transparent);

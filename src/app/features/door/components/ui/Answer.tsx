@@ -7,9 +7,11 @@ import { useCountUp } from '../../hooks/useCountUp';
 import { MarkIcon } from './MarkIcon';
 import styles from './answer.module.css';
 
-const MARKS: readonly { kind: MarkKind; words: (t: FleetTotals, staleTop: District | null) => string; n: (t: FleetTotals) => number }[] = [
+// `quiet`: the mark is left out while its count is 0.
+const MARKS: readonly { kind: MarkKind; words: (t: FleetTotals, staleTop: District | null) => string; n: (t: FleetTotals) => number; quiet?: boolean }[] = [
   { kind: 'stale', n: (t) => t.stale, words: (_, s) => ` stale${s ? ` · ${s.stale} in ${s.name}` : ''}` },
   { kind: 'quar', n: (t) => t.quar, words: () => ' classes quarantined' },
+  { kind: 'norec', n: (t) => t.norec, words: (t) => ` ${t.norec === 1 ? 'class' : 'classes'} with no record yet · not quarantined`, quiet: true },
   { kind: 'setup', n: (t) => t.setup, words: () => ' setting up' },
   { kind: 'nsu', n: (t) => t.nsu, words: () => ' not watched · unknown, not zero' },
   { kind: 'watch', n: (t) => t.watch, words: () => ' watching' },
@@ -64,7 +66,7 @@ export const Answer = memo(function Answer({
         ))}
       </div>
       <ul className={styles.marks}>
-        {MARKS.map((m) => (
+        {MARKS.filter((m) => !m.quiet || m.n(totals) > 0).map((m) => (
           <li key={m.kind}>
             <button type="button" className={styles.mk} tabIndex={tab} data-role="door-mark" onClick={() => m.kind === 'stale' && onOpen('stale')} {...lit(m.kind)}>
               <MarkIcon kind={m.kind} />

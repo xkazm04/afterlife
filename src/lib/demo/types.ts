@@ -1,6 +1,7 @@
 // Types for the illustrative demo fixture (data/belay-demo.json). The JSON is plain data; these types describe
 // it once so every screen reads it typed. A test (demo.test.ts) checks the fixture against them.
 import type { Ceiling, Stage } from '@/schemas';
+import type { ClassCell } from '@/lib/tiers';
 import type { NeedsYouItem, SetupPhase, Task } from './deepTypes';
 
 export type * from './deepTypes';
@@ -51,7 +52,8 @@ export interface Project {
 
 export interface FleetProject extends Project {
   group: string;
-  classTiers: Record<string, TierKey | null>;
+  /** Each class: its tier, 'no_record' / 'refused' when the gate grants none, null when unknown. */
+  classTiers: Record<string, ClassCell>;
   setupStep?: string;
 }
 

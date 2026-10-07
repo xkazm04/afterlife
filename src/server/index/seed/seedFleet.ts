@@ -1,6 +1,7 @@
 // Loads the fixture's fleet (all 184 projects) into the index.
 import { DEMO } from '@/lib/demo';
 import type { FleetProject } from '@/lib/demo/types';
+import { isStanding } from '@/lib/tiers';
 import type { ClassTierRow } from '../repositories/fleet/classTier';
 import { upsertClassTiers } from '../repositories/fleet/classTier';
 import { upsertProjects, type ProjectRow } from '../repositories/fleet/project';
@@ -44,8 +45,10 @@ export async function seedFleet(db: Queryable, now: Date): Promise<void> {
   await upsertProjects(db, fleet.projects.map((p, i) => projectRow(p, i, now)));
   await setProjectStages(db, new Map(fleet.projects.map((p) => [p.id, p.stages])));
   const tiers: ClassTierRow[] = fleet.projects.flatMap((p) =>
-    Object.entries(p.classTiers).map(([classId, tier]) => ({
-      projectId: p.id, classId, tier, since: null, setBy: null, leaseExpires: null, record: null, move: null,
+    Object.entries(p.classTiers).map(([classId, cell]): ClassTierRow => ({
+      projectId: p.id, classId, since: null, setBy: null, leaseExpires: null, record: null,
+      // a standing is stored as the poller stores it: quarantined, as the gate acts, with the standing as its move
+      ...(isStanding(cell) ? { tier: 'quarantined', move: { kind: cell, at: null, note: null } } : { tier: cell, move: null }),
     })),
   );
   await upsertClassTiers(db, tiers);

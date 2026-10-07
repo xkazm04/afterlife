@@ -12,6 +12,8 @@ const TIERS = [
   ['assisted', 'Assisted'],
   ['quarantined', 'Quarantined'],
   ['human_only', 'Human only'],
+  ['no_record', 'No record yet'],
+  ['refused', 'Blocked'],
 ] as const;
 
 function Ico({ kind }: { kind: 'stale' | 'setup' | 'nsu' }) {

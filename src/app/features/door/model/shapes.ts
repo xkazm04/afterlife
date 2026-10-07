@@ -1,6 +1,7 @@
 // Path strings for a tower, a plate and a beam, in Night Shift's geometry. Windows of one tier on one tower share a
 // single path, so a tower is about ten SVG nodes rather than twenty. Pure.
 import type { FleetProject } from '@/lib/demo/types';
+import { tiersKnown } from '@/lib/tiers';
 import { FA, FB, PT, at, BEAM, needsOf, type District, type Placed, type Pt } from './city';
 
 const f1 = (n: number) => n.toFixed(1);
@@ -34,7 +35,7 @@ export interface TowerShape {
   hit: string;
   faces?: { l: string; r: string; top: string };
   hatch?: string;
-  /** Window paths keyed by tier ("null" for an unknown class). */
+  /** Window paths keyed by tier, by standing ("no_record", "refused"), or "null" for an unknown class. */
   windows: Record<string, string>;
   halo?: string;
   edge: string;
@@ -42,7 +43,7 @@ export interface TowerShape {
   /** Not set up: dashed footprint and ghost box. */
   foot?: string;
   ghost?: string;
-  /** Quarantined lamps on the right face. */
+  /** Quarantined lamps on the right face: tripwire quarantines only, none while the tiers are unknown. */
   lamps: Pt[];
 }
 
@@ -84,7 +85,7 @@ export function towerShape(t: Placed, classes: readonly string[]): TowerShape {
     const poly = i < 6 ? wl[i] : wr[i - 6];
     if (poly) windows[tier] = (windows[tier] ? windows[tier] + ' ' : '') + pathD(poly, true);
   });
-  const q = p.tiers?.quarantined ?? 0;
+  const q = tiersKnown(p) ? (p.tiers?.quarantined ?? 0) : 0;
   const lamps: Pt[] = Array.from({ length: q }, (_, i) => [0.5 * FA + (i - (q - 1) / 2) * 4, FB * 0.5 - h * 0.55]);
   const stale = p.state === 'stale';
   return {
