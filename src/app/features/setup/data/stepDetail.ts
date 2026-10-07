@@ -45,8 +45,13 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
     before: 'ANTHROPIC_API_KEY not present', probe: 'ANTHROPIC_API_KEY exists · masked · protected · value never read',
   },
   9: {
-    who: 'agent', does: 'Protects main, adds CODEOWNERS on CI and policy paths, turns on author-cannot-approve.', write: true, probe: 'read back 4 of 4 settings match',
-    cmd: ['glab api -X POST projects/:id/protected_branches -f name=main', 'glab api -X POST projects/:id/approval_rules …', 'git commit CODEOWNERS && glab mr create --fill'],
+    who: 'agent', does: 'Protects main, makes belay/* a protected branch pattern that only Maintainers and the flow accounts can push to, adds CODEOWNERS on CI and policy paths, turns on author-cannot-approve.',
+    write: true, probe: 'read back 5 of 5 settings match',
+    cmd: [
+      'glab api -X POST projects/:id/protected_branches -f name=main',
+      "glab api -X POST projects/:id/protected_branches -f 'name=belay/*' -f push_access_level=40 -f 'allowed_to_push[][user_id]=…'",
+      'glab api -X POST projects/:id/approval_rules …', 'git commit CODEOWNERS && glab mr create --fill',
+    ],
   },
   10: {
     who: 'human', short: 'Merge the bootstrap MR !2', does: 'Config applies only from the default branch, so a person merges it.', action: 'Review and merge !2 belay/bootstrap',

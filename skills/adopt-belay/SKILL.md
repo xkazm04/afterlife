@@ -33,7 +33,7 @@ licence, a card, a secret or a legal identity is handed back to a person as a nu
 | 6 | **Human** | Runner and billing on Google Cloud |
 | 7 | **Human** | Google Cloud OIDC, using the Cloud Shell script |
 | 8 | **Human** | Secrets |
-| 9 | Agent | Protections: approval rules, protected main, CODEOWNERS on CI and policy paths |
+| 9 | Agent | Protections: approval rules, protected main, `belay/*` a protected branch pattern that only Maintainers and the flow accounts can push to (gitlab/components/README.md, Exposure), CODEOWNERS on CI and policy paths |
 | 10 | Agent, then **Human** | Bootstrap MR. The human merges it. |
 | 11 | Agent, else **Human** | Enable flows |
 | 12 | Agent | First scan and the first gap MR |
