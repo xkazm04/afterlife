@@ -31,18 +31,13 @@ describe('routeViews', () => {
   });
 
   it('turns the tag into the MR id once sent, and drops it when credited', () => {
-    const sent = run(s0, { type: 'go', step: 3 }, { type: 'send' });
-    expect(view(sent, 'secure').clip).toMatchObject({ label: '!45', sent: true, picked: false });
-    expect(view(sent, 'create').clip?.label).toBe('pol!6');
+    const sent = run(s0, { type: 'go', step: 3 }, { type: 'sent', opened: { g1: '!22', g2: null }, text: 'done' });
+    expect(view(sent, 'secure').clip).toMatchObject({ label: '!22', sent: true, picked: false });
+    expect(view(sent, 'create').clip?.label).toBe('g2'); // GitLab named no MR: never one the screen made up
     const credited = run(sent, { type: 'merge', id: 'g2' }, { type: 'rescanGap', id: 'g2' });
     expect(view(credited, 'create').clip).toBeNull();
     expect(view(credited, 'create').lv).toBe(3);
     expect(view(credited, 'create').deep).toBe(true);
-  });
-
-  it('shows the probe as "probed" once run', () => {
-    const s = run(s0, { type: 'togglePick', id: 'g4' }, { type: 'go', step: 3 }, { type: 'send' });
-    expect(view(s, 'monitor').clip?.label).toBe('probed');
   });
 
   it('Day 0: draws the day-0 high point, no rings, no chalk; an unknown stays unknown', () => {

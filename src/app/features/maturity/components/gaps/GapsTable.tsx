@@ -4,6 +4,7 @@ import type { Stage } from '@/schemas';
 import type { Gap } from '../../model/ctx';
 import type { Phase } from '../../model/flow/credit';
 import { cx } from '../cx';
+import { mrName } from '../../model/rungs';
 import { GapRow } from './GapRow';
 import styles from './gaps.module.css';
 
@@ -24,6 +25,7 @@ export function GapsTable({
   gaps,
   picked,
   flow,
+  mrs,
   selected,
   sectionRef,
   onPick,
@@ -32,6 +34,7 @@ export function GapsTable({
   gaps: readonly Gap[];
   picked: readonly string[];
   flow: Readonly<Record<string, Phase>>;
+  mrs: Readonly<Record<string, string>>;
   selected: Stage;
   sectionRef: Ref<HTMLElement>;
   onPick: (id: string) => void;
@@ -48,7 +51,7 @@ export function GapsTable({
       </div>
       <div role="rowgroup">
         {gaps.map((g, i) => (
-          <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} selected={selected === g.stage} alt={i % 2 === 1} onPick={onPick} onSelect={onSelect} />
+          <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} mr={mrName(mrs, g.id)} selected={selected === g.stage} alt={i % 2 === 1} onPick={onPick} onSelect={onSelect} />
         ))}
       </div>
     </section>

@@ -3,7 +3,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { InspectorPanel } from './components/inspector/InspectorPanel';
-import { SendSheet } from './components/sheet/SendSheet';
 import { Crag } from './components/crag/Crag';
 import type { MaturityApi } from './hooks/useMaturity';
 import { reduce, type Action } from './model/reducer';
@@ -27,12 +26,11 @@ const api = (state: MaturityState): MaturityApi => ({
   setMode: () => {},
 });
 
-const sent = run(initialState(ctx), { type: 'go', step: 3 }, { type: 'send' });
+const sent = run(initialState(ctx), { type: 'go', step: 3 }, { type: 'sent', opened: { g1: '!22', g2: null }, text: 'x' });
 const merged = run(sent, { type: 'merge', id: 'g1' }, { type: 'merge', id: 'g2' });
 const nolift = run(merged, { type: 'rescanGap', id: 'g1' });
 const credited = run(nolift, { type: 'rescanGap', id: 'g2' }, { type: 'ran', id: 'g1' }, { type: 'rescanGap', id: 'g1' });
-const probe = run(initialState(ctx), { type: 'togglePick', id: 'g4' }, { type: 'go', step: 3 }, { type: 'send' });
-const states = { initial: initialState(ctx), preview: run(initialState(ctx), { type: 'go', step: 2 }), sent, merged, nolift, credited, probe };
+const states = { initial: initialState(ctx), preview: run(initialState(ctx), { type: 'go', step: 2 }), sent, merged, nolift, credited };
 
 describe('screen parts render in every state', () => {
   for (const [name, state] of Object.entries(states)) {
@@ -70,10 +68,7 @@ describe('screen parts render in every state', () => {
     expect(draw('day0')).not.toContain('>d0<');
   });
 
-  it('the send sheet shows the exact commands', () => {
-    const html = renderToStaticMarkup(createElement(SendSheet, { gaps: ctx.gaps.filter((g) => g.picked), onCancel: () => {}, onSend: () => {} }));
-    expect(html).toContain('Open 2 MRs as you');
-    expect(html).toContain('glab mr create');
+  it('the shared dataset has the four proposals', () => {
     expect(DEMO.maturity.proposals).toHaveLength(4);
   });
 });

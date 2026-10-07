@@ -14,7 +14,7 @@ const MARK = { ok: ['✓', styles.mok], no: ['✗', styles.mno], q: ['·', style
  * What happens after you merge, simulated step by step: opened → merged → (ran) → rescan → credit. Merging a job
  * that has not run is "no lift: configured, not exercised"; credit needs the job to run first.
  */
-export function AfterMerge({ ctx, gap, phase, now, dispatch }: { ctx: MaturityCtx; gap: Gap; phase: Phase; now: Level; dispatch: (a: Action) => void }) {
+export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: MaturityCtx; gap: Gap; phase: Phase; now: Level; mr: string; dispatch: (a: Action) => void }) {
   const x = gap.x;
   const id = gap.id;
   if (x.kind === 'probe') {
@@ -32,7 +32,7 @@ export function AfterMerge({ ctx, gap, phase, now, dispatch }: { ctx: MaturityCt
   return (
     <>
       <div className={styles.gh}>
-        <span className={styles.mr}>{x.mrId}</span>
+        <span className={styles.mr}>{mr}</span>
         <span className={styles.branch}>{x.branch}</span>
       </div>
       <div className={styles.tl}>

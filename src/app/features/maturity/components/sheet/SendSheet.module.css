@@ -31,3 +31,18 @@
   font-size: var(--t-small);
   color: var(--text-3);
 }
+.note {
+  margin: 4px 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.done {
+  margin: 4px 0;
+  font-size: var(--t-small);
+  color: var(--text-1);
+}
+.bad {
+  margin: 4px 0;
+  font-size: var(--t-small);
+  color: var(--text-2);
+}

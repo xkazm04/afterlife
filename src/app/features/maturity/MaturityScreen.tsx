@@ -16,18 +16,31 @@ import { InspectorPanel } from './components/inspector/InspectorPanel';
 import { SendSheet } from './components/sheet/SendSheet';
 import { StatusCounts } from './components/chrome/StatusCounts';
 import { MAT_META } from './data/meta';
+import { useGapSheet } from './hooks/useGapSheet';
 import { useMaturity } from './hooks/useMaturity';
 import { useMaturityKeys } from './hooks/useMaturityKeys';
 import { useUiScale } from './hooks/useUiScale';
 import { MODES } from './model/rungs';
 import type { Step } from './model/state';
+import type { DataMode } from './write/gap';
 import styles from './MaturityScreen.module.css';
 
 /**
  * Maturity: nine stage routes on a crag, bolts as rungs. Pick gaps worth exploring, preview the diffs, send them as
  * you (the exact commands are shown first), then watch the simulated merge → run → rescan decide the credit.
  */
-export function MaturityScreen({ maturity, stages }: { maturity: DemoData['maturity']; stages: readonly Stage[] }) {
+export function MaturityScreen({
+  maturity,
+  stages,
+  project,
+  mode,
+}: {
+  maturity: DemoData['maturity'];
+  stages: readonly Stage[];
+  /** The project a gap's MR is opened in: the id the server actions plan for. */
+  project: string;
+  mode: DataMode;
+}) {
   const api = useMaturity(maturity, stages);
   const { ctx, state, dispatch, routes, steps, pending, go, select, setMode } = api;
   const scale = useUiScale();
@@ -39,12 +52,17 @@ export function MaturityScreen({ maturity, stages }: { maturity: DemoData['matur
     if (k === 2 || k === 4) setInspOpen(true);
     if (k === 1) gapsRef.current?.scrollIntoView({ block: 'nearest' });
   };
-  const send = () => dispatch({ type: 'send' });
-  useMaturityKeys(api, onGo, send);
-
   const pickedByStage: Partial<Record<Stage, string>> = {};
   for (const g of ctx.gaps) if (state.picked.includes(g.id) && !state.flow[g.id]) pickedByStage[g.stage] = g.id;
   const sheetGaps = pending.flatMap((id) => ctx.gap(id) ?? []);
+  const sheet = useGapSheet(sheetGaps, state.sheet, project, mode);
+  const closeSheet = () => {
+    const opened = sheet.opened;
+    const n = Object.keys(opened).length;
+    const text = sheet.rows.filter((r) => r.answer?.status === 'done').map((r) => r.answer?.text).join(' | ');
+    dispatch(n ? { type: 'sent', opened, text } : { type: 'cancelSheet' });
+  };
+  useMaturityKeys(api, onGo, sheet.send);
 
   return (
     <Window
@@ -87,13 +105,14 @@ export function MaturityScreen({ maturity, stages }: { maturity: DemoData['matur
           gaps={ctx.gaps}
           picked={state.picked}
           flow={state.flow}
+          mrs={state.mrs}
           selected={state.sel}
           sectionRef={gapsRef}
           onPick={(id) => dispatch({ type: 'togglePick', id })}
           onSelect={(g) => select(g.stage)}
         />
       </div>
-      {state.sheet && sheetGaps.length ? <SendSheet gaps={sheetGaps} onCancel={() => dispatch({ type: 'cancelSheet' })} onSend={send} /> : null}
+      {state.sheet && sheetGaps.length ? <SendSheet api={sheet} onClose={closeSheet} /> : null}
     </Window>
   );
 }

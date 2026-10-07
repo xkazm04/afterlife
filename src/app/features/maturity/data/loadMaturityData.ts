@@ -5,5 +5,5 @@ import type { MaturityScreen } from '../MaturityScreen';
 
 export function loadMaturityData(): ComponentProps<typeof MaturityScreen> {
   const ds = getDataSource();
-  return { maturity: ds.getMaturity(), stages: ds.getStages() };
+  return { maturity: ds.getMaturity(), stages: ds.getStages(), project: ds.deepProjectId(), mode: ds.mode };
 }

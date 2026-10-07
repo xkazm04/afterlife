@@ -12,6 +12,7 @@ export function GapRow({
   gap,
   picked,
   phase,
+  mr: opened,
   selected,
   alt,
   onPick,
@@ -20,6 +21,8 @@ export function GapRow({
   gap: Gap;
   picked: boolean;
   phase: Phase | undefined;
+  /** The MR GitLab named for it, once sent. */
+  mr: string;
   selected: boolean;
   alt: boolean;
   onPick: (id: string) => void;
@@ -52,7 +55,7 @@ export function GapRow({
         {mr ? `+${gap.diffLines}` : <span className={styles.none}>—</span>}
       </div>
       <div className={styles.cell} role="cell">
-        <GapState gap={gap} picked={picked} phase={phase} />
+        <GapState picked={picked} phase={phase} mr={opened} />
       </div>
     </div>
   );

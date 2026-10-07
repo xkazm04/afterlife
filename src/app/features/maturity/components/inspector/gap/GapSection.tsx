@@ -3,7 +3,7 @@ import { InspectorSection } from '@/components/inspector/InspectorSection';
 import type { MaturityCtx, Gap } from '../../../model/ctx';
 import type { Action } from '../../../model/reducer';
 import type { MaturityState } from '../../../model/state';
-import { rungText } from '../../../model/rungs';
+import { mrName, rungText } from '../../../model/rungs';
 import { AfterMerge } from './AfterMerge';
 import { DiffView } from './DiffView';
 import styles from './gap.module.css';
@@ -38,7 +38,7 @@ export function GapSection({
       </div>
       <p className={styles.inv}>{x.invite}</p>
       {phase ? (
-        <AfterMerge ctx={ctx} gap={gap} phase={phase} now={state.now[gap.stage]} dispatch={dispatch} />
+        <AfterMerge ctx={ctx} gap={gap} phase={phase} now={state.now[gap.stage]} mr={mrName(state.mrs, gap.id)} dispatch={dispatch} />
       ) : (
         <>
           <div className={styles.acts}>

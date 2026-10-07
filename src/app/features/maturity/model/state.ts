@@ -28,6 +28,8 @@ export interface MaturityState {
   now: Readonly<Record<Stage, Level>>;
   /** Gap id -> where it is, once sent. */
   flow: Readonly<Record<string, Phase>>;
+  /** The MR GitLab named for each gap the server opened one for. */
+  mrs: Readonly<Record<string, string>>;
   /** Credit rows earned in this session. */
   log: readonly CreditEntry[];
   scannedAt: string;
@@ -49,6 +51,7 @@ export function initialState(ctx: MaturityCtx): MaturityState {
     picked: ctx.gaps.filter((g) => g.picked).map((g) => g.id),
     now: Object.fromEntries(ctx.stages.map((s) => [s, ctx.base[s].now])) as Record<Stage, Level>,
     flow: {},
+    mrs: {},
     log: [],
     scannedAt: ctx.scannedAt,
     ageMin: ctx.scanAgeMin,

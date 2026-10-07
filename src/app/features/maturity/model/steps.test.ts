@@ -23,10 +23,10 @@ describe('stepsView', () => {
     let s = reduce(initialState(ctx), { type: 'togglePick', id: 'g4' }, ctx);
     expect(stepsView(s, ctx)[0]?.count).toBe(3);
     expect(stepsView(s, ctx)[1]?.count).toBe(2);
-    s = reduce(reduce(s, { type: 'go', step: 3 }, ctx), { type: 'send' }, ctx);
+    s = reduce(reduce(s, { type: 'go', step: 3 }, ctx), { type: 'sent', opened: { g1: null, g2: null }, text: 'x' }, ctx);
     const v = stepsView(s, ctx);
-    expect(v[3]).toMatchObject({ enabled: true, current: true, count: 3 });
-    expect(v[2]?.count).toBeNull();
+    expect(v[3]).toMatchObject({ enabled: true, current: true, count: 2 });
+    expect(v[2]?.count).toBe(1); // the probe stays picked: nothing sends it
   });
 });
 

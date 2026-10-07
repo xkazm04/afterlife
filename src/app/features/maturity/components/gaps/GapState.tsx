@@ -1,12 +1,10 @@
-import { shortMr } from '../../model/rungs';
 import type { Phase } from '../../model/flow/credit';
 import type { Gap } from '../../model/ctx';
 import { cx } from '../cx';
 import styles from './gaps.module.css';
 
 /** Where a gap is: picked (waits for you), or, once sent, opened → merged → ran → no lift or credited. */
-export function GapState({ gap, picked, phase }: { gap: Gap; picked: boolean; phase: Phase | undefined }) {
-  const mr = shortMr(gap.x.mrId);
+export function GapState({ picked, phase, mr }: { gap?: Gap; picked: boolean; phase: Phase | undefined; mr: string }) {
   if (!phase) return picked ? <span className={cx(styles.st, styles.picked)}>● picked</span> : <span className={styles.none}>—</span>;
   switch (phase) {
     case 'probed':

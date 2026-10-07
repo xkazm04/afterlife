@@ -15,7 +15,8 @@ export type Action =
   | { type: 'file'; id: string; index: number }
   | { type: 'section'; key: SectionKey; open: boolean }
   | { type: 'cancelSheet' }
-  | { type: 'send' }
+  /** The server opened these gaps' MRs (the MR it named, or null). Moves no rung: the next scan decides that. */
+  | { type: 'sent'; opened: Readonly<Record<string, string | null>>; text: string }
   | { type: 'merge'; id: string }
   | { type: 'ran'; id: string }
   | { type: 'rescanGap'; id: string }
@@ -75,17 +76,18 @@ function move(s: MaturityState, ctx: MaturityCtx, dir: 1 | -1): MaturityState {
   return { ...s, sel: nextStage(ctx, s.sel, dir) };
 }
 
-function send(s: MaturityState, ctx: MaturityCtx): MaturityState {
-  const ids = pendingIds(s, ctx);
+function sent(s: MaturityState, ctx: MaturityCtx, opened: Readonly<Record<string, string | null>>, text: string): MaturityState {
+  const ids = Object.keys(opened).filter((id) => ctx.gap(id) && !s.flow[id]);
   const first = ids[0] ? ctx.gap(ids[0]) : undefined;
   if (!first) return s;
   const flow = { ...s.flow };
-  for (const id of ids) flow[id] = ctx.gap(id)?.x.kind === 'probe' ? 'probed' : 'opened';
-  const mrs = ids.map((id) => ctx.gap(id)?.x).filter((x) => x?.kind === 'mr').map((x) => x?.mrId);
-  const text = mrs.length
-    ? `opened ${mrs.join(', ')} as you${ids.length > mrs.length ? ' · probe ran, read only' : ''}`
-    : `probe ran · read only · ${first.stage} stays ${rungText(s.now[first.stage])}`;
-  return say(openGap({ ...s, flow, picked: s.picked.filter((p) => !ids.includes(p)), sheet: false, step: 4, sel: first.stage }), text);
+  const mrs = { ...s.mrs };
+  for (const id of ids) {
+    flow[id] = 'opened';
+    const mr = opened[id];
+    if (mr) mrs[id] = mr;
+  }
+  return say(openGap({ ...s, flow, mrs, picked: s.picked.filter((p) => !ids.includes(p)), sheet: false, step: 4, sel: first.stage }), text);
 }
 
 function rescanGap(s: MaturityState, ctx: MaturityCtx, id: string): MaturityState {
@@ -96,7 +98,7 @@ function rescanGap(s: MaturityState, ctx: MaturityCtx, id: string): MaturityStat
   if (rescanOutcome(g.x.needsRun, phase) === 'nolift') {
     return say({ ...stamped, flow: { ...s.flow, [id]: 'nolift' } }, `rescan · engine ${ctx.engine} · ${g.stage} stays ${rungText(g.from)}: configured, not exercised`);
   }
-  const row = { mr: g.x.mrId ?? id, stage: g.stage, move: `${rungText(g.from)} → ${rungText(g.to)}`, verdict: 'credited' as const, why: `rescan ${ctx.nowClock}, same engine` };
+  const row = { mr: s.mrs[id] ?? `gap ${id}`, stage: g.stage, move: `${rungText(g.from)} → ${rungText(g.to)}`, verdict: 'credited' as const, why: `rescan ${ctx.nowClock}, same engine` };
   const next = { ...stamped, flow: { ...s.flow, [id]: 'credited' as const }, now: { ...s.now, [g.stage]: g.to }, sel: g.stage, animKey: s.animKey + 1, log: [...s.log, row] };
   return say(next, `rescan · engine ${ctx.engine} · ${g.stage} ${rungText(g.from)} → ${rungText(g.to)} credited`);
 }
@@ -121,12 +123,12 @@ function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
       return s.open[a.key] === a.open ? s : { ...s, open: { ...s.open, [a.key]: a.open } };
     case 'cancelSheet':
       return { ...s, sheet: false, step: s.step === 3 ? (pendingIds(s, ctx).length ? 2 : 1) : s.step };
-    case 'send':
-      return send(s, ctx);
+    case 'sent':
+      return sent(s, ctx, a.opened, a.text);
     case 'merge': {
       const g = ctx.gap(a.id);
       if (!g || s.flow[a.id] !== 'opened') return s;
-      return say({ ...s, flow: { ...s.flow, [a.id]: 'merged' } }, `${g.x.mrId} merged by you in GitLab (simulated)`);
+      return say({ ...s, flow: { ...s.flow, [a.id]: 'merged' } }, `${s.mrs[a.id] ?? `gap ${a.id}`} merged by you in GitLab (simulated)`);
     }
     case 'ran': {
       const g = ctx.gap(a.id);
@@ -137,7 +139,7 @@ function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
     case 'rescanGap':
       return rescanGap(s, ctx, a.id);
     case 'rescanAll':
-      return say({ ...s, scannedAt: ctx.nowClock, ageMin: 0 }, `npx belay scan --engine ${ctx.engine} · read only · no rung moved`);
+      return say({ ...s, scannedAt: ctx.nowClock, ageMin: 0 }, `rescan · engine ${ctx.engine} · read only · no rung moved (simulated)`);
   }
 }
 

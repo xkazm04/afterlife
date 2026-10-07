@@ -7,7 +7,7 @@ import type { Stage } from '@/schemas';
 import { gitlabUrl } from '../../data/meta';
 import type { EvidenceRung } from '../../data/types';
 import type { MaturityCtx } from '../../model/ctx';
-import { nextOf, shortMr, type Level } from '../../model/rungs';
+import { nextOf, type Level } from '../../model/rungs';
 import { cx } from '../cx';
 import { BoltGlyph } from './BoltGlyph';
 import styles from './inspector.module.css';
@@ -35,7 +35,7 @@ export function EvidenceSection({
   const ev = ctx.evidence[stage];
   const nx = nextOf(now, ctx.base[stage].next);
   const deep = now != null && now >= 3;
-  const creditedBy = shortMr(ctx.gapByStage(stage)?.x.mrId);
+  const creditedBy = (g => (g ? `gap ${g.id}` : 'its MR'))(ctx.gapByStage(stage));
   const link = (path: string) => (e: MouseEvent) => {
     e.preventDefault();
     const msg = `would open in GitLab: ${gitlabUrl(path).replace('https://', '')}`;

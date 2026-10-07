@@ -1,6 +1,6 @@
 import type { Stage } from '@/schemas';
 import type { MaturityCtx } from '../ctx';
-import { isDeep, levelFor, nextOf, rungText, shortMr, type Level } from '../rungs';
+import { isDeep, levelFor, nextOf, mrName, rungText, type Level } from '../rungs';
 import type { MaturityState } from '../state';
 
 /** A pickable gap tag sitting on a route's next bolt. */
@@ -45,7 +45,7 @@ export function routeViews(s: MaturityState, ctx: MaturityCtx): RouteView[] {
     let clip: ClipView | null = null;
     if (ring != null && g && g.to === ring && phase !== 'credited') {
       const picked = s.picked.includes(g.id) && !phase;
-      const label = phase ? (g.x.mrId ? shortMr(g.x.mrId) : 'probed') : g.id + (picked ? ' ✓' : '');
+      const label = phase ? mrName(s.mrs, g.id) : g.id + (picked ? ' ✓' : '');
       clip = {
         id: g.id,
         label,

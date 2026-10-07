@@ -16,6 +16,8 @@ export const rungText = (n: Level): string => (n == null ? '?' : `R${n}`);
 export const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** The MR id as the table and the crag tags show it (the policies project is long). */
+/** The MR GitLab named for a gap the server opened one for, else the gap's id: never an MR number the screen made up. */
+export const mrName = (mrs: Readonly<Record<string, string>>, id: string): string => mrs[id] ?? id;
 export const shortMr = (mr: string | null | undefined): string => (mr ?? '').replace('ledgerline-policies', 'pol');
 
 /**

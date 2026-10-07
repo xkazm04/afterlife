@@ -6,7 +6,7 @@ import { ctx } from './testCtx';
 const run = (s: MaturityState, ...actions: Action[]) => actions.reduce((acc, a) => reduce(acc, a, ctx), s);
 const start = () => initialState(ctx);
 /** g1 and g2 picked (the dataset), sent, and opened. */
-const sent = () => run(start(), { type: 'go', step: 3 }, { type: 'send' });
+const sent = () => run(start(), { type: 'go', step: 3 }, { type: 'sent', opened: { g1: '!22', g2: null }, text: 'the answers' });
 
 describe('initial state', () => {
   it('starts at Now, on secure, on step 1, with the dataset picks', () => {
@@ -67,14 +67,19 @@ describe('send', () => {
     expect(s.flow).toEqual({ g1: 'opened', g2: 'opened' });
     expect(s.picked).toEqual([]);
     expect(s).toMatchObject({ step: 4, sheet: false, sel: 'secure' });
-    expect(s.notice?.text).toBe('opened !45, ledgerline-policies!6 as you');
+    expect(s.mrs).toEqual({ g1: '!22' }); // only the MR the response named
+    expect(s.notice?.text).toBe('the answers');
     expect(s.now.secure).toBe(3);
   });
-  it('a probe only reads: it never changes a rung', () => {
-    const s = run(start(), { type: 'togglePick', id: 'g1' }, { type: 'togglePick', id: 'g2' }, { type: 'togglePick', id: 'g4' }, { type: 'go', step: 3 }, { type: 'send' });
-    expect(s.flow).toEqual({ g4: 'probed' });
-    expect(s.notice?.text).toBe('probe ran · read only · monitor stays R1');
-    expect(s.now.monitor).toBe(1);
+  it('moves no rung and records no credit: the next scan proves it', () => {
+    const s = sent();
+    expect(s.now).toEqual(start().now);
+    expect(s.log).toEqual([]);
+  });
+  it('a gap that was not opened stays picked, and a probe has no send at all', () => {
+    const s = run(start(), { type: 'togglePick', id: 'g4' }, { type: 'go', step: 3 }, { type: 'sent', opened: { g1: null }, text: 'x' });
+    expect(s.flow).toEqual({ g1: 'opened' });
+    expect(s.picked).toEqual(['g2', 'g4']);
   });
 });
 
@@ -83,7 +88,7 @@ describe('credit', () => {
     const s = run(sent(), { type: 'merge', id: 'g2' }, { type: 'rescanGap', id: 'g2' });
     expect(s.flow.g2).toBe('credited');
     expect(s.now.create).toBe(3);
-    expect(s.log).toEqual([{ mr: 'ledgerline-policies!6', stage: 'create', move: 'R2 → R3', verdict: 'credited', why: 'rescan 14:24, same engine' }]);
+    expect(s.log).toEqual([{ mr: 'gap g2', stage: 'create', move: 'R2 → R3', verdict: 'credited', why: 'rescan 14:24, same engine' }]);
     expect(s.scannedAt).toBe('14:24');
     expect(s.ageMin).toBe(0);
   });
@@ -109,7 +114,7 @@ describe('credit', () => {
     expect(run(s, { type: 'merge', id: 'g1' }, { type: 'merge', id: 'g1' }).flow.g1).toBe('merged');
   });
   it('the tagged release gap says so when it runs', () => {
-    const s = run(start(), { type: 'togglePick', id: 'g3' }, { type: 'go', step: 3 }, { type: 'send' }, { type: 'merge', id: 'g3' }, { type: 'rescanGap', id: 'g3' }, { type: 'ran', id: 'g3' });
+    const s = run(start(), { type: 'togglePick', id: 'g3' }, { type: 'go', step: 3 }, { type: 'sent', opened: { g3: null }, text: 'x' }, { type: 'merge', id: 'g3' }, { type: 'rescanGap', id: 'g3' }, { type: 'ran', id: 'g3' });
     expect(s.notice?.text).toBe('tagged release pipeline ran · new job passed (simulated)');
   });
   it('After merge falls back to Pick when nothing is in flight', () => {
@@ -122,7 +127,7 @@ describe('rescan and modes', () => {
     const s = run(start(), { type: 'rescanAll' });
     expect(s.scannedAt).toBe('14:24');
     expect(s.now).toEqual(start().now);
-    expect(s.notice?.text).toBe('npx belay scan --engine v1 · read only · no rung moved');
+    expect(s.notice?.text).toBe('rescan · engine v1 · read only · no rung moved (simulated)');
   });
   it('changing the crag mode redraws the ropes', () => {
     const s = run(start(), { type: 'mode', mode: 'target' });
