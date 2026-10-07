@@ -5,7 +5,7 @@ import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { Window } from '@/components/shell/Window';
 import { Answer } from './components/answer/Answer';
 import { ChangesTable } from './components/changes/ChangesTable';
-import { Designer } from './components/design/Designer';
+import { Designer } from './components/designer/Designer';
 import { CycleGrid } from './components/grid/CycleGrid';
 import { CyclesInspector } from './components/inspector/CyclesInspector';
 import { CyclesLegend } from './components/CyclesLegend';
