@@ -3,7 +3,7 @@ import { getSetup } from '@/lib/demo';
 import type { LiveSetupRead, TrackRead } from '@/server/data/setup/types';
 import { DEMO_NAMES, STEP_DETAIL } from '../../data/stepDetail';
 import { setupReducer } from '../flow/reducer';
-import { armList, createSetupState, humanGates, namesOf, stepDetail, stepList } from '../flow/state';
+import { armList, createSetupState, humanGates, namesOf, needYouCount, stepDetail, stepList } from '../flow/state';
 
 const AT = { at: '2026-10-07T09:30:00.000Z', label: '11:30' };
 const notDefined = (id: string): TrackRead => ({ state: 'undefined', text: `the repo does not define ${id}'s arm content yet` });
@@ -49,7 +49,19 @@ describe('the live opening state is what the server read, never the demo’s', (
     expect(s.steps[1]).toMatchObject({ st: 'failed', probe: { ok: false } });
     expect(s.steps[4]).toMatchObject({ st: 'unknown', probe: { ok: false, text: expect.stringMatching(/^unknown · listing the group's projects failed/) } });
     expect(s.steps[3]).toMatchObject({ st: 'unknown', probe: null }); // not probed: no probe line, no 14:02
-    expect(humanGates(s)).toEqual([]); // an unprobed human step is unknown, not a gate
+    // A human step Afterlife could not read is still the operator's: it is a gate, and it stays unknown, never done.
+    expect(humanGates(s).map((x) => [x.n, x.st])).toEqual([[3, 'unknown'], [6, 'unknown'], [7, 'unknown'], [8, 'unknown'], [10, 'unknown']]);
+    expect(needYouCount(s)).toBe(5);
+  });
+
+  it('nothing needs you only when every human step reads done and no arm MR is open', () => {
+    const r = read();
+    for (const n of [3, 6, 7, 8, 10]) r.steps.steps[n] = { state: 'done', text: 'probed' };
+    const s = createSetupState(getSetup(), 0, r);
+    expect(needYouCount(s)).toBe(0);
+    expect(needYouCount({ ...s, arm: { ...s.arm, T4: { ...s.arm.T4!, st: 'open' } } })).toBe(1);
+    r.steps.steps[8] = { state: 'failed', text: 'no such variable' };
+    expect(humanGates(createSetupState(getSetup(), 0, r)).map((x) => [x.n, x.st])).toEqual([[8, 'failed']]);
   });
 
   it("the doctor is the probe's rows with their reasons and its own time; the group is the paired one", () => {

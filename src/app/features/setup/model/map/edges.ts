@@ -1,4 +1,4 @@
-import { needMet } from '../flow/state';
+import { isHumanGate, needMet } from '../flow/state';
 import type { SetupState } from '../types';
 import { isStepKey, stepOf, type Graph } from './graph';
 import type { Hot } from './hot';
@@ -64,7 +64,7 @@ export function buildEdges(g: Graph, s: SetupState, geom: Geometry, hot: Hot | n
         const sb = geom.steps[n];
         if (!sb) continue;
         const isHot = !!hot && hot.steps.has(n) && hot.tracks.has(tid);
-        out.push({ id: `${k}>${tid}`, kind: 'step', d: curve(sb.r, t.l, scale), met, hot: isHot, wait: isHot && s.steps[n]?.st === 'human', unknown: false });
+        out.push({ id: `${k}>${tid}`, kind: 'step', d: curve(sb.r, t.l, scale), met, hot: isHot, wait: isHot && !!s.steps[n] && isHumanGate(s.steps[n]), unknown: false });
       } else {
         const kb = geom.tracks[k];
         if (!kb) continue;

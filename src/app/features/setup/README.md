@@ -25,7 +25,9 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
 - Live (`model/live/`, `hooks/liveFlow.ts`, `read/reread.ts`): the opening state is the read. T4 with no block on main
   opens ready (Arm); a track with no arm content is "not defined yet"; a refused or failed read is unknown, with its reason.
   No timer probes: a step's verify ("I did it · verify", "Read again") and Re-probe call `rereadSetupAction` (read only,
-  localhost only), and a step no read observes stays unknown, "not probed". A step's write is never sent from the screen
+  localhost only), and a step no read observes stays unknown, "not probed". A human step not read done is still yours:
+  it counts in "need you", the map marks it "you", and it reads unread (or not yet), never done; "Nothing waits for you"
+  only when every human step reads done and no arm MR is open (`humanGates`). A step's write is never sent from the screen
   (Copy only). The commands name the paired group, its host and `BELAY_PROJECT` (`data/stepDetail.ts`, `stepDetailsFor`);
   demo keeps its own. The group menu offers the paired group only; no demo row or `acme-sandbox`. The step titles and
   phases and the tracks' names and arm order are the catalogue's, marked "demo" on their column heads and in the inspector.

@@ -58,6 +58,12 @@ describe('SetupScreen in live mode (server render)', () => {
     expect(html).toContain('not defined');
     expect(html).not.toMatch(/acme-lab|acme-sandbox|14:02/);
   });
+  it('a human step nobody could read is still yours: it counts, the map marks it, and it reads unread, never done', () => {
+    expect(html).toContain('5 need you');
+    expect(html).not.toContain('Nothing waits for you');
+    expect(html.match(/>you<\/span>/g)).toHaveLength(5); // the map's step nodes
+    expect(html.match(/unread · frees/g)).toHaveLength(5);
+  });
   it('marks what is still the demo catalogue’s, per part', () => {
     expect(html.match(/>demo</g)).toHaveLength(2);
   });

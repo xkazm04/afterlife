@@ -46,7 +46,7 @@ export function DefaultPanel({ section }: { section: ReturnType<typeof useOpenSe
             glyph={s.n}
             title={stepDetail(state, s.n)?.short ?? s.title}
             tag={`step ${s.n}`}
-            sub={`frees ${GATE_FREES[s.n] ?? 'later steps'}`}
+            sub={`${s.st === 'unknown' ? 'unread · ' : s.st === 'failed' ? 'not yet · ' : ''}frees ${GATE_FREES[s.n] ?? 'later steps'}`}
             onGo={() => view.go({ k: 'step', id: s.n })}
           />
         ))}

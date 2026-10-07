@@ -78,8 +78,10 @@ export const capSt = (s: SetupState, name: string): CapStatus => s.doctor.find((
 
 export const doneCount = (s: SetupState) => stepList(s).filter((x) => x.st === 'done').length;
 export const armedCount = (s: SetupState) => armList(s).filter((a) => a.st === 'armed').length;
-/** Human steps a probe has not seen done: "only you can do these". A step nobody probed is unknown, not a gate. */
-export const humanGates = (s: SetupState) => stepList(s).filter((x) => x.who === 'human' && x.st !== 'done' && x.st !== 'unknown');
+/** A human step not read done: only a person can do it, so it is a gate even unread (it stays unknown, never done). */
+export const isHumanGate = (x: StepState): boolean => x.who === 'human' && x.st !== 'done';
+/** "Only you can do these": every human step a read has not seen done, the unread ones included. */
+export const humanGates = (s: SetupState) => stepList(s).filter(isHumanGate);
 export const openArms = (s: SetupState) => armList(s).filter((a) => a.st === 'open');
 export const needYouCount = (s: SetupState) => humanGates(s).length + openArms(s).length;
 

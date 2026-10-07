@@ -1,6 +1,7 @@
 import { Spinner } from '../../shared/Spinner';
 import type { Lit } from '../../../model/map/hot';
 import type { StepState } from '../../../model/types';
+import { isHumanGate } from '../../../model/flow/state';
 import { stepTip } from '../../../model/flow/wording';
 import { MapNode } from './MapNode';
 import type { NodeEvents } from './nodeTypes';
@@ -14,7 +15,7 @@ export function StepNode({ step, selected, lit, events }: { step: StepState; sel
     <MapNode focus={{ k: 'step', id: step.n }} selected={selected} lit={lit} tip={`${stepTip(step.n, step.st)} · ${step.title}`} events={events} className={`${styles.sn} ${CLS[step.st]}`}>
       <span className={styles.m}>{mark}</span>
       <span className={styles.lb}>{step.title}</span>
-      {step.st === 'human' ? <span className={styles.x}>you</span> : null}
+      {isHumanGate(step) ? <span className={styles.x}>you</span> : null}
     </MapNode>
   );
 }
