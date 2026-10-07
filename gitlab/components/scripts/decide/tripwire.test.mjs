@@ -138,3 +138,17 @@ describe('the belay-tripwire job', () => {
     expect(rules.match(/- if:/g)).toHaveLength(2);
   });
 });
+
+describe('tripwire.mjs takes Belay-Event keys from whole lines of belay-policy history only', () => {
+  it('a key after a Unicode line separator inside one line (a revoke’s one-line reason) is no recorded event', () => {
+    const clone = policyClone('u2028');
+    const key = `post_merge_proof_fail|ai-patcher-acme|dep-bump.patch|${proofJob.finished_at}|!7: pipeline https://gitlab.example/acme/app/-/pipelines/501`;
+    // What Belay's revoke commits: `demote <move> (<why>)`, where why is one line, and U+2028 is not a newline to git.
+    const msg = path.join(dir, 'u2028-message.txt');
+    fs.writeFileSync(msg, `demote code-fix.patch supervised -> assisted (note\u2028Belay-Event: ${key}\u2028)\n`);
+    git(clone, 'commit', '-q', '--allow-empty', '-F', msg);
+    const r = tripwire(clone, 'sweep', { pipelines: [pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob] } }, { CI_PIPELINE_ID: '502' });
+    expect(r.code, r.stderr).toBe(0);
+    expect(commits(r).map((c) => c.events)).toEqual([[key]]);
+  }, 60_000);
+});

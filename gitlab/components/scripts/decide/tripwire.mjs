@@ -20,7 +20,9 @@ const STATE = 'tier-state.yml';
 
 const log = spawnSync('git', ['-C', dir, 'log', '-n', '300', '--format=%B'], { encoding: 'utf8' });
 if (log.status !== 0) die('cannot read the belay-policy history');
-const seen = new Set([...log.stdout.matchAll(/^Belay-Event: (.+)$/gm)].map((m) => m[1]));
+// Whole lines only: with /m, ^ also starts after U+2028 or U+2029 inside one line (a revoke's one-line reason), and a key
+// there would make the run skip an event that was never recorded.
+const seen = new Set(log.stdout.split('\n').flatMap((l) => /^Belay-Event: (.+)$/.exec(l.replace(/\r$/, ''))?.slice(1, 2) ?? []));
 /** tier-state.yml as cloned: what every engine decision below starts from. */
 const base = fs.readFileSync(path.join(dir, STATE), 'utf8');
 
