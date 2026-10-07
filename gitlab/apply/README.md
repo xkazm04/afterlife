@@ -67,8 +67,8 @@ missing.
 
 | Write | Already done when |
 |---|---|
-| proof note and label | a bot note's `belay-proof` block has `task.head_sha` = head |
-| gate note, labels, approve or merge | a bot `**Belay gate:` note is newer than that proof note, or a forced one of the same decision names the head in its first reason (`- head <sha>:`; a sha quoted further on does not count, F61) |
+| proof note and label | the bot's newest `belay-proof` note has `task.head_sha` = head (after a push and a return to an earlier head, it is posted again, F62) |
+| gate note, labels, approve or merge | a bot `**Belay gate:` note is newer than that proof note and is not a forced one for another head, or a forced one of the same decision names the head in its first reason (`- head <sha>:`; a sha quoted further on does not count, F61) |
 | ledger lines | a commit of `events/<project-id>.jsonl` in `belay-ledger` carries `Belay-Head: <project-id>!<iid>@<head>` |
 | guardrail dispatch | the bot's "guardrail review requested" note names the head (the Flows API lists no runs [S]) |
 

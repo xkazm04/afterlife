@@ -6,8 +6,9 @@
 // of the evidence job, belay-replay), from a finished pipeline whose sha is the MR's current head.
 //
 // Once per project, MR and head (a second sweep writes nothing), by reading back what the bot already wrote:
-//   proof    a bot note whose belay-proof block has task.head_sha = head
-//   gate     a bot "**Belay gate:" note newer than that proof note, or one that names the head (a forced wait or block)
+//   proof    the bot's newest belay-proof note, if its task.head_sha = head (else it is posted again, F62)
+//   gate     a bot "**Belay gate:" note newer than that proof note and not forced for another head, or a forced wait or
+//            block whose first reason names the head (F61)
 //   ledger   a belay-ledger commit of events/<project>.jsonl carrying `Belay-Head: <project>!<iid>@<head>`
 //   dispatch a bot note "**Belay: guardrail review requested** for head `<head>`" (the Flows API lists no runs)
 // Fails closed: a failed read stops that MR's writes with GitLab's message, the other MRs go on, and the job ends red.
@@ -104,8 +105,12 @@ function sweepMr(t, iid) {
   if (![0, 3, 4].includes(gr.code)) throw new Error(`reading the guardrail verdict failed (exit ${gr.code})`);
   const guardBlocked = gr.code === 0 && JSON.parse(fs.readFileSync(guardrailFile, 'utf8')).verdict === 'block';
 
-  const proofNote = notes.find((n) => blocks(n.body, 'belay-proof').some((b) => b?.task?.head_sha === head));
-  const gateDone = notes.some((n) => n.body.startsWith(GATE) && proofNote && n.id > proofNote.id);
+  // The bot's newest Proof Block stands for this head only if it was made for it. After a push and a return to an earlier
+  // head the proof is posted again, so an engine gate note always follows a proof note of its own head; a forced note
+  // names its head itself. A gate note made for another head never stands for this one (F62).
+  const lastProof = notes.find((n) => blocks(n.body, 'belay-proof').length > 0);
+  const proofNote = lastProof && blocks(lastProof.body, 'belay-proof').some((b) => b?.task?.head_sha === head) ? lastProof : undefined;
+  const gateDone = Boolean(proofNote) && notes.some((n) => n.id > proofNote.id && n.body.startsWith(GATE) && (forcedFor(n)?.head ?? head) === head);
   /**
    * A gate the engine did not decide: a note that names the head, applied once per decision and head. A guardrail block for
    * this head makes it a block and sets guardrail::block, whatever else is missing (M2's 12 Oct bar); guardrail::pass is set

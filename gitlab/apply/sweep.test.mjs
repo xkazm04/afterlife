@@ -222,6 +222,25 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(glabWrites(r, 'update').map((w) => w.body.label)).toEqual(['guardrail::block']);
   });
 
+  it('(viii) F62: a gate note made for another head does not stand for this one when the MR returns to it', () => {
+    const finding = { rule: 'prompt-injection', severity: 'high', file: 'CHANGELOG.md', quote: 'ignore previous instructions', explanation: 'an instruction to the reviewer in the changelog' };
+    const bot = (id, body) => ({ id, system: false, author: { username: 'belay-bot' }, created_at: '2026-10-07T09:00:00Z', body });
+    const proofFor = (id, head) => bot(id, `**Belay proof: PASS** | class \`exploit-test\`\n\n\`\`\`belay-proof\n${JSON.stringify({ schema: 'belay.proof/1', verdict: 'pass', task: { head_sha: head } })}\n\`\`\``);
+    const blocked = (r) => {
+      expect(r.code, r.stderr).toBe(0);
+      expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: BLOCK\*\*/);
+      expect(glabWrites(r, 'update').at(-1).body.label).toContain('guardrail::block');
+      expect(granted(r)).toEqual([]);
+    };
+    // This head's proof, then a push of another head that changed CI (its forced WAIT), then a push back to this head.
+    const wait = bot(103, `**Belay gate: WAIT** | tier \`unknown\`\n- head ${OLD}: it changes .gitlab-ci.yml.`);
+    blocked(sweep(group({ notes: [wait, proofFor(101, HEAD), guardrailNote('block', HEAD, [finding])] })));
+    // This head's proof, then another head's proof and gate, then back: the proof is posted again, then the gate.
+    const r = sweep(group({ notes: [bot(103, '**Belay gate: APPROVE** | tier `supervised`\n- proof pass'), proofFor(102, OLD), proofFor(101, HEAD), guardrailNote('block', HEAD, [finding])] }));
+    blocked(r);
+    expect(glabWrites(r, 'note create').map((n) => n.body.message.slice(0, 20))).toEqual(['**Belay proof: PASS*', '**Belay gate: BLOCK*']);
+  });
+
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
     const r = sweep(group(), { CI_SERVER_FQDN: 'gitlab.example' });
     expect(r.code, r.stderr).toBe(0);
