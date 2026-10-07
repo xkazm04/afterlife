@@ -39,6 +39,14 @@ The collector is real. **The scorer is not in the engine CLI contract** (docs/BA
 command), so `scan_command` defaults to `scan` and the job is `allow_failure: true` until the engine has it. Artifacts:
 `.belay/facts.json`, `.belay/maturity.json`.
 
+## Token
+
+The job runs with `CI_JOB_TOKEN` only, like every component (F4). A target pipeline holds no Belay token. A job token cannot
+read protected branches, approval rules, pipeline schedules, `ci/lint` or the pipeline and job lists ([S]
+docs.gitlab.com/ci/jobs/ci_job_token/: none is on its list of allowed endpoints). So in a target pipeline, `ci_config`,
+`protected_branches`, `approval_rules`, `schedules` and `latest_pipeline_jobs` come back `{error}`, which the engine reads
+as unknown, never as absent. A full scan needs a token that can read them, run from belay-apply. That is not built yet.
+
 ## Verify
 
 - `[R?]` `GET /projects/:id/ci/lint?include_jobs=true` as the source of the merged CI config; the rest are `[R]` list endpoints.

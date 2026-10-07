@@ -3,7 +3,7 @@
 // scheduled sweep read only the newest default-branch pipeline, which is its own and still running. Now the job runs
 // `when: always` on default-branch push pipelines, and event mode reads its own pipeline's failed proof jobs; and every
 // read here skips the current pipeline and every schedule pipeline (a sweep's own, or an earlier sweep's, holds no
-// proof), and looks at finished pipelines only. See templates/tripwire/README.md.
+// proof), and looks at finished pipelines only. The tripwire now runs from belay-apply, in sweep mode: ../../../apply/README.md.
 // The sweep is also what retries an event the push pipeline could not commit (exit 3) or never ran, so it reads push
 // pipelines only, the one source the proof job runs in (proof-engine's rules): a child, API, web or trigger pipeline of the
 // same commit, newer and green, is no run of its proof and hides nothing, and schedule pipelines do not fill the window.

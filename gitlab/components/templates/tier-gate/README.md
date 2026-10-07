@@ -1,7 +1,10 @@
 # tier-gate
 
-At merge request time, reads `tier-state.yml` from `belay-policy`, runs the engine's `gate`, and approves, sets
-merge-when-pipeline-succeeds, or leaves the MR waiting. No model takes part in a tier decision.
+At merge request time, reads `tier-state.yml` from `belay-policy` and runs the engine's `gate`, in the target's own
+pipeline, **report-only**: the decision is the job's artifact and log, and `apply-gate.mjs` runs with `--dry 1`. The gate
+that approves, sets merge-when-pipeline-succeeds or blocks is [belay-apply](../../../apply/README.md)'s. It runs the same
+engine `gate` itself, on a proof it derived, because a target pipeline holds no write token (F4, decided 2026-10-07, ask
+6696d24d). No model takes part in a tier decision.
 
 **Job:** `belay-tier-gate`. **Stage:** `.post` (runs last, after the proof). **Runs:** on merge request pipelines of agent MRs.
 
@@ -13,7 +16,7 @@ include:
     inputs:
       engine_ref: v0.1.0
       engine_commit: '<40-char sha of that tag>'
-      proof_authors: belay-bot            # the user behind BELAY_BOT_TOKEN
+      proof_authors: belay-bot            # belay-apply's bot account (its "bot" in apply.json)
 ```
 
 ## What it does
@@ -33,16 +36,17 @@ include:
    | `wait` | nothing granted; the note says why |
    | `block` | nothing granted and the job fails, so the MR pipeline is red |
 
-6. Sets `belay::tier::<tier>` and `guardrail::pass|block`, posts a short note, writes ledger event bodies to
-   `.belay/events/` for the `ledger-append` component.
+   In this job every effect is reported, never applied: `apply-gate.mjs --dry 1`.
+6. Reports the `belay::tier::<tier>` and `guardrail::pass|block` labels and the note it would set, and writes ledger event
+   bodies to `.belay/events/` as an artifact. belay-apply applies the same decision and appends the ledger.
 
 Fails closed: a missing or invalid input never produces `merge` or `approve`. An engine error (`{"error": ...}`) stops the job
-with exit 2. Without `BELAY_BOT_TOKEN` it only reports.
+with exit 2. It never writes.
 
 ## Needs
 
-- `BELAY_BOT_TOKEN` as for proof-engine, and the bot must be allowed to approve (spike S2: a service account may not satisfy an
-  approval rule; the fallback is the gate merging with a scoped token).
+- No Belay token: `CI_JOB_TOKEN` reads the MR and its notes. The bot that approves is belay-apply's (spike S2: a service
+  account may not satisfy an approval rule; the fallback is the gate merging with a scoped token).
 - `belay-policy` allowlists this project's job token.
 - Protected branch `main` with at least one human approval rule for `assisted` and `supervised`, so `wait` and `approve` hold.
 
@@ -60,12 +64,12 @@ with exit 2. Without `BELAY_BOT_TOKEN` it only reports.
 | `glab_version` | string | `"1.120.0"` |  |
 | `glab_sha256` | string | `""` |  |
 | `runner_tags` | array | `[]` |  |
-| `proof_authors` | string | **required** | Comma-separated usernames allowed to post the Proof Block note (the BELAY_BOT_TOKEN user). A note by anyone else is ignored. |
+| `proof_authors` | string | **required** | Comma-separated usernames allowed to post the Proof Block note (belay-apply's bot account). A note by anyone else is ignored. |
 | `guardrail_authors` | string | `"ai-guardrail-$CI_PROJECT_ROOT_NAMESPACE"` | Comma-separated usernames of the guardrail flow service account. [R?] the exact ai-<flow>-<group> form. |
 | `agent_prefix` | string | `"ai-"` |  |
 | `class` | string | `""` | Action class id (trust-policy.yml classes). Empty reads the Belay-Class trailer from the MR description. |
 | `wait_minutes` | number | `10` | How long to wait for the guardrail verdict before leaving the MR waiting for a person. |
-| `emit_events` | boolean | `true` | Write ledger event bodies to .belay/events for the ledger-append component. |
+| `emit_events` | boolean | `true` | Write ledger event bodies to .belay/events, as an artifact (belay-apply appends the ledger). |
 
 ## Verify
 
