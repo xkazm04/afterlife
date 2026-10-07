@@ -11,6 +11,7 @@ import styles from './Pitch.module.css';
 export function Pitch({ snap, snaps, store, demo, present }: { snap: Snapshot; snaps: readonly Snapshot[]; store: ReplayStore; demo: TheaterDemo; present: boolean }) {
   const hold = snap.beat ? demo.loop[snap.beat - 1] : undefined;
   const m44 = snap.e.sc === 'm44';
+  const where = hold ? hold.label : 'on the ground';
   return (
     <section
       className={styles.pitch}
@@ -19,8 +20,8 @@ export function Pitch({ snap, snaps, store, demo, present }: { snap: Snapshot; s
     >
       <div className={styles.head}>
         <ReplayChip from={FIRST_SEQ} to={LAST_SEQ} note={present} />
-        <span className={styles.beat}>
-          beat <b>{snap.beat}</b> of 9 · {hold ? hold.label : 'on the ground'}
+        <span className={styles.beat} title={`beat ${snap.beat} of 9 · ${where}`}>
+          beat <b>{snap.beat}</b> of 9 · {where}
         </span>
       </div>
       {snap.board ? <Board snap={snap} demo={demo} /> : <Wall store={store} snaps={snaps} demo={demo} />}

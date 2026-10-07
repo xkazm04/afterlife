@@ -138,3 +138,18 @@
 .err {
   color: var(--fail);
 }
+/* the improvement section: one line of where it stands, and the way in */
+.imp {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+.imp p {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.imp b {
+  color: var(--accent);
+}

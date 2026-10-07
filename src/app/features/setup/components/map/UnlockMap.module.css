@@ -25,3 +25,14 @@
   max-width: calc(1240px * var(--ui-scale));
   justify-self: center;
 }
+/* a narrow pane (the largest text beside the inspector): the minimums give way so the map never runs under it */
+@container pane (max-width: 48em) {
+  .cols {
+    grid-template-columns:
+      minmax(calc(118px * var(--ui-scale)), 4fr)
+      minmax(calc(12px * var(--ui-scale)), 1fr)
+      minmax(calc(150px * var(--ui-scale)), 4.5fr)
+      minmax(calc(12px * var(--ui-scale)), 1fr)
+      minmax(calc(118px * var(--ui-scale)), 4fr);
+  }
+}

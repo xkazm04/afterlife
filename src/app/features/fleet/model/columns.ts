@@ -54,14 +54,16 @@ export interface GridSpec {
 }
 
 const NAME = range(150, 240);
+/** Room for a group's pass total (four digits), the bar and its fail count. */
+const PROOFS_W = 104;
 
 /** Grid tracks of the data columns (the table adds the filler). A narrow pane drops the tier pips and name. */
 export function gridFor(view: FleetView, narrow: boolean): GridSpec {
   const lead = `${NAME} ${px(24)} ${px(44)}`;
   if (view === 'tiers') {
     const tiers = repeatPx(5, narrow ? 50 : 88);
-    return { columns: `${lead} ${tiers} ${px(96)} ${px(66)} ${px(52)}`, minWidth: minWidth(narrow ? 684 : 872) };
+    return { columns: `${lead} ${tiers} ${px(PROOFS_W)} ${px(66)} ${px(52)}`, minWidth: minWidth(narrow ? 692 : 880) };
   }
-  if (view === 'classes') return { columns: `${lead} ${repeatPx(12, 42)} ${px(96)} ${px(52)}`, minWidth: minWidth(870) };
-  return { columns: `${lead} ${repeatPx(9, 54)} ${px(96)} ${px(52)}`, minWidth: minWidth(852) };
+  if (view === 'classes') return { columns: `${lead} ${repeatPx(12, 42)} ${px(PROOFS_W)} ${px(52)}`, minWidth: minWidth(878) };
+  return { columns: `${lead} ${repeatPx(9, 54)} ${px(PROOFS_W)} ${px(52)}`, minWidth: minWidth(860) };
 }

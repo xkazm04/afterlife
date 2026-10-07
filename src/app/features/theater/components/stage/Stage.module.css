@@ -16,8 +16,9 @@
   --bolt: calc(22px * var(--ui-scale));
   --railw: min(calc(236px * var(--ui-scale)), 36cqw);
   --rowS: calc(22px * var(--ui-scale));
-  --ropeX: 30%;
-  --sideX: 38%;
+  /* the rope steps right of 30% only when the widest hold label (Proof Block, current, at --fD) would be cut */
+  --ropeX: max(30%, calc(var(--fD) * 5.8 + var(--bolt)));
+  --sideX: calc(var(--ropeX) + 8%);
   /* what Present changes beyond size */
   --numSize: 1em;
   --numLh: normal;

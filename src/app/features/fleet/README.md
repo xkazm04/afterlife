@@ -9,11 +9,12 @@ Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` l
   `ProjectRow`, `GroupTotalsRow`, and `cells/` (tier counts and pips, proofs).
 - `components/toolbar/` views, status lozenge (a filter too), Sort / Filter / Search.
 - `components/sidebar/` all projects, groups, six smart filters. `components/legend/` the "?".
-- `components/inspector/` project and group inspector; `sections/` one file per section.
+- `components/inspector/` project and group inspector; `sections/` one file per section. `ImprovementSection` places
+  the project in the loop: in cycles (what they earned, link to Cycles), ready to start one, or to be onboarded first.
   The deep project (ledgerline) has resolvable decisions, class records, events, tracks.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
-  handlers, narrow measuring, section open state. The toolbar folds its words in CSS (`@container toolbar`).
+  handlers, narrow measuring, section open state. `?project=<id>` (the command palette's links) opens with it selected. The toolbar folds its words in CSS (`@container toolbar`).
 
 ## Model (pure, tested)
 - `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank).

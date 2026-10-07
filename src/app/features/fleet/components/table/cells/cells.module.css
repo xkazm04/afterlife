@@ -44,8 +44,11 @@
   gap: calc(5px * var(--ui-scale));
 }
 .pn {
-  min-width: calc(18px * var(--ui-scale));
+  /* never shrinks under the bar: a group's total runs to three or four digits */
+  flex: none;
+  min-width: 3ch;
   text-align: right;
+  font-variant-numeric: tabular-nums;
   color: var(--text-2);
 }
 .pf {

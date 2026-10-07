@@ -9,12 +9,13 @@ import type { DeepProject, FleetData } from '../../model/types';
 import { ClassesSection } from './sections/ClassesSection';
 import { EventsSection } from './sections/EventsSection';
 import { FeedSection } from './sections/FeedSection';
+import { ImprovementSection } from './sections/ImprovementSection';
 import { NeedsYouSection } from './sections/NeedsYouSection';
 import { ProofsSection } from './sections/ProofsSection';
 import { StagesSection } from './sections/StagesSection';
 import { TracksSection } from './sections/TracksSection';
 
-/** Layer 2 for one project: what waits for you, its classes, proofs, stages, feed and recent events. */
+/** Layer 2 for one project: what waits for you, its classes, proofs, stages, its place in the improvement loop, feed and recent events. */
 export function ProjectInspector({
   p,
   data,
@@ -39,6 +40,7 @@ export function ProjectInspector({
       <ClassesSection p={p} classes={data.classes} deep={deep} sec={section('cls')} />
       <ProofsSection p={p} sec={section('prf')} />
       <StagesSection p={p} stages={data.stages} sec={section('stg')} />
+      <ImprovementSection p={p} deep={deep} sec={section('imp')} />
       <FeedSection p={p} deep={deep} sec={section('feed')} />
       <EventsSection p={p} deep={deep} sec={section('ev')} />
       {p.id === deep.id ? <TracksSection deep={deep} sec={section('trk', false)} /> : null}

@@ -1,18 +1,31 @@
-/* Rows under the rail: the grade ladder and the evidence strip share a label column. */
+/* Rows under the rail: the grade ladder and the evidence strip share a label column; their content wraps beside it. */
 .bl {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   gap: 3px 5px;
   min-width: 0;
 }
 .lbx {
-  width: calc(74px * var(--ui-scale));
+  width: calc(84px * var(--ui-scale));
   flex: none;
   font-size: var(--t-small);
   font-weight: 600;
   color: var(--text-4);
   white-space: nowrap;
+}
+.row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 5px;
+}
+/* A grade chip and the arrow after it wrap together, so no line starts with an arrow. */
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .ar {
   color: var(--text-4);
@@ -21,9 +34,8 @@
 }
 .evd {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, calc(34px * var(--ui-scale))));
+  grid-template-columns: repeat(6, minmax(calc(18px * var(--ui-scale)), calc(34px * var(--ui-scale))));
   gap: 3px;
-  flex: 1;
 }
 .evd i {
   height: calc(16px * var(--ui-scale));
@@ -39,8 +51,13 @@
 .sub {
   margin-left: auto;
 }
-@container pane (max-width: 880px) {
+/* A narrow track puts each label above its row instead of beside it. */
+@container cratrack (max-width: 18em) {
+  .bl {
+    flex-direction: column;
+    align-items: stretch;
+  }
   .lbx {
-    width: calc(70px * var(--ui-scale));
+    width: auto;
   }
 }

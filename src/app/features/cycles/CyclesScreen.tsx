@@ -58,7 +58,7 @@ export function CyclesScreen({ data, startDesign = false }: { data: CyclesData; 
       {/* The pane listens for the arrow keys that walk the cycles; the column heads are the focusable controls. */}
       <div className={styles.content} onKeyDown={c.onKeyDown}>
         <Answer data={data} />
-        <section className={styles.card} aria-label="Every stage, every cycle">
+        <section className={styles.card} aria-label="Every stage, every cycle" data-scroll-x>
           <CycleGrid view={c.grid} selected={sel.id} onSelect={c.select} />
         </section>
         {d.draft && planned ? (

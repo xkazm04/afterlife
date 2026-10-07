@@ -42,6 +42,7 @@ npm run dev        # http://localhost:3000, demo data
 npm run verify     # typecheck, lint, structure check, tests, production build
 npm run doctor     # local preflight: git, glab, auth
 npm run demo:data  # regenerate src/lib/demo/data/belay-demo.json
+npm run smoke      # with the app running: every route x 3 widths x 3 text sizes, no errors, nothing clipped
 ```
 
 ## Code layout

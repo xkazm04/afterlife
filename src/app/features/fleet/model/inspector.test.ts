@@ -7,6 +7,7 @@ import type { DeepProject } from './types';
 const cls = (id: string) => DEMO.actionClasses.find((c) => c.id === id);
 const deep: DeepProject = {
   id: 'ledgerline', needs: DEMO.needsYou, actionClasses: {}, events: [], tracks: [], running: '8 of 8', webhooks: 'off (local)', unattributed: 4,
+  cycle: { running: 'C7', closed: 6, held: 19, gained: 17 },
 };
 
 describe('class records', () => {

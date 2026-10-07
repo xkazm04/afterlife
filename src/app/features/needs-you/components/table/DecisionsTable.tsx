@@ -50,6 +50,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
       activeId={s.sel ? rowDomId(s.sel) : undefined}
       tableRef={p.tableRef}
       onKeyDown={p.onKeyDown}
+      stickyEnd
       header={
         <>
           <HeaderCell>Decision</HeaderCell>

@@ -43,6 +43,24 @@
   color: var(--fail);
 }
 
+/* a narrow pane (Larger text at 1280): the row stays one row, but Going well breaks after a count and Doing now
+   takes two lines, so neither collapses to a sliver */
+@container pane (max-width: 44em) {
+  .answers {
+    grid-template-columns: minmax(max-content, 1fr) minmax(0, 2.1fr) minmax(min-content, 1.5fr) minmax(max-content, 1fr);
+  }
+  .well .av,
+  .now .av {
+    white-space: normal;
+  }
+  .now .av {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.2;
+  }
+}
+
 /* Needs me: the one loud card. It pulses when a waiting item is added. */
 .ans.need {
   background: color-mix(in oklab, var(--needs-you) 8%, transparent);

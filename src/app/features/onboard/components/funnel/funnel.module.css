@@ -45,11 +45,16 @@
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 .word {
+  max-width: 100%;
   font-size: var(--t-small);
   font-weight: 600;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  /* one line, so every card's number sits on the same baseline */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .n {
   font: 700 calc(28px * var(--ui-scale)) / 1.05 var(--sys);

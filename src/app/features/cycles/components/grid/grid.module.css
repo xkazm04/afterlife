@@ -13,14 +13,13 @@
 .stage {
   font-size: var(--t-small);
   font-weight: 600;
-  color: var(--text-4);
+  color: var(--text-3);
   text-transform: capitalize;
   white-space: nowrap;
 }
-.stage {
-  color: var(--text-3);
+.corner {
+  color: var(--text-4);
 }
-
 /* column heads: a cycle per column */
 .chc {
   display: grid;
@@ -57,7 +56,6 @@
 .ch[data-state="planned"] b {
   color: var(--text-3);
 }
-
 /* a cell: the rung as a filled square, its digit always drawn (never colour alone) */
 .cell {
   position: relative;
@@ -127,10 +125,8 @@
   position: absolute;
   top: 1px;
   right: 2px;
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
+  border: 4px solid transparent;
+  border-block: 0;
 }
 .up {
   border-bottom: 5px solid var(--accent);
@@ -162,7 +158,6 @@
   border-color: var(--text-4);
   color: var(--text-3);
 }
-
 /* totals under the grid */
 .sum .stage {
   color: var(--text-2);
@@ -189,4 +184,14 @@
 }
 .tot em[data-neg] {
   color: var(--accent-2);
+}
+/* a narrow pane (the largest text beside the inspector): tighter columns, so the whole history still fits */
+@container pane (max-width: 50em) {
+  .grid {
+    grid-template-columns: calc(66px * var(--ui-scale)) repeat(var(--n), minmax(calc(32px * var(--ui-scale)), 1fr));
+    column-gap: calc(4px * var(--ui-scale));
+  }
+  .sq {
+    font-size: calc(var(--t-small) - 1px);
+  }
 }
