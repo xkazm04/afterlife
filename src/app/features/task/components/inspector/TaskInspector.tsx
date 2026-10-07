@@ -11,6 +11,7 @@ import { ObjectLink } from '@/components/controls/ObjectLink';
 import { hasMarkup } from '../../model/exhibits';
 import type { Selection } from '../../model/court/selection';
 import type { TaskView } from '../../model/types';
+import { verdictGlyph, verdictKind } from '../../model/verdict/verdict';
 import { LEDGER_AGE_SEC, PAGE_NOW, POLICY_SHA } from '../../data/pageFacts';
 import { Exhibits } from './Exhibits';
 import { LedgerRows } from './LedgerRows';
@@ -37,11 +38,11 @@ export function TaskInspector({
   open: Record<Panel, boolean>;
   onOpen: (panel: Panel, open: boolean) => void;
 }) {
-  const fail = task.proof.verdict === 'FAIL';
+  const kind = verdictKind(task.proof.verdict);
   return (
     <>
       <InspectorHeader
-        icon={<span className={fail ? styles.c_bad : styles.c_ok}>{fail ? '✗' : '✓'}</span>}
+        icon={<span className={kind === 'bad' ? styles.c_bad : kind === 'ok' ? styles.c_ok : undefined}>{verdictGlyph(task.proof.verdict)}</span>}
         title={
           <>
             {task.id}

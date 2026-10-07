@@ -16,8 +16,8 @@ export function visibleTasks(tasks: readonly TaskView[], f: Filters): TaskView[]
 }
 
 export function verdictCounts(tasks: readonly TaskView[]): { all: number; pass: number; fail: number } {
-  const fail = tasks.filter((t) => t.proof.verdict === 'FAIL').length;
-  return { all: tasks.length, pass: tasks.length - fail, fail };
+  const count = (v: Verdict): number => tasks.filter((t) => t.proof.verdict === v).length;
+  return { all: tasks.length, pass: count('PASS'), fail: count('FAIL') };
 }
 
 export const classCount = (tasks: readonly TaskView[], cls: string): number => tasks.filter((t) => t.proof.cls === cls).length;
@@ -44,5 +44,6 @@ export const docketCount = (shown: number, total: number): string => (shown === 
 
 export function statusLine(visible: readonly TaskView[], ledgerAgeSec: number, now: string): string {
   const fails = visible.filter((t) => t.proof.verdict === 'FAIL').length;
-  return `${plural(visible.length, 'task')} · ${fails} fail · ledger read ${ledgerAgeSec} s ago · ${now} · reads only`;
+  const open = visible.filter((t) => t.proof.verdict !== 'PASS' && t.proof.verdict !== 'FAIL').length;
+  return `${plural(visible.length, 'task')} · ${fails} fail${open ? ` · ${open} undetermined` : ''} · ledger read ${ledgerAgeSec} s ago · ${now} · reads only`;
 }

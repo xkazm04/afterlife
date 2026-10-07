@@ -2,6 +2,7 @@ import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import type { TaskView } from '../../model/types';
 import { docketCount } from '../../model/docket/filters';
+import { verdictGlyph, verdictKind } from '../../model/verdict/verdict';
 import styles from './Docket.module.css';
 
 /**
@@ -14,13 +15,13 @@ export function Docket({ tasks, visible, currentId }: { tasks: readonly TaskView
       <nav data-docket aria-label="Tasks">
         {visible.length ? (
           visible.map((t) => {
-            const fail = t.proof.verdict === 'FAIL';
+            const kind = verdictKind(t.proof.verdict);
             return (
               <SidebarItem
                 key={t.id}
                 href={`/task/${t.id}`}
                 current={t.id === currentId}
-                icon={<span className={fail ? styles.bad : styles.ok}>{fail ? '✗' : '✓'}</span>}
+                icon={<span className={kind === 'bad' ? styles.bad : kind === 'ok' ? styles.ok : undefined}>{verdictGlyph(t.proof.verdict)}</span>}
                 label={t.title}
                 count={<span className={styles.mono}>{t.track}</span>}
                 title={`${t.track} · ${t.mr ?? 'no MR'} · ${t.chain[0]?.at ?? '—'} · ${t.proof.cls}\n${t.title}`}

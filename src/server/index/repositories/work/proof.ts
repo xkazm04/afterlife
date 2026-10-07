@@ -29,7 +29,7 @@ interface Db {
 /**
  * Index row for a Proof Block. The block's checks are kept whole in `block`; the display list carries what the
  * screens need (the engine's own wording and result, never anything an agent claimed). A check that could not be
- * determined (ok null) shows as not passing here; the block keeps the real value.
+ * determined keeps ok null here too: it renders as undetermined, never as failed and never as passing.
  */
 export function proofRowFromBlock(taskId: string, block: ProofBlock): ProofRow {
   return {
@@ -41,7 +41,7 @@ export function proofRowFromBlock(taskId: string, block: ProofBlock): ProofRow {
     checks: block.checks.map((c) => ({
       id: c.claim_id ?? c.name,
       text: c.name,
-      ok: c.ok === true,
+      ok: c.ok,
       ...(c.decidedBy ? { decidedBy: c.decidedBy } : {}),
       ref: c.ref ?? '',
     })),

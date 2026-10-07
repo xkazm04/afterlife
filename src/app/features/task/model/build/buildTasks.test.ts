@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getTasks } from '@/lib/demo';
 import { TASK_ORDER } from '../../data/details';
 import { taskVerdict } from '../verdict/verdict';
+import { toVerdict } from './buildTasks';
 import { ledgerIntact } from './ledger';
 import { firstTaskId, loadTasks } from './loadTasks';
 
@@ -78,5 +79,13 @@ describe('loadTasks', () => {
   it('keeps an untested claim and an unknown check where the fixtures put them', () => {
     expect(byId('01J8Q4').claims.find((c) => c.id === 'c2')?.checks).toEqual([]);
     expect(byId('01J8QC').proof.checks.find((c) => c.id === 'wording')?.ok).toBeNull();
+  });
+});
+
+describe('toVerdict', () => {
+  it('carries the stored word faithfully and never reads a missing or odd one as a pass', () => {
+    expect(['pass', 'FAIL', 'inconclusive', 'UNKNOWN', '', 'passed', null, undefined].map(toVerdict)).toEqual([
+      'PASS', 'FAIL', 'INCONCLUSIVE', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN',
+    ]);
   });
 });

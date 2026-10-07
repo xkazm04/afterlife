@@ -4,7 +4,8 @@ import type { TierKey } from './types';
 export interface ProofCheck {
   id: string;
   text: string;
-  ok: boolean;
+  /** null = could not be machine-checked (a person decides): never a pass. */
+  ok: boolean | null;
   /** Absent means the engine decides it. */
   decidedBy?: 'engine' | 'human';
   ref: string;

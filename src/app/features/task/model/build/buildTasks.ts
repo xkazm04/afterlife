@@ -21,6 +21,12 @@ function withQuote(hunk: Hunk | undefined, quote: string | undefined): Hunk | nu
   return { ...hunk, lines };
 }
 
+/** The stored word, faithfully: only the four known words survive, and anything else is UNKNOWN, never a pass. */
+export function toVerdict(word: string | null | undefined): Verdict {
+  const w = (word ?? '').toUpperCase();
+  return w === 'PASS' || w === 'FAIL' || w === 'INCONCLUSIVE' ? w : 'UNKNOWN';
+}
+
 function buildChain(seeds: readonly ChainSeed[], refs: readonly (string | null)[]): ChainLink[] {
   return seeds.map((l, i) => ({ step: l.step, obj: l.obj, at: l.at, ref: refs[i] ?? null, na: !l.obj }));
 }
@@ -44,7 +50,7 @@ function buildTask(id: string, input: BuildInput): TaskView | null {
     const cid = detail.claimIds[i] ?? `c${i + 1}`;
     return { id: cid, text, checks: checks.filter((k) => k.claims.includes(cid)).map((k) => k.id) };
   });
-  const verdict: Verdict = proofIn.verdict === 'FAIL' ? 'FAIL' : 'PASS';
+  const verdict = toVerdict(proofIn.verdict);
   const actionClass = input.actionClasses.find((a) => a.id === base.cls);
 
   return {

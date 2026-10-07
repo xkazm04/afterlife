@@ -2,7 +2,8 @@
 import type { Task, TierKey } from '@/lib/demo';
 import type { Check } from '@/schemas';
 
-export type Verdict = 'PASS' | 'FAIL';
+/** The stored proof verdict, word for word. INCONCLUSIVE and UNKNOWN (no verdict stored) are never a pass. */
+export type Verdict = 'PASS' | 'FAIL' | 'INCONCLUSIVE' | 'UNKNOWN';
 /** true holds, false fails, null = could not be machine-checked (a person decides; never a pass). */
 export type CheckResult = boolean | null;
 export type CheckKind = 'ok' | 'bad' | 'unk';

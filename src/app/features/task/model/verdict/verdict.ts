@@ -1,7 +1,10 @@
 import { verdictOf, type Check, type Verdict as ProofVerdict } from '@/schemas';
-import type { CheckKind, CheckResult, TaskCheck, TaskClaim, TaskView } from '../types';
+import type { CheckKind, CheckResult, TaskCheck, TaskClaim, TaskView, Verdict } from '../types';
 
 export const checkKind = (ok: CheckResult): CheckKind => (ok === true ? 'ok' : ok === false ? 'bad' : 'unk');
+/** The kind a stored verdict draws as: only PASS is ok, only FAIL is bad, INCONCLUSIVE and UNKNOWN are open. */
+export const verdictKind = (v: Verdict): CheckKind => (v === 'PASS' ? 'ok' : v === 'FAIL' ? 'bad' : 'unk');
+export const verdictGlyph = (v: Verdict): string => (v === 'PASS' ? '✓' : v === 'FAIL' ? '✗' : '?');
 export const checkGlyph = (ok: CheckResult): string => (ok === true ? '✓' : ok === false ? '✗' : '?');
 
 /**
