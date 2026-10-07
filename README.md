@@ -29,6 +29,7 @@ project, `ledgerline`. The GitLab flows, the proof engine and the tripwire come 
 | `/maturity` | Maturity | Which DevSecOps stages are real, and which gap do we close next? |
 | `/cycles` | Cycles | What has each improvement round earned, does the history add up to the scan, and what runs next? |
 | `/task/[id]` | Task | What did this agent do, and why may I believe it? Shows the claims against the checks. |
+| `/onboard` | Onboard | How far is the estate onboarded, what runs in the next batch, and what only I can do? |
 | `/setup` | Setup | What blocks each track, and what only I can do. |
 | `/theater` | Theater | Deterministic replay for recording, with present mode (`F`). |
 | `/settings` | Settings | Text size: Smaller, Standard or Larger. ⌘= / ⌘- / ⌘0 change it. |

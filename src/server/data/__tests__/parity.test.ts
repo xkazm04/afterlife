@@ -7,6 +7,7 @@ import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadCyclesData } from '@/app/features/cycles/data/loadCyclesData';
 import { loadMaturityData } from '@/app/features/maturity/data/loadMaturityData';
+import { loadOnboardData } from '@/app/features/onboard/data/loadOnboardData';
 import { pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
 import { loadTasks } from '@/app/features/task/model/build/loadTasks';
@@ -91,6 +92,11 @@ describe('every screen loader gets the same data from the live source as from th
     const [d, l] = both(() => asProps(loadCyclesData()));
     expect(l).toEqual(d);
     expect((l as { drift: string[] }).drift).toEqual([]);
+  });
+
+  it('Onboard: the whole estate, its groups and the deep project in cycles', () => {
+    const [d, l] = both(() => asProps(loadOnboardData()));
+    expect(noLast(l)).toEqual(noLast(d));
   });
 
   it('Setup and Theater', () => {
