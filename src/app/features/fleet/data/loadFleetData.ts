@@ -1,5 +1,7 @@
-// Reads the data source (demo fixture or live index) once, on the server, into the shape the Fleet screen needs.
+// Reads the data source (demo fixture or live index) once, on the server, into the shape the Fleet screen needs. What
+// the two sources serve differently on purpose (the mode, the recent events) is `loadFleetSource`, beside this one.
 import { getDataSource } from '@/server/data';
+import { fleetTask } from '../model/inspector';
 import type { FleetData } from '../model/types';
 
 export function loadFleetData(): FleetData {
@@ -18,7 +20,7 @@ export function loadFleetData(): FleetData {
       id: ds.deepProjectId(),
       needs: ds.getNeedsYou(),
       actionClasses: Object.fromEntries(ds.getActionClasses().map((c) => [c.id, c])),
-      events: ds.getEvents(),
+      tasks: ds.getTasks().map(fleetTask),
       tracks: ds.getTracks(),
       running: cockpit.running,
       webhooks: cockpit.feed.webhooks,

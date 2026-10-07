@@ -23,7 +23,7 @@ tables above. NULL means unknown, never zero.
 - `db.ts` open, shared instance (`getIndex`), `closeIndex`. `migrations/` versioned SQL as TS modules; `migrate()`
   is idempotent and checksum-guarded. `repositories/` typed, parameterised functions per table (no ORM).
 - `views/` return the shapes in `src/lib/demo` (`getFleet`, `getNeedsYou`, `getActionClasses`, `getMaturity`,
-  `getTasks`). Countdowns and ages are computed from stored instants with a `now` argument. Where the index cannot
+  `getTasks`, and `getEvents`: the deep project's recent events, dated only by what the index holds with a time). Countdowns and ages are computed from stored instants with a `now` argument. Where the index cannot
   know a value the field is `null` (types widened in `views/types.ts`).
 - `seed/` loads `belay-demo.json` anchored at `SEED_NOW` (14:22 UTC) so tests can prove the views match the demo.
 

@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
+import { loadFleetSource } from '@/app/features/fleet/data/loadFleetSource';
 import { loadMaturityData } from '@/app/features/maturity/data/loadMaturityData';
 import { pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
@@ -117,10 +118,27 @@ describe('where live differs from demo, on purpose', () => {
     expect(live.getPortfolio().projects).toEqual([]);
   });
 
-  it('tracks, the loop, the event feed and the cockpit text are the demo catalogue until the poller derives them', () => {
+  it('tracks, the loop and the cockpit text are the demo catalogue until the poller derives them', () => {
     expect(live.getTracks()).toBe(DEMO.tracks);
     expect(live.getLoop()).toBe(DEMO.loop);
-    expect(live.getEvents()).toBe(DEMO.events);
     expect(live.getCockpit().running).toBe(DEMO.cockpit.running);
+  });
+
+  it('the recent events are read from the index (tasks, proofs, poll state), none of them the catalogue feed', () => {
+    const events = live.getEvents();
+    const feed = new Set(DEMO.events.map(([, , text]) => text));
+    expect(events.filter(([, , text]) => feed.has(text))).toEqual([]);
+    expect(events).toEqual([
+      ['14:21', '—', 'polled · ok'],
+      ['14:10', 'T4', '!44 opened · Bump ktor-client 3.1.2 → 3.1.4 · blocked'],
+      ['09:29', 'T1', '!41 merged · in production · proof PASS'],
+      ['09:02', 'T1', '!41 opened · Fix path traversal in statement export'],
+    ]);
+  });
+
+  it('the Fleet reads the mode and the recent events beside its loader; the demo keeps its feed', () => {
+    const [d, l] = both(() => asProps(loadFleetSource()));
+    expect(d).toEqual({ mode: 'demo', events: DEMO.events });
+    expect(l).toEqual({ mode: 'live', events: live.getEvents() });
   });
 });

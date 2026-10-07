@@ -21,13 +21,14 @@ import { useRowHandlers } from './hooks/useRowHandlers';
 import { useToolbarCompact } from './hooks/useToolbarCompact';
 import { menuFilterCount, sourceLabel } from './model/list/filtering';
 import { sortLabel } from './model/list/sorting';
-import type { FleetData, FleetMeta, Source } from './model/types';
+import type { FleetData, FleetMeta, FleetSource, Source } from './model/types';
 
 /**
  * Fleet: every project as one row, by tier counts, by action class or by stage. Select a row for its inspector,
- * right-click for actions, press a tier header to rank by it. Demo data; nothing leaves the browser.
+ * right-click for actions, press a tier header to rank by it. `source` says which data source drew it and carries the
+ * deep project's recent events. Nothing here writes.
  */
-export function FleetScreen({ data }: { data: FleetData }) {
+export function FleetScreen({ data, source }: { data: FleetData; source: FleetSource }) {
   const { status } = useToast();
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -131,6 +132,7 @@ export function FleetScreen({ data }: { data: FleetData }) {
           projects={proj.projects}
           byId={proj.byId}
           data={data}
+          source={source}
           done={proj.done}
           onResolve={(needId, does) => {
             proj.resolve(data.deep.id, needId);

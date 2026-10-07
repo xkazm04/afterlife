@@ -1,7 +1,7 @@
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import type { FleetProject } from '@/lib/demo/types';
 import type { SectionProps } from '../../../hooks/useSectionOpen';
-import type { DeepProject } from '../../../model/types';
+import type { DeepProject, FleetSource } from '../../../model/types';
 import styles from './sections.module.css';
 
 function Event({ at, track, text }: { at: string; track: string; text: string }) {
@@ -14,15 +14,19 @@ function Event({ at, track, text }: { at: string; track: string; text: string })
   );
 }
 
-/** The recent events: the deep project's list, or the one last event the demo has for any other project. */
-export function EventsSection({ p, deep, sec }: { p: FleetProject; deep: DeepProject; sec: SectionProps }) {
+/**
+ * The recent events: the deep project's list (the demo's feed, or in live mode read from the index), or the one last
+ * event the fleet row has for any other project.
+ */
+export function EventsSection({ p, deep, source, sec }: { p: FleetProject; deep: DeepProject; source: FleetSource; sec: SectionProps }) {
   const isDeep = p.id === deep.id;
+  const none = source.mode === 'live' ? 'No events indexed' : 'No events in demo data';
   let body;
-  if (isDeep) body = deep.events.map(([at, track, text]) => <Event key={`${at}${track}${text}`} at={at} track={track} text={text} />);
-  else if (p.last) body = <Event at={p.last.at} track={p.last.track} text={p.last.text} />;
-  else body = <div className={styles.muted}>No events in demo data</div>;
+  if (isDeep && source.events.length) body = source.events.map(([at, track, text], i) => <Event key={`${i}${at}${track}`} at={at} track={track} text={text} />);
+  else if (!isDeep && p.last) body = <Event at={p.last.at} track={p.last.track} text={p.last.text} />;
+  else body = <div className={styles.muted}>{none}</div>;
   return (
-    <InspectorSection title="Recent events" aux={isDeep ? deep.events.length : null} {...sec}>
+    <InspectorSection title="Recent events" aux={isDeep ? source.events.length : null} {...sec}>
       {body}
     </InspectorSection>
   );

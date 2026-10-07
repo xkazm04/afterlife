@@ -3,7 +3,7 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import type { FleetProject } from '@/lib/demo/types';
 import { useSectionOpen } from '../../hooks/useSectionOpen';
-import type { FleetData } from '../../model/types';
+import type { FleetData, FleetSource } from '../../model/types';
 import { GroupInspector } from './GroupInspector';
 import { ProjectInspector } from './ProjectInspector';
 
@@ -16,6 +16,7 @@ export function FleetInspector({
   projects,
   byId,
   data,
+  source,
   done,
   onResolve,
   onFlash,
@@ -24,6 +25,7 @@ export function FleetInspector({
   projects: readonly FleetProject[];
   byId: ReadonlyMap<string, FleetProject>;
   data: FleetData;
+  source: FleetSource;
   done: ReadonlySet<string>;
   onResolve: (needId: string, does: string) => void;
   onFlash: (message: string) => void;
@@ -36,5 +38,5 @@ export function FleetInspector({
   }
   const p = byId.get(selected);
   if (!p) return <InspectorHeader title="No selection" />;
-  return <ProjectInspector p={p} data={data} deep={data.deep} done={done} onResolve={onResolve} onFlash={onFlash} section={section} />;
+  return <ProjectInspector p={p} data={data} deep={data.deep} source={source} done={done} onResolve={onResolve} onFlash={onFlash} section={section} />;
 }

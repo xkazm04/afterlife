@@ -138,3 +138,49 @@
 .err {
   color: var(--fail);
 }
+
+/* tasks: verdict glyph, MR and title, then verdict word · track · state; the whole row links to /task/<id> */
+.task {
+  display: grid;
+  grid-template-columns: calc(14px * var(--ui-scale)) minmax(0, 1fr);
+  column-gap: 6px;
+  align-items: baseline;
+  margin: 0 -4px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  color: inherit;
+  text-decoration: none;
+  font-size: var(--t-head);
+}
+.task:hover {
+  background: var(--hover);
+}
+.task:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.task .m {
+  grid-column: 2;
+}
+.tt {
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vg {
+  font-weight: 700;
+  text-align: center;
+}
+.vok {
+  color: var(--ok);
+}
+.vbad {
+  color: var(--fail);
+}
+.vunk {
+  color: var(--unknown);
+}
+.vnone {
+  color: var(--text-4);
+}

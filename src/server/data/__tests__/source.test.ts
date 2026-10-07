@@ -50,7 +50,7 @@ describe('a live snapshot of an index that knows little', () => {
     const snap = await buildSnapshot(db, new Date('2026-10-06T14:22:00Z'), 'ledgerline', DEMO);
     const d = snap.data;
     expect(d.fleet.projects).toEqual([]);
-    expect([d.actionClasses, d.tasks, d.needsYou]).toEqual([[], [], []]);
+    expect([d.actionClasses, d.tasks, d.events, d.needsYou]).toEqual([[], [], [], []]);
     expect(d.portfolio).toMatchObject({ group: 'not paired', projectsWatched: 0 });
     expect(d.setup).toMatchObject({ group: 'not paired', project: 'ledgerline' });
     expect(d.maturity.engine).toBe('not scanned');

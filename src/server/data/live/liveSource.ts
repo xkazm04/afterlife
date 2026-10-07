@@ -1,4 +1,5 @@
-// The live data source: the latest snapshot of the index, plus the demo's catalogue for what the index cannot serve yet.
+// The live data source: the latest snapshot of the index, plus the demo's catalogue for what the index cannot serve yet
+// (tracks, the loop, the tier meanings, the stage list). The recent events are the index's own (`getEvents`).
 import { DEMO } from '@/lib/demo';
 import type { DemoData } from '@/lib/demo/types';
 import type { DataSource } from '../types';
@@ -22,7 +23,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getNeedsYou: () => data().needsYou,
     getNeedsYouCount: () => data().needsYou.length,
     getSetup: () => data().setup,
-    getEvents: () => catalogue.events,
+    getEvents: () => data().events,
     getCockpit: () => data().cockpit,
   };
 }

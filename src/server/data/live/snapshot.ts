@@ -1,8 +1,8 @@
 // A snapshot is everything the live source serves, read from the index in one go after each poll cycle. Pages read it
-// synchronously. What the index cannot yet serve (tracks, the loop, setup phases, the event feed, the cockpit text) is
-// the demo's catalogue, unchanged: see data/README.md for the list.
+// synchronously. What the index cannot yet serve (tracks, the loop, setup phases, the cockpit text) is the demo's
+// catalogue, unchanged: see data/README.md for the list.
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
-import { clock, getActionClasses, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
+import { clock, getActionClasses, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
 import { getPairing } from '@/server/index/repositories/pairing';
 import type { Queryable } from '@/server/index/repositories/sql';
 import { actionClass, maturity, task } from './narrow';
@@ -13,6 +13,8 @@ export interface LiveData {
   actionClasses: DemoData['actionClasses'];
   maturity: DemoData['maturity'];
   tasks: Task[];
+  /** The deep project's recent events, from its tasks, proofs and poll state (never the catalogue's). */
+  events: DemoData['events'];
   needsYou: NeedsYouItem[];
   cockpit: DemoData['cockpit'];
   setup: DemoData['setup'];
@@ -25,8 +27,9 @@ export interface LiveSnapshot {
 }
 
 export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData): Promise<LiveSnapshot> {
-  const [fleet, classes, mat, tasks, needsYou, pairing] = await Promise.all([
-    getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getNeedsYou(db, deep, at), getPairing(db, 'default'),
+  const [fleet, classes, mat, tasks, events, needsYou, pairing] = await Promise.all([
+    getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getEvents(db, deep), getNeedsYou(db, deep, at),
+    getPairing(db, 'default'),
   ]);
   const group = pairing?.groupPath ?? 'not paired';
   const feed = fleet.projects.find((p) => p.id === deep)?.feed;
@@ -38,6 +41,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       actionClasses: classes.map(actionClass),
       maturity: maturity(mat),
       tasks: tasks.flatMap((t) => task(t) ?? []),
+      events,
       needsYou,
       cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? 0 } },
       setup: { ...catalogue.setup, group, project: deep },

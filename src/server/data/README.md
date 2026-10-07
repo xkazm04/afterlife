@@ -22,7 +22,7 @@ had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActio
 | `select.ts` | `getDataSource()`, and `setDataSource()` for tests |
 | `demoSource.ts` | the demo accessors, unchanged |
 | `live/liveSource.ts` | the snapshot + the demo catalogue; throws before the first poll has finished (an empty fleet must not pass for real) |
-| `live/snapshot.ts` | `buildSnapshot(db, at, deep, catalogue)`: views from `../index` for fleet, action classes, maturity, tasks, needs-you, plus feed age and the group name |
+| `live/snapshot.ts` | `buildSnapshot(db, at, deep, catalogue)`: views from `../index` for fleet, action classes, maturity, tasks, recent events, needs-you, plus feed age and the group name |
 | `live/narrow.ts` | where the screens' types have no "unknown": quarantined for an unknown tier, 9 null rungs for a scan that never ran, an unclassified task is not listed |
 | `live/runtime.ts`, `boot.ts` | one port + index + poller + snapshot per process, kept on `globalThis`; started by `src/instrumentation.ts` (`register`) |
 | `live/clock.ts`, `ports.ts` | system clock vs the fake group's **replay clock** (polled 14:21:48, read 14:22:00, always) |
@@ -38,8 +38,12 @@ ages to the demo's moment, so the screens are identical to demo mode, and visibl
 
 ## Live, what is still the demo catalogue
 
-Tracks, the loop, the event feed, the cockpit text (only `feed.lastPollSec` is live), the setup phases and doctor rows
+Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live), the setup phases and doctor rows
 (only group and project are live), the tier meanings and the stage list. The Ladder's seeded ledger, the Task docket's
 per-task fixtures (a live task with no fixture is not drawn) and the Needs-you screen (built around five specific items;
 `NeedsYouEmpty` is drawn when they are missing) are the screens' own data and unchanged. The footer chip "illustrative demo
 data" is a client component and still says so.
+
+The recent events are the index's own (`getEvents` in `../index/views/events.ts`): a task's MR opened and merged, the last
+poll, and each task's standing (state, proof verdict) on its newest row. They are not the demo's feed, so the Fleet reads
+them through `loadFleetSource`, beside `loadFleetData`, and `parity.test.ts` lists them where live differs from demo.

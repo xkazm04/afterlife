@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
-import { acceptedLabel, classTip, feedRows, gitlabUrl, needsMeta, recordLabel, waitingTitle } from './inspector';
+import { acceptedLabel, classTip, feedRows, fleetTask, gitlabUrl, needsMeta, recordLabel, taskVerdict, verdictMark, waitingTitle } from './inspector';
 import { makeProject } from './testProject';
 import type { DeepProject } from './types';
 
 const cls = (id: string) => DEMO.actionClasses.find((c) => c.id === id);
 const deep: DeepProject = {
-  id: 'ledgerline', needs: DEMO.needsYou, actionClasses: {}, events: [], tracks: [], running: '8 of 8', webhooks: 'off (local)', unattributed: 4,
+  id: 'ledgerline', needs: DEMO.needsYou, actionClasses: {}, tasks: [], tracks: [], running: '8 of 8', webhooks: 'off (local)', unattributed: 4,
 };
 
 describe('class records', () => {
@@ -63,5 +63,20 @@ describe('small words', () => {
   });
   it('builds the demo GitLab address', () => {
     expect(gitlabUrl('acme-lab/core/a')).toBe('gitlab.example/acme-lab/core/a');
+  });
+});
+
+describe('tasks', () => {
+  const task = (id: string) => DEMO.tasks.find((t) => t.id === id)!;
+  it('lists a data-source task with its stored verdict, and a task with no proof has none', () => {
+    expect(fleetTask(task('01J8Q4'))).toEqual({ id: '01J8Q4', title: 'Fix path traversal in statement export', mr: '!41', track: 'T1', state: 'merged · in production', verdict: 'PASS' });
+    expect(fleetTask(task('01J8Q9')).verdict).toBeNull(); // blocked by the guardrail: no proof was posted
+  });
+  it('carries the stored word faithfully and never reads an odd one as a pass', () => {
+    expect(['pass', 'FAIL', 'Inconclusive', 'passed', ''].map(taskVerdict)).toEqual(['PASS', 'FAIL', 'INCONCLUSIVE', 'UNKNOWN', 'UNKNOWN']);
+  });
+  it('draws only PASS as a tick and only FAIL as a cross; no proof is a dash, never a pass', () => {
+    expect([verdictMark('PASS').glyph, verdictMark('FAIL').glyph, verdictMark('INCONCLUSIVE').glyph, verdictMark('UNKNOWN').glyph]).toEqual(['✓', '✗', '?', '?']);
+    expect(verdictMark(null)).toEqual({ glyph: '–', word: 'no proof', tone: 'none' });
   });
 });

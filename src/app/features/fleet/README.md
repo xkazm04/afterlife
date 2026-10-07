@@ -1,7 +1,8 @@
 # Fleet (F1)
 
-Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` loads the demo on the server
-(`data/loadFleetData.ts`) and renders the client `FleetScreen`.
+Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` reads the data source on the server
+(`data/loadFleetData.ts`, plus `data/loadFleetSource.ts`: the mode and the deep project's recent events) and renders the
+client `FleetScreen`.
 
 ## Parts
 - `FleetScreen.tsx` composes the Window: toolbar, sidebar, table, inspector, status bar, legend.
@@ -10,7 +11,8 @@ Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` l
 - `components/toolbar/` views, status lozenge (a filter too), Sort / Filter / Search.
 - `components/sidebar/` all projects, groups, six smart filters. `components/legend/` the "?".
 - `components/inspector/` project and group inspector; `sections/` one file per section.
-  The deep project (ledgerline) has resolvable decisions, class records, events, tracks.
+  The deep project (ledgerline) has resolvable decisions, class records, tasks (each linking to `/task/<id>`), events,
+  tracks.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
   handlers, narrow / compact measuring, section open state.
@@ -22,7 +24,11 @@ Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` l
   re-poll, status line. `model/inspector.ts` the inspector's wording.
 
 ## Data
-Button labels of the ledgerline decisions are shared, in `@/lib/demo/needsActions`. Everything else is `@/lib/demo` too.
+Everything comes through the DataSource (`@/server/data`): the demo fixture, or the live index. The deep project's tasks
+are the source's `getTasks()`, each with its stored verdict (no proof: none, never a pass). Its recent events are the
+demo's feed in demo mode and, in live mode, read from the index's tasks, proofs and poll state; they travel in
+`loadFleetSource` because they are not the same in both modes (`src/server/data/__tests__/parity.test.ts`). Button labels
+of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
 
 ## Behaviour to know
 - Resolving a decision and re-polling only change this screen's state; nothing is written.

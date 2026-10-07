@@ -36,12 +36,27 @@ export interface GroupBlock {
   projects: FleetProject[];
 }
 
-/** The deep data the demo has for one project (ledgerline): its decisions, class records, events and tracks. */
+/** A stored proof verdict, word for word. INCONCLUSIVE and UNKNOWN are never a pass. */
+export type TaskVerdict = 'PASS' | 'FAIL' | 'INCONCLUSIVE' | 'UNKNOWN';
+
+/** One task of the deep project, as the inspector lists it (a link to /task/<id>). */
+export interface FleetTask {
+  id: string;
+  title: string;
+  mr: string | null;
+  track: string;
+  state: string;
+  /** null: no proof is stored for it. */
+  verdict: TaskVerdict | null;
+}
+
+/** The deep data the data source has for one project (ledgerline): its decisions, class records, tasks and tracks. */
 export interface DeepProject {
   id: string;
   needs: NeedsYouItem[];
   actionClasses: Record<string, ActionClass>;
-  events: [string, string, string][];
+  /** The data source's tasks (getTasks), in its order. */
+  tasks: FleetTask[];
   tracks: Track[];
   running: string;
   webhooks: string;
@@ -58,6 +73,16 @@ export interface FleetData {
   tiers: Record<TierKey, TierInfo>;
   deep: DeepProject;
   lastPollSec: number;
+}
+
+/**
+ * What the Fleet reads that differs between the two sources on purpose (parity.test.ts lists it): the mode, and the deep
+ * project's recent events, which are the demo's feed in demo mode and read from the index in live mode.
+ */
+export interface FleetSource {
+  mode: 'demo' | 'live';
+  /** [time, track, text], newest first. */
+  events: [string, string, string][];
 }
 
 /** What the column builder needs to know besides the view. */
