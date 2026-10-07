@@ -56,7 +56,9 @@ for: in live mode it runs the live runtime's `refresh()` (one poll cycle, then a
 `next/cache`, so the current route renders again in the same round trip. `repoll.ts` decides the answer:
 `{ok: true, ageSec}` only when the cycle finished and polled that project without error; otherwise `{ok: false, reason}`
 (not ready, the cycle did not finish, the group failed, the project failed or is not in the polled group). It writes
-nothing, to GitLab or the index beyond what a poll writes. Demo mode answers that it has nothing to poll.
+nothing, to GitLab or the index beyond what a poll writes. A cycle reads the whole group as the operator, so two re-polls
+are at least `REPOLL_GAP_MS` (10 s) apart, failed ones included; one asked for sooner runs nothing and says when to ask
+again. Demo mode answers that it has nothing to poll.
 
 ## Screens that call them
 

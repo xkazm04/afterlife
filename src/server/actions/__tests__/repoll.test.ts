@@ -11,7 +11,7 @@ import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { seedDemo, SEED_NOW } from '@/server/index/seed';
 import { readPollerConfig } from '@/server/poller/config';
 import { runPollCycle } from '@/server/poller/cycle';
-import { repollProject, type RepollRuntime } from '../repoll';
+import { REPOLL_GAP_MS, repollProject, type RepollRuntime } from '../repoll';
 
 /** The fake GitLab behind a switch: once `fail` names a call, that call is refused with a 401. */
 async function fakeRuntime() {
@@ -56,11 +56,13 @@ describe('re-poll on the live runtime', () => {
     expect((await repollProject(group.rt, 'ledgerline')).result).toEqual({ ok: false, reason: expect.stringContaining('401') });
 
     const { rt, refresh } = await fakeRuntime();
-    expect((await repollProject(rt, 'billing')).result).toEqual({ ok: false, reason: 'not in the polled group' }); // seeded, not in GitLab
+    let t = 0;
+    const later = () => (t += REPOLL_GAP_MS); // each re-poll a gap after the last: this is about the answer, not the gap
+    expect((await repollProject(rt, 'billing', later)).result).toEqual({ ok: false, reason: 'not in the polled group' }); // seeded, not in GitLab
     refresh.mockImplementationOnce(() => Promise.resolve()); // the runtime caught a throwing cycle: `last` did not move
-    expect((await repollProject(rt, 'ledgerline')).result).toEqual({ ok: false, reason: 'the poll cycle did not finish' });
+    expect((await repollProject(rt, 'ledgerline', later)).result).toEqual({ ok: false, reason: 'the poll cycle did not finish' });
     refresh.mockImplementationOnce(() => Promise.reject(new Error('snapshot failed')));
-    expect(await repollProject(rt, 'ledgerline')).toEqual({ result: { ok: false, reason: 'snapshot failed' }, polled: true });
+    expect(await repollProject(rt, 'ledgerline', later)).toEqual({ result: { ok: false, reason: 'snapshot failed' }, polled: true });
   });
 
   it('polls nothing for something that is not a project id, or before the first poll', async () => {
@@ -70,5 +72,30 @@ describe('re-poll on the live runtime', () => {
     }
     expect(await repollProject(null, 'ledgerline')).toEqual({ result: { ok: false, reason: 'live mode has not finished its first poll' }, polled: false });
     expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
+describe('re-poll cannot be driven to flood GitLab', () => {
+  it('a re-poll within the gap of the last one runs no cycle, and says when the next one may', async () => {
+    const { rt, refresh } = await fakeRuntime();
+    let t = 1_000_000;
+    const now = () => t;
+    expect((await repollProject(rt, 'ledgerline', now)).result.ok).toBe(true);
+    for (let i = 0; i < 50; i++) await repollProject(rt, 'ledgerline', now); // a page, or a script, in a loop
+    expect(refresh).toHaveBeenCalledTimes(1);
+    t += 4_000;
+    expect(await repollProject(rt, 'ledgerline', now)).toEqual({ result: { ok: false, reason: 'the last re-poll was 4s ago: re-poll again in 6s' }, polled: false });
+    t += 6_000;
+    expect((await repollProject(rt, 'ledgerline', now)).result.ok).toBe(true);
+    expect(refresh).toHaveBeenCalledTimes(2);
+  });
+
+  it('a failed cycle counts too: it read GitLab as much as one that passed', async () => {
+    const { rt, refresh, fail } = await fakeRuntime();
+    fail.call = 'listMergeRequests';
+    const now = () => 5_000_000;
+    expect((await repollProject(rt, 'ledgerline', now)).result.ok).toBe(false);
+    expect((await repollProject(rt, 'ledgerline', now)).result).toEqual({ ok: false, reason: expect.stringContaining('re-poll again in') });
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 });
