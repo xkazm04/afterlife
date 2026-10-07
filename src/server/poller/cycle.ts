@@ -70,8 +70,12 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
     return result;
   }
 
-  const policyProject = all.find((p) => p.path === cfg.policyProject);
-  const ledgerProject = all.find((p) => p.path === cfg.ledgerProject);
+  // Only the group's own: belay-policy and belay-ledger at <group>/<name>, the files the gate reads, and targets under the
+  // group's path. A subgroup's belay-policy, or a project shared in, is never read as the group's (F49).
+  const own = (p: GlProject): boolean => p.pathWithNamespace.startsWith(`${group.fullPath}/`);
+  const policyProject = all.find((p) => p.pathWithNamespace === `${group.fullPath}/${cfg.policyProject}`);
+  const ledgerProject = all.find((p) => p.pathWithNamespace === `${group.fullPath}/${cfg.ledgerProject}`);
+  all = all.filter(own);
   const targets = all.filter((p) => !p.archived && !cfg.infra.includes(p.path));
   let policy: PolicyRead | null = null;
   if (!policyProject) result.warnings.push(`no ${cfg.policyProject} project in the group: class tiers are not updated`);
