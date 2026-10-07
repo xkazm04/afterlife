@@ -3,9 +3,9 @@ import type { Ceiling } from '@/schemas/tier';
 import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
 
 /**
- * How the class last changed. 'note' carries a fixed explanation in `note`. 'no_record' and 'refused' are the two
- * standings in which the gate grants nothing (the row's tier is then quarantined): no agent holds the class, or several
- * do and none is named for the role (`note` lists them).
+ * How the class last changed. 'note' carries a fixed explanation in `note`. 'no_record' and 'refused' are standings, read
+ * by views/standing.ts: no agent holds the class (the row's tier is quarantined: the gate blocks it), or several agents
+ * hold it (the row's tier is the most restrictive holder's; `note` lists each holder at its own tier, as CI gates it).
  */
 export type MoveKind = 'promoted' | 'demoted' | 'tripwire' | 'ineligible' | 'note' | 'no_record' | 'refused';
 

@@ -1,12 +1,15 @@
 // Where each action class stands: trust-policy.yml (ceilings, order) + tier-state.yml (records) -> trust_class and
 // class_tier rows. The holder and the effective tier come from the gate's own rule (engine/decide/standing.ts), so a row
-// never shows a tier the gate would not grant. A class no agent holds is stored quarantined with move 'no_record'; a class
-// several agents hold with none named for the role is stored quarantined with move 'refused' (the gate blocks both).
+// never shows a tier the gate would not grant. A class no agent holds is stored quarantined with move 'no_record' (the
+// gate blocks it). A class several agents hold, one of them named for the role or none, is stored with move 'refused' and
+// every holder at the tier gate({..., agent: holder}) grants: CI gates each MR at its author's own record. The row's
+// tier is the most restrictive holder's. views/standing.ts writes and reads both standings.
 // What GitLab cannot tell Belay (the record's counters, a moves note) is kept from the row already in the index.
 import type { Ceiling, DemotionTrigger, TierState } from '@/schemas/tier';
 import type { ClassTierRow } from '@/server/index/repositories/fleet/classTier';
 import type { TrustClassRow } from '@/server/index/repositories/fleet/taxonomy';
-import { standingOf } from '../../../../engine/decide/standing';
+import { noRecordRow, splitRow } from '@/server/index/views/standing';
+import { holderStandings, standingOf } from '../../../../engine/decide/standing';
 import type { EnginePolicy } from '../../../../engine/policy/load';
 
 /** The eight tracks, by the agent role trust-policy.yml names. */
@@ -57,13 +60,16 @@ export function deriveTiers(
   Object.entries(policy.classes).forEach(([id, c]) => {
     const track = ROLE_TRACK[c.agent] ?? null;
     const prev = existing.get(id);
+    const holders = holderStandings(policy.classes, state, id, now);
     const st = standingOf(policy.classes, state, id, now);
-    const rec = st.kind === 'held' ? st.record : null;
+    const rec = st.kind === 'held' && holders.length < 2 ? st.record : null;
     const since = when(rec?.since);
     const lease = when(rec?.lease_expires);
     let tier: Ceiling;
     let move = keptMove(prev);
-    if (st.kind === 'held') {
+    if (holders.length > 1) {
+      ({ tier, move } = splitRow(holders.map((h) => ({ agent: h.agent, tier: h.tier }))));
+    } else if (st.kind === 'held') {
       tier = st.tier;
       if (st.leaseLapsed) move = { kind: 'note', at: lease, note: 'lease lapsed: supervised' };
       else if (st.record.by.startsWith('tripwire')) move = { kind: 'tripwire', at: since, note: st.record.reason ?? null }; // the trigger
@@ -71,13 +77,9 @@ export function deriveTiers(
       if (st.record.by.startsWith('tripwire') && tier === 'quarantined') {
         quarantines.push({ classId: id, role: c.agent, track, reason: st.record.reason ?? null, evidence: st.record.evidence ?? null, since });
       }
-    } else if (st.kind === 'refused') {
-      tier = 'quarantined'; // the gate grants nothing: it blocks until one holder is named
-      move = { kind: 'refused', at: null, note: st.holders.join(', ') };
     } else if (st.kind === 'no_record') {
-      tier = 'quarantined';
-      move = { kind: 'no_record', at: null, note: null };
-    } else tier = 'human_only';
+      ({ tier, move } = noRecordRow());
+    } else tier = 'human_only'; // human_only (no agent ever holds it); 'refused' always has two holders, handled above
     rows.push({ projectId, classId: id, tier, since, setBy: rec?.by ?? null, leaseExpires: lease, record: prev?.record ?? null, move });
   });
   const cutoff = now.getTime() - windowMs;

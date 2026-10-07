@@ -6,7 +6,7 @@ nothing is lost: every table is rebuilt from the source in the last column.
 | Table | Holds | Rebuilt from |
 |---|---|---|
 | `fleet_group`, `project`, `project_stage` | groups, projects, nine rungs per project | GitLab group/project API + maturity scan |
-| `trust_class`, `class_tier` | classes; per project and class the tier recorded in tier-state.yml, capped by the policy, its lease, record and last move (`no_record` / `refused` when the gate grants none) | `belay-policy` trust-policy.yml, tier-state.yml + ledger |
+| `trust_class`, `class_tier` | classes; per project and class the tier recorded in tier-state.yml, capped by the policy, its lease, record and last move (`no_record` when no agent holds the class, `refused` when several do, with each holder's tier: read by `views/standing.ts`) | `belay-policy` trust-policy.yml, tier-state.yml + ledger |
 | `ledger_event` | hash chain, unique `(project_id, seq)`, append-only trigger | `belay-ledger/events/<id>.jsonl` (`resetLedger` then re-append) |
 | `task`, `proof` | tasks and Proof Blocks | MR notes (`belay-proof`, `Belay-Task:` trailer) + ledger |
 | `proposal` | Needs-you inbox; gap picks are children of one `gap` item | GitLab state, CRA clocks, maturity scan |

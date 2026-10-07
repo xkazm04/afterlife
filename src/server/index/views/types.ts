@@ -12,6 +12,7 @@ export interface FleetView {
   projects: FleetProject[];
 }
 
+/** `tier` is what the gate acts on (null: unknown); `cell`, set where it is not the tier, is what Ladder shows. */
 export type ActionClassView = Omit<ActionClass, 'tier'> & { tier: TierKey | null };
 
 export type MaturityRungView = Omit<MaturityRung, 'day0' | 'now' | 'next'> & {

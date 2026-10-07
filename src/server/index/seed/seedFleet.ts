@@ -12,6 +12,7 @@ import { setProjectStages } from '../repositories/fleet/stages';
 import { upsertGroups, upsertTrustClasses } from '../repositories/fleet/taxonomy';
 import { projectSource, setPollStates, type PollStateRow } from '../repositories/pollState';
 import type { Queryable } from '../repositories/sql';
+import { storedOf } from '../views/standing';
 import { onDayAt } from './parse';
 
 const trackNumber = (t: string): number | null => (/^T(\d)$/.test(t) ? Number(t.slice(1)) : null);
@@ -58,11 +59,8 @@ export async function seedFleet(db: Queryable, now: Date): Promise<void> {
   const tiers: ClassTierRow[] = fleet.projects.flatMap((p) =>
     Object.entries(p.classTiers).map(([classId, raw]): ClassTierRow => {
       const cell = cappedCell(raw, ceiling(classId), now);
-      return {
-        projectId: p.id, classId, since: null, setBy: null, leaseExpires: null, record: null,
-        // a standing is stored as the poller stores it: quarantined, as the gate acts, with the standing as its move
-        ...(isStanding(cell) ? { tier: 'quarantined', move: { kind: cell, at: null, note: null } } : { tier: cell, move: null }),
-      };
+      // stored as the poller stores it (views/standing.ts), so Fleet, the door and Ladder read it back the same way
+      return { projectId: p.id, classId, since: null, setBy: null, leaseExpires: null, record: null, ...storedOf({ cell, holders: p.holders?.[classId]?.map((h) => ({ ...h })) ?? null }) };
     }),
   );
   await upsertClassTiers(db, tiers);
