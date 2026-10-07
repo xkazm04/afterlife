@@ -10,6 +10,8 @@ import { DEMO } from '@/lib/demo';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { LEDGER_SEED } from '@/app/features/ladder/data/ledgerSeed';
 import { LadderScreen } from '@/app/features/ladder/LadderScreen';
+import { loadDoorData } from '@/app/features/door/data/loadDoorData';
+import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadNeedsYouView, SEEDED_ITEMS } from '@/app/features/needs-you/data/pick';
 import NeedsYouPage from '@/app/needs-you/page';
 import { createDemoGitLab } from '@/server/gitlab/fake/demo';
@@ -23,7 +25,7 @@ import { replayClock } from '../live/clock';
 import { liveSource } from '../live/liveSource';
 import { buildSnapshot, type LiveSnapshot } from '../live/snapshot';
 import { rulesOf } from '../policy';
-import { setDataSource } from '../select';
+import { getDataSource, setDataSource } from '../select';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/ladder', useRouter: () => ({ push: () => undefined, refresh: () => undefined }) }));
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));
@@ -89,6 +91,24 @@ describe('Needs you, live', () => {
     expect(out).toContain('5 demo item(s) seeded into this index are not shown');
   });
 
+  /** The four numbers the screens show: the badge, Fleet's ledgerline row, the Door's deep project, and the Needs-you list. */
+  const counts = () => {
+    const view = loadNeedsYouView();
+    return [
+      getDataSource().getNeedsYouCount(),
+      loadFleetData().projects.find((p) => p.id === 'ledgerline')?.needsYou,
+      loadDoorData().projects.find((p) => p.id === 'ledgerline')?.needsYou,
+      view.kind === 'live' ? view.items.length : 0,
+    ];
+  };
+
+  it('with only the seeded items, the badge, Fleet, the Door and the screen all say 0', async () => {
+    const s = await snap();
+    setDataSource(liveSource(() => s));
+    expect(counts()).toEqual([0, 0, 0, 0]);
+    expect(loadNeedsYouView()).toEqual({ kind: 'empty', seeded: 5 });
+  });
+
   it('draws the group’s own open items, and still none of the seeded ones', async () => {
     await upsertProposals(db, [{
       id: 'readmit:ledgerline:qa.file-bug', projectId: 'ledgerline', kind: 'readmit', state: 'open', parentId: null,
@@ -100,6 +120,7 @@ describe('Needs you, live', () => {
     const view = loadNeedsYouView();
     expect(view.kind === 'live' && view.items.map((n) => n.id)).toEqual(['readmit:ledgerline:qa.file-bug']);
     expect(view.kind === 'live' && view.items.some((n) => SEEDED_ITEMS.has(n.id))).toBe(false);
+    expect(counts()).toEqual([1, 1, 1, 1]);
     const out = html(createElement(NeedsYouPage));
     expect(out).toContain('Re-admit T7 qa · qa.file-bug');
     for (const t of SEEDED_TITLES) expect(out).not.toContain(t);

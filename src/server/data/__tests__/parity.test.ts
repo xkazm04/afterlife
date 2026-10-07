@@ -66,8 +66,13 @@ function both<T>(read: () => T): [T, T] {
 
 describe('every screen loader gets the same data from the live source as from the demo source', () => {
   it('Fleet: 184 projects, groups, classes, tier counts, rungs, feed ages, the deep project and the status-bar facts', () => {
+    // The deep project's needsYou is listed below where live differs (it excludes the seeded items); nothing else is normalised.
+    const sameDeep = (v: unknown) => {
+      const p = v as { projects: { id: string; needsYou: number }[] };
+      return { ...p, projects: p.projects.map((x) => (x.id === 'ledgerline' ? { ...x, needsYou: 0 } : x)) };
+    };
     const [d, l] = both(() => asProps(loadFleetData()));
-    expect(noLast(l)).toEqual(noLast(d));
+    expect(noLast(sameDeep(l))).toEqual(noLast(sameDeep(d)));
   });
 
   it('Needs you: the five inbox items and the incident, read for the screen', () => {
@@ -95,11 +100,6 @@ describe('every screen loader gets the same data from the live source as from th
     const [dt, lt] = both(() => asProps(loadTheaterData()));
     expect(lt).toEqual(dt);
   });
-
-  it('the badge number in the layout, and the deep project', () => {
-    expect([live.getNeedsYouCount(), live.deepProjectId(), live.mode]).toEqual([5, 'ledgerline', 'live']);
-    expect([demoSource.getNeedsYouCount(), demoSource.deepProjectId(), demoSource.mode]).toEqual([5, 'ledgerline', 'demo']);
-  });
 });
 
 describe('the poll really did write what the parity rests on (it is not just the seed)', () => {
@@ -114,6 +114,14 @@ describe('the poll really did write what the parity rests on (it is not just the
 });
 
 describe('where live differs from demo, on purpose', () => {
+  it('the Needs-you count (the layout badge, the deep project’s Fleet row) excludes the seeded items live; demo counts all five', () => {
+    expect([live.getNeedsYouCount(), live.deepProjectId(), live.mode]).toEqual([0, 'ledgerline', 'live']);
+    expect([demoSource.getNeedsYouCount(), demoSource.deepProjectId(), demoSource.mode]).toEqual([5, 'ledgerline', 'demo']);
+    expect(live.getFleet().projects.find((p) => p.id === 'ledgerline')?.needsYou).toBe(0);
+    expect(demoSource.getFleet().projects.find((p) => p.id === 'ledgerline')?.needsYou).toBe(5);
+    expect(live.getNeedsYou()).toHaveLength(5); // the items are still read; they are only not counted
+  });
+
   it('the portfolio header counts what is watched now, and lists no illustrative projects', () => {
     expect(live.getPortfolio().group).toBe(demoSource.getPortfolio().group);
     expect(live.getPortfolio().asOf).toBe(demoSource.getPortfolio().asOf);
