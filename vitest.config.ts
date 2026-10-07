@@ -10,5 +10,5 @@ export default defineConfig({
     },
   },
   // Every index test boots an embedded Postgres (WebAssembly); with a dozen files in parallel that takes seconds, not milliseconds.
-  test: { testTimeout: 30_000, hookTimeout: 60_000, include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'engine/**/*.test.ts', 'cli/**/*.test.mjs'], environment: 'node' },
+  test: { testTimeout: 30_000, hookTimeout: 60_000, include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'engine/**/*.test.ts', 'cli/**/*.test.mjs', 'gitlab/**/*.test.mjs'], environment: 'node' },
 });

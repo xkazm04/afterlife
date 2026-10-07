@@ -7,6 +7,8 @@
 //                  {"engine_version": "...", "finding_ids": [...]})
 //   cited-diff   : --verdict f   (the belay-guardrail block, from fetch-block)
 //   rerun-stats  : --verdict f   (the belay-medic block; the runs are read from the jobs API)
+// Flow output is untrusted. Every block is checked against its flow schema, and the only {"$file": path} references in the
+// written input are the ones made here: the engine inlines such a file's text, which then ends up in a public note.
 import fs from 'node:fs';
 import path from 'node:path';
 import { api, apiAll, arg, blocks, die, need } from '../lib/lib.mjs';
@@ -17,8 +19,24 @@ const cls = need('class');
 const out = arg('out', 'belay-evidence.json');
 const projectId = env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set');
 const task = (flow) => ({ flow, run_id: `pipeline-${env.CI_PIPELINE_ID}`, project_id: Number(projectId), mr_iid: Number(env.BELAY_MR_IID), ...(env.BELAY_HEAD_SHA ? { head_sha: env.BELAY_HEAD_SHA } : {}), trailer: `Belay-Task: ${env.BELAY_TASK_ID}` });
-const file = (f) => ({ $file: path.resolve(f) }); // the engine inlines the file's text
+const own = new WeakSet();
+const file = (f) => {
+  const ref = { $file: path.resolve(f) }; // the engine inlines the file's text
+  own.add(ref);
+  return ref;
+};
 const json = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
+const checked = (value, schema, what) => {
+  const problems = validate(value, json(path.join(env.BELAY_DIR ?? '.', 'gitlab/flows/schemas', schema)));
+  if (problems.length) die(`${what} is invalid: ${problems.slice(0, 5).join('; ')}`, 2);
+  return value;
+};
+/** A {"$file"} key this script did not write came from a verdict, a claims block or a scan record. */
+function foreignFile(v) {
+  if (Array.isArray(v)) return v.some(foreignFile);
+  if (v === null || typeof v !== 'object') return false;
+  return (Object.hasOwn(v, '$file') && !own.has(v)) || Object.values(v).some(foreignFile);
+}
 const optFile = (flag) => (arg(flag) && fs.existsSync(arg(flag)) ? file(arg(flag)) : undefined);
 const diff = env.BELAY_DIFF_FILE ? file(env.BELAY_DIFF_FILE) : undefined;
 
@@ -27,9 +45,7 @@ if (cls === 'exploit-test') {
   const m = api(`projects/${projectId}/merge_requests/${env.BELAY_MR_IID}`);
   const block = blocks(m.description, 'belay-claims').at(-1);
   if (!block) die('the MR description has no belay-claims block', 2);
-  const schema = json(path.join(env.BELAY_DIR ?? '.', 'gitlab/flows/schemas/claims.schema.json'));
-  const problems = validate(block, schema);
-  if (problems.length) die(`belay-claims block is invalid: ${problems.slice(0, 5).join('; ')}`, 2);
+  checked(block, 'claims.schema.json', 'belay-claims block');
   const ids = new Set(block.claims.map((c) => c.id));
   const claim_ids = {};
   for (const [check, id] of [['base-red', 'base-red'], ['names-vector', 'base-red'], ['head-green', 'head-green'], ['same-test-id', 'head-green'], ['test-not-weakened', 'test-not-weakened'], ['finding-closed', 'finding-closed']]) {
@@ -41,11 +57,11 @@ if (cls === 'exploit-test') {
     : undefined;
   input = { task: task('patcher'), action_class: env.BELAY_ACTION_CLASS, claims: block.claims, claim_ids, test_id: block.test?.id, vector: block.test?.markers, base: side('base'), head: side('head'), diff, rescan };
 } else if (cls === 'cited-diff') {
-  const v = json(need('verdict'));
+  const v = checked(json(need('verdict')), 'guardrail-verdict.schema.json', 'belay-guardrail block');
   const claims = (v.findings ?? []).map((f, i) => ({ id: `f${i + 1}`, text: `${f.rule} (${f.severity}): ${f.explanation}`, quote: { file: f.file, text: f.quote } }));
   input = { task: task('guardrail'), claims, diff };
 } else if (cls === 'rerun-stats') {
-  const v = json(need('verdict'));
+  const v = checked(json(need('verdict')), 'medic-verdict.schema.json', 'belay-medic block');
   if (!v.job) die('the belay-medic block names no job', 2);
   const runs = [];
   for (const p of apiAll(`projects/${projectId}/pipelines?sha=${v.sha}`, 2)) {
@@ -58,5 +74,6 @@ if (cls === 'exploit-test') {
 } else {
   die(`no evidence builder for ${cls}: the engine has no real checker for it yet`, 2);
 }
+if (foreignFile(input)) die('the evidence carries a {"$file"} reference from untrusted data: refused', 2);
 fs.writeFileSync(out, JSON.stringify(input, null, 2));
 console.error(`belay: wrote ${out} for ${cls}`);
