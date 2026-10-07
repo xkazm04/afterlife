@@ -25,6 +25,7 @@ rules: the promotion thresholds, the demotion triggers, the envelope). Reads are
 | `demoSource.ts` | the demo accessors, unchanged |
 | `live/liveSource.ts` | the snapshot + the demo catalogue; throws before the first poll has finished (an empty fleet must not pass for real) |
 | `live/snapshot.ts` | `buildSnapshot(db, at, deep, catalogue)`: views from `../index` for fleet, action classes, maturity, tasks, recent events, needs-you, plus feed age and the group name |
+| `live/seeded.ts` | `SEEDED_ITEMS` and `isSeeded(id)`: the ids the demo seeds into an index, which a real group's index never holds. `getNeedsYouCount()` and the deep project's fleet row exclude them, as `/needs-you` does (`getNeedsYou()` still returns them) |
 | `live/narrow.ts` | where the screens' types have no "unknown": quarantined for an unknown tier, 9 null rungs for a scan that never ran, an unclassified task is not listed |
 | `live/runtime.ts`, `boot.ts` | one port + index + poller + snapshot per process, kept on `globalThis`; started by `src/instrumentation.ts` (`register`) |
 | `live/clock.ts`, `ports.ts` | system clock vs the fake group's **replay clock** (polled 14:21:48, read 14:22:00, always) |
@@ -34,7 +35,7 @@ rules: the promotion thresholds, the demotion triggers, the envelope). Reads are
 `BELAY_GITLAB=fake` starts an in-memory index, seeds it with `seedDemo` (what GitLab cannot express: the other 183 projects,
 scan, records, narrative), and polls `gitlab/fake/demo/` (a GitLab built from the demo dataset: ledgerline's MRs, notes,
 labels, deployments, policy files and a verifying ledger). The poller's rows then overwrite the seed where they derive the
-same values, which `__tests__/parity.test.ts` proves for every loader (`loadFleetData`, `pickNeedsYouDemo`, `loadLadderData`, `loadMaturityData`, `loadSetupData`, `loadTheaterData`; `loadTasks` is listed where live differs from demo: live draws only the source's tasks). The replay clock pins the countdowns and feed
+same values, which `__tests__/parity.test.ts` proves for every loader (`loadFleetData`, `pickNeedsYouDemo`, `loadLadderData`, `loadMaturityData`, `loadSetupData`, `loadTheaterData`; `loadTasks` and the Needs-you count are listed where live differs from demo: live draws only the source's tasks, and counts only unseeded Needs-you items, so the layout badge and the deep project's Fleet and Door rows read 0 where demo reads 5). The replay clock pins the countdowns and feed
 ages to the demo's moment, so the screens are identical to demo mode, and visibly a replay.
 
 ## Live, what is still the demo catalogue
