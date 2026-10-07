@@ -47,6 +47,9 @@ const when = (s: string | undefined): Date | null => {
   return Number.isNaN(t) ? null : new Date(t);
 };
 
+/** Who set a record, when it says so in text. The gate reads a record by its tier alone, so a hand-written one may lack it (F51). */
+const byOf = (r: { by?: unknown } | null): string | null => (typeof r?.by === 'string' ? r.by : null);
+
 /** The classes in the policy's order, with the track their agent role belongs to. */
 export const trustClassesOf = (policy: EnginePolicy): TrustClassRow[] =>
   Object.entries(policy.classes).map(([id, c], ord) => ({ id, ord, track: ROLE_TRACK[c.agent] ?? null, agent: c.agent, ceiling: c.ceiling }));
@@ -72,19 +75,19 @@ export function deriveTiers(
     } else if (st.kind === 'held') {
       tier = st.tier;
       if (st.leaseLapsed) move = { kind: 'note', at: lease, note: 'lease lapsed: supervised' };
-      else if (st.record.by.startsWith('tripwire')) move = { kind: 'tripwire', at: since, note: st.record.reason ?? null }; // the trigger
-      else if (/promotion/i.test(st.record.by)) move = { kind: 'promoted', at: since, note: null };
-      if (st.record.by.startsWith('tripwire') && tier === 'quarantined') {
+      else if (byOf(st.record)?.startsWith('tripwire')) move = { kind: 'tripwire', at: since, note: st.record.reason ?? null }; // the trigger
+      else if (/promotion/i.test(byOf(st.record) ?? '')) move = { kind: 'promoted', at: since, note: null };
+      if (byOf(st.record)?.startsWith('tripwire') && tier === 'quarantined') {
         quarantines.push({ classId: id, role: c.agent, track, reason: st.record.reason ?? null, evidence: st.record.evidence ?? null, since });
       }
     } else if (st.kind === 'no_record') {
       ({ tier, move } = noRecordRow());
     } else tier = 'human_only'; // human_only (no agent ever holds it); 'refused' always has two holders, handled above
-    rows.push({ projectId, classId: id, tier, since, setBy: rec?.by ?? null, leaseExpires: lease, record: prev?.record ?? null, move });
+    rows.push({ projectId, classId: id, tier, since, setBy: byOf(rec), leaseExpires: lease, record: prev?.record ?? null, move });
   });
   const cutoff = now.getTime() - windowMs;
   const demotions = Object.values(state.agents)
     .flatMap((classes) => Object.values(classes))
-    .filter((r) => r.by.startsWith('tripwire') && (when(r.since)?.getTime() ?? 0) >= cutoff).length;
+    .filter((r) => byOf(r)?.startsWith('tripwire') && (when(r.since)?.getTime() ?? 0) >= cutoff).length;
   return { classes, rows, demotions, quarantines };
 }
