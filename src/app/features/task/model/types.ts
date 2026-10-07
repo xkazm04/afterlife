@@ -23,6 +23,8 @@ export interface CheckSeed {
   ok: CheckResult;
   /** 'human': a person decides it (a struck term, ignored by the verdict). Default 'engine'. */
   decidedBy?: Check['decidedBy'];
+  /** The claim a Proof Block's check answers (null: none). Absent on a fixture check, tied through `checkMap`. */
+  claim?: string | null;
   ref: string;
 }
 

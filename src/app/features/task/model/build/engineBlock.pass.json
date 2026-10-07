@@ -1,0 +1,101 @@
+{
+  "schema": "belay.proof/1",
+  "id": "01M4A3EMG7MEXV4YJJS3KC2GKV",
+  "class": "exploit-test",
+  "task": {
+    "flow": "patcher",
+    "run_id": "flow-run-8812",
+    "project_id": 70123456,
+    "trailer": "Belay-Task: 01J9ZP6M2Q8E4V7K3N5R1T0XAB",
+    "mr_iid": 41
+  },
+  "claims": [
+    {
+      "id": "c1",
+      "text": "StatementExportTraversalTest fails at base and names the ../../../etc/passwd vector"
+    },
+    {
+      "id": "c2",
+      "text": "The same test passes at head"
+    },
+    {
+      "id": "c3",
+      "text": "No existing test was weakened"
+    },
+    {
+      "id": "c4",
+      "text": "Finding GL-SAST-4417 is closed on rescan"
+    }
+  ],
+  "checks": [
+    {
+      "claim_id": "c1",
+      "name": "base-red",
+      "ok": true,
+      "detail": "StatementExportTraversalTest failed at base: rejectsDotDotSegments()=failed, rejectsSiblingStatementPrefix()=failed",
+      "ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9100451"
+    },
+    {
+      "claim_id": "c1",
+      "name": "names-vector",
+      "ok": true,
+      "detail": "the base failure names \"../../../etc/passwd\"",
+      "ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9100451"
+    },
+    {
+      "claim_id": "c2",
+      "name": "head-green",
+      "ok": true,
+      "detail": "StatementExportTraversalTest at head: rejectsDotDotSegments()=passed, rejectsSiblingStatementPrefix()=passed, servesNormalStatementFile()=passed",
+      "ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9100502"
+    },
+    {
+      "claim_id": null,
+      "name": "same-test-id",
+      "ok": true,
+      "detail": "head runs the same test id (io.ledgerline.statements.StatementExportTraversalTest#rejectsDotDotSegments, io.ledgerline.statements.StatementExportTraversalTest#rejectsSiblingStatementPrefix)"
+    },
+    {
+      "claim_id": "c3",
+      "name": "test-not-weakened",
+      "ok": true,
+      "detail": "no assertion removed or loosened, no test skipped or deleted"
+    },
+    {
+      "claim_id": "c4",
+      "name": "finding-closed",
+      "ok": true,
+      "detail": "GL-SAST-4417 reported at base and gone at head, same scanner semgrep-sast 5.41.0"
+    },
+    {
+      "claim_id": null,
+      "name": "inside-envelope",
+      "ok": true,
+      "detail": "2 files, 35 lines, no denied path"
+    }
+  ],
+  "evidence": [
+    {
+      "kind": "job",
+      "ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9100451"
+    },
+    {
+      "kind": "job",
+      "ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9100502"
+    }
+  ],
+  "verdict": "pass",
+  "envelope": {
+    "files": 2,
+    "lines": 35,
+    "paths_touched": [
+      "statements/src/main/kotlin/io/ledgerline/statements/ExportService.kt",
+      "statements/src/test/kotlin/io/ledgerline/statements/StatementExportTraversalTest.kt"
+    ],
+    "within": true
+  },
+  "engine": {
+    "version": "1.0.0",
+    "sha256": "9344917b9f4cca1c5b1fb2ff00b4045f5adaf8e439a59f0ed88bf0a1bc03b9ef"
+  }
+}

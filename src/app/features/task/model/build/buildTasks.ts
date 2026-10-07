@@ -43,11 +43,13 @@ function buildTask(id: string, input: BuildInput): TaskView | null {
   if (!proofIn || !chainIn || !claimTexts) return null;
 
   const checks: TaskCheck[] = proofIn.checks.map((c) => {
-    const [claims, link] = detail.checkMap[c.id] ?? [[], 0];
+    const [mapped, link] = detail.checkMap[c.id] ?? [[], 0];
+    // A check from a Proof Block carries its own claim tie (null: it answers none); only a fixture check lacks one.
+    const claims = c.claim === undefined ? mapped : c.claim === null ? [] : [c.claim];
     return { id: c.id, text: c.text, ok: c.ok, decidedBy: c.decidedBy ?? 'engine', ref: c.ref, claims: [...claims], link };
   });
   const claims: TaskClaim[] = claimTexts.map((text, i) => {
-    const cid = detail.claimIds[i] ?? `c${i + 1}`;
+    const cid = base.proof?.claimIds?.[i] ?? detail.claimIds[i] ?? `c${i + 1}`;
     return { id: cid, text, checks: checks.filter((k) => k.claims.includes(cid)).map((k) => k.id) };
   });
   const verdict = toVerdict(proofIn.verdict);

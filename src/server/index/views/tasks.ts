@@ -26,6 +26,7 @@ function toTask(row: TaskRow, proof: ProofRow | undefined, now: Date): TaskView 
             digest: proof.engineSha256 ? `sha256:${proof.engineSha256}` : '',
             checks: proof.checks,
             claims: proof.claims,
+            ...(proof.block ? { claimIds: proof.block.claims.map((c) => c.id) } : {}),
           },
         }
       : {}),

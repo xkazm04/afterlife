@@ -87,7 +87,7 @@ describe('work repositories', () => {
     await upsertProofs(db, [proofRowFromBlock('T1', block)]);
     const proof = (await listProofsFor(db, ['T1'])).get('T1');
     expect(proof).toMatchObject({ verdict: 'inconclusive', engineSha256: 'abc', claims: ['fixed CWE-22'], block });
-    expect(proof?.checks.map((c) => c.id)).toEqual(['c1', 'rescan']);
+    expect(proof?.checks.map((c) => [c.id, c.claim, c.ok])).toEqual([['base red', 'c1', true], ['rescan', null, null]]);
     expect((await getTaskRow(db, 'T1'))?.startedAt).toEqual(NOW);
     expect((await listProofsFor(db, [])).size).toBe(0);
   });

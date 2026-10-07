@@ -27,6 +27,20 @@ interface Db {
 }
 
 /**
+ * The display checks of a block. A check's id is its engine name, unique within the block: a name that repeats gets
+ * "#2", "#3"... The check keeps its own claim tie; the claim keeps its block id.
+ */
+function displayChecks(block: ProofBlock): ProofCheck[] {
+  const seen = new Set<string>();
+  return block.checks.map((c) => {
+    let id = c.name;
+    for (let n = 2; seen.has(id); n += 1) id = `${c.name}#${n}`;
+    seen.add(id);
+    return { id, text: c.detail, claim: c.claim_id, ok: c.ok, ...(c.decidedBy ? { decidedBy: c.decidedBy } : {}), ref: c.ref ?? '' };
+  });
+}
+
+/**
  * Index row for a Proof Block. The block's checks are kept whole in `block`; the display list carries what the
  * screens need (the engine's own wording and result, never anything an agent claimed). A check that could not be
  * determined keeps ok null here too: it renders as undetermined, never as failed and never as passing.
@@ -38,13 +52,7 @@ export function proofRowFromBlock(taskId: string, block: ProofBlock): ProofRow {
     verdict: block.verdict,
     engineVersion: block.engine.version,
     engineSha256: block.engine.sha256,
-    checks: block.checks.map((c) => ({
-      id: c.claim_id ?? c.name,
-      text: c.name,
-      ok: c.ok,
-      ...(c.decidedBy ? { decidedBy: c.decidedBy } : {}),
-      ref: c.ref ?? '',
-    })),
+    checks: displayChecks(block),
     claims: block.claims.map((c) => c.text),
     block,
   };

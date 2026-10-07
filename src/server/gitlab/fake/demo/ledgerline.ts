@@ -40,7 +40,9 @@ function proofBlock(t: Task, mrIid: number, headSha: string): ProofBlock {
     schema: 'belay.proof/1', id: `${t.id}PROOF0000000000000000`.slice(0, 26), class: 'exploit-test',
     task: { flow: 'patcher', run_id: 'pipeline-9841', project_id: LEDGERLINE_GID, mr_iid: mrIid, head_sha: headSha, trailer: `Belay-Task: ${t.id}` },
     claims: p.claims.map((text, n) => ({ id: `c${n + 1}`, text })),
-    checks: p.checks.map((c) => ({ claim_id: c.id, name: c.text, ok: c.ok, detail: c.text, ref: c.ref })),
+    // engine-shaped: claim_id is the claim the check answers, name is the check id, detail its text. Every fixture check
+    // answers the first claim except the envelope, which answers none.
+    checks: p.checks.map((c) => ({ claim_id: c.id === 'envelope' ? null : 'c1', name: c.id, ok: c.ok, detail: c.text, ref: c.ref })),
     evidence: p.checks.map((c) => ({ kind: 'job' as const, ref: c.ref })),
     verdict: 'pass', envelope: { files: 2, lines: 14, paths_touched: ['src/export/StatementExportController.kt', 'src/export/ExportPaths.kt'], within: true },
     engine: { version: p.engine.replace(/^proof-engine /, ''), sha256: p.digest.replace(/^sha256:/, '') },

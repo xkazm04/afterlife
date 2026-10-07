@@ -6,6 +6,11 @@ export interface ProofCheck {
   text: string;
   /** null = could not be machine-checked (a person decides): never a pass. */
   ok: boolean | null;
+  /**
+   * The claim this check answers, as the block spells it: a claim id, or null for a check that answers none (envelope,
+   * rescan). Absent on a fixture check, whose claim ties live in the Task screen's own checkMap.
+   */
+  claim?: string | null;
   /** Absent means the engine decides it. */
   decidedBy?: 'engine' | 'human';
   ref: string;
@@ -18,6 +23,8 @@ export interface TaskProof {
   digest: string;
   checks: ProofCheck[];
   claims: string[];
+  /** The claims' own ids, in the order of `claims`, when a Proof Block named them. Absent on a fixture proof. */
+  claimIds?: string[];
 }
 
 export interface Task {
