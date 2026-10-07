@@ -195,9 +195,12 @@ prompts:
            as skipped or quarantined the way this project's framework does it (read the file first), with a comment line
            pointing to the issue. Change nothing else.
         4. Open a merge request. The description starts with the two lines "Belay-Task: " followed by TASK and
-           "Belay-Class: test.quarantine", then a sentence, then a fenced code block with info string belay-medic and ONE
-           JSON object with keys schema (belay.medic/1), pipeline_id, sha, classification (flaky), action (quarantine),
-           job (the failing CI job name), tests and evidence.
+           "Belay-Class: test.quarantine", then a sentence. Do NOT put the verdict in the description: anyone with
+           Developer access can edit it, and the proof reads only notes by you.
+        5. Post the verdict as a NOTE on that merge request (only its author can edit a note): one line of summary
+           followed by a fenced code block with info string belay-medic and ONE JSON object with keys schema
+           (belay.medic/1), pipeline_id, sha, classification (flaky), action (quarantine), job (the failing CI job
+           name), tests and evidence.
 
         ANSWER with exactly one word: QUARANTINE_PROPOSED.
       user: |

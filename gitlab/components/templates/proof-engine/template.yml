@@ -162,7 +162,6 @@ spec:
         rc=0
         if [ -n "$TAG" ]; then
           node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag "$TAG" --authors "$AUTH" $HS --out .belay/verdict.json >/dev/null || rc=$?
-          if [ "$rc" -eq 3 ]; then rc=0; node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag "$TAG" --authors "$AUTH" $HS --from description --out .belay/verdict.json >/dev/null || rc=$?; fi
           if [ "$rc" -ne 0 ]; then : > .belay/proof.json; finish 2; fi
         fi
         node "$BELAY_GLUE/proof/build-evidence.mjs" --class "$BELAY_CLASS" --out "$EVIDENCE" --verdict .belay/verdict.json $BELAY_BUILD_ARGS || { : > .belay/proof.json; finish 2; }
