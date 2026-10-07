@@ -31,6 +31,8 @@ const events = detect({
   prefix: arg('agent-prefix', 'ai-'),
   guardrailAuthors: need('guardrail-authors'),
   headSha: arg('mode') === 'event' ? process.env.CI_COMMIT_SHA : null,
+  // Never read as a finished pipeline: a sweep's own is the schedule's, still running; event mode reads its proof jobs.
+  ownPipelineId: process.env.CI_PIPELINE_ID ?? null,
 }).filter((e) => !seen.has(eventKey(e)));
 console.error(`belay: ${events.length} new demotion event(s)`);
 

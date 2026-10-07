@@ -3,6 +3,7 @@
 //   { trigger, agent, class, at, evidence }   (engine/decide/tripwire.ts TripwireEvent)
 // trigger is one of trust-policy.yml's demotion triggers. Every endpoint below is [R] or [R?]; see the README.
 import { blocks, CLASS_ID, trailer, trustedNotes } from './lib.mjs';
+import { pipelineEvents } from './pipelines.mjs';
 
 const HOUR = 3_600_000;
 
@@ -19,7 +20,11 @@ function eventFor(trigger, mr, at, evidence) {
   return { trigger, agent: mr.author.username, class: klass, at, evidence: `!${mr.iid}: ${evidence}` };
 }
 
-export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours, prefix, guardrailAuthors, headSha }) {
+/**
+ * `headSha` (event mode): the default-branch commit this push pipeline is for. `ownPipelineId`: the pipeline this job runs
+ * in (CI_PIPELINE_ID), which is still running and is never read as a finished one.
+ */
+export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours, prefix, guardrailAuthors, headSha, ownPipelineId }) {
   const since = new Date(now - lookbackHours * HOUR).toISOString();
   const found = [];
   const add = (e) => e && found.push(e);
@@ -35,18 +40,10 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
     if (mr) add(eventFor('revert', mr, c.committed_date ?? c.created_at, `commit ${c.id}`));
   }
 
-  // 2. default branch red for an hour, and 3. a post-merge proof job that failed (job names start belay-proof).
-  const [latest] = api(`projects/${projectId}/pipelines?ref=${branch}&order_by=id&sort=desc&per_page=1`) ?? [];
-  if (latest?.status === 'failed') {
-    const mr = agentMrFor(api, projectId, latest.sha, prefix);
-    const failedJobs = apiAll(`projects/${projectId}/pipelines/${latest.id}/jobs?scope[]=failed`, 1);
-    if (mr && failedJobs.some((j) => String(j.name).startsWith('belay-proof'))) {
-      add(eventFor('post_merge_proof_fail', mr, latest.updated_at, `pipeline ${latest.web_url}`));
-    }
-    if (mr && now - Date.parse(latest.updated_at) >= HOUR) {
-      add(eventFor('default_branch_red_1h', mr, latest.updated_at, `pipeline ${latest.web_url}`));
-    }
-  }
+  // 2. a post-merge proof job that failed (job names start belay-proof), and 3. the default branch red for an hour: read
+  // from finished default-branch pipelines, never this job's own (pipelines.mjs).
+  const mrFor = (sha) => agentMrFor(api, projectId, sha, prefix);
+  for (const e of pipelineEvents({ api, apiAll, projectId, branch, now, since, ownPipelineId, headSha, mrFor, eventFor })) add(e);
 
   // 4. reopened finding: a merged agent MR with a Belay-Finding trailer whose vulnerability is open again.
   const merged = apiAll(`projects/${projectId}/merge_requests?state=merged&updated_after=${since}`, 1)
@@ -66,7 +63,7 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
     .filter((m) => (m.author?.username ?? '').startsWith(prefix))
     .slice(0, 50);
   for (const m of recent) {
-    for (const note of trustedNotes(projectId, m.iid, guardrailAuthors)) {
+    for (const note of trustedNotes(projectId, m.iid, guardrailAuthors, api)) {
       const v = blocks(note.body, 'belay-guardrail').at(-1);
       const high = Array.isArray(v?.findings) && v.findings.some((f) => f?.severity === 'high');
       if (v?.verdict === 'block' && high) add(eventFor('guardrail_high', m, note.created_at, `note ${note.id}`));

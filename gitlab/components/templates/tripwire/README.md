@@ -3,8 +3,9 @@
 Demotes an agent when something it merged goes wrong, and commits the new `tier-state.yml` to `belay-policy`. It only ever
 lowers a tier: promotion is a person's merge request. This runs in GitLab, so a closed laptop still demotes.
 
-**Job:** `belay-tripwire`. **Stage:** `.post`. **Runs:** on default-branch push pipelines (event mode: a revert) and on a
-schedule with `BELAY_TRIPWIRE=sweep` (sweep mode: everything else).
+**Job:** `belay-tripwire`. **Stage:** `.post`. **Runs:** `when: always` on default-branch push pipelines (event mode: a revert
+and this pipeline's own proof) and on a schedule with `BELAY_TRIPWIRE=sweep` (sweep mode: everything else). Never on an MR
+pipeline.
 
 ## Include and schedule
 
@@ -27,10 +28,31 @@ its `Belay-Class:` trailer.
 | trigger | How it is found |
 |---|---|
 | `revert` | a `Revert "..."` commit whose body says `This reverts commit <sha>`, mapped to an agent MR through the commits API |
-| `post_merge_proof_fail` | the latest default-branch pipeline failed and a failed job's name starts `belay-proof` |
-| `default_branch_red_1h` | the latest default-branch pipeline is failed and was last updated at least an hour ago |
+| `post_merge_proof_fail` | a failed job whose name starts `belay-proof`: in event mode, in this push pipeline (still running); in a sweep, in the finished default-branch pipelines of the lookback, the newest run of each commit, never the job's own pipeline or a schedule's |
+| `default_branch_red_1h` | the newest finished default-branch pipeline (not the job's own, not a schedule's) failed, with no failed proof, and was last updated at least an hour ago |
 | `reopened_finding` | a merged agent MR with a `Belay-Finding: <id>` trailer whose vulnerability is DETECTED or CONFIRMED again (GraphQL) |
 | `guardrail_high` | the newest trusted `belay-guardrail` block on an agent MR has verdict block and a high finding |
+
+### Seeing a failed proof (`scripts/lib/pipelines.mjs`)
+
+Two things hid a failed post-merge proof. The job sits in `.post`, and a job's default `when: on_success` skips it as soon as
+an earlier job failed: exactly when `belay-proof-<class>` failed. And a sweep read the newest default-branch pipeline,
+which is its own schedule pipeline, still running, so never `failed`. The fix is both halves:
+
+- **`when: always`** on the job's two rules. Chosen over relying on the sweep alone because the push pipeline is where
+  the failure happens: the demotion lands minutes after the merge, not at the next schedule, and without a schedule at
+  all. It changes nothing about who gets a token: the rules still match only default-branch pushes and the sweep
+  schedule, never an MR pipeline, the job is the same job, and no other job gains `BELAY_BOT_TOKEN` (F4). In event mode
+  the pipeline is still running when this job runs, so it reads this pipeline's failed proof jobs (`CI_PIPELINE_ID`)
+  rather than a pipeline status.
+- **Detection skips the current pipeline id** and every schedule pipeline (a sweep's holds no proof) and reads finished
+  pipelines only, so a sweep still sees the failed push pipeline before its own. It also catches a push pipeline whose
+  tripwire job did not finish.
+
+The event is named by the failed proof job's `finished_at` and the pipeline's address, so event mode and a later sweep
+name it the same way and the sweep skips it. One failed proof is one demotion: a pipeline with a failed proof never
+also counts as `default_branch_red_1h`. A proof that failed and then passed on a retry of the same commit is no failure
+(the newest run of a commit is its verdict).
 
 For each new event it runs `engine tripwire`, takes the `commit` it returns (only `tier-state.yml` is accepted), and writes one
 commit with `Belay-Event: <key>` lines. The next run skips every key already in the last 300 commits of `belay-policy`, so a
@@ -67,6 +89,7 @@ after committing the others.
 
 ## Verify
 
-- `[R]` commits-by-sha merge requests endpoint, pipelines and jobs list parameters; `[R?]` the GraphQL `vulnerability(id)` query
+- `[R]` commits-by-sha merge requests endpoint, pipelines and jobs list parameters (and `source` in a pipeline row; without
+  it a schedule pipeline is still skipped by id or by holding no proof job); `[R?]` the GraphQL `vulnerability(id)` query
   and `state` values used for `reopened_finding`.
 - `budget_breach_x2` (the one trigger in policy this does not detect) needs a model-spend counter that GitLab does not give a job.

@@ -1,0 +1,90 @@
+// post_merge_proof_fail must see a failed proof on the default branch. It could not: the .post tripwire job was skipped
+// once belay-proof-<class> failed, and a sweep read only the newest default-branch pipeline, its own, still running.
+// detect() takes its reads as arguments, so these run in process against the harness's route map (no glab at all).
+import { describe, expect, it } from 'vitest';
+import { fakeApi } from '../testing/harness.mjs';
+import { detect, eventKey } from './detect.mjs';
+
+const NOW = Date.parse('2026-10-07T12:00:00Z');
+const SHA = 'a'.repeat(40);
+const ago = (min) => new Date(NOW - min * 60_000).toISOString();
+const mr = { iid: 7, state: 'merged', author: { username: 'ai-patcher-acme' }, description: 'Bump x\n\nBelay-Class: dep-bump.patch', merged_at: ago(30) };
+const pipeline = (id, o = {}) => ({ id, sha: SHA, ref: 'main', status: 'success', source: 'push', updated_at: ago(10), web_url: `https://gitlab.example/acme/app/-/pipelines/${id}`, ...o });
+const proofJob = (o = {}) => ({ id: 9001, name: 'belay-proof-dep-bump.patch', status: 'failed', finished_at: ago(12), ...o });
+
+/** The group as GitLab would answer: one agent MR merged as SHA, the given default-branch pipelines and their jobs. */
+function group({ pipelines, jobs = {} }) {
+  const routes = {
+    'projects/1/repository/commits': [],
+    [`projects/1/repository/commits/${SHA}`]: { id: SHA, title: 'Merge branch bump-x', message: 'Merge branch bump-x' },
+    [`projects/1/repository/commits/${SHA}/merge_requests`]: [mr],
+    'projects/1/pipelines': pipelines,
+    'projects/1/merge_requests': [mr],
+    'projects/1/merge_requests/7/notes': [],
+  };
+  for (const p of pipelines) {
+    routes[`projects/1/pipelines/${p.id}`] = p;
+    routes[`projects/1/pipelines/${p.id}/jobs`] = jobs[p.id] ?? [];
+  }
+  return fakeApi(routes);
+}
+const run = (g, o = {}) => detect({ ...g, projectId: 1, branch: 'main', now: NOW, lookbackHours: 24, prefix: 'ai-', guardrailAuthors: 'ai-guardrail-acme', headSha: null, ownPipelineId: null, ...o });
+
+describe('post_merge_proof_fail', () => {
+  it('a failed proof on the default branch yields exactly one event, against the agent MR that merged it', () => {
+    const events = run(group({ pipelines: [pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob()] } }));
+    expect(events).toEqual([
+      { trigger: 'post_merge_proof_fail', agent: 'ai-patcher-acme', class: 'dep-bump.patch', at: ago(12), evidence: '!7: pipeline https://gitlab.example/acme/app/-/pipelines/501' },
+    ]);
+  });
+
+  it('a sweep in its own running pipeline still sees the previous finished failed one', () => {
+    const own = pipeline(502, { status: 'running', source: 'schedule', sha: 'b'.repeat(40) });
+    const g = group({ pipelines: [own, pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob()] } });
+    expect(run(g, { ownPipelineId: '502' }).map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);
+    expect(g.calls.some((c) => c.startsWith('projects/1/pipelines/502'))).toBe(false); // its own pipeline is never read
+  });
+
+  it('skips an earlier sweep’s finished pipeline (it holds no proof) to reach the push pipeline behind it', () => {
+    const earlierSweep = pipeline(503, { status: 'success', source: 'schedule', sha: 'c'.repeat(40) });
+    const g = group({ pipelines: [earlierSweep, pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob()] } });
+    expect(run(g).map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);
+  });
+
+  it('event mode reads the failed proof jobs of its own push pipeline, which is still running', () => {
+    const own = pipeline(501, { status: 'running' });
+    const g = group({ pipelines: [own, pipeline(500, { sha: 'd'.repeat(40) })], jobs: { 501: [proofJob()] } });
+    const events = run(g, { headSha: SHA, ownPipelineId: '501' });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ trigger: 'post_merge_proof_fail', at: ago(12), evidence: '!7: pipeline https://gitlab.example/acme/app/-/pipelines/501' });
+  });
+
+  it('event mode and a later sweep name the same event, so the sweep skips what the push already recorded', () => {
+    const inPush = run(group({ pipelines: [pipeline(501, { status: 'running' })], jobs: { 501: [proofJob()] } }), { headSha: SHA, ownPipelineId: '501' });
+    const later = run(group({ pipelines: [pipeline(501, { status: 'failed', updated_at: ago(2) })], jobs: { 501: [proofJob()] } }), { ownPipelineId: '600' });
+    expect(later.map(eventKey)).toEqual(inPush.map(eventKey));
+  });
+
+  it('a passing pipeline yields none; nor does a failed one with no failed proof job but other failures', () => {
+    expect(run(group({ pipelines: [pipeline(501)] }))).toEqual([]);
+    const other = { ...proofJob(), name: 'unit-tests' };
+    expect(run(group({ pipelines: [pipeline(501, { status: 'failed' })], jobs: { 501: [other] } }))).toEqual([]);
+  });
+
+  it('the newest run of a commit is its verdict: a proof that failed and then passed on a retry is no failure', () => {
+    const g = group({ pipelines: [pipeline(504), pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob()] } });
+    expect(run(g)).toEqual([]);
+  });
+});
+
+describe('default_branch_red_1h', () => {
+  it('the newest finished pipeline failed an hour ago without a proof failure: red for an hour', () => {
+    const g = group({ pipelines: [pipeline(501, { status: 'failed', updated_at: ago(70) })], jobs: { 501: [{ ...proofJob(), name: 'build' }] } });
+    expect(run(g).map((e) => e.trigger)).toEqual(['default_branch_red_1h']);
+  });
+
+  it('one failed proof is one demotion: never post_merge_proof_fail and default_branch_red_1h for the same pipeline', () => {
+    const g = group({ pipelines: [pipeline(501, { status: 'failed', updated_at: ago(70) })], jobs: { 501: [proofJob({ finished_at: ago(72) })] } });
+    expect(run(g).map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);
+  });
+});

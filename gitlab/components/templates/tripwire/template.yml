@@ -93,11 +93,15 @@ belay-tripwire:
   stage: $[[ inputs.stage ]]
   resource_group: belay-tripwire
   # Default-branch and schedule pipelines only: the write token is a protected variable and is never given to MR branches.
+  # when: always, because a failed belay-proof-<class> is what this job must see: on_success (the default) skipped the
+  # .post job exactly when the post-merge proof failed. Same job, same pipelines, same tokens: no MR pipeline matches.
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $BELAY_TRIPWIRE == "sweep"
       variables: { BELAY_MODE: sweep }
+      when: always
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       variables: { BELAY_MODE: event }
+      when: always
   variables:
     BELAY_GUARDRAIL_AUTHORS: "$[[ inputs.guardrail_authors ]]"
     BELAY_AGENT_PREFIX: "$[[ inputs.agent_prefix ]]"

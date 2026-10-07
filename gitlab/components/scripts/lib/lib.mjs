@@ -100,12 +100,13 @@ const NOTE_PAGES = 200; // 20,000 notes; running past it is an error, never a si
  * Notes written by one of the allowed accounts, newest first. Anyone else's note is data, not evidence.
  * Lazy: a page is fetched only when the caller has not yet found what it wants, so a bot block beyond the first
  * pages is still reached. Fails closed: an unreadable page throws (glab exits non-zero) and the page cap throws.
+ * `get` reads one page (default: `api`, through glab); a caller that injects its reads passes its own.
  */
-export function* trustedNotes(projectId, mr, authors) {
+export function* trustedNotes(projectId, mr, authors, get = api) {
   const allowed = new Set(authors.split(',').map((s) => s.trim()).filter(Boolean));
   const path = `projects/${projectId}/merge_requests/${mr}/notes?sort=desc&order_by=created_at`;
   for (let page = 1; page <= NOTE_PAGES; page++) {
-    const got = api(`${path}&per_page=100&page=${page}`);
+    const got = get(`${path}&per_page=100&page=${page}`);
     if (!Array.isArray(got) || got.length === 0) return;
     for (const n of got) if (!n.system && allowed.has(n.author?.username)) yield n;
     if (got.length < 100) return;
