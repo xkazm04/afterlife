@@ -119,3 +119,8 @@ Two departures are on purpose, both for rendering cost:
 - `components/ui/` holds the answer, labels, readout, parts, tier letters and marks.
 - `components/rail/` is L1; `components/l2/` is L2; `components/chrome/` is the corners and the
   loading frame.
+
+## Ways in to the loop
+Under the week's proofs, a loop mark says how many projects are in improvement cycles and the rungs those cycles have
+earned since day 0 (from the Maturity scan); it links to Cycles. A district with projects setting up or not watched
+offers Onboard (estate-wide, scoped by group) rather than Setup (one project). The Screens menu is the app nav.

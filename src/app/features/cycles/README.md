@@ -25,6 +25,12 @@ grid previews the design live. The rules are checked as you pick, and a design t
 - an unknown rung gets a **probe** first, never a lift. The engine is pinned for the whole cycle.
 A saved design becomes the planned cycle for this browser session (demo).
 
+## Reporting a cycle
+A closed cycle's inspector has **Report**: the hand-back as Markdown (`model/report/report.ts`, tested), exactly as it
+would be posted: net rungs and the rungs held after it, every change with its verdict and why, the misses carried
+forward, the drift caught, both proofs as they stand, and what runs next. Copy it, or post it as an issue, as you,
+with the `glab issue create` command the sheet shows. Nothing is posted from the app.
+
 ## Parts
 - `CyclesScreen.tsx` composes the `Window`: sidebar `CyclesSidebar`, content (`Answer`, `CycleGrid`, `LoopRail`,
   `ChangesTable`), `CyclesInspector` (numbers, when, `ClosingRule`, next action), `CyclesStatus`, `CyclesLegend`.

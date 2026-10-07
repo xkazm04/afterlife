@@ -32,7 +32,19 @@ function numbers(c: Cycle) {
 }
 
 /** The inspector for one cycle: its numbers, when it ran, the rule that closes it, and the one thing to do next. */
-export function CyclesInspector({ cycle, data, designed, onDesign }: { cycle: Cycle; data: CyclesData; designed: boolean; onDesign: () => void }) {
+export function CyclesInspector({
+  cycle,
+  data,
+  designed,
+  onDesign,
+  onReport,
+}: {
+  cycle: Cycle;
+  data: CyclesData;
+  designed: boolean;
+  onDesign: () => void;
+  onReport: () => void;
+}) {
   const running = data.cycles.find((c) => c.state === 'running');
   const closesOn = cycle.state === 'closed' ? `day ${cycle.closedDay}` : `the day ${cycle.openedDay + data.cadence} rescan, if every MR has merged`;
   return (
@@ -83,7 +95,12 @@ export function CyclesInspector({ cycle, data, designed, onDesign }: { cycle: Cy
         ) : (
           <div className={styles.next}>
             <p>Closed. Its credits are on the Maturity credit history; anything it did not earn is carried into a later cycle.</p>
-            <Button href="/maturity">Open Maturity</Button>
+            <span className={styles.btns}>
+              <Button variant="accent" onClick={onReport}>
+                Report {cycle.id}
+              </Button>
+              <Button href="/maturity">Open Maturity</Button>
+            </span>
           </div>
         )}
       </InspectorSection>

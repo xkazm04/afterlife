@@ -189,3 +189,11 @@
   color: var(--stale);
   font-weight: 600;
 }
+/* the cycles mark links into Cycles: it reads like the other marks until pointed at */
+.link {
+  text-decoration: none;
+  color: inherit;
+}
+.link:is(:hover, :focus-visible) span {
+  text-decoration: underline 1px;
+}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Spacer } from '@/components/controls/Spacer';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { Window } from '@/components/shell/Window';
@@ -12,6 +13,7 @@ import { CyclesLegend } from './components/CyclesLegend';
 import { CyclesSidebar } from './components/CyclesSidebar';
 import { CyclesStatus } from './components/CyclesStatus';
 import { LoopRail } from './components/rail/LoopRail';
+import { ReportSheet } from './components/report/ReportSheet';
 import { useCycles } from './hooks/useCycles';
 import type { CyclesData } from './model/build';
 import { STATE_WORD } from './model/words';
@@ -27,6 +29,8 @@ export function CyclesScreen({ data }: { data: CyclesData }) {
   const sel = c.selected;
   const d = c.design;
   const planned = c.view.cycles.find((x) => x.state === 'planned');
+  const [report, setReport] = useState<string | null>(null);
+  const reported = report ? c.view.cycles.find((x) => x.id === report && x.state === 'closed') : undefined;
   return (
     <Window
       title="Cycles"
@@ -46,7 +50,7 @@ export function CyclesScreen({ data }: { data: CyclesData }) {
         </>
       }
       sidebar={<CyclesSidebar cycles={c.view.cycles} selected={sel.id} onSelect={c.select} />}
-      inspector={<CyclesInspector cycle={sel} data={c.view} designed={d.saved} onDesign={d.start} />}
+      inspector={<CyclesInspector cycle={sel} data={c.view} designed={d.saved} onDesign={d.start} onReport={() => setReport(sel.id)} />}
       status={<CyclesStatus data={c.view} selected={sel} />}
       help={<CyclesLegend />}
       helpTitle="Reading the grid"
@@ -82,6 +86,7 @@ export function CyclesScreen({ data }: { data: CyclesData }) {
           </section>
         )}
       </div>
+      {reported ? <ReportSheet cycle={reported} data={c.view} onClose={() => setReport(null)} /> : null}
     </Window>
   );
 }
