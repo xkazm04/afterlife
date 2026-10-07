@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { append, verifyChain, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
-import { parseJson, readInput } from '../core/files';
+import { parseJson, readJson } from '../core/files';
 import { EngineError, rec, str, num, type CommandResult, type Ctx } from '../core/types';
 import { TIER_ORDER, type Tier } from '../../src/schemas/tier';
 
@@ -45,7 +45,7 @@ export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult 
   const chain = fs.existsSync(chainFile) ? readChain(fs.readFileSync(chainFile, 'utf8')) : [];
   const broken = verifyChain(chain);
   if (broken !== null) throw new EngineError(`the chain is broken at seq ${broken}; it is not extended`);
-  const line = append(chain, parseLedgerEvent(readInput(ctx, args.need('event'))));
+  const line = append(chain, parseLedgerEvent(readJson(ctx, args.need('event'))));
   if (args.has('write')) fs.appendFileSync(chainFile, `${JSON.stringify(line)}\n`);
   return { json: line, summary: `ledger: appended seq ${line.seq} ${line.kind} ${line.hash.slice(0, 12)} (chain of ${chain.length + 1} verifies)`, code: 0, compact: true };
 }

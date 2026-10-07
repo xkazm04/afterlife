@@ -30,7 +30,8 @@ include:
    the JUnit files named in `build_args`; `cited-diff` from the newest `belay-guardrail` block by the guardrail account
    for this head SHA; `rerun-stats` from the `belay-medic` block plus the jobs API. With `evidence_mode: provided` it uses
    `evidence_file` as it is.
-5. Runs `npx tsx engine/cli.ts prove --class <class> --input ... --policy ...` and keeps `.belay/proof.json`.
+5. Runs `npx tsx engine/cli.ts prove --class <class> --input ... --policy ... --files-root "$CI_PROJECT_DIR"` and keeps
+   `.belay/proof.json`. A `$file` in the input may only name a file under the project folder, outside any `.git` folder.
 6. With `BELAY_BOT_TOKEN`: posts the note (a fenced `belay-proof` block plus the `Belay-Task:` trailer) and sets
    `proof::pass|fail|inconclusive`. Without it the proof stays in the job artifact.
 7. Exits with the engine's code: 0 pass, 1 fail, 2 inconclusive or error. Only a pass leaves the job green.

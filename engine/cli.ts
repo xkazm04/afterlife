@@ -26,7 +26,7 @@ const COMMANDS: Record<string, (argv: readonly string[], ctx: Ctx) => CommandRes
 };
 
 const USAGE = `usage: engine/cli.ts <command> [options]
-  prove --class <ProofClass> --input <file.json> [--policy <trust-policy.yml>]
+  prove --class <ProofClass> --input <file.json> [--policy <trust-policy.yml>] [--files-root <dir>]
   envelope --policy <trust-policy.yml> --class <id> --diff <file> [--env <name>]...
   gate --policy <p> --state <tier-state.yml> --class <id> --proof <proof.json> --guardrail <verdict.json>
   tripwire --policy <p> --state <tier-state.yml> --event <event.json>

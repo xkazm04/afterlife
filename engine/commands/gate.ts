@@ -2,7 +2,7 @@
 //   [--agent <service account>] [--diff <file>] [--env <name>]... [--now <iso>] [--engine-sha <sha>]
 import type { ProofBlock } from '../../src/schemas/proof';
 import { parseArgs } from '../core/args';
-import { readInput, readText } from '../core/files';
+import { readJson, readText } from '../core/files';
 import { EngineError, isRecord, optStr, str, type CommandResult, type Ctx, type ExitCode } from '../core/types';
 import { gate, type Decision, type GuardrailVerdict } from '../decide/gate';
 import { checkEnvelope } from '../policy/envelope';
@@ -15,7 +15,7 @@ const EXIT: Record<Decision, ExitCode> = { merge: 0, approve: 0, block: 1, wait:
 function optionalJson(ctx: Ctx, file: string | undefined): unknown {
   if (!file) return undefined;
   try {
-    return readInput(ctx, file);
+    return readJson(ctx, file);
   } catch (e) {
     if (e instanceof EngineError && e.message.startsWith('cannot read')) return undefined;
     throw e;

@@ -168,7 +168,7 @@ spec:
         node "$BELAY_GLUE/proof/build-evidence.mjs" --class "$BELAY_CLASS" --out "$EVIDENCE" --verdict .belay/verdict.json $BELAY_BUILD_ARGS || { : > .belay/proof.json; finish 2; }
       fi
       rc=0
-      (cd "$BELAY_DIR" && npx tsx engine/cli.ts prove --class "$BELAY_CLASS" --input "$EVIDENCE" --policy "$BELAY_POLICY_FILE") > .belay/proof.json || rc=$?
+      (cd "$BELAY_DIR" && npx tsx engine/cli.ts prove --class "$BELAY_CLASS" --input "$EVIDENCE" --policy "$BELAY_POLICY_FILE" --files-root "$CI_PROJECT_DIR") > .belay/proof.json || rc=$?
       finish "$rc"
   artifacts:
     when: always

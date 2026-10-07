@@ -6,14 +6,16 @@ dependency beyond `yaml`. Every command writes JSON to stdout and a human summar
 
 | Command | Does | Exit |
 |---|---|---|
-| `prove --class <ProofClass> --input <file.json> [--policy P]` | Writes a `ProofBlock` | verdict: 0 / 1 / 2 |
+| `prove --class <ProofClass> --input <file.json> [--policy P] [--files-root D]` | Writes a `ProofBlock` | verdict: 0 / 1 / 2 |
 | `envelope --policy P --class <id> --diff <file> [--env <name>]...` | Files, lines, denied paths, environments | 0 within, 1 outside |
 | `gate --policy P --state S --class <id> --proof F --guardrail F [--agent A] [--diff F] [--env E] [--engine-sha H]` | `merge` / `approve` / `wait` / `block` | 0 / 0 / 2 / 1 |
 | `tripwire --policy P --state S --event F` | `{demote, commit: {path, content, message}}` | 0 (2 on bad input) |
 | `ledger append --event F --chain events.jsonl [--write]` | One hash-chained ledger line | 0 (2 on a broken chain) |
 
 Policy defaults to `policy/trust-policy.yml`, state to `policy/tier-state.yml`. In a proof input,
-`{"$file": "x.diff"}` is replaced by that file's text (relative to the input).
+`{"$file": "x.diff"}` is replaced by that file's text (relative to the input). The file must resolve, symlinks
+followed, under the input's folder or `--files-root`, and not into a `.git` folder: the text is posted on the MR.
+Only `prove` inlines; `gate`, `tripwire` and `ledger` read their JSON as it is.
 
 ## What each proof class proves
 
