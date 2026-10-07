@@ -38,6 +38,11 @@ of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
   resolving it here. The "polled N s ago" counter starts from the snapshot's age and never wraps. Demo text still shown
   beside live rows (the deep project's tracks, its webhooks and unattributed count) carries a "demo" chip
   (`components/inspector/DemoChip.tsx`), as the data source's `illustrative` says.
+- Tiers: a class's tier is recorded in tier-state.yml, capped by the policy (group-wide, the gate's own rule; not
+  a per-project score and not computed from proofs). A project's tiers are known when it has class cells
+  (`tiersKnown` in `src/lib/tiers.ts`), never from `armed`, which counts armed tracks; unknown tiers show an empty
+  cell, never 0. A class with no record yet ("–", No record yet) or blocked ("!", Blocked: several agents hold it,
+  none named) sits beside the Quarantined count, never in it, nor in the Has quarantine filter.
 - Below 900px of pane the Tiers view drops pips and shows letter marks. Below ~1190px x scale of
   toolbar the lozenge drops its words (counts and tooltips stay).
 

@@ -5,7 +5,9 @@ Route `/`, from `src/app/(door)/page.tsx`. This is the port of the front-door co
 
 - each group is a district plate;
 - each project is a tower, whose height grows with its armed tracks and whose class windows are
-  coloured by tier;
+  coloured by tier: the tier recorded in tier-state.yml, capped by the policy. A class with no record
+  yet (dashed) or blocked (outlined) has its own window and letter, never the quarantine's; an unknown
+  class is a dashed "?", and a project whose tiers are unknown lights no quarantine lamp;
 - each waiting decision is an amber beam.
 
 It sits outside the app window. **Enter Afterlife** goes to `/fleet`, and **Screens** lists every
