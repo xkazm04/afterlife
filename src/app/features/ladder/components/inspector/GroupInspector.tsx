@@ -1,6 +1,6 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { TierMark } from '@/components/status/TierMark';
-import { TIER_META } from '@/lib/tiers';
+import { cellOf, holdersOf, shownName } from '../../model/rules/tiers';
 import { isMechanical } from '../../model/rules/promotion';
 import type { ClassRow, LedgerEntry, Track } from '../../model/types';
 import { entriesForTrack } from '../../model/view/moves';
@@ -38,8 +38,8 @@ export function GroupInspector({
           <div key={c.id} className={styles.cl}>
             <span className={styles.clId}>{c.id}</span>
             <span className={styles.clRec}>{c.record ? `${c.record.accepted}${c.record.needed ? `/${c.record.needed}` : ''}` : c.tier === 'human_only' ? '' : 'No record yet'}</span>
-            <TierMark tier={c.tier} />
-            <span className={styles.clTier}>{TIER_META[c.tier].name}</span>
+            <TierMark tier={cellOf(c)} holders={holdersOf(c)} />
+            <span className={styles.clTier}>{shownName(c)}</span>
           </div>
         ))}
       </Sec>

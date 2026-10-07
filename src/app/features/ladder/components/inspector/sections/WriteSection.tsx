@@ -10,7 +10,7 @@ import styles from './sections.module.css';
 
 /**
  * The exact write behind `r`, as the server planned it from belay-policy (previewAction): its commands, then the
- * tier-state.yml diff. Shown before anything runs; the key or the click sends this preview and no other.
+ * tier-state.yml diff; for a class several agents hold, one line per holder first. Shown before anything runs; the key or the click sends this preview and no other.
  */
 export function WriteSection({ cls, to, viewOf, sections }: { cls: ClassRow; to: Tier | null; viewOf: (id: string, to: Tier) => WriteView | undefined; sections: SectionState }) {
   const view = to ? viewOf(cls.id, to) : undefined;
@@ -22,6 +22,11 @@ export function WriteSection({ cls, to, viewOf, sections }: { cls: ClassRow; to:
       {view?.kind === 'preview' ? (
         <div className={styles.write}>
           <div className={styles.note}>{view.preview.mode === 'demo' ? 'Demo: r simulates this write; nothing is sent to GitLab.' : view.preview.summary}</div>
+          {view.preview.notes?.map((n) => (
+            <div key={n} className={styles.note}>
+              {n}
+            </div>
+          ))}
           <CommandBlock commands={commandLines(view.preview)} label="The commands r runs" />
           <DiffBlock file="# tier-state.yml" lines={parseDiff(view.preview.diff)} label="tier-state.yml diff" />
         </div>

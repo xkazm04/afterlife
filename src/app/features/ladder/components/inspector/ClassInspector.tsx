@@ -5,7 +5,7 @@ import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { TierMark } from '@/components/status/TierMark';
 import { TIER_META } from '@/lib/tiers';
 import type { Promotion } from '../../model/rules/promotion';
-import { revokeTargets } from '../../model/rules/tiers';
+import { actsFrom, cellOf, holdersOf, isQuarantine, revokeTargets, shownName } from '../../model/rules/tiers';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, Track } from '../../model/types';
 import { entriesFor } from '../../model/view/moves';
 import type { WriteView } from '../../write/revoke';
@@ -38,15 +38,16 @@ export interface ClassInspectorProps {
 /** Layer 2 of a class: who acted (to scale), the promotion rule as counts, the write behind r, the grant, all moves. */
 export function ClassInspector(p: ClassInspectorProps) {
   const c = p.cls;
-  const first = revokeTargets(c.tier)[0];
+  const first = revokeTargets(actsFrom(c))[0];
+  const from = actsFrom(c);
   const mine = entriesFor(p.ledger, c.id);
   const eligible = p.promotion.kind === 'eligible';
   return (
     <>
       <InspectorHeader
-        icon={<TierMark tier={c.tier} />}
+        icon={<TierMark tier={cellOf(c)} holders={holdersOf(c)} />}
         title={<span className={styles.cidh}>{c.id}</span>}
-        sub={`${c.track} ${p.track?.key ?? ''} · ${TIER_META[c.tier].name} · ceiling ${TIER_META[c.ceiling].name}`}
+        sub={`${c.track} ${p.track?.key ?? ''} · ${shownName(c)} · ceiling ${TIER_META[c.ceiling].name}`}
         path="belay-policy/tier-state.yml"
       >
         <div className={styles.acts}>
@@ -60,12 +61,12 @@ export function ClassInspector(p: ClassInspectorProps) {
               </Button>
             </>
           ) : null}
-          {c.tier === 'quarantined' ? (
+          {isQuarantine(c) ? (
             <Button href="/needs-you" variant="primary" title="at Assisted at most">
               Re-admit…
             </Button>
           ) : null}
-          {c.tier !== 'human_only' && c.tier !== 'quarantined' ? (
+          {from && from !== 'human_only' && !isQuarantine(c) ? (
             <Button variant={eligible ? 'primary' : 'default'} className={eligible ? undefined : styles.off} aria-disabled={!eligible} title="p" onClick={() => p.onPromote(c.id)}>
               Promote
             </Button>

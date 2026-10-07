@@ -118,3 +118,18 @@ describe('view actions', () => {
     expect(s.ledger).toHaveLength(LEDGER_SEED.length);
   });
 });
+
+describe('revoke on a class several agents hold', () => {
+  const split = cls('qa.file-bug', 'T7', {
+    tier: 'assisted', cell: 'refused', holders: [{ agent: 'ai-qa-a', tier: 'supervised' }, { agent: 'ai-qa-b', tier: 'assisted' }, { agent: 'ai-qa-c', tier: 'quarantined' }],
+  });
+  const s = run(initialState({ ...seed, classes: [...seed.classes, split] }), { type: 'revoke', id: 'qa.file-bug', to: 'assisted', t: '14:24:30', sent: SIM });
+
+  it('lowers every holder above the target, leaves the rest, and stays split', () => {
+    const c = s.classes.find((x) => x.id === 'qa.file-bug');
+    expect(c?.cell).toBe('refused');
+    expect(c?.holders?.map((h) => h.tier)).toEqual(['assisted', 'assisted', 'quarantined']);
+    expect(c?.tier).toBe('quarantined');
+    expect(s.ledger.at(-1)?.text).toMatch(/qa\.file-bug Supervised → Assisted/);
+  });
+});

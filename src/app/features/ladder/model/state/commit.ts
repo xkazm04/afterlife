@@ -2,7 +2,9 @@
 // demo's own and six seconds later a simulated tier-gate read settles it. Live: the commit is the one GitLab made (read
 // back from belay-policy), and nothing settles it: Belay is not told when the next MR pipeline reads tier-state.yml.
 import { COMMIT_SHAS } from '../../data/policy';
+import { splitTier } from '@/lib/tiers';
 import { commitText, planRows } from '../rules/plan';
+import { holdersOf, rungIndex } from '../rules/tiers';
 import type { ClassRow, Head, LedgerEntry, Tier } from '../types';
 
 /** The demo's commit id for the next simulated revoke. */
@@ -20,6 +22,14 @@ export interface Committed {
   head: Head;
 }
 
+/** A class taken down to `to`: a split class lowers every holder above it (as the server's write does), the rest stay. */
+function lowered(c: ClassRow, to: Tier): ClassRow {
+  const holders = holdersOf(c);
+  if (!holders) return { ...c, tier: to };
+  const next = holders.map((h) => (rungIndex(h.tier) > rungIndex(to) ? { ...h, tier: to } : h));
+  return { ...c, tier: splitTier(next), holders: next };
+}
+
 /**
  * The classes, ledger and head after revoking `id` to `to` at clock time `t`, with `sha` the commit id to show (the
  * demo's id when simulated). Nothing else moves. Only a simulated commit waits for the (simulated) tier-gate read.
@@ -30,7 +40,7 @@ export function commitRevoke(classes: readonly ClassRow[], ledger: readonly Ledg
   const ids = new Set(rows.map((r) => r.cls.id));
   const pending = sent.simulated ? sha : null;
   return {
-    classes: classes.map((c) => (ids.has(c.id) ? { ...c, tier: to, lease_days: null, lastMove: `revoked by you · ${t}`, pending } : c)),
+    classes: classes.map((c) => (ids.has(c.id) ? { ...lowered(c, to), lease_days: null, lastMove: `revoked by you · ${t}`, pending } : c)),
     ledger: [
       ...ledger,
       { t, ids: [...ids], actor: 'you', where: 'Belay, on your key', kind: 'you', isNew: true, text: commitText(sha, rows), ...(sent.simulated ? { chip: 'simulated' as const } : {}) },

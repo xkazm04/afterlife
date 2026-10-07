@@ -4,7 +4,7 @@ import type { MouseEvent } from 'react';
 import { Button } from '@/components/controls/Button';
 import { TIER_META } from '@/lib/tiers';
 import { promoteTitle, type Promotion } from '../../model/rules/promotion';
-import { revokeTargets } from '../../model/rules/tiers';
+import { actsFrom, cellOf, isQuarantine, revokeTargets } from '../../model/rules/tiers';
 import type { ClassRow, Tier } from '../../model/types';
 import styles from './ladderTable.module.css';
 
@@ -19,7 +19,10 @@ function pressSelects(id: string, onSelect: (id: string) => void) {
   };
 }
 
-/** Revoke → tier split button (▾ for any lower tier) and Promote; Re-admit for Quarantined; a note for Human only. */
+/**
+ * Revoke → tier split button (▾ for any lower tier) and Promote; Re-admit for a real quarantine only; a note for Human
+ * only, no record yet and unknown. A split class revokes from its highest holder (every holder above the target moves).
+ */
 export function ActionCell({
   cls,
   promotion,
@@ -35,15 +38,18 @@ export function ActionCell({
   onTargets: (id: string, el: HTMLElement) => void;
   onPromote: (id: string) => void;
 }) {
-  if (cls.tier === 'human_only') return <span className={styles.z}>never an agent</span>;
-  if (cls.tier === 'quarantined') {
+  const cell = cellOf(cls);
+  if (cell === 'human_only') return <span className={styles.z}>never an agent</span>;
+  if (cell === 'no_record') return <span className={styles.z}>no record yet</span>;
+  if (cell === null) return <span className={styles.z}>unknown</span>;
+  if (isQuarantine(cls)) {
     return (
       <Button href="/needs-you" variant="primary" size="mini" tabIndex={-1} title="Re-admit in Needs you · at Assisted at most">
         Re-admit…
       </Button>
     );
   }
-  const first = revokeTargets(cls.tier)[0];
+  const first = revokeTargets(actsFrom(cls))[0];
   const eligible = promotion.kind === 'eligible';
   return (
     <span style={{ display: 'contents' }} onMouseDown={pressSelects(cls.id, onSelect)}>

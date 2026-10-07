@@ -1,6 +1,7 @@
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { TIER_META } from '@/lib/tiers';
 import { isMechanical } from '../../../model/rules/promotion';
+import { shownName } from '../../../model/rules/tiers';
 import type { ClassRow } from '../../../model/types';
 import { Sec, type SectionState } from '../Sec';
 
@@ -10,7 +11,7 @@ export function GrantSection({ cls, proofClass, sections }: { cls: ClassRow; pro
     <Sec id="grant" title="Grant" defaultOpen={false} sections={sections}>
       <KeyValue
         rows={[
-          ['Tier', TIER_META[cls.tier].name],
+          ['Tier', shownName(cls)],
           ['Ceiling', TIER_META[cls.ceiling].name],
           ['Lease', cls.lease_days ? `${cls.lease_days} d left of 14, then Supervised` : '—'],
           ['Proof class', `${proofClass}${isMechanical(proofClass) ? ' · mechanical' : ''}`],

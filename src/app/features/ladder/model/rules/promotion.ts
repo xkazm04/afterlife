@@ -2,7 +2,7 @@
 // a constant here). A count is shown, never a forecast (no ETA).
 import type { PolicyRules } from '@/server/data/types';
 import type { ClassRow, Tier } from '../types';
-import { RUNGS, rungIndex } from './tiers';
+import { cellOf, RUNGS, rungIndex } from './tiers';
 
 /** Proof classes a machine can check; Hands-off needs one of these. */
 export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set([
@@ -25,20 +25,25 @@ export interface PromotionRule {
 }
 
 export type Promotion =
-  | { kind: 'never' | 'readmit' | 'ceiling' }
+  /** norecord: no agent holds it yet. split: several agents hold it (promote one holder by hand). untiered: tier unknown. */
+  | { kind: 'never' | 'readmit' | 'ceiling' | 'norecord' | 'split' | 'untiered' }
   /** unknown: the class has no record yet. nopolicy: trust-policy.yml was not read, so there are no thresholds. */
   | { kind: 'unknown' | 'nopolicy'; next: Tier }
   | { kind: 'eligible' | 'notyet'; next: Tier; rules: PromotionRule[] };
 
 export const pct = (x: number): string => `${Math.round(x * 100)} %`;
 
-type Subject = Pick<ClassRow, 'tier' | 'ceiling' | 'record'>;
+type Subject = Pick<ClassRow, 'tier' | 'ceiling' | 'record' | 'cell' | 'holders'>;
 
 /** `rules`: trust-policy.yml's thresholds, as the server read them; null when it could not (the counts are then not drawn). */
 export function promotion(c: Subject, proofClass: string, rules: PolicyRules | null): Promotion {
-  if (c.tier === 'human_only') return { kind: 'never' };
-  if (c.tier === 'quarantined') return { kind: 'readmit' };
-  const i = rungIndex(c.tier);
+  const tier = cellOf(c);
+  if (tier === 'human_only') return { kind: 'never' };
+  if (tier === 'no_record') return { kind: 'norecord' };
+  if (tier === 'refused') return { kind: 'split' };
+  if (tier === null) return { kind: 'untiered' };
+  if (tier === 'quarantined') return { kind: 'readmit' };
+  const i = rungIndex(tier);
   const next = RUNGS[i + 1];
   if (!next || i >= rungIndex(c.ceiling)) return { kind: 'ceiling' };
   const r = c.record;
@@ -74,6 +79,9 @@ export const WHY_NOT: Record<Exclude<Promotion['kind'], 'eligible'>, string> = {
   never: 'it is never an agent',
   unknown: 'there is no record yet',
   nopolicy: 'trust-policy.yml has not been read, so there are no thresholds',
+  norecord: 'no agent holds it yet: not trusted, and not quarantined',
+  split: 'several agents hold it, each at its own tier: a policy MR promotes one holder',
+  untiered: 'its tier is unknown',
 };
 
 /** Tooltip of the row's Promote button. */
@@ -83,10 +91,13 @@ export function promoteTitle(kind: Promotion['kind']): string {
 }
 
 /** The muted line shown instead of rule counts. */
-export const NO_RULES: Record<'ceiling' | 'readmit' | 'never' | 'unknown' | 'nopolicy', string> = {
+export const NO_RULES: Record<'ceiling' | 'readmit' | 'never' | 'unknown' | 'nopolicy' | 'norecord' | 'split' | 'untiered', string> = {
   ceiling: 'At its ceiling · higher is a track rebuild',
   readmit: 'Quarantined · re-admit at Assisted at most',
   never: 'Never an agent',
   unknown: 'No record yet',
   nopolicy: 'No thresholds · trust-policy.yml has not been read',
+  norecord: 'No record yet · not trusted, not quarantined',
+  split: 'Split · each holder at its own tier, as CI gates its merge requests',
+  untiered: 'Tier unknown',
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { revokeTarget } from '../model/rules/tiers';
+import { actsFrom, revokeTarget } from '../model/rules/tiers';
 import type { ClassRow, Tier } from '../model/types';
 import { askRevoke, writeKey, type WriteView } from '../write/revoke';
 
@@ -52,7 +52,7 @@ export function useRevokeWrite(project: string, selected: ClassRow | undefined, 
   const viewOf = useCallback((id: string, to: Tier) => views[writeKey(id, to)], [views]);
 
   const id = selected?.id;
-  const to = selected ? (hoverTo ?? revokeTarget(selected.tier)) : null;
+  const to = selected ? (hoverTo ?? revokeTarget(actsFrom(selected))) : null;
   useEffect(() => {
     if (id && to) want(id, to);
   }, [id, to, want, round]);

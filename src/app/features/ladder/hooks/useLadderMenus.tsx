@@ -8,7 +8,7 @@ import { TierMark } from '@/components/status/TierMark';
 import { rowDomId } from '@/components/table/model/rowNavigation';
 import { TIER_META } from '@/lib/tiers';
 import { commandLines } from '@/server/actions/words';
-import { revokeTargets } from '../model/rules/tiers';
+import { actsFrom, isQuarantine, revokeTargets } from '../model/rules/tiers';
 import type { Tier } from '../model/types';
 import { SORT_KEYS, SORT_NAMES, defaultDir } from '../model/view/sort';
 import type { LadderActions } from './useLadderActions';
@@ -42,7 +42,8 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
 
   const targetEntries = useCallback(
     (id: string): MenuEntry<Tier>[] => {
-      const lower = revokeTargets(byId[id]?.tier ?? 'human_only');
+      const c = byId[id];
+      const lower = revokeTargets(c ? actsFrom(c) : null);
       return [
         { head: 'Take it to · runs the write shown' },
         ...lower.map((to, i) => ({
@@ -61,7 +62,7 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
     (id: string): MenuEntry<Tier>[] => {
       const c = byId[id];
       if (!c) return [];
-      const lower = revokeTargets(c.tier);
+      const lower = revokeTargets(actsFrom(c));
       const eligible = data.promotionOf(c).kind === 'eligible';
       // The exact commands the server planned for the one-step revoke, once they are on screen.
       const first = lower[0];
@@ -75,7 +76,7 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
         { label: 'Show Rule and Write', sc: '↩', run: () => { actions.select(id); actions.openDetail(id); } },
         { sep: true },
         ...(lower.length ? [...targetEntries(id), { sep: true as const }] : []),
-        c.tier === 'quarantined'
+        isQuarantine(c)
           ? { label: 'Re-admit in Needs you…', run: () => router.push('/needs-you') }
           : { label: 'Promote…', sc: 'p', disabled: !eligible, run: () => actions.promote(id) },
         { label: 'Copy Command', disabled: !cmd, run: copy },

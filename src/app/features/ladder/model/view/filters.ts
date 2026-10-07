@@ -2,6 +2,7 @@
 import { TIER_RANK } from '@/lib/tiers';
 import type { PolicyRules } from '@/server/data/types';
 import { promotion } from '../rules/promotion';
+import { actsFrom, cellOf, isQuarantine } from '../rules/tiers';
 import type { Ceiling, ClassRow, TrackMap } from '../types';
 
 export interface SmartFilter {
@@ -16,10 +17,13 @@ export const SMART_FILTERS: readonly SmartFilter[] = [
   {
     id: 'below',
     label: 'Below ceiling',
-    test: (c) => c.tier !== 'human_only' && c.tier !== 'quarantined' && TIER_RANK[c.tier] < TIER_RANK[c.ceiling],
+    test: (c) => {
+      const t = actsFrom(c);
+      return t !== null && t !== 'human_only' && t !== 'quarantined' && TIER_RANK[t] < TIER_RANK[c.ceiling];
+    },
   },
   { id: 'leased', label: 'Leased', test: (c) => !!c.lease_days },
-  { id: 'quar', label: 'Quarantined', test: (c) => c.tier === 'quarantined' },
+  { id: 'quar', label: 'Quarantined', test: isQuarantine },
   { id: 'pending', label: 'Pending read', test: (c) => !!c.pending },
 ];
 
@@ -55,7 +59,7 @@ export function visibleClasses(order: readonly string[], byId: Readonly<Record<s
   const out: ClassRow[] = [];
   for (const id of order) {
     const c = byId[id];
-    if (c && matchesSource(c, crit.src, tracks, policy) && (!crit.filt || c.tier === crit.filt) && matchesQuery(c, crit.q, tracks)) out.push(c);
+    if (c && matchesSource(c, crit.src, tracks, policy) && (!crit.filt || cellOf(c) === crit.filt) && matchesQuery(c, crit.q, tracks)) out.push(c);
   }
   return out;
 }
@@ -65,6 +69,9 @@ export const filterCount = (crit: Criteria): number => (crit.src !== ALL_SOURCE 
 
 export function tierCounts(classes: readonly ClassRow[]): Record<Ceiling, number> {
   const n: Record<Ceiling, number> = { hands_off: 0, supervised: 0, assisted: 0, quarantined: 0, human_only: 0 };
-  for (const c of classes) n[c.tier] += 1;
+  for (const c of classes) {
+    const cell = cellOf(c); // no record yet, a split class and unknown are counted under no tier
+    if (cell && cell !== 'no_record' && cell !== 'refused') n[cell] += 1;
+  }
   return n;
 }

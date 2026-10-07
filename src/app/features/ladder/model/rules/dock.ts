@@ -2,7 +2,7 @@
 // planned it (`view`), or that it is still being asked for, or why the server refuses it.
 import { isGroupNavId } from '@/components/table/model/rowNavigation';
 import type { WriteView } from '../../write/revoke';
-import { nothingToRevoke, revokeTargets } from './tiers';
+import { actsFrom, nothingToRevoke, revokeTargets } from './tiers';
 import type { ClassRow, Tier, TrackMap } from '../types';
 
 export type DockModel =
@@ -32,9 +32,9 @@ export function dockModel(
   }
   const c = byId[sel];
   if (!c) return { kind: 'none' };
-  const targets = revokeTargets(c.tier);
+  const targets = revokeTargets(actsFrom(c));
   const first = targets[0];
-  if (!first) return { kind: 'idle', id: c.id, reason: nothingToRevoke(c.tier) };
+  if (!first) return { kind: 'idle', id: c.id, reason: nothingToRevoke(c) };
   const to = hoverTo && targets.includes(hoverTo) ? hoverTo : first;
   return { kind: 'write', id: c.id, to, previewing: !!hoverTo, view: viewOf(c.id, to) };
 }
