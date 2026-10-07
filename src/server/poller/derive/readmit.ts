@@ -1,7 +1,9 @@
 // A class the tripwire quarantined waits for a person to re-admit it: Belay's own ask, derived from tier-state.yml.
 // Proposals are matched by (kind, title), so one that is already in the inbox (seeded, or opened by an earlier poll)
-// is never duplicated, and only the proposals this module opened are closed when the quarantine ends.
+// is never duplicated, and only the proposals this module opened are closed when the quarantine ends. One a person acted on
+// (or dismissed) at or after the quarantine's since is not opened again: the re-admit MR is theirs to merge.
 import type { ProposalRow } from '@/server/index/repositories/work/proposal';
+import { isSettled } from './promotion';
 import type { Quarantine } from './tiers';
 
 const REASON: Record<string, string> = {
@@ -33,10 +35,17 @@ export interface ReadmitPlan {
   close: string[];
 }
 
-export function planReadmits(projectId: string, quarantines: readonly Quarantine[], openNow: readonly ProposalRow[], now: Date): ReadmitPlan {
+export function planReadmits(
+  projectId: string, quarantines: readonly Quarantine[], openNow: readonly ProposalRow[], now: Date,
+  settled: ReadonlyMap<string, Date | null> = new Map(),
+): ReadmitPlan {
   const have = new Set(openNow.filter((p) => p.kind === 'readmit').map((p) => p.title));
   const wanted = new Set(quarantines.map((q) => readmitTitle(q)));
-  const open = quarantines.filter((q) => !have.has(readmitTitle(q))).map((q) => readmitProposal(projectId, q, now));
+  const fresh = (q: Quarantine) => {
+    const id = readmitId(projectId, q.classId);
+    return !have.has(readmitTitle(q)) && !isSettled(settled.get(id), q.since, settled.has(id));
+  };
+  const open = quarantines.filter(fresh).map((q) => readmitProposal(projectId, q, now));
   const close = openNow.filter((p) => p.id.startsWith(`readmit:${projectId}:`) && !wanted.has(p.title)).map((p) => p.id);
   return { open, close };
 }

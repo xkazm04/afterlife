@@ -4,9 +4,7 @@ import type { PGlite } from '@electric-sql/pglite';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { GlDeployment, GlGroup, GlMergeRequest, GlNote, GlProject } from '@/server/gitlab/types';
 import { importLedger, type LedgerSource } from '@/server/ledger/importLedger';
-import { listClassTiers, upsertClassTiers } from '@/server/index/repositories/fleet/classTier';
 import { upsertProjects, type ProjectRow } from '@/server/index/repositories/fleet/project';
-import { listOpenProposals, upsertProposals, closeProposal } from '@/server/index/repositories/work/proposal';
 import { deleteProofs, upsertProofs } from '@/server/index/repositories/work/proof';
 import { getTaskRow, upsertTasks, type TaskDetail, type TaskRow } from '@/server/index/repositories/work/task';
 import { recordPollError, recordPollOk, projectSource } from '@/server/index/repositories/pollState';
@@ -14,8 +12,7 @@ import { setProjectState } from '@/server/index/repositories/fleet/project';
 import type { Queryable } from '@/server/index/repositories/sql';
 import type { PollerConfig } from './config';
 import { deriveTask, type TaskDerivation } from './derive/task';
-import { deriveTiers } from './derive/tiers';
-import { planReadmits } from './derive/readmit';
+import { pollClasses } from './classes';
 import { countProofs } from './derive/rollup';
 import type { PolicyRead } from './derive/policy';
 import type { PollMemory } from './state';
@@ -133,18 +130,6 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
       };
       await upsertProjects(tx, [{ ...base, gitlabId: gl.id, state: 'watching' }]);
 
-      let demotions = base.demotions7d;
-      if (env.policy?.ok) {
-        const prev = new Map((await listClassTiers(tx, id)).map((r) => [r.classId, r]));
-        const t = deriveTiers(env.policy.policy, env.policy.state, id, now, prev, cfg.rollupWindowMs);
-        await upsertClassTiers(tx, t.rows);
-        demotions = t.demotions;
-        const open = await listOpenProposals(tx, id);
-        const plan = planReadmits(id, t.quarantines, open, now);
-        await upsertProposals(tx, plan.open);
-        for (const pid of plan.close) await closeProposal(tx, pid, 'expired', now, null);
-      }
-
       const rows: TaskRow[] = [];
       const proofs: Array<{ id: string; proof: TaskDerivation['proof'] }> = [];
       for (const { d, blocked } of derived) {
@@ -160,6 +145,9 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
       }
       out.tasks = rows.length;
       out.proofs = proofs.filter((x) => x.proof !== null).length;
+
+      // after the tasks: a class's counters count this poll's merges
+      const demotions = env.policy?.ok ? await pollClasses(tx, env.policy, id, gl.id, now, cfg.rollupWindowMs) : base.demotions7d;
 
       await upsertProjects(tx, [{
         ...base, gitlabId: gl.id, state: 'watching', proofs7d: countProofs(mrs, now, cfg.rollupWindowMs), demotions7d: demotions,

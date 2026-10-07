@@ -78,6 +78,9 @@ export function promotion(c: Subject, proofClass: string, rules: PolicyRules | n
 
 export const isEligible = (p: Promotion): boolean => p.kind === 'eligible';
 
+/** The Needs-you item the poller opens for an eligible class (poller/derive/promotion.ts): one id, both sides. */
+export const promotionId = (projectId: string, classId: string): string => `promote:${projectId}:${classId}`;
+
 /** Why Promote is greyed, for the status line. */
 export const WHY_NOT: Record<Exclude<Promotion['kind'], 'eligible'>, string> = {
   notyet: 'the record does not qualify yet (↵ shows the counts)',
