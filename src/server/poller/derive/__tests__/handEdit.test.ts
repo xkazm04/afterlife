@@ -3,7 +3,7 @@
 // the poll that met one threw, and every project kept the tier it showed before, higher than the gate acts on (F51).
 import { describe, expect, it } from 'vitest';
 import { getActionClasses } from '@/server/index/views';
-import { rig } from './helpers';
+import { rig } from '../../__tests__/helpers';
 
 describe('poll cycle: a tier record a person wrote by hand', () => {
   for (const [name, record] of [['no by', '{ tier: quarantined }'], ['a by that is not text', '{ tier: quarantined, by: 12, since: 2026-10-01 }']] as const) {
