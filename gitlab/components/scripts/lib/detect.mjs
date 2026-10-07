@@ -14,17 +14,20 @@ function agentMrFor(api, projectId, sha, prefix) {
   return mr ?? null;
 }
 
-function eventFor(trigger, mr, at, evidence) {
-  const klass = trailer(mr.description, 'Belay-Class', CLASS_ID);
-  if (!klass) return null; // no class, no tier to move
-  return { trigger, agent: mr.author.username, class: klass, at, evidence: `!${mr.iid}: ${evidence}` };
-}
+/** The class an MR's description names now. Anyone who may edit the description can change it, even after the merge. */
+export const trailerClass = (mr) => trailer(mr.description, 'Belay-Class', CLASS_ID);
 
 /**
  * `headSha` (event mode): the default-branch commit this push pipeline is for. `ownPipelineId`: the pipeline this job runs
- * in (CI_PIPELINE_ID), which is still running and is never read as a finished one.
+ * in (CI_PIPELINE_ID), which is still running and is never read as a finished one. `classOf(mr)`: the class an event of
+ * that MR demotes (default: its Belay-Class trailer; belay-apply passes the class its gate decided on, F64).
  */
-export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours, prefix, guardrailAuthors, headSha, ownPipelineId }) {
+export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours, prefix, guardrailAuthors, headSha, ownPipelineId, classOf = trailerClass }) {
+  const eventFor = (trigger, mr, at, evidence) => {
+    const klass = classOf(mr);
+    if (!klass) return null; // no class, no tier to move
+    return { trigger, agent: mr.author.username, class: klass, at, evidence: `!${mr.iid}: ${evidence}` };
+  };
   const since = new Date(now - lookbackHours * HOUR).toISOString();
   const found = [];
   const add = (e) => e && found.push(e);

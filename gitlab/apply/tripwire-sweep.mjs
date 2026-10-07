@@ -35,6 +35,7 @@ for (const t of targetsOf(cfg, say)) {
     '--mode', 'sweep', '--policy-dir', dir, '--policy-project', cfg.policy.project, '--policy-branch', cfg.policy.branch,
     '--guardrail-authors', cfg.guardrailAuthors, '--agent-prefix', cfg.agentPrefix, '--lookback-hours', String(cfg.lookbackHours),
     '--write-mode', cfg.policy.writeMode, '--write-token-var', 'BELAY_POLICY_TOKEN',
+    '--ledger-project', cfg.ledger.project, '--ledger-branch', cfg.ledger.branch,
   ], { CI_PROJECT_ID: String(t.id), CI_DEFAULT_BRANCH: branch, CI_PIPELINE_ID: '', CI_COMMIT_SHA: '' });
   say(`${t.path_with_namespace}: tripwire exited ${r.code}`);
   worst = Math.max(worst, r.code);

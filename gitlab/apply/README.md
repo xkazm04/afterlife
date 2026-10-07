@@ -82,7 +82,9 @@ A ledger commit that failed is retried by the next sweep, from the gate's events
 `tripwire-sweep.mjs` runs `tripwire.mjs --mode sweep` for each target, from a fresh clone of `belay-policy`, reading the
 target with `BELAY_BOT_TOKEN` and committing with `BELAY_POLICY_TOKEN`. The detection is unchanged
 (`../components/scripts/lib/detect.mjs`, `pipelines.mjs`). It covers revert, reopened finding, a post-merge proof that
-failed, a default branch red for an hour, and a high guardrail block. It is idempotent by the `Belay-Event:` keys in
+failed, a default branch red for an hour, and a high guardrail block. The class an event demotes is the one the gate
+decided on, from the bot's own `belay-ledger` lines for that MR, not the `Belay-Class` trailer, which the agent can edit
+after the merge (F64); only an MR the engine never gated falls back to the trailer. It is idempotent by the `Belay-Event:` keys in
 `belay-policy`'s history, and it never lands over a newer `tier-state.yml` (`last_commit_id`). The demotion now comes at
 the next sweep, not in the target's own push pipeline. Run the schedule often (every 10 minutes).
 

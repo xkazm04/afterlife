@@ -7,10 +7,10 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { api, apiAll, arg, die, gql, need } from '../lib/lib.mjs';
-import { detect, eventKey } from '../lib/detect.mjs';
+import { api, apiAll, arg, CLASS_ID, die, gql, need } from '../lib/lib.mjs';
+import { detect, eventKey, trailerClass } from '../lib/detect.mjs';
 import { engine } from '../lib/engine.mjs';
-import { fileHead, writeFile } from '../lib/repo-write.mjs';
+import { fileHead, readFile, writeFile } from '../lib/repo-write.mjs';
 
 const projectId = process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set');
 const dir = need('policy-dir'); // a clone of belay-policy, depth >= 300
@@ -26,7 +26,37 @@ const seen = new Set(log.stdout.split('\n').flatMap((l) => /^Belay-Event: (.+)$/
 /** tier-state.yml as cloned: what every engine decision below starts from. */
 const base = fs.readFileSync(path.join(dir, STATE), 'utf8');
 
+/**
+ * `--ledger-project p [--ledger-branch b]`: an MR's class is the one belay-apply's gate decided on, from the bot's own
+ * ledger lines for that MR (their action_class; the last one counts), not the Belay-Class trailer, which the agent can
+ * edit after the merge to move a demotion onto another class or onto none (F64). An MR the engine never gated (a forced
+ * wait or block) has no such line: its trailer is all there is. An unreadable ledger decides nothing.
+ */
+function ledgerClasses(project, ledgerBranch) {
+  const file = `events/${projectId}.jsonl`;
+  let text;
+  try {
+    text = readFile(project, file, ledgerBranch);
+  } catch (e) {
+    die(`cannot read ${file} from ${project} (${e.message}): no demotion is decided without it`);
+  }
+  const gated = new Map();
+  for (const line of String(text ?? '').split('\n')) {
+    let e;
+    try {
+      e = line.trim() ? JSON.parse(line) : null;
+    } catch {
+      continue;
+    }
+    const s = e?.subject;
+    if (s?.type === 'mr' && String(s.project_id) === String(projectId) && CLASS_ID.test(String(e.action_class ?? ''))) gated.set(String(s.iid), e.action_class);
+  }
+  return (mr) => gated.get(String(mr.iid)) ?? trailerClass(mr);
+}
+const classOf = arg('ledger-project') ? ledgerClasses(arg('ledger-project'), arg('ledger-branch', 'main')) : undefined;
+
 const events = detect({
+  classOf,
   api,
   apiAll,
   gql,

@@ -52,9 +52,13 @@ const routes = {
   'projects/1/merge_requests/7/notes': [],
   [`${POLICY_API}/repository/files/tier-state.yml`]: { file_path: 'tier-state.yml', encoding: 'base64', content: Buffer.from(STATE).toString('base64'), last_commit_id: L1 },
   [`POST ${POLICY_API}/repository/commits`]: { reply: { id: 'c'.repeat(40) }, current: { 'tier-state.yml': L1 } },
+  // The bot's own record of the gate it applied to !7 (sweep.mjs, ledger-append.mjs).
+  [`projects/${encodeURIComponent('acme/belay-ledger')}/repository/files/events%2F1.jsonl/raw`]: {
+    __raw: `${['proof_verdict', 'tier_decision'].map((kind, i) => JSON.stringify({ seq: i + 1, kind, agent: 'ai-patcher-acme', action_class: 'dep-bump.patch', tier_at_time: 'hands_off', subject: { project_id: 1, type: 'mr', iid: 7 } })).join('\n')}\n`,
+  },
 };
 
-const sweep = (env) => runScript(dir, '../../apply/tripwire-sweep.mjs', ['--config', CONFIG, '--policy-remote', POLICY, '--work', path.join(dir, 'work')], { routes, env });
+const sweep = (env, extra = {}) => runScript(dir, '../../apply/tripwire-sweep.mjs', ['--config', CONFIG, '--policy-remote', POLICY, '--work', path.join(dir, 'work')], { routes: { ...routes, ...extra }, env });
 
 describe('belay-apply tripwire sweep', { timeout: 120_000 }, () => {
   it('(vii) a failed post-merge proof in a target commits the demotion to belay-policy from belay-apply', () => {
@@ -69,6 +73,19 @@ describe('belay-apply tripwire sweep', { timeout: 120_000 }, () => {
     expect(w.body.commit_message).toMatch(/^Belay-Event: post_merge_proof_fail\|ai-patcher-acme\|dep-bump\.patch\|/m);
     expect(r.stderr).toMatch(/skip other\/shared: it is shared into acme from elsewhere/);
     expect(r.reads.filter((p) => p.startsWith('projects/2'))).toEqual([]);
+  });
+
+  it('F64: the class demoted is the one the gate decided on, not the Belay-Class the merged MR\'s description says now', () => {
+    // After the merge the agent edits its description, so a later event would land on another class, or on none.
+    const edited = { ...mr, description: 'Bump x\n\nBelay-Class: code-fix.patch' };
+    const r = sweep({ BELAY_BOT_TOKEN: 'bot', BELAY_POLICY_TOKEN: 'policy' }, {
+      [`projects/1/repository/commits/${SHA}/merge_requests`]: [edited],
+      'projects/1/merge_requests': [edited],
+    });
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.writes).toHaveLength(1);
+    expect(r.writes[0].body.actions[0].content).toMatch(/dep-bump\.patch: \{ tier: supervised/);
+    expect(r.writes[0].body.commit_message).toMatch(/^Belay-Event: post_merge_proof_fail\|ai-patcher-acme\|dep-bump\.patch\|/m);
   });
 
   it('without BELAY_POLICY_TOKEN it reports and sweeps nothing', () => {
