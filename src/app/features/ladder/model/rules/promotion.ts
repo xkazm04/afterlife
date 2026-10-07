@@ -33,7 +33,7 @@ export type Promotion =
 
 export const pct = (x: number): string => `${Math.round(x * 100)} %`;
 
-type Subject = Pick<ClassRow, 'tier' | 'ceiling' | 'record' | 'cell' | 'holders'>;
+type Subject = Pick<ClassRow, 'tier' | 'ceiling' | 'record' | 'cell' | 'holders'> & Partial<Pick<ClassRow, 'ask'>>;
 
 /** A counter no row or event states: its rule is never met. */
 export const NOT_RECORDED = 'not recorded';
@@ -56,6 +56,8 @@ export function promotion(c: Subject, proofClass: string, rules: PolicyRules | n
   const i = rungIndex(tier);
   const next = RUNGS[i + 1];
   if (!next || i >= rungIndex(c.ceiling)) return { kind: 'ceiling' };
+  // live: the poll counted the record and this same rule found it eligible (the counts are not stored on the class)
+  if (c.ask && c.ask.from === tier && c.ask.to === next) return { kind: 'eligible', next, rules: c.ask.rules.map(([name, value, met]) => ({ name, value, met })) };
   const r = c.record;
   if (!r) return { kind: 'unknown', next };
   if (!rules) return { kind: 'nopolicy', next };
@@ -80,6 +82,15 @@ export const isEligible = (p: Promotion): boolean => p.kind === 'eligible';
 
 /** The Needs-you item the poller opens for an eligible class (poller/derive/promotion.ts): one id, both sides. */
 export const promotionId = (projectId: string, classId: string): string => `promote:${projectId}:${classId}`;
+
+/** Why Promote is greyed, naming the first rule that is unmet or not recorded when there are counts. */
+export function whyNot(p: Promotion): string {
+  if (p.kind === 'eligible') return '';
+  if (p.kind !== 'notyet') return WHY_NOT[p.kind];
+  const r = p.rules.find((x) => !x.met);
+  if (!r) return WHY_NOT.notyet;
+  return r.value === NOT_RECORDED ? `${r.name} is not recorded: no task or ledger event states it` : `${r.name} is not met (${r.value})`;
+}
 
 /** Why Promote is greyed, for the status line. */
 export const WHY_NOT: Record<Exclude<Promotion['kind'], 'eligible'>, string> = {

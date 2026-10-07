@@ -76,7 +76,7 @@ export function ClassInspector(p: ClassInspectorProps) {
       <Sec id="why" title="Who acted" aux={mine.length || ''} sections={p.sections}>
         <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />
       </Sec>
-      <PromotionRule promotion={p.promotion} demoRecords={p.demoRecords && !!c.record} sections={p.sections} />
+      <PromotionRule promotion={p.promotion} demoRecords={p.demoRecords && !!c.record && !c.ask} sections={p.sections} />
       <WriteSection cls={c} to={p.writeTo ?? first ?? null} viewOf={p.viewOf} sections={p.sections} />
       <GrantSection cls={c} proofClass={p.track?.proof.cls ?? ''} sections={p.sections} />
       <AllMoves ledger={p.ledger} current={c.id} kinds={p.kinds} onToggleKind={p.onToggleKind} sections={p.sections} />

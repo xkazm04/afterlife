@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
 import type { ClassRow } from '../types';
-import { isEligible, pct, promotion } from './promotion';
+import { isEligible, pct, promotion, whyNot } from './promotion';
 
 // The thresholds are policy/trust-policy.yml's, read the way the server reads them for the screen.
 const RULES = repoPolicy() as PolicyRules;
 const rec = (o: Partial<NonNullable<ClassRow['record']>> = {}) => ({ accepted: 9, needed: 15, noEdit: 1, cleanDays: 6, reverts: 0, ...o });
-const subject = (o: Partial<Pick<ClassRow, 'tier' | 'ceiling' | 'record'>>) => ({
+const subject = (o: Partial<Pick<ClassRow, 'tier' | 'ceiling' | 'record' | 'ask'>>) => ({
   tier: 'supervised' as const,
   ceiling: 'hands_off' as const,
   record: rec(),
@@ -63,5 +63,25 @@ describe('promotion', () => {
   it('formats a ratio as a percentage', () => {
     expect(pct(0.94)).toBe('94 %');
     expect(pct(1)).toBe('100 %');
+  });
+});
+
+describe('counters a live record does not know', () => {
+  it('reads a null counter as not recorded and never met, and the status line names it', () => {
+    const p = promotion(subject({ record: rec({ accepted: 16, cleanDays: 14, noEdit: null }) }), 'exploit-test', RULES);
+    expect(p.kind).toBe('notyet');
+    if (p.kind !== 'notyet') return;
+    expect(p.rules[1]).toEqual({ name: 'merged without edits ≥ 90 %', value: 'not recorded', met: false });
+    expect(whyNot(p)).toBe('merged without edits ≥ 90 % is not recorded: no task or ledger event states it');
+  });
+  it('names the first unmet rule with its count', () => {
+    const p = promotion(subject({ tier: 'assisted', ceiling: 'supervised', record: rec({ accepted: 3, noEdit: null }) }), 'repro', RULES);
+    expect(whyNot(p)).toBe('accepted outputs is not met (3 / 5)');
+  });
+  it("a live promotion ask carries the poll's counts: eligible from the tier it was counted at only", () => {
+    const ask = { id: 'promote:p:c', from: 'assisted' as const, to: 'supervised' as const, rules: [['accepted outputs', '5 / 5', true], ['reverts', '0', true]] as const };
+    const p = promotion(subject({ tier: 'assisted', ceiling: 'supervised', record: null, ask }), 'repro', RULES);
+    expect(p).toEqual({ kind: 'eligible', next: 'supervised', rules: [{ name: 'accepted outputs', value: '5 / 5', met: true }, { name: 'reverts', value: '0', met: true }] });
+    expect(promotion(subject({ tier: 'supervised', record: null, ask }), 'repro', RULES).kind).toBe('unknown');
   });
 });

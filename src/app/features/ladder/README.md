@@ -35,6 +35,12 @@ A row shows the class as the index reads it (`server/index/views/standing.ts`): 
 nothing to revoke, no Re-admit: Re-admit is for a real quarantine only), or Split with each holder at its own tier (a
 revoke lowers every holder above the target in one commit). Unknown reads unknown.
 
+Promotion counts: a counter a record does not know is "not recorded" and never met (`model/rules/promotion.ts`). Live, the
+poll counts a class's record but does not store it (`server/poller/README.md`, "Record counters"); when it found a class
+eligible it opened a promotion ask in Needs you, and the route attaches that ask to the class (`data/loadLadderData.ts`):
+the class reads eligible with the ask's counts, and p opens Needs you with that ask selected. A greyed Promote names the
+first rule that is unmet or not recorded.
+
 Keys: j k move, r revoke one step, q quarantine, p promote, Enter rule and write, 1-5 / 0 tier filter, / search,
 ? keys and legend, Esc closes. Arrows, Home/End, Enter and the menu key act on the focused table.
 

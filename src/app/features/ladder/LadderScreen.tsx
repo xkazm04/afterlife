@@ -71,7 +71,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
     setPinned(null);
   }, [pop]);
   const onShow = useCallback((id: string, to: Tier) => setPinned({ id, to }), []);
-  const actions = useLadderActions({ project, data, writes, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi, onShow });
+  const actions = useLadderActions({ project, live, data, writes, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi, onShow });
   const menus = useLadderMenus({ data, actions, writes, onHover: setHoverTo });
 
   const toggleHelp = () => {

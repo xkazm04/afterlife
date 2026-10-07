@@ -9,11 +9,23 @@ export type { Ceiling, Tier, Track };
 export type Counters = { [K in keyof ClassRecord]: ClassRecord[K] | null };
 
 /**
+ * The promotion the last poll opened in Needs you for a class (live): the poll counted its record and Ladder's own rule
+ * (rules/promotion.ts) found it eligible, from `from` to `to`. `rules`: [rule, value, met], as the ask carries them.
+ */
+export interface PromotionAsk {
+  id: string;
+  from: Tier;
+  to: Tier;
+  rules: readonly (readonly [string, string, boolean])[];
+}
+
+/**
  * An action class as the table holds it: the demo class plus the "commit pushed, tier-gate not read yet" marker. A
- * record may know some counters only (each unknown one null).
+ * record may know some counters only (each unknown one null); `ask` is set live when the poll opened a promotion.
  */
 export interface ClassRow extends Omit<ActionClass, 'record'> {
   record: Counters | null;
+  ask?: PromotionAsk;
   pending: string | null;
 }
 

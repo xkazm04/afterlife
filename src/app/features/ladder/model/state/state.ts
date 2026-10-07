@@ -1,5 +1,4 @@
 // The Ladder's state and the actions that change it. The reducer is pure: time and the commit id come in as data.
-import type { ActionClass } from '@/lib/demo';
 import type { LedgerSeedEntry } from '../../data/ledgerSeed';
 import type { Sent } from './commit';
 import type { Ceiling, ClassRow, Head, LadderSort, LedgerEntry, SortKey, Tier } from '../types';
@@ -25,8 +24,11 @@ export interface LadderState {
   just: string | null;
 }
 
+/** A class as the route hands it: the data source's, with the promotion the poll opened for it (live). */
+export type SeedClass = Omit<ClassRow, 'pending'>;
+
 export interface LadderSeed {
-  classes: readonly ActionClass[];
+  classes: readonly SeedClass[];
   ledger: readonly LedgerSeedEntry[];
   /** Quote of the guardrail's finding, by merge request ("!44"). */
   quotes: Readonly<Record<string, string>>;

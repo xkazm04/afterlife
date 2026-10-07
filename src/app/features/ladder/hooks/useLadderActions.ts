@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { TIER_META } from '@/lib/tiers';
 import { NO_ANSWER, commitOf, outcomeOf } from '@/server/actions/words';
-import { WHY_NOT } from '../model/rules/promotion';
+import { promotionId, whyNot } from '../model/rules/promotion';
 import { actsFrom, revokeTarget } from '../model/rules/tiers';
 import { PENDING_MS, nextSha } from '../model/state/commit';
 import type { LadderSeed } from '../model/state/state';
@@ -27,6 +27,7 @@ const PROMOTE_JUMP_MS = 900;
  */
 export function useLadderActions({
   project,
+  live,
   data,
   writes,
   stamp,
@@ -38,6 +39,8 @@ export function useLadderActions({
 }: {
   /** The project the classes belong to (the index id the server actions take). */
   project: string;
+  /** Live: an eligible class opens Needs you on the promotion the poll opened for it (demo: the desk). */
+  live: boolean;
   data: LadderData;
   writes: RevokeWrites;
   stamp: () => string;
@@ -131,10 +134,11 @@ export function useLadderActions({
       const p = d.promotionOf(c);
       if (p.kind === 'eligible') {
         toast(`${c.id} → ${TIER_META[p.next].name} goes through a policy MR a person merges · opening Needs you…`);
-        later(() => router.push(NEEDS_YOU), PROMOTE_JUMP_MS);
-      } else status(`Promote is greyed for ${c.id}: ${WHY_NOT[p.kind]}`);
+        const to = live ? `${NEEDS_YOU}?item=${encodeURIComponent(promotionId(project, c.id))}` : NEEDS_YOU;
+        later(() => router.push(to), PROMOTE_JUMP_MS);
+      } else status(`Promote is greyed for ${c.id}: ${whyNot(p)}`);
     },
-    [later, router, status, toast],
+    [later, router, status, toast, live, project],
   );
 
   /** `r` revokes one step, `q` quarantines, both on the selected class. */
