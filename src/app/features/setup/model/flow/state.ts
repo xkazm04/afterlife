@@ -30,7 +30,7 @@ export function createSetupState(setup: SetupDemo, tracks: readonly TrackLite[],
   const arm: Record<string, ArmState> = {};
   setup.arm.forEach(([id, raw], order) => {
     const st = toArmStatus(raw);
-    arm[id] = { id, order, st, mr: st === 'armed' ? (tracks.find((t) => t.id === id)?.armedBy ?? null) : null, revert: false };
+    arm[id] = { id, order, st, mr: st === 'armed' ? (tracks.find((t) => t.id === id)?.armedBy ?? null) : null, url: null, revert: false, simulated: false, found: null };
   });
   const home = doctorRows(setup.doctor.rows);
   return {

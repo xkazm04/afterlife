@@ -2,13 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
-import { ARM_META } from '../data/armMeta';
+import type { ActionResponse } from '@/server/actions/types';
+import { commandLines, mrOf, NO_ANSWER, outcomeOf } from '@/server/actions/words';
 import { STEP_DETAIL } from '../data/stepDetail';
 import { BASE_MIN, DOCTOR_MS, PROBE_MS, REDUCED_MAX_MS } from '../data/timing';
 import { clockLabel } from '../model/flow/probeAge';
 import { probeWillPass, setupReducer } from '../model/flow/reducer';
-import { armCmd } from '../model/flow/wording';
+import { mrName } from '../model/flow/wording';
 import type { SetupState } from '../model/types';
+import { sendArm } from '../write/arm';
+import type { ArmWrites } from './useArmWrite';
 
 export interface FlowActions {
   /** Ask GitLab through Belay's probe: the only thing that moves a step to done. */
@@ -18,11 +21,14 @@ export interface FlowActions {
   skip: (n: number) => void;
   copyStep: (n: number) => void;
   openWhere: (n: number) => void;
-  armSend: (id: string) => void;
-  armCopy: (id: string) => void;
+  /** Confirm the arm MR on screen (previewAction planned it), as you. */
+  armSend: (id: string) => Promise<void>;
+  /** Copy the planned commands of the write on screen. */
+  armCopy: (id: string, revert: boolean) => void;
   armVerify: (id: string) => Promise<void>;
   openMr: (id: string) => void;
-  disarm: (id: string) => void;
+  /** Confirm the disarm MR on screen: the revert of the arm block. */
+  disarm: (id: string) => Promise<void>;
   reprobe: () => Promise<void>;
   pickGroup: (group: string) => void;
 }
@@ -31,10 +37,11 @@ const reduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(p
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, reduced() ? Math.min(ms, REDUCED_MAX_MS) : ms));
 
 /**
- * The setup state and everything that changes it. Every write is simulated: a click shows a toast and moves the
- * state, and nothing leaves the page. Messages go to a toast and the status bar.
+ * The setup state and everything that changes it. Arm and disarm go through the server's preview and confirm (the MR
+ * number comes from the confirm's answer); the steps and the doctor are still simulated here. Messages go to a toast
+ * and the status bar.
  */
-export function useSetupFlow(initial: SetupState, keys: Readonly<Record<string, string>>): { state: SetupState; actions: FlowActions } {
+export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: SetupState; actions: FlowActions } {
   const [state, dispatch] = useReducer(setupReducer, initial);
   const ref = useRef(state);
   const start = useRef(0);
@@ -71,8 +78,38 @@ export function useSetupFlow(initial: SetupState, keys: Readonly<Record<string, 
         toast(`Step ${n} · not yet. Nothing changed in GitLab.`);
       }
     };
-    const mrOf = (id: string) => ref.current.arm[id]?.mr ?? ref.current.armMrs[id] ?? '!?';
-    const key = (id: string) => keys[id] ?? id.toLowerCase();
+    const nameOf = (id: string) => {
+      const a = ref.current.arm[id];
+      return a ? mrName(a) : 'the MR';
+    };
+    /** The click: confirm exactly the preview on screen. Moves the track only on a done, with what GitLab named. */
+    const send = async (id: string, revert: boolean) => {
+      if (ref.current.arm[id]?.st !== (revert ? 'armed' : 'ready')) return;
+      const what = `${revert ? 'disarm' : 'arm'} ${id}`;
+      let r: ActionResponse | null;
+      try {
+        r = await sendArm(ref.current.project, id, revert, writes.viewOf(id, revert));
+      } catch {
+        writes.clear();
+        say(`${what}: ${NO_ANSWER}`);
+        toast(NO_ANSWER);
+        return;
+      }
+      const o = r ? outcomeOf(r, what) : null;
+      if (!r || !o) {
+        toast(`Nothing sent · ${what}: the exact MR is not on screen yet`);
+        return;
+      }
+      if (o.status === 'changed') writes.put(id, revert, { kind: 'preview', preview: o.preview });
+      else writes.clear();
+      if (o.status === 'done' && r.status === 'done') {
+        const mr = mrOf(r.results);
+        const url = r.results.find((x) => x.made === mr)?.url ?? null;
+        dispatch({ t: 'arm-sent', id, revert, mr, url, simulated: o.simulated });
+      }
+      say(o.text);
+      toast(o.text);
+    };
     return {
       probe,
       send: async (n) => {
@@ -86,32 +123,29 @@ export function useSetupFlow(initial: SetupState, keys: Readonly<Record<string, 
       },
       copyStep: (n) => copy((STEP_DETAIL[n]?.cmd ?? []).join('\n')),
       openWhere: (n) => toast(`Would open: ${STEP_DETAIL[n]?.where ?? 'GitLab'}`),
-      armSend: (id) => {
-        if (ref.current.arm[id]?.st !== 'ready') return;
-        const mr = ref.current.armMrs[id] ?? '!?';
-        dispatch({ t: 'arm-send', id });
-        say(`sent as @you: ${mr} ${ARM_META[id]?.title ?? id}`);
-        toast(`Opened ${mr} as you · merge it, then verify`);
+      armSend: (id) => send(id, false),
+      armCopy: (id, revert) => {
+        const view = writes.viewOf(id, revert);
+        if (view?.kind === 'preview') copy(commandLines(view.preview).join('\n'));
+        else toast('Nothing to copy: the exact MR is not on screen');
       },
-      armCopy: (id) => copy(armCmd(id, key(id))),
       armVerify: async (id) => {
         const a = ref.current.arm[id];
         if (a?.st !== 'open') return;
         const revert = a.revert;
-        const mr = mrOf(id);
+        const mr = nameOf(id);
         dispatch({ t: 'verify-start', id });
         await wait(PROBE_MS);
         dispatch({ t: 'verify-end', id });
         say(revert ? `${id} disarmed · revert merged` : `${id} armed · ${mr} merged on main`);
         toast(revert ? `${id} disarmed · revert merged` : `${id} armed · revert ${mr} to disarm`);
       },
-      openMr: (id) => toast(`Would open ${mrOf(id)} in GitLab`),
-      disarm: (id) => {
-        if (ref.current.arm[id]?.st !== 'armed') return;
-        dispatch({ t: 'disarm', id });
-        say(`sent as @you: revert ${mrOf(id)}`);
-        toast(`Revert of ${mrOf(id)} opened as you · merge it and the track disarms`);
+      openMr: (id) => {
+        const a = ref.current.arm[id];
+        if (a?.url) window.open(a.url, '_blank', 'noopener,noreferrer');
+        else toast(a?.simulated ? 'Demo mode opened no MR: there is nothing to open' : `GitLab gave no address for ${nameOf(id)}`);
       },
+      disarm: (id) => send(id, true),
       reprobe: async () => {
         if (ref.current.doctorBusy) return;
         dispatch({ t: 'doctor-start' });
@@ -126,7 +160,7 @@ export function useSetupFlow(initial: SetupState, keys: Readonly<Record<string, 
         say(`group → ${group}`);
       },
     };
-  }, [clock, keys, say, toast]);
+  }, [clock, say, toast, writes]);
 
   return { state, actions };
 }

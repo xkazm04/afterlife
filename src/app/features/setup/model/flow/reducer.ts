@@ -7,10 +7,10 @@ import { toCapStatus, recomputeLocks, unmet, armList } from './state';
 export type SetupAction =
   | { t: 'probe-start'; n: number }
   | { t: 'probe-end'; n: number; at: string }
-  | { t: 'arm-send'; id: string }
+  /** A confirmed arm (or, `revert`, disarm) MR: what the server's answer named, nothing else. */
+  | { t: 'arm-sent'; id: string; revert: boolean; mr: string | null; url: string | null; simulated: boolean }
   | { t: 'verify-start'; id: string }
   | { t: 'verify-end'; id: string }
-  | { t: 'disarm'; id: string }
   | { t: 'doctor-start' }
   | { t: 'doctor-end'; now: number; at: string }
   | { t: 'pick-group'; group: string; now: number; at: string };
@@ -46,9 +46,9 @@ function probeEnd(s: SetupState, n: number, at: string): SetupState {
 function verifyEnd(s: SetupState, id: string): SetupState {
   const a = s.arm[id];
   if (!a || a.st !== 'probing') return s;
-  if (!a.revert) return recomputeLocks(setArm(s, id, { st: 'armed' }));
+  if (!a.revert) return recomputeLocks(setArm(s, id, { st: 'armed', found: null }));
   // A merged revert disarms it; anything ready that leaned on it locks again.
-  const disarmed = setArm(s, id, { st: 'ready', mr: null, revert: false });
+  const disarmed = setArm(s, id, { st: 'ready', mr: null, url: null, revert: false, simulated: false, found: null });
   let arm = disarmed.arm;
   for (const b of armList(disarmed)) if (b.st === 'ready' && unmet(disarmed, b.id).length) arm = { ...arm, [b.id]: { ...b, st: 'locked' } };
   return recomputeLocks({ ...disarmed, arm });
@@ -68,16 +68,15 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
     }
     case 'probe-end':
       return probeEnd(s, a.n, a.at);
-    case 'arm-send': {
-      const a0 = s.arm[a.id];
-      return a0?.st === 'ready' ? setArm(s, a.id, { st: 'open', mr: s.armMrs[a.id] ?? '!?' }) : s;
+    case 'arm-sent': {
+      const from = s.arm[a.id]?.st;
+      if (from !== (a.revert ? 'armed' : 'ready')) return s;
+      return setArm(s, a.id, { st: 'open', mr: a.mr, url: a.url, revert: a.revert, simulated: a.simulated, found: null });
     }
     case 'verify-start':
       return s.arm[a.id]?.st === 'open' ? setArm(s, a.id, { st: 'probing' }) : s;
     case 'verify-end':
       return verifyEnd(s, a.id);
-    case 'disarm':
-      return s.arm[a.id]?.st === 'armed' ? setArm(s, a.id, { st: 'open', revert: true }) : s;
     case 'doctor-start':
       return s.doctorBusy ? s : { ...s, doctorBusy: true };
     case 'doctor-end': {

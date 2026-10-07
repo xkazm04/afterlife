@@ -26,10 +26,16 @@ export interface ArmState {
   /** Position in the arm order, 0-based. */
   order: number;
   st: ArmStatus;
-  /** The MR that armed it, or the one open now. */
+  /** The MR that armed it, or the one open now, as GitLab named it in the confirm's answer. Null when nobody named one. */
   mr: string | null;
+  /** That MR's web address, from the same answer. */
+  url: string | null;
   /** The open MR is a revert (a disarm in flight). */
   revert: boolean;
+  /** Demo mode: the MR was only simulated, and so is its verify. */
+  simulated: boolean;
+  /** What the last verify saw on the default branch, when it did not settle the track. */
+  found: string | null;
 }
 
 export interface DoctorRow {

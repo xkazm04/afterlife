@@ -9,6 +9,8 @@ import type { Ceiling } from '@/schemas';
 import { ARM_META } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
 import { unmet } from '../../model/flow/state';
+import { mrName } from '../../model/flow/wording';
+import type { ArmState } from '../../model/types';
 import { GRAPH } from '../../model/map/appGraph';
 import { capsOf, downstream, isStepKey, stepOf } from '../../model/map/graph';
 import { Chip, type ChipTone } from '@/components/status/chip/Chip';
@@ -22,10 +24,10 @@ import { TrackArmSection } from './TrackArmSection';
 /** Per action class: never above the install ceiling (Supervised); Hands-off is earned later, by policy MR. */
 const tierOnArming = (c: Ceiling): Ceiling => (c === 'human_only' ? 'human_only' : c === 'assisted' ? 'assisted' : 'supervised');
 
-const CHIP: Record<string, { tone: ChipTone; word: (mr: string | null) => string }> = {
-  armed: { tone: 'ok', word: (mr) => `armed · ${mr}` },
+const CHIP: Record<string, { tone: ChipTone; word: (a: ArmState) => string }> = {
+  armed: { tone: 'ok', word: (a) => `armed${a.mr ? ` · ${a.mr}` : ''}${a.simulated ? ' · simulated' : ''}` },
   ready: { tone: 'accent', word: () => 'ready' },
-  open: { tone: 'you', word: (mr) => `merge ${mr}` },
+  open: { tone: 'you', word: (a) => `merge ${mrName(a)}` },
   probing: { tone: 'accent', word: () => 'probing' },
   locked: { tone: 'unknown', word: () => 'locked' },
 };
@@ -46,7 +48,7 @@ export function TrackPanel({ id, section }: { id: string; section: ReturnType<ty
       <InspectorHeader title={t.name} icon={<span className={styles.tid}>{id}</span>} sub={t.verb}>
         <div className={styles.chips}>
           <Chip>arm #{a.order + 1}</Chip>
-          {chip ? <Chip tone={chip.tone}>{chip.word(a.mr)}</Chip> : null}
+          {chip ? <Chip tone={chip.tone}>{chip.word(a)}</Chip> : null}
         </div>
       </InspectorHeader>
       <TrackArmSection id={id} section={section} />

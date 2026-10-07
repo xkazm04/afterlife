@@ -11,27 +11,28 @@ import { SetupLegend } from './components/SetupLegend';
 import { SetupStatus } from './components/SetupStatus';
 import { SetupToolbar } from './components/toolbar/SetupToolbar';
 import { SetupContext, type SetupApi } from './hooks/SetupContext';
+import { useArmWrite } from './hooks/useArmWrite';
 import { useSetupFlow } from './hooks/useSetupFlow';
 import { useSetupView } from './hooks/useSetupView';
 import { createSetupState, type SetupDemo } from './model/flow/state';
 
 /**
  * Setup: the unlock map. Steps 0-14, the eight tracks in arm order and the belay doctor capabilities, joined by
- * drawn edges. Probes move steps, MRs arm tracks, and Belay writes only on a click, after showing the command.
+ * drawn edges. Probes move steps, MRs arm tracks, and Belay writes only on a click, after showing the server's plan.
  * Esc clears the pick; Tab walks the map; Cmd/Ctrl+I toggles the inspector (the Window does that one).
  */
 export function SetupScreen({ setup, tracks, classes }: { setup: SetupDemo; tracks: readonly Track[]; classes: readonly ActionClass[] }) {
   const byId = useMemo(() => Object.fromEntries(tracks.map((t) => [t.id, t])), [tracks]);
-  const keys = useMemo(() => Object.fromEntries(tracks.map((t) => [t.id, t.key])), [tracks]);
   const [initial] = useState(() => createSetupState(setup, tracks, Date.now()));
-  const { state, actions } = useSetupFlow(initial, keys);
+  const writes = useArmWrite(initial.project);
+  const { state, actions } = useSetupFlow(initial, writes);
   const view = useSetupView(state.doctor);
   const [inspOpen, setInspOpen] = useState(true);
   useHotkeys([{ key: 'Escape', handler: view.clear, preventDefault: false }]);
 
   const api = useMemo<SetupApi>(
-    () => ({ state, tracks: byId, classes, view, actions, openInspector: () => setInspOpen(true) }),
-    [state, byId, classes, view, actions],
+    () => ({ state, tracks: byId, classes, view, actions, writes, openInspector: () => setInspOpen(true) }),
+    [state, byId, classes, view, actions, writes],
   );
 
   return (

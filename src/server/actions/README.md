@@ -16,13 +16,27 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 | `promote-class` | `project`, `class`, `to` | a branch with the new record (`start_branch` = default, `last_commit_id` as read), then a policy MR labelled `belay::promotion`. Belay never merges |
 | `mark-cra-ready` | `project`, `issue` | one `PUT` of the clock work item's labels: `cra::ready-to-sign`, minus `cra::drafting`. Never submits |
 | `stage-gap-mr` | `project`, `gap`, `stage`, `from`, `to`, `title`, `branch` (`belay/...`), `files: [{path, content}]`, `workItem?` | one commit per file on a new branch, then a draft MR labelled `maturity::gap` |
+| `arm-track` | `project`, `track` (`T1`-`T8`) | one commit of `.gitlab-ci.yml` on a new branch `belay/arm-<key>` (`start_branch` = default, `last_commit_id` as read), then one MR labelled `belay::arm`. Adds the track's include lines between `# belay:arm` markers |
+| `disarm-track` | `project`, `track` | the same on `belay/disarm-<key>`: removes exactly the marked lines the arm added (their digest is in the begin marker), or refuses |
+
+Arm and disarm (`arm/`): the content is the repo's own, not Belay's idea. `content.ts` holds a track's include lines as
+`gitlab/examples/target-project/.gitlab-ci.yml` writes them (its test checks them against the example and the templates'
+`spec:inputs`). Only T4 (guardrail: `proof-engine` cited-diff and `flow-dispatch`) is defined; any other track is refused with
+the reason. The per-install values (the example's "Replace:" list) come from the environment in live mode:
+`BELAY_PACK_VERSION`, `BELAY_ENGINE_REF`, `BELAY_ENGINE_COMMIT` (optional), `BELAY_GUARDRAIL_CONSUMER_ID`; a missing one is
+named in the refusal. Demo mode uses the example's values. The plan also refuses: no `.gitlab-ci.yml` on the default branch,
+a stage the includes need that the pipeline lacks, a one-line `include:`, a component already included by hand, an open MR
+from the same branch, an arm block already there (or edited). Neither intent reads, writes or names a token value, or sets
+a CI variable. `arm/verifyAction.ts` (`'use server'`, `verifyArmAction(intent)`) is Setup's verify: a read of the default
+branch's `.gitlab-ci.yml` that answers whether the block is there; demo mode reads nothing and says it is simulated.
 
 Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran).
 
 ## Responses
 
 `{status: 'preview', preview}` -> `{status: 'done' | 'failed', preview, results}` | `{status: 'changed', preview}` | `{status: 'refused', reason}`.
-`preview` = `{kind, title, summary, commands: [{display, argv, risk}], risk, diff, previewId, mode}`.
+`preview` = `{kind, title, summary, commands: [{display, argv, risk}], risk, diff, previewId, mode, branch?, notes?}`
+(`branch`: the branch the commands create; `notes`: what the operator must know before the click, in order).
 Each of `results` is `{display, exit, ok, simulated, error?, made?, url?}`. `made` is what GitLab made, from its own
 answer: an MR (`!22`, with its `url`), or for a file write the commit that file now has on that branch (`commit 1a2b3c4d`,
 read back right after the write, because the repository-files API answers only `{file_path, branch}`). Demo results are
@@ -72,6 +86,9 @@ screen holds (`{kind: preview}` or `{kind: refused, reason}`).
   `confirmAction(intent, preview.previewId)` on r, the button or the menu item.
 - **Needs you** n1 (promote) and n4 (re-admit, a promote-class to Assisted) (`app/features/needs-you/write/promote.ts`):
   `previewAction` when the decision is selected or staged, the preview in the outbox and the inspector, `confirmAction` on Run.
+
+- **Setup** arm, disarm and verify (`app/features/setup/write/arm.ts`): `previewAction` when the track's Arm or Disarm
+  section is in view, `confirmAction` on its button; "I merged it · verify" calls `verifyArmAction`.
 
 Not wired yet: the CRA sign-off (`mark-cra-ready`), the gap MRs (`stage-gap-mr`) and the Maturity sheet still show the
 screens' own illustrative commands.

@@ -3,6 +3,7 @@
 import { createContext, useContext } from 'react';
 import type { ActionClass, Track } from '@/lib/demo/types';
 import type { SetupState } from '../model/types';
+import type { ArmWrites } from './useArmWrite';
 import type { FlowActions } from './useSetupFlow';
 import type { SetupView } from './useSetupView';
 
@@ -12,6 +13,8 @@ export interface SetupApi {
   classes: readonly ActionClass[];
   view: SetupView;
   actions: FlowActions;
+  /** The arm and disarm MRs as the server planned them. */
+  writes: ArmWrites;
   /** Show the inspector (a pick opens it). */
   openInspector: () => void;
 }

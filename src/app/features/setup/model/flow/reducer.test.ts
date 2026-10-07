@@ -66,19 +66,25 @@ describe('probing a step', () => {
 });
 
 describe('arm, merge, verify, disarm', () => {
-  const arm = (s: SetupState, id: string) => run(s, { t: 'arm-send', id }, { t: 'verify-start', id }, { t: 'verify-end', id });
+  const sent = (id: string, revert = false, mr: string | null = '!22'): SetupAction => ({ t: 'arm-sent', id, revert, mr, url: mr ? `https://gitlab.example/mr/${mr.slice(1)}` : null, simulated: mr === null });
+  const arm = (s: SetupState, id: string) => run(s, sent(id), { t: 'verify-start', id }, { t: 'verify-end', id });
   it('arm sends an MR as you, then a person merges, then Belay verifies', () => {
-    let s = run(fresh(), { t: 'arm-send', id: 'T3' });
-    expect(s.arm.T3).toMatchObject({ st: 'open', mr: '!4' });
+    let s = run(fresh(), sent('T3'));
+    expect(s.arm.T3).toMatchObject({ st: 'open', mr: '!22', url: 'https://gitlab.example/mr/22', revert: false, simulated: false });
     expect(needYouCount(s)).toBe(6);
     s = run(s, { t: 'verify-start', id: 'T3' });
     expect(s.arm.T3?.st).toBe('probing');
     s = run(s, { t: 'verify-end', id: 'T3' });
     expect(s.arm.T3?.st).toBe('armed');
   });
+  it('the MR is the one the confirm named: none, in demo mode, is shown as simulated', () => {
+    const s = run(fresh(), sent('T3', false, null));
+    expect(s.arm.T3).toMatchObject({ st: 'open', mr: null, url: null, simulated: true });
+  });
   it('only a ready track can be sent', () => {
     const s = fresh();
-    expect(run(s, { t: 'arm-send', id: 'T1' })).toBe(s);
+    expect(run(s, sent('T1'))).toBe(s);
+    expect(run(s, sent('T3', true))).toBe(s);
     expect(run(s, { t: 'verify-start', id: 'T3' })).toBe(s);
   });
   it('arming T3 and T6 unlocks T1 and T8 once T4 is armed', () => {
@@ -89,8 +95,8 @@ describe('arm, merge, verify, disarm', () => {
   });
   it('disarm opens a revert; merging it returns the track to ready and re-locks what leaned on it', () => {
     let s = arm(arm(fresh(), 'T3'), 'T6');
-    s = run(s, { t: 'disarm', id: 'T3' });
-    expect(s.arm.T3).toMatchObject({ st: 'open', revert: true, mr: '!4' });
+    s = run(s, sent('T3', true, '!23'));
+    expect(s.arm.T3).toMatchObject({ st: 'open', revert: true, mr: '!23' });
     s = run(s, { t: 'verify-start', id: 'T3' }, { t: 'verify-end', id: 'T3' });
     expect(s.arm.T3).toMatchObject({ st: 'ready', mr: null, revert: false });
     expect(s.arm.T1?.st).toBe('locked');
@@ -98,7 +104,7 @@ describe('arm, merge, verify, disarm', () => {
   });
   it('only an armed track can be disarmed', () => {
     const s = fresh();
-    expect(run(s, { t: 'disarm', id: 'T3' })).toBe(s);
+    expect(run(s, sent('T3', true))).toBe(s);
   });
 });
 

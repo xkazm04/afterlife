@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { getSetup, getTracks } from '@/lib/demo';
 import { createSetupState } from './state';
-import { armCmd, disarmCmd, trackWhy } from './wording';
+import { mrName, trackWhy } from './wording';
 
 const s0 = createSetupState(getSetup(), getTracks(), 0);
 
 describe('wording', () => {
-  it('previews the exact arm and disarm commands', () => {
-    expect(armCmd('T3', 'governor')).toBe('glab mr create --source-branch belay/arm-governor --title "Arm governor: tripwire and tier-gate"');
-    expect(disarmCmd('T3', 'governor', '!4')).toBe('glab mr create --source-branch revert-arm-governor --title "Revert !4: disarm governor"');
+  it('names an MR only as GitLab named it', () => {
+    const t3 = s0.arm.T3!;
+    expect(mrName({ ...t3, mr: '!22' })).toBe('!22');
+    expect(mrName({ ...t3, mr: null })).toBe('the MR');
+    expect(mrName({ ...t3, mr: null, simulated: true })).toBe('the simulated MR');
   });
   it('says why a track is locked, ready or armed', () => {
     expect(trackWhy(s0, s0.arm.T1!)).toBe('locked · needs T3 Governor, T6 Scanners');

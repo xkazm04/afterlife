@@ -1,13 +1,8 @@
-import { ARM_META } from '../../data/armMeta';
 import type { ArmState, SetupState } from '../types';
 import { needLabel, unmet } from './state';
 
-/** The exact command a click would send. Shown first; Belay writes only on a click. */
-export const armCmd = (id: string, key: string): string =>
-  `glab mr create --source-branch belay/arm-${key} --title "${ARM_META[id]?.title ?? id}"`;
-
-export const disarmCmd = (id: string, key: string, mr: string | null): string =>
-  `glab mr create --source-branch revert-arm-${key} --title "Revert ${mr ?? '!?'}: disarm ${(ARM_META[id]?.short ?? id).toLowerCase()}"`;
+/** The MR a track is armed by or waits on, as GitLab named it; never a number GitLab did not give. */
+export const mrName = (a: ArmState): string => a.mr ?? (a.simulated ? 'the simulated MR' : 'the MR');
 
 /** Why a track is in the state it is in: the tooltip on its node. */
 export function trackWhy(s: SetupState, a: ArmState): string {
@@ -15,9 +10,9 @@ export function trackWhy(s: SetupState, a: ArmState): string {
     case 'locked':
       return `locked · needs ${unmet(s, a.id).map(needLabel).join(', ')}`;
     case 'armed':
-      return `armed · ${a.mr} · revert disarms`;
+      return `armed${a.mr ? ` · ${a.mr}` : ''}${a.simulated ? ' (simulated)' : ''} · revert disarms`;
     case 'open':
-      return `${a.revert ? 'revert ' : ''}${a.mr} open · waiting for your merge`;
+      return `${a.revert ? 'revert ' : ''}${mrName(a)} open · waiting for your merge`;
     case 'probing':
       return 'probing main…';
     case 'ready':

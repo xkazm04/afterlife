@@ -14,12 +14,12 @@ const LOCK = (
 );
 
 function Status({ a }: { a: ArmState }) {
-  if (a.st === 'armed') return <>✓ {a.mr}</>;
+  if (a.st === 'armed') return <>✓ {a.mr ?? 'armed'}</>;
   if (a.st === 'ready') return <>ready</>;
   if (a.st === 'open')
     return (
       <span className={styles.ny}>
-        {a.revert ? 'revert' : 'merge'} {a.mr}
+        {a.revert ? 'revert' : 'merge'} {a.mr ?? 'MR'}
       </span>
     );
   if (a.st === 'probing') return <Spinner />;

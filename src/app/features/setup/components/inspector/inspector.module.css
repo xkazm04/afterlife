@@ -91,3 +91,10 @@
 .no {
   color: var(--text-4);
 }
+.notes {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: var(--t-head);
+  color: var(--text-2);
+  line-height: 1.4;
+}

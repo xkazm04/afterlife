@@ -8,6 +8,7 @@ import { GATE_FREES } from '../../data/armMeta';
 import { STEP_DETAIL } from '../../data/stepDetail';
 import { useSetup } from '../../hooks/SetupContext';
 import { armList, doneCount, humanGates, needYouCount, openArms, stepList } from '../../model/flow/state';
+import { mrName } from '../../model/flow/wording';
 import { DepRow } from '../shared/DepRow';
 import { GateRow } from '../shared/GateRow';
 import styles from './inspector.module.css';
@@ -38,7 +39,7 @@ export function DefaultPanel({ section }: { section: ReturnType<typeof useOpenSe
       </InspectorSection>
       <InspectorSection title="Only you can do these" aux={<NeedsYouBadge count={need} small />} {...section('gates')}>
         {open.map((a) => (
-          <GateRow key={a.id} glyph="!" title={`Merge ${a.mr}${a.revert ? ' (revert)' : ''}`} tag={a.id} sub="then verify" onGo={() => view.go({ k: 'track', id: a.id })} />
+          <GateRow key={a.id} glyph="!" title={`Merge ${mrName(a)}${a.revert ? ' (revert)' : ''}`} tag={a.id} sub="then verify" onGo={() => view.go({ k: 'track', id: a.id })} />
         ))}
         {gates.map((s) => (
           <GateRow
