@@ -1,14 +1,16 @@
 // Tripwire: detect demotion events, let the engine decide (`engine tripwire`), commit tier-state.yml to belay-policy.
 // A person's promotion MR is the only way up; this only ever writes the engine's own commit, and only to tier-state.yml.
 // Idempotent: each event key is written into the commit message as `Belay-Event: <key>`, and the next run skips keys
-// that already appear in the policy repo's recent history.
+// that already appear in the policy repo's recent history. The commit never lands over a newer tier-state.yml: GitLab's copy
+// must still be the one the engine computed from, and the commit names its last_commit_id, so GitLab refuses it if the
+// file moves in between (an operator's revoke, another tripwire). Exit 3: refused as stale, nothing committed.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { api, apiAll, arg, die, gql, need } from '../lib/lib.mjs';
 import { detect, eventKey } from '../lib/detect.mjs';
 import { engine } from '../lib/engine.mjs';
-import { writeFile } from '../lib/repo-write.mjs';
+import { fileHead, writeFile } from '../lib/repo-write.mjs';
 
 const projectId = process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set');
 const dir = need('policy-dir'); // a clone of belay-policy, depth >= 300
@@ -19,6 +21,8 @@ const STATE = 'tier-state.yml';
 const log = spawnSync('git', ['-C', dir, 'log', '-n', '300', '--format=%B'], { encoding: 'utf8' });
 if (log.status !== 0) die('cannot read the belay-policy history');
 const seen = new Set([...log.stdout.matchAll(/^Belay-Event: (.+)$/gm)].map((m) => m[1]));
+/** tier-state.yml as cloned: what every engine decision below starts from. */
+const base = fs.readFileSync(path.join(dir, STATE), 'utf8');
 
 const events = detect({
   api,
@@ -71,14 +75,26 @@ const message = [`tripwire: ${messages.length} demotion(s)`, '', ...messages.map
 const writeToken = process.env[arg('write-token-var', 'BELAY_BOT_TOKEN')];
 if (writeToken) process.env.GITLAB_TOKEN = writeToken;
 
-writeFile({
-  project,
-  branch: arg('policy-branch', 'main'),
-  path: STATE,
-  content: fs.readFileSync(path.join(dir, STATE), 'utf8'),
-  message,
-  exists: true,
-  mode: arg('write-mode', 'commit'),
-});
+const policyBranch = arg('policy-branch', 'main');
+const head = fileHead(project, STATE, policyBranch);
+if (!head) die(`cannot read ${STATE} and its last commit from ${project}: nothing committed`);
+if (head.content !== base) {
+  die(`${STATE} in ${project} changed since it was cloned (a revoke, or another tripwire): not writing over it. Nothing committed; the next run starts from the new one.`, 3);
+}
+try {
+  writeFile({
+    project,
+    branch: policyBranch,
+    path: STATE,
+    content: fs.readFileSync(path.join(dir, STATE), 'utf8'),
+    message,
+    exists: true,
+    mode: arg('write-mode', 'commit'),
+    lastCommitId: head.lastCommitId,
+  });
+} catch {
+  // glab printed GitLab's answer above: a 400 here is the file moving since it was read (last_commit_id).
+  die(`${project} refused the commit of ${STATE} (see GitLab's answer above): nothing committed; the next run tries again.`, 3);
+}
 console.error(`belay: committed ${STATE} to ${project}`);
 if (skipped.length) process.exit(2);

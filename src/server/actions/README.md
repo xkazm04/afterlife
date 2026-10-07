@@ -12,8 +12,8 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 
 | `kind` | Fields | What the commands do |
 |---|---|---|
-| `revoke-class` | `project`, `changes: [{class, to}]`, `why?` | one `PUT` of `tier-state.yml` to `belay-policy`'s default branch (risk `policy`). Lowers only |
-| `promote-class` | `project`, `class`, `to` | a branch with the new record (`start_branch` = default), then a policy MR labelled `belay::promotion`. Belay never merges |
+| `revoke-class` | `project`, `changes: [{class, to}]`, `why?` | one `PUT` of `tier-state.yml` to `belay-policy`'s default branch (risk `policy`), with the file's `last_commit_id` as read. Lowers only |
+| `promote-class` | `project`, `class`, `to` | a branch with the new record (`start_branch` = default, `last_commit_id` as read), then a policy MR labelled `belay::promotion`. Belay never merges |
 | `mark-cra-ready` | `project`, `issue` | one `PUT` of the clock work item's labels: `cra::ready-to-sign`, minus `cra::drafting`. Never submits |
 | `stage-gap-mr` | `project`, `gap`, `stage`, `from`, `to`, `title`, `branch` (`belay/...`), `files: [{path, content}]`, `workItem?` | one commit per file on a new branch, then a draft MR labelled `maturity::gap` |
 
@@ -28,7 +28,10 @@ answer: an MR (`!22`, with its `url`), or for a file write the commit that file 
 read back right after the write, because the repository-files API answers only `{file_path, branch}`). Demo results are
 `simulated` and name nothing.
 `previewId` is a sha-256 of the commands. If the files moved between the two calls, the second call plans again, the ids
-differ, **nothing runs**, and `changed` returns the new preview to show again.
+differ, **nothing runs**, and `changed` returns the new preview to show again. A commit can still land between that
+second read and the write: every `tier-state.yml` write therefore carries `last_commit_id` (repository-files API: "Last
+known file commit ID"), and GitLab refuses it (400) rather than let a stale write land over an operator's revoke or a
+tripwire demotion; the answer is `failed`. Without a `last_commit_id` from GitLab the write is not planned at all.
 
 ## Live vs demo
 
@@ -64,4 +67,5 @@ screen holds (`{kind: preview}` or `{kind: refused, reason}`).
 Not wired yet: the CRA sign-off (`mark-cra-ready`), the gap MRs (`stage-gap-mr`) and the Maturity sheet still show the
 screens' own illustrative commands.
 Not verified live: `start_branch` on the repository-files API, `PUT /projects/:id/issues/:iid` for a work item, and the
-policy branch being pushable by the operator (spike S8). The fake does not model branches, issues or protections.
+policy branch being pushable by the operator (spike S8). The fake does not model branches, issues or protections; it
+models `last_commit_id` (a file write makes a new one, a stale one is refused with GitLab's 400).

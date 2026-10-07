@@ -1,7 +1,8 @@
 // Test double for `glab api` (BELAY_GLAB='<node>|fake-glab.mjs'). Answers GET requests from the JSON map in
 // $FAKE_GLAB_ROUTES, keyed by the path without its query string; page 2 and later of a list are empty. A write
 // (-X POST, PUT...) is answered only when the map has "<METHOD> <path>": its `reply`, and the request (with its JSON body
-// from stdin) is appended as one line to $FAKE_GLAB_WRITES, so a test reads what was written. Anything else (a write or
+// from stdin) is appended as one line to $FAKE_GLAB_WRITES, so a test reads what was written. Its optional `current`
+// ({file_path: last commit id}) makes it refuse a stale last_commit_id the way GitLab does. Anything else (a write or
 // a path not in the map, another glab command) fails the way glab does: a message on stderr and exit 1.
 import fs from 'node:fs';
 
@@ -21,7 +22,17 @@ if (method !== 'GET') {
   const route = routes[`${method} ${base}`];
   if (!route) fail();
   const raw = argv.includes('--input') ? fs.readFileSync(0, 'utf8') : '';
-  fs.appendFileSync(process.env.FAKE_GLAB_WRITES ?? '', `${JSON.stringify({ method, path: base, body: raw ? JSON.parse(raw) : null })}\n`);
+  const body = raw ? JSON.parse(raw) : null;
+  // GitLab's check on a commit's update actions (commits API, actions[].last_commit_id): when the route names each file's
+  // `current` last commit, an action naming another one is refused, as GitLab refuses it, and nothing is written.
+  const stale = (body?.actions ?? []).find((a) => route.current && a.last_commit_id !== undefined && a.last_commit_id !== route.current[a.file_path]);
+  if (stale) {
+    const message = '400 You are attempting to update a file that has changed since you started editing it.';
+    process.stdout.write(JSON.stringify({ message }));
+    console.error(`glab: ${message} (HTTP 400)`);
+    process.exit(1);
+  }
+  fs.appendFileSync(process.env.FAKE_GLAB_WRITES ?? '', `${JSON.stringify({ method, path: base, body })}\n`);
   process.stdout.write(JSON.stringify(route.reply ?? null));
   process.exit(0);
 }

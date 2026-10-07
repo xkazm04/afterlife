@@ -1,7 +1,7 @@
 // Write routes of the fake: the six PlannedCommands Belay builds, applied to the in-memory state.
 import { createHash } from 'node:crypto';
 import type { FakeState, ProjectData } from './dataset';
-import { atLeast, inProject } from './reads';
+import { atLeast, inProject, lastCommitOf } from './reads';
 import { created, fail, ok, type Route } from './server';
 
 const P = 'projects/([^/]+)';
@@ -60,6 +60,10 @@ export const writeRoutes: Route[] = [
   ['PUT', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req, st) => {
     const path = decodeURIComponent(m[2] ?? '');
     if (!(path in p.files)) return fail(400, 'A file with this name doesn\'t exist');
+    // GitLab's check (Files::UpdateService): an update that names a last commit other than the file's is refused, and
+    // nothing is written. The fake has one branch, so it compares with the file as it is.
+    const known = req.fields.last_commit_id;
+    if (known !== undefined && known !== lastCommitOf(p, path)) return fail(400, 'You are attempting to update a file that has changed since you started editing it.');
     writeFile(p, path, req.fields.content ?? '', st);
     return ok({ file_path: path, branch: req.fields.branch });
   })],

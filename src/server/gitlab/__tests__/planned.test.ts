@@ -62,6 +62,14 @@ describe('PlannedCommand builders: exact argv', () => {
     expect(add.risk).toBe('low');
   });
 
+  it('commitFile: an update names the last commit it was read at (last_commit_id); a create has none to name', () => {
+    const upd = plan.commitFile({ project: 9, path: 'tier-state.yml', branch: 'main', content: 'a', message: 'm', action: 'update', lastCommitId: 'f'.repeat(40) });
+    expect(upd.argv.slice(-2)).toEqual(['-f', `last_commit_id=${'f'.repeat(40)}`]);
+    expect(upd.file).toEqual({ project: 9, path: 'tier-state.yml', branch: 'main' });
+    const add = plan.commitFile({ project: 9, path: 'new.yml', branch: 'main', content: 'a', message: 'm', action: 'create', lastCommitId: 'f'.repeat(40) });
+    expect(add.argv.join(' ')).not.toContain('last_commit_id');
+  });
+
   it('pauseSchedule', () => {
     const c = plan.pauseSchedule({ project: 9, scheduleId: 12 });
     expect(c.argv).toEqual(['api', '--method', 'PUT', 'projects/9/pipeline_schedules/12', '-f', 'active=false']);

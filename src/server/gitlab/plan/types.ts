@@ -18,8 +18,12 @@ export interface PlannedCommand {
 export interface CreateMrInput { project: ProjectRef; sourceBranch: string; targetBranch: string; title: string; description?: string; labels?: string[] }
 export interface AddNoteInput { project: ProjectRef; iid: number; body: string }
 export interface SetLabelsInput { project: ProjectRef; iid: number; add?: string[]; remove?: string[] }
-/** startBranch: create `branch` from it in the same call (GitLab's `start_branch`); without it the branch must exist. */
-export interface CommitFileInput { project: ProjectRef; path: string; branch: string; content: string; message: string; action: 'create' | 'update'; startBranch?: string }
+/**
+ * startBranch: create `branch` from it in the same call (GitLab's `start_branch`); without it the branch must exist.
+ * lastCommitId: the file's `last_commit_id` as it was read (an update): GitLab refuses the write (400) if the file changed
+ * since on the branch it starts from, so a write planned from a stale read never lands over a newer one.
+ */
+export interface CommitFileInput { project: ProjectRef; path: string; branch: string; content: string; message: string; action: 'create' | 'update'; startBranch?: string; lastCommitId?: string }
 export interface SetIssueLabelsInput { project: ProjectRef; iid: number; add?: string[]; remove?: string[] }
 export interface PauseScheduleInput { project: ProjectRef; scheduleId: number }
 export interface ApproveDeploymentInput { project: ProjectRef; deploymentId: number; status: 'approved' | 'rejected'; comment?: string }

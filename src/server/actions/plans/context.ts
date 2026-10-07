@@ -42,3 +42,7 @@ export async function locate(ctx: PlanContext, indexId: string): Promise<Located
 }
 
 export const dateOnly = (d: Date): string => d.toISOString().slice(0, 10);
+
+/** Without the file's last commit, GitLab cannot be asked to refuse a stale write: such a write is not planned at all. */
+export const NO_LAST_COMMIT =
+  'GitLab did not say which commit last changed tier-state.yml, so a write from a stale read could not be refused; nothing is planned';

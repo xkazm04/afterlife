@@ -59,6 +59,13 @@ commit with `Belay-Event: <key>` lines. The next run skips every key already in 
 sweep is idempotent. An event the engine rejects (for example, the agent holds no such class) is listed and the job exits 2
 after committing the others.
 
+The commit never lands over a newer `tier-state.yml` (an operator's revoke from Belay, another tripwire). Before writing,
+the job reads the file and its `last_commit_id` through the API (with the write token): if its content is no longer the
+clone's, which every decision was computed from, nothing is written. Otherwise the commit's update action carries that
+`last_commit_id` (commits API: "Last known file commit ID. Only considered in update, move, and delete actions." [R]), so
+GitLab refuses it (400) if the file moves in between. Either way the job exits 3 with nothing committed, and the next run
+starts from the new file; the events are not recorded, so they are not lost.
+
 ## Needs
 
 - `BELAY_BOT_TOKEN` (reads the target) and `BELAY_POLICY_TOKEN` (writes `belay-policy`), both **protected** variables so only the

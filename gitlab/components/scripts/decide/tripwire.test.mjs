@@ -14,6 +14,10 @@ afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
 const SHA = 'a'.repeat(40);
 const POLICY = 'acme/belay-policy';
 const COMMITS = `POST projects/${encodeURIComponent(POLICY)}/repository/commits`;
+const FILE = `projects/${encodeURIComponent(POLICY)}/repository/files/tier-state.yml`;
+/** The commit that last changed tier-state.yml in belay-policy (L1), and a newer one (L2). */
+const L1 = '1'.repeat(40);
+const L2 = '2'.repeat(40);
 const ago = (min) => new Date(Date.now() - min * 60_000).toISOString();
 const STATE = 'version: 1\npolicy_sha: a1b2c3\nagents:\n  ai-patcher-acme:\n    dep-bump.patch: { tier: hands_off, since: "2026-10-01", by: "operator via promotion MR !33" }\n';
 const mr = { iid: 7, state: 'merged', author: { username: 'ai-patcher-acme' }, description: 'Bump x\n\nBelay-Class: dep-bump.patch' };
@@ -34,7 +38,12 @@ function policyClone(name) {
   return p;
 }
 
-function routes({ pipelines, jobs = {} }) {
+/**
+ * The group as GitLab answers. `policy`: belay-policy's tier-state.yml as GitLab has it now (`content`, `last`: its last
+ * commit when the tripwire reads it, `current`: its last commit when the write arrives).
+ */
+function routes({ pipelines, jobs = {}, policy = {} }) {
+  const { content = STATE, last = L1, current = last } = policy;
   const r = {
     'projects/1/repository/commits': [],
     [`projects/1/repository/commits/${SHA}`]: { id: SHA, title: 'Merge branch bump-x', message: 'Merge branch bump-x' },
@@ -42,7 +51,8 @@ function routes({ pipelines, jobs = {} }) {
     'projects/1/pipelines': pipelines,
     'projects/1/merge_requests': [mr],
     'projects/1/merge_requests/7/notes': [],
-    [COMMITS]: { reply: { id: 'c0ffee'.padEnd(40, '0'), short_id: 'c0ffee00' } },
+    [FILE]: { file_path: 'tier-state.yml', encoding: 'base64', content: Buffer.from(content).toString('base64'), last_commit_id: last },
+    [COMMITS]: { reply: { id: 'c0ffee'.padEnd(40, '0'), short_id: 'c0ffee00' }, current: { 'tier-state.yml': current } },
   };
   for (const p of pipelines) {
     r[`projects/1/pipelines/${p.id}`] = p;
@@ -68,7 +78,7 @@ describe('tripwire.mjs: a failed post-merge proof', () => {
     expect(more).toEqual([]);
     expect(c?.events).toHaveLength(1);
     expect(c?.events[0]).toMatch(/^post_merge_proof_fail\|ai-patcher-acme\|dep-bump\.patch\|/);
-    expect(c?.action).toMatchObject({ action: 'update', file_path: 'tier-state.yml' });
+    expect(c?.action).toMatchObject({ action: 'update', file_path: 'tier-state.yml', last_commit_id: L1 });
     expect(c?.action.content).toMatch(/dep-bump\.patch: \{ tier: supervised, since: "\d{4}-\d\d-\d\d", by: tripwire, reason: post_merge_proof_fail/);
   }, 60_000);
 
@@ -92,6 +102,26 @@ describe('tripwire.mjs: a failed post-merge proof', () => {
     expect(r.code, r.stderr).toBe(0);
     expect(r.writes).toEqual([]);
     expect(r.stderr).toContain('0 new demotion event(s)');
+  }, 60_000);
+});
+
+describe('tripwire.mjs never writes over a newer tier-state.yml', () => {
+  const failed = { pipelines: [pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob] } };
+
+  it('an operator’s revoke landed between the read and the commit: GitLab refuses it (last_commit_id), nothing is written', () => {
+    const r = tripwire(policyClone('moved'), 'sweep', { ...failed, policy: { last: L1, current: L2 } }, { CI_PIPELINE_ID: '502' });
+    expect(r.code).toBe(3);
+    expect(r.writes).toEqual([]);
+    expect(r.stderr).toContain('has changed since you started editing it');
+    expect(r.stderr).toContain('nothing committed');
+  }, 60_000);
+
+  it('it landed before the read, after the clone: the tripwire sees its copy is stale and does not write', () => {
+    const revoked = STATE.replace('tier: hands_off, since: "2026-10-01", by: "operator via promotion MR !33"', 'tier: assisted, since: "2026-10-07", by: operator kazdanm via Belay');
+    const r = tripwire(policyClone('stale'), 'sweep', { ...failed, policy: { content: revoked, last: L2 } }, { CI_PIPELINE_ID: '502' });
+    expect(r.code).toBe(3);
+    expect(r.writes).toEqual([]);
+    expect(r.stderr).toContain('changed since it was cloned');
   }, 60_000);
 });
 

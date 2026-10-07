@@ -46,7 +46,10 @@ export function planBuilders(hostname?: string): PlanBuilders {
     commitFile: (i: CommitFileInput) => ({
       ...build(hostname, i.action === 'create' ? 'POST' : 'PUT',
         `projects/${proj(i.project)}/repository/files/${encodeURIComponent(i.path)}`,
-        [['branch', i.branch], ['commit_message', i.message], ['content', i.content], ...optional('start_branch', i.startBranch)],
+        [
+          ['branch', i.branch], ['commit_message', i.message], ['content', i.content], ...optional('start_branch', i.startBranch),
+          ...optional('last_commit_id', i.action === 'update' ? i.lastCommitId : undefined),
+        ],
         POLICY_FILE.test(i.path) ? 'policy' : 'low'),
       file: { project: i.project, path: i.path, branch: i.branch },
     }),
