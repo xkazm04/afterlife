@@ -1,7 +1,8 @@
 // Stage a maturity gap: a new branch with the gap's files (one commit each), then a draft MR. Nothing is merged; the MR
-// is the proposal. The file contents come from the screen, so the preview shows them in full before the click.
+// is the proposal. A file is its content from the screen, or a hunk applied to the file as the project holds it; the preview shows either before the click.
 import type { StageGapMr } from '../types';
 import { ActionRefused, locate, type Plan, type PlanContext } from './context';
+import { applyHunk } from './hunk';
 
 const PREVIEW_LINES = 12;
 
@@ -13,13 +14,24 @@ export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<P
   const commands = [];
   const diff: string[] = [];
   for (const [i, f] of intent.files.entries()) {
-    const exists = (await ctx.port.getFile(project.id, f.path, base)) !== null;
+    const file = await ctx.port.getFile(project.id, f.path, base);
+    let content: string;
+    let shown: string[];
+    if ('hunk' in f) {
+      if (!file) throw new ActionRefused(`${f.path} does not exist on ${base}, so the hunk for it has nothing to be applied to`);
+      content = applyHunk(f.path, file.content, f.hunk);
+      shown = [`~ ${f.path} (hunk: +${f.hunk.filter((l) => l.startsWith('+')).length} lines)`, ...f.hunk.map((l) => (l.startsWith('+') ? `+ ${l.slice(1)}` : `  ${l.slice(1)}`))];
+    } else {
+      content = f.content;
+      const lines = content.split('\n');
+      shown = [`${file ? '~' : '+'} ${f.path} (${lines.length} lines)`, ...lines.slice(0, PREVIEW_LINES).map((l) => `+ ${l}`), ...(lines.length > PREVIEW_LINES ? ['+ ...'] : [])];
+    }
     commands.push(ctx.port.plan.commitFile({
-      project: project.id, path: f.path, branch: intent.branch, content: f.content, action: exists ? 'update' : 'create',
+      project: project.id, path: f.path, branch: intent.branch, content, action: file ? 'update' : 'create',
+      ...('hunk' in f && file?.lastCommitId ? { lastCommitId: file.lastCommitId } : {}),
       message: `Maturity gap ${intent.gap}: ${intent.title}\n\nOperator: ${ctx.operator}`, ...(i === 0 ? { startBranch: base } : {}),
     }));
-    const lines = f.content.split('\n');
-    diff.push(`${exists ? '~' : '+'} ${f.path} (${lines.length} lines)`, ...lines.slice(0, PREVIEW_LINES).map((l) => `+ ${l}`), ...(lines.length > PREVIEW_LINES ? ['+ ...'] : []));
+    diff.push(...shown);
   }
   commands.push(ctx.port.plan.createMr({
     project: project.id, sourceBranch: intent.branch, targetBranch: base, labels: ['maturity::gap'],

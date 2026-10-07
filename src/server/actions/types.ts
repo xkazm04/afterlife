@@ -32,10 +32,11 @@ export interface MarkCraReady extends Base {
   issue: number;
 }
 
-export interface GapFile {
-  path: string;
-  content: string;
-}
+/**
+ * One file of a gap MR: the whole new content, or a hunk of a file the project already has. A hunk is context lines (a
+ * leading space) and added lines (a leading '+'); the door applies it to the file as the project holds it.
+ */
+export type GapFile = { path: string; content: string } | { path: string; hunk: string[] };
 
 /** Open the draft MR for one maturity gap: one new branch, its files, one MR. */
 export interface StageGapMr extends Base {

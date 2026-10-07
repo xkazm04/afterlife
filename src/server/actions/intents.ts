@@ -20,16 +20,32 @@ const ONE_LINE = /^[^\r\n]+$/;
 const BRANCH = /^belay\/[A-Za-z0-9._/-]+$/;
 const FILE_PATH = /^[A-Za-z0-9._][A-Za-z0-9._/-]*$/;
 const MAX_FILE = 64 * 1024;
+const MAX_HUNK_LINES = 400;
 const TRACK = /^T[1-8]$/;
+
+/** Context (' ') and added ('+') lines, one line each, with at least one of each: context is how the hunk finds its place. */
+function hunkOf(v: unknown): string[] | null {
+  if (!Array.isArray(v) || v.length < 2 || v.length > MAX_HUNK_LINES) return null;
+  const ok = v.every((l) => typeof l === 'string' && l.length <= 500 && /^[ +][^\r\n]*$/.test(l));
+  if (!ok || !v.some((l: string) => l.startsWith(' ')) || !v.some((l: string) => l.startsWith('+'))) return null;
+  return v as string[];
+}
 
 function files(v: unknown): GapFile[] | null {
   if (!Array.isArray(v) || v.length < 1 || v.length > 8) return null;
   const out: GapFile[] = [];
   for (const f of v) {
-    if (!isRec(f) || typeof f.content !== 'string' || f.content.length > MAX_FILE) return null;
+    if (!isRec(f) || (f.content === undefined) === (f.hunk === undefined)) return null; // content or a hunk, never both
     const path = str(f.path, FILE_PATH, 200);
     if (path === null || path.split('/').includes('..') || path.endsWith('/')) return null;
-    out.push({ path, content: f.content });
+    if (f.hunk !== undefined) {
+      const hunk = hunkOf(f.hunk);
+      if (!hunk) return null;
+      out.push({ path, hunk });
+    } else {
+      if (typeof f.content !== 'string' || f.content.length > MAX_FILE) return null;
+      out.push({ path, content: f.content });
+    }
   }
   return new Set(out.map((f) => f.path)).size === out.length ? out : null;
 }
