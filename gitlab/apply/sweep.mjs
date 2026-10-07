@@ -63,6 +63,15 @@ function diffOf(t, base, head) {
 }
 
 const GATE = '**Belay gate: ';
+/**
+ * A forced gate note as apply-gate writes it: its first reason starts with the head it was forced for. Matched at that
+ * place only: a reason further on can quote any sha (an agent can name a file after its next head, F61).
+ */
+const FORCED = /^\*\*Belay gate: ([A-Z]+)\*\* \| tier `unknown`\n- head ([0-9a-f]{40}): /;
+const forcedFor = (n) => {
+  const m = FORCED.exec(n.body);
+  return m ? { decision: m[1], head: m[2] } : null;
+};
 const dispatchMark = (head) => `**Belay: guardrail review requested** for head \`${head}\``;
 
 /** One agent MR. Returns nothing; throws on a failed read (no write follows it). */
@@ -105,7 +114,7 @@ function sweepMr(t, iid) {
   const force = (decision, reason) => {
     const d = guardBlocked ? 'block' : decision;
     const why = guardBlocked && decision !== 'block' ? `the guardrail blocked this head; also, ${reason}` : reason;
-    if (gateDone || notes.some((n) => n.body.startsWith(`${GATE}${d.toUpperCase()}**`) && n.body.includes(head))) return say(`${tag}: ${d} already said for this head`);
+    if (gateDone || notes.some((n) => forcedFor(n)?.decision === d.toUpperCase() && forcedFor(n).head === head)) return say(`${tag}: ${d} already said for this head`);
     say(`${tag}: ${d}: ${why}`);
     const r = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--force', d, '--reason', `head ${head}: ${why}`,
       ...(guardBlocked ? ['--guardrail', guardrailFile] : []), ...(WRITE ? [] : ['--dry', '1'])], env, dir);

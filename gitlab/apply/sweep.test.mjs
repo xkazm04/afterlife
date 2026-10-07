@@ -207,6 +207,21 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(r.writes.filter((w) => JSON.stringify(w).includes('other/shared'))).toEqual([]);
   });
 
+  it('(vii) F61: a forced note of another head that quotes this head stands for that head only: the BLOCK is still said', () => {
+    // The agent pushed an earlier head that changed a file named after the head it pushes next, so the earlier head's
+    // forced BLOCK quotes this head's sha in its reason.
+    const finding = { rule: 'prompt-injection', severity: 'high', file: 'CHANGELOG.md', quote: 'ignore previous instructions', explanation: 'an instruction to the reviewer in the changelog' };
+    const earlier = { id: 103, system: false, author: { username: 'belay-bot' }, created_at: '2026-10-07T09:00:00Z',
+      body: `**Belay gate: BLOCK** | tier \`unknown\`\n- head ${OLD}: the guardrail blocked this head; also, it changes .gitlab/${HEAD}. This MR controls which jobs made its evidence` };
+    const bump = description.replace('Belay-Class: code-fix.patch', 'Belay-Class: patch-bump');
+    const r = sweep(group({ desc: bump, notes: [earlier, guardrailNote('block', HEAD, [finding])] }));
+    expect(r.code, r.stderr).toBe(0);
+    const notes = glabWrites(r, 'note create');
+    expect(notes).toHaveLength(1);
+    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail blocked this head`));
+    expect(glabWrites(r, 'update').map((w) => w.body.label)).toEqual(['guardrail::block']);
+  });
+
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
     const r = sweep(group(), { CI_SERVER_FQDN: 'gitlab.example' });
     expect(r.code, r.stderr).toBe(0);
