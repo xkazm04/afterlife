@@ -42,6 +42,7 @@ The rest of the shell works without props:
 | `shell/` | `BottomDrawer({title, count, hint?, closeLabel, onClose, compact?})`: a titled panel docked under a pane, with a lit count pill, a hide button and a scrolling live body (the content is the screen's)<br>`dock/CommandDock({line, title?})`, `dock/DockKey({optional?})`, `dock/DockText({tone: prompt\|note})`: the strip docked at the bottom of a `position: relative` pane, with the exact line the next key runs and the key hints (the optional ones go first under 820 px) |
 | `surface/` | `Card`: a quiet raised tile; layout is the caller's `className` |
 | `icons/` | `Icon({name, label?})` |
+| `palette/` | `CommandPalette({projects})`: ⌘K (Ctrl+K) anywhere, or `openPalette()`; screens, the loop's actions and every project, ranked by `model/rank` (prefix, word start, substring, subsequence); it only navigates. Mounted once in `app/Providers` |
 
 ## Conventions
 

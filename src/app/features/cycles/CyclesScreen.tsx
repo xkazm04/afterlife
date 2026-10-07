@@ -24,8 +24,8 @@ import styles from './cycles.module.css';
  * person to merge, and closes only when a same-engine rescan credits or rejects each change. The grid replays every
  * stage from day 0; the answer band proves the replay equals the latest scan. Illustrative demo data.
  */
-export function CyclesScreen({ data }: { data: CyclesData }) {
-  const c = useCycles(data);
+export function CyclesScreen({ data, startDesign = false }: { data: CyclesData; startDesign?: boolean }) {
+  const c = useCycles(data, startDesign);
   const sel = c.selected;
   const d = c.design;
   const planned = c.view.cycles.find((x) => x.state === 'planned');

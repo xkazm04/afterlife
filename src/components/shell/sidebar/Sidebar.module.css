@@ -128,3 +128,18 @@
 .inactive i {
   background: var(--ctl-hi) !important;
 }
+/* the ⌘K chip beside the nav heading: opens the command palette */
+.goto {
+  padding: 0 5px;
+  height: calc(16px * var(--ui-scale));
+  border: 0;
+  border-radius: 4px;
+  background: var(--ctl);
+  font: 600 var(--t-small) var(--sys);
+  color: var(--text-3);
+  cursor: default;
+}
+.goto:hover {
+  background: var(--ctl-hi);
+  color: var(--text-1);
+}

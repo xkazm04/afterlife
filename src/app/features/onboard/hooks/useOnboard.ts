@@ -16,7 +16,7 @@ const FIRST_MR = 60;
  * The Onboard screen state: where every project stands (simulated runs move it), the batch size and scope (a
  * group, or the estate), what is selected, the step filter and the preview sheet. Nothing is written: a run is simulated and says so.
  */
-export function useOnboard(data: OnboardData) {
+export function useOnboard(data: OnboardData, startPreview = false) {
   const { status } = useToast();
   const [runs, setRuns] = useState(() => initialRuns(data));
   const [nextMr, setNextMr] = useState(FIRST_MR);
@@ -24,7 +24,7 @@ export function useOnboard(data: OnboardData) {
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState<Step | null>(null);
   const [group, setGroup] = useState<string | null>(null);
-  const [sheet, setSheet] = useState(false);
+  const [sheet, setSheet] = useState(startPreview);
 
   const steps = useMemo(() => Object.fromEntries(Object.entries(runs).map(([id, r]) => [id, r.step])) as Record<string, Step>, [runs]);
   const counts = useMemo(() => funnel(steps), [steps]);

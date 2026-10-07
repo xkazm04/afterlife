@@ -12,14 +12,15 @@ import type { Cycle } from '../model/types';
  * While you design, the grid previews the design live; a saved design becomes the planned cycle for this session
  * (the demo keeps it in the browser only, and says so).
  */
-export function useCycles(data: CyclesData) {
+export function useCycles(data: CyclesData, startDesign = false) {
   const { status } = useToast();
-  const startId = (data.cycles.find((c) => c.state === 'running') ?? data.cycles[data.cycles.length - 1])?.id ?? '';
+  const planned0 = data.cycles.find((c) => c.state === 'planned');
+  const startId = ((startDesign ? planned0 : undefined) ?? data.cycles.find((c) => c.state === 'running') ?? data.cycles[data.cycles.length - 1])?.id ?? '';
   const [selectedId, setSelectedId] = useState(startId);
   const all = useMemo(() => candidates(data), [data]);
   const initialPicks = useMemo(() => all.filter((c) => c.source === 'proposal' && !c.blocked).map((c) => c.id), [all]);
   const [saved, setSaved] = useState<string[] | null>(null);
-  const [draft, setDraft] = useState<string[] | null>(null);
+  const [draft, setDraft] = useState<string[] | null>(() => (startDesign && planned0 ? initialPicks : null));
 
   const pickOf = useCallback((ids: readonly string[]): Candidate[] => all.filter((c) => ids.includes(c.id)), [all]);
   const shown = draft ?? saved;

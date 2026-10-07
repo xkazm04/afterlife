@@ -22,8 +22,8 @@ import styles from './onboard.module.css';
  * runs on its own; every write is an MR opened as you after the exact commands, and waits for a person to merge it.
  * Only a probe moves a project on. Runs are simulated in the demo and say so.
  */
-export function OnboardScreen({ data }: { data: OnboardData }) {
-  const o = useOnboard(data);
+export function OnboardScreen({ data, startPreview = false }: { data: OnboardData; startPreview?: boolean }) {
+  const o = useOnboard(data, startPreview);
   const scope = o.group ?? 'whole estate';
   const pending = o.batch.reads.length + o.batch.writes.length;
   return (
