@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { TaskScreen } from '../../features/task/TaskScreen';
+import { loadPageFacts } from '../../features/task/model/build/loadPage';
 import { loadTasks } from '../../features/task/model/build/loadTasks';
 
 type Params = { params: Promise<{ id: string }> };
@@ -15,5 +16,5 @@ export default async function TaskPage({ params }: Params) {
   const tasks = loadTasks();
   const task = tasks.find((t) => t.id === id);
   if (!task) notFound();
-  return <TaskScreen tasks={tasks} task={task} />;
+  return <TaskScreen tasks={tasks} task={task} page={loadPageFacts()} />;
 }

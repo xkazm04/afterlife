@@ -42,8 +42,10 @@ export function idAfterFilter(visible: readonly TaskView[], currentId: string): 
 /** "7" when everything is shown, "2 / 7" when filtered. */
 export const docketCount = (shown: number, total: number): string => (shown === total ? String(total) : `${shown} / ${total}`);
 
-export function statusLine(visible: readonly TaskView[], ledgerAgeSec: number, now: string): string {
+/** `ledgerAgeSec` null: no poll has happened yet. `now` null: the wall clock is not known yet (the first render). */
+export function statusLine(visible: readonly TaskView[], ledgerAgeSec: number | null, now: string | null): string {
   const fails = visible.filter((t) => t.proof.verdict === 'FAIL').length;
   const open = visible.filter((t) => t.proof.verdict !== 'PASS' && t.proof.verdict !== 'FAIL').length;
-  return `${plural(visible.length, 'task')} · ${fails} fail${open ? ` · ${open} undetermined` : ''} · ledger read ${ledgerAgeSec} s ago · ${now} · reads only`;
+  const read = ledgerAgeSec === null ? 'ledger not read yet' : `ledger read ${ledgerAgeSec} s ago`;
+  return `${plural(visible.length, 'task')} · ${fails} fail${open ? ` · ${open} undetermined` : ''} · ${read}${now ? ` · ${now}` : ''} · reads only`;
 }

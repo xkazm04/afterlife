@@ -15,13 +15,14 @@ import { TaskInspector, type Panel } from './components/inspector/TaskInspector'
 import { ClassMenuButton } from './components/toolbar/ClassMenuButton';
 import { ReplayButton } from './components/toolbar/ReplayButton';
 import { VerdictLozenge } from './components/toolbar/VerdictLozenge';
-import { LEDGER_AGE_SEC, PAGE_NOW } from './data/pageFacts';
+import { usePageClock } from './hooks/usePageClock';
 import { useReplay } from './hooks/useReplay';
 import { useSelection } from './hooks/useSelection';
 import { useTaskKeys } from './hooks/useTaskKeys';
 import { arrowSelection, litLink, type Side } from './model/court/selection';
 import { NO_FILTERS, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdictCounts, visibleTasks, type Filters } from './model/docket/filters';
 import type { TaskAction } from './model/docket/keys';
+import type { PageFacts } from './model/build/loadPage';
 import type { TaskView } from './model/types';
 import styles from './TaskScreen.module.css';
 
@@ -30,8 +31,9 @@ import styles from './TaskScreen.module.css';
  * court sit in the pane; everything about the selection lives in the inspector; the docket is in the sidebar.
  * This screen reads only: nothing on it writes.
  */
-export function TaskScreen({ tasks, task }: { tasks: readonly TaskView[]; task: TaskView }) {
+export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; task: TaskView; page: PageFacts }) {
   const router = useRouter();
+  const clock = usePageClock(page);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [inspOpen, setInspOpen] = useState(true);
   const [panels, setPanels] = useState<Record<Panel, boolean>>({ words: false, trace: false, ledger: true });
@@ -78,7 +80,7 @@ export function TaskScreen({ tasks, task }: { tasks: readonly TaskView[]; task: 
   return (
     <Window
       title="Task"
-      subtitle="acme-lab / ledgerline"
+      subtitle={page.subtitle}
       toolbar={
         <>
           <VerdictLozenge counts={verdictCounts(tasks)} value={filters.verdict} onChange={(verdict) => applyFilters({ ...filters, verdict })} />
@@ -88,10 +90,10 @@ export function TaskScreen({ tasks, task }: { tasks: readonly TaskView[]; task: 
         </>
       }
       sidebar={<Docket tasks={tasks} visible={visible} currentId={task.id} />}
-      inspector={<TaskInspector task={task} sel={sel} row={replay.row} open={panels} onOpen={(panel, open) => setPanels((p) => ({ ...p, [panel]: open }))} />}
+      inspector={<TaskInspector task={task} clock={clock} sel={sel} row={replay.row} open={panels} onOpen={(panel, open) => setPanels((p) => ({ ...p, [panel]: open }))} />}
       inspectorOpen={inspOpen}
       onInspectorOpenChange={setInspOpen}
-      status={statusLine(visible, LEDGER_AGE_SEC, PAGE_NOW)}
+      status={statusLine(visible, clock.ageSec, clock.now)}
       help={<TaskLegend />}
       helpTitle="Legend"
     >

@@ -12,7 +12,7 @@ import { hasMarkup } from '../../model/exhibits';
 import type { Selection } from '../../model/court/selection';
 import type { TaskView } from '../../model/types';
 import { verdictGlyph, verdictKind } from '../../model/verdict/verdict';
-import { LEDGER_AGE_SEC, PAGE_NOW, POLICY_SHA } from '../../data/pageFacts';
+import { POLICY_SHA } from '../../data/pageFacts';
 import { Exhibits } from './Exhibits';
 import { LedgerRows } from './LedgerRows';
 import { SelectionRuling } from './SelectionRuling';
@@ -26,12 +26,15 @@ export type Panel = 'words' | 'trace' | 'ledger';
  */
 export function TaskInspector({
   task,
+  clock,
   sel,
   row,
   open,
   onOpen,
 }: {
   task: TaskView;
+  /** The page's poll age and wall time; the age is null when no poll has happened. */
+  clock: { ageSec: number | null; now: string | null };
   sel: Selection;
   /** The ledger row lit by a running replay. */
   row: number | null;
@@ -39,6 +42,13 @@ export function TaskInspector({
   onOpen: (panel: Panel, open: boolean) => void;
 }) {
   const kind = verdictKind(task.proof.verdict);
+  const ledgerRead = !task.fixture ? (
+    <HonestyChip key="l" kind="unknown">no rows</HonestyChip>
+  ) : clock.ageSec === null ? (
+    <HonestyChip key="l" kind="unknown">no poll yet</HonestyChip>
+  ) : (
+    `${clock.ageSec} s ago${clock.now ? ` · ${clock.now}` : ''}`
+  );
   return (
     <>
       <InspectorHeader
@@ -103,7 +113,7 @@ export function TaskInspector({
             ['Engine', `${task.proof.engine} · no model`],
             ['Digest', <span key="d" className={styles.mono}>{task.proof.digest}</span>],
             ['Policy', task.fixture ? <ObjectLink key="p" target={`policy @${POLICY_SHA}`} /> : <HonestyChip key="p" kind="unknown" />],
-            ['Ledger read', task.fixture ? `${LEDGER_AGE_SEC} s ago · ${PAGE_NOW}` : <HonestyChip key="l" kind="unknown">no rows</HonestyChip>],
+            ['Ledger read', ledgerRead],
           ]}
         />
       </InspectorSection>
