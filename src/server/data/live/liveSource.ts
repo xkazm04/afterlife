@@ -7,6 +7,7 @@ import { DEMO } from '@/lib/demo';
 import type { DemoData } from '@/lib/demo/types';
 import { STAGES } from '@/schemas/stages';
 import type { DataSource, IllustrativePart } from '../types';
+import { isSeeded } from './seeded';
 import type { LiveSnapshot } from './snapshot';
 
 export const LIVE_ILLUSTRATIVE: readonly IllustrativePart[] = ['tracks', 'loop', 'cockpit', 'setup', 'policy-history', 'records'];
@@ -28,7 +29,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getLoop: () => catalogue.loop,
     getTasks: () => data().tasks,
     getNeedsYou: () => data().needsYou,
-    getNeedsYouCount: () => data().needsYou.length,
+    getNeedsYouCount: () => data().needsYou.filter((n) => !isSeeded(n.id)).length,
     getSetup: () => data().setup,
     getEvents: () => data().events,
     getCockpit: () => data().cockpit,

@@ -6,6 +6,7 @@ import { clock, getActionClasses, getEvents, getFleet, getMaturity, getNeedsYou,
 import { getPairing } from '@/server/index/repositories/pairing';
 import type { Queryable } from '@/server/index/repositories/sql';
 import type { PolicyRules } from '../types';
+import { isSeeded } from './seeded';
 import { actionClass, maturity, task } from './narrow';
 
 export interface LiveData {
@@ -35,12 +36,15 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
     getPairing(db, 'default'),
   ]);
   const group = pairing?.groupPath ?? 'not paired';
+  // Live counts only what /needs-you shows: the index keeps the demo's seeded items, the data source does not count them.
+  const unseeded = needsYou.filter((n) => !isSeeded(n.id)).length;
+  const shown = { ...fleet, projects: fleet.projects.map((p) => (p.id === deep ? { ...p, needsYou: unseeded } : p)) };
   const feed = fleet.projects.find((p) => p.id === deep)?.feed;
   return {
     at, deep,
     data: {
-      fleet,
-      portfolio: { group, projectsWatched: fleet.projects.filter((p) => p.state === 'watching').length, asOf: clock(at), projects: [] },
+      fleet: shown,
+      portfolio: { group, projectsWatched: shown.projects.filter((p) => p.state === 'watching').length, asOf: clock(at), projects: [] },
       actionClasses: classes.map(actionClass),
       maturity: maturity(mat),
       tasks: tasks.flatMap((t) => task(t) ?? []),
