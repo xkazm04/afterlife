@@ -40,8 +40,14 @@ tripwire demotion; the answer is `failed`. Without a `last_commit_id` from GitLa
   cycle runs and the snapshot is rebuilt, whether or not every command passed.
 - **Demo**: planned against the seeded fake group, never executed, no record: `results[].simulated === true`.
 
-A server action is an endpoint: same-origin only (Next checks), validated, and it acts as whoever is logged in to `glab`.
-Run Belay on `localhost`; do not expose its port.
+A server action is an endpoint: validated, and it acts as whoever is logged in to `glab`. `previewId` is a digest of the
+commands, not a secret: any caller that can reach the port can preview and then confirm. Next's own check (the Origin's
+host must equal the Host) lets a request with no Origin through, and a page reached through DNS rebinding sends its own
+name as both. So in live mode `previewAction`, `confirmAction` and `repollAction` answer only a request whose Host,
+X-Forwarded-Host and Origin name `localhost`, `127.0.0.1` or `[::1]` (`local.ts`); anything else is refused before anything
+is planned or read. A process that reaches the port can forge those headers, and `next dev` / `next start` listen on
+0.0.0.0 by default: run Belay with `-H 127.0.0.1`, and do not expose its port. Demo mode is not held to it (it never runs
+anything, and the hosted replay is served under its own name).
 
 ## Re-poll (a read)
 
