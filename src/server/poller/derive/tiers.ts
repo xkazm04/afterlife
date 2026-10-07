@@ -73,7 +73,7 @@ export function deriveTiers(
     if (st.kind === 'held') {
       tier = st.tier;
       if (st.leaseLapsed) move = { kind: 'note', at: lease, note: 'lease lapsed: supervised' };
-      else if (st.record.by.startsWith('tripwire')) move = { kind: 'tripwire', at: since, note: null };
+      else if (st.record.by.startsWith('tripwire')) move = { kind: 'tripwire', at: since, note: st.record.reason ?? null }; // the trigger
       else if (/promotion/i.test(st.record.by)) move = { kind: 'promoted', at: since, note: null };
       if (st.record.by.startsWith('tripwire') && tier === 'quarantined') {
         quarantines.push({ classId: id, role: c.agent, track, reason: st.record.reason ?? null, evidence: st.record.evidence ?? null, since });
