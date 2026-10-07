@@ -138,7 +138,7 @@ describe('roll-ups and tiers', () => {
     expect(by.a).toMatchObject({ tier: 'supervised', move: { kind: 'note', note: 'lease lapsed: supervised' } }); // hands_off, lease ended 5 days ago
     expect(by.b?.tier).toBe('supervised'); // recorded hands_off, ceiling supervised
     expect(by.c?.tier).toBe('human_only');
-    expect(by.d).toMatchObject({ tier: 'quarantined', move: { kind: 'note', note: 'no tier record: not trusted' } });
+    expect(by.d).toMatchObject({ tier: 'quarantined', move: { kind: 'no_record', note: null } });
   });
 
   it('a tripwire record inside the window is a demotion and a quarantine ask; outside it, only the ask', () => {

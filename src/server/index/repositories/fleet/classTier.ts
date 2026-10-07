@@ -2,8 +2,12 @@ import type { ClassRecord } from '@/lib/demo/types';
 import type { Ceiling } from '@/schemas/tier';
 import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
 
-/** How the class last changed. 'note' carries a fixed explanation in `note`. */
-export type MoveKind = 'promoted' | 'demoted' | 'tripwire' | 'ineligible' | 'note';
+/**
+ * How the class last changed. 'note' carries a fixed explanation in `note`. 'no_record' and 'refused' are the two
+ * standings in which the gate grants nothing (the row's tier is then quarantined): no agent holds the class, or several
+ * do and none is named for the role (`note` lists them).
+ */
+export type MoveKind = 'promoted' | 'demoted' | 'tripwire' | 'ineligible' | 'note' | 'no_record' | 'refused';
 
 export interface ClassTierRow {
   projectId: string;

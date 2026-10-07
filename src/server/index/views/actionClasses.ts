@@ -17,6 +17,8 @@ function lastMove(row: ClassTierRow, now: Date): string {
     case 'ineligible':
       return row.record ? `record ${row.record.accepted} / ${row.record.needed ?? '?'} · not eligible` : 'not eligible';
     case 'note': return m.note ?? 'unknown';
+    case 'no_record': return 'no tier record: not trusted';
+    case 'refused': return m.note ? `several agents hold it (${m.note}): blocked` : 'several agents hold it: blocked';
   }
 }
 
