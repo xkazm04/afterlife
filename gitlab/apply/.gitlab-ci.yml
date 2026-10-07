@@ -1,0 +1,66 @@
+# CI of belay-apply (this folder is its root): the one project that holds Belay's write tokens and makes every Belay write
+# (F4, decided 2026-10-07, ask 6696d24d). It runs only this file, from its own protected default branch. It never checks out,
+# includes or runs a target's code or CI config: it reads targets through the API and clones only belay-engine (at the
+# pinned ref and commit in apply.json) and belay-policy.
+# It takes no value from a pipeline variable, a trigger or a webhook: every setting is in apply.json, a file of this branch,
+# and no job here reads a variable it does not define, other than GitLab's predefined ones and the four tokens.
+# Syntax: workflow:rules, rules, resource_group, before_script ... https://docs.gitlab.com/ci/yaml/ [S]
+#         CI_COMMIT_REF_PROTECTED, CI_PIPELINE_SOURCE ............ https://docs.gitlab.com/ci/variables/predefined_variables/ [R]
+# Settings this project needs: README.md next to this file.
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true" && $CI_PIPELINE_SOURCE =~ /^(schedule|push|web|trigger)$/
+
+stages: [sweep]
+
+.belay-apply-boot:
+  image: node:22-bookworm
+  interruptible: false
+  variables:
+    GIT_DEPTH: "1"
+  before_script:
+    - |
+      set -eu
+      CFG="$CI_PROJECT_DIR/apply.json"
+      cfg() { node -p "const c=require(process.argv[1]); String($1 ?? '')" "$CFG"; }
+      ENGINE_PROJECT="$(cfg c.engine.project)"; ENGINE_REF="$(cfg c.engine.ref)"; ENGINE_COMMIT="$(cfg c.engine.commit)"
+      GLAB_VERSION="$(cfg c.glab.version)"; GLAB_SHA256="$(cfg c.glab.sha256)"
+      case "$ENGINE_COMMIT" in *[!0-9a-f]*|"") echo "apply.json engine.commit must be the 40-char commit of engine.ref" >&2; exit 2 ;; esac
+      [ "${#ENGINE_COMMIT}" -eq 40 ] || { echo "apply.json engine.commit must be 40 hex digits" >&2; exit 2; }
+      [ -n "$GLAB_SHA256" ] || { echo "apply.json glab.sha256 is empty: this job holds the write tokens, so glab is checked" >&2; exit 2; }
+      export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
+      rm -rf "$BELAY_DIR" && git init -q "$BELAY_DIR"
+      BASIC="$(printf 'gitlab-ci-token:%s' "$CI_JOB_TOKEN" | base64 -w0)"
+      GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.extraHeader GIT_CONFIG_VALUE_0="Authorization: Basic $BASIC" \
+        git -C "$BELAY_DIR" fetch -q --depth 1 "https://${CI_SERVER_FQDN}/${ENGINE_PROJECT}.git" "$ENGINE_REF"
+      git -C "$BELAY_DIR" checkout -q FETCH_HEAD
+      if [ "$(git -C "$BELAY_DIR" rev-parse HEAD)" != "$ENGINE_COMMIT" ]; then
+        echo "belay engine is at $(git -C "$BELAY_DIR" rev-parse HEAD), not the pinned $ENGINE_COMMIT" >&2; exit 2
+      fi
+      (cd "$BELAY_DIR" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error)
+      if ! command -v glab >/dev/null 2>&1; then
+        V="$GLAB_VERSION"; T="$(mktemp -d)"
+        curl -fsSL -o "$T/glab.tgz" "https://gitlab.com/gitlab-org/cli/-/releases/v${V}/downloads/glab_${V}_linux_amd64.tar.gz" # [R?]
+        echo "$GLAB_SHA256  $T/glab.tgz" | sha256sum -c -
+        tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
+      fi
+      # Reads and the bot's writes use the bot token; the policy, ledger and dispatch tokens are handed to the one script
+      # that writes with each. Without the bot token everything only reports.
+      if [ -n "${BELAY_BOT_TOKEN:-}" ]; then export GITLAB_TOKEN="$BELAY_BOT_TOKEN"
+      else glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"; fi
+
+# Every open agent MR of every target: the re-derived proof, the gate, the guardrail's dispatch, the ledger.
+belay-apply-sweep:
+  extends: .belay-apply-boot
+  stage: sweep
+  resource_group: belay-apply-sweep
+  script:
+    - node "$BELAY_DIR/gitlab/apply/sweep.mjs" --config "$CI_PROJECT_DIR/apply.json" --work "$CI_PROJECT_DIR/.belay"
+
+# The tripwire for every target: demotions committed to belay-policy with BELAY_POLICY_TOKEN.
+belay-apply-tripwire:
+  extends: .belay-apply-boot
+  stage: sweep
+  resource_group: belay-policy-tripwire
+  script:
+    - node "$BELAY_DIR/gitlab/apply/tripwire-sweep.mjs" --config "$CI_PROJECT_DIR/apply.json" --work "$CI_PROJECT_DIR/.belay-tripwire"

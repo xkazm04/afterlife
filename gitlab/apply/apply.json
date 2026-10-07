@@ -1,0 +1,28 @@
+{
+  "group": "acme",
+  "engine": {
+    "project": "acme/belay-engine",
+    "ref": "v0.1.0",
+    "commit": "0000000000000000000000000000000000000000"
+  },
+  "glab": { "version": "1.120.0", "sha256": "" },
+  "policy": { "project": "acme/belay-policy", "branch": "main", "write_mode": "commit" },
+  "ledger": { "project": "acme/belay-ledger", "branch": "main" },
+  "bot": "belay-bot",
+  "agent_prefix": "ai-",
+  "guardrail_authors": "ai-guardrail-acme",
+  "medic_authors": "ai-medic-acme",
+  "lookback_hours": 24,
+  "targets": {
+    "acme/ledgerline": {
+      "guardrail_consumer_id": 4711,
+      "evidence": {
+        "job": "belay-replay",
+        "base_junit": "evidence/base/junit.xml",
+        "head_junit": "evidence/head/junit.xml",
+        "rescan_base": "evidence/base/scan.json",
+        "rescan_head": "evidence/head/scan.json"
+      }
+    }
+  }
+}
