@@ -28,10 +28,17 @@ export function findHolder(state: TierState, classId: string, role: string, agen
 
 const lower = (a: Tier, b: Tier): Tier => (TIER_ORDER.indexOf(a) <= TIER_ORDER.indexOf(b) ? a : b);
 
+/** A lease that is set has lapsed when it is past, and also when it is not a readable time: tier-state.yml checks tiers only. */
+const lapsed = (lease: unknown, now: Date): boolean => {
+  if (lease === undefined) return false;
+  const t = typeof lease === 'string' ? Date.parse(lease) : Number.NaN;
+  return Number.isNaN(t) || t < +now;
+};
+
 /** The tier a record grants under a ceiling at `now`. */
 export function effectiveOf(record: Pick<TierRecord, 'tier' | 'lease_expires'>, ceiling: Tier, now: Date): { tier: Tier; leaseLapsed: boolean } {
   const tier = lower(record.tier, ceiling);
-  const leaseLapsed = tier === 'hands_off' && !!record.lease_expires && +new Date(record.lease_expires) < +now;
+  const leaseLapsed = tier === 'hands_off' && lapsed(record.lease_expires, now);
   return { tier: leaseLapsed ? 'supervised' : tier, leaseLapsed }; // a lapsed grant falls to supervised until a person re-confirms it
 }
 
