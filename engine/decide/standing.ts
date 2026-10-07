@@ -1,7 +1,8 @@
 // Where an action class stands for the gate: which agent holds it and at what effective tier. The gate decides from
 // this, and Belay's screens show it, so both read one rule: the lower of the tier-state record and the class ceiling,
 // a lapsed hands-off lease reads supervised, no record reads quarantined, and no agent ever holds a human_only class.
-// It fails closed: several holders with none named for the role is a refusal, never a guess.
+// It fails closed: several holders with none named for the role is a refusal, never a guess. CI names the agent (the MR
+// author, --agent), so a class several agents hold stands per holder: holderStandings reads each one as CI would.
 import { TIER_ORDER, type Ceiling, type Tier, type TierRecord, type TierState } from '../../src/schemas/tier';
 
 export type Standing =
@@ -12,6 +13,7 @@ export type Standing =
   /** No agent holds the class (or the named agent has no record): not trusted. */
   | { kind: 'no_record'; agent: string | null; why: string }
   | { kind: 'held'; agent: string; record: TierRecord; ceiling: Tier; tier: Tier; leaseLapsed: boolean };
+export type Held = Extract<Standing, { kind: 'held' }>;
 
 /** A key the object itself holds: a class or agent id read from an MR (`constructor`) never reaches Object.prototype. */
 const own = <T>(o: Readonly<Record<string, T>>, k: string): T | undefined => (Object.hasOwn(o, k) ? o[k] : undefined);
@@ -59,4 +61,18 @@ export function standingOf(
     return { kind: 'no_record', agent: h.agent, why: h.why ?? `${h.agent ?? 'agent'} has no tier record for ${classId}; an unlisted class is not trusted` };
   }
   return { kind: 'held', agent: h.agent, record, ceiling: cls.ceiling, ...effectiveOf(record, cls.ceiling, now) };
+}
+
+/**
+ * Every agent that holds the class, each at the standing the gate gives a merge request it authored: standingOf with
+ * that agent, as CI calls the gate. Empty for an unknown or human_only class; one entry when one agent holds it.
+ */
+export function holderStandings(
+  classes: Readonly<Record<string, { agent: string; ceiling: Ceiling }>>, state: TierState, classId: string, now: Date,
+): Held[] {
+  const cls = own(classes, classId);
+  if (!cls) return [];
+  return findHolder(state, classId, cls.agent).holders
+    .map((a) => standingOf(classes, state, classId, now, a))
+    .filter((s): s is Held => s.kind === 'held');
 }

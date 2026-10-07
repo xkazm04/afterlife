@@ -3,7 +3,7 @@ import type { TierRecord, TierState } from '../../src/schemas/tier';
 import { NOW, policy } from '../__tests__/helpers';
 import { checkEnvelope } from '../policy/envelope';
 import { gate } from './gate';
-import { effectiveOf, findHolder, standingOf } from './standing';
+import { effectiveOf, findHolder, holderStandings, standingOf } from './standing';
 
 const P = policy();
 const AGENT = 'ai-patcher-acme';
@@ -54,5 +54,36 @@ describe('standing: only the policy’s own classes are classes', () => {
 
   it('the envelope names a prototype key an unknown class', () => {
     expect(checkEnvelope(P, 'constructor', '').violations).toContain('unknown action class "constructor"');
+  });
+});
+
+describe('standing: each holder of a class several agents hold, as CI gates it', () => {
+  const rec = (tier: TierRecord['tier'], extra: Partial<TierRecord> = {}): TierRecord => ({ tier, since: '2026-10-09', by: 'test', ...extra });
+  const several: TierState = {
+    version: 1, policy_sha: 'x',
+    agents: {
+      'ai-patcher-a': { 'code-fix.patch': rec('hands_off') }, // over the supervised ceiling
+      'ai-patcher-b': { 'code-fix.patch': rec('assisted') },
+      'ai-gardener-acme': { 'dep-bump.patch': rec('hands_off', { lease_expires: '2026-10-01T00:00:00Z' }) },
+      [AGENT]: { 'dep-bump.patch': rec('supervised') },
+    },
+  };
+
+  it.each(['code-fix.patch', 'dep-bump.patch'])('%s: every holder at the tier gate({..., agent}) grants it', (cls) => {
+    const hs = holderStandings(P.classes, several, cls, NOW);
+    expect(hs.length).toBe(2);
+    for (const h of hs) expect(h.tier).toBe(gate({ policy: P, state: several, classId: cls, agent: h.agent, now: NOW }).tier);
+  });
+
+  it('caps at the ceiling and reads a lapsed lease supervised', () => {
+    const by = (cls: string) => Object.fromEntries(holderStandings(P.classes, several, cls, NOW).map((h) => [h.agent, h.tier]));
+    expect(by('code-fix.patch')).toEqual({ 'ai-patcher-a': 'supervised', 'ai-patcher-b': 'assisted' });
+    expect(by('dep-bump.patch')).toEqual({ 'ai-gardener-acme': 'supervised', [AGENT]: 'supervised' });
+  });
+
+  it('lists no one for a class no one holds, an unknown class or a human_only class', () => {
+    expect(holderStandings(P.classes, several, 'qa.file-bug', NOW)).toEqual([]);
+    expect(holderStandings(P.classes, several, 'constructor', NOW)).toEqual([]);
+    expect(holderStandings(P.classes, { ...several, agents: { a: { 'report.submit': rec('hands_off') } } }, 'report.submit', NOW)).toEqual([]);
   });
 });
