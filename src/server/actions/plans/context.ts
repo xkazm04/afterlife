@@ -38,13 +38,17 @@ export interface Located {
   policy: GlProject;
 }
 
+/**
+ * The project and the group's own belay-policy. Read only. belay-policy is the one at <group>/belay-policy, the file the
+ * gate reads: a project of that name in a subgroup, or shared in from elsewhere, is never written as the policy (F46).
+ */
 export async function locate(ctx: PlanContext, indexId: string): Promise<Located> {
-  const all = await ctx.port.listProjects(ctx.groupId);
-  const gid = await ctx.gitlabId(indexId);
+  const [all, gid, group] = await Promise.all([ctx.port.listProjects(ctx.groupId), ctx.gitlabId(indexId), ctx.port.getGroup(ctx.groupId)]);
   const project = all.find((p) => (gid !== null ? p.id === gid : p.path === indexId));
-  const policy = all.find((p) => p.path === ctx.cfg.policyProject);
+  const policyPath = `${group.fullPath}/${ctx.cfg.policyProject}`;
+  const policy = all.find((p) => p.pathWithNamespace === policyPath);
   if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);
-  if (!policy) throw new ActionRefused(`the group has no ${ctx.cfg.policyProject} project: policy cannot be changed`);
+  if (!policy) throw new ActionRefused(`the group has no ${policyPath} project: policy cannot be changed`);
   return { project, policy };
 }
 
