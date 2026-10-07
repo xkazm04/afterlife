@@ -23,6 +23,8 @@ function Status({ a }: { a: ArmState }) {
       </span>
     );
   if (a.st === 'probing') return <Spinner />;
+  if (a.st === 'undefined') return <>not defined</>;
+  if (a.st === 'unknown') return <>? unknown</>;
   return (
     <>
       {LOCK}locked

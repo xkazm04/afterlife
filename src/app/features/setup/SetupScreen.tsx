@@ -5,6 +5,7 @@ import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
 import type { ActionClass, Track } from '@/lib/demo/types';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
+import type { LiveSetupRead } from '@/server/data/setup/types';
 import { SetupInspector } from './components/inspector/SetupInspector';
 import { UnlockMap } from './components/map/UnlockMap';
 import { SetupLegend } from './components/SetupLegend';
@@ -20,10 +21,13 @@ import { createSetupState, type SetupDemo } from './model/flow/state';
  * Setup: the unlock map. Steps 0-14, the eight tracks in arm order and the belay doctor capabilities, joined by
  * drawn edges. Probes move steps, MRs arm tracks, and Belay writes only on a click, after showing the server's plan.
  * Esc clears the pick; Tab walks the map; Cmd/Ctrl+I toggles the inspector (the Window does that one).
+ * `live`: what the server read (live mode); every state comes from it.
  */
-export function SetupScreen({ setup, tracks, classes }: { setup: SetupDemo; tracks: readonly Track[]; classes: readonly ActionClass[] }) {
+export function SetupScreen({
+  setup, tracks, classes, live = null,
+}: { setup: SetupDemo; tracks: readonly Track[]; classes: readonly ActionClass[]; live?: LiveSetupRead | null }) {
   const byId = useMemo(() => Object.fromEntries(tracks.map((t) => [t.id, t])), [tracks]);
-  const [initial] = useState(() => createSetupState(setup, Date.now()));
+  const [initial] = useState(() => createSetupState(setup, Date.now(), live));
   const writes = useArmWrite(initial.project);
   const { state, actions } = useSetupFlow(initial, writes);
   const view = useSetupView(state.doctor);

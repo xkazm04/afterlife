@@ -74,6 +74,16 @@
 .sn.probing .m {
   border-color: var(--accent);
 }
+/* live: a probe that looked and the step is not done; a step nobody probed (dashed, never rounded up) */
+.sfailed .m {
+  border-color: var(--fail);
+  color: var(--fail);
+}
+.sunknown .m {
+  border-style: dashed;
+  border-color: var(--unknown);
+  color: var(--unknown);
+}
 @keyframes halo {
   0%,
   100% {
@@ -142,6 +152,19 @@
 }
 .locked .st {
   color: var(--text-4);
+  font-weight: 500;
+}
+
+/* live: a track the repo does not define yet, or whose read failed */
+.tn.undefined,
+.tn.unknown {
+  border-style: dashed;
+  border-color: color-mix(in oklab, var(--unknown) 55%, transparent);
+}
+.tn.undefined .lb,
+.tn.undefined .st,
+.tn.unknown .st {
+  color: var(--text-3);
   font-weight: 500;
 }
 

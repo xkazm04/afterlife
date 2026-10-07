@@ -1,6 +1,7 @@
 // Setup in live mode reads its states from the fake GitLab (the demo group) and the index, never from the catalogue:
 // each track's arm block (checkArm), the belay doctor (probeCapabilities) and the steps a read can observe.
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
 import { DEMO } from '@/lib/demo';
 import { liveRig } from '@/server/actions/__tests__/rig';
 import { removeBlock } from '@/server/actions/arm/block';
@@ -12,6 +13,11 @@ import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
 import type { GitLabPort } from '@/server/gitlab/port';
 import { getPairing } from '@/server/index/repositories/pairing';
+import { demoSource } from '../demoSource';
+import { replayClock } from '../live/clock';
+import { liveSource } from '../live/liveSource';
+import { buildSnapshot } from '../live/snapshot';
+import { setDataSource } from '../select';
 import { BELAY_PROJECTS, readLiveSetup, setupReads, type SetupPort } from '../setup/read';
 
 const IDS = DEMO.setup.arm.map(([id]) => id);
@@ -112,5 +118,27 @@ describe('the live steps show what a read saw, and unknown for every other', () 
     expect([l.group, l.host, l.project]).toEqual(['acme-lab', 'gitlab.com', 'ledgerline']);
     expect(Object.keys(l.tracks)).toEqual(IDS);
     expect(l.doctor.rows.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Setup's loader: demo reads nothing; live reads each state", () => {
+  afterEach(() => setDataSource(null));
+
+  it('live: T4 from checkArm, the doctor from the probe, the steps from reads; demo: none of it', async () => {
+    const { db, deps } = await reads();
+    const snap = await buildSnapshot(db, replayClock.read(), 'ledgerline', DEMO);
+    setDataSource(liveSource(() => snap, DEMO, () => deps));
+    const l = await loadSetupData();
+    setDataSource(demoSource);
+    const d = await loadSetupData();
+    expect(d.live).toBeNull();
+    const r = l.live!;
+    // Not setup.arm (T4 armed, the rest ready or locked), nor DEMO.tracks (all eight armed): the read of ledgerline's main.
+    expect(r.tracks.T4?.state).toBe('armed');
+    expect(Object.entries(r.tracks).filter(([, t]) => t.state === 'undefined').map(([id]) => id)).toEqual(['T3', 'T6', 'T1', 'T5', 'T2', 'T7', 'T8']);
+    const demoRows = new Set(DEMO.setup.doctor.rows.map(([n]) => n));
+    expect(r.doctor.rows.length).toBeGreaterThan(0);
+    expect(r.doctor.rows.filter((x) => demoRows.has(x.label))).toEqual([]);
+    expect(new Set(Object.values(r.steps.steps).map((x) => x.state))).toEqual(new Set(['done', 'failed', 'unknown']));
   });
 });

@@ -7,8 +7,8 @@ import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { plural } from '@/lib/format/plural';
 import { GATE_FREES } from '../../data/armMeta';
-import { STEP_DETAIL } from '../../data/stepDetail';
 import { useSetup } from '../../hooks/SetupContext';
+import { stepDetail } from '../../model/flow/state';
 import { GRAPH } from '../../model/map/appGraph';
 import { stepFreesAll } from '../../model/map/graph';
 import { Chip } from '@/components/status/chip/Chip';
@@ -17,11 +17,21 @@ import { ProbeLine } from './parts/ProbeLine';
 import { TrackDep } from './parts/TrackDep';
 import type { useOpenSections } from './parts/useOpenSections';
 
-/** A picked step: who does it, the exact command or the thing to do, the last probe, and what it frees. */
+function StateChip({ st, gate }: { st: string; gate: boolean }) {
+  if (st === 'done') return <Chip tone="ok">probed</Chip>;
+  if (st === 'unknown') return <Chip tone="unknown">unknown</Chip>;
+  if (st === 'failed') return <Chip tone="bad">probed · not yet</Chip>;
+  return gate ? <Chip tone="you">only you</Chip> : <Chip tone="accent">agent or you</Chip>;
+}
+
+/**
+ * A picked step: who does it, the exact command or the thing to do, the last probe, and what it frees. Live mode never
+ * sends a step's write from here (Copy only), and its commands name the paired group and project.
+ */
 export function StepPanel({ n, section }: { n: number; section: ReturnType<typeof useOpenSections> }) {
   const { state, actions } = useSetup();
   const s = state.steps[n];
-  const d = STEP_DETAIL[n];
+  const d = stepDetail(state, n);
   if (!s || !d) return null;
   const done = s.st === 'done';
   const busy = s.st === 'probing';
@@ -38,7 +48,7 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
         sub={`Step ${n} · ${s.phase}`}
       >
         <div className={styles.chips}>
-          {done ? <Chip tone="ok">probed</Chip> : gate ? <Chip tone="you">only you</Chip> : <Chip tone="accent">agent or you</Chip>}
+          <StateChip st={s.st} gate={gate} />
           {d.write ? <Chip>writes</Chip> : null}
         </div>
         <p className={styles.does}>{d.does}</p>
@@ -62,14 +72,22 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
           </div>
         </InspectorSection>
       ) : (
-        <InspectorSection title="Next write" aux="preview · nothing sent" {...section('write')}>
-          <CommandBlock commands={[...(d.cmd ?? []), { note: '# runs as @you via glab · flags illustrative' }]} />
+        <InspectorSection title="Next write" aux={state.live ? 'copy · Belay does not send it' : 'preview · nothing sent'} {...section('write')}>
+          <CommandBlock commands={[...(d.cmd ?? []), { note: state.live ? '# run it as you, or your agent via adopt-belay · flags illustrative' : '# runs as @you via glab · flags illustrative' }]} />
           <div className={styles.acts}>
-            <Button variant="accent" disabled={busy} title="Or your coding agent runs it via adopt-belay. Done only on the probe." onClick={() => void actions.send(n)}>
-              Send as you
-            </Button>
+            {state.live ? null : (
+              <Button variant="accent" disabled={busy} title="Or your coding agent runs it via adopt-belay. Done only on the probe." onClick={() => void actions.send(n)}>
+                Send as you
+              </Button>
+            )}
             <Button onClick={() => actions.copyStep(n)}>Copy</Button>
-            <Button onClick={() => actions.skip(n)}>Skip</Button>
+            {state.live ? (
+              <Button disabled={busy} onClick={() => void actions.probe(n)}>
+                Read again
+              </Button>
+            ) : (
+              <Button onClick={() => actions.skip(n)}>Skip</Button>
+            )}
           </div>
         </InspectorSection>
       )}

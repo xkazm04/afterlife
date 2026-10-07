@@ -30,6 +30,8 @@ const CHIP: Record<string, { tone: ChipTone; word: (a: ArmState) => string }> = 
   open: { tone: 'you', word: (a) => `merge ${mrName(a)}` },
   probing: { tone: 'accent', word: () => 'probing' },
   locked: { tone: 'unknown', word: () => 'locked' },
+  undefined: { tone: 'unknown', word: () => 'not defined yet' },
+  unknown: { tone: 'unknown', word: () => 'unknown' },
 };
 
 /** A picked track: arm, merge, disarm or why it is locked; the tier it arms at; what it needs, relies on and frees. */

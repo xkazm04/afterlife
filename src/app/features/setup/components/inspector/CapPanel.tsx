@@ -17,8 +17,8 @@ import type { useOpenSections } from './parts/useOpenSections';
 export function CapPanel({ name, section }: { name: string; section: ReturnType<typeof useOpenSections> }) {
   const { state, actions } = useSetup();
   const st = capSt(state, name);
-  const uses = CAP_USES[name] ?? [];
-  const note = CAP_NOTE[name];
+  const uses = state.live ? [] : (CAP_USES[name] ?? []);
+  const note = state.live ? state.doctor.find((r) => r.name === name)?.reason : CAP_NOTE[name];
   return (
     <>
       <InspectorHeader title={CAP_SHORT[name] ?? name} icon={<CapGlyph st={st} size={18} />} sub={name}>
@@ -40,7 +40,11 @@ export function CapPanel({ name, section }: { name: string; section: ReturnType<
         </Button>
       </InspectorSection>
       <InspectorSection title="Tracks that rely on it" aux={uses.length ? `${uses.length} · illustrative` : undefined} {...section('uses')}>
-        {uses.length ? uses.map((id) => <TrackDep key={id} id={id} />) : <div className={styles.muted}>None</div>}
+        {uses.length ? (
+          uses.map((id) => <TrackDep key={id} id={id} />)
+        ) : (
+          <div className={styles.muted}>{state.live ? 'Not mapped: Belay does not tie a live probe to the tracks yet' : 'None'}</div>
+        )}
       </InspectorSection>
     </>
   );

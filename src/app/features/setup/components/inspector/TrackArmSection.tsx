@@ -35,6 +35,7 @@ export function TrackArmSection({ id, section }: { id: string; section: (key: st
     const ready = w?.kind === 'preview';
     return (
       <InspectorSection title={plan ? 'Disarm' : 'Arm'} aux={plan ? 'one MR · the revert' : 'preview · nothing sent'} {...section('arm')}>
+        {a.found ? <div className={styles.muted}>Read: {a.found}</div> : null}
         <ArmPreview view={w} />
         <div className={styles.acts}>
           <Button variant={plan ? undefined : 'accent'} disabled={!ready} onClick={() => void (plan ? actions.disarm(id) : actions.armSend(id))}>
@@ -73,6 +74,13 @@ export function TrackArmSection({ id, section }: { id: string; section: (key: st
             I merged it · verify
           </Button>
         </div>
+      </InspectorSection>
+    );
+  }
+  if (a.st === 'undefined' || a.st === 'unknown') {
+    return (
+      <InspectorSection title={a.st === 'undefined' ? 'Not defined yet' : 'Unknown'} {...section('arm')}>
+        <div className={styles.muted}>{a.found ?? (a.st === 'undefined' ? `The repo does not define ${id}'s arm content yet` : 'The read of main failed')}</div>
       </InspectorSection>
     );
   }

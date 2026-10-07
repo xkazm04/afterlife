@@ -4,15 +4,16 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
 import type { ActionResponse } from '@/server/actions/types';
 import { commandLines, mrOf, NO_ANSWER, outcomeOf } from '@/server/actions/words';
-import { STEP_DETAIL } from '../data/stepDetail';
 import { BASE_MIN, DOCTOR_MS, PROBE_MS, REDUCED_MAX_MS } from '../data/timing';
 import { copyText } from '../model/clipboard/copy';
 import { clockLabel } from '../model/flow/probeAge';
 import { probeWillPass, setupReducer } from '../model/flow/reducer';
+import { stepDetail } from '../model/flow/state';
 import { verdictOf } from '../model/flow/verify';
 import { mrName } from '../model/flow/wording';
 import type { SetupState } from '../model/types';
 import { checkArm, sendArm } from '../write/arm';
+import { liveProbes } from './liveFlow';
 import type { ArmWrites } from './useArmWrite';
 
 export interface FlowActions {
@@ -40,8 +41,9 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, reduced() ? 
 
 /**
  * The setup state and everything that changes it. Arm and disarm go through the server's preview and confirm (the MR
- * number comes from the confirm's answer); the steps and the doctor are still simulated here. Messages go to a toast
- * and the status bar.
+ * number comes from the confirm's answer). Demo: the steps and the doctor are simulated here, on timers. Live: a step's
+ * verify and Re-probe ask the server to read again (liveFlow.ts), and a step's write is never sent from here. Messages
+ * go to a toast and the status bar.
  */
 export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: SetupState; actions: FlowActions } {
   const [state, dispatch] = useReducer(setupReducer, initial);
@@ -59,14 +61,21 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
     const copy = (text: string) => {
       void copyText(text, typeof navigator === 'undefined' ? undefined : navigator.clipboard).then((r) => toast(r.text));
     };
+    const tell = (m: string) => {
+      say(m);
+      toast(m);
+    };
+    // Built in the handlers, never during render: it reads the ref when a probe runs.
+    const live = () => liveProbes(() => ref.current, dispatch, tell);
     const probe = async (n: number) => {
+      if (ref.current.live) return live().probe(n);
       const cur = ref.current.steps[n];
       if (!cur || cur.st === 'probing' || cur.st === 'done') return;
       dispatch({ t: 'probe-start', n });
       await wait(PROBE_MS);
       const pass = probeWillPass(ref.current, n);
       dispatch({ t: 'probe-end', n, at: clock() });
-      const d = STEP_DETAIL[n];
+      const d = stepDetail(ref.current, n);
       if (pass) {
         say(`step ${n} · ${d?.probe ?? ''}`);
         toast(`Step ${n} · verified by Belay`);
@@ -110,6 +119,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
     return {
       probe,
       send: async (n) => {
+        if (ref.current.live) return tell(`Nothing sent · step ${n}: Belay does not run this step for you yet. Copy it and run it as you.`);
         say(`sent as @you: step ${n}`);
         toast(`Sent as you · step ${n} · probing`);
         await probe(n);
@@ -118,8 +128,8 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
         say(`step ${n} skipped · nothing sent`);
         toast(`Skipped step ${n} · nothing sent`);
       },
-      copyStep: (n) => copy((STEP_DETAIL[n]?.cmd ?? []).join('\n')),
-      openWhere: (n) => toast(`Would open: ${STEP_DETAIL[n]?.where ?? 'GitLab'}`),
+      copyStep: (n) => copy((stepDetail(ref.current, n)?.cmd ?? []).join('\n')),
+      openWhere: (n) => toast(`Would open: ${stepDetail(ref.current, n)?.where ?? 'GitLab'}`),
       armSend: (id) => send(id, false),
       armCopy: (id, revert) => {
         const view = writes.viewOf(id, revert);
@@ -147,6 +157,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
       },
       disarm: (id) => send(id, true),
       reprobe: async () => {
+        if (ref.current.live) return live().reprobe();
         if (ref.current.doctorBusy) return;
         dispatch({ t: 'doctor-start' });
         await wait(DOCTOR_MS);

@@ -17,9 +17,15 @@ export function trackWhy(s: SetupState, a: ArmState): string {
       return 'probing main…';
     case 'ready':
       return 'ready · 1 MR';
+    case 'undefined':
+      return 'not defined yet · the repo has no arm content for it';
+    case 'unknown':
+      return `unknown · ${a.found ?? 'the read of main failed'}`;
   }
 }
 
+const STEP_TIP: Readonly<Record<string, string>> = { human: ' · only you', done: ' · probed', failed: ' · probed · not yet', unknown: ' · unknown' };
+
 export function stepTip(n: number, st: string): string {
-  return `Step ${n}${st === 'human' ? ' · only you' : st === 'done' ? ' · probed' : ''}`;
+  return `Step ${n}${STEP_TIP[st] ?? ''}`;
 }

@@ -1,5 +1,7 @@
 import { CAP_FLOW_API, CAP_VULN, OTHER_GROUP } from '../../data/capabilities';
+import type { DoctorRead, StepsRead } from '@/server/data/setup/types';
 import { STEP_DETAIL } from '../../data/stepDetail';
+import { doctorRowsOf, stepFromRead } from '../live/live';
 import type { ArmState, DoctorRow, SetupState, StepState } from '../types';
 import { toCapStatus, recomputeLocks, unmet, armList } from './state';
 import type { Verdict } from './verify';
@@ -15,6 +17,10 @@ export type SetupAction =
   | { t: 'verify-end'; id: string; verdict: Verdict }
   | { t: 'doctor-start' }
   | { t: 'doctor-end'; now: number; at: string }
+  /** Live: what the belay doctor's probe read (or, `doctor: null`, that no answer came). */
+  | { t: 'doctor-read'; doctor: DoctorRead | null }
+  /** Live: what the step reads saw. */
+  | { t: 'steps-read'; steps: StepsRead }
   | { t: 'pick-group'; group: string; now: number; at: string };
 
 /** The demo's honest "not yet": a step with a failFirst text fails its first probe. */
@@ -64,6 +70,22 @@ function pickGroup(s: SetupState, group: string, now: number, at: string): Setup
   return { ...s, group, doctor: s.homeDoctor.map((r) => ({ name: r.name, st: 'unknown' })), doctorNever: true };
 }
 
+/** Live: each step as the read saw it; a step in flight or with no read keeps its state. */
+function stepsRead(s: SetupState, r: StepsRead): SetupState {
+  const steps = { ...s.steps };
+  for (const [k, read] of Object.entries(r.steps)) {
+    const cur = steps[Number(k)];
+    if (cur) steps[Number(k)] = { ...cur, ...stepFromRead(read, r.label) };
+  }
+  return recomputeLocks({ ...s, steps });
+}
+
+function doctorRead(s: SetupState, d: DoctorRead | null): SetupState {
+  if (!d) return { ...s, doctorBusy: false };
+  const rows = doctorRowsOf(d);
+  return { ...s, doctor: rows, homeDoctor: rows, doctorBusy: false, doctorAt: Date.parse(d.at), doctorProbedAt: d.label, doctorNever: false, doctorError: d.error };
+}
+
 export function setupReducer(s: SetupState, a: SetupAction): SetupState {
   switch (a.t) {
     case 'probe-start': {
@@ -87,6 +109,10 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
       const rows = s.group === s.homeGroup ? s.doctor : s.homeDoctor.map((r, i) => ({ name: r.name, st: toCapStatus(OTHER_GROUP.rows[i] ?? 'unknown') }));
       return { ...s, doctor: rows, doctorBusy: false, doctorAt: a.now, doctorProbedAt: a.at, doctorNever: false };
     }
+    case 'doctor-read':
+      return doctorRead(s, a.doctor);
+    case 'steps-read':
+      return stepsRead(s, a.steps);
     case 'pick-group':
       return pickGroup(s, a.group, a.now, a.at);
   }

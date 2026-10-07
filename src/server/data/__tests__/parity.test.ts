@@ -38,7 +38,8 @@ beforeAll(async () => {
   const cycle = await runPollCycle(gl.port, db, replayClock.poll(), { cfg: readPollerConfig(144060371, {}) });
   expect(cycle.projects.every((p) => p.ok)).toBe(true);
   const snap = await buildSnapshot(db, replayClock.read(), 'ledgerline', DEMO, cycle.policy ? rulesOf(cycle.policy) : null);
-  live = liveSource(() => snap);
+  // Setup's live reads go through the demo GitLab, as the runtime's port would (select.ts).
+  live = liveSource(() => snap, DEMO, () => ({ port: gl.port, groupId: 144060371, gitlabId: async (id) => (await getProjectRow(db, id))?.gitlabId ?? null }));
 }, 60_000);
 afterAll(() => setDataSource(null));
 
@@ -94,9 +95,12 @@ describe('every screen loader gets the same data from the live source as from th
     expect(l).toEqual(d);
   });
 
-  it('Setup and Theater', () => {
-    const [ds, ls] = both(() => asProps(loadSetupData()));
-    expect(ls).toEqual(ds);
+  it('Setup and Theater', async () => {
+    // Setup: the same catalogue parts (step titles, arm order, the tracks' names, the classes). Its states are not: live
+    // reads every one of them (listed below, where live differs), demo reads none.
+    const [dp, lp] = both(() => loadSetupData());
+    const [ds, ls] = await Promise.all([dp, lp]);
+    expect(asProps({ ...ls, live: null, illustrative: null })).toEqual(asProps({ ...ds, live: null, illustrative: null }));
     const [dt, lt] = both(() => asProps(loadTheaterData()));
     expect(lt).toEqual(dt);
   });

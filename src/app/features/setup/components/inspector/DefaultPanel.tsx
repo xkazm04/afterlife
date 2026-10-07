@@ -5,9 +5,8 @@ import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import { GATE_FREES } from '../../data/armMeta';
-import { STEP_DETAIL } from '../../data/stepDetail';
 import { useSetup } from '../../hooks/SetupContext';
-import { armList, doneCount, humanGates, needYouCount, openArms, stepList } from '../../model/flow/state';
+import { armList, doneCount, humanGates, needYouCount, openArms, stepDetail, stepList } from '../../model/flow/state';
 import { mrName } from '../../model/flow/wording';
 import { DepRow } from '../shared/DepRow';
 import { GateRow } from '../shared/GateRow';
@@ -45,7 +44,7 @@ export function DefaultPanel({ section }: { section: ReturnType<typeof useOpenSe
           <GateRow
             key={s.n}
             glyph={s.n}
-            title={STEP_DETAIL[s.n]?.short ?? s.title}
+            title={stepDetail(state, s.n)?.short ?? s.title}
             tag={`step ${s.n}`}
             sub={`frees ${GATE_FREES[s.n] ?? 'later steps'}`}
             onGo={() => view.go({ k: 'step', id: s.n })}
@@ -59,6 +58,11 @@ export function DefaultPanel({ section }: { section: ReturnType<typeof useOpenSe
         ))}
         {ready.length ? null : <div className={styles.muted}>No track is ready</div>}
       </InspectorSection>
+      {state.doctorError ? (
+        <InspectorSection title="belay doctor" {...section('doc')}>
+          <div className={styles.muted}>{state.doctorError}</div>
+        </InspectorSection>
+      ) : null}
       {unknown.length ? (
         <InspectorSection title="Unknown" aux={`${unknown.length} · never rounded up`} {...section('unk')}>
           {unknown.map((r) => (

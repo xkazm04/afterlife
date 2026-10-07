@@ -25,7 +25,8 @@ export function SetupToolbar() {
   const { state, view, actions } = useSetup();
   const menu = useMenu();
   const counts = doctorCounts(state);
-  const groups = [state.homeGroup, OTHER_GROUP.name];
+  // Live: the paired group only. The demo's second group is a fixture, never offered against a real one.
+  const groups = state.live ? [state.homeGroup] : [state.homeGroup, OTHER_GROUP.name];
   return (
     <>
       <PopupButton

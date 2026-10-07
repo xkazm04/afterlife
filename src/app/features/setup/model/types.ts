@@ -1,8 +1,16 @@
 import type { StepWho } from '../data/types';
 
 export type { StepWho };
-export type StepStatus = 'todo' | 'human' | 'done' | 'probing';
-export type ArmStatus = 'locked' | 'ready' | 'open' | 'armed' | 'probing';
+/**
+ * A step: `todo`, `human` (only a person can) and `done` are the demo's; a live read says `done`, `failed` (it looked
+ * and the step is not done) or `unknown` (not probed, or the read could not be made). `probing` is a probe in flight.
+ */
+export type StepStatus = 'todo' | 'human' | 'done' | 'probing' | 'failed' | 'unknown';
+/**
+ * A track: `undefined` when the repo defines no arm content for it yet (neither armed nor unarmed), `unknown` when the
+ * read of the default branch was refused or failed. Both carry their reason in `found`.
+ */
+export type ArmStatus = 'locked' | 'ready' | 'open' | 'armed' | 'probing' | 'undefined' | 'unknown';
 export type CapStatus = 'available' | 'unavailable' | 'unknown';
 
 export interface ProbeNote {
@@ -34,16 +42,23 @@ export interface ArmState {
   revert: boolean;
   /** Demo mode: the MR was only simulated, and so is its verify. */
   simulated: boolean;
-  /** What the last verify saw on the default branch, when it did not settle the track. */
+  /** What the last read of the default branch saw (the opening read, or a verify that did not settle the track). */
   found: string | null;
 }
 
 export interface DoctorRow {
   name: string;
   st: CapStatus;
+  /** Why the probe said so (live: the doctor's own reason). */
+  reason?: string;
 }
 
 export interface SetupState {
+  /** Live mode: every state on screen is a read; nothing is simulated, and no timer probes. */
+  live: boolean;
+  /** The GitLab host and the projects step 4 creates, for the step commands. */
+  host: string;
+  projects: readonly string[];
   group: string;
   project: string;
   /** The group the screen opened on: switching back restores its probed rows. */
@@ -51,6 +66,8 @@ export interface SetupState {
   homeDoctor: readonly DoctorRow[];
   steps: Readonly<Record<number, StepState>>;
   arm: Readonly<Record<string, ArmState>>;
+  /** The doctor probe failed as a whole (live): why there are no rows. */
+  doctorError: string | null;
   /** Probe attempts per step: the demo's first runner probe fails. */
   attempts: Readonly<Record<number, number>>;
   doctor: readonly DoctorRow[];

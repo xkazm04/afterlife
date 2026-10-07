@@ -1,6 +1,9 @@
 import type { DemoData } from '@/lib/demo/types';
+import type { LiveSetupRead } from '@/server/data/setup/types';
 import { NEED_LABEL, ARM_META } from '../../data/armMeta';
-import { STEP_DETAIL } from '../../data/stepDetail';
+import { DEMO_NAMES, STEP_DETAIL, stepDetailsFor, type StepNames } from '../../data/stepDetail';
+import type { StepDetail } from '../../data/types';
+import { armFromRead, doctorRowsOf, stepFromRead } from '../live/live';
 import { isStepKey, stepOf } from '../map/graph';
 import type { ArmState, ArmStatus, CapStatus, DoctorRow, SetupState, StepState, StepStatus } from '../types';
 
@@ -13,10 +16,12 @@ export const toCapStatus = (s: string): CapStatus => (s === 'available' || s ===
 const doctorRows = (rows: readonly (readonly [string, string])[]): DoctorRow[] => rows.map(([name, st]) => ({ name, st: toCapStatus(st) }));
 
 /**
- * The opening state: the demo's probed steps, arm order and doctor rows, probed at 14:02. A track's armed state and its
- * MR come from one record, `setup.arm`; it names no MR, so none is shown until a confirm's answer names one.
+ * The opening state. Demo: the demo's probed steps, arm order and doctor rows, probed at 14:02; a track's armed state
+ * and its MR come from one record, `setup.arm`, which names no MR, so none is shown until a confirm's answer names one.
+ * Live (`live`): the step titles and the arm order are the catalogue's, and every state is what the server read.
  */
-export function createSetupState(setup: SetupDemo, now: number): SetupState {
+export function createSetupState(setup: SetupDemo, now: number, live: LiveSetupRead | null = null): SetupState {
+  if (live) return liveSetupState(setup, live);
   const steps: Record<number, StepState> = {};
   for (const ph of setup.phases) {
     for (const [n, title, raw] of ph.steps) {
@@ -32,10 +37,40 @@ export function createSetupState(setup: SetupDemo, now: number): SetupState {
   });
   const home = doctorRows(setup.doctor.rows);
   return {
+    live: false, host: DEMO_NAMES.host, projects: DEMO_NAMES.projects,
     group: setup.group, project: setup.project, homeGroup: setup.group, homeDoctor: home,
-    steps, arm, attempts: {}, doctor: home, doctorAt: now, doctorProbedAt: '14:02', doctorNever: false, doctorBusy: false,
+    steps, arm, attempts: {}, doctor: home, doctorAt: now, doctorProbedAt: '14:02', doctorNever: false, doctorBusy: false, doctorError: null,
   };
 }
+
+function liveSetupState(setup: SetupDemo, live: LiveSetupRead): SetupState {
+  const steps: Record<number, StepState> = {};
+  for (const ph of setup.phases) {
+    for (const [n, title] of ph.steps) {
+      const r = live.steps.steps[n];
+      const read = r ? stepFromRead(r, live.steps.label) : { st: 'unknown' as const, probe: null };
+      steps[n] = { n, title, phase: ph.name, who: STEP_DETAIL[n]?.who ?? 'agent', ...read };
+    }
+  }
+  const arm: Record<string, ArmState> = {};
+  setup.arm.forEach(([id], order) => {
+    const r = live.tracks[id];
+    const read = r ? armFromRead(r) : { st: 'unknown' as const, found: 'no read was made for this track' };
+    arm[id] = { id, order, mr: null, url: null, revert: false, simulated: false, ...read };
+  });
+  const doctor = doctorRowsOf(live.doctor);
+  return recomputeLocks({
+    live: true, host: live.host, projects: live.projects,
+    group: live.group, project: live.project, homeGroup: live.group, homeDoctor: doctor,
+    steps, arm, attempts: {}, doctor, doctorAt: Date.parse(live.doctor.at), doctorProbedAt: live.doctor.label, doctorNever: false, doctorBusy: false,
+    doctorError: live.doctor.error,
+  });
+}
+
+/** What the step commands name: the group the screen opened on (live: the paired one), its host and the target. */
+export const namesOf = (s: SetupState): StepNames => ({ host: s.host, group: s.homeGroup, project: s.project, projects: s.projects });
+/** A step's detail, its commands naming this setup's group and project. */
+export const stepDetail = (s: SetupState, n: number): StepDetail | undefined => stepDetailsFor(namesOf(s))[n];
 
 export const stepList = (s: SetupState): StepState[] => Object.values(s.steps).sort((a, b) => a.n - b.n);
 export const armList = (s: SetupState): ArmState[] => Object.values(s.arm).sort((a, b) => a.order - b.order);
@@ -43,8 +78,8 @@ export const capSt = (s: SetupState, name: string): CapStatus => s.doctor.find((
 
 export const doneCount = (s: SetupState) => stepList(s).filter((x) => x.st === 'done').length;
 export const armedCount = (s: SetupState) => armList(s).filter((a) => a.st === 'armed').length;
-/** Human steps not yet probed done: "only you can do these". */
-export const humanGates = (s: SetupState) => stepList(s).filter((x) => x.who === 'human' && x.st !== 'done');
+/** Human steps a probe has not seen done: "only you can do these". A step nobody probed is unknown, not a gate. */
+export const humanGates = (s: SetupState) => stepList(s).filter((x) => x.who === 'human' && x.st !== 'done' && x.st !== 'unknown');
 export const openArms = (s: SetupState) => armList(s).filter((a) => a.st === 'open');
 export const needYouCount = (s: SetupState) => humanGates(s).length + openArms(s).length;
 

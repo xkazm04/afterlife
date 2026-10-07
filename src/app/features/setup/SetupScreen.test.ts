@@ -32,3 +32,30 @@ describe('SetupScreen (server render)', () => {
     expect(has('illustrative demo data')).toBe(true);
   });
 });
+
+// Live mode: the same screen from what the server read. No demo state, no demo group.
+describe('SetupScreen in live mode (server render)', () => {
+  const at = { at: '2026-10-07T09:30:00.000Z', label: '11:30' };
+  const steps: Record<number, { state: 'unknown'; reason: string } | { state: 'done'; text: string }> = {};
+  for (let n = 0; n <= 14; n++) steps[n] = { state: 'unknown', reason: 'not probed' };
+  steps[0] = { state: 'done', text: 'glab api user → 200 · signed in as @kazdanm' };
+  const live = {
+    group: 'kazdanm', host: 'gitlab.com', project: 'afterlife', projects: ['afterlife', 'belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine'],
+    tracks: Object.fromEntries(getSetup().arm.map(([id]) => [id, id === 'T4' ? { state: 'absent' as const, text: 'no T4 arm block' } : { state: 'undefined' as const, text: 'not defined' }])),
+    tracksAt: at,
+    doctor: { ...at, error: null, rows: [{ id: 'pipelines', label: 'pipelines and jobs', status: 'available' as const, reason: 'answered 200' }] },
+    steps: { ...at, steps },
+  };
+  const html = renderToString(
+    createElement(ToastProvider, null, createElement(SetupScreen, { setup: getSetup(), tracks: getTracks(), classes: getActionClasses(), live })),
+  );
+
+  it('opens on the paired group with T4 ready to arm, the probe’s rows, and no demo group or demo state', () => {
+    expect(html).toContain('kazdanm / afterlife');
+    expect(html).toContain('1/15 steps probed');
+    expect(html).toContain('0/8 armed');
+    expect(html.match(/data-node="cap:/g)).toHaveLength(1);
+    expect(html).toContain('not defined');
+    expect(html).not.toMatch(/acme-lab|acme-sandbox|14:02/);
+  });
+});

@@ -6,10 +6,10 @@ import { MapNode } from './MapNode';
 import type { NodeEvents } from './nodeTypes';
 import styles from './nodes.module.css';
 
-const CLS = { todo: '', human: styles.human, done: styles.sdone, probing: styles.probing } as const;
+const CLS = { todo: '', human: styles.human, done: styles.sdone, probing: styles.probing, failed: styles.sfailed, unknown: styles.sunknown } as const;
 
 export function StepNode({ step, selected, lit, events }: { step: StepState; selected: boolean; lit: Lit; events: NodeEvents }) {
-  const mark = step.st === 'done' ? '✓' : step.st === 'probing' ? <Spinner /> : step.n;
+  const mark = step.st === 'done' ? '✓' : step.st === 'probing' ? <Spinner /> : step.st === 'unknown' ? '?' : step.n;
   return (
     <MapNode focus={{ k: 'step', id: step.n }} selected={selected} lit={lit} tip={`${stepTip(step.n, step.st)} · ${step.title}`} events={events} className={`${styles.sn} ${CLS[step.st]}`}>
       <span className={styles.m}>{mark}</span>
