@@ -15,13 +15,16 @@ export function workdir(prefix) {
 
 /**
  * `routes` maps a GET path (no query) to its JSON reply, and "<METHOD> <path>" to a write's `{reply}`. Returns
- * {code, stdout, stderr, writes}: `writes` are the writes the script made, in order, each `{method, path, body}`.
+ * {code, stdout, stderr, writes, reads}: `writes` are the writes the script made, in order, each `{method, path, body}`;
+ * `reads` every GET path it asked for, query included.
  */
 export function runScript(dir, script, args, { routes = {}, env = {} } = {}) {
   const routesFile = path.join(dir, 'fake-glab-routes.json');
   const writesFile = path.join(dir, 'fake-glab-writes.jsonl');
+  const readsFile = path.join(dir, 'fake-glab-reads.txt');
   fs.writeFileSync(routesFile, JSON.stringify(routes));
   fs.writeFileSync(writesFile, '');
+  fs.writeFileSync(readsFile, '');
   const r = spawnSync(process.execPath, [path.join(SCRIPTS, script), ...args], {
     cwd: dir,
     encoding: 'utf8',
@@ -33,11 +36,13 @@ export function runScript(dir, script, args, { routes = {}, env = {} } = {}) {
       BELAY_GLAB: `${process.execPath}|${FAKE}`,
       FAKE_GLAB_ROUTES: routesFile,
       FAKE_GLAB_WRITES: writesFile,
+      FAKE_GLAB_READS: readsFile,
       ...env,
     },
   });
   const writes = fs.readFileSync(writesFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
-  return { code: r.status, stdout: r.stdout, stderr: r.stderr, writes };
+  const reads = fs.readFileSync(readsFile, 'utf8').split('\n').filter(Boolean);
+  return { code: r.status, stdout: r.stdout, stderr: r.stderr, writes, reads };
 }
 
 /**

@@ -3,8 +3,9 @@
 //   approve -> the gate account approves, a person still merges (glab mr approve --sha)
 //   wait    -> nothing is granted; the MR waits for a person
 //   block   -> nothing is granted and this script exits 1, so the job and the MR pipeline are red
-// Also sets belay::tier::<tier> and, with --guardrail, guardrail::pass|block. Without BELAY_BOT_TOKEN it only
-// reports: a job token cannot approve, merge, write notes or set labels (docs.gitlab.com/ci/jobs/ci_job_token).
+// Also sets belay::tier::<tier> and, with --guardrail, guardrail::pass|block. Without BELAY_BOT_TOKEN, or with --dry 1, it
+// only reports: a job token cannot approve, merge, write notes or set labels (docs.gitlab.com/ci/jobs/ci_job_token). Only
+// belay-apply (gitlab/apply) runs it with the token; a target pipeline's tier-gate passes --dry 1 (F4).
 // `--force wait|block --reason "..."` stands in for the engine when its inputs are missing: fail closed, no tier known.
 // `--emit-dir d` writes ledger event bodies for components/ledger-append (kinds proof_verdict, guardrail_verdict, tier_decision).
 import fs from 'node:fs';
@@ -53,8 +54,8 @@ if (emit && d.tier && !force) {
   kinds.forEach((kind, i) => fs.writeFileSync(path.join(emit, `${i}-${kind}.json`), JSON.stringify({ ...base, kind })));
 }
 
-const bot = process.env.BELAY_BOT_TOKEN;
-if (!bot) console.error('belay: BELAY_BOT_TOKEN is not set: reporting only, nothing applied');
+const bot = arg('dry') === '1' ? undefined : process.env.BELAY_BOT_TOKEN;
+if (!bot) console.error('belay: no write token here (or --dry 1): reporting only, nothing applied');
 else {
   const body = `**Belay gate: ${d.decision.toUpperCase()}** | tier \`${d.tier ?? 'unknown'}\`\n${reasons.join('\n')}`;
   glab(['mr', 'note', 'create', mr, '-R', repo, '-m', body]);

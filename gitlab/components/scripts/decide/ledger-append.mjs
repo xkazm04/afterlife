@@ -1,6 +1,7 @@
 // Appends events to belay-ledger/events/<project-id>.jsonl. `--event f.json` or `--events dir` (every *.json, in name order).
 // The engine does the hashing (`ledger append --event --chain`); this only moves the file, then makes ONE commit.
-// A broken or empty engine reply is an error, never a guess.
+// A broken or empty engine reply is an error, never a guess. `--key k` adds a `Belay-Head: k` line to the commit message:
+// belay-apply reads the ledger file's history for it, so it appends once per project, MR and head.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -57,7 +58,7 @@ writeFile({
   content: chain,
   exists: head !== null,
   lastCommitId: head?.lastCommitId,
-  message: `ledger: ${titles.join(', ')}\n\n[skip ci]`,
+  message: `ledger: ${titles.join(', ')}\n\n${arg('key') ? `Belay-Head: ${arg('key')}\n\n` : ''}[skip ci]`,
   mode: arg('mode', 'commit'),
 });
 console.error(`belay: ${file} now has ${chain.split('\n').filter(Boolean).length} events`);

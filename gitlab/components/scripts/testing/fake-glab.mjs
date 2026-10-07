@@ -4,6 +4,10 @@
 // from stdin) is appended as one line to $FAKE_GLAB_WRITES, so a test reads what was written. Its optional `current`
 // ({file_path: last commit id}) makes it refuse a stale last_commit_id the way GitLab does. Anything else (a write or
 // a path not in the map, another glab command) fails the way glab does: a message on stderr and exit 1.
+// `glab mr note create | update | approve | merge` (what post-proof and apply-gate run) are writes too: each is recorded as
+// `{method: "GLAB", path: "mr <command>", body: {iid, repo, message, label, unlabel, sha}}`, unless the map answers
+// "GLAB mr <command>" with an `__http` error. A GET route `{"__raw": "text"}` answers with the text itself (a raw file or
+// an artifact), and every GET is appended to $FAKE_GLAB_READS when it is set, so a test can say what was never read.
 import fs from 'node:fs';
 
 const argv = process.argv.slice(2);
@@ -27,6 +31,15 @@ const httpError = (route) => {
   process.exit(1);
 };
 
+if (argv[0] === 'mr' && ['note', 'update', 'approve', 'merge'].includes(argv[1])) {
+  const sub = argv[1] === 'note' ? `note ${argv[2]}` : argv[1];
+  httpError(routes[`GLAB mr ${sub}`]);
+  const at = (flag) => (argv.includes(flag) ? argv[argv.indexOf(flag) + 1] : undefined);
+  const iid = argv[1] === 'note' ? argv[3] : argv[2];
+  const body = { iid, repo: at('-R'), message: at('-m'), label: at('--label'), unlabel: at('--unlabel'), sha: at('--sha'), auto_merge: argv.includes('--auto-merge') || undefined };
+  fs.appendFileSync(process.env.FAKE_GLAB_WRITES ?? '', `${JSON.stringify({ method: 'GLAB', path: `mr ${sub}`, body })}\n`);
+  process.exit(0);
+}
 if (argv[0] !== 'api') fail();
 if (method !== 'GET') {
   const route = routes[`${method} ${base}`];
@@ -47,7 +60,12 @@ if (method !== 'GET') {
   process.stdout.write(JSON.stringify(route.reply ?? null));
   process.exit(0);
 }
+if (process.env.FAKE_GLAB_READS) fs.appendFileSync(process.env.FAKE_GLAB_READS, `${target}\n`);
 if (!(base in routes)) fail();
 httpError(routes[base]);
+if (routes[base] && typeof routes[base] === 'object' && typeof routes[base].__raw === 'string') {
+  process.stdout.write(routes[base].__raw);
+  process.exit(0);
+}
 const page = Number(new URLSearchParams(query).get('page') ?? '1');
 process.stdout.write(JSON.stringify(page > 1 ? [] : routes[base]));
