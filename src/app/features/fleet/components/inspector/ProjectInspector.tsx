@@ -38,7 +38,7 @@ export function ProjectInspector({
   return (
     <>
       <InspectorHeader icon={<StateGlyph state={p.state} />} title={p.name} sub={`${p.what || p.group} · ${STATE_LABEL[p.state]}`} path={`${data.portfolio}/${p.group}/${p.id}`} />
-      <NeedsYouSection p={p} portfolio={data.portfolio} deep={deep} done={done} onResolve={onResolve} onFlash={onFlash} sec={section('ny')} />
+      <NeedsYouSection p={p} portfolio={data.portfolio} deep={deep} live={source.mode === 'live'} done={done} onResolve={onResolve} onFlash={onFlash} sec={section('ny')} />
       <ClassesSection p={p} classes={data.classes} deep={deep} sec={section('cls')} />
       <ProofsSection p={p} sec={section('prf')} />
       <TasksSection p={p} deep={deep} sec={section('tsk')} />

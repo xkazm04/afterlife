@@ -51,6 +51,9 @@ export function feedRows(p: FleetProject, deep: DeepProject | null): FeedRow[] {
   return rows;
 }
 
+/** A decision's button where it only opens the place to decide (live mode: Needs you): "Open policy MR…". */
+export const decideLabel = (label: string): string => (label.endsWith('…') ? label : `${label}…`);
+
 /** "3 decisions waiting · last known". */
 export function waitingTitle(n: number, stale: boolean): string {
   return `${n} ${n === 1 ? 'decision' : 'decisions'} waiting${stale ? ' · last known' : ''}`;

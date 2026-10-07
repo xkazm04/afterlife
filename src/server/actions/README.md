@@ -36,6 +36,15 @@ differ, **nothing runs**, and `changed` returns the new preview to show again.
 A server action is an endpoint: same-origin only (Next checks), validated, and it acts as whoever is logged in to `glab`.
 Run Belay on `localhost`; do not expose its port.
 
+## Re-poll (a read)
+
+`repollAction(projectId: unknown): Promise<RepollResult>` (`repollAction.ts`, `'use server'`) is the one read a screen asks
+for: in live mode it runs the live runtime's `refresh()` (one poll cycle, then a fresh snapshot) and calls `refresh()` from
+`next/cache`, so the current route renders again in the same round trip. `repoll.ts` decides the answer:
+`{ok: true, ageSec}` only when the cycle finished and polled that project without error; otherwise `{ok: false, reason}`
+(not ready, the cycle did not finish, the group failed, the project failed or is not in the polled group). It writes
+nothing, to GitLab or the index beyond what a poll writes. Demo mode answers that it has nothing to poll.
+
 ## Not done
 
 No UI button calls these yet. The next step wires the Ladder revoke, the Needs-you rows and the Maturity sheet:

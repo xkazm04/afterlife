@@ -17,6 +17,7 @@ import { useFleetList } from './hooks/useFleetList';
 import { useFleetMenus } from './hooks/useFleetMenus';
 import { useFleetProjects } from './hooks/useFleetProjects';
 import { useNarrow } from './hooks/useNarrow';
+import { useRepoll } from './hooks/useRepoll';
 import { useRowHandlers } from './hooks/useRowHandlers';
 import { useToolbarCompact } from './hooks/useToolbarCompact';
 import { menuFilterCount, sourceLabel } from './model/list/filtering';
@@ -39,6 +40,10 @@ export function FleetScreen({ data, source }: { data: FleetData; source: FleetSo
   const compact = useToolbarCompact(searchRef);
   const [sel, setSel] = useState<string | null>(data.deep.id);
   const [insp, setInsp] = useState(true);
+  const repoll = useRepoll(source.mode, proj.byId, proj.poll, status);
+  // A fresh snapshot (live mode, after a re-poll) restarts the poll counter from its age.
+  const [snap, setSnap] = useState({ data, n: 0 });
+  if (snap.data !== data) setSnap({ data, n: snap.n + 1 });
   const meta = useMemo<FleetMeta>(() => ({ classes: data.classes, stages: data.stages, tiers: data.tiers }), [data]);
 
   useEffect(() => tableRef.current?.focus({ preventScroll: true }), []);
@@ -53,7 +58,7 @@ export function FleetScreen({ data, source }: { data: FleetData; source: FleetSo
     byId: proj.byId,
     tableRef,
     onOpen: open,
-    onRepoll: (id) => status(proj.poll(id)),
+    onRepoll: repoll,
     onFlash: status,
   });
 
@@ -143,7 +148,9 @@ export function FleetScreen({ data, source }: { data: FleetData; source: FleetSo
       }
       inspectorOpen={insp}
       onInspectorOpenChange={setInsp}
-      status={<FleetStatus shown={list.visible.length} total={proj.projects.length} filters={list.filterTotal} startSec={data.lastPollSec} />}
+      status={
+        <FleetStatus key={snap.n} shown={list.visible.length} total={proj.projects.length} filters={list.filterTotal} startSec={data.lastPollSec} live={source.mode === 'live'} />
+      }
       help={<FleetLegend tiers={data.tiers} />}
       helpTitle="Legend"
     >

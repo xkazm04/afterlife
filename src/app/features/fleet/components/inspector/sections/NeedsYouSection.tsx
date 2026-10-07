@@ -6,11 +6,23 @@ import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { DEFAULT_NEEDS_ACTION, NEEDS_ACTIONS } from '@/lib/demo/needsActions';
 import type { SectionProps } from '../../../hooks/useSectionOpen';
-import { gitlabUrl, needsMeta, waitingTitle } from '../../../model/inspector';
+import { decideLabel, gitlabUrl, needsMeta, waitingTitle } from '../../../model/inspector';
 import type { DeepProject } from '../../../model/types';
 import styles from './sections.module.css';
 
-function Decision({ n, done, onResolve, onFlash }: { n: NeedsYouItem; done: boolean; onResolve: (needId: string, does: string) => void; onFlash: (m: string) => void }) {
+function Decision({
+  n,
+  done,
+  live,
+  onResolve,
+  onFlash,
+}: {
+  n: NeedsYouItem;
+  done: boolean;
+  live: boolean;
+  onResolve: (needId: string, does: string) => void;
+  onFlash: (m: string) => void;
+}) {
   const [primary, quiet] = NEEDS_ACTIONS[n.id] ?? DEFAULT_NEEDS_ACTION;
   const meta = needsMeta(n);
   return (
@@ -18,7 +30,11 @@ function Decision({ n, done, onResolve, onFlash }: { n: NeedsYouItem; done: bool
       <div className={styles.t}>{n.title}</div>
       {meta ? <div className={styles.m}>{meta}</div> : null}
       <div className={styles.acts}>
-        {done ? (
+        {live ? (
+          <Button variant="primary" href="/needs-you" title={`Opens Needs you, where this is decided; nothing is decided here. ${n.does}`}>
+            {decideLabel(primary)}
+          </Button>
+        ) : done ? (
           <span className={styles.done}>✓ Done</span>
         ) : (
           <>
@@ -34,13 +50,16 @@ function Decision({ n, done, onResolve, onFlash }: { n: NeedsYouItem; done: bool
 }
 
 /**
- * What waits for a person on this project. The deep project lists its real decisions, each resolvable on a click
- * (the button's tooltip says exactly what it does); other watched projects show a count and two demo actions.
+ * What waits for a person on this project. The deep project lists its real decisions (the button's tooltip says exactly
+ * what it does). Demo mode resolves one on a click, in this screen only. Live mode never claims a decision was made here:
+ * the button opens Needs you, where the decision and the operator's write belong. Other watched projects show a count
+ * and two demo actions.
  */
 export function NeedsYouSection({
   p,
   portfolio,
   deep,
+  live,
   done,
   onResolve,
   onFlash,
@@ -49,6 +68,7 @@ export function NeedsYouSection({
   p: FleetProject;
   portfolio: string;
   deep: DeepProject;
+  live: boolean;
   done: ReadonlySet<string>;
   onResolve: (needId: string, does: string) => void;
   onFlash: (message: string) => void;
@@ -68,7 +88,7 @@ export function NeedsYouSection({
       </div>
     );
   } else if (p.id === deep.id) {
-    body = deep.needs.map((n) => <Decision key={n.id} n={n} done={done.has(n.id)} onResolve={onResolve} onFlash={onFlash} />);
+    body = deep.needs.map((n) => <Decision key={n.id} n={n} done={done.has(n.id)} live={live} onResolve={onResolve} onFlash={onFlash} />);
   } else if (p.needsYou) {
     body = (
       <div className={styles.nyi}>

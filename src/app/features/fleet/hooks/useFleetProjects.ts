@@ -5,12 +5,18 @@ import type { FleetProject } from '@/lib/demo/types';
 import { repoll, resolveOne, waitingCount } from '../model/needs';
 
 /**
- * The fleet as the screen holds it: the demo projects, plus the two things a person can change here. Re-polling a
- * feed resets its age; resolving a decision counts it down on its project. Nothing leaves the browser.
+ * The fleet as the screen holds it: the source's projects, plus demo mode's two simulations. Re-polling a feed resets its
+ * age; resolving a decision counts it down on its project. Nothing leaves the browser. When the route renders again with
+ * fresh projects (live mode, after a re-poll), the screen takes them as they are.
  */
 export function useFleetProjects(initial: readonly FleetProject[]) {
   const [projects, setProjects] = useState<readonly FleetProject[]>(initial);
   const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
+  const [from, setFrom] = useState(initial);
+  if (from !== initial) {
+    setFrom(initial);
+    setProjects(initial);
+  }
 
   const byId = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
   const waiting = useMemo(() => waitingCount(projects), [projects]);

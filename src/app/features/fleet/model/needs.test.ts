@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nextPolled, repoll, resolveOne, statusLine, waitingCount } from './needs';
+import { nextPolled, repoll, repollMessage, resolveOne, statusLine, waitingCount } from './needs';
 import { makeProject } from './testProject';
 
 describe('waitingCount', () => {
@@ -34,6 +34,10 @@ describe('repoll', () => {
   it('has nothing to poll on an unwatched project', () => {
     expect(repoll(makeProject({ id: 'a', state: 'not-set-up' })).message).toBe('a: not watched, nothing to poll');
   });
+  it('says re-polled only for a poll that succeeded (live: the server’s answer)', () => {
+    expect(repollMessage('ledgerline', { ok: true })).toBe('Re-polled ledgerline');
+    expect(repollMessage('ledgerline', { ok: false, reason: '401 Unauthorized' })).toBe('Re-poll failed · ledgerline · 401 Unauthorized');
+  });
 });
 
 describe('status line', () => {
@@ -44,5 +48,8 @@ describe('status line', () => {
   it('wraps the poll counter after 59', () => {
     expect(nextPolled(12)).toBe(13);
     expect(nextPolled(59)).toBe(0);
+  });
+  it('in live mode only counts up: no poll is simulated in the browser', () => {
+    expect(nextPolled(59, true)).toBe(60);
   });
 });

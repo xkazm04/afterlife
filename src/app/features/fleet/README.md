@@ -15,7 +15,7 @@ client `FleetScreen`.
   tracks.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
-  handlers, narrow / compact measuring, section open state.
+  handlers, narrow / compact measuring, section open state, and `useRepoll` (simulated in demo, the server in live).
 
 ## Model (pure, tested)
 - `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank).
@@ -31,7 +31,11 @@ demo's feed in demo mode and, in live mode, read from the index's tasks, proofs 
 of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
 
 ## Behaviour to know
-- Resolving a decision and re-polling only change this screen's state; nothing is written.
+- Demo mode: resolving a decision and re-polling only change this screen's state; nothing is written.
+- Live mode: Re-poll calls the `repollAction` server action (`src/server/actions/repollAction.ts`), which runs one poll
+  cycle of the live runtime (a read) and renders the route again from the fresh snapshot; the status bar says
+  "Re-polled" only after that resolved, and says it failed otherwise. A decision's button opens Needs you instead of
+  resolving it here. The "polled N s ago" counter starts from the snapshot's age and never wraps.
 - Below 900px of pane the Tiers view drops pips and shows letter marks. Below ~1190px x scale of
   toolbar the lozenge drops its words (counts and tooltips stay).
 

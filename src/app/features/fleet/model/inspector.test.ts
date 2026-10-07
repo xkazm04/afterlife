@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
-import { acceptedLabel, classTip, feedRows, fleetTask, gitlabUrl, needsMeta, recordLabel, taskVerdict, verdictMark, waitingTitle } from './inspector';
+import { acceptedLabel, classTip, decideLabel, feedRows, fleetTask, gitlabUrl, needsMeta, recordLabel, taskVerdict, verdictMark, waitingTitle } from './inspector';
 import { makeProject } from './testProject';
 import type { DeepProject } from './types';
 
@@ -60,6 +60,9 @@ describe('small words', () => {
   it('pluralises the waiting title and marks last known', () => {
     expect(waitingTitle(1, false)).toBe('1 decision waiting');
     expect(waitingTitle(3, true)).toBe('3 decisions waiting · last known');
+  });
+  it('marks a decision button that only opens the place to decide', () => {
+    expect([decideLabel('Open policy MR'), decideLabel('Pick gaps…')]).toEqual(['Open policy MR…', 'Pick gaps…']);
   });
   it('builds the demo GitLab address', () => {
     expect(gitlabUrl('acme-lab/core/a')).toBe('gitlab.example/acme-lab/core/a');
