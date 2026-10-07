@@ -34,8 +34,7 @@ rules: the promotion thresholds, the demotion triggers, the envelope). Reads are
 `BELAY_GITLAB=fake` starts an in-memory index, seeds it with `seedDemo` (what GitLab cannot express: the other 183 projects,
 scan, records, narrative), and polls `gitlab/fake/demo/` (a GitLab built from the demo dataset: ledgerline's MRs, notes,
 labels, deployments, policy files and a verifying ledger). The poller's rows then overwrite the seed where they derive the
-same values, which `__tests__/parity.test.ts` proves for every loader (`loadFleetData`, `pickNeedsYouDemo`, `loadTasks`,
-`loadLadderData`, `loadMaturityData`, `loadSetupData`, `loadTheaterData`). The replay clock pins the countdowns and feed
+same values, which `__tests__/parity.test.ts` proves for every loader (`loadFleetData`, `pickNeedsYouDemo`, `loadLadderData`, `loadMaturityData`, `loadSetupData`, `loadTheaterData`; `loadTasks` is listed where live differs from demo: live draws only the source's tasks). The replay clock pins the countdowns and feed
 ages to the demo's moment, so the screens are identical to demo mode, and visibly a replay.
 
 ## Live, what is still the demo catalogue
@@ -47,8 +46,8 @@ demo). It also declares what the Ladder still shows of the demo: `policy-history
 head, the policy's revision and merge age, and the commit ids they name: the poller reads belay-policy's files, never its
 history) and `records` (the class records' counters: GitLab cannot restate them, so the poller keeps the seed's). The
 Ladder marks each with the kit's `Chip` ("demo"); a class with no record says "No record yet". The tier meanings are the product's tier vocabulary, the same in every mode, and are not marked. The stage list is
-the schema's (`@/schemas/stages`). The Task docket's per-task fixtures (a live task with no fixture is drawn from its own
-fields after them) are the screen's own data. Needs you never draws its desk in live mode (it is built around the demo's
+the schema's (`@/schemas/stages`). The Task docket's per-task fixtures are the screen's own render detail for a live task that has one; a fixture with no
+source task is not drawn in live mode, and a live task with no fixture is drawn from its own fields. Needs you never draws its desk in live mode (it is built around the demo's
 five seeded items): it lists the group's own open items, minus any the demo seeded, or `NeedsYouEmpty`.
 
 `getPolicy()`: demo, this checkout's `policy/trust-policy.yml` (`policy.ts`, checked by the engine's parser); live, the

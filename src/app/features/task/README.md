@@ -10,17 +10,19 @@ Route `/task/[id]` (`/task` redirects to the data source's first task). Ported f
   (ruling, words, counts toward, exhibits, ledger, trace, proof), `toolbar/`, `docket/`, `help/`.
 - `hooks/`: `useSelection`, `useReplay` (timers, toast, status), `useTaskKeys`, `useTieGeometry`
   (measures cards, re-measures on resize, inspector toggle and text size).
-- `model/` (pure, tested): `build/` merges the demo dataset with the fixtures into `TaskView` and chains
+- `model/` (pure, tested): `build/` merges the demo dataset with the fixtures into `TaskView` (in live mode: the source's tasks, each with its fixture if it has one) and chains
   the ledger hashes; `verdict/` the verdict (the schema's `verdictOf` over the checks; a `decidedBy: 'human'` check is a struck term), equation terms, replay sequence; `court/` selection,
   arrow keys, tie classification; `docket/` filters, stepping, key map; `exhibits.ts`.
 
 ## Data
 `data/details/*.ts` is the prototype's `TASK_DETAIL`, one typed file per task (7, including the seeded
-FAIL `01J8Q8`). The data source wins where it has a value (`getTasks()`); three tasks
-(`01J8Q8`, `01J8QA`, `01J8Q7`) carry their own base row. Every other data-source task (a live task the
-fixtures do not know) is drawn after them from its own fields alone (`sourceTask`, `fixture: false`):
-its proof's checks keep the claim each answers, and what only a fixture holds (agent, flow run, chain,
-ledger, trace, envelope, policy) is shown as not held, never borrowed. Demo mode draws exactly the seven.
+FAIL `01J8Q8`). Demo mode draws exactly the seven. Live mode draws only the data source's tasks
+(`getTasks()`): a fixture with no source task (`01J8Q8`, `01J8QA`, `01J8Q7` on the fake group) is neither drawn
+nor counted, and `/task/<its id>` is `notFound()`. A source task that has a fixture keeps its render detail, and
+the source wins where it has a value; one with no fixture is drawn from its own fields alone (`sourceTask`,
+`fixture: false`): its proof's checks keep the claim each answers, and what only a fixture holds (agent, flow run,
+chain, ledger, trace, envelope, policy) is shown as not held, never borrowed. `firstTaskId()` names a drawn task,
+and the subtitle, status line and inspector "Ledger read" come from the source, not the prototype's constants.
 `data/pageFacts.ts` has the page clock and the proof-class list. Ids the docket does not draw call `notFound()`.
 
 ## Honesty
