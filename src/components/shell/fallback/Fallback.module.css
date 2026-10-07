@@ -1,0 +1,56 @@
+/* Self-contained: global-error renders without globals.css, so every colour has a fallback. */
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg, #0b0f14);
+  color: var(--text-1, #e6edf3);
+  font: 14px/1.5 system-ui, sans-serif;
+}
+.card {
+  max-width: 560px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.title {
+  margin: 0;
+  font-size: 18px;
+}
+.note {
+  margin: 0;
+  color: var(--text-2, #9aa7b4);
+}
+.detail {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+.detail dt {
+  color: var(--text-3, #7d8a97);
+}
+.detail dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.btn,
+.link {
+  font: inherit;
+  color: inherit;
+  padding: 4px 12px;
+  border: 1px solid var(--text-3, #7d8a97);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
