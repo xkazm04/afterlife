@@ -1,6 +1,6 @@
 // Shared helpers for the Belay CI glue. Node 20+, no dependencies. These run inside the
 // components' jobs (see ../templates). Nothing here ever prints a token.
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 
 const env = process.env;
 const [GLAB, ...GLAB_PRE] = (env.BELAY_GLAB ?? 'glab').split('|'); // tests: BELAY_GLAB='node|fake-glab.mjs'
@@ -22,8 +22,27 @@ export function need(name) {
   return v;
 }
 
+/**
+ * Runs glab. Its stderr is captured so a caller can read the HTTP status, and still printed. A failure is thrown with
+ * `.stderr` and `.stdout` (GitLab's answer: glab prints the body on stdout, "glab: <message> (HTTP <status>)" on stderr).
+ */
 export function glab(args, input) {
-  return execFileSync(GLAB, [...GLAB_PRE, ...args], { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'inherit'], maxBuffer: 64 << 20 });
+  const r = spawnSync(GLAB, [...GLAB_PRE, ...args], { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'pipe'], maxBuffer: 64 << 20 });
+  if (r.stderr) process.stderr.write(r.stderr);
+  if (r.error) throw r.error;
+  if (r.status !== 0) {
+    const e = new Error((r.stderr.trim() || r.stdout.trim() || `glab exited ${r.status}`).split('\n')[0]);
+    e.stderr = r.stderr;
+    e.stdout = r.stdout;
+    throw e;
+  }
+  return r.stdout;
+}
+
+/** The HTTP status glab reported on a failure ("glab: <message> (HTTP 404)"), or null when it named none (network, no login). */
+export function httpStatus(e) {
+  const m = /\(HTTP (\d{3})\)|\bHTTP (\d{3})\b/.exec(String(e?.stderr ?? ''));
+  return m ? Number(m[1] ?? m[2]) : null;
 }
 
 /** REST call through `glab api` (docs.gitlab.com/cli/api: -X, -H, --input, --hostname). */

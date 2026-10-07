@@ -2,7 +2,7 @@
 // a fact that could not be read is recorded as unknown, never as absent, so the engine can say "inconclusive".
 // Every endpoint here is [R] unless noted; see components/README.md.
 import fs from 'node:fs';
-import { api, apiAll, arg, die, enc } from '../lib/lib.mjs';
+import { api, apiAll, arg, die, enc, httpStatus } from '../lib/lib.mjs';
 
 const id = process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set');
 const branch = process.env.CI_DEFAULT_BRANCH ?? 'main';
@@ -20,8 +20,9 @@ const exists = (path) => {
   try {
     api(`projects/${id}/repository/files/${enc(path)}?ref=${enc(branch)}`);
     return true;
-  } catch {
-    return false;
+  } catch (e) {
+    if (httpStatus(e) === 404) return false;
+    throw e; // unreadable is unknown, never absent: take() records it as {error}
   }
 };
 

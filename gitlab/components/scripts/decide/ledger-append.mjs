@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { arg, die } from '../lib/lib.mjs';
 import { engine } from '../lib/engine.mjs';
-import { readFile, writeFile } from '../lib/repo-write.mjs';
+import { fileHead, writeFile } from '../lib/repo-write.mjs';
 
 const project = arg('project') ?? die('missing --project (the belay-ledger path)');
 const branch = arg('branch', 'main');
@@ -20,7 +20,14 @@ if (files.length === 0) {
   process.exit(0);
 }
 
-const original = readFile(project, file, branch);
+// A 404 starts a new chain; any other failed read dies here with GitLab's message, and nothing is written.
+let head;
+try {
+  head = fileHead(project, file, branch);
+} catch (e) {
+  die(`cannot read ${file} from ${project} (${e.message}): nothing committed`);
+}
+const original = head?.content ?? null;
 let chain = original ? original.replace(/\n*$/, '\n') : '';
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-ledger-'));
 const titles = [];
@@ -48,7 +55,8 @@ writeFile({
   branch,
   path: file,
   content: chain,
-  exists: original !== null,
+  exists: head !== null,
+  lastCommitId: head?.lastCommitId,
   message: `ledger: ${titles.join(', ')}\n\n[skip ci]`,
   mode: arg('mode', 'commit'),
 });

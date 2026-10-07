@@ -4,29 +4,36 @@
 // last_commit_id, "Last known file commit ID. Only considered in update, move, and delete actions." [R]: GitLab then
 // refuses the commit (400, "...has changed since you started editing it") if the file moved since that commit, on the
 // branch the commit starts from. Callers also serialise with resource_group.
-import { api, enc } from './lib.mjs';
+import { api, enc, httpStatus } from './lib.mjs';
 
-/** Returns the file text, or null when the file does not exist (or the project/branch does not). */
+/**
+ * Returns the file text, or null when GitLab answers 404 (the file, or the ref, is not there). Any other failure (401, 403,
+ * 5xx, no network) throws with GitLab's message: an unreadable file is unknown, never absent. glab ends a failed call with
+ * "(HTTP <status>)" on stderr, the form the harness's fake-glab mimics and src/server/gitlab/errors.ts parses.
+ */
 export function readFile(project, path, ref) {
   try {
     return api(`projects/${enc(project)}/repository/files/${enc(path)}/raw?ref=${enc(ref)}`, { raw: true });
-  } catch {
-    return null;
+  } catch (e) {
+    if (httpStatus(e) === 404) return null;
+    throw e;
   }
 }
 
 /**
  * The file as GitLab has it now, with the commit that last changed it: `{content, lastCommitId}` (GET repository/files,
- * `last_commit_id`: "SHA of the last commit that modified this file" [R]), or null when it cannot be read.
+ * `last_commit_id`: "SHA of the last commit that modified this file" [R]), or null when GitLab answers 404. Any other failure,
+ * or an answer without content and last_commit_id, throws.
  */
 export function fileHead(project, path, ref) {
   let f;
   try {
     f = api(`projects/${enc(project)}/repository/files/${enc(path)}?ref=${enc(ref)}`);
-  } catch {
-    return null;
+  } catch (e) {
+    if (httpStatus(e) === 404) return null;
+    throw e;
   }
-  if (!f || typeof f.content !== 'string' || typeof f.last_commit_id !== 'string') return null;
+  if (!f || typeof f.content !== 'string' || typeof f.last_commit_id !== 'string') throw new Error(`GitLab's answer for ${path} has no content and last_commit_id`);
   return { content: Buffer.from(f.content, f.encoding === 'text' ? 'utf8' : 'base64').toString('utf8'), lastCommitId: f.last_commit_id };
 }
 

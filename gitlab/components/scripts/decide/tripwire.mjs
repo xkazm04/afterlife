@@ -78,7 +78,12 @@ const writeToken = process.env[arg('write-token-var', 'BELAY_BOT_TOKEN')];
 if (writeToken) process.env.GITLAB_TOKEN = writeToken;
 
 const policyBranch = arg('policy-branch', 'main');
-const head = fileHead(project, STATE, policyBranch);
+let head;
+try {
+  head = fileHead(project, STATE, policyBranch);
+} catch (e) {
+  die(`cannot read ${STATE} and its last commit from ${project} (${e.message}): nothing committed`);
+}
 if (!head) die(`cannot read ${STATE} and its last commit from ${project}: nothing committed`);
 if (head.content !== base) {
   die(`${STATE} in ${project} changed since it was cloned (a revoke, or another tripwire): not writing over it. Nothing committed; the next run starts from the new one.`, 3);

@@ -17,10 +17,21 @@ const fail = () => {
   process.exit(1);
 };
 
+// A route answering `{ "__http": <status>, "message": "..." }` fails the way glab does on an HTTP error: the body on
+// stdout, "glab: <message> (HTTP <status>)" on stderr, exit 1. Nothing is recorded as written.
+const httpError = (route) => {
+  if (!route || typeof route !== 'object' || typeof route.__http !== 'number') return;
+  const message = route.message ?? `${route.__http} error`;
+  process.stdout.write(JSON.stringify({ message }));
+  console.error(`glab: ${message} (HTTP ${route.__http})`);
+  process.exit(1);
+};
+
 if (argv[0] !== 'api') fail();
 if (method !== 'GET') {
   const route = routes[`${method} ${base}`];
   if (!route) fail();
+  httpError(route);
   const raw = argv.includes('--input') ? fs.readFileSync(0, 'utf8') : '';
   const body = raw ? JSON.parse(raw) : null;
   // GitLab's check on a commit's update actions (commits API, actions[].last_commit_id): when the route names each file's
@@ -37,5 +48,6 @@ if (method !== 'GET') {
   process.exit(0);
 }
 if (!(base in routes)) fail();
+httpError(routes[base]);
 const page = Number(new URLSearchParams(query).get('page') ?? '1');
 process.stdout.write(JSON.stringify(page > 1 ? [] : routes[base]));

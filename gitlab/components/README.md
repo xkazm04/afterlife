@@ -66,6 +66,9 @@ username goes into the app's `BELAY_PROOF_AUTHORS`, so the poller believes the n
 `BELAY_BOT_TOKEN` is readable by every job in an agent MR pipeline) is **accepted for M1 only**. It is asked again before any M2
 work arms a write token. No code changes.
 
+In M1 the target leaves the `ledger-append` component out of its `include`: with no write token its CI commit can only fail, and
+step 4 appends the line by hand.
+
 Commands are for Git Bash on Windows, run from the Belay checkout with `glab` signed in as the operator. `<...>` is a placeholder.
 On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (the default host is `gitlab.com`, `lib.mjs:7`).
 
@@ -128,7 +131,10 @@ BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/
 ```
 
 `ledger-append` takes every `*.json` in the directory, in name order, in one commit, each as seq n+1 on the chain it reads from
-`belay-ledger`. Run it once per head. If the push to `main` is refused, add `--mode mr`.
+`belay-ledger`. Run it once per head. If the push to `main` is refused, add `--mode mr`. It reads the ledger with your own `glab` login and no
+token variable. Only a 404 means there is no ledger file yet (the chain then starts at seq 1); any other failed read (403, 5xx,
+no network) stops it with GitLab's message and writes nothing. The write carries the `last_commit_id` it read, so a ledger
+that moved in between is refused: run it again.
 
 If the gate cannot decide (no guardrail verdict, so it forces `wait` and emits nothing), the ledger line waits. **Never
 hand-write an event**: `LedgerEvent.observed_by` has no value for a person (`src/schemas/ledger.ts:25`), and `ci_job` would be false.
