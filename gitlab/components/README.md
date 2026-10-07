@@ -42,9 +42,9 @@ So the components use two kinds of credential:
 | Credential | Used for | Where it must be |
 |---|---|---|
 | `CI_JOB_TOKEN` | clone `belay-engine` and `belay-policy`; read MRs and notes | allowlist both projects' job token settings to include the target |
-| `BELAY_BOT_TOKEN` | post notes and labels, approve, merge, read for the tripwire | CI variable, masked |
+| `BELAY_BOT_TOKEN` | post notes and labels, approve, merge, read for the tripwire | CI variable, masked. **Unset in M1**: see below |
 | `BELAY_POLICY_TOKEN` | the tripwire's commit to `belay-policy` | CI variable, masked, **protected** |
-| `BELAY_LEDGER_TOKEN` (optional) | ledger commits; the default reuses the bot token | CI variable, masked, protected |
+| `BELAY_LEDGER_TOKEN` (optional) | ledger commits; the default reuses the bot token | CI variable, masked, protected. **Unset in M1** |
 | `BELAY_DISPATCH_TOKEN` | flow-dispatch | CI variable, masked, protected |
 
 Belay never stores a token. A missing `BELAY_BOT_TOKEN` is not an error: the components report what they would have done and
@@ -55,6 +55,85 @@ the write tokens **protected**, and let only protected branches read them. For t
 branch pattern that only the flow service accounts and Maintainers may push to, so the variable is available to the pipelines
 that need it and to no ordinary contributor's branch. The
 guardrail's CI-tamper rule and `CODEOWNERS` on `.gitlab-ci.yml` are the second line.
+
+## M1: report-only, writes by hand
+
+Decided by the operator on 2026-10-07 (asks da7cab11 and 3e69c7b1). For M1, CI runs report-only: `BELAY_BOT_TOKEN` stays unset,
+so no job posts a note, sets a label or writes the ledger (`post-proof.mjs:39-42` and `apply-gate.mjs:56-57` only report, and
+`ledger-append` has no write token). After V-204's pipeline, the operator makes its three writes by hand with their own `glab`
+login: (1) the `belay-proof` note and the `proof::<verdict>` label, (2) `guardrail::pass`, (3) the ledger line. Their GitLab
+username goes into the app's `BELAY_PROOF_AUTHORS`, so the poller believes the note. Finding F4 (High: once set,
+`BELAY_BOT_TOKEN` is readable by every job in an agent MR pipeline) is **accepted for M1 only**. It is asked again before any M2
+work arms a write token. No code changes.
+
+Commands are for Git Bash on Windows, run from the Belay checkout with `glab` signed in as the operator. `<...>` is a placeholder.
+On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (the default host is `gitlab.com`, `lib.mjs:7`).
+
+**Preconditions**
+
+- The proof job writes a proof only for an MR whose author starts with `agent_prefix` (default `ai-`) and whose description has
+  a `Belay-Task: <ULID>` trailer. Otherwise `mr-context.mjs` exits 10 and the job is green with nothing written
+  (`mr-context.mjs:22-26`).
+- `tier-gate`'s `proof_authors` input (`tier-gate/template.yml:35`) must include the operator's username, or the gate never
+  trusts the hand-posted note.
+- `.env.local` for the app: `BELAY_MODE=live`, `BELAY_GROUP_ID=<the group V-204 runs in>` (the default is not that group),
+  `BELAY_PROJECT=<target project path>`, `BELAY_PROOF_AUTHORS=<operator username>`
+  (`src/server/data/README.md:12-15`, `src/server/poller/config.ts:44`).
+- Every component defaults `engine_project`, `policy_project` and `ledger_project` to `$CI_PROJECT_ROOT_NAMESPACE/belay-*`, the
+  **top-level** group (`tier-gate/template.yml:20,23`, `ledger-append/template.yml:36`). A target in a subgroup must pass all
+  three explicitly with its own group path. Filed for the security charter as F30; the templates are unchanged.
+
+**1. Fetch the proof** from the `belay-proof-exploit-test` job (its id is in the job's URL, `.../-/jobs/<id>`):
+
+```
+glab api "projects/<project id>/jobs/<belay-proof-exploit-test job id>/artifacts/.belay/proof.json" > <dir>/proof.json
+node -e "const p=require('./<dir>/proof.json');console.log(p.verdict,p.task.head_sha)"
+glab mr view <iid> -R <target path> -F json --jq .sha
+```
+
+The verdict must be `pass`, and `task.head_sha` must equal the MR's current head. To the poller, a proof made for an older head
+is stale.
+
+**2. Post it** with the component's own script, so the note is byte-identical to the one CI would post:
+
+```
+CI_PROJECT_URL=https://gitlab.com/<target path> BELAY_BOT_TOKEN=by-hand node gitlab/components/scripts/proof/post-proof.mjs --proof <dir>/proof.json --mr <iid>
+```
+
+`post-proof` only checks that the variable is set (`post-proof.mjs:39`) and never reads its value: `glab` posts with the
+operator's own login. `by-hand` is not a secret. If `glab` is not on PATH, set `BELAY_GLAB=<path to glab.exe>`. It runs
+`glab mr note create <iid> -R <url> -m <note>`, then `glab mr update <iid> -R <url> --label proof::<verdict> --unlabel` the
+other two.
+
+**3. Set `guardrail::pass`**, only when the guardrail's `belay-guardrail` verdict for the current head is `pass` (read it in the
+MR's notes: `glab mr view <iid> -R <target path> --comments`). It is the rule `apply-gate.mjs:34-37` applies:
+
+```
+glab mr update <iid> -R <target path> --label guardrail::pass --unlabel guardrail::block
+```
+
+**4. Append the ledger line.** Retry the gate, which now has a trusted proof; with a guardrail verdict the engine decides and
+`apply-gate` writes the event bodies to `.belay/events`, reporting only (`apply-gate.mjs:40-54`):
+
+```
+glab ci retry belay-tier-gate -R <target path> -p <pipeline id>
+mkdir <events dir>
+glab api "projects/<project id>/jobs/<new gate job id>/artifacts/.belay/events/0-proof_verdict.json" > <events dir>/0-proof_verdict.json
+glab api "projects/<project id>/jobs/<new gate job id>/artifacts/.belay/events/1-guardrail_verdict.json" > <events dir>/1-guardrail_verdict.json
+glab api "projects/<project id>/jobs/<new gate job id>/artifacts/.belay/events/2-tier_decision.json" > <events dir>/2-tier_decision.json
+BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/components/scripts/decide/ledger-append.mjs --events <events dir> --project <group path>/belay-ledger --branch main
+```
+
+`ledger-append` takes every `*.json` in the directory, in name order, in one commit, each as seq n+1 on the chain it reads from
+`belay-ledger`. Run it once per head. If the push to `main` is refused, add `--mode mr`.
+
+If the gate cannot decide (no guardrail verdict, so it forces `wait` and emits nothing), the ledger line waits. **Never
+hand-write an event**: `LedgerEvent.observed_by` has no value for a person (`src/schemas/ledger.ts:25`), and `ci_job` would be false.
+
+Checked on 2026-10-07: every `glab` subcommand and flag above against `glab 1.120.0 --help` (`api`, `mr view`, `mr update`,
+`mr note create`, `ci retry`; no command that talks to a host was run), and steps 2 and 4 by running the scripts against a fake
+`glab`: the note parses back through `blocks()` with tag `belay-proof`, the label call is as written, and `ledger-append` on
+events as `apply-gate` writes them appends seq 3, 4, 5 to a chain of two.
 
 ## The files the jobs write and read
 
