@@ -67,10 +67,10 @@ Notes written by the flows carry a fenced block, so Belay and the engine find th
 | `belay-claims` | patcher, gardener (MR description) | proof-engine | `../flows/schemas/claims.schema.json`, `gardener-claims.schema.json` |
 | `belay-medic` | medic flow | proof-engine (rerun-stats) | `../flows/schemas/medic-verdict.schema.json` |
 
-Only the accounts named in a component's inputs count: `fetch-block.mjs` ignores every other author, and ignores a verdict whose
-`head_sha` is not the MR's current head. Trailers in the MR description: `Belay-Task: <ulid>` (contract), plus
-`Belay-Class: <action class>` and `Belay-Finding: <id>` (added here; the gate and tripwire need the class, and `reopened_finding`
-needs the finding).
+Only the accounts named in a component's inputs count: `fetch-block.mjs` ignores every other author, and ignores a verdict or a Proof
+Block made for another head than the MR's current one (`head_sha`, or `task.head_sha` in a Proof Block). Trailers in the MR
+description: `Belay-Task: <ulid>` (contract), plus `Belay-Class: <action class>` and `Belay-Finding: <id>` (added here; the gate
+and tripwire need the class, and `reopened_finding` needs the finding).
 
 ## Scripts
 

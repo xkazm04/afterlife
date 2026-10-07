@@ -120,8 +120,8 @@ belay-tier-gate:
       P="$CI_PROJECT_DIR/.belay-policy"
 
       rc=0
-      node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag belay-proof --authors "$BELAY_PROOF_AUTHORS" --out .belay/proof.json || rc=$?
-      if [ "$rc" -eq 3 ]; then apply --force wait --reason "no trusted Proof Block on this MR yet"; exit 0; fi
+      node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag belay-proof --authors "$BELAY_PROOF_AUTHORS" --head-sha "$BELAY_HEAD_SHA" --out .belay/proof.json || rc=$?
+      if [ "$rc" -eq 3 ]; then apply --force wait --reason "no trusted Proof Block for this head yet"; exit 0; fi
       if [ "$rc" -ne 0 ]; then exit "$rc"; fi
 
       deadline=$(( $(date +%s) + BELAY_WAIT_MINUTES * 60 ))

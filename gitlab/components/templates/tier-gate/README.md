@@ -20,7 +20,8 @@ include:
 
 1. Skips MRs not written by an `agent_prefix` account with a `Belay-Task` trailer (a person's MR needs no gate).
 2. Takes the action class from the `class` input or the MR's `Belay-Class:` trailer. None: it leaves the MR waiting.
-3. Reads the newest `belay-proof` block from notes by `proof_authors` only. None yet: waits.
+3. Reads the newest `belay-proof` block from notes by `proof_authors` only, made for the current head SHA (`task.head_sha`).
+   None yet: waits. A proof for an earlier push never counts, so a provided evidence file must carry `task.head_sha`.
 4. Waits up to `wait_minutes` for a `belay-guardrail` block from the guardrail's service account, for the current head
    SHA, checked against `flows/schemas/guardrail-verdict.schema.json`. None: waits (nothing granted). A malformed one: blocks.
 5. Runs `engine gate --policy --state --class --agent --proof --guardrail --diff` and passes its JSON to `apply-gate.mjs`:
