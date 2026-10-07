@@ -6,7 +6,8 @@ Route `/`, from `src/app/(door)/page.tsx`. This is the port of the front-door co
 - each group is a district plate;
 - each project is a tower, whose height grows with its armed tracks and whose class windows are
   coloured by tier: the tier recorded in tier-state.yml, capped by the policy. A class with no record
-  yet (dashed) or blocked (outlined) has its own window and letter, never the quarantine's; an unknown
+  yet (dashed) or split between several agents (outlined, its lowest holder's letter then "÷", each holder at its
+  own tier on the readout) has its own window and letter, never the quarantine's, and its own answer mark; an unknown
   class is a dashed "?", and a project whose tiers are unknown lights no quarantine lamp;
 - each waiting decision is an amber beam.
 

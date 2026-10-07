@@ -8,7 +8,7 @@ import { TIER_ORDER, type Ceiling, type Tier, type TierRecord, type TierState } 
 export type Standing =
   | { kind: 'unknown_class'; why: string }
   | { kind: 'human_only'; why: string }
-  /** Several agents hold the class and none is named for its role: the gate will not pick one. */
+  /** Several agents hold the class, none named for its role, and no --agent given. CI always passes the MR author. */
   | { kind: 'refused'; holders: string[]; why: string }
   /** No agent holds the class (or the named agent has no record): not trusted. */
   | { kind: 'no_record'; agent: string | null; why: string }

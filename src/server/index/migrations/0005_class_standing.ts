@@ -1,6 +1,7 @@
 // A class tier row says, as its move, when the gate grants the class nothing: 'no_record' (no agent in tier-state.yml
 // holds it) and 'refused' (several agents hold it and none is named for the role). Both are stored quarantined, the
-// tier the gate acts on; the move keeps them apart from a tripwire quarantine.
+// tier the gate acts on; the move keeps them apart from a tripwire quarantine. Since F34 'refused' is any class several
+// agents hold, stored at its most restrictive holder with every holder's tier in the note (views/standing.ts).
 import { type Migration } from './parts';
 
 export const m0005: Migration = {

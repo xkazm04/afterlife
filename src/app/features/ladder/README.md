@@ -31,6 +31,10 @@ The toast says what the answer says (`@/server/actions/words`): done (simulated 
 from belay-policy), failed (GitLab's answer), changed (the files moved: the new write replaces the old one on screen, nothing
 ran) or refused (the reason).
 
+A row shows the class as the index reads it (`server/index/views/standing.ts`): a tier, No record yet (no rung,
+nothing to revoke, no Re-admit: Re-admit is for a real quarantine only), or Split with each holder at its own tier (a
+revoke lowers every holder above the target in one commit). Unknown reads unknown.
+
 Keys: j k move, r revoke one step, q quarantine, p promote, Enter rule and write, 1-5 / 0 tier filter, / search,
 ? keys and legend, Esc closes. Arrows, Home/End, Enter and the menu key act on the focused table.
 
