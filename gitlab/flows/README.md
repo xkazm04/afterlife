@@ -8,11 +8,11 @@ A flow's agents write **claims and drafts**. A verdict is only ever written by a
 | File | Track | Trigger (chosen when enabling the flow) | What it writes | Tier ceiling, proof |
 |---|---|---|---|---|
 | `patcher.yml` | T1 | Pipeline events, status Passed, on the scheduled security-scan pipeline of the default branch; or mention/assign on a finding issue | a branch `belay/<task>` and an MR whose description has the `Belay-Task`, `Belay-Class`, `Belay-Finding` trailers and a `belay-claims` block | dep-bump hands-off, code-fix supervised; `exploit-test` |
-| `guardrail.yml` | T4 | Merge request, action Created (people's MRs); for agent MRs started by `flow-dispatch` or by assigning the reviewer | an MR note with a `belay-guardrail` block (`head_sha`, findings with quoted hunks) | blocks at every tier, never merges; `cited-diff` |
+| `guardrail.yml` | T4 | Merge request, action Created (people's MRs); for agent MRs started by belay-apply's sweep or by a person assigning the reviewer | an MR note with a `belay-guardrail` block (`head_sha`, findings with quoted hunks) | blocks at every tier, never merges; `cited-diff` |
 | `medic.yml` | T5 | Pipeline events, status Failed | MR note or issue with a `belay-medic` block; for a flake, a tracking issue and a quarantine MR | retry hands-off, quarantine supervised; `rerun-stats` |
-| `qa.yml` | T7 | started by the review-app deploy job through `flow-dispatch` (goal `<mr iid> <url>`); or mention | MR note with a `belay-qa` block: bugs with replayable steps | files only; `repro` (engine stub today) |
+| `qa.yml` | T7 | mention, or a person's assign (no dispatch from belay-apply yet) | MR note with a `belay-qa` block: bugs with replayable steps | files only; `repro` (engine stub today) |
 | `cra.yml` | T2 | Work item, actions Created and Status changed (clock items) | work item note with a `belay-cra` block: statements with evidence links, `awaiting_signoff: true` | drafts hands-off, **submit is human only**; `linked-evidence` |
-| `gardener.yml` | T8 | mention or assign by a person on an upgrade MR; or `flow-dispatch` for a bot's MR | its own MR (trailers, `belay-claims` block with quoted changelog claims) | supervised; `bench-delta` (engine stub today) |
+| `gardener.yml` | T8 | mention or assign by a person on an upgrade MR (no dispatch from belay-apply yet, so a bot's MR waits for a person) | its own MR (trailers, `belay-claims` block with quoted changelog claims) | supervised; `bench-delta` (engine stub today) |
 
 Flow results are ordinary GitLab objects, so Belay reads them by polling. No flow has a tool that merges, approves, labels, or
 edits `tier-state.yml`; the toolsets are listed in each file and checked against the documented tool names.
@@ -42,7 +42,7 @@ placeholder, because `{{...}}` is the template syntax (checked by a scratch lint
 1. **A trigger needs a person.** "All trigger event types require a human user to perform the triggering action. A non-human user such
    as a bot user, service account user, or another flow, cannot activate a trigger" ([S] docs.gitlab.com/user/duo_agent_platform/triggers/).
    Consequences: the guardrail's MR-created trigger does not fire for patcher MRs; a pipeline retried by the medic does not re-fire the
-   medic; a Renovate MR does not fire the gardener. Hence `flow-dispatch` and the in-run retry loop.
+   medic; a Renovate MR does not fire the gardener. Hence belay-apply's dispatch (built for the guardrail only) and the in-run retry loop.
 2. **No label tool, no quick actions.** `update_merge_request` covers target branch, title and close; notes do not run quick actions
    ([S] docs.gitlab.com/user/duo_agent_platform/agents/tools/). The `proof::`, `guardrail::` and `belay::tier::` labels are set by the CI jobs.
 3. **The flow's GitLab token is narrow.** A flow gets an OAuth token limited to `ai_workflows` endpoints ([S] .../flows/custom/). Anything a

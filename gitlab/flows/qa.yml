@@ -5,8 +5,9 @@
 #
 # Syntax checked 2026-10-06: see patcher.yml for the URL of each construct. [S]
 #
-# TRIGGER: none fits an event in the docs, so this flow is STARTED BY THE REVIEW-APP DEPLOY JOB through the Flows API
-#   (flow-dispatch component, goal = "<mr iid> <review app url>"), and by mention of the service account in the MR.
+# TRIGGER: none fits an event in the docs, so this flow starts today only by mention of the
+#   service account in the MR or by a person's assign. belay-apply's dispatch is built for the guardrail only and does
+#   not start it yet (the flow-dispatch component is gone, F4).
 #   Flows API: POST /api/v4/ai/duo_workflows/workflows (docs.gitlab.com/api/duo_agent_platform_flows/) [S].
 #
 # Output: a note on the MR with a fenced block tagged belay-qa (schemas/qa-report.schema.json).

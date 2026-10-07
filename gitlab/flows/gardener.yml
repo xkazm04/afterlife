@@ -6,8 +6,9 @@
 # Syntax checked 2026-10-06: see patcher.yml for the URL of each construct. [S]
 #
 # TRIGGER: mention or assign of the service account on an upgrade MR or issue, by a person. A Renovate or other bot MR
-#   cannot fire a trigger itself (docs.gitlab.com/user/duo_agent_platform/triggers/), so the project may also start this flow
-#   from a pipeline on that MR through the flow-dispatch component (goal = the MR iid). goal = the resource iid for
+#   cannot fire a trigger itself (docs.gitlab.com/user/duo_agent_platform/triggers/), so today it starts only by mention or by
+#   a person's assign. belay-apply's dispatch is built for the guardrail only and does not start it yet (the
+#   flow-dispatch component is gone, F4). goal = the resource iid for
 #   assign events and the comment text for mentions [S: custom_flows_schema].
 #
 # This flow opens its OWN merge request (new branch, trailers) so that mr-context sees an agent author and a Belay-Task.

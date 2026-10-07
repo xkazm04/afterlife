@@ -21,10 +21,11 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 
 Arm and disarm (`arm/`): the content is the repo's own, not Belay's idea. `content.ts` holds a track's include lines as
 `gitlab/examples/target-project/.gitlab-ci.yml` writes them (its test checks them against the example and the templates'
-`spec:inputs`). Only T4 (guardrail: `proof-engine` cited-diff and `flow-dispatch`) is defined; any other track is refused with
+`spec:inputs`). Only T4 (guardrail: `proof-engine` cited-diff alone; the `flow-dispatch` component is gone, belay-apply starts the guardrail) is defined; any other track is refused with
 the reason. The per-install values (the example's "Replace:" list) come from the environment in live mode:
-`BELAY_PACK_VERSION`, `BELAY_ENGINE_REF`, `BELAY_ENGINE_COMMIT` (optional), `BELAY_GUARDRAIL_CONSUMER_ID`; a missing one is
-named in the refusal. Demo mode uses the example's values. The plan also refuses: no `.gitlab-ci.yml` on the default branch,
+`BELAY_PACK_VERSION`, `BELAY_ENGINE_REF`, `BELAY_ENGINE_COMMIT` (optional); a missing one is
+named in the refusal. The guardrail's consumer id is not an arm value: it lives in belay-apply's `apply.json`. T4's token notes
+put the write token on belay-apply, never on the target. Demo mode uses the example's values. The plan also refuses: no `.gitlab-ci.yml` on the default branch,
 a stage the includes need that the pipeline lacks, a one-line `include:`, a component already included by hand, an open MR
 from the same branch, an arm block already there (or edited). Neither intent reads, writes or names a token value, or sets
 a CI variable. `arm/verifyAction.ts` (`'use server'`, `verifyArmAction(intent)`) is Setup's verify: a read of the default

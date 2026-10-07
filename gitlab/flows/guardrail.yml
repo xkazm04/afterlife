@@ -12,7 +12,8 @@
 #   [R?] unverified: the prompt accepts a bare integer or a payload and takes only the iid.
 #   KNOWN GAP: a trigger needs a person to perform the action. An MR opened by the patcher's service account does not
 #   fire "Created" (docs.gitlab.com/user/duo_agent_platform/triggers/ "cannot activate a trigger"). For agent-authored MRs
-#   start this flow with the flow-dispatch component (Flows API, goal = MR iid) or have a person assign the reviewer.
+#   belay-apply's sweep starts this flow (once per head, Flows API, goal = MR iid) or a person assigns the reviewer.
+#   No target pipeline starts it: the flow-dispatch component is gone, because it needed a write token (F4).
 #
 # Where the verdict goes: an MR note holding a fenced block tagged belay-guardrail (schemas/guardrail-verdict.schema.json),
 #   head_sha = the MR head. tier-gate reads it from this account's notes only, ignores a verdict for an older head, and sets
