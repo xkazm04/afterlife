@@ -128,6 +128,23 @@ describe('default_branch_red_1h', () => {
     expect(run(g).map((e) => e.trigger)).toEqual(['default_branch_red_1h']);
   });
 
+  // The tripwire job fails its own push pipeline when it skips an event (exit 2: say an agent MR's Belay-Class names a class
+  // it holds no record of, which recurs on every run for the lookback) or finds tier-state.yml moved (exit 3).
+  it('the tripwire’s own failure is not the branch red: it never demotes the agent that merged the commit', () => {
+    const tripwire = { id: 9100, name: 'belay-tripwire', status: 'failed', finished_at: ago(71) };
+    const lint = { id: 9101, name: 'lint', status: 'failed', allow_failure: true, finished_at: ago(72) };
+    const g = group({ pipelines: [pipeline(501, { status: 'failed', updated_at: ago(70) })], jobs: { 501: [tripwire, lint] } });
+    expect(run(g)).toEqual([]);
+  });
+
+  it('a pipeline red by a job of its own, beside the tripwire, or with no job at all (invalid CI config) is still red', () => {
+    const tripwire = { id: 9100, name: 'belay-tripwire', status: 'failed', finished_at: ago(71) };
+    const both = group({ pipelines: [pipeline(501, { status: 'failed', updated_at: ago(70) })], jobs: { 501: [tripwire, { id: 9102, name: 'build', status: 'failed' }] } });
+    expect(run(both).map((e) => e.trigger)).toEqual(['default_branch_red_1h']);
+    const none = group({ pipelines: [pipeline(501, { status: 'failed', updated_at: ago(70) })], jobs: { 501: [] } });
+    expect(run(none).map((e) => e.trigger)).toEqual(['default_branch_red_1h']);
+  });
+
   it('one failed proof is one demotion: never post_merge_proof_fail and default_branch_red_1h for the same pipeline', () => {
     const g = group({ pipelines: [pipeline(501, { status: 'failed', updated_at: ago(70) })], jobs: { 501: [proofJob({ finished_at: ago(72) })] } });
     expect(run(g).map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);

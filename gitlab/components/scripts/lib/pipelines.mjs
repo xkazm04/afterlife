@@ -17,10 +17,6 @@ export const RECENT = 20;
 /** Pages of 100 jobs read per pipeline: a proof job behind 100 other jobs is still found. */
 const JOB_PAGES = 5;
 
-/** The belay-proof jobs of a pipeline, the latest attempt of each. */
-function proofJobs(apiAll, projectId, pipelineId) {
-  return apiAll(`projects/${projectId}/pipelines/${pipelineId}/jobs`, JOB_PAGES).filter((j) => String(j.name).startsWith('belay-proof'));
-}
 
 /** When the proof failed: its last failed proof job's finish, so event mode and a later sweep name the same event. */
 const failedAt = (jobs, pipeline) => jobs.map((j) => j.finished_at).filter(Boolean).sort().at(-1) ?? pipeline.updated_at;
@@ -36,9 +32,15 @@ const failedAt = (jobs, pipeline) => jobs.map((j) => j.finished_at).filter(Boole
 export function pipelineEvents({ api, apiAll, projectId, branch, now, since, ownPipelineId, headSha, mrFor, eventFor }) {
   const out = [];
   const proofFailed = new Set();
+  const jobs = new Map();
+  /** A pipeline's jobs, the latest attempt of each, read once. */
+  const jobsOf = (id) => {
+    if (!jobs.has(String(id))) jobs.set(String(id), apiAll(`projects/${projectId}/pipelines/${id}/jobs`, JOB_PAGES));
+    return jobs.get(String(id));
+  };
   /** Adds post_merge_proof_fail when the pipeline's proof failed. True when the pipeline ran the proof at all. */
   const readProof = (pipeline, sha) => {
-    const proofs = proofJobs(apiAll, projectId, pipeline.id);
+    const proofs = jobsOf(pipeline.id).filter((j) => String(j.name).startsWith('belay-proof'));
     const failed = proofs.filter((j) => j.status === 'failed');
     if (failed.length) {
       proofFailed.add(String(pipeline.id));
@@ -62,9 +64,15 @@ export function pipelineEvents({ api, apiAll, projectId, branch, now, since, own
     if (readProof(p, p.sha)) seen.add(p.sha); // only a run of the proof stands for its commit
   }
 
-  // Red for an hour is about the branch as it is: the newest finished pipeline that is not a schedule's.
+  // Red for an hour is about the branch as it is: the newest finished pipeline that is not a schedule's. Not when the
+  // tripwire's own job is all that failed (an event it skipped, exit 2; a moved tier-state.yml, exit 3): that is not the
+  // merged change's doing. A pipeline that failed with no job at all (invalid CI config) is still red.
+  const onlyTripwire = (p) => {
+    const failed = jobsOf(p.id).filter((j) => j.status === 'failed' && j.allow_failure !== true);
+    return failed.length > 0 && failed.every((j) => j.name === 'belay-tripwire');
+  };
   const [latest] = finished('').filter((p) => p.source !== 'schedule');
-  if (latest && !proofFailed.has(String(latest.id)) && latest.status === 'failed' && now - Date.parse(latest.updated_at) >= HOUR) {
+  if (latest && !proofFailed.has(String(latest.id)) && latest.status === 'failed' && now - Date.parse(latest.updated_at) >= HOUR && !onlyTripwire(latest)) {
     const mr = mrFor(latest.sha);
     if (mr) out.push(eventFor('default_branch_red_1h', mr, latest.updated_at, `pipeline ${latest.web_url}`));
   }
