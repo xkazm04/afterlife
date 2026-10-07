@@ -53,6 +53,9 @@ export async function locate(ctx: PlanContext, indexId: string): Promise<Located
   const policyPath = `${group.fullPath}/${ctx.cfg.policyProject}`;
   const policy = all.find((p) => p.pathWithNamespace === policyPath);
   if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);
+  if (ctx.cfg.infra.includes(project.path)) { // as the poller, which never watches them: tier-state.yml moves only by revoke or promote (F50)
+    throw new ActionRefused(`${project.path} is Belay's own project, not one it watches: nothing is planned in it`);
+  }
   if (!project.pathWithNamespace.startsWith(`${group.fullPath}/`)) { // F37's refusal, as arm's targetOf has it (F47)
     throw new ActionRefused(`${project.pathWithNamespace} is not in ${group.fullPath} (it is shared into it from elsewhere): Belay writes only in a project of the paired group`);
   }
