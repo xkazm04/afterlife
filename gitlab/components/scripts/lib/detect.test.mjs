@@ -150,3 +150,44 @@ describe('default_branch_red_1h', () => {
     expect(run(g).map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);
   });
 });
+
+describe('guardrail_high: F65, an agent cannot push its blocked MR out of the window by opening more MRs', () => {
+  /** `count` agent MRs updated in the lookback, newest first as GitLab lists them; the oldest, !1, has a high guardrail block. */
+  function many(count) {
+    const mrs = Array.from({ length: count }, (_, i) => ({ iid: count - i, state: 'opened', author: { username: 'ai-patcher-acme' }, description: 'x\n\nBelay-Class: dep-bump.patch' }));
+    const block = { id: 77, system: false, author: { username: 'ai-guardrail-acme' }, created_at: ago(60), body: `\`\`\`belay-guardrail\n${JSON.stringify({ verdict: 'block', findings: [{ severity: 'high' }] })}\n\`\`\`` };
+    const g = group({ pipelines: [] });
+    const api = (p, o) => {
+      const [base, query = ''] = p.split('?');
+      const q = new URLSearchParams(query);
+      if (base === 'projects/1/merge_requests') {
+        const per = Number(q.get('per_page') ?? 20);
+        const page = Number(q.get('page') ?? 1);
+        return (q.get('state') === 'merged' ? [] : mrs).slice((page - 1) * per, page * per);
+      }
+      const notes = /^projects\/1\/merge_requests\/(\d+)\/notes$/.exec(base);
+      if (notes) return notes[1] === '1' && Number(q.get('page') ?? 1) === 1 ? [block] : [];
+      return g.api(p, o);
+    };
+    const apiAll = (p, maxPages = 5) => {
+      const rows = [];
+      for (let page = 1; page <= maxPages; page++) {
+        const got = api(`${p}${p.includes('?') ? '&' : '?'}per_page=100&page=${page}`);
+        if (!Array.isArray(got) || got.length === 0) break;
+        rows.push(...got);
+        if (got.length < 100) break;
+      }
+      return rows;
+    };
+    return { ...g, api, apiAll };
+  }
+
+  it('the blocked MR behind 150 newer agent MRs is still read: one guardrail_high', () => {
+    const events = run(many(151)).filter((e) => e.trigger === 'guardrail_high');
+    expect(events).toEqual([expect.objectContaining({ agent: 'ai-patcher-acme', class: 'dep-bump.patch', evidence: '!1: note 77' })]);
+  });
+
+  it('past the cap of 2000 MRs it refuses to guess: the sweep goes red rather than miss an event', () => {
+    expect(() => run(many(2001))).toThrow(/more than 2000 all MRs updated since .*: refusing to guess/);
+  });
+});

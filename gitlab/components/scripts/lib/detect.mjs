@@ -6,6 +6,8 @@ import { blocks, CLASS_ID, trailer, trustedNotes } from './lib.mjs';
 import { pipelineEvents } from './pipelines.mjs';
 
 const HOUR = 3_600_000;
+/** Pages of 100 MRs read per list. Past them the sweep stops rather than guess (F65). */
+const MR_PAGES = 20;
 
 /** The agent-authored MR that put a commit on the default branch, or null. */
 function agentMrFor(api, projectId, sha, prefix) {
@@ -29,6 +31,15 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
     return { trigger, agent: mr.author.username, class: klass, at, evidence: `!${mr.iid}: ${evidence}` };
   };
   const since = new Date(now - lookbackHours * HOUR).toISOString();
+  /**
+   * Every MR of the lookback, all pages. A first page alone let an agent push its own blocked or reopened MR out of the
+   * window by opening more MRs (F65); a list past the cap throws, so the sweep goes red instead of missing an event.
+   */
+  const mrsSince = (state) => {
+    const rows = apiAll(`projects/${projectId}/merge_requests?state=${state}&updated_after=${since}`, MR_PAGES);
+    if (rows.length >= MR_PAGES * 100) throw new Error(`more than ${MR_PAGES * 100} ${state} MRs updated since ${since}: refusing to guess`);
+    return rows.filter((m) => (m.author?.username ?? '').startsWith(prefix));
+  };
   const found = [];
   const add = (e) => e && found.push(e);
 
@@ -49,8 +60,7 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
   for (const e of pipelineEvents({ api, apiAll, projectId, branch, now, since, ownPipelineId, headSha, mrFor, eventFor })) add(e);
 
   // 4. reopened finding: a merged agent MR with a Belay-Finding trailer whose vulnerability is open again.
-  const merged = apiAll(`projects/${projectId}/merge_requests?state=merged&updated_after=${since}`, 1)
-    .filter((m) => (m.author?.username ?? '').startsWith(prefix));
+  const merged = mrsSince('merged');
   for (const m of merged) {
     const id = trailer(m.description, 'Belay-Finding', /^\d+$/);
     if (!id) continue;
@@ -62,9 +72,7 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
   }
 
   // 5. guardrail high: a trusted guardrail note on an agent MR with a high-severity finding.
-  const recent = apiAll(`projects/${projectId}/merge_requests?state=all&updated_after=${since}`, 1)
-    .filter((m) => (m.author?.username ?? '').startsWith(prefix))
-    .slice(0, 50);
+  const recent = mrsSince('all');
   for (const m of recent) {
     for (const note of trustedNotes(projectId, m.iid, guardrailAuthors, api)) {
       const v = blocks(note.body, 'belay-guardrail').at(-1);
