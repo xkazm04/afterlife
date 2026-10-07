@@ -126,7 +126,7 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   };
 }
 
-const DISARM_NOTE = 'Disarm removes the include lines only. BELAY_BOT_TOKEN, if you set it, stays: remove it yourself if nothing else needs it.';
+const DISARM_NOTE = "Disarm removes the include lines only. BELAY_BOT_TOKEN lives on belay-apply, never on this project: to stop Belay writing here, remove the project from belay-apply's apply.json yourself.";
 
 export async function planDisarm(ctx: PlanContext, intent: DisarmTrack): Promise<Plan> {
   const a = trackArm(intent.track);

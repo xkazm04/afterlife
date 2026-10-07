@@ -1,10 +1,12 @@
-# Component: tier-gate. On MR pipelines of agent MRs: reads tier-state.yml from belay-policy, runs the engine gate, approves, sets auto-merge or waits.
+# Component: tier-gate. On MR pipelines of agent MRs: reads tier-state.yml from belay-policy and runs the engine gate,
+# report-only (apply-gate --dry 1): the decision is the job's artifact and log. belay-apply (gitlab/apply) runs the gate
+# itself and applies it (F4).
 # Syntax checked 2026-10-06 against:
 #   spec:inputs, $[[ inputs.x ]] ........ https://docs.gitlab.com/ci/yaml/#specinputs , https://docs.gitlab.com/ci/components/ [S]
 #   rules, resource_group, artifacts, needs ... https://docs.gitlab.com/ci/yaml/ [S]
 #   CI_JOB_TOKEN cannot write MR notes/labels, approve or merge; it can clone an allowlisting project
 #       .......................................... https://docs.gitlab.com/ci/jobs/ci_job_token/ [S]
-#   glab mr note create / update / approve / merge, glab api ... https://docs.gitlab.com/cli/ [S]
+#   glab auth login --job-token, glab api ... https://docs.gitlab.com/cli/ [S]
 # [R?] verify: arrays interpolated into `tags:` (runner_tags); the glab release asset URL in the boot step.
 spec:
   inputs:
@@ -34,7 +36,7 @@ spec:
       default: []
     proof_authors:
       type: string
-      description: Comma-separated usernames allowed to post the Proof Block note (the BELAY_BOT_TOKEN user). A note by anyone else is ignored.
+      description: Comma-separated usernames allowed to post the Proof Block note (belay-apply's bot account). A note by anyone else is ignored.
     guardrail_authors:
       default: 'ai-guardrail-$CI_PROJECT_ROOT_NAMESPACE'
       description: Comma-separated usernames of the guardrail flow service account. [R?] the exact ai-<flow>-<group> form.
@@ -50,7 +52,7 @@ spec:
     emit_events:
       type: boolean
       default: true
-      description: Write ledger event bodies to .belay/events for the ledger-append component.
+      description: Write ledger event bodies to .belay/events, as an artifact (belay-apply appends the ledger).
 ---
 .belay-boot-tier-gate:
   image: $[[ inputs.node_image ]]
@@ -86,8 +88,10 @@ spec:
         if [ -n "$BELAY_GLAB_SHA256" ]; then echo "$BELAY_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -; fi
         tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
       fi
-      if [ -n "${BELAY_BOT_TOKEN:-}" ]; then export GITLAB_TOKEN="$BELAY_BOT_TOKEN"
-      else glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"; fi
+      # The job token only, whatever this project's variables say (F4): a target pipeline never holds a write token, and
+      # belay-apply (gitlab/apply) makes every write. A job token reads MRs and notes and cannot write them [S].
+      unset GITLAB_TOKEN
+      glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"
 
 belay-tier-gate:
   extends: .belay-boot-tier-gate
@@ -113,7 +117,7 @@ belay-tier-gate:
       . ./.belay/mr.env
       CLASS="${BELAY_CLASS_INPUT:-$BELAY_ACTION_CLASS}"
       EMIT=""; if [ "$BELAY_EMIT" = "true" ]; then EMIT="--emit-dir .belay/events"; fi
-      apply() { node "$BELAY_GLUE/decide/apply-gate.mjs" --mr "$BELAY_MR_IID" --sha "$BELAY_HEAD_SHA" "$@"; }
+      apply() { node "$BELAY_GLUE/decide/apply-gate.mjs" --mr "$BELAY_MR_IID" --sha "$BELAY_HEAD_SHA" --dry 1 "$@"; }   # never writes
       if [ -z "$CLASS" ]; then apply --force wait --reason "this MR has no Belay-Class trailer"; exit 0; fi
 
       git clone -q --depth 1 --branch "$BELAY_POLICY_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${BELAY_POLICY_PROJECT}.git" .belay-policy

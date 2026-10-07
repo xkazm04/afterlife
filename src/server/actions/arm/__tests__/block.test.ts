@@ -69,16 +69,16 @@ describe('the arm block', () => {
 });
 
 describe('what must already be in the pipeline', () => {
-  it('the stages T4 runs in: cited-diff in review when the pipeline declares it, else in test; flow-dispatch in build', () => {
-    expect(placementOf(PIPELINE, t4)).toEqual({ 'proof-engine': 'review', 'flow-dispatch': 'build' });
+  it('the stage T4 runs in: cited-diff in review when the pipeline declares it, else in test', () => {
+    expect(placementOf(PIPELINE, t4)).toEqual({ 'proof-engine': 'review' });
     const testOnly = 'stages: [build, test, secure, package, deploy]\nbuild:\n  script: make\n';
-    expect(placementOf(testOnly, t4)).toEqual({ 'proof-engine': 'test', 'flow-dispatch': 'build' });
-    expect(placementOf('build:\n  script: make\n', t4)).toEqual({ 'proof-engine': 'test', 'flow-dispatch': 'build' }); // GitLab's defaults
+    expect(placementOf(testOnly, t4)).toEqual({ 'proof-engine': 'test' });
+    expect(placementOf('build:\n  script: make\n', t4)).toEqual({ 'proof-engine': 'test' }); // GitLab's defaults
+    expect(placementOf('stages: [test]\n', t4)).toEqual({ 'proof-engine': 'test' }); // no build stage needed: no flow-dispatch (F4)
     expect(blockerOf(PIPELINE, wanted)).toBeNull();
   });
-  it('refuses only when neither review nor test is declared, naming both; and a missing build', () => {
+  it('refuses only when neither review nor test is declared, naming both', () => {
     expect(placementOf('stages: [build, deploy]\n', t4)).toMatch(/proof-engine \(cited-diff\) runs in either a review or a test stage, and the pipeline declares neither review nor test/);
-    expect(placementOf('stages: [test]\n', t4)).toMatch(/flow-dispatch runs in a build stage, and the pipeline declares no build stage/);
     expect(placementOf('stages: [\n', t4)).toMatch(/not valid YAML/);
   });
   it('a test-only pipeline gets cited-diff in test, and disarm still removes exactly the block', () => {
@@ -95,8 +95,8 @@ describe('what must already be in the pipeline', () => {
     expect(back.ok && back.content).toBe(testOnly);
   });
   it('no include of the same component by hand, and valid YAML', () => {
-    const byHand = PIPELINE.replace('    - template', '    - component: $CI_SERVER_FQDN/x/belay-pack/flow-dispatch@1.0.0\n    - template');
-    expect(blockerOf(byHand, wanted)).toMatch(/already includes flow-dispatch by hand/);
+    const byHand = PIPELINE.replace('    - template', '    - component: $CI_SERVER_FQDN/x/belay-pack/proof-engine@1.0.0\n      inputs: { class: cited-diff }\n    - template');
+    expect(blockerOf(byHand, wanted)).toMatch(/already includes proof-engine \(cited-diff\) by hand/);
     expect(blockerOf('stages: [\n', wanted)).toMatch(/not valid YAML/);
   });
 });

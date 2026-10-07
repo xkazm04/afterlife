@@ -2,6 +2,8 @@
 #   1. includes every component at this very commit, so a syntax or input error stops the release at pipeline creation
 #      (the pattern from https://docs.gitlab.com/ci/components/ "Testing components": component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/<name>@$CI_COMMIT_SHA) [S]
 #   2. publishes the release, which is what puts a version in the CI/CD catalog (same page) [S].
+# tripwire, ledger-append and flow-dispatch are no longer components: each needed a write token in the target's pipeline
+# (F4). belay-apply (../apply) does their work.
 # Pipelines run for tags only, so the components' own rules (merge requests, default branch) never start jobs here.
 workflow:
   rules:
@@ -12,14 +14,8 @@ include:
     inputs: { class: exploit-test, engine_ref: main }
   - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/tier-gate@$CI_COMMIT_SHA
     inputs: { engine_ref: main, proof_authors: belay-bot }
-  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/tripwire@$CI_COMMIT_SHA
-    inputs: { engine_ref: main }
   - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/maturity-scan@$CI_COMMIT_SHA
     inputs: { engine_ref: main }
-  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/ledger-append@$CI_COMMIT_SHA
-    inputs: { engine_ref: main }
-  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/flow-dispatch@$CI_COMMIT_SHA
-    inputs: { engine_ref: main, consumer_id: 1 }
 
 stages: [.pre, test, release, .post]
 

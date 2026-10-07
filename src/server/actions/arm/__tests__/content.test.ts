@@ -45,14 +45,18 @@ describe("T4's arm content", () => {
     const stages = (parse(read('gitlab/examples/target-project/.gitlab-ci.yml')) as { stages: string[] }).stages;
     for (const s of t4.stages) expect(stages).toContain(s);
     expect(exampleOf('proof-engine', 'cited-diff')?.component).toBe(`$CI_SERVER_FQDN/acme/belay-pack/proof-engine@${DEMO_PIN.packVersion}`);
-    expect((exampleOf('flow-dispatch', undefined)?.inputs as Rec).consumer_id).toBe(DEMO_PIN.consumers.guardrail);
+    // F4: starting the guardrail needs a write token, so belay-apply does it; neither the example nor T4 includes flow-dispatch.
+    expect(exampleOf('flow-dispatch', undefined)).toBeUndefined();
+    expect(t4.includes(DEMO_PIN).map((i) => i.component)).toEqual(['proof-engine']);
   });
 
-  it('says the four things about BELAY_BOT_TOKEN, in order, and names no value', () => {
-    expect(t4.notes).toHaveLength(4);
-    expect(t4.notes[0]).toMatch(/BELAY_BOT_TOKEN.*protected CI variable/);
-    expect(t4.notes[1]).toMatch(/Every job in an agent MR pipeline can read that variable \(F4, accepted for M1 only\)/);
+  it('says where BELAY_BOT_TOKEN lives (belay-apply, never the target), in order, and names no value', () => {
+    expect(t4.notes).toHaveLength(5);
+    expect(t4.notes[0]).toMatch(/belay-apply, with BELAY_BOT_TOKEN set there as a protected CI variable, never on this project/);
+    expect(t4.notes[1]).toMatch(/No job of this project needs a write token, so none can read one \(F4\)/);
     expect(t4.notes[2]).toBe('Afterlife never sets it.');
-    expect(t4.notes[3]).toMatch(/report and fail closed/);
+    expect(t4.notes[3]).toMatch(/fails closed/);
+    expect(t4.notes[4]).toMatch(/guardrail consumer id in its apply\.json/);
+    for (const n of t4.notes) expect(n).not.toMatch(/glpat-|=/);
   });
 });

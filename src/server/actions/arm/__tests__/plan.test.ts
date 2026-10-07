@@ -47,7 +47,8 @@ describe('arm-track T4', () => {
     expect(mr).toContain('-f labels=belay::arm');
     expect(mr).toContain('-f remove_source_branch=true');
     expect(p.diff[0]).toBe('@@ .gitlab-ci.yml · after line 9');
-    expect(p.diff).toContain('+   - component: $CI_SERVER_FQDN/acme-lab/belay-pack/flow-dispatch@1.0.0');
+    expect(p.diff).toContain('+   - component: $CI_SERVER_FQDN/acme-lab/belay-pack/proof-engine@1.0.0');
+    expect(p.diff.join('\n')).not.toMatch(/flow-dispatch|consumer_id/); // F4: belay-apply starts the guardrail
     expect(p.diff.every((l, i) => i === 0 || l.startsWith('+ '))).toBe(true);
     expect(p.notes).toEqual(armOf('T4')!.notes);
     expect(JSON.stringify(p)).not.toMatch(/![0-9]/);
@@ -86,7 +87,7 @@ describe('arm-track T4', () => {
     const p = preview(await previewIntent(deps, arm));
     const proof = p.diff.indexOf('+   - component: $CI_SERVER_FQDN/acme-lab/belay-pack/proof-engine@1.0.0');
     expect(p.diff.slice(proof).find((l) => l.includes('stage:'))).toBe('+       stage: test');
-    expect(p.commands[1]?.argv.join(' ')).toContain('proof-engine in test, flow-dispatch in build');
+    expect(p.commands[1]?.argv.join(' ')).toContain('(proof-engine in test)');
     files(gl)['.gitlab-ci.yml'] = UNARMED.replace('stages: [build, test, review, deploy]', 'stages: [build, deploy]');
     expect(reason(await previewIntent(deps, arm))).toMatch(/neither review nor test/);
   });
@@ -121,8 +122,9 @@ describe('arm-track T4', () => {
   it('refuses without the per-install values, naming what is missing', async () => {
     expect(reason(await previewIntent((await rig({ deps: { arm: undefined } })).deps, arm))).toMatch(/no arm settings/);
     expect(reason(await previewIntent((await rig({ deps: { arm: readArmConfig({}) } })).deps, arm))).toMatch(/BELAY_PACK_VERSION.*BELAY_ENGINE_REF/);
+    // T4's include names no consumer id any more (belay-apply's apply.json holds it), so its absence refuses nothing.
     const noConsumer = readArmConfig({ BELAY_PACK_VERSION: '1.0.0', BELAY_ENGINE_REF: 'v0.1.0' });
-    expect(reason(await previewIntent((await rig({ deps: { arm: noConsumer } })).deps, arm))).toMatch(/BELAY_GUARDRAIL_CONSUMER_ID/);
+    expect((await previewIntent((await rig({ deps: { arm: noConsumer } })).deps, arm)).status).toBe('preview');
   });
 
   it('refuses to arm what is armed, and to disarm what is not', async () => {
@@ -135,7 +137,7 @@ describe('arm-track T4', () => {
 
   it('refuses to disarm an edited block, and verify says what it found', async () => {
     const { gl, deps } = await rig({ armed: true });
-    files(gl)['.gitlab-ci.yml'] = LEDGERLINE_CI.replace('consumer_id: 4711', 'consumer_id: 4712');
+    files(gl)['.gitlab-ci.yml'] = LEDGERLINE_CI.replace('engine_ref: v0.1.0', 'engine_ref: v0.1.1');
     expect(reason(await previewIntent(deps, disarm))).toMatch(/edited after it was added/);
     expect(await checkArm(deps, arm)).toMatchObject({ status: 'read', armed: false, text: expect.stringMatching(/edited/) });
     delete files(gl)['.gitlab-ci.yml'];

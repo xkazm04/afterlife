@@ -1,4 +1,5 @@
-# Component: proof-engine. Re-derives a Proof Block with the model-free Belay engine, posts it on the MR.
+# Component: proof-engine. Re-derives a Proof Block with the model-free Belay engine, report-only: the proof stays in the
+# job artifact and log. belay-apply (gitlab/apply) re-derives it from the same evidence and posts it (F4).
 # Syntax checked 2026-10-06 against:
 #   spec:inputs (type, default, options, regex, description) ... https://docs.gitlab.com/ci/yaml/#specinputs  [S]
 #   $[[ inputs.x ]] interpolation, also in job names ............ https://docs.gitlab.com/ci/components/        [S]
@@ -6,7 +7,7 @@
 #   rules:variables (set BELAY_PHASE per matching rule) ........... https://docs.gitlab.com/ci/yaml/#rulesvariables [R]
 #   CI_JOB_TOKEN cannot write MR notes or labels; it can git-clone another project that allowlists this one
 #       .......................................................... https://docs.gitlab.com/ci/jobs/ci_job_token/ [S]
-#   glab auth login --job-token, glab mr note create / update, glab api ... https://docs.gitlab.com/cli/ [S]
+#   glab auth login --job-token, glab api ............................. https://docs.gitlab.com/cli/ [S]
 # [R?] verify: arrays interpolated into `tags:` (runner_tags) and the glab release asset URL below.
 spec:
   inputs:
@@ -49,10 +50,6 @@ spec:
     prepare_script:
       default: ''
       description: Optional shell run before the evidence is built. Sees BELAY_MR_IID, BELAY_TASK_ID, BELAY_ACTION_CLASS, BELAY_AGENT, BELAY_BASE_SHA, BELAY_HEAD_SHA, BELAY_DIFF_FILE, BELAY_POLICY_FILE, BELAY_PHASE.
-    post:
-      type: boolean
-      default: true
-      description: Post the Proof Block note and the proof label (needs BELAY_BOT_TOKEN).
     post_merge:
       type: boolean
       default: false
@@ -103,8 +100,10 @@ spec:
         if [ -n "$BELAY_GLAB_SHA256" ]; then echo "$BELAY_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -; fi
         tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
       fi
-      if [ -n "${BELAY_BOT_TOKEN:-}" ]; then export GITLAB_TOKEN="$BELAY_BOT_TOKEN"
-      else glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"; fi
+      # The job token only, whatever this project's variables say (F4): a target pipeline never holds a write token, and
+      # belay-apply (gitlab/apply) makes every write. A job token reads MRs and notes and cannot write them [S].
+      unset GITLAB_TOKEN
+      glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"
 
 "belay-proof-$[[ inputs.class ]]":
   extends: .belay-boot-proof-engine
@@ -122,7 +121,6 @@ spec:
     BELAY_BUILD_ARGS: "$[[ inputs.build_args ]]"
     BELAY_BLOCK_AUTHORS: "$[[ inputs.block_authors ]]"
     BELAY_PREPARE: "$[[ inputs.prepare_script ]]"
-    BELAY_POST: "$[[ inputs.post ]]"
     BELAY_POST_MERGE: "$[[ inputs.post_merge ]]"
   script:
     - |
@@ -145,10 +143,7 @@ spec:
       git diff "$BELAY_BASE_SHA" "$BELAY_HEAD_SHA" > "$BELAY_DIFF_FILE"
       export BELAY_MR_IID BELAY_TASK_ID BELAY_ACTION_CLASS BELAY_AGENT BELAY_BASE_SHA BELAY_HEAD_SHA BELAY_PHASE
       if [ -n "$BELAY_PREPARE" ]; then sh -c "$BELAY_PREPARE"; fi
-      finish() {   # post the proof (or an inconclusive note when there is none), then exit with the engine's code
-        if [ "$BELAY_POST" = "true" ] && [ "$BELAY_PHASE" = "pre-merge" ]; then
-          node "$BELAY_GLUE/proof/post-proof.mjs" --proof .belay/proof.json --mr "$BELAY_MR_IID" --code "$1"
-        fi
+      finish() {   # report-only: the proof is the job's artifact; exit with the engine's code
         exit "$1"   # 0 pass, 1 fail, 2 inconclusive or error: only a pass leaves the job green
       }
       EVIDENCE="$CI_PROJECT_DIR/$BELAY_EVIDENCE_FILE"

@@ -4,7 +4,7 @@
 #   rules, resource_group, artifacts, needs ... https://docs.gitlab.com/ci/yaml/ [S]
 #   CI_JOB_TOKEN cannot write MR notes/labels, approve or merge; it can clone an allowlisting project
 #       .......................................... https://docs.gitlab.com/ci/jobs/ci_job_token/ [S]
-#   glab mr note create / update / approve / merge, glab api ... https://docs.gitlab.com/cli/ [S]
+#   glab auth login --job-token, glab api ... https://docs.gitlab.com/cli/ [S]
 # [R?] verify: arrays interpolated into `tags:` (runner_tags); the glab release asset URL in the boot step.
 spec:
   inputs:
@@ -70,8 +70,10 @@ spec:
         if [ -n "$BELAY_GLAB_SHA256" ]; then echo "$BELAY_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -; fi
         tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
       fi
-      if [ -n "${BELAY_BOT_TOKEN:-}" ]; then export GITLAB_TOKEN="$BELAY_BOT_TOKEN"
-      else glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"; fi
+      # The job token only, whatever this project's variables say (F4): a target pipeline never holds a write token, and
+      # belay-apply (gitlab/apply) makes every write. A job token reads MRs and notes and cannot write them [S].
+      unset GITLAB_TOKEN
+      glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"
 
 belay-maturity-scan:
   extends: .belay-boot-maturity-scan

@@ -1,13 +1,18 @@
-# Example .gitlab-ci.yml for the target project (ledgerline) with every Belay component wired in.
-# Replace: acme (the group), v0.1.0 and the commit (a Belay release), 4711 (the guardrail flow's consumer id).
+# Example .gitlab-ci.yml for the target project (ledgerline) with the Belay components a target runs.
+# Replace: acme (the group), v0.1.0 and the commit (a Belay release).
 # Syntax: include:component, inputs, workflow:rules, rules, needs - https://docs.gitlab.com/ci/yaml/ and https://docs.gitlab.com/ci/components/ [S]
 #
+# No write token, ever (F4; decided 2026-10-07, ask 6696d24d): every job here uses CI_JOB_TOKEN only, produces artifacts
+# and reports. belay-apply (gitlab/apply) reads this project with its own token, re-derives the proof from the evidence
+# below, runs the gate, starts the guardrail, appends the ledger and runs the tripwire. Set no Belay token on this project.
+#
 # Needs in the target project's Settings:
-#   CI/CD variables (masked): BELAY_BOT_TOKEN, and protected+masked: BELAY_POLICY_TOKEN, BELAY_DISPATCH_TOKEN
+#   CI/CD variables: none for Belay
 #   CI/CD > Job token permissions: belay-engine and belay-policy allow this project (inbound allowlist)
-#   Repository: protected branches main and belay/* (see components/README.md, "Exposure"); CODEOWNERS on .gitlab-ci.yml and .gitlab/
-#   Schedules (default branch): "security" (daily, no variable), "tripwire" every 10 min with BELAY_TRIPWIRE=sweep,
-#                               "maturity" daily with BELAY_SCAN=maturity. Owners of schedules should be people.
+#   Repository: protected branches main and belay/*; CODEOWNERS on .gitlab-ci.yml and .gitlab/
+#   Schedules (default branch): "security" (daily, no variable), "maturity" daily with BELAY_SCAN=maturity.
+#                               Owners of schedules should be people.
+#   belay-apply's apply.json: this project under targets, with its guardrail consumer id and evidence paths.
 #   .gitignore: .belay-engine/ .belay-policy/ .belay/ evidence/
 stages: [build, test, review, deploy]
 
@@ -24,8 +29,10 @@ include:
   - template: Jobs/Dependency-Scanning.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
 
-  # The proof: one include per class. Patcher MRs (exploit-test) read the belay-claims block in the MR description and the
-  # JUnit/scan files from belay-replay below. The guardrail's verdict is proven with cited-diff.
+  # The proof, report-only: one include per class. Patcher MRs (exploit-test) read the belay-claims block in the MR
+  # description and the JUnit/scan files from belay-replay below. The guardrail's verdict is proven with cited-diff.
+  # belay-apply re-derives each from the same evidence and posts it; rerun-stats is derived there only (it reads the
+  # pipelines API, which a job token cannot).
   - component: $CI_SERVER_FQDN/acme/belay-pack/proof-engine@1.0.0
     inputs:
       class: exploit-test
@@ -42,26 +49,13 @@ include:
       engine_ref: v0.1.0
       engine_commit: '0000000000000000000000000000000000000000'
       stage: review
-  - component: $CI_SERVER_FQDN/acme/belay-pack/proof-engine@1.0.0
-    inputs:
-      class: rerun-stats
-      engine_ref: v0.1.0
-      engine_commit: '0000000000000000000000000000000000000000'
-      stage: review
 
-  # Start the guardrail on agent-authored MRs (a bot-opened MR does not fire the flow's own trigger).
-  - component: $CI_SERVER_FQDN/acme/belay-pack/flow-dispatch@1.0.0
-    inputs: { engine_ref: v0.1.0, consumer_id: 4711, stage: build }
-
-  # The decision, after the proof. Waits up to 10 minutes for the guardrail's verdict.
+  # The decision, report-only: what belay-apply's gate will say, from belay-apply's proof note. Waits up to 10 minutes
+  # for the guardrail's verdict.
   - component: $CI_SERVER_FQDN/acme/belay-pack/tier-gate@1.0.0
     inputs: { engine_ref: v0.1.0, engine_commit: '0000000000000000000000000000000000000000', proof_authors: belay-bot }
 
-  # Always on: the tripwire demotes, the ledger records, the scan scores.
-  - component: $CI_SERVER_FQDN/acme/belay-pack/tripwire@1.0.0
-    inputs: { engine_ref: v0.1.0, engine_commit: '0000000000000000000000000000000000000000' }
-  - component: $CI_SERVER_FQDN/acme/belay-pack/ledger-append@1.0.0
-    inputs: { engine_ref: v0.1.0, engine_commit: '0000000000000000000000000000000000000000' }
+  # The scan scores what a job token can read (the rest is recorded as unknown).
   - component: $CI_SERVER_FQDN/acme/belay-pack/maturity-scan@1.0.0
     inputs: { engine_ref: v0.1.0 }
 
@@ -94,9 +88,9 @@ belay-replay:
     - git worktree add ../base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"
     - git show "$CI_COMMIT_SHA:$TEST_PATH" > "../base/$TEST_PATH"
     - (cd ../base && ./gradlew test --tests "$TEST_ID" || true)
-    - cp ../base/build/test-results/test/*.xml evidence/base/ || true
+    - cp "$(ls ../base/build/test-results/test/*.xml | head -n1)" evidence/base/junit.xml || true   # one test class, one file
     - ./gradlew test --tests "$TEST_ID" || true
-    - cp build/test-results/test/*.xml evidence/head/ || true
+    - cp "$(ls build/test-results/test/*.xml | head -n1)" evidence/head/junit.xml || true
     # rescan evidence [R?]: run normalize-sast.mjs --report gl-sast-report.json --out evidence/base/scan.json on the default branch's last report and again for this pipeline's (evidence/head/scan.json)
   artifacts:
     when: always

@@ -12,17 +12,12 @@ workflow:
     - if: $CI_PIPELINE_SOURCE =~ /^(schedule|api|trigger)$/
 
 include:
-  # belay:arm T4 guardrail begin 5db139c38bf4
+  # belay:arm T4 guardrail begin e4333f76d69d
   - component: $CI_SERVER_FQDN/${GROUP_PATH}/belay-pack/proof-engine@1.0.0
     inputs:
       class: cited-diff
       engine_ref: v0.1.0
       stage: review
-  - component: $CI_SERVER_FQDN/${GROUP_PATH}/belay-pack/flow-dispatch@1.0.0
-    inputs:
-      engine_ref: v0.1.0
-      consumer_id: 4711
-      stage: build
   # belay:arm T4 guardrail end
   - template: Jobs/SAST.gitlab-ci.yml
   - template: Jobs/Dependency-Scanning.gitlab-ci.yml
