@@ -4,7 +4,10 @@
 import { parse } from 'yaml';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fleetTotals, MARK_TEST } from '@/app/features/door/model/words';
+import { promotion } from '@/app/features/ladder/model/rules/promotion';
+import { actsFrom, isQuarantine, shownName } from '@/app/features/ladder/model/rules/tiers';
 import { tiersKnown } from '@/lib/tiers';
+import { actionClass } from '@/server/data/live/narrow';
 import { POLICY_GID } from '@/server/gitlab/fake/demo/ids';
 import { listClassTiers } from '@/server/index/repositories/fleet/classTier';
 import { getActionClasses, getFleet } from '@/server/index/views';
@@ -51,6 +54,8 @@ describe('a tripwire demotion reaches Fleet, the door and Ladder on the next pol
     expect(MARK_TEST.quar(after)).toBe(true);
     const ladder = await getActionClasses(r.db, 'ledgerline', LATER);
     expect(ladder.find((c) => c.id === 'dep-bump.patch')).toMatchObject({ tier: 'quarantined', lastMove: expect.stringContaining('tripwire') });
+    const real = actionClass(ladder.find((c) => c.id === 'dep-bump.patch')!); // a real quarantine keeps its Re-admit
+    expect([shownName(real), isQuarantine(real), promotion(real, 'exploit-test', null).kind]).toEqual(['Quarantined', true, 'readmit']);
   }, 60_000);
 });
 
@@ -70,5 +75,10 @@ describe('a class with no record reads "no record yet", never quarantined', () =
     expect(MARK_TEST.norec(after)).toBe(true);
     const ladder = await getActionClasses(r.db, 'ledgerline', LATER);
     expect(ladder.find((c) => c.id === 'code-fix.patch')?.lastMove).toBe('no tier record: not trusted');
+    // Ladder's tier cell, as the screen takes the class (narrow): No record yet, no rung, no Re-admit, nothing to revoke
+    const shown = actionClass(ladder.find((c) => c.id === 'code-fix.patch')!);
+    expect(shown.cell).toBe('no_record');
+    expect(shownName(shown)).toBe('No record yet');
+    expect([isQuarantine(shown), actsFrom(shown), promotion(shown, 'exploit-test', null).kind]).toEqual([false, null, 'norecord']);
   }, 60_000);
 });
