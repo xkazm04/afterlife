@@ -30,13 +30,16 @@ export function useOnboard(data: OnboardData) {
   const counts = useMemo(() => funnel(steps), [steps]);
   const groups = useMemo(() => byGroup(data.projects, data.groups, steps), [data, steps]);
   const base = useMemo(() => baseline(data.projects.filter((p) => steps[p.id] !== 'discovered')), [data, steps]);
-  // A picked group scopes the batch: onboard one group at a time if you like.
-  const scope = useMemo(() => (group ? data.projects.filter((p) => p.group === group) : data.projects), [data, group]);
-  const batch = useMemo(() => planBatch(scope, runs, Number(size), data.org), [scope, runs, size, data.org]);
+  // A picked group scopes the reads and writes (onboard one group at a time if you like); what only you can do is
+  // always listed for the whole estate.
+  const batch = useMemo(
+    () => planBatch(data.projects, runs, Number(size), data.org, group ? (p) => p.group === group : undefined),
+    [data, runs, size, group],
+  );
   const byId = useMemo(() => new Map(data.projects.map((p) => [p.id, p])), [data]);
 
   const run = () => {
-    const r = runBatch(runs, batch, scope, nextMr, data.org);
+    const r = runBatch(runs, batch, data.projects, nextMr, data.org);
     setRuns(r.runs);
     setNextMr(r.nextMr);
     setSheet(false);

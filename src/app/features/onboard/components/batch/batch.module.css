@@ -6,7 +6,6 @@
 .sec {
   border-radius: 8px;
   box-shadow: inset 0 0 0 1px var(--border-1);
-  overflow: hidden;
 }
 .sh {
   display: flex;
@@ -28,7 +27,8 @@
 }
 .row {
   display: grid;
-  grid-template-columns: minmax(calc(150px * var(--ui-scale)), 1.3fr) calc(84px * var(--ui-scale)) minmax(calc(140px * var(--ui-scale)), 2fr) calc(70px * var(--ui-scale)) calc(124px * var(--ui-scale));
+  /* name and action give way first; the step, who and the button keep their width (the button must stay reachable) */
+  grid-template-columns: minmax(0, 1.2fr) calc(80px * var(--ui-scale)) minmax(0, 2fr) calc(62px * var(--ui-scale)) calc(72px * var(--ui-scale));
   align-items: center;
   gap: 8px;
   min-height: var(--row-h);
@@ -43,7 +43,7 @@
 .row:hover {
   background: var(--hover);
 }
-.row[aria-selected="true"] {
+.row[data-selected] {
   background: var(--sel-dim);
 }
 .name {

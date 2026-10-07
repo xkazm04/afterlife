@@ -15,12 +15,10 @@ export interface OnboardData {
   asOf: string;
 }
 
-/** The MR a setting-up project's bootstrap waits on, when its setup step says so ("step 10 ... waits for your merge"). */
-const BOOTSTRAP_MR = '!2';
-
 /**
  * Where every project starts: its funnel step, plus what it already waits for from a person. A setting-up project
- * whose bootstrap MR waits for a merge waits on it; a stale feed (an expired project token) waits on a new token.
+ * whose bootstrap MR waits for a merge waits on it (its number is not in the data, so it is looked up by branch); one
+ * with no recorded step waits for its setup to be finished; a stale feed (an expired token) waits on a new token.
  */
 export function initialRuns(data: OnboardData): Record<string, ProjectRun> {
   const cycling = new Set(data.cycling);
@@ -28,10 +26,11 @@ export function initialRuns(data: OnboardData): Record<string, ProjectRun> {
   for (const p of data.projects) {
     const step = stepOf(p, cycling);
     const waitsMerge = p.state === 'setting-up' && /waits for your merge/.test(p.setupStep ?? '') && setupStepNumber(p) < 11;
+    const setupUnknown = p.state === 'setting-up' && !p.setupStep;
     out[p.id] = {
       step,
-      waiting: waitsMerge ? 'merge' : p.state === 'stale' ? 'token' : null,
-      mr: waitsMerge ? BOOTSTRAP_MR : null,
+      waiting: waitsMerge ? 'merge' : p.state === 'stale' ? 'token' : setupUnknown ? 'setup' : null,
+      mr: null,
     };
   }
   return out;

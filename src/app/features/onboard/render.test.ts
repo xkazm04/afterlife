@@ -30,15 +30,24 @@ describe('Onboard parts render', () => {
     const batch = planBatch(data.projects, runs, 5, 'acme-lab');
     const out = html(createElement(BatchTable, { batch, runs, byId, org: 'acme-lab', filter: null, selected: null, onSelect: () => {}, onResolve: () => {} }));
     expect(out).toContain('Only you');
-    expect(out).toContain('Merged · re-probe');
-    expect(out).toContain('Open the bootstrap MR');
-    expect(html(createElement(BatchTable, { batch, runs, byId, org: 'acme-lab', filter: 'cycling', selected: null, onSelect: () => {}, onResolve: () => {} }))).toContain('Nothing in cycles here.');
+    expect(out).toContain('I merged it: re-probe (simulated)');
+    expect(out).toContain('Arm T6: open cycle C1');
+    expect(out).toContain('I finished the setup: re-probe (simulated)');
+    expect(out).not.toContain('aria-selected');
+    expect(html(createElement(BatchTable, { batch, runs, byId, org: 'acme-lab', filter: 'paired', selected: null, onSelect: () => {}, onResolve: () => {} }))).toContain(
+      'Nothing sitting at paired here.',
+    );
   });
   it('every project panel renders, unknown baselines included', () => {
     for (const p of data.projects) {
       const out = html(createElement(ProjectPanel, { p, run: runs[p.id]!, org: 'acme-lab', onResolve: () => {} }));
       expect(out).toContain(p.name);
       if (p.stages.every((s) => s == null)) expect(out).toContain('Unknown, never zero');
+    }
+    const scanned = data.projects.find((p) => p.state === 'not-set-up')!;
+    const out = html(createElement(ProjectPanel, { p: scanned, run: { step: 'baselined', waiting: null, mr: null, simulated: true }, org: 'acme-lab', onResolve: () => {} }));
+    expect(out).toContain('Scanned in this session (simulated)');
+    {
     }
   });
 });

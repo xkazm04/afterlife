@@ -8,7 +8,12 @@ import styles from './inspector.module.css';
 
 const READS = ['the group and its projects (group API)', 'CI config, pipelines and their reports', 'MRs, notes and deployments', 'its own policy and ledger repos'];
 const WRITES = ['a bootstrap MR per project: policy record, proof jobs', 'an arm MR in belay-policy to start a cycle', 'only on your click, after the exact commands'];
-const YOURS = ['merge every MR in GitLab (Afterlife holds no merge token)', 'mint and renew project tokens', 'pick the gaps each cycle closes'];
+const YOURS = [
+  'merge every MR in GitLab (Afterlife holds no merge token)',
+  'mint and renew project tokens',
+  'finish a setup already under way',
+  'pick the gaps each cycle closes',
+];
 
 function Lines({ items, mark }: { items: readonly string[]; mark: string }) {
   return (

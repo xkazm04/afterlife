@@ -15,8 +15,11 @@ interface Props {
   onResolve: (id: string) => void;
 }
 
+/** What the person did, said on the re-probe button's tooltip; the (simulated) probe then checks it. */
+export const RESOLVE_WORD: Partial<Record<string, string>> = { merge: 'I merged it', token: 'I renewed the token', setup: 'I finished the setup' };
+
 const SECTIONS = [
-  { key: 'yours', title: 'Only you', aux: 'merges and tokens: Afterlife never does these' },
+  { key: 'yours', title: 'Only you', aux: 'merges, tokens, setups: Afterlife never does these · whole estate' },
   { key: 'reads', title: 'Reads', aux: 'every one runs: they write nothing' },
   { key: 'writes', title: 'Writes', aux: 'one MR each, as you, then a person merges' },
 ] as const;
@@ -33,13 +36,15 @@ export function BatchTable(p: Props) {
         return (
           <div key={sec.key} role="rowgroup" className={styles.sec}>
             <div role="row" className={styles.sh}>
-              <span role="columnheader">
+              <span role="columnheader" aria-colspan={5}>
                 <b>{sec.title}</b> {ids.length} <span className={styles.aux}>· {sec.aux}</span>
               </span>
             </div>
             {ids.length === 0 ? (
               <div role="row" className={styles.none}>
-                <span role="cell">{p.filter ? `Nothing ${STEP_WORD[p.filter].toLowerCase()} here.` : 'Nothing here.'}</span>
+                <span role="cell" aria-colspan={5}>
+                  {p.filter ? `Nothing sitting at ${STEP_WORD[p.filter].toLowerCase()} here.` : 'Nothing here.'}
+                </span>
               </div>
             ) : null}
             {ids.map((id) => {
@@ -48,7 +53,7 @@ export function BatchTable(p: Props) {
               const a = proj && run ? nextAction(proj, run, p.org) : null;
               if (!proj || !run || !a) return null;
               return (
-                <div key={id} role="row" className={styles.row} aria-selected={p.selected === id} onClick={() => p.onSelect(id)}>
+                <div key={id} role="row" className={styles.row} data-selected={p.selected === id || undefined} onClick={() => p.onSelect(id)}>
                   <span role="cell" className={styles.name}>
                     <button type="button" onClick={(e) => (e.stopPropagation(), p.onSelect(id))}>
                       {proj.name}
@@ -66,8 +71,8 @@ export function BatchTable(p: Props) {
                   </span>
                   <span role="cell" className={styles.end}>
                     {sec.key === 'yours' ? (
-                      <Button size="mini" onClick={(e) => (e.stopPropagation(), p.onResolve(id))} title="Simulated: the probe finds it done">
-                        {a.kind === 'merge' ? 'Merged · re-probe' : 'Renewed · re-probe'}
+                      <Button size="mini" onClick={(e) => (e.stopPropagation(), p.onResolve(id))} title={`${RESOLVE_WORD[a.kind] ?? 'Done'}: re-probe (simulated)`}>
+                        Re-probe
                       </Button>
                     ) : (
                       `${a.writes ? `${a.writes} MR` : 'read'}`

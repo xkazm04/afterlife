@@ -5,6 +5,7 @@ import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { StageTicks } from '@/components/viz/StageTicks';
 import type { FleetProject } from '@/lib/demo/types';
 import { nextAction, pathOf, type ProjectRun } from '../../model/batch';
+import { RESOLVE_WORD } from '../batch/BatchTable';
 import { rank, STEP_MEANS, STEP_WORD, STEPS } from '../../model/funnel';
 import styles from './inspector.module.css';
 
@@ -25,8 +26,14 @@ export function ProjectPanel({ p, run, org, onResolve }: { p: FleetProject; run:
           ))}
         </ol>
       </InspectorSection>
-      <InspectorSection title="Baseline" aux={rated ? 'day-0 scan' : 'not scanned'}>
-        {rated ? <StageTicks rungs={p.stages} /> : <p className={styles.p}>Unknown, never zero: the day-0 scan has not run.</p>}
+      <InspectorSection title="Baseline" aux={rated ? 'day-0 scan' : run.step === 'discovered' ? 'not scanned' : 'simulated'}>
+        {rated ? (
+          <StageTicks rungs={p.stages} />
+        ) : run.step === 'discovered' ? (
+          <p className={styles.p}>Unknown, never zero: the day-0 scan has not run.</p>
+        ) : (
+          <p className={styles.p}>Scanned in this session (simulated): the demo has no ratings for it, so its stages stay unknown, never zero.</p>
+        )}
       </InspectorSection>
       <InspectorSection title="Next" aux={a ? (a.who === 'you' ? 'you' : 'Afterlife') : 'nothing'}>
         {a ? (
@@ -35,9 +42,9 @@ export function ProjectPanel({ p, run, org, onResolve }: { p: FleetProject; run:
               <b>{a.label}</b> · moves it to {STEP_WORD[a.to].toLowerCase()} once {a.writes ? 'a person merges the MR' : a.who === 'you' ? 'the probe sees it done' : 'the probe confirms it'}.
             </p>
             <CommandBlock commands={a.cmd} prompt={false} label={`Next for ${p.name}`} />
-            {a.kind === 'merge' || a.kind === 'token' ? (
+            {RESOLVE_WORD[a.kind] ? (
               <Button size="mini" onClick={() => onResolve(p.id)} title="Simulated: the probe finds it done">
-                {a.kind === 'merge' ? 'Merged · re-probe' : 'Renewed · re-probe'}
+                {RESOLVE_WORD[a.kind]} · re-probe
               </Button>
             ) : null}
           </div>
