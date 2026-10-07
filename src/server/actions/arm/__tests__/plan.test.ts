@@ -78,6 +78,17 @@ describe('arm-track T4', () => {
     expect(await checkArm(deps, disarm)).toMatchObject({ status: 'read', armed: false, text: expect.stringMatching(/has no T4 arm block/) });
   });
 
+  it('arms a target with no review stage: cited-diff runs in test, and the plan says so; neither review nor test refuses', async () => {
+    const { gl, deps } = await rig();
+    files(gl)['.gitlab-ci.yml'] = UNARMED.replace('stages: [build, test, review, deploy]', 'stages: [build, test, secure, package, deploy]');
+    const p = preview(await previewIntent(deps, arm));
+    const proof = p.diff.indexOf('+   - component: $CI_SERVER_FQDN/acme-lab/belay-pack/proof-engine@1.0.0');
+    expect(p.diff.slice(proof).find((l) => l.includes('stage:'))).toBe('+       stage: test');
+    expect(p.commands[1]?.argv.join(' ')).toContain('proof-engine in test, flow-dispatch in build');
+    files(gl)['.gitlab-ci.yml'] = UNARMED.replace('stages: [build, test, review, deploy]', 'stages: [build, deploy]');
+    expect(reason(await previewIntent(deps, arm))).toMatch(/neither review nor test/);
+  });
+
   it('refuses while an MR from the arm branch is open', async () => {
     const { gl, deps } = await rig();
     ledgerline(gl).mrs.push({ ...ledgerline(gl).mrs[0]!, iid: 77, state: 'opened', source_branch: 'belay/arm-guardrail' });

@@ -2,7 +2,7 @@
 // digest of the lines between them, so a disarm removes exactly what the arm added, and refuses if anyone edited it
 // since. Pure text: the file around the block is never re-serialised, so its comments and layout stay as they are.
 import { createHash } from 'node:crypto';
-import type { ArmPin, Include, TrackArm } from './content';
+import type { ArmPin, Include, Placement, TrackArm } from './content';
 
 const digest = (lines: readonly string[]): string => createHash('sha256').update(lines.join('\n')).digest('hex').slice(0, 12);
 const esc = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -26,9 +26,13 @@ function items(includes: readonly Include[], group: string, pin: ArmPin, ind: st
   ]);
 }
 
-/** The block, with its markers, at an indent. `withKey` when the file has no include: yet (the block then brings it). */
-export function armBlock(a: TrackArm, group: string, pin: ArmPin, ind: string, withKey: boolean): string[] {
-  const body = withKey ? ['include:', ...items(a.includes(pin), group, pin, '  ')] : items(a.includes(pin), group, pin, ind);
+/**
+ * The block, with its markers, at an indent. `withKey` when the file has no include: yet (the block then brings it).
+ * `stages`: each component's stage in this pipeline (checks.ts placementOf); the example's when left out.
+ */
+export function armBlock(a: TrackArm, group: string, pin: ArmPin, ind: string, withKey: boolean, stages?: Placement): string[] {
+  const inc = a.includes(pin, stages);
+  const body = withKey ? ['include:', ...items(inc, group, pin, '  ')] : items(inc, group, pin, ind);
   const at = withKey ? '' : ind;
   return [`${at}# belay:arm ${a.track} ${a.key} begin ${digest(body)}`, ...body, `${at}# belay:arm ${a.track} ${a.key} end`];
 }
@@ -38,12 +42,12 @@ export type Inserted = { ok: true; content: string; added: string[]; after: numb
 const significant = (l: string): boolean => l.trim() !== '' && !l.trim().startsWith('#');
 
 /** Adds the block to the top-level include: list (or adds include: at the end). Refuses a layout it would have to rewrite. */
-export function insertBlock(text: string, a: TrackArm, group: string, pin: ArmPin): Inserted {
+export function insertBlock(text: string, a: TrackArm, group: string, pin: ArmPin, at?: Placement): Inserted {
   const lines = text.split('\n');
   const key = lines.findIndex((l) => /^include\s*:/.test(l));
   if (key < 0) {
     const tail = lines[lines.length - 1] === '' ? lines.length - 1 : lines.length;
-    const added = armBlock(a, group, pin, '', true);
+    const added = armBlock(a, group, pin, '', true, at);
     const out = [...lines.slice(0, tail), ...added, ''];
     return { ok: true, content: out.join('\n'), added, after: tail };
   }
@@ -53,7 +57,7 @@ export function insertBlock(text: string, a: TrackArm, group: string, pin: ArmPi
   const next = lines.slice(key + 1).find(significant);
   const item = next ? /^(\s+)- /.exec(next) : null;
   if (next && /^\s/.test(next) && !item) return { ok: false, reason: "main's .gitlab-ci.yml has an include: that is not a list; Belay will not rewrite it" };
-  const added = armBlock(a, group, pin, item?.[1] ?? '  ', false);
+  const added = armBlock(a, group, pin, item?.[1] ?? '  ', false, at);
   const out = [...lines.slice(0, key + 1), ...added, ...lines.slice(key + 1)];
   return { ok: true, content: out.join('\n'), added, after: key + 1 };
 }

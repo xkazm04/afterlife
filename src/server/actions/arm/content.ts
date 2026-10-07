@@ -26,26 +26,53 @@ export interface TrackArm {
   /** The track's name in branches and markers ("guardrail"). */
   key: string;
   title: string;
-  /** Stages the includes run in: the pipeline must declare them. */
+  /** Stages the includes run in where the pipeline declares them all (the example's placement). */
   stages: readonly string[];
+  /** Per component, the stages it may run in, in order of preference: it takes the first one the pipeline declares. */
+  stageChoices: Readonly<Record<string, readonly string[]>>;
   /** The flow whose consumer id the includes need, if any. */
   flow?: string;
-  includes: (pin: ArmPin) => Include[];
+  /** The include lines; `at` is each component's stage (placeIn), the example's placement when left out. */
+  includes: (pin: ArmPin, at?: Placement) => Include[];
   /** Said plainly in the preview, in this order. */
   notes: readonly string[];
 }
 
+/** Component name -> the stage it runs in. */
+export type Placement = Readonly<Record<string, string>>;
+
+const preferred = (choices: TrackArm['stageChoices']): Placement => Object.fromEntries(Object.entries(choices).map(([c, s]) => [c, s[0] ?? '']));
+
+export type Placed = { ok: true; at: Placement } | { ok: false; missing: [component: string, choices: readonly string[]][] };
+
+/** Each component's stage in a pipeline that declares `declared`, or the components with no stage they may run in. */
+export function placeIn(a: TrackArm, declared: readonly string[]): Placed {
+  const at: Record<string, string> = {};
+  const missing: [string, readonly string[]][] = [];
+  for (const [c, choices] of Object.entries(a.stageChoices)) {
+    const s = choices.find((x) => declared.includes(x));
+    if (s) at[c] = s;
+    else missing.push([c, choices]);
+  }
+  return missing.length ? { ok: false, missing } : { ok: true, at };
+}
+
 const commit = (pin: ArmPin): [string, string][] => (pin.engineCommit ? [['engine_commit', pin.engineCommit]] : []);
+
+// cited-diff reads only the MR's notes and diff, never an earlier stage's artifacts, so it runs in test as well as in
+// review: a target that declares no review stage (GitLab's defaults have none) is not refused for that.
+const T4_STAGES = { 'proof-engine': ['review', 'test'], 'flow-dispatch': ['build'] } as const;
 
 const T4: TrackArm = {
   track: 'T4',
   key: 'guardrail',
   title: 'Arm T4 guardrail: block what it can quote',
   stages: ['build', 'review'],
+  stageChoices: T4_STAGES,
   flow: 'guardrail',
-  includes: (pin) => [
-    { component: 'proof-engine', inputs: [['class', 'cited-diff'], ['engine_ref', pin.engineRef], ...commit(pin), ['stage', 'review']] },
-    { component: 'flow-dispatch', inputs: [['engine_ref', pin.engineRef], ['consumer_id', pin.consumers.guardrail ?? 0], ['stage', 'build']] },
+  includes: (pin, at = preferred(T4_STAGES)) => [
+    { component: 'proof-engine', inputs: [['class', 'cited-diff'], ['engine_ref', pin.engineRef], ...commit(pin), ['stage', at['proof-engine'] ?? 'review']] },
+    { component: 'flow-dispatch', inputs: [['engine_ref', pin.engineRef], ['consumer_id', pin.consumers.guardrail ?? 0], ['stage', at['flow-dispatch'] ?? 'build']] },
   ],
   notes: [
     "The track's jobs label MRs with BELAY_BOT_TOKEN, which you set yourself as a protected CI variable.",

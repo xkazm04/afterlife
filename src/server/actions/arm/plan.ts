@@ -7,7 +7,7 @@ import type { GlFile, GlProject } from '@/server/gitlab/types';
 import { ActionRefused, COMMIT_ID, type Plan, type PlanContext } from '../plans/context';
 import type { ArmTrack, DisarmTrack } from '../types';
 import { findBlock, insertBlock, removeBlock } from './block';
-import { blockerOf, holdsBlock } from './checks';
+import { blockerOf, holdsBlock, placementOf } from './checks';
 import { consumerVar } from './config';
 import { armOf, NOT_DEFINED, type ArmPin, type TrackArm } from './content';
 
@@ -69,17 +69,20 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   const found = findBlock(file.content, a);
   if (found.state === 'armed') throw new ActionRefused(`${a.track} is already armed: its block is on ${t.base} (${CI_FILE} line ${found.from + 1})`);
   if (found.state === 'edited') throw new ActionRefused(`${CI_FILE} on ${t.base} has a ${a.track} block that was edited after it was added (line ${found.from + 1}): sort it out by hand first`);
-  const wanted = a.includes(pin);
-  const blocker = blockerOf(file.content, a, wanted);
+  const at = placementOf(file.content, a);
+  if (typeof at === 'string') throw new ActionRefused(at);
+  const wanted = a.includes(pin, at);
+  const blocker = blockerOf(file.content, wanted);
   if (blocker) throw new ActionRefused(blocker);
   const branch = `belay/arm-${a.key}`;
   await noOpenMr(ctx, t, branch);
   const group = (await ctx.port.getGroup(ctx.groupId)).fullPath;
-  const ins = insertBlock(file.content, a, group, pin);
+  const ins = insertBlock(file.content, a, group, pin, at);
   if (!ins.ok) throw new ActionRefused(ins.reason);
   if (!holdsBlock(ins.content, wanted)) throw new ActionRefused(`Belay could not add ${a.track}'s lines to ${CI_FILE} without breaking it: nothing is planned`);
 
-  const what = `Adds ${a.track}'s include lines (${wanted.map((w) => w.component).join(', ')}) to ${CI_FILE}, between belay:arm markers. Disarm opens an MR that removes exactly these lines.`;
+  const stages = wanted.map((w) => `${w.component} in ${at[w.component] ?? '?'}`).join(', ');
+  const what = `Adds ${a.track}'s include lines (${stages}) to ${CI_FILE}, between belay:arm markers. Disarm opens an MR that removes exactly these lines.`;
   return {
     title: a.title,
     summary: `Opens one MR in ${t.project.pathWithNamespace} as ${ctx.operator}, from a new branch ${branch} off ${t.base}. You merge it; then Verify reads ${t.base}.`,

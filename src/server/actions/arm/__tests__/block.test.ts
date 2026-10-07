@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
 import { armBlock, findBlock, insertBlock, removeBlock, scalar } from '../block';
-import { blockerOf, holdsBlock } from '../checks';
+import { blockerOf, holdsBlock, placementOf } from '../checks';
 import { DEMO_PIN } from '../config';
 import { armOf } from '../content';
 
@@ -69,14 +69,34 @@ describe('the arm block', () => {
 });
 
 describe('what must already be in the pipeline', () => {
-  it('the stages T4 runs in; the default stages have no review', () => {
-    expect(blockerOf(PIPELINE.replace('stages: [build, test, review]', 'stages: [build, test]'), t4, wanted)).toMatch(/no review stage/);
-    expect(blockerOf('build:\n  script: make\n', t4, wanted)).toMatch(/no review stage/);
-    expect(blockerOf(PIPELINE, t4, wanted)).toBeNull();
+  it('the stages T4 runs in: cited-diff in review when the pipeline declares it, else in test; flow-dispatch in build', () => {
+    expect(placementOf(PIPELINE, t4)).toEqual({ 'proof-engine': 'review', 'flow-dispatch': 'build' });
+    const testOnly = 'stages: [build, test, secure, package, deploy]\nbuild:\n  script: make\n';
+    expect(placementOf(testOnly, t4)).toEqual({ 'proof-engine': 'test', 'flow-dispatch': 'build' });
+    expect(placementOf('build:\n  script: make\n', t4)).toEqual({ 'proof-engine': 'test', 'flow-dispatch': 'build' }); // GitLab's defaults
+    expect(blockerOf(PIPELINE, wanted)).toBeNull();
+  });
+  it('refuses only when neither review nor test is declared, naming both; and a missing build', () => {
+    expect(placementOf('stages: [build, deploy]\n', t4)).toMatch(/proof-engine \(cited-diff\) runs in either a review or a test stage, and the pipeline declares neither review nor test/);
+    expect(placementOf('stages: [test]\n', t4)).toMatch(/flow-dispatch runs in a build stage, and the pipeline declares no build stage/);
+    expect(placementOf('stages: [\n', t4)).toMatch(/not valid YAML/);
+  });
+  it('a test-only pipeline gets cited-diff in test, and disarm still removes exactly the block', () => {
+    const testOnly = 'stages: [build, test]\n\ninclude:\n  - template: Jobs/SAST.gitlab-ci.yml\n';
+    const at = placementOf(testOnly, t4);
+    if (typeof at === 'string') throw new Error(at);
+    const r = insertBlock(testOnly, t4, 'acme-lab', DEMO_PIN, at);
+    if (!r.ok) throw new Error(r.reason);
+    expect(r.added).toContain('      stage: test');
+    expect(r.added).not.toContain('      stage: review');
+    expect(holdsBlock(r.content, t4.includes(DEMO_PIN, at))).toBe(true);
+    expect(findBlock(r.content, t4).state).toBe('armed');
+    const back = removeBlock(r.content, t4);
+    expect(back.ok && back.content).toBe(testOnly);
   });
   it('no include of the same component by hand, and valid YAML', () => {
     const byHand = PIPELINE.replace('    - template', '    - component: $CI_SERVER_FQDN/x/belay-pack/flow-dispatch@1.0.0\n    - template');
-    expect(blockerOf(byHand, t4, wanted)).toMatch(/already includes flow-dispatch by hand/);
-    expect(blockerOf('stages: [\n', t4, wanted)).toMatch(/not valid YAML/);
+    expect(blockerOf(byHand, wanted)).toMatch(/already includes flow-dispatch by hand/);
+    expect(blockerOf('stages: [\n', wanted)).toMatch(/not valid YAML/);
   });
 });
