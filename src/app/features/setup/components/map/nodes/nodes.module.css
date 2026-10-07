@@ -31,6 +31,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* a narrow pane wraps a label onto a second line rather than cutting it (edges are measured from the DOM) */
+@container pane (max-width: 66em) {
+  .nd {
+    padding-block: 2px;
+  }
+  .lb {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    line-height: 1.2;
+  }
+}
 .dim {
   opacity: 0.3;
 }

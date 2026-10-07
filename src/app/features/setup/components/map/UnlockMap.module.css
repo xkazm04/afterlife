@@ -14,10 +14,14 @@
   z-index: 2;
   display: grid;
   justify-content: center;
+  /* Spare width goes to the node columns first (their labels), the edge gutters get a quarter share. */
   grid-template-columns:
-    minmax(calc(150px * var(--ui-scale)), calc(300px * var(--ui-scale)))
-    minmax(calc(24px * var(--ui-scale)), calc(150px * var(--ui-scale)))
-    minmax(calc(190px * var(--ui-scale)), calc(340px * var(--ui-scale)))
-    minmax(calc(24px * var(--ui-scale)), calc(150px * var(--ui-scale)))
-    minmax(calc(150px * var(--ui-scale)), calc(300px * var(--ui-scale)));
+    minmax(calc(150px * var(--ui-scale)), 4fr)
+    minmax(calc(24px * var(--ui-scale)), 1fr)
+    minmax(calc(190px * var(--ui-scale)), 4.5fr)
+    minmax(calc(24px * var(--ui-scale)), 1fr)
+    minmax(calc(150px * var(--ui-scale)), 4fr);
+  width: 100%;
+  max-width: calc(1240px * var(--ui-scale));
+  justify-self: center;
 }
