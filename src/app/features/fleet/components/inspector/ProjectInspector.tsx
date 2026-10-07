@@ -43,9 +43,9 @@ export function ProjectInspector({
       <ProofsSection p={p} sec={section('prf')} />
       <TasksSection p={p} deep={deep} sec={section('tsk')} />
       <StagesSection p={p} stages={data.stages} sec={section('stg')} />
-      <FeedSection p={p} deep={deep} sec={section('feed')} />
+      <FeedSection p={p} deep={deep} demoCockpit={source.illustrative.cockpit} sec={section('feed')} />
       <EventsSection p={p} deep={deep} source={source} sec={section('ev')} />
-      {p.id === deep.id ? <TracksSection deep={deep} sec={section('trk', false)} /> : null}
+      {p.id === deep.id ? <TracksSection deep={deep} demo={source.illustrative.tracks} sec={section('trk', false)} /> : null}
     </>
   );
 }

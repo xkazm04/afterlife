@@ -7,4 +7,4 @@ export { demoSource } from './demoSource';
 export { liveSource } from './live/liveSource';
 export { readyRuntime, startRuntime, type LiveRuntime } from './live/runtime';
 export { getDataSource, setDataSource } from './select';
-export type { DataMode, DataSource } from './types';
+export type { DataMode, DataSource, IllustrativePart } from './types';

@@ -83,6 +83,8 @@ export interface FleetSource {
   mode: 'demo' | 'live';
   /** [time, track, text], newest first. */
   events: [string, string, string][];
+  /** Demo text shown beside live data, to be labelled: the deep project's tracks, and the cockpit text (webhooks too). */
+  illustrative: { tracks: boolean; cockpit: boolean };
 }
 
 /** What the column builder needs to know besides the view. */

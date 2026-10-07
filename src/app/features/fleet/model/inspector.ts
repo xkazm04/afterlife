@@ -36,6 +36,8 @@ export interface FeedRow {
   value: string | null;
   /** Drawn in the failure colour. */
   bad?: boolean;
+  /** The value is cockpit text (webhooks, unattributed): demo text where the source says it is illustrative. */
+  cockpit?: boolean;
 }
 
 /** The Feed section: last poll, status, environments, open CRA items, and (for the deep project) the webhooks. */
@@ -47,7 +49,7 @@ export function feedRows(p: FleetProject, deep: DeepProject | null): FeedRow[] {
   ];
   if (p.env) rows.push({ label: 'Staging', value: p.env.staging }, { label: 'Production', value: p.env.production });
   if (p.craOpen) rows.push({ label: 'CRA open', value: String(p.craOpen) });
-  if (deep) rows.push({ label: 'Webhooks', value: deep.webhooks }, { label: 'Unattributed', value: String(deep.unattributed) });
+  if (deep) rows.push({ label: 'Webhooks', value: deep.webhooks, cockpit: true }, { label: 'Unattributed', value: String(deep.unattributed), cockpit: true });
   return rows;
 }
 

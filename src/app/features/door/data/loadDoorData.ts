@@ -7,6 +7,7 @@ export function loadDoorData(): DoorData {
   const fleet = ds.getFleet();
   const portfolio = ds.getPortfolio();
   const cockpit = ds.getCockpit();
+  const shown = (part: (typeof ds.illustrative)[number]) => ds.illustrative.includes(part);
   return {
     org: portfolio.group,
     asOf: portfolio.asOf,
@@ -19,6 +20,7 @@ export function loadDoorData(): DoorData {
       cockpit: { running: cockpit.running, doingNow: cockpit.doingNow, goingWell: cockpit.goingWell, needsMe: cockpit.needsMe },
       needs: ds.getNeedsYou(),
       tracks: ds.getTracks(),
+      illustrative: { cockpit: shown('cockpit'), tracks: shown('tracks') },
     },
   };
 }

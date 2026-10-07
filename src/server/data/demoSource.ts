@@ -4,6 +4,7 @@ import type { DataSource } from './types';
 
 export const demoSource: DataSource = {
   mode: 'demo',
+  illustrative: [],
   deepProjectId: () => demo.LEDGERLINE_ID,
   getFleet: demo.getFleet,
   getPortfolio: demo.getPortfolio,

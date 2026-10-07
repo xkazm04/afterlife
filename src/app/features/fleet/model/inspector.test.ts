@@ -53,6 +53,7 @@ describe('feedRows', () => {
     const p = makeProject({ id: 'ledgerline', env: { staging: 'rev 1', production: 'rev 2' }, craOpen: 1 });
     const labels = feedRows(p, deep).map((r) => r.label);
     expect(labels).toEqual(['Last poll', 'Status', 'Staging', 'Production', 'CRA open', 'Webhooks', 'Unattributed']);
+    expect(feedRows(p, deep).filter((r) => r.cockpit).map((r) => r.label)).toEqual(['Webhooks', 'Unattributed']); // cockpit text: labelled demo in live mode
   });
 });
 

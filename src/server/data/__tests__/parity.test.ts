@@ -3,6 +3,8 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
+import { STAGES } from '@/schemas/stages';
+import { loadDoorData } from '@/app/features/door/data/loadDoorData';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadFleetSource } from '@/app/features/fleet/data/loadFleetSource';
@@ -118,10 +120,22 @@ describe('where live differs from demo, on purpose', () => {
     expect(live.getPortfolio().projects).toEqual([]);
   });
 
-  it('tracks, the loop and the cockpit text are the demo catalogue until the poller derives them', () => {
+  it('tracks, the loop and the cockpit text are the demo catalogue until the poller derives them, and live says so', () => {
     expect(live.getTracks()).toBe(DEMO.tracks);
     expect(live.getLoop()).toBe(DEMO.loop);
     expect(live.getCockpit().running).toBe(DEMO.cockpit.running);
+    expect([live.illustrative, demoSource.illustrative]).toEqual([['tracks', 'loop', 'cockpit', 'setup'], []]);
+  });
+
+  it('the stage list is the schema’s, not the catalogue’s (the same nine stages)', () => {
+    expect(live.getStages()).toEqual([...STAGES]);
+    expect(live.getStages()).not.toBe(DEMO.stages);
+  });
+
+  it('the Door labels the cockpit text and the tracks it shows beside live data as demo; demo mode labels nothing', () => {
+    const [d, l] = both(() => loadDoorData().deep.illustrative);
+    expect(d).toEqual({ cockpit: false, tracks: false });
+    expect(l).toEqual({ cockpit: true, tracks: true });
   });
 
   it('the recent events are read from the index (tasks, proofs, poll state), none of them the catalogue feed', () => {
@@ -136,9 +150,9 @@ describe('where live differs from demo, on purpose', () => {
     ]);
   });
 
-  it('the Fleet reads the mode and the recent events beside its loader; the demo keeps its feed', () => {
+  it('the Fleet reads the mode, the recent events and what to label demo beside its loader; the demo keeps its feed', () => {
     const [d, l] = both(() => asProps(loadFleetSource()));
-    expect(d).toEqual({ mode: 'demo', events: DEMO.events });
-    expect(l).toEqual({ mode: 'live', events: live.getEvents() });
+    expect(d).toEqual({ mode: 'demo', events: DEMO.events, illustrative: { tracks: false, cockpit: false } });
+    expect(l).toEqual({ mode: 'live', events: live.getEvents(), illustrative: { tracks: true, cockpit: true } });
   });
 });

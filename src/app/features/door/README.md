@@ -23,7 +23,8 @@ paint. `(door)/loading.tsx` shows the night ground and the brand while the city 
   you, what is stale, what is setting up and what is not watched.
 - **L2, a project:** the cutaway lifts from its tower. Floors are lit by stage rung, windows show
   tier letters, the antenna is the feed and the beacon is its decisions. The panel shows the
-  numbers, plus the decisions and tracks for ledgerline.
+  numbers, plus the decisions and tracks for ledgerline. In live mode the cockpit lines and the
+  tracks are still the demo's text, so each carries a dashed "demo" mark (`l2/Demo.tsx`).
 - **Moving between levels:** Esc and Back go up a level. Tab, Enter and Space work at every level.
 
 ## Why it is cheap to render: the owner's condition on the win

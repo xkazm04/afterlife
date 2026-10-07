@@ -2,7 +2,8 @@
 
 Every screen's server loader reads through one interface, `DataSource` (`types.ts`). It has the surface `@/lib/demo` always
 had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActionClasses`, `getMaturity`, `getLoop`, `getTasks`,
-`getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`) plus `mode` and `deepProjectId()`. Reads are
+`getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`) plus `mode`, `deepProjectId()` and
+`illustrative` (the demo narrative it serves beside live data, for the screens to label). Reads are
 **synchronous**: the live source serves a snapshot that is rebuilt after every poll, so a page never waits on GitLab or the index.
 
 | Env | Values | Default |
@@ -39,7 +40,10 @@ ages to the demo's moment, so the screens are identical to demo mode, and visibl
 ## Live, what is still the demo catalogue
 
 Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live), the setup phases and doctor rows
-(only group and project are live), the tier meanings and the stage list. The Ladder's seeded ledger, the Task docket's
+(only group and project are live): the live source declares these in `illustrative` (`tracks`, `loop`, `cockpit`,
+`setup`), and the Door and Fleet mark what they show of them "demo" (the demo source declares nothing: all of it is the
+demo). The tier meanings are the product's tier vocabulary, the same in every mode, and are not marked. The stage list is
+the schema's (`@/schemas/stages`). The Ladder's seeded ledger, the Task docket's
 per-task fixtures (a live task with no fixture is drawn from its own fields after them) and the Needs-you screen (built around five specific items;
 `NeedsYouEmpty` is drawn when they are missing) are the screens' own data and unchanged. The footer chip "illustrative demo
 data" is a client component and still says so.

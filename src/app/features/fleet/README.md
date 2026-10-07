@@ -35,7 +35,9 @@ of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
 - Live mode: Re-poll calls the `repollAction` server action (`src/server/actions/repollAction.ts`), which runs one poll
   cycle of the live runtime (a read) and renders the route again from the fresh snapshot; the status bar says
   "Re-polled" only after that resolved, and says it failed otherwise. A decision's button opens Needs you instead of
-  resolving it here. The "polled N s ago" counter starts from the snapshot's age and never wraps.
+  resolving it here. The "polled N s ago" counter starts from the snapshot's age and never wraps. Demo text still shown
+  beside live rows (the deep project's tracks, its webhooks and unattributed count) carries a "demo" chip
+  (`components/inspector/DemoChip.tsx`), as the data source's `illustrative` says.
 - Below 900px of pane the Tiers view drops pips and shows letter marks. Below ~1190px x scale of
   toolbar the lozenge drops its words (counts and tooltips stay).
 

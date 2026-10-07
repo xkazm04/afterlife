@@ -39,6 +39,7 @@ describe('which source serves the request', () => {
     expect(demoSource.getFleet()).toBe(DEMO.fleet);
     expect(demoSource.getTasks()).toBe(DEMO.tasks);
     expect(demoSource.deepProjectId()).toBe('ledgerline');
+    expect(demoSource.illustrative).toEqual([]); // the whole app is the demo there, and says so once
   });
 });
 

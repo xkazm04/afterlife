@@ -6,6 +6,7 @@ import type { FleetProject, NeedsYouItem, Track } from '@/lib/demo/types';
 import { needsOf } from '../../model/city';
 import { ageStr, plural, staleText } from '../../model/words';
 import { TierLetter } from '../ui/TierLetter';
+import { Demo } from './Demo';
 import styles from './l2panel.module.css';
 
 export interface Deep {
@@ -13,6 +14,8 @@ export interface Deep {
   cockpit: { running: string; doingNow: string; goingWell: string; needsMe: string };
   needs: readonly NeedsYouItem[];
   tracks: readonly Track[];
+  /** Demo text the source serves beside live data (live mode): labelled, so it never passes for live. */
+  illustrative: { cockpit: boolean; tracks: boolean };
 }
 
 const TIERS = ['hands_off', 'supervised', 'assisted', 'quarantined', 'human_only'] as const;
@@ -36,7 +39,10 @@ function Exit({ href, children, enter }: { href: string; children: string; enter
   );
 }
 
-/** The project's page beside its cutaway: state, numbers, then (ledgerline) its decisions and tracks; exits at the foot. */
+/**
+ * The project's page beside its cutaway: state, numbers, then (ledgerline) its decisions and tracks; exits at the foot.
+ * The cockpit lines and the tracks are labelled demo when the source still serves them from the demo (live mode).
+ */
 export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: string; classes: readonly string[]; deep: Deep }) {
   const [pick, setPick] = useState(0);
   const nsu = p.state === 'not-set-up';
@@ -83,11 +89,20 @@ export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: s
           <>
             <dl className={styles.ck}>
               <dt>Running</dt>
-              <dd>{deep.cockpit.running}</dd>
+              <dd>
+                {deep.cockpit.running}
+                <Demo on={deep.illustrative.cockpit} />
+              </dd>
               <dt>Doing now</dt>
-              <dd>{deep.cockpit.doingNow}</dd>
+              <dd>
+                {deep.cockpit.doingNow}
+                <Demo on={deep.illustrative.cockpit} />
+              </dd>
               <dt>Going well</dt>
-              <dd>{deep.cockpit.goingWell}</dd>
+              <dd>
+                {deep.cockpit.goingWell}
+                <Demo on={deep.illustrative.cockpit} />
+              </dd>
               <dt>Needs me</dt>
               <dd>
                 <span className={styles.a}>{deep.needs.length} decisions</span>
@@ -110,6 +125,7 @@ export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: s
             <div className={styles.block}>
               <h3>
                 Tracks · {deep.tracks.filter((t) => t.armed).length} of {deep.tracks.length} armed
+                <Demo on={deep.illustrative.tracks} />
               </h3>
               <div className={styles.tracks}>
                 {deep.tracks.map((t) => (
