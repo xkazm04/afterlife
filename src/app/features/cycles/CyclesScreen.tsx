@@ -12,6 +12,7 @@ import { CyclesInspector } from './components/inspector/CyclesInspector';
 import { CyclesLegend } from './components/CyclesLegend';
 import { CyclesSidebar } from './components/CyclesSidebar';
 import { CyclesStatus } from './components/CyclesStatus';
+import { ScopeSwitch } from './components/ScopeSwitch';
 import { LoopRail } from './components/rail/LoopRail';
 import { ReportSheet } from './components/report/ReportSheet';
 import { useCycles } from './hooks/useCycles';
@@ -37,6 +38,7 @@ export function CyclesScreen({ data, startDesign = false }: { data: CyclesData; 
       subtitle={data.project.replace('/', ' / ')}
       toolbar={
         <>
+          <ScopeSwitch scope="project" project={data.project.split('/').at(-1) ?? data.project} />
           <Spacer />
           {planned ? (
             <ToolbarButton

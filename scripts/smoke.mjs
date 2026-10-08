@@ -9,7 +9,7 @@ import { chromium } from 'playwright';
 
 const BASE = process.env.SMOKE_BASE ?? 'http://localhost:3000';
 const QUICK = process.env.SMOKE_QUICK === '1';
-const ROUTES = ['/fleet', '/monitor', '/needs-you', '/ladder', '/maturity', '/cycles', '/task', '/onboard', '/setup', '/theater', '/settings'];
+const ROUTES = ['/fleet', '/monitor', '/needs-you', '/ladder', '/maturity', '/cycles', '/cycles?scope=estate', '/task', '/onboard', '/setup', '/theater', '/settings'];
 const DOOR = '/?quality=lite';
 const WIDTHS = QUICK ? [1440] : [1280, 1440, 1920];
 const SIZES = QUICK ? ['standard'] : ['smaller', 'standard', 'larger'];

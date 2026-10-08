@@ -9,6 +9,10 @@ import { CyclesInspector } from './components/inspector/CyclesInspector';
 import { LoopRail } from './components/rail/LoopRail';
 import { buildCycles } from './model/build';
 import { gridView } from './model/grid';
+import { EstateInspector } from './components/estate/EstateInspector';
+import { EstateTable } from './components/estate/EstateTable';
+import { buildEstate } from './model/estate/estate';
+import { getEstateCycles } from '@/lib/demo';
 const { cycles: CLOSED_CYCLES, today: TODAY, cadence: CADENCE_DAYS } = DEMO_CYCLES;
 
 const data = buildCycles(DEMO.maturity, CLOSED_CYCLES, { project: 'acme-lab/ledgerline', today: TODAY, cadence: CADENCE_DAYS });
@@ -69,3 +73,21 @@ describe('a project whose ledger records no closed cycle yet', () => {
     expect(html(createElement(CycleGrid, { view: gridView(fresh.day0, fresh.cycles), selected: 'C1', onSelect: () => {} })).match(/role="columnheader"/g)).toHaveLength(4);
   });
 });
+
+describe('the estate scope', () => {
+  const estate = buildEstate('acme-lab', 'ledgerline', DEMO.fleet.groups, DEMO.fleet.projects, getEstateCycles());
+  it('draws every group, its projects in cycles, and says when a group has none', () => {
+    const out = html(createElement(EstateTable, { groups: estate.groups, selected: 'ledgerline', onSelect: () => {} }));
+    for (const g of DEMO.fleet.groups) expect(out).toContain(`<b>${g}</b>`);
+    expect(out.match(/no project in cycles yet/g)).toHaveLength(estate.groups.filter((g) => g.projects.length === 0).length);
+    expect(out).toContain('aria-pressed="true">ledgerline<');
+  });
+  it('the inspector lists every cycle of a project and links only the deep one to its own cycles', () => {
+    const rows = estate.groups.flatMap((g) => g.projects);
+    const web = html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline-web')!, deep: 'ledgerline' }));
+    expect(web).toContain('C3');
+    expect(web).not.toContain('href="/cycles"');
+    expect(html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline')!, deep: 'ledgerline' }))).toContain('href="/cycles"');
+  });
+});
+

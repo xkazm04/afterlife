@@ -24,6 +24,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getSetup: () => data().setup,
     getEvents: () => catalogue.events,
     getCockpit: () => data().cockpit,
-    getCycles: () => data().cycles,
+    getCycles: () => data().estate[snapshot().deep] ?? { cycles: [], today: 0, cadence: 7 },
+    getEstateCycles: () => data().estate,
   };
 }

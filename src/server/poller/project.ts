@@ -128,7 +128,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
         ledgerError = e instanceof Error ? e.message : String(e);
       }
       try {
-        out.cycles = (await importCycles(env.ledger, db, gl.id, env.mem.cycles)).status;
+        out.cycles = (await importCycles(env.ledger, db, gl.id, id, env.mem.cycles)).status;
       } catch (e) {
         out.cycles = 'rejected';
         ledgerError ??= e instanceof Error ? e.message : String(e);

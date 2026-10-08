@@ -54,8 +54,8 @@
   `Stepper`, `SearchField`, `Lozenge` / `LozengeButton` / `LozengeDivider`. Also `surface/Card`, `icons/Icon`,
   `shell/BottomDrawer`, `shell/dock/CommandDock`.
 - **Command palette** (`palette/`): Cmd/Ctrl+K toggles it anywhere, `openPalette()` opens it by event.
-  `model/items.ts` `paletteItems(projects)` lists every screen and Settings, six loop actions (design a cycle, preview
-  an onboarding batch, send picked gaps, see what waits, take autonomy back, change text size) and every project (to
+  `model/items.ts` `paletteItems(projects)` lists every screen and Settings, seven loop actions (design a cycle, see
+  cycles across the estate, preview an onboarding batch, send picked gaps, see what waits, take autonomy back, change text size) and every project (to
   `/fleet?project=<id>`). `model/rank.ts` `score` ranks prefix (shorter text first) over word start (80) over
   substring (60) over a subsequence (up to 40, fewer gaps better); a keyword match counts 0.8 of a label match; kind
   bonus screen 3, action 2, project 0; ties break by label. With an empty query only screens and actions show, so the
@@ -110,4 +110,4 @@
   the `/kit` gallery, not by their own tests.
 - The status bar always says "illustrative demo data", in live mode too (it is a client component and does not read
   the data mode).
-- The palette searches only screens, six fixed actions and project names/groups; it does not search tasks or MRs.
+- The palette searches only screens, seven fixed actions and project names/groups; it does not search tasks or MRs.

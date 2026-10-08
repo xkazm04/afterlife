@@ -59,41 +59,41 @@ describe('the cycle record chain', () => {
 describe('cycles import', () => {
   it('imports the file whole; an unchanged file is skipped by its blob id', async () => {
     const cache = new Map<number, string>();
-    expect(await importCycles(src, db, LEDGERLINE_GID, cache)).toEqual({ status: 'imported', cycles: 6 });
-    expect(await importCycles(src, db, LEDGERLINE_GID, cache)).toEqual({ status: 'unchanged', cycles: 6 });
-    expect(await listCycleRecords(db, LEDGERLINE_GID)).toEqual(cycleRecords(SEED_NOW));
+    expect(await importCycles(src, db, LEDGERLINE_GID, 'ledgerline', cache)).toEqual({ status: 'imported', cycles: 6 });
+    expect(await importCycles(src, db, LEDGERLINE_GID, 'ledgerline', cache)).toEqual({ status: 'unchanged', cycles: 6 });
+    expect(await listCycleRecords(db, 'ledgerline')).toEqual(cycleRecords(SEED_NOW));
   });
 
   it('takes a seventh cycle that extends the chain', async () => {
-    await importCycles(src, db, LEDGERLINE_GID);
+    await importCycles(src, db, LEDGERLINE_GID, 'ledgerline');
     const chain = cycleRecords(SEED_NOW);
     const next = appendCycle(chain, { ...body(chain[5]!), theme: 'Next', opened_at: chain[5]!.closed_at, closed_at: '2026-10-13T14:02:00.000Z', changes: [] });
     setFile(jsonl([...chain, next]));
-    expect(await importCycles(src, db, LEDGERLINE_GID)).toEqual({ status: 'imported', cycles: 7 });
+    expect(await importCycles(src, db, LEDGERLINE_GID, 'ledgerline')).toEqual({ status: 'imported', cycles: 7 });
   });
 
   it('rejects a shortened, a rewritten and a foreign history, and keeps what it had', async () => {
-    await importCycles(src, db, LEDGERLINE_GID);
+    await importCycles(src, db, LEDGERLINE_GID, 'ledgerline');
     const chain = cycleRecords(SEED_NOW);
     setFile(jsonl(chain.slice(0, 4)));
-    await expect(importCycles(src, db, LEDGERLINE_GID)).rejects.toThrow(/rewound/);
+    await expect(importCycles(src, db, LEDGERLINE_GID, 'ledgerline')).rejects.toThrow(/rewound/);
 
     const rewritten: CycleRecord[] = [];
     for (const r of chain) rewritten.push(appendCycle(rewritten, { ...body(r), theme: r.seq === 2 ? 'A better story' : r.theme }));
     setFile(jsonl(rewritten));
-    await expect(importCycles(src, db, LEDGERLINE_GID)).rejects.toThrow(/cycle 2 differs/);
+    await expect(importCycles(src, db, LEDGERLINE_GID, 'ledgerline')).rejects.toThrow(/cycle 2 differs/);
 
     const theirs: CycleRecord[] = [];
     for (const r of chain) theirs.push(appendCycle(theirs, { ...body(r), project_id: 1 }));
     setFile(jsonl(theirs));
-    await expect(importCycles(src, db, LEDGERLINE_GID)).rejects.toThrow(/cycles of project 1/);
-    expect((await listCycleRecords(db, LEDGERLINE_GID)).length).toBe(6);
+    await expect(importCycles(src, db, LEDGERLINE_GID, 'ledgerline')).rejects.toThrow(/cycles of project 1/);
+    expect((await listCycleRecords(db, 'ledgerline')).length).toBe(6);
   });
 
   it('no file is absent, and a project with no cycles has an empty history (not a made-up one)', async () => {
     const p = gl.state.projects.find((x) => x.raw.name === 'belay-ledger');
     delete p!.files[PATH];
-    expect(await importCycles(src, db, LEDGERLINE_GID)).toEqual({ status: 'absent' });
+    expect(await importCycles(src, db, LEDGERLINE_GID, 'ledgerline')).toEqual({ status: 'absent' });
     await seedDemo(db);
     expect(await getCycles(db, 'ledgerline', SEED_NOW)).toEqual({ cycles: [], today: 0, cadence: 7 });
   });
@@ -102,8 +102,7 @@ describe('cycles import', () => {
 describe('the cycles view', () => {
   it('reads the stored chain back as the demo history, counted in days from the first opening', async () => {
     await seedDemo(db);
-    await importCycles(src, db, LEDGERLINE_GID);
-    await db.query('update project set gitlab_id = $1 where id = $2', [LEDGERLINE_GID, 'ledgerline']);
+    await importCycles(src, db, LEDGERLINE_GID, 'ledgerline');
     expect(JSON.parse(JSON.stringify(await getCycles(db, 'ledgerline', SEED_NOW)))).toEqual(JSON.parse(JSON.stringify(DEMO_CYCLES)));
   });
 });

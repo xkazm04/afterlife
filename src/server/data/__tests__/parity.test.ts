@@ -6,6 +6,7 @@ import { DEMO } from '@/lib/demo';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadCyclesData } from '@/app/features/cycles/data/loadCyclesData';
+import { loadEstateData } from '@/app/features/cycles/data/loadEstateData';
 import { loadMaturityData } from '@/app/features/maturity/data/loadMaturityData';
 import { loadOnboardData } from '@/app/features/onboard/data/loadOnboardData';
 import { pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
@@ -95,6 +96,12 @@ describe('every screen loader gets the same data from the live source as from th
     expect((l as { drift: string[] }).drift).toEqual([]);
   });
 
+  it('Cycles, estate scope: every project in cycles per group, each history replayed against its rungs', () => {
+    const [d, l] = both(() => asProps(loadEstateData()));
+    expect(l).toEqual(d);
+    expect((l as { inCycles: number; reconciled: number })).toMatchObject({ inCycles: 6, reconciled: 6 });
+  });
+
   it('Onboard: the whole estate, its groups and the deep project in cycles', () => {
     const [d, l] = both(() => asProps(loadOnboardData()));
     expect(noLast(l)).toEqual(noLast(d));
@@ -124,7 +131,7 @@ describe('the poll really did write what the parity rests on (it is not just the
   });
 
   it('the cycle history comes from belay-ledger/cycles/<id>.jsonl, not from the demo fixture', async () => {
-    const stored = await listCycleRecords(db, 90010001);
+    const stored = await listCycleRecords(db, 'ledgerline');
     expect(stored.map((r) => r.seq)).toEqual([1, 2, 3, 4, 5, 6]);
     expect(stored.at(-1)?.closed_at).toBe('2026-10-06T14:02:00.000Z');
     expect(live.getCycles()).not.toBe(demoSource.getCycles());

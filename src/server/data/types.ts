@@ -27,4 +27,6 @@ export interface DataSource {
   getCockpit(): DemoData['cockpit'];
   /** The deep project's closed cycles, as its ledger records them. */
   getCycles(): CycleHistory;
+  /** Every project with a recorded cycle, by project id (the deep project included). */
+  getEstateCycles(): Readonly<Record<string, CycleHistory>>;
 }

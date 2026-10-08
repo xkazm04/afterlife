@@ -11,7 +11,8 @@ export function loadOnboardData(): OnboardData {
     host: 'gitlab.com',
     groups: fleet.groups,
     projects: fleet.projects,
-    cycling: [ds.deepProjectId()],
+    // in cycles: every project whose ledger records a closed cycle
+    cycling: Object.keys(ds.getEstateCycles()).sort(),
     asOf: portfolio.asOf,
   };
 }

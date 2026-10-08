@@ -22,6 +22,7 @@ export interface ProjectRef {
 
 const ACTIONS: readonly PaletteItem[] = [
   { id: 'a:design', kind: 'action', label: 'Design the next cycle', hint: 'Cycles', href: '/cycles?design=1', keywords: 'plan improve round loop' },
+  { id: 'a:estate', kind: 'action', label: 'See cycles across the estate', hint: 'Cycles', href: '/cycles?scope=estate', keywords: 'estate groups rollup every project cycles' },
   { id: 'a:batch', kind: 'action', label: 'Preview the next onboarding batch', hint: 'Onboard', href: '/onboard?preview=1', keywords: 'onboard run reads writes' },
   { id: 'a:send', kind: 'action', label: 'Send the picked gaps as you', hint: 'Maturity', href: '/maturity', keywords: 'gap mr send maturity' },
   { id: 'a:needs', kind: 'action', label: 'See what waits for you', hint: 'Needs you', href: '/needs-you', keywords: 'decisions inbox approve' },

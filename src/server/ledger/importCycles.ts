@@ -10,13 +10,14 @@ import { parseCyclesJsonl } from './parseCycles';
 
 export type CyclesImport = { status: 'absent' } | { status: 'unchanged'; cycles: number } | { status: 'imported'; cycles: number };
 
-export async function importCycles(src: LedgerSource, db: PGlite, gitlabProjectId: number, cache: BlobCache = new Map()): Promise<CyclesImport> {
+/** `projectId` is the index's id for the project; `gitlabProjectId` names the file and every record in it. */
+export async function importCycles(src: LedgerSource, db: PGlite, gitlabProjectId: number, projectId: string, cache: BlobCache = new Map()): Promise<CyclesImport> {
   const path = `cycles/${gitlabProjectId}.jsonl`;
   const tree = await src.port.listTree(src.project, { path: 'cycles', ref: src.ref });
   const entry = tree.find((e) => e.type === 'blob' && e.path === path);
   if (!entry) return { status: 'absent' };
 
-  const stored = await listCycleRecords(db, gitlabProjectId);
+  const stored = await listCycleRecords(db, projectId);
   if (stored.length > 0 && cache.get(gitlabProjectId) === entry.id) return { status: 'unchanged', cycles: stored.length };
 
   const file = await src.port.getFile(src.project, path, src.ref);
@@ -32,7 +33,7 @@ export async function importCycles(src: LedgerSource, db: PGlite, gitlabProjectI
   const fork = stored.find((s, i) => records[i]?.hash !== s.hash);
   if (fork) throw new LedgerChainError(fork.seq, `cycle ${fork.seq} differs from the one stored (a rewritten history)`);
 
-  await db.transaction((tx) => replaceCycleRecords(tx, gitlabProjectId, records));
+  await db.transaction((tx) => replaceCycleRecords(tx, projectId, records));
   cache.set(gitlabProjectId, entry.id);
   return { status: 'imported', cycles: records.length };
 }

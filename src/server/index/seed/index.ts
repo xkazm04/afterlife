@@ -5,6 +5,7 @@ import { LEDGERLINE_ID } from '@/lib/demo';
 import type { Queryable } from '../repositories/sql';
 import { seedClassRecords, seedInbox, seedMaturity, seedTasks } from './seedDeep';
 import { seedFleet } from './seedFleet';
+import { seedCycles } from './seedCycles';
 import { SEED_NOW } from './parse';
 
 export { SEED_NOW };
@@ -25,4 +26,5 @@ export async function seedDemo(db: Queryable, opts: SeedOptions = {}): Promise<v
   await seedInbox(db, deep, now);
   await seedMaturity(db, deep, now);
   await seedTasks(db, deep, now);
+  await seedCycles(db, now);
 }

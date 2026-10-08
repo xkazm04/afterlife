@@ -75,6 +75,8 @@
 - `src/server/data/__tests__/parity.test.ts`: the loader gives the same data in demo and live mode.
 
 ## Status and limits
-- Runs and re-probes are simulated in the browser. The commands follow the `belay` CLI's documented usage (`scan`,
-  `pair <checkout>`, `doctor`). Today only `doctor` is implemented, so the others are what will run.
+- Runs and re-probes are simulated in the browser. The commands are the `belay` CLI's real ones: `scan` (read-only
+  stage rating of the clone), `pair <checkout> --write` (adds the bootstrap; it never commits or pushes), `doctor`.
+- **In cycles** counts every project whose ledger records a closed cycle (`getEstateCycles()`: six in the demo).
+  Cycles' estate scope (`/cycles?scope=estate`) shows them per group.
 - Setup (`/setup`) remains the deep, one-project path. Onboard is the estate-wide one.

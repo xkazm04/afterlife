@@ -31,6 +31,11 @@ would be posted: net rungs and the rungs held after it, every change with its ve
 forward, the drift caught, both proofs as they stand, and what runs next. Copy it, or post it as an issue, as you,
 with the `glab issue create` command the sheet shows. Nothing is posted from the app.
 
+## The estate scope
+`/cycles?scope=estate` (the toolbar switch) rolls every project with a recorded cycle up per group
+(`model/estate/estate.ts`, `components/estate/`). Each project's history is unwound to its day 0 and replayed against its
+fleet rungs today; the band says how many reconcile. Six projects in the demo (`src/lib/demo/estate.ts`).
+
 ## Parts
 - `CyclesScreen.tsx` composes the `Window`: sidebar `CyclesSidebar`, content (`Answer`, `CycleGrid`, `LoopRail`,
   `ChangesTable`), `CyclesInspector` (numbers, when, `ClosingRule`, next action), `CyclesStatus`, `CyclesLegend`.
