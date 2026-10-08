@@ -15,7 +15,9 @@ next-env.d.ts
 .contest/
 .claude/
 design/
-/docs/
+/docs/*
+!/docs/features/
+!/docs/report/
 DECISIONS.md
 scratch/
 
