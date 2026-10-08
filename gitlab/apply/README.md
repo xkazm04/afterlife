@@ -96,27 +96,37 @@ Checked on docs.gitlab.com on 2026-10-07 unless marked `[R?]`.
 | Where | Setting | Why |
 |---|---|---|
 | Group | Create project `belay-apply`; push this folder to its `main` | |
-| Settings > Repository > Protected branches | `main`: allowed to merge Maintainers, allowed to push and merge **No one** | Only a reviewed merge changes what runs with the tokens [S] |
-| Settings > CI/CD > Variables | `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_DISPATCH_TOKEN`, optionally `BELAY_LEDGER_TOKEN`: each **Protect variable** on, **Masked and hidden** | Protected: "only available in pipelines that run on protected branches or protected tags" [S]. Hidden can only be chosen when the variable is created [S] |
+| Settings > Repository > Protected branches | `main`: allowed to merge Maintainers, allowed to push and merge **No one**; **Allowed to force push** off; **Require approval from code owners** on, with a `CODEOWNERS` that covers `.gitlab-ci.yml` and `apply.json` (this folder ships no `CODEOWNERS`; the operator adds it) | Only a reviewed merge changes what runs with the tokens, and one Maintainer alone cannot change it [R?] |
+| Settings > CI/CD > Variables | `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_DISPATCH_TOKEN`, `BELAY_LEDGER_TOKEN`: each **Protect variable** on, **Masked and hidden**. Set them on belay-apply at **project level only**, never as group or instance variables of the paired group | Protected: "only available in pipelines that run on protected branches or protected tags" [S]. Hidden can only be chosen when the variable is created [S]. Every target pipeline inherits the group's variables, so a group-level token would reach the agents' jobs [R?] |
 | Settings > CI/CD > Variables | **Minimum role to use pipeline variables**: `no_one_allowed` (API `ci_pipeline_variables_minimum_override_role`) | Pipeline variables (Run pipeline form, schedules, the pipelines API, the triggers API) outrank project variables [S], so one could override a token, `NODE_OPTIONS` or a `GIT_*` variable |
 | Build > Pipeline schedules | One schedule on `main`, every 10 minutes, **with no variables**, owned by a Maintainer of belay-apply | A schedule runs with its owner's permissions, and on a protected branch the owner needs merge rights [S] |
 | belay-engine and belay-policy: Settings > CI/CD > Job token permissions | add `belay-apply` to the allowlist | the jobs clone both with `CI_JOB_TOKEN` [S] |
-| Membership | no agent service account is a member of belay-apply, directly or through the group | a member with push could open a pipeline on another branch. It would get no protected variable, but it is still noise |
-| `apply.json` | `engine.commit` (40 hex, the commit `engine.ref` resolves to), `glab.sha256` (the published checksum of that glab tarball), `bot`, `targets` with each one's `guardrail_consumer_id` | the jobs refuse an empty commit or checksum |
+| Membership | no agent service account is a member of belay-apply, belay-engine, belay-policy, belay-ledger or belay-pack, directly or through the group. Agents get project-level membership on the targets only | a member with push could open a pipeline on another branch. It would get no protected variable, but it is still noise. Membership of the others lets an agent change what the jobs run or read [R?] |
+| Settings > Repository > Protected tags / branches | in belay-engine and belay-pack: protect the `v*` tags; in belay-ledger: protect `main`. Allow Maintainers (or No one) to create or push, not Developers | the jobs clone the engine and the pack at a tag, and the ledger is the record of what was gated [R?] |
+| Runners (F73) | belay-apply's jobs run on a project runner marked **protected** that no target uses, or on GitLab-hosted ephemeral runners. Never on a shared shell or docker-socket runner that target jobs use | on a runner shared with target pipelines, an agent's test job can read a concurrent belay-apply job's environment or files [R?] |
+| Settings > General > Visibility | belay-apply is **Private**, and **Public pipelines** (Settings > CI/CD > General pipelines) is off. Leave belay-apply's own job token allowlist at its default | the job logs name every MR the sweep touched. With the default allowlist no target job token can read belay-apply [R?] |
+| `apply.json` | `engine.commit` (40 hex, the commit `engine.ref` resolves to), `glab.sha256` (the published checksum of that glab tarball), `bot`, `targets` with each one's `guardrail_consumer_id`. Also pin the job image by digest in `.gitlab-ci.yml` (`image: node:22-bookworm@sha256:<digest>`; F70, proposed, the operator picks the digest) | the jobs refuse an empty commit or checksum. The image runs with all four tokens, and a moving tag is not what was reviewed [R?] |
 
 Tokens:
 
 | Token | Kind | Needs |
 |---|---|---|
-| `BELAY_BOT_TOKEN` | group access token of the paired group, or a bot user's personal token, scope `api` | read every target (MRs, notes, pipelines, jobs, artifacts, files, compare); post notes and labels, approve, merge; read the ledger and policy history. Its username goes in `apply.json` `bot` and in the app's `BELAY_PROOF_AUTHORS` |
+| `BELAY_BOT_TOKEN` (F72, proposed) | a bot user's or service account's token, scope `api`. The account is Developer on the target projects only and Reporter on belay-policy and belay-ledger, and never a member of belay-apply or belay-engine. Not a group access token of the paired group: that reaches every project in the group and defeats the separate `BELAY_POLICY_TOKEN` | read every target (MRs, notes, pipelines, jobs, artifacts, files, compare); post notes and labels, approve, merge; read the ledger and policy history. Its username goes in `apply.json` `bot` and in the app's `BELAY_PROOF_AUTHORS` |
 | `BELAY_POLICY_TOKEN` | project access token of `belay-policy`, `write_repository` or `api`, allowed to push to its `main` (spike S8) | the tripwire's commit |
-| `BELAY_LEDGER_TOKEN` (optional; default the bot token) | project access token of `belay-ledger`, `api` | ledger commits |
+| `BELAY_LEDGER_TOKEN` (required) | project access token of `belay-ledger`, `api` | ledger commits. Required so the bot token never writes the ledger; the code still falls back to the bot token when it is unset, so an unset one is a gap, not a refusal |
 | `BELAY_DISPATCH_TOKEN` | a token that may create flow runs in the targets (spike S1) | `POST /ai/duo_workflows/workflows` |
 
 **Optional wake-up.** A pipeline trigger token (Settings > CI/CD > Pipeline trigger tokens) can start a sweep sooner, for
 example from a webhook relay. It carries nothing the sweep uses: every value comes from `apply.json` and GitLab's API.
 `[R?]` The docs do not say whether `no_one_allowed` also refuses variables sent through the triggers API, so create a
 trigger token only after checking that on the instance. The schedule alone is enough.
+
+## Known residuals
+
+- F63: evidence counts only from a `merge_request_event` pipeline that carries no pipeline variables (22f3cbf). A target
+  that runs `belay-replay` only in branch pipelines gets no proof until it switches to merge request pipelines.
+- F74: open, Low, owner not yet decided. An auto-merge set by the gate stays set after a later revoke or tripwire
+  demotion, so the MR still merges when its pipeline succeeds. `[R?]` whether a push cancels it.
 
 ## What the operator removes from each target
 
