@@ -8,7 +8,7 @@ import type { InspProps } from '../props';
 import { ClickSec, CommandSec, Sec } from '../Sec';
 
 function RunnerChip({ check }: { check: 'ok' | 'none' | null }) {
-  if (check === 'ok') return <Chip compact tone="ok">online · job #9911</Chip>;
+  if (check === 'ok') return <Chip compact tone="ok">online · simulated</Chip>;
   return <HonestyChip kind="unknown">{check === 'none' ? '? not seen yet' : '? unknown · 2 h old'}</HonestyChip>;
 }
 
@@ -33,7 +33,7 @@ export function InspRunner(p: InspProps) {
         <KeyValue
           rows={[
             ['Runner', <RunnerChip key="r" check={check} />],
-            ['Checked', check ? 'just now' : `${RUNNER.openedAt} · 2 h old`],
+            ['Checked', check ? 'just now · simulated' : `${RUNNER.openedAt} · 2 h old`],
             ['Billing', 'Belay cannot see it'],
           ]}
         />
