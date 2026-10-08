@@ -79,9 +79,10 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
     case 'open-runner':
       return notify({ ...s, runner: { ...s.runner, opened: true } }, 'toast', `Opened ${RUNNER.url} · nothing written`);
     case 'check-runner': {
+      // The demo runs no doctor: the answer is the simulation's, and says so (as merge-n1 does). Nothing is "verified".
       const seen = s.runner.opened;
-      const next = notify({ ...s, runner: { ...s.runner, check: seen ? 'ok' : 'none' } }, 'status', `$ ${RUNNER.command} → ${seen ? 'runner online' : 'runner not seen yet'}`);
-      return seen ? decided(setStatus(next, 'n5', 'done'), 'setup', 'Runner billing on Google Cloud', 'verified', 'belay doctor') : next;
+      const next = notify({ ...s, runner: { ...s.runner, check: seen ? 'ok' : 'none' } }, 'status', `$ ${RUNNER.command} → ${seen ? 'runner online' : 'runner not seen yet'} (simulated)`);
+      return seen ? decided(setStatus(next, 'n5', 'done'), 'setup', 'Runner billing on Google Cloud', 'simulated', 'belay doctor (simulated)') : next;
     }
     case 'submitted':
       return ranToast({ ...s, submitted: true }, CRA.submitCommand);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../data/pick';
 import { reduce } from './reducer';
+import { rowState } from './rows/rowState';
 import { initialState } from './state';
 import type { Action, ActionId, NeedsState } from './types';
 
@@ -126,14 +127,19 @@ describe('the actions that skip the outbox', () => {
     expect(back.status.n1).toBe('open');
     expect(back.session).toHaveLength(0);
   });
-  it('the runner check is unknown until the page was opened, then verified', () => {
+  it('the runner check is unknown until the page was opened, then simulated: nothing ran, so nothing says verified', () => {
     const none = run(start(), act('check-runner'));
     expect(none.runner.check).toBe('none');
     expect(none.status.n5).toBe('open');
+    expect(none.notice?.text).toMatch(/\(simulated\)/);
     const ok = run(start(), act('open-runner'), act('check-runner'));
     expect(ok.runner.check).toBe('ok');
     expect(ok.status.n5).toBe('done');
-    expect(ok.session[0]).toMatchObject({ kind: 'setup', result: 'verified' });
+    expect(ok.notice).toMatchObject({ channel: 'status', text: expect.stringMatching(/runner online \(simulated\)/) });
+    expect(ok.notice?.text).not.toMatch(/verified/);
+    expect(ok.session[0]).toMatchObject({ kind: 'setup', result: 'simulated', ref: 'belay doctor (simulated)' });
+    expect(JSON.stringify(ok.session[0])).not.toMatch(/verified/);
+    expect(rowState(ok, 'n5').label).not.toMatch(/verified/);
   });
 });
 

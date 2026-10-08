@@ -42,13 +42,13 @@ export function rowState(s: NeedsState, id: string): RowState {
     if (st === 'retired') return ok('retired');
     return wait(s.read.note ? 'note read' : 'waiting');
   }
-  if (st === 'done') return ok('verified');
+  if (st === 'done') return ok('online (simulated)');
   return s.runner.check === 'none' ? { tone: 'unk', glyph: 'unk', label: 'not seen' } : wait('waiting');
 }
 
 export const isWaiting = (s: NeedsState, id: string): boolean => rowState(s, id).tone === '';
 export const isInOutbox = (s: NeedsState, id: string): boolean => rowState(s, id).tone === 'stg';
-/** Decided: sent, merged, retired, verified or set aside. A gap nobody has acted on is not decided. */
+/** Decided: sent, merged, retired, checked or set aside. A gap nobody has acted on is not decided. */
 export function isDecided(s: NeedsState, id: string): boolean {
   const tone = rowState(s, id).tone;
   return (tone === 'ok' || tone === 'dim') && !(isGapId(id) && !s.gapStatus[id]);
