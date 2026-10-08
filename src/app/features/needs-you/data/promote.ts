@@ -29,13 +29,13 @@ export const PROOFS: readonly Proof[] = [
 ];
 
 /**
- * n1, "Extend trust": promote the T1 patcher's dep-bump class. Its write (the branch commit of tier-state.yml and the
+ * n1, "Extend trust": promote the T7 qa agent's qa.file-bug class. Its write (the branch commit of tier-state.yml and the
  * policy MR) is not written here: the server plans it from belay-policy as it is (write/promote.ts).
  */
 export const PROMOTE: ClickCopy & { openedAt: string; sourceAt: string; track: string; policy: string } = {
   openedAt: '13:40',
   sourceAt: '14:21',
-  track: 'T1',
+  track: 'T7',
   policy: 'trust-policy.yml · promotion.supervised_to_hands_off · a1b2c3',
   does: ['Opens a policy MR in belay-policy, as you', 'You merge it in GitLab', 'The next MR pipeline reads the new tier'],
   doesNot: ['change the tier now', 'merge anything for you', 'touch code-fix.patch or the policy rules', 'remove the tripwire: one failure still drops it'],

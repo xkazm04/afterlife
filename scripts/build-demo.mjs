@@ -20,7 +20,7 @@ const tracks = [
     proof: { cls: 'linked-evidence', status: 'pass' }, needs: 'sign-off' },
   { id: 'T3', key: 'governor', name: 'Trust ladder governor', verb: 'Earns autonomy from proofs, removes it on the first failure',
     stages: ['govern', 'configure'], armed: true, armedBy: '!4',
-    classes: ['tier.demote', 'tier.promote'], latest: { text: 'proposal: patcher dep-bump S → H', at: '13:40' },
+    classes: ['tier.demote', 'tier.promote'], latest: { text: 'proposal: qa qa.file-bug S → H', at: '13:40' },
     proof: { cls: 'ledger', status: 'pass' }, needs: '1 proposal' },
   { id: 'T4', key: 'guardrail', name: 'Guardrail reviewer', verb: 'Reviews agent-authored MRs and blocks what it can quote',
     stages: ['secure', 'govern', 'create'], armed: true, armedBy: '!3',
@@ -56,7 +56,7 @@ const actionClasses = [
   { id: 'pipeline.retry', track: 'T5', ceiling: 'hands_off', tier: 'hands_off', lease_days: 11, record: { accepted: 19, needed: 15, noEdit: 1, cleanDays: 14, reverts: 0 }, lastMove: 'promoted 3 d ago' },
   { id: 'test.quarantine', track: 'T5', ceiling: 'supervised', tier: 'supervised', lease_days: null, record: { accepted: 2, needed: null, noEdit: 1, cleanDays: 6, reverts: 0 }, lastMove: 'no change' },
   { id: 'ci-config.change', track: 'T6', ceiling: 'assisted', tier: 'assisted', lease_days: null, record: { accepted: 5, needed: null, noEdit: 0.8, cleanDays: 10, reverts: 0 }, lastMove: 'ceiling: changes what agents may do' },
-  { id: 'qa.file-bug', track: 'T7', ceiling: 'hands_off', tier: 'supervised', lease_days: null, record: { accepted: 9, needed: 15, noEdit: 1, cleanDays: 6, reverts: 0 }, lastMove: 'record 9 / 15 · not eligible' },
+  { id: 'qa.file-bug', track: 'T7', ceiling: 'hands_off', tier: 'supervised', lease_days: null, record: { accepted: 16, needed: 15, noEdit: 1, cleanDays: 14, reverts: 0 }, lastMove: 'record 16 / 15 · eligible' },
   { id: 'patch-bump', track: 'T8', ceiling: 'supervised', tier: 'quarantined', lease_days: null, record: { accepted: 7, needed: null, noEdit: 0.71, cleanDays: 0, reverts: 1 }, lastMove: '4 min ago · tripwire' },
 ];
 
@@ -137,8 +137,8 @@ const tasks = [
 ];
 
 const needsYou = [
-  { id: 'n1', kind: 'promote', title: 'Promote T1 patcher · dep-bump.patch', from: 'supervised', to: 'hands_off',
-    rules: [['accepted outputs ≥ 15', '16', true], ['merged without edits ≥ 90 %', '94 %', true], ['clean days ≥ 14', '14', true], ['mechanical proof class', 'exploit-test', true]],
+  { id: 'n1', kind: 'promote', title: 'Promote T7 qa · qa.file-bug', from: 'supervised', to: 'hands_off',
+    rules: [['accepted outputs ≥ 15', '16', true], ['merged without edits ≥ 90 %', '100 %', true], ['clean days ≥ 14', '14', true], ['mechanical proof class', 'repro', true]],
     does: 'Opens a policy MR as you. You merge it. The next MR pipeline reads the new tier.' },
   { id: 'n2', kind: 'signoff', title: 'CRA early warning · sign-off', dueIn: '19 h 12 m', grade: 'reviewable', linksResolved: '6 / 6',
     does: 'Marks the packet "ready to sign". A person submits on ENISA\'s platform; Belay never submits.' },
@@ -171,7 +171,7 @@ const events = [
   ['14:12', 'T1', 'proof PASS on !41'],
   ['14:02', 'T6', 'scan: Secure R2 → R3'],
   ['13:58', 'T2', 'CRA clock started · early warning due 24 h'],
-  ['13:40', 'T3', 'proposal: patcher dep-bump S → H'],
+  ['13:40', 'T3', 'proposal: qa qa.file-bug S → H'],
   ['13:05', 'T5', 'retried runner flake · 5 / 5 green'],
   ['12:47', 'T1', 'red exploit test on !39'],
   ['12:30', '—', 'unattributed: !38 by an unknown author, no event'],

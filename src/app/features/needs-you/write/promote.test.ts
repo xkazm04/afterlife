@@ -22,7 +22,7 @@ beforeEach(() => {
 
 describe('the policy-MR intents', () => {
   it('n1 promotes the class it names to the tier it asks for, and settles n1', () => {
-    expect(policyIntent('n1', demo)).toEqual({ kind: 'promote-class', project: 'ledgerline', class: 'dep-bump.patch', to: 'hands_off', proposal: 'n1' });
+    expect(policyIntent('n1', demo)).toEqual({ kind: 'promote-class', project: 'ledgerline', class: 'qa.file-bug', to: 'hands_off', proposal: 'n1' });
   });
   it('n4 re-admits its class at Assisted, never at its old tier, and settles n4', () => {
     expect(policyIntent('n4', demo)).toEqual({ kind: 'promote-class', project: 'ledgerline', class: 'patch-bump', to: 'assisted', proposal: 'n4' });
@@ -46,12 +46,12 @@ describe('the round trip', () => {
 
   it('Run sends nothing without a preview on screen', async () => {
     expect(await sendPolicyMr(policyIntent('n1', demo), undefined)).toBeNull();
-    expect(await sendPolicyMr(policyIntent('n1', demo), { kind: 'refused', reason: 'dep-bump.patch is already hands_off' })).toBeNull();
+    expect(await sendPolicyMr(policyIntent('n1', demo), { kind: 'refused', reason: 'qa.file-bug is already hands_off' })).toBeNull();
     expect(actions.confirmAction).not.toHaveBeenCalled();
   });
 
   it('a refusal is held as the reason there is no write', async () => {
-    actions.previewAction.mockResolvedValue({ status: 'refused', reason: 'dep-bump.patch is already hands_off: a promotion goes up' });
-    expect(await askPolicyMr(policyIntent('n1', demo))).toEqual({ kind: 'refused', reason: 'dep-bump.patch is already hands_off: a promotion goes up' });
+    actions.previewAction.mockResolvedValue({ status: 'refused', reason: 'qa.file-bug is already hands_off: a promotion goes up' });
+    expect(await askPolicyMr(policyIntent('n1', demo))).toEqual({ kind: 'refused', reason: 'qa.file-bug is already hands_off: a promotion goes up' });
   });
 });

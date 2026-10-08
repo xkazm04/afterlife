@@ -7,7 +7,7 @@ import { TIER_ORDER } from '@/schemas/tier';
 import type { PromoteClass } from '@/server/actions/types';
 import type { Outcome } from '@/server/actions/words';
 
-/** The action class an inbox title names after its last " · " ("Promote T1 patcher · dep-bump.patch"). */
+/** The action class an inbox title names after its last " · " ("Promote T7 qa · qa.file-bug"). */
 export const classOfTitle = (title: string): string | null => title.split(' · ').at(-1)?.trim() || null;
 
 /** The write a live item sends, or null when it sends none from here. A re-admit is a promote-class to Assisted, never higher. */

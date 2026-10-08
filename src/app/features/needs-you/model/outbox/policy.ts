@@ -12,7 +12,7 @@ export const isPolicyKey = (key: string): key is PolicyKey => (POLICY_KEYS as re
 
 type Slice = Pick<NeedsYouDemo, 'promote' | 'readmit'>;
 
-/** What the write does, in the operator's words: "Promote dep-bump.patch to Hands-off". */
+/** What the write does, in the operator's words: "Promote qa.file-bug to Hands-off". */
 export const policyTitle = (key: PolicyKey, demo: Slice): string =>
   key === 'n1' ? `Promote ${demo.promote.cls} to ${TIER_META[demo.promote.to].name}` : `Re-admit ${demo.readmit.cls} as Assisted`;
 

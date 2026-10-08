@@ -45,7 +45,7 @@ export const QA: TaskDetail = {
   },
   envelope: { files: 0, lines: 0, paths: [], within: true },
   agentWords: 'Steps: open /statements, pick account 0042-B, click Export. File is named statement-2026-10.csv, expected statement-2026-10-0042-B.csv. Same on main.',
-  countsToward: 'qa.file-bug record: 9 of 15 accepted · 0 reverts · 6 clean days · not eligible yet',
+  countsToward: 'qa.file-bug record: 16 of 15 accepted · 0 reverts · 14 clean days · meets the Hands-off rules, the promotion waits on Needs you',
   ledger: [
     [483, '14:06', 'task_started', 'explore staging rev 00041'],
     [485, '14:15', 'proof_verdict', 'repro · PASS · 3 / 3 run, 1 pending'],

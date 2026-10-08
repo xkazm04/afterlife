@@ -9983,7 +9983,7 @@
         "tier.promote"
       ],
       "latest": {
-        "text": "proposal: patcher dep-bump S → H",
+        "text": "proposal: qa qa.file-bug S → H",
         "at": "13:40"
       },
       "proof": {
@@ -10258,13 +10258,13 @@
       "tier": "supervised",
       "lease_days": null,
       "record": {
-        "accepted": 9,
+        "accepted": 16,
         "needed": 15,
         "noEdit": 1,
-        "cleanDays": 6,
+        "cleanDays": 14,
         "reverts": 0
       },
-      "lastMove": "record 9 / 15 · not eligible"
+      "lastMove": "record 16 / 15 · eligible"
     },
     {
       "id": "patch-bump",
@@ -10632,7 +10632,7 @@
     {
       "id": "n1",
       "kind": "promote",
-      "title": "Promote T1 patcher · dep-bump.patch",
+      "title": "Promote T7 qa · qa.file-bug",
       "from": "supervised",
       "to": "hands_off",
       "rules": [
@@ -10643,7 +10643,7 @@
         ],
         [
           "merged without edits ≥ 90 %",
-          "94 %",
+          "100 %",
           true
         ],
         [
@@ -10653,7 +10653,7 @@
         ],
         [
           "mechanical proof class",
-          "exploit-test",
+          "repro",
           true
         ]
       ],
@@ -10910,7 +10910,7 @@
     [
       "13:40",
       "T3",
-      "proposal: patcher dep-bump S → H"
+      "proposal: qa qa.file-bug S → H"
     ],
     [
       "13:05",

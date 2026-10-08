@@ -66,7 +66,7 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
     case 'unstage':
       return unstage(s, arg, 'Taken back. Nothing was sent.');
     case 'snooze-n1':
-      return notify(decided(setStatus(s, 'n1', 'snoozed'), 'promote', 'dep-bump.patch · T1 patcher', 'not yet', 'no write'), 'toast', 'Not yet · no write');
+      return notify(decided(setStatus(s, 'n1', 'snoozed'), 'promote', 'qa.file-bug · T7 qa', 'not yet', 'no write'), 'toast', 'Not yet · no write');
     case 'unsnooze-n1':
       return { ...setStatus(s, 'n1', 'open'), session: s.session.slice(1) };
     case 'merge-n1':

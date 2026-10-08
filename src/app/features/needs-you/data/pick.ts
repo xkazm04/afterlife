@@ -16,7 +16,7 @@ function item(items: readonly NeedsYouItem[], id: string): NeedsYouItem {
   return found;
 }
 
-/** The action class an inbox title names after its last " · " ("Promote T1 patcher · dep-bump.patch"), if the source has it. */
+/** The action class an inbox title names after its last " · " ("Promote T7 qa · qa.file-bug"), if the source has it. */
 function classOf(title: string, classes: readonly { id: string }[]): string {
   const id = title.split(' · ').at(-1) ?? '';
   if (!classes.some((c) => c.id === id)) throw new MissingNeedsYouData(`no action class ${id} for "${title}"`);

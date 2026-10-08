@@ -38,7 +38,7 @@ describe('what each decision stages', () => {
   });
   it('a promotion or a re-admission carries the server’s commands and diff, exactly as planned', () => {
     const o = buildOutItem('n1', demo, { n1: { kind: 'preview', preview } });
-    expect(o).toMatchObject({ kind: 'policy MR', title: 'Promote dep-bump.patch to Hands-off', file: 'belay-policy · tier-state.yml', note: preview.summary });
+    expect(o).toMatchObject({ kind: 'policy MR', title: 'Promote qa.file-bug to Hands-off', file: 'belay-policy · tier-state.yml', note: preview.summary });
     expect(o?.commands).toEqual(preview.commands.map((c) => c.display));
     expect(o?.diff).toEqual([['-', '    qa.file-bug: { tier: supervised }'], ['+', '    qa.file-bug: { tier: hands_off }']]);
     expect(buildOutItem('n4', demo, { n4: { kind: 'preview', preview } })?.title).toBe('Re-admit patch-bump as Assisted');
@@ -46,8 +46,8 @@ describe('what each decision stages', () => {
   it('before the server answered, or when it refused, there is nothing to run and the note says why', () => {
     expect(buildOutItem('n1', demo)).toMatchObject({ commands: [], note: 'Asking Belay for the exact write…' });
     expect(buildOutItem('n1', demo)?.diff).toBeUndefined();
-    const refused = buildOutItem('n1', demo, { n1: { kind: 'refused', reason: 'dep-bump.patch is already hands_off: a promotion goes up' } });
-    expect(refused).toMatchObject({ commands: [], note: 'Belay refuses this write: dep-bump.patch is already hands_off: a promotion goes up. Nothing can run.' });
+    const refused = buildOutItem('n1', demo, { n1: { kind: 'refused', reason: 'qa.file-bug is already hands_off: a promotion goes up' } });
+    expect(refused).toMatchObject({ commands: [], note: 'Belay refuses this write: qa.file-bug is already hands_off: a promotion goes up. Nothing can run.' });
   });
   it('a demo preview says Run only simulates', () => {
     expect(buildOutItem('n4', demo, { n4: { kind: 'preview', preview: { ...preview, mode: 'demo' } } })?.note).toBe('Demo: Run simulates this write; nothing is sent to GitLab.');
