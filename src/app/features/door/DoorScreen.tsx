@@ -20,6 +20,8 @@ import { districtLine, fleetTotals, projectLine, topTiers, type Part } from './m
 import styles from './door.module.css';
 
 export interface DoorData {
+  /** The status bar's data label for this mode (dataLabel), so the door and the bar say the same. */
+  label: string;
   org: string;
   asOf: string;
   groups: readonly string[];
@@ -127,7 +129,7 @@ export function DoorScreen({ data }: { data: DoorData }) {
           ) : null}
         </div>
       </div>
-      <TopChrome org={data.org} asOf={data.asOf} />
+      <TopChrome org={data.org} asOf={data.asOf} label={data.label} />
       <BottomChrome crumbs={crumbs} onBack={s.level > 0 ? s.up : null} onGo={onGo} />
       <div className={styles.grain} data-lite="off" aria-hidden />
     </div>

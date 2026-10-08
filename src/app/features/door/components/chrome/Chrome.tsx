@@ -17,7 +17,7 @@ export const SCREENS: readonly (readonly [string, string])[] = [
 ];
 
 /** Top left: the brand plate. Top right: the way in, and every screen. */
-export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; asOf: string }) {
+export const TopChrome = memo(function TopChrome({ org, asOf, label }: { org: string; asOf: string; label: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -63,7 +63,7 @@ export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; a
             ))}
           </ul>
         ) : null}
-        <div className={styles.note}>illustrative demo data · stylised city</div>
+        <div className={styles.note}>{label} · stylised city</div>
       </div>
     </>
   );
