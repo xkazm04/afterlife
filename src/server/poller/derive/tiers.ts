@@ -4,9 +4,10 @@
 // gate blocks it). A class several agents hold, one of them named for the role or none, is stored with move 'refused' and
 // every holder at the tier gate({..., agent: holder}) grants: CI gates each MR at its author's own record. The row's
 // tier is the most restrictive holder's. views/standing.ts writes and reads both standings.
-// What GitLab cannot tell Belay (the record's stored counters, a moves note) is kept from the row already in the index. A
-// class one agent holds also gets its counters counted from the project's tasks and ledger (./counters.ts) when the caller
-// passes them: returned beside the rows, for the promotion asks, not stored.
+// A class one agent holds gets its counters counted from the project's tasks and ledger (./counters.ts) when the caller
+// passes them: stored on its row (each counter null where nothing states it) and returned beside the rows, for the
+// promotion asks. What GitLab cannot tell Belay (a split or unheld class's stored counters, a moves note) is kept from
+// the row already in the index.
 import type { Ceiling, DemotionTrigger, TierState } from '@/schemas/tier';
 import type { ClassTierRow } from '@/server/index/repositories/fleet/classTier';
 import type { TrustClassRow } from '@/server/index/repositories/fleet/taxonomy';
@@ -36,7 +37,7 @@ export interface TierDerivation {
   /** Records the tripwire wrote within `windowMs` of `now`. */
   demotions: number;
   quarantines: Quarantine[];
-  /** The classes one agent holds with a record, with their counters (all null when no source was passed). */
+  /** The classes one agent holds with a record, with their counters (all null when no source was passed). Also on `rows`. */
   held: Map<string, ClassCounters>;
 }
 
@@ -92,8 +93,13 @@ export function deriveTiers(
     } else if (st.kind === 'no_record') {
       ({ tier, move } = noRecordRow());
     } else tier = 'human_only'; // human_only (no agent ever holds it); 'refused' always has two holders, handled above
-    if (rec && st.kind === 'held') held.set(id, countRecord(counters ?? NO_SOURCE, { agent: st.agent, classId: id, since: counters ? since : null }, now));
-    rows.push({ projectId, classId: id, tier, since, setBy: byOf(rec), leaseExpires: lease, record: prev?.record ?? null, move });
+    let record = prev?.record ?? null;
+    if (rec && st.kind === 'held') {
+      const counted = countRecord(counters ?? NO_SOURCE, { agent: st.agent, classId: id, since: counters ? since : null }, now);
+      held.set(id, counted);
+      if (counters) record = Object.values(counted).some((v) => v !== null) ? counted : null; // the poll's count replaces the stored one
+    }
+    rows.push({ projectId, classId: id, tier, since, setBy: byOf(rec), leaseExpires: lease, record, move });
   });
   const cutoff = now.getTime() - windowMs;
   const demotions = Object.values(state.agents)

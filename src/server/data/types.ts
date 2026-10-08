@@ -11,7 +11,8 @@ export type DataMode = 'demo' | 'live';
  * (running, doing now, going well, needs me, webhooks, unattributed; its poll age is live) and the setup phases. On the
  * Ladder: `policy-history`, the belay-policy history it opens with (its ledger, the tier-state.yml head, the policy's
  * revision and merge age, and the commit ids they name: the poller reads belay-policy's files, never its history), and
- * `records`, the class records' counters (GitLab cannot restate them: the poller keeps what the index had, the seed's).
+ * `records`, the class records' counters. Since migration 0006 the poll stores the record it counts for a class one agent
+ * holds (poller/derive/counters.ts) and keeps the index's (the seed's) only for the others.
  */
 export type IllustrativePart = 'tracks' | 'loop' | 'cockpit' | 'setup' | 'policy-history' | 'records';
 

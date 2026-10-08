@@ -18,7 +18,7 @@ function lastMove(row: ClassTierRow, now: Date): string {
     case 'demoted': return `demoted ${m.note ?? ''}${ago ? ` ${ago} ago` : ''}`.trim();
     case 'tripwire': return ago ? `${ago} ago · tripwire` : 'tripwire';
     case 'ineligible':
-      return row.record ? `record ${row.record.accepted} / ${row.record.needed ?? '?'} · not eligible` : 'not eligible';
+      return row.record ? `record ${row.record.accepted ?? '?'} / ${row.record.needed ?? '?'} · not eligible` : 'not eligible';
     case 'note': return m.note ?? 'unknown';
     case 'no_record': return 'no tier record: not trusted';
     case 'refused': {

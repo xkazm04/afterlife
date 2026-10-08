@@ -36,8 +36,10 @@ nothing to revoke, no Re-admit: Re-admit is for a real quarantine only), or Spli
 revoke lowers every holder above the target in one commit). Unknown reads unknown.
 
 Promotion counts: a counter a record does not know is "not recorded" and never met (`model/rules/promotion.ts`). Live, the
-poll counts a class's record but does not store it (`server/poller/README.md`, "Record counters"); when it found a class
-eligible it opened a promotion ask in Needs you, and the route attaches that ask to the class (`data/loadLadderData.ts`):
+record columns are the record the poll counted and stored for a class one agent holds (`server/poller/README.md`, "Record
+counters"): Acc, Rv and Clean as counted, and a dim dash titled "Not recorded" for a counter nothing states (No-edit,
+always; Rv and Clean unless the policy demotes on a revert). A class no agent holds says "No record yet". When the poll
+found a class eligible it opened a promotion ask in Needs you, and the route attaches that ask to the class (`data/loadLadderData.ts`):
 the class reads eligible with the ask's counts, and p opens Needs you with that ask selected. A greyed Promote names the
 first rule that is unmet or not recorded.
 

@@ -63,7 +63,7 @@ describe('the Ladder, live', () => {
     expect(count(out, chip('The tier-state.yml head'))).toBe(2); // the lozenge and the status bar
     expect(count(out, chip('The policy revision'))).toBe(1);
     expect(count(out, chip('The records (Acc, No-edit, Rv, Clean)'))).toBe(1);
-    expect(out).toContain('title="No record yet · not scored"'); // tier.demote has none: it says so, never a zero
+    expect(out).toContain('title="Not recorded · no task or ledger event states it"'); // no-edit has no source: a dash, never a zero
   });
 
   it('the same screen in demo mode marks nothing: there everything is the demo, and the app says so once', () => {

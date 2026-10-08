@@ -84,13 +84,19 @@ export interface ClassRecord {
   reverts: number;
 }
 
+/**
+ * A record as the index states it: each counter on its own, null where no task or ledger event states it (never zero).
+ * The fixture's records are ClassRecords, every counter set; a polled record may know some counters only.
+ */
+export type RecordCounters = { [K in keyof ClassRecord]: ClassRecord[K] | null };
+
 export interface ActionClass {
   id: string;
   track: string;
   ceiling: TierKey;
   tier: TierKey;
   lease_days: number | null;
-  record: ClassRecord | null;
+  record: RecordCounters | null;
   lastMove: string;
 }
 

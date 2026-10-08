@@ -1,12 +1,12 @@
 // Shared types of the Ladder model. Plain data, no logic.
-import type { ActionClass, ClassRecord, Track } from '@/lib/demo';
+import type { ActionClass, RecordCounters, Track } from '@/lib/demo';
 import type { SortState } from '@/components/table/model/sort';
 import type { Ceiling, Tier } from '@/schemas';
 
 export type { Ceiling, Tier, Track };
 
 /** A record's counters, each on its own: null is a counter no task or ledger event states (never zero). */
-export type Counters = { [K in keyof ClassRecord]: ClassRecord[K] | null };
+export type Counters = RecordCounters;
 
 /**
  * The promotion the last poll opened in Needs you for a class (live): the poll counted its record and Ladder's own rule

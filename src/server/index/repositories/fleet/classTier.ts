@@ -1,4 +1,4 @@
-import type { ClassRecord } from '@/lib/demo/types';
+import type { RecordCounters } from '@/lib/demo/types';
 import type { Ceiling } from '@/schemas/tier';
 import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
 
@@ -17,8 +17,11 @@ export interface ClassTierRow {
   since: Date | null;
   setBy: string | null;
   leaseExpires: Date | null;
-  /** The ledger-derived record; null when the project is not watched that deeply. */
-  record: ClassRecord | null;
+  /**
+   * The record's counters, each on its own: null where no task or ledger event states it (never 0). The poll counts a
+   * class one agent holds (poller/derive/counters.ts); null when no counter is known.
+   */
+  record: RecordCounters | null;
   move: { kind: MoveKind; at: Date | null; note: string | null } | null;
 }
 
@@ -46,13 +49,16 @@ const toDb = (r: ClassTierRow): Record<string, unknown> => ({
   move_kind: r.move?.kind ?? null, move_at: toIso(r.move?.at), move_note: r.move?.note ?? null,
 });
 
+/** A row with some counters null is a record whose unknown counters are null; with every counter null, no record. */
+function recordOf(r: Db): RecordCounters | null {
+  const rec: RecordCounters = { accepted: r.accepted, needed: r.needed, noEdit: r.no_edit, cleanDays: r.clean_days, reverts: r.reverts };
+  return Object.values(rec).every((v) => v === null) ? null : rec;
+}
+
 const fromDb = (r: Db): ClassTierRow => ({
   projectId: r.project_id, classId: r.class_id, tier: r.tier, since: asDate(r.since), setBy: r.set_by,
   leaseExpires: asDate(r.lease_expires),
-  record:
-    r.accepted === null || r.no_edit === null || r.clean_days === null || r.reverts === null
-      ? null
-      : { accepted: r.accepted, needed: r.needed, noEdit: r.no_edit, cleanDays: r.clean_days, reverts: r.reverts },
+  record: recordOf(r),
   move: r.move_kind ? { kind: r.move_kind, at: asDate(r.move_at), note: r.move_note } : null,
 });
 

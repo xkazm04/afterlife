@@ -5,9 +5,10 @@ import { m0002 } from './0002_work';
 import { m0003 } from './0003_ledger';
 import { m0004 } from './0004_operator';
 import { m0005 } from './0005_class_standing';
+import { m0006 } from './0006_record_counters';
 import type { Migration } from './parts';
 
-export const MIGRATIONS: readonly Migration[] = [m0001, m0002, m0003, m0004, m0005];
+export const MIGRATIONS: readonly Migration[] = [m0001, m0002, m0003, m0004, m0005, m0006];
 
 const checksum = (m: Migration): string => createHash('sha256').update(m.sql).digest('hex');
 

@@ -1,13 +1,13 @@
 // A class's record counters, counted from its tier-state.yml record's `since`, for its one holder. A counter comes only
 // from a fact a task row or a ledger event states; one nothing states stays null (never zero, never a value that would
-// make a class eligible). Where each counter comes from is listed in ../README.md. They are not stored: class_tier holds
-// a record's counters all set or all null (migration 0001's check), and no-edit has no source; ./promotion.ts reads them.
-import type { ClassRecord } from '@/lib/demo/types';
+// make a class eligible). Where each counter comes from is listed in ../README.md. ./tiers.ts stores them on the class's
+// class_tier row (each counter nullable on its own since migration 0006), and ./promotion.ts reads them.
+import type { RecordCounters } from '@/lib/demo/types';
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { TaskRow } from '@/server/index/repositories/work/task';
 
 /** A record's counters, each on its own: null is one nothing states. The shape of Ladder's Counters. */
-export type ClassCounters = { [K in keyof ClassRecord]: ClassRecord[K] | null };
+export type ClassCounters = RecordCounters;
 
 const DAY_MS = 86_400_000;
 

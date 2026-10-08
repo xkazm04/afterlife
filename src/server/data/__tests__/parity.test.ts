@@ -9,7 +9,7 @@ import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadFleetSource } from '@/app/features/fleet/data/loadFleetSource';
 import { loadMaturityData } from '@/app/features/maturity/data/loadMaturityData';
-import { loadNeedsYouView, pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
+import { loadNeedsYouView, MissingNeedsYouData, pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
 import { loadTasks } from '@/app/features/task/model/build/loadTasks';
 import { loadTheaterData } from '@/app/features/theater/data/loadTheaterData';
@@ -46,6 +46,9 @@ afterAll(() => setDataSource(null));
 /** What the loaders return, as the page would send it to the client: JSON, so `undefined` and a missing key are the same. */
 const asProps = (v: unknown): unknown => JSON.parse(JSON.stringify(v)) as unknown;
 
+/** The class records: live, the poll's own counts (listed below, where live differs); demo, the fixture's. */
+const noRecords = (v: unknown): unknown => JSON.parse(JSON.stringify(v), (k: string, x: unknown) => (k === 'record' ? null : x)) as unknown;
+
 /** The fixture spells "no last event" as null on six projects; the index view leaves the key out. Both draw nothing. */
 const noLast = (v: unknown): unknown => {
   const walk = (x: unknown): unknown => {
@@ -72,13 +75,8 @@ describe('every screen loader gets the same data from the live source as from th
       const p = v as { projects: { id: string; needsYou: number }[]; deep: { needs: unknown[] } };
       return { ...p, projects: p.projects.map((x) => (x.id === 'ledgerline' ? { ...x, needsYou: 0 } : x)), deep: { ...p.deep, needs: [] } };
     };
-    const [d, l] = both(() => asProps(loadFleetData()));
+    const [d, l] = both(() => noRecords(loadFleetData()));
     expect(noLast(sameDeep(l))).toEqual(noLast(sameDeep(d)));
-  });
-
-  it('Needs you: the five inbox items and the incident, read for the screen', () => {
-    const [d, l] = both(() => asProps(pickNeedsYouDemo()));
-    expect(l).toEqual(d);
   });
 
   it('Ladder: classes, tiers, leases, records, last moves, the means of each tier, the thresholds, the poll age and the subtitle', () => {
@@ -86,7 +84,7 @@ describe('every screen loader gets the same data from the live source as from th
     const strip = (p: ReturnType<typeof loadLadderData>) => ({
       ...p, illustrative: null, live: null, seed: { ...p.seed, ledger: p.seed.ledger.map((e) => ({ ...e, demo: undefined })), head: { ...p.seed.head, demo: undefined } },
     });
-    const [d, l] = both(() => asProps(strip(loadLadderData())));
+    const [d, l] = both(() => noRecords(strip(loadLadderData())));
     expect(l).toEqual(d);
   });
 
@@ -100,8 +98,8 @@ describe('every screen loader gets the same data from the live source as from th
     // reads every one of them (listed below, where live differs), demo reads none.
     const [dp, lp] = both(() => loadSetupData());
     const [ds, ls] = await Promise.all([dp, lp]);
-    expect(asProps({ ...ls, live: null, illustrative: null })).toEqual(asProps({ ...ds, live: null, illustrative: null }));
-    const [dt, lt] = both(() => asProps(loadTheaterData()));
+    expect(noRecords({ ...ls, live: null, illustrative: null })).toEqual(noRecords({ ...ds, live: null, illustrative: null }));
+    const [dt, lt] = both(() => noRecords(loadTheaterData()));
     expect(lt).toEqual(dt);
   });
 });
@@ -111,7 +109,8 @@ describe('the poll really did write what the parity rests on (it is not just the
     expect((await getProjectRow(db, 'ledgerline'))?.gitlabId).toBe(90010001);
     const tiers = await listClassTiers(db, 'ledgerline');
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')).toMatchObject({ setBy: 'operator via promotion MR !33' });
-    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toMatchObject({ accepted: 16 }); // seeded: GitLab cannot restate it
+    // the class records live are the poll's counts (each unknown counter null): !41 since the record's since; the seed said 16
+    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: null, cleanDays: 4, reverts: 0 });
     const proof = (await listProofsFor(db, ['01J8Q4'])).get('01J8Q4');
     expect(proof?.block?.task.head_sha).toBe('a41c0ffee00000000000000000000000000000a1');
   });
@@ -186,6 +185,9 @@ describe('where live differs from demo, on purpose', () => {
     const [d, l] = both(() => loadNeedsYouView());
     expect(d.kind).toBe('desk');
     expect(l).toEqual({ kind: 'empty', seeded: 5 });
+    setDataSource(live); // nor could it: the records the poll counted state no no-edit share for the desk's cards
+    expect(() => pickNeedsYouDemo()).toThrow(MissingNeedsYouData);
+    setDataSource(null);
   });
 
   it('the Fleet reads the mode, the recent events and what to label demo beside its loader; the demo keeps its feed', () => {

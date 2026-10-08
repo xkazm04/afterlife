@@ -2,7 +2,7 @@
 // never carries the whole dataset. The desk is built around five specific inbox items and the !44 incident:
 // `pickNeedsYouDemo` throws when the source lacks them. It is the demo's desk: in live mode the page never draws it, and
 // shows the group's own open items instead, without the demo's seeded ones (`loadNeedsYouView`).
-import type { NeedsYouItem } from '@/lib/demo';
+import type { ClassRecord, NeedsYouItem, RecordCounters } from '@/lib/demo';
 import { TIER_ORDER, type Tier } from '@/schemas/tier';
 import { getDataSource } from '@/server/data';
 import { isSeeded, SEEDED_ITEMS } from '@/server/data/live/seeded';
@@ -25,6 +25,12 @@ function classOf(title: string, classes: readonly { id: string }[]): string {
 
 const tierOf = (t: string | undefined): Tier | null => TIER_ORDER.find((x) => x === t) ?? null;
 
+/** The desk draws a record with every counter it shows; one that leaves a counter unstated is missing to it. */
+function full(r: RecordCounters | null | undefined): ClassRecord | null {
+  if (!r || r.accepted === null || r.noEdit === null || r.cleanDays === null || r.reverts === null) return null;
+  return { accepted: r.accepted, needed: r.needed, noEdit: r.noEdit, cleanDays: r.cleanDays, reverts: r.reverts };
+}
+
 export function pickNeedsYouDemo(): NeedsYouDemo {
   const ds = getDataSource();
   const items = ds.getNeedsYou();
@@ -33,13 +39,13 @@ export function pickNeedsYouDemo(): NeedsYouDemo {
   const n4 = item(items, 'n4');
   const maturity = ds.getMaturity();
   const task = ds.getTasks().find((t) => t.mr === '!44');
-  const record = ds.getActionClasses().find((c) => c.id === 'patch-bump')?.record;
+  const record = full(ds.getActionClasses().find((c) => c.id === 'patch-bump')?.record);
   const to = tierOf(n1.to);
   if (!n1.from || !to || !task || !record) throw new MissingNeedsYouData('promote item, incident !44 or patch-bump record is missing');
   const tiers = ds.getTiers();
   const classes = ds.getActionClasses();
   const cls = classOf(n1.title, classes);
-  const promoted = classes.find((c) => c.id === cls)?.record;
+  const promoted = full(classes.find((c) => c.id === cls)?.record);
   if (!promoted) throw new MissingNeedsYouData(`no record for ${cls}`);
   return {
     project: ds.deepProjectId(),

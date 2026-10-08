@@ -20,7 +20,7 @@ Tests never start a timer.
      deployments (for "merged · in production");
    - `importLedger` (see `../ledger`); a rejected ledger still lets the rest land, then fails the feed;
    - writes: project row, tasks, proofs, then (`classes.ts`, after the tasks so this poll's merges count) `class_tier`
-     (tier, since, set_by, lease, move), re-admit and promotion asks, roll-ups (`proofs_*_7d`, `demotions_7d`, `needs_you`,
+     (tier, since, set_by, lease, move, and the counted record of a class one agent holds), re-admit and promotion asks, roll-ups (`proofs_*_7d`, `demotions_7d`, `needs_you`,
      `cra_open`).
 6. `poll_state`: `recordPollOk` at `now`, or `recordPollError` (keeps `last_ok`); a failed project is also set `stale`.
 
@@ -43,8 +43,8 @@ head is **stale**: not indexed, any earlier proof of the task is deleted, and th
 
 | Derived from GitLab (tested against the demo GitLab) | Not derived (seed-only, or unknown) |
 |---|---|
-| tasks and proofs from MRs; state label from labels, MR state and deployments | `class_tier.record` (stored): kept as it is, else null. The counters below are counted every poll but not stored: migration 0001 holds them all set or all null, and no-edit has no source |
-| record counters of a class one agent holds, for its promotion ask (see "Record counters") |
+| tasks and proofs from MRs; state label from labels, MR state and deployments | `class_tier.record` of a class no agent or several agents hold: kept as it is, else null |
+| record counters of a class one agent holds (see "Record counters"), stored on its `class_tier` row each on its own (migration 0006: null is a counter nothing states, never 0; a row with every counter null reads as no record) and read by its promotion ask |
 | promotion ask for a class whose counters meet Ladder's own rule (`promotion()`), `promote:<project>:<class>`, closed when it stops being eligible |
 | class tiers: recorded in tier-state.yml, capped by the policy, by the gate's own rule (`engine/decide/standing.ts`: holder, lower of record and ceiling, lapsed lease = supervised). Group-wide, never from proof history. No record: stored quarantined with move `no_record` (the gate blocks it); several holders, named for the role or not: stored at the most restrictive holder with move `refused`, its note listing every holder at the tier the gate grants a merge request that holder authored (CI passes the author as `--agent`) | CRA sign-off asks (the port has no work-item reads); gap picks and setup steps (scans and probes) |
 | moves "promoted" and "tripwire" (with its trigger as the note) from the record's `by` | project `last`, `env_*`, `armed`, stage rungs, `what` |
@@ -58,7 +58,8 @@ proposed and is not M1 work.
 ## Record counters (`derive/counters.ts`)
 
 Counted for a class one agent holds, from its tier-state.yml record's `since`, over the project's indexed tasks and its
-imported ledger. A counter comes only from what a row or an event states; one nothing states is null, and Ladder's rule
+imported ledger, and stored on its `class_tier` row every poll (`derive/tiers.ts`), replacing what the row held (the seed's,
+on the demo GitLab). A counter comes only from what a row or an event states; one nothing states is null, and Ladder's rule
 reads it "not recorded", never met. Mapped to trust-policy.yml's `promotion` block as `rulesOf` (`data/policy.ts`) reads it:
 
 | Counter | Source | Policy key |
