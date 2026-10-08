@@ -3,7 +3,7 @@ import type { ComponentProps } from 'react';
 import { getDataSource } from '@/server/data';
 import type { MaturityScreen } from '../MaturityScreen';
 
-export function loadMaturityData(): ComponentProps<typeof MaturityScreen> {
+export function loadMaturityData(): Pick<ComponentProps<typeof MaturityScreen>, 'maturity' | 'stages'> {
   const ds = getDataSource();
-  return { maturity: ds.getMaturity(), stages: ds.getStages(), project: ds.deepProjectId(), mode: ds.mode };
+  return { maturity: ds.getMaturity(), stages: ds.getStages() };
 }
