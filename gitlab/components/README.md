@@ -139,6 +139,12 @@ glab api "projects/<project id>/jobs/<new gate job id>/artifacts/.belay/events/2
 BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/components/scripts/decide/ledger-append.mjs --events <events dir> --project <group path>/belay-ledger --branch main
 ```
 
+These are the target's report-only events, made in the agent's own MR pipeline: check them before you append them (F90).
+A pipeline variable outranks the job's `BELAY_GUARDRAIL_AUTHORS`, so it can make the gate trust the agent's own note, and
+a CI change can rewrite the job. `glab api "projects/<project id>/pipelines/<pipeline id>/variables"` must be `[]`, the MR
+must change no CI file, `1-guardrail_verdict.json`'s `verdict` must be the one you read in the guardrail's note in step 3,
+and `tier_at_time` must be the tier `tier-state.yml` holds for the agent and class. If any differs, append nothing.
+
 `ledger-append` takes every `*.json` in the directory, in name order, in one commit, each as seq n+1 on the chain it reads from
 `belay-ledger`. Run it once per head. If the push to `main` is refused, add `--mode mr`. It reads the ledger with your own `glab` login and no
 token variable. If `--write-token-var` is given, the variable it names must be set: an unset one is refused before any read (F88, b85b78c). Without the flag, the write token falls back as before. Only a 404 means there is no ledger file yet (the chain then starts at seq 1); any other failed read (403, 5xx,
