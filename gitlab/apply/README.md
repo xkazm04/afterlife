@@ -77,7 +77,8 @@ nobody to count it against, and nothing is ledgered. A forced wait or block for 
 | proof note and label | the bot's newest `belay-proof` note has `task.head_sha` = head (after a push and a return to an earlier head, it is posted again, F62) |
 | gate note, labels, approve or merge | a bot `**Belay gate:` note is newer than that proof note and is not a forced one for another head, or a forced one of the same decision names the head in its first reason (`- head <sha>:`; a sha quoted further on does not count, F61) |
 | ledger lines | a commit of `events/<project-id>.jsonl` in `belay-ledger` carries `Belay-Head: <project-id>!<iid>@<head>` |
-| the guardrail's block, on a forced path | such a commit carries `Belay-Head: <project-id>!<iid>@<head>/guardrail-block` |
+| the guardrail's block for the head (a forced path, or a block after the gate, F81) | such a commit carries `Belay-Head: <project-id>!<iid>@<head>/guardrail-block` (the gate's own events carry both keys when the guardrail blocked) |
+| a block after the gate (F81) | the MR has `guardrail::block` |
 | guardrail dispatch | the bot's "guardrail review requested" note names the head (the Flows API lists no runs [S]) |
 
 A ledger commit that failed is retried by the next sweep, from the gate's events re-emitted by `apply-gate --dry 1`.
@@ -139,6 +140,12 @@ trigger token only after checking that on the instance. The schedule alone is en
   removes only the caller's own approval, never a person's) and a note names the decision and the tier. Without the write
   tokens it only reports. The approvals are read only once the gate is done for the head: `[R?]` whether a push keeps an
   approval the bot gave an earlier head depends on the target's "Remove all approvals when commits are added" setting.
+- F81: closed in the sweep. A guardrail block for a head whose gate was already applied (the guardrail re-ran) re-runs the
+  gate: the bot's approval and auto-merge are withdrawn (F74, F89), and while the MR lacks `guardrail::block` the BLOCK
+  note and the label are written again. The block is ledgered once as a `guardrail_verdict` with `verdict: block`
+  (`Belay-Head: <key>/guardrail-block`), so the poller counts it. If a person removes the label, the next sweep sets it
+  again. A head gated before this change on a guardrail block gets that event once more: a duplicate the poller counts once
+  (it counts merge requests, not events).
 - F67: closed (5d09815). A trusted note that carries two blocks of the tag is ambiguous: `fetch-block.mjs` exits 4, as for
   a schema failure, so a block the note quotes never wins.
 - F88: closed (b53cd46). `ledger-append.mjs` refuses a `--write-token-var` that names an unset variable, before any read;

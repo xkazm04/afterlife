@@ -117,7 +117,7 @@ function sweepMr(t, iid) {
 
   // The ledger's record of this head, read once when first asked: like every other read, before the first write.
   const ledgerKey = `${t.id}!${iid}@${head}`;
-  const blockKey = `${ledgerKey}/guardrail-block`; // the guardrail's own block for this head, ledgered on a forced path
+  const blockKey = `${ledgerKey}/guardrail-block`; // the guardrail's own block for this head, once its events carry it
   const ledgerFile = `events/${t.id}.jsonl`;
   let ledgerLog;
   const ledgered = (key) => {
@@ -130,8 +130,9 @@ function sweepMr(t, iid) {
     }
     return ledgerLog.some((c) => String(c.message ?? '').split('\n').includes(`Belay-Head: ${key}`));
   };
-  const appendLedger = (events, key) => {
-    const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile, '--key', key, '--write-token-var', 'BELAY_LEDGER_TOKEN'], { ...env, ...tokens('BELAY_LEDGER_TOKEN') }, dir);
+  const appendLedger = (events, keys) => {
+    const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile,
+      ...keys.flatMap((k) => ['--key', k]), '--write-token-var', 'BELAY_LEDGER_TOKEN'], { ...env, ...tokens('BELAY_LEDGER_TOKEN') }, dir);
     if (l.code !== 0) throw new Error(`ledger-append exited ${l.code}`);
   };
 
@@ -230,7 +231,7 @@ function sweepMr(t, iid) {
     if (r.code > 1) throw new Error(`apply-gate exited ${r.code}`);
     if (!tier || !fs.existsSync(events)) return;
     if (!WRITE) return say(`${tag}: the guardrail's block is not ledgered (reporting only)`);
-    appendLedger(events, blockKey);
+    appendLedger(events, [blockKey]);
   };
 
   if (ci) {
@@ -327,7 +328,13 @@ function sweepMr(t, iid) {
   if (gr.code === 4) return force('block', 'the guardrail verdict does not match its schema, or its note carries two of them: treated as inconclusive');
 
   // The gate, decided here, and its ledger events.
-  if (gateDone && ledgerDone && !botAutoMerge && !botApproved()) return say(`${tag}: gate and ledger already applied for this head`);
+  // F81: a guardrail block for this head that came after its gate was applied. The gate, re-run below, withdraws what the
+  // bot granted (F74, F89); the block is also applied (the BLOCK note and guardrail::block) while the MR lacks that label,
+  // and ledgered once (`<key>/guardrail-block`) when the head's events were appended without it.
+  const relabel = gateDone && guardBlocked && !(m.labels ?? []).includes('guardrail::block');
+  const blockOwed = guardBlocked && ledgerDone && !ledgered(blockKey);
+  const settled = gateDone && ledgerDone && !relabel && !blockOwed;
+  if (settled && !botAutoMerge && !botApproved()) return say(`${tag}: gate and ledger already applied for this head`);
   const g = engine(['gate', '--policy', policyFile, '--state', statesFile, '--class', actionClass, '--agent', mr.BELAY_AGENT,
     '--proof', proofFile, '--guardrail', path.join(dir, 'guardrail-gate.json'), '--diff', diffFile]);
   const decisionFile = path.join(dir, 'decision.json');
@@ -343,14 +350,21 @@ function sweepMr(t, iid) {
   const nowTier = typeof decided?.tier === 'string' ? decided.tier : null;
   if (now !== 'merge') cancelAutoMerge(now, nowTier);
   withdrawApproval(now, nowTier);
-  if (gateDone && ledgerDone) return say(`${tag}: gate and ledger already applied for this head`);
+  if (settled) return say(`${tag}: gate and ledger already applied for this head`);
   const events = path.join(dir, 'events');
   const applied = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--decision', decisionFile, '--guardrail', guardrailFile,
-    '--agent', mr.BELAY_AGENT, '--class', actionClass, '--emit-dir', events, ...(WRITE && !gateDone ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
+    '--agent', mr.BELAY_AGENT, '--class', actionClass, '--emit-dir', events, ...(WRITE && (!gateDone || relabel) ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
   if (applied.code > 1) throw new Error(`apply-gate exited ${applied.code}`);
-  if (ledgerDone || !fs.existsSync(events)) return;
+  if (!fs.existsSync(events) || (ledgerDone && !blockOwed)) return;
   if (!WRITE) return say(`${tag}: ledger events not appended (reporting only)`);
-  appendLedger(events, ledgerKey);
+  // The head's events carry the guardrail's block when it blocked: both keys, so it is not ledgered again on its own.
+  if (!ledgerDone) return appendLedger(events, guardBlocked ? [ledgerKey, blockKey] : [ledgerKey]);
+  const block = fs.readdirSync(events).find((f) => f.endsWith('-guardrail_verdict.json'));
+  if (!block) return;
+  const only = path.join(dir, 'events-guardrail-block');
+  fs.mkdirSync(only, { recursive: true });
+  fs.copyFileSync(path.join(events, block), path.join(only, block));
+  appendLedger(only, [blockKey]);
 }
 
 const MR_PAGES = 5;

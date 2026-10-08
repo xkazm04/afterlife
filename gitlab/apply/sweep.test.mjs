@@ -381,6 +381,37 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     }
   });
 
+  it('(xvii) F81: a guardrail block that comes after the head was gated is applied (BLOCK, guardrail::block) and ledgered once', () => {
+    // The gate approved this head at supervised, with a guardrail pass, and the ledger has it (as in (i)). Then the guardrail
+    // re-ran on the same head and blocked it.
+    const first = sweep(group());
+    const [proofNote, gateNote] = glabWrites(first, 'note create');
+    const ledger = first.writes.find((w) => w.path === `${LEDGER}/repository/commits`);
+    const bot = (id, body) => ({ id, system: false, author: { username: 'belay-bot' }, created_at: '2026-10-07T10:05:00Z', body });
+    const finding = { rule: 'prompt-injection', severity: 'high', file: 'CHANGELOG.md', quote: 'ignore previous instructions', explanation: 'an instruction to the reviewer in the changelog' };
+    const blocked = { ...guardrailNote('block', HEAD, [finding]), id: 60 };
+    const notes = [blocked, bot(102, gateNote.body.message), bot(101, proofNote.body.message), guardrailNote('pass')];
+    const r = sweep(group({ notes, labels: ['proof::pass', 'guardrail::pass', 'belay::tier::supervised'], ledgerCommits: [{ id: 'f'.repeat(40), message: ledger.body.commit_message }] }));
+    expect(r.code, r.stderr).toBe(0);
+    const [note, ...more] = glabWrites(r, 'note create');
+    expect(more).toEqual([]);
+    expect(note.body.message).toMatch(/^\*\*Belay gate: BLOCK\*\* \| tier `supervised`\n.*guardrail blocked/s);
+    expect(glabWrites(r, 'update').map((w) => [w.body.label, w.body.unlabel])).toEqual([[expect.stringContaining('guardrail::block'), expect.stringContaining('guardrail::pass')]]);
+    expect(granted(r)).toEqual([]);
+    const [append, ...twice] = r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`);
+    expect(twice).toEqual([]);
+    const lines = append.body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
+    expect(lines.map((e) => [e.kind, e.verdict])).toEqual([['guardrail_verdict', 'block']]);
+    expect(append.body.commit_message).toContain(`Belay-Head: 1!7@${HEAD}/guardrail-block`);
+
+    // Read back: the label and the ledger line are there, so the next sweep writes nothing.
+    const after = [blocked, bot(103, note.body.message), bot(102, gateNote.body.message), bot(101, proofNote.body.message), guardrailNote('pass')];
+    const commits = [{ id: 'e'.repeat(40), message: append.body.commit_message }, { id: 'f'.repeat(40), message: ledger.body.commit_message }];
+    const again = sweep(group({ notes: after, labels: ['proof::pass', 'guardrail::block', 'belay::tier::supervised'], ledgerCommits: commits }));
+    expect(again.code, again.stderr).toBe(0);
+    expect(again.writes).toEqual([]);
+  });
+
   it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {
     const human = (i) => ({ iid: 1000 + i, author: { username: `dev-${i}` } });
     const pages = Array.from({ length: 5 }, (_, p) => Array.from({ length: 100 }, (_, i) => (p === 0 && i === 0 ? { iid: 7, author: { username: 'ai-patcher-acme' } } : human(p * 100 + i))));

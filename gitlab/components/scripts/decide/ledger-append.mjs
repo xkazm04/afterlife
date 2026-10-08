@@ -1,7 +1,7 @@
 // Appends events to belay-ledger/events/<project-id>.jsonl. `--event f.json` or `--events dir` (every *.json, in name order).
 // The engine does the hashing (`ledger append --event --chain`); this only moves the file, then makes ONE commit.
-// A broken or empty engine reply is an error, never a guess. `--key k` adds a `Belay-Head: k` line to the commit message:
-// belay-apply reads the ledger file's history for it, so it appends once per project, MR and head.
+// A broken or empty engine reply is an error, never a guess. `--key k` (repeatable) adds a `Belay-Head: k` line to the
+// commit message: belay-apply reads the ledger file's history for it, so it appends once per project, MR and head.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -13,6 +13,7 @@ const project = arg('project') ?? die('missing --project (the belay-ledger path)
 const branch = arg('branch', 'main');
 const file = arg('path', `events/${process.env.CI_PROJECT_ID}.jsonl`);
 const dir = arg('events');
+const keys = process.argv.flatMap((a, i) => (a === '--key' && process.argv[i + 1] ? [process.argv[i + 1]] : []));
 // Writes may use a different token from reads (BELAY_LEDGER_TOKEN, named by --write-token-var). A variable named there and
 // not set is refused before any read (F88): the read token never writes in its place.
 const named = arg('write-token-var');
@@ -63,7 +64,7 @@ writeFile({
   content: chain,
   exists: head !== null,
   lastCommitId: head?.lastCommitId,
-  message: `ledger: ${titles.join(', ')}\n\n${arg('key') ? `Belay-Head: ${arg('key')}\n\n` : ''}[skip ci]`,
+  message: `ledger: ${titles.join(', ')}\n\n${keys.map((k) => `Belay-Head: ${k}\n`).join('')}${keys.length ? '\n' : ''}[skip ci]`,
   mode: arg('mode', 'commit'),
 });
 console.error(`belay: ${file} now has ${chain.split('\n').filter(Boolean).length} events`);
