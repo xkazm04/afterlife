@@ -70,10 +70,17 @@ describe('screen parts render in every state', () => {
     expect(draw('day0')).not.toContain('>d0<');
   });
 
-  it('the send sheet shows the exact commands', () => {
-    const html = renderToStaticMarkup(createElement(SendSheet, { gaps: ctx.gaps.filter((g) => g.picked), onCancel: () => {}, onSend: () => {} }));
-    expect(html).toContain('Open 2 MRs as you');
-    expect(html).toContain('glab mr create');
+  it('the send sheet shows the exact commands: the screen\'s while the server plans, then the server\'s', () => {
+    const gaps = ctx.gaps.filter((g) => g.picked);
+    const planning = renderToStaticMarkup(createElement(SendSheet, { gaps, writes: {}, ready: false, onCancel: () => {}, onSend: () => {} }));
+    expect(planning).toContain('Open 2 MRs as you');
+    expect(planning).toContain('glab mr create');
+    expect(planning).toContain('planning on the server');
+    const preview = { kind: 'stage-gap-mr' as const, title: 'Open the draft MR', summary: 's', commands: [{ display: 'glab api --method POST projects/1/merge_requests', argv: [], risk: 'low' as const }], risk: 'low' as const, diff: [], previewId: 'p', mode: 'demo' as const };
+    const writes = Object.fromEntries(gaps.map((g) => [g.id, { status: 'preview' as const, preview }]));
+    const planned = renderToStaticMarkup(createElement(SendSheet, { gaps, writes, ready: true, onCancel: () => {}, onSend: () => {} }));
+    expect(planned).toContain('demo · planned, never executed');
+    expect(planned).toContain('projects/1/merge_requests');
     expect(DEMO.maturity.proposals).toHaveLength(4);
   });
 });

@@ -107,7 +107,8 @@
   empty when recorded (2026-10-06); most read shapes come from documentation fixtures, not recordings.
 - In live mode tracks, loop, event feed, cockpit text, setup phases and doctor rows, tier meanings and stage list are
   still the demo catalogue.
-- No UI button calls `previewAction` / `confirmAction` yet. Not verified live: every write, the diffs endpoint,
+- Needs you, Ladder and Maturity call `previewAction` / `confirmAction` (see `src/server/actions/README.md`); Onboard
+  and Setup do not yet. Not verified live: every write, the diffs endpoint,
   `start_branch`, issue label PUT for work items, the Flows API route. The fake does not model branches, issues or
   protections.
 - Pipelines are not read by the poller. Exact flow and bot account usernames are unverified. Times are formatted in

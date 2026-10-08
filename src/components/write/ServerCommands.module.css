@@ -1,0 +1,31 @@
+/* The server's plan for one write: mode and risk chips, the summary, the commands; or the server's refusal. */
+.w {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.sum {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  line-height: 1.35;
+}
+.refused {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: var(--t-body);
+  line-height: 1.4;
+  color: var(--text-2);
+  background: color-mix(in oklab, var(--accent-2) 10%, transparent);
+  box-shadow: inset 2px 0 0 var(--accent-2);
+}
+.refused b {
+  color: var(--text-1);
+  font-weight: 600;
+}

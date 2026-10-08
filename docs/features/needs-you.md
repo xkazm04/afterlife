@@ -85,11 +85,17 @@
 - `model/rows/rows.test.ts`, `model/rows/grouping.test.ts`: row state, filters, one action per row, cells,
   grouping, keyboard order.
 - `model/menu.test.ts`: row and group menus.
+- `src/server/actions/__tests__/screens.test.ts`: every decision's intent is planned by the server (done, or refused
+  with the reason the screen shows).
 - `src/server/data/__tests__/parity.test.ts`: `pickNeedsYouDemo` reads the same from the live source as from demo.
 
 ## Status and limits
 - The slice is read through `getDataSource()` (`src/server/data`), but the screen is built around five specific
   inbox items and the `!44` incident. In live mode without them, `NeedsYouEmpty` is shown.
-- Everything after Run is simulated in the browser: no `glab` command is executed; state lives in the reducer and is
+- Run goes through the server for the promotions (n1, n4), the CRA mark (n2) and the gap MRs: the outbox shows the
+  server's planned commands, Run confirms them, and a refusal disables Run with the reason. In the demo data
+  `dep-bump.patch` is already Hands-off, so the server refuses n1's promotion ("a promotion goes up"); the fixture
+  and the ledger disagree, and the refusal is the honest answer until the fixture is fixed.
+- In demo mode the server plans but never executes: no `glab` command runs; screen state lives in the reducer and is
   lost on reload. The CRA clock counts down from a fixed `remainingSec` (19 h 12 m) from page load.
 - The CRA case, its draft, evidence, diffs, MR numbers and the week's ledger are invented fixtures in `data/`.

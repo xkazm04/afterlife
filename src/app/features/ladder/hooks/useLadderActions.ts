@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/overlays/toast/useToast';
+import { outcomeText, wentThrough } from '@/components/write/outcome';
+import type { ActionResponse } from '@/server/actions/types';
 import { TIER_META } from '@/lib/tiers';
 import { WHY_NOT } from '../model/rules/promotion';
 import { revokeTarget } from '../model/rules/tiers';
@@ -18,8 +20,9 @@ const FRESH_MS = 1700;
 const PROMOTE_JUMP_MS = 900;
 
 /**
- * Everything the screen does: select, filter, sort, and the writes. A revoke commits at once, toasts, says there is no
- * undo, and six seconds later the simulated tier-gate job reads the commit. Belay writes only on a click or a key.
+ * Everything the screen does: select, filter, sort, and the writes. A revoke goes to the server first (`send`: the plan
+ * the dock showed, confirmed); only if it went through does the row move, with a toast and the no-undo note, and six
+ * seconds later the simulated tier-gate job reads the commit. A refusal moves nothing. Belay writes only on a click or a key.
  */
 export function useLadderActions({
   data,
@@ -28,6 +31,7 @@ export function useLadderActions({
   tableRef,
   openDetail,
   onReset,
+  send,
 }: {
   data: LadderData;
   stamp: () => string;
@@ -35,6 +39,7 @@ export function useLadderActions({
   tableRef: RefObject<HTMLDivElement | null>;
   openDetail: (id?: string) => void;
   onReset: () => void;
+  send: (id: string, to: Tier) => Promise<ActionResponse>;
 }) {
   const { toast, status } = useToast();
   const router = useRouter();
@@ -60,8 +65,8 @@ export function useLadderActions({
 
   const select = useCallback((id: string) => dispatch({ type: 'select', id }), [dispatch]);
 
-  const revoke = useCallback(
-    (id: string, to: Tier) => {
+  const apply = useCallback(
+    (id: string, to: Tier, r: ActionResponse) => {
       const sha = nextSha(latest.current.state.shaIdx);
       dispatch({ type: 'revoke', id, to, t: stamp() });
       later(() => dispatch({ type: 'clearFresh' }), FRESH_MS);
@@ -69,11 +74,22 @@ export function useLadderActions({
         dispatch({ type: 'settle', sha, t: stamp() });
         later(() => dispatch({ type: 'clearFresh' }), FRESH_MS);
       }, PENDING_MS);
-      toast(`${id} → ${TIER_META[to].name} · commit ${sha} pushed to belay-policy as you`);
+      toast(`${id} → ${TIER_META[to].name} · ${outcomeText(r)}`);
       status('No undo: going back up is a policy MR a person merges (Needs you)');
-      focusTable();
     },
-    [dispatch, stamp, later, toast, status, focusTable],
+    [dispatch, stamp, later, toast, status],
+  );
+
+  const revoke = useCallback(
+    (id: string, to: Tier) => {
+      status(`Revoking ${id} → ${TIER_META[to].name}: the server checks and sends the plan…`);
+      focusTable();
+      void send(id, to).then(
+        (r) => (wentThrough(r) ? apply(id, to, r) : status(outcomeText(r))),
+        () => status(`Not sent: the server could not be reached. ${id} is unchanged.`),
+      );
+    },
+    [send, apply, status, focusTable],
   );
 
   const promote = useCallback(

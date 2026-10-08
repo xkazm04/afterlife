@@ -24,6 +24,7 @@ import { useLadderPopovers } from './hooks/useLadderPopovers';
 import { useSimClock } from './hooks/useSimClock';
 import { pollAge } from './model/clock';
 import { dockModel } from './model/rules/dock';
+import { useRevokeWrites } from './hooks/useRevokeWrites';
 import type { Ceiling, Tier, Track } from './model/types';
 import { filterCount } from './model/view/filters';
 import { SORT_NAMES } from './model/view/sort';
@@ -76,7 +77,9 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
     pop.close();
     setHoverTo(null);
   }, [pop]);
-  const actions = useLadderActions({ data, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi });
+  const dock = dockModel(data.sel, byId, tracks, hoverTo);
+  const writes = useRevokeWrites(dock);
+  const actions = useLadderActions({ data, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi, send: writes.send });
   const menus = useLadderMenus({ data, actions, onHover: setHoverTo });
 
   const toggleHelp = () => {
@@ -177,7 +180,7 @@ export function LadderScreen({ seed, tracks: trackList, means, feedAgeSec, subti
           tableRef={tableRef}
         />
       </div>
-      <Dock model={dockModel(data.sel, byId, tracks, hoverTo)} onHelp={toggleHelp} helpRef={helpRef} />
+      <Dock model={dock} server={writes.dock} onHelp={toggleHelp} helpRef={helpRef} />
       {menus.menus}
       {pop.popover}
     </Window>

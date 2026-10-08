@@ -88,6 +88,7 @@
 | `src/components/viz/` | Stage, proof, rung and day visuals, `model/cells.ts` |
 | `src/components/controls/` | Buttons, links, checkbox, `toolbar/`, `lozenge/` |
 | `src/components/palette/` | `CommandPalette`, `model/items.ts`, `model/rank.ts` |
+| `src/components/write/` | `useServerWrites` (preview on show, confirm on click), `sendNow`, `ServerCommands` (the server's plan or its refusal), `outcome.ts` (honest result text, long-field folding) |
 | `src/components/surface/`, `icons/` | `Card`; `Icon` and glyphs |
 | `src/styles/` | `tokens.css`, `text-size.css`, `base.css`, `backdrop.css` |
 | `src/lib/keyboard/` | `hotkeys.ts` (pure), `useHotkeys.ts` |
@@ -101,7 +102,7 @@
   `rowNavigation.test.ts` (clamping, group expand/collapse, Enter, safe DOM ids, type-ahead), `columns.test.ts`
   (tracks scale with text size).
 - `overlays/position.test.ts`, `menu/menuModel.test.ts`, `popover/reopenGuard.test.ts`;
-  `inspector/blocks/diff.test.ts`; `viz/model/cells.test.ts`; `shell/sidebar/navItems.test.ts`;
+  `inspector/blocks/diff.test.ts`; `write/outcome.test.ts` (refused, changed, simulated, live, folding); `viz/model/cells.test.ts`; `shell/sidebar/navItems.test.ts`;
   `src/lib/keyboard/hotkeys.test.ts`.
 
 ## Status and limits

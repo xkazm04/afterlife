@@ -79,5 +79,7 @@
 ## Status and limits
 - Rungs, engine, scan time and the gap list come from `getDataSource()` (`src/server/data`); in live mode a scan that
   never ran gives nine null rungs. Evidence objects, proposal diffs, credit history and meta are screen fixtures.
-- Send, merge, pipeline run and rescan are simulated in the reducer; no `glab` or `belay` command runs, and state is
-  lost on reload. Evidence links only toast where they would open.
+- Send goes through the server actions (`stage-gap-mr`): the sheet shows the server's planned commands per MR gap
+  (a whole file's content is folded and shown as the diff), and Send stays disabled until every plan is back. In
+  demo mode the server plans and never executes. Merge, pipeline run and rescan are still simulated in the reducer,
+  and state is lost on reload. The status line after Send still names the fixture MR ids. Evidence links only toast where they would open.
