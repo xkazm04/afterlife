@@ -15,7 +15,7 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 | `revoke-class` | `project`, `changes: [{class, to}]`, `why?` | one `PUT` of `tier-state.yml` to `belay-policy`'s default branch (risk `policy`), with the file's `last_commit_id` as read. Lowers only |
 | `promote-class` | `project`, `class`, `to` | a branch with the new record (`start_branch` = default, `last_commit_id` as read), then a policy MR labelled `belay::promotion`. Belay never merges |
 | `mark-cra-ready` | `project`, `issue` | one `PUT` of the clock work item's labels: `cra::ready-to-sign`, minus `cra::drafting`. Never submits |
-| `stage-gap-mr` | `project`, `gap`, `stage`, `from`, `to`, `title`, `branch` (`belay/...`), `files: [{path, content}]`, `workItem?` | one commit per file on a new branch, then a draft MR labelled `maturity::gap` |
+| `stage-gap-mr` | `project`, `gap`, `stage`, `from`, `to`, `title`, `branch` (`belay/...`), `files: [{path, content} or {path, hunk}]` (1 to 8), `workItem?` | one commit per file on a new branch under `belay/`, then a draft MR labelled `maturity::gap`. A hunk is applied to the base file only on an exact, contiguous, single match, else `ActionRefused`; it is never written as a whole file (`plans/hunk.ts`, 775d1ab) |
 | `arm-track` | `project`, `track` (`T1`-`T8`) | one commit of `.gitlab-ci.yml` on a new branch `belay/arm-<key>` (`start_branch` = default, `last_commit_id` as read), then one MR labelled `belay::arm`. Adds the track's include lines between `# belay:arm` markers |
 | `disarm-track` | `project`, `track` | the same on `belay/disarm-<key>`: removes exactly the marked lines the arm added (their digest is in the begin marker), or refuses |
 
@@ -42,6 +42,13 @@ Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
 - `belay/*` is a protected branch pattern (Setup step 9).
 - Known residual: GitLab's Files API answer names no commit, so the commit is read back with `getFile` right after the write.
   Moving arm and disarm to the Commits API is queued.
+
+Target decisions (`plans/context.ts`):
+
+- F46 (9c5737b): `locate()` takes belay-policy only at `<group>/belay-policy`, by full path (`context.ts:53-54`), so a same-named project in a subgroup or shared in is never the one a revoke or promote writes.
+- F47 (276d376): every plan that locates a target refuses one outside the paired group's path (`context.ts:59-61`), as arm's `targetOf` already did (F37).
+- F50 (180e163): Belay's own projects (`cfg.infra`) are refused as a target, so `stage-gap-mr` cannot open an MR in belay-policy (`context.ts:56-58`).
+- F52 (3014213): a record's `since` is stamped to the minute (`minuteOf`, `context.ts:72`; `revoke.ts:41`, `promote.ts:31`), so a confirm within the minute of its preview has the same `previewId` and runs, instead of always coming back `changed`.
 
 Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran).
 
@@ -99,6 +106,8 @@ screen holds (`{kind: preview}` or `{kind: refused, reason}`).
   `confirmAction(intent, preview.previewId)` on r, the button or the menu item.
 - **Needs you** n1 (promote) and n4 (re-admit, a promote-class to Assisted) (`app/features/needs-you/write/promote.ts`):
   `previewAction` when the decision is selected or staged, the preview in the outbox and the inspector, `confirmAction` on Run.
+
+- Guard (941dcf1, `__tests__/handwritten.test.ts`): `src/app` holds no hand-written gap MR, gap issue, probe or scan. Its two allowances are `src/app/features/kit` and `setup/data/stepDetail.ts` (`NOT_A_SEND`, line 56).
 
 - **Setup** arm, disarm and verify (`app/features/setup/write/arm.ts`): `previewAction` when the track's Arm or Disarm
   section is in view, `confirmAction` on its button; "I merged it · verify" calls `verifyArmAction`.
