@@ -1,5 +1,5 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
-import { PROMOTE, PROOFS } from '../../../data/promote';
+import { PROMOTE, PROOFS, proofsAux } from '../../../data/promote';
 import { Chip } from '@/components/status/chip/Chip';
 import { TierMove } from '../../shared/MoveMarks';
 import { ActBtn, Acts } from '../Acts';
@@ -8,7 +8,7 @@ import { PolicyCmdSec, PolicyDiffSec } from '../PolicyWrite';
 import { ClickSec, Sec } from '../Sec';
 import styles from './items.module.css';
 
-/** n1: promote a class from Supervised to Hands-off. Rules, the 16 accepted proofs, the policy-MR diff. */
+/** n1: promote a class from Supervised to Hands-off. Rules, the class's accepted proofs, the policy-MR diff. */
 export function InspPromote(p: InspProps) {
   const { s, demo, dispatch } = p;
   const st = s.status.n1;
@@ -74,8 +74,8 @@ export function InspPromote(p: InspProps) {
       </Sec>
       <Sec k="n1-proofs" title="Accepted proofs" aux={`${PROOFS.length} · 94 % no edit`} def={false} p={p}>
         {PROOFS.map((pr) => (
-          <div key={pr.mr} className={styles.pr}>
-            <span className={styles.m}>{pr.mr}</span>
+          <div key={pr.ref} className={styles.pr}>
+            <span className={styles.m}>{pr.ref}</span>
             <span className={styles.t} title={pr.title}>
               {pr.title} {pr.edited ? <Chip compact>edited</Chip> : null}
             </span>

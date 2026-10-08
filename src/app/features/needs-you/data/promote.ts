@@ -1,32 +1,36 @@
 import type { ClickCopy } from './types';
 
 export interface Proof {
-  mr: string;
+  /** The issue the QA agent filed. */
+  ref: string;
   title: string;
   when: string;
   edited: boolean;
 }
-const p = (mr: string, title: string, when: string, edited = false): Proof => ({ mr, title, when, edited });
+const p = (ref: string, title: string, when: string, edited = false): Proof => ({ ref, title, when, edited });
 
-/** The 16 accepted proofs behind the promotion (illustrative). */
+/** Accepted proofs behind the promotion: qa.file-bug's own bug filings (illustrative). How many, and how many were edited, is the class record's (`proofsAux`, the test pins them). */
 export const PROOFS: readonly Proof[] = [
-  p('!41', 'Fix path traversal in statement export', 'today 09:29'),
-  p('!40', 'Bump jackson-databind 2.17.1 → 2.17.2', '1 d'),
-  p('!37', 'Bump netty-codec-http 4.1.112 → 4.1.115', '2 d'),
-  p('!36', 'Bump logback-core 1.5.6 → 1.5.8', '3 d'),
-  p('!35', 'Bump commons-io 2.16.0 → 2.16.1', '4 d'),
-  p('!34', 'Bump snakeyaml 2.2 → 2.3', '5 d'),
-  p('!33', 'Bump postgresql 42.7.2 → 42.7.4', '6 d'),
-  p('!32', 'Bump guava 33.1.0 → 33.2.1', '7 d'),
-  p('!31', 'Bump bouncycastle 1.77 → 1.78.1', '8 d'),
-  p('!30', 'Bump spring-web 6.1.6 → 6.1.12', '9 d', true),
-  p('!29', 'Bump nimbus-jose-jwt 9.37 → 9.40', '10 d'),
-  p('!28', 'Bump h2 2.2.224 → 2.3.232', '11 d'),
-  p('!27', 'Bump okhttp 4.12.0 → 4.12.1', '12 d'),
-  p('!26', 'Bump json-smart 2.5.0 → 2.5.1', '13 d'),
-  p('!25', 'Bump xmlsec 3.0.3 → 3.0.4', '14 d'),
-  p('!24', 'Bump zookeeper 3.9.1 → 3.9.2', '16 d'),
+  p('#231', 'Statement export 500s when the account has no transactions', 'today 09:29'),
+  p('#230', 'Login form accepts a 300-character username', '1 d'),
+  p('#229', 'Refund total rounds half-cent amounts the wrong way', '2 d'),
+  p('#228', 'Transfer page loses the memo after a validation error', '3 d'),
+  p('#227', 'Dashboard balance stale after a second tab posts a payment', '4 d'),
+  p('#226', 'CSV export drops rows with a comma in the payee', '5 d'),
+  p('#225', 'Date picker allows a start date after the end date', '6 d'),
+  p('#224', 'Password reset link still works after the password changed', '7 d'),
+  p('#223', 'Pagination skips the last page of the ledger search', '8 d'),
+  p('#222', 'Currency selector resets to EUR on reload', '9 d'),
+  p('#221', 'Dark mode hides the error text on the card form', '10 d'),
+  p('#220', 'Duplicate submit on the payee form creates two payees', '11 d'),
+  p('#219', 'Session timeout banner covers the Submit button', '12 d'),
+  p('#218', 'Search ignores accents in payee names', '13 d'),
+  p('#217', 'Mobile menu stays open after navigating', '14 d'),
+  p('#216', 'Receipt PDF shows UTC time without the zone', '16 d'),
 ];
+
+/** The proofs section's aux, from the class record: how many were accepted and what share needed no edit. */
+export const proofsAux = (record: { accepted: number; noEdit: number }): string => `${record.accepted} · ${Math.round(record.noEdit * 100)} % no edit`;
 
 /**
  * n1, "Extend trust": promote the T7 qa agent's qa.file-bug class. Its write (the branch commit of tier-state.yml and the
@@ -38,5 +42,5 @@ export const PROMOTE: ClickCopy & { openedAt: string; sourceAt: string; track: s
   track: 'T7',
   policy: 'trust-policy.yml · promotion.supervised_to_hands_off · a1b2c3',
   does: ['Opens a policy MR in belay-policy, as you', 'You merge it in GitLab', 'The next MR pipeline reads the new tier'],
-  doesNot: ['change the tier now', 'merge anything for you', 'touch code-fix.patch or the policy rules', 'remove the tripwire: one failure still drops it'],
+  doesNot: ['change the tier now', 'merge anything for you', 'change the policy rules or any other class', 'remove the tripwire: one failure still drops it'],
 };

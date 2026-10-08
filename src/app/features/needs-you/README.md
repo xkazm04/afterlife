@@ -39,7 +39,9 @@ and say where to act. A gap item is read-only here until it carries its files fr
 - `clock/`: countdown math and the grade ladder. `menu.ts`: right-click entries as data.
 
 ## Data
-`data/*.ts` are the prototype's invented constants (CRA detail, 16 proofs, week ledger). The policy MRs' commands and
+`data/*.ts` are the prototype's invented constants (CRA detail, week ledger, the runner step). n1's accepted proofs are
+qa.file-bug's own illustrative bug filings; their count, the edited share and the section's aux text come from that class's
+record in the demo fixture (`pick.ts` reads it, `proofsAux` words it, `data/promote.test.ts` pins them). The policy MRs' commands and
 diffs are not among them: the server plans those. Titles, rungs, rules and
 the !44 incident come from `@/lib/demo`. Everything on the screen is illustrative and says so.
 

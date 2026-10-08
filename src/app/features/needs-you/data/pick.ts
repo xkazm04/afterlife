@@ -38,9 +38,12 @@ export function pickNeedsYouDemo(): NeedsYouDemo {
   if (!n1.from || !to || !task || !record) throw new MissingNeedsYouData('promote item, incident !44 or patch-bump record is missing');
   const tiers = ds.getTiers();
   const classes = ds.getActionClasses();
+  const cls = classOf(n1.title, classes);
+  const promoted = classes.find((c) => c.id === cls)?.record;
+  if (!promoted) throw new MissingNeedsYouData(`no record for ${cls}`);
   return {
     project: ds.deepProjectId(),
-    promote: { title: n1.title, cls: classOf(n1.title, classes), from: n1.from, to, rules: n1.rules ?? [] },
+    promote: { title: n1.title, cls, record: promoted, from: n1.from, to, rules: n1.rules ?? [] },
     signoff: { title: n2.title, linksResolved: n2.linksResolved ?? '' },
     readmit: { title: n4.title, cls: classOf(n4.title, classes), reason: n4.reason ?? '' },
     runner: { title: item(items, 'n5').title },

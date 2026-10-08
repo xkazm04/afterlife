@@ -15,7 +15,7 @@ export interface NeedsYouDemo {
   /** The project the decisions belong to: the id the server actions plan the writes for. */
   project: string;
   /** `cls`: the action class the promotion raises, to `to`. */
-  promote: { title: string; cls: string; from: TierKey; to: Tier; rules: readonly (readonly [string, string, boolean])[] };
+  promote: { title: string; cls: string; from: TierKey; to: Tier; rules: readonly (readonly [string, string, boolean])[]; record: ClassRecord };
   signoff: { title: string; linksResolved: string };
   /** `cls`: the quarantined action class a re-admission raises to Assisted. */
   readmit: { title: string; cls: string; reason: string };
