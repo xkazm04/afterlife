@@ -8,6 +8,8 @@ previewAction(intent: unknown): Promise<ActionResponse>                   // pla
 confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // plans again; runs only if the digest still matches
 ```
 
+`confirmAction`: after a live confirm that ran its commands (done or failed) it calls `refresh()` from `next/cache`, as `repollAction` does, so the route renders again from the fresh poll; demo, refused and changed do not.
+
 ## Intents (`types.ts`; validated by `intents.ts`, which refuses anything else)
 
 | `kind` | Fields | What the commands do |
