@@ -25,9 +25,11 @@ poller turns that into a failed feed for the project (the rest of the poll still
 
 A `guardrail_verdict` event states what the guardrail said: `verdict: 'pass' | 'block'`
 (`gitlab/components/scripts/decide/apply-gate.mjs` writes it from the guardrail file it read). An event written before
-the gate stated it has no `verdict` key. The key is absent, never `undefined` or `null`, at every step (the engine's
-`parseLedgerEvent`, `parse.ts`, the index's `readLedger`), because `canonical()` in `src/schemas/ledger.ts` would hash
-either one, and every chain written before the field would stop verifying. The index stores it in `ledger_event.verdict`
+the gate stated it has no `verdict` key. The key is absent, never `null`, at every step (the engine's
+`parseLedgerEvent`, `parse.ts`, the index's `readLedger`), because `canonical()` in `src/schemas/ledger.ts` would hash a
+`null`, and every chain written before the field would stop verifying. An explicit `undefined` hashes as absent, as
+`JSON.stringify` writes it (`canonical()` skips it). A forced gate also writes one, `verdict: 'block'`, when the guardrail
+itself blocked the head (`gitlab/apply/README.md`). The index stores it in `ledger_event.verdict`
 (migration 0008: `pass`, `block` or null, and null on any kind but `guardrail_verdict`).
 
 Tests: `__tests__/ledger.test.ts` (full import, incremental append, blob-id skip, edited event, fork, rewind, foreign
