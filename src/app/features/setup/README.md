@@ -69,19 +69,23 @@ Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn e
 - Where Setup and `skills/adopt-belay` disagree, Setup's live reads decide and the skill follows. A command Setup shows must
   run, or Setup shows no command.
 
-Known disagreements (file:line on main at 502d268; the skill is `skills/adopt-belay/SKILL.md`):
+Known disagreements (the skill is `skills/adopt-belay/SKILL.md`, by step row; Setup is `data/stepDetail.ts` by step key and
+the reads in `src/server/data/setup/`; named, not line-numbered, so they do not drift):
 
 | | Step | Skill | Setup |
 |---|---|---|---|
-| a | all | `:17` "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1, 3, 4, 6, 8 (never done), 9 and 10 itself (`src/server/data/setup/read.ts` `OBSERVED_STEPS`, `humanSteps.ts`); 7 is said, not read |
-| b | 1 | `:28` no pairing | pairs the checkout (`data/stepDetail.ts:17`) |
-| c | 5 | `:32` pairs the checkout | shows `npx belay pair` (`data/stepDetail.ts:30`); `cli/belay.mjs:29-33` does not run it |
-| d | 0 | `:27` checks the GitLab version | does not (`data/stepDetail.ts:16`, `read.ts:53`) |
-| e | 2 | `:29` asks for a CRA drill mode | does not (`data/stepDetail.ts:18`) |
-| f | 9 | agrees since the r1 rework: author-cannot-approve, the CODEOWNERS paths, read first then DELETE and POST | same |
-| g | 10 | `:37` Agent, then Human | human (`data/stepDetail.ts:57`) |
-| h | 11, 12, 14 | | shows `flows enable`, `scan --propose`, `doctor --json` (`data/stepDetail.ts:63,67,75`); `cli/belay.mjs:26-36` runs only `doctor`, with no flags |
-| i | 4 | `:31` creates belay-engine too | `DEMO_NAMES.projects` has no belay-engine (`data/stepDetail.ts:12`); the live read has it (`read.ts:22`) |
+| a | all | "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1, 3, 4, 6, 8 (never done), 9 and 10 itself (`read.ts` `OBSERVED_STEPS`, `humanSteps.ts`, `protections.ts`); 7 is said, not read; 2, 5 and 11-14 are not read yet |
+| b | 1 | no pairing | pairs the checkout (`1.does`) |
+| c | 5 | pushes the demo bank and pairs the checkout | agrees: shows only `git push --mirror` and says the pairing in prose (`cli/belay.mjs` answers `pair` with "not implemented yet") |
+| d | 0 | checks the GitLab version | does not (`0.cmd`, `read.ts` `loginRead`) |
+| e | 2 | asks for a CRA drill mode | does not (`2.does`) |
+| f | 9 | agrees: author-cannot-approve, the CODEOWNERS paths, read first then DELETE and POST, done when Setup reads every setting back | same (`9.does`, `9.cmd`, `protections.ts`) |
+| g | 10 | Agent, then Human | human (`10.who`); Setup reads it done when the bootstrap MR is merged and the agent config is on main |
+| h | 11, 12, 14 | | agrees: 11 shows no command, 12 `glab ci run`, 14 `npx belay doctor`, the one belay command `cli/belay.mjs` runs |
+| i | 4 | creates belay-engine too | agrees: `DEMO_NAMES.projects` and `BELAY_PROJECTS` have belay-engine |
+| j | 3 | Ultimate trial and the hackathon group | the trial only (`3.does`); the read sees the group's plan and trial, not a hackathon group |
+| k | 11 | Agent, else Human | agent, coming back to you in prose if the API route is not there (`11.does`) |
+| l | 8 | the four tokens, the role, the schedule, one command per token | agrees (`8.cmd`); no model key on either side |
 
 Not ported: the hero heading, legend strip and per-node "why" lines (cut in the notes). Capability edges stay
 illustrative, and demo only: a live probe row is not tied to tracks. No arrow-key walk (as in the prototype).
