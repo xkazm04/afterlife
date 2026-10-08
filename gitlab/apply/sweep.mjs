@@ -276,7 +276,7 @@ function sweepMr(t, iid) {
     glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `${dispatchMark(head)} (flow run ${Number.isSafeInteger(run) ? run : '?'}).`]);
     return;
   }
-  if (gr.code === 4) return force('block', 'the guardrail verdict does not match its schema: treated as inconclusive');
+  if (gr.code === 4) return force('block', 'the guardrail verdict does not match its schema, or its note carries two of them: treated as inconclusive');
 
   // The gate, decided here, and its ledger events.
   if (gateDone && ledgerDone && !botAutoMerge && !botApproved()) return say(`${tag}: gate and ledger already applied for this head`);

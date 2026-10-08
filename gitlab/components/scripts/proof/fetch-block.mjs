@@ -5,7 +5,8 @@
 // older push is stale).
 // `--schema f.json` checks the block (lib/validate.mjs); custom flows cannot set response_schema_id, so CI checks.
 // `--gate-out f` also writes {verdict, severity} for `engine gate --guardrail` (severity = the highest finding).
-// Exit 0 = written, 3 = no trusted block, 4 = the block fails its schema.
+// Exit 0 = written, 3 = no trusted block, 4 = the block fails its schema, or the newest trusted note with one carries two
+// blocks of the tag (ambiguous: one of them can be a quote, F67).
 import fs from 'node:fs';
 import { arg, blocks, die, need, trustedNotes } from '../lib/lib.mjs';
 import { validate } from '../lib/validate.mjs';
@@ -22,8 +23,14 @@ const sources = trustedNotes(projectId, mr, authors);
 
 const RANK = { low: 1, medium: 2, high: 3 };
 for (const src of sources) {
-  const found = blocks(src.body, tag).at(-1);
-  if (found === undefined) continue;
+  const all = blocks(src.body, tag);
+  if (all.length === 0) continue;
+  // One note, one verdict (F67): a second block can be a quote of the MR's own text, so neither is taken.
+  if (all.length > 1) {
+    console.error(`belay: ${tag}: note ${src.id} carries ${all.length} blocks of the tag: ambiguous, none is taken`);
+    process.exit(4);
+  }
+  const [found] = all;
   const madeFor = found.head_sha ?? found.task?.head_sha;
   if (headSha && madeFor !== headSha) {
     console.error(`belay: ${tag} block in ${src.id} is for ${String(madeFor).slice(0, 8)}, not ${headSha.slice(0, 8)}: stale`);
