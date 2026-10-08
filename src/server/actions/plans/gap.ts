@@ -1,5 +1,6 @@
 // Stage a maturity gap: a new branch with the gap's files (one commit each), then a draft MR. Nothing is merged; the MR
-// is the proposal. A file is its content from the screen, or a hunk applied to the file as the project holds it; the preview shows either before the click.
+// is the proposal. A file is a new file's content from the screen, or a hunk applied to a file the project holds (never a whole
+// existing file, F83); the preview shows either before the click.
 import type { StageGapMr } from '../types';
 import { ActionRefused, locate, type Plan, type PlanContext } from './context';
 import { applyHunk } from './hunk';
@@ -22,13 +23,14 @@ export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<P
       content = applyHunk(f.path, file.content, f.hunk);
       shown = [`~ ${f.path} (hunk: +${f.hunk.filter((l) => l.startsWith('+')).length} lines)`, ...f.hunk.map((l) => (l.startsWith('+') ? `+ ${l.slice(1)}` : `  ${l.slice(1)}`))];
     } else {
+      if (file) throw new ActionRefused(`${f.path} already exists on ${base}: a gap changes a file the project has only by a hunk, never by replacing its whole content`);
       content = f.content;
       const lines = content.split('\n');
-      shown = [`${file ? '~' : '+'} ${f.path} (${lines.length} lines)`, ...lines.slice(0, PREVIEW_LINES).map((l) => `+ ${l}`), ...(lines.length > PREVIEW_LINES ? ['+ ...'] : [])];
+      shown = [`+ ${f.path} (${lines.length} lines)`, ...lines.slice(0, PREVIEW_LINES).map((l) => `+ ${l}`), ...(lines.length > PREVIEW_LINES ? ['+ ...'] : [])];
     }
     commands.push(ctx.port.plan.commitFile({
       project: project.id, path: f.path, branch: intent.branch, content, action: file ? 'update' : 'create',
-      ...('hunk' in f && file?.lastCommitId ? { lastCommitId: file.lastCommitId } : {}),
+      ...(file?.lastCommitId ? { lastCommitId: file.lastCommitId } : {}),
       message: `Maturity gap ${intent.gap}: ${intent.title}\n\nOperator: ${ctx.operator}`, ...(i === 0 ? { startBranch: base } : {}),
     }));
     diff.push(...shown);

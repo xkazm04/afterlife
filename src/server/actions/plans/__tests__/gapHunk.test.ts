@@ -65,6 +65,14 @@ describe('a hunk in a gap MR', () => {
     expect(r.status).toBe('refused');
   });
 
+  // F83: content is a whole new file. Sent for a file the project has, it replaced that file (here the CI config) with no
+  // last_commit_id, behind a preview of its first 12 lines.
+  it('is refused as content for a file the project already has: an existing file changes only by a hunk', async () => {
+    const { r, gl } = await plan([{ path: CI, content: 'stages: [build]\n' }]);
+    expect(r).toMatchObject({ status: 'refused', reason: expect.stringMatching(/\.gitlab-ci\.yml already exists on main.*hunk/) });
+    expect(gl.state.writes).toEqual([]);
+  });
+
   it('a whole new file is still its content', async () => {
     const { r } = await plan([{ path: '.gitlab/belay/new.yml', content: 'a: 1\n' }]);
     if (r.status !== 'preview') throw new Error(`${r.status}`);
