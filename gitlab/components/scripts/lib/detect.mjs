@@ -43,7 +43,9 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
   const found = [];
   const add = (e) => e && found.push(e);
 
-  // 1. revert: a "Revert" commit on the default branch whose body names the commit it reverts.
+  // 1. revert: a "Revert" commit on the default branch whose body names the commit it reverts. Its author writes that body,
+  // so a revert another agent's MR carried demotes nobody (F75): agent B cannot demote agent A with a fake revert of A's
+  // commit. A person's revert and the agent's own still count. One read per revert commit.
   const commits = headSha
     ? [api(`projects/${projectId}/repository/commits/${headSha}`)]
     : apiAll(`projects/${projectId}/repository/commits?ref_name=${branch}&since=${since}`, 2);
@@ -51,7 +53,13 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
     const m = /This reverts commit ([0-9a-f]{7,40})/.exec(c.message ?? '');
     if (!/^Revert "/.test(c.title ?? '') || !m) continue;
     const mr = agentMrFor(api, projectId, m[1], prefix);
-    if (mr) add(eventFor('revert', mr, c.committed_date ?? c.created_at, `commit ${c.id}`));
+    if (!mr) continue;
+    const carrier = agentMrFor(api, projectId, c.id, prefix);
+    if (carrier && carrier.author.username !== mr.author.username) {
+      console.error(`belay: ${c.id.slice(0, 8)} reverts !${mr.iid} but came in through ${carrier.author.username}'s !${carrier.iid}: no demotion`);
+      continue;
+    }
+    add(eventFor('revert', mr, c.committed_date ?? c.created_at, `commit ${c.id}`));
   }
 
   // 2. a post-merge proof job that failed (job names start belay-proof), and 3. the default branch red for an hour: read

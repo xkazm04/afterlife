@@ -149,6 +149,9 @@ trigger token only after checking that on the instance. The schedule alone is en
   until it lists its includes by name.
 - F69, accepted: the compare API's diff cap (`sweep.mjs:56-69`, `diffOf`). The envelope (`max_files` 6, `max_lines` 120) blocks any
   diff large enough to reach it; re-open it if the envelope is widened.
+- F75: closed in `detect.mjs`. A `Revert "..."` commit names the commit it reverts in a message its author writes, so a
+  revert that another agent's MR carried onto the default branch demotes nobody; a person's revert and the agent's own
+  still do. One read (`repository/commits/<sha>/merge_requests`) per revert commit.
 - F79, accepted: `loadConfig` does not check that policy and ledger are inside `cfg.group` (`lib.mjs:21-23`). `apply.json`
   changes only through a code-owner-reviewed merge on belay-apply's protected `main`.
 

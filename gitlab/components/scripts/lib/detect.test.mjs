@@ -191,3 +191,33 @@ describe('guardrail_high: F65, an agent cannot push its blocked MR out of the wi
     expect(() => run(many(2001))).toThrow(/more than 2000 all MRs updated since .*: refusing to guess/);
   });
 });
+
+// F75: a 'Revert' commit names the commit it reverts in its own message, which its author writes. One that another agent's
+// MR carried onto the default branch demotes nobody: agent B cannot demote agent A by merging a fake revert of A's commit.
+describe('revert', () => {
+  const R = 'e'.repeat(40);
+  const revert = { id: R, title: 'Revert "Bump x"', message: `Revert "Bump x"\n\nThis reverts commit ${SHA}.`, committed_date: ago(20) };
+  const other = { iid: 9, state: 'merged', author: { username: 'ai-gardener-acme' }, description: 'Tidy\n\nBelay-Class: docs.tidy' };
+  const withRevert = (carriedBy) => {
+    const routes = {
+      'projects/1/repository/commits': [revert],
+      [`projects/1/repository/commits/${SHA}/merge_requests`]: [mr],
+      [`projects/1/repository/commits/${R}/merge_requests`]: carriedBy,
+      'projects/1/pipelines': [],
+      'projects/1/merge_requests': [],
+    };
+    return fakeApi(routes);
+  };
+  const reverts = (g) => run(g).filter((e) => e.trigger === 'revert');
+
+  it('a person\'s revert, or the agent\'s own, demotes the agent whose MR merged the reverted commit', () => {
+    const person = { iid: 8, state: 'merged', author: { username: 'a-maintainer' } };
+    for (const carriedBy of [[], [person], [mr]]) {
+      expect(reverts(withRevert(carriedBy))).toEqual([{ trigger: 'revert', agent: 'ai-patcher-acme', class: 'dep-bump.patch', at: ago(20), evidence: `!7: commit ${R}` }]);
+    }
+  });
+
+  it('a revert that another agent\'s MR carried demotes nobody', () => {
+    expect(reverts(withRevert([other]))).toEqual([]);
+  });
+});
