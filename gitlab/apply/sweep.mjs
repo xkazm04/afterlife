@@ -167,9 +167,21 @@ function sweepMr(t, iid) {
    * gave only while it says approve or merge (F89): it would still count toward the target's approval rules. A revoke or a
    * tripwire demotion changes tier-state.yml, not the MR, so each sweep re-decides an MR that has either and withdraws it
    * on anything else. An auto-merge a person set and a person's approval are theirs and are left alone: the unapprove is
-   * the bot's own call, which removes only the bot's approval. The approvals are read only once the gate is done.
+   * the bot's own call, which removes only the bot's approval. The approvals are read only once the gate is done, or on an
+   * MR whose bot notes show an APPROVE for an earlier head than this one: whether a push removed that approval is a target
+   * setting, so it is withdrawn unless this head's gate says approve or merge, also while this head has no gate yet.
    */
   const botAutoMerge = m.merge_when_pipeline_succeeds === true && String(m.merge_user?.username ?? '') === cfg.bot;
+  // An engine gate note stands for the head of the bot's proof note before it; an APPROVE is never forced.
+  const approvedEarlier = (() => {
+    let proofHead = null;
+    for (const n of [...notes].sort((a, b) => a.id - b.id)) {
+      const p = blocks(n.body, 'belay-proof').find((b) => typeof b?.task?.head_sha === 'string');
+      if (p) proofHead = p.task.head_sha;
+      else if (n.body.startsWith(`${GATE}APPROVE**`) && proofHead && proofHead !== head) return true;
+    }
+    return false;
+  })();
   const cancelAutoMerge = (decision, tier) => {
     if (!botAutoMerge) return;
     const why = `the gate now says ${decision}${tier ? ` at tier ${tier}` : ''}`;
@@ -180,7 +192,7 @@ function sweepMr(t, iid) {
   };
   let approvedByBot;
   const botApproved = () => {
-    if (!gateDone) return false;
+    if (!gateDone && !approvedEarlier) return false;
     if (approvedByBot === undefined) {
       const a = api(`projects/${t.id}/merge_requests/${iid}/approvals`);
       if (!Array.isArray(a?.approved_by)) throw new Error('the approvals of the MR could not be read');
@@ -188,13 +200,17 @@ function sweepMr(t, iid) {
     }
     return approvedByBot;
   };
-  const withdrawApproval = (decision, tier) => {
+  const withdrawApproval = (decision, tier, why = `the gate now says ${decision}${tier ? ` at tier ${tier}` : ''}`) => {
     if (decision === 'approve' || decision === 'merge' || !botApproved()) return;
-    const why = `the gate now says ${decision}${tier ? ` at tier ${tier}` : ''}`;
     say(`${tag}: withdrawing the approval the bot gave: ${why}`);
     if (!WRITE) return;
     api(`projects/${t.id}/merge_requests/${iid}/unapprove`, { method: 'POST' });
     glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Belay: approval withdrawn** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
+  };
+  /** This head is not gated yet, so it says nothing more this sweep; an approval the bot gave an earlier head goes now. */
+  const notYet = (msg) => {
+    if (!gateDone) withdrawApproval(null, null, 'the bot approved an earlier head, and this one has no gate decision yet');
+    say(`${tag}: ${msg}`);
   };
   /**
    * A forced gate decides no tier, so it ledgers nothing, except the guardrail's own block for this head: a guardrail_verdict
@@ -237,7 +253,7 @@ function sweepMr(t, iid) {
 
   /** No guardrail verdict for this head yet: the guardrail is started once (its dispatch note names the head). */
   const requestGuardrail = (what) => {
-    say(`${tag}: no guardrail verdict for this head yet: ${what}`);
+    notYet(`no guardrail verdict for this head yet: ${what}`);
     const consumer = Number(t.conf.guardrail_consumer_id);
     if (!Number.isSafeInteger(consumer) || consumer <= 0) return;
     if (notes.some((n) => n.body.startsWith(dispatchMark(head)))) return say(`${tag}: guardrail review already requested`);
@@ -274,7 +290,7 @@ function sweepMr(t, iid) {
     // And a merge request pipeline that still carries one is not evidence either: the MR waits for a person.
     const row = apiAll(`projects/${t.id}/merge_requests/${iid}/pipelines`, 1).find((x) => x.sha === head && (x.source ?? EVIDENCE_SOURCE) === EVIDENCE_SOURCE);
     const p = row ? api(`projects/${t.id}/pipelines/${row.id}`) : null;
-    if (!p || p.sha !== head || p.source !== EVIDENCE_SOURCE || !FINISHED.has(p.status)) return say(`${tag}: no finished merge request pipeline for this head yet: nothing to prove`);
+    if (!p || p.sha !== head || p.source !== EVIDENCE_SOURCE || !FINISHED.has(p.status)) return notYet('no finished merge request pipeline for this head yet: nothing to prove');
     const vars = api(`projects/${t.id}/pipelines/${p.id}/variables`);
     if (!Array.isArray(vars)) throw new Error(`the variables of pipeline ${p.id} could not be read`);
     if (vars.length) return force('wait', `pipeline ${p.id} of this head ran with ${vars.length} pipeline variable(s), which can change what its evidence job ran, so Belay gives it no proof; a person reviews it.`);
@@ -299,7 +315,7 @@ function sweepMr(t, iid) {
     args.push('--verdict', guardrailFile);
   } else if (proofClass === 'rerun-stats') {
     const md = glue('proof/fetch-block.mjs', ['--mr', String(iid), '--tag', 'belay-medic', '--authors', cfg.medicAuthors, '--out', path.join(dir, 'medic.json')], env, dir);
-    if (md.code === 3) return say(`${tag}: no belay-medic verdict yet: nothing to prove`);
+    if (md.code === 3) return notYet('no belay-medic verdict yet: nothing to prove');
     if (md.code !== 0) throw new Error(`reading the medic verdict failed (exit ${md.code})`);
     args.push('--verdict', path.join(dir, 'medic.json'));
   }

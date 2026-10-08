@@ -139,8 +139,12 @@ trigger token only after checking that on the instance. The schedule alone is en
 - F89: closed in the sweep (03eb2d8). For an MR whose gate is done, the sweep also reads the approvals and re-gates a head
   the bot approved. When the gate now says neither approve nor merge, it unapproves as the bot (`POST .../unapprove`, which
   removes only the caller's own approval, never a person's) and a note names the decision and the tier. Without the write
-  tokens it only reports. The approvals are read only once the gate is done for the head: `[R?]` whether a push keeps an
-  approval the bot gave an earlier head depends on the target's "Remove all approvals when commits are added" setting.
+  tokens it only reports. Whether a push keeps an approval the bot gave an earlier head depends on the target's "Remove
+  all approvals when commits are added" setting, so the sweep does not rely on it: on an MR whose bot notes show an
+  APPROVE for an earlier head (an engine gate note stands for the head of the bot proof note before it), the approvals are
+  read too, and the bot's is withdrawn unless the current head's gate says approve or merge, also while the current head
+  has no gate decision yet (no finished pipeline, no guardrail or medic verdict). Other MRs read approvals only once the
+  gate is done for the head, as before.
 - F77: closed in the sweep. A `cited-diff` class with no guardrail verdict for the head dispatches the guardrail (step 7)
   instead of returning before it and waiting for ever, and an inconclusive verdict is a forced BLOCK, as for every other class.
 - F81: closed in the sweep. A guardrail block for a head whose gate was already applied (the guardrail re-ran) re-runs the

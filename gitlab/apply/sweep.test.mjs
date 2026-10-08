@@ -431,6 +431,32 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(granted(ambiguous)).toEqual([]);
   });
 
+  it('(xix) F89: an approval the bot gave an earlier head is withdrawn when this head is not gated yet, or not to approve or merge', () => {
+    // The bot proved and approved OLD. The agent pushed HEAD, and the target keeps approvals on new commits.
+    const bot = (id, body) => ({ id, system: false, author: { username: 'belay-bot' }, created_at: '2026-10-07T09:00:00Z', body });
+    const proofOld = bot(101, `**Belay proof: PASS** | class \`exploit-test\`\n\n\`\`\`belay-proof\n${JSON.stringify({ schema: 'belay.proof/1', verdict: 'pass', task: { head_sha: OLD } })}\n\`\`\``);
+    const approveOld = bot(102, '**Belay gate: APPROVE** | tier `supervised`\n- supervised: checks pass, a human approver still merges');
+    const UNAPPROVE = 'projects/1/merge_requests/7/unapprove';
+    const approvedBy = (users, o = {}) => ({ ...group({ notes: [approveOld, proofOld, guardrailNote('pass')], ...o }), 'projects/1/merge_requests/7/approvals': { approved_by: users.map((username) => ({ user: { username } })) }, [`POST ${UNAPPROVE}`]: { reply: {} } });
+    const withdrawn = (r, why) => {
+      expect(r.code, r.stderr).toBe(0);
+      expect(r.writes.filter((w) => w.path === UNAPPROVE)).toEqual([expect.objectContaining({ method: 'POST' })]);
+      expect(glabWrites(r, 'note create').map((n) => n.body.message)).toContainEqual(expect.stringMatching(new RegExp(`^\\*\\*Belay: approval withdrawn\\*\\* for head \`${HEAD}\`: ${why}`)));
+      expect(granted(r)).toEqual([]);
+    };
+
+    // HEAD has no finished pipeline yet, so no gate decision: the approval of OLD is withdrawn now.
+    withdrawn(sweep(approvedBy(['belay-bot', 'a-maintainer'], { pipelineSha: OLD })), 'the bot approved an earlier head, and this one has no gate decision yet');
+    // HEAD is gated, and the gate says wait or block (a revoke): withdrawn.
+    withdrawn(sweep(approvedBy(['belay-bot'], { state: STATE.replace('tier: supervised', 'tier: quarantined') })), 'the gate now says (wait|block) at tier quarantined');
+    // A person's approval alone is left; and HEAD's own gate says approve, so the bot's approval stands.
+    expect(sweep(approvedBy(['a-maintainer'], { pipelineSha: OLD })).writes).toEqual([]);
+    expect(sweep(approvedBy(['belay-bot'])).writes.filter((w) => w.path === UNAPPROVE)).toEqual([]);
+    // No APPROVE for an earlier head: the approvals are not read before this head is gated.
+    const plain = sweep(group({ pipelineSha: OLD }));
+    expect(plain.reads.some((p) => p.endsWith('/approvals'))).toBe(false);
+  });
+
   it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {
     const human = (i) => ({ iid: 1000 + i, author: { username: `dev-${i}` } });
     const pages = Array.from({ length: 5 }, (_, p) => Array.from({ length: 100 }, (_, i) => (p === 0 && i === 0 ? { iid: 7, author: { username: 'ai-patcher-acme' } } : human(p * 100 + i))));
