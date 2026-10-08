@@ -12,10 +12,10 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 
 | `kind` | Fields | What the commands do |
 |---|---|---|
-| `revoke-class` | `project`, `changes: [{class, to}]`, `why?` | one `PUT` of `tier-state.yml` to `belay-policy`'s default branch (risk `policy`), with the file's `last_commit_id` as read. Lowers only |
+| `revoke-class` | `project`, `changes: [{class, to}]`, `why?` | one `PUT` of `tier-state.yml` to `belay-policy`'s default branch (risk `policy`), with the file's `last_commit_id` as read. Lowers only. A revoke reaches an MR the gate already set to auto-merge at belay-apply's next sweep, which cancels that auto-merge (F74, `gitlab/apply`, 991da24); the revoke plan itself writes only `tier-state.yml` |
 | `promote-class` | `project`, `class`, `to` | a branch with the new record (`start_branch` = default, `last_commit_id` as read), then a policy MR labelled `belay::promotion`. Belay never merges |
 | `mark-cra-ready` | `project`, `issue` | one `PUT` of the clock work item's labels: `cra::ready-to-sign`, minus `cra::drafting`. Never submits |
-| `stage-gap-mr` | `project`, `gap`, `stage`, `from`, `to`, `title`, `branch` (`belay/...`), `files: [{path, content} or {path, hunk}]` (1 to 8), `workItem?` | one commit per file on a new branch under `belay/`, then a draft MR labelled `maturity::gap`. A hunk is applied to the base file only on an exact, contiguous, single match, else `ActionRefused`; it is never written as a whole file (`plans/hunk.ts`, 775d1ab) |
+| `stage-gap-mr` | `project`, `gap`, `stage`, `from`, `to`, `title`, `branch` (`belay/...`), `files: [{path, content} or {path, hunk}]` (1 to 8), `workItem?` | one commit per file on a new branch under `belay/`, then a draft MR labelled `maturity::gap`. A hunk is applied to the base file only on an exact, contiguous, single match, else `ActionRefused`; it is never written as a whole file (`plans/hunk.ts`, 775d1ab). A content file is a new file only: content for a path the base has is refused (F83, e51a17e); a new file is shown whole in the preview (F84, 1616040); the `belay/` branch must not exist yet (F85, ebaaac1); a hunk needs the base file's `last_commit_id` (F87, 42f1f26); a blank context line never matches past the final newline (F86, 105e84e); a context that matches in two places is refused at preview and at confirm (84b74e1) |
 | `arm-track` | `project`, `track` (`T1`-`T8`) | one commit of `.gitlab-ci.yml` on a new branch `belay/arm-<key>` (`start_branch` = default, `last_commit_id` as read), then one MR labelled `belay::arm`. Adds the track's include lines between `# belay:arm` markers |
 | `disarm-track` | `project`, `track` | the same on `belay/disarm-<key>`: removes exactly the marked lines the arm added (their digest is in the begin marker), or refuses |
 
@@ -49,6 +49,8 @@ Target decisions (`plans/context.ts`):
 - F47 (276d376): every plan that locates a target refuses one outside the paired group's path (`context.ts:59-61`), as arm's `targetOf` already did (F37).
 - F50 (180e163): Belay's own projects (`cfg.infra`) are refused as a target, so `stage-gap-mr` cannot open an MR in belay-policy (`context.ts:56-58`).
 - F52 (3014213): a record's `since` is stamped to the minute (`minuteOf`, `context.ts:72`; `revoke.ts:41`, `promote.ts:31`), so a confirm within the minute of its preview has the same `previewId` and runs, instead of always coming back `changed`.
+
+- F90 (accepted residual, `plans/gap.ts:50-54`): a gap's commits and draft MR run the proposed CI (the target's MR pipeline) as the operator before anyone reviews the MR. Accepted: it is inherent to proposing a CI change by MR, and since F83, F84 and F85 the operator sees every line that will run, on a branch that is new.
 
 Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran).
 
