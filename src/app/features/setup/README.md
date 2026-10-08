@@ -84,6 +84,25 @@ Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn e
   the gap between the two commands. If a POST is refused after its DELETE, the read-back reads "not protected" (`protections.ts:41`, `:90`).
 - A load's paged lists (the group's projects and belay-apply's schedules) each stop at 50 pages (`maxPages`, `src/server/gitlab/adapter/client.ts:65`),
   so the 28 to 34 GETs above grow by one call per extra page, up to that cap.
+- [R?] Off gitlab.com, two host forms rest on glab's documentation, not on a run against a self-managed host: the
+  `GITLAB_HOST=<host>` prefix for commands that take neither `--hostname` nor `-R` (`data/stepDetail.ts` `onHost`, `:43`, and
+  its comment at `:38`), and the full-URL form of `glab variable set -R` (`repoOf`, `:44`, used at `:101`). On gitlab.com
+  neither form appears.
+- The target's path is read once, when the screen loads (`src/server/data/setup/read.ts:130`, `targetPath`), and is copied
+  into the state only there (`model/flow/state.ts:64`, `projectPath`). `rereadSetupAction` answers `steps` or `doctor`
+  (`src/server/data/setup/rereadAction.ts:23`), and the `steps-read` that follows a step's "Read again" or a Re-probe
+  (`hooks/liveFlow.ts:39`) does not set `projectPath`. A project renamed or moved after the load keeps its old path in the
+  commands until the page reloads.
+- T4 needs step 4 (`data/armMeta.ts:4`, `ARM_META.T4.needs` is `['step:4']`), because its arm MR includes a belay-pack component,
+  and that component needs the projects step 4 creates. When live mode cannot read step 4 (a refused or failed read is
+  unknown), T4 stays locked, as T5 does for step 6 (`armMeta.ts:8`; `model/live/live.test.ts:139`, "with step 4 failed T4 is
+  locked and reads "needs" with step 4's label"). This fails closed: Setup does not offer an arm MR for a project that may
+  not exist. The App Master made this call on 2026-10-08.
+- In the demo, disarming T4 returns it to locked until step 4 is probed, not to ready (`model/flow/reducer.ts:64-66`: the
+  disarm sets `ready`, then locks every ready track with an unmet need, T4 included). The test is "a disarm settles only
+  when the block is gone; until then the track stays as it was asked" (`model/flow/verify.test.ts:43`). It probes step 4
+  first, then asserts `ready` after the disarm verifies (`:45`, `:49`). It states the locked half in a comment (`:44`) and
+  does not assert it.
 
 Known disagreements (the skill is `skills/adopt-belay/SKILL.md`, by step row; Setup is `data/stepDetail.ts` by step key and
 the reads in `src/server/data/setup/`; named, not line-numbered, so they do not drift):
