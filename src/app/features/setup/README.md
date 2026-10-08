@@ -68,6 +68,20 @@ Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn e
   screen. A person runs them one at a time (a second pasted line would be read as the first value), so each has its own Copy.
 - Where Setup and `skills/adopt-belay` disagree, Setup's live reads decide and the skill follows. A command Setup shows must
   run, or Setup shows no command.
+- Step 8's role read stays. `secretsRead` reads `GET projects/:id` for belay-apply (`humanSteps.ts:43`), and for a Maintainer that record
+  can carry `runners_token`. Only `ci_pipeline_variables_minimum_override_role` is kept (`humanSteps.ts:44`); the rest is not logged,
+  stored or returned, and a failed read says only the first line of glab's error, 200 characters at most (`ctx.ts` `why`,
+  `gitlab/errors.ts:40`). The read is the only one that catches a role that lets a pipeline variable override reach belay-apply, which
+  holds every write token; the schedule read cannot see that. A field-selected read (GraphQL `ciCdSettings`) would remove the
+  exposure: proposed, not built, its field not verified. The full council's second round (2026-10-08) judged the read worth keeping.
+- "You said done" (steps 7 and 8's tokens) is kept only in the screen's state, not persisted. Losing it on a reload fails safe: the
+  step asks again instead of claiming done. Persisting it needs a store (browser storage or the index), and none is chosen.
+- Step 7 is not read: the API docs give the GET two paths, and a saved integration is not a working token exchange
+  (`data/stepDetail.ts:76`).
+- Step 9 runs DELETE then POST back to back, not PATCH, because a PATCH needs the ids of the access levels it replaces. The step states
+  the gap between the two commands. If a POST is refused after its DELETE, the read-back reads "not protected" (`protections.ts:41`, `:90`).
+- A load's paged lists (the group's projects and belay-apply's schedules) each stop at 50 pages (`maxPages`, `src/server/gitlab/adapter/client.ts:65`),
+  so the 28 to 34 GETs above grow by one call per extra page, up to that cap.
 
 Known disagreements (the skill is `skills/adopt-belay/SKILL.md`, by step row; Setup is `data/stepDetail.ts` by step key and
 the reads in `src/server/data/setup/`; named, not line-numbered, so they do not drift):
