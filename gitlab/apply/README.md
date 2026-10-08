@@ -138,7 +138,9 @@ trigger token only after checking that on the instance. The schedule alone is en
 - F67: closed (5d09815). A trusted note that carries two blocks of the tag is ambiguous: `fetch-block.mjs` exits 4, as for
   a schema failure, so a block the note quotes never wins.
 - F88: closed (b53cd46). `ledger-append.mjs` refuses a `--write-token-var` that names an unset variable, before any read;
-  without the flag (a person running it by hand) it keeps its fallback.
+  without the flag (a person running it by hand) it keeps its fallback. Its sibling in `tripwire.mjs` is closed the same
+  way: `tripwire-sweep.mjs` names `BELAY_POLICY_TOKEN`, and an unset one is refused before any read, so `GITLAB_TOKEN` (the
+  bot token) never commits `tier-state.yml`.
 - F71: closed (5dee0f1). `glue()` hands a child none of the four tokens it inherits; each call that writes adds its own
   (`tokens()` in `lib.mjs`): post-proof and apply-gate the bot token, ledger-append the ledger token, tripwire the policy
   token, dispatch the dispatch token as `GITLAB_TOKEN`. Every child still reads with `GITLAB_TOKEN`, the bot token.

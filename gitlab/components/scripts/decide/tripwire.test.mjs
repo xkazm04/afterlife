@@ -127,6 +127,30 @@ describe('tripwire.mjs never writes over a newer tier-state.yml', () => {
 
 // The tripwire is no longer a component of the target's pipeline (F4): belay-apply runs it, in sweep mode, from its own
 // protected default branch, never in a merge request pipeline. gitlab/apply/tripwire-sweep.test.mjs runs it end to end.
+// F88's sibling: the write token named by --write-token-var is the only one it commits with; never GITLAB_TOKEN instead.
+describe('tripwire.mjs --write-token-var', () => {
+  const failed = { pipelines: [pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob] } };
+  const named = (clone, env) => runScript(dir, 'decide/tripwire.mjs', [
+    '--mode', 'sweep', '--policy-dir', clone, '--policy-project', POLICY, '--policy-branch', 'main',
+    '--guardrail-authors', 'ai-guardrail-acme', '--agent-prefix', 'ai-', '--lookback-hours', '24', '--write-mode', 'commit',
+    '--write-token-var', 'BELAY_POLICY_TOKEN',
+  ], { routes: routes(failed), env: { CI_PIPELINE_ID: '502', GITLAB_TOKEN: 'bot', ...env } });
+
+  it('refuses a variable that is not set, before any read, and commits nothing', () => {
+    const r = named(policyClone('unset-token'));
+    expect(r.code).toBe(2);
+    expect(r.stderr).toMatch(/BELAY_POLICY_TOKEN is not set \(named by --write-token-var\): nothing committed/);
+    expect(r.reads).toEqual([]);
+    expect(r.writes).toEqual([]);
+  }, 60_000);
+
+  it('commits with it when it is set', () => {
+    const r = named(policyClone('set-token'), { BELAY_POLICY_TOKEN: 'policy' });
+    expect(r.code, r.stderr).toBe(0);
+    expect(commits(r)).toHaveLength(1);
+  }, 60_000);
+});
+
 describe("belay-apply's tripwire job", () => {
   const ci = fs.readFileSync(path.join(SCRIPTS, '..', '..', 'apply', '.gitlab-ci.yml'), 'utf8');
 
