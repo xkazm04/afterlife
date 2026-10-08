@@ -3,8 +3,10 @@
 // cannot do that exactly: a hunk sent as the file's content would overwrite the file with a fragment.
 import { describe, expect, it } from 'vitest';
 import { parseIntent } from '../../intents';
-import { previewIntent } from '../../run';
+import { confirmIntent, previewIntent } from '../../run';
 import { liveRig } from '../../__tests__/rig';
+import { ActionRefused } from '../context';
+import { applyHunk } from '../hunk';
 
 const gap = (files: unknown[]) => ({
   kind: 'stage-gap-mr', project: 'ledgerline', gap: 'g1', stage: 'secure', from: 3, to: 4, title: 'Re-derive findings', branch: 'belay/gap-g1', files,
@@ -36,6 +38,21 @@ describe('a hunk in a gap MR', () => {
     const { r, gl } = await plan([swapped]);
     expect(r).toMatchObject({ status: 'refused', reason: expect.stringMatching(/context lines do not match/) });
     expect(gl.state.writes).toEqual([]);
+  });
+
+  // haq full r1, robustness-4 (this round): the hunk door refuses an ambiguous match, but no test covers that refusal.
+  it('is refused when the context lines match the file in two places, and nothing is planned or written', async () => {
+    const twice = { path: CI, hunk: ['   image: gradle:8-jdk21', '+  tags: [belay]'] };
+    const { deps, gl } = await liveRig();
+    const r = await previewIntent(deps, gap([{ path: '.gitlab/belay/new.yml', content: 'a: 1\n' }, twice]));
+    expect(r).toMatchObject({ status: 'refused', reason: expect.stringMatching(/match \.gitlab-ci\.yml in 2 places/) });
+    expect(r).not.toHaveProperty('preview');
+    expect(await confirmIntent(deps, gap([twice]), 'any')).toMatchObject({ status: 'refused' });
+    expect(gl.state.writes).toEqual([]);
+  });
+
+  it('applyHunk throws ActionRefused for a context that matches in two places', () => {
+    expect(() => applyHunk(CI, 'a\nx\nb\nx\n', [' x', '+y'])).toThrow(ActionRefused);
   });
 
   it('is refused when the file does not exist: there is nothing to apply it to', async () => {
