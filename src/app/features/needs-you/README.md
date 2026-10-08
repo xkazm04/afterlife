@@ -10,7 +10,9 @@ Live acts (`NeedsYouLive`, `components/live/LiveAct`, `hooks/useLiveActs`, `mode
 one action, a promote-class policy MR through `write/promote.ts` (the desk's door). Selecting it asks `previewAction`; the
 server's commands and diff are shown; Run is `confirmAction(intent, previewId)` for that preview only. The answer is only
 what the response says (done names the MR GitLab opened; refused, changed and failed say so); a failed preview shows why
-and can be asked again. `?item=<id>` opens an item selected (Ladder's p). Sign-offs, gaps and setup steps stay read-only
+and can be asked again. `?item=<id>` opens an item selected (Ladder's p). After a done confirm the refresh drops the item (only open proposals are listed), so the list keeps it in a "Sent this
+session" strip above the rows, with the response's answer and the MR it named; a failed confirm leaves the proposal open in
+its row with its answer. Sign-offs, gaps and setup steps stay read-only
 and say where to act. A gap item is read-only here until it carries its files from the live source (none does yet); its line points to Maturity.
 
 ## Parts

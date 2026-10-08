@@ -3,7 +3,7 @@
 import type { NeedsYouItem } from '@/lib/demo';
 import { Chip } from '@/components/status/chip/Chip';
 import { LiveAct } from './components/live/LiveAct';
-import { useLiveActs } from './hooks/useLiveActs';
+import { useLiveActs, type LiveActs } from './hooks/useLiveActs';
 import empty from './NeedsYouEmpty.module.css';
 import styles from './NeedsYouLive.module.css';
 
@@ -28,13 +28,33 @@ export interface NeedsYouLiveProps {
  * re-admit has one action, a policy MR through the server actions; the rest are read-only and say where to act.
  */
 export function NeedsYouLive({ items, seeded, project }: NeedsYouLiveProps) {
-  const acts = useLiveActs(items, project);
+  return <NeedsYouLiveView items={items} seeded={seeded} acts={useLiveActs(items, project)} />;
+}
+
+/** The list for a given state of the acts (split from the hook so the screen can be rendered in a test). */
+export function NeedsYouLiveView({ items, seeded, acts }: { items: readonly NeedsYouItem[]; seeded: number; acts: LiveActs }) {
+  // a done write's item leaves `items` on the refresh; it stays here, with the response's answer, outside the rows
+  const sentGone = Object.values(acts.sent).filter((n) => !items.some((i) => i.id === n.id));
   return (
     <main className={empty.page}>
       <h1 className={empty.title}>Needs you</h1>
       <p>
         {items.length} {items.length === 1 ? 'decision waits' : 'decisions wait'} for a person, read from your GitLab group by the last poll.
       </p>
+      {sentGone.length ? (
+        <section aria-label="Sent this session">
+          <h2 className={styles.sentTitle}>Sent this session</h2>
+          <ul className={styles.list}>
+            {sentGone.map((n) => (
+              <li key={n.id} className={styles.item}>
+                <b className={styles.title}>{n.title}</b>
+                <div role="status" className={styles.sent}>{acts.answers[n.id]?.text}</div>
+                <div className={empty.note}>A person merges the MR in GitLab; the proposal leaves the list when the poll sees it closed.</div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <ul className={styles.list}>
         {items.map((n) => {
           const open = acts.sel === n.id;

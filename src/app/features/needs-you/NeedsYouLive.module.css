@@ -43,3 +43,12 @@
   color: var(--needs-you);
   white-space: nowrap;
 }
+
+.sentTitle {
+  margin: 0;
+  font-size: inherit;
+  color: var(--text-2);
+}
+.sent {
+  color: var(--text-1);
+}

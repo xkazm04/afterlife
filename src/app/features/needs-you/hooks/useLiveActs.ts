@@ -21,6 +21,9 @@ export function useLiveActs(items: readonly NeedsYouItem[], project: string) {
   const sel = picked !== undefined ? picked : wanted && items.some((n) => n.id === wanted) ? wanted : null;
   const [views, setViews] = useState<Readonly<Record<string, WriteView>>>({});
   const [answers, setAnswers] = useState<Readonly<Record<string, LiveAnswer>>>({});
+  // A done write's item, as listed when it was sent: the refresh drops it from `items` (only open proposals are listed), so
+  // the strip of what was sent keeps it, with the answer, for the session.
+  const [sent, setSent] = useState<Readonly<Record<string, NeedsYouItem>>>({});
   const [sending, setSending] = useState<string | null>(null);
   const asked = useRef(new Set<string>());
 
@@ -50,17 +53,21 @@ export function useLiveActs(items: readonly NeedsYouItem[], project: string) {
     const intent = intentOf(id);
     const view = views[id];
     if (!intent || view?.kind !== 'preview' || sending) return;
+    const item = items.find((n) => n.id === id);
     setSending(id);
     sendPolicyMr(intent, view)
       .then((r) => {
         const o = r && outcomeOf(r, writeName(intent));
         if (!o) return;
         setAnswers((m) => ({ ...m, [id]: { status: o.status, text: o.text } }));
+        if (o.status === 'done' && item) setSent((m) => ({ ...m, [id]: item }));
         if (o.status === 'changed') setViews((m) => ({ ...m, [id]: { kind: 'preview', preview: o.preview } }));
         else if (o.status === 'refused') setViews((m) => ({ ...m, [id]: { kind: 'refused', reason: o.reason } }));
       }, () => setAnswers((m) => ({ ...m, [id]: noAnswer(NO_ANSWER) })))
       .finally(() => setSending(null));
-  }, [intentOf, views, sending]);
+  }, [intentOf, items, views, sending]);
 
-  return { sel, select, intentOf, views, answers, sending, run, retry };
+  return { sel, select, intentOf, views, answers, sent, sending, run, retry };
 }
+
+export type LiveActs = ReturnType<typeof useLiveActs>;
