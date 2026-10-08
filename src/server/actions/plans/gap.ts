@@ -5,8 +5,6 @@ import type { StageGapMr } from '../types';
 import { ActionRefused, locate, type Plan, type PlanContext } from './context';
 import { applyHunk } from './hunk';
 
-const PREVIEW_LINES = 12;
-
 export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<Plan> {
   const { project } = await locate(ctx, intent.project);
   const base = project.defaultBranch ?? 'main';
@@ -26,7 +24,7 @@ export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<P
       if (file) throw new ActionRefused(`${f.path} already exists on ${base}: a gap changes a file the project has only by a hunk, never by replacing its whole content`);
       content = f.content;
       const lines = content.split('\n');
-      shown = [`+ ${f.path} (${lines.length} lines)`, ...lines.slice(0, PREVIEW_LINES).map((l) => `+ ${l}`), ...(lines.length > PREVIEW_LINES ? ['+ ...'] : [])];
+      shown = [`+ ${f.path} (${lines.length} lines)`, ...lines.map((l) => `+ ${l}`)]; // every line: an included job file runs in the MR pipeline (F84)
     }
     commands.push(ctx.port.plan.commitFile({
       project: project.id, path: f.path, branch: intent.branch, content, action: file ? 'update' : 'create',

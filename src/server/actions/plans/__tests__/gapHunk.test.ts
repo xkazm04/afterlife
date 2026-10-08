@@ -73,6 +73,15 @@ describe('a hunk in a gap MR', () => {
     expect(gl.state.writes).toEqual([]);
   });
 
+  // F84: a new file is often a CI job file the gap's hunk includes, and the MR pipeline runs it: every line is shown.
+  it('a new file is shown whole in the preview, not its first 12 lines', async () => {
+    const job = Array.from({ length: 20 }, (_, i) => `line${i}: x`);
+    const { r } = await plan([{ path: '.gitlab/belay/job.yml', content: `${job.join('\n')}\n` }]);
+    if (r.status !== 'preview') throw new Error(`${r.status}`);
+    expect(r.preview.diff).toContain('+ line19: x');
+    expect(r.preview.diff).not.toContain('+ ...');
+  });
+
   it('a whole new file is still its content', async () => {
     const { r } = await plan([{ path: '.gitlab/belay/new.yml', content: 'a: 1\n' }]);
     if (r.status !== 'preview') throw new Error(`${r.status}`);
