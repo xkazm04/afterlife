@@ -109,8 +109,7 @@ describe('the poll really did write what the parity rests on (it is not just the
     expect((await getProjectRow(db, 'ledgerline'))?.gitlabId).toBe(90010001);
     const tiers = await listClassTiers(db, 'ledgerline');
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')).toMatchObject({ setBy: 'operator via promotion MR !33' });
-    // the class records live are the poll's counts (each unknown counter null): !41 since the record's since; the seed said 16.
-    // !41's guardrail_verdict states pass, so the counts hold no guardrail block; its notes hold no push but the patcher's
+    // the poll's counts: !41 since the record's since (the seed said 16), its verdict pass, no push to it but the patcher's
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: 1, cleanDays: 4, reverts: 0, guardrailBlocks: 0 });
     const proof = (await listProofsFor(db, ['01J8Q4'])).get('01J8Q4');
     expect(proof?.block?.task.head_sha).toBe('a41c0ffee00000000000000000000000000000a1');
@@ -136,7 +135,7 @@ describe('where live differs from demo, on purpose', () => {
     expect(live.getTracks()).toBe(DEMO.tracks);
     expect(live.getLoop()).toBe(DEMO.loop);
     expect(live.getCockpit().running).toBe(DEMO.cockpit.running);
-    expect([live.illustrative, demoSource.illustrative]).toEqual([['tracks', 'loop', 'cockpit', 'setup', 'policy-history', 'records'], []]);
+    expect([live.illustrative, demoSource.illustrative]).toEqual([['tracks', 'loop', 'cockpit', 'setup', 'policy-history'], []]);
   });
 
   it('the stage list is the schema’s, not the catalogue’s (the same nine stages)', () => {
@@ -176,10 +175,11 @@ describe('where live differs from demo, on purpose', () => {
     expect(live.getPolicy()).toMatchObject({ toHandsOff: { accepted: 15, noEditRatio: 0.9, cleanDays: 14 }, toSupervised: { accepted: 5, reverts: 0 } });
   });
 
-  it('the Ladder marks its opening history and the records demo in live, and keeps its own clock in demo', () => {
+  it('the Ladder marks its opening history demo in live, and keeps its own clock in demo', () => {
     const [d, l] = both(() => loadLadderData());
-    expect([d.illustrative, d.live, d.seed.head.demo, d.seed.ledger.some((e) => e.demo)]).toEqual([{ history: false, records: false }, false, undefined, false]);
-    expect([l.illustrative, l.live, l.seed.head.demo, l.seed.ledger.every((e) => e.demo)]).toEqual([{ history: true, records: true }, true, true, true]);
+    expect([d.illustrative, d.live, d.seed.head.demo, d.seed.ledger.some((e) => e.demo)]).toEqual([{ history: false }, false, undefined, false]);
+    expect([l.illustrative, l.live, l.seed.head.demo, l.seed.ledger.every((e) => e.demo)]).toEqual([{ history: true }, true, true, true]);
+    expect([d, l].map((x) => x.seed.classes.filter((c) => c.uncounted).length)).toEqual([0, 0]); // one holder each: all counted
   });
 
   it('Needs you draws the desk in demo, and in live never the seeded desk: only the group’s own items, here none', () => {

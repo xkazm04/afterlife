@@ -1,6 +1,7 @@
 // Live mode, fed by a poll of the demo GitLab on top of the seeded index (as parity.test.ts): no seeded Ladder or Needs-you
-// item appears unlabelled. The Ladder still opens with the demo's belay-policy history and the seed's records, so each
-// carries a demo mark; Needs you never draws the seeded desk, only the group's own items or its empty state.
+// item appears unlabelled. The Ladder still opens with the demo's belay-policy history, so it carries a demo mark; the
+// class records are the poll's counts and carry none. Needs you never draws the seeded desk, only the group's own items or
+// its empty state.
 import type { PGlite } from '@electric-sql/pglite';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
@@ -58,12 +59,13 @@ describe('the Ladder, live', () => {
     expect(count(out, chip("The demo's own ledger"))).toBe(drawn);
   });
 
-  it('the opening head and the policy revision carry a demo mark; the records do too', () => {
+  it('the opening head and the policy revision carry a demo mark; the records, the poll\'s counts, do not', () => {
     const out = page();
     expect(count(out, chip('The tier-state.yml head'))).toBe(2); // the lozenge and the status bar
     expect(count(out, chip('The policy revision'))).toBe(1);
-    expect(count(out, chip('The records (Acc, No-edit, Rv, Clean)'))).toBe(1);
-    expect(out).toContain('title="Not recorded · no task or ledger event states it"'); // no-edit has no source: a dash, never a zero
+    expect(out).not.toContain('The records (Acc, No-edit, Rv, Clean)');
+    expect(out).not.toContain('>not counted<'); // every class here has one holder: every record is the poll's
+    expect(out).toContain('title="Not recorded · no task or ledger event states it"'); // a counter nothing states: a dash, never a zero
   });
 
   it('the same screen in demo mode marks nothing: there everything is the demo, and the app says so once', () => {

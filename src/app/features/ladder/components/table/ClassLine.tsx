@@ -8,6 +8,7 @@ import { RungGlyph } from '@/components/viz/RungGlyph';
 import type { Promotion } from '@/lib/promotion';
 import { actsFrom, cellOf, holdersOf, shownName } from '../../model/rules/tiers';
 import type { ClassRow, Tier } from '../../model/types';
+import { UncountedChip } from '../chrome/UncountedChip';
 import { ActionCell } from './ActionCell';
 import { LastMoveCell } from './LastMoveCell';
 import { RecordCells } from './RecordCells';
@@ -24,7 +25,8 @@ export interface LineHandlers {
 
 /**
  * One class: name, tier, rung-in-ceiling, the record, last move and the act buttons. The tier cell shows what the index
- * read: a tier, no record yet (never a quarantine), or a split class with each holder at its own tier.
+ * read: a tier, no record yet (never a quarantine), or a split class with each holder at its own tier. A record the poll
+ * did not count (live) is marked beside the name: the record columns have no room for it.
  */
 export function ClassLine({
   cls,
@@ -43,6 +45,7 @@ export function ClassLine({
       <Cell indent className={flash}>
         <span className={styles.cid}>{cls.id}</span>
         {grouped ? null : <span className={styles.trk}>{cls.track}</span>}
+        <UncountedChip on={!!cls.uncounted} />
       </Cell>
       <Cell data-tier={cell ?? 'unknown'} className={flash}>
         <TierMark tier={cell} holders={holdersOf(cls)} />

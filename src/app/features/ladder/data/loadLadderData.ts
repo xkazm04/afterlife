@@ -1,12 +1,13 @@
 // What the Ladder route needs, read through the data source (demo fixture or live index) on the server. The promotion
 // thresholds are trust-policy.yml's (getPolicy). What the screen still shows of the demo beside live data, the source
-// declares in `illustrative`, and the screen marks it demo: the opening ledger and head (`policy-history`) and the class
-// records' counters (`records`).
+// declares in `illustrative`, and the screen marks it demo: the opening ledger and head (`policy-history`). Live, a class
+// record is the poll's count when one agent holds the class; any other record it keeps is marked `uncounted`.
 import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { getDataSource } from '@/server/data';
 import type { IllustrativePart } from '@/server/data';
 import type { NeedsYouItem } from '@/lib/demo';
-import { promotionId } from '@/lib/promotion';
+import { cellOf, promotionId } from '@/lib/promotion';
+import { TIER_ORDER } from '@/schemas/tier';
 import type { PromotionAsk, Tier } from '../model/types';
 import type { LadderScreenProps } from '../LadderScreen';
 import { LEDGER_SEED } from './ledgerSeed';
@@ -14,6 +15,12 @@ import { INITIAL_HEAD } from './policy';
 
 const TIERS: readonly string[] = TIER_DISPLAY_ORDER;
 const isTier = (t: string | undefined): t is Tier => t !== 'human_only' && TIERS.includes(t ?? '');
+
+/**
+ * Live: the poll counts the record of a class one agent holds, whose cell is its tier (poller/derive/tiers.ts). A class
+ * several agents hold, none, or Human only keeps the record the index held: not the poll's.
+ */
+const counted = (c: Parameters<typeof cellOf>[0]): boolean => (TIER_ORDER as readonly string[]).includes(cellOf(c) ?? '');
 
 /**
  * Live: the promotion asks the poll opened for this project's classes (server/poller/derive/promotion.ts), by class. The
@@ -39,7 +46,8 @@ export function loadLadderData(): LadderScreenProps {
   const asks = live ? asksOf(ds.getNeedsYou(), ds.deepProjectId(), all) : new Map<string, PromotionAsk>();
   const classes = all.map((c) => {
     const ask = asks.get(c.id);
-    return ask ? { ...c, ask } : c;
+    const marked = live && c.record && !counted(c) ? { ...c, uncounted: true as const } : c;
+    return ask ? { ...marked, ask } : marked;
   });
   // The guardrail's quoted finding, by merge request: the Ladder shows it as untrusted text in the ledger.
   const quotes = Object.fromEntries(ds.getTasks().flatMap((t) => (t.mr && t.quote ? [[t.mr, t.quote] as const] : [])));
@@ -54,7 +62,7 @@ export function loadLadderData(): LadderScreenProps {
     tracks: ds.getTracks(),
     means: Object.fromEntries(TIER_DISPLAY_ORDER.map((t) => [t, tiers[t].means])) as LadderScreenProps['means'],
     policy: ds.getPolicy(),
-    illustrative: { history, records: shown('records') },
+    illustrative: { history },
     live,
     feedAgeSec: ds.getCockpit().feed.lastPollSec,
     subtitle: `${setup.group} / ${setup.project}`,

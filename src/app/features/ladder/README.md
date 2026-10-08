@@ -9,10 +9,13 @@ command the screen spells.
   reads it on the server through `data/loadLadderData.ts`: the classes from the data source, the promotion thresholds
   from trust-policy.yml (`getPolicy()`: the checkout's in demo, the one the poll read in live), never a constant here.
 - `data/`: the invented ledger the demo opens with, commit ids, the policy's revision, the words for the policy's rules,
-  key rows. Plain data. In live mode the data source declares the opening history and the records demo
-  (`illustrative`): every seeded ledger entry, the opening head, the revision and its merge age, and the record columns
-  carry the kit's `Chip` "demo" (`components/chrome/DemoChip.tsx`). The clock is the wall clock and the poll age
-  counts up; a revoke's commit id is GitLab's. A class with no record says "No record yet".
+  key rows. Plain data. In live mode the data source declares the opening history demo (`illustrative`): every seeded
+  ledger entry, the opening head, the revision and its merge age carry the kit's `Chip` "demo"
+  (`components/chrome/DemoChip.tsx`). The class records are not demo: the poll counts the record of every class one
+  agent holds. A record it did not count (a class several agents or no agent holds keeps the record the index held: on
+  the demo GitLab, the seed's) is marked "not counted" beside the class name and in the inspector's promotion rule
+  (`components/chrome/UncountedChip.tsx`; `data/loadLadderData.ts` sets `uncounted` on the class). The clock is the wall
+  clock and the poll age counts up; a revoke's commit id is GitLab's. A class with no record says "No record yet".
 - `write/revoke.ts`: the round trip with the server actions. `previewAction({kind: 'revoke-class', ...})` as soon as a
   revoke target is in view (`hooks/useRevokeWrite.ts` asks once per target); `confirmAction(intent, previewId)` on r, the
   button or a menu target, and only for a preview on screen. A target that is not on screen yet (`q`, an unhovered menu

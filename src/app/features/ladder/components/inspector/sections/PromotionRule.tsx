@@ -3,15 +3,15 @@ import { TIER_META } from '@/lib/tiers';
 import { NO_ETA_NOTE, THRESHOLD_NOTE } from '../../../data/policy';
 import { NO_RULES, type Promotion } from '@/lib/promotion';
 import { Chip } from '@/components/status/chip/Chip';
-import { DemoChip } from '../../chrome/DemoChip';
+import { UncountedChip } from '../../chrome/UncountedChip';
 import { Sec, type SectionState } from '../Sec';
 import styles from './sections.module.css';
 
 /**
  * The promotion rule as counts, against trust-policy.yml's thresholds. A count is drawn, never a forecast: "no ETA" says
- * so. `demoRecords`: the counts are the demo's records (live mode), marked demo.
+ * so. `uncounted`: the counts read a record the poll did not count (live), marked so.
  */
-export function PromotionRule({ promotion, demoRecords, sections }: { promotion: Promotion; demoRecords: boolean; sections: SectionState }) {
+export function PromotionRule({ promotion, uncounted, sections }: { promotion: Promotion; uncounted: boolean; sections: SectionState }) {
   const counted = promotion.kind === 'eligible' || promotion.kind === 'notyet';
   const aux = counted ? `→ ${TIER_META[promotion.next].name} · ${promotion.rules.filter((r) => r.met).length}/${promotion.rules.length}` : '';
   return (
@@ -39,7 +39,7 @@ export function PromotionRule({ promotion, demoRecords, sections }: { promotion:
               <HonestyChip kind="unknown">policy numbers</HonestyChip>
             </span>
             <Chip compact title={NO_ETA_NOTE}>no ETA</Chip>
-            <DemoChip on={demoRecords} what="The record these count" />
+            <UncountedChip on={uncounted} />
           </div>
         </>
       ) : (

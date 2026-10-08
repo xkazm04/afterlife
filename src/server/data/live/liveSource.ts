@@ -1,8 +1,10 @@
 // The live data source: the latest snapshot of the index, plus the demo's catalogue for what the index cannot serve yet.
 // That narrative (tracks, the loop, the cockpit text, the setup phases) is declared in `illustrative`, so the screens
-// label it, and so is what the Ladder still shows of the demo: its opening belay-policy history and the class records'
-// counters (the seed's; GitLab cannot restate them). The policy's rules are the trust-policy.yml the last poll read. The tier meanings are the product's tier vocabulary, the same in every mode, not narrative. The stage list is
-// the schema's. The recent events are the index's own (`getEvents`).
+// label it, and so is what the Ladder still shows of the demo: its opening belay-policy history. The class records are
+// not declared: the poll counts and stores the record of every class one agent holds (poller/derive/counters.ts), and
+// the Ladder marks the one record it did not count (a class several agents or none hold) itself. The policy's rules are
+// the trust-policy.yml the last poll read. The tier meanings are the product's tier vocabulary, the same in every mode,
+// not narrative. The stage list is the schema's. The recent events are the index's own (`getEvents`).
 import { DEMO } from '@/lib/demo';
 import type { DemoData } from '@/lib/demo/types';
 import { STAGES } from '@/schemas/stages';
@@ -11,7 +13,7 @@ import type { DataSource, IllustrativePart } from '../types';
 import { isSeeded } from './seeded';
 import type { LiveSnapshot } from './snapshot';
 
-export const LIVE_ILLUSTRATIVE: readonly IllustrativePart[] = ['tracks', 'loop', 'cockpit', 'setup', 'policy-history', 'records'];
+export const LIVE_ILLUSTRATIVE: readonly IllustrativePart[] = ['tracks', 'loop', 'cockpit', 'setup', 'policy-history'];
 
 /**
  * `snapshot` throws when the first poll has not finished: a page must not show an empty fleet as if it were real.

@@ -13,6 +13,8 @@ export type { Ceiling, Counters, PromotionAsk, Tier, Track };
 export interface ClassRow extends Omit<ActionClass, 'record'> {
   record: Counters | null;
   ask?: PromotionAsk;
+  /** Live: the record is not the poll's count (a class several agents or no agent holds): the one the index held. */
+  uncounted?: true;
   pending: string | null;
 }
 

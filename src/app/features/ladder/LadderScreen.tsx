@@ -136,7 +136,6 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           ledger={state.ledger}
           promotionOf={data.promotionOf}
           sections={sections}
-          demoRecords={illustrative.records}
           writeTo={shownTo}
           viewOf={writes.viewOf}
           onRevoke={actions.revoke}
@@ -162,7 +161,6 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           sel={data.sel}
           just={state.just}
           promotionOf={data.promotionOf}
-          demoRecords={illustrative.records}
           empty={shown === 0}
           menuing={menus.isOpen}
           onSelect={actions.select}
