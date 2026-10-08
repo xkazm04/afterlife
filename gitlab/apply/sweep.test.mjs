@@ -317,6 +317,17 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(glabWrites(r, 'note create')[0].body.message).toMatch(/^\*\*Belay proof: PASS\*\*/);
   });
 
+  it('(xiii) F76: the ledger is read from the MR\'s creation on, and a history past the page cap stops the MR instead of appending again', () => {
+    const other = (i) => ({ id: String(i).padStart(40, '0'), message: `ledger: tier_decision #${i}\n\nBelay-Head: 1!${100 + i}@${OLD}\n\n[skip ci]` });
+    const pages = Array.from({ length: 5 }, (_, p) => Array.from({ length: 100 }, (_, i) => other(p * 100 + i)));
+    const g = group();
+    const r = sweep({ ...g, 'projects/1/merge_requests/7': { ...g['projects/1/merge_requests/7'], created_at: '2026-10-07T09:00:00Z' }, [`${LEDGER}/repository/commits`]: { __pages: pages } });
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/acme\/ledgerline!7: stopped, nothing more written for it: more than 500 commits of events\/1\.jsonl/);
+    expect(r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`)).toEqual([]);
+    expect(r.reads.find((p) => p.startsWith(`${LEDGER}/repository/commits`))).toContain(`since=${encodeURIComponent('2026-10-07T09:00:00Z')}`);
+  });
+
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
     const r = sweep(group(), { CI_SERVER_FQDN: 'gitlab.example' });
     expect(r.code, r.stderr).toBe(0);
