@@ -29,8 +29,8 @@ export interface LedgerEvent {
   observed_by: 'poll' | 'flows_api' | 'govern_hook' | 'webhook' | 'ci_job'; // ci_job: written by a Belay CI component (gate, tripwire)
   /**
    * guardrail_verdict only: the verdict, pass or block. Absent on every other kind and on an event written before the gate
-   * stated it. When absent the key is absent, never undefined or null: canonical() would hash either, and an event
-   * without a verdict must hash as it always did.
+   * stated it. When absent the key is absent, never null: canonical() would hash a null, and an event without a verdict
+   * must hash as it always did. An explicit undefined hashes as absent, as JSON writes it.
    */
   verdict?: GuardrailVerdict;
   prev_hash: string;
@@ -39,10 +39,11 @@ export interface LedgerEvent {
 
 export const GENESIS = '0'.repeat(64);
 
+/** Sorted keys, JSON values. A key whose value is undefined is skipped, as JSON.stringify drops it from the stored line. */
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
   if (value && typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+    const entries = Object.entries(value as Record<string, unknown>).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b));
     return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(',')}}`;
   }
   return JSON.stringify(value);

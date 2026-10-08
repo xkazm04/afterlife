@@ -52,6 +52,13 @@ describe('the guardrail verdict on the ledger', () => {
     expect(verifyChain(edited)).toBe(3);
   });
 
+  it('an explicit undefined is hashed as JSON writes it, absent: the line verifies once read back (r2 robustness-2)', () => {
+    const [first] = ledgerEvents(SEED_NOW);
+    const stated = append([], { ...body(first!), verdict: undefined } as Body);
+    expect(stated.hash).toBe(append([], body(first!)).hash);
+    expect(verifyChain(parseLedgerJsonl(jsonl([stated])))).toBeNull();
+  });
+
   it('the parser refuses a verdict on another kind, any other value, and a null', () => {
     const [first, , third] = ledgerEvents(SEED_NOW);
     for (const bad of [{ ...first!, verdict: 'pass' }, { ...third!, verdict: 'fail' }, { ...third!, verdict: null }]) {
