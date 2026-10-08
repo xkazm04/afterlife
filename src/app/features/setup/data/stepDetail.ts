@@ -19,6 +19,13 @@ export const DEMO_NAMES: StepNames = { host: 'gitlab.com', group: 'acme-lab', pr
  * (the pipeline-variable role, the job token allowlist) or Belay's CLI does not run the step yet (pair, the flows, the
  * scan, the report), the step says in prose what the agent does and cites its adopt-belay step. They name `n`'s group and project, never the demo's in live mode.
  */
+/** The four write tokens step 8 sets on belay-apply (gitlab/apply/README.md). */
+export const BELAY_TOKENS = ['BELAY_BOT_TOKEN', 'BELAY_POLICY_TOKEN', 'BELAY_DISPATCH_TOKEN', 'BELAY_LEDGER_TOKEN'] as const;
+/**
+ * How a token reaches glab without being on screen, in the command or in history: a silent read, piped to glab's stdin
+ * (glab reads the value from stdin when the argument and -v are absent; docs.gitlab.com/cli/variable/set).
+ */
+export const STDIN = '(read -rs v; printf %s "$v")';
 const enc = (n: StepNames, project: string): string => encodeURIComponent(`${n.group}/${project}`);
 /** A shell word: single-quoted when it holds a glob. */
 const word = (s: string): string => (s.includes('*') ? `'${s}'` : s);
@@ -69,12 +76,14 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
     unread: 'no GitLab read shows the Cloud Shell script ran. The integrations API gives this GET two paths (integration/ and integrations/), and a saved integration is not a working token exchange (docs.gitlab.com/api/project_integrations).',
   },
   8: {
-    who: 'human', short: 'Set the tokens yourself', does: 'Belay never sees a value; it reads none of these variables.', action: 'Create the variables on belay-apply, then type the model key at the prompt',
+    who: 'human', short: 'Set the tokens yourself', does: 'Belay never sees a value; it reads none of these variables.',
+    action: 'Run each command on its own and paste that token when it waits (nothing echoes), then press Enter. One at a time: a second pasted line would be read as the first token',
     where: `GitLab → ${n.group}/belay-apply → Settings → CI/CD → Variables`, secret: true,
     note: "On belay-apply only, at project level, never on a target and never a group or instance variable (every target pipeline inherits the group's): BELAY_BOT_TOKEN, BELAY_POLICY_TOKEN, BELAY_DISPATCH_TOKEN and BELAY_LEDGER_TOKEN, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created: glab variable set --hidden). Then set Minimum role to use pipeline variables to no_one_allowed, and create one pipeline schedule on main with no variables (Build → Pipeline schedules). gitlab/apply/README.md says what each token is.",
-    cmd: ['glab variable set ANTHROPIC_API_KEY --masked --protected'],
+    cmd: BELAY_TOKENS.map((t) => `${STDIN} | glab variable set ${t} -R ${n.group}/belay-apply --masked --protected --hidden`),
     unread: 'the four tokens are not read, by design: the variables API returns their values. Belay reads only belay-apply’s minimum role for pipeline variables and its schedule on main.',
-    before: 'belay-apply tokens and ANTHROPIC_API_KEY not read', probe: 'ANTHROPIC_API_KEY exists · masked · protected · belay-apply tokens never read',
+    before: 'belay-apply: minimum role and schedule not read yet · the four tokens are never read',
+    probe: 'belay-apply: minimum role no_one_allowed · a schedule on main · the four tokens are not read, by design',
   },
   9: {
     who: 'agent', does: "Protects main, makes belay/* a protected branch pattern that only Maintainers and the flow accounts can push to (it keeps the agents' branches to the flow accounts; it guards no token; the flow accounts are added by name once step 11 makes them), adds a CODEOWNERS that covers .gitlab-ci.yml and .gitlab/, turns on author-cannot-approve. On belay-apply: main takes no push, merges by Maintainers only, needs Code Owner approval, no force push. Allows belay-apply in the job token allowlists of belay-engine and belay-policy. Protects the v* tags of belay-engine and belay-pack and main of belay-ledger against Developers. The CODEOWNERS and approval-rule changes go in by MR (adopt-belay step 9). The commands read each project's protections first. GitLab already protects a pushed main, and a second POST answers 409, so each protection is removed and made again as listed: a DELETE that answers 404 had nothing to remove. Run each DELETE and its POST back to back. A PATCH would need the ids of the access levels it replaces (docs.gitlab.com/api/protected_branches).",

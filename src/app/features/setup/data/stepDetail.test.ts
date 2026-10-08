@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { BELAY_PROJECTS } from '@/server/data/setup/read';
-import { DEMO_NAMES, STEP_DETAIL } from './stepDetail';
+import { DEMO_NAMES, STDIN, STEP_DETAIL } from './stepDetail';
 
 const SKILL = readFileSync(join(process.cwd(), 'skills/adopt-belay/SKILL.md'), 'utf8');
 const skillStep = (n: number): string => SKILL.split('\n').find((l) => l.startsWith(`| ${n} |`)) ?? '';
@@ -52,8 +52,13 @@ describe('step 8 sets the four tokens on belay-apply, and only there (F4 b)', ()
     }
     expect(STEP_DETAIL[8]!.where).toContain('belay-apply');
   });
-  it('shows no command that sets a token, and still shows the model key', () => {
-    expect(STEP_DETAIL[8]!.cmd).toEqual(['glab variable set ANTHROPIC_API_KEY --masked --protected']);
+  it('sets each token with a command that runs as written: the project named, the value on stdin, never on screen (craft-2)', () => {
+    expect(STEP_DETAIL[8]!.cmd).toEqual(TOKENS.map((t) => `(read -rs v; printf %s "$v") | glab variable set ${t} -R acme-lab/belay-apply --masked --protected --hidden`));
+    for (const c of STEP_DETAIL[8]!.cmd ?? []) expect(c.replace(STDIN, '')).not.toMatch(/\$|-v\b|--value/);
+  });
+  it('asks for no model key: nothing in the repo reads ANTHROPIC_API_KEY (value-q5)', () => {
+    const d = STEP_DETAIL[8]!;
+    expect(JSON.stringify([d.cmd, d.action, d.before, d.probe, d.note, skillStep(8)])).not.toMatch(/ANTHROPIC|model key/);
   });
 });
 
@@ -81,7 +86,8 @@ describe('every command a step shows runs (F4 f)', () => {
   it('shows no belay command but doctor, no placeholder and no && chain', () => {
     for (const d of Object.values(STEP_DETAIL)) {
       for (const c of d.cmd ?? []) {
-        if (/belay/.test(c) && !c.startsWith('glab')) expect(c).toBe('npx belay doctor');
+        const run = c.startsWith(`${STDIN} | `) ? c.slice(STDIN.length + 3) : c;
+        if (/\bbelay\b/.test(run) && !run.startsWith('glab')) expect(run).toBe('npx belay doctor');
         expect(c).not.toMatch(/…|[.]{3}|&&/);
       }
     }

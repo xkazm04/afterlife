@@ -71,7 +71,15 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
             </>
           ) : null}
           <div className={styles.acts}>
-            {d.secret ? <Button onClick={() => actions.copyStep(n)}>Copy command</Button> : <Button onClick={() => actions.openWhere(n)}>Open in GitLab ↗</Button>}
+            {d.secret ? (
+              (d.cmd ?? []).map((c, i) => (
+                <Button key={c} title="One command per paste: each waits for its own value" onClick={() => actions.copyStep(n, i)}>
+                  {(d.cmd ?? []).length > 1 ? `Copy ${i + 1}` : 'Copy command'}
+                </Button>
+              ))
+            ) : (
+              <Button onClick={() => actions.openWhere(n)}>Open in GitLab ↗</Button>
+            )}
             <Button variant="primary" disabled={busy} onClick={() => void actions.probe(n)}>
               I did it · verify
             </Button>

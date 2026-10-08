@@ -22,7 +22,8 @@ export interface FlowActions {
   /** Send the step's write as you, then probe. */
   send: (n: number) => Promise<void>;
   skip: (n: number) => void;
-  copyStep: (n: number) => void;
+  /** Copy the step's commands, or only its `i`th (a secret step: one command per paste). */
+  copyStep: (n: number, i?: number) => void;
   openWhere: (n: number) => void;
   /** Confirm the arm MR on screen (previewAction planned it), as you. */
   armSend: (id: string) => Promise<void>;
@@ -131,7 +132,10 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
         say(`step ${n} skipped · nothing sent`);
         toast(`Skipped step ${n} · nothing sent`);
       },
-      copyStep: (n) => copy((stepDetail(ref.current, n)?.cmd ?? []).join('\n')),
+      copyStep: (n, i) => {
+        const cmd = stepDetail(ref.current, n)?.cmd ?? [];
+        copy((i === undefined ? cmd : cmd.slice(i, i + 1)).join('\n'));
+      },
       openWhere: (n) => toast(`Would open: ${stepDetail(ref.current, n)?.where ?? 'GitLab'}`),
       armSend: (id) => send(id, false),
       armCopy: (id, revert) => {

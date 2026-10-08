@@ -23,6 +23,6 @@ export const GATE_FREES: Readonly<Record<number, string>> = {
   3: 'steps 4–14 · features read unknown until active',
   6: 'T5 Medic · every pipeline',
   7: 'T7 Exploratory QA',
-  8: 'the CI-job model route (T7)',
+  8: "belay-apply's sweep (its four write tokens)",
   10: 'agent config on main',
 };

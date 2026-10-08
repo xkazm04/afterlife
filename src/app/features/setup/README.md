@@ -61,6 +61,11 @@ Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn e
 ## Decisions
 
 - Setup's subject for M2 is T4 only. The other seven tracks read "not defined yet" until each one is defined.
+- Step 8 asks for no model key. Nothing in the repo reads `ANTHROPIC_API_KEY`, only T4 is defined, and plan row O5
+  recommends Vertex AI, which is keyless through step 7. The key returns with T7, and only for the Anthropic-key route
+  that step 2 records. Step 8 sets the four `BELAY_*` tokens on belay-apply, one command each: a silent read piped to
+  `glab variable set <NAME> -R <group>/belay-apply --masked --protected --hidden`, so no value is in the command or on
+  screen. A person runs them one at a time (a second pasted line would be read as the first value), so each has its own Copy.
 - Where Setup and `skills/adopt-belay` disagree, Setup's live reads decide and the skill follows. A command Setup shows must
   run, or Setup shows no command.
 
