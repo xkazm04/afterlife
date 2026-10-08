@@ -65,6 +65,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* the link is a button (an atomic inline), so it clips itself; the full name is the .rf title */
+.rf > button {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
 .na::before {
   content: "";
   position: absolute;
@@ -83,4 +90,40 @@
 }
 .lk.lit .s {
   color: var(--accent);
+}
+
+/* a narrow pane (1280, or 1440 at Larger text): seven links in one row are too thin to read, so the chain wraps
+   to four over three on a 12-column grid. The arrow at the end of the first row is dropped; a hairline splits the rows. */
+@container pane (max-width: 68em) {
+  .chain {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  .lk {
+    grid-column: span 3;
+  }
+  .lk:nth-child(n + 5) {
+    grid-column: span 4;
+  }
+  .lk:nth-child(-n + 4) {
+    box-shadow: inset -1px 0 0 var(--sep-body), inset 0 -1px 0 var(--sep-body);
+  }
+  .lk:nth-child(4) {
+    border-radius: 0 8px 0 0;
+    box-shadow: inset 0 -1px 0 var(--sep-body);
+  }
+  .lk:nth-child(4)::after {
+    content: none;
+  }
+  .lk:first-child {
+    border-radius: 8px 0 0;
+  }
+  .lk:nth-child(5) {
+    border-radius: 0 0 0 8px;
+  }
+  .lk:last-child {
+    border-radius: 0 0 8px;
+  }
+  .lk.lit {
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
 }

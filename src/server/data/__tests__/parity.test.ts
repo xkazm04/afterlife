@@ -5,7 +5,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
+import { loadCyclesData } from '@/app/features/cycles/data/loadCyclesData';
+import { loadEstateData } from '@/app/features/cycles/data/loadEstateData';
 import { loadMaturityData } from '@/app/features/maturity/data/loadMaturityData';
+import { loadOnboardData } from '@/app/features/onboard/data/loadOnboardData';
 import { pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
 import { loadTasks } from '@/app/features/task/model/build/loadTasks';
@@ -15,6 +18,7 @@ import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { listProofsFor } from '@/server/index/repositories/work/proof';
 import { getProjectRow } from '@/server/index/repositories/fleet/project';
 import { listClassTiers } from '@/server/index/repositories/fleet/classTier';
+import { listCycleRecords } from '@/server/index/repositories/ledger/cycles';
 import { seedDemo, SEED_NOW } from '@/server/index/seed';
 import { readPollerConfig } from '@/server/poller/config';
 import { runPollCycle } from '@/server/poller/cycle';
@@ -86,6 +90,23 @@ describe('every screen loader gets the same data from the live source as from th
     expect(l).toEqual(d);
   });
 
+  it('Cycles: the replayed history over the live scan reconciles exactly as it does over the demo one', () => {
+    const [d, l] = both(() => asProps(loadCyclesData()));
+    expect(l).toEqual(d);
+    expect((l as { drift: string[] }).drift).toEqual([]);
+  });
+
+  it('Cycles, estate scope: every project in cycles per group, each history replayed against its rungs', () => {
+    const [d, l] = both(() => asProps(loadEstateData()));
+    expect(l).toEqual(d);
+    expect((l as { inCycles: number; reconciled: number })).toMatchObject({ inCycles: 6, reconciled: 6 });
+  });
+
+  it('Onboard: the whole estate, its groups and the deep project in cycles', () => {
+    const [d, l] = both(() => asProps(loadOnboardData()));
+    expect(noLast(l)).toEqual(noLast(d));
+  });
+
   it('Setup and Theater', () => {
     const [ds, ls] = both(() => asProps(loadSetupData()));
     expect(ls).toEqual(ds);
@@ -107,6 +128,14 @@ describe('the poll really did write what the parity rests on (it is not just the
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toMatchObject({ accepted: 16 }); // seeded: GitLab cannot restate it
     const proof = (await listProofsFor(db, ['01J8Q4'])).get('01J8Q4');
     expect(proof?.block?.task.head_sha).toBe('a41c0ffee00000000000000000000000000000a1');
+  });
+
+  it('the cycle history comes from belay-ledger/cycles/<id>.jsonl, not from the demo fixture', async () => {
+    const stored = await listCycleRecords(db, 'ledgerline');
+    expect(stored.map((r) => r.seq)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(stored.at(-1)?.closed_at).toBe('2026-10-06T14:02:00.000Z');
+    expect(live.getCycles()).not.toBe(demoSource.getCycles());
+    expect(live.getCycles().today).toBe(42);
   });
 });
 

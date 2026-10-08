@@ -42,6 +42,8 @@ The rest of the shell works without props:
 | `shell/` | `BottomDrawer({title, count, hint?, closeLabel, onClose, compact?})`: a titled panel docked under a pane, with a lit count pill, a hide button and a scrolling live body (the content is the screen's)<br>`dock/CommandDock({line, title?})`, `dock/DockKey({optional?})`, `dock/DockText({tone: prompt\|note})`: the strip docked at the bottom of a `position: relative` pane, with the exact line the next key runs and the key hints (the optional ones go first under 820 px) |
 | `surface/` | `Card`: a quiet raised tile; layout is the caller's `className` |
 | `icons/` | `Icon({name, label?})` |
+| `write/` | `useServerWrites(intents)` returns `{entries, confirm(key)}`: each intent (by key) is previewed on the server when shown and kept until it changes; `confirm` sends the plan the operator saw by its previewId<br>`sendNow(intent)`: preview and confirm in one gesture, for a write the screen already showed<br>`ServerCommands({entry, fallback?, label})`: the server's commands (mode and risk chips, long fields folded, diff underneath) or its refusal<br>`outcome.ts`: `outcomeText(response)` (never claims a demo write ran), `wentThrough`, `elide` |
+| `palette/` | `CommandPalette({projects})`: ⌘K (Ctrl+K) anywhere, or `openPalette()`; screens, the loop's actions and every project, ranked by `model/rank` (prefix, word start, substring, subsequence); it only navigates. Mounted once in `app/Providers` |
 
 ## Conventions
 

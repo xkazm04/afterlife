@@ -40,7 +40,6 @@
 .rt {
   justify-content: flex-end;
 }
-
 /* header */
 .thead {
   position: sticky;
@@ -49,7 +48,8 @@
 }
 .thead .r {
   height: var(--hdr-h);
-  background: color-mix(in oklab, var(--win-content) 96%, var(--white));
+  --rbg: color-mix(in oklab, var(--win-content) 96%, var(--white));
+  background: var(--rbg);
   box-shadow: 0 1px 0 var(--shade-50), 0 2px 0 var(--sep);
 }
 .th {
@@ -101,7 +101,6 @@
 .th:focus-visible {
   box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--accent) 60%, transparent);
 }
-
 /* rows */
 .row {
   color: var(--text-1);
@@ -109,16 +108,20 @@
 }
 .row.alt {
   background: var(--alt);
+  --rbg: var(--alt);
 }
 .row:hover {
   background: var(--hover);
+  --rbg: var(--hover);
 }
 .row[aria-selected="true"] {
   background: var(--sel-dim);
+  --rbg: var(--sel-dim);
 }
 .tbl:focus .row[aria-selected="true"],
 .menuing .row[aria-selected="true"] {
   background: var(--sel);
+  --rbg: var(--sel);
   box-shadow: var(--sel-edge);
 }
 .tbl:focus .row[aria-selected="true"] .c {
@@ -128,18 +131,21 @@
   position: sticky;
   top: var(--hdr-h);
   z-index: 2;
-  background: color-mix(in oklab, var(--win-content) 94%, var(--white));
+  --rbg: color-mix(in oklab, var(--win-content) 94%, var(--white));
+  background: var(--rbg);
   box-shadow: 0 1px 0 var(--sep), 0 -1px 0 var(--sep);
   font-weight: 600;
   color: var(--text-2);
   cursor: default;
 }
 .grp > .g[aria-selected="true"] {
-  background: var(--sel-dim);
+  --rbg: var(--sel-dim);
+  background: var(--rbg);
 }
 .tbl:focus .grp > .g[aria-selected="true"],
 .menuing .grp > .g[aria-selected="true"] {
-  background: var(--sel);
+  --rbg: var(--sel);
+  background: var(--rbg);
   color: var(--text-1);
 }
 .disc {
@@ -179,4 +185,14 @@
 /* hatched body cells of a stale row (Cell with the `data` prop) */
 .row[data-stale="true"] .d {
   background-image: var(--hatch);
+}
+/* stickyEnd: the last data column (a row's actions) stays pinned to the right edge while the table scrolls sideways */
+.stickyEnd .row > :nth-last-child(2),
+.stickyEnd .g > :nth-last-child(2),
+.stickyEnd .thead .r > :nth-last-child(2) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: linear-gradient(var(--rbg, transparent), var(--rbg, transparent)), var(--win-content);
+  box-shadow: -14px 0 14px -14px var(--shade-60);
 }

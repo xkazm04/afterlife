@@ -46,6 +46,8 @@ export interface DeepProject {
   running: string;
   webhooks: string;
   unattributed: number;
+  /** Where the deep project stands in its improvement cycles (the only project with a cycle history in the demo). */
+  cycle: { running: string | null; closed: number; held: number; gained: number };
 }
 
 /** Everything the Fleet screen reads, loaded on the server and passed to the client screen. */

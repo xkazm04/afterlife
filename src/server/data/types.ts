@@ -1,6 +1,7 @@
 // What the screens' server loaders read. The surface is the one `@/lib/demo` has always had (the getX accessors), so a
 // loader changes one import and nothing else. Reads are synchronous: the live source serves a snapshot that the poller
 // refreshes after every cycle, so a page never waits on GitLab or on the index.
+import type { CycleHistory } from '@/lib/demo/cycleTypes';
 import type { DemoData, Task } from '@/lib/demo/types';
 
 export type DataMode = 'demo' | 'live';
@@ -24,4 +25,8 @@ export interface DataSource {
   getSetup(): DemoData['setup'];
   getEvents(): DemoData['events'];
   getCockpit(): DemoData['cockpit'];
+  /** The deep project's closed cycles, as its ledger records them. */
+  getCycles(): CycleHistory;
+  /** Every project with a recorded cycle, by project id (the deep project included). */
+  getEstateCycles(): Readonly<Record<string, CycleHistory>>;
 }

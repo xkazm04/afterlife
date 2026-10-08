@@ -6,8 +6,8 @@ const box = (style: React.CSSProperties) => {
   return <path d={d} style={style} />;
 };
 
-/** The answer's drawn marks, in the city's own vocabulary: a hatched tile, a Q, a dashed or solid little tower, a tick. */
-export function MarkIcon({ kind }: { kind: MarkKind | 'proof' }) {
+/** The answer's drawn marks, in the city's own vocabulary: a hatched tile, a Q, a dashed or solid little tower, a tick, a loop. */
+export function MarkIcon({ kind }: { kind: MarkKind | 'proof' | 'cycle' }) {
   let body;
   if (kind === 'stale') body = <rect x="3" y="3" width="24" height="24" rx="3" style={{ fill: 'url(#d-hatch)', stroke: 'var(--stale)' }} />;
   else if (kind === 'quar')
@@ -22,6 +22,13 @@ export function MarkIcon({ kind }: { kind: MarkKind | 'proof' }) {
   else if (kind === 'setup') body = box({ fill: 'none', stroke: 'var(--accent)', strokeDasharray: '2.5 2' });
   else if (kind === 'nsu') body = box({ fill: 'none', stroke: 'var(--unknown)', strokeDasharray: '3 2.5' });
   else if (kind === 'watch') body = box({ fill: 'var(--d-f-l)', stroke: 'var(--accent)' });
+  else if (kind === 'cycle')
+    body = (
+      <>
+        <path d="M25 15 A10 10 0 1 1 21.5 7.4" style={{ fill: 'none', stroke: 'var(--accent)', strokeWidth: 2.2, strokeLinecap: 'round' }} />
+        <path d="M22.5 2.5 V8 H17" style={{ fill: 'none', stroke: 'var(--accent)', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
+      </>
+    );
   else if (kind === 'proof') body = <path d="M6 16 L12 22 L24 8" style={{ fill: 'none', stroke: 'var(--accent)', strokeWidth: 2.4, strokeLinecap: 'round', strokeLinejoin: 'round' }} />;
   else body = <path d="M15 3 L27 15 L15 27 L3 15 Z" style={{ fill: 'var(--needs-you)' }} />;
   return (

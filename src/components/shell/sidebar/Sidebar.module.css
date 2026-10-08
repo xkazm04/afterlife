@@ -23,8 +23,10 @@
 .src {
   flex: 1;
   overflow: auto;
-  padding: 2px 10px 10px;
+  padding: 2px 10px 14px;
   min-height: 0;
+  /* a short fade above the footer: an item cut by the scroll edge reads as "more below", not as broken */
+  mask-image: linear-gradient(to bottom, var(--white) calc(100% - 14px), transparent);
 }
 .appnav {
   flex: none;
@@ -127,4 +129,19 @@
 }
 .inactive i {
   background: var(--ctl-hi) !important;
+}
+/* the ⌘K chip beside the nav heading: opens the command palette */
+.goto {
+  padding: 0 5px;
+  height: calc(16px * var(--ui-scale));
+  border: 0;
+  border-radius: 4px;
+  background: var(--ctl);
+  font: 600 var(--t-small) var(--sys);
+  color: var(--text-3);
+  cursor: default;
+}
+.goto:hover {
+  background: var(--ctl-hi);
+  color: var(--text-1);
 }

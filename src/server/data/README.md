@@ -2,7 +2,8 @@
 
 Every screen's server loader reads through one interface, `DataSource` (`types.ts`). It has the surface `@/lib/demo` always
 had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActionClasses`, `getMaturity`, `getLoop`, `getTasks`,
-`getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`) plus `mode` and `deepProjectId()`. Reads are
+`getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`), `getCycles()` and `getEstateCycles()` (the deep
+project's closed cycles, and every project's: `src/lib/demo/cycles.ts` and `estate.ts` in demo, `cycle_record` in live) plus `mode` and `deepProjectId()`. Reads are
 **synchronous**: the live source serves a snapshot that is rebuilt after every poll, so a page never waits on GitLab or the index.
 
 | Env | Values | Default |

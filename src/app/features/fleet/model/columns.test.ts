@@ -38,6 +38,6 @@ describe('gridFor', () => {
   });
   it('narrows the tier columns', () => {
     expect(gridFor('tiers', true).columns).toContain('repeat(5, calc(50px * var(--ui-scale)))');
-    expect(gridFor('tiers', true).minWidth).toBe('calc(684px * var(--ui-scale))');
+    expect(gridFor('tiers', true).minWidth).toBe('calc(692px * var(--ui-scale))');
   });
 });

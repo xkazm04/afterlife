@@ -16,6 +16,7 @@ import { InspectorPanel } from './components/inspector/InspectorPanel';
 import { SendSheet } from './components/sheet/SendSheet';
 import { StatusCounts } from './components/chrome/StatusCounts';
 import { MAT_META } from './data/meta';
+import { useGapWrites } from './hooks/useGapWrites';
 import { useMaturity } from './hooks/useMaturity';
 import { useMaturityKeys } from './hooks/useMaturityKeys';
 import { useUiScale } from './hooks/useUiScale';
@@ -39,12 +40,13 @@ export function MaturityScreen({ maturity, stages }: { maturity: DemoData['matur
     if (k === 2 || k === 4) setInspOpen(true);
     if (k === 1) gapsRef.current?.scrollIntoView({ block: 'nearest' });
   };
-  const send = () => dispatch({ type: 'send' });
+  const sheetGaps = pending.flatMap((id) => ctx.gap(id) ?? []);
+  const writes = useGapWrites(state.sheet, sheetGaps, () => dispatch({ type: 'send' }));
+  const send = () => void writes.send();
   useMaturityKeys(api, onGo, send);
 
   const pickedByStage: Partial<Record<Stage, string>> = {};
   for (const g of ctx.gaps) if (state.picked.includes(g.id) && !state.flow[g.id]) pickedByStage[g.stage] = g.id;
-  const sheetGaps = pending.flatMap((id) => ctx.gap(id) ?? []);
 
   return (
     <Window
@@ -93,7 +95,7 @@ export function MaturityScreen({ maturity, stages }: { maturity: DemoData['matur
           onSelect={(g) => select(g.stage)}
         />
       </div>
-      {state.sheet && sheetGaps.length ? <SendSheet gaps={sheetGaps} onCancel={() => dispatch({ type: 'cancelSheet' })} onSend={send} /> : null}
+      {state.sheet && sheetGaps.length ? <SendSheet gaps={sheetGaps} writes={writes.entries} ready={writes.ready} onCancel={() => dispatch({ type: 'cancelSheet' })} onSend={send} /> : null}
     </Window>
   );
 }

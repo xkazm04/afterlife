@@ -8,6 +8,8 @@ export interface PollMemory {
   notes: Map<string, { updatedAt: string; notes: GlNote[] }>;
   /** Ledger blob ids already imported. */
   ledger: BlobCache;
+  /** Cycle-file blob ids already imported. */
+  cycles: BlobCache;
 }
 
-export const createMemory = (): PollMemory => ({ notes: new Map(), ledger: new Map() });
+export const createMemory = (): PollMemory => ({ notes: new Map(), ledger: new Map(), cycles: new Map() });

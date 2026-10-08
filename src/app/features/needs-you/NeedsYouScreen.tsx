@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useToast } from '@/components/overlays/toast/useToast';
 import { Window } from '@/components/shell/Window';
+import { outcomeText, wentThrough } from '@/components/write/outcome';
+import { useServerWrites } from '@/components/write/useServerWrites';
+import type { ActionIntent } from '@/server/actions/types';
 import { plural } from '@/lib/format/plural';
 import { LEDGER_READ_AT, PROJECT_REPO } from './data/constants';
 import { CRA } from './data/cra';
@@ -25,10 +29,20 @@ import styles from './NeedsYouScreen.module.css';
 
 /**
  * Needs you: every decision that waits for a person, and nothing else. The CRA clock is the loudest thing on the
- * screen; every write is staged in the outbox first, with its exact command and diff, and runs only on Run.
+ * screen; every write is staged in the outbox first, with its exact command and diff, and runs only on Run. A staged
+ * write is planned on the server (the outbox shows the server's commands) and Run confirms exactly that plan.
  */
-export function NeedsYouScreen({ demo }: { demo: NeedsYouDemo }) {
+export function NeedsYouScreen({ demo, intents = {} }: { demo: NeedsYouDemo; intents?: Readonly<Record<string, ActionIntent | null>> }) {
   const { s, dispatch: dispatchRaw } = useNeedsYou(demo);
+  const { status } = useToast();
+  const writes = useServerWrites(Object.fromEntries(s.out.map((o) => [o.key, intents[o.key] ?? null])));
+  /** Run a staged write: the server's plan if it has one (decided only if it went through), else the screen's own. */
+  const run = async (key: string) => {
+    if (!intents[key]) return dispatchRaw({ type: 'run', key });
+    const r = await writes.confirm(key);
+    if (wentThrough(r)) dispatchRaw({ type: 'run', key });
+    status(outcomeText(r));
+  };
   const leftSec = secondsLeft(CRA.remainingSec, useElapsed());
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const tableRef = useRef<HTMLDivElement>(null);
@@ -81,7 +95,7 @@ export function NeedsYouScreen({ demo }: { demo: NeedsYouDemo }) {
             onGroupMenu={menus.onGroupMenu}
           />
         </div>
-        <OutboxDrawer s={s} dispatch={dispatch} />
+        <OutboxDrawer s={s} dispatch={dispatch} writes={writes.entries} onRun={(key) => void run(key)} />
       </div>
       {menus.menu}
     </Window>

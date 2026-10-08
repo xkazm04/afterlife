@@ -21,7 +21,7 @@ export function ReceiptChain({ task, lit }: { task: TaskView; lit: number }) {
           <div className={styles.o} title={l.obj ?? 'nothing shipped'}>
             {l.na ? 'nothing shipped' : l.obj}
           </div>
-          <div className={styles.rf}>
+          <div className={styles.rf} title={l.na ? undefined : (l.ref ?? undefined)}>
             {l.na ? <HonestyChip kind="unknown">n/a</HonestyChip> : l.ref ? <ObjectLink target={l.ref} /> : null}
           </div>
         </li>

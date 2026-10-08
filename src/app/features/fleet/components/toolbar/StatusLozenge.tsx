@@ -17,26 +17,24 @@ import type { SmartId, Source } from '../../model/types';
 export function StatusLozenge({
   projects,
   waiting,
-  compact,
   source,
   onSource,
 }: {
   projects: readonly FleetProject[];
   waiting: number;
-  compact: boolean;
   source: Source;
   onSource: (source: Source) => void;
 }) {
   const pick = (id: SmartId) => () => onSource(source === id ? 'all' : id);
   return (
     <Lozenge label="Fleet status">
-      <LozengeButton lead={<NeedsYouBadge count={waiting} showZero />} word={compact ? undefined : 'waiting'} pressed={source === 'needs'} title="Decisions waiting for you" onClick={pick('needs')} />
+      <LozengeButton lead={<NeedsYouBadge count={waiting} showZero />} word="waiting" pressed={source === 'needs'} title="Decisions waiting for you" onClick={pick('needs')} />
       <LozengeDivider />
-      <LozengeButton lead={<StateGlyph state="stale" />} count={countSmart(projects, 'stale')} word={compact ? undefined : 'stale'} pressed={source === 'stale'} title="Stale feeds" onClick={pick('stale')} />
+      <LozengeButton lead={<StateGlyph state="stale" />} count={countSmart(projects, 'stale')} word="stale" pressed={source === 'stale'} title="Stale feeds" onClick={pick('stale')} />
       <LozengeButton
         lead={<StateGlyph state="not-set-up" />}
         count={countSmart(projects, 'unwatched')}
-        word={compact ? undefined : 'not watched'}
+        word="not watched"
         pressed={source === 'unwatched'}
         title="Not watched"
         onClick={pick('unwatched')}
@@ -44,7 +42,7 @@ export function StatusLozenge({
       <LozengeButton
         lead={<TierMark tier="quarantined" />}
         count={countSmart(projects, 'quar')}
-        word={compact ? undefined : 'quarantined'}
+        word="quarantined"
         pressed={source === 'quar'}
         title="Projects with a quarantined class"
         onClick={pick('quar')}

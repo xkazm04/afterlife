@@ -5,6 +5,18 @@ import { ActionRefused, locate, type Plan, type PlanContext } from './context';
 
 const PREVIEW_LINES = 12;
 
+/**
+ * Does `next` keep every line of `current`, in order? A gap only adds: a screen that sends a partial hunk for an
+ * existing file (or anything that would delete a line) is refused instead of overwriting the file with a fragment.
+ */
+export function keepsEveryLine(current: string, next: string): boolean {
+  const want = current.split('\n').filter((l) => l.trim() !== '');
+  const have = next.split('\n');
+  let i = 0;
+  for (const line of have) if (i < want.length && line === want[i]) i++;
+  return i === want.length;
+}
+
 export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<Plan> {
   const { project } = await locate(ctx, intent.project);
   const base = project.defaultBranch ?? 'main';
@@ -13,7 +25,11 @@ export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<P
   const commands = [];
   const diff: string[] = [];
   for (const [i, f] of intent.files.entries()) {
-    const exists = (await ctx.port.getFile(project.id, f.path, base)) !== null;
+    const current = await ctx.port.getFile(project.id, f.path, base);
+    const exists = current !== null;
+    if (current && !keepsEveryLine(current.content, f.content)) {
+      throw new ActionRefused(`${f.path}: the change would drop lines of the file on ${base}. A gap MR only adds to an existing file.`);
+    }
     commands.push(ctx.port.plan.commitFile({
       project: project.id, path: f.path, branch: intent.branch, content: f.content, action: exists ? 'update' : 'create',
       message: `Maturity gap ${intent.gap}: ${intent.title}\n\nOperator: ${ctx.operator}`, ...(i === 0 ? { startBranch: base } : {}),

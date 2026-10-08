@@ -66,3 +66,14 @@
   color: var(--text-3);
   min-width: 8px;
 }
+/* a narrow toolbar: only the current step keeps its name on screen */
+@container toolbar (max-width: 76em) {
+  .step:not([aria-current="step"]) .nm {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

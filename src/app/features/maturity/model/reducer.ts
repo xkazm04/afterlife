@@ -137,7 +137,7 @@ function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
     case 'rescanGap':
       return rescanGap(s, ctx, a.id);
     case 'rescanAll':
-      return say({ ...s, scannedAt: ctx.nowClock, ageMin: 0 }, `npx belay scan --engine ${ctx.engine} · read only · no rung moved`);
+      return say({ ...s, scannedAt: ctx.nowClock, ageMin: 0 }, `npx belay scan · engine ${ctx.engine} · read only · no rung moved`);
   }
 }
 

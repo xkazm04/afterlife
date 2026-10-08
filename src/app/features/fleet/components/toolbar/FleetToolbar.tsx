@@ -22,7 +22,6 @@ export function FleetToolbar({
   onView,
   projects,
   waiting,
-  compact,
   source,
   onSource,
   sortLabel,
@@ -38,7 +37,6 @@ export function FleetToolbar({
   projects: readonly FleetProject[];
   waiting: number;
   /** No words in the lozenge: the toolbar is too narrow for them. */
-  compact: boolean;
   source: Source;
   onSource: (s: Source) => void;
   sortLabel: string;
@@ -54,7 +52,7 @@ export function FleetToolbar({
     <>
       <SegmentedControl label="Columns" options={VIEWS} value={view} onChange={onView} />
       <Spacer />
-      <StatusLozenge projects={projects} waiting={waiting} compact={compact} source={source} onSource={onSource} />
+      <StatusLozenge projects={projects} waiting={waiting} source={source} onSource={onSource} />
       <Spacer />
       <PopupButton icon="sort" title="Sort" onClick={(e) => onSortMenu(e.currentTarget)}>
         {sortLabel}

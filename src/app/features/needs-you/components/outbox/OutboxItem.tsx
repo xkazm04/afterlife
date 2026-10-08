@@ -3,10 +3,31 @@ import { Icon } from '@/components/icons/Icon';
 import { CommandBlock } from '@/components/inspector/CommandBlock';
 import type { Action, OutItem } from '../../model/types';
 import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
+import { ServerCommands } from '@/components/write/ServerCommands';
+import type { WriteEntry } from '@/components/write/useServerWrites';
 import styles from './OutboxItem.module.css';
 
-/** One staged write: its kind, title and write ref, Run and Remove, and (open) the exact commands and diff. */
-export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; open: boolean; selected: boolean; dispatch: (a: Action) => void }) {
+/**
+ * One staged write: its kind, title and write ref, Run and Remove, and (open) the exact commands and diff. When the
+ * server plans the write, the commands shown are the server's, and Run waits until they are planned (a refusal is
+ * shown and Run stays off).
+ */
+export function OutboxItem({
+  item,
+  open,
+  selected,
+  write,
+  dispatch,
+  onRun,
+}: {
+  item: OutItem;
+  open: boolean;
+  selected: boolean;
+  write?: WriteEntry;
+  dispatch: (a: Action) => void;
+  onRun: (key: string) => void;
+}) {
+  const ready = !write || write.status === 'preview';
   const cls = [styles.oi, item.clock ? styles.clock : '', selected ? styles.sel : '', open ? styles.open : ''].filter(Boolean).join(' ');
   return (
     <div className={cls} data-key={item.key}>
@@ -28,7 +49,15 @@ export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; 
           {item.title}
         </span>
         <span className={styles.ref}>{item.ref}</span>
-        <Button variant={item.clock ? 'primary' : 'accent'} onClick={() => dispatch({ type: 'run', key: item.key })}>
+        <Button
+          variant={item.clock ? 'primary' : 'accent'}
+          disabled={!ready}
+          title={write?.status === 'refused' ? write.reason : write?.status === 'planning' ? 'Planning on the server…' : undefined}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRun(item.key);
+          }}
+        >
           Run
         </Button>
         <Button variant="ghost" onClick={() => dispatch({ type: 'remove', key: item.key })}>
@@ -37,7 +66,11 @@ export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; 
       </div>
       {open ? (
         <div className={styles.body}>
-          <CommandBlock commands={item.commands} label={`Commands for ${item.title}`} />
+          {write ? (
+            <ServerCommands entry={write} fallback={item.commands} label={`Commands for ${item.title}`} />
+          ) : (
+            <CommandBlock commands={item.commands} label={`Commands for ${item.title}`} />
+          )}
           {item.diff ? <DiffBlock file={item.file} lines={item.diff} /> : null}
         </div>
       ) : null}

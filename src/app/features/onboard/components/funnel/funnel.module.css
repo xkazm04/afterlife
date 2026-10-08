@@ -1,0 +1,89 @@
+/* The funnel band: five steps in a row, each a filter. */
+.funnel {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: calc(6px * var(--ui-scale));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+.arrow {
+  position: absolute;
+  left: calc(-6px * var(--ui-scale));
+  top: 50%;
+  translate: -50% -50%;
+  z-index: 1;
+  font-size: calc(16px * var(--ui-scale));
+  color: var(--text-4);
+}
+.step {
+  flex: 1;
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+  min-width: 0;
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border: 0;
+  border-radius: 9px;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+  font: inherit;
+  text-align: left;
+  color: var(--text-2);
+  cursor: default;
+}
+.step:hover {
+  background: var(--hover);
+}
+.step[aria-pressed="true"] {
+  background: var(--sel-dim);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.word {
+  max-width: 100%;
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  /* one line, so every card's number sits on the same baseline */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.n {
+  font: 700 calc(28px * var(--ui-scale)) / 1.05 var(--sys);
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+.item:last-child .n {
+  color: var(--accent);
+  text-shadow: 0 0 16px color-mix(in oklab, var(--accent) 40%, transparent);
+}
+.bar {
+  display: block;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border-2);
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width var(--t-slow) var(--ease);
+}
+.pct {
+  font-size: var(--t-small);
+  color: var(--text-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}

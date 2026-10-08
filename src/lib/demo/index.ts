@@ -1,9 +1,14 @@
 // Demo-mode data source. Every screen reads the same illustrative fixture (data/belay-demo.json, a copy that
 // lives inside src so the app has no dependency outside it). Accessors are typed; screens never touch the JSON.
 import raw from './data/belay-demo.json';
+import { DEMO_CYCLES } from './cycles';
+import { ESTATE_CYCLES } from './estate';
 import type { DemoData, FleetProject, Task } from './types';
 
 export type * from './types';
+export type * from './cycleTypes';
+export { DEMO_CYCLES } from './cycles';
+export { ESTATE_CYCLES } from './estate';
 
 // The one place the JSON meets the types. demo.test.ts validates the shape (tier keys, ids, counts).
 export const DEMO: DemoData = raw as unknown as DemoData;
@@ -30,6 +35,10 @@ export const getSetup = () => DEMO.setup;
 export const getEvents = () => DEMO.events;
 export const getCockpit = () => DEMO.cockpit;
 export const getProduct = () => DEMO.product;
+/** The deep project's closed cycles (a TS fixture beside the JSON: see cycles.ts). */
+export const getCycles = () => DEMO_CYCLES;
+/** Every project with a cycle record, by id: the deep project and the rest of the estate in cycles. */
+export const getEstateCycles = () => ({ [LEDGERLINE_ID]: DEMO_CYCLES, ...ESTATE_CYCLES });
 
 /** Decisions waiting for the operator: the number on the Needs you sidebar badge. */
 export const getNeedsYouCount = (): number => DEMO.needsYou.length;

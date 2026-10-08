@@ -1,0 +1,23 @@
+/* The cycle report sheet. */
+.md {
+  margin: 0;
+  /* leaves room for the post command under it, even at the largest text on a short window */
+  max-height: min(calc(320px * var(--ui-scale)), 34vh);
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--surface-sunk);
+  box-shadow: inset 0 0 0 1px var(--border-1);
+  font: 400 var(--t-small) / 1.5 var(--mono);
+  color: var(--text-2);
+  white-space: pre-wrap;
+}
+.how {
+  margin: 12px 0 6px;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.count {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}

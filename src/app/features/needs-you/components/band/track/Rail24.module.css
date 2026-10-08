@@ -2,6 +2,8 @@
 .tl {
   position: relative;
   height: calc(36px * var(--ui-scale));
+  container: crarail / inline-size;
+  font: 400 var(--t-small) / 1 var(--mono);
 }
 .rail {
   position: absolute;
@@ -60,8 +62,14 @@
   transform: translateX(-100%);
   color: var(--text-2);
 }
-@container pane (max-width: 880px) {
+/* Ticks drop out before they can touch: widths in ch of the tick font ("aware 09:10" is 11ch, "due 09:10" 9ch). */
+@container crarail (max-width: 60ch) {
   .mid {
+    display: none;
+  }
+}
+@container crarail (max-width: 30ch) {
+  .center {
     display: none;
   }
 }

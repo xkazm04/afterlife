@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { memo } from 'react';
 import type { District } from '../../model/city';
 import { fmt, type FleetTotals, type MarkKind } from '../../model/words';
@@ -20,8 +21,9 @@ function Count({ n, delay, dur, intro }: { n: number; delay: number; dur: number
 }
 
 /**
- * The answer, left of the city: the one loud number, who holds the most, then five drawn marks. Pointing at a mark
- * lights its towers across the city; the number and the stale mark open the district that holds the most of it.
+ * The answer, left of the city: the one loud number, who holds the most, then five drawn marks, the week's proofs and
+ * the improvement cycles (a way into Cycles). Pointing at a mark lights its towers across the city; the number and
+ * the stale mark open the district that holds the most of it.
  */
 export const Answer = memo(function Answer({
   totals,
@@ -29,10 +31,13 @@ export const Answer = memo(function Answer({
   staleTop,
   intro,
   tabbable,
+  cycles,
   onMark,
   onOpen,
 }: {
   totals: FleetTotals;
+  /** Projects in improvement cycles, and the rungs those cycles have earned since day 0. */
+  cycles: { projects: number; gained: number };
   tiers: { n: number; names: string[] }[];
   staleTop: District | null;
   intro: boolean;
@@ -92,6 +97,16 @@ export const Answer = memo(function Answer({
             </span>
           </span>
         </li>
+        {cycles.projects ? (
+          <li>
+            <Link className={`${styles.mk} ${styles.proof} ${styles.link}`} href="/cycles" tabIndex={tab} data-role="door-cycles">
+              <MarkIcon kind="cycle" />
+              <span>
+                <b>{cycles.projects}</b> in improvement cycles · <b>+{cycles.gained}</b> rungs since day 0
+              </span>
+            </Link>
+          </li>
+        ) : null}
       </ul>
     </section>
   );

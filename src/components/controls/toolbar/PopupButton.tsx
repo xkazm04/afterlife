@@ -5,7 +5,8 @@ import styles from './ToolbarButton.module.css';
 
 /**
  * A toolbar pill that opens a menu: optional icon, label, chevron. `active` tints it cyan (a filter is applied).
- * Open the menu with useMenu().openFrom(buttonElement, ...) from onClick.
+ * Open the menu with useMenu().openFrom(buttonElement, ...) from onClick. With an icon, the label folds to
+ * icon-only on a narrow toolbar (it stays the accessible name).
  */
 export function PopupButton({
   icon,
@@ -25,7 +26,7 @@ export function PopupButton({
   return (
     <button ref={ref} type={type} aria-haspopup="menu" className={cls} {...rest}>
       {icon ? <Icon name={icon} /> : null}
-      <span>{children}</span>
+      <span className={icon ? styles.lbl : undefined}>{children}</span>
       <Icon name="chevDown" className={styles.chev} />
     </button>
   );

@@ -18,7 +18,6 @@ import { useFleetMenus } from './hooks/useFleetMenus';
 import { useFleetProjects } from './hooks/useFleetProjects';
 import { useNarrow } from './hooks/useNarrow';
 import { useRowHandlers } from './hooks/useRowHandlers';
-import { useToolbarCompact } from './hooks/useToolbarCompact';
 import { menuFilterCount, sourceLabel } from './model/list/filtering';
 import { sortLabel } from './model/list/sorting';
 import type { FleetData, FleetMeta, Source } from './model/types';
@@ -27,7 +26,7 @@ import type { FleetData, FleetMeta, Source } from './model/types';
  * Fleet: every project as one row, by tier counts, by action class or by stage. Select a row for its inspector,
  * right-click for actions, press a tier header to rank by it. Demo data; nothing leaves the browser.
  */
-export function FleetScreen({ data }: { data: FleetData }) {
+export function FleetScreen({ data, initialProject }: { data: FleetData; initialProject?: string }) {
   const { status } = useToast();
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -35,8 +34,7 @@ export function FleetScreen({ data }: { data: FleetData }) {
   const list = useFleetList(proj.projects, data.groups);
   const pop = usePopover(380);
   const narrow = useNarrow(tableRef);
-  const compact = useToolbarCompact(searchRef);
-  const [sel, setSel] = useState<string | null>(data.deep.id);
+  const [sel, setSel] = useState<string | null>(initialProject ?? data.deep.id);
   const [insp, setInsp] = useState(true);
   const meta = useMemo<FleetMeta>(() => ({ classes: data.classes, stages: data.stages, tiers: data.tiers }), [data]);
 
@@ -98,7 +96,7 @@ export function FleetScreen({ data }: { data: FleetData }) {
 
   return (
     <Window
-      title="Belay"
+      title="Fleet"
       subtitle={`${data.portfolio} · ${sourceLabel(list.filters.source)}`}
       toolbar={
         <FleetToolbar
@@ -106,7 +104,6 @@ export function FleetScreen({ data }: { data: FleetData }) {
           onView={list.setView}
           projects={proj.projects}
           waiting={proj.waiting}
-          compact={compact}
           source={list.filters.source}
           onSource={pickSource}
           sortLabel={sortLabel(list.sort.key, data.stages)}

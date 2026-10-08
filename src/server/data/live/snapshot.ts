@@ -1,8 +1,9 @@
 // A snapshot is everything the live source serves, read from the index in one go after each poll cycle. Pages read it
 // synchronously. What the index cannot yet serve (tracks, the loop, setup phases, the event feed, the cockpit text) is
 // the demo's catalogue, unchanged: see data/README.md for the list.
+import type { CycleHistory } from '@/lib/demo/cycleTypes';
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
-import { clock, getActionClasses, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
+import { clock, getActionClasses, getEstateCycles, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
 import { getPairing } from '@/server/index/repositories/pairing';
 import type { Queryable } from '@/server/index/repositories/sql';
 import { actionClass, maturity, task } from './narrow';
@@ -16,6 +17,7 @@ export interface LiveData {
   needsYou: NeedsYouItem[];
   cockpit: DemoData['cockpit'];
   setup: DemoData['setup'];
+  estate: Record<string, CycleHistory>;
 }
 
 export interface LiveSnapshot {
@@ -25,8 +27,9 @@ export interface LiveSnapshot {
 }
 
 export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData): Promise<LiveSnapshot> {
-  const [fleet, classes, mat, tasks, needsYou, pairing] = await Promise.all([
+  const [fleet, classes, mat, tasks, needsYou, pairing, estate] = await Promise.all([
     getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getNeedsYou(db, deep, at), getPairing(db, 'default'),
+    getEstateCycles(db, at),
   ]);
   const group = pairing?.groupPath ?? 'not paired';
   const feed = fleet.projects.find((p) => p.id === deep)?.feed;
@@ -41,6 +44,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       needsYou,
       cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? 0 } },
       setup: { ...catalogue.setup, group, project: deep },
+      estate,
     },
   };
 }

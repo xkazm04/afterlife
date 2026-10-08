@@ -7,6 +7,9 @@ export function loadDoorData(): DoorData {
   const fleet = ds.getFleet();
   const portfolio = ds.getPortfolio();
   const cockpit = ds.getCockpit();
+  const maturity = ds.getMaturity();
+  // unknown rungs add nothing on either side: never counted as zero evidence gained
+  const gained = maturity.rungs.reduce((n, r) => n + (r.now ?? 0) - (r.day0 ?? 0), 0);
   return {
     org: portfolio.group,
     asOf: portfolio.asOf,
@@ -20,5 +23,6 @@ export function loadDoorData(): DoorData {
       needs: ds.getNeedsYou(),
       tracks: ds.getTracks(),
     },
+    cycles: { projects: 1, gained },
   };
 }

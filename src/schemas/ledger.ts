@@ -29,7 +29,7 @@ export interface LedgerEvent {
 
 export const GENESIS = '0'.repeat(64);
 
-function canonical(value: unknown): string {
+export function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
   if (value && typeof value === 'object') {
     const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));

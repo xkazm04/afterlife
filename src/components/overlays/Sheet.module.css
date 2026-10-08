@@ -14,7 +14,8 @@
   max-height: calc(100% - 24px);
   display: flex;
   flex-direction: column;
-  background: color-mix(in oklab, var(--win) 94%, var(--white));
+  /* opaque: the window itself is translucent (--win) in Ghostwire, and a sheet holds exact commands to read */
+  background: color-mix(in oklab, var(--win-content) 97%, var(--white));
   border-radius: 0 0 10px 10px;
   border: 1px solid var(--shade-60);
   border-top: 0;

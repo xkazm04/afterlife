@@ -23,13 +23,15 @@ export const Answers = memo(function Answers({ snap, prev, armed, total }: { sna
           {a.now}
         </span>
       </Card>
-      <Card className={styles.ans} title="This week · counts only">
+      <Card className={`${styles.ans} ${styles.well}`} title="This week · counts only">
         <span className={styles.al}>Going well</span>
         <span className={styles.av}>
           <b className={styles.ok}>{a.well.pass}</b>
           <small>pass</small>
+          <wbr />
           <b className={a.well.fail ? styles.bad : undefined}>{a.well.fail}</b>
           <small>fail</small>
+          <wbr />
           <b>{a.well.demotions}</b>
           <small>{demotionWord(a.well.demotions)}</small>
         </span>

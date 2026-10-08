@@ -122,7 +122,7 @@ describe('rescan and modes', () => {
     const s = run(start(), { type: 'rescanAll' });
     expect(s.scannedAt).toBe('14:24');
     expect(s.now).toEqual(start().now);
-    expect(s.notice?.text).toBe('npx belay scan --engine v1 · read only · no rung moved');
+    expect(s.notice?.text).toBe('npx belay scan · engine v1 · read only · no rung moved');
   });
   it('changing the crag mode redraws the ropes', () => {
     const s = run(start(), { type: 'mode', mode: 'target' });

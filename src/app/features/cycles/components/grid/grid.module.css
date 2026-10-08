@@ -1,0 +1,197 @@
+/* The stage x cycle grid. One CSS grid: a label column, then --n equal cycle columns; rows use display: contents. */
+.grid {
+  display: grid;
+  grid-template-columns: var(--lw) repeat(var(--n), minmax(calc(44px * var(--ui-scale)), 1fr));
+  column-gap: calc(6px * var(--ui-scale));
+  row-gap: calc(5px * var(--ui-scale));
+  align-items: center;
+}
+.row {
+  display: contents;
+}
+.corner,
+.stage {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.corner {
+  color: var(--text-4);
+}
+/* column heads: a cycle per column */
+.chc {
+  display: grid;
+}
+.ch {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  color: var(--text-2);
+  cursor: default;
+}
+.ch b {
+  font: 650 var(--t-head) var(--mono);
+}
+.ch span {
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.ch:not(:disabled):hover {
+  background: var(--hover);
+}
+.ch[data-sel] {
+  background: var(--sel-dim);
+  color: var(--text-1);
+}
+.ch[data-state="running"] b {
+  color: var(--accent);
+}
+.ch[data-state="planned"] b {
+  color: var(--text-3);
+}
+/* a cell: the rung as a filled square, its digit always drawn (never colour alone) */
+.cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: calc(26px * var(--ui-scale));
+  border-radius: 5px;
+  cursor: default;
+}
+.cell[data-sel] {
+  background: var(--sel-dim);
+}
+.sq {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: calc(40px * var(--ui-scale));
+  height: calc(20px * var(--ui-scale));
+  border-radius: 4px;
+  font: 650 var(--t-small) var(--mono);
+  color: var(--text-1);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--border-1);
+  transition: background var(--t-med) var(--ease);
+}
+.cell[data-r="0"] .sq {
+  color: var(--text-4);
+}
+.cell[data-r="1"] .sq {
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+}
+.cell[data-r="2"] .sq {
+  background: color-mix(in oklab, var(--accent) 28%, transparent);
+}
+.cell[data-r="3"] .sq {
+  background: color-mix(in oklab, var(--accent) 46%, transparent);
+}
+.cell[data-r="4"] .sq {
+  background: color-mix(in oklab, var(--accent) 72%, transparent);
+  color: var(--ink-accent);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--accent) 40%, transparent);
+}
+.cell[data-r="q"] .sq {
+  background: none;
+  box-shadow: none;
+  border: 1px dashed var(--unknown);
+  color: var(--unknown);
+}
+/* open cycles: the held rung is quiet, the target is the point */
+.cell[data-state="running"] .sq,
+.cell[data-state="planned"] .sq {
+  opacity: 0.35;
+}
+.cell[data-move="up"] .sq {
+  box-shadow: inset 0 0 0 1px var(--accent), 0 0 8px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+.cell[data-move="down"] .sq {
+  box-shadow: inset 0 0 0 1.5px var(--accent-2);
+}
+.cell[data-move="found"] .sq {
+  outline: 1px dashed var(--accent);
+  outline-offset: -1px;
+}
+/* corner marks: a lift, a regression, a try that did not earn */
+.up,
+.down {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  border: 4px solid transparent;
+  border-block: 0;
+}
+.up {
+  border-bottom: 5px solid var(--accent);
+}
+.down {
+  border-top: 5px solid var(--accent-2);
+}
+.tried {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--text-3);
+}
+.ghost {
+  position: absolute;
+  inset: 3px 2px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--accent);
+  border-radius: 4px;
+  font: 650 var(--t-small) var(--mono);
+  color: var(--accent);
+  background: color-mix(in oklab, var(--win-content) 70%, transparent);
+}
+.cell[data-state="planned"] .ghost {
+  border-color: var(--text-4);
+  color: var(--text-3);
+}
+/* totals under the grid */
+.sum .stage {
+  color: var(--text-2);
+}
+.tot {
+  display: grid;
+  justify-items: center;
+  padding: 3px 0;
+  border-radius: 5px;
+  font: 650 var(--t-head) var(--mono);
+  color: var(--text-1);
+}
+.tot[data-sel] {
+  background: var(--sel-dim);
+}
+.tot i {
+  font-style: normal;
+  color: var(--text-3);
+}
+.tot em {
+  font: 600 var(--t-small) var(--mono);
+  font-style: normal;
+  color: var(--accent);
+}
+.tot em[data-neg] {
+  color: var(--accent-2);
+}
+/* a narrow pane (the largest text beside the inspector): tighter columns, so the whole history still fits */
+@container pane (max-width: 50em) {
+  .grid {
+    grid-template-columns: calc(66px * var(--ui-scale)) repeat(var(--n), minmax(calc(32px * var(--ui-scale)), 1fr));
+    column-gap: calc(4px * var(--ui-scale));
+  }
+  .sq {
+    font-size: calc(var(--t-small) - 1px);
+  }
+}

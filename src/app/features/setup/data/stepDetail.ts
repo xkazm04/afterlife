@@ -16,7 +16,7 @@ export const STEP_DETAIL: Readonly<Record<number, StepDetail>> = {
   },
   5: {
     who: 'agent', does: 'Pushes the ledgerline demo bank from its own repo and pairs it with the pack.', write: true, probe: 'remote main = local main · pair recorded',
-    cmd: ['git -C ../ledgerline push --mirror https://gitlab.com/acme-lab/ledgerline.git', 'npx belay pair ../ledgerline ../belay-pack'],
+    cmd: ['git -C ../ledgerline push --mirror https://gitlab.com/acme-lab/ledgerline.git', 'npx belay pair ../ledgerline --write'],
   },
   6: {
     who: 'human', short: 'Provision runner and billing', does: "A card and a cloud identity are yours, not an agent's.", action: 'Provision the runner and run the generated script',

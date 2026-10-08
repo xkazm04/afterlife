@@ -7,7 +7,7 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Belay Task ${id}` };
+  return { title: `Task ${id}` };
 }
 
 export default async function TaskPage({ params }: Params) {

@@ -4,6 +4,7 @@ import type { RouteView } from '../../model/crag/routes';
 import { rungText, type Mode } from '../../model/rungs';
 import { cx, onActivate } from '../cx';
 import { Clip } from './Clip';
+import { labelFit, stageLabel } from './labelFit';
 import styles from './crag.module.css';
 import ropes from './ropes.module.css';
 
@@ -37,6 +38,8 @@ export function Route({
   const ringAt = v.ring != null ? { x: x + g.jig(i, v.ring), y: g.yOf(v.ring) } : null;
   const x0 = x - g.colW * 0.36;
   const d0 = v.day0;
+  const fit = labelFit(g);
+  const label = stageLabel(v.stage, fit);
 
   return (
     <g>
@@ -103,8 +106,15 @@ export function Route({
         ) : null}
         {lv != null && !target ? <circle className={ropes.climber} cx={x + g.jig(i, lv)} cy={markY(g, lv, 2)} r={5 * s} /> : null}
         {ringAt && !v.clip ? <circle className={ropes.ring} cx={ringAt.x} cy={ringAt.y} r={8 * s} /> : null}
-        <text className={cx(styles.slab, v.selected && styles.slabSel)} x={x} y={g.Y0 + 36 * s} textAnchor="middle">
-          {v.stage}
+        <text
+          className={cx(styles.slab, v.selected && styles.slabSel)}
+          x={x}
+          y={g.Y0 + 36 * s}
+          textAnchor="middle"
+          style={fit.size < 1 ? { fontSize: `calc(${(12 * fit.size).toFixed(2)}px * var(--ui-scale))` } : undefined}
+        >
+          {label}
+          {label !== v.stage ? <title>{v.stage}</title> : null}
         </text>
         <text className={cx(styles.slab2, v.deep && styles.deepText)} x={x} y={g.Y0 + 50 * s} textAnchor="middle">
           {rungText(lv)}

@@ -1,4 +1,4 @@
-// The app navigation: eight screens plus Settings at the bottom. Pure data and one pure matcher.
+// The app navigation: ten screens plus Settings at the bottom. Pure data and one pure matcher.
 import type { IconName } from '@/components/icons/glyphs';
 
 export interface NavEntry {
@@ -16,7 +16,9 @@ export const APP_NAV: readonly NavEntry[] = [
   { key: 'needs-you', href: '/needs-you', label: 'Needs you', icon: 'needsYou', needsYouBadge: true },
   { key: 'ladder', href: '/ladder', label: 'Ladder', icon: 'ladder' },
   { key: 'maturity', href: '/maturity', label: 'Maturity', icon: 'maturity' },
+  { key: 'cycles', href: '/cycles', label: 'Cycles', icon: 'cycles' },
   { key: 'task', href: '/task', label: 'Task', icon: 'task' },
+  { key: 'onboard', href: '/onboard', label: 'Onboard', icon: 'onboard' },
   { key: 'setup', href: '/setup', label: 'Setup', icon: 'setup' },
   { key: 'theater', href: '/theater', label: 'Theater', icon: 'theater' },
 ];

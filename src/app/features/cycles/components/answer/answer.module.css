@@ -1,0 +1,58 @@
+/* The answer band: the big number, three facts, the proofs. */
+.band {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: calc(10px * var(--ui-scale)) calc(28px * var(--ui-scale));
+}
+.big {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.big b {
+  font: 700 calc(46px * var(--ui-scale)) / 1 var(--sys);
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  text-shadow: 0 0 22px color-mix(in oklab, var(--accent) 40%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+.big span {
+  display: grid;
+  font-size: var(--t-title);
+  font-weight: 600;
+  color: var(--text-1);
+}
+.big em {
+  font-style: normal;
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--text-3);
+}
+.facts {
+  display: flex;
+  gap: calc(18px * var(--ui-scale));
+  margin: 0;
+}
+.facts div {
+  display: grid;
+}
+.facts dt {
+  order: 2;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.facts dd {
+  margin: 0;
+  font: 650 var(--t-title) var(--mono);
+  color: var(--text-1);
+}
+.facts dd[data-bad] {
+  color: var(--accent-2);
+}
+.proofs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}

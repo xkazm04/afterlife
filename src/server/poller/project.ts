@@ -4,6 +4,7 @@ import type { PGlite } from '@electric-sql/pglite';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { GlDeployment, GlGroup, GlMergeRequest, GlNote, GlProject } from '@/server/gitlab/types';
 import { importLedger, type LedgerSource } from '@/server/ledger/importLedger';
+import { importCycles } from '@/server/ledger/importCycles';
 import { listClassTiers, upsertClassTiers } from '@/server/index/repositories/fleet/classTier';
 import { upsertProjects, type ProjectRow } from '@/server/index/repositories/fleet/project';
 import { listOpenProposals, upsertProposals, closeProposal } from '@/server/index/repositories/work/proposal';
@@ -43,6 +44,8 @@ export interface ProjectPoll {
   tasks: number;
   proofs: number;
   ledger: string;
+  /** The cycle file: absent, unchanged or imported (a rejected one fails the feed like the ledger). */
+  cycles?: string;
   issues: string[];
 }
 
@@ -123,6 +126,12 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
       } catch (e) {
         out.ledger = 'rejected';
         ledgerError = e instanceof Error ? e.message : String(e);
+      }
+      try {
+        out.cycles = (await importCycles(env.ledger, db, gl.id, id, env.mem.cycles)).status;
+      } catch (e) {
+        out.cycles = 'rejected';
+        ledgerError ??= e instanceof Error ? e.message : String(e);
       }
     }
 

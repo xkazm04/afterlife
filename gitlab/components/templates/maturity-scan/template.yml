@@ -34,7 +34,7 @@ spec:
       default: []
     scan_command:
       default: 'scan'
-      description: The engine command that scores facts.json. [R?] Not in the engine CLI contract (docs/BACKEND-PLAN.md section 3); the job may fail until it exists.
+      description: The engine command that scores facts.json (engine/scan, `engine/cli.ts scan --facts`). Not in the original engine CLI contract (docs/BACKEND-PLAN.md section 3); added with belay scan.
 ---
 .belay-boot-maturity-scan:
   image: $[[ inputs.node_image ]]

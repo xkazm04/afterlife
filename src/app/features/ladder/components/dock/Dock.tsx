@@ -6,10 +6,12 @@ import help from '@/components/overlays/HelpButton.module.css';
 import { CommandDock } from '@/components/shell/dock/CommandDock';
 import { DockKey } from '@/components/shell/dock/DockKey';
 import { DockText } from '@/components/shell/dock/DockText';
+import { elide } from '@/components/write/outcome';
+import type { WriteEntry } from '@/components/write/useServerWrites';
 import { TIER_META } from '@/lib/tiers';
 import type { DockModel } from '../../model/rules/dock';
 
-function Line({ model }: { model: DockModel }) {
+function Line({ model, server }: { model: DockModel; server?: WriteEntry }) {
   switch (model.kind) {
     case 'none':
       return (
@@ -33,6 +35,22 @@ function Line({ model }: { model: DockModel }) {
         </>
       );
     case 'write':
+      if (server?.status === 'refused') {
+        return (
+          <>
+            <b>{model.id}</b> → {TIER_META[model.to].name} · <DockText tone="note">the server will not send this: {server.reason}</DockText>
+          </>
+        );
+      }
+      if (server?.status === 'preview' && server.preview.commands[0]) {
+        return (
+          <>
+            <DockText tone="prompt">{model.previewing ? '↵' : 'r'} ▸</DockText> <b>{model.id}</b> → {TIER_META[model.to].name} ·{' '}
+            {elide(server.preview.commands[0].display).text}{' '}
+            <DockText tone="note">({server.preview.mode === 'live' ? 'belay-policy, as you' : 'demo: planned, never executed'})</DockText>
+          </>
+        );
+      }
       return (
         <>
           <DockText tone="prompt">{model.previewing ? '↵' : 'r'} ▸</DockText> <b>{model.id}</b> → {TIER_META[model.to].name} · git commit -am &quot;{model.msg}&quot; &amp;&amp; git
@@ -42,10 +60,14 @@ function Line({ model }: { model: DockModel }) {
   }
 }
 
-/** The docked strip: the exact write `r` (or the highlighted menu item) would run, and the keys. */
-export function Dock({ model, onHelp, helpRef }: { model: DockModel; onHelp: () => void; helpRef: Ref<HTMLButtonElement> }) {
+/**
+ * The docked strip: the exact write `r` (or the highlighted menu item) would run, and the keys. Once the server has
+ * planned it, the strip shows the server's command (its file content folded; the full command is the tooltip).
+ */
+export function Dock({ model, server, onHelp, helpRef }: { model: DockModel; server?: WriteEntry; onHelp: () => void; helpRef: Ref<HTMLButtonElement> }) {
+  const full = server?.status === 'preview' ? server.preview.commands.map((c) => c.display).join('\n') : model.kind === 'write' ? model.cmd.join('\n') : undefined;
   return (
-    <CommandDock line={<Line model={model} />} title={model.kind === 'write' ? model.cmd.join('\n') : undefined}>
+    <CommandDock line={<Line model={model} server={server} />} title={full}>
       <DockKey>
         <Kbd>j</Kbd>
         <Kbd>k</Kbd> move
