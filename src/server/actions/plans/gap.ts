@@ -35,6 +35,9 @@ export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<P
     let shown: string[];
     if ('hunk' in f) {
       if (!file) throw new ActionRefused(`${f.path} does not exist on ${base}, so the hunk for it has nothing to be applied to`);
+      if (!file.lastCommitId || !COMMIT_ID.test(file.lastCommitId)) {
+        throw new ActionRefused(`GitLab did not say which commit last changed ${f.path}, so a write from a stale read could not be refused; nothing is planned`);
+      }
       content = applyHunk(f.path, file.content, f.hunk);
       shown = [`~ ${f.path} (hunk: +${f.hunk.filter((l) => l.startsWith('+')).length} lines)`, ...f.hunk.map((l) => (l.startsWith('+') ? `+ ${l.slice(1)}` : `  ${l.slice(1)}`))];
     } else {

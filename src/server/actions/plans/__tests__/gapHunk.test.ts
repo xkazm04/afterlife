@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseIntent } from '../../intents';
 import { confirmIntent, previewIntent } from '../../run';
+import type { GitLabPort } from '@/server/gitlab/port';
 import { liveRig } from '../../__tests__/rig';
 import { ActionRefused } from '../context';
 import { applyHunk } from '../hunk';
@@ -97,6 +98,19 @@ describe('a hunk in a gap MR', () => {
     (ledgerline.branches ??= {})['belay/gap-g1'] = 'c0ffee0000000000000000000000000000000001';
     const r = await previewIntent(deps, gap([clean]));
     expect(r).toMatchObject({ status: 'refused', reason: expect.stringMatching(/belay\/gap-g1 already exists in .*ledgerline \(its head is c0ffee00\)/) });
+    expect(gl.state.writes).toEqual([]);
+  });
+
+  // F87: a hunk's write carries the base file's last_commit_id, so a file changed after the read is refused by GitLab.
+  it('is refused when GitLab does not say which commit last changed the base file', async () => {
+    const noCommit = (port: GitLabPort): GitLabPort => new Proxy(port, {
+      get: (t, k, r) => (k === 'getFile'
+        ? async (...a: Parameters<GitLabPort['getFile']>) => { const f = await t.getFile(...a); return f ? { ...f, lastCommitId: null } : f; }
+        : Reflect.get(t, k, r)),
+    });
+    const { deps, gl } = await liveRig(noCommit);
+    const r = await previewIntent(deps, gap([clean]));
+    expect(r).toMatchObject({ status: 'refused', reason: expect.stringMatching(/did not say which commit last changed \.gitlab-ci\.yml/) });
     expect(gl.state.writes).toEqual([]);
   });
 
