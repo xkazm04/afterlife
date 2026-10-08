@@ -54,7 +54,7 @@ export interface LiveSetupRead {
   group: string;
   host: string;
   project: string;
-  /** The projects step 4 creates: the target and the four belay projects. */
+  /** The projects step 4 creates: the target and the five belay projects. */
   projects: readonly string[];
   tracks: Record<string, TrackRead>;
   /** When the tracks were read. */

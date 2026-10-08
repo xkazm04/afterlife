@@ -19,7 +19,7 @@ export interface SetupPort {
 }
 
 /** The belay projects step 4 creates beside the target. */
-export const BELAY_PROJECTS = ['belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine'] as const;
+export const BELAY_PROJECTS = ['belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine', 'belay-apply'] as const;
 
 const NO_PORT = 'live mode has no GitLab port yet (the first poll has not finished)';
 

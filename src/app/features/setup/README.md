@@ -9,7 +9,7 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   `loadSetupData`: the data source's setup, tracks and classes, and in live mode `live`, what the server read now
   (`src/server/data/setup`): each track's arm block on the target's main (`checkArm`), the belay doctor
   (`probeCapabilities` on the paired group, with each row's reason and the real probe time), and steps 0 (glab's login),
-  1 (the pairing row) and 4 (the target and the four belay projects). `illustrative` says what is still the catalogue's.
+  1 (the pairing row) and 4 (the target and the five belay projects). `illustrative` says what is still the catalogue's.
 - `components/map/` canvas, edge layer (SVG, measured from `[data-node]`), `columns/`, `nodes/`.
 - `components/inspector/` default / step / track / capability panels; `parts/` dep lists, stats, probe line.
 - `components/toolbar/` group menu, doctor lozenge (lights capabilities), Re-probe.

@@ -9,7 +9,7 @@ export interface StepNames {
 }
 
 /** The demo's names: its commands, unchanged. */
-export const DEMO_NAMES: StepNames = { host: 'gitlab.com', group: 'acme-lab', project: 'ledgerline', projects: ['ledgerline', 'belay-pack', 'belay-policy', 'belay-ledger'] };
+export const DEMO_NAMES: StepNames = { host: 'gitlab.com', group: 'acme-lab', project: 'ledgerline', projects: ['ledgerline', 'belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine', 'belay-apply'] };
 
 /** Commands are illustrative: glab flags recalled, not sourced. They name `n`'s group and project, never the demo's in live mode. */
 const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({

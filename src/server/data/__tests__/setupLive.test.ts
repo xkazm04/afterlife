@@ -92,12 +92,12 @@ describe("the doctor's live rows are probeCapabilities' against the paired group
 });
 
 describe('the live steps show what a read saw, and unknown for every other', () => {
-  it('0: the login; 1: the pairing row; 4: the target and the four belay projects; every other step: not probed', async () => {
+  it('0: the login; 1: the pairing row; 4: the target and the five belay projects; every other step: not probed', async () => {
     const { reads: r } = await reads();
     const { steps } = await r.steps();
     expect(steps[0]).toEqual({ state: 'done', text: expect.stringMatching(/^glab api user → 200 · signed in as @/) });
     expect(steps[1]).toEqual({ state: 'failed', text: 'acme-lab on gitlab.com is paired, but no checkout is recorded' });
-    expect(steps[4]).toEqual({ state: 'failed', text: '3 of 5 projects exist · missing belay-pack, belay-engine' });
+    expect(steps[4]).toEqual({ state: 'failed', text: '3 of 6 projects exist · missing belay-pack, belay-engine, belay-apply' });
     for (let n = 0; n <= 14; n++) if (![0, 1, 4].includes(n)) expect(steps[n]).toEqual({ state: 'unknown', reason: 'not probed' });
     expect(Object.values(steps).map((s) => s.state).filter((s) => !['done', 'failed', 'unknown'].includes(s))).toEqual([]);
   });
@@ -105,10 +105,10 @@ describe('the live steps show what a read saw, and unknown for every other', () 
   it('step 4 is done once every project is there', async () => {
     const { gl, reads: r } = await reads();
     const base = gl.state.projects.find((p) => p.raw.name === 'belay-policy')!;
-    for (const [i, name] of ['belay-pack', 'belay-engine'].entries()) {
+    for (const [i, name] of ['belay-pack', 'belay-engine', 'belay-apply'].entries()) {
       gl.state.projects.push({ ...base, raw: { ...base.raw, id: 777 + i, name, path: name, path_with_namespace: `acme-lab/${name}` }, files: {} });
     }
-    expect((await r.steps()).steps[4]).toEqual({ state: 'done', text: '5 of 5 projects exist' });
+    expect((await r.steps()).steps[4]).toEqual({ state: 'done', text: '6 of 6 projects exist' });
     expect(r.projects).toEqual(['ledgerline', ...BELAY_PROJECTS]);
   });
 
