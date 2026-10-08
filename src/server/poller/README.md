@@ -83,3 +83,18 @@ dismissed at or after the record's `since` is not opened again until the record 
 
 A task id belongs to the first project and MR that used it: a second MR claiming it is ignored and reported.
 Pipelines are not read: no row consumes them yet.
+
+## Known limits (decided, not built)
+
+1. **Reverts and clean days are stated only when trust-policy.yml demotes on a revert.** Only then does the tripwire
+   rewrite the record's `since` on a revert, so "no revert since `since`" is a fact (`derive/counters.ts:21-25`,
+   `revertDemotes`; applied at `derive/counters.ts:97`). Under a policy that does not demote on `revert`, reverts and
+   clean days read "not recorded", and no class is promoted to Supervised or Hands-off from a poll.
+2. **A promotion MR closed without merging does not ask again until the record's `since` moves.** A person acting on the
+   ask (opening the MR) settles it, and an ask settled at or after the record's `since` is not reopened
+   (`derive/promotion.ts:83`, `isSettled` at `derive/promotion.ts:91`). Closing the MR unmerged leaves tier-state.yml,
+   and so `since`, unchanged: the class stays eligible on Ladder, but Needs you does not ask again until the record moves.
+3. **Asks are per project while tier-state.yml is group-wide.** tier-state.yml is read once per group
+   (`cycle.ts:83`), but the record is counted and the ask opened per target project (`project.ts:151`,
+   `classes.ts:29-52`, id `promote:<project>:<class>` from `src/lib/promotion/promotion.ts:39`): a class whose holder works
+   in two projects is counted, and asked about, once in each. Kept because the demo group holds one delivery project.
