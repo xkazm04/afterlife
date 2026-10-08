@@ -4,32 +4,37 @@
 //   - everything under .gitlab/;
 //   - every file the CI file includes locally (include:local, a plain string, or include:project naming this project),
 //     followed through the included files, as the head commit has them. [S] docs.gitlab.com/ci/yaml/includes/
-// Fails closed: a CI file that does not parse, an include that cannot be read (anything but a 404), or more includes than
-// the cap all count as "touches", with the reason.
+// Fails closed: a CI file that does not parse, an include that cannot be read (anything but a 404), more includes than
+// the cap, and an include this file cannot resolve from the head's files alone (a path or project with a variable, or a
+// wildcard, whose matches are not followed, F68) all count as "touches", with the reason.
 import { parse } from 'yaml';
 
 const MAX_FILES = 100;
 
-/** A glob of an include (`*` within a segment, `**` across them) as a RegExp over repository paths. */
-function globRe(pattern) {
-  const src = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*\*\/?/g, '\u0000').replace(/\*/g, '[^/]*').replace(/\u0000/g, '.*');
-  return new RegExp(`^${src}$`);
-}
-
-/** The local paths one CI file includes. A remote, template or component include is not this project's file. */
+/**
+ * The local paths one CI file includes, or `{unresolved}` naming the first include that cannot be followed. A remote,
+ * template or component include is not this project's file. An include:project whose project carries a variable may be
+ * this project, so it is unresolved too.
+ */
 function localIncludes(doc, projectPath) {
   const inc = doc && typeof doc === 'object' ? doc.include : undefined;
-  if (inc === undefined || inc === null) return [];
+  if (inc === undefined || inc === null) return { paths: [] };
   const out = [];
   for (const i of [].concat(inc)) {
     if (typeof i === 'string') {
       if (!/^https?:\/\//.test(i)) out.push(i);
     } else if (i && typeof i === 'object') {
       if (typeof i.local === 'string') out.push(i.local);
+      else if (typeof i.project === 'string' && i.project.includes('$')) return { unresolved: `its CI configuration includes from the project ${i.project}, a variable` };
       else if (i.project === projectPath) out.push(...[].concat(i.file ?? []).filter((f) => typeof f === 'string'));
     }
   }
-  return out.map((p) => p.replace(/^\/+/, ''));
+  const paths = out.map((p) => p.replace(/^\/+/, ''));
+  const variable = paths.find((p) => p.includes('$'));
+  if (variable) return { unresolved: `its CI configuration includes ${variable}, a path with a variable` };
+  const wildcard = paths.find((p) => p.includes('*'));
+  if (wildcard) return { unresolved: `its CI configuration includes ${wildcard}, a wildcard whose files are not followed` };
+  return { paths };
 }
 
 /**
@@ -63,13 +68,9 @@ export function touchesCi({ changed, project, readAt }) {
     } catch {
       return `its CI file ${file} does not parse: treated as changed`;
     }
-    for (const inc of localIncludes(doc, project.path_with_namespace)) {
-      if (inc.includes('*')) {
-        const re = globRe(inc);
-        const p = [...paths].find((x) => re.test(x));
-        if (p) return `it changes ${p}, which the CI configuration includes (${inc})`;
-        continue; // [R?] files matched by a wildcard include are not followed further
-      }
+    const includes = localIncludes(doc, project.path_with_namespace);
+    if (includes.unresolved) return `${includes.unresolved}: treated as changed`;
+    for (const inc of includes.paths) {
       if (hit(inc)) return `it changes ${inc}, which the CI configuration includes`;
       if (!seen.has(inc)) {
         if (seen.size >= MAX_FILES) return `its CI configuration includes more than ${MAX_FILES} files: treated as changed`;
