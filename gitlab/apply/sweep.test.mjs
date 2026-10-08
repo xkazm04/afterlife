@@ -84,6 +84,7 @@ function group({ desc = description, notes = [guardrailNote('pass')], pipelineSh
     'projects/1/merge_requests': [{ iid: 7, author: { username: 'ai-patcher-acme' } }],
     'projects/1/merge_requests/7': { iid: 7, author: { username: 'ai-patcher-acme' }, description: desc, target_branch: 'main', sha: HEAD, diff_refs: { base_sha: BASE, head_sha: HEAD }, labels },
     'projects/1/merge_requests/7/notes': notes,
+    'projects/1/merge_requests/7/approvals': { approved_by: [] },
     'projects/1/repository/compare': compareOf(diff),
     'projects/1/repository/files/.gitlab-ci.yml/raw': { __raw: 'stages: [build, test, review]\ninclude:\n  - local: /ci/replay.yml\n' },
     'projects/1/repository/files/ci%2Freplay.yml/raw': { __raw: 'belay-replay:\n  script: ./gradlew test\n' },
@@ -306,6 +307,38 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     }
     // An auto-merge a person set is theirs: the sweep leaves it, and writes nothing.
     expect(sweep(autoMerging('a-maintainer')).writes).toEqual([]);
+  });
+
+  it('(xv) F89: an approval the bot gave is withdrawn once the gate no longer says approve or merge; a person\'s is never touched', () => {
+    // The gate approved this head at supervised and the ledger has it (as in (i)). Then a revoke or a tripwire demotion
+    // changes tier-state.yml, and the bot's approval would still count toward the target's approval rules.
+    const first = sweep(group());
+    const [proofNote, gateNote] = glabWrites(first, 'note create');
+    const ledger = first.writes.find((w) => w.path === `${LEDGER}/repository/commits`);
+    const bot = (id, n) => ({ id, system: false, author: { username: 'belay-bot' }, created_at: '2026-10-07T10:05:00Z', body: n.body.message });
+    const done = { notes: [bot(102, gateNote), bot(101, proofNote), guardrailNote('pass')], labels: ['proof::pass', 'guardrail::pass'], ledgerCommits: [{ id: 'f'.repeat(40), message: ledger.body.commit_message }] };
+    const UNAPPROVE = 'projects/1/merge_requests/7/unapprove';
+    const REVOKED = STATE.replace('tier: supervised', 'tier: quarantined');
+    const approvedBy = (users, state = STATE) => ({ ...group({ ...done, state }), 'projects/1/merge_requests/7/approvals': { approved_by: users.map((username) => ({ user: { username } })) }, [`POST ${UNAPPROVE}`]: { reply: {} } });
+
+    const r = sweep(approvedBy(['belay-bot', 'a-maintainer'], REVOKED));
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.writes.filter((w) => w.path === UNAPPROVE)).toEqual([expect.objectContaining({ method: 'POST' })]);
+    const notes = glabWrites(r, 'note create');
+    expect(notes).toHaveLength(1);
+    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay: approval withdrawn\\*\\* for head \`${HEAD}\`: the gate now says (wait|block) at tier quarantined`));
+    expect(granted(r)).toEqual([]);
+    expect(r.writes).toHaveLength(2);
+
+    // Once: the next sweep finds only the person's approval, and leaves it.
+    expect(sweep(approvedBy(['a-maintainer'], REVOKED)).writes).toEqual([]);
+    // A head the gate still approves keeps the bot's approval.
+    expect(sweep(approvedBy(['belay-bot'])).writes).toEqual([]);
+    // Reporting only: it says what it would withdraw, and writes nothing.
+    const dry = sweep(approvedBy(['belay-bot'], REVOKED), { CI_SERVER_FQDN: 'gitlab.example' });
+    expect(dry.code, dry.stderr).toBe(0);
+    expect(dry.writes).toEqual([]);
+    expect(dry.stderr).toMatch(/withdrawing the approval the bot gave: the gate now says (wait|block) at tier quarantined/);
   });
 
   it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {

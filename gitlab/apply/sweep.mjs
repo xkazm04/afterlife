@@ -13,7 +13,8 @@
 //   ledger   a belay-ledger commit of events/<project>.jsonl carrying `Belay-Head: <project>!<iid>@<head>`
 //   dispatch a bot note "**Belay: guardrail review requested** for head `<head>`" (the Flows API lists no runs)
 // One write is not once per head: an auto-merge the bot set is cancelled whenever the gate, re-run against the live
-// tier-state.yml, no longer says merge (F74), so a revoke or a tripwire demotion reaches an MR the gate already set.
+// tier-state.yml, no longer says merge (F74), and an approval the bot gave is withdrawn whenever it says neither approve
+// nor merge (F89), so a revoke or a tripwire demotion reaches an MR the gate already approved or set.
 // Fails closed: a failed read stops that MR's writes with GitLab's message, the other MRs go on, and the job ends red.
 // Without BELAY_BOT_TOKEN, or without BELAY_LEDGER_TOKEN, it only reports, as M1 did: the bot token never writes the ledger.
 //
@@ -125,9 +126,11 @@ function sweepMr(t, iid) {
    * only with a gate the engine decided.
    */
   /**
-   * An auto-merge the bot set stands only while the gate still says merge for this head (F74). A revoke or a tripwire
-   * demotion changes tier-state.yml, not the MR, so each sweep re-decides an MR that has one and cancels it on anything
-   * else. An auto-merge a person set is theirs and is left alone.
+   * An auto-merge the bot set stands only while the gate still says merge for this head (F74), and an approval the bot
+   * gave only while it says approve or merge (F89): it would still count toward the target's approval rules. A revoke or a
+   * tripwire demotion changes tier-state.yml, not the MR, so each sweep re-decides an MR that has either and withdraws it
+   * on anything else. An auto-merge a person set and a person's approval are theirs and are left alone: the unapprove is
+   * the bot's own call, which removes only the bot's approval. The approvals are read only once the gate is done.
    */
   const botAutoMerge = m.merge_when_pipeline_succeeds === true && String(m.merge_user?.username ?? '') === cfg.bot;
   const cancelAutoMerge = (decision, tier) => {
@@ -138,10 +141,29 @@ function sweepMr(t, iid) {
     api(`projects/${t.id}/merge_requests/${iid}/cancel_merge_when_pipeline_succeeds`, { method: 'POST' });
     glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Belay: auto-merge cancelled** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
   };
+  let approvedByBot;
+  const botApproved = () => {
+    if (!gateDone) return false;
+    if (approvedByBot === undefined) {
+      const a = api(`projects/${t.id}/merge_requests/${iid}/approvals`);
+      if (!Array.isArray(a?.approved_by)) throw new Error('the approvals of the MR could not be read');
+      approvedByBot = a.approved_by.some((x) => String(x?.user?.username ?? '') === cfg.bot);
+    }
+    return approvedByBot;
+  };
+  const withdrawApproval = (decision, tier) => {
+    if (decision === 'approve' || decision === 'merge' || !botApproved()) return;
+    const why = `the gate now says ${decision}${tier ? ` at tier ${tier}` : ''}`;
+    say(`${tag}: withdrawing the approval the bot gave: ${why}`);
+    if (!WRITE) return;
+    api(`projects/${t.id}/merge_requests/${iid}/unapprove`, { method: 'POST' });
+    glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Belay: approval withdrawn** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
+  };
   const force = (decision, reason) => {
     const d = guardBlocked ? 'block' : decision;
     const why = guardBlocked && decision !== 'block' ? `the guardrail blocked this head; also, ${reason}` : reason;
     cancelAutoMerge(d, null);
+    withdrawApproval(d, null);
     if (gateDone || notes.some((n) => forcedFor(n)?.decision === d.toUpperCase() && forcedFor(n).head === head)) return say(`${tag}: ${d} already said for this head`);
     say(`${tag}: ${d}: ${why}`);
     const r = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--force', d, '--reason', `head ${head}: ${why}`,
@@ -257,7 +279,7 @@ function sweepMr(t, iid) {
   if (gr.code === 4) return force('block', 'the guardrail verdict does not match its schema: treated as inconclusive');
 
   // The gate, decided here, and its ledger events.
-  if (gateDone && ledgerDone && !botAutoMerge) return say(`${tag}: gate and ledger already applied for this head`);
+  if (gateDone && ledgerDone && !botAutoMerge && !botApproved()) return say(`${tag}: gate and ledger already applied for this head`);
   const g = engine(['gate', '--policy', policyFile, '--state', statesFile, '--class', actionClass, '--agent', mr.BELAY_AGENT,
     '--proof', proofFile, '--guardrail', path.join(dir, 'guardrail-gate.json'), '--diff', diffFile]);
   const decisionFile = path.join(dir, 'decision.json');
@@ -269,7 +291,10 @@ function sweepMr(t, iid) {
       return null;
     }
   })();
-  if (decided?.decision !== 'merge') cancelAutoMerge(typeof decided?.decision === 'string' ? decided.decision : 'nothing readable', typeof decided?.tier === 'string' ? decided.tier : null);
+  const now = typeof decided?.decision === 'string' ? decided.decision : 'nothing readable';
+  const nowTier = typeof decided?.tier === 'string' ? decided.tier : null;
+  if (now !== 'merge') cancelAutoMerge(now, nowTier);
+  withdrawApproval(now, nowTier);
   if (gateDone && ledgerDone) return say(`${tag}: gate and ledger already applied for this head`);
   const events = path.join(dir, 'events');
   const applied = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--decision', decisionFile, '--guardrail', guardrailFile,
