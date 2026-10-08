@@ -33,7 +33,7 @@ are not part of the project.
 | 5 | Takes no value from pipeline variables, trigger variables or a webhook. A schedule is the baseline | `apply.json` holds every setting, including the engine pin; the settings below |
 | 6 | Acts only on projects of the paired group (a shared-in project is skipped, F37) and only on agent MRs (`agent_prefix` and the `Belay-Task` trailer, `mr-context.mjs`) | `lib.mjs` `targetsOf`; test (vi) |
 | 7 | Each write once per project, MR and head; a second sweep writes nothing | read-back below; test (i) |
-| 8 | Fails closed: a failed read stops that MR's writes and prints GitLab's message (the job ends red). No `BELAY_BOT_TOKEN`: report-only | tests "a failed read", "without BELAY_BOT_TOKEN" |
+| 8 | Fails closed: a failed read stops that MR's writes and prints GitLab's message (the job ends red). No `BELAY_BOT_TOKEN` or no `BELAY_LEDGER_TOKEN`: report-only | tests "a failed read", "without BELAY_BOT_TOKEN", "without BELAY_LEDGER_TOKEN" |
 | 9 | Reuses the existing write scripts, so every note is byte-identical | `post-proof.mjs`, `apply-gate.mjs`, `ledger-append.mjs`, `dispatch.mjs`, `tripwire.mjs` |
 
 ## One sweep, per agent MR
@@ -113,7 +113,7 @@ Tokens:
 |---|---|---|
 | `BELAY_BOT_TOKEN` (F72, proposed) | a bot user's or service account's token, scope `api`. The account is Developer on the target projects only and Reporter on belay-policy and belay-ledger, and never a member of belay-apply or belay-engine. Not a group access token of the paired group: that reaches every project in the group and defeats the separate `BELAY_POLICY_TOKEN` | read every target (MRs, notes, pipelines, jobs, artifacts, files, compare); post notes and labels, approve, merge; read the ledger and policy history. Its username goes in `apply.json` `bot` and in the app's `BELAY_PROOF_AUTHORS` |
 | `BELAY_POLICY_TOKEN` | project access token of `belay-policy`, `write_repository` or `api`, allowed to push to its `main` (spike S8) | the tripwire's commit |
-| `BELAY_LEDGER_TOKEN` (required) | project access token of `belay-ledger`, `api` | ledger commits. Required so the bot token never writes the ledger; the code still falls back to the bot token when it is unset, so an unset one is a gap, not a refusal |
+| `BELAY_LEDGER_TOKEN` (required) | project access token of `belay-ledger`, `api` | ledger commits. Required so the bot token never writes the ledger: with it unset the sweep only reports, as without `BELAY_BOT_TOKEN`, and its log names the missing token |
 | `BELAY_DISPATCH_TOKEN` | a token that may create flow runs in the targets (spike S1) | `POST /ai/duo_workflows/workflows` |
 
 **Optional wake-up.** A pipeline trigger token (Settings > CI/CD > Pipeline trigger tokens) can start a sweep sooner, for

@@ -13,7 +13,7 @@
 //   ledger   a belay-ledger commit of events/<project>.jsonl carrying `Belay-Head: <project>!<iid>@<head>`
 //   dispatch a bot note "**Belay: guardrail review requested** for head `<head>`" (the Flows API lists no runs)
 // Fails closed: a failed read stops that MR's writes with GitLab's message, the other MRs go on, and the job ends red.
-// Without BELAY_BOT_TOKEN it only reports, as M1 did.
+// Without BELAY_BOT_TOKEN, or without BELAY_LEDGER_TOKEN, it only reports, as M1 did: the bot token never writes the ledger.
 //
 // Usage: node sweep.mjs --config apply.json [--policy-remote <url|path>] [--work .belay]
 import fs from 'node:fs';
@@ -27,12 +27,13 @@ import { clonePolicy, glue, loadConfig, targetsOf } from './lib.mjs';
 
 const cfg = loadConfig(need('config'));
 const work = path.resolve(arg('work', '.belay'));
-const WRITE = Boolean(process.env.BELAY_BOT_TOKEN);
+const MISSING = ['BELAY_BOT_TOKEN', 'BELAY_LEDGER_TOKEN'].filter((v) => !process.env[v]);
+const WRITE = MISSING.length === 0;
 const SCHEMAS = path.resolve(import.meta.dirname, '..', 'flows', 'schemas');
 const FINISHED = new Set(['success', 'failed', 'canceled', 'skipped']);
 const EVIDENCE_SOURCE = 'merge_request_event';
 const say = (m) => console.error(`belay-apply: ${m}`);
-if (!WRITE) say('BELAY_BOT_TOKEN is not set: reporting only, nothing is written');
+if (!WRITE) say(`${MISSING.join(' and ')} ${MISSING.length > 1 ? 'are' : 'is'} not set: reporting only, nothing is written`);
 
 fs.mkdirSync(work, { recursive: true });
 const policyDir = clonePolicy(cfg, arg('policy-remote'), path.join(work, 'policy'), 1);
@@ -242,8 +243,7 @@ function sweepMr(t, iid) {
   if (applied.code > 1) throw new Error(`apply-gate exited ${applied.code}`);
   if (ledgerDone || !fs.existsSync(events)) return;
   if (!WRITE) return say(`${tag}: ledger events not appended (reporting only)`);
-  const tokenVar = process.env.BELAY_LEDGER_TOKEN ? 'BELAY_LEDGER_TOKEN' : 'BELAY_BOT_TOKEN';
-  const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile, '--key', ledgerKey, '--write-token-var', tokenVar], env, dir);
+  const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile, '--key', ledgerKey, '--write-token-var', 'BELAY_LEDGER_TOKEN'], env, dir);
   if (l.code !== 0) throw new Error(`ledger-append exited ${l.code}`);
 }
 

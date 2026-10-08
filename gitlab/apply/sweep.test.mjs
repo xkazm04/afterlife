@@ -106,7 +106,7 @@ function group({ desc = description, notes = [guardrailNote('pass')], pipelineSh
   };
 }
 
-const TOKENS = { BELAY_BOT_TOKEN: 'bot', CI_SERVER_FQDN: 'gitlab.example' };
+const TOKENS = { BELAY_BOT_TOKEN: 'bot', BELAY_LEDGER_TOKEN: 'ledger', CI_SERVER_FQDN: 'gitlab.example' };
 const sweep = (routes, env = TOKENS) => runScript(dir, '../../apply/sweep.mjs', ['--config', CONFIG, '--policy-remote', POLICY, '--work', path.join(dir, 'work')], { routes, env });
 const glabWrites = (r, cmd) => r.writes.filter((w) => w.method === 'GLAB' && w.path === `mr ${cmd}`);
 const proofOf = (note) => JSON.parse(/```belay-proof\n([\s\S]*?)\n```/.exec(note.body.message)[1]);
@@ -287,6 +287,14 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(r.code, r.stderr).toBe(0);
     expect(r.writes).toEqual([]);
     expect(r.stderr).toMatch(/reporting only/);
+  });
+
+  // The bot token never writes the ledger (F72): without BELAY_LEDGER_TOKEN the sweep reports only, and names the token.
+  it('without BELAY_LEDGER_TOKEN it reports, names the missing token and writes nothing', () => {
+    const r = sweep(group(), { BELAY_BOT_TOKEN: 'bot', CI_SERVER_FQDN: 'gitlab.example' });
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.writes).toEqual([]);
+    expect(r.stderr).toMatch(/BELAY_LEDGER_TOKEN is not set: reporting only/);
   });
 
   it('a failed read stops that MR with GitLab\'s message, and nothing is written for it', () => {
