@@ -130,6 +130,14 @@ trigger token only after checking that on the instance. The schedule alone is en
   say anything but merge; an auto-merge a person set is left alone. Until that sweep (at most one schedule interval) the
   MR can still merge if its pipeline succeeds. `[R?]` whether a push cancels an auto-merge set with `--sha`.
 
+- F89 (Low, open): F74's cancel removes the bot's auto-merge, not its approval (`sweep.mjs:260-275`; `decide/apply-gate.mjs:63`
+  approves, nothing unapproves). After a revoke or a demotion the bot's approval of an approve-tier head still counts toward
+  the target's approval rules. Proposed: unapprove on the same re-gate when the decision is wait or block.
+- F69, accepted: the compare API's diff cap (`sweep.mjs:56-69`, `diffOf`). The envelope (`max_files` 6, `max_lines` 120) blocks any
+  diff large enough to reach it; re-open it if the envelope is widened.
+- F79, accepted: `loadConfig` does not check that policy and ledger are inside `cfg.group` (`lib.mjs:21-23`). `apply.json`
+  changes only through a code-owner-reviewed merge on belay-apply's protected `main`.
+
 ## What the operator removes from each target
 
 - Settings > CI/CD > Variables: delete `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_LEDGER_TOKEN` and
