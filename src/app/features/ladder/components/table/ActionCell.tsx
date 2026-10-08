@@ -77,7 +77,7 @@ export function ActionCell({
         className={`${styles.promote} ${eligible ? '' : `${styles.promoteOff} ${styles.dim}`}`}
         tabIndex={-1}
         aria-disabled={!eligible}
-        title={promoteTitle(promotion.kind)}
+        title={promoteTitle(promotion)}
         onClick={() => onPromote(cls.id)}
       >
         Promote

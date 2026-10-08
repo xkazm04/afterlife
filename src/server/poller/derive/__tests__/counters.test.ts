@@ -14,7 +14,7 @@ const CLS = 'code-fix.patch';
 const ago = (days: number) => new Date(NOW.getTime() - days * DAY);
 
 const task = (iid: number, state: CountedTask['state'], days: number, over: Partial<CountedTask> = {}): CountedTask =>
-  ({ agent: AGENT, actionClass: CLS, state, finishedAt: ago(days), mrIid: iid, ...over });
+  ({ agent: AGENT, actionClass: CLS, state, stateLabel: state, startedAt: ago(days + 1), finishedAt: ago(days), mrIid: iid, ...over });
 const merged = (iid: number, days: number, over: Partial<CountedEvent> = {}): CountedEvent =>
   ({ agent: AGENT, action_class: CLS, kind: 'merged', at: ago(days).toISOString(), subject: { project_id: 1, type: 'mr', iid }, ...over });
 
@@ -23,17 +23,18 @@ const five = (): CounterSource => ({
   tasks: [task(104, 'merged', 2), task(105, 'merged', 1)],
   events: [merged(101, 6), merged(102, 5), merged(103, 4), merged(104, 2)],
   revertDemotes: true,
+  ledgerRead: true,
 });
 
 const rules = repoPolicy();
 const row = (tier: ClassTierRow['tier']): ClassTierRow =>
   ({ projectId: 'ledgerline', classId: CLS, tier, since: SINCE, setBy: 'start tier + record', leaseExpires: null, record: null, move: null });
 const eligible = (src: CounterSource, tier: ClassTierRow['tier'] = 'assisted') =>
-  eligibleOf({ row: row(tier), record: countRecord(src, { agent: AGENT, classId: CLS, since: SINCE }, NOW), role: 'patcher', track: 1, ceiling: 'hands_off', proof: 'exploit-test' }, rules);
+  eligibleOf({ row: row(tier), record: countRecord(src, { agent: AGENT, classId: CLS, since: SINCE, window: tier === 'assisted' ? 5 : null }, NOW), role: 'patcher', track: 1, ceiling: 'hands_off', proof: 'exploit-test' }, rules);
 
 describe('counters from tasks and the ledger', () => {
   it('counts merged MRs since the record, once each; no-edit has no source and stays null', () => {
-    expect(countRecord(five(), { agent: AGENT, classId: CLS, since: SINCE }, NOW)).toEqual({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0 });
+    expect(countRecord(five(), { agent: AGENT, classId: CLS, since: SINCE }, NOW)).toEqual({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: null });
   });
 
   it('counts nothing before since, of another agent or class, or that is not a merge', () => {
@@ -44,7 +45,7 @@ describe('counters from tasks and the ledger', () => {
   });
 
   it('a record with no since counts nothing: every counter null', () => {
-    expect(countRecord(five(), { agent: AGENT, classId: CLS, since: null }, NOW)).toEqual({ accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null });
+    expect(countRecord(five(), { agent: AGENT, classId: CLS, since: null }, NOW)).toEqual({ accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null, guardrailBlocks: null, window: null });
   });
 });
 
@@ -52,7 +53,10 @@ describe('eligibility is Ladder\'s rule on those counters', () => {
   it('an assisted class with 5 merged MRs, no revert and no guardrail block is eligible for supervised', () => {
     expect(eligible(five())).toEqual({
       classId: CLS, title: 'Promote T1 patcher · code-fix.patch', from: 'assisted', to: 'supervised',
-      rules: [{ name: 'accepted outputs', value: '5 / 5', met: true, cells: [5, 5] }, { name: 'reverts', value: '0', met: true }],
+      rules: [
+        { name: 'accepted outputs', value: '5 / 5', met: true, cells: [5, 5] }, { name: 'reverts', value: '0', met: true },
+        { name: 'guardrail blocks', value: '0', met: true }, { name: 'counted over the last 5 outputs', value: 'last 5', met: true },
+      ],
     });
   });
 

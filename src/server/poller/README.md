@@ -45,7 +45,7 @@ head is **stale**: not indexed, any earlier proof of the task is deleted, and th
 |---|---|
 | tasks and proofs from MRs; state label from labels, MR state and deployments | `class_tier.record` of a class no agent or several agents hold: kept as it is, else null |
 | record counters of a class one agent holds (see "Record counters"), stored on its `class_tier` row each on its own (migration 0006: null is a counter nothing states, never 0; a row with every counter null reads as no record) and read by its promotion ask |
-| promotion ask for a class whose counters meet Ladder's own rule (`promotion()`), `promote:<project>:<class>`, closed when it stops being eligible |
+| promotion ask for a class whose counters meet the rule Ladder's Promote reads (`promotion()` in `src/lib/promotion`), `promote:<project>:<class>`, closed when it stops being eligible |
 | class tiers: recorded in tier-state.yml, capped by the policy, by the gate's own rule (`engine/decide/standing.ts`: holder, lower of record and ceiling, lapsed lease = supervised). Group-wide, never from proof history. No record: stored quarantined with move `no_record` (the gate blocks it); several holders, named for the role or not: stored at the most restrictive holder with move `refused`, its note listing every holder at the tier the gate grants a merge request that holder authored (CI passes the author as `--agent`) | CRA sign-off asks (the port has no work-item reads); gap picks and setup steps (scans and probes) |
 | moves "promoted" and "tripwire" (with its trigger as the note) from the record's `by` | project `last`, `env_*`, `armed`, stage rungs, `what` |
 | re-admit ask for a class the tripwire quarantined (deduplicated by kind and title, so a seeded one is respected) | track `armed`/`latest`, the event feed, cockpit text |
@@ -64,14 +64,19 @@ reads it "not recorded", never met. Mapped to trust-policy.yml's `promotion` blo
 
 | Counter | Source | Policy key |
 |---|---|---|
-| accepted | distinct merge requests the holder merged in the class since `since`: ledger `merged` events (`agent`, `action_class`, `at`, `subject.iid`) and task rows (`agent`, `action_class`, state `merged`, `finishedAt`), minus any a task row states `reverted` | `assisted_to_supervised.accepted`, `supervised_to_hands_off.accepted` |
-| reverts | task rows in state `reverted` since `since`. Established only when the policy demotes on `revert` (the tripwire then rewrites the record, so `since` post-dates any revert it saw); else null | `assisted_to_supervised.reverts` |
+| accepted | distinct merge requests the holder merged in the class since `since`: ledger `merged` events (`agent`, `action_class`, `at`, `subject.iid`) and task rows (`agent`, `action_class`, state `merged`, `finishedAt`), minus any a task row states `reverted`. In the window, when there is one | `assisted_to_supervised.accepted`, `supervised_to_hands_off.accepted` |
+| reverts | task rows in state `reverted` since `since` (in the window, when there is one). Established only when the policy demotes on `revert` (the tripwire then rewrites the record, so `since` post-dates any revert it saw); else null | `assisted_to_supervised.reverts` |
 | cleanDays | whole days since `since`, only when reverts is established and 0; else null | `supervised_to_hands_off.clean_days` |
 | noEdit | none: no row or event says whether a person edited an MR before it merged. Always null, so no class is ever promoted to hands-off from a poll | `supervised_to_hands_off.no_edit_ratio` |
 | needed | not in the policy: null | - |
+| guardrailBlocks (`guardrail_blocks` column, migration 0007) | merge requests in the counts whose task row states a guardrail block (state `blocked` with the label `blocked`, which `derive/task.ts` `stateOf` sets only from `guardrail::block`). 0 only when this poll read the ledger (imported or unchanged) and it holds no `guardrail_verdict` event for the counts: the gate emits one with every guardrail verdict (`gitlab/components/scripts/decide/apply-gate.mjs:53`). A verdict event no task row resolves leaves it null: the event names the MR, not pass or block | `assisted_to_supervised.guardrail_blocks` |
+| window (`count_window` column, migration 0007) | for an assisted class only: trust-policy.yml's `window_last`. The counts above are then taken over the holder's last that many outputs since `since`: merge requests with a stated outcome (merged, reverted, closed, guardrail- or proof-blocked) by the latest time stated for each; one still in flight is not an output. Null: counted since `since` | `assisted_to_supervised.window_last` |
 
-Not applied: `guardrail_blocks`, `window_last` and `human_key` (PolicyRules carries none of them, and Ladder's rule checks
-none). Live, the poller never writes a task `reverted` (it reads no revert MR), so reverts rests on the tripwire.
+`human_key` (`supervised_to_hands_off`) is met by construction, never counted: Belay's only write that raises a tier is the
+promotion's policy MR, which `planPromote` opens and never merges (`src/server/actions/plans/promote.ts:43-49`), so a
+person always merges the promotion (cited in `src/lib/promotion/rules.ts`). Live, the poller never writes a task
+`reverted` (it reads no revert MR), so reverts rests on the tripwire. A stated guardrail block is a lower bound when other
+verdicts are unresolved: enough to read the rule unmet, never met.
 
 A promotion ask (`derive/promotion.ts`) carries `from`, `to` and each rule with its count; one a person acted on or
 dismissed at or after the record's `since` is not opened again until the record moves (re-admits likewise).

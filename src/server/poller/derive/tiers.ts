@@ -41,7 +41,13 @@ export interface TierDerivation {
   held: Map<string, ClassCounters>;
 }
 
-const NO_SOURCE: CounterSource = { tasks: [], events: [], revertDemotes: false };
+const NO_SOURCE: CounterSource = { tasks: [], events: [], revertDemotes: false, ledgerRead: false };
+
+/** trust-policy.yml's window_last: an assisted class's counts are taken over its holder's last that many outputs. */
+const windowOf = (policy: EnginePolicy, tier: Ceiling): number | null => {
+  const n = policy.promotion?.assisted_to_supervised?.window_last;
+  return tier === 'assisted' && typeof n === 'number' && Number.isInteger(n) && n > 0 ? n : null;
+};
 
 /** The move already in the index, except the moves this function writes itself: they last only while their cause does. */
 const keptMove = (prev: ClassTierRow | undefined): ClassTierRow['move'] => {
@@ -95,7 +101,7 @@ export function deriveTiers(
     } else tier = 'human_only'; // human_only (no agent ever holds it); 'refused' always has two holders, handled above
     let record = prev?.record ?? null;
     if (rec && st.kind === 'held') {
-      const counted = countRecord(counters ?? NO_SOURCE, { agent: st.agent, classId: id, since: counters ? since : null }, now);
+      const counted = countRecord(counters ?? NO_SOURCE, { agent: st.agent, classId: id, since: counters ? since : null, window: windowOf(policy, tier) }, now);
       held.set(id, counted);
       if (counters) record = Object.values(counted).some((v) => v !== null) ? counted : null; // the poll's count replaces the stored one
     }

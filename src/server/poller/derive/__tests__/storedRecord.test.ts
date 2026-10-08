@@ -18,7 +18,7 @@ beforeEach(async () => {
 describe('poll cycle: the counted record is stored', () => {
   it('a class one agent holds reads back with accepted counted and no-edit null', async () => {
     const t = await row('code-fix.patch');
-    expect(t?.record).toEqual({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0 });
+    expect(t?.record).toMatchObject({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0 });
     const { rows } = await r.db.query<{ accepted: number | null; no_edit: number | null }>(
       "select accepted, no_edit from class_tier where project_id = 'ledgerline' and class_id = 'code-fix.patch'",
     );
@@ -26,6 +26,7 @@ describe('poll cycle: the counted record is stored', () => {
   });
 
   it('a later poll stores the new count', async () => {
+    setTier(r.gl, 'supervised', new Date(NOW.getTime() - 10 * DAY)); // counted since since, not over the last 5
     appendEvents(r.gl, NOW, [{ iid: 106, daysAgo: 0.5 }]);
     await r.poll(new Date(NOW.getTime() + 60_000));
     expect((await row('code-fix.patch'))?.record?.accepted).toBe(6);

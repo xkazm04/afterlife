@@ -20,10 +20,13 @@ export interface PromotionAsk {
 
 /** trust-policy.yml's promotion block. Policy numbers, not measurements. */
 export interface PromotionRules {
-  /** assisted_to_supervised */
-  toSupervised: { accepted: number; reverts: number };
-  /** supervised_to_hands_off */
-  toHandsOff: { accepted: number; noEditRatio: number; cleanDays: number };
+  /**
+   * assisted_to_supervised. `guardrailBlocks`: the most guardrail blocks allowed in the counts; `windowLast`: the counts
+   * are taken over the holder's last that many outputs. Null: the policy does not set it, so no rule asks it.
+   */
+  toSupervised: { accepted: number; reverts: number; guardrailBlocks: number | null; windowLast: number | null };
+  /** supervised_to_hands_off. `humanKey`: a person merges the promotion (human_key: true). */
+  toHandsOff: { accepted: number; noEditRatio: number; cleanDays: number; humanKey: boolean };
 }
 
 /** The class the rule is asked about. `cell` absent: the tier is the cell (the demo fixture sends none). */

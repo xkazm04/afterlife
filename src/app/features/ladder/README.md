@@ -39,10 +39,16 @@ revoke lowers every holder above the target in one commit). Unknown reads unknow
 Promotion counts: a counter a record does not know is "not recorded" and never met (`src/lib/promotion/promotion.ts`). Live, the
 record columns are the record the poll counted and stored for a class one agent holds (`server/poller/README.md`, "Record
 counters"): Acc, Rv and Clean as counted, and a dim dash titled "Not recorded" for a counter nothing states (No-edit,
-always; Rv and Clean unless the policy demotes on a revert). A class no agent holds says "No record yet". When the poll
+always; Rv and Clean unless the policy demotes on a revert). A class no agent holds says "No record yet". The rules are
+trust-policy.yml's `promotion` block as `rulesOf` reads it: to Supervised, accepted outputs, reverts, guardrail blocks
+(`guardrail_blocks`) and "counted over the last N outputs" (`window_last`: the poll counts an assisted class over its last
+N outputs); to Hands-off, accepted outputs, merged without edits, clean days, reverts or incidents, a mechanical proof
+class, and the human key (`human_key`: met by construction, a person merges the promotion's policy MR). Where each counter
+comes from is the poller's table. A record that does not state a counter (the demo fixture states no guardrail blocks
+and no window) reads it not recorded. When the poll
 found a class eligible it opened a promotion ask in Needs you, and the route attaches that ask to the class (`data/loadLadderData.ts`):
 the class reads eligible with the ask's counts, and p opens Needs you with that ask selected. A greyed Promote names the
-first rule that is unmet or not recorded.
+first rule that is unmet or not recorded, in its tooltip and on p.
 
 Keys: j k move, r revoke one step, q quarantine, p promote, Enter rule and write, 1-5 / 0 tier filter, / search,
 ? keys and legend, Esc closes. Arrows, Home/End, Enter and the menu key act on the focused table.

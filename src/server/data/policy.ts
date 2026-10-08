@@ -21,13 +21,15 @@ export function rulesOf(p: EnginePolicy): PolicyRules | null {
   const noEdit = num(top?.no_edit_ratio);
   const clean = num(top?.clean_days);
   const cooldown = num(p.cooldown_days);
+  const blocks = num(up?.guardrail_blocks);
+  const window = num(up?.window_last);
   if (accS === null || revS === null || accH === null || noEdit === null || clean === null || cooldown === null || !ho) return null;
   return {
     profile: typeof p.profile === 'string' ? p.profile : null,
     cooldownDays: cooldown,
     leaseDays: num(p.grant_ttl_days),
-    toSupervised: { accepted: accS, reverts: revS },
-    toHandsOff: { accepted: accH, noEditRatio: noEdit, cleanDays: clean },
+    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && window > 0 ? window : null },
+    toHandsOff: { accepted: accH, noEditRatio: noEdit, cleanDays: clean, humanKey: top?.human_key === true },
     oneStepOn: strs(p.demotion?.one_step_on),
     quarantineOn: strs(p.demotion?.quarantine_on),
     envelope: { maxFiles: num(ho.max_files) ?? 0, maxLines: num(ho.max_lines) ?? 0, environments: strs(ho.environments) },

@@ -25,10 +25,14 @@ async function settledAsks(db: Queryable, projectId: string): Promise<Map<string
 }
 
 /** Writes the class tier rows and the asks; returns the demotions the tripwire wrote in the window. */
-export async function pollClasses(tx: Queryable, read: Policy, projectId: string, gitlabId: number, now: Date, windowMs: number): Promise<number> {
+/** `ledgerRead`: this poll read the project's belay-ledger, so the events in the index are all it holds. */
+export async function pollClasses(
+  tx: Queryable, read: Policy, projectId: string, gitlabId: number, now: Date, windowMs: number, ledgerRead: boolean,
+): Promise<number> {
   const { policy, state } = read;
   const prev = new Map((await listClassTiers(tx, projectId)).map((r) => [r.classId, r]));
-  const counters = { tasks: await listTasks(tx, projectId), events: await readLedger(tx, gitlabId), revertDemotes: demotesOnRevert(policy.demotion) };
+  const events = await readLedger(tx, gitlabId);
+  const counters = { tasks: await listTasks(tx, projectId), events, revertDemotes: demotesOnRevert(policy.demotion), ledgerRead };
   const t = deriveTiers(policy, state, projectId, now, prev, windowMs, counters);
   await upsertClassTiers(tx, t.rows);
 

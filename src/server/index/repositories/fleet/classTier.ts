@@ -30,7 +30,7 @@ const SPEC: TableSpec = {
   key: ['project_id', 'class_id'],
   cols: {
     project_id: 'text', class_id: 'text', tier: 'text', since: 'timestamptz', set_by: 'text', lease_expires: 'timestamptz',
-    accepted: 'int', needed: 'int', no_edit: 'float8', clean_days: 'int', reverts: 'int',
+    accepted: 'int', needed: 'int', no_edit: 'float8', clean_days: 'int', reverts: 'int', guardrail_blocks: 'int', count_window: 'int',
     move_kind: 'text', move_at: 'timestamptz', move_note: 'text',
   },
 };
@@ -38,7 +38,7 @@ const SPEC: TableSpec = {
 interface Db {
   project_id: string; class_id: string; tier: Ceiling | null; since: Date | null; set_by: string | null;
   lease_expires: Date | null; accepted: number | null; needed: number | null; no_edit: number | null;
-  clean_days: number | null; reverts: number | null; move_kind: MoveKind | null; move_at: Date | null; move_note: string | null;
+  clean_days: number | null; reverts: number | null; guardrail_blocks: number | null; count_window: number | null; move_kind: MoveKind | null; move_at: Date | null; move_note: string | null;
 }
 
 const toDb = (r: ClassTierRow): Record<string, unknown> => ({
@@ -46,12 +46,18 @@ const toDb = (r: ClassTierRow): Record<string, unknown> => ({
   lease_expires: toIso(r.leaseExpires),
   accepted: r.record?.accepted ?? null, needed: r.record?.needed ?? null, no_edit: r.record?.noEdit ?? null,
   clean_days: r.record?.cleanDays ?? null, reverts: r.record?.reverts ?? null,
+  guardrail_blocks: r.record?.guardrailBlocks ?? null, count_window: r.record?.window ?? null,
   move_kind: r.move?.kind ?? null, move_at: toIso(r.move?.at), move_note: r.move?.note ?? null,
 });
 
-/** A row with some counters null is a record whose unknown counters are null; with every counter null, no record. */
+/**
+ * A row with some counters null is a record whose unknown counters are null; with every counter null, no record. The
+ * guardrail blocks and the window are read only when stated (absent: not recorded), so a seeded record keeps its shape.
+ */
 function recordOf(r: Db): RecordCounters | null {
   const rec: RecordCounters = { accepted: r.accepted, needed: r.needed, noEdit: r.no_edit, cleanDays: r.clean_days, reverts: r.reverts };
+  if (r.guardrail_blocks !== null) rec.guardrailBlocks = r.guardrail_blocks;
+  if (r.count_window !== null) rec.window = r.count_window;
   return Object.values(rec).every((v) => v === null) ? null : rec;
 }
 

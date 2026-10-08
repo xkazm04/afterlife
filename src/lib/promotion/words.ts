@@ -1,5 +1,6 @@
 // The words of the promotion rule: why Promote is greyed, its tooltip, and the line shown instead of counts.
-import { NOT_RECORDED, type Promotion } from './promotion';
+import type { Promotion } from './promotion';
+import { NOT_RECORDED } from './rules';
 
 /** Why Promote is greyed, naming the first rule that is unmet or not recorded when there are counts. */
 export function whyNot(p: Promotion): string {
@@ -23,10 +24,11 @@ export const WHY_NOT: Record<Exclude<Promotion['kind'], 'eligible'>, string> = {
   untiered: 'its tier is unknown',
 };
 
-/** Tooltip of the row's Promote button. */
-export function promoteTitle(kind: Promotion['kind']): string {
-  if (kind === 'eligible') return 'Promote via a policy MR (p)';
-  return kind === 'ceiling' ? 'At its ceiling' : 'Record does not qualify yet';
+/** Tooltip of the row's Promote button: a class with counts that does not qualify names the first unmet rule. */
+export function promoteTitle(p: Promotion): string {
+  if (p.kind === 'eligible') return 'Promote via a policy MR (p)';
+  if (p.kind === 'ceiling') return 'At its ceiling';
+  return p.kind === 'notyet' ? `Record does not qualify yet: ${whyNot(p)}` : 'Record does not qualify yet';
 }
 
 /** The muted line shown instead of rule counts. */

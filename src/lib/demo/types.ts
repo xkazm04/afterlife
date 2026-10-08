@@ -86,9 +86,14 @@ export interface ClassRecord {
 
 /**
  * A record as the index states it: each counter on its own, null where no task or ledger event states it (never zero).
- * The fixture's records are ClassRecords, every counter set; a polled record may know some counters only.
+ * The fixture's records are ClassRecords, every counter set; a polled record may know some counters only. Two facts the
+ * fixture never states (absent: not recorded): `guardrailBlocks`, the guardrail blocks in the counts, and `window`, the
+ * number of last outputs the counts were taken over (absent or null: everything since the record's since).
  */
-export type RecordCounters = { [K in keyof ClassRecord]: ClassRecord[K] | null };
+export type RecordCounters = { [K in keyof ClassRecord]: ClassRecord[K] | null } & {
+  guardrailBlocks?: number | null;
+  window?: number | null;
+};
 
 export interface ActionClass {
   id: string;

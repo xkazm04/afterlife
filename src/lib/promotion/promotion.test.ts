@@ -22,7 +22,7 @@ describe('promotion', () => {
     expect(p.kind).toBe('notyet');
     if (p.kind !== 'notyet') return;
     expect(p.next).toBe('hands_off');
-    expect(p.rules.map((r) => r.met)).toEqual([false, true, false, true, true]);
+    expect(p.rules.map((r) => r.met)).toEqual([false, true, false, true, true, true]);
     expect(p.rules[0]).toMatchObject({ value: '9 / 15', cells: [9, 15] });
     expect(p.rules[1]?.name).toBe('merged without edits ≥ 90 %');
     expect(p.rules[2]).toMatchObject({ value: '6 / 14', cells: [6, 14] });
@@ -38,15 +38,15 @@ describe('promotion', () => {
   it('counts against the policy, whatever the record says it needs', () => {
     const p = promotion(subject({ record: rec({ accepted: 14, needed: null, cleanDays: 14 }) }), 'repro', RULES);
     expect(p.kind === 'notyet' && p.rules[0]?.value).toBe('14 / 15');
-    const stricter = { ...RULES, toHandsOff: { accepted: 20, noEditRatio: 0.95, cleanDays: 21 } };
+    const stricter = { ...RULES, toHandsOff: { accepted: 20, noEditRatio: 0.95, cleanDays: 21, humanKey: false } };
     const q = promotion(subject({ record: rec({ accepted: 16, cleanDays: 14, noEdit: 0.94 }) }), 'exploit-test', stricter);
-    expect(q.kind === 'notyet' && q.rules.map((r) => r.value)).toEqual(['16 / 20', '94 %', '14 / 21', '0', 'exploit-test']);
+    expect(q.kind === 'notyet' && q.rules.map((r) => r.value)).toEqual(['16 / 20', '94 %', '14 / 21', '0', 'exploit-test']); // no human key asked
   });
   it('Assisted to Supervised needs the policy’s accepted count and reverts', () => {
-    const ok = promotion(subject({ tier: 'assisted', record: rec({ accepted: 5 }) }), 'repro', RULES);
+    const ok = promotion(subject({ tier: 'assisted', record: rec({ accepted: 5, guardrailBlocks: 0, window: 5 }) }), 'repro', RULES);
     expect(ok.kind).toBe('eligible');
     expect(ok.kind === 'eligible' && ok.next).toBe('supervised');
-    const bad = promotion(subject({ tier: 'assisted', record: rec({ accepted: 5, reverts: 1 }) }), 'repro', RULES);
+    const bad = promotion(subject({ tier: 'assisted', record: rec({ accepted: 5, reverts: 1, guardrailBlocks: 0, window: 5 }) }), 'repro', RULES);
     expect(bad.kind).toBe('notyet');
   });
   it('without a policy it draws no counts, and says why', () => {

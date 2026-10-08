@@ -15,7 +15,7 @@ const tracks: TrackMap = { T1: track('T1', 'patcher', 'Exploit-proof patcher', '
 const classes = [
   row('a'),
   row('b', { track: 'T2', tier: 'quarantined', ceiling: 'supervised' }),
-  row('c', { tier: 'assisted', lease_days: 3, pending: 'e7f1' }),
+  row('c', { tier: 'assisted', lease_days: 3, pending: 'e7f1', record: { accepted: 5, needed: null, noEdit: 1, cleanDays: 5, reverts: 0, guardrailBlocks: 0, window: 5 } }),
   row('d', { tier: 'human_only', ceiling: 'human_only', record: null }),
 ];
 const byId = Object.fromEntries(classes.map((c) => [c.id, c]));
