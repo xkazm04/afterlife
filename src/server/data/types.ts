@@ -33,6 +33,15 @@ export interface PolicyRules {
   envelope: { maxFiles: number; maxLines: number; environments: readonly string[] };
 }
 
+/**
+ * The last poll could not read or parse belay-policy's files (trust-policy.yml, tier-state.yml), so the class tiers are
+ * the last good read's. `reason`: the read's own words; `lastOk`: when a read last succeeded (ISO), null if never.
+ */
+export interface TiersStale {
+  reason: string;
+  lastOk: string | null;
+}
+
 export interface DataSource {
   readonly mode: DataMode;
   /**
@@ -62,6 +71,11 @@ export interface DataSource {
    * belay-policy; null until a poll has read one the engine accepts.
    */
   getPolicy(): PolicyRules | null;
+  /**
+   * Live: set while the last poll could not read belay-policy (poll_state's policy source failed), so the class tiers are
+   * stale; null once a read succeeds. Demo: always null.
+   */
+  getTiersStale(): TiersStale | null;
   /**
    * Setup's live reads (its tracks' arm blocks, the belay doctor, the steps a read can observe), bound to the port and
    * the snapshot's pairing row. The getter is synchronous; the reads are port calls the Setup loader awaits. Null in demo

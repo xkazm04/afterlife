@@ -61,7 +61,10 @@ holds the reads).
 
 `getPolicy()`: demo, this checkout's `policy/trust-policy.yml` (`policy.ts`, checked by the engine's parser); live, the
 trust-policy.yml the last poll read from belay-policy (`CycleResult.policy`, kept on the snapshot; a cycle that could
-not read one keeps the last good one). Null until one was read: the Ladder then draws no counts and says why. The footer chip "illustrative demo
+not read one keeps the last good one). Null until one was read: the Ladder then draws no counts and says why.
+`getTiersStale()`: live, set while the last poll could not read belay-policy (its `policy:<group>` poll_state source
+failed, with the reason and the last good read's time), so the class tiers are stale and the Ladder marks them so; null
+once a read succeeds, and always null in demo mode. The footer chip "illustrative demo
 data" is a client component and still says so.
 
 The recent events are the index's own (`getEvents` in `../index/views/events.ts`): a task's MR opened and merged, the last

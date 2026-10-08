@@ -22,6 +22,7 @@ import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
 import { livePollAge, pollAge } from './model/clock';
 import { DemoChip } from './components/chrome/DemoChip';
+import { TiersStale } from './components/chrome/TiersStale';
 import { dockModel } from './model/rules/dock';
 import type { Tier } from './model/types';
 import type { LadderScreenProps } from './props';
@@ -31,7 +32,7 @@ import styles from './LadderScreen.module.css';
 export type { LadderScreenProps } from './props';
 
 /** The Ladder: every action class, its tier and ceiling, the record behind it, and what you can revoke or promote. */
-export function LadderScreen({ project, seed, tracks: trackList, means, policy, illustrative, live, feedAgeSec, subtitle }: LadderScreenProps) {
+export function LadderScreen({ project, seed, tracks: trackList, means, policy, tiersStale, illustrative, live, feedAgeSec, subtitle }: LadderScreenProps) {
   const data = useLadderData(seed, trackList, policy);
   const { state, dispatch, byId, tracks } = data;
   const tableRef = useRef<HTMLDivElement>(null);
@@ -147,7 +148,8 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
       onInspectorOpenChange={setInspectorOpen}
       status={
         <>
-          {shown === total ? total : `${shown} of ${total}`} classes · {filters} {pluralWord(filters, 'filter')} · tier-state.yml @ {state.head.sha} <DemoChip on={!!state.head.demo} what="The tier-state.yml head" /> · polled {age} s ago
+          {shown === total ? total : `${shown} of ${total}`} classes · {filters} {pluralWord(filters, 'filter')} · tier-state.yml @ {state.head.sha} <DemoChip on={!!state.head.demo} what="The tier-state.yml head" />
+          <TiersStale stale={tiersStale} /> · polled {age} s ago
         </>
       }
     >

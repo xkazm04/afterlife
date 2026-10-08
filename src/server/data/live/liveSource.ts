@@ -40,6 +40,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getEvents: () => data().events,
     getCockpit: () => data().cockpit,
     getPolicy: () => data().policy,
+    getTiersStale: () => data().tiersStale,
     setupReads: () => setupReads(port(), data().pairing, snapshot().deep),
   };
 }

@@ -12,7 +12,7 @@ nothing is lost: every table is rebuilt from the source in the last column.
 | `proposal` | Needs-you inbox; gap picks are children of one `gap` item | GitLab state, CRA clocks, maturity scan |
 | `stage_cell` | every maturity scan, latest read | repository scan (`engine_version` pinned) |
 | `pairing`, `setup_step` | where Belay is paired, what each step measured | `belay doctor` probes |
-| `poll_state` | last good poll and last error per source (`project:<id>`) | the poller |
+| `poll_state` | last good poll and last error per source (`project:<id>`, `group:<group>`, and `policy:<group>` for belay-policy's files) | the poller |
 | `commands_run` | every write the operator confirmed, recorded before it runs | **not rebuildable**: Belay's own audit |
 
 Project columns `proofs_*_7d`, `demotions_7d`, `needs_you`, `cra_open` are roll-ups the poller recomputes from the

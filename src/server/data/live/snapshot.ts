@@ -4,8 +4,9 @@
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
 import { clock, getActionClasses, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
 import { getPairing, type PairingRow } from '@/server/index/repositories/pairing';
+import { listPollStates } from '@/server/index/repositories/pollState';
 import type { Queryable } from '@/server/index/repositories/sql';
-import type { PolicyRules } from '../types';
+import type { PolicyRules, TiersStale } from '../types';
 import { isSeeded } from './seeded';
 import { actionClass, maturity, task } from './narrow';
 
@@ -22,6 +23,8 @@ export interface LiveData {
   setup: DemoData['setup'];
   /** trust-policy.yml's rules as the last poll read them from belay-policy; null until one was read. */
   policy: PolicyRules | null;
+  /** Set while the last poll could not read belay-policy (its poll_state source failed): the class tiers are stale. */
+  tiersStale: TiersStale | null;
   /** The pairing row the last poll wrote (group, host, checkout), for Setup's reads; null before any poll paired one. */
   pairing: PairingRow | null;
 }
@@ -33,10 +36,12 @@ export interface LiveSnapshot {
 }
 
 export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData, policy: PolicyRules | null = null): Promise<LiveSnapshot> {
-  const [fleet, classes, mat, tasks, events, needsYou, pairing] = await Promise.all([
+  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyReads] = await Promise.all([
     getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getEvents(db, deep), getNeedsYou(db, deep, at),
-    getPairing(db, 'default'),
+    getPairing(db, 'default'), listPollStates(db, 'policy:'),
   ]);
+  const failedRead = policyReads.find((s) => s.lastError !== null);
+  const tiersStale = failedRead ? { reason: failedRead.lastError ?? '', lastOk: failedRead.lastOk?.toISOString() ?? null } : null;
   const group = pairing?.groupPath ?? 'not paired';
   // Live counts only what /needs-you shows: the index keeps the demo's seeded items, the data source does not count them.
   const unseeded = needsYou.filter((n) => !isSeeded(n.id)).length;
@@ -55,6 +60,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? 0 } },
       setup: { ...catalogue.setup, group, project: deep },
       policy,
+      tiersStale,
       pairing,
     },
   };

@@ -16,6 +16,9 @@ command the screen spells.
   the demo GitLab, the seed's) is marked "not counted" beside the class name and in the inspector's promotion rule
   (`components/chrome/UncountedChip.tsx`; `data/loadLadderData.ts` sets `uncounted` on the class). The clock is the wall
   clock and the poll age counts up; a revoke's commit id is GitLab's. A class with no record says "No record yet".
+  When the last poll could not read belay-policy (`getTiersStale()`), the status line marks the class tiers stale
+  (`components/chrome/TiersStale.tsx`, the kit's `HonestyChip`) with the read's reason and the last good read's time,
+  until a read succeeds.
 - `write/revoke.ts`: the round trip with the server actions. `previewAction({kind: 'revoke-class', ...})` as soon as a
   revoke target is in view (`hooks/useRevokeWrite.ts` asks once per target); `confirmAction(intent, previewId)` on r, the
   button or a menu target, and only for a preview on screen. A target that is not on screen yet (`q`, an unhovered menu

@@ -12,6 +12,12 @@ export interface PollStateRow {
 /** The poll source the Fleet row of a project reads. */
 export const projectSource = (projectId: string): string => `project:${projectId}`;
 
+/**
+ * The poll source of a group's belay-policy files (trust-policy.yml, tier-state.yml): failed while the last poll could not
+ * read or parse them, so the class tiers Ladder shows are the last good read's.
+ */
+export const policySource = (group: number | string): string => `policy:${group}`;
+
 interface Db {
   source: string;
   last_ok: Date | null;

@@ -8,7 +8,7 @@ import type { LedgerSource } from '@/server/ledger/importLedger';
 import { listGroups, listTrustClasses, upsertGroups, upsertTrustClasses } from '@/server/index/repositories/fleet/taxonomy';
 import { listProjects, setProjectState } from '@/server/index/repositories/fleet/project';
 import { getPairing, upsertPairing } from '@/server/index/repositories/pairing';
-import { projectSource, recordPollError, recordPollOk } from '@/server/index/repositories/pollState';
+import { policySource, projectSource, recordPollError, recordPollOk } from '@/server/index/repositories/pollState';
 import { readPollerConfig, type PollerConfig } from './config';
 import type { EnginePolicy } from '../../../engine/policy/load';
 import { readPolicy, type PolicyRead } from './derive/policy';
@@ -84,6 +84,9 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
     if (!policy.ok) result.warnings.push(`policy: ${policy.reason}; class tiers are not updated`);
     else result.policy = policy.policy;
   }
+  // Recorded, not only warned: Ladder marks the class tiers stale, with the reason, until a read succeeds.
+  if (policy?.ok) await recordPollOk(db, policySource(cfg.group), now);
+  else await recordPollError(db, policySource(cfg.group), policy ? policy.reason : `no ${cfg.policyProject} project in the group`);
   const ledger: LedgerSource | null = ledgerProject ? { port, project: ledgerProject.id, ref: cfg.ledgerRef } : null;
   if (!ledger) result.warnings.push(`no ${cfg.ledgerProject} project in the group: the ledger is not imported`);
 

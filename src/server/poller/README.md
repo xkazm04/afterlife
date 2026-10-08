@@ -12,7 +12,9 @@ Tests never start a timer.
 2. Targets are the group's non-archived projects except `belay-policy`, `belay-ledger`, `belay-pack`, `belay-engine`.
    A project polled before that is gone from the group goes stale.
 3. `belay-policy`: `trust-policy.yml` + `tier-state.yml`, parsed with the engine's own `parsePolicy`/`parseState`.
-   Missing or malformed: a warning, and class tiers are left as they were.
+   Missing or malformed (or no belay-policy project): class tiers are left as they were, and `recordPollError` on the
+   `policy:<group>` source (`policySource`) says why; Ladder marks the class tiers stale with that reason until a read
+   succeeds (`recordPollOk` on the same source). The group's own poll is still recorded ok.
 4. Index plumbing: groups (existing order kept), trust classes (existing order kept, new ones appended), the pairing row.
 5. Per target project (`project.ts`), reads first, one transaction of writes after, so a failed read writes nothing:
    - MRs updated in the last 7 days (`state=all`): the proof roll-up counts `proof::*` labels (`updated_at` stands in for the proof time);
