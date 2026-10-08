@@ -39,7 +39,8 @@ function guardedAgainstDevelopers(c: StepCtx, p: () => GlProject, kind: 'protect
       const r = await protection(c, p(), kind, name);
       const keys = kind === 'protected_tags' ? ['create_access_levels'] : ['push_access_levels', 'merge_access_levels'];
       if (!r) return `${what}: not protected`;
-      return letsDevelopers(r, ...keys) ? `${what}: Developers are allowed` : null;
+      const differ = [...(letsDevelopers(r, ...keys) ? ['Developers are allowed'] : []), ...(kind === 'protected_branches' && r.allow_force_push !== false ? ['force push is allowed'] : [])];
+      return differ.length ? `${what}: ${differ.join(', ')}` : null;
     },
   };
 }

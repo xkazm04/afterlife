@@ -14,8 +14,8 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   for the target), 8 (belay-apply's minimum role for pipeline variables and its schedule on main; never a CI/CD variable,
   so it never reads done) and 10 (the `belay/bootstrap` MR merged and `.gitlab/duo/agent-config.yml` on the default
   branch), in `humanSteps.ts`; and step 9 read back (`protections.ts`: the target's main and `belay/*`, its CODEOWNERS,
-  author-cannot-approve, belay-apply's main, the two job token allowlists, the `v*` tags, belay-ledger's main), done only
-  when every setting reads back as listed. Step 7 is not read (`StepDetail.unread` says why). One live load makes 28 to 34
+  author-cannot-approve, belay-apply's main, the two job token allowlists, the `v*` tags, belay-ledger's main; 10 settings,
+  and force push off is read on every branch that step 9 sets it on), done only when every setting reads back as listed. Step 7 is not read (`StepDetail.unread` says why). One live load makes 28 to 34
   GitLab calls (16 before these reads). Step 9's commands read first, then DELETE and POST each protection: GitLab
   protects a pushed main already and a second POST answers 409. `illustrative` says what is still the catalogue's.
 - `components/map/` canvas, edge layer (SVG, measured from `[data-node]`), `columns/`, `nodes/`.

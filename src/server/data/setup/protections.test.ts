@@ -74,6 +74,19 @@ describe("step 9's commands run as written where GitLab already protects main (c
     expect(await protectionsRead(await ctx(gl))).toEqual({ state: 'failed', text: "belay-ledger's main: Developers are allowed" });
   });
 
+  it('force push on, on the target’s main, on belay/* or on belay-ledger’s main, reads failed and names the setting (robustness-q4a)', async () => {
+    const gl = group();
+    await run(gl, COMMANDS);
+    settleTheRest(gl);
+    expect(await protectionsRead(await ctx(gl))).toMatchObject({ state: 'done' });
+    for (const [name, branch, what] of [['afterlife', 'main', 'the target’s main'], ['afterlife', 'belay/*', 'belay/* on the target'], ['belay-ledger', 'main', "belay-ledger's main"]] as const) {
+      const rules = projectNamed(gl, name).protectedBranches!;
+      rules[branch]!.allow_force_push = true;
+      expect(await protectionsRead(await ctx(gl))).toEqual({ state: 'failed', text: `${what}: force push is allowed` });
+      rules[branch]!.allow_force_push = false;
+    }
+  });
+
   it('a setting that cannot be read is unknown, with the reason, when nothing differs; a missing project fails', async () => {
     const gl = group('free');
     await run(gl, COMMANDS);
