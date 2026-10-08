@@ -82,6 +82,17 @@ describe('a hunk in a gap MR', () => {
     expect(r.preview.diff).not.toContain('+ ...');
   });
 
+  // F85: the gap branch must be new, as arm's is (F38): GitLab refuses start_branch onto it only after the click, and an MR
+  // from a branch that is already there carries commits nobody saw.
+  it('is refused at preview when its belay/ branch already exists, naming the branch and its head', async () => {
+    const { deps, gl } = await liveRig();
+    const ledgerline = gl.state.projects.find((p) => p.raw.name === 'ledgerline')!;
+    (ledgerline.branches ??= {})['belay/gap-g1'] = 'c0ffee0000000000000000000000000000000001';
+    const r = await previewIntent(deps, gap([clean]));
+    expect(r).toMatchObject({ status: 'refused', reason: expect.stringMatching(/belay\/gap-g1 already exists in .*ledgerline \(its head is c0ffee00\)/) });
+    expect(gl.state.writes).toEqual([]);
+  });
+
   it('a whole new file is still its content', async () => {
     const { r } = await plan([{ path: '.gitlab/belay/new.yml', content: 'a: 1\n' }]);
     if (r.status !== 'preview') throw new Error(`${r.status}`);
