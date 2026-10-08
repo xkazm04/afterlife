@@ -15,6 +15,11 @@ session" strip above the rows, with the response's answer and the MR it named; a
 its row with its answer. Sign-offs, gaps and setup steps stay read-only
 and say where to act. A gap item is read-only here until it carries its files from the live source (none does yet); its line points to Maturity.
 
+Known gap: the repo has no DOM test environment. `package.json` has no jsdom or happy-dom, and `vitest.config.ts:13` sets
+`environment: 'node'`. So `NeedsYouLive.test.tsx` renders the view with a given acts state, and `useLiveActs`' recording of a
+done confirm into the "Sent this session" strip is untested. Adding a DOM environment is a dependency decision that has not
+been taken.
+
 ## Parts
 - `components/band/` the CRA band: live countdown, 24 h rail, grade ladder (attested struck out), 6/6 evidence.
 - `components/table/` decisions grouped By kind / project / deadline, one action per row, "Decided this week".
