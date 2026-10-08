@@ -39,6 +39,9 @@ describe('noEdit: merged outputs with no edit / merged outputs', () => {
   });
 });
 
+// Every note below is synthetic: written from GitLab's source (SystemNotes::CommitService#add_commits), never recorded
+// from a run. A recorded real push note is the operator's to add (V-204); none here stands in for one.
+const sys = (author: string, body: string, at = '2026-10-06T11:00:00Z'): GlNote => ({ id: 2, body, author, system: true, createdAt: at });
 const push = (author: string, at: string, body = 'added 1 commit\n\n<ul><li>abc12345 - fix</li></ul>'): GlNote => ({ id: 1, body, author, system: true, createdAt: at });
 const mr = (o: Partial<GlMergeRequest> = {}): GlMergeRequest => ({
   id: 507, iid: 7, projectId: 1, title: 'fix', description: `Belay-Task: 01JQA7\nBelay-Class: ${CLS}`, state: 'merged', draft: false,
@@ -63,5 +66,30 @@ describe('the edited fact on the task row', () => {
   });
   it('absent on a merge request that has not merged', () => {
     expect(derive(mr({ state: 'opened', mergedAt: null }), [push('mariam', '2026-10-06T11:00:00Z')])).not.toHaveProperty('edited');
+  });
+});
+
+describe('fails closed: a push-related note the recogniser does not know reads unknown, never unedited', () => {
+  const MERGED = '2026-10-06T12:00:00Z';
+  it("another account's system note that mentions a commit or a push, in a shape not recognised: no stated fact", () => {
+    expect(editedBefore([sys('mariam', 'pushed 2 new commits to fix')], AGENT, MERGED)).toBeNull();
+    expect(editedBefore([sys('mariam', 'force-pushed the branch')], AGENT, MERGED)).toBeNull();
+    expect(derive(mr(), [push(AGENT, '2026-10-06T10:30:00Z'), sys('mariam', 'committed 1 change')])).not.toHaveProperty('edited');
+  });
+  it('so the ratio reads not recorded, and no Hands-off ask can open on it', () => {
+    const unknown = (iid: number) => (iid === 305 ? undefined : false);
+    expect(count({ tasks: fifteen(unknown) })).toBeNull();
+  });
+  it('"force-pushed" is not a push note shape: GitLab writes none (SystemNotes::CommitService writes "added N commit(s)")', () => {
+    expect(isPushNote({ system: true, body: 'force-pushed the branch' })).toBe(false);
+  });
+  it('a recognised push by another account is still an edit, whatever else the notes hold', () => {
+    expect(editedBefore([sys('bot', 'pushed 1 commit'), push('mariam', '2026-10-06T11:30:00Z')], AGENT, MERGED)).toBe(true);
+  });
+  it("unedited only when the notes support it: the agent's own notes, a cross-reference, a note after the merge", () => {
+    expect(editedBefore([sys(AGENT, 'pushed 2 new commits to fix')], AGENT, MERGED)).toBe(false);
+    expect(editedBefore([sys('mariam', 'mentioned in commit abc12345')], AGENT, MERGED)).toBe(false);
+    expect(editedBefore([sys('mariam', 'pushed 1 commit', '2026-10-06T12:30:00Z')], AGENT, MERGED)).toBe(false);
+    expect(editedBefore([sys('mariam', 'approved this merge request'), { ...sys('mariam', 'I pushed a commit'), system: false }], AGENT, MERGED)).toBe(false);
   });
 });

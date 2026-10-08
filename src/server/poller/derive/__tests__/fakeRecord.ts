@@ -25,7 +25,8 @@ export function setTier(gl: FakeGitLab, tier: string, since: Date, cls = 'code-f
 /**
  * Merge requests `author` opened in `cls` on ledgerline, merged within the hour before `now` (inside the poll's task
  * window, so each is read as a task with its notes). Each push note is GitLab's system note "added 1 commit", by the
- * account in `pushes` (the agent's own pushes, or a person's).
+ * account in `pushes` (the agent's own pushes, or a person's). Synthetic: written from GitLab's source, not recorded from
+ * a run (a real one is the operator's to record, V-204).
  */
 export function mergedMrs(gl: FakeGitLab, now: Date, author: string, cls: string, list: readonly { iid: number; pushes: readonly string[] }[]): void {
   const p = gl.state.projects.find((x) => x.raw.name === 'ledgerline');

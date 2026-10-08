@@ -94,11 +94,13 @@ export function deriveTask(f: TaskFacts, projectId: string, cfg: PollerConfig, t
   const guard = guardrailFor(f.notes, cfg, mr.sha);
   const hit = guard?.verdict === 'block' ? (guard.findings.find((x) => x.severity === 'high') ?? guard.findings[0]) : undefined;
   const words = proseOf(mr.description);
+  // the notes are this poll's read of the MR: whether anyone but its agent pushed to it before it merged (null: a
+  // push-related note in a shape not recognised, so no fact is stated)
+  const edited = mr.state === 'merged' ? editedBefore(f.notes, mr.author, mr.mergedAt) : null;
   const detail: TaskDetail = {
     ...(words ? { agentWords: words } : {}),
     ...(hit ? { quote: hit.quote, reason: hit.explanation } : {}),
-    // the notes are this poll's read of the MR: whether anyone but its agent pushed to it before it merged
-    ...(mr.state === 'merged' ? { edited: editedBefore(f.notes, mr.author, mr.mergedAt) } : {}),
+    ...(edited !== null ? { edited } : {}),
   };
   const { state, label } = stateOf(f, labels, proof?.verdict ?? null, stale);
   const cls = t.class;
