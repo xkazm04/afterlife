@@ -62,7 +62,7 @@ export function nextAction(p: FleetProject, run: ProjectRun, org: string): NextA
         kind: 'bootstrap', who: 'you', writes: 1, label: 'Open the bootstrap MR',
         cmd: [
           `git -C ${n} switch -c belay/bootstrap`,
-          `npx belay pair ${n}`,
+          `npx belay pair ${n} --write`,
           `git -C ${n} add -A && git -C ${n} commit -m "Belay bootstrap"`,
           `git -C ${n} push -u origin belay/bootstrap`,
           `glab mr create -R ${path} --source-branch belay/bootstrap --title "Belay bootstrap" --description "Policy record and proof jobs" --draft`,

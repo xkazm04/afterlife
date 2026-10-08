@@ -4,15 +4,28 @@
 
 ## What it does
 - `engine/` is the model-free proof engine, run in GitLab CI as `npx tsx engine/cli.ts <cmd>` (or
-  `npm run engine -- <cmd>`). Commands: `prove`, `envelope`, `gate`, `tripwire`, `ledger append`. No network, no LLM, no dependency
+  `npm run engine -- <cmd>`). Commands: `prove`, `envelope`, `gate`, `tripwire`, `ledger append`, `scan`. No network, no LLM, no dependency
   beyond `yaml`.
 - `prove` writes a Proof Block for a proof class: `exploit-test`, `cited-diff`, `rerun-stats`, `linked-evidence` are
   implemented; `repro`, `bench-delta`, `score-delta`, `ledger-record` are stubs that return inconclusive.
 - `gate` decides `merge` / `approve` / `wait` / `block` for an agent MR from tier state, policy, the proof and the
   guardrail verdict. `tripwire` turns a bad-outcome event into a demotion commit of `tier-state.yml`. `ledger append`
   adds one hash-chained event line.
-- `cli/belay.mjs` is the `belay` command-line companion: `doctor` runs the real capability probes
-  (`src/server/gitlab/doctorCli.ts` through tsx); `pair`, `scan` and `replay` print "not implemented yet" and exit 2.
+- `scan` rates the nine stages R0–R4 from facts, model-free: `--dir <checkout>` reads files only (CI config with
+  local includes followed, CODEOWNERS, `.gitlab/`, IaC and alerting files); `--facts <facts.json>` reads the
+  `belay.facts/0` file the `maturity-scan` component collects (adds the last default-branch pipeline, protections
+  and approval rules). Configured is R1, a job that succeeded on the default branch is R2, a merge-blocking setting
+  is R3; R4 is never scored here. A stage whose lifting facts could not be read is unknown (null), never absent, and
+  an empty alerting file is not monitoring. `--propose` adds the smallest next change per stage, as text.
+- `cli/belay.mjs` is the `belay` command-line companion, each part run through tsx:
+  - `doctor` runs the real capability probes (`src/server/gitlab/doctorCli.ts`).
+  - `scan [<checkout>] [--propose] [--facts F]` runs `engine scan` (the checkout defaults to the current folder).
+  - `pair <checkout> [--group G] [--write]` (`src/server/pair/`) adds the Belay bootstrap to a checkout:
+    `.gitlab/belay.gitlab-ci.yml` (the components, pinned to the pack), one `include` line in `.gitlab-ci.yml`,
+    `.gitlab/duo/agent-config.yml` and the work folders in `.gitignore`. It prints the plan and writes only with
+    `--write`, only ever adds lines, keeps a file it would have to change (exit 1, finish by hand), and never
+    commits, pushes or opens an MR: it prints those commands. The group comes from the `origin` remote.
+  - `replay` prints "not implemented yet" and exits 2.
 - `gitlab/` holds what runs inside GitLab: six CI/CD components (`belay-pack`), six custom flow definitions, their
   output schemas, and example target and policy projects.
 - `policy/` holds the demo `trust-policy.yml` (rules, classes, ceilings, envelope, promotion and demotion triggers)
@@ -71,7 +84,9 @@
 ## Code map
 | Path | Role |
 |---|---|
-| `engine/cli.ts`, `engine/commands/` | Entry and the five commands (`prove`, `envelope`, `gate`, `tripwire`, `ledger`) |
+| `engine/cli.ts`, `engine/commands/` | Entry and the six commands (`prove`, `envelope`, `gate`, `tripwire`, `ledger`, `scan`) |
+| `engine/scan/` | Facts (checkout, GitLab), CI reader, the nine stage rules, scoring and proposals |
+| `src/server/pair/` | `belay pair`: the bootstrap plan (`plan.ts`, `ciFile.ts`) and its IO (`pair.ts`, `pairCli.ts`) |
 | `engine/core/` | Args, files, types, ULID, engine version and source hash |
 | `engine/parse/` | Diff, JUnit, trace parsers, test-case shapes |
 | `engine/proofs/` | Proof classes, weakening detector, stubs, shared helpers |
@@ -79,7 +94,7 @@
 | `engine/decide/` | `gate.ts`, `tripwire.ts` |
 | `engine/__fixtures__/` | Exploit, cited, rerun, linked and event inputs |
 | `src/schemas/` | Shared Proof Block, tier, ledger, CRA and stage schemas |
-| `cli/belay.mjs` | `belay doctor | pair | scan | replay` |
+| `cli/belay.mjs` | `belay doctor \| scan \| pair \| replay` |
 | `gitlab/components/` | `belay-pack` CI/CD components and `scripts/` glue |
 | `gitlab/flows/` | Six custom flow definitions and `schemas/` |
 | `gitlab/examples/` | Target project `.gitlab-ci.yml` and agent config; `belay-policy` layout and `CODEOWNERS` |
@@ -96,8 +111,14 @@
   cooldown, YAML preserved, commit message, lease dropped, event validation.
 - `engine/proofs/__tests__/`: exploit-test, weakening (24 cases), cited-diff, rerun/linked/stub classes, `head_sha`.
   Also `parse/*.test.ts`, `policy/envelope.test.ts`, `core/core.test.ts`.
+- `engine/scan/scan.test.ts`: the example target project scores secure, verify and govern at R1 and nothing above;
+  local includes, IaC and CODEOWNERS count; an empty alerting file and an unopened include do not; GitLab facts
+  credit running and enforced; an unreadable fact leaves a stage unknown; the command's JSON and refusals.
+- `src/server/pair/__tests__/pair.test.ts` (real temporary git checkouts): no write without `--write`; every line
+  of the project's files kept; a second run is a no-op; not a checkout root or no group is refused; a different
+  existing file is kept; the include is created, appended, inserted or refused.
 - The GitLab components, scripts and flows have no automated tests in this repository (vitest covers `src/` and
-  `engine/`).
+  `engine/`). The `maturity-scan` component now has the `engine scan --facts` command it calls.
 
 ## Status and limits
 - Nothing in `gitlab/` has run on a live GitLab; it is written against the docs, with unchecked points marked `[R?]`.
@@ -106,4 +127,7 @@
   cannot pass yet.
 - Flow triggers do not fire on bot or service-account actions, hence `flow-dispatch`; a CI job token cannot post
   notes, label, approve or merge, hence a bot token.
-- `belay pair`, `scan` and `replay` are not implemented. `policy/tier-state.yml` holds illustrative values.
+- `belay replay` is not implemented. `policy/tier-state.yml` holds illustrative values.
+- `belay scan` on a checkout cannot see pipelines, protections, group-level config or a custom CI config path: those
+  stages read unknown, or at most configured. Template and component job names are matched by pattern, so a
+  renamed job is missed. `pair` does not record the pairing in the app's index (the app's doctor and poller do).

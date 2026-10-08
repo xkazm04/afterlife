@@ -65,7 +65,7 @@ export function AfterMerge({ ctx, gap, phase, now, dispatch }: { ctx: MaturityCt
           </>
         ) : null}
         {phase === 'merged' || phase === 'ran' ? (
-          <Button variant="accent" title={`npx belay scan --engine ${ctx.engine} · read only`} onClick={() => dispatch({ type: 'rescanGap', id })}>
+          <Button variant="accent" title={`npx belay scan · engine ${ctx.engine} · read only`} onClick={() => dispatch({ type: 'rescanGap', id })}>
             {`Rescan · engine ${ctx.engine}`}
           </Button>
         ) : null}

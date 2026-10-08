@@ -7,6 +7,7 @@ import { envelopeCommand } from './commands/envelope';
 import { gateCommand } from './commands/gate';
 import { ledgerCommand } from './commands/ledger';
 import { proveCommand } from './commands/prove';
+import { scanCommand } from './commands/scan';
 import { tripwireCommand } from './commands/tripwire';
 import { EngineError, type CommandResult, type Ctx, type ExitCode } from './core/types';
 
@@ -23,6 +24,7 @@ const COMMANDS: Record<string, (argv: readonly string[], ctx: Ctx) => CommandRes
   gate: gateCommand,
   tripwire: tripwireCommand,
   ledger: ledgerCommand,
+  scan: scanCommand,
 };
 
 const USAGE = `usage: engine/cli.ts <command> [options]
@@ -31,6 +33,7 @@ const USAGE = `usage: engine/cli.ts <command> [options]
   gate --policy <p> --state <tier-state.yml> --class <id> --proof <proof.json> --guardrail <verdict.json>
   tripwire --policy <p> --state <tier-state.yml> --event <event.json>
   ledger append --event <event.json> --chain <events.jsonl> [--write]
+  scan --dir <checkout> | --facts <facts.json> [--propose]
 exit: 0 pass, 1 fail, 2 inconclusive or error`;
 
 export function main(argv: readonly string[], io: Io = { stdout: (s) => process.stdout.write(s), stderr: (s) => process.stderr.write(s) }): ExitCode {
