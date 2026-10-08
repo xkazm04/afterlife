@@ -13,6 +13,10 @@ const project = arg('project') ?? die('missing --project (the belay-ledger path)
 const branch = arg('branch', 'main');
 const file = arg('path', `events/${process.env.CI_PROJECT_ID}.jsonl`);
 const dir = arg('events');
+// Writes may use a different token from reads (BELAY_LEDGER_TOKEN, named by --write-token-var). A variable named there and
+// not set is refused before any read (F88): the read token never writes in its place.
+const named = arg('write-token-var');
+if (named && !process.env[named]) die(`${named} is not set (named by --write-token-var): nothing committed`);
 const files = dir
   ? fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.json')).sort().map((f) => path.join(dir, f)) : []
   : [arg('event') ?? die('missing --event or --events')];
@@ -48,8 +52,9 @@ for (const f of files) {
   titles.push(`${parsed.kind} #${parsed.seq}`);
 }
 
-// Writes may use a different token from reads (BELAY_LEDGER_TOKEN, named by --write-token-var).
-const writeToken = process.env[arg('write-token-var', 'BELAY_BOT_TOKEN')];
+// The write token: the one --write-token-var names; without the flag, BELAY_BOT_TOKEN when set, else the caller's own
+// glab login (a person running it by hand, gitlab/components/README.md).
+const writeToken = process.env[named ?? 'BELAY_BOT_TOKEN'];
 if (writeToken) process.env.GITLAB_TOKEN = writeToken;
 writeFile({
   project,

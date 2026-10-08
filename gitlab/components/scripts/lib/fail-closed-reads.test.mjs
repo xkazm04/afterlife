@@ -80,6 +80,18 @@ describe('ledger-append', () => {
     expect(r.code).not.toBe(0);
     expect(r.writes).toEqual([]);
   });
+
+  // F88: the write token named by --write-token-var is the only one it writes with; never the read token instead.
+  it('refuses when --write-token-var names an unset variable, and writes nothing', () => {
+    const routes = { [FILE_URL]: http(404, '404 File Not Found'), [COMMITS]: { reply: {} } };
+    const r = runScript(dir, 'decide/ledger-append.mjs', [...appendArgs, '--write-token-var', 'BELAY_LEDGER_TOKEN'], { routes, env: { GITLAB_TOKEN: 'read' } });
+    expect(r.code).not.toBe(0);
+    expect(r.stderr).toMatch(/BELAY_LEDGER_TOKEN is not set/);
+    expect(r.writes).toEqual([]);
+    const ok = runScript(dir, 'decide/ledger-append.mjs', [...appendArgs, '--write-token-var', 'BELAY_LEDGER_TOKEN'], { routes, env: { GITLAB_TOKEN: 'read', BELAY_LEDGER_TOKEN: 'ledger' } });
+    expect(ok.code, ok.stderr).toBe(0);
+    expect(ok.writes).toHaveLength(1);
+  });
 });
 
 describe('collect-facts', () => {
