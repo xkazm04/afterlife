@@ -13,7 +13,8 @@ export interface FleetView {
 }
 
 /** `tier` is what the gate acts on (null: unknown); `cell`, set where it is not the tier, is what Ladder shows. */
-export type ActionClassView = Omit<ActionClass, 'tier'> & { tier: TierKey | null };
+/** `cooldownUntil`: tier-state.yml's cooldown_until on the record (ISO), when it states one: no promotion before it. */
+export type ActionClassView = Omit<ActionClass, 'tier'> & { tier: TierKey | null; cooldownUntil?: string };
 
 export type MaturityRungView = Omit<MaturityRung, 'day0' | 'now' | 'next'> & {
   day0: number | null;

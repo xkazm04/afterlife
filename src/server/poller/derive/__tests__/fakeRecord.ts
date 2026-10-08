@@ -13,12 +13,16 @@ const fileOf = (gl: FakeGitLab, project: string, path: string): { files: Record<
   return p;
 };
 
-/** tier-state.yml as a person or the tripwire would leave it: `cls` (code-fix.patch) at `tier` since `since`. */
-export function setTier(gl: FakeGitLab, tier: string, since: Date, cls = 'code-fix.patch'): void {
+/**
+ * tier-state.yml as a person or the tripwire would leave it: `cls` (code-fix.patch) at `tier` since `since`, with any
+ * `extra` fields of the record (a revoke's or the tripwire's `cooldown_until`).
+ */
+export function setTier(gl: FakeGitLab, tier: string, since: Date, cls = 'code-fix.patch', extra: Record<string, string> = {}): void {
   const p = fileOf(gl, 'belay-policy', 'tier-state.yml');
   const text = p.files['tier-state.yml'] ?? '';
   const record = new RegExp(`${cls.replace(/[.]/g, '\\.')}: \\{[^}]*\\}`);
-  p.files['tier-state.yml'] = text.replace(record, `${cls}: { tier: ${tier}, since: "${since.toISOString()}", by: "operator via promotion MR !40" }`);
+  const more = Object.entries(extra).map(([k, v]) => `, ${k}: "${v}"`).join('');
+  p.files['tier-state.yml'] = text.replace(record, `${cls}: { tier: ${tier}, since: "${since.toISOString()}", by: "operator via promotion MR !40"${more} }`);
   if (p.files['tier-state.yml'] === text) throw new Error(`${cls} is not in tier-state.yml`);
 }
 

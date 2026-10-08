@@ -60,3 +60,15 @@ describe('poll cycle: a promotion ask for an eligible class', () => {
     expect((await getNeedsYou(r.db, 'ledgerline', LATER)).map((n) => n.id)).toEqual([ID]);
   });
 });
+
+describe('poll cycle: a class in its cooldown', () => {
+  it('opens no promotion ask while cooldown_until is ahead, and closes an open one', async () => {
+    const since = new Date(NOW.getTime() - 10 * DAY);
+    setTier(r.gl, 'assisted', since, 'code-fix.patch', { cooldown_until: new Date(LATER.getTime() + 2 * DAY).toISOString().slice(0, 10) });
+    await r.poll(LATER);
+    expect(await promotions(LATER)).toEqual([]);
+    const after = new Date(LATER.getTime() + 3 * DAY);
+    await r.poll(after);
+    expect((await promotions(after)).map((n) => n.id)).toEqual([ID]);
+  });
+});

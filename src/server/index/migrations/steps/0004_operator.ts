@@ -1,7 +1,7 @@
 // The operator's side: where Belay is paired, setup progress, feed health, and every confirmed write.
 // Sources: pairing + setup_step <- belay doctor probes; poll_state <- the poller; commands_run <- Belay itself
 // (the only table with no outside copy: it is the local audit of what the operator clicked).
-import { type Migration } from './parts';
+import { type Migration } from '../parts';
 
 export const m0004: Migration = {
   version: 4,

@@ -1,5 +1,5 @@
 // The append-only hash chain. Source of truth is belay-ledger/events/<project-id>.jsonl; this table is its index.
-import { TIERS, type Migration } from './parts';
+import { TIERS, type Migration } from '../parts';
 
 export const m0003: Migration = {
   version: 3,

@@ -3,7 +3,7 @@ import { KeyValue } from '@/components/inspector/KeyValue';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
-import { READMIT } from '../../../data/readmit';
+import { READMIT, readmitCooldown } from '../../../data/readmit';
 import { Chip } from '@/components/status/chip/Chip';
 import { ActBtn, Acts } from '../Acts';
 import type { InspProps } from '../props';
@@ -17,6 +17,7 @@ export function InspReadmit(p: InspProps) {
   const { s, demo, dispatch } = p;
   const st = s.status.n4;
   const { incident, record } = demo;
+  const cooldown = readmitCooldown(demo.readmit.cooldownDays);
   return (
     <>
       <InspectorHeader
@@ -75,7 +76,7 @@ export function InspReadmit(p: InspProps) {
                 <TierMark tier="supervised" /> not on offer
               </span>,
             ],
-            ['Cooldown', READMIT.cooldown],
+            ['Cooldown', cooldown.cooldown],
           ]}
         />
       </Sec>
@@ -83,7 +84,7 @@ export function InspReadmit(p: InspProps) {
       <Sec k="n4-retire" title="Retire · no write" aux="no outbox" def={false} p={p}>
         <div className={styles.muted}>{retireText(demo.readmit.cls)}</div>
       </Sec>
-      <ClickSec k="n4-click" p={p} does={READMIT.does} doesNot={READMIT.doesNot} />
+      <ClickSec k="n4-click" p={p} does={READMIT.does} doesNot={cooldown.doesNot} />
       <PolicyCmdSec k="n4" title="Command · re-admit" p={p} />
     </>
   );

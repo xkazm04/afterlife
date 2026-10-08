@@ -15,6 +15,8 @@ export interface ClassRow extends Omit<ActionClass, 'record'> {
   ask?: PromotionAsk;
   /** Live: the record is not the poll's count (a class several agents or no agent holds): the one the index held. */
   uncounted?: true;
+  /** Live: tier-state.yml's cooldown_until on the record (ISO): the promotion rule's cooldown row reads it. */
+  cooldownUntil?: string;
   pending: string | null;
 }
 

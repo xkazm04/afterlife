@@ -80,6 +80,12 @@ person always merges the promotion (cited in `src/lib/promotion/rules.ts`). Live
 `reverted` (it reads no revert MR), so reverts rests on the tripwire. A stated guardrail block is a lower bound when other
 verdicts are unresolved: enough to read the rule unmet, never met.
 
+The record's `cooldown_until` (stamped by the tripwire and by a revoke from `cooldown_days`) is stored on the
+`class_tier` row (migration 0009). While it is ahead of the poll's `now`, the promotion rule carries a `cooldown` row
+not met until that date, so no promotion ask opens and an open one is closed; Ladder's Promote reads the same row, and
+`planPromote` refuses with the date. A re-admission of a quarantined class to Assisted is not a promotion: it is planned,
+and the new record keeps the cooldown.
+
 A promotion ask (`derive/promotion.ts`) carries `from`, `to` and each rule with its count; one a person acted on or
 dismissed at or after the record's `since` is not opened again until the record moves (re-admits likewise).
 

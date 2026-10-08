@@ -51,7 +51,7 @@ export function pickNeedsYouDemo(): NeedsYouDemo {
     project: ds.deepProjectId(),
     promote: { title: n1.title, cls, record: promoted, from: n1.from, to, rules: n1.rules ?? [] },
     signoff: { title: n2.title, linksResolved: n2.linksResolved ?? '' },
-    readmit: { title: n4.title, cls: classOf(n4.title, classes), reason: n4.reason ?? '' },
+    readmit: { title: n4.title, cls: classOf(n4.title, classes), reason: n4.reason ?? '', cooldownDays: ds.getPolicy()?.cooldownDays ?? null },
     runner: { title: item(items, 'n5').title },
     gaps: maturity.proposals,
     rungNames: maturity.rungNames,

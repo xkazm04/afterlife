@@ -36,12 +36,16 @@ export interface EligibleClass {
 export const promotionTitle = (track: number | null, role: string, classId: string): string =>
   `Promote ${track === null ? 'T?' : `T${track}`} ${role} · ${classId}`;
 
-/** The class, when Ladder's rule calls it eligible against these thresholds. */
-export function eligibleOf(c: PromotionCandidate, rules: PolicyRules | null): EligibleClass | null {
+/**
+ * The class, when Ladder's rule calls it eligible against these thresholds at `now`: a record whose cooldown_until is
+ * still ahead is not (the rule's cooldown row), so no ask opens before that date.
+ */
+export function eligibleOf(c: PromotionCandidate, rules: PolicyRules | null, now: Date = new Date()): EligibleClass | null {
   const { row } = c;
   if (row.tier === null || row.tier === 'human_only') return null;
   const shown = shownOf(row);
-  const p = promotion({ tier: row.tier, ceiling: c.ceiling, record: c.record, cell: shown.cell, holders: shown.holders ?? undefined }, c.proof, rules);
+  const cooldownUntil = row.cooldownUntil?.toISOString() ?? null;
+  const p = promotion({ tier: row.tier, ceiling: c.ceiling, record: c.record, cell: shown.cell, holders: shown.holders ?? undefined, cooldownUntil }, c.proof, rules, now);
   if (p.kind !== 'eligible') return null;
   return { classId: row.classId, title: promotionTitle(c.track, c.role, row.classId), from: row.tier, to: p.next, rules: p.rules };
 }

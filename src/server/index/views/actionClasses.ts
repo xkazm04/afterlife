@@ -48,6 +48,7 @@ export async function getActionClasses(db: Queryable, projectId: string, now: Da
       // the cell is set where it is not the tier: a standing, or unknown (as in the demo fixture, absent: the tier is the cell)
       ...(shown.cell === null || isStanding(shown.cell) ? { cell: shown.cell } : {}),
       ...(shown.holders ? { holders: shown.holders } : {}),
+      ...(r.cooldownUntil ? { cooldownUntil: r.cooldownUntil.toISOString() } : {}),
     });
   }
   return out;

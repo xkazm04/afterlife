@@ -1,6 +1,6 @@
 // The guardrail's verdict on a guardrail_verdict event (src/schemas/ledger.ts `verdict`): pass or block, null on every
 // other event and on one written before the gate stated it. Null reads back as no key, so such an event hashes as before.
-import { type Migration } from './parts';
+import { type Migration } from '../parts';
 
 export const m0008: Migration = {
   version: 8,

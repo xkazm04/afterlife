@@ -1,7 +1,7 @@
 // Fleet: the projects Belay watches and what the Fleet screen shows about each.
 // Sources: group list and project facts <- GitLab API; class tiers <- belay-policy tier-state.yml;
 // the *_7d / needs_you / cra_open columns are roll-ups the poller recomputes from task, proof, proposal and ledger rows.
-import { CEILINGS, STAGE_LIST, type Migration } from './parts';
+import { CEILINGS, STAGE_LIST, type Migration } from '../parts';
 
 export const m0001: Migration = {
   version: 1,

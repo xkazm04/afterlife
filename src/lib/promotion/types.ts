@@ -37,4 +37,9 @@ export interface PromotionSubject {
   cell?: ClassCell;
   holders?: readonly Holder[];
   ask?: PromotionAsk;
+  /**
+   * tier-state.yml's `cooldown_until` on the record (a date, or a date and time), stamped by the tripwire and by a revoke:
+   * no promotion before it. Absent or null: the record states none.
+   */
+  cooldownUntil?: string | null;
 }

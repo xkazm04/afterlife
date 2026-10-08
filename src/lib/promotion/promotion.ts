@@ -2,7 +2,7 @@
 // a constant here). A count is shown, never a forecast (no ETA). One rule for both sides: Ladder's Promote and the
 // poller's promotion ask (server/poller/derive/promotion.ts) read it here, so they can never disagree.
 import type { Tier } from '@/schemas/tier';
-import { toHandsOffRules, toSupervisedRules, type PromotionRule } from './rules';
+import { cooldownRule, toHandsOffRules, toSupervisedRules, type PromotionRule } from './rules';
 import { cellOf, RUNGS, rungIndex } from './rungs';
 import type { PromotionRules, PromotionSubject } from './types';
 
@@ -13,8 +13,11 @@ export type Promotion =
   | { kind: 'unknown' | 'nopolicy'; next: Tier }
   | { kind: 'eligible' | 'notyet'; next: Tier; rules: PromotionRule[] };
 
-/** `rules`: trust-policy.yml's thresholds, as the server read them; null when it could not (the counts are then not drawn). */
-export function promotion(c: PromotionSubject, proofClass: string, rules: PromotionRules | null): Promotion {
+/**
+ * `rules`: trust-policy.yml's thresholds, as the server read them; null when it could not (the counts are then not drawn).
+ * `now`: what the record's cooldown is read against (the poll's clock on the poller's side).
+ */
+export function promotion(c: PromotionSubject, proofClass: string, rules: PromotionRules | null, now: Date = new Date()): Promotion {
   const tier = cellOf(c);
   if (tier === 'human_only') return { kind: 'never' };
   if (tier === 'no_record') return { kind: 'norecord' };
@@ -30,6 +33,8 @@ export function promotion(c: PromotionSubject, proofClass: string, rules: Promot
   if (!r) return { kind: 'unknown', next };
   if (!rules) return { kind: 'nopolicy', next };
   const counts = next === 'hands_off' ? toHandsOffRules(r, rules.toHandsOff, proofClass) : toSupervisedRules(r, rules.toSupervised);
+  const cooldown = cooldownRule(c.cooldownUntil, now);
+  if (cooldown) counts.push(cooldown);
   return { kind: counts.every((x) => x.met) ? 'eligible' : 'notyet', next, rules: counts };
 }
 

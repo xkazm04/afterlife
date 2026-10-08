@@ -26,12 +26,19 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
   const rank = (t: string): number => (t === 'human_only' ? 99 : TIER_ORDER.indexOf(t as (typeof TIER_ORDER)[number]));
   if (rank(intent.to) <= rank(held.record.tier)) throw new ActionRefused(`${intent.class} is already ${held.record.tier}: a promotion goes up`);
   if (rank(intent.to) > rank(held.ceiling)) throw new ActionRefused(`${intent.class} has a ${held.ceiling} ceiling in trust-policy.yml: ${intent.to} is above it`);
+  // The cooldown the tripwire or a revoke stamped: no promotion before it. Re-admitting a quarantined class to Assisted
+  // is not one, and the new record keeps the cooldown, so the class climbs no further before that date.
+  const cooldown = held.record.cooldown_until;
+  const cooling = !!cooldown && ctx.now.getTime() < Date.parse(cooldown);
+  const readmit = held.record.tier === 'quarantined' && intent.to === 'assisted';
+  if (cooling && !readmit) throw new ActionRefused(`${intent.class} is in its cooldown until ${cooldown}: no promotion before that date`);
 
   const ttl = read.policy.grant_ttl_days;
   const at = minuteOf(ctx.now);
   const record: Record<string, string> = {
     tier: intent.to, since: at.toISOString(), by: `operator ${ctx.operator} via promotion MR`,
     ...(intent.to === 'hands_off' && ttl ? { lease_expires: new Date(at.getTime() + ttl * 86_400_000).toISOString() } : {}),
+    ...(cooling && cooldown ? { cooldown_until: cooldown } : {}),
   };
   const content = editRecords(file.content, [{ agent: held.agent, class: intent.class, record }]);
   const move = `${intent.class} ${held.record.tier} -> ${intent.to}`;

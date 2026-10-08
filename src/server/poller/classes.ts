@@ -46,7 +46,7 @@ export async function pollClasses(
     const row = byId.get(id);
     const c = policy.classes[id];
     if (!row || !c) return [];
-    const e = eligibleOf({ row, record, role: c.agent, track: ROLE_TRACK[c.agent] ?? null, ceiling: c.ceiling, proof: c.proof ?? '' }, rules);
+    const e = eligibleOf({ row, record, role: c.agent, track: ROLE_TRACK[c.agent] ?? null, ceiling: c.ceiling, proof: c.proof ?? '' }, rules, now);
     return e ? [e] : [];
   });
   const promotions = planPromotions(projectId, eligible, new Map(t.rows.map((r) => [r.classId, r.since])), open, settled, now);

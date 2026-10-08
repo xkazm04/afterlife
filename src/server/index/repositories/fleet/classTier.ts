@@ -23,6 +23,8 @@ export interface ClassTierRow {
    */
   record: RecordCounters | null;
   move: { kind: MoveKind; at: Date | null; note: string | null } | null;
+  /** tier-state.yml's `cooldown_until` on the record (migration 0009): no promotion before it. Absent or null: none stated. */
+  cooldownUntil?: Date | null;
 }
 
 const SPEC: TableSpec = {
@@ -31,7 +33,7 @@ const SPEC: TableSpec = {
   cols: {
     project_id: 'text', class_id: 'text', tier: 'text', since: 'timestamptz', set_by: 'text', lease_expires: 'timestamptz',
     accepted: 'int', needed: 'int', no_edit: 'float8', clean_days: 'int', reverts: 'int', guardrail_blocks: 'int', count_window: 'int',
-    move_kind: 'text', move_at: 'timestamptz', move_note: 'text',
+    move_kind: 'text', move_at: 'timestamptz', move_note: 'text', cooldown_until: 'timestamptz',
   },
 };
 
@@ -39,6 +41,7 @@ interface Db {
   project_id: string; class_id: string; tier: Ceiling | null; since: Date | null; set_by: string | null;
   lease_expires: Date | null; accepted: number | null; needed: number | null; no_edit: number | null;
   clean_days: number | null; reverts: number | null; guardrail_blocks: number | null; count_window: number | null; move_kind: MoveKind | null; move_at: Date | null; move_note: string | null;
+  cooldown_until: Date | null;
 }
 
 const toDb = (r: ClassTierRow): Record<string, unknown> => ({
@@ -48,6 +51,7 @@ const toDb = (r: ClassTierRow): Record<string, unknown> => ({
   clean_days: r.record?.cleanDays ?? null, reverts: r.record?.reverts ?? null,
   guardrail_blocks: r.record?.guardrailBlocks ?? null, count_window: r.record?.window ?? null,
   move_kind: r.move?.kind ?? null, move_at: toIso(r.move?.at), move_note: r.move?.note ?? null,
+  cooldown_until: toIso(r.cooldownUntil),
 });
 
 /**
@@ -66,6 +70,7 @@ const fromDb = (r: Db): ClassTierRow => ({
   leaseExpires: asDate(r.lease_expires),
   record: recordOf(r),
   move: r.move_kind ? { kind: r.move_kind, at: asDate(r.move_at), note: r.move_note } : null,
+  cooldownUntil: asDate(r.cooldown_until),
 });
 
 /** Trust classes must exist first (see upsertTrustClasses). */

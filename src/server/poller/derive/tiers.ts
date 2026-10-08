@@ -105,7 +105,7 @@ export function deriveTiers(
       held.set(id, counted);
       if (counters) record = Object.values(counted).some((v) => v !== null) ? counted : null; // the poll's count replaces the stored one
     }
-    rows.push({ projectId, classId: id, tier, since, setBy: byOf(rec), leaseExpires: lease, record, move });
+    rows.push({ projectId, classId: id, tier, since, setBy: byOf(rec), leaseExpires: lease, record, move, cooldownUntil: when(rec?.cooldown_until) });
   });
   const cutoff = now.getTime() - windowMs;
   const demotions = Object.values(state.agents)

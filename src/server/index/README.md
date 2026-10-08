@@ -20,8 +20,11 @@ tables above. NULL means unknown, never zero.
 
 ## Layout
 
-- `db.ts` open, shared instance (`getIndex`), `closeIndex`. `migrations/` versioned SQL as TS modules; `migrate()`
-  is idempotent and checksum-guarded. `repositories/` typed, parameterised functions per table (no ORM).
+- `db.ts` open, shared instance (`getIndex`), `closeIndex`. `migrations/` versioned SQL as TS modules, the steps in
+  `migrations/steps/` (nested at 0009 for the 10-file folder ceiling, each step's version, name and SQL unchanged, which
+  is all `migrate()` keys on: one slot is left before the next nesting); `migrate()` is idempotent and checksum-guarded.
+  Migration 0009 adds `class_tier.cooldown_until`, tier-state.yml's `cooldown_until` on the record
+  (`__tests__/migration9.test.ts` migrates a populated version-8 index). `repositories/` typed, parameterised functions per table (no ORM).
 - `views/` return the shapes in `src/lib/demo` (`getFleet`, `getNeedsYou`, `getActionClasses`, `getMaturity`,
   `getTasks`, and `getEvents`: the deep project's recent events, dated only by what the index holds with a time). Countdowns and ages are computed from stored instants with a `now` argument. Where the index cannot
   know a value the field is `null` (types widened in `views/types.ts`).

@@ -46,8 +46,8 @@ afterAll(() => setDataSource(null));
 /** What the loaders return, as the page would send it to the client: JSON, so `undefined` and a missing key are the same. */
 const asProps = (v: unknown): unknown => JSON.parse(JSON.stringify(v)) as unknown;
 
-/** The class records: live, the poll's own counts (listed below, where live differs); demo, the fixture's. */
-const noRecords = (v: unknown): unknown => JSON.parse(JSON.stringify(v), (k: string, x: unknown) => (k === 'record' ? null : x)) as unknown;
+/** The class records: live, the poll's own counts and the cooldown tier-state.yml states (none in the fixture); demo, the fixture's. */
+const noRecords = (v: unknown): unknown => JSON.parse(JSON.stringify(v), (k: string, x: unknown) => (k === 'record' ? null : k === 'cooldownUntil' ? undefined : x)) as unknown;
 
 /** The fixture spells "no last event" as null on six projects; the index view leaves the key out. Both draw nothing. */
 const noLast = (v: unknown): unknown => {

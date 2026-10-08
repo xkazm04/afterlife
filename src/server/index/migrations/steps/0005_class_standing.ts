@@ -2,7 +2,7 @@
 // holds it) and 'refused' (several agents hold it and none is named for the role). Both are stored quarantined, the
 // tier the gate acts on; the move keeps them apart from a tripwire quarantine. Since F34 'refused' is any class several
 // agents hold, stored at its most restrictive holder with every holder's tier in the note (views/standing.ts).
-import { type Migration } from './parts';
+import { type Migration } from '../parts';
 
 export const m0005: Migration = {
   version: 5,

@@ -49,6 +49,17 @@ export function toSupervisedRules(r: Counters, t: PromotionRules['toSupervised']
   return rows;
 }
 
+/**
+ * The cooldown a record states (tier-state.yml `cooldown_until`): a row that is not met until that date, while it is
+ * ahead of `now`; none once it has passed (or when the record states none). A date with no time starts at 00:00 UTC.
+ */
+export function cooldownRule(until: string | null | undefined, now: Date): PromotionRule | null {
+  const t = until ? Date.parse(until) : Number.NaN;
+  if (Number.isNaN(t) || now.getTime() >= t) return null;
+  const iso = new Date(t).toISOString();
+  return { name: 'cooldown', value: `until ${iso.endsWith('T00:00:00.000Z') ? iso.slice(0, 10) : `${iso.slice(0, 16).replace('T', ' ')} UTC`}`, met: false };
+}
+
 /** Supervised to Hands-off: the counts, the mechanical proof class, and the human key when the policy asks one. */
 export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], proofClass: string): PromotionRule[] {
   const rows: PromotionRule[] = [
