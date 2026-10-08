@@ -55,6 +55,13 @@ describe('a hunk in a gap MR', () => {
     expect(() => applyHunk(CI, 'a\nx\nb\nx\n', [' x', '+y'])).toThrow(ActionRefused);
   });
 
+  // F86: the '' after a file's final newline is not a line, so a blank context line cannot match it.
+  it('a blank context line does not match past the final newline; an added last line keeps the final newline', () => {
+    expect(() => applyHunk(CI, 'a\nb\n', [' b', ' ', '+c'])).toThrow(/do not match/);
+    expect(applyHunk(CI, 'a\nb\n', [' b', '+c'])).toBe('a\nb\nc\n');
+    expect(applyHunk(CI, 'a\nb', [' b', '+c'])).toBe('a\nb\nc');
+  });
+
   it('is refused when the file does not exist: there is nothing to apply it to', async () => {
     const { r } = await plan([{ path: '.gitlab/security-policies/policy.yml', hunk: [' scan_result_policy:', '+approval_policy:'] }]);
     expect(r).toMatchObject({ status: 'refused', reason: expect.stringMatching(/does not exist/) });

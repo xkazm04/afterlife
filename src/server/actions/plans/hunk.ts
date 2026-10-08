@@ -7,8 +7,9 @@ export function applyHunk(path: string, base: string, hunk: readonly string[]): 
   const context = hunk.filter((l) => l.startsWith(' ')).map((l) => l.slice(1));
   if (!context.length) throw new ActionRefused(`the hunk for ${path} has no context lines, so it cannot find its place`);
   const lines = base.split('\n');
+  const end = base.endsWith('\n') ? lines.length - 1 : lines.length; // the '' after a final newline is not a line (F86)
   const at: number[] = [];
-  for (let i = 0; i + context.length <= lines.length; i++) if (context.every((c, k) => lines[i + k] === c)) at.push(i);
+  for (let i = 0; i + context.length <= end; i++) if (context.every((c, k) => lines[i + k] === c)) at.push(i);
   if (!at.length) throw new ActionRefused(`the hunk's context lines do not match ${path} exactly and in order: the file is not the one the change was written against`);
   const start = at[0] as number;
   if (at.length > 1) throw new ActionRefused(`the hunk's context lines match ${path} in ${at.length} places, so where the lines go is not certain`);
