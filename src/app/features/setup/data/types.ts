@@ -22,6 +22,8 @@ export interface StepDetail {
   failFirst?: string;
   /** The value is typed by the person: Belay never sees it. */
   secret?: boolean;
+  /** Why no read can ever see this step done: the operator may say they did it instead (live). */
+  unread?: string;
 }
 
 /** One track's place in the arm order: what it waits on. A need is a track id or "step:N". */

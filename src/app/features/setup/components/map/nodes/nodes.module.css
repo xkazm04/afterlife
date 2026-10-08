@@ -71,6 +71,12 @@
   font-weight: 650;
   color: var(--needs-you);
 }
+/* live: the operator said they did a step no read can observe; dashed like unknown, never the done mark */
+.said {
+  font-size: var(--t-small);
+  font-weight: 650;
+  color: var(--unknown);
+}
 .sn.probing .m {
   border-color: var(--accent);
 }

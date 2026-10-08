@@ -50,9 +50,11 @@ const allMrs = (st: FakeState, q: URLSearchParams, only?: ProjectData): Record<s
   const state = q.get('state') ?? 'all';
   const labels = (q.get('labels') ?? '').split(',').filter(Boolean);
   const after = q.get('updated_after');
+  const source = q.get('source_branch');
   return byId((only ? [only] : st.projects).flatMap((p) => p.mrs)).filter(
     (r) =>
       (state === 'all' || r.state === state) &&
+      (!source || r.source_branch === source) &&
       labels.every((l) => (r.labels as string[]).includes(l)) &&
       (!after || String(r.updated_at) > after),
   );

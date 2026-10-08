@@ -33,6 +33,9 @@ export interface FlowActions {
   /** Confirm the disarm MR on screen: the revert of the arm block. */
   disarm: (id: string) => Promise<void>;
   reprobe: () => Promise<void>;
+  /** Live: say you did a step no read can observe (it stays unknown, never done), or take it back. Writes nothing. */
+  sayDone: (n: number) => void;
+  unsay: (n: number) => void;
   pickGroup: (group: string) => void;
 }
 
@@ -165,6 +168,8 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
         say(`belay doctor · ${ref.current.group} re-probed`);
         toast(`belay doctor · ${ref.current.group} probed`);
       },
+      sayDone: (n) => live().sayDone(n),
+      unsay: (n) => live().unsay(n),
       pickGroup: (group) => {
         if (group === ref.current.group) return;
         dispatch({ t: 'pick-group', group, now: Date.now(), at: clock() });

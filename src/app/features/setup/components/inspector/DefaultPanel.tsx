@@ -6,8 +6,8 @@ import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import { GATE_FREES } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
-import { armList, doneCount, humanGates, needYouCount, openArms, stepDetail, stepList } from '../../model/flow/state';
-import { mrName } from '../../model/flow/wording';
+import { armList, doneCount, humanGates, needYouCount, openArms, saidSteps, stepDetail, stepList } from '../../model/flow/state';
+import { mrName, saidText } from '../../model/flow/wording';
 import { DepRow } from '../shared/DepRow';
 import { GateRow } from '../shared/GateRow';
 import styles from './inspector.module.css';
@@ -49,6 +49,9 @@ export function DefaultPanel({ section }: { section: ReturnType<typeof useOpenSe
             sub={`${s.st === 'unknown' ? 'unread · ' : s.st === 'failed' ? 'not yet · ' : ''}frees ${GATE_FREES[s.n] ?? 'later steps'}`}
             onGo={() => view.go({ k: 'step', id: s.n })}
           />
+        ))}
+        {saidSteps(state).map((s) => (
+          <div key={s.n} className={styles.muted}>{`Step ${s.n} · ${saidText(s.said ?? '')}`}</div>
         ))}
         {need ? null : <div className={styles.muted}>Nothing waits for you</div>}
       </InspectorSection>

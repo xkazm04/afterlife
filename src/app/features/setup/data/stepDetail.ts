@@ -47,12 +47,14 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
     who: 'human', short: 'Run the Cloud Shell IAM script', does: 'Connect Google Cloud without a key, as you.', action: 'Run the IAM integration script in Cloud Shell',
     where: `GitLab → ${n.project} → Settings → Integrations → Google Cloud IAM`, note: 'Review apps for T7 run there.',
     before: 'OIDC test job: no token exchange yet', probe: 'OIDC test job reached Google Cloud without a key',
+    unread: 'no GitLab read shows the Cloud Shell script ran. The integrations API gives this GET two paths (integration/ and integrations/), and a saved integration is not a working token exchange (docs.gitlab.com/api/project_integrations).',
   },
   8: {
     who: 'human', short: 'Set the tokens yourself', does: 'Belay never sees a value; it reads none of these variables.', action: 'Create the variables on belay-apply, then type the model key at the prompt',
     where: `GitLab → ${n.group}/belay-apply → Settings → CI/CD → Variables`, secret: true,
     note: "On belay-apply only, at project level, never on a target and never a group or instance variable (every target pipeline inherits the group's): BELAY_BOT_TOKEN, BELAY_POLICY_TOKEN, BELAY_DISPATCH_TOKEN and BELAY_LEDGER_TOKEN, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created; glab has no flag for it). Then set Minimum role to use pipeline variables to no_one_allowed, and create one pipeline schedule on main with no variables (Build → Pipeline schedules). gitlab/apply/README.md says what each token is.",
     cmd: ['glab variable set ANTHROPIC_API_KEY --masked --protected'],
+    unread: 'the four tokens are not read, by design: the variables API returns their values. Belay reads only belay-apply’s minimum role for pipeline variables and its schedule on main.',
     before: 'belay-apply tokens and ANTHROPIC_API_KEY not read', probe: 'ANTHROPIC_API_KEY exists · masked · protected · belay-apply tokens never read',
   },
   9: {

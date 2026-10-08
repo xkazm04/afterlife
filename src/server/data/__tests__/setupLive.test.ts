@@ -2,6 +2,8 @@
 // each track's arm block (checkArm), the belay doctor (probeCapabilities) and the steps a read can observe.
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
+import { setupReducer } from '@/app/features/setup/model/flow/reducer';
+import { createSetupState, humanGates, needYouCount } from '@/app/features/setup/model/flow/state';
 import { DEMO } from '@/lib/demo';
 import { liveRig } from '@/server/actions/__tests__/rig';
 import { removeBlock } from '@/server/actions/arm/block';
@@ -11,6 +13,7 @@ import { GitLabError } from '@/server/gitlab/errors';
 import { createDemoGitLab } from '@/server/gitlab/fake/demo';
 import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
+import { addBootstrap, addRunner, createBelayProjects, finishHumanSteps, setApplySettings } from '@/server/gitlab/fake/setupDone';
 import type { GitLabPort } from '@/server/gitlab/port';
 import { getPairing } from '@/server/index/repositories/pairing';
 import { demoSource } from '../demoSource';
@@ -18,7 +21,7 @@ import { replayClock } from '../live/clock';
 import { liveSource } from '../live/liveSource';
 import { buildSnapshot } from '../live/snapshot';
 import { setDataSource } from '../select';
-import { BELAY_PROJECTS, readLiveSetup, setupReads, type SetupPort } from '../setup/read';
+import { BELAY_PROJECTS, OBSERVED_STEPS, readLiveSetup, setupReads, type SetupPort } from '../setup/read';
 
 const IDS = DEMO.setup.arm.map(([id]) => id);
 const AT = new Date('2026-10-07T09:30:00Z');
@@ -92,14 +95,18 @@ describe("the doctor's live rows are probeCapabilities' against the paired group
 });
 
 describe('the live steps show what a read saw, and unknown for every other', () => {
-  it('0: the login; 1: the pairing row; 4: the target and the five belay projects; every other step: not probed', async () => {
+  it('0: the login; 1: the pairing row; 4: the projects; 3, 6, 8, 10: the human steps a read can see; every other: not probed', async () => {
     const { reads: r } = await reads();
     const { steps } = await r.steps();
     expect(steps[0]).toEqual({ state: 'done', text: expect.stringMatching(/^glab api user → 200 · signed in as @/) });
     expect(steps[1]).toEqual({ state: 'failed', text: 'acme-lab on gitlab.com is paired, but no checkout is recorded' });
+    expect(steps[3]).toEqual({ state: 'done', text: 'acme-lab is on ultimate' });
     expect(steps[4]).toEqual({ state: 'failed', text: '3 of 6 projects exist · missing belay-pack, belay-engine, belay-apply' });
-    for (let n = 0; n <= 14; n++) if (![0, 1, 4].includes(n)) expect(steps[n]).toEqual({ state: 'unknown', reason: 'not probed' });
-    expect(Object.values(steps).map((s) => s.state).filter((s) => !['done', 'failed', 'unknown'].includes(s))).toEqual([]);
+    expect(steps[6]).toEqual({ state: 'failed', text: '0 runners with tag gitlab--duo online for acme-lab/core-banking/ledgerline' });
+    expect(steps[8]).toEqual({ state: 'failed', text: 'belay-apply does not exist in acme-lab (step 4)' });
+    expect(steps[10]).toEqual({ state: 'failed', text: 'no MR from belay/bootstrap · .gitlab/duo/agent-config.yml absent on main' });
+    for (let n = 0; n <= 14; n++) if (!OBSERVED_STEPS.includes(n)) expect(steps[n]).toEqual({ state: 'unknown', reason: 'not probed' });
+    expect(OBSERVED_STEPS).toEqual([0, 1, 3, 4, 6, 8, 10]);
   });
 
   it('step 4 is done once every project is there', async () => {
@@ -118,6 +125,53 @@ describe('the live steps show what a read saw, and unknown for every other', () 
     expect([l.group, l.host, l.project]).toEqual(['acme-lab', 'gitlab.com', 'ledgerline']);
     expect(Object.keys(l.tracks)).toEqual(IDS);
     expect(l.doctor.rows.length).toBeGreaterThan(0);
+  });
+});
+
+/** The port, except that one call fails as GitLab would. */
+const callFails = (name: keyof GitLabPort, path?: string) => (p: GitLabPort): GitLabPort =>
+  new Proxy(p, { get: (t, k, r) => (k === name ? (...a: unknown[]) => (!path || String(a[0]).includes(path) ? Promise.reject(new GitLabError('network', 'timeout', String(k))) : (Reflect.get(t, k, r) as (...x: unknown[]) => unknown)(...a)) : Reflect.get(t, k, r)) });
+const TARGET = 'acme-lab/core-banking/ledgerline';
+type Rig = Awaited<ReturnType<typeof reads>>;
+const HUMAN: [n: number, done: (r: Rig) => void, doneText: string, notDone: (r: Rig) => void, notText: RegExp, fails: (p: GitLabPort) => GitLabPort][] = [
+  [3, (r) => Object.assign(r.gl.state.namespace, { plan: 'ultimate_trial', trial: true, trial_ends_on: '2026-11-07' }), 'acme-lab is on ultimate_trial · trial ends 2026-11-07',
+    (r) => Object.assign(r.gl.state.namespace, { plan: 'ultimate_trial', trial: true, trial_ends_on: '2026-09-30' }), /trial ended 2026-09-30/, callFails('getNamespace')],
+  [6, (r) => addRunner(r.gl, 'ledgerline'), `1 runner with tag gitlab--duo online for ${TARGET}`, (r) => addRunner(r.gl, 'ledgerline', { online: false }), /^0 runners with tag gitlab--duo online/, callFails('get', '/runners')],
+  [10, (r) => addBootstrap(r.gl, 'ledgerline'), '!2 merged · .gitlab/duo/agent-config.yml on main', (r) => addBootstrap(r.gl, 'ledgerline', { merged: false }), /^!2 open · .* absent on main$/, callFails('getFile')],
+];
+
+describe('the human steps a read can see (3, 6, 10): done, not done, or unknown with the reason', () => {
+  for (const [n, done, doneText, notDone, notText, fails] of HUMAN) {
+    it(`step ${n}`, async () => {
+      const a = await reads();
+      expect((done(a), await a.reads.steps()).steps[n]).toEqual({ state: 'done', text: doneText });
+      const b = await reads();
+      expect((notDone(b), await b.reads.steps()).steps[n]).toEqual({ state: 'failed', text: expect.stringMatching(notText) });
+      const c = await reads({ wrap: fails });
+      expect((await c.reads.steps()).steps[n]).toEqual({ state: 'unknown', reason: expect.stringMatching(/failed: network: timeout$/) });
+    });
+  }
+
+  it('step 8 reads only what holds no secret, never done: the tokens are not read, by design', async () => {
+    const a = await reads();
+    finishHumanSteps(a.gl, 'ledgerline');
+    expect((await a.reads.steps()).steps[8]).toEqual({ state: 'unknown', reason: expect.stringMatching(/^belay-apply: minimum role no_one_allowed · a schedule on main .* the four BELAY_\* tokens are not read, by design/) });
+    const b = await reads();
+    setApplySettings(b.gl, { role: 'developer', schedule: false });
+    expect((await b.reads.steps()).steps[8]).toEqual({ state: 'failed', text: expect.stringMatching(/is developer, not no_one_allowed · no active pipeline schedule on main · the four/) });
+    const c = await reads({ wrap: callFails('listSchedules') });
+    expect((createBelayProjects(c.gl), await c.reads.steps()).steps[8]).toEqual({ state: 'unknown', reason: expect.stringMatching(/belay-apply.s settings failed: network: timeout$/) });
+    expect(c.gl.state.writes).toEqual([]);
+  });
+
+  it("with the fake GitLab, a human step a read sees done leaves 'need you'; 7 and 8 stay until the operator says so", async () => {
+    const { gl, reads: r } = await reads();
+    const before = humanGates(createSetupState(DEMO.setup, 0, await readLiveSetup(r, IDS))).map((x) => x.n);
+    finishHumanSteps(gl, 'ledgerline');
+    const s = createSetupState(DEMO.setup, 0, await readLiveSetup(r, IDS));
+    expect([before, humanGates(s).map((x) => x.n), needYouCount(s)]).toEqual([[6, 7, 8, 10], [7, 8], 2]);
+    const said = [7, 8].reduce((x, n) => setupReducer(x, { t: 'say-done', n, at: '11:42' }), s);
+    expect([needYouCount(said), said.steps[8]?.st, said.steps[7]?.st]).toEqual([0, 'unknown', 'unknown']);
   });
 });
 

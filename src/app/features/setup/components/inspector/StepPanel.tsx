@@ -8,7 +8,8 @@ import { KeyValue } from '@/components/inspector/KeyValue';
 import { plural } from '@/lib/format/plural';
 import { GATE_FREES } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
-import { stepDetail } from '../../model/flow/state';
+import { isSaid, stepDetail } from '../../model/flow/state';
+import { saidText } from '../../model/flow/wording';
 import { GRAPH } from '../../model/map/appGraph';
 import { stepFreesAll } from '../../model/map/graph';
 import { Chip } from '@/components/status/chip/Chip';
@@ -17,7 +18,8 @@ import { ProbeLine } from './parts/ProbeLine';
 import { TrackDep } from './parts/TrackDep';
 import type { useOpenSections } from './parts/useOpenSections';
 
-function StateChip({ st, gate }: { st: string; gate: boolean }) {
+function StateChip({ st, gate, said }: { st: string; gate: boolean; said: string | null }) {
+  if (said) return <Chip tone="unknown" title="Not a read: Belay cannot see this step done">{saidText(said)}</Chip>;
   if (st === 'done') return <Chip tone="ok">probed</Chip>;
   if (st === 'unknown') return <Chip tone="unknown">unknown</Chip>;
   if (st === 'failed') return <Chip tone="bad">probed · not yet</Chip>;
@@ -35,7 +37,9 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
   if (!s || !d) return null;
   const done = s.st === 'done';
   const busy = s.st === 'probing';
-  const gate = d.who === 'human' && !done;
+  const said = isSaid(s) ? (s.said ?? null) : null;
+  const gate = d.who === 'human' && !done && !said;
+  const canSay = state.live && !!d.unread && s.st === 'unknown';
   const { direct, more } = stepFreesAll(GRAPH, n);
   const freed = direct.length + more.length;
   const rows: [string, string][] = [['Do', d.action ?? ''], ['Where', d.where ?? '']];
@@ -48,7 +52,7 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
         sub={`Step ${n} · ${s.phase}`}
       >
         <div className={styles.chips}>
-          <StateChip st={s.st} gate={gate} />
+          <StateChip st={s.st} gate={gate} said={said} />
           {d.write ? <Chip>writes</Chip> : null}
           {illustrative.steps ? <Chip title="The step's title and phase are the demo catalogue's; its state is what the read saw">title · demo</Chip> : null}
         </div>
@@ -57,6 +61,7 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
       {done ? null : d.who === 'human' ? (
         <InspectorSection title="Do this" {...section('do')}>
           <KeyValue rows={rows} />
+          {d.unread ? <div className={styles.muted}>Not readable: {d.unread}</div> : null}
           {d.secret ? (
             <>
               <div className={styles.cmdh}>
@@ -70,6 +75,11 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
             <Button variant="primary" disabled={busy} onClick={() => void actions.probe(n)}>
               I did it · verify
             </Button>
+            {canSay ? (
+              <Button disabled={busy} title="Belay writes nothing and still reads this step unknown; it stops counting it as yours" onClick={() => (said ? actions.unsay(n) : actions.sayDone(n))}>
+                {said ? 'Take it back' : 'I did it · say so'}
+              </Button>
+            ) : null}
           </div>
         </InspectorSection>
       ) : (

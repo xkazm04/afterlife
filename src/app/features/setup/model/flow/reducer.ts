@@ -21,6 +21,9 @@ export type SetupAction =
   | { t: 'doctor-read'; doctor: DoctorRead | null; reason?: string; at?: ReadStamp }
   /** Live: what the step reads saw. */
   | { t: 'steps-read'; steps: StepsRead }
+  /** Live: the operator says they did a human step no read can observe (at `at`), or takes it back. Writes nothing. */
+  | { t: 'say-done'; n: number; at: string }
+  | { t: 'unsay'; n: number }
   | { t: 'pick-group'; group: string; now: number; at: string };
 
 /** The demo's honest "not yet": a step with a failFirst text fails its first probe. */
@@ -80,6 +83,22 @@ function stepsRead(s: SetupState, r: StepsRead): SetupState {
   return recomputeLocks({ ...s, steps });
 }
 
+/** The operator may say they did step `n`: a live human step whose detail says no read can see it, while it reads unknown. */
+export const canSayDone = (s: SetupState, n: number): boolean => {
+  const step = s.steps[n];
+  return s.live && step?.who === 'human' && step.st === 'unknown' && !step.said && !!STEP_DETAIL[n]?.unread;
+};
+
+const sayDone = (s: SetupState, n: number, at: string): SetupState => (canSayDone(s, n) ? setStep(s, n, { said: at }) : s);
+
+function unsay(s: SetupState, n: number): SetupState {
+  const step = s.steps[n];
+  if (!step?.said) return s;
+  const rest: StepState = { ...step };
+  delete rest.said;
+  return { ...s, steps: { ...s.steps, [n]: rest } };
+}
+
 function doctorRead(s: SetupState, d: DoctorRead | null, reason = 'the re-probe got no answer', at?: ReadStamp): SetupState {
   // No read came back: the rows stay, but the bar reads "probe failed" (at `at`, the attempt), never the old probe as fresh.
   if (!d) {
@@ -117,6 +136,10 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
       return doctorRead(s, a.doctor, a.reason, a.at);
     case 'steps-read':
       return stepsRead(s, a.steps);
+    case 'say-done':
+      return sayDone(s, a.n, a.at);
+    case 'unsay':
+      return unsay(s, a.n);
     case 'pick-group':
       return pickGroup(s, a.group, a.now, a.at);
   }

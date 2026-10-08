@@ -26,6 +26,8 @@ export interface ProjectData {
   fileCommits?: Record<string, string>;
   /** Branch heads a write through the fake made (or a test set), by name. The fake keeps one tree, so files do not differ by branch. */
   branches?: Record<string, string>;
+  /** Runners available to the project (GET projects/:id/runners), each with `tag_list`, `online` and `status`. */
+  runners?: Rec[];
 }
 
 export interface WriteLog { method: string; path: string; fields: Record<string, string> }

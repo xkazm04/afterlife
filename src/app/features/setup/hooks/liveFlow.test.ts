@@ -58,6 +58,20 @@ describe('live probes', () => {
     expect(r.ref.current.steps[9]).toMatchObject({ st: 'unknown', probe: { ok: false, text: 'unknown · demo mode: Belay reads nothing from GitLab' } });
   });
 
+  it("'I did it · verify' on a step no read can see says why; 'say so' marks it said, sends nothing, and can be taken back", async () => {
+    const r = rig();
+    answer.next = { status: 'steps', steps: { ...AT, steps: { 7: { state: 'unknown', reason: 'not probed' }, 8: { state: 'unknown', reason: 'belay-apply: minimum role no_one_allowed' } } } };
+    await r.probes.probe(7);
+    await r.probes.probe(8);
+    expect(r.told).toEqual([expect.stringMatching(/^step 7 · no read can see it: no GitLab read shows the Cloud Shell script ran/), 'step 8 · unknown · belay-apply: minimum role no_one_allowed']);
+    vi.setSystemTime(new Date(2026, 9, 7, 11, 42));
+    r.probes.sayDone(7);
+    r.probes.sayDone(3); // step 3 is read: nothing to say
+    expect([r.ref.current.steps[7]?.said, r.ref.current.steps[3]?.said, r.told.at(-1), asked]).toEqual(['11:42', undefined, 'step 7 · you said done 11:42 · not read', ['steps', 'steps']]);
+    r.probes.unsay(7);
+    expect(r.ref.current.steps[7]?.said).toBeUndefined();
+  });
+
   it('Re-probe reads the doctor again, with no timer; a refusal leaves the rows as they were', async () => {
     const r = rig();
     answer.next = { status: 'doctor', doctor: { at: '2026-10-07T09:41:00.000Z', label: '11:41', error: null, rows: [{ id: 'p', label: 'pipelines and jobs', status: 'available', reason: 'answered 200' }] } };

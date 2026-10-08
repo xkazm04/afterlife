@@ -27,6 +27,11 @@ export interface StepState {
   st: StepStatus;
   who: StepWho;
   probe: ProbeNote | null;
+  /**
+   * Live: the clock label at which the operator said they did a step no read can observe (`StepDetail.unread`). Not a
+   * read: the step stays unknown, it is never done and meets no track's need; it only stops counting as a gate.
+   */
+  said?: string;
 }
 
 export interface ArmState {

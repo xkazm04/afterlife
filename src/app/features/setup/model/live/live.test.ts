@@ -3,7 +3,8 @@ import { getSetup } from '@/lib/demo';
 import type { LiveSetupRead, TrackRead } from '@/server/data/setup/types';
 import { DEMO_NAMES, STEP_DETAIL } from '../../data/stepDetail';
 import { setupReducer } from '../flow/reducer';
-import { armList, createSetupState, humanGates, namesOf, needYouCount, stepDetail, stepList } from '../flow/state';
+import { armList, createSetupState, humanGates, namesOf, needYouCount, saidSteps, stepDetail, stepList } from '../flow/state';
+import { stepTip } from '../flow/wording';
 
 const AT = { at: '2026-10-07T09:30:00.000Z', label: '11:30' };
 const notDefined = (id: string): TrackRead => ({ state: 'undefined', text: `the repo does not define ${id}'s arm content yet` });
@@ -62,6 +63,19 @@ describe('the live opening state is what the server read, never the demo’s', (
     expect(needYouCount({ ...s, arm: { ...s.arm, T4: { ...s.arm.T4!, st: 'open' } } })).toBe(1);
     r.steps.steps[8] = { state: 'failed', text: 'no such variable' };
     expect(humanGates(createSetupState(getSetup(), 0, r)).map((x) => [x.n, x.st])).toEqual([[8, 'failed']]);
+  });
+
+  it('the operator may say they did a step no read can see (7, 8): unknown still, never done, no longer a gate', () => {
+    const s = createSetupState(getSetup(), 0, read());
+    const said = [3, 7, 8].reduce((x, n) => setupReducer(x, { t: 'say-done', n, at: '11:42' }), s);
+    expect([said.steps[3]?.said, said.steps[7]?.said, said.steps[8]?.said]).toEqual([undefined, '11:42', '11:42']);
+    expect([needYouCount(said), said.steps[7]?.st, saidSteps(said).map((x) => x.n)]).toEqual([3, 'unknown', [7, 8]]);
+    expect(stepTip(8, 'unknown', '11:42')).toBe('Step 8 · you said done 11:42 · not read');
+    // A read that says not done wins over what was said; demo mode and taking it back say nothing.
+    const contra = setupReducer(said, { t: 'steps-read', steps: { ...AT, steps: { 8: { state: 'failed', text: 'no schedule on main' } } } });
+    expect(humanGates(contra).map((x) => x.n)).toEqual([3, 6, 8, 10]);
+    expect(setupReducer(createSetupState(getSetup(), 0), { t: 'say-done', n: 7, at: '11:42' }).steps[7]?.said).toBeUndefined();
+    expect(needYouCount(setupReducer(said, { t: 'unsay', n: 7 }))).toBe(4);
   });
 
   it("the doctor is the probe's rows with their reasons and its own time; the group is the paired one", () => {

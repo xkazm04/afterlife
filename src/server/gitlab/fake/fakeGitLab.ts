@@ -7,6 +7,7 @@ import type { GitLabPort } from '../port';
 import { seedState, type FakeState, type SeedOptions } from './dataset';
 import { readRoutes } from './reads';
 import { dispatch, toExec } from './server';
+import { settingsRoutes } from './settings';
 import { writeRoutes } from './writes';
 
 export interface FakeGitLab {
@@ -21,7 +22,7 @@ export interface FakeOptions extends SeedOptions {
   pageSize?: number;
 }
 
-const ROUTES = [...readRoutes, ...writeRoutes];
+const ROUTES = [...readRoutes, ...settingsRoutes, ...writeRoutes];
 
 export function createFakeGitLab(o: FakeOptions = {}): FakeGitLab {
   const state = seedState(o);

@@ -1,14 +1,16 @@
 // Setup's live reads. The snapshot gives what the index holds (the pairing row, the target project) synchronously; the
 // rest is a read-only port call made when /setup loads or when the screen asks again: each track's arm block on the
-// target's default branch (checkArm), the belay doctor's capability probe (probeCapabilities), the operator's login and
-// the group's projects. Nothing here writes, and nothing falls back to the demo's catalogue: a read that cannot be made
-// says so.
+// target's default branch (checkArm), the belay doctor's capability probe (probeCapabilities), the operator's login,
+// the group's projects and the human steps a read can observe (humanSteps.ts). Nothing here writes, and nothing falls
+// back to the demo's catalogue: a read that cannot be made says so.
 import { checkArm } from '@/server/actions/arm/read';
 import { armOf, NOT_DEFINED } from '@/server/actions/arm/content';
 import { probeCapabilities } from '@/server/gitlab/capabilities';
 import { GitLabError } from '@/server/gitlab/errors';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { PairingRow } from '@/server/index/repositories/pairing';
+import { why, type Listing, type StepCtx } from './ctx';
+import { bootstrapRead, licenceRead, runnerRead, secretsRead } from './humanSteps';
 import { NOT_PROBED, stampOf, type DoctorRead, type LiveSetupRead, type ReadStamp, type StepRead, type StepsRead, type TrackRead } from './types';
 
 /** What the reads go through: the live runtime's port, the configured group, and the index's GitLab ids. */
@@ -23,11 +25,12 @@ export const BELAY_PROJECTS = ['belay-pack', 'belay-policy', 'belay-ledger', 'be
 
 const NO_PORT = 'live mode has no GitLab port yet (the first poll has not finished)';
 
-/** The steps a read can observe: 0 (glab's login), 1 (the pairing row), 4 (the projects). Every other step is unknown. */
-export const OBSERVED_STEPS: readonly number[] = [0, 1, 4];
-
-
-const why = (e: unknown): string => (e instanceof GitLabError ? `${e.kind}: ${e.message}` : e instanceof Error ? e.message : String(e));
+/**
+ * The steps a read can observe: 0 (glab's login), 1 (the pairing row), 4 (the projects), and the human steps 3 (the plan),
+ * 6 (the runner), 8 (its settings that hold no secret: it never reads done) and 10 (the bootstrap MR). Every other step is
+ * unknown, "not probed".
+ */
+export const OBSERVED_STEPS: readonly number[] = [0, 1, 3, 4, 6, 8, 10];
 
 export interface SetupReads {
   group: string;
@@ -68,17 +71,25 @@ function pairingRead(pairing: PairingRow | null): StepRead {
     : { state: 'failed', text: `${where} is paired, but no checkout is recorded` };
 }
 
-async function projectsRead(p: SetupPort, project: string, want: readonly string[]): Promise<StepRead> {
+/** The group's projects, listed once per read of the steps: step 4 reads it, and the other steps find their projects in it. */
+async function listing(p: SetupPort, project: string): Promise<Listing> {
   try {
     const [all, gid] = await Promise.all([p.port.listProjects(p.groupId), p.gitlabId(project)]);
-    const has = (name: string) => all.some((x) => (name === project && gid !== null ? x.id === gid : x.path === name));
-    const missing = want.filter((name) => !has(name));
-    const seen = `${want.length - missing.length} of ${want.length} projects exist`;
-    return missing.length ? { state: 'failed', text: `${seen} · missing ${missing.join(', ')}` } : { state: 'done', text: seen };
+    return { ok: true, all, target: all.find((x) => (gid !== null ? x.id === gid : x.path === project)) ?? null };
   } catch (e) {
-    return { state: 'unknown', reason: `listing the group's projects failed: ${why(e)}` };
+    return { ok: false, reason: `listing the group's projects failed: ${why(e)}` };
   }
 }
+
+function projectsRead(l: Listing, project: string, want: readonly string[]): StepRead {
+  if (!l.ok) return { state: 'unknown', reason: l.reason };
+  const has = (name: string) => (name === project ? l.target !== null : l.all.some((x) => x.path === name));
+  const missing = want.filter((name) => !has(name));
+  const seen = `${want.length - missing.length} of ${want.length} projects exist`;
+  return missing.length ? { state: 'failed', text: `${seen} · missing ${missing.join(', ')}` } : { state: 'done', text: seen };
+}
+
+const isoDay = (d: Date): string => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 /** Setup's reads for one load, bound to the port and the snapshot's pairing row. `port` null: every read says why not. */
 export function setupReads(port: SetupPort | null, pairing: PairingRow | null, project: string, now: () => Date = () => new Date()): SetupReads {
@@ -110,11 +121,13 @@ export function setupReads(port: SetupPort | null, pairing: PairingRow | null, p
       for (let n = 0; n <= 14; n++) steps[n] = unknown(NOT_PROBED);
       steps[1] = pairingRead(pairing);
       if (!port) {
-        steps[0] = unknown(NO_PORT);
-        steps[4] = unknown(NO_PORT);
-      } else {
-        [steps[0], steps[4]] = await Promise.all([loginRead(port), projectsRead(port, project, projects)]);
+        for (const n of OBSERVED_STEPS) if (n !== 1) steps[n] = unknown(NO_PORT);
+        return { ...at, steps };
       }
+      const l = await listing(port, project);
+      const c: StepCtx = { port: port.port, groupId: port.groupId, group: pairing?.groupPath ?? String(port.groupId), project, listing: l, today: isoDay(now()) };
+      steps[4] = projectsRead(l, project, projects);
+      [steps[0], steps[3], steps[6], steps[8], steps[10]] = await Promise.all([loginRead(port), licenceRead(c), runnerRead(c), secretsRead(c), bootstrapRead(c)]);
       return { ...at, steps };
     },
   };

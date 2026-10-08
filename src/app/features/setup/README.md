@@ -8,8 +8,13 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
 - `SetupScreen.tsx` composes `Window` (toolbar, map, inspector, status bar, legend). `app/setup/page.tsx` awaits
   `loadSetupData`: the data source's setup, tracks and classes, and in live mode `live`, what the server read now
   (`src/server/data/setup`): each track's arm block on the target's main (`checkArm`), the belay doctor
-  (`probeCapabilities` on the paired group, with each row's reason and the real probe time), and steps 0 (glab's login),
-  1 (the pairing row) and 4 (the target and the five belay projects). `illustrative` says what is still the catalogue's.
+  (`probeCapabilities` on the paired group, with each row's reason and the real probe time), and the steps a read can
+  observe (`OBSERVED_STEPS`): 0 (glab's login), 1 (the pairing row), 4 (the target and the five belay projects, one
+  listing the other reads share), and the human steps 3 (the group's plan and trial), 6 (a `gitlab--duo` runner online
+  for the target), 8 (belay-apply's minimum role for pipeline variables and its schedule on main; never a CI/CD variable,
+  so it never reads done) and 10 (the `belay/bootstrap` MR merged and `.gitlab/duo/agent-config.yml` on the default
+  branch), in `humanSteps.ts`. Step 7 is not read (`StepDetail.unread` says why). One live load makes about 22 GitLab
+  calls (16 before the human-step reads). `illustrative` says what is still the catalogue's.
 - `components/map/` canvas, edge layer (SVG, measured from `[data-node]`), `columns/`, `nodes/`.
 - `components/inspector/` default / step / track / capability panels; `parts/` dep lists, stats, probe line.
 - `components/toolbar/` group menu, doctor lozenge (lights capabilities), Re-probe.
@@ -27,7 +32,11 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   No timer probes: a step's verify ("I did it · verify", "Read again") and Re-probe call `rereadSetupAction` (read only,
   localhost only), and a step no read observes stays unknown, "not probed". A human step not read done is still yours:
   it counts in "need you", the map marks it "you", and it reads unread (or not yet), never done; "Nothing waits for you"
-  only when every human step reads done and no arm MR is open (`humanGates`). A step's write is never sent from the screen
+  only when every human step reads done (or said, below) and no arm MR is open (`humanGates`). A human step no read can
+  ever see done (7, and 8's four tokens: `unread`) offers "I did it · say so": the step reads "you said done HH:MM · not
+  read", stays unknown (dashed, never the done mark), meets no track's need, and stops counting in "need you". It writes
+  nothing, to GitLab or anywhere: it lives in the screen's state, so a reload counts the step again. A read that says
+  not done wins over it; "Take it back" undoes it. A step's write is never sent from the screen
   (Copy only). The commands name the paired group, its host and `BELAY_PROJECT` (`data/stepDetail.ts`, `stepDetailsFor`);
   demo keeps its own. The group menu offers the paired group only; no demo row or `acme-sandbox`. The step titles and
   phases and the tracks' names and arm order are the catalogue's, marked "demo" on their column heads and in the inspector.
@@ -56,7 +65,7 @@ Known disagreements (file:line on main at 502d268; the skill is `skills/adopt-be
 
 | | Step | Skill | Setup |
 |---|---|---|---|
-| a | all | `:17` "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1 and 4 itself (`src/server/data/setup/read.ts:26,107-118`) |
+| a | all | `:17` "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1, 3, 4, 6, 8 (never done) and 10 itself (`src/server/data/setup/read.ts` `OBSERVED_STEPS`, `humanSteps.ts`); 7 is said, not read |
 | b | 1 | `:28` no pairing | pairs the checkout (`data/stepDetail.ts:17`) |
 | c | 5 | `:32` pairs the checkout | shows `npx belay pair` (`data/stepDetail.ts:30`); `cli/belay.mjs:29-33` does not run it |
 | d | 0 | `:27` checks the GitLab version | does not (`data/stepDetail.ts:16`, `read.ts:53`) |

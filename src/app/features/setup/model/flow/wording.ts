@@ -26,6 +26,9 @@ export function trackWhy(s: SetupState, a: ArmState): string {
 
 const STEP_TIP: Readonly<Record<string, string>> = { human: ' · only you', done: ' · probed', failed: ' · probed · not yet', unknown: ' · unknown' };
 
-export function stepTip(n: number, st: string): string {
-  return `Step ${n}${STEP_TIP[st] ?? ''}`;
+/** A step the operator said they did: never worded as done or probed. */
+export const saidText = (at: string): string => `you said done ${at} · not read`;
+
+export function stepTip(n: number, st: string, said?: string): string {
+  return `Step ${n}${said && st === 'unknown' ? ` · ${saidText(said)}` : (STEP_TIP[st] ?? '')}`;
 }
