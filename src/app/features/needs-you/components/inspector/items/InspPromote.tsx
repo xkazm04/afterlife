@@ -72,7 +72,7 @@ export function InspPromote(p: InspProps) {
         ))}
         <div className={`${styles.muted} ${styles.gap}`}>rules are policy parameters, not measurements</div>
       </Sec>
-      <Sec k="n1-proofs" title="Accepted proofs" aux={`${PROOFS.length} · 94 % no edit`} def={false} p={p}>
+      <Sec k="n1-proofs" title="Accepted proofs" aux={proofsAux(promote.record)} def={false} p={p}>
         {PROOFS.map((pr) => (
           <div key={pr.ref} className={styles.pr}>
             <span className={styles.m}>{pr.ref}</span>
