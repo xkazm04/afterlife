@@ -136,7 +136,7 @@ trigger token only after checking that on the instance. The schedule alone is en
   say anything but merge; an auto-merge a person set is left alone. Until that sweep (at most one schedule interval) the
   MR can still merge if its pipeline succeeds. `[R?]` whether a push cancels an auto-merge set with `--sha`.
 
-- F89: closed in the sweep (03eb2d8). For an MR whose gate is done, the sweep also reads the approvals and re-gates a head
+- F89: closed in the sweep (5785c75). For an MR whose gate is done, the sweep also reads the approvals and re-gates a head
   the bot approved. When the gate now says neither approve nor merge, it unapproves as the bot (`POST .../unapprove`, which
   removes only the caller's own approval, never a person's) and a note names the decision and the tier. Without the write
   tokens it only reports. Whether a push keeps an approval the bot gave an earlier head depends on the target's "Remove
@@ -153,16 +153,16 @@ trigger token only after checking that on the instance. The schedule alone is en
   (`Belay-Head: <key>/guardrail-block`), so the poller counts it. If a person removes the label, the next sweep sets it
   again. A head gated before this change on a guardrail block gets that event once more: a duplicate the poller counts once
   (it counts merge requests, not events).
-- F67: closed (5d09815). A trusted note that carries two blocks of the tag is ambiguous: `fetch-block.mjs` exits 4, as for
+- F67: closed (9e56d7f). A trusted note that carries two blocks of the tag is ambiguous: `fetch-block.mjs` exits 4, as for
   a schema failure, so a block the note quotes never wins.
-- F88: closed (b53cd46). `ledger-append.mjs` refuses a `--write-token-var` that names an unset variable, before any read;
+- F88: closed (b85b78c). `ledger-append.mjs` refuses a `--write-token-var` that names an unset variable, before any read;
   without the flag (a person running it by hand) it keeps its fallback. Its sibling in `tripwire.mjs` is closed the same
   way: `tripwire-sweep.mjs` names `BELAY_POLICY_TOKEN`, and an unset one is refused before any read, so `GITLAB_TOKEN` (the
   bot token) never commits `tier-state.yml`.
-- F71: closed (5dee0f1). `glue()` hands a child none of the four tokens it inherits; each call that writes adds its own
+- F71: closed (b123ef5). `glue()` hands a child none of the four tokens it inherits; each call that writes adds its own
   (`tokens()` in `lib.mjs`): post-proof and apply-gate the bot token, ledger-append the ledger token, tripwire the policy
   token, dispatch the dispatch token as `GITLAB_TOKEN`. Every child still reads with `GITLAB_TOKEN`, the bot token.
-- F68: closed (f5a0a33). An include whose path or project carries a variable, or whose path is a wildcard, counts as
+- F68: closed (52599d2). An include whose path or project carries a variable, or whose path is a wildcard, counts as
   touching CI (`ci-touch.mjs`): the MR waits for a person. A target that includes with a wildcard waits on every agent MR
   until it lists its includes by name.
 - F69, accepted: the compare API's diff cap (`sweep.mjs:56-69`, `diffOf`). The envelope (`max_files` 6, `max_lines` 120) blocks any
