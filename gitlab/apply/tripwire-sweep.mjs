@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { api, arg, need } from '../components/scripts/lib/lib.mjs';
-import { clonePolicy, glue, loadConfig, targetsOf } from './lib.mjs';
+import { clonePolicy, glue, loadConfig, targetsOf, tokens } from './lib.mjs';
 
 const cfg = loadConfig(need('config'));
 const work = path.resolve(arg('work', '.belay'));
@@ -36,7 +36,7 @@ for (const t of targetsOf(cfg, say)) {
     '--guardrail-authors', cfg.guardrailAuthors, '--agent-prefix', cfg.agentPrefix, '--lookback-hours', String(cfg.lookbackHours),
     '--write-mode', cfg.policy.writeMode, '--write-token-var', 'BELAY_POLICY_TOKEN',
     '--ledger-project', cfg.ledger.project, '--ledger-branch', cfg.ledger.branch,
-  ], { CI_PROJECT_ID: String(t.id), CI_DEFAULT_BRANCH: branch, CI_PIPELINE_ID: '', CI_COMMIT_SHA: '' });
+  ], { CI_PROJECT_ID: String(t.id), CI_DEFAULT_BRANCH: branch, CI_PIPELINE_ID: '', CI_COMMIT_SHA: '', ...tokens('BELAY_POLICY_TOKEN') });
   say(`${t.path_with_namespace}: tripwire exited ${r.code}`);
   worst = Math.max(worst, r.code);
 }

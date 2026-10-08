@@ -26,7 +26,7 @@ import { api, apiAll, arg, blocks, enc, glab, httpStatus, need, trustedNotes } f
 import { engine } from '../components/scripts/lib/engine.mjs';
 import { fileHead, readFile } from '../components/scripts/lib/repo-write.mjs';
 import { touchesCi } from './ci-touch.mjs';
-import { clonePolicy, glue, loadConfig, targetsOf } from './lib.mjs';
+import { clonePolicy, glue, loadConfig, targetsOf, tokens } from './lib.mjs';
 
 const cfg = loadConfig(need('config'));
 const work = path.resolve(arg('work', '.belay'));
@@ -167,7 +167,7 @@ function sweepMr(t, iid) {
     if (gateDone || notes.some((n) => forcedFor(n)?.decision === d.toUpperCase() && forcedFor(n).head === head)) return say(`${tag}: ${d} already said for this head`);
     say(`${tag}: ${d}: ${why}`);
     const r = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--force', d, '--reason', `head ${head}: ${why}`,
-      ...(guardBlocked ? ['--guardrail', guardrailFile] : []), ...(WRITE ? [] : ['--dry', '1'])], env, dir);
+      ...(guardBlocked ? ['--guardrail', guardrailFile] : []), ...(WRITE ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
     if (r.code > 1) throw new Error(`apply-gate exited ${r.code}`);
   };
 
@@ -254,7 +254,7 @@ function sweepMr(t, iid) {
   fs.writeFileSync(proofFile, JSON.stringify(proof));
   say(`${tag}: proof ${proof.verdict}`);
   if (!proofNote) {
-    const r = glue('proof/post-proof.mjs', ['--proof', proofFile, '--mr', String(iid), ...(WRITE ? [] : ['--dry', '1'])], env, dir);
+    const r = glue('proof/post-proof.mjs', ['--proof', proofFile, '--mr', String(iid), ...(WRITE ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
     if (r.code !== 0) throw new Error(`post-proof exited ${r.code}`);
   }
 
@@ -298,11 +298,11 @@ function sweepMr(t, iid) {
   if (gateDone && ledgerDone) return say(`${tag}: gate and ledger already applied for this head`);
   const events = path.join(dir, 'events');
   const applied = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--decision', decisionFile, '--guardrail', guardrailFile,
-    '--agent', mr.BELAY_AGENT, '--class', actionClass, '--emit-dir', events, ...(WRITE && !gateDone ? [] : ['--dry', '1'])], env, dir);
+    '--agent', mr.BELAY_AGENT, '--class', actionClass, '--emit-dir', events, ...(WRITE && !gateDone ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
   if (applied.code > 1) throw new Error(`apply-gate exited ${applied.code}`);
   if (ledgerDone || !fs.existsSync(events)) return;
   if (!WRITE) return say(`${tag}: ledger events not appended (reporting only)`);
-  const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile, '--key', ledgerKey, '--write-token-var', 'BELAY_LEDGER_TOKEN'], env, dir);
+  const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile, '--key', ledgerKey, '--write-token-var', 'BELAY_LEDGER_TOKEN'], { ...env, ...tokens('BELAY_LEDGER_TOKEN') }, dir);
   if (l.code !== 0) throw new Error(`ledger-append exited ${l.code}`);
 }
 

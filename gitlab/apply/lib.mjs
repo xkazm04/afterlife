@@ -81,9 +81,21 @@ export function clonePolicy(cfg, remote, dest, depth = 300) {
   return dest;
 }
 
-/** Runs a glue script for one target: `{code, stdout}`, its stderr passed through. `env` is added to this process's. */
+/** The four write tokens of belay-apply. A child never inherits one: its call hands it the one it writes with (F71). */
+export const TOKENS = ['BELAY_BOT_TOKEN', 'BELAY_POLICY_TOKEN', 'BELAY_LEDGER_TOKEN', 'BELAY_DISPATCH_TOKEN'];
+
+/** `{name: value}` of the named tokens that are set, for a glue call that writes with them. */
+export function tokens(...names) {
+  return Object.fromEntries(names.filter((n) => TOKENS.includes(n) && process.env[n]).map((n) => [n, process.env[n]]));
+}
+
+/**
+ * Runs a glue script for one target: `{code, stdout}`, its stderr passed through. The child gets this process's
+ * environment without the four write tokens, plus `env`: a call that writes passes its own token (`tokens(...)`).
+ */
 export function glue(script, args, env = {}, cwd = process.cwd()) {
-  const r = spawnSync(process.execPath, [path.join(GLUE, script), ...args], { cwd, encoding: 'utf8', env: { ...process.env, ...env }, maxBuffer: 64 << 20 });
+  const inherited = Object.fromEntries(Object.entries(process.env).filter(([k]) => !TOKENS.includes(k.toUpperCase())));
+  const r = spawnSync(process.execPath, [path.join(GLUE, script), ...args], { cwd, encoding: 'utf8', env: { ...inherited, ...env }, maxBuffer: 64 << 20 });
   if (r.stderr) process.stderr.write(r.stderr);
   return { code: r.status ?? 2, stdout: r.stdout ?? '' };
 }
