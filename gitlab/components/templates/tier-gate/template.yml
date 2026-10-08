@@ -137,7 +137,7 @@ belay-tier-gate:
         sleep 30
       done
       if [ "$rc" -eq 3 ]; then apply --force wait --reason "the guardrail has not reviewed this MR: no verdict, nothing granted"; exit 0; fi
-      if [ "$rc" -eq 4 ]; then apply --force block --reason "the guardrail verdict does not match its schema: treated as inconclusive"; fi
+      if [ "$rc" -eq 4 ]; then apply --force block --reason "the guardrail verdict does not match its schema, or its note carries two of them: treated as inconclusive"; fi
       if [ "$rc" -ne 0 ]; then exit "$rc"; fi
 
       git diff "$BELAY_BASE_SHA" "$BELAY_HEAD_SHA" > .belay/diff.patch
