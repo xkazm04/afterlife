@@ -87,3 +87,14 @@ describe('every command a step shows runs (F4 f)', () => {
     }
   });
 });
+
+describe('the [R?] marks on step 8 and 9 are settled: glab variable set has --hidden (craft-3)', () => {
+  const SOURCE = readFileSync(join(process.cwd(), 'src/app/features/setup/data/stepDetail.ts'), 'utf8');
+  it('no [R?] mark and no "glab has no flag" for a hidden variable, in Setup or the skill', () => {
+    for (const text of [SOURCE, STEP_DETAIL[8]!.note ?? '', skillStep(8)]) {
+      expect(text).not.toContain('[R?]');
+      expect(text).not.toMatch(/glab has no flag/);
+    }
+    for (const text of [STEP_DETAIL[8]!.note ?? '', skillStep(8)]) expect(text).toMatch(/glab variable set --hidden/);
+  });
+});

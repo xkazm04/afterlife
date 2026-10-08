@@ -13,11 +13,11 @@ export const DEMO_NAMES: StepNames = { host: 'gitlab.com', group: 'acme-lab', pr
 
 /**
  * A command is shown only if it runs as written: glab's own subcommands and `npx belay doctor`, the one belay command that
- * runs (cli/belay.mjs). Checked against no glab binary or doc page here (glab is not installed): [R?] `variable set`'s
- * `--masked --protected`, and the field names of `protected_branches` and `protected_tags` as the API takes them. Where
- * glab has no flag (a hidden variable, the pipeline-variable role, the job token allowlist) or Belay's CLI does not run the
- * step yet (pair, the flows, the scan, the report), the step says in prose what the agent does and cites its adopt-belay
- * step. They name `n`'s group and project, never the demo's in live mode.
+ * runs (cli/belay.mjs). Checked on docs.gitlab.com on 2026-10-08: `glab variable set` takes `--masked`, `--protected`
+ * and `--hidden`, `-R` for the project, and the value as an argument, `-v` or stdin (/cli/variable/set); the fields of
+ * `protected_branches` (/api/protected_branches) and `protected_tags` (/api/protected_tags). Where glab has no subcommand
+ * (the pipeline-variable role, the job token allowlist) or Belay's CLI does not run the step yet (pair, the flows, the
+ * scan, the report), the step says in prose what the agent does and cites its adopt-belay step. They name `n`'s group and project, never the demo's in live mode.
  */
 const enc = (n: StepNames, project: string): string => encodeURIComponent(`${n.group}/${project}`);
 /** A shell word: single-quoted when it holds a glob. */
@@ -71,7 +71,7 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   8: {
     who: 'human', short: 'Set the tokens yourself', does: 'Belay never sees a value; it reads none of these variables.', action: 'Create the variables on belay-apply, then type the model key at the prompt',
     where: `GitLab → ${n.group}/belay-apply → Settings → CI/CD → Variables`, secret: true,
-    note: "On belay-apply only, at project level, never on a target and never a group or instance variable (every target pipeline inherits the group's): BELAY_BOT_TOKEN, BELAY_POLICY_TOKEN, BELAY_DISPATCH_TOKEN and BELAY_LEDGER_TOKEN, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created; glab has no flag for it). Then set Minimum role to use pipeline variables to no_one_allowed, and create one pipeline schedule on main with no variables (Build → Pipeline schedules). gitlab/apply/README.md says what each token is.",
+    note: "On belay-apply only, at project level, never on a target and never a group or instance variable (every target pipeline inherits the group's): BELAY_BOT_TOKEN, BELAY_POLICY_TOKEN, BELAY_DISPATCH_TOKEN and BELAY_LEDGER_TOKEN, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created: glab variable set --hidden). Then set Minimum role to use pipeline variables to no_one_allowed, and create one pipeline schedule on main with no variables (Build → Pipeline schedules). gitlab/apply/README.md says what each token is.",
     cmd: ['glab variable set ANTHROPIC_API_KEY --masked --protected'],
     unread: 'the four tokens are not read, by design: the variables API returns their values. Belay reads only belay-apply’s minimum role for pipeline variables and its schedule on main.',
     before: 'belay-apply tokens and ANTHROPIC_API_KEY not read', probe: 'ANTHROPIC_API_KEY exists · masked · protected · belay-apply tokens never read',
