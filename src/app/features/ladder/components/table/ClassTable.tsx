@@ -11,7 +11,7 @@ import { minWidth, px } from '@/components/table/model/columns';
 import { rowDomId } from '@/components/table/model/rowNavigation';
 import type { GroupView } from '../../model/view/rows';
 import type { ClassRow, LadderSort, SortKey, TrackMap } from '../../model/types';
-import type { Promotion } from '../../model/rules/promotion';
+import type { Promotion } from '@/lib/promotion';
 import { DemoChip } from '../chrome/DemoChip';
 import { ClassLine, type LineHandlers } from './ClassLine';
 import styles from './ladderTable.module.css';

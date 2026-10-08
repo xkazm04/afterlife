@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { isGroupNavId } from '@/components/table/model/rowNavigation';
-import type { Promotion } from '../../model/rules/promotion';
+import type { Promotion } from '@/lib/promotion';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, TrackMap } from '../../model/types';
 import { ALL_KINDS } from '../../model/view/moves';
 import type { WriteView } from '../../write/revoke';

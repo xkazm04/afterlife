@@ -1,23 +1,10 @@
 // Shared types of the Ladder model. Plain data, no logic.
-import type { ActionClass, RecordCounters, Track } from '@/lib/demo';
+import type { ActionClass, Track } from '@/lib/demo';
+import type { Counters, PromotionAsk } from '@/lib/promotion';
 import type { SortState } from '@/components/table/model/sort';
 import type { Ceiling, Tier } from '@/schemas';
 
-export type { Ceiling, Tier, Track };
-
-/** A record's counters, each on its own: null is a counter no task or ledger event states (never zero). */
-export type Counters = RecordCounters;
-
-/**
- * The promotion the last poll opened in Needs you for a class (live): the poll counted its record and Ladder's own rule
- * (rules/promotion.ts) found it eligible, from `from` to `to`. `rules`: [rule, value, met], as the ask carries them.
- */
-export interface PromotionAsk {
-  id: string;
-  from: Tier;
-  to: Tier;
-  rules: readonly (readonly [string, string, boolean])[];
-}
+export type { Ceiling, Counters, PromotionAsk, Tier, Track };
 
 /**
  * An action class as the table holds it: the demo class plus the "commit pushed, tier-gate not read yet" marker. A

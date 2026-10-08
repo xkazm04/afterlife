@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useReducer } from 'react';
 import type { PolicyRules } from '@/server/data/types';
 import { isGroupNavId } from '@/components/table/model/rowNavigation';
-import { promotion, type Promotion } from '../model/rules/promotion';
+import { promotion, type Promotion } from '@/lib/promotion';
 import { initialState } from '../model/state/initial';
 import { ladderReducer } from '../model/state/reducer';
 import type { LadderSeed } from '../model/state/state';

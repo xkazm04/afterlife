@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
-import type { ClassRow } from '../types';
-import { isEligible, pct, promotion, whyNot } from './promotion';
+import { isEligible, pct, promotion, whyNot, type Counters, type PromotionSubject } from '.';
 
 // The thresholds are policy/trust-policy.yml's, read the way the server reads them for the screen.
 const RULES = repoPolicy() as PolicyRules;
-const rec = (o: Partial<NonNullable<ClassRow['record']>> = {}) => ({ accepted: 9, needed: 15, noEdit: 1, cleanDays: 6, reverts: 0, ...o });
-const subject = (o: Partial<Pick<ClassRow, 'tier' | 'ceiling' | 'record' | 'ask'>>) => ({
+const rec = (o: Partial<Counters> = {}) => ({ accepted: 9, needed: 15, noEdit: 1, cleanDays: 6, reverts: 0, ...o });
+const subject = (o: Partial<Pick<PromotionSubject, 'tier' | 'ceiling' | 'record' | 'ask'>>) => ({
   tier: 'supervised' as const,
   ceiling: 'hands_off' as const,
   record: rec(),

@@ -1,7 +1,7 @@
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TIER_META } from '@/lib/tiers';
 import { NO_ETA_NOTE, THRESHOLD_NOTE } from '../../../data/policy';
-import { NO_RULES, type Promotion } from '../../../model/rules/promotion';
+import { NO_RULES, type Promotion } from '@/lib/promotion';
 import { Chip } from '@/components/status/chip/Chip';
 import { DemoChip } from '../../chrome/DemoChip';
 import { Sec, type SectionState } from '../Sec';

@@ -1,6 +1,6 @@
 import { Cell } from '@/components/table/Cell';
 import { DayStrip } from '@/components/viz/DayStrip';
-import { pct } from '../../model/rules/promotion';
+import { pct } from '@/lib/promotion';
 import type { ClassRow } from '../../model/types';
 import styles from './ladderTable.module.css';
 

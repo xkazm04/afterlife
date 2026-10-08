@@ -1,7 +1,7 @@
 // What the table shows: tier filter, source (all / one track / a smart filter) and the name search.
 import { TIER_RANK } from '@/lib/tiers';
 import type { PolicyRules } from '@/server/data/types';
-import { promotion } from '../rules/promotion';
+import { promotion } from '@/lib/promotion';
 import { actsFrom, cellOf, isQuarantine } from '../rules/tiers';
 import type { Ceiling, ClassRow, TrackMap } from '../types';
 

@@ -1,19 +1,11 @@
 // Which tiers a class can be revoked to. Restricting is free: any rung below the current one, at once. What a row shows
 // is its cell (the index's one reading, server/index/views/standing.ts): a tier, no record yet, a class several agents
 // hold with each holder at its own tier, or unknown. Only a tier is a rung; no record yet is never a quarantine.
-import { cellName, type ClassCell, type Holder } from '@/lib/tiers';
-import { TIER_ORDER } from '@/schemas/tier';
-import type { Ceiling, ClassRow, Tier } from '../types';
+import { cellOf, RUNGS, rungIndex, type Shown } from '@/lib/promotion';
+import { cellName, type Holder } from '@/lib/tiers';
+import type { Ceiling, Tier } from '../types';
 
-/** The rungs, bottom to top: Q A S H. */
-export const RUNGS: readonly Tier[] = TIER_ORDER;
-
-export const rungIndex = (tier: Ceiling): number => RUNGS.findIndex((t) => t === tier);
-
-type Shown = Pick<ClassRow, 'tier' | 'cell' | 'holders'>;
-
-/** What the row shows. The demo fixture sends no cell: its tier is the cell. */
-export const cellOf = (c: Shown): ClassCell => (c.cell === undefined ? c.tier : c.cell);
+export { cellOf, RUNGS, rungIndex };
 
 /** A split class's holders, when it is one and they are known. */
 export const holdersOf = (c: Shown): readonly Holder[] | undefined => (cellOf(c) === 'refused' && c.holders?.length ? c.holders : undefined);

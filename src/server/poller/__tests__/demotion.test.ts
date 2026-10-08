@@ -4,7 +4,7 @@
 import { parse } from 'yaml';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fleetTotals, MARK_TEST } from '@/app/features/door/model/words';
-import { promotion } from '@/app/features/ladder/model/rules/promotion';
+import { promotion } from '@/lib/promotion';
 import { actsFrom, isQuarantine, shownName } from '@/app/features/ladder/model/rules/tiers';
 import { tiersKnown } from '@/lib/tiers';
 import { actionClass } from '@/server/data/live/narrow';

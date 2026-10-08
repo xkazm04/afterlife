@@ -3,7 +3,7 @@
 import type { MouseEvent } from 'react';
 import { Button } from '@/components/controls/Button';
 import { TIER_META } from '@/lib/tiers';
-import { promoteTitle, type Promotion } from '../../model/rules/promotion';
+import { promoteTitle, type Promotion } from '@/lib/promotion';
 import { actsFrom, cellOf, isQuarantine, revokeTargets } from '../../model/rules/tiers';
 import type { ClassRow, Tier } from '../../model/types';
 import styles from './ladderTable.module.css';

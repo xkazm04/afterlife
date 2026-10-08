@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { TIER_META } from '@/lib/tiers';
 import { NO_ANSWER, commitOf, outcomeOf } from '@/server/actions/words';
-import { promotionId, whyNot } from '../model/rules/promotion';
+import { promotionId, whyNot } from '@/lib/promotion';
 import { actsFrom, revokeTarget } from '../model/rules/tiers';
 import { PENDING_MS, nextSha } from '../model/state/commit';
 import type { LadderSeed } from '../model/state/state';

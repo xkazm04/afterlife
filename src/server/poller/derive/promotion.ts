@@ -1,8 +1,8 @@
 // A class whose counters meet trust-policy.yml's promotion rule waits for a person to promote it: Belay's own ask, as
-// re-admits are (./readmit.ts). Eligibility is Ladder's own rule (promotion() in app/features/ladder/model/rules), on the
+// re-admits are (./readmit.ts). Eligibility is the rule Ladder's Promote reads (promotion() in src/lib/promotion), on the
 // row the poll just wrote, so Ladder's Promote and this ask can never disagree. Proposals are matched by (kind, title): a
 // seeded or earlier one is never duplicated, and only this module's own are refreshed or closed.
-import { promotion, promotionId, type PromotionRule } from '@/app/features/ladder/model/rules/promotion';
+import { promotion, promotionId, type PromotionRule } from '@/lib/promotion';
 import type { Ceiling, Tier } from '@/schemas/tier';
 import type { PolicyRules } from '@/server/data/types';
 import type { ClassTierRow } from '@/server/index/repositories/fleet/classTier';

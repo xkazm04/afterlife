@@ -6,7 +6,7 @@ import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { getDataSource } from '@/server/data';
 import type { IllustrativePart } from '@/server/data';
 import type { NeedsYouItem } from '@/lib/demo';
-import { promotionId } from '../model/rules/promotion';
+import { promotionId } from '@/lib/promotion';
 import type { PromotionAsk, Tier } from '../model/types';
 import type { LadderScreenProps } from '../LadderScreen';
 import { LEDGER_SEED } from './ledgerSeed';

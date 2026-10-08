@@ -2,6 +2,7 @@
 // loader changes one import and nothing else. Reads are synchronous: the live source serves a snapshot that the poller
 // refreshes after every cycle, so a page never waits on GitLab or on the index.
 import type { DemoData, Task } from '@/lib/demo/types';
+import type { PromotionRules } from '@/lib/promotion/types';
 import type { SetupReads } from './setup/read';
 
 export type DataMode = 'demo' | 'live';
@@ -23,9 +24,9 @@ export interface PolicyRules {
   /** The lease on a hands-off grant, in days (grant_ttl_days); null: no lease. */
   leaseDays: number | null;
   /** assisted_to_supervised */
-  toSupervised: { accepted: number; reverts: number };
+  toSupervised: PromotionRules['toSupervised'];
   /** supervised_to_hands_off */
-  toHandsOff: { accepted: number; noEditRatio: number; cleanDays: number };
+  toHandsOff: PromotionRules['toHandsOff'];
   /** demotion.one_step_on and demotion.quarantine_on: the triggers. */
   oneStepOn: readonly string[];
   quarantineOn: readonly string[];

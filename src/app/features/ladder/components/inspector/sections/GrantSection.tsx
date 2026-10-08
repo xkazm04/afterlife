@@ -1,6 +1,6 @@
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { TIER_META } from '@/lib/tiers';
-import { isMechanical } from '../../../model/rules/promotion';
+import { isMechanical } from '@/lib/promotion';
 import { shownName } from '../../../model/rules/tiers';
 import type { ClassRow } from '../../../model/types';
 import { Sec, type SectionState } from '../Sec';

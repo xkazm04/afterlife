@@ -4,7 +4,7 @@ import { Button } from '@/components/controls/Button';
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { TierMark } from '@/components/status/TierMark';
 import { TIER_META } from '@/lib/tiers';
-import type { Promotion } from '../../model/rules/promotion';
+import type { Promotion } from '@/lib/promotion';
 import { actsFrom, cellOf, holdersOf, isQuarantine, revokeTargets, shownName } from '../../model/rules/tiers';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, Track } from '../../model/types';
 import { entriesFor } from '../../model/view/moves';

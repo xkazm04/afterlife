@@ -1,8 +1,9 @@
 // Promotion eligibility: counts against trust-policy.yml's thresholds, which the server reads and hands the screen (never
-// a constant here). A count is shown, never a forecast (no ETA).
-import type { PolicyRules } from '@/server/data/types';
-import type { ClassRow, Tier } from '../types';
-import { cellOf, RUNGS, rungIndex } from './tiers';
+// a constant here). A count is shown, never a forecast (no ETA). One rule for both sides: Ladder's Promote and the
+// poller's promotion ask (server/poller/derive/promotion.ts) read it here, so they can never disagree.
+import type { Tier } from '@/schemas/tier';
+import { cellOf, RUNGS, rungIndex } from './rungs';
+import type { PromotionRules, PromotionSubject } from './types';
 
 /** Proof classes a machine can check; Hands-off needs one of these. */
 export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set([
@@ -33,8 +34,6 @@ export type Promotion =
 
 export const pct = (x: number): string => `${Math.round(x * 100)} %`;
 
-type Subject = Pick<ClassRow, 'tier' | 'ceiling' | 'record' | 'cell' | 'holders'> & Partial<Pick<ClassRow, 'ask'>>;
-
 /** A counter no row or event states: its rule is never met. */
 export const NOT_RECORDED = 'not recorded';
 
@@ -46,7 +45,7 @@ const countRule = (name: string, v: number | null, need: number): PromotionRule 
   v === null ? { name, value: NOT_RECORDED, met: false } : { name, value: `${v} / ${need}`, met: v >= need, cells: [Math.min(v, need), need] };
 
 /** `rules`: trust-policy.yml's thresholds, as the server read them; null when it could not (the counts are then not drawn). */
-export function promotion(c: Subject, proofClass: string, rules: PolicyRules | null): Promotion {
+export function promotion(c: PromotionSubject, proofClass: string, rules: PromotionRules | null): Promotion {
   const tier = cellOf(c);
   if (tier === 'human_only') return { kind: 'never' };
   if (tier === 'no_record') return { kind: 'norecord' };
@@ -82,43 +81,3 @@ export const isEligible = (p: Promotion): boolean => p.kind === 'eligible';
 
 /** The Needs-you item the poller opens for an eligible class (poller/derive/promotion.ts): one id, both sides. */
 export const promotionId = (projectId: string, classId: string): string => `promote:${projectId}:${classId}`;
-
-/** Why Promote is greyed, naming the first rule that is unmet or not recorded when there are counts. */
-export function whyNot(p: Promotion): string {
-  if (p.kind === 'eligible') return '';
-  if (p.kind !== 'notyet') return WHY_NOT[p.kind];
-  const r = p.rules.find((x) => !x.met);
-  if (!r) return WHY_NOT.notyet;
-  return r.value === NOT_RECORDED ? `${r.name} is not recorded: no task or ledger event states it` : `${r.name} is not met (${r.value})`;
-}
-
-/** Why Promote is greyed, for the status line. */
-export const WHY_NOT: Record<Exclude<Promotion['kind'], 'eligible'>, string> = {
-  notyet: 'the record does not qualify yet (↵ shows the counts)',
-  ceiling: 'it is at its ceiling',
-  readmit: 'it is quarantined: re-admit in Needs you, at Assisted at most',
-  never: 'it is never an agent',
-  unknown: 'there is no record yet',
-  nopolicy: 'trust-policy.yml has not been read, so there are no thresholds',
-  norecord: 'no agent holds it yet: not trusted, and not quarantined',
-  split: 'several agents hold it, each at its own tier: a policy MR promotes one holder',
-  untiered: 'its tier is unknown',
-};
-
-/** Tooltip of the row's Promote button. */
-export function promoteTitle(kind: Promotion['kind']): string {
-  if (kind === 'eligible') return 'Promote via a policy MR (p)';
-  return kind === 'ceiling' ? 'At its ceiling' : 'Record does not qualify yet';
-}
-
-/** The muted line shown instead of rule counts. */
-export const NO_RULES: Record<'ceiling' | 'readmit' | 'never' | 'unknown' | 'nopolicy' | 'norecord' | 'split' | 'untiered', string> = {
-  ceiling: 'At its ceiling · higher is a track rebuild',
-  readmit: 'Quarantined · re-admit at Assisted at most',
-  never: 'Never an agent',
-  unknown: 'No record yet',
-  nopolicy: 'No thresholds · trust-policy.yml has not been read',
-  norecord: 'No record yet · not trusted, not quarantined',
-  split: 'Split · each holder at its own tier, as CI gates its merge requests',
-  untiered: 'Tier unknown',
-};

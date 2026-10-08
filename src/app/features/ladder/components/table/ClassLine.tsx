@@ -5,7 +5,7 @@ import { Cell } from '@/components/table/Cell';
 import { Row } from '@/components/table/Row';
 import { TierMark } from '@/components/status/TierMark';
 import { RungGlyph } from '@/components/viz/RungGlyph';
-import type { Promotion } from '../../model/rules/promotion';
+import type { Promotion } from '@/lib/promotion';
 import { actsFrom, cellOf, holdersOf, shownName } from '../../model/rules/tiers';
 import type { ClassRow, Tier } from '../../model/types';
 import { ActionCell } from './ActionCell';

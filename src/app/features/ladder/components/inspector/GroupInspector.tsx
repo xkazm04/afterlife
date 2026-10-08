@@ -1,7 +1,7 @@
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { TierMark } from '@/components/status/TierMark';
 import { cellOf, holdersOf, shownName } from '../../model/rules/tiers';
-import { isMechanical } from '../../model/rules/promotion';
+import { isMechanical } from '@/lib/promotion';
 import type { ClassRow, LedgerEntry, Track } from '../../model/types';
 import { entriesForTrack } from '../../model/view/moves';
 import { WhoActed } from './log/WhoActed';

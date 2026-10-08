@@ -18,7 +18,8 @@ command the screen spells.
   button or a menu target, and only for a preview on screen. A target that is not on screen yet (`q`, an unhovered menu
   item) is put on screen first and nothing is sent; press again to send it.
 - `model/`: pure, tested logic.
-  - `rules/` revoke targets, promotion counts, the rows a revoke moves and its ledger line, the dock line.
+  - `rules/` revoke targets, the rows a revoke moves and its ledger line, the dock line. The promotion rule itself
+    (`promotion()`, its counts and words) is `src/lib/promotion/`: the poller's promotion ask reads the same one.
   - `view/` frozen sort, filters, grouping and j/k walk, the to-scale timeline, ledger queries.
   - `state/` the reducer: a revoke lands only when the server answered done. Demo: the write was simulated, its commit id
     is the demo's, and 6 s later a simulated tier-gate read settles it. Live: the commit GitLab made, nothing simulated.
@@ -35,7 +36,7 @@ A row shows the class as the index reads it (`server/index/views/standing.ts`): 
 nothing to revoke, no Re-admit: Re-admit is for a real quarantine only), or Split with each holder at its own tier (a
 revoke lowers every holder above the target in one commit). Unknown reads unknown.
 
-Promotion counts: a counter a record does not know is "not recorded" and never met (`model/rules/promotion.ts`). Live, the
+Promotion counts: a counter a record does not know is "not recorded" and never met (`src/lib/promotion/promotion.ts`). Live, the
 record columns are the record the poll counted and stored for a class one agent holds (`server/poller/README.md`, "Record
 counters"): Acc, Rv and Clean as counted, and a dim dash titled "Not recorded" for a counter nothing states (No-edit,
 always; Rv and Clean unless the policy demotes on a revert). A class no agent holds says "No record yet". When the poll
