@@ -79,6 +79,7 @@ const forcedFor = (n) => {
   const m = FORCED.exec(n.body);
   return m ? { decision: m[1], head: m[2] } : null;
 };
+const INCONCLUSIVE = 'the guardrail verdict does not match its schema, or its note carries two of them: treated as inconclusive';
 const dispatchMark = (head) => `**Belay: guardrail review requested** for head \`${head}\``;
 
 /** One agent MR. Returns nothing; throws on a failed read (no write follows it). */
@@ -234,6 +235,25 @@ function sweepMr(t, iid) {
     appendLedger(events, [blockKey]);
   };
 
+  /** No guardrail verdict for this head yet: the guardrail is started once (its dispatch note names the head). */
+  const requestGuardrail = (what) => {
+    say(`${tag}: no guardrail verdict for this head yet: ${what}`);
+    const consumer = Number(t.conf.guardrail_consumer_id);
+    if (!Number.isSafeInteger(consumer) || consumer <= 0) return;
+    if (notes.some((n) => n.body.startsWith(dispatchMark(head)))) return say(`${tag}: guardrail review already requested`);
+    if (!process.env.BELAY_DISPATCH_TOKEN || !WRITE) return say(`${tag}: BELAY_DISPATCH_TOKEN is not set: the guardrail is not started`);
+    const d = glue('ops/dispatch.mjs', ['--goal', String(iid), '--consumer-id', String(consumer)], { ...env, GITLAB_TOKEN: process.env.BELAY_DISPATCH_TOKEN });
+    if (d.code !== 0) throw new Error(`dispatch exited ${d.code}`);
+    const run = (() => {
+      try {
+        return JSON.parse(d.stdout).id;
+      } catch {
+        return null;
+      }
+    })();
+    glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `${dispatchMark(head)} (flow run ${Number.isSafeInteger(run) ? run : '?'}).`]);
+  };
+
   if (ci) {
     force('wait', `${ci}. This MR controls which jobs made its evidence, so Belay grants nothing and gives no proof; a person reviews it.`);
     if (WRITE && (m.labels ?? []).includes('proof::pass')) glab(['mr', 'update', String(iid), '-R', t.web_url, '--unlabel', 'proof::pass']);
@@ -272,7 +292,10 @@ function sweepMr(t, iid) {
       if (job.web_url) args.push('--base-ref', job.web_url, '--head-ref', job.web_url);
     } else say(`${tag}: pipeline ${p.id} has no ${ev.job} job: the proof is derived without its evidence`);
   } else if (proofClass === 'cited-diff') {
-    if (gr.code !== 0) return say(`${tag}: no guardrail verdict for this head yet: nothing to prove`);
+    // The guardrail's verdict is this class's evidence, so without one this class never reached the dispatch below and
+    // waited for ever, and an inconclusive one was never said (F77): both are handled here.
+    if (gr.code === 4) return force('block', INCONCLUSIVE);
+    if (gr.code !== 0) return requestGuardrail('nothing to prove');
     args.push('--verdict', guardrailFile);
   } else if (proofClass === 'rerun-stats') {
     const md = glue('proof/fetch-block.mjs', ['--mr', String(iid), '--tag', 'belay-medic', '--authors', cfg.medicAuthors, '--out', path.join(dir, 'medic.json')], env, dir);
@@ -307,25 +330,8 @@ function sweepMr(t, iid) {
     if (r.code !== 0) throw new Error(`post-proof exited ${r.code}`);
   }
 
-  if (gr.code === 3) {
-    say(`${tag}: no guardrail verdict for this head yet: the gate waits`);
-    const consumer = Number(t.conf.guardrail_consumer_id);
-    if (!Number.isSafeInteger(consumer) || consumer <= 0) return;
-    if (notes.some((n) => n.body.startsWith(dispatchMark(head)))) return say(`${tag}: guardrail review already requested`);
-    if (!process.env.BELAY_DISPATCH_TOKEN || !WRITE) return say(`${tag}: BELAY_DISPATCH_TOKEN is not set: the guardrail is not started`);
-    const d = glue('ops/dispatch.mjs', ['--goal', String(iid), '--consumer-id', String(consumer)], { ...env, GITLAB_TOKEN: process.env.BELAY_DISPATCH_TOKEN });
-    if (d.code !== 0) throw new Error(`dispatch exited ${d.code}`);
-    const run = (() => {
-      try {
-        return JSON.parse(d.stdout).id;
-      } catch {
-        return null;
-      }
-    })();
-    glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `${dispatchMark(head)} (flow run ${Number.isSafeInteger(run) ? run : '?'}).`]);
-    return;
-  }
-  if (gr.code === 4) return force('block', 'the guardrail verdict does not match its schema, or its note carries two of them: treated as inconclusive');
+  if (gr.code === 3) return requestGuardrail('the gate waits');
+  if (gr.code === 4) return force('block', INCONCLUSIVE);
 
   // The gate, decided here, and its ledger events.
   // F81: a guardrail block for this head that came after its gate was applied. The gate, re-run below, withdraws what the

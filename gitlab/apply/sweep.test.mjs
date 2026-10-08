@@ -412,6 +412,25 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(again.writes).toEqual([]);
   });
 
+  it('(xviii) F77: a cited-diff class with no guardrail verdict starts the guardrail; an inconclusive one is a BLOCK', () => {
+    const conf = path.join(dir, 'apply-dispatch.json');
+    fs.writeFileSync(conf, JSON.stringify({ ...JSON.parse(fs.readFileSync(CONFIG, 'utf8')), targets: { 'acme/ledgerline': { guardrail_consumer_id: 5 }, 'other/shared': {} } }));
+    const run = (routes) => runScript(dir, '../../apply/sweep.mjs', ['--config', conf, '--policy-remote', POLICY, '--work', path.join(dir, 'work')], { routes, env: { ...TOKENS, BELAY_DISPATCH_TOKEN: 'dispatch' } });
+    const cited = description.replace('Belay-Class: code-fix.patch', 'Belay-Class: guard.block');
+    const r = run({ ...group({ desc: cited, notes: [] }), 'POST ai/duo_workflows/workflows': { reply: { id: 77 } } });
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.writes.filter((w) => w.path === 'ai/duo_workflows/workflows')).toHaveLength(1);
+    expect(glabWrites(r, 'note create').map((n) => n.body.message)).toEqual([`**Belay: guardrail review requested** for head \`${HEAD}\` (flow run 77).`]);
+    expect(granted(r)).toEqual([]);
+
+    const blockNote = guardrailNote('block');
+    const twice = { ...blockNote, body: `${blockNote.body}\n\n${guardrailNote('pass').body}` };
+    const ambiguous = run(group({ desc: cited, notes: [twice] }));
+    expect(ambiguous.code, ambiguous.stderr).toBe(0);
+    expect(glabWrites(ambiguous, 'note create').map((n) => n.body.message)).toEqual([expect.stringMatching(new RegExp(`^\\*\\*Belay gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail verdict does not match its schema, or its note carries two`))]);
+    expect(granted(ambiguous)).toEqual([]);
+  });
+
   it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {
     const human = (i) => ({ iid: 1000 + i, author: { username: `dev-${i}` } });
     const pages = Array.from({ length: 5 }, (_, p) => Array.from({ length: 100 }, (_, i) => (p === 0 && i === 0 ? { iid: 7, author: { username: 'ai-patcher-acme' } } : human(p * 100 + i))));

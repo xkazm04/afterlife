@@ -50,7 +50,8 @@ are not part of the project.
      is finished. A pipeline of another source (Run pipeline, API, trigger, schedule, push, downstream) is never read: each
      can carry pipeline variables, which outrank the evidence job's own. A merge request pipeline that ran with a pipeline
      variable is a WAIT (F63).
-   - `cited-diff`: the guardrail's block.
+   - `cited-diff`: the guardrail's block. Without one the guardrail is dispatched as in step 7, and nothing is proved yet;
+     an inconclusive one (schema, or two in one note) is a BLOCK (F77).
    - `rerun-stats`: the medic's block plus the jobs API.
 
    No finished pipeline for the head yet: nothing is written this sweep.
@@ -140,6 +141,8 @@ trigger token only after checking that on the instance. The schedule alone is en
   removes only the caller's own approval, never a person's) and a note names the decision and the tier. Without the write
   tokens it only reports. The approvals are read only once the gate is done for the head: `[R?]` whether a push keeps an
   approval the bot gave an earlier head depends on the target's "Remove all approvals when commits are added" setting.
+- F77: closed in the sweep. A `cited-diff` class with no guardrail verdict for the head dispatches the guardrail (step 7)
+  instead of returning before it and waiting for ever, and an inconclusive verdict is a forced BLOCK, as for every other class.
 - F81: closed in the sweep. A guardrail block for a head whose gate was already applied (the guardrail re-ran) re-runs the
   gate: the bot's approval and auto-merge are withdrawn (F74, F89), and while the MR lacks `guardrail::block` the BLOCK
   note and the label are written again. The block is ledgered once as a `guardrail_verdict` with `verdict: block`
