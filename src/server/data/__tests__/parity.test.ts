@@ -67,10 +67,10 @@ function both<T>(read: () => T): [T, T] {
 
 describe('every screen loader gets the same data from the live source as from the demo source', () => {
   it('Fleet: 184 projects, groups, classes, tier counts, rungs, feed ages, the deep project and the status-bar facts', () => {
-    // The deep project's needsYou is listed below where live differs (it excludes the seeded items); nothing else is normalised.
+    // The deep project's needsYou and its needs list are listed below where live differs (they exclude the seeded items); nothing else is normalised.
     const sameDeep = (v: unknown) => {
-      const p = v as { projects: { id: string; needsYou: number }[] };
-      return { ...p, projects: p.projects.map((x) => (x.id === 'ledgerline' ? { ...x, needsYou: 0 } : x)) };
+      const p = v as { projects: { id: string; needsYou: number }[]; deep: { needs: unknown[] } };
+      return { ...p, projects: p.projects.map((x) => (x.id === 'ledgerline' ? { ...x, needsYou: 0 } : x)), deep: { ...p.deep, needs: [] } };
     };
     const [d, l] = both(() => asProps(loadFleetData()));
     expect(noLast(sameDeep(l))).toEqual(noLast(sameDeep(d)));

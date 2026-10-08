@@ -87,6 +87,8 @@ export function NeedsYouSection({
         </div>
       </div>
     );
+  } else if (p.id === deep.id && !deep.needs.length) {
+    body = <div className={styles.muted}>Nothing waiting</div>;
   } else if (p.id === deep.id) {
     body = deep.needs.map((n) => <Decision key={n.id} n={n} done={done.has(n.id)} live={live} onResolve={onResolve} onFlash={onFlash} />);
   } else if (p.needsYou) {
