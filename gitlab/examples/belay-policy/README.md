@@ -16,8 +16,8 @@ belay-policy/
 
 | Setting | Value | Why |
 |---|---|---|
-| Protected branch `main` | allowed to merge: Maintainers; allowed to push and merge: the bot account only; "Require approval from code owners" on | A person changes policy by merge request. The bot's direct push is how the tripwire demotes at once. [S] docs.gitlab.com/user/project/codeowners/ |
-| Membership | the bot is a Developer or Maintainer here (needs push on `main`); agents' service accounts are **not** members | Agents can read nothing here but through the jobs, and cannot edit it |
+| Protected branch `main` | allowed to merge: Maintainers; allowed to push and merge: the policy token's account only (`BELAY_POLICY_TOKEN`'s); "Require approval from code owners" on | A person changes policy by merge request. The policy token's direct push is how the tripwire demotes at once. [S] docs.gitlab.com/user/project/codeowners/ |
+| Membership | the account behind `BELAY_POLICY_TOKEN` is a Developer or Maintainer here (needs push on `main`); `BELAY_BOT_TOKEN`'s account is **Reporter** here (F72, proposed); agents' service accounts are **not** members, directly or through the group | Agents can read nothing here but through the jobs, and cannot edit it |
 | Job token allowlist (inbound) | each target project, and `belay-apply` | proof-engine and tier-gate (in the targets) and belay-apply clone this project with `CI_JOB_TOKEN` [S] docs.gitlab.com/ci/jobs/ci_job_token/ |
 | Token | `BELAY_POLICY_TOKEN`: a project access token of the bot, scope `write_repository` or `api`, role Developer or higher | stored on **belay-apply only** as a **protected, masked and hidden** variable, never on a target (F4; `../../apply/README.md`) |
 

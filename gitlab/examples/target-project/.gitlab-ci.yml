@@ -8,6 +8,8 @@
 #
 # Needs in the target project's Settings:
 #   CI/CD variables: none for Belay
+#   CI/CD > Variables: Minimum role to use pipeline variables = no_one_allowed (belay-apply never reads a pipeline that carries one, F63)
+#   belay-replay runs in merge request pipelines and is never when: manual
 #   CI/CD > Job token permissions: belay-engine and belay-policy allow this project (inbound allowlist)
 #   Repository: protected branches main and belay/*; CODEOWNERS on .gitlab-ci.yml and .gitlab/
 #   Schedules (default branch): "security" (daily, no variable), "maturity" daily with BELAY_SCAN=maturity.
