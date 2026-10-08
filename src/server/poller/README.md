@@ -32,6 +32,8 @@ Tests never start a timer.
 | `belay-proof` block in a note | proof accounts. The patcher is **not** one | prefix `ai-proof-`, plus `BELAY_PROOF_AUTHORS` |
 | `belay-guardrail` block | guardrail accounts, and only for the MR's current head | prefix `ai-guardrail-`, plus `BELAY_GUARDRAIL_AUTHORS` |
 
+Where it reads from: F49 (e2079f8) reads belay-policy and belay-ledger at `<group>/<name>` by full path and polls only projects under the group's own path (`cycle.ts:73-79`). F51 (8a534c8) reads a tier record whose `by` is not text as the gate does, by its tier alone (`derive/tiers.ts`), so a hand-written `{ tier: quarantined }` no longer aborts the poll.
+
 Everything else on the page is text. A proof block must also have every field typed, and a verdict that follows from its
 own checks (the gate's rule). A block's `task.head_sha` (new, optional) is compared with the MR head: a proof for an older
 head is **stale**: not indexed, any earlier proof of the task is deleted, and the task says "proof stale · the head moved".
@@ -48,6 +50,10 @@ head is **stale**: not indexed, any earlier proof of the task is deleted, and th
 | moves "promoted" and "tripwire" (with its trigger as the note) from the record's `by` | project `last`, `env_*`, `armed`, stage rungs, `what` |
 | re-admit ask for a class the tripwire quarantined (deduplicated by kind and title, so a seeded one is respected) | track `armed`/`latest`, the event feed, cockpit text |
 | 7-day proof counts, demotion count, inbox counts, feed age | task `chain`, `countsToward`, `stats`, `clock`, `grade` |
+
+A project indexed earlier from another namespace stays shown and counted, and only stops being polled: it is marked stale
+(`cycle.ts:90-93`), and the fleet view still lists it (`src/server/index/views/fleet.ts:20-58`). F57's "gone" state is
+proposed and is not M1 work.
 
 ## Record counters (`derive/counters.ts`)
 
