@@ -64,7 +64,10 @@ function protections(n: StepNames, project: string, kind: 'protected_branches' |
 
 const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   0: { who: 'agent', does: 'Checks git, glab and node, and that glab is signed in as you.', cmd: [own(n) ? 'glab auth status' : `glab auth status --hostname ${n.host}`, `${api(n)} user`], probe: 'glab api user → 200 · signed in as @you' },
-  1: { who: 'agent', does: 'Starts Belay on this machine and pairs it with your checkout.', cmd: ['npm install', 'npm run dev'], probe: 'localhost:3000 answering · checkout paired' },
+  1: {
+    who: 'agent', does: 'Starts Belay on this machine and pairs it with your checkout.', cmd: ['npm install', 'npm run dev'], probe: 'localhost:3000 answering · checkout paired',
+    note: "Set these in Belay's environment before npm run dev, or an arm MR refuses at the click and you restart Belay: BELAY_PACK_VERSION (the belay-pack release the includes name), BELAY_ENGINE_REF (the engine tag, branch or SHA) and, optionally, BELAY_ENGINE_COMMIT (40 hex digits; leave it unset otherwise). The example's values are 1.0.0 and v0.1.0: the example's, not defaults.",
+  },
   2: { who: 'agent', does: 'Writes package.yml: group, target, tier ceiling, model route, cloud project, credit cap.', cmd: ['$EDITOR package.yml'], probe: 'package.yml · 8 of 8 answers · ceiling SUPERVISED' },
   3: {
     who: 'human', short: 'Start the Ultimate trial', does: 'Belay cannot accept terms or start a trial for you.', action: 'Start the Ultimate trial',

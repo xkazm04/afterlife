@@ -125,3 +125,23 @@ describe('every glab command reaches the paired host when it is not gitlab.com (
     expect(STEP_DETAIL[9]?.cmd?.[0]).toBe('glab api projects/acme-lab%2Fledgerline/protected_branches');
   });
 });
+
+describe('step 1 names the settings an arm MR refuses without (value-4)', () => {
+  const VARS = ['BELAY_PACK_VERSION', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT'];
+  it('Setup’s step 1 names the three, what each is, that an arm MR refuses without them, and the values as the example’s', () => {
+    const d = STEP_DETAIL[1]!;
+    const text = `${d.does} ${d.note ?? ''}`;
+    for (const v of VARS) expect(text).toContain(v);
+    expect(text).toMatch(/belay-pack release/);
+    expect(text).toMatch(/engine tag, branch or SHA/);
+    expect(text).toMatch(/40 hex digits/);
+    expect(text).toMatch(/refuses/);
+    expect(text).toMatch(/1\.0\.0.*v0\.1\.0.*example/);
+    expect(text.replace(/not defaults/, '')).not.toMatch(/default/i);
+    expect(d.cmd).toEqual(['npm install', 'npm run dev']);
+  });
+  it('the skill’s step 1 row names them too', () => {
+    for (const v of VARS) expect(skillStep(1)).toContain(v);
+    expect(skillStep(1)).toMatch(/refuses/);
+  });
+});

@@ -26,7 +26,7 @@ licence, a card, a secret or a legal identity is handed back to a person as a nu
 | # | Who | Step |
 |---|---|---|
 | 0 | Agent | Preflight: git, glab, node, `glab auth status`, GitLab version |
-| 1 | Agent | Clone Belay, `npm install`, `npm run dev` |
+| 1 | Agent | Clone Belay, `npm install`, `npm run dev`. Before it starts, set `BELAY_PACK_VERSION` (the belay-pack release the includes name) and `BELAY_ENGINE_REF` (the engine tag, branch or SHA) and, optionally, `BELAY_ENGINE_COMMIT` (40 hex digits) in its environment: an arm MR refuses without the first two (the example's values are 1.0.0 and v0.1.0, not defaults) |
 | 2 | Agent | Questions: group, target project, tier ceiling, model route, Google Cloud project, credit cap, CRA drill mode |
 | 3 | **Human** | Licence and access: Ultimate trial, hackathon group |
 | 4 | Agent | Create projects: target, belay-pack, belay-policy, belay-ledger, belay-engine (every component job clones belay-engine at `engine_ref`), belay-apply (the one project that holds the write tokens, F4; its folder is gitlab/apply) |

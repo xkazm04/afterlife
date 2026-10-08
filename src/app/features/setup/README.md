@@ -91,7 +91,7 @@ the reads in `src/server/data/setup/`; named, not line-numbered, so they do not 
 | | Step | Skill | Setup |
 |---|---|---|---|
 | a | all | "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1, 3, 4, 6, 8 (never done), 9 and 10 itself (`read.ts` `OBSERVED_STEPS`, `humanSteps.ts`, `protections.ts`); 7 is said, not read; 2, 5 and 11-14 are not read yet |
-| b | 1 | no pairing | pairs the checkout (`1.does`) |
+| b | 1 | no pairing; names `BELAY_PACK_VERSION`, `BELAY_ENGINE_REF` and `BELAY_ENGINE_COMMIT` | pairs the checkout (`1.does`); names the same three in `1.note`, as the example's values (1.0.0, v0.1.0), never defaults |
 | c | 5 | pushes the demo bank and pairs the checkout | agrees: shows only `git push --mirror` and says the pairing in prose (`cli/belay.mjs` answers `pair` with "not implemented yet") |
 | d | 0 | checks the GitLab version | does not (`0.cmd`, `read.ts` `loginRead`) |
 | e | 2 | asks for a CRA drill mode | does not (`2.does`) |
