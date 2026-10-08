@@ -1,5 +1,5 @@
 import { CAP_FLOW_API, CAP_VULN, OTHER_GROUP } from '../../data/capabilities';
-import type { DoctorRead, StepsRead } from '@/server/data/setup/types';
+import type { DoctorRead, ReadStamp, StepsRead } from '@/server/data/setup/types';
 import { STEP_DETAIL } from '../../data/stepDetail';
 import { doctorRowsOf, stepFromRead } from '../live/live';
 import type { ArmState, DoctorRow, SetupState, StepState } from '../types';
@@ -17,8 +17,8 @@ export type SetupAction =
   | { t: 'verify-end'; id: string; verdict: Verdict }
   | { t: 'doctor-start' }
   | { t: 'doctor-end'; now: number; at: string }
-  /** Live: what the belay doctor's probe read (or, `doctor: null`, that no answer came). */
-  | { t: 'doctor-read'; doctor: DoctorRead | null }
+  /** Live: what the belay doctor's probe read (or, `doctor: null`, that the re-probe was refused or unanswered, and why). */
+  | { t: 'doctor-read'; doctor: DoctorRead | null; reason?: string; at?: ReadStamp }
   /** Live: what the step reads saw. */
   | { t: 'steps-read'; steps: StepsRead }
   | { t: 'pick-group'; group: string; now: number; at: string };
@@ -80,8 +80,12 @@ function stepsRead(s: SetupState, r: StepsRead): SetupState {
   return recomputeLocks({ ...s, steps });
 }
 
-function doctorRead(s: SetupState, d: DoctorRead | null): SetupState {
-  if (!d) return { ...s, doctorBusy: false };
+function doctorRead(s: SetupState, d: DoctorRead | null, reason = 'the re-probe got no answer', at?: ReadStamp): SetupState {
+  // No read came back: the rows stay, but the bar reads "probe failed" (at `at`, the attempt), never the old probe as fresh.
+  if (!d) {
+    if (s.doctorNever) return { ...s, doctorBusy: false };
+    return { ...s, doctorBusy: false, doctorError: reason, ...(at ? { doctorAt: Date.parse(at.at), doctorProbedAt: at.label } : {}) };
+  }
   const rows = doctorRowsOf(d);
   return { ...s, doctor: rows, homeDoctor: rows, doctorBusy: false, doctorAt: Date.parse(d.at), doctorProbedAt: d.label, doctorNever: false, doctorError: d.error };
 }
@@ -110,7 +114,7 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
       return { ...s, doctor: rows, doctorBusy: false, doctorAt: a.now, doctorProbedAt: a.at, doctorNever: false };
     }
     case 'doctor-read':
-      return doctorRead(s, a.doctor);
+      return doctorRead(s, a.doctor, a.reason, a.at);
     case 'steps-read':
       return stepsRead(s, a.steps);
     case 'pick-group':

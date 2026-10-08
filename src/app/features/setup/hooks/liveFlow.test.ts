@@ -2,6 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getSetup } from '@/lib/demo';
 import type { SetupReread } from '@/server/data/setup/types';
+import { stampOf } from '@/server/data/setup/types';
+import { probeAgeText } from '../model/flow/probeAge';
 import { setupReducer, type SetupAction } from '../model/flow/reducer';
 import { createSetupState } from '../model/flow/state';
 import type { SetupState } from '../model/types';
@@ -64,5 +66,17 @@ describe('live probes', () => {
     answer.next = { status: 'refused', reason: 'this request names "evil.test", not localhost' };
     await r.probes.reprobe();
     expect([r.ref.current.doctor.length, r.ref.current.doctorBusy, r.told.at(-1)]).toEqual([1, false, 'belay doctor · not probed: this request names "evil.test", not localhost']);
+  });
+
+  it('a refused Re-probe reads "probe failed" at the attempt, amber, with the reason kept for the toast', async () => {
+    const r = rig();
+    const t0 = new Date('2026-10-07T09:50:00.000Z');
+    vi.setSystemTime(t0);
+    answer.next = { status: 'refused', reason: 'this request names "evil.test", not localhost' };
+    await r.probes.reprobe();
+    const bar = probeAgeText(r.ref.current, t0.getTime() + 5000);
+    expect(bar).toEqual({ text: `belay doctor · probe failed ${stampOf(t0).label} · 5 s ago`, stale: true });
+    expect(r.told.at(-1)).toContain('this request names "evil.test", not localhost');
+    expect(r.ref.current.doctorBusy).toBe(false);
   });
 });

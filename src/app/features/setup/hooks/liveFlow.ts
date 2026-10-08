@@ -33,8 +33,9 @@ export function liveProbes(now: () => SetupState, dispatch: Dispatch<SetupAction
       if (now().doctorBusy) return;
       dispatch({ t: 'doctor-start' });
       const r = await reread('doctor');
-      dispatch({ t: 'doctor-read', doctor: r.status === 'doctor' ? r.doctor : null });
-      tell(r.status === 'doctor' ? (r.doctor.error ? `belay doctor · ${r.doctor.error}` : `belay doctor · ${now().group} probed at ${r.doctor.label}`) : `belay doctor · not probed: ${r.status === 'refused' ? r.reason : 'no answer'}`);
+      const why = r.status === 'refused' ? r.reason : 'no answer';
+      dispatch({ t: 'doctor-read', doctor: r.status === 'doctor' ? r.doctor : null, reason: why, at: stampOf(new Date()) });
+      tell(r.status === 'doctor' ? (r.doctor.error ? `belay doctor · ${r.doctor.error}` : `belay doctor · ${now().group} probed at ${r.doctor.label}`) : `belay doctor · not probed: ${why}`);
     },
   };
 }
