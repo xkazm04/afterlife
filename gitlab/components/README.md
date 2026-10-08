@@ -141,7 +141,7 @@ BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/
 
 `ledger-append` takes every `*.json` in the directory, in name order, in one commit, each as seq n+1 on the chain it reads from
 `belay-ledger`. Run it once per head. If the push to `main` is refused, add `--mode mr`. It reads the ledger with your own `glab` login and no
-token variable. Only a 404 means there is no ledger file yet (the chain then starts at seq 1); any other failed read (403, 5xx,
+token variable. If `--write-token-var` is given, the variable it names must be set: an unset one is refused before any read (F88, b85b78c). Without the flag, the write token falls back as before. Only a 404 means there is no ledger file yet (the chain then starts at seq 1); any other failed read (403, 5xx,
 no network) stops it with GitLab's message and writes nothing. The write carries the `last_commit_id` it read, so a ledger
 that moved in between is refused: run it again.
 
