@@ -29,7 +29,7 @@ are not part of the project.
 | 1 | No target job can read a write token: the target example and every belay-pack component name none, and `GITLAB_TOKEN` is set only by `glab auth login --job-token` | `../components/scripts/target-tokens.test.mjs` |
 | 2 | Runs only its own CI config, from its protected default branch. Never checks out, includes or runs a target's code or CI config | `.gitlab-ci.yml` `workflow:rules`; the scripts read targets through the API only |
 | 3 | Trusts nothing a target pipeline computed: reads author, head, diff, trailers and notes itself, re-derives the Proof Block with its own pinned engine from the evidence, runs the gate itself | `sweep.mjs`; test (v) |
-| 4 | Evidence counts only from a finished merge request pipeline (`merge_request_event`) whose sha is the MR's head and that ran with no pipeline variables (F63). An MR that changes `.gitlab-ci.yml` (or the project's CI file), anything under `.gitlab/`, or a file the CI config includes locally gets no proof, no `proof::pass`, no approve, no merge: a WAIT note gives the reason | `ci-touch.mjs`; tests (iii), (iv) |
+| 4 | Evidence counts only from a finished merge request pipeline (`merge_request_event`) whose sha is the MR's head and that ran with no pipeline variables (F63). An MR that changes `.gitlab-ci.yml` (or the project's CI file), anything under `.gitlab/`, or a file the CI config includes locally gets no proof, no `proof::pass`, no approve, no merge: a WAIT note gives the reason. So does one whose CI config has an include with a variable or a wildcard (F68) | `ci-touch.mjs`; tests (iii), (iv) |
 | 5 | Takes no value from pipeline variables, trigger variables or a webhook. A schedule is the baseline | `apply.json` holds every setting, including the engine pin; the settings below |
 | 6 | Acts only on projects of the paired group (a shared-in project is skipped, F37) and only on agent MRs (`agent_prefix` and the `Belay-Task` trailer, `mr-context.mjs`) into the project's default branch (F78) | `lib.mjs` `targetsOf`; tests (vi), (xiv) |
 | 7 | Each write once per project, MR and head; a second sweep writes nothing | read-back below; test (i) |
@@ -42,7 +42,7 @@ are not part of the project.
 2. Reads, all before any write: the MR (`diff_refs.head_sha` is the head), the bot's own notes, the diff from base to
    head (`repository/compare`; a truncated diff is refused), and the CI file and its local includes at the head.
 3. Reads the guardrail's `belay-guardrail` block for this head, from the guardrail account's notes only. The block is
-   checked against its schema.
+   checked against its schema. A note that carries two blocks is ambiguous and counts as failing it (F67).
 4. If the MR changes CI configuration: WAIT, with the reason, and `proof::pass` removed if an older head had it. Stop.
 5. Takes the proof class from `trust-policy.yml` (the `Belay-Class` trailer's class) and the evidence:
    - `exploit-test`: the artifacts of the `belay-replay` job (`evidence/base|head/junit.xml`, `evidence/*/scan.json`;
@@ -63,7 +63,7 @@ are not part of the project.
    a revoke made during a sweep is seen before anything is granted (F66). Then `apply-gate.mjs`: note, `belay::tier::*`, `guardrail::*`, approve or
    auto-merge pinned to the head (`--sha`). Then `ledger-append.mjs` with the gate's events, in one commit.
 
-A forced decision (CI change, no class, no proof derivable, a guardrail block that fails its schema) is one gate note that
+A forced decision (CI change, no class, no proof derivable, a guardrail block that fails its schema or shares its note with another) is one gate note that
 names the head. A guardrail **block** for the head always makes it a BLOCK with `guardrail::block`, whatever else is
 missing.
 
@@ -123,16 +123,28 @@ trigger token only after checking that on the instance. The schedule alone is en
 
 ## Known residuals
 
-- F63: evidence counts only from a `merge_request_event` pipeline that carries no pipeline variables (22f3cbf). A target
+- F63: evidence counts only from a `merge_request_event` pipeline that carries no pipeline variables (498f1fb). A target
   that runs `belay-replay` only in branch pipelines gets no proof until it switches to merge request pipelines.
 - F74: closed in the sweep. An auto-merge the bot set is cancelled (`POST .../cancel_merge_when_pipeline_succeeds`, `[R?]`
   the endpoint's current name) and a note says why, at the first sweep after a revoke or tripwire demotion makes the gate
   say anything but merge; an auto-merge a person set is left alone. Until that sweep (at most one schedule interval) the
   MR can still merge if its pipeline succeeds. `[R?]` whether a push cancels an auto-merge set with `--sha`.
 
-- F89 (Low, open): F74's cancel removes the bot's auto-merge, not its approval (`sweep.mjs:260-275`; `decide/apply-gate.mjs:63`
-  approves, nothing unapproves). After a revoke or a demotion the bot's approval of an approve-tier head still counts toward
-  the target's approval rules. Proposed: unapprove on the same re-gate when the decision is wait or block.
+- F89: closed in the sweep (03eb2d8). For an MR whose gate is done, the sweep also reads the approvals and re-gates a head
+  the bot approved. When the gate now says neither approve nor merge, it unapproves as the bot (`POST .../unapprove`, which
+  removes only the caller's own approval, never a person's) and a note names the decision and the tier. Without the write
+  tokens it only reports. The approvals are read only once the gate is done for the head: `[R?]` whether a push keeps an
+  approval the bot gave an earlier head depends on the target's "Remove all approvals when commits are added" setting.
+- F67: closed (5d09815). A trusted note that carries two blocks of the tag is ambiguous: `fetch-block.mjs` exits 4, as for
+  a schema failure, so a block the note quotes never wins.
+- F88: closed (b53cd46). `ledger-append.mjs` refuses a `--write-token-var` that names an unset variable, before any read;
+  without the flag (a person running it by hand) it keeps its fallback.
+- F71: closed (5dee0f1). `glue()` hands a child none of the four tokens it inherits; each call that writes adds its own
+  (`tokens()` in `lib.mjs`): post-proof and apply-gate the bot token, ledger-append the ledger token, tripwire the policy
+  token, dispatch the dispatch token as `GITLAB_TOKEN`. Every child still reads with `GITLAB_TOKEN`, the bot token.
+- F68: closed (f5a0a33). An include whose path or project carries a variable, or whose path is a wildcard, counts as
+  touching CI (`ci-touch.mjs`): the MR waits for a person. A target that includes with a wildcard waits on every agent MR
+  until it lists its includes by name.
 - F69, accepted: the compare API's diff cap (`sweep.mjs:56-69`, `diffOf`). The envelope (`max_files` 6, `max_lines` 120) blocks any
   diff large enough to reach it; re-open it if the envelope is widened.
 - F79, accepted: `loadConfig` does not check that policy and ledger are inside `cfg.group` (`lib.mjs:21-23`). `apply.json`
@@ -183,7 +195,7 @@ push after the sweep read the head is never merged. The ledger records the proof
   branch pipelines only). A list row without `source` is checked through `GET /projects/:id/pipelines/:id`. Job-level
   variables of a manual job are not listed there: the evidence job must not be `when: manual`.
 - `[R?]` `ci_config_path` in `GET /projects/:id`. A CI file in another project (`path@group/project`) is treated as out of
-  the MR's reach, and files matched by a wildcard local include are not followed into their own includes.
+  the MR's reach. A wildcard or variable include is not followed: it counts as touching CI (F68).
 - `[R?]` A group access token's approval counts toward the target's approval rules (spike S2). Auto-merge set after the
   pipeline already finished merges at once.
 - `[R?]` The glab release asset URL (as in the components).
