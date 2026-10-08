@@ -82,7 +82,7 @@ function group({ desc = description, notes = [guardrailNote('pass')], pipelineSh
     ],
     'projects/1': { id: 1, path_with_namespace: 'acme/ledgerline', web_url: URL_, default_branch: 'main', ci_config_path: null },
     'projects/1/merge_requests': [{ iid: 7, author: { username: 'ai-patcher-acme' } }],
-    'projects/1/merge_requests/7': { iid: 7, author: { username: 'ai-patcher-acme' }, description: desc, sha: HEAD, diff_refs: { base_sha: BASE, head_sha: HEAD }, labels },
+    'projects/1/merge_requests/7': { iid: 7, author: { username: 'ai-patcher-acme' }, description: desc, target_branch: 'main', sha: HEAD, diff_refs: { base_sha: BASE, head_sha: HEAD }, labels },
     'projects/1/merge_requests/7/notes': notes,
     'projects/1/repository/compare': compareOf(diff),
     'projects/1/repository/files/.gitlab-ci.yml/raw': { __raw: 'stages: [build, test, review]\ninclude:\n  - local: /ci/replay.yml\n' },
@@ -326,6 +326,15 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(r.stderr).toMatch(/acme\/ledgerline!7: stopped, nothing more written for it: more than 500 commits of events\/1\.jsonl/);
     expect(r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`)).toEqual([]);
     expect(r.reads.find((p) => p.startsWith(`${LEDGER}/repository/commits`))).toContain(`since=${encodeURIComponent('2026-10-07T09:00:00Z')}`);
+  });
+
+  it('(xiv) F78: an MR into a branch other than the default is not gated: nothing granted, nothing written, the log says why', () => {
+    // Into a branch the agent controls, the MR's base is the agent's code, so base-red is the agent's to make.
+    const g = group();
+    const r = sweep({ ...g, 'projects/1/merge_requests/7': { ...g['projects/1/merge_requests/7'], target_branch: 'agent-work' } });
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.writes).toEqual([]);
+    expect(r.stderr).toMatch(/acme\/ledgerline!7@a{12}: it targets agent-work, not the default branch main: Belay gates only MRs into main/);
   });
 
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {

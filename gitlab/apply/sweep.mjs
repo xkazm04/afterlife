@@ -97,6 +97,9 @@ function sweepMr(t, iid) {
   // Reads first, all of them; a write follows only when every read answered.
   const m = api(`projects/${t.id}/merge_requests/${iid}`);
   if (String(m.diff_refs?.head_sha ?? m.sha) !== head) throw new Error('the MR moved while it was being read');
+  // Only an MR into the default branch (F78): into any other branch its base may be the agent's own code, so base-red
+  // would be the agent's to make, and the tier says nothing about that branch.
+  if (!t.default_branch || m.target_branch !== t.default_branch) return say(`${tag}: it targets ${m.target_branch}, not the default branch ${t.default_branch ?? '(unknown)'}: Belay gates only MRs into ${t.default_branch ?? 'the default branch'}`);
   const notes = [...trustedNotes(t.id, iid, cfg.bot)];
   const { text: diff, changed } = diffOf(t, mr.BELAY_BASE_SHA, head);
   const diffFile = path.join(dir, 'diff.patch');
@@ -284,7 +287,7 @@ for (const t of targetsOf(cfg, say)) {
   let mrs;
   try {
     const full = api(`projects/${t.id}`);
-    Object.assign(t, { ci_config_path: full?.ci_config_path ?? null, web_url: full?.web_url ?? t.web_url });
+    Object.assign(t, { ci_config_path: full?.ci_config_path ?? null, web_url: full?.web_url ?? t.web_url, default_branch: full?.default_branch ?? t.default_branch });
     const open = apiAll(`projects/${t.id}/merge_requests?state=opened&order_by=updated_at`, MR_PAGES);
     // Past the cap the rest are not read (F82): the ones read are still swept, and the job ends red, as F65 does.
     if (open.length >= MR_PAGES * 100) {
