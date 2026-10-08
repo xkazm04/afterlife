@@ -65,7 +65,10 @@ are not part of the project.
 
 A forced decision (CI change, no class, no proof derivable, a guardrail block that fails its schema or shares its note with another) is one gate note that
 names the head. A guardrail **block** for the head always makes it a BLOCK with `guardrail::block`, whatever else is
-missing.
+missing. A forced gate decides no tier and ledgers nothing, except that guardrail block: one `guardrail_verdict` event with
+`verdict: block`, at the tier the engine's gate holds the agent and class at in the live `tier-state.yml`, so the poller
+counts it even if the MR later merges on another head (r2 value-forced-block). With no class or no tier record there is
+nobody to count it against, and nothing is ledgered. A forced wait or block for any other cause ledgers nothing.
 
 **Read back before writing** (invariant 7):
 
@@ -74,6 +77,7 @@ missing.
 | proof note and label | the bot's newest `belay-proof` note has `task.head_sha` = head (after a push and a return to an earlier head, it is posted again, F62) |
 | gate note, labels, approve or merge | a bot `**Belay gate:` note is newer than that proof note and is not a forced one for another head, or a forced one of the same decision names the head in its first reason (`- head <sha>:`; a sha quoted further on does not count, F61) |
 | ledger lines | a commit of `events/<project-id>.jsonl` in `belay-ledger` carries `Belay-Head: <project-id>!<iid>@<head>` |
+| the guardrail's block, on a forced path | such a commit carries `Belay-Head: <project-id>!<iid>@<head>/guardrail-block` |
 | guardrail dispatch | the bot's "guardrail review requested" note names the head (the Flows API lists no runs [S]) |
 
 A ledger commit that failed is retried by the next sweep, from the gate's events re-emitted by `apply-gate --dry 1`.

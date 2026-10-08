@@ -113,6 +113,41 @@ function sweepMr(t, iid) {
     '--schema', path.join(SCHEMAS, 'guardrail-verdict.schema.json'), '--out', guardrailFile, '--gate-out', path.join(dir, 'guardrail-gate.json')], env, dir);
   if (![0, 3, 4].includes(gr.code)) throw new Error(`reading the guardrail verdict failed (exit ${gr.code})`);
   const guardBlocked = gr.code === 0 && JSON.parse(fs.readFileSync(guardrailFile, 'utf8')).verdict === 'block';
+  const actionClass = mr.BELAY_ACTION_CLASS;
+
+  // The ledger's record of this head, read once when first asked: like every other read, before the first write.
+  const ledgerKey = `${t.id}!${iid}@${head}`;
+  const blockKey = `${ledgerKey}/guardrail-block`; // the guardrail's own block for this head, ledgered on a forced path
+  const ledgerFile = `events/${t.id}.jsonl`;
+  let ledgerLog;
+  const ledgered = (key) => {
+    if (!ledgerLog) {
+      // Only commits since the MR was opened can carry its key; past the cap the answer is unknown, so the MR stops rather
+      // than appending its events again (F76).
+      const since = typeof m.created_at === 'string' ? `&since=${enc(m.created_at)}` : '';
+      ledgerLog = apiAll(`projects/${enc(cfg.ledger.project)}/repository/commits?ref_name=${enc(cfg.ledger.branch)}&path=${enc(ledgerFile)}${since}`, LEDGER_PAGES);
+      if (ledgerLog.length >= LEDGER_PAGES * 100) throw new Error(`more than ${LEDGER_PAGES * 100} commits of ${ledgerFile} since this MR was opened: whether its events were appended is not known`);
+    }
+    return ledgerLog.some((c) => String(c.message ?? '').split('\n').includes(`Belay-Head: ${key}`));
+  };
+  const appendLedger = (events, key) => {
+    const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile, '--key', key, '--write-token-var', 'BELAY_LEDGER_TOKEN'], { ...env, ...tokens('BELAY_LEDGER_TOKEN') }, dir);
+    if (l.code !== 0) throw new Error(`ledger-append exited ${l.code}`);
+  };
+
+  // tier-state.yml as belay-policy has it now, not as cloned when the sweep began: a revoke committed while the sweep ran
+  // is what the gate reads before it grants anything (F66). Read once, when first asked.
+  const statesFile = path.join(dir, 'tier-state.yml');
+  let statesRead = false;
+  const states = () => {
+    if (!statesRead) {
+      const live = fileHead(cfg.policy.project, 'tier-state.yml', cfg.policy.branch);
+      if (!live) throw new Error(`${cfg.policy.project} has no tier-state.yml`);
+      fs.writeFileSync(statesFile, live.content);
+      statesRead = true;
+    }
+    return statesFile;
+  };
 
   // The bot's newest Proof Block stands for this head only if it was made for it. After a push and a return to an earlier
   // head the proof is posted again, so an engine gate note always follows a proof note of its own head; a forced note
@@ -159,16 +194,43 @@ function sweepMr(t, iid) {
     api(`projects/${t.id}/merge_requests/${iid}/unapprove`, { method: 'POST' });
     glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Belay: approval withdrawn** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
   };
+  /**
+   * A forced gate decides no tier, so it ledgers nothing, except the guardrail's own block for this head: a guardrail_verdict
+   * block, once per head (`<key>/guardrail-block`), so the poller counts it even if the MR merges later on another head
+   * (r2 value-forced-block). Its tier is the one the engine's gate holds the agent and class at, from the live
+   * tier-state.yml; with none (no class, no tier record) there is nobody to count it against, and nothing is ledgered.
+   * A forced wait or block with any other cause (CI change, an ambiguous or missing verdict) ledgers nothing.
+   */
+  const blockTier = () => {
+    if (!guardBlocked || !actionClass || !mr.BELAY_AGENT || ledgered(blockKey)) return null;
+    const g = engine(['gate', '--policy', policyFile, '--state', states(), '--class', actionClass, '--agent', mr.BELAY_AGENT, '--guardrail', path.join(dir, 'guardrail-gate.json')]);
+    let tier = null;
+    try {
+      tier = JSON.parse(g.stdout).tier ?? null;
+    } catch {
+      tier = null;
+    }
+    if (!tier) say(`${tag}: the gate holds ${mr.BELAY_AGENT} at no tier for ${actionClass}: the guardrail's block is not ledgered`);
+    return tier;
+  };
   const force = (decision, reason) => {
     const d = guardBlocked ? 'block' : decision;
     const why = guardBlocked && decision !== 'block' ? `the guardrail blocked this head; also, ${reason}` : reason;
+    const tier = blockTier(); // reads, before any write
     cancelAutoMerge(d, null);
     withdrawApproval(d, null);
-    if (gateDone || notes.some((n) => forcedFor(n)?.decision === d.toUpperCase() && forcedFor(n).head === head)) return say(`${tag}: ${d} already said for this head`);
-    say(`${tag}: ${d}: ${why}`);
+    const said = gateDone || notes.some((n) => forcedFor(n)?.decision === d.toUpperCase() && forcedFor(n).head === head);
+    say(said ? `${tag}: ${d} already said for this head` : `${tag}: ${d}: ${why}`);
+    if (said && !tier) return;
+    const events = path.join(dir, 'events');
     const r = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--force', d, '--reason', `head ${head}: ${why}`,
-      ...(guardBlocked ? ['--guardrail', guardrailFile] : []), ...(WRITE ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
+      ...(guardBlocked ? ['--guardrail', guardrailFile] : []),
+      ...(tier ? ['--agent', mr.BELAY_AGENT, '--class', actionClass, '--ledger-tier', tier, '--emit-dir', events] : []),
+      ...(WRITE && !said ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
     if (r.code > 1) throw new Error(`apply-gate exited ${r.code}`);
+    if (!tier || !fs.existsSync(events)) return;
+    if (!WRITE) return say(`${tag}: the guardrail's block is not ledgered (reporting only)`);
+    appendLedger(events, blockKey);
   };
 
   if (ci) {
@@ -176,7 +238,6 @@ function sweepMr(t, iid) {
     if (WRITE && (m.labels ?? []).includes('proof::pass')) glab(['mr', 'update', String(iid), '-R', t.web_url, '--unlabel', 'proof::pass']);
     return;
   }
-  const actionClass = mr.BELAY_ACTION_CLASS;
   if (!actionClass) return force('wait', 'this MR has no Belay-Class trailer');
   const proofClass = proofClassOf(actionClass);
   if (!proofClass) return force('wait', `trust-policy.yml names no proof class for ${actionClass}`);
@@ -219,22 +280,9 @@ function sweepMr(t, iid) {
     args.push('--verdict', path.join(dir, 'medic.json'));
   }
 
-  // The ledger's record of this head: read, like every other read, before the first write.
-  const ledgerKey = `${t.id}!${iid}@${head}`;
-  const ledgerFile = `events/${t.id}.jsonl`;
-  // Only commits since the MR was opened can carry its key; past the cap the answer is unknown, so the MR stops rather than
-  // appending its events again (F76).
-  const since = typeof m.created_at === 'string' ? `&since=${enc(m.created_at)}` : '';
-  const ledgerLog = apiAll(`projects/${enc(cfg.ledger.project)}/repository/commits?ref_name=${enc(cfg.ledger.branch)}&path=${enc(ledgerFile)}${since}`, LEDGER_PAGES);
-  if (ledgerLog.length >= LEDGER_PAGES * 100) throw new Error(`more than ${LEDGER_PAGES * 100} commits of ${ledgerFile} since this MR was opened: whether its events were appended is not known`);
-  const ledgerDone = ledgerLog.some((c) => String(c.message ?? '').split('\n').includes(`Belay-Head: ${ledgerKey}`));
-
-  // tier-state.yml as belay-policy has it now, not as cloned when the sweep began: a revoke committed while the sweep ran
-  // is what the gate reads before it grants anything (F66).
-  const live = fileHead(cfg.policy.project, 'tier-state.yml', cfg.policy.branch);
-  if (!live) throw new Error(`${cfg.policy.project} has no tier-state.yml`);
-  const statesFile = path.join(dir, 'tier-state.yml');
-  fs.writeFileSync(statesFile, live.content);
+  // The ledger's record of this head and the live tier-state.yml: read, like every other read, before the first write.
+  const ledgerDone = ledgered(ledgerKey);
+  states();
 
   // The Proof Block, re-derived here. Never one a target pipeline made.
   const evidence = path.join(dir, 'evidence.json');
@@ -302,8 +350,7 @@ function sweepMr(t, iid) {
   if (applied.code > 1) throw new Error(`apply-gate exited ${applied.code}`);
   if (ledgerDone || !fs.existsSync(events)) return;
   if (!WRITE) return say(`${tag}: ledger events not appended (reporting only)`);
-  const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile, '--key', ledgerKey, '--write-token-var', 'BELAY_LEDGER_TOKEN'], { ...env, ...tokens('BELAY_LEDGER_TOKEN') }, dir);
-  if (l.code !== 0) throw new Error(`ledger-append exited ${l.code}`);
+  appendLedger(events, ledgerKey);
 }
 
 const MR_PAGES = 5;

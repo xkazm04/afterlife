@@ -9,6 +9,8 @@
 // `--force wait|block --reason "..."` stands in for the engine when its inputs are missing: fail closed, no tier known.
 // `--emit-dir d` writes ledger event bodies for components/ledger-append (kinds proof_verdict, guardrail_verdict, tier_decision).
 // The guardrail_verdict states the guardrail file's verdict (`verdict: pass|block`); a file that states neither yields none.
+// A forced call emits one event only: the guardrail's own block, as a guardrail_verdict at `--ledger-tier t` (the tier the
+// caller read for the agent and class), when its --guardrail file states block. Any other forced call emits nothing.
 import fs from 'node:fs';
 import path from 'node:path';
 import { arg, die, glab, need, plain } from '../lib/lib.mjs';
@@ -41,7 +43,9 @@ if (verdict) {
 
 console.error(`belay: gate says ${d.decision} at tier ${d.tier ?? '?'}\n${reasons.join('\n')}`);
 const emit = arg('emit-dir');
-if (emit && d.tier && !force) {
+const ledgerTier = force ? arg('ledger-tier') ?? null : d.tier;
+if (force && ledgerTier != null && !TIERS.includes(ledgerTier)) die(`unknown --ledger-tier: ${plain(ledgerTier)}`);
+if (emit && ledgerTier && (!force || verdict === 'block')) {
   fs.mkdirSync(emit, { recursive: true });
   const base = {
     // The job's clock, not GitLab's event time: never earlier than the gate. Nothing orders on it (the chain orders by seq);
@@ -49,13 +53,15 @@ if (emit && d.tier && !force) {
     at: new Date().toISOString(),
     agent: arg('agent', 'unknown'),
     action_class: arg('class', 'unknown'),
-    tier_at_time: d.tier,
+    tier_at_time: ledgerTier,
     subject: { project_id: Number(process.env.CI_PROJECT_ID), type: 'mr', iid: Number(mr) },
     payload_ref: `${repo}/-/merge_requests/${mr}`,
     observed_by: 'ci_job',
   };
   if (guardrail && !verdict) console.error(`belay: the guardrail file states no pass or block (${plain(guardrail.verdict)}): no guardrail_verdict event`);
-  const events = [{ kind: 'proof_verdict' }, ...(verdict ? [{ kind: 'guardrail_verdict', verdict }] : []), { kind: 'tier_decision' }];
+  const events = force
+    ? [{ kind: 'guardrail_verdict', verdict }]
+    : [{ kind: 'proof_verdict' }, ...(verdict ? [{ kind: 'guardrail_verdict', verdict }] : []), { kind: 'tier_decision' }];
   events.forEach((e, i) => fs.writeFileSync(path.join(emit, `${i}-${e.kind}.json`), JSON.stringify({ ...base, ...e })));
 }
 

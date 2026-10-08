@@ -49,6 +49,27 @@ describe('apply-gate: the guardrail_verdict event', () => {
     expect(gate(undefined, 'none').files).toEqual(['0-proof_verdict.json', '1-tier_decision.json']);
   });
 
+  // r2 value-forced-block: a forced gate decides no tier, but the guardrail's own block is still ledgered, in the same shape.
+  it("forced: the guardrail's own block alone, at --ledger-tier; any other forced call emits nothing", () => {
+    const forced = (name, guardrail, extra) => {
+      const emit = path.join(dir, `events-forced-${name}`);
+      const args = ['--mr', '7', '--sha', HEAD, '--force', 'block', '--reason', `head ${HEAD}: it changes .gitlab-ci.yml`,
+        '--agent', 'ai-patcher-acme', '--class', 'code-fix.patch', '--emit-dir', emit, '--dry', '1', ...extra];
+      if (guardrail) args.push('--guardrail', write(`guardrail-forced-${name}.json`, guardrail));
+      const r = runScript(dir, 'decide/apply-gate.mjs', args, { env: ENV });
+      expect(r.code, r.stderr).toBe(1);
+      return fs.existsSync(emit) ? fs.readdirSync(emit).map((f) => JSON.parse(fs.readFileSync(path.join(emit, f), 'utf8'))) : [];
+    };
+    const block = { schema: 'belay.guardrail/1', verdict: 'block', head_sha: HEAD, findings: [] };
+    const [event, ...more] = forced('block', block, ['--ledger-tier', 'supervised']);
+    expect(more).toEqual([]);
+    expect(event).toMatchObject({ kind: 'guardrail_verdict', verdict: 'block', tier_at_time: 'supervised', agent: 'ai-patcher-acme', action_class: 'code-fix.patch', observed_by: 'ci_job', subject: { type: 'mr', iid: 7 } });
+    expect(Object.keys(event).sort()).toEqual(['action_class', 'agent', 'at', 'kind', 'observed_by', 'payload_ref', 'subject', 'tier_at_time', 'verdict']);
+    expect(forced('pass', { ...block, verdict: 'pass' }, ['--ledger-tier', 'supervised'])).toEqual([]);
+    expect(forced('none', undefined, ['--ledger-tier', 'supervised'])).toEqual([]);
+    expect(forced('no-tier', block, [])).toEqual([]);
+  });
+
   it('the verdict survives ledger-append and the engine into the appended line', { timeout: 120_000 }, () => {
     const g = gate({ schema: 'belay.guardrail/1', verdict: 'block', head_sha: HEAD, findings: [] }, 'append');
     const routes = {

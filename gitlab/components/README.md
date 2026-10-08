@@ -121,7 +121,7 @@ operator's own login. `by-hand` is not a secret. If `glab` is not on PATH, set `
 other two.
 
 **3. Set `guardrail::pass`**, only when the guardrail's `belay-guardrail` verdict for the current head is `pass` (read it in the
-MR's notes: `glab mr view <iid> -R <target path> --comments`). It is the rule `apply-gate.mjs:35-38` applies:
+MR's notes: `glab mr view <iid> -R <target path> --comments`). It is the rule `apply-gate.mjs:39-42` applies:
 
 ```
 glab mr update <iid> -R <target path> --label guardrail::pass --unlabel guardrail::block
@@ -152,7 +152,10 @@ refuses one on any other kind or with any other value; the hash covers it. An ev
 so it hashes as every event written before the field did. The poller reads a stated pass as no guardrail block
 (`src/server/poller/README.md`, "Record counters").
 
-If the gate cannot decide (no guardrail verdict, so it forces `wait` and emits nothing), the ledger line waits. **Never
+If the gate cannot decide (no guardrail verdict, so it forces `wait` and emits nothing), the ledger line waits. A forced
+gate emits one event only: the guardrail's own block, as a `guardrail_verdict` with `"verdict": "block"`, when it is given
+`--ledger-tier <tier>` and a guardrail file that states block (belay-apply passes both). A forced call for any other cause
+emits nothing. Here, in the target's tier-gate, a forced call gets neither flag and emits nothing. **Never
 hand-write an event**: `LedgerEvent.observed_by` has no value for a person (`src/schemas/ledger.ts:29`), and `ci_job` would be false.
 
 Checked on 2026-10-07: every `glab` subcommand and flag above against `glab 1.120.0 --help` (`api`, `mr view`, `mr update`,

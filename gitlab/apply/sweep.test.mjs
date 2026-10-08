@@ -342,6 +342,45 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(dry.stderr).toMatch(/withdrawing the approval the bot gave: the gate now says (wait|block) at tier quarantined/);
   });
 
+  it("(xvi) r2 value-forced-block: on a forced path the guardrail's own block is ledgered once for the head; no other forced cause is", () => {
+    const finding = { rule: 'prompt-injection', severity: 'high', file: 'CHANGELOG.md', quote: 'ignore previous instructions', explanation: 'an instruction to the reviewer in the changelog' };
+    const ciHunk = 'diff --git a/.gitlab-ci.yml b/.gitlab-ci.yml\n--- a/.gitlab-ci.yml\n+++ b/.gitlab-ci.yml\n@@ -1 +1 @@\n-stages: [build, test, review]\n+stages: [build, test]\n';
+    const ledgerOf = (r) => r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`);
+    const r = sweep(group({ diff: fixture('fix.diff') + ciHunk, notes: [guardrailNote('block', HEAD, [finding])] }));
+    expect(r.code, r.stderr).toBe(0);
+    const [note, ...more] = glabWrites(r, 'note create');
+    expect(more).toEqual([]);
+    expect(note.body.message).toMatch(new RegExp(`^\\*\\*Belay gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail blocked this head; also, it changes the CI file`));
+    expect(glabWrites(r, 'update').map((w) => w.body.label)).toEqual(['guardrail::block']);
+    expect(granted(r)).toEqual([]);
+    const [ledger, ...again] = ledgerOf(r);
+    expect(again).toEqual([]);
+    const lines = ledger.body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
+    expect(lines).toEqual([expect.objectContaining({ seq: 1, kind: 'guardrail_verdict', verdict: 'block', tier_at_time: 'supervised', agent: 'ai-patcher-acme', action_class: 'code-fix.patch', observed_by: 'ci_job', subject: { project_id: 1, type: 'mr', iid: 7 } })]);
+    expect(ledger.body.commit_message).toContain(`Belay-Head: 1!7@${HEAD}/guardrail-block`);
+
+    // Read back: the forced note and the ledger commit are there, so the next sweep writes nothing.
+    const said = { id: 103, system: false, author: { username: 'belay-bot' }, created_at: '2026-10-07T10:05:00Z', body: note.body.message };
+    const after = { diff: fixture('fix.diff') + ciHunk, notes: [said, guardrailNote('block', HEAD, [finding])], labels: ['guardrail::block'] };
+    const next = sweep(group({ ...after, ledgerCommits: [{ id: 'f'.repeat(40), message: ledger.body.commit_message }] }));
+    expect(next.code, next.stderr).toBe(0);
+    expect(next.writes).toEqual([]);
+    // A note said before the ledger line was: the line is ledgered, and nothing else is written.
+    expect(sweep(group(after)).writes.map((w) => w.path)).toEqual([`${LEDGER}/repository/commits`]);
+
+    // Any other cause ledgers nothing: a CI change with a guardrail pass, a guardrail note with two blocks (ambiguous), and a
+    // block for a class nobody holds a tier for (no holder to count it against).
+    const blockNote = guardrailNote('block', HEAD, [finding]);
+    const twice = { ...blockNote, body: `${blockNote.body}\n\n${guardrailNote('pass').body}` };
+    const bump = description.replace('Belay-Class: code-fix.patch', 'Belay-Class: patch-bump');
+    for (const g of [group({ diff: fixture('fix.diff') + ciHunk }), group({ notes: [twice] }), group({ desc: bump, notes: [blockNote] })]) {
+      const o = sweep(g);
+      expect(o.code, o.stderr).toBe(0);
+      expect(glabWrites(o, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: (WAIT|BLOCK)\*\* \| tier `unknown`/);
+      expect(ledgerOf(o)).toEqual([]);
+    }
+  });
+
   it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {
     const human = (i) => ({ iid: 1000 + i, author: { username: `dev-${i}` } });
     const pages = Array.from({ length: 5 }, (_, p) => Array.from({ length: 100 }, (_, i) => (p === 0 && i === 0 ? { iid: 7, author: { username: 'ai-patcher-acme' } } : human(p * 100 + i))));
