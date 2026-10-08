@@ -89,7 +89,10 @@ export function ledgerlineData(raw: Rec, anchor: Date): ProjectData {
   return project(raw, {
     mrs: [mr44, mr41, ...weekMrs(anchor, counts.pass - 1, counts.fail)],
     notes: {
-      '41': [note(910_001, ACCOUNT.proof, proofNote(proofBlock(t41, 41, SHA.mr41)), at(anchor, '09:27'))],
+      '41': [
+        note(910_001, ACCOUNT.proof, proofNote(proofBlock(t41, 41, SHA.mr41)), at(anchor, '09:27')),
+        note(910_003, ACCOUNT.guardrail, guardrailNote('pass', SHA.mr41, []), at(anchor, '09:28')), // as its guardrail::pass label says
+      ],
       '44': [note(910_002, ACCOUNT.guardrail, guardrailNote('block', SHA.mr44, [finding]), at(anchor, '14:20'))],
     },
     environments: [

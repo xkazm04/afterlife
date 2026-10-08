@@ -1,6 +1,6 @@
 // belay-ledger/events/<project-id>.jsonl: one LedgerEvent per line. The file is read from a GitLab repository, so every
 // line is checked field by field before it is trusted; a bad line fails the whole import (the chain is all or nothing).
-import type { LedgerEvent, LedgerKind } from '@/schemas/ledger';
+import { GUARDRAIL_VERDICTS, type LedgerEvent, type LedgerKind } from '@/schemas/ledger';
 import { TIER_ORDER } from '@/schemas/tier';
 
 export class LedgerParseError extends Error {
@@ -38,11 +38,14 @@ function toEvent(v: unknown, line: number): LedgerEvent {
   if (!str(v.prev_hash) || !HASH.test(v.prev_hash) || !str(v.hash) || !HASH.test(v.hash)) bad('prev_hash and hash must be sha256 hex');
   const subject = isRec(s) ? SUBJECTS.find((x) => x === s.type) : undefined;
   if (!isRec(s) || !subject || !isInt(s.project_id) || !isInt(s.iid)) return bad('subject needs project_id, type and iid');
+  // the guardrail's verdict: on a guardrail_verdict only, pass or block; absent stays absent (the hash depends on it)
+  const verdict = 'verdict' in v ? GUARDRAIL_VERDICTS.find((x) => x === v.verdict) : undefined;
+  if ('verdict' in v && (kind !== 'guardrail_verdict' || !verdict)) bad('verdict must be pass or block, on a guardrail_verdict only');
   return {
     seq: v.seq as number, at: v.at as string, agent: v.agent as string, action_class: v.action_class as string, kind: kind as LedgerKind,
     tier_at_time: tier as LedgerEvent['tier_at_time'], subject: { project_id: s.project_id, type: subject, iid: s.iid },
     payload_ref: v.payload_ref as string, observed_by: observed as LedgerEvent['observed_by'],
-    prev_hash: v.prev_hash as string, hash: v.hash as string,
+    prev_hash: v.prev_hash as string, hash: v.hash as string, ...(verdict ? { verdict } : {}),
   };
 }
 

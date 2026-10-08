@@ -13,6 +13,10 @@ export type LedgerKind =
   | 'outcome'
   | 'clock_event';
 
+/** What the guardrail said, on a guardrail_verdict event (gitlab/components/scripts/decide/apply-gate.mjs writes it). */
+export type GuardrailVerdict = 'pass' | 'block';
+export const GUARDRAIL_VERDICTS: readonly GuardrailVerdict[] = ['pass', 'block'];
+
 export interface LedgerEvent {
   seq: number;
   at: string; // ISO-8601, from the GitLab event, not the receiver's clock
@@ -23,6 +27,12 @@ export interface LedgerEvent {
   subject: { project_id: number; type: 'mr' | 'issue' | 'pipeline' | 'vulnerability' | 'deployment'; iid: number };
   payload_ref: string; // path to the Proof Block / trace in belay-ledger
   observed_by: 'poll' | 'flows_api' | 'govern_hook' | 'webhook' | 'ci_job'; // ci_job: written by a Belay CI component (gate, tripwire)
+  /**
+   * guardrail_verdict only: the verdict, pass or block. Absent on every other kind and on an event written before the gate
+   * stated it. When absent the key is absent, never undefined or null: canonical() would hash either, and an event
+   * without a verdict must hash as it always did.
+   */
+  verdict?: GuardrailVerdict;
   prev_hash: string;
   hash: string; // sha256(prev_hash + canonical(event without hash))
 }

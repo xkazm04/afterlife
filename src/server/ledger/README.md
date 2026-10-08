@@ -5,7 +5,7 @@ Server-only through `index.ts`; the parts are plain functions.
 
 | Part | What it is |
 |---|---|
-| `parse.ts` | `parseLedgerJsonl(text)`: one `LedgerEvent` per line, every field checked; a bad line throws `LedgerParseError` with its number |
+| `parse.ts` | `parseLedgerJsonl(text)`: one `LedgerEvent` per line, every field checked; a bad line throws `LedgerParseError` with its number. `verdict` (`pass` or `block`) is kept on a `guardrail_verdict` and refused on any other kind or with any other value; an event without one keeps no `verdict` key |
 | `importLedger.ts` | `importLedger({port, project, ref}, db, gitlabProjectId, blobCache)` |
 
 ## What `importLedger` does
@@ -21,5 +21,15 @@ Server-only through `index.ts`; the parts are plain functions.
 A rejected ledger throws `LedgerChainError` (`brokenAtSeq`) and writes nothing: the index keeps the chain it had. The
 poller turns that into a failed feed for the project (the rest of the poll still lands), so a tampered ledger is visible.
 
+## The guardrail's verdict
+
+A `guardrail_verdict` event states what the guardrail said: `verdict: 'pass' | 'block'`
+(`gitlab/components/scripts/decide/apply-gate.mjs` writes it from the guardrail file it read). An event written before
+the gate stated it has no `verdict` key. The key is absent, never `undefined` or `null`, at every step (the engine's
+`parseLedgerEvent`, `parse.ts`, the index's `readLedger`), because `canonical()` in `src/schemas/ledger.ts` would hash
+either one, and every chain written before the field would stop verifying. The index stores it in `ledger_event.verdict`
+(migration 0008: `pass`, `block` or null, and null on any kind but `guardrail_verdict`).
+
 Tests: `__tests__/ledger.test.ts` (full import, incremental append, blob-id skip, edited event, fork, rewind, foreign
-project, parser). Not verified live: the real `listTree`/`getFile` shapes (recorded nowhere yet; the fake serves `[R]` ones).
+project, parser); `__tests__/verdict.test.ts` (the verdict: kept, refused, covered by the hash, and a chain without
+verdicts hashing exactly as main computed it, through parse, `appendLedgerEvents` and `readLedger`). Not verified live: the real `listTree`/`getFile` shapes (recorded nowhere yet; the fake serves `[R]` ones).

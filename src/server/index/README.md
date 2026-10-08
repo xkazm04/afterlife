@@ -31,7 +31,9 @@ tables above. NULL means unknown, never zero.
 
 `appendLedgerEvents(db, events)` checks seq, `prev_hash` and a recomputed hash (`src/schemas/ledger.ts`) in one
 transaction; a bad chain throws `LedgerChainError` and writes nothing. Re-importing stored events is a no-op; a
-different event at a stored seq is rejected as a fork. `verifyStoredChain` re-verifies from genesis.
+different event at a stored seq is rejected as a fork. `verifyStoredChain` re-verifies from genesis. Migration 0008 adds
+`verdict` (the guardrail's `pass` or `block`, on a `guardrail_verdict` only); a null reads back as no `verdict` key, so an
+event without one hashes as it always did (`../ledger/README.md`).
 
 ## Not yet served
 Tracks, loop, setup phases, cockpit and the event feed have no view yet; `pairing`/`setup_step` have repositories

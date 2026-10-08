@@ -69,7 +69,7 @@ reads it "not recorded", never met. Mapped to trust-policy.yml's `promotion` blo
 | cleanDays | whole days since `since`, only when reverts is established and 0; else null | `supervised_to_hands_off.clean_days` |
 | noEdit | none: no row or event says whether a person edited an MR before it merged. Always null, so no class is ever promoted to hands-off from a poll | `supervised_to_hands_off.no_edit_ratio` |
 | needed | not in the policy: null | - |
-| guardrailBlocks (`guardrail_blocks` column, migration 0007) | merge requests in the counts whose task row states a guardrail block (state `blocked` with the label `blocked`, which `derive/task.ts` `stateOf` sets only from `guardrail::block`). 0 only when this poll read the ledger (imported or unchanged) and it holds no `guardrail_verdict` event for the counts: the gate emits one with every guardrail verdict (`gitlab/components/scripts/decide/apply-gate.mjs:53`). A verdict event no task row resolves leaves it null: the event names the MR, not pass or block | `assisted_to_supervised.guardrail_blocks` |
+| guardrailBlocks (`guardrail_blocks` column, migration 0007) | merge requests in the counts with a stated guardrail block: a `guardrail_verdict` event with `verdict: 'block'`, or a task row in state `blocked` with the label `blocked` (which `derive/task.ts` `stateOf` sets only from `guardrail::block`). A merge request blocked on any head counts, even if a later head passed. 0 only when this poll read the ledger (imported or unchanged) and every `guardrail_verdict` event in the counts states `pass` (or there is none): the gate emits one, stating the verdict, with every guardrail verdict (`gitlab/components/scripts/decide/apply-gate.mjs:56`). An event written before the ledger stated the verdict, which no task row resolves as a block, leaves it null | `assisted_to_supervised.guardrail_blocks` |
 | window (`count_window` column, migration 0007) | for an assisted class only: trust-policy.yml's `window_last`. The counts above are then taken over the holder's last that many outputs since `since`: merge requests with a stated outcome (merged, reverted, closed, guardrail- or proof-blocked) by the latest time stated for each; one still in flight is not an output. Null: counted since `since` | `assisted_to_supervised.window_last` |
 
 `human_key` (`supervised_to_hands_off`) is met by construction, never counted: Belay's only write that raises a tier is the
@@ -88,7 +88,7 @@ Pipelines are not read: no row consumes them yet.
 
 1. **Reverts and clean days are stated only when trust-policy.yml demotes on a revert.** Only then does the tripwire
    rewrite the record's `since` on a revert, so "no revert since `since`" is a fact (`derive/counters.ts:21-25`,
-   `revertDemotes`; applied at `derive/counters.ts:97`). Under a policy that does not demote on `revert`, reverts and
+   `revertDemotes`; applied at `derive/counters.ts:102`). Under a policy that does not demote on `revert`, reverts and
    clean days read "not recorded", and no class is promoted to Supervised or Hands-off from a poll.
 2. **A promotion MR closed without merging does not ask again until the record's `since` moves.** A person acting on the
    ask (opening the MR) settles it, and an ask settled at or after the record's `since` is not reopened

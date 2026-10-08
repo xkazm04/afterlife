@@ -2,7 +2,7 @@
 // Prints the new hash-chained line. The chain is verified first: a broken chain is never extended.
 import fs from 'node:fs';
 import path from 'node:path';
-import { append, verifyChain, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
+import { append, GUARDRAIL_VERDICTS, verifyChain, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { parseJson, readJson } from '../core/files';
 import { EngineError, rec, str, num, type CommandResult, type Ctx } from '../core/types';
@@ -17,20 +17,26 @@ function oneOf<T extends string>(v: unknown, allowed: readonly T[], what: string
   return v as T;
 }
 
+/** Rebuilt field by field: anything else is dropped. A verdict is kept on a guardrail_verdict only, and only pass or block. */
 export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_hash' | 'hash'> {
   const e = rec(raw, 'event');
   const s = rec(e.subject, 'event.subject');
   const at = str(e.at, 'event.at');
   if (Number.isNaN(+new Date(at))) throw new EngineError('event.at must be an ISO time');
+  const kind = oneOf(e.kind, KINDS, 'event.kind');
+  const stated = 'verdict' in e;
+  if (stated && kind !== 'guardrail_verdict') throw new EngineError(`event.verdict is for a guardrail_verdict only, not ${kind}`);
   return {
     at,
     agent: str(e.agent, 'event.agent'),
     action_class: str(e.action_class, 'event.action_class'),
-    kind: oneOf(e.kind, KINDS, 'event.kind'),
+    kind,
     tier_at_time: oneOf<Tier>(e.tier_at_time, TIER_ORDER, 'event.tier_at_time'),
     subject: { project_id: num(s.project_id, 'subject.project_id'), type: oneOf(s.type, SUBJECTS, 'subject.type'), iid: num(s.iid, 'subject.iid') },
     payload_ref: str(e.payload_ref, 'event.payload_ref'),
     observed_by: oneOf(e.observed_by, OBSERVED, 'event.observed_by'),
+    // absent, never undefined: an event without a verdict hashes as it always did
+    ...(stated ? { verdict: oneOf(e.verdict, GUARDRAIL_VERDICTS, 'event.verdict') } : {}),
   };
 }
 

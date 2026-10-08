@@ -109,8 +109,9 @@ describe('the poll really did write what the parity rests on (it is not just the
     expect((await getProjectRow(db, 'ledgerline'))?.gitlabId).toBe(90010001);
     const tiers = await listClassTiers(db, 'ledgerline');
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')).toMatchObject({ setBy: 'operator via promotion MR !33' });
-    // the class records live are the poll's counts (each unknown counter null): !41 since the record's since; the seed said 16
-    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: null, cleanDays: 4, reverts: 0 });
+    // the class records live are the poll's counts (each unknown counter null): !41 since the record's since; the seed said 16.
+    // !41's guardrail_verdict states pass, so the counts hold no guardrail block
+    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: null, cleanDays: 4, reverts: 0, guardrailBlocks: 0 });
     const proof = (await listProofsFor(db, ['01J8Q4'])).get('01J8Q4');
     expect(proof?.block?.task.head_sha).toBe('a41c0ffee00000000000000000000000000000a1');
   });

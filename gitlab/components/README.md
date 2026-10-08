@@ -145,8 +145,15 @@ token variable. If `--write-token-var` is given, the variable it names must be s
 no network) stops it with GitLab's message and writes nothing. The write carries the `last_commit_id` it read, so a ledger
 that moved in between is refused: run it again.
 
+`1-guardrail_verdict.json` states the guardrail's verdict: `"verdict": "pass"` or `"block"`, from the guardrail file
+`apply-gate` read (`--guardrail`). A guardrail file that states neither yields no `guardrail_verdict` event (`apply-gate`
+says so on stderr), and the tier decision is then `1-tier_decision.json`. The engine's `ledger append` keeps the verdict, and
+refuses one on any other kind or with any other value; the hash covers it. An event without a verdict has no `verdict` key,
+so it hashes as every event written before the field did. The poller reads a stated pass as no guardrail block
+(`src/server/poller/README.md`, "Record counters").
+
 If the gate cannot decide (no guardrail verdict, so it forces `wait` and emits nothing), the ledger line waits. **Never
-hand-write an event**: `LedgerEvent.observed_by` has no value for a person (`src/schemas/ledger.ts:25`), and `ci_job` would be false.
+hand-write an event**: `LedgerEvent.observed_by` has no value for a person (`src/schemas/ledger.ts:29`), and `ci_job` would be false.
 
 Checked on 2026-10-07: every `glab` subcommand and flag above against `glab 1.120.0 --help` (`api`, `mr view`, `mr update`,
 `mr note create`, `ci retry`; no command that talks to a host was run), and steps 2 and 4 by running the scripts against a fake

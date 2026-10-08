@@ -12,7 +12,7 @@ export type ClassCounters = RecordCounters;
 const DAY_MS = 86_400_000;
 
 export type CountedTask = Pick<TaskRow, 'agent' | 'actionClass' | 'state' | 'stateLabel' | 'startedAt' | 'finishedAt' | 'mrIid'>;
-export type CountedEvent = Pick<LedgerEvent, 'agent' | 'action_class' | 'kind' | 'at' | 'subject'>;
+export type CountedEvent = Pick<LedgerEvent, 'agent' | 'action_class' | 'kind' | 'at' | 'subject' | 'verdict'>;
 
 /** What the poller holds for one project: its indexed tasks and its imported ledger. */
 export interface CounterSource {
@@ -66,24 +66,29 @@ function outputsOf(src: CounterSource, h: Holder, from: number): Map<number, { o
 
 /**
  * Guardrail blocks among the counted outputs (and any merge request with a verdict that is not an output yet). A block is
- * stated by a task row: state blocked with the label "blocked", which derive/task.ts stateOf sets only from the
- * guardrail::block label. The ledger's guardrail_verdict event names the merge request but not its verdict. A guardrail
- * verdict always comes with one (gitlab/components/scripts/decide/apply-gate.mjs:53 emits it beside the gate's
- * tier_decision), so when this poll read the ledger and it holds none, there was no block: 0. A verdict no row resolves
- * leaves the count unknown (null), unless a stated block already makes it at least one.
+ * stated by the ledger's guardrail_verdict event (`verdict: 'block'`, which gitlab/components/scripts/decide/apply-gate.mjs
+ * writes from the guardrail's own verdict), or by a task row: state blocked with the label "blocked", which derive/task.ts
+ * stateOf sets only from the guardrail::block label. A merge request blocked on any head counts, even if it passed later.
+ * The gate emits a verdict event with every guardrail verdict, so when this poll read the ledger and every event in the
+ * counts states pass, there was no block: 0. An event written before the ledger stated the verdict, which no task row
+ * resolves, leaves the count unknown (null), unless a stated block already makes it at least one.
  */
 function guardrailBlocks(src: CounterSource, h: Holder, from: number, outputs: ReadonlySet<number>, inScope: (iid: number) => boolean): number | null {
   const mine = (t: CountedTask) => t.agent === h.agent && t.actionClass === h.classId && t.mrIid !== null;
   const blocked = new Set(src.tasks.filter((t) => mine(t) && t.state === 'blocked' && t.stateLabel === 'blocked').map((t) => t.mrIid as number));
   const verdicts = new Set<number>();
+  const unstated = new Set<number>();
   for (const e of src.events) {
     if (e.kind !== 'guardrail_verdict' || e.agent !== h.agent || e.action_class !== h.classId || e.subject.type !== 'mr') continue;
-    if (Date.parse(e.at) >= from) verdicts.add(e.subject.iid);
+    if (Date.parse(e.at) < from) continue;
+    verdicts.add(e.subject.iid);
+    if (e.verdict === 'block') blocked.add(e.subject.iid);
+    else if (e.verdict !== 'pass') unstated.add(e.subject.iid);
   }
   const stated = [...blocked].filter((iid) => (outputs.has(iid) || verdicts.has(iid)) && inScope(iid)).length;
   if (stated > 0) return stated;
   if (!src.ledgerRead) return null;
-  return [...verdicts].some((iid) => inScope(iid)) ? null : 0;
+  return [...unstated].some((iid) => inScope(iid)) ? null : 0;
 }
 
 export function countRecord(src: CounterSource, h: Holder, now: Date): ClassCounters {

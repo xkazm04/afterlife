@@ -13,8 +13,10 @@ const ago = (days: number) => new Date(NOW.getTime() - days * DAY);
 
 const task = (iid: number, state: CountedTask['state'], days: number, stateLabel: string | null = state): CountedTask =>
   ({ agent: AGENT, actionClass: CLS, state, stateLabel, startedAt: ago(days), finishedAt: state === 'merged' || state === 'reverted' ? ago(days) : null, mrIid: iid });
-const event = (iid: number, days: number, kind: CountedEvent['kind'] = 'merged'): CountedEvent =>
-  ({ agent: AGENT, action_class: CLS, kind, at: ago(days).toISOString(), subject: { project_id: 1, type: 'mr', iid } });
+const event = (iid: number, days: number, kind: CountedEvent['kind'] = 'merged', verdict?: 'pass' | 'block'): CountedEvent =>
+  ({ agent: AGENT, action_class: CLS, kind, at: ago(days).toISOString(), subject: { project_id: 1, type: 'mr', iid }, ...(verdict ? { verdict } : {}) });
+/** The gate's guardrail_verdict for !iid, stating `verdict`; none: an event written before the ledger stated it. */
+const verdictOf = (iid: number, days: number, verdict?: 'pass' | 'block') => event(iid, days, 'guardrail_verdict', verdict);
 /** Merges of !101.. one a day, the newest `days` ago. */
 const merges = (n: number, days = 1): CountedEvent[] => Array.from({ length: n }, (_, i) => event(101 + i, days + n - 1 - i));
 const src = (o: Partial<CounterSource> = {}): CounterSource => ({ tasks: [], events: merges(5), revertDemotes: true, ledgerRead: true, ...o });
@@ -27,8 +29,21 @@ describe('guardrail blocks', () => {
   it('not recorded when the ledger was not read: no verdict is not a fact then', () => {
     expect(count(src({ ledgerRead: false })).guardrailBlocks).toBeNull();
   });
-  it('not recorded when a verdict in the counts is one no task row resolves (the event does not carry pass or block)', () => {
-    expect(count(src({ events: [...merges(5), event(105, 1, 'guardrail_verdict')] })).guardrailBlocks).toBeNull();
+  it('not recorded when a verdict in the counts states no pass or block (an event written before it did) and no task row resolves it', () => {
+    expect(count(src({ events: [...merges(5), verdictOf(105, 1)] })).guardrailBlocks).toBeNull();
+  });
+  it('0 when every verdict in the counts states pass: the guardrail armed, each merged output passed', () => {
+    const passes = [101, 102, 103, 104, 105].map((iid) => verdictOf(iid, 106 - iid, 'pass'));
+    expect(count(src({ events: [...merges(5), ...passes] })).guardrailBlocks).toBe(0);
+  });
+  it('a verdict that states block is a block, with or without a task row', () => {
+    const passes = [101, 102, 103, 104].map((iid) => verdictOf(iid, 106 - iid, 'pass'));
+    expect(count(src({ events: [...merges(5), ...passes, verdictOf(105, 1, 'block')] })).guardrailBlocks).toBe(1);
+    // a block on an earlier head of a merge request that later passed and merged still counts: the guardrail blocked it
+    expect(count(src({ events: [...merges(5), ...passes, verdictOf(105, 1.5, 'block'), verdictOf(105, 1, 'pass')] })).guardrailBlocks).toBe(1);
+  });
+  it('an old verdict a task row resolves as a block still counts it', () => {
+    expect(count(src({ tasks: [task(106, 'blocked', 0.5)], events: [...merges(5), verdictOf(106, 0.5)] })).guardrailBlocks).toBe(1);
   });
   it('counted from a task row that states the block, with or without the ledger', () => {
     const blocked = task(106, 'blocked', 0.5);

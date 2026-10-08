@@ -46,7 +46,8 @@ describe('poll cycle against the demo GitLab, from an empty index', () => {
     expect(by['patch-bump']).toMatchObject({ tier: 'quarantined', lastMove: '4 min ago · tripwire' });
     expect(by['report.submit']?.tier).toBe('human_only');
     // the record is counted from the ledger since tier-state.yml's since (!41); no-edit has no source: null, never zero
-    expect(by['dep-bump.patch']?.record).toEqual({ accepted: 1, needed: null, noEdit: null, cleanDays: 5, reverts: 0 });
+    // !41's guardrail_verdict states pass: no guardrail block in the counts
+    expect(by['dep-bump.patch']?.record).toEqual({ accepted: 1, needed: null, noEdit: null, cleanDays: 5, reverts: 0, guardrailBlocks: 0 });
   });
 
   it('tasks: read from MR descriptions, labels, the proof note and the guardrail note', async () => {

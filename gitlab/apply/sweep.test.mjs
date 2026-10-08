@@ -132,6 +132,7 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(ledger).toHaveLength(1);
     const lines = ledger[0].body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
     expect(lines.map((e) => e.kind)).toEqual(['proof_verdict', 'guardrail_verdict', 'tier_decision']);
+    expect(lines.map((e) => e.verdict)).toEqual([undefined, 'pass', undefined]); // the guardrail's verdict, from its note to the ledger
     expect(lines[0]).toMatchObject({ subject: { project_id: 1, type: 'mr', iid: 7 }, agent: 'ai-patcher-acme', observed_by: 'ci_job' });
     expect(ledger[0].body.commit_message).toContain(`Belay-Head: 1!7@${HEAD}`);
 

@@ -20,10 +20,11 @@ export function ledgerEvents(anchor: Date): LedgerEvent[] {
   const bodies: Body[] = [
     mrEvent(anchor, today('09:03'), ACCOUNT.patcher, 'dep-bump.patch', 'task_started', 'hands_off', 41),
     mrEvent(anchor, today('09:27'), ACCOUNT.patcher, 'dep-bump.patch', 'proof_verdict', 'hands_off', 41),
-    mrEvent(anchor, today('09:28'), ACCOUNT.patcher, 'dep-bump.patch', 'guardrail_verdict', 'hands_off', 41),
+    // each guardrail_verdict states what its MR's guardrail note says (./ledgerline.ts): !41 pass, !44 block
+    { ...mrEvent(anchor, today('09:28'), ACCOUNT.patcher, 'dep-bump.patch', 'guardrail_verdict', 'hands_off', 41), verdict: 'pass' },
     mrEvent(anchor, today('09:29'), ACCOUNT.patcher, 'dep-bump.patch', 'merged', 'hands_off', 41),
     mrEvent(anchor, today('09:51'), ACCOUNT.patcher, 'dep-bump.patch', 'deployed', 'hands_off', 41),
-    mrEvent(anchor, -4 * MIN - 2000, ACCOUNT.gardener, 'patch-bump', 'guardrail_verdict', 'supervised', 44),
+    { ...mrEvent(anchor, -4 * MIN - 2000, ACCOUNT.gardener, 'patch-bump', 'guardrail_verdict', 'supervised', 44), verdict: 'block' },
     { ...mrEvent(anchor, -4 * MIN, ACCOUNT.gardener, 'patch-bump', 'tier_decision', 'quarantined', 44), observed_by: 'ci_job' },
   ];
   const chain: LedgerEvent[] = [];

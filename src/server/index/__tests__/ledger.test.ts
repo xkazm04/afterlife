@@ -97,6 +97,24 @@ describe('appendLedgerEvents', () => {
     await appendLedgerEvents(db, events);
     expect((await readClassEvents(db, PROJECT, 'dep-bump.patch')).map((e) => e.seq)).toEqual([1, 3]);
   });
+
+  it('stores a guardrail verdict and reads it back; an event without one reads back with no verdict key', async () => {
+    const events: LedgerEvent[] = [];
+    events.push(append(events, { ...draft(1), kind: 'guardrail_verdict', verdict: 'block' }));
+    events.push(append(events, draft(2)));
+    await appendLedgerEvents(db, events);
+    const read = await readLedger(db, PROJECT);
+    expect(read).toEqual(events);
+    expect(read.map((e) => ('verdict' in e ? e.verdict : 'absent'))).toEqual(['block', 'absent']);
+    expect(await verifyStoredChain(db, PROJECT)).toBeNull();
+  });
+
+  it('the index refuses a verdict on another kind, and any value but pass or block (migration 0008)', async () => {
+    const forged = { ...draft(1), verdict: 'pass' } as Draft;
+    await expect(appendLedgerEvents(db, [append([], forged)])).rejects.toThrow(/ledger_event_verdict_kind/);
+    const odd = { ...draft(1), kind: 'guardrail_verdict', verdict: 'fail' } as unknown as Draft;
+    await expect(appendLedgerEvents(db, [append([], odd)])).rejects.toThrow(/verdict/);
+  });
 });
 
 describe('stored chain integrity', () => {

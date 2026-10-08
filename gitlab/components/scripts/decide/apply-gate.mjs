@@ -8,6 +8,7 @@
 // belay-apply (gitlab/apply) runs it with the token; a target pipeline's tier-gate passes --dry 1 (F4).
 // `--force wait|block --reason "..."` stands in for the engine when its inputs are missing: fail closed, no tier known.
 // `--emit-dir d` writes ledger event bodies for components/ledger-append (kinds proof_verdict, guardrail_verdict, tier_decision).
+// The guardrail_verdict states the guardrail file's verdict (`verdict: pass|block`); a file that states neither yields none.
 import fs from 'node:fs';
 import path from 'node:path';
 import { arg, die, glab, need, plain } from '../lib/lib.mjs';
@@ -26,15 +27,16 @@ if (d.tier != null && !TIERS.includes(d.tier)) die(`gate returned an unknown tie
 const reasons = (Array.isArray(d.reasons) ? d.reasons : []).map((r) => `- ${plain(r)}`);
 
 const guardrail = arg('guardrail') && fs.existsSync(arg('guardrail')) ? readJson(arg('guardrail')) : null;
+const verdict = guardrail && ['pass', 'block'].includes(guardrail.verdict) ? guardrail.verdict : null;
 const labels = [];
 const unlabels = [];
 if (d.tier) {
   labels.push(`belay::tier::${d.tier}`);
   unlabels.push(...TIERS.filter((t) => t !== d.tier).map((t) => `belay::tier::${t}`));
 }
-if (guardrail && ['pass', 'block'].includes(guardrail.verdict)) {
-  labels.push(`guardrail::${guardrail.verdict}`);
-  unlabels.push(`guardrail::${guardrail.verdict === 'pass' ? 'block' : 'pass'}`);
+if (verdict) {
+  labels.push(`guardrail::${verdict}`);
+  unlabels.push(`guardrail::${verdict === 'pass' ? 'block' : 'pass'}`);
 }
 
 console.error(`belay: gate says ${d.decision} at tier ${d.tier ?? '?'}\n${reasons.join('\n')}`);
@@ -50,8 +52,9 @@ if (emit && d.tier && !force) {
     payload_ref: `${repo}/-/merge_requests/${mr}`,
     observed_by: 'ci_job', // [R?] not in LedgerEvent.observed_by yet: the schema needs this value
   };
-  const kinds = ['proof_verdict', ...(guardrail ? ['guardrail_verdict'] : []), 'tier_decision'];
-  kinds.forEach((kind, i) => fs.writeFileSync(path.join(emit, `${i}-${kind}.json`), JSON.stringify({ ...base, kind })));
+  if (guardrail && !verdict) console.error(`belay: the guardrail file states no pass or block (${plain(guardrail.verdict)}): no guardrail_verdict event`);
+  const events = [{ kind: 'proof_verdict' }, ...(verdict ? [{ kind: 'guardrail_verdict', verdict }] : []), { kind: 'tier_decision' }];
+  events.forEach((e, i) => fs.writeFileSync(path.join(emit, `${i}-${e.kind}.json`), JSON.stringify({ ...base, ...e })));
 }
 
 const bot = arg('dry') === '1' ? undefined : process.env.BELAY_BOT_TOKEN;

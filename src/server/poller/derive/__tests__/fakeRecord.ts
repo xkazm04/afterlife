@@ -20,15 +20,19 @@ export function setTier(gl: FakeGitLab, tier: string, since: Date): void {
   if (p.files['tier-state.yml'] === text) throw new Error('code-fix.patch is not in tier-state.yml');
 }
 
-/** Events by the patcher in code-fix.patch, appended to ledgerline's chain in belay-ledger: `kind` on MR `iid`, `daysAgo` before `now`. */
-export function appendEvents(gl: FakeGitLab, now: Date, events: readonly { iid: number; daysAgo: number; kind?: LedgerEvent['kind'] }[]): void {
+/**
+ * Events by the patcher in code-fix.patch, appended to ledgerline's chain in belay-ledger: `kind` on MR `iid`, `daysAgo`
+ * before `now`. A guardrail_verdict states `verdict` when given (the gate's, since it emits one); none: an older event.
+ */
+export function appendEvents(gl: FakeGitLab, now: Date, events: readonly { iid: number; daysAgo: number; kind?: LedgerEvent['kind']; verdict?: LedgerEvent['verdict'] }[]): void {
   const path = `events/${LEDGERLINE_GID}.jsonl`;
   const p = fileOf(gl, 'belay-ledger', path);
   const chain: LedgerEvent[] = (p.files[path] ?? '').split('\n').filter(Boolean).map((l) => JSON.parse(l) as LedgerEvent);
-  for (const { iid, daysAgo, kind = 'merged' } of events) {
+  for (const { iid, daysAgo, kind = 'merged', verdict } of events) {
     chain.push(append(chain, {
       at: new Date(now.getTime() - daysAgo * DAY).toISOString(), agent: ACCOUNT.patcher, action_class: 'code-fix.patch', kind,
       tier_at_time: 'assisted', subject: { project_id: LEDGERLINE_GID, type: 'mr', iid }, payload_ref: `proofs/${iid}/${kind}.json`, observed_by: 'poll',
+      ...(verdict ? { verdict } : {}),
     }));
   }
   p.files[path] = chain.map((e) => JSON.stringify(e)).join('\n') + '\n';
