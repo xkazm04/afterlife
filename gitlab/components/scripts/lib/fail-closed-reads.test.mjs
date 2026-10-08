@@ -4,8 +4,11 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { runScript, SCRIPTS, workdir } from '../testing/harness.mjs';
+
+// Every case blocks on spawnSync of node; in the full suite (12+ workers) one took 27 s against vitest's 30 s default (alone: 0.1-2.5 s).
+vi.setConfig({ testTimeout: 120_000 });
 
 const dir = workdir('fail-closed');
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
