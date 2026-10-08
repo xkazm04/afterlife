@@ -16,7 +16,7 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
 - `components/shared/` DepRow, GateRow, Spinner, CapGlyph. `SetupStatus` (progress, probe age), `SetupLegend`.
 - `hooks/` `useSetupFlow` (reducer + async probes + toasts), `useArmWrite` (the planned arm/disarm MRs on screen), `useSetupView` (pick, hover, filter, Esc), `SetupContext`.
 - `write/arm.ts` the round trip: `previewAction` when a track's Arm or Disarm section is in view (`parts/ArmPreview` shows the
-  summary, the branch the plan creates, the commands, the `.gitlab-ci.yml` diff and, for T4, the BELAY_BOT_TOKEN notes);
+  summary, the branch the plan creates, the commands, the `.gitlab-ci.yml` diff and, for T4, its five notes: the writes are belay-apply's, BELAY_BOT_TOKEN lives there and never on the target);
   `confirmAction` with that preview's id on the click. The MR number and its address come from the confirm's answer, never
   from the demo. A track the repo does not define yet shows the server's refusal.
 - "I merged it · verify" calls `verifyArmAction`: a read of the target's default branch. A track arms (or disarms) only when

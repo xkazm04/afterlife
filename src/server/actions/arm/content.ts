@@ -11,8 +11,6 @@ export interface ArmPin {
   engineRef: string;
   /** The commit engineRef must resolve to. Optional in the components: left out when not configured. */
   engineCommit?: string;
-  /** The flow consumer ids, by flow ("guardrail": 4711). */
-  consumers: Readonly<Record<string, number>>;
 }
 
 export interface Include {
@@ -30,8 +28,6 @@ export interface TrackArm {
   stages: readonly string[];
   /** Per component, the stages it may run in, in order of preference: it takes the first one the pipeline declares. */
   stageChoices: Readonly<Record<string, readonly string[]>>;
-  /** The flow whose consumer id the includes need, if any. */
-  flow?: string;
   /** The include lines; `at` is each component's stage (placeIn), the example's placement when left out. */
   includes: (pin: ArmPin, at?: Placement) => Include[];
   /** Said plainly in the preview, in this order. */

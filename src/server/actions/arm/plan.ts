@@ -10,7 +10,6 @@ import { ActionRefused, COMMIT_ID, type Plan, type PlanContext } from '../plans/
 import type { ArmTrack, DisarmTrack } from '../types';
 import { findBlock, insertBlock, removeBlock } from './block';
 import { blockerOf, holdsBlock, placementOf } from './checks';
-import { consumerVar } from './config';
 import { armOf, NOT_DEFINED, type ArmPin, type TrackArm } from './content';
 
 export const CI_FILE = '.gitlab-ci.yml';
@@ -46,12 +45,9 @@ export async function targetOf(port: GitLabPort, groupId: string | number, gitla
   return { project, base: project.defaultBranch ?? 'main', group };
 }
 
-function pinFor(ctx: PlanContext, a: TrackArm): ArmPin {
+function pinFor(ctx: PlanContext): ArmPin {
   if (!ctx.arm) throw new ActionRefused("Belay's environment gives no arm settings: nothing is planned");
   if (!ctx.arm.ok) throw new ActionRefused(ctx.arm.reason);
-  if (a.flow && !ctx.arm.pin.consumers[a.flow]) {
-    throw new ActionRefused(`set ${consumerVar(a.flow)} (the ${a.flow} flow's consumer id in this project) in Belay's environment: ${a.track}'s include names it`);
-  }
   return ctx.arm.pin;
 }
 
@@ -91,7 +87,7 @@ const description = (ctx: PlanContext, what: string, notes: readonly string[]): 
 
 export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan> {
   const a = trackArm(intent.track);
-  const pin = pinFor(ctx, a);
+  const pin = pinFor(ctx);
   const t = await targetOf(ctx.port, ctx.groupId, ctx.gitlabId, intent.project);
   const file = await ciFile(ctx, t, 'an arm adds include lines to a pipeline that exists');
   const found = findBlock(file.content, a);
