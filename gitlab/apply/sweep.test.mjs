@@ -282,6 +282,32 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: (WAIT|BLOCK)\*\* \| tier `quarantined`/);
   });
 
+  it('(xi) F74: an auto-merge the bot set is cancelled once the gate no longer says merge, after a revoke or a tripwire demotion', () => {
+    // The gate and the ledger were applied for this head (as in (i)); tier-state.yml has since changed, by an operator's
+    // revoke or by the tripwire, so the gate no longer says merge. The MR still has the auto-merge the bot set.
+    const first = sweep(group());
+    const [proofNote, gateNote] = glabWrites(first, 'note create');
+    const ledger = first.writes.find((w) => w.path === `${LEDGER}/repository/commits`);
+    const bot = (id, n) => ({ id, system: false, author: { username: 'belay-bot' }, created_at: '2026-10-07T10:05:00Z', body: n.body.message });
+    const done = { notes: [bot(102, gateNote), bot(101, proofNote), guardrailNote('pass')], labels: ['proof::pass', 'guardrail::pass'], ledgerCommits: [{ id: 'f'.repeat(40), message: ledger.body.commit_message }] };
+    const CANCEL = 'projects/1/merge_requests/7/cancel_merge_when_pipeline_succeeds';
+    const autoMerging = (by, state = STATE) => {
+      const g = group({ ...done, state });
+      return { ...g, 'projects/1/merge_requests/7': { ...g['projects/1/merge_requests/7'], merge_when_pipeline_succeeds: true, merge_user: { username: by } }, [`POST ${CANCEL}`]: { reply: { iid: 7, merge_when_pipeline_succeeds: false } } };
+    };
+    for (const [state, tier] of [[STATE, 'supervised'], [STATE.replace('tier: supervised', 'tier: quarantined'), 'quarantined']]) {
+      const r = sweep(autoMerging('belay-bot', state));
+      expect(r.code, r.stderr).toBe(0);
+      expect(r.writes.filter((w) => w.path === CANCEL)).toEqual([expect.objectContaining({ method: 'POST' })]);
+      const notes = glabWrites(r, 'note create');
+      expect(notes).toHaveLength(1);
+      expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay: auto-merge cancelled\\*\\* for head \`${HEAD}\`: the gate now says (approve|wait|block) at tier ${tier}`));
+      expect(granted(r)).toEqual([]);
+    }
+    // An auto-merge a person set is theirs: the sweep leaves it, and writes nothing.
+    expect(sweep(autoMerging('a-maintainer')).writes).toEqual([]);
+  });
+
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
     const r = sweep(group(), { CI_SERVER_FQDN: 'gitlab.example' });
     expect(r.code, r.stderr).toBe(0);

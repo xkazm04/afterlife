@@ -125,8 +125,10 @@ trigger token only after checking that on the instance. The schedule alone is en
 
 - F63: evidence counts only from a `merge_request_event` pipeline that carries no pipeline variables (22f3cbf). A target
   that runs `belay-replay` only in branch pipelines gets no proof until it switches to merge request pipelines.
-- F74: open, Low, owner not yet decided. An auto-merge set by the gate stays set after a later revoke or tripwire
-  demotion, so the MR still merges when its pipeline succeeds. `[R?]` whether a push cancels it.
+- F74: closed in the sweep. An auto-merge the bot set is cancelled (`POST .../cancel_merge_when_pipeline_succeeds`, `[R?]`
+  the endpoint's current name) and a note says why, at the first sweep after a revoke or tripwire demotion makes the gate
+  say anything but merge; an auto-merge a person set is left alone. Until that sweep (at most one schedule interval) the
+  MR can still merge if its pipeline succeeds. `[R?]` whether a push cancels an auto-merge set with `--sha`.
 
 ## What the operator removes from each target
 
