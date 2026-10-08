@@ -167,16 +167,16 @@ footer { display: grid; gap: 6px; padding-top: 20px; border-top: 1px solid var(-
   <header class="mast">
     <span class="eyebrow">Afterlife · acme-lab · night shift, 7–8 Oct 2026</span>
     <h1>Eight waves toward a machine that <b>onboards</b> and <b>keeps improving</b></h1>
-    <p class="lede">Afterlife already proved what its agents did and let them earn autonomy. Overnight it gained the two halves of the vision it was missing: an estate-wide way to bring a company's GitLab projects in, and a loop of improvement rounds that only counts what a rescan can prove. Every wave was reviewed independently, fixed, and pushed green.</p>
-    <div class="meta"><span>branch claude/busy-bohr-wjdoxr</span><span>12 commits · 159 files · +5,417 −156 lines</span><span>Next.js 16 · React 19 · Vitest · Playwright</span></div>
+    <p class="lede">Afterlife already proved what its agents did and let them earn autonomy. Overnight it gained the two halves of the vision it was missing: an estate-wide way to bring a company's GitLab projects in, and a loop of improvement rounds that only counts what a rescan can prove. Every wave was reviewed independently, fixed, and pushed green. Four more waves then made it real: the screens' writes go through the server, cycle history comes from the ledger, <code>belay scan</code> and <code>belay pair</code> exist, and cycles roll up across the estate.</p>
+    <div class="meta"><span>branch claude/busy-bohr-wjdoxr</span><span>19 commits · 259 files · +10,070 −218 lines</span><span>Next.js 16 · React 19 · Vitest · Playwright</span></div>
   </header>
 
   <section aria-label="The night in numbers">
     <div class="readouts">
       <div class="ro lead"><b>2</b><span>new screens: Cycles, Onboard</span></div>
-      <div class="ro"><b>8</b><span>waves planned and shipped</span></div>
-      <div class="ro"><b>999</b><span>tests passing, up from 932</span></div>
-      <div class="ro"><b>108</b><span>layout checks in <code>npm run smoke</code></span></div>
+      <div class="ro"><b>12</b><span>waves planned and shipped</span></div>
+      <div class="ro"><b>1,048</b><span>tests passing, up from 932</span></div>
+      <div class="ro"><b>117</b><span>layout checks in <code>npm run smoke</code></span></div>
       <div class="ro"><b>28 / 29</b><span>review and audit findings fixed</span></div>
       <div class="ro"><b>0</b><span>known clipped actions at 1280&nbsp;px</span></div>
     </div>
@@ -255,6 +255,10 @@ footer { display: grid; gap: 6px; padding-top: 20px; border-top: 1px solid var(-
       <li class="wave"><div class="wn">6<small>22:57</small></div><div class="wb"><h3>⌘K command palette</h3><p>Go to any screen, any of the 184 projects, or a loop action from anywhere. Ranking is pure and tested. Deep links back it: <code>/fleet?project=</code>, <code>/cycles?design=1</code>, <code>/onboard?preview=1</code>.</p><div class="tags"><span class="tag feat">dd6e64a</span></div></div></li>
       <li class="wave"><div class="wn">7<small>23:14</small></div><div class="wb"><h3>Visual audit and the smoke gate</h3><p>An audit of 12 routes × 3 widths × 3 text sizes found 11 defects; 10 are fixed (Ladder's Revoke and Needs you's actions now stay pinned on screen). <code>npm run smoke</code> turns the audit into a repeatable check of 108 combinations, verified against injected regressions.</p><div class="tags"><span class="tag fix">c396e63</span><span class="tag fix">0587291</span></div></div></li>
       <li class="wave"><div class="wn">8<small>23:14</small></div><div class="wb"><h3>Fleet joins the loop</h3><p>Fleet's project inspector says where each project stands in the improvement loop: in cycles with what they earned, ready to start one, or still to be onboarded.</p><div class="tags"><span class="tag feat">c396e63</span></div></div></li>
+      <li class="wave"><div class="wn">9<small>08:10</small></div><div class="wb"><h3>The writes go through the server</h3><p>Needs you, Ladder and Maturity now preview each write on the server when it is shown and confirm that exact plan on the click. The screen shows the server's commands (long fields folded, the diff underneath) or its refusal with Run disabled, and moves on only after <code>done</code>. Demo results say nothing was executed. A gap MR may only add to an existing file.</p><div class="tags"><span class="tag feat">ee73892</span></div></div></li>
+      <li class="wave"><div class="wn">10<small>08:20</small></div><div class="wb"><h3>Cycle history from the ledger</h3><p>Each closed cycle is a hash-chained line of <code>belay-ledger/cycles/&lt;id&gt;.jsonl</code>. The poller imports it only if it verifies and extends what is stored; an edited, shortened or rewritten history fails the feed. Cycles reads <code>getCycles()</code> instead of a screen fixture, and parity still holds.</p><div class="tags"><span class="tag feat">1f53621</span></div></div></li>
+      <li class="wave"><div class="wn">11<small>08:31</small></div><div class="wb"><h3><code>belay scan</code> and <code>belay pair</code></h3><p>A model-free scan rates the nine stages from a checkout or from the facts the CI component collects: configured, running, enforced, and unknown (never absent) where it cannot see. <code>pair</code> adds the Belay bootstrap to a checkout, shows its plan, writes only with <code>--write</code>, only ever adds lines, and never commits or pushes.</p><div class="tags"><span class="tag feat">59b8956</span></div></div></li>
+      <li class="wave"><div class="wn">12<small>08:45</small></div><div class="wb"><h3>Cycles across the estate</h3><p>A scope switch on Cycles rolls every project in cycles up per group, and proves each one: its history, unwound and replayed, must land on that project's rungs today ("6 of 6 replay to their rungs"). Onboard's "In cycles" counts every project with a recorded cycle; ⌘K reaches the view.</p><div class="tags"><span class="tag feat">a44c630</span></div></div></li>
     </ol>
   </section>
 
@@ -264,7 +268,7 @@ footer { display: grid; gap: 6px; padding-top: 20px; border-top: 1px solid var(-
       <div class="gate"><span class="big">3 reviews</span><p>Independent agents reviewed Cycles and Onboard, and audited every screen visually. Each finding was traced, fixed and pinned by a test where it was logic.</p>
         <table class="found"><tr><td>Cycles code review</td><td>8 / 8</td></tr><tr><td>Onboard code review</td><td>10 / 10</td></tr><tr><td>Visual audit</td><td>10 / 11</td></tr></table></div>
       <div class="gate"><span class="big">Clean checkout</span><p>Before each push, a fresh worktree of <code>HEAD</code> was typechecked, linted and tested. It caught a commit missing files that <code>.gitignore</code> had silently excluded.</p></div>
-      <div class="gate"><span class="big">verify + smoke</span><p><code>npm run verify</code> runs types, lint, structure rules (200 lines per file, 10 files per folder), 999 tests and a production build. <code>npm run smoke</code> covers the layout.</p></div>
+      <div class="gate"><span class="big">verify + smoke</span><p><code>npm run verify</code> runs types, lint, structure rules (200 lines per file, 10 files per folder), 1,048 tests and a production build. <code>npm run smoke</code> covers the layout.</p></div>
     </div>
   </section>
 
@@ -273,14 +277,14 @@ footer { display: grid; gap: 6px; padding-top: 20px; border-top: 1px solid var(-
       <div class="box warn"><h3>Worth knowing</h3><ul>
         <li><b>One pushed commit did not build</b> (dee830b): a folder named <code>design/</code> is gitignored repo-wide. Fixed in the next commit; the clean-checkout gate now prevents it.</li>
         <li><b>Left as is:</b> on the front door at the largest text and 1280&nbsp;px, the left-hand stats overlap the city's towers. It is a design decision for the winning prototype's owner.</li>
-        <li><b>Simulated by design:</b> Onboard runs and re-probes, cycle designs (kept for the browser session) and the closed cycle history are demo data, labelled as such on screen.</li>
+        <li><b>Simulated by design:</b> in demo mode the server plans every write and executes none; Onboard runs and re-probes, cycle designs (kept for the browser session) and the cycle histories are demo data, labelled as such on screen.</li>
+        <li><b>A demo-data contradiction surfaced:</b> Needs you proposes promoting <code>dep-bump.patch</code> to Hands-off, but the demo already holds it there, so the server now refuses that promotion. The refusal is honest; the fixture needs fixing.</li>
         <li><b><code>/docs/</code> is ignored</b> except <code>docs/features</code> and <code>docs/report</code>, which now hold the module docs and this report.</li>
       </ul></div>
       <div class="box"><h3>Recommended next waves</h3><ol>
-        <li><b>Wire the writes:</b> the server already has preview → confirm actions (revoke, promote, gap MRs, CRA ready), but no screen calls them yet; Ladder, Needs you and Onboard change browser state only.</li>
-        <li><b>A real cycle history:</b> record each rescan in the ledger (a scan event) so Cycles reads live data instead of a fixture.</li>
-        <li><b>Implement <code>belay scan</code> and <code>belay pair</code>:</b> Onboard already shows the commands they will run.</li>
-        <li><b>Estate-wide cycles:</b> as Onboard arms T6 on more projects, roll their cycles up per group.</li>
+        <li><b>Write the cycle record:</b> nothing appends to <code>cycles/&lt;id&gt;.jsonl</code> yet; the closing rescan (the CI scan job) should.</li>
+        <li><b>Onboard and Setup through the server:</b> their writes still show fixture commands and change browser state only.</li>
+        <li><b>Verify live:</b> the write endpoints, <code>start_branch</code> and work-item labels have only run against the fake GitLab.</li>
         <li><b>Smoke in CI:</b> run <code>npm run smoke</code> against a preview build on every MR.</li>
       </ol></div>
     </div>
