@@ -91,3 +91,37 @@ describe("step 9's commands run as written where GitLab already protects main (c
     for (const f of ['# /.gitlab-ci.yml @a', '[CI] @a', '/src/ @a']) expect(covers(f, '.gitlab-ci.yml')).toBe(false);
   });
 });
+
+describe("step 9's and step 5's target commands on a target in a subgroup (craft-1)", () => {
+  const SUB = 'acme-lab/core-banking/ledgerline';
+  async function subgroupNames(gl: FakeGitLab): Promise<StepNames> {
+    const all = await gl.port.listProjects(GROUP_ID);
+    const target = all.find((p) => p.path === 'ledgerline');
+    return { host: 'gitlab.com', group: 'acme-lab', project: 'ledgerline', path: target?.pathWithNamespace, projects: ['ledgerline', ...BELAY_PROJECTS] };
+  }
+
+  it('names the full path in the five target lines and the push; the belay-* lines stay at the group’s root', async () => {
+    const gl = createDemoGitLab();
+    createBelayProjects(gl);
+    const names = await subgroupNames(gl);
+    expect(names.path).toBe(SUB);
+    const d = stepDetailsFor(names);
+    const target = (d[9]?.cmd ?? []).filter((c) => c.includes(encodeURIComponent(SUB)));
+    expect(target).toHaveLength(5);
+    expect(d[5]?.cmd).toEqual([`git -C ../ledgerline push --mirror https://gitlab.com/${SUB}.git`]);
+    expect((d[9]?.cmd ?? []).some((c) => c.includes('acme-lab%2Fbelay-apply/protected_branches'))).toBe(true);
+    expect((d[9]?.cmd ?? []).join('\n')).not.toContain('acme-lab%2Fledgerline');
+  });
+
+  it('the target lines run against the fake: none answers 404', async () => {
+    const gl = createDemoGitLab();
+    createBelayProjects(gl);
+    const rule = { push_access_levels: [{ access_level: 40 }], merge_access_levels: [{ access_level: 40 }], allow_force_push: false, code_owner_approval_required: false };
+    projectNamed(gl, 'ledgerline').protectedBranches = { main: { name: 'main', ...rule }, 'belay/*': { name: 'belay/*', ...rule } };
+    const lines = (stepDetailsFor(await subgroupNames(gl))[9]?.cmd ?? []).filter((c) => c.includes(encodeURIComponent(SUB)));
+    const ran = await run(gl, lines);
+    expect(ran.map((r) => r.code)).toEqual([0, 0, 0, 0, 0]);
+    const bare = await run(gl, ['glab api projects/acme-lab%2Fledgerline/protected_branches']);
+    expect(bare[0]?.code).not.toBe(0);
+  });
+});

@@ -47,6 +47,8 @@ export interface DoctorRead extends ReadStamp {
 
 export interface StepsRead extends ReadStamp {
   steps: Record<number, StepRead>;
+  /** The target's full path (group/subgroup/name) from the group listing; absent when the listing did not find it. */
+  targetPath?: string;
 }
 
 export interface LiveSetupRead {

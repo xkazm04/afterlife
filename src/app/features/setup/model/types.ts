@@ -66,6 +66,8 @@ export interface SetupState {
   projects: readonly string[];
   group: string;
   project: string;
+  /** The target's full path when the read found it (live), for the step commands. */
+  projectPath?: string;
   /** The group the screen opened on: switching back restores its probed rows. */
   homeGroup: string;
   homeDoctor: readonly DoctorRow[];

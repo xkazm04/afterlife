@@ -127,9 +127,10 @@ export function setupReads(port: SetupPort | null, pairing: PairingRow | null, p
       }
       const l = await listing(port, project);
       const c: StepCtx = { port: port.port, groupId: port.groupId, group: pairing?.groupPath ?? String(port.groupId), project, listing: l, today: isoDay(now()) };
+      const targetPath = l.ok ? l.target?.pathWithNamespace : undefined;
       steps[4] = projectsRead(l, project, projects);
       [steps[0], steps[3], steps[6], steps[8], steps[9], steps[10]] = await Promise.all([loginRead(port), licenceRead(c), runnerRead(c), secretsRead(c), protectionsRead(c), bootstrapRead(c)]);
-      return { ...at, steps };
+      return { ...at, steps, ...(targetPath ? { targetPath } : {}) };
     },
   };
 }

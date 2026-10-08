@@ -5,6 +5,8 @@ export interface StepNames {
   host: string;
   group: string;
   project: string;
+  /** The target's full path (`acme-lab/core-banking/ledgerline`), when the listing found it: it can sit in a subgroup. */
+  path?: string;
   projects: readonly string[];
 }
 
@@ -26,7 +28,9 @@ export const BELAY_TOKENS = ['BELAY_BOT_TOKEN', 'BELAY_POLICY_TOKEN', 'BELAY_DIS
  * (glab reads the value from stdin when the argument and -v are absent; docs.gitlab.com/cli/variable/set).
  */
 export const STDIN = '(read -rs v; printf %s "$v")';
-const enc = (n: StepNames, project: string): string => encodeURIComponent(`${n.group}/${project}`);
+/** The path a project is addressed by: the target's own full path, else <group>/<name> (step 4 creates the belay-* projects at the group's root). */
+const pathOf = (n: StepNames, project: string): string => (project === n.project && n.path ? n.path : `${n.group}/${project}`);
+const enc = (n: StepNames, project: string): string => encodeURIComponent(pathOf(n, project));
 /** A shell word: single-quoted when it holds a glob. */
 const word = (s: string): string => (s.includes('*') ? `'${s}'` : s);
 const MAINTAINERS = ['push_access_level=40', 'merge_access_level=40', 'allow_force_push=false'];
@@ -62,7 +66,7 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   },
   5: {
     who: 'agent', does: `${n === DEMO_NAMES ? 'Pushes the ledgerline demo bank' : `Pushes ${n.project}`} from its own repo, then records the pairing with the pack (adopt-belay step 5; Belay's CLI does not run pair yet).`, write: true, probe: 'remote main = local main · pair recorded',
-    cmd: [`git -C ../${n.project} push --mirror https://${n.host}/${n.group}/${n.project}.git`],
+    cmd: [`git -C ../${n.project} push --mirror https://${n.host}/${pathOf(n, n.project)}.git`],
   },
   6: {
     who: 'human', short: 'Provision runner and billing', does: "A card and a cloud identity are yours, not an agent's.", action: 'Provision the runner and run the generated script',
@@ -101,7 +105,7 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
     before: '!2 open · agent-config.yml absent on main', probe: '!2 merged by @you · agent-config.yml on main',
   },
   11: {
-    who: 'agent', does: `Enables the flows in ${n.group}/${n.project} by API (adopt-belay step 11; Belay's CLI has no flows command). If the API route is not there, this step comes back to you.`, write: true,
+    who: 'agent', does: `Enables the flows in ${pathOf(n, n.project)} by API (adopt-belay step 11; Belay's CLI has no flows command). If the API route is not there, this step comes back to you.`, write: true,
     probe: 'service accounts ai-patcher-…, ai-guardrail-… exist',
   },
   12: {

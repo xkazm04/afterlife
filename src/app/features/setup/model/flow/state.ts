@@ -61,14 +61,14 @@ function liveSetupState(setup: SetupDemo, live: LiveSetupRead): SetupState {
   const doctor = doctorRowsOf(live.doctor);
   return recomputeLocks({
     live: true, host: live.host, projects: live.projects,
-    group: live.group, project: live.project, homeGroup: live.group, homeDoctor: doctor,
+    group: live.group, project: live.project, projectPath: live.steps.targetPath, homeGroup: live.group, homeDoctor: doctor,
     steps, arm, attempts: {}, doctor, doctorAt: Date.parse(live.doctor.at), doctorProbedAt: live.doctor.label, doctorNever: false, doctorBusy: false,
     doctorError: live.doctor.error,
   });
 }
 
 /** What the step commands name: the group the screen opened on (live: the paired one), its host and the target. */
-export const namesOf = (s: SetupState): StepNames => ({ host: s.host, group: s.homeGroup, project: s.project, projects: s.projects });
+export const namesOf = (s: SetupState): StepNames => ({ host: s.host, group: s.homeGroup, project: s.project, path: s.projectPath, projects: s.projects });
 /** A step's detail, its commands naming this setup's group and project. */
 export const stepDetail = (s: SetupState, n: number): StepDetail | undefined => stepDetailsFor(namesOf(s))[n];
 
