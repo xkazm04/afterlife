@@ -28,7 +28,7 @@ JSON is not schema-enforced by the platform. It is checked afterwards, in CI, ag
 | `claims.schema.json` | `build-evidence.mjs` (patcher) |
 | `medic-verdict.schema.json`, `qa-report.schema.json`, `cra-draft.schema.json`, `gardener-claims.schema.json` | the matching proof input builder or Belay's reader; they are small, closed shapes |
 
-A block that fails its schema is treated as inconclusive: a guardrail block like that **blocks**.
+A block that fails its schema is treated as inconclusive: a guardrail block like that **blocks**. A trusted note that carries two blocks of the tag is treated the same way: `fetch-block` exits 4 (F67, 9e56d7f).
 
 ## Untrusted text
 
