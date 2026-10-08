@@ -17,6 +17,7 @@ licence, a card, a secret or a legal identity is handed back to a person as a nu
 - A step is done when `belay doctor` says so, not when a command exits 0.
 - Stop at the first failed verification, write it into `ONBOARDING-REPORT.md`, and hand back.
 - Re-running is safe: every step checks the current state first.
+- If the target's CI config includes a file through a variable or a wildcard, every agent MR waits for a person until the includes are listed by name (gitlab/apply/README.md, F68).
 
 ## Steps
 
@@ -32,10 +33,16 @@ licence, a card, a secret or a legal identity is handed back to a person as a nu
 | 5 | Agent | Push the demo bank (`ledgerline`) and pair the checkout |
 | 6 | **Human** | Runner and billing on Google Cloud |
 | 7 | **Human** | Google Cloud OIDC, using the Cloud Shell script |
-| 8 | **Human** | Secrets. On belay-apply only, at project level (never on a target, never a group or instance variable: every target pipeline inherits the group's): `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_DISPATCH_TOKEN`, `BELAY_LEDGER_TOKEN`, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created: `glab variable set --hidden`). Set belay-apply's Minimum role to use pipeline variables to `no_one_allowed` and create its variable-free pipeline schedule on `main`. Source: gitlab/apply/README.md. Each token is one command, run on its own: `(read -rs v; printf %s "$v") \| glab variable set BELAY_BOT_TOKEN -R <group>/belay-apply --masked --protected --hidden`, the value pasted at the silent read and handed to glab on stdin (Setup's step 8 shows the four). No other secret is set here. The human types every value; the agent never sees one, and Belay reads none of these variables |
+| 8 | **Human** | Secrets. On belay-apply only, at project level (never on a target, never a group or instance variable: every target pipeline inherits the group's): `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_DISPATCH_TOKEN`, `BELAY_LEDGER_TOKEN`, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created: `glab variable set --hidden`). Set belay-apply's Minimum role to use pipeline variables to `no_one_allowed` and create its variable-free pipeline schedule on `main`. Source: gitlab/apply/README.md. Each token is one command, run on its own (the block under this table; Setup's step 8 shows the four). No other secret is set here. The human types every value; the agent never sees one, and Belay reads none of these variables |
 | 9 | Agent | Protections: approval rules with author-cannot-approve, protected main, `belay/*` a protected branch pattern that only Maintainers and the flow accounts can push to (gitlab/components/README.md, Exposure), a CODEOWNERS that covers `.gitlab-ci.yml` and `.gitlab/`; belay-apply's `main`: push No one, merge Maintainers, Code Owner approval required, force push off; belay-apply on the job token allowlists of belay-engine and belay-policy; the `v*` tags of belay-engine and belay-pack and `main` of belay-ledger protected against Developers (F39 at the settings layer; pinning the pack by commit is proposed, not done). `belay/*` guards no token. Read each project's protections first: GitLab already protects a pushed `main` and a second POST answers 409, so unprotect it and protect it again as listed (DELETE then POST, back to back; Setup's step 9 shows the commands). Done when Setup reads every setting back as listed |
 | 10 | Agent, then **Human** | Bootstrap MR. The human merges it. |
 | 11 | Agent, else **Human** | Enable flows |
 | 12 | Agent | First scan and the first gap MR |
 | 13 | Agent | Seeded faults (labelled seeded) and the schedule |
 | 14 | Agent | Report, and hand back the issue "Belay: what only you can do" |
+
+Step 8's command, for `BELAY_BOT_TOKEN` (change the name for each of the four): the value is pasted at the silent read and handed to glab on stdin.
+
+```sh
+(read -rs v; printf %s "$v") | glab variable set BELAY_BOT_TOKEN -R <group>/belay-apply --masked --protected --hidden
+```
