@@ -44,13 +44,15 @@ const emit = arg('emit-dir');
 if (emit && d.tier && !force) {
   fs.mkdirSync(emit, { recursive: true });
   const base = {
-    at: new Date().toISOString(), // [R?] the ledger wants the GitLab event time; the job's clock is the nearest we have here
+    // The job's clock, not GitLab's event time: never earlier than the gate. Nothing orders on it (the chain orders by seq);
+    // the poller only drops a guardrail_verdict older than the record's since (counters.ts), so a late clock counts more.
+    at: new Date().toISOString(),
     agent: arg('agent', 'unknown'),
     action_class: arg('class', 'unknown'),
     tier_at_time: d.tier,
     subject: { project_id: Number(process.env.CI_PROJECT_ID), type: 'mr', iid: Number(mr) },
     payload_ref: `${repo}/-/merge_requests/${mr}`,
-    observed_by: 'ci_job', // [R?] not in LedgerEvent.observed_by yet: the schema needs this value
+    observed_by: 'ci_job',
   };
   if (guardrail && !verdict) console.error(`belay: the guardrail file states no pass or block (${plain(guardrail.verdict)}): no guardrail_verdict event`);
   const events = [{ kind: 'proof_verdict' }, ...(verdict ? [{ kind: 'guardrail_verdict', verdict }] : []), { kind: 'tier_decision' }];
