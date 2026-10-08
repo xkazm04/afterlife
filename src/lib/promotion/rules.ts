@@ -1,6 +1,6 @@
 // The rows of each promotion step, against trust-policy.yml's thresholds. A row is met only by a counter a task row or a
-// ledger event states, or by a fact true by construction (cited where it is used). A counter nothing states reads "not
-// recorded" and is never met.
+// ledger event states. A counter nothing states reads "not recorded" and is never met. The human key is not a row: it is
+// the precondition of the promote write (HUMAN_KEY), stated beside the rows.
 import type { Counters, PromotionRules } from './types';
 
 /** Proof classes a machine can check; Hands-off needs one of these. */
@@ -60,7 +60,15 @@ export function cooldownRule(until: string | null | undefined, now: Date): Promo
   return { name: 'cooldown', value: `until ${iso.endsWith('T00:00:00.000Z') ? iso.slice(0, 10) : `${iso.slice(0, 16).replace('T', ' ')} UTC`}`, met: false };
 }
 
-/** Supervised to Hands-off: the counts, the mechanical proof class, and the human key when the policy asks one. */
+/**
+ * The precondition of every promotion Belay prepares, stated beside the rule rather than counted as a met row: Belay's
+ * only write that raises a tier is the promotion's policy MR, which planPromote (src/server/actions/plans/promote.ts)
+ * opens and never merges; nothing else in Belay raises a tier (the tripwire only lowers one). trust-policy.yml's
+ * human_key asks exactly this. Belay reads no GitLab approval setting, so it is stated, not checked.
+ */
+export const HUMAN_KEY = 'a person merges this MR; Belay never merges it';
+
+/** Supervised to Hands-off: the counts and the mechanical proof class. */
 export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], proofClass: string): PromotionRule[] {
   const rows: PromotionRule[] = [
     countRule('accepted outputs', r.accepted, t.accepted),
@@ -69,9 +77,5 @@ export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], pr
     { name: 'reverts or incidents', ...counted(r.reverts, String, (n) => n === 0) },
     { name: 'mechanical proof class', value: proofClass, met: isMechanical(proofClass) },
   ];
-  // human_key is true by construction: Belay's only write that raises a tier is the promotion's policy MR, which a person
-  // merges. planPromote (src/server/actions/plans/promote.ts:43-49) commits the record to a branch and opens the MR, and
-  // never merges it; nothing else in Belay raises a tier (the tripwire only lowers one: engine/decide/tripwire.ts:1-3).
-  if (t.humanKey) rows.push({ name: 'a person merges the promotion MR (human key)', value: 'policy MR', met: true });
   return rows;
 }

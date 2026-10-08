@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
-import { NOT_RECORDED, promotion, whyNot, type Counters } from '.';
+import { HUMAN_KEY, NOT_RECORDED, promotion, whyNot, type Counters } from '.';
 
 const RULES = repoPolicy() as PolicyRules;
 const rec = (o: Partial<Counters> = {}): Counters => ({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: 5, ...o });
@@ -55,16 +55,21 @@ describe('window_last: 5', () => {
   });
 });
 
-describe('human_key: true', () => {
-  const name = 'a person merges the promotion MR (human key)';
+describe('human_key: a precondition of the promote write, never a met eligibility row', () => {
   const toHandsOff = (rules: PolicyRules) =>
     promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, noEdit: 0.94, cleanDays: 14 }) }, 'exploit-test', rules);
-  it('met by construction: Belay opens the policy MR and a person merges it', () => {
+  it('no row reads it met: the rule states it as the precondition instead', () => {
     const p = toHandsOff(RULES);
-    expect([p.kind, rule(p, name)]).toEqual(['eligible', { name, value: 'policy MR', met: true }]);
+    expect(p.kind).toBe('eligible');
+    if (p.kind !== 'eligible') return;
+    expect(p.rules.filter((r) => /human key|person merges/.test(r.name))).toEqual([]);
+    expect(p.precondition).toBe(HUMAN_KEY);
+    expect(HUMAN_KEY).toBe('a person merges this MR; Belay never merges it');
   });
-  it('a policy without it asks no human key', () => {
-    expect(rule(toHandsOff({ ...RULES, toHandsOff: { ...RULES.toHandsOff, humanKey: false } }), name)).toBeUndefined();
+  it('the same precondition whatever the policy says of human_key: Belay never merges a promotion', () => {
+    const p = toHandsOff({ ...RULES, toHandsOff: { ...RULES.toHandsOff, humanKey: false } });
+    expect(p.kind === 'eligible' && p.precondition).toBe(HUMAN_KEY);
+    expect(toSupervised({}).kind === 'eligible' && (toSupervised({}) as { precondition?: string }).precondition).toBe(HUMAN_KEY);
   });
   it('never makes a class eligible on its own: the counts it sits beside still decide', () => {
     const p = promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, cleanDays: 14 }) }, 'exploit-test', RULES);

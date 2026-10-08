@@ -50,7 +50,8 @@ policy demotes on a revert). A class no agent holds says "No record yet". The ru
 trust-policy.yml's `promotion` block as `rulesOf` reads it: to Supervised, accepted outputs, reverts, guardrail blocks
 (`guardrail_blocks`) and "counted over the last N outputs" (`window_last`: the poll counts an assisted class over its last
 N outputs); to Hands-off, accepted outputs, merged without edits, clean days, reverts or incidents, a mechanical proof
-class, and the human key (`human_key`: met by construction, a person merges the promotion's policy MR). Either step adds
+class. The human key is not a row: under the rows the rule states the promote write's precondition, "a person merges
+this MR; Belay never merges it" (`HUMAN_KEY`), as the promote preview does; no GitLab approval setting is read. Either step adds
 a `cooldown` row, not met, while the record's `cooldown_until` (tier-state.yml, stamped by the tripwire or a revoke) is
 ahead: the class is not eligible before that date. Where each counter
 comes from is the poller's table. A record that does not state a counter (the demo fixture states no guardrail blocks

@@ -2,6 +2,7 @@
 // merges it in GitLab; Belay never merges and never pushes a higher tier to the default branch. The branch commit carries
 // tier-state.yml's last_commit_id on the default branch as it was read, so the MR never starts from a stale copy that
 // would quietly undo a demotion made in between.
+import { HUMAN_KEY } from '@/lib/promotion/rules';
 import { TIER_ORDER } from '@/schemas/tier';
 import { standingOf } from '../../../../engine/decide/standing';
 import { readPolicy } from '@/server/poller/derive/policy';
@@ -46,7 +47,7 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
   const title = `Promote ${move}`;
   return {
     title: `Promote ${intent.class} to ${intent.to}`,
-    summary: `Opens a policy MR in ${repo.pathWithNamespace} as ${ctx.operator}. You merge it; the next MR pipeline reads the new tier.`,
+    summary: `Opens a policy MR in ${repo.pathWithNamespace} as ${ctx.operator}. Precondition: ${HUMAN_KEY}. The next MR pipeline reads the new tier.`,
     commands: [
       ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, startBranch: base, content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }),
       ctx.port.plan.createMr({

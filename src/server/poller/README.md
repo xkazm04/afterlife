@@ -74,9 +74,10 @@ reads it "not recorded", never met. Mapped to trust-policy.yml's `promotion` blo
 | guardrailBlocks (`guardrail_blocks` column, migration 0007) | merge requests in the counts with a stated guardrail block: a `guardrail_verdict` event with `verdict: 'block'`, or a task row in state `blocked` with the label `blocked` (which `derive/task.ts` `stateOf` sets only from `guardrail::block`). A merge request blocked on any head counts, even if a later head passed. 0 only when this poll read the ledger (imported or unchanged) and every `guardrail_verdict` event in the counts states `pass` (or there is none): the gate emits one, stating the verdict, with every guardrail verdict (`gitlab/components/scripts/decide/apply-gate.mjs:56`). An event written before the ledger stated the verdict, which no task row resolves as a block, leaves it null | `assisted_to_supervised.guardrail_blocks` |
 | window (`count_window` column, migration 0007) | for an assisted class only: trust-policy.yml's `window_last`. The counts above are then taken over the holder's last that many outputs since `since`: merge requests with a stated outcome (merged, reverted, closed, guardrail- or proof-blocked) by the latest time stated for each; one still in flight is not an output. Null: counted since `since` | `assisted_to_supervised.window_last` |
 
-`human_key` (`supervised_to_hands_off`) is met by construction, never counted: Belay's only write that raises a tier is the
-promotion's policy MR, which `planPromote` opens and never merges (`src/server/actions/plans/promote.ts:43-49`), so a
-person always merges the promotion (cited in `src/lib/promotion/rules.ts`). Live, the poller never writes a task
+`human_key` (`supervised_to_hands_off`) is neither counted nor a met row: it is the promote write's precondition
+(`HUMAN_KEY` in `src/lib/promotion/rules.ts`, "a person merges this MR; Belay never merges it"), stated beside the rule on
+Ladder and in the promote preview. Belay's only write that raises a tier is the promotion's policy MR, which `planPromote`
+opens and never merges; Belay reads no GitLab approval setting, so the precondition is stated, not checked. Live, the poller never writes a task
 `reverted` (it reads no revert MR), so reverts rests on the tripwire. A stated guardrail block is a lower bound when other
 verdicts are unresolved: enough to read the rule unmet, never met.
 

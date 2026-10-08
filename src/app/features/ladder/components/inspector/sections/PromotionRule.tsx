@@ -9,7 +9,8 @@ import styles from './sections.module.css';
 
 /**
  * The promotion rule as counts, against trust-policy.yml's thresholds. A count is drawn, never a forecast: "no ETA" says
- * so. `uncounted`: the counts read a record the poll did not count (live), marked so.
+ * so. `uncounted`: the counts read a record the poll did not count (live), marked so. The human key is the promote
+ * write's precondition, stated under the rows and never counted among the met ones.
  */
 export function PromotionRule({ promotion, uncounted, sections }: { promotion: Promotion; uncounted: boolean; sections: SectionState }) {
   const counted = promotion.kind === 'eligible' || promotion.kind === 'notyet';
@@ -34,6 +35,9 @@ export function PromotionRule({ promotion, uncounted, sections }: { promotion: P
               ) : null}
             </div>
           ))}
+          <div className={styles.note} title="Belay opens the policy MR and stops: it reads no GitLab approval setting">
+            Precondition: {promotion.precondition}.
+          </div>
           <div className={styles.foot}>
             <span title={THRESHOLD_NOTE}>
               <HonestyChip kind="unknown">policy numbers</HonestyChip>

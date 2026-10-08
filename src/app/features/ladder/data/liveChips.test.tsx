@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { DEMO } from '@/lib/demo';
 import { setDataSource } from '@/server/data';
+import { HUMAN_KEY } from '@/lib/promotion';
 import { replayClock } from '@/server/data/live/clock';
 import { liveSource } from '@/server/data/live/liveSource';
 import { buildSnapshot } from '@/server/data/live/snapshot';
@@ -72,7 +73,7 @@ describe('Ladder, live: which record is the poll\'s', () => {
 
   it('the inspector\'s rule marks the counts it reads only when they are not the poll\'s', () => {
     const rule = (uncounted: boolean) =>
-      renderToString(createElement(PromotionRule, { promotion: { kind: 'notyet', next: 'hands_off', rules: [] }, uncounted, sections: { isOpen: () => true, setOpen: () => undefined } }));
+      renderToString(createElement(PromotionRule, { promotion: { kind: 'notyet', next: 'hands_off', rules: [], precondition: HUMAN_KEY }, uncounted, sections: { isOpen: () => true, setOpen: () => undefined } }));
     expect(rule(true)).toContain(NOT_COUNTED);
     expect(rule(false)).not.toContain(NOT_COUNTED);
     expect(rule(false)).not.toContain('>demo<');
