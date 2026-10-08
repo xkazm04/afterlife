@@ -273,13 +273,20 @@ function sweepMr(t, iid) {
   if (l.code !== 0) throw new Error(`ledger-append exited ${l.code}`);
 }
 
+const MR_PAGES = 5;
 let failed = 0;
 for (const t of targetsOf(cfg, say)) {
   let mrs;
   try {
     const full = api(`projects/${t.id}`);
     Object.assign(t, { ci_config_path: full?.ci_config_path ?? null, web_url: full?.web_url ?? t.web_url });
-    mrs = apiAll(`projects/${t.id}/merge_requests?state=opened&order_by=updated_at`, 5).filter((x) => String(x.author?.username ?? '').startsWith(cfg.agentPrefix));
+    const open = apiAll(`projects/${t.id}/merge_requests?state=opened&order_by=updated_at`, MR_PAGES);
+    // Past the cap the rest are not read (F82): the ones read are still swept, and the job ends red, as F65 does.
+    if (open.length >= MR_PAGES * 100) {
+      failed++;
+      say(`${t.path_with_namespace}: more than ${MR_PAGES * 100} open MRs: the ones past them are not swept`);
+    }
+    mrs = open.filter((x) => String(x.author?.username ?? '').startsWith(cfg.agentPrefix));
   } catch (e) {
     failed++;
     say(`${t.path_with_namespace}: cannot read it (${e.message}): nothing written there`);

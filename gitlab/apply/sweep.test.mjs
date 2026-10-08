@@ -308,6 +308,15 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(sweep(autoMerging('a-maintainer')).writes).toEqual([]);
   });
 
+  it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {
+    const human = (i) => ({ iid: 1000 + i, author: { username: `dev-${i}` } });
+    const pages = Array.from({ length: 5 }, (_, p) => Array.from({ length: 100 }, (_, i) => (p === 0 && i === 0 ? { iid: 7, author: { username: 'ai-patcher-acme' } } : human(p * 100 + i))));
+    const r = sweep(group({ extra: { 'projects/1/merge_requests': { __pages: pages } } }));
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/acme\/ledgerline: more than 500 open MRs: the ones past them are not swept/);
+    expect(glabWrites(r, 'note create')[0].body.message).toMatch(/^\*\*Belay proof: PASS\*\*/);
+  });
+
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
     const r = sweep(group(), { CI_SERVER_FQDN: 'gitlab.example' });
     expect(r.code, r.stderr).toBe(0);

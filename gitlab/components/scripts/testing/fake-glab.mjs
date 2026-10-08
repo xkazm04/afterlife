@@ -8,6 +8,7 @@
 // `{method: "GLAB", path: "mr <command>", body: {iid, repo, message, label, unlabel, sha}}`, unless the map answers
 // "GLAB mr <command>" with an `__http` error. A GET route `{"__raw": "text"}` answers with the text itself (a raw file or
 // an artifact), and every GET is appended to $FAKE_GLAB_READS when it is set, so a test can say what was never read.
+// A GET route `{"__pages": [[...], [...]]}` answers page n with its nth list (empty past the last), for a list past a page cap.
 import fs from 'node:fs';
 
 const argv = process.argv.slice(2);
@@ -68,4 +69,5 @@ if (routes[base] && typeof routes[base] === 'object' && typeof routes[base].__ra
   process.exit(0);
 }
 const page = Number(new URLSearchParams(query).get('page') ?? '1');
-process.stdout.write(JSON.stringify(page > 1 ? [] : routes[base]));
+const pages = routes[base] && typeof routes[base] === 'object' && Array.isArray(routes[base].__pages) ? routes[base].__pages : null;
+process.stdout.write(JSON.stringify(pages ? (pages[page - 1] ?? []) : page > 1 ? [] : routes[base]));
