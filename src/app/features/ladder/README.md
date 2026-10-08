@@ -38,8 +38,9 @@ revoke lowers every holder above the target in one commit). Unknown reads unknow
 
 Promotion counts: a counter a record does not know is "not recorded" and never met (`src/lib/promotion/promotion.ts`). Live, the
 record columns are the record the poll counted and stored for a class one agent holds (`server/poller/README.md`, "Record
-counters"): Acc, Rv and Clean as counted, and a dim dash titled "Not recorded" for a counter nothing states (No-edit,
-always; Rv and Clean unless the policy demotes on a revert). A class no agent holds says "No record yet". The rules are
+counters"): Acc, No-edit, Rv and Clean as counted, and a dim dash titled "Not recorded" for a counter nothing states
+(No-edit when a counted merge has no task row that states whether anyone else pushed to it; Rv and Clean unless the
+policy demotes on a revert). A class no agent holds says "No record yet". The rules are
 trust-policy.yml's `promotion` block as `rulesOf` reads it: to Supervised, accepted outputs, reverts, guardrail blocks
 (`guardrail_blocks`) and "counted over the last N outputs" (`window_last`: the poll counts an assisted class over its last
 N outputs); to Hands-off, accepted outputs, merged without edits, clean days, reverts or incidents, a mechanical proof

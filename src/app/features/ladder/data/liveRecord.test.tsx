@@ -1,5 +1,6 @@
 // Live, Ladder's record columns show the record the poll counted and stored: the accepted count, and for no-edit, which
-// no task or ledger event states, a dash marked "not recorded" (never 0, never "No record yet"). Demo GitLab, no mock.
+// no task row states for these merges (known from the ledger alone), a dash marked "not recorded" (never 0, never "No
+// record yet"). Demo GitLab, no mock.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';

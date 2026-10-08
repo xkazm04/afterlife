@@ -67,7 +67,7 @@ reads it "not recorded", never met. Mapped to trust-policy.yml's `promotion` blo
 | accepted | distinct merge requests the holder merged in the class since `since`: ledger `merged` events (`agent`, `action_class`, `at`, `subject.iid`) and task rows (`agent`, `action_class`, state `merged`, `finishedAt`), minus any a task row states `reverted`. In the window, when there is one | `assisted_to_supervised.accepted`, `supervised_to_hands_off.accepted` |
 | reverts | task rows in state `reverted` since `since` (in the window, when there is one). Established only when the policy demotes on `revert` (the tripwire then rewrites the record, so `since` post-dates any revert it saw); else null | `assisted_to_supervised.reverts` |
 | cleanDays | whole days since `since`, only when reverts is established and 0; else null | `supervised_to_hands_off.clean_days` |
-| noEdit | none: no row or event says whether a person edited an MR before it merged. Always null, so no class is ever promoted to hands-off from a poll | `supervised_to_hands_off.no_edit_ratio` |
+| noEdit | merged outputs in the counts with no edit, over the merged outputs in the counts. "Merged without edits": before the MR merged, no commit reached it from anyone but the agent that opened it. The task row states it (`detail.edited`, `derive/task.ts:101`) for a merged MR whose notes this poll read: edited when a push note by another account precedes the merge (`parse/pushes.ts`; GitLab writes a system note "added N commit(s)" for each push to the source branch, authored by the pusher `[R?]`, from GitLab's docs and source, not a run). Null when any counted merged output has no stated fact (a merge known only from a ledger `merged` event, or a row indexed before the fact was read), and when there is no merged output. A person's rebase and a reviewer's applied suggestion are pushes by that person, so edits; the agent's own pushes, force pushes included, are not | `supervised_to_hands_off.no_edit_ratio` |
 | needed | not in the policy: null | - |
 | guardrailBlocks (`guardrail_blocks` column, migration 0007) | merge requests in the counts with a stated guardrail block: a `guardrail_verdict` event with `verdict: 'block'`, or a task row in state `blocked` with the label `blocked` (which `derive/task.ts` `stateOf` sets only from `guardrail::block`). A merge request blocked on any head counts, even if a later head passed. 0 only when this poll read the ledger (imported or unchanged) and every `guardrail_verdict` event in the counts states `pass` (or there is none): the gate emits one, stating the verdict, with every guardrail verdict (`gitlab/components/scripts/decide/apply-gate.mjs:56`). An event written before the ledger stated the verdict, which no task row resolves as a block, leaves it null | `assisted_to_supervised.guardrail_blocks` |
 | window (`count_window` column, migration 0007) | for an assisted class only: trust-policy.yml's `window_last`. The counts above are then taken over the holder's last that many outputs since `since`: merge requests with a stated outcome (merged, reverted, closed, guardrail- or proof-blocked) by the latest time stated for each; one still in flight is not an output. Null: counted since `since` | `assisted_to_supervised.window_last` |
@@ -88,7 +88,7 @@ Pipelines are not read: no row consumes them yet.
 
 1. **Reverts and clean days are stated only when trust-policy.yml demotes on a revert.** Only then does the tripwire
    rewrite the record's `since` on a revert, so "no revert since `since`" is a fact (`derive/counters.ts:21-25`,
-   `revertDemotes`; applied at `derive/counters.ts:102`). Under a policy that does not demote on `revert`, reverts and
+   `revertDemotes`; applied at `derive/counters.ts:121`). Under a policy that does not demote on `revert`, reverts and
    clean days read "not recorded", and no class is promoted to Supervised or Hands-off from a poll.
 2. **A promotion MR closed without merging does not ask again until the record's `since` moves.** A person acting on the
    ask (opening the MR) settles it, and an ask settled at or after the record's `since` is not reopened
@@ -98,3 +98,9 @@ Pipelines are not read: no row consumes them yet.
    (`cycle.ts:83`), but the record is counted and the ask opened per target project (`project.ts:151`,
    `classes.ts:29-52`, id `promote:<project>:<class>` from `src/lib/promotion/promotion.ts:39`): a class whose holder works
    in two projects is counted, and asked about, once in each. Kept because the demo group holds one delivery project.
+4. **No-edit is stated only for a merge the poll read as a task.** The poll reads an MR's notes only while it is in the
+   task window (`BELAY_TASK_HOURS`, 24 h by default), so a merge first seen later, or one known only from the ledger,
+   has no edited fact and the ratio reads "not recorded" until it leaves the counts. Tasks indexed before the fact was
+   read carry none either. The push note's shape is `[R?]` (docs, not a run): if GitLab words a push differently, a
+   person's push would be missed, so a recorded run is owed before no-edit is trusted on a real group. Notes are read up
+   to the adapter's page cap (50 pages of 100).

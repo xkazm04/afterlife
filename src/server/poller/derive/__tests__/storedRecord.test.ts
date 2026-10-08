@@ -1,5 +1,5 @@
 // The poll stores the record it counted on the class's class_tier row, each counter on its own: accepted is counted from
-// the ledger, and no-edit, which nothing states, is stored null (never 0). Against the demo GitLab, with no mock between.
+// the ledger, and no-edit, which no task row states for merges known from the ledger alone, is stored null (never 0). Against the demo GitLab, with no mock between.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { listClassTiers } from '@/server/index/repositories/fleet/classTier';
 import { NOW, rig, type Rig } from '../../__tests__/helpers';

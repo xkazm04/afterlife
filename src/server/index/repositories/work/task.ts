@@ -7,6 +7,11 @@ export type TaskState = 'started' | 'proved' | 'blocked' | 'merged' | 'reverted'
 /** Display facts derived when the task was imported. A countdown is stored as its due instant, never as text. */
 export type TaskDetail = Partial<Pick<Task, 'chain' | 'agentWords' | 'countsToward' | 'quote' | 'reason' | 'stats' | 'grade' | 'linksResolved'>> & {
   clock?: { kind: string; dueAt: string; total: string };
+  /**
+   * A merged MR only, when the poll read its notes: true when a commit reached it before it merged from anyone but the
+   * agent that opened it (a push note by another account, poller/parse/pushes.ts). Absent: nobody stated it.
+   */
+  edited?: boolean;
 };
 
 export interface TaskRow {

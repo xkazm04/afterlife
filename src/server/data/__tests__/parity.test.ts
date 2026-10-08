@@ -110,8 +110,8 @@ describe('the poll really did write what the parity rests on (it is not just the
     const tiers = await listClassTiers(db, 'ledgerline');
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')).toMatchObject({ setBy: 'operator via promotion MR !33' });
     // the class records live are the poll's counts (each unknown counter null): !41 since the record's since; the seed said 16.
-    // !41's guardrail_verdict states pass, so the counts hold no guardrail block
-    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: null, cleanDays: 4, reverts: 0, guardrailBlocks: 0 });
+    // !41's guardrail_verdict states pass, so the counts hold no guardrail block; its notes hold no push but the patcher's
+    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: 1, cleanDays: 4, reverts: 0, guardrailBlocks: 0 });
     const proof = (await listProofsFor(db, ['01J8Q4'])).get('01J8Q4');
     expect(proof?.block?.task.head_sha).toBe('a41c0ffee00000000000000000000000000000a1');
   });
@@ -186,7 +186,7 @@ describe('where live differs from demo, on purpose', () => {
     const [d, l] = both(() => loadNeedsYouView());
     expect(d.kind).toBe('desk');
     expect(l).toEqual({ kind: 'empty', seeded: 5 });
-    setDataSource(live); // nor could it: the records the poll counted state no no-edit share for the desk's cards
+    setDataSource(live); // nor could it: the desk is built around the demo's seeded items, which live never draws
     expect(() => pickNeedsYouDemo()).toThrow(MissingNeedsYouData);
     setDataSource(null);
   });

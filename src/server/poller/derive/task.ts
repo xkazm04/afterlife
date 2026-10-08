@@ -11,6 +11,7 @@ import { extractBlocks } from '../parse/blocks';
 import { parseGuardrailBlock, type GuardrailBlock } from '../parse/guardrail';
 import { parseLabels, type LabelFacts } from '../parse/labels';
 import { parseProofBlock } from '../parse/proofBlock';
+import { editedBefore } from '../parse/pushes';
 import { parseTrailers, proseOf } from '../parse/trailers';
 
 export interface TaskFacts {
@@ -96,6 +97,8 @@ export function deriveTask(f: TaskFacts, projectId: string, cfg: PollerConfig, t
   const detail: TaskDetail = {
     ...(words ? { agentWords: words } : {}),
     ...(hit ? { quote: hit.quote, reason: hit.explanation } : {}),
+    // the notes are this poll's read of the MR: whether anyone but its agent pushed to it before it merged
+    ...(mr.state === 'merged' ? { edited: editedBefore(f.notes, mr.author, mr.mergedAt) } : {}),
   };
   const { state, label } = stateOf(f, labels, proof?.verdict ?? null, stale);
   const cls = t.class;

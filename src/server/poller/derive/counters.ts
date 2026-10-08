@@ -4,14 +4,16 @@
 // class_tier row (each counter nullable on its own since migration 0006), and ./promotion.ts reads them.
 import type { RecordCounters } from '@/lib/demo/types';
 import type { LedgerEvent } from '@/schemas/ledger';
-import type { TaskRow } from '@/server/index/repositories/work/task';
+import type { TaskDetail, TaskRow } from '@/server/index/repositories/work/task';
 
 /** A record's counters, each on its own: null is one nothing states. The shape of Ladder's Counters. */
 export type ClassCounters = RecordCounters;
 
 const DAY_MS = 86_400_000;
 
-export type CountedTask = Pick<TaskRow, 'agent' | 'actionClass' | 'state' | 'stateLabel' | 'startedAt' | 'finishedAt' | 'mrIid'>;
+export type CountedTask = Pick<TaskRow, 'agent' | 'actionClass' | 'state' | 'stateLabel' | 'startedAt' | 'finishedAt' | 'mrIid'> & {
+  detail?: Pick<TaskDetail, 'edited'>;
+};
 export type CountedEvent = Pick<LedgerEvent, 'agent' | 'action_class' | 'kind' | 'at' | 'subject' | 'verdict'>;
 
 /** What the poller holds for one project: its indexed tasks and its imported ledger. */
@@ -91,6 +93,23 @@ function guardrailBlocks(src: CounterSource, h: Holder, from: number, outputs: R
   return [...unstated].some((iid) => inScope(iid)) ? null : 0;
 }
 
+/**
+ * Merged without edits: the counted merged outputs no commit reached from anyone but the holder before they merged, over
+ * the counted merged outputs. A task row states it (`detail.edited`, derive/task.ts, from the MR's push notes). Null when
+ * any counted merged output has no such row (a merge known only from the ledger, or a row indexed before it was read),
+ * and when there is no merged output: never a ratio from facts nobody stated.
+ */
+function noEditOf(src: CounterSource, h: Holder, merged: readonly number[]): number | null {
+  if (merged.length === 0) return null;
+  const facts = new Map<number, boolean>();
+  for (const t of src.tasks) {
+    const edited = t.detail?.edited;
+    if (t.agent === h.agent && t.actionClass === h.classId && t.mrIid !== null && typeof edited === 'boolean') facts.set(t.mrIid, edited || facts.get(t.mrIid) === true);
+  }
+  if (merged.some((iid) => !facts.has(iid))) return null;
+  return merged.filter((iid) => facts.get(iid) === false).length / merged.length;
+}
+
 export function countRecord(src: CounterSource, h: Holder, now: Date): ClassCounters {
   if (!h.since) return NONE;
   const from = h.since.getTime();
@@ -103,7 +122,7 @@ export function countRecord(src: CounterSource, h: Holder, now: Date): ClassCoun
   return {
     accepted: n('merged'), // a reverted merge request is not an accepted output
     needed: null, // not in trust-policy.yml: the screens show the policy's own threshold
-    noEdit: null, // no row or event says whether a person edited a merge request before it merged
+    noEdit: noEditOf(src, h, counted.filter(([, x]) => x.outcome === 'merged').map(([iid]) => iid)),
     reverts,
     cleanDays: reverts === 0 ? Math.max(0, Math.floor((now.getTime() - from) / DAY_MS)) : null,
     // in the window, an output outside it does not count; a merge request that is no output yet might be the next one

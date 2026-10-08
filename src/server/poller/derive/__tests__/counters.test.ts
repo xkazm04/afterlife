@@ -33,7 +33,7 @@ const eligible = (src: CounterSource, tier: ClassTierRow['tier'] = 'assisted') =
   eligibleOf({ row: row(tier), record: countRecord(src, { agent: AGENT, classId: CLS, since: SINCE, window: tier === 'assisted' ? 5 : null }, NOW), role: 'patcher', track: 1, ceiling: 'hands_off', proof: 'exploit-test' }, rules);
 
 describe('counters from tasks and the ledger', () => {
-  it('counts merged MRs since the record, once each; no-edit has no source and stays null', () => {
+  it('counts merged MRs since the record, once each; no-edit stays null: merges known from the ledger alone state no edit', () => {
     expect(countRecord(five(), { agent: AGENT, classId: CLS, since: SINCE }, NOW)).toEqual({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: null });
   });
 
