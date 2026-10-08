@@ -30,13 +30,15 @@ describe('buildEdges', () => {
     const needs = Object.values(GRAPH.needs).reduce((n, k) => n + k.length, 0);
     const uses = Object.values(GRAPH.capUses).reduce((n, k) => n + k.length, 0);
     expect(edges).toHaveLength(needs + uses);
-    expect(edges.filter((e) => e.kind === 'step')).toHaveLength(3);
+    expect(edges.filter((e) => e.kind === 'step')).toHaveLength(4);
     expect(edges.filter((e) => e.kind === 'dep')).toHaveLength(5);
   });
   it('marks a need met only when its step is done or its track armed', () => {
     expect(edges.find((e) => e.id === 'T4>T1')?.met).toBe(true);
     expect(edges.find((e) => e.id === 'T3>T1')?.met).toBe(false);
     expect(edges.find((e) => e.id === 'step:6>T5')?.met).toBe(false);
+    expect(edges.find((e) => e.id === 'step:4>T4')?.met).toBe(false);
+    expect(edges.find((e) => e.id === 'step:4>T4')?.met).toBe(false);
   });
   it('capability edges are unknown or met by the doctor, never rounded up', () => {
     expect(edges.find((e) => e.id === 'T2>Vulnerability report via GraphQL / MCP')?.unknown).toBe(true);

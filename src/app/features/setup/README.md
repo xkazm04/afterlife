@@ -31,7 +31,7 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   the read saw its block there (or saw it gone); otherwise the MR stays open with what was found (`model/flow/verify.ts`).
   Demo mode reads nothing and the track says simulated.
 - Live (`model/live/`, `hooks/liveFlow.ts`, `read/reread.ts`): the opening state is the read. T4 with no block on main
-  opens ready (Arm); a track with no arm content is "not defined yet"; a refused or failed read is unknown, with its reason.
+  opens ready (Arm) once step 4 reads done (its MR includes a belay-pack component, so T4 needs the projects step 4 creates; T1 and T8 inherit it through T4), else locked · needs step 4; a track with no arm content is "not defined yet"; a refused or failed read is unknown, with its reason.
   No timer probes: a step's verify ("I did it · verify", "Read again") and Re-probe call `rereadSetupAction` (read only,
   localhost only), and a step no read observes stays unknown, "not probed". A human step not read done is still yours:
   it counts in "need you", the map marks it "you", and it reads unread (or not yet), never done; "Nothing waits for you"

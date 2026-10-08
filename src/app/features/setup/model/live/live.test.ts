@@ -3,8 +3,9 @@ import { getSetup } from '@/lib/demo';
 import type { LiveSetupRead, TrackRead } from '@/server/data/setup/types';
 import { DEMO_NAMES, STEP_DETAIL } from '../../data/stepDetail';
 import { setupReducer } from '../flow/reducer';
-import { armList, createSetupState, humanGates, namesOf, needYouCount, saidSteps, stepDetail, stepList } from '../flow/state';
-import { stepTip } from '../flow/wording';
+import { ARM_META } from '../../data/armMeta';
+import { armList, createSetupState, humanGates, namesOf, needLabel, needYouCount, saidSteps, stepDetail, stepList, unmet } from '../flow/state';
+import { stepTip, trackWhy } from '../flow/wording';
 
 const AT = { at: '2026-10-07T09:30:00.000Z', label: '11:30' };
 const notDefined = (id: string): TrackRead => ({ state: 'undefined', text: `the repo does not define ${id}'s arm content yet` });
@@ -31,7 +32,9 @@ function read(t4: TrackRead = { state: 'absent', text: '.gitlab-ci.yml on main o
 
 describe('the live opening state is what the server read, never the demo’s', () => {
   it('T4 with no block on main opens ready (Arm), not armed; every other track is not defined yet', () => {
-    const s = createSetupState(getSetup(), 0, read());
+    const r = read();
+    r.steps.steps[4] = { state: 'done', text: '5 of 5 projects exist' };
+    const s = createSetupState(getSetup(), 0, r);
     expect(s.live).toBe(true);
     expect(s.arm.T4).toMatchObject({ st: 'ready', mr: null, found: expect.stringMatching(/has no T4 arm block/) });
     expect(armList(s).filter((a) => a.id !== 'T4').map((a) => a.st)).toEqual(Array(7).fill('undefined'));
@@ -124,5 +127,29 @@ describe('live re-reads', () => {
     expect(done.steps[1]).toMatchObject({ st: 'done', probe: { ok: true, text: 'paired with kazdanm · checkout C:/afterlife' } });
     const refused = setupReducer(s, { t: 'steps-read', steps: { ...AT, steps: { 1: { state: 'unknown', reason: 'this request names "evil.test", not localhost' } } } });
     expect(refused.steps[1]).toMatchObject({ st: 'unknown', probe: { ok: false, text: expect.stringMatching(/evil\.test/) } });
+  });
+});
+
+describe('T4 needs step 4: its MR includes belay-pack/proof-engine (value-3)', () => {
+  const stepFour = (state: 'done' | 'failed') => {
+    const r = read();
+    r.steps.steps[4] = state === 'done' ? { state, text: '5 of 5 projects exist' } : { state, text: 'missing belay-pack, belay-engine, belay-apply' };
+    return createSetupState(getSetup(), 0, r);
+  };
+  it('with step 4 failed T4 is locked and reads "needs" with step 4’s label', () => {
+    const s = stepFour('failed');
+    expect(s.arm.T4?.st).toBe('locked');
+    expect(unmet(s, 'T4')).toEqual(['step:4']);
+    expect(needLabel('step:4')).toBe('the belay-pack, belay-engine and belay-apply projects (step 4)');
+    expect(trackWhy(s, s.arm.T4!)).toMatch(/^locked · needs the belay-pack, belay-engine and belay-apply projects \(step 4\)/);
+  });
+  it('with step 4 done T4 reads ready, as it did', () => {
+    const s = stepFour('done');
+    expect(s.arm.T4?.st).toBe('ready');
+    expect(unmet(s, 'T4')).toEqual([]);
+  });
+  it('T1 and T8 inherit it through T4 and do not list step 4 twice', () => {
+    expect(ARM_META.T1!.needs).not.toContain('step:4');
+    expect(ARM_META.T8!.needs).not.toContain('step:4');
   });
 });

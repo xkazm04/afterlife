@@ -1,7 +1,7 @@
 import type { ArmMeta } from './types';
 
 export const ARM_META: Readonly<Record<string, ArmMeta>> = {
-  T4: { title: 'Arm guardrail: block what it can quote', short: 'Guardrail', needs: [] },
+  T4: { title: 'Arm guardrail: block what it can quote', short: 'Guardrail', needs: ['step:4'] },
   T3: { title: 'Arm governor: tripwire and tier-gate', short: 'Governor', needs: [] },
   T6: { title: 'Arm maturity: scanners and stage grid', short: 'Scanners', needs: [] },
   T1: { title: 'Arm patcher: exploit-test proof class', short: 'Patcher', needs: ['T4', 'T3', 'T6'] },
@@ -13,6 +13,7 @@ export const ARM_META: Readonly<Record<string, ArmMeta>> = {
 
 /** How an unmet step need reads in "locked · needs ...". */
 export const NEED_LABEL: Readonly<Record<string, string>> = {
+  'step:4': 'the belay-pack, belay-engine and belay-apply projects (step 4)',
   'step:6': 'a runner (step 6)',
   'step:12': 'the SBOM job (step 12)',
   'step:7': 'a review-app env (step 7)',
