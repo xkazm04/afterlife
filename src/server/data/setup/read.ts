@@ -11,6 +11,7 @@ import type { GitLabPort } from '@/server/gitlab/port';
 import type { PairingRow } from '@/server/index/repositories/pairing';
 import { why, type Listing, type StepCtx } from './ctx';
 import { bootstrapRead, licenceRead, runnerRead, secretsRead } from './humanSteps';
+import { protectionsRead } from './protections';
 import { NOT_PROBED, stampOf, type DoctorRead, type LiveSetupRead, type ReadStamp, type StepRead, type StepsRead, type TrackRead } from './types';
 
 /** What the reads go through: the live runtime's port, the configured group, and the index's GitLab ids. */
@@ -27,10 +28,10 @@ const NO_PORT = 'live mode has no GitLab port yet (the first poll has not finish
 
 /**
  * The steps a read can observe: 0 (glab's login), 1 (the pairing row), 4 (the projects), and the human steps 3 (the plan),
- * 6 (the runner), 8 (its settings that hold no secret: it never reads done) and 10 (the bootstrap MR). Every other step is
- * unknown, "not probed".
+ * 6 (the runner), 8 (its settings that hold no secret: it never reads done) and 10 (the bootstrap MR), and 9 (every
+ * protection it lists, read back). Every other step is unknown, "not probed".
  */
-export const OBSERVED_STEPS: readonly number[] = [0, 1, 3, 4, 6, 8, 10];
+export const OBSERVED_STEPS: readonly number[] = [0, 1, 3, 4, 6, 8, 9, 10];
 
 export interface SetupReads {
   group: string;
@@ -127,7 +128,7 @@ export function setupReads(port: SetupPort | null, pairing: PairingRow | null, p
       const l = await listing(port, project);
       const c: StepCtx = { port: port.port, groupId: port.groupId, group: pairing?.groupPath ?? String(port.groupId), project, listing: l, today: isoDay(now()) };
       steps[4] = projectsRead(l, project, projects);
-      [steps[0], steps[3], steps[6], steps[8], steps[10]] = await Promise.all([loginRead(port), licenceRead(c), runnerRead(c), secretsRead(c), bootstrapRead(c)]);
+      [steps[0], steps[3], steps[6], steps[8], steps[9], steps[10]] = await Promise.all([loginRead(port), licenceRead(c), runnerRead(c), secretsRead(c), protectionsRead(c), bootstrapRead(c)]);
       return { ...at, steps };
     },
   };

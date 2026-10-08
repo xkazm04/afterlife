@@ -13,8 +13,11 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   listing the other reads share), and the human steps 3 (the group's plan and trial), 6 (a `gitlab--duo` runner online
   for the target), 8 (belay-apply's minimum role for pipeline variables and its schedule on main; never a CI/CD variable,
   so it never reads done) and 10 (the `belay/bootstrap` MR merged and `.gitlab/duo/agent-config.yml` on the default
-  branch), in `humanSteps.ts`. Step 7 is not read (`StepDetail.unread` says why). One live load makes about 22 GitLab
-  calls (16 before the human-step reads). `illustrative` says what is still the catalogue's.
+  branch), in `humanSteps.ts`; and step 9 read back (`protections.ts`: the target's main and `belay/*`, its CODEOWNERS,
+  author-cannot-approve, belay-apply's main, the two job token allowlists, the `v*` tags, belay-ledger's main), done only
+  when every setting reads back as listed. Step 7 is not read (`StepDetail.unread` says why). One live load makes 28 to 34
+  GitLab calls (16 before these reads). Step 9's commands read first, then DELETE and POST each protection: GitLab
+  protects a pushed main already and a second POST answers 409. `illustrative` says what is still the catalogue's.
 - `components/map/` canvas, edge layer (SVG, measured from `[data-node]`), `columns/`, `nodes/`.
 - `components/inspector/` default / step / track / capability panels; `parts/` dep lists, stats, probe line.
 - `components/toolbar/` group menu, doctor lozenge (lights capabilities), Re-probe.
@@ -65,12 +68,12 @@ Known disagreements (file:line on main at 502d268; the skill is `skills/adopt-be
 
 | | Step | Skill | Setup |
 |---|---|---|---|
-| a | all | `:17` "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1, 3, 4, 6, 8 (never done) and 10 itself (`src/server/data/setup/read.ts` `OBSERVED_STEPS`, `humanSteps.ts`); 7 is said, not read |
+| a | all | `:17` "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1, 3, 4, 6, 8 (never done), 9 and 10 itself (`src/server/data/setup/read.ts` `OBSERVED_STEPS`, `humanSteps.ts`); 7 is said, not read |
 | b | 1 | `:28` no pairing | pairs the checkout (`data/stepDetail.ts:17`) |
 | c | 5 | `:32` pairs the checkout | shows `npx belay pair` (`data/stepDetail.ts:30`); `cli/belay.mjs:29-33` does not run it |
 | d | 0 | `:27` checks the GitLab version | does not (`data/stepDetail.ts:16`, `read.ts:53`) |
 | e | 2 | `:29` asks for a CRA drill mode | does not (`data/stepDetail.ts:18`) |
-| f | 9 | `:36` no author-cannot-approve | turns it on (`data/stepDetail.ts:48`) |
+| f | 9 | agrees since the r1 rework: author-cannot-approve, the CODEOWNERS paths, read first then DELETE and POST | same |
 | g | 10 | `:37` Agent, then Human | human (`data/stepDetail.ts:57`) |
 | h | 11, 12, 14 | | shows `flows enable`, `scan --propose`, `doctor --json` (`data/stepDetail.ts:63,67,75`); `cli/belay.mjs:26-36` runs only `doctor`, with no flags |
 | i | 4 | `:31` creates belay-engine too | `DEMO_NAMES.projects` has no belay-engine (`data/stepDetail.ts:12`); the live read has it (`read.ts:22`) |

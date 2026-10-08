@@ -20,6 +20,25 @@ export const DEMO_NAMES: StepNames = { host: 'gitlab.com', group: 'acme-lab', pr
  * step. They name `n`'s group and project, never the demo's in live mode.
  */
 const enc = (n: StepNames, project: string): string => encodeURIComponent(`${n.group}/${project}`);
+/** A shell word: single-quoted when it holds a glob. */
+const word = (s: string): string => (s.includes('*') ? `'${s}'` : s);
+const MAINTAINERS = ['push_access_level=40', 'merge_access_level=40', 'allow_force_push=false'];
+
+/**
+ * Step 9's commands for one project: read its protections, then for each name unprotect it and protect it as listed.
+ * GitLab protects a pushed default branch already and a POST for a protected name answers 409, so a bare POST does not
+ * run on a pushed main; DELETE then POST does, on a protected name or not (docs.gitlab.com/api/protected_branches).
+ */
+function protections(n: StepNames, project: string, kind: 'protected_branches' | 'protected_tags', rules: readonly (readonly [string, readonly string[]])[]): string[] {
+  const base = `projects/${enc(n, project)}/${kind}`;
+  return [
+    `glab api ${base}`,
+    ...rules.flatMap(([name, fields]) => [
+      `glab api --method DELETE ${word(`${base}/${encodeURIComponent(name)}`)}`,
+      `glab api --method POST ${base} ${[`name=${name}`, ...fields].map((f) => `-f ${word(f)}`).join(' ')}`,
+    ]),
+  ];
+}
 
 const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   0: { who: 'agent', does: 'Checks git, glab and node, and that glab is signed in as you.', cmd: ['glab auth status', 'glab api user'], probe: 'glab api user → 200 · signed in as @you' },
@@ -58,13 +77,13 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
     before: 'belay-apply tokens and ANTHROPIC_API_KEY not read', probe: 'ANTHROPIC_API_KEY exists · masked · protected · belay-apply tokens never read',
   },
   9: {
-    who: 'agent', does: "Protects main, makes belay/* a protected branch pattern that only Maintainers and the flow accounts can push to (it keeps the agents' branches to the flow accounts; it guards no token), adds CODEOWNERS on CI and policy paths, turns on author-cannot-approve. On belay-apply: main takes no push, merges by Maintainers only, needs Code Owner approval, no force push. Allows belay-apply in the job token allowlists of belay-engine and belay-policy. Protects the v* tags of belay-engine and belay-pack and main of belay-ledger against Developers. The CODEOWNERS and approval-rule changes go in by MR (adopt-belay step 9).",
-    write: true, probe: 'read back every setting listed matches',
+    who: 'agent', does: "Protects main, makes belay/* a protected branch pattern that only Maintainers and the flow accounts can push to (it keeps the agents' branches to the flow accounts; it guards no token; the flow accounts are added by name once step 11 makes them), adds a CODEOWNERS that covers .gitlab-ci.yml and .gitlab/, turns on author-cannot-approve. On belay-apply: main takes no push, merges by Maintainers only, needs Code Owner approval, no force push. Allows belay-apply in the job token allowlists of belay-engine and belay-policy. Protects the v* tags of belay-engine and belay-pack and main of belay-ledger against Developers. The CODEOWNERS and approval-rule changes go in by MR (adopt-belay step 9). The commands read each project's protections first. GitLab already protects a pushed main, and a second POST answers 409, so each protection is removed and made again as listed: a DELETE that answers 404 had nothing to remove. Run each DELETE and its POST back to back. A PATCH would need the ids of the access levels it replaces (docs.gitlab.com/api/protected_branches).",
+    write: true, probe: 'every setting listed reads back as listed',
     cmd: [
-      'glab api -X POST projects/:id/protected_branches -f name=main',
-      `glab api -X POST projects/${enc(n, 'belay-apply')}/protected_branches -f name=main -f push_access_level=0 -f merge_access_level=40 -f code_owner_approval_required=true -f allow_force_push=false`,
-      ...['belay-engine', 'belay-pack'].map((p) => `glab api -X POST projects/${enc(n, p)}/protected_tags -f 'name=v*' -f create_access_level=40`),
-      `glab api -X POST projects/${enc(n, 'belay-ledger')}/protected_branches -f name=main -f push_access_level=40 -f merge_access_level=40`,
+      ...protections(n, n.project, 'protected_branches', [['main', MAINTAINERS], ['belay/*', MAINTAINERS]]),
+      ...protections(n, 'belay-apply', 'protected_branches', [['main', ['push_access_level=0', 'merge_access_level=40', 'code_owner_approval_required=true', 'allow_force_push=false']]]),
+      ...['belay-engine', 'belay-pack'].flatMap((p) => protections(n, p, 'protected_tags', [['v*', ['create_access_level=40']]])),
+      ...protections(n, 'belay-ledger', 'protected_branches', [['main', MAINTAINERS]]),
     ],
   },
   10: {

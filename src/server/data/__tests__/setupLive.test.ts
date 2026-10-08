@@ -95,7 +95,7 @@ describe("the doctor's live rows are probeCapabilities' against the paired group
 });
 
 describe('the live steps show what a read saw, and unknown for every other', () => {
-  it('0: the login; 1: the pairing row; 4: the projects; 3, 6, 8, 10: the human steps a read can see; every other: not probed', async () => {
+  it('0: the login; 1: the pairing row; 4: the projects; 3, 6, 8, 10: the human steps a read can see; 9: read back; every other: not probed', async () => {
     const { reads: r } = await reads();
     const { steps } = await r.steps();
     expect(steps[0]).toEqual({ state: 'done', text: expect.stringMatching(/^glab api user → 200 · signed in as @/) });
@@ -106,7 +106,7 @@ describe('the live steps show what a read saw, and unknown for every other', () 
     expect(steps[8]).toEqual({ state: 'failed', text: 'belay-apply does not exist in acme-lab (step 4)' });
     expect(steps[10]).toEqual({ state: 'failed', text: 'no MR from belay/bootstrap · .gitlab/duo/agent-config.yml absent on main' });
     for (let n = 0; n <= 14; n++) if (!OBSERVED_STEPS.includes(n)) expect(steps[n]).toEqual({ state: 'unknown', reason: 'not probed' });
-    expect(OBSERVED_STEPS).toEqual([0, 1, 3, 4, 6, 8, 10]);
+    expect([OBSERVED_STEPS, steps[9]]).toEqual([[0, 1, 3, 4, 6, 8, 9, 10], { state: 'failed', text: expect.stringMatching(/^the target’s main: not protected · /) }]);
   });
 
   it('step 4 is done once every project is there', async () => {

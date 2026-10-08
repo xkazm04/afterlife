@@ -28,6 +28,13 @@ export interface ProjectData {
   branches?: Record<string, string>;
   /** Runners available to the project (GET projects/:id/runners), each with `tag_list`, `online` and `status`. */
   runners?: Rec[];
+  /** Protected branches and tags by name, as GET protected_branches/:name and protected_tags/:name answer them. */
+  protectedBranches?: Record<string, Rec>;
+  protectedTags?: Record<string, Rec>;
+  /** The project ids on its CI/CD job token allowlist. */
+  jobTokenAllowlist?: number[];
+  /** The project-level approval settings (GET projects/:id/approvals), e.g. merge_requests_author_approval. */
+  approvalSettings?: Rec;
 }
 
 export interface WriteLog { method: string; path: string; fields: Record<string, string> }
