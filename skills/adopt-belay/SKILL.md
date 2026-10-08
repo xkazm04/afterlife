@@ -32,8 +32,8 @@ licence, a card, a secret or a legal identity is handed back to a person as a nu
 | 5 | Agent | Push the demo bank (`ledgerline`) and pair the checkout |
 | 6 | **Human** | Runner and billing on Google Cloud |
 | 7 | **Human** | Google Cloud OIDC, using the Cloud Shell script |
-| 8 | **Human** | Secrets |
-| 9 | Agent | Protections: approval rules, protected main, `belay/*` a protected branch pattern that only Maintainers and the flow accounts can push to (gitlab/components/README.md, Exposure), CODEOWNERS on CI and policy paths |
+| 8 | **Human** | Secrets. On belay-apply only, at project level (never on a target, never a group or instance variable: every target pipeline inherits the group's): `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_DISPATCH_TOKEN`, `BELAY_LEDGER_TOKEN`, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created). Set belay-apply's Minimum role to use pipeline variables to `no_one_allowed` and create its variable-free pipeline schedule on `main`. Source: gitlab/apply/README.md. `ANTHROPIC_API_KEY` is typed with `glab variable set ANTHROPIC_API_KEY --masked --protected`. The human types every value; the agent never sees one |
+| 9 | Agent | Protections: approval rules, protected main, `belay/*` a protected branch pattern that only Maintainers and the flow accounts can push to (gitlab/components/README.md, Exposure), CODEOWNERS on CI and policy paths; belay-apply's `main`: push No one, merge Maintainers, Code Owner approval required, force push off; belay-apply on the job token allowlists of belay-engine and belay-policy; the `v*` tags of belay-engine and belay-pack and `main` of belay-ledger protected against Developers (F39 at the settings layer; pinning the pack by commit is proposed, not done). `belay/*` guards no token |
 | 10 | Agent, then **Human** | Bootstrap MR. The human merges it. |
 | 11 | Agent, else **Human** | Enable flows |
 | 12 | Agent | First scan and the first gap MR |

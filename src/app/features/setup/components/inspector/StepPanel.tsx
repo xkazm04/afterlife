@@ -74,7 +74,7 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
         </InspectorSection>
       ) : (
         <InspectorSection title="Next write" aux={state.live ? 'copy · Belay does not send it' : 'preview · nothing sent'} {...section('write')}>
-          <CommandBlock commands={[...(d.cmd ?? []), { note: state.live ? '# run it as you, or your agent via adopt-belay · flags illustrative' : '# runs as @you via glab · flags illustrative' }]} />
+          <CommandBlock commands={[...(d.cmd ?? []), { note: state.live ? '# run it as you, or your agent via adopt-belay' : '# runs as @you via glab' }]} />
           <div className={styles.acts}>
             {state.live ? null : (
               <Button variant="accent" disabled={busy} title="Or your coding agent runs it via adopt-belay. Done only on the probe." onClick={() => void actions.send(n)}>

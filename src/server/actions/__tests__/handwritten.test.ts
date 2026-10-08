@@ -49,11 +49,10 @@ const HAND_WRITTEN_GAP: readonly [string, RegExp][] = [
 ];
 
 /**
- * Text that is not a write and that no task here may change: the kit's component gallery shows sample command text, and
- * Setup's step details are prose for steps it does not send. Setup's own task replaces them; until then they are named here
- * so a new one anywhere else still fails.
+ * Text that is not a write and that no task here may change: the kit's component gallery shows sample command text, so it is
+ * named here and a new one anywhere else still fails.
  */
-const NOT_A_SEND: readonly string[] = [path.join('features', 'kit'), path.join('features', 'setup', 'data', 'stepDetail.ts')];
+const NOT_A_SEND: readonly string[] = [path.join('features', 'kit')];
 
 describe('src/app holds no hand-written gap MR, gap issue, probe or scan', () => {
   const files = sources(APP).filter((f) => !NOT_A_SEND.some((n) => f.includes(n)));
