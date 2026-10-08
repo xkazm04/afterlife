@@ -18,8 +18,16 @@
   command that posts it as you. Nothing is posted from the app.
 
 ## How it works
-`app/cycles/page.tsx` → `data/loadCyclesData.ts` joins `getMaturity()` (the scan, the gap proposals) with the closed
-history in `data/history.ts` → `model/build.ts` `buildCycles()` → `CyclesScreen` (client).
+`app/cycles/page.tsx` → `data/loadCyclesData.ts` joins `getMaturity()` (the scan, the gap proposals) with
+`getCycles()` (the closed history) → `model/build.ts` `buildCycles()` → `CyclesScreen` (client).
+
+- **Where the history comes from.** Each closed cycle is one line of `belay-ledger/cycles/<project-id>.jsonl`
+  (`src/schemas/cycle.ts`): theme, engine, the opening and closing rescans as instants, and every change with its
+  verdict. Lines are hash-chained like the event ledger. The poller imports the file into `cycle_record`; it must
+  verify from the first cycle and may only extend what is stored (an edited, shortened or rewritten history is
+  rejected and the feed fails). The view counts days from the first cycle's opening. Demo mode reads the same six
+  cycles from `src/lib/demo/cycles.ts`; the fake GitLab serves them as the file, so live mode reads them from the
+  ledger and lands on the same screen.
 
 - `model/replay.ts`: `applyCycle`, `replay`, `chainBreaks`, `reconcile`, `heatGrid`, `summarize`, `reach`, `total`.
   Only `credited`, `resolved` and `regressed` move a rung. `nolift` and `rejected` never do, and open cycles move
@@ -56,7 +64,9 @@ history in `data/history.ts` → `model/build.ts` `buildCycles()` → `CyclesScr
 | `components/inspector/` | `CyclesInspector`, `ClosingRule` (✓ / ✗ per check, misses and drift named) |
 | `components/designer/` | `Designer`: candidates, rules, summary, save |
 | `components/report/` | `ReportSheet`: the Markdown, copy, the post command |
-| `data/history.ts` | Closed cycles C1–C6 (illustrative, written to reconcile with the demo scan) |
+| `src/lib/demo/cycles.ts` | Demo history C1–C6 (illustrative, written to reconcile with the demo scan); domain types in `src/lib/demo/cycleTypes.ts` |
+| `src/server/ledger/importCycles.ts`, `parseCycles.ts` | The cycle file: parse, verify, import |
+| `src/server/index/views/cycles.ts` | `cycle_record` → the screen's history |
 | `model/` | The pure model above |
 
 ## Tests
@@ -70,7 +80,9 @@ history in `data/history.ts` → `model/build.ts` `buildCycles()` → `CyclesScr
 - `src/server/data/__tests__/parity.test.ts`: the loader gives the same data in demo and live mode.
 
 ## Status and limits
-- The closed history is a screen fixture, like Maturity's credit history; live mode reads the same fixture. Sending,
-  merging and rescanning happen in Maturity.
+- The closed history is read from the project's ledger in live mode (the demo's is illustrative). Nothing in the app
+  writes a cycle record yet: the closing rescan is meant to append it (the autopilot, or `belay scan` in CI). A
+  project with no cycle file shows C1 running from day 0, and every stage the scan moved since day 0 as drift.
+  Sending, merging and rescanning happen in Maturity.
 - A saved design is kept for the browser session only, and the screen says so.
 - One project (the deep project, ledgerline) has a cycle history in the demo.

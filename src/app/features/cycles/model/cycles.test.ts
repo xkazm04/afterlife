@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { DEMO } from '@/lib/demo';
+import { DEMO, DEMO_CYCLES } from '@/lib/demo';
 import { STAGES } from '@/schemas/stages';
 import { CREDIT_HISTORY } from '../../maturity/data/credit';
-import { CADENCE_DAYS, CLOSED_CYCLES, TODAY } from '../data/history';
 import { buildCycles } from './build';
 import { carried, rail } from './plan';
 import { gridView } from './grid';
 import { applyCycle, chainBreaks, heatGrid, MAX_TOTAL, reach, reconcile, replay, summarize, total } from './replay';
 import type { Cycle, Rungs } from './types';
+const { cycles: CLOSED_CYCLES, today: TODAY, cadence: CADENCE_DAYS } = DEMO_CYCLES;
 
 const data = buildCycles(DEMO.maturity, CLOSED_CYCLES, { project: 'acme-lab/ledgerline', today: TODAY, cadence: CADENCE_DAYS });
 const zero = Object.fromEntries(STAGES.map((s) => [s, 0])) as Rungs;

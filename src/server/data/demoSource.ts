@@ -19,4 +19,5 @@ export const demoSource: DataSource = {
   getSetup: demo.getSetup,
   getEvents: demo.getEvents,
   getCockpit: demo.getCockpit,
+  getCycles: demo.getCycles,
 };

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DEMO } from '@/lib/demo';
-import { CADENCE_DAYS, CLOSED_CYCLES, TODAY } from '../../data/history';
+import { DEMO, DEMO_CYCLES } from '@/lib/demo';
 import { buildCycles } from '../build';
 import { cycleReport, postCommand, reportTitle } from './report';
+const { cycles: CLOSED_CYCLES, today: TODAY, cadence: CADENCE_DAYS } = DEMO_CYCLES;
 
 const data = buildCycles(DEMO.maturity, CLOSED_CYCLES, { project: 'acme-lab/ledgerline', today: TODAY, cadence: CADENCE_DAYS });
 const C = (id: string) => data.cycles.find((c) => c.id === id)!;

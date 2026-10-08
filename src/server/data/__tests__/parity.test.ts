@@ -17,6 +17,7 @@ import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { listProofsFor } from '@/server/index/repositories/work/proof';
 import { getProjectRow } from '@/server/index/repositories/fleet/project';
 import { listClassTiers } from '@/server/index/repositories/fleet/classTier';
+import { listCycleRecords } from '@/server/index/repositories/ledger/cycles';
 import { seedDemo, SEED_NOW } from '@/server/index/seed';
 import { readPollerConfig } from '@/server/poller/config';
 import { runPollCycle } from '@/server/poller/cycle';
@@ -120,6 +121,14 @@ describe('the poll really did write what the parity rests on (it is not just the
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toMatchObject({ accepted: 16 }); // seeded: GitLab cannot restate it
     const proof = (await listProofsFor(db, ['01J8Q4'])).get('01J8Q4');
     expect(proof?.block?.task.head_sha).toBe('a41c0ffee00000000000000000000000000000a1');
+  });
+
+  it('the cycle history comes from belay-ledger/cycles/<id>.jsonl, not from the demo fixture', async () => {
+    const stored = await listCycleRecords(db, 90010001);
+    expect(stored.map((r) => r.seq)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(stored.at(-1)?.closed_at).toBe('2026-10-06T14:02:00.000Z');
+    expect(live.getCycles()).not.toBe(demoSource.getCycles());
+    expect(live.getCycles().today).toBe(42);
   });
 });
 

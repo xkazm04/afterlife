@@ -45,7 +45,7 @@
 - **Index** (`index/`): `openIndex` / `getIndex` open PGlite under `$BELAY_DATA_DIR/index` (default `.belay/index`);
   `migrate()` applies `0001_fleet` (groups, classes, projects, stages, class tiers), `0002_work` (tasks, proofs,
   proposals, stage cells), `0003_ledger` (`ledger_event` with a no-change trigger), `0004_operator` (pairing, setup
-  steps, poll state, `commands_run`), each in a transaction, checksum-guarded, and refuses an index migrated by a
+  steps, poll state, `commands_run`), `0005_cycles` (`cycle_record`), each in a transaction, checksum-guarded, and refuses an index migrated by a
   newer version. `repositories/` are parameterised SQL per table; `views/` return the `src/lib/demo` shapes with a
   `now` argument; `seed/` loads the demo anchored at `SEED_NOW`.
 - **Poller** (`poller/cycle.ts`, `project.ts`): group and projects; skip `belay-policy`, `belay-ledger`, `belay-pack`,
@@ -54,6 +54,9 @@
   `poll_state`. `startScheduler` repeats it every `BELAY_POLL_SECONDS` (default 30, minimum 5), never overlapping.
 - **Ledger import** (`ledger/importLedger.ts`): list `events/`, skip if the blob id is unchanged, parse each line,
   verify the whole file from genesis, then append from the stored tail in one transaction.
+- **Cycle import** (`ledger/importCycles.ts`): `cycles/<project-id>.jsonl`, one hash-chained line per closed
+  improvement cycle (`src/schemas/cycle.ts`). It must verify, belong to the project and extend what is stored; it then
+  replaces the project's `cycle_record` rows. `getCycles()` serves it to the Cycles screen (`views/cycles.ts`).
 - **Actions** (`actions/`): `previewAction(intent)` validates and plans; `confirmAction(intent, previewId)` plans
   again and runs only if the sha-256 digest of the commands still matches. Intents: `revoke-class`, `promote-class`,
   `mark-cra-ready`, `stage-gap-mr`.
@@ -82,7 +85,7 @@
 | `src/server/gitlab/` | `port.ts`, `types.ts`, `plan/`, `adapter/`, `fake/`, `capabilities.ts`, `doctorCli.ts`, `config.ts`, `errors.ts` |
 | `src/server/index/` | `db.ts`, `migrations/`, `repositories/`, `views/`, `seed/` |
 | `src/server/poller/` | `cycle.ts`, `project.ts`, `scheduler.ts`, `config.ts`, `derive/` (policy, tiers, task, readmit, rollup), `parse/` (proof block, guardrail, trailers, labels) |
-| `src/server/ledger/` | `parse.ts`, `importLedger.ts` |
+| `src/server/ledger/` | `parse.ts`, `importLedger.ts`, `parseCycles.ts`, `importCycles.ts` |
 | `src/server/actions/` | `actions.ts` (`'use server'`), `run.ts`, `intents.ts`, `plans/`, `deps.ts`, `types.ts` |
 | `src/instrumentation.ts` | Starts the live runtime on Node |
 

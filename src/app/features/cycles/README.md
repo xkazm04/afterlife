@@ -35,7 +35,8 @@ with the `glab issue create` command the sheet shows. Nothing is posted from the
 - `CyclesScreen.tsx` composes the `Window`: sidebar `CyclesSidebar`, content (`Answer`, `CycleGrid`, `LoopRail`,
   `ChangesTable`), `CyclesInspector` (numbers, when, `ClosingRule`, next action), `CyclesStatus`, `CyclesLegend`.
 - `hooks/useCycles` the selection (the running cycle first) and the arrow / Home / End walk.
-- `data/history.ts` the closed cycles C1-C6; `data/loadCyclesData.ts` joins them to `getMaturity()` on the server.
+- `data/loadCyclesData.ts` joins `getCycles()` (the closed cycles the ledger records; the demo's C1-C6 live in
+  `src/lib/demo/cycles.ts`) to `getMaturity()` on the server.
 
 ## Model (pure, tested)
 - `model/replay.ts` `applyCycle`, `replay`, `chainBreaks`, `reconcile`, `heatGrid`, `summarize`. Only `credited`,
@@ -49,5 +50,5 @@ with the `glab issue create` command the sheet shows. Nothing is posted from the
 every Maturity credit-history entry (!17 to !23) is a change with the same verdict.
 
 ## Not wired
-The history is a screen fixture (like Maturity's credit history); live mode reads the same fixture. Sending, merging
-and rescanning happen in Maturity.
+The history is read from `belay-ledger/cycles/<project-id>.jsonl` in live mode, but nothing in the app writes a cycle
+record yet. Sending, merging and rescanning happen in Maturity.

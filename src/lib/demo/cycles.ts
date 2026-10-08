@@ -1,7 +1,7 @@
-// The closed cycles of acme-lab/ledgerline, day 0 to the 14:02 scan. ILLUSTRATIVE, like the shared demo dataset, and
-// written to reconcile with it: replayed from the day-0 rungs these six cycles land exactly on the 14:02 rungs (a test
+// The closed cycles of acme-lab/ledgerline, day 0 to the 14:02 scan. ILLUSTRATIVE, like belay-demo.json, and written
+// to reconcile with it: replayed from the day-0 rungs these six cycles land exactly on the 14:02 rungs (a test
 // holds it), and every Maturity credit-history entry (!17 to !23) is a change here. Same engine throughout.
-import type { Cycle } from '../model/types';
+import type { Cycle, CycleHistory } from './cycleTypes';
 
 const ENGINE = 'v1';
 
@@ -55,7 +55,9 @@ export const CLOSED_CYCLES: readonly Cycle[] = [
   },
 ];
 
-/** Today, in days since onboarding: C6 closed at this morning's 14:02 scan. */
-export const TODAY = 42;
-/** A cycle is a week: the weekly rescan closes it. */
-export const CADENCE_DAYS = 7;
+/**
+ * The demo's history: today is day 42 (C6 closed at this morning's 14:02 scan), and a cycle is a week (the weekly
+ * rescan closes it). The fake GitLab serves the same cycles as belay-ledger/cycles/<id>.jsonl, so live mode reads them
+ * from the ledger and lands on the same screen (parity.test.ts).
+ */
+export const DEMO_CYCLES: CycleHistory = { cycles: CLOSED_CYCLES, today: 42, cadence: 7 };

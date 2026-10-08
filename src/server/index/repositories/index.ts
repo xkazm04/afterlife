@@ -12,3 +12,4 @@ export * from './work/proposal';
 export * from './work/stageCell';
 export * from './ledger/chain';
 export * from './ledger/ledger';
+export * from './ledger/cycles';
