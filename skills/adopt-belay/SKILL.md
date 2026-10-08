@@ -46,3 +46,5 @@ Step 8's command, for `BELAY_BOT_TOKEN` (change the name for each of the four): 
 ```sh
 (read -rs v; printf %s "$v") | glab variable set BELAY_BOT_TOKEN -R <group>/belay-apply --masked --protected --hidden
 ```
+
+On a host other than gitlab.com, `-R` takes the full URL, `-R https://<host>/<group>/belay-apply`: `glab variable set` has no host flag (docs.gitlab.com/cli/variable/set).

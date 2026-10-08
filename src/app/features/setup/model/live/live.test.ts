@@ -93,7 +93,7 @@ describe('the live opening state is what the server read, never the demo’s', (
     const s = createSetupState(getSetup(), 0, read());
     const all = stepList(s).map((x) => JSON.stringify(stepDetail(s, x.n)));
     for (const d of all) expect(d).not.toMatch(/acme-lab|ledgerline/);
-    expect(stepDetail(s, 4)?.cmd).toEqual(['afterlife', 'belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine'].map((p) => `glab repo create ${p} --group kazdanm --public`));
+    expect(stepDetail(s, 4)?.cmd).toEqual(['afterlife', 'belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine'].map((p) => `GITLAB_HOST=gitlab.example.com glab repo create ${p} --group kazdanm --public`));
     expect(stepDetail(s, 5)?.cmd?.[0]).toBe('git -C ../afterlife push --mirror https://gitlab.example.com/kazdanm/afterlife.git');
     expect(stepDetail(s, 11)?.does).toContain('kazdanm/afterlife');
     expect(stepDetail(s, 3)?.where).toBe('GitLab → kazdanm → Settings → Billing');

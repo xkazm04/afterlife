@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { BELAY_PROJECTS } from '@/server/data/setup/read';
-import { DEMO_NAMES, STDIN, STEP_DETAIL } from './stepDetail';
+import { DEMO_NAMES, STDIN, STEP_DETAIL, stepDetailsFor } from './stepDetail';
 
 const SKILL = readFileSync(join(process.cwd(), 'skills/adopt-belay/SKILL.md'), 'utf8');
 const skillStep = (n: number): string => SKILL.split('\n').find((l) => l.startsWith(`| ${n} |`)) ?? '';
@@ -102,5 +102,26 @@ describe('the [R?] marks on step 8 and 9 are settled: glab variable set has --hi
       expect(text).not.toMatch(/glab has no flag/);
     }
     for (const text of [STEP_DETAIL[8]!.note ?? '', skillStep(8)]) expect(text).toMatch(/glab variable set --hidden/);
+  });
+});
+
+describe('every glab command reaches the paired host when it is not gitlab.com (craft-6)', () => {
+  const HOST = 'gitlab.example.com';
+  const d = stepDetailsFor({ ...DEMO_NAMES, host: HOST, group: 'acme', project: 'ledgerline' });
+  const glab = (n: number): string[] => (d[n]?.cmd ?? []).filter((c) => c.includes('glab'));
+
+  it('step 9 and step 0 glab api lines carry --hostname, as the arm builder does', () => {
+    expect(glab(9).length).toBeGreaterThan(0);
+    for (const c of glab(9)) expect(c).toMatch(new RegExp(`^glab api --hostname ${HOST} (--method |projects/)`));
+    expect(d[0]?.cmd).toEqual([`glab auth status --hostname ${HOST}`, `glab api --hostname ${HOST} user`]);
+  });
+  it('step 8 sets each token on the host’s belay-apply by full URL, and the skill says so', () => {
+    expect(d[8]?.cmd).toEqual(TOKENS.map((t) => `${STDIN} | glab variable set ${t} -R https://${HOST}/acme/belay-apply --masked --protected --hidden`));
+    expect(SKILL).toContain('-R https://<host>/<group>/belay-apply');
+  });
+  it('the commands with no host flag read GITLAB_HOST; on gitlab.com none changes', () => {
+    for (const n of [4, 12, 13]) for (const c of glab(n)) expect(c.startsWith(`GITLAB_HOST=${HOST} glab `)).toBe(true);
+    for (const n of [0, 4, 8, 9, 12, 13]) for (const c of STEP_DETAIL[n]?.cmd ?? []) expect(c).not.toMatch(/--hostname|GITLAB_HOST|https:\/\/gitlab/);
+    expect(STEP_DETAIL[9]?.cmd?.[0]).toBe('glab api projects/acme-lab%2Fledgerline/protected_branches');
   });
 });

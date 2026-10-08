@@ -67,7 +67,9 @@ Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn e
   `glab variable set <NAME> -R <group>/belay-apply --masked --protected --hidden`, so no value is in the command or on
   screen. A person runs them one at a time (a second pasted line would be read as the first value), so each has its own Copy.
 - Where Setup and `skills/adopt-belay` disagree, Setup's live reads decide and the skill follows. A command Setup shows must
-  run, or Setup shows no command.
+  run, or Setup shows no command: on the target's full path (a subgroup's, from the listing) and, off gitlab.com, on the
+  paired host (`--hostname` for `glab api`, a full URL for `glab variable set -R`, `GITLAB_HOST` for the rest; on gitlab.com
+  the commands are as they were).
 - Step 8's role read stays. `secretsRead` reads `GET projects/:id` for belay-apply (`humanSteps.ts:43`), and for a Maintainer that record
   can carry `runners_token`. Only `ci_pipeline_variables_minimum_override_role` is kept (`humanSteps.ts:44`); the rest is not logged,
   stored or returned, and a failed read says only the first line of glab's error, 200 characters at most (`ctx.ts` `why`,

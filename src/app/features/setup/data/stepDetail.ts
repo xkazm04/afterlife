@@ -31,6 +31,17 @@ export const STDIN = '(read -rs v; printf %s "$v")';
 /** The path a project is addressed by: the target's own full path, else <group>/<name> (step 4 creates the belay-* projects at the group's root). */
 const pathOf = (n: StepNames, project: string): string => (project === n.project && n.path ? n.path : `${n.group}/${project}`);
 const enc = (n: StepNames, project: string): string => encodeURIComponent(pathOf(n, project));
+/**
+ * glab reaches the paired host when it is not gitlab.com (on gitlab.com every command is as it was): `glab api` and
+ * `glab auth status` take --hostname (docs.gitlab.com/cli/api, /cli/auth/status), as the arm builder's build()
+ * does; `glab variable set` has no host flag, but its -R takes a full URL (docs.gitlab.com/cli/variable/set); and
+ * the commands with neither (repo create, ci run, schedule create) read GITLAB_HOST, glab's default hostname
+ * (docs.gitlab.com/cli/configuration).
+ */
+const own = (n: StepNames): boolean => n.host === 'gitlab.com';
+const api = (n: StepNames): string => (own(n) ? 'glab api' : `glab api --hostname ${n.host}`);
+const onHost = (n: StepNames, cmd: string): string => (own(n) ? cmd : `GITLAB_HOST=${n.host} ${cmd}`);
+const repoOf = (n: StepNames, path: string): string => (own(n) ? path : `https://${n.host}/${path}`);
 /** A shell word: single-quoted when it holds a glob. */
 const word = (s: string): string => (s.includes('*') ? `'${s}'` : s);
 const MAINTAINERS = ['push_access_level=40', 'merge_access_level=40', 'allow_force_push=false'];
@@ -43,16 +54,16 @@ const MAINTAINERS = ['push_access_level=40', 'merge_access_level=40', 'allow_for
 function protections(n: StepNames, project: string, kind: 'protected_branches' | 'protected_tags', rules: readonly (readonly [string, readonly string[]])[]): string[] {
   const base = `projects/${enc(n, project)}/${kind}`;
   return [
-    `glab api ${base}`,
+    `${api(n)} ${base}`,
     ...rules.flatMap(([name, fields]) => [
-      `glab api --method DELETE ${word(`${base}/${encodeURIComponent(name)}`)}`,
-      `glab api --method POST ${base} ${[`name=${name}`, ...fields].map((f) => `-f ${word(f)}`).join(' ')}`,
+      `${api(n)} --method DELETE ${word(`${base}/${encodeURIComponent(name)}`)}`,
+      `${api(n)} --method POST ${base} ${[`name=${name}`, ...fields].map((f) => `-f ${word(f)}`).join(' ')}`,
     ]),
   ];
 }
 
 const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
-  0: { who: 'agent', does: 'Checks git, glab and node, and that glab is signed in as you.', cmd: ['glab auth status', 'glab api user'], probe: 'glab api user → 200 · signed in as @you' },
+  0: { who: 'agent', does: 'Checks git, glab and node, and that glab is signed in as you.', cmd: [own(n) ? 'glab auth status' : `glab auth status --hostname ${n.host}`, `${api(n)} user`], probe: 'glab api user → 200 · signed in as @you' },
   1: { who: 'agent', does: 'Starts Belay on this machine and pairs it with your checkout.', cmd: ['npm install', 'npm run dev'], probe: 'localhost:3000 answering · checkout paired' },
   2: { who: 'agent', does: 'Writes package.yml: group, target, tier ceiling, model route, cloud project, credit cap.', cmd: ['$EDITOR package.yml'], probe: 'package.yml · 8 of 8 answers · ceiling SUPERVISED' },
   3: {
@@ -62,7 +73,7 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   },
   4: {
     who: 'agent', does: 'Creates the projects under the group. Public, one repository each.', write: true, probe: `${n.projects.length} of ${n.projects.length} projects exist`,
-    cmd: n.projects.map((p) => `glab repo create ${p} --group ${n.group} --public`),
+    cmd: n.projects.map((p) => onHost(n, `glab repo create ${p} --group ${n.group} --public`)),
   },
   5: {
     who: 'agent', does: `${n === DEMO_NAMES ? 'Pushes the ledgerline demo bank' : `Pushes ${n.project}`} from its own repo, then records the pairing with the pack (adopt-belay step 5; Belay's CLI does not run pair yet).`, write: true, probe: 'remote main = local main · pair recorded',
@@ -84,7 +95,7 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
     action: 'Run each command on its own and paste that token when it waits (nothing echoes), then press Enter. One at a time: a second pasted line would be read as the first token',
     where: `GitLab → ${n.group}/belay-apply → Settings → CI/CD → Variables`, secret: true,
     note: "On belay-apply only, at project level, never on a target and never a group or instance variable (every target pipeline inherits the group's): BELAY_BOT_TOKEN, BELAY_POLICY_TOKEN, BELAY_DISPATCH_TOKEN and BELAY_LEDGER_TOKEN, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created: glab variable set --hidden). Then set Minimum role to use pipeline variables to no_one_allowed, and create one pipeline schedule on main with no variables (Build → Pipeline schedules). gitlab/apply/README.md says what each token is.",
-    cmd: BELAY_TOKENS.map((t) => `${STDIN} | glab variable set ${t} -R ${n.group}/belay-apply --masked --protected --hidden`),
+    cmd: BELAY_TOKENS.map((t) => `${STDIN} | glab variable set ${t} -R ${repoOf(n, `${n.group}/belay-apply`)} --masked --protected --hidden`),
     unread: 'the four tokens are not read, by design: the variables API returns their values. Belay reads only belay-apply’s minimum role for pipeline variables and its schedule on main.',
     before: 'belay-apply: minimum role and schedule not read yet · the four tokens are never read',
     probe: 'belay-apply: minimum role no_one_allowed · a schedule on main · the four tokens are not read, by design',
@@ -110,11 +121,11 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   },
   12: {
     who: 'agent', does: 'Runs the first pipeline, then the agent reads its scan and proposes the first gap MR for you to pick (adopt-belay step 12; Belay opens it through its gap door, not a command).', write: true,
-    cmd: ['glab ci run'], probe: 'stage grid baseline in the ledger · SBOM job present',
+    cmd: [onHost(n, 'glab ci run')], probe: 'stage grid baseline in the ledger · SBOM job present',
   },
   13: {
     who: 'agent', does: 'Pushes the seeded faults (labelled seeded) and schedules the weekly scan.', write: true, probe: 'schedule exists · seeded branch labelled seeded',
-    cmd: ['git push origin demo/seeded-faults', 'glab schedule create --cron "0 3 * * 1" --ref main --description "belay weekly scan"'],
+    cmd: ['git push origin demo/seeded-faults', onHost(n, 'glab schedule create --cron "0 3 * * 1" --ref main --description "belay weekly scan"')],
   },
   14: {
     who: 'agent', does: 'Reads the doctor, writes ONBOARDING-REPORT.md by MR and opens the "what only you can do" issue as the hand-back (adopt-belay step 14).', write: true, probe: 'report MR open · hand-back issue open',
