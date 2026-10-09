@@ -22,7 +22,7 @@ describe('promotion', () => {
     expect(p.kind).toBe('notyet');
     if (p.kind !== 'notyet') return;
     expect(p.next).toBe('hands_off');
-    expect(p.rules.map((r) => r.met)).toEqual([false, true, false, true, true]); // human_key is a precondition, not a row
+    expect(p.rules.map((r) => r.met)).toEqual([false, true, false, true, false]); // repro is an engine stub: never mechanical
     expect(p.rules[0]).toMatchObject({ value: '9 / 15', cells: [9, 15] });
     expect(p.rules[1]?.name).toBe('merged without edits ≥ 90 %');
     expect(p.rules[2]).toMatchObject({ value: '6 / 14', cells: [6, 14] });

@@ -16,6 +16,8 @@ export interface LadderInspectorProps {
   classes: readonly ClassRow[];
   byId: Readonly<Record<string, ClassRow>>;
   tracks: TrackMap;
+  /** Live: the tracks are the demo catalogue's (illustrative), so their proof classes are chipped demo. */
+  tracksDemo: boolean;
   ledger: readonly LedgerEntry[];
   promotionOf: (c: ClassRow) => Promotion;
   sections: SectionState;
@@ -35,7 +37,7 @@ export function LadderInspector(p: LadderInspectorProps) {
   if (!p.sel) return <div className={styles.none}>No selection</div>;
   if (isGroupNavId(p.sel)) {
     const track = p.tracks[p.sel.slice(2)];
-    return track ? <GroupInspector track={track} classes={p.classes} ledger={p.ledger} sections={p.sections} /> : null;
+    return track ? <GroupInspector track={track} classes={p.classes} ledger={p.ledger} proofDemo={p.tracksDemo} sections={p.sections} /> : null;
   }
   const cls = p.byId[p.sel];
   if (!cls) return null;
@@ -43,6 +45,7 @@ export function LadderInspector(p: LadderInspectorProps) {
     <ClassInspector
       cls={cls}
       track={p.tracks[cls.track]}
+      tracksDemo={p.tracksDemo}
       promotion={p.promotionOf(cls)}
       byId={p.byId}
       ledger={p.ledger}

@@ -63,7 +63,7 @@ export function loadLadderData(): LadderScreenProps {
     means: Object.fromEntries(TIER_DISPLAY_ORDER.map((t) => [t, tiers[t].means])) as LadderScreenProps['means'],
     policy: ds.getPolicy(),
     tiersStale: ds.getTiersStale(),
-    illustrative: { history },
+    illustrative: { history, tracks: shown('tracks') },
     live,
     feedAgeSec: ds.getCockpit().feed.lastPollSec,
     subtitle: `${setup.group} / ${setup.project}`,

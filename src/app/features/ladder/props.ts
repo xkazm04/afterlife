@@ -14,8 +14,11 @@ export interface LadderScreenProps {
   policy: PolicyRules | null;
   /** Live: the last poll could not read belay-policy, so the class tiers are stale (the reason); null otherwise. */
   tiersStale: TiersStale | null;
-  /** The demo's own text shown beside live data, to mark: the opening belay-policy history. */
-  illustrative: { history: boolean };
+  /**
+   * The demo's own text shown beside live data, to mark: the opening belay-policy history, and the tracks (each class's
+   * track and proof class come from the demo catalogue's tracks).
+   */
+  illustrative: { history: boolean; tracks: boolean };
   /** Live mode: the wall clock and a poll age that counts up (demo: the simulated clock). */
   live: boolean;
   /** How old the last poll was when the screen opened, in seconds. */

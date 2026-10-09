@@ -3,7 +3,8 @@
 import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
-import { HUMAN_KEY, NOT_RECORDED, promotion, whyNot, type Counters } from '.';
+import { STUB_CLASSES } from '../../../engine/proofs/stubs';
+import { HUMAN_KEY, isMechanical, MECHANICAL_PROOFS, NOT_RECORDED, promotion, whyNot, type Counters } from '.';
 
 const RULES = repoPolicy() as PolicyRules;
 const rec = (o: Partial<Counters> = {}): Counters => ({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: 5, ...o });
@@ -74,5 +75,16 @@ describe('human_key: a precondition of the promote write, never a met eligibilit
   it('never makes a class eligible on its own: the counts it sits beside still decide', () => {
     const p = promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, cleanDays: 14 }) }, 'exploit-test', RULES);
     expect([p.kind, whyNot(p)]).toEqual(['notyet', 'merged without edits ≥ 90 % is not recorded: no task or ledger event states it']);
+  });
+});
+
+describe('the mechanical proof class: a stub proof never reads met', () => {
+  it("no class the engine only stubs (engine/proofs/stubs.ts: inconclusive, never pass) is mechanical", () => {
+    expect(STUB_CLASSES.filter((c) => MECHANICAL_PROOFS.has(c))).toEqual([]);
+    expect([isMechanical('repro'), isMechanical('bench-delta'), isMechanical('exploit-test')]).toEqual([false, false, true]);
+  });
+  it('so a Hands-off rule on a stub proof class is not met', () => {
+    const p = promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, noEdit: 0.94, cleanDays: 14 }) }, 'repro', RULES);
+    expect([p.kind, rule(p, 'mechanical proof class')]).toEqual(['notyet', { name: 'mechanical proof class', value: 'repro', met: false }]);
   });
 });

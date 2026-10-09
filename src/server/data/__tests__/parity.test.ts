@@ -177,8 +177,8 @@ describe('where live differs from demo, on purpose', () => {
 
   it('the Ladder marks its opening history demo in live, and keeps its own clock in demo', () => {
     const [d, l] = both(() => loadLadderData());
-    expect([d.illustrative, d.live, d.seed.head.demo, d.seed.ledger.some((e) => e.demo)]).toEqual([{ history: false }, false, undefined, false]);
-    expect([l.illustrative, l.live, l.seed.head.demo, l.seed.ledger.every((e) => e.demo)]).toEqual([{ history: true }, true, true, true]);
+    expect([d.illustrative, d.live, d.seed.head.demo, d.seed.ledger.some((e) => e.demo)]).toEqual([{ history: false, tracks: false }, false, undefined, false]);
+    expect([l.illustrative, l.live, l.seed.head.demo, l.seed.ledger.every((e) => e.demo)]).toEqual([{ history: true, tracks: true }, true, true, true]);
     expect([d, l].map((x) => x.seed.classes.filter((c) => c.uncounted).length)).toEqual([0, 0]); // one holder each: all counted
   });
 

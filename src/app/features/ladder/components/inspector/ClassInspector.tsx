@@ -20,6 +20,8 @@ import styles from './inspector.module.css';
 export interface ClassInspectorProps {
   cls: ClassRow;
   track: Track | undefined;
+  /** Live: the tracks (and so each class's proof class) are the demo catalogue's. */
+  tracksDemo: boolean;
   promotion: Promotion;
   byId: Readonly<Record<string, ClassRow>>;
   ledger: readonly LedgerEntry[];
@@ -74,9 +76,9 @@ export function ClassInspector(p: ClassInspectorProps) {
       <Sec id="why" title="Who acted" aux={mine.length || ''} sections={p.sections}>
         <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />
       </Sec>
-      <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} sections={p.sections} />
+      <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} sections={p.sections} />
       <WriteSection cls={c} to={p.writeTo ?? first ?? null} viewOf={p.viewOf} sections={p.sections} />
-      <GrantSection cls={c} proofClass={p.track?.proof.cls ?? ''} sections={p.sections} />
+      <GrantSection cls={c} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} sections={p.sections} />
       <AllMoves ledger={p.ledger} current={c.id} kinds={p.kinds} onToggleKind={p.onToggleKind} sections={p.sections} />
     </>
   );

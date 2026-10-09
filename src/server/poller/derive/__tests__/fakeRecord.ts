@@ -26,6 +26,15 @@ export function setTier(gl: FakeGitLab, tier: string, since: Date, cls = 'code-f
   if (p.files['tier-state.yml'] === text) throw new Error(`${cls} is not in tier-state.yml`);
 }
 
+/** trust-policy.yml with `cls`'s proof class set to `proof` (the demo's qa.file-bug names 'repro', which the engine stubs). */
+export function setProof(gl: FakeGitLab, cls: string, proof: string): void {
+  const p = fileOf(gl, 'belay-policy', 'trust-policy.yml');
+  const text = p.files['trust-policy.yml'] ?? '';
+  const line = new RegExp(`(${cls.replace(/[.]/g, '\\.')}: \\{[^}]*proof: )[\\w-]+`);
+  if (!line.test(text)) throw new Error(`${cls} names no proof class in trust-policy.yml`);
+  p.files['trust-policy.yml'] = text.replace(line, `$1${proof}`);
+}
+
 /**
  * Merge requests `author` opened in `cls` on ledgerline, merged within the hour before `now` (inside the poll's task
  * window, so each is read as a task with its notes). Each push note is GitLab's system note "added 1 commit", by the

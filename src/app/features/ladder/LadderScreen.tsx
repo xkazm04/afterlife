@@ -134,6 +134,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           classes={state.classes}
           byId={byId}
           tracks={tracks}
+          tracksDemo={illustrative.tracks}
           ledger={state.ledger}
           promotionOf={data.promotionOf}
           sections={sections}

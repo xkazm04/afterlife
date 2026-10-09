@@ -3,15 +3,12 @@
 // the precondition of the promote write (HUMAN_KEY), stated beside the rows.
 import type { Counters, PromotionRules } from './types';
 
-/** Proof classes a machine can check; Hands-off needs one of these. */
-export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set([
-  'exploit-test',
-  'cited-diff',
-  'rerun-stats',
-  'repro',
-  'bench-delta',
-  'linked-evidence',
-]);
+/**
+ * Proof classes a machine checks in this engine version; Hands-off needs one of these. A class the engine only stubs
+ * (engine/proofs/stubs.ts STUB_CLASSES: it answers inconclusive, never pass) is not one, so 'repro' and 'bench-delta'
+ * are left out until the engine builds their checkers. rules.test.ts pins the set against STUB_CLASSES.
+ */
+export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set(['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence']);
 
 export const isMechanical = (proofClass: string): boolean => MECHANICAL_PROOFS.has(proofClass);
 

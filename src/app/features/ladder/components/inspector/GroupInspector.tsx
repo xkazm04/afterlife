@@ -2,6 +2,7 @@ import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { TierMark } from '@/components/status/TierMark';
 import { cellOf, holdersOf, shownName } from '../../model/rules/tiers';
 import { isMechanical } from '@/lib/promotion';
+import { DemoChip } from '../chrome/DemoChip';
 import type { ClassRow, LedgerEntry, Track } from '../../model/types';
 import { entriesForTrack } from '../../model/view/moves';
 import { WhoActed } from './log/WhoActed';
@@ -13,11 +14,14 @@ export function GroupInspector({
   track,
   classes,
   ledger,
+  proofDemo,
   sections,
 }: {
   track: Track;
   classes: readonly ClassRow[];
   ledger: readonly LedgerEntry[];
+  /** Live: the track (and its proof class) is the demo catalogue's. */
+  proofDemo: boolean;
   sections: SectionState;
 }) {
   const mine = classes.filter((c) => c.track === track.id);
@@ -31,7 +35,11 @@ export function GroupInspector({
             {track.name}
           </>
         }
-        sub={`${track.key} · proof ${track.proof.cls}${isMechanical(track.proof.cls) ? ' · mechanical' : ''}`}
+        sub={
+          <>
+            {`${track.key} · proof ${track.proof.cls}${isMechanical(track.proof.cls) ? ' · mechanical' : ''}`} <DemoChip on={proofDemo} what="The track and its proof class" />
+          </>
+        }
       />
       <Sec id="g-cls" title="Classes" aux={mine.length} sections={sections}>
         {mine.map((c) => (
