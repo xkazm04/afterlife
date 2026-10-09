@@ -135,8 +135,8 @@ never fetched from a job: the target's tier-gate job runs in the agent's own MR 
 its `BELAY_GUARDRAIL_AUTHORS` and a CI change rewrites the job (F90).
 
 ```
-CI_PROJECT_ID=<project id> node gitlab/components/scripts/hand/derive-gate.mjs --mr <iid> --proof-authors <your username> --guardrail-authors <guardrail service account username> --policy-project <group path>/belay-policy --out <new dir>   # [R?]
-BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/components/scripts/decide/ledger-append.mjs --events <new dir>/events --project <group path>/belay-ledger --branch main
+CI_PROJECT_ID=<project id> node gitlab/components/scripts/hand/derive-gate.mjs --mr <iid> --proof-authors <your username> --guardrail-authors <guardrail service account username> --policy-project <group path>/belay-policy --ledger-project <group path>/belay-ledger --out <new dir>   # [R?]
+BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/components/scripts/decide/ledger-append.mjs --events <new dir>/events --project <group path>/belay-ledger --branch main --key "$(cat <new dir>/ledger-key)"   # [R?]
 ```
 
 `derive-gate` runs what belay-apply runs (`../apply/sweep.mjs`), with your own `glab` login: `fetch-block` for the
@@ -156,8 +156,17 @@ pipeline), and the MR is still refused on a CI change, as belay-apply refuses it
 note for this head, and `tier_at_time` is the engine's, from the live `tier-state.yml`. What a person still checks: that
 `--guardrail-authors` is the guardrail's real account, as in step 3.
 
+`derive-gate` writes `<new dir>/ledger-key`, `<project id>!<iid>@<head>` with the numeric id GitLab answers for the project (never
+`CI_PROJECT_ID` as typed), the key belay-apply forms (`sweep.mjs:120`); `--key` puts it on the commit as `Belay-Head: <key>`, so
+belay-apply (M2) finds the head ledgered and skips it. Once per head is enforced, not asked: before it writes any events
+`derive-gate` reads the commits of `events/<project id>.jsonl` on `--ledger-branch` (default `main`) since the MR was opened
+(`sweep.mjs:124-133`, same 5-page cap) and, if one carries the key, exits 3 with `already ledgered for this head` and writes no
+`events` directory. A ledger it cannot read, or more commits than the cap, is exit 2: whether the head was appended is not known.
+The command it prints on success is step 4's second line with the key filled in. Only a head ledgered by hand without `--key`
+(before this) is not recognised.
+
 `ledger-append` takes every `*.json` in the directory, in name order, in one commit, each as seq n+1 on the chain it reads from
-`belay-ledger`. Run it once per head. If the push to `main` is refused, add `--mode mr`. It reads the ledger with your own `glab` login and no
+`belay-ledger`. If the push to `main` is refused, add `--mode mr`. It reads the ledger with your own `glab` login and no
 token variable. If `--write-token-var` is given, the variable it names must be set: an unset one is refused before any read (F88, b85b78c). Without the flag, the write token falls back as before. Only a 404 means there is no ledger file yet (the chain then starts at seq 1); any other failed read (403, 5xx,
 no network) stops it with GitLab's message and writes nothing. The write carries the `last_commit_id` it read, so a ledger
 that moved in between is refused: run it again.

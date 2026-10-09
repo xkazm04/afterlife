@@ -38,8 +38,16 @@ const compareOf = (diff) => ({
 });
 const description = 'Fix the export traversal\n\nBelay-Task: 01J9ZP6M2Q8E4V7K3N5R1T0XAB\nBelay-Class: code-fix.patch';
 
-function routes({ notes = [note(50, 'ai-guardrail-acme', 'belay-guardrail', verdict('pass')), proofNote], diff = DIFF } = {}) {
+const LEDGER = 'acme/belay-ledger';
+const LEDGER_API = `projects/${encodeURIComponent(LEDGER)}/repository/commits`;
+/** A ledger commit as sweep.mjs's appendLedger leaves it: the key in a `Belay-Head:` line of the message. */
+const commit = (key) => ({ id: 'c1', message: `ledger: events
+
+Belay-Head: ${key}` });
+
+function routes({ notes = [note(50, 'ai-guardrail-acme', 'belay-guardrail', verdict('pass')), proofNote], diff = DIFF, ledger = [] } = {}) {
   return {
+    [LEDGER_API]: ledger,
     'projects/1': { id: 1, path_with_namespace: 'acme/ledgerline', web_url: URL_, default_branch: 'main', ci_config_path: null },
     'projects/1/merge_requests/7': { iid: 7, author: { username: 'ai-patcher-acme' }, description, target_branch: 'main', sha: HEAD, diff_refs: { base_sha: BASE, head_sha: HEAD } },
     'projects/1/merge_requests/7/notes': notes,
@@ -54,7 +62,7 @@ function routes({ notes = [note(50, 'ai-guardrail-acme', 'belay-guardrail', verd
 /** One hand-run. The variables the target's job would read name the agent: the script must not take them. */
 function derive(name, opts) {
   const out = path.join(dir, `out-${name}`);
-  const r = runScript(dir, 'hand/derive-gate.mjs', ['--mr', '7', '--proof-authors', OP, '--guardrail-authors', 'ai-guardrail-acme', '--policy-project', 'acme/belay-policy', '--out', out],
+  const r = runScript(dir, 'hand/derive-gate.mjs', ['--mr', '7', '--proof-authors', OP, '--guardrail-authors', 'ai-guardrail-acme', '--policy-project', 'acme/belay-policy', '--ledger-project', LEDGER, '--out', out],
     { routes: routes(opts), env: { BELAY_GUARDRAIL_AUTHORS: 'ai-patcher-acme', BELAY_PROOF_AUTHORS: 'ai-patcher-acme' } });
   const events = path.join(out, 'events');
   const files = fs.existsSync(events) ? fs.readdirSync(events).sort() : [];
@@ -80,6 +88,8 @@ function noArtifactNoWrite(r) {
   expect(r.reads.filter((p) => /(^|\/)jobs\/|artifacts/.test(p))).toEqual([]);
   expect(r.writes).toEqual([]);
 }
+
+const KEY = `1!7@${HEAD}`;
 
 describe('derive-gate (M1 hand-run step 4, F90)', { timeout: 120_000 }, () => {
   it('(i) emits the proof_verdict, guardrail_verdict and tier_decision bodies apply-gate emits for the same inputs', () => {
@@ -127,9 +137,40 @@ describe('derive-gate (M1 hand-run step 4, F90)', { timeout: 120_000 }, () => {
     const out = path.join(dir, 'out-used');
     fs.mkdirSync(out, { recursive: true });
     fs.writeFileSync(path.join(out, 'stale.json'), '{}');
-    const r = runScript(dir, 'hand/derive-gate.mjs', ['--mr', '7', '--proof-authors', OP, '--guardrail-authors', 'ai-guardrail-acme', '--policy-project', 'acme/belay-policy', '--out', out], { routes: routes() });
+    const r = runScript(dir, 'hand/derive-gate.mjs', ['--mr', '7', '--proof-authors', OP, '--guardrail-authors', 'ai-guardrail-acme', '--policy-project', 'acme/belay-policy', '--ledger-project', LEDGER, '--out', out], { routes: routes() });
     expect(r.code).toBe(2);
     expect(r.stderr).toMatch(/is not empty/);
     expect(r.reads).toEqual([]);
+  });
+
+  it('writes the key belay-apply forms (numeric project id, MR iid, head) to ledger-key, and prints the append command', () => {
+    const got = derive('key');
+    expect(got.r.code, got.r.stderr).toBe(0);
+    expect(fs.readFileSync(path.join(got.out, 'ledger-key'), 'utf8').trim()).toBe(KEY);
+    expect(got.r.stderr).toContain(`ledger-append.mjs --events ${path.join(got.out, 'events')} --project ${LEDGER} --branch main --key '${KEY}'`);
+    noArtifactNoWrite(got.r);
+  });
+
+  it('refuses a head the ledger already carries (exit 3, no events directory), not another head of the same MR', () => {
+    const had = derive('had', { ledger: [commit(`1!6@${HEAD}`), commit(KEY)] });
+    expect(had.r.code, had.r.stderr).toBe(3);
+    expect(had.r.stderr).toMatch(/already ledgered for this head/);
+    expect(fs.existsSync(path.join(had.out, 'events'))).toBe(false);
+    expect(had.r.reads.some((p) => p.startsWith(`${LEDGER_API}?ref_name=main&path=${encodeURIComponent('events/1.jsonl')}`))).toBe(true);
+    noArtifactNoWrite(had.r);
+
+    const other = derive('other-head', { ledger: [commit(`1!7@${'c'.repeat(40)}`), commit(`2!7@${HEAD}`)] });
+    expect(other.r.code, other.r.stderr).toBe(0);
+    expect(other.files.length).toBe(3);
+  });
+
+  it('exits 2 when the ledger cannot be read or has more commits than it reads, and writes no events', () => {
+    const failed = derive('ledger-down', { ledger: { __http: 500, message: 'boom' } });
+    expect(failed.r.code).toBe(2);
+    const pages = Array.from({ length: 5 }, () => Array.from({ length: 100 }, () => commit('9!9@x')));
+    const capped = derive('ledger-cap', { ledger: { __pages: pages } });
+    expect(capped.r.code).toBe(2);
+    expect(capped.r.stderr).toMatch(/not known/);
+    for (const x of [failed, capped]) expect(x.files).toEqual([]);
   });
 });

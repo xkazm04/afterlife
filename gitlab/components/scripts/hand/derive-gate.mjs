@@ -11,8 +11,10 @@
 // then `engine gate` in the Belay checkout (BELAY_DIR, default the one this script is in), then
 // `apply-gate --dry 1 --emit-dir <out>/events --agent --class`. An MR belay-apply would give nothing (another target
 // branch, a CI change) or not gate yet (no class, no proof or guardrail verdict for this head) gets no events.
+// A head the ledger already carries (a `Belay-Head: <project id>!<iid>@<head>` commit line, ledgered.mjs) gets no events: belay-apply
+// keys its appends so and skips such a head. On success the key is <out>/ledger-key, for ledger-append --key.
 // Usage: CI_PROJECT_ID=<id> node derive-gate.mjs --mr <iid> --proof-authors <you> --guardrail-authors <account>
-//          --policy-project <path> --out <new dir> [--agent-prefix ai-]
+//          --policy-project <path> --ledger-project <belay-ledger path> --out <new dir> [--agent-prefix ai-] [--ledger-branch main]
 // Exit 0 = <out>/events written; 3 = nothing to append, the reason on stderr; 2 = a read failed or an input is wrong.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -21,6 +23,7 @@ import { api, arg, die, enc, need } from '../lib/lib.mjs';
 import { engine } from '../lib/engine.mjs';
 import { readFile } from '../lib/repo-write.mjs';
 import { mrFacts } from './facts.mjs';
+import { ledgerKey, ledgered } from './ledgered.mjs';
 
 const SCRIPTS = path.resolve(import.meta.dirname, '..');
 const USERS = /^[A-Za-z0-9_.-]+(,[A-Za-z0-9_.-]+)*$/;
@@ -29,6 +32,8 @@ const iid = need('mr');
 const proofAuthors = need('proof-authors');
 const guardrailAuthors = need('guardrail-authors');
 const policyProject = need('policy-project');
+const ledgerProject = need('ledger-project');
+const ledgerBranch = arg('ledger-branch', 'main');
 const out = path.resolve(need('out'));
 if (!/^\d+$/.test(iid)) die('--mr is a number');
 for (const [flag, v] of [['proof-authors', proofAuthors], ['guardrail-authors', guardrailAuthors]]) if (!USERS.test(v)) die(`--${flag} is a comma-separated list of usernames`);
@@ -56,9 +61,17 @@ try {
 } catch (e) {
   die(`a read failed, nothing written: ${String(e.message ?? e).split('\n')[0]}`);
 }
-const { project, head, base, diff, refusal } = facts;
+const { project, mr: mrRow, head, base, diff, refusal } = facts;
 if (refusal) nothing(`${refusal}: belay-apply gives it nothing, a person reviews it`);
 if (!project?.web_url) die(`GitLab's answer for project ${projectId} has no web_url`);
+
+// belay-apply's own key, from the numeric id GitLab answered for the project (never CI_PROJECT_ID as given).
+const key = ledgerKey(project, iid, head);
+try {
+  if (ledgered({ ledgerProject, branch: ledgerBranch, project, mr: mrRow, key })) nothing('already ledgered for this head');
+} catch (e) {
+  die(`reading ${ledgerProject} failed, nothing written: ${String(e.message ?? e).split('\n')[0]}`);
+}
 
 const ctx = glue('proof/mr-context.mjs', ['--mr', iid, '--agent-prefix', arg('agent-prefix', 'ai-'), '--out', at('mr.env')]);
 if (ctx === 10) nothing('it is not an agent MR with a Belay-Task trailer');
@@ -107,4 +120,7 @@ const applied = glue('decide/apply-gate.mjs', ['--mr', iid, '--sha', head, '--de
 if (applied > 1) die(`apply-gate exited ${applied}`);
 if (!fs.existsSync(at('events'))) nothing(`the gate says ${decided.decision} and emits no events`);
 const events = fs.readdirSync(at('events')).sort();
-console.error(`belay: !${iid} head ${head}: gate ${decided.decision} at tier ${decided.tier ?? '?'}. ${events.length} event(s) in ${at('events')}: ${events.join(', ')}. Append them with ledger-append.`);
+fs.writeFileSync(at('ledger-key'), `${key}
+`);
+console.error(`belay: !${iid} head ${head}: gate ${decided.decision} at tier ${decided.tier ?? '?'}. ${events.length} event(s) in ${at('events')}: ${events.join(', ')}.`);
+console.error(`Append them once: CI_PROJECT_ID=${project.id} node ${path.join(SCRIPTS, 'decide', 'ledger-append.mjs')} --events ${at('events')} --project ${ledgerProject} --branch ${ledgerBranch} --key '${key}'`);
