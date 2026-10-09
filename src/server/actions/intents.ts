@@ -20,6 +20,8 @@ const ONE_LINE = /^[^\r\n]+$/;
 const BRANCH = /^belay\/[A-Za-z0-9._/-]+$/;
 const FILE_PATH = /^[A-Za-z0-9._][A-Za-z0-9._/-]*$/;
 const MAX_FILE = 64 * 1024;
+/** A new file's preview shows every line (F84), so its cost follows its lines: bounded apart from its characters (F92). */
+export const MAX_FILE_LINES = 2000;
 const MAX_HUNK_LINES = 400;
 const TRACK = /^T[1-8]$/;
 
@@ -31,7 +33,8 @@ function hunkOf(v: unknown): string[] | null {
   return v as string[];
 }
 
-function files(v: unknown): GapFile[] | null {
+/** The files, a reason that names the bound they pass, or null when they are not files at all. */
+function files(v: unknown): GapFile[] | string | null {
   if (!Array.isArray(v) || v.length < 1 || v.length > 8) return null;
   const out: GapFile[] = [];
   for (const f of v) {
@@ -44,6 +47,8 @@ function files(v: unknown): GapFile[] | null {
       out.push({ path, hunk });
     } else {
       if (typeof f.content !== 'string' || f.content.length > MAX_FILE) return null;
+      const lines = f.content.split('\n').length - (f.content.endsWith('\n') ? 1 : 0); // the '' after a final newline is not a line
+      if (lines > MAX_FILE_LINES) return `a new file is at most ${MAX_FILE_LINES} lines: ${path} has ${lines}`;
       out.push({ path, content: f.content });
     }
   }
@@ -85,6 +90,7 @@ export function parseIntent(raw: unknown): IntentParse {
       const from = int(raw.from, 0, 4);
       const to = int(raw.to, 0, 4);
       const fs = files(raw.files);
+      if (typeof fs === 'string') return no(fs);
       const workItem = raw.workItem === undefined ? undefined : int(raw.workItem, 1, 1_000_000_000);
       if (!stage || !gap || !title || !branch || from === null || to === null || !fs || workItem === null || branch.includes('..')) {
         return no('gap, stage, title, branch (belay/...), from/to (0-4) and 1 to 8 files are required');

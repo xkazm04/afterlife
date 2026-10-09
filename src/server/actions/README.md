@@ -59,6 +59,13 @@ Target decisions (`plans/context.ts`):
 - F52 (3014213): a record's `since` is stamped to the minute (`minuteOf`, `context.ts:72`; `revoke.ts:41`, `promote.ts:31`), so a confirm within the minute of its preview has the same `previewId` and runs, instead of always coming back `changed`.
 
 - F90 (accepted residual, `plans/gap.ts:50-54`): a gap's commits and draft MR run the proposed CI (the target's MR pipeline) as the operator before anyone reviews the MR. Accepted: it is inherent to proposing a CI change by MR, and since F83, F84 and F85 the operator sees every line that will run, on a branch that is new.
+- F92 (Low, fixed): a preview is an anonymous endpoint on the hosted replay, and a new file's preview shows every line
+  (F84), one diff row each, so its cost followed a line count that had no bound of its own. The largest intent the
+  validator admitted (8 files of 64K newlines, inside Next's 1MB action body limit) cost about 60 ms of CPU and a 4 MB
+  answer per call. A new file is now at most `MAX_FILE_LINES` (2000) lines, refused with the bound named
+  (`intents.ts:24`, `intents.ts:50-51`, `__tests__/replay/cost.test.ts`); the worst case left is about 1.6 MB out for
+  0.5 MB in, under 15 ms. The seeded gaps (at most 46 lines a file, 18 a hunk) are admitted. A hunk was already bounded
+  (400 lines of 500 characters), and so is the whole body (Next's default `serverActions.bodySizeLimit`, 1MB: keep it).
 
 Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran).
 
