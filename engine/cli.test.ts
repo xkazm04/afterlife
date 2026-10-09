@@ -70,6 +70,18 @@ describe('exit codes: 0 pass, 1 fail, 2 inconclusive or error', () => {
   });
 });
 
+describe('scan', () => {
+  it('0 when all nine cells are determined, 2 when any is unknown; the document is printed either way', () => {
+    const ok = cli('scan', '--facts', fx('maturity', 'empty.facts.json'));
+    expect(ok.code).toBe(0);
+    expect(ok.json).toMatchObject({ schema: 'belay.maturity/0', project_id: 101 });
+    const unknown = cli('scan', '--facts', fx('maturity', 'unreadable.facts.json'));
+    expect(unknown.code).toBe(2);
+    expect(unknown.json).toMatchObject({ schema: 'belay.maturity/0', project_id: 104 });
+    expect(cli('scan').code).toBe(2);
+  });
+});
+
 describe('envelope', () => {
   const run = (...extra: string[]) => cli('envelope', '--policy', 'policy/trust-policy.yml', '--class', 'code-fix.patch', '--diff', fx('exploit', 'fix.diff'), ...extra);
   it('0 inside the envelope, 1 outside it, listing the violations', () => {

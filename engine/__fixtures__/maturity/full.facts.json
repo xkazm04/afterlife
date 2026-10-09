@@ -1,0 +1,36 @@
+{
+  "schema": "belay.facts/0",
+  "project_id": 105,
+  "at": "2026-10-08T06:00:00.000Z",
+  "facts": {
+    "project": { "path": "acme/deep", "default_branch": "main", "visibility": "private", "web_url": "https://gitlab.example.com/acme/deep", "merge_requires_pipeline": true },
+    "ci_config": {
+      "valid": true,
+      "jobs": [
+        { "name": "build", "stage": "build", "allow_failure": true },
+        { "name": "test", "stage": "test", "allow_failure": false },
+        { "name": "sast", "stage": "test", "allow_failure": false },
+        { "name": "release", "stage": "deploy", "allow_failure": false },
+        { "name": "belay-tier-gate", "stage": "review", "allow_failure": false },
+        { "name": "belay-proof-rerun-stats", "stage": "review", "allow_failure": true }
+      ]
+    },
+    "protected_branches": [{ "name": "main" }],
+    "environments": [{ "id": 3, "name": "production" }],
+    "approval_rules": [],
+    "schedules": [],
+    "codeowners": [],
+    "issue_templates": ["maturity-gap.md"],
+    "duo_agent_config": true,
+    "latest_pipeline_jobs": {
+      "pipeline": { "id": 9850, "web_url": "https://gitlab.example.com/acme/deep/-/pipelines/9850", "created_at": "2026-10-07T09:40:00.000Z" },
+      "jobs": [
+        { "id": 801, "name": "build", "stage": "build", "status": "success", "web_url": "https://gitlab.example.com/acme/deep/-/jobs/801", "finished_at": "2026-10-07T09:44:00.000Z", "artifacts": ["trace", "archive", "metadata"] },
+        { "id": 802, "name": "test", "stage": "test", "status": "success", "web_url": "https://gitlab.example.com/acme/deep/-/jobs/802", "finished_at": "2026-10-07T09:49:00.000Z", "artifacts": ["trace", "junit"] },
+        { "id": 803, "name": "sast", "stage": "test", "status": "success", "web_url": "https://gitlab.example.com/acme/deep/-/jobs/803", "finished_at": "2026-10-07T09:48:00.000Z", "artifacts": ["trace", "sast"] },
+        { "id": 804, "name": "belay-tier-gate", "stage": "review", "status": "success", "web_url": "https://gitlab.example.com/acme/deep/-/jobs/804", "finished_at": "2026-10-07T09:52:00.000Z", "artifacts": ["trace", "archive", "metadata"] },
+        { "id": 805, "name": "belay-proof-rerun-stats", "stage": "review", "status": "success", "web_url": "https://gitlab.example.com/acme/deep/-/jobs/805", "finished_at": "2026-10-07T09:55:00.000Z", "artifacts": ["trace", "archive", "metadata"] }
+      ]
+    }
+  }
+}

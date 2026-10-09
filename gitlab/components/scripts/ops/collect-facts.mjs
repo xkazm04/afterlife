@@ -28,7 +28,11 @@ const exists = (path) => {
 
 take('project', () => {
   const p = api(`projects/${id}`);
-  return { path: p.path_with_namespace, default_branch: p.default_branch, visibility: p.visibility };
+  // web_url: every lit cell cites a GitLab object under it; merge_requires_pipeline decides R3 ("failing it blocks a merge")
+  return {
+    path: p.path_with_namespace, default_branch: p.default_branch, visibility: p.visibility, web_url: p.web_url,
+    merge_requires_pipeline: p.only_allow_merge_if_pipeline_succeeds,
+  };
 });
 take('ci_config', () => api(`projects/${id}/ci/lint?include_jobs=true`)); // merged YAML and jobs [R?]
 take('protected_branches', () => api(`projects/${id}/protected_branches`));
@@ -37,10 +41,23 @@ take('approval_rules', () => api(`projects/${id}/approval_rules`));
 take('schedules', () => api(`projects/${id}/pipeline_schedules`));
 take('codeowners', () => ['CODEOWNERS', '.gitlab/CODEOWNERS', 'docs/CODEOWNERS'].filter(exists));
 take('duo_agent_config', () => exists('.gitlab/duo/agent-config.yml'));
+take('issue_templates', () => {
+  try {
+    return api(`projects/${id}/repository/tree?path=${enc('.gitlab/issue_templates')}&ref=${enc(branch)}&per_page=100`).filter((e) => e.type === 'blob').map((e) => e.name);
+  } catch (e) {
+    if (httpStatus(e) === 404) return []; // no templates folder on the default branch
+    throw e;
+  }
+});
 take('latest_pipeline_jobs', () => {
   const [p] = api(`projects/${id}/pipelines?ref=${enc(branch)}&status=success&order_by=id&sort=desc&per_page=1`) ?? [];
   if (!p) return { pipeline: null, jobs: [] };
-  return { pipeline: p.id, jobs: apiAll(`projects/${id}/pipelines/${p.id}/jobs`, 2).map((j) => ({ name: j.name, stage: j.stage, status: j.status })) };
+  // R2 is "ran in the last 14 days and produced an artifact": a job's finish time and artifact types, and its URL as evidence
+  const jobs = apiAll(`projects/${id}/pipelines/${p.id}/jobs`, 2).map((j) => ({
+    id: j.id, name: j.name, stage: j.stage, status: j.status, web_url: j.web_url, finished_at: j.finished_at ?? null,
+    artifacts: (j.artifacts ?? []).map((a) => a.file_type),
+  }));
+  return { pipeline: { id: p.id, web_url: p.web_url, created_at: p.created_at }, jobs };
 });
 
 fs.writeFileSync(arg('out', 'facts.json'), JSON.stringify({ schema: 'belay.facts/0', project_id: Number(id), at: new Date().toISOString(), facts }, null, 2));

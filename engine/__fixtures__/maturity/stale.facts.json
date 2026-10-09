@@ -1,0 +1,29 @@
+{
+  "schema": "belay.facts/0",
+  "project_id": 103,
+  "at": "2026-10-08T06:00:00.000Z",
+  "facts": {
+    "project": { "path": "acme/old", "default_branch": "main", "visibility": "private", "web_url": "https://gitlab.example.com/acme/old", "merge_requires_pipeline": true },
+    "ci_config": {
+      "valid": true,
+      "jobs": [
+        { "name": "test", "stage": "test", "allow_failure": false },
+        { "name": "secret_detection", "stage": "test", "allow_failure": false }
+      ]
+    },
+    "protected_branches": [],
+    "environments": [],
+    "approval_rules": [],
+    "schedules": [],
+    "codeowners": [],
+    "issue_templates": [],
+    "duo_agent_config": false,
+    "latest_pipeline_jobs": {
+      "pipeline": { "id": 7001, "web_url": "https://gitlab.example.com/acme/old/-/pipelines/7001", "created_at": "2026-09-20T10:00:00.000Z" },
+      "jobs": [
+        { "id": 301, "name": "test", "stage": "test", "status": "success", "web_url": "https://gitlab.example.com/acme/old/-/jobs/301", "finished_at": "2026-09-20T10:09:00.000Z", "artifacts": ["trace", "junit"] },
+        { "id": 302, "name": "secret_detection", "stage": "test", "status": "success", "web_url": "https://gitlab.example.com/acme/old/-/jobs/302", "finished_at": "2026-10-07T10:09:00.000Z", "artifacts": ["trace"] }
+      ]
+    }
+  }
+}

@@ -31,13 +31,20 @@ Schedule it daily on the default branch with `BELAY_SCAN=maturity`.
 | `glab_version` | string | `"1.120.0"` |  |
 | `glab_sha256` | string | `""` |  |
 | `runner_tags` | array | `[]` |  |
-| `scan_command` | string | `"scan"` | The engine command that scores facts.json. [R?] Not in the engine CLI contract (docs/BACKEND-PLAN.md section 3); the job may fail until it exists. |
+| `scan_command` | string | `"scan"` | The engine command that scores facts.json (`engine/cli.ts scan --facts`, writes `belay.maturity/0`). |
 
 ## Status
 
-The collector is real. **The scorer is not in the engine CLI contract** (docs/BACKEND-PLAN.md section 3 has no `scan`
-command), so `scan_command` defaults to `scan` and the job is `allow_failure: true` until the engine has it. Artifacts:
-`.belay/facts.json`, `.belay/maturity.json`.
+The collector and the scorer are real: `engine/cli.ts scan --facts .belay/facts.json` scores the facts by the rubric table in
+`engine/README.md` and prints `belay.maturity/0` (nine cells, `src/schemas/maturity.ts`). It exits 2 when any cell is unknown,
+which under a job token is the usual case (see Token), so the job stays `allow_failure: true` and keeps its artifacts either
+way: `.belay/facts.json`, `.belay/maturity.json`. Belay's poller reads `.belay/maturity.json` from the newest
+`belay-maturity-scan` job and stores its cells (`src/server/poller/README.md`).
+
+Besides the facts above, the collector keeps what the rubric decides on: the project's `web_url` and
+`merge_requires_pipeline` (`only_allow_merge_if_pipeline_succeeds`), the latest green pipeline's `web_url` and
+`created_at`, each of its jobs' `id`, `web_url`, `finished_at` and artifact types, and `issue_templates` (one more read-only
+GET of `.gitlab/issue_templates`; a 404 is `[]`).
 
 ## Token
 

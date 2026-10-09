@@ -11,6 +11,7 @@ dependency beyond `yaml`. Every command writes JSON to stdout and a human summar
 | `gate --policy P --state S --class <id> --proof F --guardrail F [--agent A] [--diff F] [--env E] [--engine-sha H]` | `merge` / `approve` / `wait` / `block` | 0 / 0 / 2 / 1 |
 | `tripwire --policy P --state S --event F` | `{demote, commit: {path, content, message}}` | 0 (2 on bad input) |
 | `ledger append --event F --chain events.jsonl [--write]` | One hash-chained ledger line | 0 (2 on a broken chain) |
+| `scan --facts facts.json` | `belay.maturity/0`: nine stage cells from the facts `collect-facts.mjs` wrote | 0 all determined, 2 any unknown or unreadable input |
 
 Policy defaults to `policy/trust-policy.yml`, state to `policy/tier-state.yml`. In a proof input,
 `{"$file": "x.diff"}` is replaced by that file's text (relative to the input). The file must resolve, symlinks
@@ -34,6 +35,42 @@ Only `prove` inlines; `gate`, `tripwire` and `ledger` read their JSON as it is.
 
 The block's `verdict` is `verdictOf(checks, envelope.within)`: claims never decide. `engine` is
 `{version, sha256}`, the hash of every engine source file (tests and fixtures excluded), so a verdict pins its checker.
+
+## Maturity scan
+
+`scan` reads a `belay.facts/0` file and prints `{schema: 'belay.maturity/0', project_id, engine_version, scanned_at, cells}`
+(`src/schemas/maturity.ts`, which the server parses the artifact with). `scanned_at` is the facts' `at`: the engine reads no
+clock, and "the last 14 days" count back from it. Each of the nine cells, in `STAGES` order, is `{stage, rung, evidence:
+[{label, url}], note, next_rung}`, `rung` an index into `RUNGS` or null. The table is data (`commands/rubric.ts`):
+
+| Stage | R1 present on the default branch | R2 ran in 14 days with an artifact | R3 failing it blocks a merge | R4 an agent operates it, Belay re-derives it |
+|---|---|---|---|---|
+| plan | `issue_templates`: a file under `.gitlab/issue_templates` | not read | not read | not read |
+| create | `codeowners` has a file, or `protected_branches` holds the default branch | not read | not read | not read |
+| verify | a `ci_config.jobs` name with the word test(s), lint, spec or check | that job on `latest_pipeline_jobs`, a `junit` artifact | rule R3 | rule R4, proof job `belay-proof-rerun-stats` |
+| package | a job name with build, image, docker, kaniko, package or publish | that job, any artifact | rule R3 | not read |
+| secure | a job name with sast, secret_detection, dependency_scanning, gemnasium, container_scanning, dast or sbom | that job, a `sast`, `secret_detection`, `dependency_scanning`, `container_scanning`, `dast` or `cyclonedx` artifact | rule R3 | rule R4, proof job `belay-proof-exploit-test` or `sbom-rederive` |
+| release | a job name with release or openvex | that job, any artifact | rule R3 | not read |
+| configure | a job name with deploy, terraform, tofu, apply or infra | that job, any artifact | rule R3 | not read |
+| monitor | a job name with monitor, smoke, synthetic, uptime or alert(s) | that job, any artifact | not read | not read |
+| govern | the job `belay-tier-gate` | that job, any artifact | rule R3 | rule R4, proof job `belay-tier-gate` |
+
+- **R2** (every job stage): one of R1's jobs is on the latest green default-branch pipeline, `success` or `failed`, finished
+  at most 14 days before `at`, with an artifact of the listed type (`trace` and `metadata`, a job's own log, never count).
+  Evidence: the job's and the pipeline's `web_url`.
+- **Rule R3**: `project.merge_requires_pipeline` is true and that job is not `allow_failure` in `ci_config.jobs`. Evidence:
+  the project's merge-request settings. `[R?]` the job must also run in merge request pipelines to block one; the facts do
+  not say which pipelines it runs in.
+- **Rule R4**: `duo_agent_config` is true and the stage's Belay proof job ran on the same pipeline (as R2, any artifact).
+  Evidence: `.gitlab/duo/agent-config.yml` and the proof job.
+
+A rung counts only when every rung below it does, so R2 and up always rest on a run: presence is not behaviour. A rung marked
+"not read" is never credited; the cell stops below it and its note says so. A fact that is `{error}`, or was not collected
+(including a field the rubric needs, such as a job's `finished_at` in facts written before the collector kept it), leaves
+the cell null with a note naming the fact, whatever rungs below it held: unknown is never absent. Every lit cell cites at
+least one URL built from the facts (`project.web_url`, a job's or the pipeline's `web_url`). Fixtures:
+`__fixtures__/maturity/` (an empty project, a configured job that never ran, a stale run and one with no artifact, an
+unreadable fact, a deep project).
 
 ## Gate and tripwire
 

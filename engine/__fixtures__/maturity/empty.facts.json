@@ -1,0 +1,17 @@
+{
+  "schema": "belay.facts/0",
+  "project_id": 101,
+  "at": "2026-10-08T06:00:00.000Z",
+  "facts": {
+    "project": { "path": "acme/empty", "default_branch": "main", "visibility": "private", "web_url": "https://gitlab.example.com/acme/empty", "merge_requires_pipeline": false },
+    "ci_config": { "valid": false, "errors": ["Please provide content of .gitlab-ci.yml"], "jobs": [] },
+    "protected_branches": [],
+    "environments": [],
+    "approval_rules": [],
+    "schedules": [],
+    "codeowners": [],
+    "issue_templates": [],
+    "duo_agent_config": false,
+    "latest_pipeline_jobs": { "pipeline": null, "jobs": [] }
+  }
+}

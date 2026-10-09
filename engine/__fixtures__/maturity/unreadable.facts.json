@@ -1,0 +1,16 @@
+{
+  "schema": "belay.facts/0",
+  "project_id": 104,
+  "at": "2026-10-08T06:00:00.000Z",
+  "facts": {
+    "project": { "path": "acme/app", "default_branch": "main", "visibility": "private", "web_url": "https://gitlab.example.com/acme/app", "merge_requires_pipeline": false },
+    "ci_config": { "error": "glab: 403 Forbidden (HTTP 403)" },
+    "protected_branches": { "error": "glab: 403 Forbidden (HTTP 403)" },
+    "environments": [],
+    "approval_rules": { "error": "glab: 403 Forbidden (HTTP 403)" },
+    "schedules": { "error": "glab: 403 Forbidden (HTTP 403)" },
+    "codeowners": [],
+    "duo_agent_config": false,
+    "latest_pipeline_jobs": { "error": "glab: 403 Forbidden (HTTP 403)" }
+  }
+}
