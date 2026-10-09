@@ -48,3 +48,31 @@ describe('a failed live start', () => {
     expect(lastStartFailure()).toBeNull();
   });
 });
+
+describe('the pages after a failed start', () => {
+  const read = (): unknown => getDataSource(ENV).getFleet();
+
+  it('name the start failure, not an unfinished first poll', async () => {
+    await expect(startRuntime(cfg, quiet)).rejects.toThrow();
+    expect(read).toThrow(/live start failed.*glab is not logged in/s);
+  });
+
+  it('keep the old message while no start has run', () => {
+    expect(read).toThrow(/first poll has not finished/);
+    expect(mocked).toHaveBeenCalledTimes(0);
+  });
+
+  it('start at most one retry inside the interval, and another once it has passed', async () => {
+    await expect(startRuntime(cfg, quiet)).rejects.toThrow();
+    expect(mocked).toHaveBeenCalledTimes(1);
+    expect(read).toThrow();
+    expect(read).toThrow();
+    expect(mocked).toHaveBeenCalledTimes(1); // inside the interval: no retry
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(Date.now() + 31_000);
+    expect(read).toThrow();
+    expect(read).toThrow();
+    expect(mocked).toHaveBeenCalledTimes(2); // one retry, the second read sees it in flight
+    await vi.waitFor(() => expect(readyRuntime()).not.toBeNull());
+  });
+});
