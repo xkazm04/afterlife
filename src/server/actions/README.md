@@ -21,6 +21,12 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 | `arm-track` | `project`, `track` (`T1`-`T8`) | one commit of `.gitlab-ci.yml` on a new branch `belay/arm-<key>` (`start_branch` = default, `last_commit_id` as read), then one MR labelled `belay::arm`. Adds the track's include lines between `# belay:arm` markers |
 | `disarm-track` | `project`, `track` | the same on `belay/disarm-<key>`: removes exactly the marked lines the arm added (their digest is in the begin marker), or refuses |
 
+`promote-class` decisions (`plans/promote.ts`):
+
+- `planPromote` refuses (`ActionRefused`, naming the date) while the class's record has a `cooldown_until` still ahead (`promote.ts:30-35`, 565e23f). A date-only cooldown lifts at 00:00 UTC on that date (`rules.ts:51-53`).
+- Re-admitting a quarantined class to Assisted is not refused during the cooldown (`promote.ts:34-35`, 565e23f). The new record keeps `cooldown_until` (`promote.ts:42`), so the class climbs no further before that date. This is the App Master's decision of 2026-10-09 (wake 1c7f329f), confirming the builder's choice; it matches the re-admit card's "does not lift the promotion cooldown".
+- The preview's summary states the precondition "a person merges this MR; Belay never merges it" (`HUMAN_KEY`, `rules.ts:66`; `promote.ts:50`, 28d308a). It is no longer counted as a met rule row, and no GitLab approval setting is read (28d308a).
+
 Arm and disarm (`arm/`): the content is the repo's own, not Belay's idea. `content.ts` holds a track's include lines as
 `gitlab/examples/target-project/.gitlab-ci.yml` writes them (its test checks them against the example and the templates'
 `spec:inputs`). Only T4 (guardrail: `proof-engine` cited-diff alone; the `flow-dispatch` component is gone, belay-apply starts the guardrail) is defined; any other track is refused with
