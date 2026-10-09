@@ -47,8 +47,10 @@ Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live), the setup 
 `illustrative` (`tracks`, `loop`, `cockpit`, `setup`), and the Door and Fleet mark what they show of them "demo" (the demo source declares nothing: all of it is the
 demo). It also declares what the Ladder still shows of the demo: `policy-history` (its opening ledger, the tier-state.yml
 head, the policy's revision and merge age, and the commit ids they name: the poller reads belay-policy's files, never its
-history) and `records` (the class records' counters: GitLab cannot restate them, so the poller keeps the seed's). The
-Ladder marks each with the kit's `Chip` ("demo"), and marks the proof class it reads from `tracks` the same way; a class with no record says "No record yet". The tier meanings are the product's tier vocabulary, the same in every mode, and are not marked. The stage list is
+history). The Ladder marks it with the kit's `Chip` ("demo"), and marks the proof class it reads from `tracks` the same
+way. The class records are not declared: the poll counts and stores the record of every class one agent holds
+(`../poller/README.md`, "Record counters"), and the Ladder marks a record it did not count (a class several agents or
+none hold keeps the record the index held: on the demo GitLab, the seed's) "not counted" itself; a class with no record says "No record yet". The tier meanings are the product's tier vocabulary, the same in every mode, and are not marked. The stage list is
 the schema's (`@/schemas/stages`). The Task docket's per-task fixtures are the screen's own render detail for a live task that has one; a fixture with no
 source task is not drawn in live mode, and a live task with no fixture is drawn from its own fields. Needs you never draws its desk in live mode (it is built around the demo's
 five seeded items): it lists the group's own open items, minus any the demo seeded, or `NeedsYouEmpty`.

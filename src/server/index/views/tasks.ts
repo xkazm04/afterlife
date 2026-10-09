@@ -1,12 +1,21 @@
 // Task rows with their proof, in the Task shape the detail screen reads.
-import { getTaskRow, listTasks, type TaskRow } from '../repositories/work/task';
+import { getTaskRow, listTasks, type TaskDetail, type TaskRow } from '../repositories/work/task';
 import { listProofsFor, type ProofRow } from '../repositories/work/proof';
 import type { Queryable } from '../repositories/sql';
 import { countdown } from './format';
 import type { TaskView } from './types';
 
+/** The stored facts a screen draws: not the clock (drawn as a countdown below), nor `edited`, which only the counters read. */
+function factsOf(detail: TaskDetail): Omit<TaskDetail, 'clock' | 'edited'> {
+  const facts = { ...detail };
+  delete facts.clock;
+  delete facts.edited;
+  return facts;
+}
+
 function toTask(row: TaskRow, proof: ProofRow | undefined, now: Date): TaskView {
-  const { clock, ...facts } = row.detail;
+  const { clock } = row.detail;
+  const facts = factsOf(row.detail);
   return {
     id: row.id,
     track: row.track === null ? null : `T${row.track}`,

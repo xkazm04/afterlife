@@ -93,6 +93,15 @@ dismissed at or after the record's `since` is not opened again until the record 
 A task id belongs to the first project and MR that used it: a second MR claiming it is ignored and reported.
 Pipelines are not read: no row consumes them yet.
 
+## Decided choices (the App Master's; council r2 judged both sound)
+
+- **(a) A guardrail block on any head of an MR counts against `guardrail_blocks`**, even if a later head passed and the
+  MR merged. It counts per merge request, not per event, so retries cannot inflate it. One gap is known: a block that
+  belay-apply's forced path applies (`--force block`) emits no `guardrail_verdict`, so if such an MR later merges on a
+  new head, the block is not counted.
+- **(b) Any other account's push counts as an edit**, other bots and agents included, not only a person's. It can only
+  lower no-edit, never raise it.
+
 ## Known limits (decided, not built)
 
 1. **Reverts and clean days are stated only when trust-policy.yml demotes on a revert.** Only then does the tripwire

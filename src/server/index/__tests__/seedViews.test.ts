@@ -5,6 +5,7 @@ import {
   getActionClasses, getFleet, getMaturity, getNeedsYou, getNeedsYouCount, getTask, getTasks,
 } from '../views';
 import { upsertProjects } from '../repositories';
+import { getTaskRow, upsertTasks } from '../repositories/work/task';
 import { SEED_NOW, seedDemo } from '../seed';
 import { memoryIndex } from './memoryIndex';
 
@@ -101,5 +102,17 @@ describe('views never invent what the index cannot know', () => {
     expect(p).toMatchObject({ proofs7d: null, demotions7d: null, feed: { ageSec: null, ok: null }, stages: Array(9).fill(null) });
     expect(p).not.toHaveProperty('env');
     expect(p).not.toHaveProperty('last');
+  });
+});
+
+describe('the Task view', () => {
+  it("does not carry detail.edited, which only the record's counters read (poller/derive/counters.ts)", async () => {
+    const id = DEMO.tasks[0]!.id;
+    const row = await getTaskRow(db, id);
+    await upsertTasks(db, [{ ...row!, detail: { ...row!.detail, edited: true } }]);
+    expect((await getTaskRow(db, id))?.detail.edited).toBe(true);
+    const view = await getTask(db, id, SEED_NOW);
+    expect(view).not.toHaveProperty('edited');
+    expect(view?.title).toBe(DEMO.tasks[0]!.title);
   });
 });

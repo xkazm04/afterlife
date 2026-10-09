@@ -8,14 +8,14 @@ import type { SetupReads } from './setup/read';
 export type DataMode = 'demo' | 'live';
 
 /**
- * Narrative a source still serves from the demo's catalogue beside live data: tracks, the loop, the cockpit's text
- * (running, doing now, going well, needs me, webhooks, unattributed; its poll age is live) and the setup phases. On the
- * Ladder: `policy-history`, the belay-policy history it opens with (its ledger, the tier-state.yml head, the policy's
- * revision and merge age, and the commit ids they name: the poller reads belay-policy's files, never its history), and
- * `records`, the class records' counters. Since migration 0006 the poll stores the record it counts for a class one agent
- * holds (poller/derive/counters.ts) and keeps the index's (the seed's) only for the others.
+ * Narrative a source still serves from the demo's catalogue beside live data: tracks (and so each class's track and proof
+ * class on the Ladder), the loop, the cockpit's text (running, doing now, going well, needs me, webhooks, unattributed;
+ * its poll age is live) and the setup phases. On the Ladder: `policy-history`, the belay-policy history it opens with (its
+ * ledger, the tier-state.yml head, the policy's revision and merge age, and the commit ids they name: the poller reads
+ * belay-policy's files, never its history). The class records are not narrative: the poll counts and stores the record
+ * of a class one agent holds (poller/derive/counters.ts), and the Ladder marks a record it did not count "not counted".
  */
-export type IllustrativePart = 'tracks' | 'loop' | 'cockpit' | 'setup' | 'policy-history' | 'records';
+export type IllustrativePart = 'tracks' | 'loop' | 'cockpit' | 'setup' | 'policy-history';
 
 /** trust-policy.yml's rules as a screen shows them. Policy numbers, not measurements. */
 export interface PolicyRules {
