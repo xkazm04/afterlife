@@ -10,6 +10,7 @@ import { initialState, pendingIds, type MaturityState, type Step } from '../mode
 import { stepsView, type StepView } from '../model/steps';
 import { routeViews, type RouteView } from '../model/crag/routes';
 import type { Mode } from '../model/rungs';
+import type { DataMode } from '../write/gap';
 
 export interface MaturityApi {
   ctx: MaturityCtx;
@@ -25,15 +26,15 @@ export interface MaturityApi {
 }
 
 /** The Maturity screen's state: the pure reducer, its derived views, and the toast for each notice it raises. */
-export function useMaturity(maturity: DemoData['maturity'], stages: readonly Stage[]): MaturityApi {
-  const ctx = useMemo(() => makeCtx(maturity, stages), [maturity, stages]);
+export function useMaturity(maturity: DemoData['maturity'], stages: readonly Stage[], mode: DataMode = 'demo'): MaturityApi {
+  const ctx = useMemo(() => makeCtx(maturity, stages, { mode }), [maturity, stages, mode]);
   const [state, dispatch] = useReducer((s: MaturityState, a: Action) => reduce(s, a, ctx), ctx, initialState);
   const { toast, status } = useToast();
 
   useEffect(() => {
     if (!state.notice) return;
     toast(state.notice.text);
-    status(`${ctx.nowClock} · ${state.notice.text}`);
+    status(ctx.nowClock ? `${ctx.nowClock} · ${state.notice.text}` : state.notice.text);
   }, [state.notice, toast, status, ctx.nowClock]);
 
   const routes = useMemo(() => routeViews(state, ctx), [state, ctx]);

@@ -5,6 +5,7 @@ import { Spacer } from '@/components/controls/Spacer';
 import { SegmentedControl } from '@/components/controls/toolbar/SegmentedControl';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { Window } from '@/components/shell/Window';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { DemoData } from '@/lib/demo';
 import type { Stage } from '@/schemas';
 import { Crag } from './components/crag/Crag';
@@ -25,6 +26,9 @@ import type { Step } from './model/state';
 import type { DataMode } from './write/gap';
 import styles from './MaturityScreen.module.css';
 
+/** Live mode: the scan is the maturity-scan component's job, on the schedule the project gave it. */
+const LIVE_CADENCE = 'the belay-maturity-scan job, on its pipeline schedule';
+
 /**
  * Maturity: nine stage routes on a crag, bolts as rungs. Pick gaps worth exploring, preview the diffs, send them as
  * you (the exact commands are shown first), then watch the simulated merge → run → rescan decide the credit.
@@ -41,7 +45,7 @@ export function MaturityScreen({
   project: string;
   mode: DataMode;
 }) {
-  const api = useMaturity(maturity, stages);
+  const api = useMaturity(maturity, stages, mode);
   const { ctx, state, dispatch, routes, steps, pending, go, select, setMode } = api;
   const scale = useUiScale();
   const gapsRef = useRef<HTMLElement>(null);
@@ -67,7 +71,7 @@ export function MaturityScreen({
   return (
     <Window
       title="Maturity"
-      subtitle={MAT_META.project.replace('/', ' / ')}
+      subtitle={ctx.live ? project : MAT_META.project.replace('/', ' / ')}
       sidebar={<StageList routes={routes} pickedByStage={pickedByStage} selected={state.sel} onSelect={select} />}
       toolbar={
         <>
@@ -75,14 +79,15 @@ export function MaturityScreen({
           <Spacer />
           <Stepper steps={steps} onGo={onGo} label="Next move" />
           <Spacer />
-          <ScanMeta engine={ctx.engine} scannedAt={state.scannedAt} ageMin={state.ageMin} cadence={MAT_META.rescanEvery} />
-          <ToolbarButton className={styles.rescan} title="Rescan, read only (R)" onClick={() => dispatch({ type: 'rescanAll' })}>
+          <ScanMeta engine={ctx.engine} scannedAt={state.scannedAt} ageMin={state.ageMin} scanned={ctx.scanned} cadence={ctx.live ? LIVE_CADENCE : MAT_META.rescanEvery} />
+          <ToolbarButton className={styles.rescan} title="Rescan, read only (R). Simulated: nothing is scanned, no rung moves" onClick={() => dispatch({ type: 'rescanAll' })}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" aria-hidden="true" className={styles.rescanIcon}>
               <path d="M10.2 4.6A4.5 4.5 0 1 0 10.5 7" />
               <path d="M10.6 1.6v3h-3" />
             </svg>
             Rescan
           </ToolbarButton>
+          <HonestyChip kind="simulated" />
         </>
       }
       inspector={<InspectorPanel api={api} />}
@@ -108,6 +113,7 @@ export function MaturityScreen({
           mrs={state.mrs}
           selected={state.sel}
           sectionRef={gapsRef}
+          live={ctx.live}
           onPick={(id) => dispatch({ type: 'togglePick', id })}
           onSelect={(g) => select(g.stage)}
         />

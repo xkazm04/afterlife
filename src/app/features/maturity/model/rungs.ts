@@ -64,8 +64,11 @@ export function countsText(c: LevelCounts): string {
   return `${c.total} stages · ${c.deep} deep · ${c.running + c.configured} touched (${c.running} running, ${c.configured} configured) · ${c.absent} absent · `;
 }
 
+/** The scan time the live source serves for a project never scanned (src/server/data/live/narrow.ts). */
+export const NOT_SCANNED_AT = '--:--';
+
 export function modeLabel(mode: Mode, scannedAt: string): string {
   if (mode === 'day0') return 'Day 0';
   if (mode === 'target') return 'Target · not earned';
-  return `Now · scan ${scannedAt}`;
+  return scannedAt === NOT_SCANNED_AT ? 'Now · not scanned' : `Now · scan ${scannedAt}`;
 }

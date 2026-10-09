@@ -24,6 +24,7 @@ export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: Maturi
           <span className={cx(styles.m, styles.mq)}>?</span>
           <span>{x.probeResult}</span>
         </div>
+        <HonestyChip kind="simulated" />
         <Chip tone="neutral">{`no rung change · ${gap.stage} stays ${rungText(now)}`}</Chip>
       </>
     );
@@ -46,7 +47,7 @@ export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: Maturi
       {decided ? (
         <>
           <div className={styles.chk}>
-            {creditChecks(ctx.engine, x.needsRun, phase).map((c) => (
+            {creditChecks(x.needsRun, phase).map((c) => (
               <ChecksRow key={c.text} mark={c.mark} text={c.text} />
             ))}
           </div>
@@ -65,9 +66,12 @@ export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: Maturi
           </>
         ) : null}
         {phase === 'merged' || phase === 'ran' ? (
-          <Button variant="accent" title={`Rescan, engine ${ctx.engine} · read only (simulated)`} onClick={() => dispatch({ type: 'rescanGap', id })}>
-            {`Rescan · engine ${ctx.engine}`}
-          </Button>
+          <>
+            <Button variant="accent" title={`Rescan, engine ${ctx.engine} · read only (simulated)`} onClick={() => dispatch({ type: 'rescanGap', id })}>
+              {`Rescan · engine ${ctx.engine}`}
+            </Button>
+            <HonestyChip kind="simulated" />
+          </>
         ) : null}
         {phase === 'nolift' ? (
           <>

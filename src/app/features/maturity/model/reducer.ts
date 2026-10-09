@@ -90,17 +90,20 @@ function sent(s: MaturityState, ctx: MaturityCtx, opened: Readonly<Record<string
   return say(openGap({ ...s, flow, mrs, picked: s.picked.filter((p) => !ids.includes(p)), sheet: false, step: 4, sel: first.stage }), text);
 }
 
+/** A simulated rescan stamps the demo's clock; in live mode it invents no time, so the scan's own stays. */
+const rescanned = (s: MaturityState, ctx: MaturityCtx): MaturityState => (ctx.nowClock ? { ...s, scannedAt: ctx.nowClock, ageMin: 0 } : s);
+
 function rescanGap(s: MaturityState, ctx: MaturityCtx, id: string): MaturityState {
   const g = ctx.gap(id);
   const phase = s.flow[id];
   if (!g || (phase !== 'merged' && phase !== 'ran')) return s;
-  const stamped = { ...s, scannedAt: ctx.nowClock, ageMin: 0 };
+  const stamped = rescanned(s, ctx);
   if (rescanOutcome(g.x.needsRun, phase) === 'nolift') {
-    return say({ ...stamped, flow: { ...s.flow, [id]: 'nolift' } }, `rescan · engine ${ctx.engine} · ${g.stage} stays ${rungText(g.from)}: configured, not exercised`);
+    return say({ ...stamped, flow: { ...s.flow, [id]: 'nolift' } }, `rescan · engine ${ctx.engine} · ${g.stage} stays ${rungText(g.from)}: configured, not exercised (simulated)`);
   }
-  const row = { mr: s.mrs[id] ?? `gap ${id}`, stage: g.stage, move: `${rungText(g.from)} → ${rungText(g.to)}`, verdict: 'credited' as const, why: `rescan ${ctx.nowClock}, same engine` };
+  const row = { mr: s.mrs[id] ?? `gap ${id}`, stage: g.stage, move: `${rungText(g.from)} → ${rungText(g.to)}`, verdict: 'credited' as const, why: `rescan${ctx.nowClock ? ` ${ctx.nowClock}` : ''} (simulated)` };
   const next = { ...stamped, flow: { ...s.flow, [id]: 'credited' as const }, now: { ...s.now, [g.stage]: g.to }, sel: g.stage, animKey: s.animKey + 1, log: [...s.log, row] };
-  return say(next, `rescan · engine ${ctx.engine} · ${g.stage} ${rungText(g.from)} → ${rungText(g.to)} credited`);
+  return say(next, `rescan · engine ${ctx.engine} · ${g.stage} ${rungText(g.from)} → ${rungText(g.to)} credited (simulated)`);
 }
 
 function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
@@ -139,7 +142,7 @@ function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
     case 'rescanGap':
       return rescanGap(s, ctx, a.id);
     case 'rescanAll':
-      return say({ ...s, scannedAt: ctx.nowClock, ageMin: 0 }, `rescan · engine ${ctx.engine} · read only · no rung moved (simulated)`);
+      return say(rescanned(s, ctx), `rescan · engine ${ctx.engine} · read only · no rung moved (simulated)`);
   }
 }
 

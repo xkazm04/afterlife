@@ -16,20 +16,20 @@ describe('rescanOutcome', () => {
 
 describe('creditChecks', () => {
   it('lists the four rules, with the exercised check failing on no lift', () => {
-    const c = creditChecks('v1', true, 'nolift');
-    expect(c.map((x) => x.mark)).toEqual(['ok', 'ok', 'no', 'q']);
-    expect(c[0]?.text).toBe('same engine · v1 → v1');
+    const c = creditChecks(true, 'nolift');
+    expect(c.map((x) => x.mark)).toEqual(['q', 'q', 'no', 'q']);
+    expect(c[0]?.text).toBe('same engine · not checked');
     expect(c[2]?.text).toBe('exercised · not yet: configured, has not run on main');
     expect(c[3]?.text).toBe('noise band · nothing to compare yet');
   });
-  it('passes all four once credited', () => {
-    const c = creditChecks('v1', true, 'credited');
-    expect(c.map((x) => x.mark)).toEqual(['ok', 'ok', 'ok', 'ok']);
+  it('passes the two it checks once credited; same engine and not detector-only are never checked, so never passed', () => {
+    const c = creditChecks(true, 'credited');
+    expect(c.map((x) => x.mark)).toEqual(['q', 'q', 'ok', 'ok']);
+    expect(c[1]?.text).toBe('not detector-only · not checked');
     expect(c[2]?.text).toBe('exercised · ran on main, Proof Block passed');
   });
   it('words an enforced policy differently from a job that ran', () => {
-    const c = creditChecks('v1', false, 'credited');
-    expect(c[1]?.text).toBe('not detector-only · adds a policy GitLab enforces');
+    const c = creditChecks(false, 'credited');
     expect(c[2]?.text).toBe('enforced · the policy blocks a merge');
   });
 });

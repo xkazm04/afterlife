@@ -5,6 +5,7 @@ import type { Action } from '../../../model/reducer';
 import type { MaturityState } from '../../../model/state';
 import { mrName, rungText } from '../../../model/rungs';
 import { AfterMerge } from './AfterMerge';
+import { DemoChip } from '../../chrome/DemoChip';
 import { DiffView } from './DiffView';
 import styles from './gap.module.css';
 
@@ -35,6 +36,7 @@ export function GapSection({
     >
       <div className={styles.gh}>
         <span className={styles.t}>{gap.title}</span>
+        <DemoChip on={ctx.live} what="This gap's invitation, files and what it earns" />
       </div>
       <p className={styles.inv}>{x.invite}</p>
       {phase ? (

@@ -3,6 +3,7 @@ import { TierChip } from '@/components/status/TierChip';
 import type { Gap } from '../../model/ctx';
 import type { Phase } from '../../model/flow/credit';
 import { rungText } from '../../model/rungs';
+import { DemoChip } from '../chrome/DemoChip';
 import { cx } from '../cx';
 import { GapState } from './GapState';
 import styles from './gaps.module.css';
@@ -15,6 +16,7 @@ export function GapRow({
   mr: opened,
   selected,
   alt,
+  live,
   onPick,
   onSelect,
 }: {
@@ -25,6 +27,7 @@ export function GapRow({
   mr: string;
   selected: boolean;
   alt: boolean;
+  live: boolean;
   onPick: (id: string) => void;
   onSelect: (gap: Gap) => void;
 }) {
@@ -47,6 +50,7 @@ export function GapRow({
         <span className={styles.nm} title={gap.x.invite}>
           {gap.title}
         </span>
+        <DemoChip on={live} what="This gap's invitation and files" />
       </div>
       <div className={styles.cell} role="cell">
         {mr ? <TierChip tier="assisted" /> : <span className={styles.ro}>probe · read only</span>}

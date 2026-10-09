@@ -88,7 +88,7 @@ describe('credit', () => {
     const s = run(sent(), { type: 'merge', id: 'g2' }, { type: 'rescanGap', id: 'g2' });
     expect(s.flow.g2).toBe('credited');
     expect(s.now.create).toBe(3);
-    expect(s.log).toEqual([{ mr: 'gap g2', stage: 'create', move: 'R2 → R3', verdict: 'credited', why: 'rescan 14:24, same engine' }]);
+    expect(s.log).toEqual([{ mr: 'gap g2', stage: 'create', move: 'R2 → R3', verdict: 'credited', why: 'rescan 14:24 (simulated)' }]);
     expect(s.scannedAt).toBe('14:24');
     expect(s.ageMin).toBe(0);
   });
@@ -97,7 +97,7 @@ describe('credit', () => {
     expect(s.flow.g1).toBe('nolift');
     expect(s.now.secure).toBe(3);
     expect(s.log).toEqual([]);
-    expect(s.notice?.text).toBe('rescan · engine v1 · secure stays R3: configured, not exercised');
+    expect(s.notice?.text).toBe('rescan · engine v1 · secure stays R3: configured, not exercised (simulated)');
   });
   it('credits once the pipeline ran on main, then the rope redraws', () => {
     const lift = run(sent(), { type: 'merge', id: 'g1' }, { type: 'rescanGap', id: 'g1' });
@@ -105,7 +105,7 @@ describe('credit', () => {
     expect(s.flow.g1).toBe('credited');
     expect(s.now.secure).toBe(4);
     expect(s.animKey).toBe(lift.animKey + 1);
-    expect(s.notice?.text).toBe('rescan · engine v1 · secure R3 → R4 credited');
+    expect(s.notice?.text).toBe('rescan · engine v1 · secure R3 → R4 credited (simulated)');
   });
   it('ignores out-of-order steps: no rescan before the merge, no run before a no lift', () => {
     const s = sent();

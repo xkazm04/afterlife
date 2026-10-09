@@ -1,6 +1,7 @@
 // The credit rules, as pure functions. Belay credits a rung only when ALL hold on the rescan:
 //   same engine before and after, not detector-only, exercised (not just configured), outside the noise band.
-// "No lift: configured, not exercised" comes first: merging a job that has not run earns nothing.
+// "No lift: configured, not exercised" comes first: merging a job that has not run earns nothing. Nothing here compares the
+// engines of two scans or reads the diff, so "same engine" and "not detector-only" are listed as not checked, never passed.
 
 /** Where a sent gap is in its life. 'probed' is the read-only probe's end state. */
 export type Phase = 'probed' | 'opened' | 'merged' | 'ran' | 'nolift' | 'credited';
@@ -18,11 +19,11 @@ export interface Check {
 }
 
 /** The four credit checks as the inspector lists them after a rescan. */
-export function creditChecks(engine: string, needsRun: boolean, outcome: Outcome): Check[] {
+export function creditChecks(needsRun: boolean, outcome: Outcome): Check[] {
   const exercised = outcome === 'credited' || !needsRun;
   return [
-    { mark: 'ok', text: `same engine · ${engine} → ${engine}` },
-    { mark: 'ok', text: `not detector-only · adds ${needsRun ? 'a job that must run and pass' : 'a policy GitLab enforces'}` },
+    { mark: 'q', text: 'same engine · not checked' },
+    { mark: 'q', text: 'not detector-only · not checked' },
     {
       mark: exercised ? 'ok' : 'no',
       text: exercised

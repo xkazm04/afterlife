@@ -12,6 +12,12 @@ import { GapSection } from './gap/GapSection';
 import styles from './inspector.module.css';
 import { Chip } from '@/components/status/chip/Chip';
 
+/** Live mode's Day 0: the rung of the first scan the index stored for the stage (no demo note stands in for it). */
+function day0Live(ctx: MaturityApi['ctx'], day0: number | null): string {
+  if (!ctx.scanned) return 'Not scanned yet: day 0 is the first scan Belay stores.';
+  return day0 == null ? 'Unknown at the first scan Belay stored.' : `${rungText(day0)} ${ctx.rungNames[day0] ?? ''} at the first scan Belay stored.`;
+}
+
 /** Layer 2 for the selected stage: evidence per rung, its gap (diff, then the after-merge checks), day 0, credit history. */
 export function InspectorPanel({ api }: { api: MaturityApi }) {
   const { ctx, state, pending, dispatch } = api;
@@ -21,7 +27,8 @@ export function InspectorPanel({ api }: { api: MaturityApi }) {
   const nx = nextOf(now, base.next);
   const gap = ctx.gapByStage(stage);
   const section = (key: 'ev' | 'gap' | 'day0' | 'hist') => (open: boolean) => dispatch({ type: 'section', key, open });
-  const history = [...ctx.credit.filter((c) => c.stage === stage), ...state.log.filter((c) => c.stage === stage)];
+  const past = ctx.credit.filter((c) => c.stage === stage);
+  const session = state.log.filter((c) => c.stage === stage);
   const previewing = state.step === 2 && pending.length > 0;
 
   return (
@@ -48,7 +55,7 @@ export function InspectorPanel({ api }: { api: MaturityApi }) {
           </>
         }
         sub={`day 0 ${rungText(base.day0)} · now ${rungText(now)} · next ${now != null && nx <= now ? '—' : rungText(nx)}`}
-        path={`scan ${state.scannedAt} · engine ${ctx.engine}`}
+        path={ctx.scanned ? `scan ${state.scannedAt} · engine ${ctx.engine}` : 'not scanned'}
       />
       <EvidenceSection ctx={ctx} stage={stage} now={now} open={state.open.ev} onOpenChange={section('ev')} />
       {gap ? (
@@ -59,9 +66,9 @@ export function InspectorPanel({ api }: { api: MaturityApi }) {
         </InspectorSection>
       )}
       <InspectorSection title="Day 0" aux={rungText(base.day0)} open={state.open.day0} onOpenChange={section('day0')}>
-        <div className={styles.muted}>{ctx.evidence[stage].day0}</div>
+        <div className={styles.muted}>{ctx.evidence ? ctx.evidence[stage].day0 : day0Live(ctx, base.day0)}</div>
       </InspectorSection>
-      <CreditHistory rows={history} engine={ctx.engine} open={state.open.hist} onOpenChange={section('hist')} />
+      <CreditHistory past={past} session={session} live={ctx.live} engine={ctx.engine} open={state.open.hist} onOpenChange={section('hist')} />
     </>
   );
 }

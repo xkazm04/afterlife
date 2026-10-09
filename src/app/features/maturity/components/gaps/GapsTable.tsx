@@ -28,6 +28,7 @@ export function GapsTable({
   mrs,
   selected,
   sectionRef,
+  live = false,
   onPick,
   onSelect,
 }: {
@@ -37,6 +38,8 @@ export function GapsTable({
   mrs: Readonly<Record<string, string>>;
   selected: Stage;
   sectionRef: Ref<HTMLElement>;
+  /** Live mode: each gap's invitation and files are demo fixtures, and say so. */
+  live?: boolean;
   onPick: (id: string) => void;
   onSelect: (gap: Gap) => void;
 }) {
@@ -51,7 +54,7 @@ export function GapsTable({
       </div>
       <div role="rowgroup">
         {gaps.map((g, i) => (
-          <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} mr={mrName(mrs, g.id)} selected={selected === g.stage} alt={i % 2 === 1} onPick={onPick} onSelect={onSelect} />
+          <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} mr={mrName(mrs, g.id)} selected={selected === g.stage} alt={i % 2 === 1} live={live} onPick={onPick} onSelect={onSelect} />
         ))}
       </div>
     </section>

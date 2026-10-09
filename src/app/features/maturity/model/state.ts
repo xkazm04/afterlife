@@ -33,7 +33,8 @@ export interface MaturityState {
   /** Credit rows earned in this session. */
   log: readonly CreditEntry[];
   scannedAt: string;
-  ageMin: number;
+  /** Minutes since the scan; null when unknown (live mode: the view carries a clock time only). */
+  ageMin: number | null;
   /** Bumped when the ropes should draw themselves again (mode change, a credit). */
   animKey: number;
   open: Readonly<Record<SectionKey, boolean>>;
