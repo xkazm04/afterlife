@@ -6,6 +6,9 @@ Pitch" prototype. Two films, chosen by the loader (`data/loadTheaterData.ts`, on
 - **The real film**: when the data source's `getLedger()` (the deep project's hash-chained belay-ledger events) names
   at least one MR, Theater plays them, one take per MR. The first take is the newest MR (by its last event's seq) that
   has a `merged` event, else the newest MR; the rest follow newest first. Events about anything but an MR are not filmed.
+  The film is capped at the 8 newest MRs (by last seq), one per take key; only the kept takes' entries go to the client.
+  The cap bounds the payload, not the read: the live snapshot reads the whole ledger once per poll and the chain
+  verifies from genesis, so `readLedger` stays whole and the cut is made here.
 - **The illustrative film**: with no MR in the ledger, and always in demo mode (the demo source's ledger is empty):
   the invented slice seq 480-520 (`data/ledger.ts`), always marked REPLAY.
 
@@ -67,7 +70,7 @@ CRA clock, the catalogue's three autonomy classes (the rail shows instead the cl
 - Reduced motion: no easing (climbs snap), no CSS animation, 1 s pre-roll. Hidden tab: the frame clock stops.
 - The climber chip at beat 0 sits one bolt below hold 1 and the wall keeps room for it (prototype clipped it).
 - Home/End and a looped take: any operator action cancels a pending roll or loop restart.
-- Keys 1-8 cue the first eight takes; a real film with more MRs lists them all in the sidebar.
+- Keys 1-8 cue the eight takes; a real film has at most eight (the 8 newest MRs).
 
 ## On the shared kit
 `Card` is `surface/Card`, and a take with no rolls has no count column (`SidebarItem` hides an empty count).

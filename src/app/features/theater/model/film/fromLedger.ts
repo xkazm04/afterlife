@@ -7,6 +7,8 @@ import { HOLDS, KIND_HOLD } from './holds';
 /** An entry that moves the climber dwells longer, as on the illustrative slice. */
 const HOLD_DWELL_MS = 3400;
 const HASH_PREFIX = 12;
+/** A real film keeps the 8 newest MRs, one per take key (1-8, hooks/useTheaterKeys.ts). */
+export const MAX_TAKES = 8;
 
 /** hh:mm:ss of an ISO time, in UTC (the same on the server and in the browser); the raw text if it is not one. */
 function clockOf(at: string): string {
@@ -41,8 +43,8 @@ export function entriesOf(events: readonly LedgerEvent[]): LedgerEntry[] {
 
 /**
  * The deep project's ledger as a film, one take per MR (events about anything but an MR are not filmed), or null when
- * no event names an MR. The first take is the newest MR (by its last event's seq) with a `merged` event, else the
- * newest MR; the rest follow newest first.
+ * no event names an MR. Only the MAX_TAKES newest MRs (by last seq) are kept, and only their entries are filmed. Of
+ * those, the first take is the newest with a `merged` event, else the newest; the rest follow newest first.
  */
 export function ledgerFilm(events: readonly LedgerEvent[]): Film | null {
   const byMr = new Map<number, LedgerEvent[]>();
@@ -51,7 +53,7 @@ export function ledgerFilm(events: readonly LedgerEvent[]): Film | null {
     byMr.set(e.subject.iid, [...(byMr.get(e.subject.iid) ?? []), e]);
   }
   const lastSeq = (es: readonly LedgerEvent[]): number => es[es.length - 1]?.seq ?? 0;
-  const mrs = [...byMr].sort(([, a], [, b]) => lastSeq(b) - lastSeq(a));
+  const mrs = [...byMr].sort(([, a], [, b]) => lastSeq(b) - lastSeq(a)).slice(0, MAX_TAKES);
   const first = mrs.find(([, es]) => es.some((e) => e.kind === 'merged')) ?? mrs[0];
   if (!first) return null;
   const order = [first, ...mrs.filter((m) => m !== first)];

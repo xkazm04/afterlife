@@ -1,6 +1,7 @@
 'use client';
 
 import { useHotkeys, type Hotkey } from '@/lib/keyboard/useHotkeys';
+import { MAX_TAKES } from '../model/film/fromLedger';
 import type { Present } from './usePresent';
 import type { TheaterActions } from './useTheaterActions';
 
@@ -9,7 +10,7 @@ import type { TheaterActions } from './useTheaterActions';
  * F present, Esc returns. Cmd/Ctrl+I (the inspector) belongs to the Window. They keep working while presenting.
  */
 export function useTheaterKeys(a: TheaterActions, present: Present, film: { takes: number; entries: number }): void {
-  const takes: Hotkey[] = Array.from({ length: Math.min(8, film.takes) }, (_, k) => ({ key: String(k + 1), handler: () => a.cue(k) }));
+  const takes: Hotkey[] = Array.from({ length: Math.min(MAX_TAKES, film.takes) }, (_, k) => ({ key: String(k + 1), handler: () => a.cue(k) }));
   useHotkeys([
     ...takes,
     { key: 'r', handler: a.roll },
