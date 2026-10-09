@@ -7,12 +7,17 @@ import { api, apiAll, arg, die, enc, httpStatus } from '../lib/lib.mjs';
 const id = process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set');
 const branch = process.env.CI_DEFAULT_BRANCH ?? 'main';
 const facts = {};
+// F102: facts.json is a 90-day artifact, public on a public project. Each fact keeps the fields the engine scores (or
+// names and counts), never the merged YAML, which can carry files included from private projects, a person, an owner,
+// a description or a URL. An error is its first line, cut short.
+const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o && k in o).map((k) => [k, o[k]]));
+const each = (rows, keys) => (Array.isArray(rows) ? rows.map((r) => pick(r, keys)) : { error: 'not a list' });
 
 function take(name, read) {
   try {
     facts[name] = read();
   } catch (e) {
-    facts[name] = { error: String(e.message ?? e).split('\n')[0] };
+    facts[name] = { error: String(e.message ?? e).split('\n')[0].slice(0, 200) };
   }
 }
 
@@ -34,11 +39,14 @@ take('project', () => {
     merge_requires_pipeline: p.only_allow_merge_if_pipeline_succeeds,
   };
 });
-take('ci_config', () => api(`projects/${id}/ci/lint?include_jobs=true`)); // merged YAML and jobs [R?]
-take('protected_branches', () => api(`projects/${id}/protected_branches`));
-take('environments', () => api(`projects/${id}/environments`));
-take('approval_rules', () => api(`projects/${id}/approval_rules`));
-take('schedules', () => api(`projects/${id}/pipeline_schedules`));
+take('ci_config', () => { // the merged config's jobs [R?]; its YAML stays behind
+  const c = api(`projects/${id}/ci/lint?include_jobs=true`);
+  return { valid: c?.valid, jobs: each(c?.jobs, ['name', 'stage', 'allow_failure']) };
+});
+take('protected_branches', () => each(api(`projects/${id}/protected_branches`), ['name']));
+take('environments', () => each(api(`projects/${id}/environments`), ['name', 'tier', 'state']));
+take('approval_rules', () => each(api(`projects/${id}/approval_rules`), ['name', 'rule_type', 'approvals_required']));
+take('schedules', () => each(api(`projects/${id}/pipeline_schedules`), ['ref', 'cron', 'active']));
 take('codeowners', () => ['CODEOWNERS', '.gitlab/CODEOWNERS', 'docs/CODEOWNERS'].filter(exists));
 take('duo_agent_config', () => exists('.gitlab/duo/agent-config.yml'));
 take('issue_templates', () => {

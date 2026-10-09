@@ -97,3 +97,36 @@ describe('the maturity-scan template', () => {
     }
   });
 });
+
+// F102: facts.json is a 90-day artifact, public on a public project. It keeps what the engine scores, never the merged
+// YAML (it can carry files included from private projects), people, schedule owners or environment URLs.
+describe('collect-facts keeps nothing the engine does not score', () => {
+  const user = { id: 5, username: 'alice', name: 'Alice A', web_url: 'https://gitlab.example.com/alice' };
+  const rich = {
+    ...routes,
+    'projects/1/ci/lint': { valid: true, merged_yaml: 'include: private/secrets.yml\nDEPLOY_KEY: hunter2', includes: [{ location: 'private/secrets.yml' }], errors: [], warnings: [], jobs: [{ name: 'test', stage: 'test', allow_failure: false, script: ['echo hunter2'], before_script: [], tag_list: ['internal-runner'], environment: null, when: 'on_success', only: null, except: null }] },
+    'projects/1/protected_branches': [{ id: 3, name: 'main', push_access_levels: [{ user_id: 5, access_level_description: 'Alice A' }], merge_access_levels: [], allow_force_push: false }],
+    'projects/1/environments': [{ id: 4, name: 'production', tier: 'production', state: 'available', external_url: 'https://internal.example.net' }],
+    'projects/1/approval_rules': [{ id: 6, name: 'Security', rule_type: 'regular', approvals_required: 2, eligible_approvers: [user], users: [user], groups: [{ id: 9, name: 'sec' }] }],
+    'projects/1/pipeline_schedules': [{ id: 7, description: 'nightly deploy to db-01.internal', ref: 'main', cron: '0 2 * * *', active: true, owner: user }],
+  };
+
+  it('keeps the CI jobs\' name, stage and allow_failure, and drops the merged YAML and includes', () => {
+    expect(collect(rich).json.facts.ci_config).toEqual({ valid: true, jobs: [{ name: 'test', stage: 'test', allow_failure: false }] });
+  });
+
+  it('keeps names, tiers and counts, never a user, a group, an owner, a description or a URL', () => {
+    const { facts } = collect(rich).json;
+    expect(facts.protected_branches).toEqual([{ name: 'main' }]);
+    expect(facts.environments).toEqual([{ name: 'production', tier: 'production', state: 'available' }]);
+    expect(facts.approval_rules).toEqual([{ name: 'Security', rule_type: 'regular', approvals_required: 2 }]);
+    expect(facts.schedules).toEqual([{ ref: 'main', cron: '0 2 * * *', active: true }]);
+    expect(JSON.stringify(facts)).not.toMatch(/alice|hunter2|internal|private\//i);
+  });
+
+  it('an error is one short line', () => {
+    const long = { __http: 500, message: `500 ${'x'.repeat(5000)}` };
+    const err = collect({ ...rich, 'projects/1/environments': long }).json.facts.environments.error;
+    expect(err.length).toBeLessThanOrEqual(200);
+  });
+});
