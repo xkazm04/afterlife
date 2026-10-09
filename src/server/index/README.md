@@ -24,7 +24,10 @@ tables above. NULL means unknown, never zero.
   `migrations/steps/` (nested at 0009 for the 10-file folder ceiling, each step's version, name and SQL unchanged, which
   is all `migrate()` keys on: `steps/` is at its 10-file limit: the next step needs a nested folder); `migrate()` is idempotent and checksum-guarded.
   Migration 0009 adds `class_tier.cooldown_until`, tier-state.yml's `cooldown_until` on the record
-  (`__tests__/migration9.test.ts` migrates a populated version-8 index). `repositories/` typed, parameterised functions per table (no ORM).
+  (`__tests__/migration9.test.ts` migrates a populated version-8 index). A test of one migration runs `migrate()`
+  through its own prefix, `migrate(db, MIGRATIONS.filter((m) => m.version <= N))`, never the whole list: it had asserted
+  `migrate(db)` applies exactly `[9]`, and adding 0010 made that `[9, 10]` and failed the gate on a correct change, while
+  the alternative, updating every older test's expected list per new migration, ties each test to every later one (c4fd9d2). `repositories/` typed, parameterised functions per table (no ORM).
 - `views/` return the shapes in `src/lib/demo` (`getFleet`, `getNeedsYou`, `getActionClasses`, `getMaturity`,
   `getTasks`, and `getEvents`: the deep project's recent events, dated only by what the index holds with a time). Countdowns and ages are computed from stored instants with a `now` argument. Where the index cannot
   know a value the field is `null` (types widened in `views/types.ts`).
