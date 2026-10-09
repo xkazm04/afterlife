@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterAll, describe, expect, it, vi } from 'vitest';
+import { parseAllDocuments } from 'yaml';
 import { scoreFacts } from '../../../../engine/commands/scan';
 import { parseFacts } from '../../../../engine/commands/facts';
 import { parseMaturityScan } from '../../../../src/schemas/maturity';
@@ -65,5 +66,34 @@ describe('collect-facts for the maturity scan', () => {
     const scan = scoreFacts(parseFacts(collect().json));
     expect(parseMaturityScan(scan).ok).toBe(true);
     expect(scan.cells.find((c) => c.stage === 'verify')).toMatchObject({ rung: 3, evidence: expect.arrayContaining([{ label: 'job test #9', url: `${WEB}/-/jobs/9` }]) });
+  });
+});
+
+// F100: the job that runs collect-facts. A pipeline variable (trigger, API, schedule, manual run) outranks a job's own
+// `variables:`, so what picks the code that runs beside CI_JOB_TOKEN must come from the inputs, fixed at include time.
+describe('the maturity-scan template', () => {
+  const doc = parseAllDocuments(fs.readFileSync(path.resolve(import.meta.dirname, '../../templates/maturity-scan/template.yml'), 'utf8'));
+  const spec = doc[0].toJS().spec.inputs;
+  const jobs = doc[1].toJS();
+  const vars = { ...jobs['.belay-boot-maturity-scan'].variables, ...jobs['belay-maturity-scan'].variables };
+  const shell = [...jobs['.belay-boot-maturity-scan'].before_script, ...jobs['belay-maturity-scan'].script].join('\n');
+
+  it('no job variable a pipeline variable could override picks the engine, its pin, the glab checksum or the command', () => {
+    for (const k of ['BELAY_ENGINE_PROJECT', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT', 'BELAY_GLAB_VERSION', 'BELAY_GLAB_SHA256', 'BELAY_SCAN_COMMAND']) {
+      expect(vars, k).not.toHaveProperty(k);
+    }
+    for (const k of ['engine_project', 'engine_ref', 'engine_commit', 'glab_version', 'glab_sha256', 'scan_command']) {
+      expect(shell, k).toContain(`$[[ inputs.${k} ]]`);
+    }
+  });
+
+  it('inputs that reach the shell are shaped by regex, and every default still passes', () => {
+    const shapes = { engine_ref: ['v0.1.0', 'main', 'release/1.x', 'a'.repeat(40)], engine_project: ['acme/belay-engine'], engine_commit: ['', 'a'.repeat(40)], glab_sha256: ['', 'b'.repeat(64)], glab_version: ['1.120.0'], scan_command: ['scan'] };
+    const bad = { engine_ref: ["v1'; id", '-upload-pack=x', '$(id)'], engine_project: ['a"; id', '$(id)/x'], engine_commit: ['main', 'a'.repeat(39)], glab_sha256: ['x', 'b'.repeat(63)], glab_version: ['1.0; id'], scan_command: ['scan; id', 'scan --facts /tmp/x', '$(id)'] };
+    for (const [k, good] of Object.entries(shapes)) {
+      const re = new RegExp(spec[k].regex);
+      for (const v of [...('default' in spec[k] ? [spec[k].default] : []), ...good]) expect(re.test(v), `${k} accepts ${JSON.stringify(v)}`).toBe(true);
+      for (const v of bad[k]) expect(re.test(v), `${k} refuses ${JSON.stringify(v)}`).toBe(false);
+    }
   });
 });

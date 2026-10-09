@@ -5,19 +5,22 @@
 #   CI_JOB_TOKEN cannot write MR notes/labels, approve or merge; it can clone an allowlisting project
 #       .......................................... https://docs.gitlab.com/ci/jobs/ci_job_token/ [S]
 #   glab auth login --job-token, glab api ... https://docs.gitlab.com/cli/ [S]
-# [R?] verify: arrays interpolated into `tags:` (runner_tags); the glab release asset URL in the boot step.
+# [R?] verify: arrays interpolated into `tags:` (runner_tags); the glab release asset URL in the boot step; spec:inputs:regex.
 spec:
   inputs:
     stage:
       default: '.post'
     engine_ref:
       type: string
+      regex: '^[A-Za-z0-9][A-Za-z0-9._/-]*$'
       description: Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned.
     engine_commit:
       default: ''
+      regex: '^([0-9a-f]{40})?$'
       description: Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch.
     engine_project:
       default: '$CI_PROJECT_NAMESPACE/belay-engine'
+      regex: '^[A-Za-z0-9$_./-]+$'
       description: Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token.
     policy_project:
       default: '$CI_PROJECT_NAMESPACE/belay-policy'
@@ -27,13 +30,17 @@ spec:
       default: 'node:22-bookworm'
     glab_version:
       default: '1.120.0'
+      regex: '^[0-9]+\.[0-9]+\.[0-9]+$'
     glab_sha256:
       default: ''
+      regex: '^([0-9a-f]{64})?$'
+      description: Optional SHA-256 of the glab linux amd64 tarball; checked when set. Unset, the download rests on HTTPS alone (F101).
     runner_tags:
       type: array
       default: []
     scan_command:
       default: 'scan'
+      regex: '^[a-z][a-z0-9-]*$'
       description: The engine command that scores facts.json (engine/cli.ts scan --facts, writes belay.maturity/0).
 ---
 .belay-boot-maturity-scan:
@@ -41,19 +48,19 @@ spec:
   tags: $[[ inputs.runner_tags ]]
   variables:
     GIT_DEPTH: "0"
-    BELAY_ENGINE_PROJECT: "$[[ inputs.engine_project ]]"
-    BELAY_ENGINE_REF: "$[[ inputs.engine_ref ]]"
-    BELAY_ENGINE_COMMIT: "$[[ inputs.engine_commit ]]"
     BELAY_POLICY_PROJECT: "$[[ inputs.policy_project ]]"
     BELAY_POLICY_REF: "$[[ inputs.policy_ref ]]"
-    BELAY_GLAB_VERSION: "$[[ inputs.glab_version ]]"
-    BELAY_GLAB_SHA256: "$[[ inputs.glab_sha256 ]]"
   cache:
     key: belay-engine-$[[ inputs.engine_ref ]]
     paths: [.belay-engine/node_modules/]
   before_script:
     - |
       set -eu
+      # F100: what picks the code run beside CI_JOB_TOKEN comes from the inputs, fixed at include time, never a job
+      # variable: a pipeline variable (trigger, API, manual run) outranks the job's variables and would choose it instead.
+      BELAY_ENGINE_PROJECT="$[[ inputs.engine_project ]]"; BELAY_ENGINE_REF='$[[ inputs.engine_ref ]]'
+      BELAY_ENGINE_COMMIT='$[[ inputs.engine_commit ]]'; BELAY_GLAB_VERSION='$[[ inputs.glab_version ]]'
+      BELAY_GLAB_SHA256='$[[ inputs.glab_sha256 ]]'
       HOSTURL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}"
       export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
       export BELAY_GLUE="$BELAY_DIR/gitlab/components/scripts"
@@ -82,15 +89,13 @@ belay-maturity-scan:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $BELAY_SCAN == "maturity"
     - if: $CI_PIPELINE_SOURCE == "api" && $BELAY_SCAN == "maturity"
-  variables:
-    BELAY_SCAN_COMMAND: "$[[ inputs.scan_command ]]"
   script:
     - |
       set -eu
       mkdir -p .belay
       node "$BELAY_GLUE/ops/collect-facts.mjs" --out .belay/facts.json
       rc=0
-      (cd "$BELAY_DIR" && npx tsx engine/cli.ts $BELAY_SCAN_COMMAND --facts "$CI_PROJECT_DIR/.belay/facts.json") > .belay/maturity.json || rc=$?
+      (cd "$BELAY_DIR" && npx tsx engine/cli.ts '$[[ inputs.scan_command ]]' --facts "$CI_PROJECT_DIR/.belay/facts.json") > .belay/maturity.json || rc=$?
       echo "scan exited $rc" >&2
       exit "$rc"
   artifacts:
