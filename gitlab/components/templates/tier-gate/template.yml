@@ -52,7 +52,7 @@ spec:
     emit_events:
       type: boolean
       default: true
-      description: Write ledger event bodies to .belay/events, as an artifact (belay-apply appends the ledger).
+      description: Write ledger event bodies to .belay/events, as a report-only artifact (belay-apply emits and appends its own).
 ---
 .belay-boot-tier-gate:
   image: $[[ inputs.node_image ]]
