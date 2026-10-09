@@ -14,7 +14,7 @@ import { useReplayStore } from './hooks/useReplayStore';
 import { useTheaterActions } from './hooks/useTheaterActions';
 import { useTheaterKeys } from './hooks/useTheaterKeys';
 import { filmSnapshots } from './model/derive/snapshots';
-import { rangeOf, readoutFrom, viewOf } from './model/replay/state';
+import { rangeLabel, readoutFrom, viewOf } from './model/replay/state';
 import { shallowEqual } from './model/replay/store';
 import type { TheaterData } from './model/types';
 import styles from './TheaterScreen.module.css';
@@ -34,7 +34,7 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
   const v = useReplaySlice(store, viewOf, shallowEqual);
   const snap = snaps[v.i];
   if (!snap) return null;
-  const range = rangeOf(v);
+  const range = rangeLabel(v);
   const readout = readoutFrom(v);
 
   return (

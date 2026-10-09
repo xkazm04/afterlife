@@ -76,7 +76,7 @@ describe('takes, marks, roll, loop', () => {
     expect(s.playing).toBe(false);
     s = run(s, { type: 'markIn' }, { type: 'cue', take: 2 });
     expect(s.mark).toBeNull();
-    expect(rangeOf(s)).toEqual({ a: 488, b: 496 });
+    expect(rangeOf(s)).toEqual({ a: indexOfSeq(488), b: indexOfSeq(496) });
   });
 
   it('rolls: in-point, 2 s pre-roll, then plays to the out-point and stops there', () => {
@@ -105,11 +105,11 @@ describe('takes, marks, roll, loop', () => {
 
   it('marks in and out at the current seq, keeping in <= out, and rolls the marked range', () => {
     let s = run(initialState(), { type: 'cue', take: 2 }, { type: 'seek', i: indexOfSeq(492) }, { type: 'markIn' });
-    expect(s.mark).toEqual({ a: 492, b: 496 });
+    expect(s.mark).toEqual({ a: indexOfSeq(492), b: indexOfSeq(496) });
     s = run(s, { type: 'seek', i: indexOfSeq(494) }, { type: 'markOut' });
-    expect(s.mark).toEqual({ a: 492, b: 494 });
+    expect(s.mark).toEqual({ a: indexOfSeq(492), b: indexOfSeq(494) });
     s = run(s, { type: 'seek', i: indexOfSeq(490) }, { type: 'markOut' });
-    expect(s.mark).toEqual({ a: 490, b: 490 });
+    expect(s.mark).toEqual({ a: indexOfSeq(490), b: indexOfSeq(490) });
     s = run(s, { type: 'roll' });
     expect(s.i).toBe(indexOfSeq(490));
     expect(slateText(s)).toContain('in 490 → out 490 (marked)');

@@ -28,7 +28,7 @@ export interface ReplayState {
   playing: boolean;
   /** Selected take, 0..takes-1. */
   take: number;
-  /** Marked in/out, or null to use the take's own range. */
+  /** Marked in/out as reel indexes (never seqs: seq does not rise with the index), or null to use the take's own range. */
   mark: Marks | null;
   /** Entry index where a roll stops, or null for free play. */
   stopAt: number | null;
@@ -55,17 +55,28 @@ export const takeAt = (k: number, r: Reel = ILLUSTRATIVE_REEL): Take => r.takes[
 /** The take holding entry i. A take is a run of entries (a real film's MRs interleave in seq, never in index). */
 export const takeOfIndex = (i: number, r: Reel = ILLUSTRATIVE_REEL): number =>
   r.takes.findIndex((t) => i >= indexOfSeq(t.a, r) && i <= indexOfSeq(t.b, r));
-/** The first and last seq of the whole reel. */
-export const seqRange = (r: Reel): Marks => ({ a: r.entries[0]?.seq ?? 0, b: r.entries[r.entries.length - 1]?.seq ?? 0 });
+/** The lowest and highest seq among entries a..b (reel indexes, inclusive). A seq is a label: it need not rise with the index. */
+export function seqLabel(r: Reel, a: number, b: number): Marks {
+  const seqs = r.entries.slice(Math.max(0, a), b + 1).map((e) => e.seq);
+  return seqs.length ? { a: Math.min(...seqs), b: Math.max(...seqs) } : { a: 0, b: 0 };
+}
+/** The lowest and highest seq of the whole reel. */
+export const seqRange = (r: Reel): Marks => seqLabel(r, 0, r.entries.length - 1);
 
 /** Film progress through the current entry, 0..1. */
 export const progress = (s: Pick<ReplayState, 'reel' | 'i' | 't'>): number => Math.min(1, s.t / dwell(s.i, s.reel));
 
-/** The range a roll plays: the marked in/out, or the selected take's own. */
+/** The range a roll plays, as reel indexes: the marked in/out, or the selected take's own. */
 export function rangeOf(s: Pick<ReplayState, 'reel' | 'take' | 'mark'>): Marks {
   if (s.mark) return s.mark;
   const t = takeAt(s.take, s.reel);
-  return { a: t.a, b: t.b };
+  return { a: indexOfSeq(t.a, s.reel), b: indexOfSeq(t.b, s.reel) };
+}
+
+/** The range a roll plays, as seq labels (the lowest and highest seq inside it). */
+export function rangeLabel(s: Pick<ReplayState, 'reel' | 'take' | 'mark'>): Marks {
+  const r = rangeOf(s);
+  return seqLabel(s.reel, r.a, r.b);
 }
 
 /** Whole seconds of pre-roll left to show ("Pre-roll 2…"); 0 when none. */
@@ -108,7 +119,7 @@ export const readoutOf = (s: ReplayState): Readout => readoutFrom(viewOf(s));
 /** The status bar line, after the "Replay" word: seq, clock, take.roll and in → out. */
 export function slateText(s: Pick<ReplayState, 'reel' | 'i' | 'take' | 'mark' | 'counts'>): string {
   const e = s.reel.entries[s.i];
-  const r = rangeOf(s);
+  const r = rangeLabel(s);
   const roll = Math.max(1, s.counts[s.take] ?? 0);
   return `seq ${e?.seq ?? 0} · ${e?.t ?? ''} · take ${s.take + 1}.${roll} · in ${r.a} → out ${r.b}${s.mark ? ' (marked)' : ''}`;
 }

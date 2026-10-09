@@ -2,7 +2,7 @@
 // take replays exactly. Ported from the prototype's Player, with two deliberate tidy-ups: a looped take's
 // restart is cancelled by any operator action, and Home/End clear a pending roll like the arrow keys do.
 import {
-  LOOP_GAP_MS, PREROLL_MS, PREROLL_REDUCED_MS, dwell, indexOfSeq, lengthOf, rangeOf, seqAt, takeAt, takeOfIndex,
+  LOOP_GAP_MS, PREROLL_MS, PREROLL_REDUCED_MS, dwell, indexOfSeq, lengthOf, rangeOf, takeAt, takeOfIndex,
   type ReplayState,
 } from './state';
 
@@ -39,10 +39,8 @@ function go(s: ReplayState, i: number): ReplayState {
 }
 
 function roll(s: ReplayState): ReplayState {
-  const r = rangeOf(s);
-  const ia = indexOfSeq(r.a, s.reel);
-  const ib = indexOfSeq(r.b, s.reel);
-  if (ia < 0 || ib < 0) return s;
+  const { a: ia, b: ib } = rangeOf(s);
+  if (ia < 0 || ib < 0 || ib < 0) return s;
   const counts = s.counts.map((c, k) => (k === s.take ? c + 1 : c));
   return { ...held(s, ia), stopAt: ib, preroll: s.reduced ? PREROLL_REDUCED_MS : PREROLL_MS, counts };
 }
@@ -78,8 +76,7 @@ function tick(s: ReplayState, dt: number): ReplayState {
 
 function mark(s: ReplayState, which: 'a' | 'b'): ReplayState {
   const base = s.mark ?? rangeOf(s);
-  const seq = seqAt(s.i, s.reel);
-  const next = which === 'a' ? { a: seq, b: Math.max(base.b, seq) } : { a: Math.min(base.a, seq), b: seq };
+  const next = which === 'a' ? { a: s.i, b: Math.max(base.b, s.i) } : { a: Math.min(base.a, s.i), b: s.i };
   return { ...s, mark: next };
 }
 

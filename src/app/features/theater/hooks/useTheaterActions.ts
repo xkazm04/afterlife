@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
-import { rangeOf } from '../model/replay/state';
+import { rangeLabel, seqAt } from '../model/replay/state';
 import type { ReplayStore } from '../model/replay/store';
 
 export interface TheaterActions {
@@ -26,7 +26,7 @@ export function useTheaterActions(store: ReplayStore): TheaterActions {
       roll: () => {
         d({ type: 'roll' });
         const s = store.get();
-        const r = rangeOf(s);
+        const r = rangeLabel(s);
         status(`Take ${s.take + 1}.${s.counts[s.take] ?? 1} · ${r.a} → ${r.b}`);
       },
       toggleLoop: () => {
@@ -35,11 +35,11 @@ export function useTheaterActions(store: ReplayStore): TheaterActions {
       },
       markIn: () => {
         d({ type: 'markIn' });
-        status(`In point ${store.get().mark?.a ?? ''}`);
+        status(`In point ${seqAt(store.get().i, store.get().reel)}`);
       },
       markOut: () => {
         d({ type: 'markOut' });
-        status(`Out point ${store.get().mark?.b ?? ''}`);
+        status(`Out point ${seqAt(store.get().i, store.get().reel)}`);
       },
       togglePlay: () => d({ type: 'toggle' }),
       step: (n) => d({ type: 'step', d: n }),
