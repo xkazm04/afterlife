@@ -48,7 +48,7 @@ hosted replay reaches no index. Tested in `__tests__/ledger.test.ts` on the fake
 `BELAY_GITLAB=fake` starts an in-memory index, seeds it with `seedDemo` (what GitLab cannot express: the other 183 projects,
 scan, records, narrative), and polls `gitlab/fake/demo/` (a GitLab built from the demo dataset: ledgerline's MRs, notes,
 labels, deployments, policy files and a verifying ledger). The poller's rows then overwrite the seed where they derive the
-same values, which `__tests__/parity.test.ts` proves for every loader (`loadFleetData`, `pickNeedsYouDemo`, `loadLadderData`, `loadMaturityData`, `loadTheaterData`, and `loadSetupData`'s catalogue parts; `loadTasks` and the Needs-you count are listed where live differs from demo: live draws only the source's tasks, and counts only unseeded Needs-you items, so the layout badge and the deep project's Fleet and Door rows read 0 where demo reads 5). The replay clock pins the countdowns and feed
+same values, which `__tests__/parity.test.ts` proves for every loader (`loadFleetData`, `pickNeedsYouDemo`, `loadLadderData`, `loadMaturityData`, and `loadSetupData`'s catalogue parts; `loadTasks`, the Needs-you count and `loadTheaterData` are listed where live differs from demo: live draws only the source's tasks, and counts only unseeded Needs-you items, so the layout badge and the deep project's Fleet and Door rows read 0 where demo reads 5; live Theater plays the deep project's own ledger, which the fake group carries, where demo plays the illustrative slice). The replay clock pins the countdowns and feed
 ages to the demo's moment, so the screens are identical to demo mode, and visibly a replay.
 
 ## Live, what is still the demo catalogue

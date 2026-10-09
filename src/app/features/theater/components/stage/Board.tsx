@@ -1,12 +1,10 @@
 import { EVIDENCE_RUNG, type Snapshot } from '../../model/derive/snapshots';
 import type { TheaterDemo } from '../../model/types';
-import { LAST_SEQ } from '../../model/replay/state';
 import { Card } from '@/components/surface/Card';
 import styles from './Board.module.css';
 
 /** The closing wall: nine stages as nine tiles, each with its rung steps and the evidence the last scan saw. */
-export function Board({ snap, demo }: { snap: Snapshot; demo: TheaterDemo }) {
-  const last = snap.e.seq === LAST_SEQ;
+export function Board({ snap, demo, last }: { snap: Snapshot; demo: TheaterDemo; last: boolean }) {
   return (
     <div className={styles.board}>
       <div className={styles.big}>

@@ -2,7 +2,7 @@
 // take replays exactly. Ported from the prototype's Player, with two deliberate tidy-ups: a looped take's
 // restart is cancelled by any operator action, and Home/End clear a pending roll like the arrow keys do.
 import {
-  LOOP_GAP_MS, N, PREROLL_MS, PREROLL_REDUCED_MS, dwell, indexOfSeq, rangeOf, seqAt, takeAt, takeOfSeq,
+  LOOP_GAP_MS, PREROLL_MS, PREROLL_REDUCED_MS, dwell, indexOfSeq, lengthOf, rangeOf, seqAt, takeAt, takeOfIndex,
   type ReplayState,
 } from './state';
 
@@ -22,16 +22,16 @@ export type Action =
   /** A cued take from the URL: show the entry's settled frame, paused. */
   | { type: 'settled'; i: number };
 
-const clampI = (i: number): number => Math.max(0, Math.min(N - 1, i));
+const clampI = (s: ReplayState, i: number): number => Math.max(0, Math.min(lengthOf(s.reel) - 1, i));
 
 function withPlaying(s: ReplayState, on: boolean): ReplayState {
   // Playing from the very end restarts the slice.
-  if (on && s.i === N - 1 && s.t >= dwell(s.i)) return { ...s, i: 0, t: 0, playing: true };
+  if (on && s.i === lengthOf(s.reel) - 1 && s.t >= dwell(s.i, s.reel)) return { ...s, i: 0, t: 0, playing: true };
   return { ...s, playing: on };
 }
 
 function held(s: ReplayState, i: number): ReplayState {
-  return { ...s, i: clampI(i), t: 0, playing: false, loopIn: 0 };
+  return { ...s, i: clampI(s, i), t: 0, playing: false, loopIn: 0 };
 }
 
 function go(s: ReplayState, i: number): ReplayState {
@@ -40,8 +40,8 @@ function go(s: ReplayState, i: number): ReplayState {
 
 function roll(s: ReplayState): ReplayState {
   const r = rangeOf(s);
-  const ia = indexOfSeq(r.a);
-  const ib = indexOfSeq(r.b);
+  const ia = indexOfSeq(r.a, s.reel);
+  const ib = indexOfSeq(r.b, s.reel);
   if (ia < 0 || ib < 0) return s;
   const counts = s.counts.map((c, k) => (k === s.take ? c + 1 : c));
   return { ...held(s, ia), stopAt: ib, preroll: s.reduced ? PREROLL_REDUCED_MS : PREROLL_MS, counts };
@@ -50,12 +50,12 @@ function roll(s: ReplayState): ReplayState {
 function advance(s: ReplayState, dt: number): ReplayState {
   let { i, t, playing, loopIn } = s;
   t += dt;
-  while (t >= dwell(i)) {
-    if (i < N - 1 && i !== s.stopAt) {
-      t -= dwell(i);
+  while (t >= dwell(i, s.reel)) {
+    if (i < lengthOf(s.reel) - 1 && i !== s.stopAt) {
+      t -= dwell(i, s.reel);
       i += 1;
     } else {
-      t = dwell(i);
+      t = dwell(i, s.reel);
       playing = false;
       if (s.loop && s.stopAt !== null) loopIn = LOOP_GAP_MS;
       break;
@@ -78,7 +78,7 @@ function tick(s: ReplayState, dt: number): ReplayState {
 
 function mark(s: ReplayState, which: 'a' | 'b'): ReplayState {
   const base = s.mark ?? rangeOf(s);
-  const seq = seqAt(s.i);
+  const seq = seqAt(s.i, s.reel);
   const next = which === 'a' ? { a: seq, b: Math.max(base.b, seq) } : { a: Math.min(base.a, seq), b: seq };
   return { ...s, mark: next };
 }
@@ -91,22 +91,22 @@ function step(s: ReplayState, a: Action): ReplayState {
     case 'play': return withPlaying(s, a.on);
     case 'toggle': return withPlaying({ ...s, preroll: 0, loopIn: 0, stopAt: s.playing ? s.stopAt : null }, !s.playing);
     case 'cue': {
-      const k = Math.max(0, Math.min(7, a.take));
-      return { ...held({ ...s, take: k, mark: null, stopAt: null, preroll: 0 }, indexOfSeq(takeAt(k).a)) };
+      const k = Math.max(0, Math.min(s.reel.takes.length - 1, a.take));
+      return { ...held({ ...s, take: k, mark: null, stopAt: null, preroll: 0 }, indexOfSeq(takeAt(k, s.reel).a, s.reel)) };
     }
     case 'roll': return roll(s);
     case 'markIn': return mark(s, 'a');
     case 'markOut': return mark(s, 'b');
     case 'toggleLoop': return { ...s, loop: !s.loop, loopIn: s.loop ? 0 : s.loopIn };
     case 'reduced': return s.reduced === a.on ? s : { ...s, reduced: a.on };
-    case 'settled': { const i = clampI(a.i); return { ...s, i, t: dwell(i), playing: false, loopIn: 0 }; }
+    case 'settled': { const i = clampI(s, a.i); return { ...s, i, t: dwell(i, s.reel), playing: false, loopIn: 0 }; }
   }
 }
 
 /** The selected take follows the playhead unless a roll or marks hold it. */
 function settle(s: ReplayState): ReplayState {
   if (s.preroll > 0 || s.stopAt !== null || s.mark) return s;
-  const k = takeOfSeq(seqAt(s.i));
+  const k = takeOfIndex(s.i, s.reel);
   return k >= 0 && k !== s.take ? { ...s, take: k } : s;
 }
 

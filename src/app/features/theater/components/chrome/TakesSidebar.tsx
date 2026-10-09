@@ -1,21 +1,20 @@
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
-import { TAKES } from '../../data/constants';
 import type { TheaterActions } from '../../hooks/useTheaterActions';
-import type { Marks } from '../../model/types';
+import type { Marks, Take } from '../../model/types';
 import styles from './TakesSidebar.module.css';
 
 function Tno({ children, current, seeded }: { children: string | number; current?: boolean; seeded?: boolean }) {
   return <span className={[styles.tno, seeded ? styles.seeded : '', current ? styles.current : ''].filter(Boolean).join(' ')}>{children}</span>;
 }
 
-/** Sidebar sections: Takes 1-8 with their roll counts, and the Marks (in / out). */
-export function TakesSidebar({ take, counts, range, marked, actions }: { take: number; counts: readonly number[]; range: Marks; marked: boolean; actions: TheaterActions }) {
+/** Sidebar sections: the film's takes (1-8 by key; one per MR on a real film) with their roll counts, and the Marks. */
+export function TakesSidebar({ takes, take, counts, range, marked, actions }: { takes: readonly Take[]; take: number; counts: readonly number[]; range: Marks; marked: boolean; actions: TheaterActions }) {
   return (
     <>
       <SidebarSection title="Takes">
         <div role="group" aria-label="Takes">
-          {TAKES.map((t, k) => (
+          {takes.map((t, k) => (
             <SidebarItem
               key={t.name}
               icon={
@@ -26,7 +25,7 @@ export function TakesSidebar({ take, counts, range, marked, actions }: { take: n
               label={t.name}
               count={counts[k] ? `${counts[k]}×` : undefined}
               current={k === take}
-              title={`Seq ${t.a}–${t.b}${t.seeded ? ' · seeded' : ''} · key ${k + 1}`}
+              title={`${t.mr != null ? 'belay-ledger · ' : ''}Seq ${t.a}–${t.b}${t.seeded ? ' · seeded' : ''}${k < 8 ? ` · key ${k + 1}` : ''}`}
               onClick={() => actions.cue(k)}
             />
           ))}

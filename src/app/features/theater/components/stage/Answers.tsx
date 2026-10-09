@@ -1,13 +1,32 @@
 import { memo } from 'react';
 import { demotionWord, deriveAnswers, needsIncreased } from '../../model/derive/answers';
 import type { Snapshot } from '../../model/derive/snapshots';
+import type { TheaterDemo } from '../../model/types';
 import { Card } from '@/components/surface/Card';
 import styles from './Answers.module.css';
 
-/** Running / Doing now / Going well / Needs me, all derived from the snapshot at the playhead. */
-export const Answers = memo(function Answers({ snap, prev, armed, total }: { snap: Snapshot; prev?: Snapshot; armed: number; total: number }) {
-  const a = deriveAnswers(snap, armed, total);
+/**
+ * Running / Doing now / Going well / Needs me, all derived from the snapshot at the playhead. On a real film (`demo`
+ * null) only Doing now: the ledger states no armed tracks, no week's counts and no waiting items.
+ */
+export const Answers = memo(function Answers({ snap, prev, demo }: { snap: Snapshot; prev?: Snapshot; demo: TheaterDemo | null }) {
+  const a = deriveAnswers(snap, demo?.tracksArmed ?? 0, demo?.tracksTotal ?? 0);
   const bump = needsIncreased(prev, snap);
+  const now = (
+    <Card className={`${styles.ans} ${styles.now}`}>
+      <span className={styles.al}>Doing now</span>
+      <span className={styles.av} title={a.now}>
+        {a.now}
+      </span>
+    </Card>
+  );
+  if (!demo) {
+    return (
+      <section className={styles.answers} aria-label="Doing now" aria-live="polite">
+        {now}
+      </section>
+    );
+  }
   return (
     <section className={styles.answers} aria-label="Four answers" aria-live="polite">
       <Card className={styles.ans} title="Tracks armed, as recorded">
@@ -17,12 +36,7 @@ export const Answers = memo(function Answers({ snap, prev, armed, total }: { sna
           <small>/ {a.running.total} tracks</small>
         </span>
       </Card>
-      <Card className={`${styles.ans} ${styles.now}`}>
-        <span className={styles.al}>Doing now</span>
-        <span className={styles.av} title={a.now}>
-          {a.now}
-        </span>
-      </Card>
+      {now}
       <Card className={styles.ans} title="This week · counts only">
         <span className={styles.al}>Going well</span>
         <span className={styles.av}>

@@ -12,6 +12,9 @@ export const GROUND_LIFT = 1.1;
 const CAP_MIN = 0.4;
 const CAP_MAX = 7.2;
 
+/** Caption percent from the bottom, beside a climber at this step, never off the wall. */
+const capAt = (step: number): number => Math.min(pct(CAP_MAX), Math.max(pct(CAP_MIN), pct(step)));
+
 export const easeOut = (k: number): number => 1 - Math.pow(1 - k, 3);
 /** Hold step -> percent from the bottom of the wall. */
 export const pct = (step: number): number => (step / HOLD_STEPS) * 100;
@@ -32,10 +35,20 @@ export interface Motion {
   cap: number;
 }
 
-export function motionAt(e: LedgerEntry, beat: number, p: number, reduced: boolean): Motion {
-  let pos = beat ? beat - 1 : -0.4;
-  if (e.beat && e.beat > 1 && !reduced) pos = e.beat - 2 + easeOut(Math.min(1, p / 0.55));
+/** `from`: the beat before this entry (default: the hold below). `side`: the illustrative !44 line is drawn. */
+export interface MotionOpts {
+  from?: number;
+  side?: boolean;
+}
+
+const stepOf = (beat: number): number => (beat ? beat - 1 : -0.4);
+
+export function motionAt(e: LedgerEntry, beat: number, p: number, reduced: boolean, { from, side = true }: MotionOpts = {}): Motion {
+  let pos = stepOf(beat);
+  const start = stepOf(from ?? (e.beat ?? 1) - 1);
+  if (e.beat && e.beat > 1 && from !== e.beat && !reduced) pos = start + (e.beat - 1 - start) * easeOut(Math.min(1, p / 0.55));
   const k = reduced ? 1 : Math.min(1, p / 0.6);
+  if (!side) return { pos, c41: pct(Math.max(0, pos)), lift: pos < 0 ? GROUND_LIFT : 0, y44: 0, show44: false, caught: false, cap: capAt(pos) };
   let y44 = 0;
   if (e.seq === 505) y44 = 1.5 * easeOut(k);
   else if (e.seq === 506) y44 = 1.5 + 1.5 * easeOut(k);
@@ -51,6 +64,6 @@ export function motionAt(e: LedgerEntry, beat: number, p: number, reduced: boole
     y44,
     show44: e.seq >= 505,
     caught: e.seq >= 509,
-    cap: Math.min(pct(CAP_MAX), Math.max(pct(CAP_MIN), pct(cy))),
+    cap: capAt(cy),
   };
 }

@@ -1,16 +1,15 @@
 'use client';
 
 import { useHotkeys, type Hotkey } from '@/lib/keyboard/useHotkeys';
-import { N } from '../model/replay/state';
 import type { Present } from './usePresent';
 import type { TheaterActions } from './useTheaterActions';
 
 /**
- * The Theater keys: 1-8 cue a take, R roll, L loop, I / O marks, Space play/pause, Left/Right step, Home/End,
+ * The Theater keys: 1-8 cue a take (as many as the film has), R roll, L loop, I / O marks, Space play/pause, Left/Right step, Home/End,
  * F present, Esc returns. Cmd/Ctrl+I (the inspector) belongs to the Window. They keep working while presenting.
  */
-export function useTheaterKeys(a: TheaterActions, present: Present): void {
-  const takes: Hotkey[] = Array.from({ length: 8 }, (_, k) => ({ key: String(k + 1), handler: () => a.cue(k) }));
+export function useTheaterKeys(a: TheaterActions, present: Present, film: { takes: number; entries: number }): void {
+  const takes: Hotkey[] = Array.from({ length: Math.min(8, film.takes) }, (_, k) => ({ key: String(k + 1), handler: () => a.cue(k) }));
   useHotkeys([
     ...takes,
     { key: 'r', handler: a.roll },
@@ -28,7 +27,7 @@ export function useTheaterKeys(a: TheaterActions, present: Present): void {
     { key: 'ArrowRight', handler: () => a.step(1) },
     { key: 'ArrowLeft', handler: () => a.step(-1) },
     { key: 'Home', handler: () => a.seek(0) },
-    { key: 'End', handler: () => a.seek(N - 1) },
+    { key: 'End', handler: () => a.seek(film.entries - 1) },
     { key: 'f', handler: present.toggle },
     { key: 'Escape', preventDefault: false, handler: () => present.set(false) },
   ]);

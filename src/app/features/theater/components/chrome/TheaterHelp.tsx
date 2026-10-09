@@ -1,12 +1,14 @@
 import { Kbd } from '@/components/controls/Kbd';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { KEYS } from '../../data/constants';
-import { FIRST_SEQ, LAST_SEQ } from '../../model/replay/state';
+import { seqRange } from '../../model/replay/state';
+import type { Film } from '../../model/types';
 import { ReplayChip } from '../parts/ReplayChip';
 import styles from './TheaterHelp.module.css';
 
 /** Behind the "?" in the status bar: the keys, and what the honesty marks on this screen mean. */
-export function TheaterHelp() {
+export function TheaterHelp({ film }: { film: Film }) {
+  const range = seqRange(film);
   return (
     <>
       <div className={styles.keys}>
@@ -18,7 +20,7 @@ export function TheaterHelp() {
         <span>Planted for the drill</span>
         <HonestyChip kind="simulated" />
         <span>Clock is not real</span>
-        <ReplayChip from={FIRST_SEQ} to={LAST_SEQ} />
+        <ReplayChip from={range.a} to={range.b} />
         <span>Recorded ledger slice</span>
       </div>
     </>

@@ -1,11 +1,18 @@
-// The replay player's state and the things read off it (ranges, progress, readouts). Pure.
+// The replay player's state and the things read off it (ranges, progress, readouts). Pure. The state carries its reel
+// (the film's entries and takes), so one reducer plays the illustrative slice or a film read from belay-ledger.
 import { REPLAY_LEDGER } from '../../data/ledger';
 import { TAKES } from '../../data/constants';
 import type { Marks, Take } from '../types';
 
+/** What the player needs of a film: the entries' seq, clock and dwell, and the takes. */
+export interface Reel {
+  entries: readonly { seq: number; t: string; d?: number }[];
+  takes: readonly Take[];
+}
+
+export const ILLUSTRATIVE_REEL: Reel = { entries: REPLAY_LEDGER, takes: TAKES };
+
 export const N = REPLAY_LEDGER.length;
-export const FIRST_SEQ = REPLAY_LEDGER[0]?.seq ?? 0;
-export const LAST_SEQ = REPLAY_LEDGER[N - 1]?.seq ?? 0;
 export const DEFAULT_DWELL_MS = 2600;
 export const PREROLL_MS = 2000;
 export const PREROLL_REDUCED_MS = 1000;
@@ -13,12 +20,13 @@ export const PREROLL_REDUCED_MS = 1000;
 export const LOOP_GAP_MS = 800;
 
 export interface ReplayState {
+  reel: Reel;
   /** Ledger entry index. */
   i: number;
   /** Film time inside the entry, ms. */
   t: number;
   playing: boolean;
-  /** Selected take, 0..7. */
+  /** Selected take, 0..takes-1. */
   take: number;
   /** Marked in/out, or null to use the take's own range. */
   mark: Marks | null;
@@ -34,24 +42,29 @@ export interface ReplayState {
   reduced: boolean;
 }
 
-export const initialState = (): ReplayState => ({
-  i: 0, t: 0, playing: false, take: 0, mark: null, stopAt: null, loop: false,
-  preroll: 0, loopIn: 0, counts: TAKES.map(() => 0), reduced: false,
+export const initialState = (reel: Reel = ILLUSTRATIVE_REEL): ReplayState => ({
+  reel, i: 0, t: 0, playing: false, take: 0, mark: null, stopAt: null, loop: false,
+  preroll: 0, loopIn: 0, counts: reel.takes.map(() => 0), reduced: false,
 });
 
-export const dwell = (i: number): number => REPLAY_LEDGER[i]?.d ?? DEFAULT_DWELL_MS;
-export const seqAt = (i: number): number => REPLAY_LEDGER[i]?.seq ?? 0;
-export const indexOfSeq = (seq: number): number => REPLAY_LEDGER.findIndex((e) => e.seq === seq);
-export const takeAt = (k: number): Take => TAKES[k] ?? TAKES[0] ?? { name: '', a: 0, b: 0 };
-export const takeOfSeq = (seq: number): number => TAKES.findIndex((t) => seq >= t.a && seq <= t.b);
+export const lengthOf = (r: Reel): number => r.entries.length;
+export const dwell = (i: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entries[i]?.d ?? DEFAULT_DWELL_MS;
+export const seqAt = (i: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entries[i]?.seq ?? 0;
+export const indexOfSeq = (seq: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entries.findIndex((e) => e.seq === seq);
+export const takeAt = (k: number, r: Reel = ILLUSTRATIVE_REEL): Take => r.takes[k] ?? r.takes[0] ?? { name: '', a: 0, b: 0 };
+/** The take holding entry i. A take is a run of entries (a real film's MRs interleave in seq, never in index). */
+export const takeOfIndex = (i: number, r: Reel = ILLUSTRATIVE_REEL): number =>
+  r.takes.findIndex((t) => i >= indexOfSeq(t.a, r) && i <= indexOfSeq(t.b, r));
+/** The first and last seq of the whole reel. */
+export const seqRange = (r: Reel): Marks => ({ a: r.entries[0]?.seq ?? 0, b: r.entries[r.entries.length - 1]?.seq ?? 0 });
 
 /** Film progress through the current entry, 0..1. */
-export const progress = (s: Pick<ReplayState, 'i' | 't'>): number => Math.min(1, s.t / dwell(s.i));
+export const progress = (s: Pick<ReplayState, 'reel' | 'i' | 't'>): number => Math.min(1, s.t / dwell(s.i, s.reel));
 
 /** The range a roll plays: the marked in/out, or the selected take's own. */
-export function rangeOf(s: Pick<ReplayState, 'take' | 'mark'>): Marks {
+export function rangeOf(s: Pick<ReplayState, 'reel' | 'take' | 'mark'>): Marks {
   if (s.mark) return s.mark;
-  const t = takeAt(s.take);
+  const t = takeAt(s.take, s.reel);
   return { a: t.a, b: t.b };
 }
 
@@ -66,6 +79,7 @@ export interface Readout {
 
 /** What the screen (everything but the film position) reads: it changes on entry, take, marks and transport only. */
 export interface View {
+  reel: Reel;
   i: number;
   take: number;
   mark: Marks | null;
@@ -79,7 +93,7 @@ export interface View {
 }
 
 export const viewOf = (s: ReplayState): View => ({
-  i: s.i, take: s.take, mark: s.mark, counts: s.counts, playing: s.playing, loop: s.loop, left: prerollLeft(s), rolling: s.stopAt !== null,
+  reel: s.reel, i: s.i, take: s.take, mark: s.mark, counts: s.counts, playing: s.playing, loop: s.loop, left: prerollLeft(s), rolling: s.stopAt !== null,
 });
 
 /** The transport readout: Held, Pre-roll n…, Rolling to out, Free play. */
@@ -92,8 +106,8 @@ export function readoutFrom(v: Pick<View, 'playing' | 'left' | 'rolling'>): Read
 export const readoutOf = (s: ReplayState): Readout => readoutFrom(viewOf(s));
 
 /** The status bar line, after the "Replay" word: seq, clock, take.roll and in → out. */
-export function slateText(s: Pick<ReplayState, 'i' | 'take' | 'mark' | 'counts'>): string {
-  const e = REPLAY_LEDGER[s.i];
+export function slateText(s: Pick<ReplayState, 'reel' | 'i' | 'take' | 'mark' | 'counts'>): string {
+  const e = s.reel.entries[s.i];
   const r = rangeOf(s);
   const roll = Math.max(1, s.counts[s.take] ?? 0);
   return `seq ${e?.seq ?? 0} · ${e?.t ?? ''} · take ${s.take + 1}.${roll} · in ${r.a} → out ${r.b}${s.mark ? ' (marked)' : ''}`;

@@ -79,14 +79,12 @@ describe('every screen loader gets the same data from the live source as from th
     expect(l).toEqual(d);
   });
 
-  it('Setup and Theater', async () => {
+  it('Setup', async () => {
     // Setup: the same catalogue parts (step titles, arm order, the tracks' names, the classes). Its states are not: live
     // reads every one of them (listed below, where live differs), demo reads none.
     const [dp, lp] = both(() => loadSetupData());
     const [ds, ls] = await Promise.all([dp, lp]);
     expect(noRecords({ ...ls, live: null, illustrative: null })).toEqual(noRecords({ ...ds, live: null, illustrative: null }));
-    const [dt, lt] = both(() => noRecords(loadTheaterData()));
-    expect(lt).toEqual(dt);
   });
 });
 
@@ -136,6 +134,12 @@ describe('where live differs from demo, on purpose', () => {
     const withFixture = l.filter((t) => d.some((x) => x.id === t.id));
     expect(withFixture.length).toBeGreaterThan(0);
     for (const t of withFixture) expect(t).toEqual(d.find((x) => x.id === t.id));
+  });
+
+  it('Theater plays the deep project’s own ledger live, one take per MR; demo plays the illustrative slice', () => {
+    const [d, l] = both(() => loadTheaterData());
+    expect([d.film.source, l.film.source, l.demo]).toEqual(['illustrative', 'belay-ledger', null]);
+    expect(l.film.takes.map((t) => t.name)).toEqual(['!41', '!44']);
   });
 
   it('the Door labels the cockpit text and the tracks it shows beside live data as demo; demo mode labels nothing', () => {
