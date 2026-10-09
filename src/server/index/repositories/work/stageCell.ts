@@ -49,3 +49,18 @@ export async function latestStageCells(db: Queryable, projectId: string): Promis
     evidence: r.evidence, evidenceNote: r.evidence_note, engineVersion: r.engine_version, scannedAt: asDate(r.scanned_at) as Date,
   }));
 }
+
+/** When the project's newest stored scan was taken, or null when none is stored. */
+export async function latestScanAt(db: Queryable, projectId: string): Promise<Date | null> {
+  const { rows } = await db.query<{ at: Date | string | null }>('select max(scanned_at) as at from stage_cell where project_id = $1', [projectId]);
+  return asDate(rows[0]?.at ?? null);
+}
+
+/** Each stage's earliest stored cell: its rung is the stage's day 0. */
+export async function firstStageCells(db: Queryable, projectId: string): Promise<Map<Stage, { rung: number | null; scannedAt: Date }>> {
+  const { rows } = await db.query<{ stage: Stage; rung: number | null; scanned_at: Date | string }>(
+    'select distinct on (stage) stage, rung, scanned_at from stage_cell where project_id = $1 order by stage, scanned_at asc',
+    [projectId],
+  );
+  return new Map(rows.map((r) => [r.stage, { rung: r.rung, scannedAt: asDate(r.scanned_at) as Date }]));
+}

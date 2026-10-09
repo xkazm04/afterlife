@@ -24,6 +24,18 @@ Tests never start a timer.
    - writes: project row, tasks, proofs, then (`classes.ts`, after the tasks so this poll's merges count) `class_tier`
      (tier, since, set_by, lease, move, and the counted record of a class one agent holds), re-admit and promotion asks, roll-ups (`proofs_*_7d`, `demotions_7d`, `needs_you`,
      `cra_open`).
+   - the maturity scan (`maturityScan.ts`, after that transaction, since `stage_cell` references the project row): the
+     default branch's last 20 pipelines, of those the 3 newest scheduled or API ones (the `maturity-scan` component's
+     rules) have their jobs read, and the newest finished `belay-maturity-scan` job's `.belay/maturity.json` artifact is read
+     (`GET projects/:id/jobs/:job/artifacts/.belay/maturity.json`), whatever the job's status: it is `allow_failure`, keeps
+     its artifacts, and exits 2 whenever a cell is unknown. The artifact is checked with `parseMaturityScan`
+     (`@/schemas/maturity`, the engine's own output type) and must name this project; its nine cells are stored with
+     `upsertStageCells` at the scan's `scanned_at`, `base_rung` the rung of the stage's earliest stored scan (the first scan is
+     day 0), a null rung kept null, the note as `evidence_note`, the GitLab objects as `evidence`. A missing, unparsable or
+     invalid artifact stores nothing and is the poll's issue (the project's poll still succeeds); no scan job stores nothing,
+     so `/maturity` stays "not scanned". A job already settled (`PollMemory.scans`), or one that started before the newest
+     stored scan, is not read again; a refused one repeats its issue without a read. A failed read (network, rate limit) is
+     tried again next poll. On the demo GitLab no pipeline is scheduled, so the seed's cells stay as they are.
 6. `poll_state`: `recordPollOk` at `now`, or `recordPollError` (keeps `last_ok`); a failed project is also set `stale`.
 
 ## Whom it believes (`config.ts`)
@@ -48,10 +60,11 @@ head is **stale**: not indexed, any earlier proof of the task is deleted, and th
 | tasks and proofs from MRs; state label from labels, MR state and deployments | `class_tier.record` of a class no agent or several agents hold: kept as it is, else null |
 | record counters of a class one agent holds (see "Record counters"), stored on its `class_tier` row each on its own (migration 0006: null is a counter nothing states, never 0; a row with every counter null reads as no record) and read by its promotion ask |
 | promotion ask for a class whose counters meet the rule Ladder's Promote reads (`promotion()` in `src/lib/promotion`), `promote:<project>:<class>`, closed when it stops being eligible |
-| class tiers: recorded in tier-state.yml, capped by the policy, by the gate's own rule (`engine/decide/standing.ts`: holder, lower of record and ceiling, lapsed lease = supervised). Group-wide, never from proof history. No record: stored quarantined with move `no_record` (the gate blocks it); several holders, named for the role or not: stored at the most restrictive holder with move `refused`, its note listing every holder at the tier the gate grants a merge request that holder authored (CI passes the author as `--agent`) | CRA sign-off asks (the port has no work-item reads); gap picks and setup steps (scans and probes) |
-| moves "promoted" and "tripwire" (with its trigger as the note) from the record's `by` | project `last`, `env_*`, `armed`, stage rungs, `what` |
+| class tiers: recorded in tier-state.yml, capped by the policy, by the gate's own rule (`engine/decide/standing.ts`: holder, lower of record and ceiling, lapsed lease = supervised). Group-wide, never from proof history. No record: stored quarantined with move `no_record` (the gate blocks it); several holders, named for the role or not: stored at the most restrictive holder with move `refused`, its note listing every holder at the tier the gate grants a merge request that holder authored (CI passes the author as `--agent`) | CRA sign-off asks (the port has no work-item reads); gap picks and setup steps (probes) |
+| moves "promoted" and "tripwire" (with its trigger as the note) from the record's `by` | project `last`, `env_*`, `armed`, `what` |
 | re-admit ask for a class the tripwire quarantined (deduplicated by kind and title, so a seeded one is respected) | track `armed`/`latest`, the event feed, cockpit text |
 | 7-day proof counts, demotion count, inbox counts, feed age | task `chain`, `countsToward`, `stats`, `clock`, `grade` |
+| stage rungs, evidence and day 0 from the newest `belay-maturity-scan` artifact | gap proposals (only the seed writes them) |
 
 A project indexed earlier from another namespace stays shown and counted, and only stops being polled: it is marked stale
 (`cycle.ts:90-93`), and the fleet view still lists it (`src/server/index/views/fleet.ts:20-58`). F57's "gone" state is
@@ -91,7 +104,7 @@ A promotion ask (`derive/promotion.ts`) carries `from`, `to` and each rule with 
 dismissed at or after the record's `since` is not opened again until the record moves (re-admits likewise).
 
 A task id belongs to the first project and MR that used it: a second MR claiming it is ignored and reported.
-Pipelines are not read: no row consumes them yet.
+Pipelines are read only to find the maturity scan job; no other row consumes them yet.
 
 ## Decided choices (the App Master's; council r2 judged both sound)
 

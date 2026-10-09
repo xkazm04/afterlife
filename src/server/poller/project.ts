@@ -13,6 +13,7 @@ import type { Queryable } from '@/server/index/repositories/sql';
 import type { PollerConfig } from './config';
 import { deriveTask, type TaskDerivation } from './derive/task';
 import { pollClasses } from './classes';
+import { pollMaturityScan } from './maturityScan';
 import { countProofs } from './derive/rollup';
 import type { PolicyRead } from './derive/policy';
 import type { PollMemory } from './state';
@@ -157,6 +158,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
       }]);
     });
 
+    await pollMaturityScan(port, db, env.mem, gl, id, out.issues); // after the project row: stage_cell references it
     if (ledgerError) throw new Error(ledgerError);
     await recordPollOk(db, projectSource(id), now);
   } catch (e) {

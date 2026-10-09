@@ -8,6 +8,8 @@ export interface PollMemory {
   notes: Map<string, { updatedAt: string; notes: GlNote[] }>;
   /** Ledger blob ids already imported. */
   ledger: BlobCache;
+  /** GitLab project id -> the maturity scan job last settled (stored, or refused for good with this issue). */
+  scans: Map<number, { jobId: number; issue: string | null }>;
 }
 
-export const createMemory = (): PollMemory => ({ notes: new Map(), ledger: new Map() });
+export const createMemory = (): PollMemory => ({ notes: new Map(), ledger: new Map(), scans: new Map() });
