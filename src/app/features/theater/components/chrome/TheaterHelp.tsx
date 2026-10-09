@@ -20,8 +20,8 @@ export function TheaterHelp({ film }: { film: Film }) {
         <span>Planted for the drill</span>
         <HonestyChip kind="simulated" />
         <span>Clock is not real</span>
-        <ReplayChip from={range.a} to={range.b} />
-        <span>Recorded ledger slice</span>
+        <ReplayChip source={film.source} from={range.a} to={range.b} />
+        <span>{film.source === 'illustrative' ? 'Illustrative ledger slice: invented for the demo, no run behind it' : "Read from belay-ledger: the project's own hash-chained events"}</span>
       </div>
     </>
   );

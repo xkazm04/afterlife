@@ -29,7 +29,7 @@ export const Answers = memo(function Answers({ snap, prev, demo }: { snap: Snaps
   }
   return (
     <section className={styles.answers} aria-label="Four answers" aria-live="polite">
-      <Card className={styles.ans} title="Tracks armed, as recorded">
+      <Card className={styles.ans} title="Tracks armed, in the demo catalogue">
         <span className={styles.al}>Running</span>
         <span className={styles.av}>
           <b>{a.running.armed}</b>

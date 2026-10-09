@@ -55,6 +55,9 @@ CRA clock, the catalogue's three autonomy classes (the rail shows instead the cl
   loop) are read by `loadTheaterData`; a real film has none (`demo: null`).
 
 ## Behaviour notes
+- The REPLAY chip reads the same in the window and in present. The illustrative film's: "Replay · seq 480–520 ·
+  illustrative" (tooltip and "?" legend: invented for the demo, never "recorded"). A real film's names its source:
+  "Replay · belay-ledger · !41 · seq 1–5", the playing MR and its seq range.
 - Reduced motion: no easing (climbs snap), no CSS animation, 1 s pre-roll. Hidden tab: the frame clock stops.
 - The climber chip at beat 0 sits one bolt below hold 1 and the wall keeps room for it (prototype clipped it).
 - Home/End and a looped take: any operator action cancels a pending roll or loop restart.

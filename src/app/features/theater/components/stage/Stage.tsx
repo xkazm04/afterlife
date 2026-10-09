@@ -16,7 +16,7 @@ export function Stage({ snaps, snap, store, film, demo, present }: { snaps: read
   return (
     <div className={styles.stage} data-present={present ? '' : undefined}>
       <Answers snap={snap} prev={prev} demo={demo} />
-      <Pitch snap={snap} snaps={snaps} store={store} film={film} demo={demo} present={present} />
+      <Pitch snap={snap} snaps={snaps} store={store} film={film} demo={demo} />
       <Rail snap={snap} prev={prev} demo={demo} />
     </div>
   );

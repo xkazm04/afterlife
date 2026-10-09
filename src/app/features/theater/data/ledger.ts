@@ -1,4 +1,4 @@
-// REPLAY_LEDGER: a recorded ledger slice, seq 480-520. ILLUSTRATIVE. Ported from the prototype's replay core.
+// REPLAY_LEDGER: an invented ledger slice, seq 480-520. ILLUSTRATIVE: no run recorded it. Ported from the prototype's replay core.
 // It reuses the demo dataset's ids, tracks and times: the !41 loop (task 01J8Q4, issue #128), the seeded !44,
 // the 14:20 tripwire on patch-bump (policy commit c3d4), the 14:02 scan (grid 6 -> 7 of 9).
 // State at any seq is a pure fold over this list (model/derive/snapshots.ts), so a take replays exactly.

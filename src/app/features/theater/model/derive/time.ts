@@ -1,4 +1,4 @@
-// Clock helpers for the recorded slice. hh:mm:ss strings in, whole seconds out. No Date, no Date.now().
+// Clock helpers for the illustrative slice. hh:mm:ss strings in, whole seconds out. No Date, no Date.now().
 import { CRA_END } from '../../data/constants';
 
 export function secs(hms: string): number {
