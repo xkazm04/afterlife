@@ -38,7 +38,8 @@ include:
 
    In this job every effect is reported, never applied: `apply-gate.mjs --dry 1`.
 6. Reports the `belay::tier::<tier>` and `guardrail::pass|block` labels and the note it would set, and writes ledger event
-   bodies to `.belay/events/` as an artifact. belay-apply applies the same decision and appends the ledger.
+   bodies to `.belay/events/` as a report-only artifact. belay-apply runs the gate itself and emits and appends its own events,
+   and the M1 hand-run derives its own (`scripts/hand/derive-gate.mjs`, F90): nothing appends these.
 
 Fails closed: a missing or invalid input never produces `merge` or `approve`. An engine error (`{"error": ...}`) stops the job
 with exit 2. It never writes.
@@ -69,7 +70,7 @@ with exit 2. It never writes.
 | `agent_prefix` | string | `"ai-"` |  |
 | `class` | string | `""` | Action class id (trust-policy.yml classes). Empty reads the Belay-Class trailer from the MR description. |
 | `wait_minutes` | number | `10` | How long to wait for the guardrail verdict before leaving the MR waiting for a person. |
-| `emit_events` | boolean | `true` | Write ledger event bodies to .belay/events, as an artifact (belay-apply appends the ledger). |
+| `emit_events` | boolean | `true` | Write ledger event bodies to .belay/events, as a report-only artifact (belay-apply emits and appends its own). |
 
 ## Verify
 
