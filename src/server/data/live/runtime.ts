@@ -27,10 +27,23 @@ export interface LiveRuntime {
 
 const STARTING = Symbol.for('belay.liveRuntime.starting');
 const READY = Symbol.for('belay.liveRuntime.ready');
-type Holder = { [STARTING]?: Promise<LiveRuntime>; [READY]?: LiveRuntime };
+const FAILED = Symbol.for('belay.liveRuntime.failed');
+type Holder = { [STARTING]?: Promise<LiveRuntime>; [READY]?: LiveRuntime; [FAILED]?: StartFailure };
+
+/** A live start that threw: what it said and when. Kept until a start succeeds. */
+export interface StartFailure {
+  message: string;
+  at: number;
+}
 
 /** The runtime once it has finished starting, synchronously: pages call this, never the promise. Null in demo mode. */
 export const readyRuntime = (): LiveRuntime | null => (globalThis as Holder)[READY] ?? null;
+
+/** The last start's failure, or null when none failed since the last success (or none has run). */
+export const lastStartFailure = (): StartFailure | null => (globalThis as Holder)[FAILED] ?? null;
+
+/** Whether a start is in flight right now: begun, neither ready nor failed. */
+export const startInFlight = (): boolean => (globalThis as Holder)[STARTING] !== undefined;
 
 async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<LiveRuntime> {
   const { port, clock, seeded } = await createLivePort(cfg.gitlab);
@@ -61,9 +74,19 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<L
   return rt;
 }
 
-/** Starts the runtime once; every later call gets the same one. */
+/** Starts the runtime once; every later call gets the same one. A start that fails is cleared, so the next call starts afresh. */
 export function startRuntime(cfg: DataConfig, onError: (e: unknown) => void = (e) => console.error('belay: poll failed', e)): Promise<LiveRuntime> {
   const holder = globalThis as Holder;
-  holder[STARTING] ??= create(cfg, onError).then((rt) => (holder[READY] = rt));
+  holder[STARTING] ??= create(cfg, onError).then(
+    (rt) => {
+      delete holder[FAILED];
+      return (holder[READY] = rt);
+    },
+    (e: unknown) => {
+      delete holder[STARTING];
+      holder[FAILED] = { message: e instanceof Error ? e.message : String(e), at: Date.now() };
+      throw e;
+    },
+  );
   return holder[STARTING];
 }
