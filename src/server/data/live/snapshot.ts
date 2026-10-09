@@ -2,7 +2,10 @@
 // synchronously. What the index cannot yet serve (tracks, the loop, setup phases, the cockpit text) is the demo's
 // catalogue, unchanged: see data/README.md for the list.
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
+import type { LedgerEvent } from '@/schemas/ledger';
 import { clock, getActionClasses, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
+import { getProjectRow } from '@/server/index/repositories/fleet/project';
+import { readLedger } from '@/server/index/repositories/ledger/ledger';
 import { getPairing, type PairingRow } from '@/server/index/repositories/pairing';
 import { listPollStates } from '@/server/index/repositories/pollState';
 import type { Queryable } from '@/server/index/repositories/sql';
@@ -27,6 +30,8 @@ export interface LiveData {
   tiersStale: TiersStale | null;
   /** The pairing row the last poll wrote (group, host, checkout), for Setup's reads; null before any poll paired one. */
   pairing: PairingRow | null;
+  /** The deep project's ledger events as the index holds them (verified on import), in seq order; [] without one. */
+  ledger: readonly LedgerEvent[];
 }
 
 export interface LiveSnapshot {
@@ -36,9 +41,9 @@ export interface LiveSnapshot {
 }
 
 export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData, policy: PolicyRules | null = null): Promise<LiveSnapshot> {
-  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyReads] = await Promise.all([
+  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyReads, ledger] = await Promise.all([
     getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getEvents(db, deep), getNeedsYou(db, deep, at),
-    getPairing(db, 'default'), listPollStates(db, 'policy:'),
+    getPairing(db, 'default'), listPollStates(db, 'policy:'), deepLedger(db, deep),
   ]);
   const failedRead = policyReads.find((s) => s.lastError !== null);
   const tiersStale = failedRead ? { reason: failedRead.lastError ?? '', lastOk: failedRead.lastOk?.toISOString() ?? null } : null;
@@ -62,6 +67,13 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       policy,
       tiersStale,
       pairing,
+      ledger,
     },
   };
+}
+
+/** The deep project's ledger, which the index keys by its GitLab id: a project with none (not linked) has no ledger. */
+async function deepLedger(db: Queryable, deep: string): Promise<LedgerEvent[]> {
+  const gitlabId = (await getProjectRow(db, deep))?.gitlabId ?? null;
+  return gitlabId === null ? [] : readLedger(db, gitlabId);
 }

@@ -4,7 +4,8 @@ Every screen's server loader reads through one interface, `DataSource` (`types.t
 had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActionClasses`, `getMaturity`, `getLoop`, `getTasks`,
 `getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`) plus `mode`, `deepProjectId()` and
 `illustrative` (the demo narrative it serves beside live data, for the screens to label) and `getPolicy()` (trust-policy.yml's
-rules: the promotion thresholds, the demotion triggers, the envelope). Reads are
+rules: the promotion thresholds, the demotion triggers, the envelope) and `getLedger()` (the deep project's hash-chained
+`LedgerEvent`s, `@/schemas/ledger`, in seq order; see "The ledger" below). Reads are
 **synchronous**: the live source serves a snapshot that is rebuilt after every poll, so a page never waits on GitLab or the index.
 One exception, Setup: `setupReads()` is a synchronous getter (null in demo mode) for read-only port calls the Setup loader
 awaits per load (see `setup/` below).
@@ -26,12 +27,21 @@ awaits per load (see `setup/` below).
 | `select.ts` | `getDataSource()`, and `setDataSource()` for tests |
 | `demoSource.ts` | the demo accessors, unchanged |
 | `live/liveSource.ts` | the snapshot + the demo catalogue; throws before the first poll has finished (an empty fleet must not pass for real) |
-| `live/snapshot.ts` | `buildSnapshot(db, at, deep, catalogue)`: views from `../index` for fleet, action classes, maturity, tasks, recent events, needs-you, plus feed age and the group name |
+| `live/snapshot.ts` | `buildSnapshot(db, at, deep, catalogue)`: views from `../index` for fleet, action classes, maturity, tasks, recent events, needs-you, plus feed age, the group name and the deep project's ledger (`readLedger` by its row's gitlab id) |
 | `live/seeded.ts` | `SEEDED_ITEMS` and `isSeeded(id)`: the ids the demo seeds into an index, which a real group's index never holds. `getNeedsYouCount()` and the deep project's fleet row exclude them, as `/needs-you` does (`getNeedsYou()` still returns them) |
 | `live/narrow.ts` | where the screens' types have no "unknown": quarantined for an unknown tier, 9 null rungs for a scan that never ran, an unclassified task is not listed |
 | `live/runtime.ts`, `boot.ts` | one port + index + poller + snapshot per process, kept on `globalThis`; started by `src/instrumentation.ts` (`register`) |
 | `setup/` | Setup's live reads (`read.ts`): each track's arm block on the target's main (`checkArm`; a track with no arm content is "not defined yet", a refused or failed read is unknown with its reason), the belay doctor (`probeCapabilities` on the configured group, stamped with the real time), and the steps a read observes: 0 (`glab api user`), 1 (the snapshot's pairing row), 4 (the target and belay-pack, -policy, -ledger, -engine in the group). Every other step is unknown, "not probed". `rereadAction.ts` (`'use server'`, localhost only, read only) is Re-probe and a step's verify. `types.ts` is what the screen receives |
 | `live/clock.ts`, `ports.ts` | system clock vs the fake group's **replay clock** (polled 14:21:48, read 14:22:00, always) |
+
+## The ledger
+
+`getLedger()` returns the deep project's events (`belay-ledger/events/<gitlab-id>.jsonl`) as the index holds them, in seq
+order. Live, `buildSnapshot` reads them once per poll with `readLedger(db, gitlabId)`, the gitlab id from the deep project's
+row; a project with no gitlab id, or with no ledger, reads `[]`. The index holds only a chain that verified on import
+(`../ledger/importLedger.ts`), so the source does not verify it again. Demo: `[]`: the demo dataset has no ledger, and the
+hosted replay reaches no index. Tested in `__tests__/ledger.test.ts` on the fake group (`__tests__/fakeGroup.ts`, the rig
+`parity.test.ts` shares): ledgerline's 7 events, which `verifyChain` accepts.
 
 ## The fake group and parity
 

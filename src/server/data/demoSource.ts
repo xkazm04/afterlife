@@ -22,6 +22,7 @@ export const demoSource: DataSource = {
   getSetup: demo.getSetup,
   getEvents: demo.getEvents,
   getCockpit: demo.getCockpit,
+  getLedger: () => [],
   getPolicy: () => repoPolicy(),
   getTiersStale: () => null,
   setupReads: () => null,

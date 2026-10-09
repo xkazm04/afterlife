@@ -3,6 +3,7 @@
 // refreshes after every cycle, so a page never waits on GitLab or on the index.
 import type { DemoData, Task } from '@/lib/demo/types';
 import type { PromotionRules } from '@/lib/promotion/types';
+import type { LedgerEvent } from '@/schemas/ledger';
 import type { SetupReads } from './setup/read';
 
 export type DataMode = 'demo' | 'live';
@@ -66,6 +67,13 @@ export interface DataSource {
   getSetup(): DemoData['setup'];
   getEvents(): DemoData['events'];
   getCockpit(): DemoData['cockpit'];
+  /**
+   * The deep project's hash-chained ledger events (belay-ledger/events/<gitlab-id>.jsonl) as the index holds them, in seq
+   * order. The index holds only a chain that verified on import (server/ledger/importLedger.ts), so it is not verified
+   * again here. Live: read once per poll; [] for a project with no gitlab id or no ledger. Demo: [] (the demo dataset has
+   * no ledger, and the hosted replay reaches no index).
+   */
+  getLedger(): readonly LedgerEvent[];
   /**
    * trust-policy.yml's rules. Demo: this checkout's policy/trust-policy.yml. Live: the one the last poll read from
    * belay-policy; null until a poll has read one the engine accepts.

@@ -39,6 +39,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getSetup: () => data().setup,
     getEvents: () => data().events,
     getCockpit: () => data().cockpit,
+    getLedger: () => data().ledger,
     getPolicy: () => data().policy,
     getTiersStale: () => data().tiersStale,
     setupReads: () => setupReads(port(), data().pairing, snapshot().deep),

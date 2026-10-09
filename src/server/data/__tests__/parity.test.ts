@@ -13,33 +13,19 @@ import { loadNeedsYouView, MissingNeedsYouData, pickNeedsYouDemo } from '@/app/f
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
 import { loadTasks } from '@/app/features/task/model/build/loadTasks';
 import { loadTheaterData } from '@/app/features/theater/data/loadTheaterData';
-import { createDemoGitLab } from '@/server/gitlab/fake/demo';
-import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { listProofsFor } from '@/server/index/repositories/work/proof';
 import { getProjectRow } from '@/server/index/repositories/fleet/project';
 import { listClassTiers } from '@/server/index/repositories/fleet/classTier';
-import { seedDemo, SEED_NOW } from '@/server/index/seed';
-import { readPollerConfig } from '@/server/poller/config';
-import { runPollCycle } from '@/server/poller/cycle';
 import { demoSource } from '../demoSource';
-import { replayClock } from '../live/clock';
-import { liveSource } from '../live/liveSource';
-import { buildSnapshot } from '../live/snapshot';
-import { repoPolicy, rulesOf } from '../policy';
+import { repoPolicy } from '../policy';
 import { setDataSource } from '../select';
 import type { DataSource } from '../types';
+import { fakeGroupLive } from './fakeGroup';
 
 let live: DataSource;
 let db: PGlite;
 beforeAll(async () => {
-  db = await memoryIndex();
-  await seedDemo(db);
-  const gl = createDemoGitLab(SEED_NOW);
-  const cycle = await runPollCycle(gl.port, db, replayClock.poll(), { cfg: readPollerConfig(144060371, {}) });
-  expect(cycle.projects.every((p) => p.ok)).toBe(true);
-  const snap = await buildSnapshot(db, replayClock.read(), 'ledgerline', DEMO, cycle.policy ? rulesOf(cycle.policy) : null);
-  // Setup's live reads go through the demo GitLab, as the runtime's port would (select.ts).
-  live = liveSource(() => snap, DEMO, () => ({ port: gl.port, groupId: 144060371, gitlabId: async (id) => (await getProjectRow(db, id))?.gitlabId ?? null }));
+  ({ db, live } = await fakeGroupLive());
 }, 60_000);
 afterAll(() => setDataSource(null));
 
