@@ -1,12 +1,15 @@
 import type { ProposalExtra } from './types';
 
+/** The project every demo gap's MR is opened in: the gap door's target, ledgerline in the demo group. */
+export const LEDGERLINE_REPO = 'acme-lab/core-banking/ledgerline';
+
 // g1: re-derive every scanner finding against the shipped SBOM (secure R3 -> R4). Needs a run on main.
 export const PROPOSAL_G1: ProposalExtra = {
   invite:
     'Worth exploring: every scanner finding could be checked against the SBOM you actually shipped, so a finding in a package you do not ship stops costing a person time.',
   workItem: '#131',
   branch: 'belay/gap-g1-sbom-rederive',
-  repo: 'acme-lab/ledgerline',
+  repo: LEDGERLINE_REPO,
   mrId: '!45',
   kind: 'mr',
   cls: 'ci-config.change',
