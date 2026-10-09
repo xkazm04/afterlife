@@ -18,6 +18,8 @@ const SCAN_SOURCES: ReadonlySet<string> = new Set(['schedule', 'api']);
 /** Default-branch pipelines looked at, and of those, the scheduled or API ones whose jobs are read. */
 const PIPELINES = 20;
 const SCAN_PIPELINES = 3;
+/** How far a runner's clock may stand from GitLab's when it dates the facts. */
+const CLOCK_SKEW_MS = 15 * 60_000;
 
 export type ScanRead = 'none' | 'stored' | 'unchanged' | 'refused';
 
@@ -79,6 +81,12 @@ async function read(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject
   const parsed = parseMaturityScan(raw);
   if (!parsed.ok) return refuse(`is not a belay.maturity/0 scan (${parsed.reason})`, true);
   if (parsed.scan.project_id !== gl.id) return refuse(`is about project ${parsed.scan.project_id}, not ${gl.id}`, true);
+  // F103: the facts are read while the job runs. A scan dated after it would make every later scan look already stored,
+  // one dated before it would rewrite day 0; the runner's clock may drift from GitLab's by a little.
+  const scannedMs = Date.parse(parsed.scan.scanned_at);
+  if (scannedMs < started - CLOCK_SKEW_MS || scannedMs > Date.parse(job.finishedAt ?? '') + CLOCK_SKEW_MS) {
+    return refuse(`has scanned_at ${parsed.scan.scanned_at}, outside job ${job.id}'s run`, true);
+  }
   await db.transaction((tx) => store(tx, projectId, parsed.scan));
   mem.scans.set(gl.id, { jobId: job.id, issue: null });
   return 'stored';

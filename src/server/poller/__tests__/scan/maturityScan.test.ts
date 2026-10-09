@@ -116,6 +116,9 @@ describe('the poller stores a maturity scan', () => {
     ['about another project', scanDoc({ projectId: 1 }), /maturity scan: .*about project 1, not 90010001/],
     ['unparsable', () => { throw new GitLabError('parse', 'response is not JSON', 'artifacts'); }, /maturity scan: .*response is not JSON/],
     ['missing', () => { throw new GitLabError('not-found', '404 Not Found', 'artifacts'); }, /maturity scan: .*404 Not Found/],
+    // F103: a scan dated after its job would make every later real scan look already stored; one dated before rewrites day 0
+    ['dated after its job finished', scanDoc({ scannedAt: '2999-01-01T00:00:00.000Z' }), /maturity scan: .*scanned_at 2999-01-01T00:00:00.000Z, outside job 880001's run/],
+    ['dated before its job started', scanDoc({ scannedAt: at(24 * 60) }), /maturity scan: .*scanned_at .*, outside job 880001's run/],
   ])('(iii) an %s artifact writes no row and is the poll\'s issue', async (_what, artifact, issue) => {
     const r = await rig();
     const res = await r.poll(NOW, withScans(r.gl.port, [{ pipelineId: PIPE, jobId: JOB, minAgo: 2, artifact }], []));
