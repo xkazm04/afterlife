@@ -16,12 +16,13 @@ export function Pitch({ snap, snaps, store, film, demo }: { snap: Snapshot; snap
   const m44 = snap.e.sc === 'm44';
   const range = seqRange(film);
   const take = film.source === 'belay-ledger' ? film.takes[takeOfIndex(snap.i, film)] : undefined;
+  const title = take
+    ? 'A hold is lit only where a ledger event reached it · the others stay unclimbed'
+    : m44
+      ? '!41 holds at staging while !44 is caught on the next line'
+      : 'The rope below is proven · the rope above is not yet climbed';
   return (
-    <section
-      className={styles.pitch}
-      aria-label="The loop as a pitch: one change climbs from finding to summary"
-      title={m44 ? '!41 holds at staging while !44 is caught on the next line' : 'The rope below is proven · the rope above is not yet climbed'}
-    >
+    <section className={styles.pitch} aria-label="The loop as a pitch: one change climbs from finding to summary" title={title}>
       <div className={styles.head}>
         <ReplayChip source={film.source} from={take?.a ?? range.a} to={take?.b ?? range.b} mr={take?.mr} />
         <span className={styles.beat}>
