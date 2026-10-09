@@ -108,7 +108,7 @@ anything, and the hosted replay is served under its own name).
 - F91 (Medium, fixed): behind a proxy, a container started in live mode by mistake (on Cloud Run, or behind a load balancer
   whose default route reaches it) receives the Host the caller chose, so Host, X-Forwarded-Host and Origin could all say
   localhost. `notLocal` now also refuses a request forwarded for an address that is not loopback: any `X-Forwarded-For`
-  entry, `Forwarded`'s `for=`, or `X-Real-IP` (`local.ts:30-41`, `__tests__/replay/forwarded.test.ts`). Next sets
+  entry, `Forwarded`'s `for=`, or `X-Real-IP` (`local.ts:30-42`, `local.ts:53`, `__tests__/replay/forwarded.test.ts`). Next sets
   `X-Forwarded-For`, when absent, to the socket's address, so the operator's own page still passes. Residual: a proxy that
   rewrites Host to the upstream's loopback name and adds no forwarding header (nginx's default `proxy_pass`) still passes:
   never put a proxy or a tunnel in front of a live Belay.
