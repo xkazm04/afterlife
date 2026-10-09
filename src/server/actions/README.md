@@ -89,7 +89,11 @@ tripwire demotion; the answer is `failed`. Without a `last_commit_id` from GitLa
 - **Live**: for each command, a `commands_run` row (who, argv, display, risk, at) is written *before* it runs, then finished
   with its exit (the GitLab HTTP status on failure, else 1). A failure stops the rest (a branch, then its MR). Then one poll
   cycle runs and the snapshot is rebuilt, whether or not every command passed.
-- **Demo**: planned against the seeded fake group, never executed, no record: `results[].simulated === true`.
+- **Demo**: planned against the seeded fake group, never executed, no record: `results[].simulated === true`. Any
+  `BELAY_MODE` but `live` is demo, the hosted replay's `replay` included (`data/config.ts:18`). Demo reads no
+  environment: the group is the fake's own `GROUP_ID` and the poller settings are the defaults (`deps.ts:27-31`).
+  - F93 (Low, fixed): demo read the server's `BELAY_*` settings all the same, and a refusal named one to any caller
+    (`BELAY_POLICY_PROJECT` in "the group has no acme-lab/<name> project"); `__tests__/replay/env.test.ts`.
 
 A server action is an endpoint: validated, and it acts as whoever is logged in to `glab`. `previewId` is a digest of the
 commands, not a secret: any caller that can reach the port can preview and then confirm. Next's own check (the Origin's

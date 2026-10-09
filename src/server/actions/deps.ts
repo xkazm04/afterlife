@@ -1,7 +1,8 @@
 // The dependencies of an action for the running server: demo mode plans against the seeded fake group and never
-// executes; live mode uses the live runtime's port (the operator's glab login), index and poller.
+// executes; live mode uses the live runtime's port (the operator's glab login), index and poller. Demo reads no
+// environment: the fake group's shape is fixed, and the hosted replay must not name the server's settings (F93).
 import { readConfig } from '@/server/gitlab/config';
-import { createDemoGitLab } from '@/server/gitlab/fake/demo';
+import { createDemoGitLab, GROUP_ID } from '@/server/gitlab/fake/demo';
 import { readDataConfig } from '@/server/data/config';
 import { readyRuntime } from '@/server/data/live/runtime';
 import { getProjectRow } from '@/server/index/repositories/fleet/project';
@@ -24,9 +25,8 @@ export function actionDeps(env: Record<string, string | undefined> = process.env
     };
   }
   planner ??= createDemoGitLab(SEED_NOW);
-  const groupId = readConfig(env).groupId;
   return {
-    mode: 'demo', port: planner.port, db: null, groupId, cfg: readPollerConfig(groupId, env), now: () => SEED_NOW,
+    mode: 'demo', port: planner.port, db: null, groupId: GROUP_ID, cfg: readPollerConfig(GROUP_ID, {}), now: () => SEED_NOW,
     refresh: () => Promise.resolve(), gitlabId: () => Promise.resolve(null), arm: { ok: true, pin: DEMO_PIN },
   };
 }
