@@ -38,6 +38,18 @@ describe('glab adapter: requests', () => {
   });
 });
 
+describe('glab adapter: pipeline filters', () => {
+  it('sends ref, status and scope as query parameters, and omits scope when not given', async () => {
+    const { port, calls } = adapter([okJson([]), okJson([])]);
+    await port.listPipelines(1, { ref: 'main', scope: 'branches' });
+    await port.listPipelines(1, { ref: 'main', status: 'failed' });
+    expect(calls.map((c) => c[1])).toEqual([
+      'projects/1/pipelines?ref=main&scope=branches&per_page=100&page=1',
+      'projects/1/pipelines?ref=main&status=failed&per_page=100&page=1',
+    ]);
+  });
+});
+
 describe('glab adapter: pagination', () => {
   it('walks pages until a short page', async () => {
     const { port, calls } = adapter([okJson([pipeline(3), pipeline(2)]), okJson([pipeline(1)])], { pageSize: 2 });

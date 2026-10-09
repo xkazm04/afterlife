@@ -73,7 +73,11 @@ export const readRoutes: Route[] = [
   ['GET', /^ai\/duo_workflows\/workflows$/, (st) => (atLeast(st, 'premium') ? ok([]) : fail(404, 'Not Found'))],
 
   ['GET', new RegExp(`^${P}/pipelines$`), inProject((p, _m, { query: q }) => {
-    const rows = byId(p.pipelines).filter((x) => (!q.get('ref') || x.ref === q.get('ref')) && (!q.get('status') || x.status === q.get('status')));
+    // A record with `tag: true` is a tag pipeline; one without is a branch pipeline (`scope`, like GitLab's).
+    const scope = q.get('scope');
+    const rows = byId(p.pipelines).filter(
+      (x) => (!q.get('ref') || x.ref === q.get('ref')) && (!q.get('status') || x.status === q.get('status')) && (!scope || (scope === 'tags') === (x.tag === true)),
+    );
     return list(rows, q);
   })],
   ['GET', new RegExp(`^${P}/pipelines/(\\d+)/jobs$`), inProject((p, m, { query: q }) => list(p.jobs[m[2] ?? ''] ?? [], q))],

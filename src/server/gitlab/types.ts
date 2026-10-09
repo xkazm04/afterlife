@@ -79,7 +79,11 @@ export interface GlTreeEntry { id: string; name: string; path: string; type: 'bl
 export type Availability<T> = { status: 'available'; data: T } | { status: 'unavailable'; reason: string };
 
 export interface PageOpts { limit?: number }
-export interface PipelineFilter extends PageOpts { ref?: string; status?: string }
+/**
+ * `scope` is GitLab's filter of the same name: `ref` also matches a tag of that name, `scope=branches` keeps only branch
+ * pipelines ([R]: docs.gitlab.com/api/pipelines/#list-project-pipelines). The list response has no `tag` field, so it is asked, not mapped.
+ */
+export interface PipelineFilter extends PageOpts { ref?: string; status?: string; scope?: 'branches' | 'tags' }
 export interface MrFilter extends PageOpts { state?: 'opened' | 'merged' | 'closed' | 'all'; labels?: string[]; updatedAfter?: string }
 export interface DeploymentFilter extends PageOpts { environment?: string; status?: string }
 export interface TreeOpts { path?: string; ref?: string; recursive?: boolean }

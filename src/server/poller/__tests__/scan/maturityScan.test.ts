@@ -46,14 +46,18 @@ const job = (id: number, pipelineId: number, minAgo: number): GlJob => ({
   webUrl: `${WEB}/-/jobs/${id}`, pipelineId, startedAt: at(minAgo + 1), finishedAt: at(minAgo), failureReason: 'script_failure',
 });
 
-interface Scan { pipelineId: number; jobId: number; minAgo: number; artifact: unknown | (() => never) }
+/** `tag`: the pipeline ran on a tag, not a branch; GitLab's `scope` filter tells them apart, the list response does not. */
+interface Scan { pipelineId: number; jobId: number; minAgo: number; artifact: unknown | (() => never); tag?: boolean }
 
 /** The demo GitLab with scheduled scan pipelines on ledgerline, newest first. `reads` lists every artifact GET. */
 function withScans(port: GitLabPort, scans: Scan[], reads: string[]): GitLabPort {
   return new Proxy(port, {
     get: (t, k, r) => {
       if (k === 'listPipelines') {
-        return async (p: number, f?: object) => [...(p === LEDGERLINE_GID ? scans.map((s) => pipeline(s.pipelineId, s.minAgo)) : []), ...(await t.listPipelines(p, f))];
+        return async (p: number, f?: { scope?: 'branches' | 'tags' }) => {
+          const injected = scans.filter((s) => !f?.scope || (f.scope === 'tags') === (s.tag === true));
+          return [...(p === LEDGERLINE_GID ? injected.map((s) => pipeline(s.pipelineId, s.minAgo)) : []), ...(await t.listPipelines(p, f))];
+        };
       }
       if (k === 'listJobs') {
         return async (p: number, id: number) => {
@@ -148,5 +152,17 @@ describe('the poller stores a maturity scan', () => {
     const b = await r.poll(new Date(NOW.getTime() + 90_000), withScans(r.gl.port, [bad, scan], reads));
     expect(reads).toEqual([artifactPath(JOB), artifactPath(JOB + 1)]); // an invalid artifact is not read again either
     for (const res of [a, b]) expect(issuesOf(res)).toEqual(expect.arrayContaining([expect.stringMatching(/maturity scan: .*job 880002/)]));
+  });
+
+  // F106: GitLab's ref filter also matches a tag of the same name; a tag `main` pipeline is not the default branch's
+  it('(v) a tag pipeline named like the default branch, newer than the real scan, is not stored', async () => {
+    const r = await rig();
+    const reads: string[] = [];
+    const real = { pipelineId: PIPE, jobId: JOB, minAgo: 60, artifact: scanDoc({ scannedAt: at(61) }) };
+    const planted = { pipelineId: PIPE + 1, jobId: JOB + 1, minAgo: 2, artifact: scanDoc({ rung: { verify: 5 } }), tag: true };
+    await r.poll(NOW, withScans(r.gl.port, [planted, real], reads));
+    expect(reads).toEqual([artifactPath(JOB)]);
+    const m = await getMaturity(r.db, 'ledgerline');
+    expect(m?.rungs.find((x) => x.stage === 'verify')?.now).toBe(RUNG.verify);
   });
 });

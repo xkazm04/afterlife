@@ -61,6 +61,18 @@ describe('fake GitLab: seeded reads', () => {
     expect((await free.listVulnerabilities(LEDGERLINE)).status).toBe('unavailable');
   });
 
+  it('filters pipelines by scope: a record with tag: true is a tag pipeline, one without is a branch pipeline', async () => {
+    const fake = createFakeGitLab();
+    const project = fake.state.projects.find((p) => p.raw.id === LEDGERLINE);
+    const branch = project?.pipelines.find((p) => p.id === 70003);
+    if (!project || !branch) throw new Error('demo pipeline 70003 missing');
+    project.pipelines.push({ ...branch, id: 70004, tag: true });
+    const ids = async (f: { scope?: 'branches' | 'tags' } = {}) => (await fake.port.listPipelines(LEDGERLINE, f)).map((p) => p.id);
+    expect(await ids()).toEqual([70004, 70003, 70002, 70001]);
+    expect(await ids({ scope: 'branches' })).toEqual([70003, 70002, 70001]);
+    expect(await ids({ scope: 'tags' })).toEqual([70004]);
+  });
+
   it('pages through lists with a small page size', async () => {
     const small = createFakeGitLab({ pageSize: 1 }).port;
     expect((await small.listPipelines(LEDGERLINE)).map((p) => p.id)).toEqual([70003, 70002, 70001]);

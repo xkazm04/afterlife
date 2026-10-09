@@ -25,9 +25,9 @@ export type ScanRead = 'none' | 'stored' | 'unchanged' | 'refused';
 
 const message = (e: unknown): string => (e instanceof Error ? e.message : String(e)).split('\n')[0] ?? '';
 
-/** The newest finished scan job on the newest scheduled or API pipelines of the default branch, or null. */
+/** The newest finished scan job on the newest scheduled or API pipelines of the default branch, or null. `ref` alone also matches a tag of that name (F106). */
 async function newestScanJob(port: GitLabPort, gl: GlProject): Promise<GlJob | null> {
-  const pipelines = (await port.listPipelines(gl.id, { ref: gl.defaultBranch ?? undefined, limit: PIPELINES }))
+  const pipelines = (await port.listPipelines(gl.id, { ref: gl.defaultBranch ?? undefined, scope: 'branches', limit: PIPELINES }))
     .filter((p) => p.source !== null && SCAN_SOURCES.has(p.source))
     .sort((a, b) => b.id - a.id)
     .slice(0, SCAN_PIPELINES);
