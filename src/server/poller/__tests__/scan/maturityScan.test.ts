@@ -31,6 +31,12 @@ function scanDoc(o: { scannedAt?: string; rung?: Partial<Record<string, number |
   };
 }
 
+/** A valid scan whose verify cell cites `url`. */
+const citing = (url: string) => {
+  const doc = scanDoc();
+  return { ...doc, cells: doc.cells.map((c) => (c.stage === 'verify' ? { ...c, evidence: [{ label: 'job #7', url }] } : c)) };
+};
+
 const pipeline = (id: number, minAgo: number): GlPipeline => ({
   id, iid: null, projectId: LEDGERLINE_GID, status: 'failed', source: 'schedule', ref: 'main', sha: 'f'.repeat(40),
   webUrl: `${WEB}/-/pipelines/${id}`, createdAt: at(minAgo + 2), updatedAt: at(minAgo),
@@ -119,6 +125,9 @@ describe('the poller stores a maturity scan', () => {
     // F103: a scan dated after its job would make every later real scan look already stored; one dated before rewrites day 0
     ['dated after its job finished', scanDoc({ scannedAt: '2999-01-01T00:00:00.000Z' }), /maturity scan: .*scanned_at 2999-01-01T00:00:00.000Z, outside job 880001's run/],
     ['dated before its job started', scanDoc({ scannedAt: at(24 * 60) }), /maturity scan: .*scanned_at .*, outside job 880001's run/],
+    // F104: every lit cell cites a GitLab object under the project; a link elsewhere is not evidence
+    ['citing another site', citing('https://gitlab.com.evil.example/x'), /maturity scan: .*cell verify cites https:\/\/gitlab\.com\.evil\.example\/x, not under https:\/\/gitlab\.com\/acme-lab\/core-banking\/ledgerline\//],
+    ['citing a sibling path', citing(`${WEB}-evil/-/jobs/7`), /maturity scan: .*cell verify cites .*ledgerline-evil\/-\/jobs\/7, not under/],
   ])('(iii) an %s artifact writes no row and is the poll\'s issue', async (_what, artifact, issue) => {
     const r = await rig();
     const res = await r.poll(NOW, withScans(r.gl.port, [{ pipelineId: PIPE, jobId: JOB, minAgo: 2, artifact }], []));

@@ -87,6 +87,12 @@ async function read(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject
   if (scannedMs < started - CLOCK_SKEW_MS || scannedMs > Date.parse(job.finishedAt ?? '') + CLOCK_SKEW_MS) {
     return refuse(`has scanned_at ${parsed.scan.scanned_at}, outside job ${job.id}'s run`, true);
   }
+  // F104: the engine cites only GitLab objects under the project's web_url; a link anywhere else is not evidence
+  const under = `${gl.webUrl.replace(/\/+$/, '')}/`;
+  for (const c of parsed.scan.cells) {
+    const off = c.evidence.find((e) => !e.url.startsWith(under));
+    if (off) return refuse(`cell ${c.stage} cites ${off.url}, not under ${under}`, true);
+  }
   await db.transaction((tx) => store(tx, projectId, parsed.scan));
   mem.scans.set(gl.id, { jobId: job.id, issue: null });
   return 'stored';
