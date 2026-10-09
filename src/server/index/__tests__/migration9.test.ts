@@ -16,7 +16,7 @@ describe('migration 0009 on a populated version-8 index', () => {
       insert into class_tier (project_id, class_id, tier, since, set_by, accepted, reverts, move_kind)
         values ('ledgerline', 'code-fix.patch', 'assisted', '2026-10-01T00:00:00Z', 'tripwire', 3, 0, 'tripwire');
     `);
-    expect(await migrate(db)).toEqual([9]);
+    expect(await migrate(db, MIGRATIONS.filter((m) => m.version <= 9))).toEqual([9]);
     const [row] = await listClassTiers(db, 'ledgerline');
     expect(row).toMatchObject({ classId: 'code-fix.patch', tier: 'assisted', setBy: 'tripwire', record: { accepted: 3, reverts: 0 }, cooldownUntil: null });
     await upsertClassTiers(db, [{ ...row!, cooldownUntil: new Date('2026-10-28T00:00:00Z') }]);
