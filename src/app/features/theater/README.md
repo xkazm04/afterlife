@@ -51,8 +51,14 @@ CRA clock, the catalogue's three autonomy classes (the rail shows instead the cl
 
 ## Data
 - `data/ledger.ts` REPLAY_LEDGER; `data/constants.ts` takes, who, checks, initial state, CRA anchor, keys.
-- The illustrative film's catalogue parts (`TheaterDemo`: stages, tracks, rungs, the !44 quote) and its holds (the
-  loop) are read by `loadTheaterData`; a real film has none (`demo: null`).
+- `loadTheaterData` keeps the films apart from live data. The illustrative film's catalogue parts (`TheaterDemo`:
+  stages, tracks, rungs, the !44 quote), its holds (the loop) and its subtitle come from the catalogue (`DEMO`) only,
+  in every mode: live mode never splices a real MR's quote or the index's maturity scan into the invented film. The
+  real film takes nothing from the catalogue (`demo: null`); its subtitle is the source's group and deep project.
+- A missing quote draws no quote box (`Cap`, `BeatInspector`), never an empty "quoted from !44 · untrusted".
+- Tests: `model/film/fromLedger.test.ts` (the mapper, the takes, the fold, the player), `data/film.test.tsx` (the
+  screen on each film), `data/labels.test.tsx` (the REPLAY chip and legend), `data/loader.test.tsx` (the loader live
+  against a bare index and the fake group; the quote box).
 
 ## Behaviour notes
 - The REPLAY chip reads the same in the window and in present. The illustrative film's: "Replay · seq 480–520 ·

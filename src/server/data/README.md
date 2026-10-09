@@ -71,6 +71,10 @@ the catalogue's done, human or todo. What it still draws from the catalogue (the
 and arm order) it marks "demo" where it shows it. `parity.test.ts` lists Setup where live differs (`setupLive.test.ts`
 holds the reads).
 
+Theater reads only `getLedger()` (and, for a real film's subtitle, the portfolio's group and `deepProjectId()`). When the
+ledger names an MR it plays it; otherwise it plays the illustrative film, whose every part comes from the catalogue
+(`DEMO`) directly, in every mode, never from the source (`app/features/theater/README.md`).
+
 `getPolicy()`: demo, this checkout's `policy/trust-policy.yml` (`policy.ts`, checked by the engine's parser); live, the
 trust-policy.yml the last poll read from belay-policy (`CycleResult.policy`, kept on the snapshot; a cycle that could
 not read one keeps the last good one). Null until one was read: the Ladder then draws no counts and says why.
