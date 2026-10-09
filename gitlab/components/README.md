@@ -96,18 +96,21 @@ On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (
   use `$CI_PROJECT_ROOT_NAMESPACE`: a namespace path holds slashes and cannot be a username. A subgroup install checks the
   flow service account's real username and passes `guardrail_authors` (and `BELAY_BLOCK_AUTHORS`) explicitly.
 
-**1. Fetch the proof** from the `belay-proof-exploit-test` job (its id is in the job's URL, `.../-/jobs/<id>`). This is the
-target's report-only proof, made in the target's own pipeline: check it before you post it. belay-apply never does this;
-it re-derives the proof from the evidence instead.
+**1. Fetch and check the proof** of the `belay-proof-exploit-test` job (its id is in the job's URL, `.../-/jobs/<id>`). This is
+the target's report-only proof, made in the agent's own MR pipeline, so it is posted only where belay-apply would take that
+pipeline's evidence (F90). belay-apply never posts it; it re-derives the proof from the evidence instead.
 
 ```
-glab api "projects/<project id>/jobs/<belay-proof-exploit-test job id>/artifacts/.belay/proof.json" > <dir>/proof.json
-node -e "const p=require('./<dir>/proof.json');console.log(p.verdict,p.task.head_sha)"
-glab mr view <iid> -R <target path> -F json --jq .sha
+CI_PROJECT_ID=<project id> node gitlab/components/scripts/hand/check-proof.mjs --mr <iid> --job <belay-proof-exploit-test job id> --out <dir>/proof.json   # [R?]
 ```
 
-The verdict must be `pass`, and `task.head_sha` must equal the MR's current head. To the poller, a proof made for an older head
-is stale.
+It writes `<dir>/proof.json` only when all of these hold: the MR targets the default branch (F78); it changes no CI
+configuration, by belay-apply's own rule (`../apply/ci-touch.mjs`, F68: the CI file, everything under `.gitlab/` and every
+local include, and an include it cannot resolve counts as a change); the job is a `belay-proof-*` job of a merge request
+pipeline of the MR's current head, and that pipeline ran with no pipeline variables (F63); and the proof's verdict is `pass`,
+with `task.head_sha` the MR's current head. Otherwise it exits 1 with the reasons and removes `--out`: post nothing, and the
+MR waits for a person, as belay-apply would make it. Exit 2 is a failed read (a 403 on the variables is never "none"):
+nothing is written.
 
 **2. Post it** with the component's own script, so the note is byte-identical to the one CI would post:
 
@@ -127,23 +130,31 @@ MR's notes: `glab mr view <iid> -R <target path> --comments`). It is the rule `a
 glab mr update <iid> -R <target path> --label guardrail::pass --unlabel guardrail::block
 ```
 
-**4. Append the ledger line.** Retry the gate, which now has a trusted proof; with a guardrail verdict the engine decides and
-`apply-gate` writes the event bodies to `.belay/events`, reporting only (`apply-gate.mjs`, `--emit-dir`):
+**4. Derive the events and append the ledger line.** The events are derived on your machine from facts GitLab holds, and
+never fetched from a job: the target's tier-gate job runs in the agent's own MR pipeline, where a pipeline variable outranks
+its `BELAY_GUARDRAIL_AUTHORS` and a CI change rewrites the job (F90).
 
 ```
-glab ci retry belay-tier-gate -R <target path> -p <pipeline id>
-mkdir <events dir>
-glab api "projects/<project id>/jobs/<new gate job id>/artifacts/.belay/events/0-proof_verdict.json" > <events dir>/0-proof_verdict.json
-glab api "projects/<project id>/jobs/<new gate job id>/artifacts/.belay/events/1-guardrail_verdict.json" > <events dir>/1-guardrail_verdict.json
-glab api "projects/<project id>/jobs/<new gate job id>/artifacts/.belay/events/2-tier_decision.json" > <events dir>/2-tier_decision.json
-BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/components/scripts/decide/ledger-append.mjs --events <events dir> --project <group path>/belay-ledger --branch main
+CI_PROJECT_ID=<project id> node gitlab/components/scripts/hand/derive-gate.mjs --mr <iid> --proof-authors <your username> --guardrail-authors <guardrail service account username> --policy-project <group path>/belay-policy --out <new dir>   # [R?]
+BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/components/scripts/decide/ledger-append.mjs --events <new dir>/events --project <group path>/belay-ledger --branch main
 ```
 
-These are the target's report-only events, made in the agent's own MR pipeline: check them before you append them (F90).
-A pipeline variable outranks the job's `BELAY_GUARDRAIL_AUTHORS`, so it can make the gate trust the agent's own note, and
-a CI change can rewrite the job. `glab api "projects/<project id>/pipelines/<pipeline id>/variables"` must be `[]`, the MR
-must change no CI file, `1-guardrail_verdict.json`'s `verdict` must be the one you read in the guardrail's note in step 3,
-and `tier_at_time` must be the tier `tier-state.yml` holds for the agent and class. If any differs, append nothing.
+`derive-gate` runs what belay-apply runs (`../apply/sweep.mjs`), with your own `glab` login: `fetch-block` for the
+`belay-proof` note you posted in step 2 and for the guardrail's `belay-guardrail` note, each for the MR's current head and
+from the account named on the command line only (no variable is read for either); `trust-policy.yml` and `tier-state.yml` as
+the policy project's default branch has them now; the diff from base to head from the compare API; `engine gate` in this
+checkout (`BELAY_DIR`, default the checkout the script is in); then `apply-gate --dry 1 --emit-dir <new dir>/events` with the
+MR's agent and class. It reads no job artifact and writes nothing to GitLab. `<new dir>` must be new or empty, so no earlier
+head's events are appended; it also holds `decision.json` and every input the gate read. Exit 0: the events are written,
+append them. Exit 3: nothing to append, and it says why (no proof note of yours for this head, no guardrail verdict yet or an
+inconclusive one, no `Belay-Class`, a CI change, another target branch). Exit 2: a failed read or a wrong input.
+`--guardrail-authors` is the guardrail flow's service account username as its notes show it (see Preconditions).
+
+F90 is closed by this step and step 1 (see "F90" below): the four checks d22518e added here are gone, because the derivation
+enforces each of them. The pipeline's variables and its CI files no longer reach the events (nothing is read from the
+pipeline), and the MR is still refused on a CI change, as belay-apply refuses it. The verdict is the guardrail account's own
+note for this head, and `tier_at_time` is the engine's, from the live `tier-state.yml`. What a person still checks: that
+`--guardrail-authors` is the guardrail's real account, as in step 3.
 
 `ledger-append` takes every `*.json` in the directory, in name order, in one commit, each as seq n+1 on the chain it reads from
 `belay-ledger`. Run it once per head. If the push to `main` is refused, add `--mode mr`. It reads the ledger with your own `glab` login and no
@@ -161,13 +172,28 @@ so it hashes as every event written before the field did. The poller reads a sta
 If the gate cannot decide (no guardrail verdict, so it forces `wait` and emits nothing), the ledger line waits. A forced
 gate emits one event only: the guardrail's own block, as a `guardrail_verdict` with `"verdict": "block"`, when it is given
 `--ledger-tier <tier>` and a guardrail file that states block (belay-apply passes both). A forced call for any other cause
-emits nothing. Here, in the target's tier-gate, a forced call gets neither flag and emits nothing. **Never
+emits nothing. Here, in the target's tier-gate, a forced call gets neither flag and emits nothing, and `derive-gate` makes
+no forced call at all (exit 3): the guardrail's own block on an MR the gate cannot decide is ledgered only by belay-apply. **Never
 hand-write an event**: `LedgerEvent.observed_by` has no value for a person (`src/schemas/ledger.ts:29`), and `ci_job` would be false.
 
 Checked on 2026-10-07: every `glab` subcommand and flag above against `glab 1.120.0 --help` (`api`, `mr view`, `mr update`,
-`mr note create`, `ci retry`; no command that talks to a host was run), and steps 2 and 4 by running the scripts against a fake
-`glab`: the note parses back through `blocks()` with tag `belay-proof`, the label call is as written, and `ledger-append` on
-events as `apply-gate` writes them appends seq 3, 4, 5 to a chain of two.
+`mr note create`; no command that talks to a host was run), and step 2 by running the script against a fake `glab`: the note
+parses back through `blocks()` with tag `belay-proof`, and the label call is as written. `ledger-append` on events as
+`apply-gate` writes them appends seq 3, 4, 5 to a chain of two. Steps 1 and 4 (`scripts/hand/`, 2026-10-09) are tested
+against a fake `glab` and the real engine only (`hand/*.test.mjs`), so their commands carry `[R?]`: the GitLab answers they
+rely on were not seen live. Most are the shapes belay-apply's sweep reads (a pipeline's `sha`, `source` and `variables`,
+`repository/compare`, raw files), and belay-apply has not run live either; `jobs/:id` naming its `pipeline.id` only
+`check-proof` reads.
+
+### F90: closed
+
+F90 (Medium, scan 4cb6213a): step 4 appended the `.belay/events` of the target's tier-gate job, made in the agent's own MR
+pipeline, so a pipeline variable or a CI change could hand the operator a `guardrail_verdict` pass or a `tier_at_time` of the
+agent's choosing. d22518e mitigated it with four manual checks. Closed at its source by `derive-gate.mjs` (b884ab3: step 4
+reads no job artifact) and `check-proof.mjs` (430d04f: step 1 posts the target's proof only for a merge request pipeline of
+the head with no variables and an MR with no CI change). Residual, by design of M1: the proof itself is still the target
+job's artifact, made in the agent's pipeline from evidence the agent's code produced. Step 1 binds it to
+the target's own CI configuration and no variables; belay-apply, from M2, re-derives it instead.
 
 ## The files the jobs write and read
 
@@ -193,6 +219,9 @@ and exploit-test chains (`mr-context` to `fetch-block` to `build-evidence` to `p
 with its idempotence, and a two-event ledger append. belay-apply's two sweeps (`../apply/*.test.mjs`) run these same
 scripts end to end. `scripts/target-tokens.test.mjs` expands the target example with every component it includes and
 fails on any write token.
+`scripts/hand/` holds the M1 hand-run's two operator scripts (`check-proof.mjs`, `derive-gate.mjs`): they read with the
+operator's own `glab` login and write nothing to GitLab. They import `../apply/ci-touch.mjs`, so they need the Belay
+checkout's `node_modules` (`yaml`), as belay-apply does.
 
 ## Verified against, and not
 
