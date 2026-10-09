@@ -11,7 +11,7 @@ import { filmSnapshots } from '../derive/snapshots';
 import { reduce } from '../replay/reducer';
 import { initialState } from '../replay/state';
 import { entriesOf, ledgerFilm } from './fromLedger';
-import { KIND_HOLD } from './holds';
+import { holdOf, KIND_HOLD } from './holds';
 
 const events = ledgerEvents(SEED_NOW);
 const of = (iid: number) => events.filter((e) => e.subject.iid === iid);
@@ -22,12 +22,13 @@ describe('one MR\'s events -> the film\'s entries', () => {
   const e41 = entriesOf(of(41));
 
   it('reaches only the holds the kind-to-hold table names: !41 proof 4, guardrail 5, merged 6; task_started and deployed move nothing', () => {
-    expect(e41.map((e) => e.beat ?? null)).toEqual([null, 4, 5, 6, null]);
-    expect(of(41).map((e) => KIND_HOLD[e.kind])).toEqual([null, 4, 5, 6, null]);
+    expect(e41.map((e) => e.beat ?? null)).toEqual([null, 4, 5, 6, 8]);
+    expect(of(41).map((e) => holdOf(e))).toEqual([null, 4, 5, 6, 8]);
+    expect(of(41).map((e) => KIND_HOLD[e.kind])).toEqual([null, 4, 5, 6, null]); // deployed is by tier: see holdOf
     const snaps = filmSnapshots(ledgerFilm(of(41))!, STAGES);
-    expect(snaps.map((s) => s.beat)).toEqual([0, 4, 5, 6, 6]);
-    // holds 1-3 (and 7-9) are never reached: they stay unclimbed
-    expect(snaps.at(-1)?.reached).toEqual([4, 5, 6]);
+    expect(snaps.map((s) => s.beat)).toEqual([0, 4, 5, 6, 8]);
+    // holds 1-3, 7 and 9 are never reached: they stay unclimbed
+    expect(snaps.at(-1)?.reached).toEqual([4, 5, 6, 8]);
   });
 
   it('states only what each event states: at, agent, kind, class, tier at the time, verdict, the MR, seq, a hash prefix', () => {
@@ -45,6 +46,25 @@ describe('one MR\'s events -> the film\'s entries', () => {
     expect(text).not.toContain(INITIAL.now);
     const last = filmSnapshots(ledgerFilm(events)!, STAGES).at(-1)!;
     expect([last.pass, last.fail, last.dem, last.needs, last.rungs]).toEqual([0, 0, 0, [], {}]);
+  });
+});
+
+describe('a deployed event reaches the hold of its environment\'s tier', () => {
+  const deployed = (environment?: LedgerEvent['environment']) => ({ ...of(41)[4]!, ...(environment ? { environment } : {}) });
+
+  it('staging is hold 7, production hold 8; any other tier, or none stated, reaches none', () => {
+    expect(holdOf(deployed({ name: 'staging', tier: 'staging' }))).toBe(7);
+    expect(holdOf(deployed({ name: 'production', tier: 'production' }))).toBe(8);
+    for (const tier of ['testing', 'development', 'other'] as const) expect(holdOf(deployed({ name: 'x', tier }))).toBeNull();
+    expect(holdOf({ kind: 'deployed' })).toBeNull();
+  });
+
+  it('the real film of the fake chain reaches holds 4, 5, 6 and 8, and the entry says where it deployed', () => {
+    const film = ledgerFilm(events)!;
+    const snaps = filmSnapshots(film, STAGES);
+    expect(snaps[4]?.reached).toEqual([4, 5, 6, 8]);
+    expect(film.entries[4]?.ev?.environment).toEqual({ name: 'production', tier: 'production' });
+    expect(film.entries[4]?.x).toContain('production (production)');
   });
 });
 

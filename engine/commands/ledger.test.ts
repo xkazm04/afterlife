@@ -32,3 +32,28 @@ describe('parseLedgerEvent: the guardrail verdict', () => {
     expect('extra' in parseLedgerEvent(event({ verdict: 'pass', extra: 'x' }))).toBe(false);
   });
 });
+
+describe('parseLedgerEvent: the environment of a deployed event', () => {
+  const deployed = (o: Record<string, unknown> = {}) => event({ kind: 'deployed', ...o });
+
+  it('keeps a name and a tier on a deployed event', () => {
+    expect(parseLedgerEvent(deployed({ environment: { name: 'production', tier: 'production', extra: 1 } })).environment).toEqual({ name: 'production', tier: 'production' });
+    for (const tier of ['staging', 'testing', 'development', 'other']) expect(parseLedgerEvent(deployed({ environment: { name: 'e', tier } })).environment?.tier).toBe(tier);
+  });
+
+  it('refuses it on any other kind, and a null, an unknown tier or a nameless one', () => {
+    const env = { name: 'production', tier: 'production' };
+    for (const kind of ['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'outcome', 'clock_event']) {
+      expect(() => parseLedgerEvent(event({ kind, environment: env }))).toThrow(/environment/);
+    }
+    for (const environment of [null, 'production', { name: 'p', tier: 'prod' }, { name: '', tier: 'other' }, { tier: 'other' }]) {
+      expect(() => parseLedgerEvent(deployed({ environment }))).toThrow(EngineError);
+    }
+  });
+
+  it('an event without one carries no environment key and hashes as before', () => {
+    const parsed = parseLedgerEvent(deployed());
+    expect('environment' in parsed).toBe(false);
+    expect(append([], parsed).hash).toBe(append([], { ...parsed, environment: undefined } as typeof parsed).hash);
+  });
+});

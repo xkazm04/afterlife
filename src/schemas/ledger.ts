@@ -17,6 +17,16 @@ export type LedgerKind =
 export type GuardrailVerdict = 'pass' | 'block';
 export const GUARDRAIL_VERDICTS: readonly GuardrailVerdict[] = ['pass', 'block'];
 
+/** GitLab's deployment tier, on a deployed event's environment. */
+export type EnvironmentTier = 'production' | 'staging' | 'testing' | 'development' | 'other';
+export const ENVIRONMENT_TIERS: readonly EnvironmentTier[] = ['production', 'staging', 'testing', 'development', 'other'];
+
+/** Where a deployed event deployed to: the environment's name and GitLab's tier for it. */
+export interface LedgerEnvironment {
+  name: string;
+  tier: EnvironmentTier;
+}
+
 export interface LedgerEvent {
   seq: number;
   at: string; // ISO-8601, from the GitLab event, not the receiver's clock
@@ -33,6 +43,11 @@ export interface LedgerEvent {
    * must hash as it always did. An explicit undefined hashes as absent, as JSON writes it.
    */
   verdict?: GuardrailVerdict;
+  /**
+   * deployed only: the environment it deployed to. Absent on every other kind and on an event written before it was
+   * stated. When absent the key is absent, never null, for the same reason as `verdict`: every existing chain hashes as before.
+   */
+  environment?: LedgerEnvironment;
   prev_hash: string;
   hash: string; // sha256(prev_hash + canonical(event without hash))
 }

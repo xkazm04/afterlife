@@ -12,8 +12,9 @@ type Body = Omit<LedgerEvent, 'seq' | 'prev_hash' | 'hash'>;
 const body = ({ seq: _s, prev_hash: _p, hash: _h, ...rest }: LedgerEvent): Body => (void [_s, _p, _h], rest);
 const jsonl = (events: readonly LedgerEvent[]): string => events.map((e) => JSON.stringify(e)).join('\n') + '\n';
 const rechain = (bodies: readonly Body[]): LedgerEvent[] => bodies.reduce<LedgerEvent[]>((c, b) => [...c, append(c, b)], []);
-/** The fake's chain as it was before events stated a verdict: the same events, no verdict key. */
-const before = (): LedgerEvent[] => rechain(ledgerEvents(SEED_NOW).map(body).map(({ verdict: _v, ...b }) => (void _v, b)));
+/** The fake's chain as it was before events stated a verdict or an environment: the same events, neither key. */
+const before = (): LedgerEvent[] =>
+  rechain(ledgerEvents(SEED_NOW).map(body).map(({ verdict: _v, environment: _e, ...b }) => (void [_v, _e], b)));
 
 describe('the guardrail verdict on the ledger', () => {
   it('an event without one hashes exactly as it did before the field existed', () => {

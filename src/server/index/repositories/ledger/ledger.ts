@@ -9,15 +9,17 @@ interface Db {
   seq: number; at: string; agent: string; action_class: string; kind: LedgerEvent['kind'];
   tier_at_time: LedgerEvent['tier_at_time']; subject: LedgerEvent['subject']; payload_ref: string;
   observed_by: LedgerEvent['observed_by']; prev_hash: string; hash: string; verdict: LedgerEvent['verdict'] | null;
+  environment: LedgerEvent['environment'] | null;
 }
 
-const COLS = 'seq, at, agent, action_class, kind, tier_at_time, subject, payload_ref, observed_by, prev_hash, hash, verdict';
+const COLS = 'seq, at, agent, action_class, kind, tier_at_time, subject, payload_ref, observed_by, prev_hash, hash, verdict, environment';
 
-// A null verdict reads back as no key at all: the hash of an event without one does not change (src/schemas/ledger.ts).
+// A null verdict or environment reads back as no key at all: the hash of an event without one does not change (src/schemas/ledger.ts).
 const fromDb = (r: Db): LedgerEvent => ({
   seq: r.seq, at: r.at, agent: r.agent, action_class: r.action_class, kind: r.kind, tier_at_time: r.tier_at_time,
   subject: r.subject, payload_ref: r.payload_ref, observed_by: r.observed_by, prev_hash: r.prev_hash, hash: r.hash,
   ...(r.verdict ? { verdict: r.verdict } : {}),
+  ...(r.environment ? { environment: r.environment } : {}),
 });
 
 export async function ledgerTail(db: Queryable, projectId: number): Promise<ChainTail | null> {
@@ -69,9 +71,10 @@ export async function appendLedgerEvents(db: PGlite, events: readonly LedgerEven
     for (const e of fresh) {
       await tx.query(
         `insert into ledger_event (project_id, ${COLS}, at_ts)
-         values ($1, $2, $3::text, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12, $13, ($3::text)::timestamptz)`,
+         values ($1, $2, $3::text, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12, $13, $14::jsonb, ($3::text)::timestamptz)`,
         [projectId, e.seq, e.at, e.agent, e.action_class, e.kind, e.tier_at_time, JSON.stringify(e.subject),
-          e.payload_ref, e.observed_by, e.prev_hash, e.hash, e.verdict ?? null],
+          e.payload_ref, e.observed_by, e.prev_hash, e.hash, e.verdict ?? null,
+          e.environment ? JSON.stringify(e.environment) : null],
       );
     }
     return { appended: fresh.length, skipped: events.length - fresh.length };

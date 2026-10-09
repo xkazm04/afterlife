@@ -43,7 +43,7 @@ are drawn done, and there is no lit rope).
 | `guardrail_verdict` | 5 Guardrail | the guardrail's verdict (the entry carries `pass` or `block`) |
 | `tier_decision` | 6 Tier gate | a tier decision (a gate's, or a tripwire's demotion) |
 | `merged` | 6 Tier gate | the gate's outcome: the change merged |
-| `deployed` | none | the event does not say which environment, so neither 7 Staging nor 8 Production |
+| `deployed` | by tier | the event's environment tier: `staging` is 7 Staging, `production` is 8 Production; any other tier, or an event that states none, reaches no hold |
 | `outcome` | none | no hold of the climb |
 | `clock_event` | none | no hold of the climb |
 

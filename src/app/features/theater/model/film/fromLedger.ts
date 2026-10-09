@@ -2,7 +2,7 @@
 // Each entry states only what its event states (at, agent, kind, class, tier at the time, verdict, MR, seq, hash prefix).
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { Film, LedgerEntry, Take } from '../types';
-import { HOLDS, KIND_HOLD } from './holds';
+import { HOLDS, holdOf } from './holds';
 
 /** An entry that moves the climber dwells longer, as on the illustrative slice. */
 const HOLD_DWELL_MS = 3400;
@@ -20,14 +20,15 @@ function clockOf(at: string): string {
 export function entriesOf(events: readonly LedgerEvent[]): LedgerEntry[] {
   let at = 0;
   return events.map((e) => {
-    const hold = KIND_HOLD[e.kind];
+    const hold = holdOf(e);
     if (hold !== null) at = hold;
     const verdict = e.verdict ? ` · ${e.verdict}` : '';
+    const env = e.environment ? ` · ${e.environment.name} (${e.environment.tier})` : '';
     return {
       seq: e.seq,
       t: clockOf(e.at),
       by: e.agent,
-      x: `${e.kind}${verdict} · ${e.action_class} · ${e.tier_at_time} · !${e.subject.iid}`,
+      x: `${e.kind}${verdict}${env} · ${e.action_class} · ${e.tier_at_time} · !${e.subject.iid}`,
       sc: at,
       now: `${e.agent} · ${e.kind} on !${e.subject.iid}`,
       tier: { cls: e.action_class, to: e.tier_at_time },
@@ -35,6 +36,7 @@ export function entriesOf(events: readonly LedgerEvent[]): LedgerEntry[] {
       ev: {
         at: e.at, kind: e.kind, actionClass: e.action_class, tier: e.tier_at_time,
         ...(e.verdict ? { verdict: e.verdict } : {}),
+        ...(e.environment ? { environment: e.environment } : {}),
         iid: e.subject.iid, hash: e.hash.slice(0, HASH_PREFIX),
       },
     };

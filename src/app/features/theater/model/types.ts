@@ -1,7 +1,7 @@
 // Types for a film (the illustrative slice, or one read from belay-ledger) and the things derived from it. Plain shapes.
 // Client code imports only types from @/schemas/ledger (that module imports node:crypto).
 import type { Ceiling, Stage } from '@/schemas';
-import type { GuardrailVerdict, LedgerKind } from '@/schemas/ledger';
+import type { GuardrailVerdict, LedgerEnvironment, LedgerKind } from '@/schemas/ledger';
 
 export type Actor = 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7' | 'T8' | 'scanner' | 'engine' | 'deploy' | 'belay';
 
@@ -25,6 +25,8 @@ export interface LedgerFacts {
   actionClass: string;
   tier: Ceiling;
   verdict?: GuardrailVerdict;
+  /** A deployed event's environment. */
+  environment?: LedgerEnvironment;
   /** The MR's iid. */
   iid: number;
   /** The event hash's first 12 hex digits. */

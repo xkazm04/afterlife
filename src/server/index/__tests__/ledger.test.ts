@@ -115,6 +115,23 @@ describe('appendLedgerEvents', () => {
     const odd = { ...draft(1), kind: 'guardrail_verdict', verdict: 'fail' } as unknown as Draft;
     await expect(appendLedgerEvents(db, [append([], odd)])).rejects.toThrow(/verdict/);
   });
+  it('stores a deployed event\'s environment and reads it back; an event without one reads back with no environment key', async () => {
+    const events: LedgerEvent[] = [];
+    events.push(append(events, { ...draft(1), kind: 'deployed', environment: { name: 'prod-eu', tier: 'production' } }));
+    events.push(append(events, { ...draft(2), kind: 'deployed' }));
+    await appendLedgerEvents(db, events);
+    const read = await readLedger(db, PROJECT);
+    expect(read).toEqual(events);
+    expect(read.map((e) => ('environment' in e ? e.environment?.tier : 'absent'))).toEqual(['production', 'absent']);
+    expect(await verifyStoredChain(db, PROJECT)).toBeNull();
+  });
+
+  it('the index refuses an environment on another kind, and any tier but GitLab\'s (migration 0010)', async () => {
+    const forged = { ...draft(1), environment: { name: 'production', tier: 'production' } } as Draft;
+    await expect(appendLedgerEvents(db, [append([], forged)])).rejects.toThrow(/ledger_event_environment_kind/);
+    const odd = { ...draft(1), kind: 'deployed', environment: { name: 'p', tier: 'prod' } } as unknown as Draft;
+    await expect(appendLedgerEvents(db, [append([], odd)])).rejects.toThrow(/ledger_event_environment_tier/);
+  });
 });
 
 describe('stored chain integrity', () => {

@@ -12,8 +12,9 @@ import { m0006 } from './steps/0006_record_counters';
 import { m0007 } from './steps/0007_record_rules';
 import { m0008 } from './steps/0008_ledger_verdict';
 import { m0009 } from './steps/0009_class_cooldown';
+import { m0010 } from './steps/0010_ledger_environment';
 
-export const MIGRATIONS: readonly Migration[] = [m0001, m0002, m0003, m0004, m0005, m0006, m0007, m0008, m0009];
+export const MIGRATIONS: readonly Migration[] = [m0001, m0002, m0003, m0004, m0005, m0006, m0007, m0008, m0009, m0010];
 
 const checksum = (m: Migration): string => createHash('sha256').update(m.sql).digest('hex');
 

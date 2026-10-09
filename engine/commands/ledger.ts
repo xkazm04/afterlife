@@ -2,7 +2,7 @@
 // Prints the new hash-chained line. The chain is verified first: a broken chain is never extended.
 import fs from 'node:fs';
 import path from 'node:path';
-import { append, GUARDRAIL_VERDICTS, verifyChain, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
+import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, verifyChain, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { parseJson, readJson } from '../core/files';
 import { EngineError, rec, str, num, type CommandResult, type Ctx } from '../core/types';
@@ -26,6 +26,9 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
   const kind = oneOf(e.kind, KINDS, 'event.kind');
   const stated = 'verdict' in e;
   if (stated && kind !== 'guardrail_verdict') throw new EngineError(`event.verdict is for a guardrail_verdict only, not ${kind}`);
+  const where = 'environment' in e;
+  if (where && kind !== 'deployed') throw new EngineError(`event.environment is for a deployed event only, not ${kind}`);
+  const env = where ? rec(e.environment, 'event.environment') : null;
   return {
     at,
     agent: str(e.agent, 'event.agent'),
@@ -37,6 +40,7 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
     observed_by: oneOf(e.observed_by, OBSERVED, 'event.observed_by'),
     // absent, never undefined: an event without a verdict hashes as it always did
     ...(stated ? { verdict: oneOf(e.verdict, GUARDRAIL_VERDICTS, 'event.verdict') } : {}),
+    ...(env ? { environment: { name: str(env.name, 'event.environment.name'), tier: oneOf(env.tier, ENVIRONMENT_TIERS, 'event.environment.tier') } } : {}),
   };
 }
 

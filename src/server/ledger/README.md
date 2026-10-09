@@ -32,6 +32,11 @@ the gate stated it has no `verdict` key. The key is absent, never `null`, at eve
 itself blocked the head (`gitlab/apply/README.md`). The index stores it in `ledger_event.verdict`
 (migration 0008: `pass`, `block` or null, and null on any kind but `guardrail_verdict`).
 
+A `deployed` event may state its `environment`: `{ name, tier }`, the tier being GitLab's deployment tier (`production`,
+`staging`, `testing`, `development`, `other`). It is kept on a `deployed` event only and is absent, never `null`, at every
+step, for the same reason as `verdict`. The index stores it in `ledger_event.environment` (migration 0010). Theater reads
+the tier: staging reaches hold 7, production hold 8. Tests: `__tests__/environment.test.ts`.
+
 Tests: `__tests__/ledger.test.ts` (full import, incremental append, blob-id skip, edited event, fork, rewind, foreign
 project, parser); `__tests__/verdict.test.ts` (the verdict: kept, refused, covered by the hash, and a chain without
 verdicts hashing exactly as main computed it, through parse, `appendLedgerEvents` and `readLedger`). Not verified live: the real `listTree`/`getFile` shapes (recorded nowhere yet; the fake serves `[R]` ones).

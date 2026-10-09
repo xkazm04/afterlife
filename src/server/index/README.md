@@ -22,7 +22,7 @@ tables above. NULL means unknown, never zero.
 
 - `db.ts` open, shared instance (`getIndex`), `closeIndex`. `migrations/` versioned SQL as TS modules, the steps in
   `migrations/steps/` (nested at 0009 for the 10-file folder ceiling, each step's version, name and SQL unchanged, which
-  is all `migrate()` keys on: one slot is left before the next nesting); `migrate()` is idempotent and checksum-guarded.
+  is all `migrate()` keys on: `steps/` is at its 10-file limit: the next step needs a nested folder); `migrate()` is idempotent and checksum-guarded.
   Migration 0009 adds `class_tier.cooldown_until`, tier-state.yml's `cooldown_until` on the record
   (`__tests__/migration9.test.ts` migrates a populated version-8 index). `repositories/` typed, parameterised functions per table (no ORM).
 - `views/` return the shapes in `src/lib/demo` (`getFleet`, `getNeedsYou`, `getActionClasses`, `getMaturity`,
@@ -36,7 +36,8 @@ tables above. NULL means unknown, never zero.
 transaction; a bad chain throws `LedgerChainError` and writes nothing. Re-importing stored events is a no-op; a
 different event at a stored seq is rejected as a fork. `verifyStoredChain` re-verifies from genesis. Migration 0008 adds
 `verdict` (the guardrail's `pass` or `block`, on a `guardrail_verdict` only); a null reads back as no `verdict` key, so an
-event without one hashes as it always did (`../ledger/README.md`).
+event without one hashes as it always did (`../ledger/README.md`). Migration 0010 adds `environment` (jsonb `{ name, tier }`,
+on a `deployed` event only, tier one of GitLab's five); a null reads back as no `environment` key, the same way.
 
 ## Not yet served
 Tracks, loop, setup phases, cockpit and the event feed have no view yet; `pairing`/`setup_step` have repositories

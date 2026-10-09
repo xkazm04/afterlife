@@ -1,6 +1,6 @@
 // The real film's holds and the kind-to-hold table (the README carries the same table). A kind moves the climber only
 // to the hold that the kind is; a kind that is no hold moves nothing, so a hold the ledger does not reach stays unclimbed.
-import type { LedgerKind } from '@/schemas/ledger';
+import type { EnvironmentTier, LedgerEvent, LedgerKind } from '@/schemas/ledger';
 import type { Hold } from '../types';
 
 /** The nine holds of the loop, by name and stage only: a real film tells no story about them. */
@@ -16,9 +16,12 @@ export const HOLDS: readonly Hold[] = [
   { n: 9, label: 'Summary', stage: 'monitor' },
 ];
 
+/** A deployed event's hold by its environment's tier: staging is hold 7, production hold 8; any other tier reaches none. */
+const DEPLOY_HOLD: Readonly<Partial<Record<EnvironmentTier, number>>> = { staging: 7, production: 8 };
+
 /**
- * The hold each ledger kind is, or null. task_started: work began, no hold yet. deployed: the event does not say to
- * which environment, so neither Staging nor Production. outcome, clock_event: no hold of the climb.
+ * The hold each ledger kind is, or null. task_started: work began, no hold yet. deployed: by the environment's tier (see
+ * `holdOf`), so the table says null. outcome, clock_event: no hold of the climb.
  */
 export const KIND_HOLD: Readonly<Record<LedgerKind, number | null>> = {
   task_started: null,
@@ -30,3 +33,9 @@ export const KIND_HOLD: Readonly<Record<LedgerKind, number | null>> = {
   outcome: null,
   clock_event: null,
 };
+
+/** The hold an event reaches, or null: the kind's hold, and for a deployed event the hold of its environment's tier (none stated, or any other tier: none). */
+export function holdOf(e: Pick<LedgerEvent, 'kind' | 'environment'>): number | null {
+  if (e.kind === 'deployed') return (e.environment && DEPLOY_HOLD[e.environment.tier]) ?? null;
+  return KIND_HOLD[e.kind];
+}
