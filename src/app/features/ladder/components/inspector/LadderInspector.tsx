@@ -34,7 +34,7 @@ export function LadderInspector(p: LadderInspectorProps) {
   const [kinds, setKinds] = useState<readonly ActorKind[]>(ALL_KINDS);
   const toggleKind = (k: ActorKind) => setKinds((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
 
-  if (!p.sel) return <div className={styles.none}>No selection</div>;
+  if (!p.sel) return <div className={styles.none}>No selection · pick a class to see who acted and the write behind r</div>;
   if (isGroupNavId(p.sel)) {
     const track = p.tracks[p.sel.slice(2)];
     return track ? <GroupInspector track={track} classes={p.classes} ledger={p.ledger} proofDemo={p.tracksDemo} sections={p.sections} /> : null;

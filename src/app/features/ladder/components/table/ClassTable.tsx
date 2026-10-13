@@ -79,7 +79,7 @@ export function ClassTable(p: ClassTableProps) {
     >
       {p.empty ? (
         <div className={styles.empty}>
-          No class matches · <Kbd>0</Kbd> clears the tier filter
+          No class matches the current filters · <Kbd>0</Kbd> clears the tier filter · pick All classes in the sidebar
         </div>
       ) : (
         p.groups.map((g) => (

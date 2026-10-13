@@ -4,7 +4,7 @@ import { Button } from '@/components/controls/Button';
 import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { TierMark } from '@/components/status/TierMark';
 import { TIER_META } from '@/lib/tiers';
-import type { Promotion } from '@/lib/promotion';
+import { promoteTitle, type Promotion } from '@/lib/promotion';
 import { actsFrom, cellOf, holdersOf, isQuarantine, revokeTargets, shownName } from '../../model/rules/tiers';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, Track } from '../../model/types';
 import { entriesFor } from '../../model/view/moves';
@@ -53,21 +53,21 @@ export function ClassInspector(p: ClassInspectorProps) {
         <div className={styles.acts}>
           {first ? (
             <>
-              <Button title="r" onClick={() => p.onRevoke(c.id, first)}>
+              <Button title="Revoke one step (r)" onClick={() => p.onRevoke(c.id, first)}>
                 Revoke → {TIER_META[first].name}
               </Button>
-              <Button aria-haspopup="menu" onClick={(e) => p.onTargets(c.id, e.currentTarget)}>
+              <Button title="Revoke to any lower tier" aria-haspopup="menu" onClick={(e) => p.onTargets(c.id, e.currentTarget)}>
                 Take to…
               </Button>
             </>
           ) : null}
           {isQuarantine(c) ? (
-            <Button href="/needs-you" variant="primary" title="at Assisted at most">
+            <Button href="/needs-you" variant="primary" title="Re-admit in Needs you · at Assisted at most">
               Re-admit…
             </Button>
           ) : null}
           {from && from !== 'human_only' && !isQuarantine(c) ? (
-            <Button variant={eligible ? 'primary' : 'default'} className={eligible ? undefined : styles.off} aria-disabled={!eligible} title="p" onClick={() => p.onPromote(c.id)}>
+            <Button variant={eligible ? 'primary' : 'default'} className={eligible ? undefined : styles.off} aria-disabled={!eligible} title={promoteTitle(p.promotion)} onClick={() => p.onPromote(c.id)}>
               Promote
             </Button>
           ) : null}

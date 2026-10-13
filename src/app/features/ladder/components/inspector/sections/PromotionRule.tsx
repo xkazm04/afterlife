@@ -11,7 +11,7 @@ import styles from './sections.module.css';
 /**
  * The promotion rule as counts, against trust-policy.yml's thresholds. A count is drawn, never a forecast: "no ETA" says
  * so. `uncounted`: the counts read a record the poll did not count (live), marked so. `proofDemo`: the mechanical row's
-proof class is the demo catalogue's tracks (live, computed here, not read from the poll's ask). The human key is the promote
+ * proof class is the demo catalogue's tracks (live, computed here, not read from the poll's ask). The human key is the promote
  * write's precondition, stated under the rows and never counted among the met ones.
  */
 export function PromotionRule({ promotion, uncounted, proofDemo, sections }: { promotion: Promotion; uncounted: boolean; proofDemo: boolean; sections: SectionState }) {
@@ -28,7 +28,7 @@ export function PromotionRule({ promotion, uncounted, proofDemo, sections }: { p
                 {r.value}
                 {r.name === 'mechanical proof class' ? <DemoChip on={proofDemo} what="The proof class (the demo's tracks)" /> : null}
               </span>
-              <span className={r.met ? styles.ok : styles.no} title={r.met ? 'met' : 'not yet'}>
+              <span className={r.met ? styles.ok : styles.no} role="img" aria-label={r.met ? 'met' : 'not yet'} title={r.met ? 'met' : 'not yet'}>
                 {r.met ? '✓' : '○'}
               </span>
               {r.cells ? (
