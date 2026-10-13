@@ -1,3 +1,4 @@
+import { plural } from '@/lib/format/plural';
 import styles from './NeedsYouEmpty.module.css';
 
 /**
@@ -15,7 +16,7 @@ export function NeedsYouEmpty({ seeded = 0 }: { seeded?: number }) {
       </p>
       <p className={styles.note}>The inbox fills as the poller finds quarantined classes and as setup and scans run. Nothing is waiting that Belay knows of.</p>
       {seeded ? (
-        <p className={styles.note}>{`${seeded} demo item(s) seeded into this index are not shown: they are the demo's, not your group's.`}</p>
+        <p className={styles.note}>{`${plural(seeded, 'demo item')} seeded into this index, not shown: the demo's, not your group's.`}</p>
       ) : null}
     </main>
   );

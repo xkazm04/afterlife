@@ -1,6 +1,7 @@
 'use client';
 
 import type { NeedsYouItem } from '@/lib/demo';
+import { plural } from '@/lib/format/plural';
 import { Chip } from '@/components/status/chip/Chip';
 import { LiveAct } from './components/live/LiveAct';
 import { useLiveActs, type LiveActs } from './hooks/useLiveActs';
@@ -62,7 +63,7 @@ export function NeedsYouLiveView({ items, seeded, acts }: { items: readonly Need
             <li key={n.id} className={`${styles.item} ${open ? styles.open : ''}`}>
               <button type="button" className={styles.head} aria-expanded={open} onClick={() => acts.select(open ? null : n.id)}>
                 <Chip compact>{KIND[n.kind] ?? n.kind}</Chip>
-                <b className={styles.title}>{n.title}</b>
+                <b className={styles.title} title={n.title}>{n.title}</b>
                 {n.dueIn ? <span className={styles.due}>due in {n.dueIn}</span> : null}
               </button>
               {n.reason ? <div>{n.reason}</div> : null}
@@ -85,7 +86,7 @@ export function NeedsYouLiveView({ items, seeded, acts }: { items: readonly Need
       <p className={empty.note}>
         A promotion or a re-admit sends one thing, on Run: a policy MR in belay-policy, as your glab login, exactly as shown. A person
         merges it in GitLab. Sign-offs, gaps and setup steps are read-only here.
-        {seeded ? ` ${seeded} demo item(s) seeded into this index are not shown: they are not your group's.` : ''}
+        {seeded ? ` ${plural(seeded, 'demo item')} seeded into this index, not shown: not your group's.` : ''}
       </p>
     </main>
   );

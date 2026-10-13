@@ -90,7 +90,7 @@ describe('Needs you, live', () => {
     for (const t of SEEDED_TITLES) expect(out).not.toContain(t);
     expect(out).not.toContain('!44');
     expect(out).not.toContain('patch-bump');
-    expect(out).toContain('5 demo item(s) seeded into this index are not shown');
+    expect(out).toContain('5 demo items seeded into this index, not shown');
   });
 
   /** The four numbers the screens show: the badge, Fleet's ledgerline row, the Door's deep project, and the Needs-you list. */

@@ -3,7 +3,7 @@
   flex: none;
   margin: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale)) 0;
   padding: calc(10px * var(--ui-scale)) calc(14px * var(--ui-scale)) calc(10px * var(--ui-scale)) calc(16px * var(--ui-scale));
-  border-radius: 9px;
+  border-radius: var(--r-md);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) calc(156px * var(--ui-scale));
   gap: 0 calc(20px * var(--ui-scale));

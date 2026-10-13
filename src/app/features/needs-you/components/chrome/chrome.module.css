@@ -4,7 +4,7 @@
   min-width: calc(16px * var(--ui-scale));
   height: calc(15px * var(--ui-scale));
   padding: 0 4px;
-  border-radius: 8px;
+  border-radius: var(--r-pill);
   background: var(--accent);
   color: var(--ink-accent);
   font-size: var(--t-small);

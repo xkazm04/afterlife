@@ -73,7 +73,7 @@ export function DecisionRow({ id, index, s, demo, leftSec, dispatch, onActivate,
       </Cell>
       <Cell align="end" className={styles.act}>
         {action ? (
-          <Button size="mini" variant={action.variant} tabIndex={-1} onClick={() => dispatch({ type: 'act', action: action.action })}>
+          <Button size="mini" variant={action.variant} tabIndex={-1} aria-label={`${action.label}: ${v.title}`} onClick={() => dispatch({ type: 'act', action: action.action })}>
             {action.label}
           </Button>
         ) : null}

@@ -66,7 +66,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
     >
       {groups.length === 0 ? (
         <div className={styles.empty} role="row">
-          No decisions
+          {s.query || s.show !== 'all' ? 'No decision matches the current search or filter. Clear it to see all of them.' : 'No decisions'}
         </div>
       ) : null}
       {groups.map((g) => {
@@ -91,7 +91,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
               <Cell>{waiting ? <NeedsYouBadge count={waiting} variant="group" title={`${waiting} waiting for you`} /> : null}</Cell>
               <Cell align="end" className={styles.act}>
                 {stageAll ? (
-                  <Button size="mini" variant="accent" tabIndex={-1} title="One draft MR per picked gap, into the outbox" onClick={() => dispatch({ type: 'act', action: 'stage-gaps' })}>
+                  <Button size="mini" variant="accent" tabIndex={-1} title="One draft MR per picked gap, into the outbox" aria-label={`Stage ${picked} picked gaps`} onClick={() => dispatch({ type: 'act', action: 'stage-gaps' })}>
                     Stage {picked} picked
                   </Button>
                 ) : null}
