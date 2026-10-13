@@ -18,7 +18,7 @@ export function Sidebar({ active, onToggle, children }: { active: boolean; onTog
       <div className={styles.top}>
         <TrafficLights active={active} />
         <span className={styles.push}>
-          <ToolbarButton title="Hide sidebar" aria-label="Toggle sidebar" onClick={onToggle}>
+          <ToolbarButton title="Hide sidebar" aria-label="Hide sidebar" onClick={onToggle}>
             <Icon name="sidebarToggle" />
           </ToolbarButton>
         </span>

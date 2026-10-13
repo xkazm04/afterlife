@@ -14,7 +14,7 @@ export function ShellLoading() {
   const title = [...APP_NAV, SETTINGS_NAV].find((e) => e.key === key)?.label ?? 'Afterlife';
   return (
     <Window title={title} subtitle="loading" status="Loading…">
-      <div className={styles.pane} aria-busy="true" aria-label={`Loading ${title}`}>
+      <div className={styles.pane} role="status" aria-busy="true" aria-label={`Loading ${title}`}>
         {Array.from({ length: 9 }, (_, i) => (
           <span key={i} className={styles.row} style={{ width: `${92 - ((i * 37) % 40)}%` }} />
         ))}

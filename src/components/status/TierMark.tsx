@@ -12,7 +12,7 @@ export function TierMark({ tier, holders, stale }: { tier: ClassCell | undefined
   if (tier === 'refused' && holders?.length) {
     const low = splitTier(holders);
     return (
-      <span className={styles.mk} data-tier={low} data-split="true" data-stale={stale ? 'true' : undefined} title={`${STANDING_META.refused.name}: ${holdersText(holders)}`}>
+      <span className={styles.mk} data-tier={low} data-split="true" data-stale={stale ? 'true' : undefined} role="img" aria-label={`${STANDING_META.refused.name}: ${holdersText(holders)}`} title={`${STANDING_META.refused.name}: ${holdersText(holders)}`}>
         {TIER_META[low].letter}
         <span className={styles.split} aria-hidden>
           {STANDING_META.refused.letter}
@@ -22,7 +22,7 @@ export function TierMark({ tier, holders, stale }: { tier: ClassCell | undefined
   }
   const meta = isStanding(tier) ? STANDING_META[tier] : TIER_META[tier];
   return (
-    <span className={styles.mk} data-tier={tier} data-stale={stale ? 'true' : undefined} title={meta.name}>
+    <span className={styles.mk} data-tier={tier} data-stale={stale ? 'true' : undefined} role="img" aria-label={meta.name} title={meta.name}>
       {meta.letter}
     </span>
   );

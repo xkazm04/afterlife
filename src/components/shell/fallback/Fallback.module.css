@@ -54,3 +54,12 @@
   cursor: pointer;
   text-decoration: none;
 }
+.btn:hover,
+.link:hover {
+  border-color: var(--text-1, #e6edf3);
+}
+.btn:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--accent, #5ac8fa);
+  outline-offset: 2px;
+}

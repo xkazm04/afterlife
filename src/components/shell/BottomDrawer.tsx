@@ -31,7 +31,7 @@ export function BottomDrawer({
     <section className={compact ? `${styles.drawer} ${styles.compact}` : styles.drawer} aria-label={title}>
       <div className={styles.head}>
         <b>{title}</b>
-        <span className={count ? `${styles.n} ${styles.on}` : styles.n}>{count}</span>
+        <span className={count ? `${styles.n} ${styles.on}` : styles.n} aria-label={`${count} in ${title}`}>{count}</span>
         {hint ? <span>{hint}</span> : null}
         <span className={styles.close}>
           <ToolbarButton title={closeLabel} aria-label={closeLabel} onClick={onClose}>
