@@ -28,7 +28,12 @@
   background: none;
   color: var(--accent);
   font-size: var(--t-head);
+  font-family: inherit;
   cursor: default;
+}
+.again:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .dockFrame {
   position: relative;

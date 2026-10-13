@@ -57,7 +57,7 @@ export function KitScreen() {
       subtitle="Shared components, every state"
       toolbar={
         <>
-          <SegmentedControl label="Columns" options={VIEWS} value={view} onChange={setView} />
+          <SegmentedControl label="Gallery view" options={VIEWS} value={view} onChange={setView} />
           <Spacer />
           <Lozenge label="Fleet status">
             <LozengeButton lead={<NeedsYouBadge count={115} />} word="waiting" title="Decisions waiting for you" pressed />
@@ -69,7 +69,7 @@ export function KitScreen() {
           <PopupButton icon="sort" onClick={(e) => sortMenu.openFrom(e.currentTarget)}>
             Attention
           </PopupButton>
-          <SearchField value={q} onChange={setQ} label="Search the gallery" />
+          <SearchField value={q} onChange={setQ} label="Search the gallery" placeholder="Demo search" />
           {sortMenu.menu}
         </>
       }
