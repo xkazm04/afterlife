@@ -88,13 +88,34 @@ describe('the maturity-scan template', () => {
   });
 
   it('inputs that reach the shell are shaped by regex, and every default still passes', () => {
-    const shapes = { engine_ref: ['v0.1.0', 'main', 'release/1.x', 'a'.repeat(40)], engine_project: ['acme/belay-engine'], engine_commit: ['', 'a'.repeat(40)], glab_sha256: ['', 'b'.repeat(64)], glab_version: ['1.120.0'], scan_command: ['scan'] };
-    const bad = { engine_ref: ["v1'; id", '-upload-pack=x', '$(id)'], engine_project: ['a"; id', '$(id)/x'], engine_commit: ['main', 'a'.repeat(39)], glab_sha256: ['x', 'b'.repeat(63)], glab_version: ['1.0; id'], scan_command: ['scan; id', 'scan --facts /tmp/x', '$(id)'] };
+    const shapes = { engine_ref: ['v0.1.0', 'main', 'release/1.x', 'a'.repeat(40)], engine_project: ['acme/belay-engine'], engine_commit: ['', 'a'.repeat(40)], glab_sha256: ['b'.repeat(64)], glab_version: ['1.120.0'], scan_command: ['scan'] };
+    const bad = { engine_ref: ["v1'; id", '-upload-pack=x', '$(id)'], engine_project: ['a"; id', '$(id)/x'], engine_commit: ['main', 'a'.repeat(39)], glab_sha256: ['', 'x', 'b'.repeat(63)], glab_version: ['1.0; id'], scan_command: ['scan; id', 'scan --facts /tmp/x', '$(id)'] };
     for (const [k, good] of Object.entries(shapes)) {
       const re = new RegExp(spec[k].regex);
       for (const v of [...('default' in spec[k] ? [spec[k].default] : []), ...good]) expect(re.test(v), `${k} accepts ${JSON.stringify(v)}`).toBe(true);
       for (const v of bad[k]) expect(re.test(v), `${k} refuses ${JSON.stringify(v)}`).toBe(false);
     }
+  });
+});
+
+// F101: the glab tarball runs holding CI_JOB_TOKEN, so it is never installed on HTTPS alone. The default is glab 1.120.0's
+// published checksum and an empty value fails the job before the download.
+describe.each(['maturity-scan', 'tier-gate'])('the %s template verifies glab', (name) => {
+  const doc = parseAllDocuments(fs.readFileSync(path.resolve(import.meta.dirname, `../../templates/${name}/template.yml`), 'utf8'));
+  const spec = doc[0].toJS().spec.inputs;
+  const shell = Object.values(doc[1].toJS()).flatMap((j) => j?.before_script ?? []).join('\n');
+
+  it('defaults glab_sha256 to a 64-hex checksum', () => {
+    expect(spec.glab_sha256.default).toMatch(/^[0-9a-f]{64}$/);
+    expect(spec.glab_sha256.default).toBe('4e6c59de9f7ed2f304bf93aad01ea8f8a69584f0450ce90ad696ef81f69c69aa');
+  });
+
+  it('refuses an empty checksum with exit 2 before the download, and always checks the tarball', () => {
+    const refuse = shell.search(/if \[ -z "\$BELAY_GLAB_SHA256" \]; then[^\n]*exit 2/);
+    expect(refuse, 'empty-checksum refusal').toBeGreaterThan(-1);
+    expect(refuse).toBeLessThan(shell.indexOf('curl -fsSL -o "$T/glab.tgz"'));
+    expect(shell).not.toMatch(/if \[ -n "\$BELAY_GLAB_SHA256" \]/);
+    expect(shell).toContain('sha256sum -c -');
   });
 });
 
