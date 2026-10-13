@@ -71,7 +71,7 @@
   width: 2660px;
   height: 4000px;
   background: linear-gradient(90deg, color-mix(in oklab, var(--bg) 97%, transparent) 0, color-mix(in oklab, var(--bg) 95%, transparent) 2008px, transparent 2660px);
-  mask-image: linear-gradient(180deg, #000 0, #000 2560px, transparent 2700px);
+  mask-image: linear-gradient(180deg, var(--bg) 0, var(--bg) 2560px, transparent 2700px);
   pointer-events: none;
   transition: opacity 600ms var(--ease);
 }

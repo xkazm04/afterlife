@@ -16,7 +16,7 @@ import { useDoor } from './hooks/useDoor';
 import { useStageFit } from './hooks/useStageFit';
 import { useQuality } from './hooks/useQuality';
 import { useStill } from './hooks/useStill';
-import { districtLine, fleetTotals, projectLine, topTiers, type Part } from './model/words';
+import { districtLine, fleetTotals, plural, projectLine, topTiers, type Part } from './model/words';
 import styles from './door.module.css';
 
 export interface DoorData {
@@ -80,7 +80,7 @@ export function DoorScreen({ data }: { data: DoorData }) {
   const crumbs = useMemo(
     () => [
       s.level === 0 ? { label: data.org } : { label: data.org, go: 0 as const },
-      ...(s.level === 0 ? [{ label: `fleet of ${totals.n} projects` }] : []),
+      ...(s.level === 0 ? [{ label: `fleet of ${totals.n} ${plural(totals.n, 'project')}` }] : []),
       ...(cur ? [s.level === 1 ? { label: cur.name } : { label: cur.name, go: 1 as const }] : []),
       ...(openName && s.level === 2 ? [{ label: openName }] : []),
     ],

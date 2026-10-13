@@ -95,9 +95,9 @@ export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string
         <Link className={styles.enter} href="/fleet">
           Enter Afterlife
         </Link>
-        {d.needs ? <Link className={styles.exit} href="/needs-you">Needs you<span>↗</span></Link> : null}
-        {d.quar ? <Link className={styles.exit} href="/ladder">Ladder<span>↗</span></Link> : null}
-        {d.setup || d.nsu ? <Link className={styles.exit} href="/setup">Setup<span>↗</span></Link> : null}
+        {d.needs ? <Link className={styles.exit} href="/needs-you">Needs you<span aria-hidden>↗</span></Link> : null}
+        {d.quar ? <Link className={styles.exit} href="/ladder">Ladder<span aria-hidden>↗</span></Link> : null}
+        {d.setup || d.nsu ? <Link className={styles.exit} href="/setup">Setup<span aria-hidden>↗</span></Link> : null}
       </div>
     </aside>
   );
