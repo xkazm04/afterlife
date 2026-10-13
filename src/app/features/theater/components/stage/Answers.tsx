@@ -56,7 +56,7 @@ export const Answers = memo(function Answers({ snap, prev, demo }: { snap: Snaps
         <span className={styles.al}>Needs me</span>
         <span className={styles.av}>
           <b>{a.needs.count}</b>
-          <small>oldest {a.needs.oldest}</small>
+          <small>{a.needs.count ? `oldest ${a.needs.oldest}` : 'nothing waiting'}</small>
         </span>
       </Card>
     </section>

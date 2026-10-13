@@ -60,7 +60,7 @@ describe('a missing quote never renders an empty "quoted from !44 · untrusted" 
   const e = REPLAY_LEDGER.find((x) => x.quote)!;
   it('the caption', () => {
     expect(renderToString(createElement(Cap, { e, y: 0, cut: true, quote: '' }))).not.toContain('untrusted');
-    expect(renderToString(createElement(Cap, { e, y: 0, cut: true, quote: 'q' }))).toContain('quoted from !44 · untrusted');
+    expect(renderToString(createElement(Cap, { e, y: 0, cut: true, quote: 'q' }))).toContain('Quoted from !44 · untrusted');
   });
 
   it('the inspector', () => {

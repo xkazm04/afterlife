@@ -26,7 +26,13 @@ export function Pitch({ snap, snaps, store, film, demo }: { snap: Snapshot; snap
       <div className={styles.head}>
         <ReplayChip source={film.source} from={take?.a ?? range.a} to={take?.b ?? range.b} mr={take?.mr} />
         <span className={styles.beat}>
-          beat <b>{snap.beat}</b> of 9 · {hold ? hold.label : 'on the ground'}
+          {hold ? (
+            <>
+              beat <b>{snap.beat}</b> of 9 · {hold.label}
+            </>
+          ) : (
+            'on the ground · before beat 1 of 9'
+          )}
         </span>
       </div>
       {demo && snap.board ? <Board snap={snap} demo={demo} last={snap.e.seq === range.b} /> : <Wall store={store} snaps={snaps} film={film} quote={demo?.quote ?? ''} />}

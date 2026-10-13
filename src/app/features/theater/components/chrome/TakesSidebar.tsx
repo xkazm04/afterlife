@@ -25,15 +25,15 @@ export function TakesSidebar({ takes, take, counts, range, marked, actions }: { 
               label={t.name}
               count={counts[k] ? `${counts[k]}×` : undefined}
               current={k === take}
-              title={`${t.mr != null ? 'belay-ledger · ' : ''}Seq ${t.a}–${t.b}${t.seeded ? ' · seeded' : ''}${k < 8 ? ` · key ${k + 1}` : ''}`}
+              title={`${t.mr != null ? 'belay-ledger · ' : ''}seq ${t.a}–${t.b}${t.seeded ? ' · seeded' : ''}${counts[k] ? ` · rolled ${counts[k]}×` : ''}${k < 8 ? ` · key ${k + 1}` : ''}`}
               onClick={() => actions.cue(k)}
             />
           ))}
         </div>
       </SidebarSection>
       <SidebarSection title="Marks">
-        <SidebarItem icon={<Tno>I</Tno>} label="In point" count={<span className={marked ? styles.marked : undefined}>{range.a}</span>} title="Mark the in-point at the current seq (I)" onClick={actions.markIn} />
-        <SidebarItem icon={<Tno>O</Tno>} label="Out point" count={<span className={marked ? styles.marked : undefined}>{range.b}</span>} title="Mark the out-point at the current seq (O)" onClick={actions.markOut} />
+        <SidebarItem icon={<Tno>I</Tno>} label="In point" count={<span className={marked ? styles.marked : undefined}>seq {range.a}</span>} title="Mark the in-point at the current seq (I)" onClick={actions.markIn} />
+        <SidebarItem icon={<Tno>O</Tno>} label="Out point" count={<span className={marked ? styles.marked : undefined}>seq {range.b}</span>} title="Mark the out-point at the current seq (O)" onClick={actions.markOut} />
       </SidebarSection>
     </>
   );
