@@ -33,7 +33,16 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
   // Everything except the film position: the screen re-renders on entry, take, marks and transport changes only.
   const v = useReplaySlice(store, viewOf, shallowEqual);
   const snap = snaps[v.i];
-  if (!snap) return null;
+  // A film with no beats has nothing to frame: say so inside the window instead of drawing a blank pane.
+  if (!snap) {
+    return (
+      <Window title="Theater" subtitle={subtitle}>
+        <p className={styles.empty}>
+          This film has no beats to play. A take appears once an agent has acted on a merge request in the ledger.
+        </p>
+      </Window>
+    );
+  }
   const range = rangeLabel(v);
   const readout = readoutFrom(v);
 

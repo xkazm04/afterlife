@@ -23,10 +23,39 @@ export interface DiffFile {
 
 const HUNK = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/;
 
+const C_ESCAPES: Record<string, number> = { a: 7, b: 8, t: 9, n: 10, v: 11, f: 12, r: 13, '"': 34, '\\': 92 };
+
+/**
+ * Git quotes a path that holds a tab, quote, backslash, newline or non-ASCII byte: `"dir/a\tb\303\244.yml"`. The quotes
+ * and C escapes (octal bytes, UTF-8) are undone here, so a denied path is seen by its real name, not its quoted spelling.
+ */
+function unquoteGit(p: string): string {
+  const t = p.trim();
+  if (t.length < 2 || !t.startsWith('"') || !t.endsWith('"')) return t;
+  const chars = [...t.slice(1, -1)];
+  const bytes: number[] = [];
+  for (let i = 0; i < chars.length; i++) {
+    const c = chars[i] ?? '';
+    if (c !== '\\') {
+      bytes.push(...new TextEncoder().encode(c));
+      continue;
+    }
+    const oct = chars.slice(i + 1, i + 4).join('');
+    if (/^[0-7]{3}$/.test(oct)) {
+      bytes.push(parseInt(oct, 8));
+      i += 3;
+    } else if (chars[i + 1] !== undefined && Object.hasOwn(C_ESCAPES, chars[i + 1] ?? '')) {
+      bytes.push(C_ESCAPES[chars[i + 1] ?? ''] ?? 92);
+      i += 1;
+    } else bytes.push(92);
+  }
+  return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+}
+
 function cleanPath(p: string): string | null {
-  const t = p.split('\t')[0]?.trim() ?? '';
+  const t = unquoteGit(p.split('\t')[0]?.trim() ?? '');
   if (t === '/dev/null') return null;
-  return t.replace(/^"|"$/g, '').replace(/^[ab]\//, '');
+  return t.replace(/^[ab]\//, '');
 }
 
 function blank(): DiffFile {
@@ -88,9 +117,9 @@ export function parseDiff(text: string): DiffFile[] {
       cur.oldPath = cleanPath(line.slice(4));
       sawOld = true;
     } else if (line.startsWith('+++ ') && cur) cur.newPath = cleanPath(line.slice(4));
-    else if (cur && line.startsWith('rename from ')) cur.oldPath = line.slice(12);
+    else if (cur && line.startsWith('rename from ')) cur.oldPath = unquoteGit(line.slice(12));
     else if (cur && line.startsWith('rename to ')) {
-      cur.newPath = line.slice(10);
+      cur.newPath = unquoteGit(line.slice(10));
       cur.status = 'renamed';
     } else if (cur && line.startsWith('new file mode')) cur.status = 'added';
     else if (cur && line.startsWith('deleted file mode')) cur.status = 'deleted';

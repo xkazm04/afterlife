@@ -70,7 +70,7 @@ does `post_merge`: finding the merged MR of a commit (`repository/commits/:sha/m
 | `post_merge` | boolean | `false` | Also re-derive on the default branch after merge; a red result is the tripwire's post_merge_proof_fail. Turn it on only when the evidence jobs also run on the default branch, or the missing evidence reads as a failure and demotes the agent. |
 | `node_image` | string | `"node:22-bookworm"` | Needs git, curl and node 20+. The -slim image has no git. |
 | `glab_version` | string | `"1.120.0"` |  |
-| `glab_sha256` | string | `""` | Optional SHA-256 of the glab linux amd64 tarball; checked when set. |
+| `glab_sha256` | string | `"4e6c59de9f7ed2f304bf93aad01ea8f8a69584f0450ce90ad696ef81f69c69aa"` (1.120.0) | SHA-256 of the glab linux amd64 tarball for `glab_version`, checked before install. Set it for any other `glab_version`; an empty value fails the job. |
 | `runner_tags` | array | `[]` |  |
 
 ## Verify

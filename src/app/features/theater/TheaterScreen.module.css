@@ -16,3 +16,11 @@
 .idle {
   cursor: none;
 }
+.empty {
+  max-width: 62ch;
+  margin: 0 auto;
+  padding: calc(var(--row-h) * 3) calc(var(--row-h) * 1.5);
+  font-size: var(--t-body);
+  color: var(--text-3);
+  line-height: 1.5;
+}

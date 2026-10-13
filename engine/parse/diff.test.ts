@@ -38,6 +38,24 @@ describe('parseDiff', () => {
     expect(files[2]?.binary).toBe(true);
   });
 
+  it('reads a quoted rename path by its real name, so a denied directory cannot hide behind the quotes', () => {
+    const diff = [
+      'diff --git "a/src/a\\tb.kt" "b/deploy/caf\\303\\251 \\"x\\".yml"',
+      'similarity index 100%',
+      'rename from "src/a\\tb.kt"',
+      'rename to "deploy/caf\\303\\251 \\"x\\".yml"',
+    ].join('\n');
+    const [f] = parseDiff(diff);
+    expect(f?.path).toBe('deploy/café "x".yml');
+    expect(f?.oldPath).toBe('src/a\tb.kt');
+    expect(f?.status).toBe('renamed');
+  });
+
+  it('unquotes a quoted --- / +++ header the same way', () => {
+    const diff = ['--- "a/dir/sp\\303\\244ce.txt"', '+++ "b/dir/sp\\303\\244ce.txt"', '@@ -1 +1 @@', '-a', '+b'].join('\n');
+    expect(parseDiff(diff).map((f) => f.path)).toEqual(['dir/späce.txt']);
+  });
+
   it('returns nothing for text that is not a diff', () => {
     expect(parseDiff('')).toEqual([]);
     expect(parseDiff('hello\nworld')).toEqual([]);
