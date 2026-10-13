@@ -4,7 +4,7 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--surface-1);
   box-shadow: inset 0 0 0 1px var(--sep);
 }
@@ -16,10 +16,10 @@
   transition: background var(--t-med) var(--ease);
 }
 .lk:first-child {
-  border-radius: 8px 0 0 8px;
+  border-radius: var(--r-sm) 0 0 var(--r-sm);
 }
 .lk:last-child {
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
   box-shadow: none;
 }
 .lk:not(:last-child)::after {
@@ -91,7 +91,7 @@
   align-items: center;
   gap: 6px;
   padding: 7px 9px;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--surface-1);
   box-shadow: inset 0 0 0 1px var(--sep);
   font-size: var(--t-head);

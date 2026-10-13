@@ -9,7 +9,7 @@ import styles from './Docket.module.css';
  * The docket: every task as a sidebar link to /task/<id>, a verdict glyph, the title and its track. Filters only hide
  * rows; the open task is marked. Titles truncate: the full one is in the tooltip.
  */
-export function Docket({ tasks, visible, currentId }: { tasks: readonly TaskView[]; visible: readonly TaskView[]; currentId: string }) {
+export function Docket({ tasks, visible, currentId, onClear }: { tasks: readonly TaskView[]; visible: readonly TaskView[]; currentId: string; onClear: () => void }) {
   return (
     <SidebarSection title="Docket" aux={docketCount(visible.length, tasks.length)}>
       <nav data-docket aria-label="Tasks">
@@ -29,7 +29,12 @@ export function Docket({ tasks, visible, currentId }: { tasks: readonly TaskView
             );
           })
         ) : (
-          <div className={styles.empty}>No match · filters only hide</div>
+          <div className={styles.empty}>
+            No tasks match these filters.{' '}
+            <button type="button" className={styles.clear} onClick={onClear}>
+              Clear filters
+            </button>
+          </div>
         )}
       </nav>
     </SidebarSection>

@@ -99,7 +99,7 @@ export function SelectionRuling({ task, sel }: { task: TaskView; sel: Selection 
   if (!sel)
     return (
       <div className={styles.muted}>
-        No selection · <Kbd>↑</Kbd> <Kbd>↓</Kbd> <Kbd>←</Kbd> <Kbd>→</Kbd>
+        Nothing selected. Click a claim or check, or walk with <Kbd>↑</Kbd> <Kbd>↓</Kbd> <Kbd>←</Kbd> <Kbd>→</Kbd>
       </div>
     );
   return sel.side === 'check' ? <CheckRuling task={task} id={sel.id} /> : <ClaimRuling task={task} id={sel.id} />;

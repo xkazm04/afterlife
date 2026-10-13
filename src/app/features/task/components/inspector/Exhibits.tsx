@@ -76,9 +76,12 @@ function EnvelopeExhibit({ task, e }: { task: TaskView; e: NonNullable<TaskView[
       {e.paths.map((p) => {
         const deny = isDenyPath(task, p);
         return (
-          <div key={p} className={deny ? styles.deny : ''}>
-            {deny ? '✗' : '✓'} {p}
-            {deny ? ' · deny path' : ''}
+          <div key={p} className={`${styles.path} ${deny ? styles.deny : ''}`}>
+            <span aria-hidden="true">{deny ? '✗' : '✓'}</span>
+            <span>
+              {p}
+              {deny ? ' · deny path' : ''}
+            </span>
           </div>
         );
       })}
@@ -89,7 +92,7 @@ function EnvelopeExhibit({ task, e }: { task: TaskView; e: NonNullable<TaskView[
 /** What the proof class shows as exhibits: the quoted hunk, the reruns, the CRA clock, the diff envelope. */
 export function Exhibits({ task }: { task: TaskView }) {
   const kinds = exhibitKinds(task);
-  if (!kinds.length) return <div className={styles.muted}>Checks only</div>;
+  if (!kinds.length) return <div className={styles.muted}>No exhibits for this class · the checks are the evidence</div>;
   return (
     <div className={styles.exhibits}>
       {kinds.map((k) => {
