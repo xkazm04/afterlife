@@ -4,6 +4,10 @@
   bottom: calc(var(--sb-h) + 12px);
   transform: translateX(-50%);
   z-index: 60;
+  width: max-content;
+  max-width: min(calc(560px * var(--ui-scale)), calc(100vw - 32px));
+  text-align: center;
+  pointer-events: none;
   padding: 6px 12px;
   border-radius: 7px;
   font-size: var(--t-head);

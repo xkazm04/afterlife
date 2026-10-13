@@ -18,7 +18,7 @@ export function ObjectLink({ target, label, message }: { target: string; label?:
         toast(message ?? `Open ${target} in GitLab · read-only link, as you · this screen writes nothing`);
       }}
     >
-      {label ?? target} ↗
+      {label ?? target} <span aria-hidden="true">↗</span>
     </button>
   );
 }

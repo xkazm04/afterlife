@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { clampToViewport } from '../position';
 import { isAction, moveActive, type MenuAction, type MenuEntry, type MenuMove } from './menuModel';
@@ -35,6 +35,7 @@ export function Menu<D = unknown>({
   initialActive?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const uid = useId();
   const [active, setActive] = useState(initialActive);
   const [pos, setPos] = useState({ x, y });
   const latest = useRef({ items, onHighlight });
@@ -80,7 +81,7 @@ export function Menu<D = unknown>({
   };
 
   return createPortal(
-    <div ref={ref} className={styles.menu} role="menu" tabIndex={-1} style={{ left: pos.x, top: pos.y }} onKeyDown={onKey} onMouseLeave={() => setActive(-1)}>
+    <div ref={ref} className={styles.menu} role="menu" tabIndex={-1} aria-activedescendant={active >= 0 ? `${uid}-${active}` : undefined} style={{ left: pos.x, top: pos.y }} onKeyDown={onKey} onMouseLeave={() => setActive(-1)}>
       {items.map((it, i) => {
         if ('sep' in it) return <div key={i} className={styles.sep} role="separator" />;
         if ('head' in it)
@@ -93,6 +94,7 @@ export function Menu<D = unknown>({
         return (
           <div
             key={i}
+            id={`${uid}-${i}`}
             className={`${styles.mi} ${i === active ? styles.act : ''}`}
             role={checkable ? 'menuitemcheckbox' : 'menuitem'}
             aria-checked={checkable ? it.checked : undefined}
