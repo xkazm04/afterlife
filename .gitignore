@@ -24,3 +24,6 @@ scratch/
 Thumbs.db
 .vscode/
 .idea/
+
+# spark vault (design notes, local)
+.spark/
