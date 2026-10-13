@@ -1,0 +1,28 @@
+.t {
+  border-collapse: collapse;
+  font-size: var(--t-head);
+  width: 100%;
+}
+.t th,
+.t td {
+  padding: 3px 8px;
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--sep-body);
+  vertical-align: top;
+}
+.t th {
+  color: var(--text-3);
+  white-space: nowrap;
+  width: 1%;
+}
+.keys {
+  display: inline-flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.mono {
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}

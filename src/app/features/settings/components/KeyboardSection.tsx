@@ -3,10 +3,10 @@ import { SHORTCUTS } from '../data/shortcuts';
 import { SettingsSection } from './SettingsSection';
 import styles from './KeyboardSection.module.css';
 
-/** The text-size shortcuts (Cmd on a Mac, Ctrl on Windows) and the inspector toggle. */
+/** The shortcuts that work on every screen: text size (Cmd on a Mac, Ctrl on Windows) and the inspector toggle. */
 export function KeyboardSection() {
   return (
-    <SettingsSection id="keyboard" title="Keyboard">
+    <SettingsSection id="keyboard" title="Everywhere">
       <ul className={styles.list} aria-label="Keyboard shortcuts">
         {SHORTCUTS.map((s) => (
           <li key={s.label} className={styles.row}>
