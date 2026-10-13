@@ -23,8 +23,8 @@ function Count({ n, delay, dur, intro }: { n: number; delay: number; dur: number
 }
 
 /**
- * The answer, left of the city: the one loud number, who holds the most, then five drawn marks. Pointing at a mark
- * lights its towers across the city; the number and the stale mark open the district that holds the most of it.
+ * The answer, left of the city: the one loud number, who holds the most, then the drawn marks. Pointing at a mark
+ * previews it across the city, clicking locks it as the filter (again to let it go); the number opens the district that holds the most.
  */
 export const Answer = memo(function Answer({
   totals,
@@ -32,7 +32,9 @@ export const Answer = memo(function Answer({
   staleTop,
   intro,
   tabbable,
+  locked,
   onMark,
+  onLock,
   onOpen,
 }: {
   totals: FleetTotals;
@@ -40,8 +42,10 @@ export const Answer = memo(function Answer({
   staleTop: District | null;
   intro: boolean;
   tabbable: boolean;
+  locked: MarkKind | null;
   onMark: (k: MarkKind | null) => void;
-  onOpen: (k: 'needs' | 'stale') => void;
+  onLock: (k: MarkKind) => void;
+  onOpen: (k: 'needs') => void;
 }) {
   const tab = tabbable ? 0 : -1;
   const lit = (k: MarkKind) => ({ onPointerEnter: () => onMark(k), onPointerLeave: () => onMark(null), onFocus: () => onMark(k), onBlur: () => onMark(null) });
@@ -69,7 +73,7 @@ export const Answer = memo(function Answer({
       <ul className={styles.marks}>
         {MARKS.filter((m) => !m.quiet || m.n(totals) > 0).map((m) => (
           <li key={m.kind}>
-            <button type="button" className={styles.mk} tabIndex={tab} data-role="door-mark" title={m.kind === 'stale' ? 'Open the district with the most stale' : undefined} onClick={() => m.kind === 'stale' && onOpen('stale')} {...lit(m.kind)}>
+            <button type="button" className={styles.mk} tabIndex={tab} data-role="door-mark" aria-pressed={locked === m.kind} onClick={() => onLock(m.kind)} {...lit(m.kind)}>
               <MarkIcon kind={m.kind} />
               <span>
                 <b>

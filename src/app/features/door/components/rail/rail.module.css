@@ -148,20 +148,6 @@
   padding: 12px 18px 14px;
   border-top: 1px solid var(--border-2);
 }
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  width: 100%;
-  margin-bottom: 6px;
-  font-size: 18px;
-  color: var(--text-3);
-}
-.legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
 .enter,
 .exit {
   display: inline-flex;

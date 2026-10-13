@@ -1,0 +1,57 @@
+/* The rail's tier legend: a "?" that reveals the seven letters above it on hover or focus. */
+.hint {
+  position: relative;
+  width: 100%;
+  margin-bottom: 6px;
+}
+.q {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border-3);
+  border-radius: 50%;
+  background: none;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-3);
+  cursor: help;
+}
+.q:hover,
+.q:focus-visible {
+  color: var(--text-1);
+  border-color: var(--accent);
+}
+.q:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.pop {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 420px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-3);
+  background: var(--d-plate-solid);
+  box-shadow: var(--win-halo);
+  font-size: 18px;
+  color: var(--text-2);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms, visibility 0s 150ms;
+}
+.hint:hover .pop,
+.hint:focus-within .pop {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 150ms;
+}
+.pop span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}

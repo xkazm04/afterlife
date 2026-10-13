@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { STANDING_META } from '@/lib/tiers';
 import { needsOf, type District } from '../../model/city';
 import { plural } from '../../model/words';
+import { LegendHint } from './LegendHint';
 import { TierLetter } from '../ui/TierLetter';
 import styles from './rail.module.css';
 
@@ -84,14 +85,14 @@ export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string
         </p>
       </div>
       <div className={styles.foot}>
-        <div className={styles.legend}>
+        <LegendHint>
           {TIERS.map(([t, name]) => (
             <span key={t}>
               <TierLetter tier={t} />
               {name}
             </span>
           ))}
-        </div>
+        </LegendHint>
         <Link className={styles.enter} href="/fleet">
           Enter Afterlife
         </Link>

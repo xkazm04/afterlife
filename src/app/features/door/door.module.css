@@ -5,6 +5,7 @@
   --d-plate-solid: color-mix(in oklab, var(--bg) 97%, var(--tint-side));
   --d-amber-glow: color-mix(in oklab, var(--needs-you) 50%, transparent);
   --d-amber-hot: color-mix(in oklab, var(--needs-you) 55%, var(--white));
+  --d-quar-hot: color-mix(in oklab, var(--tier-quarantined) 55%, var(--white));
   --d-cy-edge: color-mix(in oklab, var(--accent) 74%, transparent);
   --d-cy-mid: color-mix(in oklab, var(--accent) 42%, transparent);
   --d-cy-dim: color-mix(in oklab, var(--accent) 22%, transparent);

@@ -3,6 +3,8 @@
 import { useCallback, useMemo } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
 import type { Holder } from '@/lib/tiers';
+import { FilterChip } from './components/chrome/FilterChip';
+import { Splash } from './components/chrome/Splash';
 import { BottomChrome, TopChrome } from './components/chrome/Chrome';
 import { L2View } from './components/l2/L2View';
 import type { Deep } from './components/l2/L2Panel';
@@ -101,6 +103,7 @@ export function DoorScreen({ data }: { data: DoorData }) {
             hotG={s.hotG}
             hotTower={hot?.t ?? null}
             dim={s.dim}
+            red={s.red}
             cam={s.cam}
             camMs={s.camMs}
             onHover={s.hover}
@@ -115,7 +118,8 @@ export function DoorScreen({ data }: { data: DoorData }) {
       </div>
       <div className={`${styles.stage} ${styles.uiStage}`}>
         <div className={styles.ui}>
-          <Answer totals={totals} tiers={tiersTop} staleTop={staleTop} intro={s.intro} tabbable={s.level === 0} onMark={s.setMark} onOpen={onOpenTop} />
+          <Answer totals={totals} tiers={tiersTop} staleTop={staleTop} intro={s.intro} tabbable={s.level === 0} locked={s.locked} onMark={s.setMark} onLock={s.lock} onOpen={onOpenTop} />
+          <FilterChip kind={s.locked} open={s.locked === 'stale' && staleTop && staleTop.stale > 0 ? staleTop.name : null} onClear={s.unlock} onOpen={() => onOpenTop('stale')} />
           <Labels ds={s.ds} hotG={s.hotG} tabbable={s.level === 0} onHover={onLabelHover} onOpen={s.openG} />
           <Readout name={name} line={line} tiers={tiers} holders={holders} />
           {s.level === 1 && cur ? <Rail key={cur.gi} d={cur} hotId={s.hotId} onHover={s.setHotId} onOpen={s.openP} /> : null}
@@ -129,6 +133,7 @@ export function DoorScreen({ data }: { data: DoorData }) {
           ) : null}
         </div>
       </div>
+      <Splash on={s.intro} />
       <TopChrome org={data.org} asOf={data.asOf} label={data.label} />
       <BottomChrome crumbs={crumbs} onBack={s.level > 0 ? s.up : null} onGo={onGo} />
       <div className={styles.grain} data-lite="off" aria-hidden />

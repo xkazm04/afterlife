@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
 import { HOME, frameDistrict, frameTower, onStage, type Cam } from '../model/camera';
 import { districtsOf, type District, type Placed } from '../model/city';
-import { MARK_TEST, type MarkKind } from '../model/words';
+import { activeMark, dimSet, escapeStep, redSet, toggleLock } from '../model/filter';
+import type { MarkKind } from '../model/words';
 
 export type Level = 0 | 1 | 2;
 const INTRO_MS = 3400;
 
 /**
- * The front door's state: the level (fleet, district, project), what is open, what the pointer is on, the lit mark,
+ * The front door's state: the level (fleet, district, project), what is open, what the pointer is on, the lit mark (a locked one outranks the hover),
  * the camera and the intro. Every transition is a new camera target; the CSS transition does the moving.
  */
 export function useDoor(groups: readonly string[], projects: readonly FleetProject[]) {
@@ -21,7 +22,8 @@ export function useDoor(groups: readonly string[], projects: readonly FleetProje
   const [curP, setCurP] = useState<string | null>(null);
   const [hotG, setHotG] = useState<number | null>(null);
   const [hotId, setHotId] = useState<string | null>(null);
-  const [mark, setMark] = useState<MarkKind | null>(null);
+  const [hoverMark, setMark] = useState<MarkKind | null>(null);
+  const [locked, setLocked] = useState<MarkKind | null>(null);
   const [cam, setCam] = useState<Cam>(HOME);
   const [camMs, setCamMs] = useState(850);
   const [liftFrom, setLiftFrom] = useState<{ x: number; y: number; k0: number } | null>(null);
@@ -76,6 +78,9 @@ export function useDoor(groups: readonly string[], projects: readonly FleetProje
     setCam(HOME);
   }, []);
 
+  const lock = useCallback((k: MarkKind) => setLocked((l) => toggleLock(l, k)), []);
+  const unlock = useCallback(() => setLocked(null), []);
+
   const up = useCallback(() => {
     if (level === 2 && curG != null) openG(curG);
     else if (level === 1) goHome();
@@ -105,7 +110,7 @@ export function useDoor(groups: readonly string[], projects: readonly FleetProje
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (intro) endIntro();
-      if (e.key === 'Escape' && !e.defaultPrevented) up();
+      if (e.key === 'Escape' && !e.defaultPrevented) (escapeStep(locked) === 'unlock' ? unlock : up)();
     };
     const press = () => intro && endIntro();
     window.addEventListener('keydown', key);
@@ -114,9 +119,11 @@ export function useDoor(groups: readonly string[], projects: readonly FleetProje
       window.removeEventListener('keydown', key);
       window.removeEventListener('pointerdown', press);
     };
-  }, [intro, up, endIntro]);
+  }, [intro, locked, up, unlock, endIntro]);
 
-  const dim = useMemo(() => (mark ? new Set(projects.filter((p) => !MARK_TEST[mark](p)).map((p) => p.id)) : null), [mark, projects]);
+  const mark = activeMark(locked, hoverMark);
+  const dim = useMemo(() => dimSet(mark, projects), [mark, projects]);
+  const red = useMemo(() => redSet(mark, projects), [mark, projects]);
 
-  return { ds, byId, level, curG, curP, hotG, hotId, setHotId, mark, setMark, dim, cam, camMs, liftFrom, intro, endIntro, openG, openP, goHome, up, hover, pick };
+  return { ds, byId, level, curG, curP, hotG, hotId, setHotId, mark, locked, lock, unlock, setMark, dim, red, cam, camMs, liftFrom, intro, endIntro, openG, openP, goHome, up, hover, pick };
 }
