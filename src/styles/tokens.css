@@ -3,6 +3,8 @@
    dropped on purpose: text sizes come from text-size.css, decision D10). Colour literals live ONLY in this file;
    components use tokens and color-mix() of tokens. */
 :root {
+  color-scheme: dark; /* native controls, scrollbars and form fields follow the dark ground */
+
   /* ground */
   --bg: #030405;
   --bg-grad: linear-gradient(168deg, #050607 0%, #030405 60%, #020203 100%);
@@ -41,7 +43,7 @@
   --needs-you-ink: #1a1405;
 
   /* ink on filled chips */
-  --on-accent: #fff;
+  --on-accent: var(--ink-accent); /* dark ink: white on the 70% accent fill was 2.5:1 */
   --ink-accent: #021416;
   --ink-quarantined: #1d0609;
 

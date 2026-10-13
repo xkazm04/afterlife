@@ -28,6 +28,7 @@ a {
 }
 :focus-visible {
   box-shadow: var(--ring);
+  outline: 2px solid transparent; /* box-shadow is dropped in forced-colors mode; a transparent outline is drawn there */
 }
 [hidden] {
   display: none !important;
@@ -55,8 +56,24 @@ a {
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+/* Firefox has no ::-webkit-scrollbar; Chromium would let scrollbar-color override the styled thumb above. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--thumb) transparent;
+  }
+}
+
+/* error / not-found pages: html and body never scroll, so a long message scrolls inside this wrapper instead */
+.fallback-scroll {
+  height: 100vh;
+  overflow: auto;
+}
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
