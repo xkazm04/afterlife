@@ -34,6 +34,9 @@ export interface ProjectRowProps {
 
 const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
 
+/** The proofs cell's tooltip: its numbers say pass and fail only by position and colour. */
+const proofsTitle = (c: FleetProject['proofs7d']) => (c ? `Last 7 days: ${c.pass} pass, ${c.fail} fail` : 'Proofs unknown for the last 7 days');
+
 /** The view-dependent middle cells: tier counts, the tier of each class, or the rung of each stage. */
 function MiddleCells({ p, view, ranked, narrow, meta, h }: Pick<ProjectRowProps, 'p' | 'view' | 'ranked' | 'narrow' | 'meta' | 'h'>) {
   const unwatched = p.state === 'not-set-up';
@@ -86,7 +89,7 @@ export const ProjectRow = memo(function ProjectRow(props: ProjectRowProps) {
       </Cell>
       <Cell align="center">{unwatched ? null : <NeedsYouBadge count={p.needsYou} variant={stale ? 'last-known' : 'live'} />}</Cell>
       <MiddleCells p={p} view={view} ranked={props.ranked} narrow={props.narrow} meta={meta} h={h} />
-      <Cell data className={cells.pc}>
+      <Cell data className={cells.pc} title={unwatched ? undefined : proofsTitle(p.proofs7d)}>
         {unwatched ? null : <ProofsCell proofs={p.proofs7d} />}
       </Cell>
       {view === 'tiers' ? <Cell data>{unwatched ? null : <StageTicks rungs={p.stages} labels={meta.stages} />}</Cell> : null}

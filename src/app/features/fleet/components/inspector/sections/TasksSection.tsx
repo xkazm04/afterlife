@@ -15,7 +15,7 @@ const TONE = { ok: styles.vok, bad: styles.vbad, unk: styles.vunk, none: styles.
 export function TasksSection({ p, deep, sec }: { p: FleetProject; deep: DeepProject; sec: SectionProps }) {
   const isDeep = p.id === deep.id;
   let body;
-  if (!isDeep) body = <div className={styles.muted}>Listed for {deep.id} only</div>;
+  if (!isDeep) body = <div className={styles.muted}>Tasks are listed for {deep.id} only</div>;
   else if (!deep.tasks.length) body = <div className={styles.muted}>No tasks</div>;
   else {
     body = deep.tasks.map((t) => {

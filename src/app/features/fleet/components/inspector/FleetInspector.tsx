@@ -31,12 +31,12 @@ export function FleetInspector({
   onFlash: (message: string) => void;
 }) {
   const section = useSectionOpen();
-  if (!selected) return <InspectorHeader title="No selection" />;
+  if (!selected) return <InspectorHeader title="No selection" sub="Select a project or group row to see it here" />;
   if (selected.startsWith('g:')) {
     const group = selected.slice(2);
     return <GroupInspector group={group} list={projects.filter((p) => p.group === group)} section={section} />;
   }
   const p = byId.get(selected);
-  if (!p) return <InspectorHeader title="No selection" />;
+  if (!p) return <InspectorHeader title="No selection" sub="Select a project or group row to see it here" />;
   return <ProjectInspector p={p} data={data} deep={data.deep} source={source} done={done} onResolve={onResolve} onFlash={onFlash} section={section} />;
 }

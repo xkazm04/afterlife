@@ -56,10 +56,10 @@ export function FleetToolbar({
       <Spacer />
       <StatusLozenge projects={projects} waiting={waiting} compact={compact} source={source} onSource={onSource} />
       <Spacer />
-      <PopupButton icon="sort" title="Sort" onClick={(e) => onSortMenu(e.currentTarget)}>
+      <PopupButton icon="sort" title={`Sort by ${sortLabel}`} onClick={(e) => onSortMenu(e.currentTarget)}>
         {sortLabel}
       </PopupButton>
-      <PopupButton icon="filter" title="Filter" active={filterCount > 0} onClick={(e) => onFilterMenu(e.currentTarget)}>
+      <PopupButton icon="filter" title={filterCount ? `Filter, ${filterCount} on` : 'Filter'} active={filterCount > 0} onClick={(e) => onFilterMenu(e.currentTarget)}>
         Filter
         {filterCount ? <CountDot count={filterCount} /> : null}
       </PopupButton>
