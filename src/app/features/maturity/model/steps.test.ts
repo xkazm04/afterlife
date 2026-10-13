@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { reduce } from './reducer';
 import { initialState } from './state';
-import { nextStage, stepsView } from './steps';
+import { nextStage, stepTarget, stepsView } from './steps';
 import { ctx } from './testCtx';
 
 describe('stepsView', () => {
@@ -35,5 +35,19 @@ describe('nextStage', () => {
     expect(nextStage(ctx, 'govern', 1)).toBe('plan');
     expect(nextStage(ctx, 'plan', -1)).toBe('govern');
     expect(nextStage(ctx, 'secure', 1)).toBe('release');
+  });
+});
+
+describe('stepTarget', () => {
+  it('Preview lands on the picked gap\'s stage, After merge on the first sent gap\'s, Pick and Send on the list', () => {
+    const pv = reduce(initialState(ctx), { type: 'go', step: 2 }, ctx);
+    const gap = ctx.gap(pv.pv ?? '');
+    expect(gap).toBeDefined();
+    expect(stepTarget(ctx, pv, 2)).toBe(gap?.stage);
+    expect(stepTarget(ctx, pv, 1)).toBeNull();
+    expect(stepTarget(ctx, pv, 3)).toBeNull();
+    const sent = reduce(pv, { type: 'sent', opened: { [gap?.id ?? '']: '!22' }, text: 'x' }, ctx);
+    expect(stepTarget(ctx, sent, 4)).toBe(gap?.stage);
+    expect(stepTarget(ctx, initialState(ctx), 4)).toBeNull();
   });
 });

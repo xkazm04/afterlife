@@ -52,7 +52,7 @@ export function MaturityLegend() {
         ]}
       />
       <hr />
-      <div className={styles.keys}>←→ stage · P pick · 1–4 steps · D N T crag · R rescan · ⌘I inspector</div>
+      <div className={styles.keys}>←→ stage · P pick · 1–4 steps · D N T crag · R rescan</div>
     </>
   );
 }

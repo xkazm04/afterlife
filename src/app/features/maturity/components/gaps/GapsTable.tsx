@@ -31,6 +31,7 @@ export function GapsTable({
   live = false,
   onPick,
   onSelect,
+  onOpen,
 }: {
   gaps: readonly Gap[];
   picked: readonly string[];
@@ -42,6 +43,8 @@ export function GapsTable({
   live?: boolean;
   onPick: (id: string) => void;
   onSelect: (gap: Gap) => void;
+  /** Enter or the gap's name: its stage's page. */
+  onOpen: (gap: Gap) => void;
 }) {
   return (
     <section ref={sectionRef} className={styles.gt} style={{ '--cols': COLUMNS } as CSSProperties} aria-label="Gaps worth exploring" role="table">
@@ -55,7 +58,7 @@ export function GapsTable({
       <div role="rowgroup">
         {gaps.length === 0 ? <div className={styles.empty}>No gaps proposed yet. Rescan to look for rungs worth exploring.</div> : null}
         {gaps.map((g, i) => (
-          <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} mr={mrName(mrs, g.id)} selected={selected === g.stage} alt={i % 2 === 1} live={live} onPick={onPick} onSelect={onSelect} />
+          <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} mr={mrName(mrs, g.id)} selected={selected === g.stage} alt={i % 2 === 1} live={live} onPick={onPick} onSelect={onSelect} onOpen={onOpen} />
         ))}
       </div>
     </section>

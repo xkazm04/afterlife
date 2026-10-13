@@ -4,6 +4,10 @@
   color: var(--text-1);
   overflow: hidden;
   text-overflow: ellipsis;
+  text-decoration: none;
+}
+.cid:hover {
+  text-decoration: underline;
 }
 .trk {
   margin-left: 6px;

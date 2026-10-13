@@ -5,7 +5,7 @@ import { NO_RULES, type Promotion } from '@/lib/promotion';
 import { Chip } from '@/components/status/chip/Chip';
 import { DemoChip } from '../../chrome/DemoChip';
 import { UncountedChip } from '../../chrome/UncountedChip';
-import { Sec, type SectionState } from '../Sec';
+import { Sec } from '../Sec';
 import styles from './sections.module.css';
 
 /**
@@ -14,11 +14,11 @@ import styles from './sections.module.css';
  * proof class is the demo catalogue's tracks (live, computed here, not read from the poll's ask). The human key is the promote
  * write's precondition, stated under the rows and never counted among the met ones.
  */
-export function PromotionRule({ promotion, uncounted, proofDemo, sections }: { promotion: Promotion; uncounted: boolean; proofDemo: boolean; sections: SectionState }) {
+export function PromotionRule({ promotion, uncounted, proofDemo }: { promotion: Promotion; uncounted: boolean; proofDemo: boolean }) {
   const counted = promotion.kind === 'eligible' || promotion.kind === 'notyet';
   const aux = counted ? `→ ${TIER_META[promotion.next].name} · ${promotion.rules.filter((r) => r.met).length}/${promotion.rules.length}` : '';
   return (
-    <Sec id="rule" title="Promotion rule" aux={aux} anchor="ladder-rule" sections={sections}>
+    <Sec title="Promotion rule" aux={aux}>
       {counted ? (
         <>
           {promotion.rules.map((r) => (

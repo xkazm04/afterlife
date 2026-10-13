@@ -55,7 +55,7 @@ export function ActionCell({
     <span style={{ display: 'contents' }} onMouseDown={pressSelects(cls.id, onSelect)}>
       {first ? (
         <span className={styles.split}>
-          <Button variant="danger" size="mini" className={`${styles.rv} ${styles.dim}`} tabIndex={-1} title="Revoke one step (r): sends the write the inspector shows" aria-label={`Revoke to ${TIER_META[first].name}`} onClick={() => onRevoke(cls.id, first)}>
+          <Button variant="danger" size="mini" className={`${styles.rv} ${styles.dim}`} tabIndex={-1} title="Revoke one step (r): sends the write the dock shows" aria-label={`Revoke to ${TIER_META[first].name}`} onClick={() => onRevoke(cls.id, first)}>
             Revoke → {TIER_META[first].letter}
           </Button>
           <Button

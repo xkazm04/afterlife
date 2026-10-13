@@ -10,7 +10,7 @@ import type { LadderData } from './useLadderData';
 
 /**
  * The Ladder's keys, document-wide: j k r q p / ? 1-5 0 Esc. (Arrow keys, Home, End, Enter and the context-menu key
- * belong to the focused table; ⌘I belongs to the window.) Off while a menu is open: the menu has its own keys.
+ * belong to the focused table.) Off while a menu is open: the menu has its own keys.
  */
 export function useLadderKeys({
   data,
@@ -18,14 +18,12 @@ export function useLadderKeys({
   searchRef,
   enabled,
   toggleHelp,
-  closeInspector,
 }: {
   data: LadderData;
   actions: LadderActions;
   searchRef: RefObject<HTMLInputElement | null>;
   enabled: boolean;
   toggleHelp: () => void;
-  closeInspector: () => void;
 }) {
   const { state, dispatch } = data;
   const step = (delta: number) => () => {
@@ -44,7 +42,6 @@ export function useLadderKeys({
     const inSearch = e.target === searchRef.current;
     if (inSearch || state.q) dispatch({ type: 'query', q: '' });
     if (inSearch) actions.focusTable();
-    else if (!state.q) closeInspector();
   };
 
   const keys: Hotkey[] = [

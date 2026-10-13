@@ -44,3 +44,12 @@ export function nextStage(ctx: MaturityCtx, sel: MaturityState['sel'], dir: 1 | 
   const i = ctx.stages.indexOf(sel);
   return ctx.stages[(i + dir + n) % n] ?? sel;
 }
+
+/**
+ * The stage a stepper step lands on: Preview shows the first picked gap's diff and After merge follows the first sent one,
+ * each on its stage's page. Pick and Send stay on the list (null).
+ */
+export function stepTarget(ctx: MaturityCtx, s: MaturityState, k: Step): MaturityState['sel'] | null {
+  const id = k === 2 ? (s.pv && pendingIds(s, ctx).includes(s.pv) ? s.pv : pendingIds(s, ctx)[0]) : k === 4 ? inFlightIds(s)[0] : undefined;
+  return (id && ctx.gap(id)?.stage) || null;
+}

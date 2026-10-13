@@ -1,4 +1,4 @@
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { CreditEntry } from '../../data/types';
 import { shortMr } from '../../model/rungs';
@@ -14,19 +14,15 @@ export function CreditHistory({
   session,
   live,
   engine,
-  open,
-  onOpenChange,
 }: {
   past: readonly CreditEntry[];
   session: readonly CreditEntry[];
   live: boolean;
   engine: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
 }) {
   const rows = [...past, ...session];
   return (
-    <InspectorSection title="Credit history" aux={rows.length ? `${rows.length} · engine ${engine}` : '0'} open={open} onOpenChange={onOpenChange}>
+    <DetailSection title="Credit history" aux={rows.length ? `${rows.length} · engine ${engine}` : '0'}>
       {rows.length ? (
         rows.map((c, i) => (
           <div key={`${c.mr}-${c.move}-${i}`} className={styles.hr} title={c.why}>
@@ -42,6 +38,6 @@ export function CreditHistory({
       ) : (
         <div className={styles.muted}>{live ? 'No credit recorded: Belay keeps no credit history for this project yet.' : 'No earlier cycles on this stage.'}</div>
       )}
-    </InspectorSection>
+    </DetailSection>
   );
 }

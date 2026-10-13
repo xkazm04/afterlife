@@ -48,7 +48,7 @@ export function useLadderActions({
   tableRef: RefObject<HTMLDivElement | null>;
   openDetail: (id?: string) => void;
   onReset: () => void;
-  /** Put the write of revoking `id` to `to` on screen (the dock and the inspector), before anything can send it. */
+  /** Put the write of revoking `id` to `to` on screen (the dock and the class page), before anything can send it. */
   onShow: (id: string, to: Tier) => void;
 }) {
   const { toast, status } = useToast();
@@ -94,7 +94,7 @@ export function useLadderActions({
   );
 
   /**
-   * r, the button or a menu target: confirm the write the server planned for it (on screen in the inspector and the
+   * r, the button or a menu target: confirm the write the server planned for it (on screen on the class page and the
    * dock), and only that one. Without it on screen nothing is sent. The toast says only what the answer says.
    */
   const revoke = useCallback(

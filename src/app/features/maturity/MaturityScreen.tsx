@@ -1,29 +1,28 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Spacer } from '@/components/controls/Spacer';
 import { SegmentedControl } from '@/components/controls/toolbar/SegmentedControl';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { Window } from '@/components/shell/Window';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
-import type { DemoData } from '@/lib/demo';
 import type { Stage } from '@/schemas';
 import { Crag } from './components/crag/Crag';
 import { ScanMeta } from './components/chrome/ScanMeta';
 import { StageList } from './components/chrome/StageList';
 import { Stepper } from '@/components/controls/toolbar/Stepper';
 import { GapsTable } from './components/gaps/GapsTable';
-import { InspectorPanel } from './components/inspector/InspectorPanel';
 import { SendSheet } from './components/sheet/SendSheet';
 import { StatusCounts } from './components/chrome/StatusCounts';
 import { MAT_META } from './data/meta';
 import { useGapSheet } from './hooks/useGapSheet';
-import { useMaturity } from './hooks/useMaturity';
+import { stagePath, useStepNav } from './hooks/useStepNav';
+import { useMaturityShared } from './MaturityProvider';
 import { useMaturityKeys } from './hooks/useMaturityKeys';
 import { useUiScale } from './hooks/useUiScale';
 import { MODES } from './model/rungs';
 import type { Step } from './model/state';
-import type { DataMode } from './write/gap';
 import styles from './MaturityScreen.module.css';
 
 /** Live mode: the scan is the maturity-scan component's job, on the schedule the project gave it. */
@@ -31,30 +30,20 @@ const LIVE_CADENCE = 'the belay-maturity-scan job, on its pipeline schedule';
 
 /**
  * Maturity: nine stage routes on a crag, bolts as rungs. Pick gaps worth exploring, preview the diffs, send them as
- * you (the exact commands are shown first), then watch the simulated merge → run → rescan decide the credit.
+ * you (the exact commands are shown first), then watch the simulated merge → run → rescan decide the credit. A stage's
+ * evidence, gap and credit history are its own page (/maturity/[stage]); the state is shared through the layout.
  */
-export function MaturityScreen({
-  maturity,
-  stages,
-  project,
-  mode,
-}: {
-  maturity: DemoData['maturity'];
-  stages: readonly Stage[];
-  /** The project a gap's MR is opened in: the id the server actions plan for. */
-  project: string;
-  mode: DataMode;
-}) {
-  const api = useMaturity(maturity, stages, mode);
-  const { ctx, state, dispatch, routes, steps, pending, go, select, setMode } = api;
+export function MaturityScreen() {
+  const { api, project, mode } = useMaturityShared();
+  const { ctx, state, dispatch, routes, steps, pending, select, setMode } = api;
+  const router = useRouter();
+  const open = (stage: Stage) => router.push(stagePath(stage));
   const scale = useUiScale();
   const gapsRef = useRef<HTMLElement>(null);
-  const [inspOpen, setInspOpen] = useState(true);
+  const go = useStepNav(api, 'list');
 
   const onGo = (k: Step) => {
-    if (!go(k)) return;
-    if (k === 2 || k === 4) setInspOpen(true);
-    if (k === 1) gapsRef.current?.scrollIntoView({ block: 'nearest' });
+    if (go(k) && k === 1) gapsRef.current?.scrollIntoView({ block: 'nearest' });
   };
   const pickedByStage: Partial<Record<Stage, string>> = {};
   for (const g of ctx.gaps) if (state.picked.includes(g.id) && !state.flow[g.id]) pickedByStage[g.stage] = g.id;
@@ -72,7 +61,7 @@ export function MaturityScreen({
     <Window
       title="Maturity"
       subtitle={ctx.live ? project : MAT_META.project.replace('/', ' / ')}
-      sidebar={<StageList routes={routes} pickedByStage={pickedByStage} selected={state.sel} onSelect={select} />}
+      sidebar={<StageList routes={routes} pickedByStage={pickedByStage} selected={state.sel} onSelect={open} />}
       toolbar={
         <>
           <SegmentedControl label="Crag shows" options={MODES} value={state.mode} onChange={setMode} />
@@ -90,9 +79,6 @@ export function MaturityScreen({
           <HonestyChip kind="simulated" />
         </>
       }
-      inspector={<InspectorPanel api={api} />}
-      inspectorOpen={inspOpen}
-      onInspectorOpenChange={setInspOpen}
       status={<StatusCounts levels={routes.map((r) => r.lv)} />}
     >
       <div className={styles.content}>
@@ -103,7 +89,7 @@ export function MaturityScreen({
           animKey={state.animKey}
           rungNames={ctx.rungNames}
           scale={scale}
-          onSelect={select}
+          onSelect={open}
           onPick={(id) => dispatch({ type: 'togglePick', id })}
         />
         <GapsTable
@@ -116,6 +102,7 @@ export function MaturityScreen({
           live={ctx.live}
           onPick={(id) => dispatch({ type: 'togglePick', id })}
           onSelect={(g) => select(g.stage)}
+          onOpen={(g) => open(g.stage)}
         />
       </div>
       {state.sheet && sheetGaps.length ? <SendSheet api={sheet} onClose={closeSheet} /> : null}

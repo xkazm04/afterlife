@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { MouseEvent } from 'react';
 import { Cell } from '@/components/table/Cell';
 import { Row } from '@/components/table/Row';
@@ -43,7 +44,9 @@ export function ClassLine({
   return (
     <Row id={cls.id} selected={selected} alt={alt} level={grouped ? 2 : 1} onSelect={on.onSelect} onActivate={on.onActivate} onContextMenu={on.onMenu}>
       <Cell indent className={flash}>
-        <span className={styles.cid}>{cls.id}</span>
+        <Link className={styles.cid} href={`/ladder/${encodeURIComponent(cls.id)}`} tabIndex={-1} title="Open the class page (↵)">
+          {cls.id}
+        </Link>
         {grouped ? null : <span className={styles.trk}>{cls.track}</span>}
         <UncountedChip on={!!cls.uncounted} />
       </Cell>

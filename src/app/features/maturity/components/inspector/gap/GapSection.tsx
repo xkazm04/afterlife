@@ -1,5 +1,5 @@
 import { Button } from '@/components/controls/Button';
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import type { MaturityCtx, Gap } from '../../../model/ctx';
 import type { Action } from '../../../model/reducer';
 import type { MaturityState } from '../../../model/state';
@@ -28,12 +28,7 @@ export function GapSection({
   const phase = state.flow[gap.id];
   const picked = state.picked.includes(gap.id) && !phase;
   return (
-    <InspectorSection
-      title={`Gap ${gap.id}`}
-      aux={`${rungText(gap.from)} → ${rungText(gap.to)}`}
-      open={state.open.gap}
-      onOpenChange={(open) => dispatch({ type: 'section', key: 'gap', open })}
-    >
+    <DetailSection title={`Gap ${gap.id}`} aux={`${rungText(gap.from)} → ${rungText(gap.to)}`} wide>
       <div className={styles.gh}>
         <span className={styles.t}>{gap.title}</span>
         <DemoChip on={ctx.live} what="This gap's invitation, files and what it earns" />
@@ -56,6 +51,6 @@ export function GapSection({
           </dl>
         </>
       )}
-    </InspectorSection>
+    </DetailSection>
   );
 }

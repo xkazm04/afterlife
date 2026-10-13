@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Checkbox } from '@/components/controls/Checkbox';
 import { TierChip } from '@/components/status/TierChip';
 import type { Gap } from '../../model/ctx';
@@ -19,6 +20,7 @@ export function GapRow({
   live,
   onPick,
   onSelect,
+  onOpen,
 }: {
   gap: Gap;
   picked: boolean;
@@ -30,6 +32,7 @@ export function GapRow({
   live: boolean;
   onPick: (id: string) => void;
   onSelect: (gap: Gap) => void;
+  onOpen: (gap: Gap) => void;
 }) {
   const mr = gap.x.kind === 'mr';
   return (
@@ -37,7 +40,7 @@ export function GapRow({
       tabIndex={0}
       aria-selected={selected}
       onClick={() => onSelect(gap)}
-      onKeyDown={(e) => e.target === e.currentTarget && onActivate(() => onSelect(gap))(e)}
+      onKeyDown={(e) => e.target === e.currentTarget && onActivate(() => onOpen(gap))(e)}
     >
       <div className={cx(styles.cell, styles.ctr)} role="cell" onClick={(e) => e.stopPropagation()}>
         {phase ? <span className={styles.none}>–</span> : <Checkbox checked={picked} onChange={() => onPick(gap.id)} label={`Pick gap ${gap.id}`} />}
@@ -52,9 +55,9 @@ export function GapRow({
         <span className={styles.mv}>{`${rungText(gap.from)} → ${rungText(gap.to)}`}</span>
       </div>
       <div className={cx(styles.cell, styles.ttl)} role="cell">
-        <span className={styles.nm} title={gap.x.invite}>
+        <Link className={styles.nm} href={`/maturity/${encodeURIComponent(gap.stage)}`} title={`${gap.x.invite} · open the ${gap.stage} page (↵)`}>
           {gap.title}
-        </span>
+        </Link>
         <DemoChip on={live} what="This gap's invitation and files" />
       </div>
       <div className={styles.cell} role="cell">

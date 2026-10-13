@@ -14,7 +14,6 @@ import { PromotionRule } from '../components/inspector/sections/PromotionRule';
 import { loadLadderData } from './loadLadderData';
 
 afterAll(() => setDataSource(null));
-const sections = { isOpen: () => true, setOpen: () => undefined };
 const cls = { ...DEMO.actionClasses[0]!, pending: null };
 const promotion = { kind: 'notyet' as const, next: 'hands_off' as const, precondition: HUMAN_KEY, rules: [{ name: 'mechanical proof class', value: 'repro', met: false }] };
 const DEMO_CHIP = '>demo<';
@@ -28,10 +27,10 @@ describe('the proof class, live', () => {
     expect(loadLadderData().illustrative.tracks).toBe(true);
   });
   it('is chipped demo in the Grant section and the mechanical rule row when it comes from the tracks', () => {
-    const grant = (proofDemo: boolean) => renderToString(createElement(GrantSection, { cls, proofClass: 'repro', proofDemo, sections }));
+    const grant = (proofDemo: boolean) => renderToString(createElement(GrantSection, { cls, proofClass: 'repro', proofDemo }));
     expect(grant(true)).toContain(DEMO_CHIP);
     expect(grant(false)).not.toContain(DEMO_CHIP);
-    const rule = (proofDemo: boolean) => renderToString(createElement(PromotionRule, { promotion, uncounted: false, proofDemo, sections }));
+    const rule = (proofDemo: boolean) => renderToString(createElement(PromotionRule, { promotion, uncounted: false, proofDemo }));
     expect(rule(true)).toContain(DEMO_CHIP);
     expect(rule(false)).not.toContain(DEMO_CHIP);
   });

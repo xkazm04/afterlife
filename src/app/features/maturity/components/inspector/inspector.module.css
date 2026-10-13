@@ -132,3 +132,8 @@
 .why {
   color: var(--text-3);
 }
+.pv {
+  grid-column: 1 / -1;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+}

@@ -1,33 +1,29 @@
 'use client';
 
 import { Button } from '@/components/controls/Button';
-import { InspectorHeader } from '@/components/inspector/InspectorHeader';
-import { TierMark } from '@/components/status/TierMark';
-import { TIER_META } from '@/lib/tiers';
 import { promoteTitle, type Promotion } from '@/lib/promotion';
-import { actsFrom, cellOf, holdersOf, isQuarantine, revokeTargets, shownName } from '../../model/rules/tiers';
+import { TIER_META } from '@/lib/tiers';
+import { actsFrom, isQuarantine, revokeTargets } from '../../model/rules/tiers';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, Track } from '../../model/types';
 import { entriesFor } from '../../model/view/moves';
 import type { WriteView } from '../../write/revoke';
 import { WhoActed } from './log/WhoActed';
-import { Sec, type SectionState } from './Sec';
+import { Sec } from './Sec';
 import { AllMoves } from './sections/AllMoves';
 import { GrantSection } from './sections/GrantSection';
 import { PromotionRule } from './sections/PromotionRule';
 import { WriteSection } from './sections/WriteSection';
 import styles from './inspector.module.css';
 
-export interface ClassInspectorProps {
+export interface ClassDetailProps {
   cls: ClassRow;
   track: Track | undefined;
   /** Live: the tracks (and so each class's proof class) are the demo catalogue's. */
   tracksDemo: boolean;
   promotion: Promotion;
-  byId: Readonly<Record<string, ClassRow>>;
   ledger: readonly LedgerEntry[];
   kinds: readonly ActorKind[];
   onToggleKind: (kind: ActorKind) => void;
-  sections: SectionState;
   writeTo: Tier | null;
   viewOf: (id: string, to: Tier) => WriteView | undefined;
   onRevoke: (id: string, to: Tier) => void;
@@ -35,21 +31,16 @@ export interface ClassInspectorProps {
   onPromote: (id: string) => void;
 }
 
-/** Layer 2 of a class: who acted (to scale), the promotion rule as counts, the write behind r, the grant, all moves. */
-export function ClassInspector(p: ClassInspectorProps) {
+/** The cards of a class page: the acts, the promotion rule as counts, the write behind r, the grant, who acted, all moves. */
+export function ClassDetail(p: ClassDetailProps) {
   const c = p.cls;
-  const first = revokeTargets(actsFrom(c))[0];
   const from = actsFrom(c);
+  const first = revokeTargets(from)[0];
   const mine = entriesFor(p.ledger, c.id);
   const eligible = p.promotion.kind === 'eligible';
   return (
     <>
-      <InspectorHeader
-        icon={<TierMark tier={cellOf(c)} holders={holdersOf(c)} />}
-        title={<span className={styles.cidh}>{c.id}</span>}
-        sub={`${c.track} ${p.track?.key ?? ''} · ${shownName(c)} · ceiling ${TIER_META[c.ceiling].name}`}
-        path="belay-policy/tier-state.yml"
-      >
+      <Sec title="Act" aux={c.track}>
         <div className={styles.acts}>
           {first ? (
             <>
@@ -72,14 +63,14 @@ export function ClassInspector(p: ClassInspectorProps) {
             </Button>
           ) : null}
         </div>
-      </InspectorHeader>
-      <Sec id="why" title="Who acted" aux={mine.length || ''} sections={p.sections}>
+      </Sec>
+      <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} />
+      <WriteSection cls={c} to={p.writeTo ?? first ?? null} viewOf={p.viewOf} />
+      <GrantSection cls={c} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} />
+      <Sec title="Who acted" aux={mine.length || ''} wide>
         <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />
       </Sec>
-      <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} sections={p.sections} />
-      <WriteSection cls={c} to={p.writeTo ?? first ?? null} viewOf={p.viewOf} sections={p.sections} />
-      <GrantSection cls={c} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} sections={p.sections} />
-      <AllMoves ledger={p.ledger} current={c.id} kinds={p.kinds} onToggleKind={p.onToggleKind} sections={p.sections} />
+      <AllMoves ledger={p.ledger} current={c.id} kinds={p.kinds} onToggleKind={p.onToggleKind} />
     </>
   );
 }
