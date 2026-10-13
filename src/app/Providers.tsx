@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { ShellProvider, type ShellData } from '@/components/shell/ShellContext';
+import { DevInspectorMount } from '@/lib/dev/inspector/DevInspectorMount';
 import { TextSizeShortcuts } from '@/lib/settings/TextSizeShortcuts';
 
 /** Client providers for the whole app: toasts and status messages, the shell's numbers, the text-size keys. */
@@ -11,6 +12,7 @@ export function Providers({ needsYouCount, data, children }: { needsYouCount: nu
     <ToastProvider>
       <ShellProvider value={{ needsYouCount, data }}>
         <TextSizeShortcuts />
+        <DevInspectorMount />
         {children}
       </ShellProvider>
     </ToastProvider>
