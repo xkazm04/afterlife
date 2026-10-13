@@ -35,6 +35,7 @@ project, `ledgerline`. The GitLab flows, the proof engine and the tripwire come 
 ```bash
 npm install
 npm run dev        # http://localhost:3000, demo data
+npm run dev:inspect # same, plus source mapping: Ctrl/Cmd+Shift+L arms the DevInspector (right-click copies path:line)
 npm run verify     # typecheck, lint, structure check, tests, production build
 npm run doctor     # local preflight: git, glab, auth
 npm run demo:data  # regenerate src/lib/demo/data/belay-demo.json
