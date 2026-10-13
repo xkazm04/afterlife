@@ -7,13 +7,13 @@ import styles from './StageMeter.module.css';
 export function StageMeter({ rung, showNumber, deep }: { rung: number | null; showNumber?: boolean; deep?: boolean }) {
   if (rung == null) {
     return (
-      <span className={styles.qbox} title="unknown">
+      <span className={styles.qbox} role="img" aria-label="Rung unknown" title="Rung unknown">
         ?
       </span>
     );
   }
   return (
-    <span className={deep ? `${styles.meter} ${styles.deep}` : styles.meter} title={`rung ${rung} of 4`}>
+    <span className={deep ? `${styles.meter} ${styles.deep}` : styles.meter} role="img" aria-label={`Rung ${rung} of 4`} title={`rung ${rung} of 4`}>
       {[1, 2, 3, 4].map((i) => (
         <i key={i} className={i <= rung ? styles.on : undefined} />
       ))}

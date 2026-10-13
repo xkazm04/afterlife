@@ -12,7 +12,7 @@ export function RungGlyph({ tier, ceiling, compact }: { tier: Ceiling; ceiling: 
       : `now ${TIER_META[tier].name} · ceiling ${TIER_META[ceiling].name}`;
   return (
     <>
-      <span className={styles.lad} data-tier={ceiling === 'human_only' ? undefined : tier} title={title}>
+      <span className={styles.lad} data-tier={ceiling === 'human_only' ? undefined : tier} role="img" aria-label={title} title={title}>
         {cells.map((c, i) => (
           <i key={i} className={c === 'at' ? styles.at : c === 'out' ? styles.out : undefined} />
         ))}
