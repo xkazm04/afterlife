@@ -1,8 +1,8 @@
-import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { PROMOTE, PROOFS, proofsAux } from '../../../data/promote';
 import { Chip } from '@/components/status/chip/Chip';
 import { TierMove } from '../../shared/MoveMarks';
 import { ActBtn, Acts } from '../Acts';
+import { ItemHead } from '../Head';
 import type { InspProps } from '../props';
 import { PolicyCmdSec, PolicyDiffSec } from '../PolicyWrite';
 import { ClickSec, Sec } from '../Sec';
@@ -16,8 +16,7 @@ export function InspPromote(p: InspProps) {
   const met = promote.rules.filter((r) => r[2]).length;
   return (
     <>
-      <InspectorHeader
-        title={promote.title}
+      <ItemHead
         sub={
           <span className={styles.subrow}>
             <TierMove from={promote.from} to={promote.to} />

@@ -1,7 +1,6 @@
 import { CommandBlock } from '@/components/inspector/CommandBlock';
 import { DiffBlock } from '@/components/inspector/blocks/DiffBlock';
 import { parseDiff } from '@/components/inspector/blocks/diff';
-import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
@@ -10,6 +9,7 @@ import { commandsFor } from '../../../model/outbox/commands';
 import { gapBlock } from '../../../write/desk';
 import { PROPOSAL_EXTRAS } from '@/app/features/maturity/data/proposals';
 import { ActBtn, Acts } from '../Acts';
+import { ItemHead } from '../Head';
 import type { InspProps } from '../props';
 import { ClickSec, Sec } from '../Sec';
 import styles from './items.module.css';
@@ -27,8 +27,7 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
   const toName = demo.rungNames[g.to] ?? '';
   return (
     <>
-      <InspectorHeader
-        title={g.title}
+      <ItemHead
         sub={
           <span className={styles.subrow}>
             <span>{g.stage}</span>

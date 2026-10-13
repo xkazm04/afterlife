@@ -1,7 +1,8 @@
 // The words of the inspector: class records, decision meta lines, the feed rows. Pure; the sections only draw them.
 import { formatAge } from '@/lib/format/time';
 import type { ActionClass, FleetProject, NeedsYouItem, Task } from '@/lib/demo/types';
-import { TIER_META } from '@/lib/tiers';
+import { STATE_LABEL } from '@/lib/demo/labels';
+import { TIER_DISPLAY_ORDER, TIER_META, tiersKnown } from '@/lib/tiers';
 import type { DeepProject, FleetTask, TaskVerdict } from './types';
 
 /** "16/15 · 9 d": accepted outputs / needed, and the days left on the lease. Empty when the demo has no record. */
@@ -86,4 +87,13 @@ export function verdictMark(v: TaskVerdict | null): VerdictMark {
   if (v === 'PASS') return { glyph: '✓', word: 'PASS', tone: 'ok' };
   if (v === 'FAIL') return { glyph: '✗', word: 'FAIL', tone: 'bad' };
   return { glyph: '?', word: v, tone: 'unk' };
+}
+
+/** The one-line answer for a project page: its state, then what waits and how many classes sit at each tier. */
+export function projectLede(p: FleetProject): string {
+  if (p.state === 'not-set-up') return `${STATE_LABEL[p.state]} · no classes armed`;
+  const tiers = tiersKnown(p)
+    ? TIER_DISPLAY_ORDER.filter((t) => p.tiers[t]).map((t) => `${p.tiers[t]} ${TIER_META[t].name.toLowerCase()}`)
+    : ['tiers unknown'];
+  return [STATE_LABEL[p.state], p.needsYou ? waitingTitle(p.needsYou, p.state === 'stale') : 'nothing waiting', ...tiers].join(' · ');
 }

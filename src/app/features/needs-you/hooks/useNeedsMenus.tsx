@@ -11,14 +11,14 @@ import { isDecisionId } from '../model/rows/rowState';
 import type { Action, NeedsState } from '../model/types';
 
 /** The right-click menus of the table (rows and group rows), also opened by the ContextMenu key. */
-export function useNeedsMenus(s: NeedsState, demo: NeedsYouDemo, dispatch: (a: Action) => void, showInspector: () => void) {
+export function useNeedsMenus(s: NeedsState, demo: NeedsYouDemo, dispatch: (a: Action) => void, onOpen: (id: string) => void) {
   const menu = useMenu();
   const { status } = useToast();
 
   const run = (intent: MenuIntent, id: string) => {
     if (intent.kind === 'inspect') {
       dispatch({ type: 'select', id });
-      showInspector();
+      onOpen(id);
     } else if (intent.kind === 'act') dispatch({ type: 'act', action: intent.action });
     else if (intent.kind === 'collapse') {
       dispatch({ type: 'toggleGroup', id: intent.group, open: false });

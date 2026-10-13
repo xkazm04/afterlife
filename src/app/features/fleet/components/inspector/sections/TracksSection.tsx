@@ -1,13 +1,12 @@
-import { InspectorSection } from '@/components/inspector/InspectorSection';
-import type { SectionProps } from '../../../hooks/useSectionOpen';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import type { DeepProject } from '../../../model/types';
 import { DemoChip } from '../DemoChip';
 import styles from './sections.module.css';
 
 /** The eight tracks of the deep project and what each one waits for, labelled demo when they are the catalogue's. Closed until opened. */
-export function TracksSection({ deep, demo, sec }: { deep: DeepProject; demo: boolean; sec: SectionProps }) {
+export function TracksSection({ deep, demo, }: { deep: DeepProject; demo: boolean }) {
   return (
-    <InspectorSection
+    <DetailSection
       title="Tracks"
       aux={
         demo ? (
@@ -18,7 +17,7 @@ export function TracksSection({ deep, demo, sec }: { deep: DeepProject; demo: bo
           deep.running
         )
       }
-      {...sec}
+     
     >
       {deep.tracks.map((t) => (
         <div key={t.id} className={styles.ev}>
@@ -34,6 +33,6 @@ export function TracksSection({ deep, demo, sec }: { deep: DeepProject; demo: bo
           </span>
         </div>
       ))}
-    </InspectorSection>
+    </DetailSection>
   );
 }

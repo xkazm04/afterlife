@@ -1,14 +1,46 @@
+/* Pieces of a Needs you detail page. They sit in DetailPage's grid: the head and the buttons span it. */
+.head,
+.acts {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.head {
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.path {
+  margin-top: 3px;
+  font: 400 var(--t-small) / 1.3 var(--mono);
+  color: var(--text-3);
+}
 .acts {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--sep);
 }
 .acts button:disabled {
   background: none;
   color: var(--text-4);
   box-shadow: inset 0 0 0 1px var(--border-2);
+}
+.sec {
+  min-width: 0;
+}
+.tog {
+  margin-left: 8px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  cursor: pointer;
+}
+.tog:hover {
+  color: var(--text-1);
+}
+.tog:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 .none {
   padding: 12px 14px;

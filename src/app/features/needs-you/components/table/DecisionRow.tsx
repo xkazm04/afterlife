@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { MouseEvent } from 'react';
 import { Button } from '@/components/controls/Button';
 import { Checkbox } from '@/components/controls/Checkbox';
@@ -37,9 +38,9 @@ export function DecisionRow({ id, index, s, demo, leftSec, dispatch, onActivate,
         ) : (
           <span className={styles.spacer} />
         )}
-        <span className={styles.nm} title={v.title}>
+        <Link href={`/needs-you/${id}`} className={styles.nm} title={v.title}>
           {v.title}
-        </span>
+        </Link>
         {v.seeded ? <HonestyChip kind="seeded" /> : null}
       </Cell>
       <Cell>

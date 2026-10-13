@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
-import { acceptedLabel, classTip, decideLabel, feedRows, fleetTask, gitlabUrl, needsMeta, recordLabel, taskVerdict, verdictMark, waitingTitle } from './inspector';
+import { acceptedLabel, classTip, decideLabel, feedRows, fleetTask, gitlabUrl, needsMeta, projectLede, recordLabel, taskVerdict, verdictMark, waitingTitle } from './inspector';
 import { makeProject } from './testProject';
 import type { DeepProject } from './types';
 
@@ -82,5 +82,16 @@ describe('tasks', () => {
   it('draws only PASS as a tick and only FAIL as a cross; no proof is a dash, never a pass', () => {
     expect([verdictMark('PASS').glyph, verdictMark('FAIL').glyph, verdictMark('INCONCLUSIVE').glyph, verdictMark('UNKNOWN').glyph]).toEqual(['✓', '✗', '?', '?']);
     expect(verdictMark(null)).toEqual({ glyph: '–', word: 'no proof', tone: 'none' });
+  });
+});
+
+describe('projectLede', () => {
+  it('says the state, what waits and the tier counts in one line', () => {
+    const p = makeProject({ id: 'a', needsYou: 2, tiers: { hands_off: 1, supervised: 3, assisted: 0, quarantined: 0, human_only: 0 } });
+    expect(projectLede(p)).toBe('Watching · 2 decisions waiting · 1 hands-off · 3 supervised');
+  });
+  it('says an unwatched project has no classes, and unknown tiers are not zero', () => {
+    expect(projectLede(makeProject({ id: 'b', state: 'not-set-up' }))).toContain('no classes armed');
+    expect(projectLede(makeProject({ id: 'c', classTiers: {} }))).toContain('tiers unknown');
   });
 });

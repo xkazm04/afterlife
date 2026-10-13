@@ -1,4 +1,3 @@
-import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
@@ -6,6 +5,7 @@ import { TierMark } from '@/components/status/TierMark';
 import { READMIT, readmitCooldown } from '../../../data/readmit';
 import { Chip } from '@/components/status/chip/Chip';
 import { ActBtn, Acts } from '../Acts';
+import { ItemHead } from '../Head';
 import type { InspProps } from '../props';
 import { retireText } from '../../../model/act';
 import { PolicyCmdSec, PolicyDiffSec } from '../PolicyWrite';
@@ -20,8 +20,7 @@ export function InspReadmit(p: InspProps) {
   const cooldown = readmitCooldown(demo.readmit.cooldownDays);
   return (
     <>
-      <InspectorHeader
-        title={demo.readmit.title}
+      <ItemHead
         sub={
           <span className={styles.subrow}>
             {st === 'retired' ? <Chip compact>retired</Chip> : <TierMark tier="quarantined" />}

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { memo } from 'react';
 import { Cell } from '@/components/table/Cell';
 import { Row } from '@/components/table/Row';
@@ -82,7 +83,9 @@ export const ProjectRow = memo(function ProjectRow(props: ProjectRowProps) {
   return (
     <Row id={p.id} selected={selected} alt={alt} stale={stale} muted={unwatched} level={grouped ? 2 : 1} onSelect={h.onSelect} onActivate={h.onActivate} onContextMenu={h.onContextMenu}>
       <Cell indent>
-        <span className={`${styles.name} ${unwatched ? styles.unwatched : ''}`}>{p.name}</span>
+        <Link href={`/fleet/${encodeURIComponent(p.id)}`} className={`${styles.name} ${unwatched ? styles.unwatched : ''}`} title={`Open ${p.name}`}>
+          {p.name}
+        </Link>
       </Cell>
       <Cell align="center" title={STATE_LABEL[p.state]}>
         <StateGlyph state={p.state} />

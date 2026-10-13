@@ -16,7 +16,7 @@ export type MenuIntent =
 export type MenuPlanItem = { sep: true } | { label: string; sc?: string; intent: MenuIntent };
 
 export function rowMenuPlan(s: NeedsState, id: string, demo: NeedsYouDemo): readonly MenuPlanItem[] {
-  const items: MenuPlanItem[] = [{ label: 'Show in Inspector', sc: '↩', intent: { kind: 'inspect' } }];
+  const items: MenuPlanItem[] = [{ label: 'Open', sc: '↩', intent: { kind: 'inspect' } }];
   const a = rowAction(s, id);
   if (a) items.push({ label: a.label, intent: { kind: 'act', action: a.action } });
   if (id === 'n1' && s.status.n1 === 'open') items.push({ label: 'Not yet', intent: { kind: 'act', action: 'snooze-n1' } });

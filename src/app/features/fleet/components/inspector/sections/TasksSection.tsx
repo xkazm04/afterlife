@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import type { FleetProject } from '@/lib/demo/types';
-import type { SectionProps } from '../../../hooks/useSectionOpen';
 import { verdictMark } from '../../../model/inspector';
 import type { DeepProject } from '../../../model/types';
 import styles from './sections.module.css';
@@ -12,7 +11,7 @@ const TONE = { ok: styles.vok, bad: styles.vbad, unk: styles.vunk, none: styles.
  * The tasks the data source holds for the deep project, each with its stored verdict, linking to its Task page. Tasks are
  * read for the deep project only, and any other project says so.
  */
-export function TasksSection({ p, deep, sec }: { p: FleetProject; deep: DeepProject; sec: SectionProps }) {
+export function TasksSection({ p, deep, }: { p: FleetProject; deep: DeepProject }) {
   const isDeep = p.id === deep.id;
   let body;
   if (!isDeep) body = <div className={styles.muted}>Tasks are listed for {deep.id} only</div>;
@@ -37,8 +36,8 @@ export function TasksSection({ p, deep, sec }: { p: FleetProject; deep: DeepProj
     });
   }
   return (
-    <InspectorSection title="Tasks" aux={isDeep ? deep.tasks.length : null} {...sec}>
+    <DetailSection title="Tasks" aux={isDeep ? deep.tasks.length : null}>
       {body}
-    </InspectorSection>
+    </DetailSection>
   );
 }

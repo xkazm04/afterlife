@@ -13,23 +13,23 @@ export interface KeyOptions {
   dispatch: (a: Action) => void;
   tableRef: RefObject<HTMLDivElement | null>;
   searchRef: RefObject<HTMLInputElement | null>;
-  inspectorOpen: boolean;
-  setInspectorOpen: (open: boolean) => void;
+  /** Enter on a row: its page. */
+  onActivate: (id: string) => void;
   onMenuKey: (id: string) => void;
 }
 
 /**
- * The keyboard map. On the table: arrows, Home/End, Left/Right collapse, Enter opens the inspector, Space picks or
- * acts, ContextMenu opens the menu. Anywhere: "/" searches, Escape clears the search, then closes the inspector.
+ * The keyboard map. On the table: arrows, Home/End, Left/Right collapse, Enter opens the decision's page, Space picks or
+ * acts, ContextMenu opens the menu. Anywhere: "/" searches, Escape clears the search.
  */
 export function useNeedsKeys(o: KeyOptions): (e: KeyboardEvent<HTMLElement>) => void {
-  const { s, groups, dispatch, tableRef, searchRef, inspectorOpen, setInspectorOpen, onMenuKey } = o;
+  const { s, groups, dispatch, tableRef, searchRef, onActivate, onMenuKey } = o;
   const nav = useRowNavigation({
     items: navItems(groups),
     selected: s.sel,
     onSelect: (id) => dispatch({ type: 'select', id }),
     onToggleGroup: (id, open) => dispatch({ type: 'toggleGroup', id, open }),
-    onActivate: () => setInspectorOpen(true),
+    onActivate,
     onContextMenuKey: onMenuKey,
     tableRef,
     grouped: true,
@@ -56,9 +56,6 @@ export function useNeedsKeys(o: KeyOptions): (e: KeyboardEvent<HTMLElement>) => 
       handler: (e) => {
         if (e.target === searchRef.current) {
           if (s.query) dispatch({ type: 'query', query: '' });
-          tableRef.current?.focus({ preventScroll: true });
-        } else if (inspectorOpen) {
-          setInspectorOpen(false);
           tableRef.current?.focus({ preventScroll: true });
         }
       },

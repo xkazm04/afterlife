@@ -1,9 +1,9 @@
-import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { RUNNER } from '../../../data/runner';
 import { Chip } from '@/components/status/chip/Chip';
 import { ActBtn, Acts } from '../Acts';
+import { ItemHead } from '../Head';
 import type { InspProps } from '../props';
 import { ClickSec, CommandSec, Sec } from '../Sec';
 
@@ -14,11 +14,11 @@ function RunnerChip({ check }: { check: 'ok' | 'none' | null }) {
 
 /** n5: finish the runner setup step. Belay opens the page and checks again; it writes nothing. */
 export function InspRunner(p: InspProps) {
-  const { s, demo, dispatch } = p;
+  const { s, dispatch } = p;
   const { check } = s.runner;
   return (
     <>
-      <InspectorHeader title={demo.runner.title} sub={`setup step ${RUNNER.step}`} path={RUNNER.url} />
+      <ItemHead sub={`setup step ${RUNNER.step}`} path={RUNNER.url} />
       {s.status.n5 !== 'done' ? (
         <Acts>
           <ActBtn dispatch={dispatch} action="open-runner" variant="primary">
