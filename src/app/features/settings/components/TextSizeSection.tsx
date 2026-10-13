@@ -11,7 +11,7 @@ import styles from './TextSizeSection.module.css';
 const OPTIONS: readonly SegmentOption<TextSize>[] = TEXT_SIZES.map((t) => ({
   value: t,
   label: TEXT_SIZE_LABEL[t],
-  title: t === 'standard' ? 'Standard (default)' : t === 'smaller' ? 'Smaller (the prototype size)' : 'Larger',
+  title: t === 'standard' ? 'Standard (default)' : t === 'smaller' ? 'Smaller (13 px body)' : 'Larger',
 }));
 
 /** D10: the 3-way text-size control, the scale table and a live preview that restyles as you choose. */
@@ -22,12 +22,12 @@ export function TextSizeSection() {
     <SettingsSection id="text-size" title="Text size">
       <div className={styles.line}>
         <SegmentedControl label="Text size" options={OPTIONS} value={size} onChange={setSize} />
-        <span className={styles.note}>Saved on this device. Standard is the default.</span>
+        <span className={styles.note}>Saved in this browser. Standard is the default.</span>
       </div>
-      <table className={styles.spec}>
+      <table className={styles.spec} aria-label="What each text size changes">
         <thead>
           <tr>
-            <th scope="col" />
+            <th scope="col">Measure</th>
             {TEXT_SIZES.map((t) => (
               <th key={t} scope="col" className={t === size ? styles.cur : undefined}>
                 {TEXT_SIZE_LABEL[t]}

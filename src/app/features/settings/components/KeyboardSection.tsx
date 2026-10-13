@@ -7,7 +7,7 @@ import styles from './KeyboardSection.module.css';
 export function KeyboardSection() {
   return (
     <SettingsSection id="keyboard" title="Keyboard">
-      <ul className={styles.list}>
+      <ul className={styles.list} aria-label="Keyboard shortcuts">
         {SHORTCUTS.map((s) => (
           <li key={s.label} className={styles.row}>
             <span>{s.label}</span>
@@ -27,6 +27,7 @@ export function KeyboardSection() {
           </li>
         ))}
       </ul>
+      <p className={styles.note}>Cmd on a Mac, Ctrl on Windows and Linux.</p>
     </SettingsSection>
   );
 }

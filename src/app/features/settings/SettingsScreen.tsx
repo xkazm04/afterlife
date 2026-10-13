@@ -26,7 +26,7 @@ export function SettingsScreen() {
   return (
     <Window
       title="Settings"
-      subtitle="This device"
+      subtitle="This browser"
       sidebar={
         <SidebarSection title="Settings">
           {SECTIONS.map((s) => (

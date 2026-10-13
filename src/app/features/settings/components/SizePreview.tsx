@@ -7,7 +7,7 @@ import styles from './SizePreview.module.css';
 /** A table row, a tier chip and an inspector line drawn with the real parts, so they follow the chosen size. */
 export function SizePreview() {
   return (
-    <div className={styles.preview} aria-label="Preview">
+    <div className={styles.preview} role="group" aria-label="Preview of the chosen text size">
       <div className={styles.table} role="presentation">
         <div className={`${styles.r} ${styles.head}`}>
           <span>Project</span>
@@ -48,6 +48,7 @@ export function SizePreview() {
           ]}
         />
       </div>
+      <p className={styles.cap}>Sample rows, not your data. They resize with the choice above.</p>
     </div>
   );
 }

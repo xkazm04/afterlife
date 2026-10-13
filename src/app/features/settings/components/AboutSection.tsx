@@ -12,7 +12,7 @@ export function AboutSection() {
         rows={[
           ['Belay', `v${APP_VERSION}`],
           ['Data', <HonestyChip key="d" kind="simulated">illustrative demo data</HonestyChip>],
-          ['Saved settings', <code key="k">{TEXT_SIZE_STORAGE_KEY}</code>],
+          ['Stored in this browser as', <code key="k">{TEXT_SIZE_STORAGE_KEY}</code>],
         ]}
       />
     </SettingsSection>
