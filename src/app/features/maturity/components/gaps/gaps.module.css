@@ -16,6 +16,10 @@
 .row:not(.head):hover {
   background: var(--hover);
 }
+.row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
 .alt {
   background: var(--alt);
 }
@@ -78,7 +82,7 @@
   align-items: center;
   height: var(--mini-h);
   padding: 0 6px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   font-size: var(--t-small);
   color: var(--text-3);
   box-shadow: inset 0 0 0 1px var(--border-3);
@@ -104,4 +108,9 @@
 }
 .credited {
   color: var(--ok);
+}
+.empty {
+  padding: 10px 12px;
+  font-size: var(--t-body);
+  color: var(--text-3);
 }

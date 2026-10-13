@@ -4,7 +4,7 @@ import type { Gap } from '../../model/ctx';
 import type { Phase } from '../../model/flow/credit';
 import { rungText } from '../../model/rungs';
 import { DemoChip } from '../chrome/DemoChip';
-import { cx } from '../cx';
+import { cx, onActivate } from '../cx';
 import { GapState } from './GapState';
 import styles from './gaps.module.css';
 
@@ -33,7 +33,12 @@ export function GapRow({
 }) {
   const mr = gap.x.kind === 'mr';
   return (
-    <div className={cx(styles.row, alt && styles.alt, selected && styles.selected)} role="row" aria-selected={selected} onClick={() => onSelect(gap)}>
+    <div className={cx(styles.row, alt && styles.alt, selected && styles.selected)} role="row"
+      tabIndex={0}
+      aria-selected={selected}
+      onClick={() => onSelect(gap)}
+      onKeyDown={(e) => e.target === e.currentTarget && onActivate(() => onSelect(gap))(e)}
+    >
       <div className={cx(styles.cell, styles.ctr)} role="cell" onClick={(e) => e.stopPropagation()}>
         {phase ? <span className={styles.none}>–</span> : <Checkbox checked={picked} onChange={() => onPick(gap.id)} label={`Pick gap ${gap.id}`} />}
       </div>
