@@ -12,10 +12,9 @@ import styles from './nodes.module.css';
  * `lit` is hot (on the path of the hover or pick) or dim (everything else while something is lit).
  */
 export function MapNode({
-  focus, selected, lit, tip, events, className, children,
+  focus, lit, tip, events, className, children,
 }: {
   focus: Focus;
-  selected: boolean;
   lit: Lit;
   tip: string;
   events: NodeEvents;
@@ -30,7 +29,6 @@ export function MapNode({
       type="button"
       className={cls}
       data-node={`${focus.k}:${focus.id}`}
-      aria-pressed={selected}
       aria-describedby={tipId}
       onClick={() => events.onPick(focus)}
       onMouseEnter={enter}

@@ -40,7 +40,7 @@ export function SetupLegend() {
         ]}
       />
       <hr />
-      <div className={styles.muted}>Capability edges are illustrative · click a node · Esc clears · Tab walks the map · ⌘/Ctrl+I inspector</div>
+      <div className={styles.muted}>Capability edges are illustrative · click a node · it opens its page · Esc clears · Tab walks the map</div>
     </>
   );
 }

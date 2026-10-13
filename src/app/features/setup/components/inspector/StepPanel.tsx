@@ -2,8 +2,7 @@
 
 import { Button } from '@/components/controls/Button';
 import { CommandBlock } from '@/components/inspector/CommandBlock';
-import { InspectorHeader } from '@/components/inspector/InspectorHeader';
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { plural } from '@/lib/format/plural';
 import { GATE_FREES } from '../../data/armMeta';
@@ -16,7 +15,6 @@ import { Chip } from '@/components/status/chip/Chip';
 import styles from './inspector.module.css';
 import { ProbeLine } from './parts/ProbeLine';
 import { TrackDep } from './parts/TrackDep';
-import type { useOpenSections } from './parts/useOpenSections';
 
 function StateChip({ st, gate, said }: { st: string; gate: boolean; said: string | null }) {
   if (said) return <Chip tone="unknown" title="Not a read: Belay cannot see this step done">{saidText(said)}</Chip>;
@@ -30,7 +28,7 @@ function StateChip({ st, gate, said }: { st: string; gate: boolean; said: string
  * A picked step: who does it, the exact command or the thing to do, the last probe, and what it frees. Live mode never
  * sends a step's write from here (Copy only), and its commands name the paired group and project.
  */
-export function StepPanel({ n, section }: { n: number; section: ReturnType<typeof useOpenSections> }) {
+export function StepPanel({ n }: { n: number }) {
   const { state, actions, illustrative } = useSetup();
   const s = state.steps[n];
   const d = stepDetail(state, n);
@@ -46,20 +44,15 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
   if (d.note) rows.push(['Note', d.note]);
   return (
     <>
-      <InspectorHeader
-        title={s.title}
-        icon={<span className={`${styles.mk} ${done ? styles.mkOk : gate ? styles.mkYou : ''}`}>{done ? '✓' : n}</span>}
-        sub={`Step ${n} · ${s.phase}`}
-      >
+      <DetailSection title="State" aux={`Step ${n} · ${s.phase}`}>
         <div className={styles.chips}>
           <StateChip st={s.st} gate={gate} said={said} />
           {d.write ? <Chip>writes</Chip> : null}
           {illustrative.steps ? <Chip title="The step's title and phase are the demo catalogue's; its state is what the read saw">title · demo</Chip> : null}
         </div>
-        <p className={styles.does}>{d.does}</p>
-      </InspectorHeader>
+      </DetailSection>
       {done ? null : d.who === 'human' ? (
-        <InspectorSection title="Do this" {...section('do')}>
+        <DetailSection title="Do this">
           <KeyValue rows={rows} />
           {d.unread ? <div className={styles.muted}>Not readable: {d.unread}</div> : null}
           {d.secret ? (
@@ -89,9 +82,9 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
               </Button>
             ) : null}
           </div>
-        </InspectorSection>
+        </DetailSection>
       ) : (
-        <InspectorSection title="Next write" aux={state.live ? 'copy · Belay does not send it' : 'preview · nothing sent'} {...section('write')}>
+        <DetailSection title="Next write" aux={state.live ? 'copy · Belay does not send it' : 'preview · nothing sent'}>
           <CommandBlock commands={[...(d.cmd ?? []), { note: state.live ? '# run it as you, or your agent via adopt-belay' : '# runs as @you via glab' }]} />
           <div className={styles.acts}>
             {state.live ? null : (
@@ -108,18 +101,18 @@ export function StepPanel({ n, section }: { n: number; section: ReturnType<typeo
               <Button onClick={() => actions.skip(n)}>Skip</Button>
             )}
           </div>
-        </InspectorSection>
+        </DetailSection>
       )}
-      <InspectorSection title="Last probe" aux={s.probe && !busy ? s.probe.at : undefined} {...section('probe')}>
+      <DetailSection title="Last probe" aux={s.probe && !busy ? s.probe.at : undefined}>
         <ProbeLine probe={s.probe} busy={busy} what="GitLab" />
-      </InspectorSection>
-      <InspectorSection title="Frees" aux={freed ? plural(freed, 'track') : undefined} {...section('frees')}>
+      </DetailSection>
+      <DetailSection title="Frees" aux={freed ? plural(freed, 'track') : undefined}>
         {freed ? (
           [...direct, ...more].map((id) => <TrackDep key={id} id={id} />)
         ) : (
           <div className={styles.muted}>{GATE_FREES[n] ? `No track directly · ${GATE_FREES[n]}` : 'No track directly · later steps rely on it'}</div>
         )}
-      </InspectorSection>
+      </DetailSection>
     </>
   );
 }
