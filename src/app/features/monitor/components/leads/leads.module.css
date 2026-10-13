@@ -110,3 +110,17 @@
 .row[data-thin] .staleChip {
   display: none;
 }
+/* spoken only: the amber number's unit */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.empty {
+  margin: auto;
+  color: var(--text-3);
+  font-size: var(--t-head);
+}

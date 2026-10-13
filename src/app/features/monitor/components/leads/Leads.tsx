@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useCallback, useMemo, useRef, type KeyboardEvent } from 'react';
-import { markTest } from '../../model/totals';
+import { decisionsWord, markTest } from '../../model/totals';
 import type { FleetProject } from '@/lib/demo/types';
 import type { Lead, MarkKind } from '../../model/types';
 import { LeadCells } from './LeadCells';
@@ -44,7 +44,10 @@ const LeadRow = memo(function LeadRow({ lead, open, thin, selected, match, onPic
       </button>
       {body}
       <div className={styles.counts}>
-        {lead.needs ? <span className={styles.amber} title={`${lead.needs} decisions wait`}>{lead.needs}</span> : null}
+        {lead.needs ? <span className={styles.amber} title={decisionsWord(lead.needs)}>
+            {lead.needs}
+            <span className={styles.sr}> decisions</span>
+          </span> : null}
         {lead.stale ? <span className={styles.staleChip}>{lead.stale} stale</span> : null}
       </div>
     </div>
@@ -112,7 +115,8 @@ export function Leads({
   );
 
   return (
-    <div ref={ref} className={styles.leads} data-paused={paused || undefined} onKeyDown={onKeyDown} aria-label="Leads, one per group">
+    <div ref={ref} className={styles.leads} data-paused={paused || undefined} onKeyDown={onKeyDown} role="group" aria-label="Leads, one per group">
+      {leads.length ? null : <div className={styles.empty}>No projects in this fleet yet. Set one up and its lead appears here.</div>}
       {leads.map((l) => (
         <LeadRow
           key={l.group}
