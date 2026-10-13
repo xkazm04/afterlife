@@ -63,7 +63,7 @@ with exit 2. It never writes.
 | `policy_ref` | string | `"main"` |  |
 | `node_image` | string | `"node:22-bookworm"` |  |
 | `glab_version` | string | `"1.120.0"` |  |
-| `glab_sha256` | string | `""` |  |
+| `glab_sha256` | string | `"4e6c59de9f7ed2f304bf93aad01ea8f8a69584f0450ce90ad696ef81f69c69aa"` (1.120.0) | SHA-256 of the glab linux amd64 tarball for `glab_version`, checked before install. Set it for any other `glab_version`; an empty value fails the job. |
 | `runner_tags` | array | `[]` |  |
 | `proof_authors` | string | **required** | Comma-separated usernames allowed to post the Proof Block note (belay-apply's bot account). A note by anyone else is ignored. |
 | `guardrail_authors` | string | `"ai-guardrail-$CI_PROJECT_ROOT_NAMESPACE"` | Comma-separated usernames of the guardrail flow service account. [R?] the exact ai-<flow>-<group> form. |

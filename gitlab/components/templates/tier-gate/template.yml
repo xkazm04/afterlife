@@ -30,7 +30,9 @@ spec:
     glab_version:
       default: '1.120.0'
     glab_sha256:
-      default: ''
+      default: '4e6c59de9f7ed2f304bf93aad01ea8f8a69584f0450ce90ad696ef81f69c69aa'
+      regex: '^[0-9a-f]{64}$'
+      description: SHA-256 of the glab linux amd64 tarball for glab_version. The default is glab 1.120.0's checksum from its published checksums.txt. Set it for any other glab_version; an empty value fails the job rather than install an unverified binary.
     runner_tags:
       type: array
       default: []
@@ -84,8 +86,9 @@ spec:
       (cd "$BELAY_DIR" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error)
       if ! command -v glab >/dev/null 2>&1; then
         V="$BELAY_GLAB_VERSION"; T="$(mktemp -d)"
+        if [ -z "$BELAY_GLAB_SHA256" ]; then echo "glab $V has no glab_sha256: refusing to install it unverified" >&2; exit 2; fi
         curl -fsSL -o "$T/glab.tgz" "https://gitlab.com/gitlab-org/cli/-/releases/v${V}/downloads/glab_${V}_linux_amd64.tar.gz" # [R?]
-        if [ -n "$BELAY_GLAB_SHA256" ]; then echo "$BELAY_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -; fi
+        echo "$BELAY_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -
         tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
       fi
       # The job token only, whatever this project's variables say (F4): a target pipeline never holds a write token, and
