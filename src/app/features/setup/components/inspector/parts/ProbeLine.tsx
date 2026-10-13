@@ -14,7 +14,9 @@ export function ProbeLine({ probe, busy, what }: { probe: ProbeNote | null; busy
       ) : probe ? (
         <>
           <span className={styles.pt}>{probe.at}</span>
-          <span className={probe.ok ? styles.ok : styles.no}>{probe.ok ? '✓' : '…'}</span>
+          <span className={probe.ok ? styles.ok : styles.no} role="img" aria-label={probe.ok ? 'passed' : 'not yet'}>
+            {probe.ok ? '✓' : '✕'}
+          </span>
           <span>{probe.text}</span>
         </>
       ) : (

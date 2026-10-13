@@ -98,3 +98,8 @@
   color: var(--text-2);
   line-height: 1.4;
 }
+/* a read that failed: said in the fail colour, not the dim voice of an empty section */
+.err {
+  color: var(--fail);
+  font-size: var(--t-head);
+}

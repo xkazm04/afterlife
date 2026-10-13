@@ -44,3 +44,20 @@ path.unk {
   color: var(--text-3);
   font-size: var(--t-head);
 }
+/* step marks: the round numbered mark of a step node, in the states the map draws */
+.m {
+  width: calc(12px * var(--ui-scale));
+  height: calc(12px * var(--ui-scale));
+  border-radius: 50%;
+  border: 1px solid var(--border-3);
+  display: block;
+}
+.sdone {
+  border-color: var(--accent);
+}
+.sfail {
+  border-color: var(--fail);
+}
+.sunk {
+  border: 1px dashed var(--unknown);
+}

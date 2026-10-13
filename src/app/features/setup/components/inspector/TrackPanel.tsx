@@ -58,7 +58,7 @@ export function TrackPanel({ id, section }: { id: string; section: ReturnType<ty
       {mine.length ? (
         <InspectorSection
           title="Tier on arming"
-          aux={<span title="Per action class. Never above the install ceiling (Supervised); Hands-off is earned later, by policy MR.">ceiling S ⓘ</span>}
+          aux={<span title="Per action class. Never above the install ceiling (Supervised); Hands-off is earned later, by policy MR.">ceiling Supervised ⓘ</span>}
           {...section('cls')}
         >
           <div className={styles.trs}>
@@ -79,7 +79,7 @@ export function TrackPanel({ id, section }: { id: string; section: ReturnType<ty
         {needs.length ? needs.map((k) => (isStepKey(k) ? <StepDep key={k} n={stepOf(k)} /> : <TrackDep key={k} id={k} />)) : <div className={styles.muted}>No prerequisite</div>}
       </InspectorSection>
       <InspectorSection title="Relies on in GitLab" {...section('relies')}>
-        {caps.length ? caps.map((c) => <CapDep key={c} name={c} />) : <div className={styles.muted}>None</div>}
+        {caps.length ? caps.map((c) => <CapDep key={c} name={c} />) : <div className={styles.muted}>No GitLab capability</div>}
       </InspectorSection>
       {frees.length ? (
         <InspectorSection title="Frees" aux={plural(frees.length, 'track')} {...section('frees')}>

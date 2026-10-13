@@ -28,7 +28,7 @@ export function CapPanel({ name, section }: { name: string; section: ReturnType<
         </div>
         {note ? <p className={styles.does}>{note}</p> : null}
       </InspectorHeader>
-      <InspectorSection title="Probe" aux={state.doctorNever ? 'never' : state.doctorProbedAt} {...section('probe')}>
+      <InspectorSection title="Probe" aux={state.doctorNever ? 'never probed' : state.doctorProbedAt} {...section('probe')}>
         <Button disabled={state.doctorBusy} onClick={() => void actions.reprobe()}>
           {state.doctorBusy ? (
             <>
@@ -43,7 +43,7 @@ export function CapPanel({ name, section }: { name: string; section: ReturnType<
         {uses.length ? (
           uses.map((id) => <TrackDep key={id} id={id} />)
         ) : (
-          <div className={styles.muted}>{state.live ? 'Not mapped: Belay does not tie a live probe to the tracks yet' : 'None'}</div>
+          <div className={styles.muted}>{state.live ? 'Not mapped: Belay does not tie a live probe to the tracks yet' : 'No track relies on it'}</div>
         )}
       </InspectorSection>
     </>

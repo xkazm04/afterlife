@@ -63,7 +63,7 @@ export function DefaultPanel({ section }: { section: ReturnType<typeof useOpenSe
       </InspectorSection>
       {state.doctorError ? (
         <InspectorSection title="belay doctor" {...section('doc')}>
-          <div className={styles.muted}>{state.doctorError}</div>
+          <div className={styles.err}>{state.doctorError}</div>
         </InspectorSection>
       ) : null}
       {unknown.length ? (
