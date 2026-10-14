@@ -13,7 +13,8 @@ next-env.d.ts
 
 # design, planning and agent working material (kept locally, not part of the app)
 .contest/
-.claude/
+.claude/*
+!.claude/perfect/
 design/
 /docs/
 DECISIONS.md
@@ -30,3 +31,6 @@ Thumbs.db
 
 # spark vault (design notes, local)
 .spark/
+
+# perfect loop vault (local, not versioned)
+.perfect/
