@@ -23,12 +23,12 @@ import { upsertProposals } from '@/server/index/repositories/work/proposal';
 import { seedDemo, SEED_NOW } from '@/server/index/seed';
 import { readPollerConfig } from '@/server/poller/config';
 import { runPollCycle } from '@/server/poller/cycle';
-import { demoSource } from '../demoSource';
-import { replayClock } from '../live/clock';
-import { liveSource } from '../live/liveSource';
-import { buildSnapshot, type LiveSnapshot } from '../live/snapshot';
-import { rulesOf } from '../policy';
-import { getDataSource, setDataSource } from '../select';
+import { demoSource } from '../../demoSource';
+import { replayClock } from '../../live/clock';
+import { liveSource } from '../../live/liveSource';
+import { buildSnapshot, type LiveSnapshot } from '../../live/snapshot';
+import { rulesOf } from '../../policy';
+import { getDataSource, setDataSource } from '../../select';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/ladder', useRouter: () => ({ push: () => undefined, refresh: () => undefined }) }));
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));

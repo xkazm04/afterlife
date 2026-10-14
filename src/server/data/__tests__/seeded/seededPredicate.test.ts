@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isSeeded, SEEDED_ITEMS } from '../live/seeded';
+import { isSeeded, SEEDED_ITEMS } from '../../live/seeded';
 
 describe('the seeded predicate', () => {
   it('holds the demo\'s five inbox items and the gap picks', () => {
