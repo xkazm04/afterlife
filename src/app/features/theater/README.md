@@ -48,7 +48,7 @@ are drawn done, and there is no lit rope).
 | `clock_event` | none | no hold of the climb |
 
 What the ledger does not feed is hidden, never invented: the rungs (Stages with evidence) and the closing Board, the
-CRA clock, the catalogue's three autonomy classes (the rail shows instead the classes the MR's events name, at the
+CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.file-bug` starts Assisted and is promoted to Supervised at seq 503, `dep-bump.patch` stays Hands-off, `patch-bump` is demoted at seq 510; a promotion does not play the drop animation), the catalogue's three autonomy classes (the rail shows instead the classes the MR's events name, at the
 `tier_at_time` each states), the needs (the Needs me card and section), Running and Going well, the proof checks, the
 !44 line and its quote, and the loop's narrative per hold (who, what). Nothing is marked "demo" instead.
 

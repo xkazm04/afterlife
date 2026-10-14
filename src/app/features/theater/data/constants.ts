@@ -49,7 +49,7 @@ const INITIAL_NEEDS: readonly NeedItem[] = [
 ];
 const INITIAL_TIERS: Readonly<Record<string, Ceiling>> = {
   'dep-bump.patch': 'hands_off',
-  'qa.file-bug': 'supervised',
+  'qa.file-bug': 'assisted',
   'patch-bump': 'supervised',
 };
 const INITIAL_RUNGS: Readonly<Record<string, number>> = {
@@ -81,7 +81,8 @@ export const CRA_END = { at: '14:22:40', leftSec: 19 * 3600 + 12 * 60 };
 export const TIER_WHY = {
   quarantined: 'Fell 14:20:05 · tripwire, in GitLab',
   hands_off: 'Acts alone inside its envelope · revocable',
-  bug: 'A person approves · record 16 / 15 · eligible',
+  assisted: 'Proposes only · a person does the work until a signed promotion',
+  bug: 'Earned at seq 503 · a person signed the promotion · a person approves',
   other: 'A person approves the outcome',
 };
 

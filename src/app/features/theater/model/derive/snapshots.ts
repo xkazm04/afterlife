@@ -1,6 +1,7 @@
 // The state at any ledger entry is a pure fold over the slice up to it. One pass builds all snapshots, so
 // a take replays exactly and seeking is an array lookup.
 import type { Ceiling, Stage } from '@/schemas';
+import { TIER_RANK } from '@/lib/tiers';
 import { INITIAL } from '../../data/constants';
 import { indexOfSeq } from '../replay/state';
 import type { CheckId, Film, LedgerEntry, NeedItem } from '../types';
@@ -83,8 +84,8 @@ export function buildSnapshots(ledger: readonly LedgerEntry[], stages: readonly 
       rungs,
       checks,
       board,
-      // a drop only where the class held a different tier before this entry
-      droppedNow: e.tier && was !== undefined && was !== e.tier.to ? e.tier.cls : null,
+      // a drop only where the class held a higher tier before this entry (a promotion does not drop)
+      droppedNow: e.tier && was !== undefined && TIER_RANK[e.tier.to] < TIER_RANK[was] ? e.tier.cls : null,
       stagesN: stages.filter((st) => (rungs[st] ?? 0) >= EVIDENCE_RUNG).length,
     });
   });

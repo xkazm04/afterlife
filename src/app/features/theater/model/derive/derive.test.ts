@@ -51,6 +51,18 @@ describe('snapshots (a pure fold over the slice)', () => {
     expect(at(510).needs).toHaveLength(3);
     expect(at(520).tiers['dep-bump.patch']).toBe('hands_off');
   });
+  it('shows all three tiers in one playthrough: Assisted, Supervised, Hands-off, then the demotion', () => {
+    expect(at(480).tiers).toEqual({ 'dep-bump.patch': 'hands_off', 'qa.file-bug': 'assisted', 'patch-bump': 'supervised' });
+    expect(at(499).tiers['dep-bump.patch']).toBe('hands_off'); // the Tier gate beat
+    expect(at(502).tiers['qa.file-bug']).toBe('assisted');
+    expect(at(503).tiers['qa.file-bug']).toBe('supervised'); // earned, by a ledger event
+    expect(at(503).droppedNow).toBeNull(); // a promotion does not drop
+    expect(at(520).tiers).toEqual({ 'dep-bump.patch': 'hands_off', 'qa.file-bug': 'supervised', 'patch-bump': 'quarantined' });
+  });
+  it('keeps the illustrative film within a few percent of 125 s of dwell', () => {
+    const total = REPLAY_LEDGER.reduce((a, e) => a + (e.d ?? 2600), 0);
+    expect(total).toBe(126200);
+  });
   it('shows the board from seq 519 and never before', () => {
     expect(at(518).board).toBe(false);
     expect(at(519).board).toBe(true);

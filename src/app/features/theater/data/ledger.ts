@@ -28,7 +28,7 @@ export const REPLAY_LEDGER: readonly LedgerEntry[] = [
   { seq: 500, t: '14:13:34', by: 'T3', x: '!41 merged by GitLab · approval rule met by the gate · 0 human clicks', sc: 6, d: 4200 },
   { seq: 501, t: '14:14:05', by: 'deploy', x: 'staging · Cloud Run rev 00041', beat: 7, sc: 7, d: 3000, now: 'deploy · !41 to staging' },
   { seq: 502, t: '14:14:50', by: 'T7', x: 'exploring the staging app', sc: 7, now: 'T7 QA · exploring staging' },
-  { seq: 503, t: '14:15:30', by: 'T7', x: '12 paths explored · 0 regressions', sc: 7 },
+  { seq: 503, t: '14:15:30', by: 'T7', x: '12 paths explored · 0 regressions · qa.file-bug ASSISTED → SUPERVISED · promotion signed by a person', tier: { cls: 'qa.file-bug', to: 'supervised' }, sc: 7, d: 3800 },
   { seq: 504, t: '14:16:02', by: 'T7', x: '1 UI bug filed on !41 · screenshot attached', seeded: true, sc: 7 },
   { seq: 505, t: '14:16:40', by: 'T8', x: 'opened !44 · Bump ktor-client 3.1.2 → 3.1.4', seeded: true, sc: 'm44', d: 3400, now: 'T8 gardener · !44 opened' },
   { seq: 506, t: '14:17:20', by: 'T8', x: '!44 pipeline green · bench-delta pending', sc: 'm44' },

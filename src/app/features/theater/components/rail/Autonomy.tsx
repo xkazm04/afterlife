@@ -17,7 +17,7 @@ export function Autonomy({ snap, fromLedger }: { snap: Snapshot; fromLedger: boo
       <div className={styles.bh}>Autonomy</div>
       {rows.map(([track, cls]) => {
         const tier = snap.tiers[cls] ?? 'human_only';
-        const why = fromLedger ? LEDGER_WHY : tier === 'quarantined' ? TIER_WHY.quarantined : tier === 'hands_off' ? TIER_WHY.hands_off : cls === 'qa.file-bug' ? TIER_WHY.bug : TIER_WHY.other;
+        const why = fromLedger ? LEDGER_WHY : tier === 'quarantined' ? TIER_WHY.quarantined : tier === 'hands_off' ? TIER_WHY.hands_off : tier === 'assisted' ? TIER_WHY.assisted : cls === 'qa.file-bug' ? TIER_WHY.bug : TIER_WHY.other;
         return (
           <div key={cls} className={`${styles.cls} ${snap.droppedNow === cls ? styles.drop : ''}`} title={why}>
             <span className={styles.id}>
