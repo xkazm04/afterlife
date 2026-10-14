@@ -5,7 +5,11 @@ import type { Film, TheaterDemo } from '../../model/types';
 import { ReplayChip } from '../parts/ReplayChip';
 import { Wall } from '../wall/Wall';
 import { Board } from './Board';
+import { ProofChecks } from './ProofChecks';
 import styles from './Pitch.module.css';
+
+/** The beat the proof engine runs in: its five checks are listed on the stage while the film is here. */
+const PROOF_BEAT = 4;
 
 /**
  * The pitch: the REPLAY chip and the beat line on top; the rope climb below, or the nine-stage wall at the close. The
@@ -35,6 +39,7 @@ export function Pitch({ snap, snaps, store, film, demo }: { snap: Snapshot; snap
           )}
         </span>
       </div>
+      {demo && snap.beat === PROOF_BEAT ? <ProofChecks done={snap.checks} /> : null}
       {demo && snap.board ? <Board snap={snap} demo={demo} last={snap.e.seq === range.b} /> : <Wall store={store} snaps={snaps} film={film} quote={demo?.quote ?? ''} />}
     </section>
   );

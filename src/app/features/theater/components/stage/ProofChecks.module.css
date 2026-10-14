@@ -1,0 +1,79 @@
+/* the proof checks on the stage: top right of the pitch, clear of the caption card (which rides at the climber's height) */
+.box {
+  position: absolute;
+  z-index: 4;
+  top: calc(var(--fE) + var(--sP) * 2.4);
+  right: var(--sP);
+  width: min(calc(var(--fA) * 15), 44%);
+  padding: calc(var(--sG) * 0.6) var(--sG);
+  border-radius: var(--r-sm);
+  background: var(--menu);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+  animation: in var(--t-slow) var(--ease);
+}
+.all {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ok) 55%, transparent);
+}
+@keyframes in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.hd {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 2px;
+  font-size: var(--fA);
+  font-weight: 650;
+  color: var(--text-2);
+}
+.aux {
+  font-family: var(--mono);
+  color: var(--text-3);
+}
+.all .aux {
+  color: var(--ok);
+}
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.list li {
+  display: grid;
+  grid-template-columns: 0.8em minmax(0, 1fr) auto;
+  gap: 0.5em;
+  align-items: center;
+  line-height: 1.55;
+}
+.g {
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  border: 1px dashed var(--unknown);
+}
+.pass .g {
+  border: 0;
+  background: var(--ok);
+}
+.nm {
+  font: 400 var(--fA) var(--mono);
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rs {
+  font-size: var(--fA);
+  color: var(--text-4);
+}
+.pass .rs {
+  color: var(--ok);
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .box {
+    animation: none;
+  }
+}

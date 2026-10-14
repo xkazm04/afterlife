@@ -71,6 +71,8 @@ CRA clock, the catalogue's three autonomy classes (the rail shows instead the cl
 - The climber chip at beat 0 sits one bolt below hold 1 and the wall keeps room for it (prototype clipped it).
 - Home/End and a looped take: any operator action cancels a pending roll or loop restart.
 - Keys 1-8 cue the eight takes; a real film has at most eight (the 8 newest MRs).
+- Space, R, L and F ignore OS auto-repeat (`once` on the hotkey); the arrows still repeat when held.
+- Beat 4 of the illustrative film lists the five proof checks on the stage (`stage/ProofChecks`), top right of the pitch, in the window and in present: it ticks from the snapshot's `checks` (the inspector's field), is a static labelled list (no live region), and a real film never shows it.
 
 ## On the shared kit
 `Card` is `surface/Card`, and a take with no rolls has no count column (`SidebarItem` hides an empty count).
