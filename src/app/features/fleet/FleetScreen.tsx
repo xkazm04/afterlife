@@ -22,6 +22,7 @@ import { useRowHandlers } from './hooks/useRowHandlers';
 import { useToolbarCompact } from './hooks/useToolbarCompact';
 import { menuFilterCount, sourceLabel } from './model/list/filtering';
 import { sortLabel } from './model/list/sorting';
+import type { FleetListState } from './model/list/urlState';
 import type { FleetData, FleetMeta, FleetSource, Source } from './model/types';
 
 /**
@@ -29,12 +30,12 @@ import type { FleetData, FleetMeta, FleetSource, Source } from './model/types';
  * right-click for actions, press a tier header to rank by it. `source` says which data source drew it and carries the
  * deep project's recent events. Nothing here writes.
  */
-export function FleetScreen({ data, source }: { data: FleetData; source: FleetSource }) {
+export function FleetScreen({ data, source, start }: { data: FleetData; source: FleetSource; start?: FleetListState }) {
   const { status } = useToast();
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const proj = useFleetProjects(data.projects);
-  const list = useFleetList(proj.projects, data.groups);
+  const list = useFleetList(proj.projects, data.groups, start);
   const pop = usePopover(380);
   const narrow = useNarrow(tableRef);
   const compact = useToolbarCompact(searchRef);

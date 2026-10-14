@@ -18,7 +18,7 @@ client `FleetScreen`.
   handlers, narrow / compact measuring, section open state, and `useRepoll` (simulated in demo, the server in live).
 
 ## Model (pure, tested)
-- `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank).
+- `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank). `model/list/urlState.ts` encodes view, sort, filters, search, grouping and folded groups as search params (default = clean URL); `/fleet` decodes them on the server and the list replaces the URL as they change, so Back from a project restores the screen.
 - `model/columns.ts` columns and grid tracks per view. `model/groups.ts` group totals, keyboard rows.
 - `model/menus/` the Sort, Filter and context menus. `model/needs.ts` waiting count, resolve,
   re-poll, status line. `model/inspector.ts` the inspector's wording.
