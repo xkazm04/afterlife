@@ -1,5 +1,6 @@
 // The words of the inspector: class records, decision meta lines, the feed rows. Pure; the sections only draw them.
 import { formatAge } from '@/lib/format/time';
+import { displayLastMove } from '@/lib/promotion';
 import type { ActionClass, FleetProject, NeedsYouItem, Task } from '@/lib/demo/types';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import { TIER_DISPLAY_ORDER, TIER_META, tiersKnown } from '@/lib/tiers';
@@ -22,7 +23,7 @@ export function acceptedLabel(c: ActionClass | undefined): string {
 /** The tooltip of a class row: its last move, and the ceiling when it is below it. */
 export function classTip(c: ActionClass | undefined): string {
   if (!c) return '';
-  return `${c.lastMove}${c.ceiling !== c.tier ? ` · ceiling ${TIER_META[c.ceiling].name}` : ''}`;
+  return `${displayLastMove(c.lastMove)}${c.ceiling !== c.tier ? ` · ceiling ${TIER_META[c.ceiling].name}` : ''}`;
 }
 
 /** The dim line under a decision: due time, the tier move (S → H), the reason, the number of gaps. */

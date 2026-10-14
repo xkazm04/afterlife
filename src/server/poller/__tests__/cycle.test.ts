@@ -43,7 +43,7 @@ describe('poll cycle against the demo GitLab, from an empty index', () => {
     expect(classes.map((c) => c.id)).toEqual(DEMO.fleet.classes);
     expect(by['dep-bump.patch']).toMatchObject({ track: 'T1', ceiling: 'hands_off', tier: 'hands_off', lease_days: 9, lastMove: 'promoted 5 d ago' });
     expect(by['qa.file-bug']).toMatchObject({ ceiling: 'hands_off', tier: 'supervised' });
-    expect(by['patch-bump']).toMatchObject({ tier: 'quarantined', lastMove: '4 min ago · tripwire' });
+    expect(by['patch-bump']).toMatchObject({ tier: 'quarantined', lastMove: '4 min ago · tripwire · guardrail_high' });
     expect(by['report.submit']?.tier).toBe('human_only');
     // the record is counted from the ledger since tier-state.yml's since (!41). !41's guardrail_verdict states pass: no
     // guardrail block in the counts; its notes were read and hold no push by anyone but the patcher: no-edit 1/1

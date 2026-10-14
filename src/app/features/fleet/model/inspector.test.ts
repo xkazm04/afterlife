@@ -23,7 +23,7 @@ describe('class records', () => {
   it('tips the last move and a ceiling below the tier', () => {
     expect(classTip(cls('dep-bump.patch'))).toBe('promoted 5 d ago');
     expect(classTip(cls('qa.file-bug'))).toBe('record 16 / 15 · eligible · ceiling Hands-off');
-    expect(classTip(cls('patch-bump'))).toBe('4 min ago · tripwire · ceiling Supervised');
+    expect(classTip(cls('patch-bump'))).toBe('4 min ago · tripwire · guardrail high-severity block · ceiling Supervised');
     expect(classTip(undefined)).toBe('');
   });
 });
