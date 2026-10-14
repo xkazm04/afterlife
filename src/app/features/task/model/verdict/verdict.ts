@@ -25,6 +25,28 @@ export const proofChecks = (checks: readonly TaskCheck[]): Check[] =>
 export const taskVerdict = (task: Pick<TaskView, 'proof' | 'envelope'>): string =>
   verdictLabel(verdictOf(proofChecks(task.proof.checks), task.envelope?.within ?? false));
 
+export interface DerivedVerdict {
+  /** What the checks say: the word every consumer draws. */
+  verdict: Verdict;
+  /** What the task's proof stored. Never drawn as the verdict. */
+  stored: Verdict;
+  /** The stored word differs from the derived one (a stored UNKNOWN is no claim, so it never disagrees). */
+  mismatch: boolean;
+}
+
+/**
+ * The verdict the screen shows: derived by `verdictOf` from the engine's checks, never read from the stored word. A task
+ * holding no checks and no stored verdict stays UNKNOWN. An unknown envelope (a source task with no fixture) is no evidence
+ * of a breach, so the checks alone decide there; a known one that is breached fails.
+ */
+export function derivedVerdict(task: Pick<TaskView, 'proof' | 'envelope'>): DerivedVerdict {
+  const stored = task.proof.verdict;
+  const checks = task.proof.checks;
+  const verdict: Verdict =
+    !checks.length && stored === 'UNKNOWN' ? 'UNKNOWN' : (verdictLabel(verdictOf(proofChecks(checks), task.envelope?.within ?? true)) as Verdict);
+  return { verdict, stored, mismatch: stored !== 'UNKNOWN' && stored !== verdict };
+}
+
 /** Whether a check is a struck term: a person decides it, so it does not weigh on the verdict. */
 export const isStruck = (c: { decidedBy?: 'engine' | 'human' }): boolean => c.decidedBy === 'human';
 

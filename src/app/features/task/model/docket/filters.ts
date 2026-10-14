@@ -1,5 +1,8 @@
 import { plural } from '@/lib/format/plural';
 import type { TaskView, Verdict } from '../types';
+import { derivedVerdict } from '../verdict/verdict';
+
+const verdictOfTask = (t: TaskView): Verdict => derivedVerdict(t).verdict;
 
 export type VerdictFilter = 'all' | Verdict;
 export interface Filters {
@@ -12,11 +15,11 @@ export const NO_FILTERS: Filters = { verdict: 'all', cls: 'all' };
 
 /** Filters only hide: they never change a task. */
 export function visibleTasks(tasks: readonly TaskView[], f: Filters): TaskView[] {
-  return tasks.filter((t) => (f.verdict === 'all' || t.proof.verdict === f.verdict) && (f.cls === 'all' || t.proof.cls === f.cls));
+  return tasks.filter((t) => (f.verdict === 'all' || verdictOfTask(t) === f.verdict) && (f.cls === 'all' || t.proof.cls === f.cls));
 }
 
 export function verdictCounts(tasks: readonly TaskView[]): { all: number; pass: number; fail: number } {
-  const count = (v: Verdict): number => tasks.filter((t) => t.proof.verdict === v).length;
+  const count = (v: Verdict): number => tasks.filter((t) => verdictOfTask(t) === v).length;
   return { all: tasks.length, pass: count('PASS'), fail: count('FAIL') };
 }
 
@@ -44,8 +47,8 @@ export const docketCount = (shown: number, total: number): string => (shown === 
 
 /** `ledgerAgeSec` null: no poll has happened yet. `now` null: the wall clock is not known yet (the first render). */
 export function statusLine(visible: readonly TaskView[], ledgerAgeSec: number | null, now: string | null): string {
-  const fails = visible.filter((t) => t.proof.verdict === 'FAIL').length;
-  const open = visible.filter((t) => t.proof.verdict !== 'PASS' && t.proof.verdict !== 'FAIL').length;
+  const fails = visible.filter((t) => verdictOfTask(t) === 'FAIL').length;
+  const open = visible.filter((t) => verdictOfTask(t) !== 'PASS' && verdictOfTask(t) !== 'FAIL').length;
   const read = ledgerAgeSec === null ? 'ledger not read yet' : `ledger read ${ledgerAgeSec} s ago`;
   return `${plural(visible.length, 'task')} · ${fails} fail${open ? ` · ${open} undetermined` : ''} · ${read}${now ? ` · ${now}` : ''} · reads only`;
 }

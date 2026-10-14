@@ -2,7 +2,7 @@ import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import type { TaskView } from '../../model/types';
 import { docketCount } from '../../model/docket/filters';
-import { verdictGlyph, verdictKind } from '../../model/verdict/verdict';
+import { derivedVerdict, verdictGlyph, verdictKind } from '../../model/verdict/verdict';
 import styles from './Docket.module.css';
 
 /**
@@ -15,16 +15,18 @@ export function Docket({ tasks, visible, currentId, onClear }: { tasks: readonly
       <nav data-docket aria-label="Tasks">
         {visible.length ? (
           visible.map((t) => {
-            const kind = verdictKind(t.proof.verdict);
+            const v = derivedVerdict(t);
+            const kind = verdictKind(v.verdict);
             return (
               <SidebarItem
                 key={t.id}
                 href={`/task/${t.id}`}
                 current={t.id === currentId}
-                icon={<span className={kind === 'bad' ? styles.bad : kind === 'ok' ? styles.ok : undefined}>{verdictGlyph(t.proof.verdict)}</span>}
+                icon={<span className={kind === 'bad' ? styles.bad : kind === 'ok' ? styles.ok : undefined}>{verdictGlyph(v.verdict)}</span>}
                 label={t.title}
                 count={<span className={styles.mono}>{t.track}</span>}
-                title={`${t.track} · ${t.mr ?? 'no MR'} · ${t.chain[0]?.at ?? '—'} · ${t.proof.cls}\n${t.title}`}
+                title={`${v.mismatch ? `stored ${v.stored} - checks say ${v.verdict}
+` : ''}${t.track} · ${t.mr ?? 'no MR'} · ${t.chain[0]?.at ?? '—'} · ${t.proof.cls}\n${t.title}`}
               />
             );
           })

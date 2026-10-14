@@ -71,3 +71,7 @@
 .none {
   color: var(--text-3);
 }
+.flag {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+}

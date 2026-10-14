@@ -3,7 +3,8 @@ import { loadTasks } from '../build/loadTasks';
 import type { TaskView } from '../types';
 import { equationTerms, verdictWord } from './equation';
 import { verdictOf } from '@/schemas';
-import { claimStatus, isStruck, tally, taskVerdict, verdictLabel } from './verdict';
+import { claimStatus, derivedVerdict, isStruck, tally, taskVerdict, verdictLabel } from './verdict';
+import { NO_FILTERS, verdictCounts, visibleTasks } from '../docket/filters';
 
 const tasks = loadTasks();
 const get = (id: string): TaskView => {
@@ -57,13 +58,46 @@ describe('equation', () => {
     expect(equationTerms(q8, null, null).every((t) => t.landed)).toBe(true);
     expect(equationTerms(q8, null, 2).map((t) => t.landed)).toEqual([true, true, false, false]);
     expect(equationTerms(q8, null, -1).some((t) => t.landed)).toBe(false);
-    expect(verdictWord(q8, 2)).toEqual({ word: 'checking…', waiting: true, fail: false });
-    expect(verdictWord(q8, null)).toEqual({ word: 'FAIL', waiting: false, fail: true });
+    expect(verdictWord(q8, 2)).toMatchObject({ word: 'checking…', waiting: true, fail: false });
+    expect(verdictWord(q8, null)).toMatchObject({ word: 'FAIL', waiting: false, fail: true });
   });
 
   it('marks the selected check and its glyphs', () => {
     const terms = equationTerms(get('01J8Q8'), { side: 'check', id: 'envelope' }, null);
     expect(terms.find((t) => t.selected)?.glyph).toBe('✗');
     expect(terms.filter((t) => t.selected)).toHaveLength(1);
+  });
+});
+
+describe('derivedVerdict', () => {
+  const lie = (): TaskView => {
+    const q4 = get('01J8Q4');
+    return { ...q4, proof: { ...q4.proof, verdict: 'PASS', checks: q4.proof.checks.map((c, i) => (i === 0 ? { ...c, ok: false } : c)) } };
+  };
+
+  it('agrees with the stored word on every fixture task', () => {
+    const measured = tasks.map((t) => [t.id, t.proof.verdict, derivedVerdict(t).verdict, derivedVerdict(t).mismatch]);
+    expect(measured.filter((m) => m[1] !== m[2] || m[3])).toEqual([]);
+  });
+
+  it('lets a false engine check beat a stored PASS, and flags the disagreement', () => {
+    const t = lie();
+    expect(derivedVerdict(t)).toEqual({ verdict: 'FAIL', stored: 'PASS', mismatch: true });
+    expect(verdictWord(t, null)).toMatchObject({ word: 'FAIL', fail: true, mismatch: true, stored: 'PASS' });
+    expect(verdictWord(t, 0)).toMatchObject({ word: 'checking…', mismatch: false });
+    expect(verdictCounts([t])).toEqual({ all: 1, pass: 0, fail: 1 });
+    expect(visibleTasks([t], { ...NO_FILTERS, verdict: 'FAIL' })).toHaveLength(1);
+  });
+
+  it('ignores a check a person decides, and never flags an honest task', () => {
+    const t = lie();
+    const human = { ...t, proof: { ...t.proof, checks: t.proof.checks.map((c, i) => (i === 0 ? { ...c, decidedBy: 'human' as const } : c)) } };
+    expect(derivedVerdict(human)).toEqual({ verdict: 'PASS', stored: 'PASS', mismatch: false });
+  });
+
+  it('does not read an unknown envelope as a breach, and keeps a task with no proof UNKNOWN', () => {
+    expect(derivedVerdict({ ...get('01J8Q4'), envelope: null }).verdict).toBe('PASS');
+    expect(derivedVerdict({ ...get('01J8Q4'), envelope: { files: 1, lines: 1, paths: [], within: false } }).verdict).toBe('FAIL');
+    expect(derivedVerdict({ envelope: null, proof: { cls: 'x', verdict: 'UNKNOWN', engine: '', digest: '', checks: [] } })).toEqual({ verdict: 'UNKNOWN', stored: 'UNKNOWN', mismatch: false });
   });
 });

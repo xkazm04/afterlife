@@ -1,3 +1,4 @@
+import { Chip } from '@/components/status/chip/Chip';
 import { HelpButton } from '@/components/overlays/HelpButton';
 import type { TaskView } from '../../model/types';
 import type { Selection } from '../../model/court/selection';
@@ -12,7 +13,7 @@ import styles from './VerdictEquation.module.css';
  * (the box is hatched red). While a replay runs the word waits and terms land one by one.
  */
 export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; sel: Selection; rv: ReplayState; onSelect: (id: string) => void }) {
-  const { word, waiting, fail } = verdictWord(task, rv);
+  const { word, waiting, fail, mismatch, stored } = verdictWord(task, rv);
   const terms = equationTerms(task, sel, rv);
   const n = tally(task, (i) => checkShown(rv, i));
   return (
@@ -52,6 +53,13 @@ export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; s
           </div>
         </HelpButton>
       </div>
+      {mismatch ? (
+        <div className={styles.flag} role="status">
+          <Chip tone="bad" title="The stored verdict is not what the checks derive; the checks win">
+            stored {stored} - checks say {word}
+          </Chip>
+        </div>
+      ) : null}
     </section>
   );
 }

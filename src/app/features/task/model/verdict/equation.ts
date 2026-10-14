@@ -1,6 +1,6 @@
 import type { CheckKind, CheckResult, TaskView } from '../types';
 import { isSelected, type Selection } from '../court/selection';
-import { checkGlyph, checkKind } from './verdict';
+import { checkGlyph, checkKind, derivedVerdict } from './verdict';
 import { checkShown, replayDone, type ReplayState } from './replay';
 
 export interface EquationTerm {
@@ -26,8 +26,9 @@ export function equationTerms(task: TaskView, sel: Selection, rv: ReplayState): 
   }));
 }
 
-/** The big word: the stored verdict once every term has landed, "checking…" while a replay runs. */
-export function verdictWord(task: TaskView, rv: ReplayState): { word: string; waiting: boolean; fail: boolean } {
+/** The big word: the verdict derived from the checks once every term has landed, "checking…" while a replay runs. */
+export function verdictWord(task: TaskView, rv: ReplayState): { word: string; waiting: boolean; fail: boolean; mismatch: boolean; stored: string } {
   const done = replayDone(rv, task.proof.checks.length);
-  return { word: done ? task.proof.verdict : 'checking…', waiting: !done, fail: done && task.proof.verdict === 'FAIL' };
+  const d = derivedVerdict(task);
+  return { word: done ? d.verdict : 'checking…', waiting: !done, fail: done && d.verdict === 'FAIL', mismatch: done && d.mismatch, stored: d.stored };
 }
