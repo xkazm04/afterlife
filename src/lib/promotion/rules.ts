@@ -71,7 +71,7 @@ export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], pr
     countRule('accepted outputs', r.accepted, t.accepted),
     { name: `merged without edits ≥ ${pct(t.noEditRatio)}`, ...counted(r.noEdit, pct, (n) => n >= t.noEditRatio) },
     countRule('clean days', r.cleanDays, t.cleanDays),
-    { name: 'reverts or incidents', ...counted(r.reverts, String, (n) => n === 0) },
+    { name: 'reverts', ...counted(r.reverts, String, (n) => n === 0) },
     { name: 'mechanical proof class', value: proofClass, met: isMechanical(proofClass) },
   ];
   return rows;

@@ -49,7 +49,7 @@ counters"): Acc, No-edit, Rv and Clean as counted, and a dim dash titled "Not re
 policy demotes on a revert). A class no agent holds says "No record yet". The rules are
 trust-policy.yml's `promotion` block as `rulesOf` reads it: to Supervised, accepted outputs, reverts, guardrail blocks
 (`guardrail_blocks`) and "counted over the last N outputs" (`window_last`: the poll counts an assisted class over its last
-N outputs); to Hands-off, accepted outputs, merged without edits, clean days, reverts or incidents, a mechanical proof
+N outputs); to Hands-off, accepted outputs, merged without edits, clean days, reverts (no incident count is recorded, so none is claimed), a mechanical proof
 class (`MECHANICAL_PROOFS`: never a class the engine only stubs, `engine/proofs/stubs.ts`, so `repro` and `bench-delta`
 are not met). Live, a class's track and proof class come from the demo catalogue's tracks (`illustrative.tracks`): the
 Grant section, the track's header and the mechanical row computed here chip the proof class "demo"; a rule read from the

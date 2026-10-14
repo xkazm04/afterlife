@@ -88,3 +88,13 @@ describe('the mechanical proof class: a stub proof never reads met', () => {
     expect([p.kind, rule(p, 'mechanical proof class')]).toEqual(['notyet', { name: 'mechanical proof class', value: 'repro', met: false }]);
   });
 });
+
+describe('the Hands-off reverts row: exactly what is counted, a revert, at the boundary', () => {
+  const handsOff = (reverts: number) =>
+    promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, noEdit: 0.94, cleanDays: 14, reverts }) }, 'exploit-test', RULES);
+  it('0 reverts is met, 1 is not; the row is named for what it counts', () => {
+    expect(rule(handsOff(0), 'reverts')).toEqual({ name: 'reverts', value: '0', met: true });
+    expect(rule(handsOff(1), 'reverts')).toEqual({ name: 'reverts', value: '1', met: false });
+    expect(rule(handsOff(0), 'reverts or incidents')).toBeUndefined();
+  });
+});
