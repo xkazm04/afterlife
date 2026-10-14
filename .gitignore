@@ -34,3 +34,4 @@ Thumbs.db
 
 # perfect loop vault (local, not versioned)
 .perfect/
+.ai/*.local.jsonl
