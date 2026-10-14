@@ -1,0 +1,8 @@
+{"type":"node","kind":"progress","title":"Scouted door; near-polished; accepted 1 direction (delete dead 2.68MB hero PNG)","context":"door-visual-scene","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Scouted task screen; accepted 2 directions (derive verdict from checks; name the Proof Block)","context":"task-verdict-view","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Scouted theater film; accepted show-assisted-rung-in-film","context":"theater-replay-model","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Scouted theater view; accepted proof-block-checks-on-stage + roll-cue-visible-in-present","context":"theater-view","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Scouted fleet; accepted fleet-remembers-its-view","context":"fleet-model-hooks","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Scouted fleet overview; near-polished; parked cleanup","context":"fleet-overview-ui","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Scouted ladder; accepted show-which-trigger-fired + fix-reverts-or-incidents-label","context":"ladder-model","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Scouted ladder view; near-polished","context":"ladder-view","skill":"perfect"}
