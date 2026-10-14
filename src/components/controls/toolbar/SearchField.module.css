@@ -28,6 +28,10 @@
   font: 400 var(--t-body) var(--sys);
   padding: 0 24px 0 calc(26px * var(--ui-scale));
 }
+/* the label draws the ring; the input must not draw a second one inside it */
+.search input:focus-visible {
+  box-shadow: none;
+}
 .search input::placeholder {
   color: var(--text-4);
 }

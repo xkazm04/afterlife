@@ -1,8 +1,7 @@
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { TierMark } from '@/components/status/TierMark';
 import type { FleetProject } from '@/lib/demo/types';
 import { cellName, tiersKnown } from '@/lib/tiers';
-import type { SectionProps } from '../../../hooks/useSectionOpen';
 import { classTip, recordLabel } from '../../../model/inspector';
 import type { DeepProject } from '../../../model/types';
 import styles from './sections.module.css';
@@ -12,11 +11,11 @@ import styles from './sections.module.css';
  * (16/15 · 9 d) and the last move as a tooltip. The heading counts the classes whose tier is known, read from the cells
  * (tiersKnown), never from `armed`, which counts armed tracks.
  */
-export function ClassesSection({ p, classes, deep, sec }: { p: FleetProject; classes: readonly string[]; deep: DeepProject; sec: SectionProps }) {
+export function ClassesSection({ p, classes, deep, }: { p: FleetProject; classes: readonly string[]; deep: DeepProject }) {
   const unwatched = p.state === 'not-set-up';
   const known = !unwatched && tiersKnown(p);
   return (
-    <InspectorSection title="Autonomy by class" aux={known ? `${classes.filter((c) => p.classTiers[c] != null).length} of ${classes.length} known` : 'unknown'} {...sec}>
+    <DetailSection title="Autonomy by class" aux={known ? `${classes.filter((c) => p.classTiers[c] != null).length} of ${classes.length} known` : 'unknown'}>
       {unwatched ? (
         <div className={styles.muted}>No classes armed</div>
       ) : !known ? (
@@ -36,6 +35,6 @@ export function ClassesSection({ p, classes, deep, sec }: { p: FleetProject; cla
           );
         })
       )}
-    </InspectorSection>
+    </DetailSection>
   );
 }

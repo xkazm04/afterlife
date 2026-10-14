@@ -12,7 +12,7 @@ export function LegendButton() {
       <button
         type="button"
         className={styles.help}
-        title="Legend"
+        title="Legend: what the crag marks mean"
         aria-label="Legend"
         aria-haspopup="dialog"
         aria-expanded={pop.isSticky}

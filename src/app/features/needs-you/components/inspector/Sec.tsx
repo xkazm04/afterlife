@@ -1,17 +1,34 @@
 import type { ReactNode } from 'react';
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { DoesNot } from '../shared/DoesNot';
 import { CommandBlock } from '@/components/inspector/CommandBlock';
 import type { InspProps } from './props';
+import styles from './inspector.module.css';
 
-/** An inspector section whose open state lives in the screen state (so "Read the draft" can open it). */
-export function Sec({ k, title, aux, def = true, p, children }: { k: string; title: ReactNode; aux?: ReactNode; def?: boolean; p: Pick<InspProps, 's' | 'dispatch'>; children: ReactNode }) {
+/**
+ * A detail card whose open state lives in the screen state (so "Read the draft" can open it). A card that starts closed
+ * keeps its heading and a Show button; the read-before-act gates open on the section being opened.
+ */
+export function Sec({ k, title, aux, def = true, p, children }: { k: string; title: string; aux?: ReactNode; def?: boolean; p: Pick<InspProps, 's' | 'dispatch'>; children: ReactNode }) {
   const open = p.s.sections[k] ?? def;
+  const toggle = (
+    <button type="button" className={styles.tog} aria-expanded={open} aria-label={`${open ? 'Hide' : 'Show'} ${title}`} onClick={() => p.dispatch({ type: 'section', key: k, open: !open })}>
+      {open ? 'Hide' : 'Show'}
+    </button>
+  );
   return (
-    <div id={`insp-${k}`}>
-      <InspectorSection title={title} aux={aux} open={open} onOpenChange={(o) => p.dispatch({ type: 'section', key: k, open: o })}>
-        {children}
-      </InspectorSection>
+    <div id={`insp-${k}`} className={styles.sec}>
+      <DetailSection
+        title={title}
+        aux={
+          <>
+            {aux}
+            {def ? null : toggle}
+          </>
+        }
+      >
+        {open ? children : null}
+      </DetailSection>
     </div>
   );
 }

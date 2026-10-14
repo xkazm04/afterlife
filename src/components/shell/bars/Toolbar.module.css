@@ -17,7 +17,10 @@
   flex-direction: column;
   line-height: 1.15;
   margin-right: 6px;
-  min-width: 0;
+  /* the title keeps its room: the controls shrink first, it truncates only past 45% of the bar */
+  flex: none;
+  max-width: 45%;
+  min-width: calc(72px * var(--ui-scale));
   overflow: hidden;
 }
 .ttl b {

@@ -27,3 +27,6 @@ Thumbs.db
 
 # bp product blueprint: machine-local scan store (adopt-bp)
 .ai/lens-scan/
+
+# spark vault (design notes, local)
+.spark/

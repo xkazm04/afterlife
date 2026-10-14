@@ -73,7 +73,7 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
         navigator.clipboard?.writeText(cmd).then(() => actions.flash(`Copied the write for ${id}`), () => actions.flash(cmd));
       };
       return [
-        { label: 'Show Rule and Write', sc: '↩', run: () => { actions.select(id); actions.openDetail(id); } },
+        { label: 'Open class page', sc: '↩', run: () => actions.openDetail(id) },
         { sep: true },
         ...(lower.length ? [...targetEntries(id), { sep: true as const }] : []),
         isQuarantine(c)

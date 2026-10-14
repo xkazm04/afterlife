@@ -21,6 +21,9 @@
   color: var(--text-1);
   box-shadow: 0 1px 1px var(--shade-35), inset 0 0 0 0.5px var(--border-2);
 }
+.seg button:focus-visible {
+  box-shadow: var(--ring);
+}
 /* an option with a count (or a node label): label and count on one line */
 .seg button.counted {
   display: inline-flex;

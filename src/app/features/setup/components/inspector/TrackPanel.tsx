@@ -1,7 +1,6 @@
 'use client';
 
-import { InspectorHeader } from '@/components/inspector/InspectorHeader';
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { TierMark } from '@/components/status/TierMark';
 import { TIER_META } from '@/lib/tiers';
 import { plural } from '@/lib/format/plural';
@@ -18,7 +17,6 @@ import styles from './inspector.module.css';
 import { CapDep } from './parts/CapDep';
 import { StepDep } from './parts/StepDep';
 import { TrackDep } from './parts/TrackDep';
-import type { useOpenSections } from './parts/useOpenSections';
 import { TrackArmSection } from './TrackArmSection';
 
 /** Per action class: never above the install ceiling (Supervised); Hands-off is earned later, by policy MR. */
@@ -35,7 +33,7 @@ const CHIP: Record<string, { tone: ChipTone; word: (a: ArmState) => string }> = 
 };
 
 /** A picked track: arm, merge, disarm or why it is locked; the tier it arms at; what it needs, relies on and frees. */
-export function TrackPanel({ id, section }: { id: string; section: ReturnType<typeof useOpenSections> }) {
+export function TrackPanel({ id }: { id: string }) {
   const { state, tracks, classes, illustrative } = useSetup();
   const a = state.arm[id];
   const t = tracks[id];
@@ -47,19 +45,19 @@ export function TrackPanel({ id, section }: { id: string; section: ReturnType<ty
   const chip = CHIP[a.st];
   return (
     <>
-      <InspectorHeader title={t.name} icon={<span className={styles.tid}>{id}</span>} sub={t.verb}>
+      <DetailSection title="State" aux={`${id} · ${t.verb}`}>
         <div className={styles.chips}>
           <Chip>arm #{a.order + 1}</Chip>
           {chip ? <Chip tone={chip.tone}>{chip.word(a)}</Chip> : null}
           {illustrative.tracks ? <Chip title="The track's name and what it does are the demo catalogue's: live mode does not read them from GitLab">name · demo</Chip> : null}
         </div>
-      </InspectorHeader>
-      <TrackArmSection id={id} section={section} />
+      </DetailSection>
+      <TrackArmSection id={id} />
       {mine.length ? (
-        <InspectorSection
+        <DetailSection
           title="Tier on arming"
-          aux={<span title="Per action class. Never above the install ceiling (Supervised); Hands-off is earned later, by policy MR.">ceiling S ⓘ</span>}
-          {...section('cls')}
+          aux={<span title="Per action class. Never above the install ceiling (Supervised); Hands-off is earned later, by policy MR.">ceiling Supervised ⓘ</span>}
+         
         >
           <div className={styles.trs}>
             {mine.map((c) => {
@@ -73,20 +71,20 @@ export function TrackPanel({ id, section }: { id: string; section: ReturnType<ty
               );
             })}
           </div>
-        </InspectorSection>
+        </DetailSection>
       ) : null}
-      <InspectorSection title="Needs" aux={needs.length ? `${unmet(state, id).length} unmet` : undefined} {...section('needs')}>
+      <DetailSection title="Needs" aux={needs.length ? `${unmet(state, id).length} unmet` : undefined}>
         {needs.length ? needs.map((k) => (isStepKey(k) ? <StepDep key={k} n={stepOf(k)} /> : <TrackDep key={k} id={k} />)) : <div className={styles.muted}>No prerequisite</div>}
-      </InspectorSection>
-      <InspectorSection title="Relies on in GitLab" {...section('relies')}>
-        {caps.length ? caps.map((c) => <CapDep key={c} name={c} />) : <div className={styles.muted}>None</div>}
-      </InspectorSection>
+      </DetailSection>
+      <DetailSection title="Relies on in GitLab">
+        {caps.length ? caps.map((c) => <CapDep key={c} name={c} />) : <div className={styles.muted}>No GitLab capability</div>}
+      </DetailSection>
       {frees.length ? (
-        <InspectorSection title="Frees" aux={plural(frees.length, 'track')} {...section('frees')}>
+        <DetailSection title="Frees" aux={plural(frees.length, 'track')}>
           {frees.map((x) => (
             <TrackDep key={x} id={x} />
           ))}
-        </InspectorSection>
+        </DetailSection>
       ) : null}
     </>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { decisionsWord } from '../model/totals';
 import { ageLine, polledAge, type Mode } from '../model/mode';
 
 /**
@@ -18,7 +19,7 @@ export function MonitorStatus({ n, leads, waiting, mode, ageSec }: { n: number; 
   }, [ageSec]);
   return (
     <>
-      {n} projects on {leads} leads · {waiting} decisions wait · {ageLine(polledAge(mode, ageSec, elapsed))}
+      {n} projects on {leads} leads · {decisionsWord(waiting)} · {ageLine(polledAge(mode, ageSec, elapsed))}
     </>
   );
 }

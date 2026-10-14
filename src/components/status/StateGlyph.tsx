@@ -1,6 +1,8 @@
 import type { ProjectState } from '@/lib/demo/types';
 import styles from './status.module.css';
 
+const NAME: Record<ProjectState, string> = { watching: 'Watching', 'setting-up': 'Setting up', stale: 'Stale', 'not-set-up': 'Not watched' };
+
 /**
  * A project's state as a 10px glyph: watching = filled green, setting up = half-filled ring, stale = struck amber
  * ring, not watched = dashed ring (unknown is always dashed).
@@ -24,7 +26,8 @@ export function StateGlyph({ state }: { state: ProjectState }) {
     );
   else body = <circle cx="5" cy="5" r="3.9" fill="none" stroke="var(--unknown)" strokeWidth="1.1" strokeDasharray="2 1.6" />;
   return (
-    <svg className={styles.sg} viewBox="0 0 10 10" aria-hidden="true">
+    <svg className={styles.sg} viewBox="0 0 10 10" role="img" aria-label={NAME[state]}>
+      <title>{NAME[state]}</title>
       {body}
     </svg>
   );

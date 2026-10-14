@@ -29,7 +29,7 @@ function Overview({ org, totals, projects, onPick }: { org: string; totals: Tota
       <InspectorHeader title={org} sub={`${totals.n} projects · pick a beat to act on it`} />
       <Stats
         cells={[
-          { n: totals.needs, label: 'decisions wait', tone: 'you' },
+          { n: totals.needs, label: totals.needs === 1 ? 'decision waits' : 'decisions wait', tone: 'you' },
           { n: totals.stale, label: 'stale' },
           { n: totals.quar, label: 'quarantined' },
         ]}
@@ -85,7 +85,7 @@ export function MonitorInspector(props: {
           <StageTicks rungs={p.stages} labels={props.stages} />
           <div className={styles.tiers}>
             {TIER_DISPLAY_ORDER.map((t) => (
-              <span key={t} className={styles.tier} data-tier={t} title={TIER_META[t].name}>
+              <span key={t} className={styles.tier} data-tier={t} title={TIER_META[t].name} aria-label={`${TIER_META[t].name}: ${p.tiers?.[t] ?? 0}`}>
                 <TierMark tier={t} stale={p.state === 'stale'} />
                 {p.tiers?.[t] ?? 0}
               </span>

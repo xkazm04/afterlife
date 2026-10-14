@@ -18,8 +18,6 @@ export interface SetupApi {
   actions: FlowActions;
   /** The arm and disarm MRs as the server planned them. */
   writes: ArmWrites;
-  /** Show the inspector (a pick opens it). */
-  openInspector: () => void;
 }
 
 export const SetupContext = createContext<SetupApi | null>(null);

@@ -13,10 +13,10 @@ import { buildRows, resolveSelection } from '../model/view/rows';
 
 /**
  * The reducer and everything derived from it: the rows on screen, the resolved selection, promotion per class (counted
- * against `policy`, trust-policy.yml's thresholds as the server read them).
+ * against `policy`, trust-policy.yml's thresholds as the server read them). `initialSel`: the class a detail page opens on.
  */
-export function useLadderData(seed: LadderSeed, trackList: readonly Track[], policy: PolicyRules | null) {
-  const [state, dispatch] = useReducer(ladderReducer, seed, initialState);
+export function useLadderData(seed: LadderSeed, trackList: readonly Track[], policy: PolicyRules | null, initialSel?: string) {
+  const [state, dispatch] = useReducer(ladderReducer, seed, (s: LadderSeed) => (initialSel ? { ...initialState(s), sel: initialSel } : initialState(s)));
   const tracks: TrackMap = useMemo(() => Object.fromEntries(trackList.map((t) => [t.id, t])), [trackList]);
   const trackIds = useMemo(() => trackList.map((t) => t.id), [trackList]);
   const byId = useMemo(() => Object.fromEntries(state.classes.map((c) => [c.id, c])), [state.classes]);

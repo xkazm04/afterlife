@@ -1,63 +1,28 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
-import type { ActionClass, Track } from '@/lib/demo/types';
-import { useHotkeys } from '@/lib/keyboard/useHotkeys';
-import type { LiveSetupRead, SetupIllustrative } from '@/server/data/setup/types';
-import { SetupInspector } from './components/inspector/SetupInspector';
 import { UnlockMap } from './components/map/UnlockMap';
 import { SetupLegend } from './components/SetupLegend';
 import { SetupStatus } from './components/SetupStatus';
+import { SetupSummary } from './components/summary/SetupSummary';
 import { SetupToolbar } from './components/toolbar/SetupToolbar';
-import { SetupContext, type SetupApi } from './hooks/SetupContext';
-import { useArmWrite } from './hooks/useArmWrite';
-import { useSetupFlow } from './hooks/useSetupFlow';
-import { useSetupView } from './hooks/useSetupView';
-import { createSetupState, type SetupDemo } from './model/flow/state';
-
-const NONE: SetupIllustrative = { steps: false, tracks: false };
+import { useSetup } from './hooks/SetupContext';
 
 /**
  * Setup: the unlock map. Steps 0-14, the eight tracks in arm order and the belay doctor capabilities, joined by
- * drawn edges. Probes move steps, MRs arm tracks, and Belay writes only on a click, after showing the server's plan.
- * Esc clears the pick; Tab walks the map; Cmd/Ctrl+I toggles the inspector (the Window does that one).
- * `live`: what the server read (live mode); every state comes from it, and `illustrative` marks what is still the demo's.
+ * drawn edges, under a strip of where you stand. A click (or Enter) on a node opens its page, /setup/[node].
+ * Probes move steps, MRs arm tracks, and Belay writes only on a click, after showing the server's plan.
+ * Esc clears the hover and the filter; Tab walks the map. The state lives in `SetupProvider`, in the /setup layout.
  */
-export function SetupScreen({
-  setup, tracks, classes, live = null, illustrative = NONE,
-}: { setup: SetupDemo; tracks: readonly Track[]; classes: readonly ActionClass[]; live?: LiveSetupRead | null; illustrative?: SetupIllustrative }) {
-  const byId = useMemo(() => Object.fromEntries(tracks.map((t) => [t.id, t])), [tracks]);
-  const [initial] = useState(() => createSetupState(setup, Date.now(), live));
-  const writes = useArmWrite(initial.project);
-  const { state, actions } = useSetupFlow(initial, writes);
-  const view = useSetupView(state.doctor);
-  const [inspOpen, setInspOpen] = useState(true);
-  useHotkeys([{ key: 'Escape', handler: view.clear, preventDefault: false }]);
-
-  const api = useMemo<SetupApi>(
-    () => ({ state, tracks: byId, classes, illustrative, view, actions, writes, openInspector: () => setInspOpen(true) }),
-    [state, byId, classes, illustrative, view, actions, writes],
-  );
-
+export function SetupScreen() {
+  const { state } = useSetup();
   return (
-    <SetupContext.Provider value={api}>
-      <Window
-        title="Setup"
-        subtitle={`${state.group} / ${state.project}`}
-        toolbar={<SetupToolbar />}
-        inspector={<SetupInspector />}
-        inspectorOpen={inspOpen}
-        onInspectorOpenChange={setInspOpen}
-        status={<SetupStatus />}
-        help={<SetupLegend />}
-        helpTitle="Legend"
-      >
-        <PaneScroll padded={false}>
-          <UnlockMap />
-        </PaneScroll>
-      </Window>
-    </SetupContext.Provider>
+    <Window title="Setup" subtitle={`${state.group} / ${state.project}`} toolbar={<SetupToolbar />} status={<SetupStatus />} help={<SetupLegend />} helpTitle="Legend">
+      <PaneScroll padded={false}>
+        <SetupSummary />
+        <UnlockMap />
+      </PaneScroll>
+    </Window>
   );
 }

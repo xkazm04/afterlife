@@ -1,11 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePopover } from '@/components/overlays/popover/usePopover';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { Window } from '@/components/shell/Window';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
-import { FleetInspector } from './components/inspector/FleetInspector';
 import { FleetLegend } from './components/legend/FleetLegend';
 import { FleetSidebar } from './components/sidebar/FleetSidebar';
 import { FleetStatus } from './components/FleetStatus';
@@ -25,7 +25,7 @@ import { sortLabel } from './model/list/sorting';
 import type { FleetData, FleetMeta, FleetSource, Source } from './model/types';
 
 /**
- * Fleet: every project as one row, by tier counts, by action class or by stage. Select a row for its inspector,
+ * Fleet: every project as one row, by tier counts, by action class or by stage. Open a row (click its name, Enter) for the project's page,
  * right-click for actions, press a tier header to rank by it. `source` says which data source drew it and carries the
  * deep project's recent events. Nothing here writes.
  */
@@ -39,7 +39,6 @@ export function FleetScreen({ data, source }: { data: FleetData; source: FleetSo
   const narrow = useNarrow(tableRef);
   const compact = useToolbarCompact(searchRef);
   const [sel, setSel] = useState<string | null>(data.deep.id);
-  const [insp, setInsp] = useState(true);
   const repoll = useRepoll(source.mode, proj.byId, proj.poll, status);
   // A fresh snapshot (live mode, after a re-poll) restarts the poll counter from its age.
   const [snap, setSnap] = useState({ data, n: 0 });
@@ -48,9 +47,11 @@ export function FleetScreen({ data, source }: { data: FleetData; source: FleetSo
 
   useEffect(() => tableRef.current?.focus({ preventScroll: true }), []);
 
+  const router = useRouter();
+  // A project opens its page; a group row only takes the selection (its expand and collapse is the arrows').
   const open = useEvent((id: string) => {
     setSel(id);
-    setInsp(true);
+    if (!id.startsWith('g:')) router.push(`/fleet/${encodeURIComponent(id)}`);
   });
   const menus = useFleetMenus({
     data,
@@ -88,8 +89,6 @@ export function FleetScreen({ data, source }: { data: FleetData; source: FleetSo
     tableRef,
     query: list.filters.q,
     onQuery: list.setQuery,
-    inspectorOpen: insp,
-    onInspectorOpen: setInsp,
     popoverOpen: pop.isOpen,
     closePopover: pop.close,
     onSelectFirst: () => {
@@ -131,23 +130,6 @@ export function FleetScreen({ data, source }: { data: FleetData; source: FleetSo
         />
       }
       sidebar={<FleetSidebar projects={proj.projects} groups={data.groups} source={list.filters.source} onSource={pickSource} />}
-      inspector={
-        <FleetInspector
-          selected={sel}
-          projects={proj.projects}
-          byId={proj.byId}
-          data={data}
-          source={source}
-          done={proj.done}
-          onResolve={(needId, does) => {
-            proj.resolve(data.deep.id, needId);
-            status(does);
-          }}
-          onFlash={status}
-        />
-      }
-      inspectorOpen={insp}
-      onInspectorOpenChange={setInsp}
       status={
         <FleetStatus key={snap.n} shown={list.visible.length} total={proj.projects.length} filters={list.filterTotal} startSec={data.lastPollSec} live={source.mode === 'live'} />
       }

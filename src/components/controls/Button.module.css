@@ -13,8 +13,14 @@
 .btn:hover:not(:disabled) {
   background: var(--ctl-hover);
 }
+.btn:focus-visible {
+  box-shadow: var(--ring);
+}
+/* a disabled button never keeps a variant's fill: amber or cyan with grey ink reads as live and unreadable */
 .btn:disabled {
   color: var(--text-4);
+  background: var(--ctl);
+  box-shadow: inset 0 0 0 0.5px var(--border-2);
 }
 .mini {
   height: var(--mini-h);

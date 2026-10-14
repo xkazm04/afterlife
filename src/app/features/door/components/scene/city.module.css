@@ -144,6 +144,16 @@
 .qBloom {
   fill: color-mix(in oklab, var(--tier-quarantined) 35%, transparent);
 }
+/* the quarantine mark in force: the lamps swell into a red glow; they step aside in an open district */
+.redOn .qBloom {
+  fill: color-mix(in oklab, var(--tier-quarantined) 70%, transparent);
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(2.6);
+}
+.redOn .tEdge {
+  stroke: color-mix(in oklab, var(--tier-quarantined) 60%, transparent);
+}
 .svg[data-open] .qLamp {
   opacity: 0;
 }

@@ -1,0 +1,45 @@
+/* The hero splash: centred over the city (above the chrome, below the grain), shrinking into the header mark. */
+.splash {
+  --sz: min(560px, 62vh);
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 30;
+  width: var(--sz);
+  aspect-ratio: 1;
+  margin: calc(var(--sz) / -2) 0 0 calc(var(--sz) / -2);
+  pointer-events: none;
+  /* the render's dark ground drops out against the night, so the city stays visible round the mark */
+  mix-blend-mode: screen;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(calc(-50vw + 39px), calc(-50vh + 33px)) scale(0.04);
+  transition:
+    opacity 700ms var(--ease),
+    transform 900ms var(--ease),
+    visibility 0s 900ms;
+}
+.splash[data-on] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: none;
+}
+.splash img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.splash[data-on] img {
+  animation: breathe 3.4s ease-in-out infinite;
+}
+@keyframes breathe {
+  50% {
+    transform: scale(1.03);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    display: none;
+  }
+}

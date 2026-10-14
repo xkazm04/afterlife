@@ -38,7 +38,7 @@ export function MonitorScreen({ data }: { data: MonitorData }) {
       toolbar={
         <>
           <Spacer />
-          <ToolbarButton pressed={!paused} title={paused ? 'Resume the sweep' : 'Pause the sweep'} aria-label="Sweep" onClick={() => setPaused((v) => !v)}>
+          <ToolbarButton pressed={!paused} title={paused ? 'Resume the sweep' : 'Pause the sweep'} aria-label="Sweep animation" onClick={() => setPaused((v) => !v)}>
             Sweep
           </ToolbarButton>
         </>

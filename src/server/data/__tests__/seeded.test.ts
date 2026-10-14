@@ -10,6 +10,8 @@ import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { DEMO } from '@/lib/demo';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { LEDGER_SEED } from '@/app/features/ladder/data/ledgerSeed';
+import { ClassScreen } from '@/app/features/ladder/ClassScreen';
+import { loadLadderClass } from '@/app/features/ladder/data/loadLadderClass';
 import { LadderScreen } from '@/app/features/ladder/LadderScreen';
 import { loadDoorData } from '@/app/features/door/data/loadDoorData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
@@ -53,7 +55,8 @@ describe('the Ladder, live', () => {
   const page = () => html(createElement(LadderScreen, loadLadderData()));
 
   it('every seeded ledger entry it draws carries a demo mark', () => {
-    const out = page();
+    // The ledger is drawn on each class's page now (the Ladder's inspector became /ladder/[class]).
+    const out = loadLadderData().seed.classes.map((c) => html(createElement(ClassScreen, loadLadderClass(c.id)!))).join('');
     const drawn = LEDGER_SEED.reduce((n, e) => n + count(out, e.text.replaceAll("'", '&#x27;')), 0);
     expect(drawn).toBeGreaterThan(0);
     expect(count(out, chip("The demo's own ledger"))).toBe(drawn);
@@ -90,7 +93,7 @@ describe('Needs you, live', () => {
     for (const t of SEEDED_TITLES) expect(out).not.toContain(t);
     expect(out).not.toContain('!44');
     expect(out).not.toContain('patch-bump');
-    expect(out).toContain('5 demo item(s) seeded into this index are not shown');
+    expect(out).toContain('5 demo items seeded into this index, not shown');
   });
 
   /** The four numbers the screens show: the badge, Fleet's ledgerline row, the Door's deep project, and the Needs-you list. */

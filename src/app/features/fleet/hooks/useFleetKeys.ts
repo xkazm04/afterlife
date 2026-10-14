@@ -6,7 +6,7 @@ import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 /**
  * The Fleet's own keys (⌘I is the Window's, the table's arrows are useRowNavigation's):
  *   /            focus the search field
- *   Esc          closes a hover card; in the search field clears it and returns to the table; otherwise closes the inspector
+ *   Esc          closes a hover card; in the search field clears it and returns to the table
  *   Down, Enter  in the search field: back to the table, selecting the first row when nothing visible is selected
  * Off while a menu is open.
  */
@@ -16,8 +16,6 @@ export function useFleetKeys(o: {
   tableRef: RefObject<HTMLDivElement | null>;
   query: string;
   onQuery: (q: string) => void;
-  inspectorOpen: boolean;
-  onInspectorOpen: (open: boolean) => void;
   popoverOpen: boolean;
   closePopover: () => void;
   /** Called when the field hands focus back and no visible row is selected. */
@@ -44,10 +42,6 @@ export function useFleetKeys(o: {
             e.preventDefault();
           } else if (inField(e)) {
             if (o.query) o.onQuery('');
-            toTable();
-            e.preventDefault();
-          } else if (o.inspectorOpen) {
-            o.onInspectorOpen(false);
             toTable();
             e.preventDefault();
           }

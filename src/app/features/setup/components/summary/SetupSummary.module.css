@@ -1,0 +1,27 @@
+.strip {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.top {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+}
+.top > div {
+  margin-bottom: 0;
+}
+.note {
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.err {
+  font-size: var(--t-head);
+  color: var(--bad);
+}
+.gates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0 14px;
+  margin-top: 6px;
+}

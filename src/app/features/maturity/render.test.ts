@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { DEMO } from '@/lib/demo';
-import { InspectorPanel } from './components/inspector/InspectorPanel';
+import { StageDetail } from './components/inspector/StageDetail';
 import { Crag } from './components/crag/Crag';
 import type { MaturityApi } from './hooks/useMaturity';
 import { reduce, type Action } from './model/reducer';
@@ -35,8 +35,8 @@ const states = { initial: initialState(ctx), preview: run(initialState(ctx), { t
 describe('screen parts render in every state', () => {
   for (const [name, state] of Object.entries(states)) {
     for (const stage of ctx.stages) {
-      it(`inspector: ${name} / ${stage}`, () => {
-        const html = renderToStaticMarkup(createElement(InspectorPanel, { api: api({ ...state, sel: stage, open: { ev: true, gap: true, day0: true, hist: true } }) }));
+      it(`stage page: ${name} / ${stage}`, () => {
+        const html = renderToStaticMarkup(createElement(StageDetail, { api: api(state), stage }));
         expect(html).toContain('Evidence');
       });
     }

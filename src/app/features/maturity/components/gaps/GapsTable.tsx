@@ -9,8 +9,8 @@ import { GapRow } from './GapRow';
 import styles from './gaps.module.css';
 
 const COLUMNS = [px(28), px(36), px(76), px(72), range(120, 1000), px(96), px(48), px(124)].join(' ');
-const HEADERS: readonly { label: string; cls?: string; tip?: string }[] = [
-  { label: '✓', cls: styles.ctr, tip: 'Pick (P)' },
+const HEADERS: readonly { label: string; cls?: string; tip?: string; aria?: string }[] = [
+  { label: '✓', cls: styles.ctr, tip: 'Pick (P)', aria: 'Pick' },
   { label: 'Gap' },
   { label: 'Stage' },
   { label: 'Move' },
@@ -31,6 +31,7 @@ export function GapsTable({
   live = false,
   onPick,
   onSelect,
+  onOpen,
 }: {
   gaps: readonly Gap[];
   picked: readonly string[];
@@ -42,19 +43,22 @@ export function GapsTable({
   live?: boolean;
   onPick: (id: string) => void;
   onSelect: (gap: Gap) => void;
+  /** Enter or the gap's name: its stage's page. */
+  onOpen: (gap: Gap) => void;
 }) {
   return (
     <section ref={sectionRef} className={styles.gt} style={{ '--cols': COLUMNS } as CSSProperties} aria-label="Gaps worth exploring" role="table">
       <div className={cx(styles.row, styles.head)} role="row">
         {HEADERS.map((h) => (
-          <div key={h.label} className={cx(styles.cell, styles.th, h.cls)} role="columnheader" title={h.tip}>
+          <div key={h.label} className={cx(styles.cell, styles.th, h.cls)} role="columnheader" title={h.tip} aria-label={h.aria}>
             {h.label}
           </div>
         ))}
       </div>
       <div role="rowgroup">
+        {gaps.length === 0 ? <div className={styles.empty}>No gaps proposed yet. Rescan to look for rungs worth exploring.</div> : null}
         {gaps.map((g, i) => (
-          <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} mr={mrName(mrs, g.id)} selected={selected === g.stage} alt={i % 2 === 1} live={live} onPick={onPick} onSelect={onSelect} />
+          <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} mr={mrName(mrs, g.id)} selected={selected === g.stage} alt={i % 2 === 1} live={live} onPick={onPick} onSelect={onSelect} onOpen={onOpen} />
         ))}
       </div>
     </section>

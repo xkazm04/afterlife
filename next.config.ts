@@ -6,7 +6,11 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // PGlite loads its WebAssembly and data files from its own folder, so it must not be bundled.
   serverExternalPackages: ['@electric-sql/pglite'],
-  turbopack: { root: import.meta.dirname },
+  turbopack: {
+    root: import.meta.dirname,
+    // npm run dev:inspect: stamp host JSX with data-loc for the DevInspector (Ctrl+Shift+L). Dev server only.
+    rules: process.env.BELAY_INSPECTOR === '1' ? { '*.tsx': { loaders: ['./scripts/dev/source-loc-loader.mjs'] } } : {},
+  },
   // Public origin headers (F94): the replay does not name its framework, and no page is framed by another site (a framed
   // localhost page is one click from a live write). No script-src CSP: it could not be verified (infra/cloudrun).
   poweredByHeader: false,

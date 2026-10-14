@@ -47,7 +47,7 @@ export function SendSheet({ api, onClose }: { api: GapSheetApi; onClose: () => v
       onClose={onClose}
       footer={
         <>
-          <span className={styles.count}>{`${rows.length} gap${rows.length > 1 ? 's' : ''} · ${ready} ready to send · one MR per gap`}</span>
+          <span className={styles.count}>{`${rows.length} gap${rows.length === 1 ? '' : 's'} · ${ready} ready to send · one MR per gap`}</span>
           <Spacer />
           <Button onClick={onClose}>{done ? 'Close' : 'Cancel'}</Button>
           {ready ? (

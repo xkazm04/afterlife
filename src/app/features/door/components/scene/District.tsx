@@ -67,6 +67,7 @@ export const District = memo(function District({
   d,
   classes,
   dim,
+  red,
   open,
   tabbable,
 }: {
@@ -74,6 +75,8 @@ export const District = memo(function District({
   classes: readonly string[];
   /** Ids of towers to dim (a lit answer mark), or null. */
   dim: ReadonlySet<string> | null;
+  /** Ids whose quarantine lamps glow red (the quarantine mark in force), or null. */
+  red: ReadonlySet<string> | null;
   /** The district opened at L1/L2: its windows light up and its lamps step aside. Only this layer re-renders. */
   open: boolean;
   /** At L1 the open district's towers take Tab and Enter. */
@@ -100,7 +103,7 @@ export const District = memo(function District({
         <g
           key={t.p.id}
           data-p={t.p.id}
-          className={`${styles.tw} ${t.p.state === 'stale' ? styles.stale : ''} ${dim && dim.has(t.p.id) ? styles.dimx : ''}`}
+          className={`${styles.tw} ${t.p.state === 'stale' ? styles.stale : ''} ${dim && dim.has(t.p.id) ? styles.dimx : ''} ${red && red.has(t.p.id) ? styles.redOn : ''}`}
           transform={`translate(${t.x.toFixed(1)} ${t.y.toFixed(1)})`}
           role="button"
           tabIndex={tabbable ? 0 : -1}

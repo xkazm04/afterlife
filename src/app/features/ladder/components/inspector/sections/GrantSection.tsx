@@ -4,12 +4,12 @@ import { isMechanical } from '@/lib/promotion';
 import { DemoChip } from '../../chrome/DemoChip';
 import { shownName } from '../../../model/rules/tiers';
 import type { ClassRow } from '../../../model/types';
-import { Sec, type SectionState } from '../Sec';
+import { Sec } from '../Sec';
 
 /** The grant as it stands: tier, ceiling, lease, proof class and the last move. `proofDemo`: the proof class is the demo catalogue's (live). */
-export function GrantSection({ cls, proofClass, proofDemo, sections }: { cls: ClassRow; proofClass: string; proofDemo: boolean; sections: SectionState }) {
+export function GrantSection({ cls, proofClass, proofDemo }: { cls: ClassRow; proofClass: string; proofDemo: boolean }) {
   return (
-    <Sec id="grant" title="Grant" defaultOpen={false} sections={sections}>
+    <Sec title="Grant">
       <KeyValue
         rows={[
           ['Tier', shownName(cls)],

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { memo } from 'react';
 import { Cell } from '@/components/table/Cell';
 import { Row } from '@/components/table/Row';
@@ -33,6 +34,9 @@ export interface ProjectRowProps {
 }
 
 const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
+
+/** The proofs cell's tooltip: its numbers say pass and fail only by position and colour. */
+const proofsTitle = (c: FleetProject['proofs7d']) => (c ? `Last 7 days: ${c.pass} pass, ${c.fail} fail` : 'Proofs unknown for the last 7 days');
 
 /** The view-dependent middle cells: tier counts, the tier of each class, or the rung of each stage. */
 function MiddleCells({ p, view, ranked, narrow, meta, h }: Pick<ProjectRowProps, 'p' | 'view' | 'ranked' | 'narrow' | 'meta' | 'h'>) {
@@ -79,14 +83,16 @@ export const ProjectRow = memo(function ProjectRow(props: ProjectRowProps) {
   return (
     <Row id={p.id} selected={selected} alt={alt} stale={stale} muted={unwatched} level={grouped ? 2 : 1} onSelect={h.onSelect} onActivate={h.onActivate} onContextMenu={h.onContextMenu}>
       <Cell indent>
-        <span className={`${styles.name} ${unwatched ? styles.unwatched : ''}`}>{p.name}</span>
+        <Link href={`/fleet/${encodeURIComponent(p.id)}`} className={`${styles.name} ${unwatched ? styles.unwatched : ''}`} title={`Open ${p.name}`}>
+          {p.name}
+        </Link>
       </Cell>
       <Cell align="center" title={STATE_LABEL[p.state]}>
         <StateGlyph state={p.state} />
       </Cell>
       <Cell align="center">{unwatched ? null : <NeedsYouBadge count={p.needsYou} variant={stale ? 'last-known' : 'live'} />}</Cell>
       <MiddleCells p={p} view={view} ranked={props.ranked} narrow={props.narrow} meta={meta} h={h} />
-      <Cell data className={cells.pc}>
+      <Cell data className={cells.pc} title={unwatched ? undefined : proofsTitle(p.proofs7d)}>
         {unwatched ? null : <ProofsCell proofs={p.proofs7d} />}
       </Cell>
       {view === 'tiers' ? <Cell data>{unwatched ? null : <StageTicks rungs={p.stages} labels={meta.stages} />}</Cell> : null}

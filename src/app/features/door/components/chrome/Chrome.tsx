@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { memo, useEffect, useRef, useState } from 'react';
 import bottom from './bottom.module.css';
@@ -36,6 +37,7 @@ export const TopChrome = memo(function TopChrome({ org, asOf, label }: { org: st
     <>
       <header className={`${styles.chrome} ${styles.tl}`}>
         <div className={styles.brand} data-role="door-brand">
+          <Image src="/brand/belay-b-knot.svg" alt="" width={22} height={22} unoptimized style={{ verticalAlign: '-5px', marginRight: 8 }} />
           Afterlife
           <small>
             {org} · as of {asOf}
@@ -47,7 +49,7 @@ export const TopChrome = memo(function TopChrome({ org, asOf, label }: { org: st
           <Link className={styles.enter} href="/fleet" data-role="door-enter">
             Enter Afterlife
           </Link>
-          <button type="button" className={styles.menuBtn} aria-expanded={open} aria-controls="door-menu" onClick={() => setOpen((v) => !v)}>
+          <button type="button" className={styles.menuBtn} aria-expanded={open} aria-controls="door-menu" aria-label="Screens, all of the app" onClick={() => setOpen((v) => !v)}>
             Screens<span className={styles.cv}>▾</span>
           </button>
         </div>
@@ -88,7 +90,7 @@ export const BottomChrome = memo(function BottomChrome({ crumbs, onBack, onGo }:
                   {c.label}
                 </button>
               ) : (
-                <span className={i === crumbs.length - 1 ? bottom.cur : undefined}>{c.label}</span>
+                <span className={i === crumbs.length - 1 ? bottom.cur : undefined} aria-current={i === crumbs.length - 1 ? 'page' : undefined}>{c.label}</span>
               )}
             </span>
           ))}

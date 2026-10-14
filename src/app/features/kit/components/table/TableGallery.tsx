@@ -66,7 +66,7 @@ export function TableGallery() {
   });
 
   return (
-    <GallerySection title="table/ (click headers to sort, arrow keys, left/right on groups)">
+    <GallerySection title="table/" note="click headers to sort, arrow keys move, left/right fold a group">
       <div className={styles.box}>
         <OutlineTable
           label="Demo projects"

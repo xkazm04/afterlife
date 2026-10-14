@@ -20,7 +20,7 @@ export function Transport({ playing, loop, readout, actions, onPresent }: { play
   return (
     <>
       <Lozenge label="Transport">
-        <TransportButton title="Play / pause (space)" onClick={actions.togglePlay}>
+        <TransportButton title={`${playing ? 'Pause' : 'Play'} (space)`} onClick={actions.togglePlay}>
           <svg className={styles.ico} style={sz(11)} viewBox="0 0 11 11" fill="currentColor" aria-hidden="true">
             <path d={playing ? 'M2.5 1.5h2v8h-2zM6.5 1.5h2v8h-2z' : 'M2.5 1.5v8l7-4z'} />
           </svg>

@@ -8,7 +8,7 @@
 }
 .item {
   padding: 8px 10px;
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   background: var(--surface-1);
   display: grid;
   gap: 2px;

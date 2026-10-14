@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { Window } from '@/components/shell/Window';
 import { pluralWord } from '@/lib/format/plural';
@@ -9,8 +10,6 @@ import { PolicyLozenge } from './components/chrome/PolicyLozenge';
 import { Dock } from './components/dock/Dock';
 import { HelpContent } from './components/help/HelpContent';
 import { PolicyContent } from './components/help/PolicyContent';
-import { LadderInspector } from './components/inspector/LadderInspector';
-import type { SectionState } from './components/inspector/Sec';
 import { LadderSidebar } from './components/sidebar/LadderSidebar';
 import { ClassTable } from './components/table/ClassTable';
 import { useLadderActions } from './hooks/useLadderActions';
@@ -44,26 +43,18 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
   const [pinned, setPinned] = useState<{ id: string; to: Tier } | null>(null);
   const shownTo = hoverTo ?? (pinned && pinned.id === data.sel ? pinned.to : null);
   const writes = useRevokeWrite(project, data.selected, shownTo);
-  const [inspectorOpen, setInspectorOpen] = useState(true);
-  const [open, setOpenMap] = useState<Readonly<Record<string, boolean>>>({});
   const clock = useSimClock(live);
   const pop = useLadderPopovers();
+  const router = useRouter();
 
-  const sections: SectionState = useMemo(
-    () => ({ isOpen: (key, fallback) => open[key] ?? fallback, setOpen: (key, o) => setOpenMap((m) => (m[key] === o ? m : { ...m, [key]: o })) }),
-    [open],
-  );
-
-  // Enter / double-click: show the promotion rule and the write in the inspector.
+  // Enter / double-click: open the class's own page (the promotion rule and the write). A group row has none.
   const openDetail = useCallback(
     (id?: string) => {
       const target = id ?? data.sel;
       if (!target || target.startsWith('g:')) return;
-      setOpenMap((m) => ({ ...m, rule: true, write: true }));
-      setInspectorOpen(true);
-      requestAnimationFrame(() => document.getElementById('ladder-rule')?.scrollIntoView({ block: 'start' }));
+      router.push(`/ladder/${encodeURIComponent(target)}`);
     },
-    [data.sel],
+    [data.sel, router],
   );
 
   const resetUi = useCallback(() => {
@@ -83,7 +74,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
     const anchor = policyRef.current;
     if (anchor) pop.toggle('policy', anchor, <PolicyContent head={state.head} rules={policy} history={illustrative.history} />, 'below');
   };
-  useLadderKeys({ data, actions, searchRef, enabled: !menus.isOpen, toggleHelp, closeInspector: () => setInspectorOpen(false) });
+  useLadderKeys({ data, actions, searchRef, enabled: !menus.isOpen, toggleHelp });
 
   const onKeyDown = useRowNavigation({
     items: data.view.nav,
@@ -128,25 +119,6 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
         />
       }
       sidebar={<LadderSidebar classes={state.classes} tracks={tracks} trackIds={data.trackIds} src={state.src} policy={policy} onSource={actions.setSource} />}
-      inspector={
-        <LadderInspector
-          sel={data.sel}
-          classes={state.classes}
-          byId={byId}
-          tracks={tracks}
-          tracksDemo={illustrative.tracks}
-          ledger={state.ledger}
-          promotionOf={data.promotionOf}
-          sections={sections}
-          writeTo={shownTo}
-          viewOf={writes.viewOf}
-          onRevoke={actions.revoke}
-          onTargets={menus.openTargets}
-          onPromote={actions.promote}
-        />
-      }
-      inspectorOpen={inspectorOpen}
-      onInspectorOpenChange={setInspectorOpen}
       status={
         <>
           {shown === total ? total : `${shown} of ${total}`} classes · {filters} {pluralWord(filters, 'filter')} · tier-state.yml @ {state.head.sha} <DemoChip on={!!state.head.demo} what="The tier-state.yml head" />

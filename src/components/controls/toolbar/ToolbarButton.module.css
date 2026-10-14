@@ -19,6 +19,7 @@
 }
 .tbtn[aria-pressed="true"] {
   color: var(--accent);
+  background: var(--accent-soft);
 }
 
 /* popup button: a filled pill with a label and a chevron */

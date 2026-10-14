@@ -41,7 +41,7 @@ export function MonitorSidebar({
             label={m.label}
             count={MARK_COUNT[m.kind](totals)}
             current={mark === m.kind}
-            title={mark === m.kind ? 'Clear' : `Light every ${m.label.toLowerCase()} beat`}
+            title={mark === m.kind ? `Clear the ${m.label.toLowerCase()} filter` : `Light every ${m.label.toLowerCase()} beat`}
             onClick={() => onMark(m.kind)}
           />
         ))}

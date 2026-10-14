@@ -1,7 +1,7 @@
 'use client';
 
 import type { MouseEvent } from 'react';
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { useToast } from '@/components/overlays/toast/useToast';
 import type { Stage } from '@/schemas';
@@ -25,14 +25,10 @@ export function EvidenceSection({
   ctx,
   stage,
   now,
-  open,
-  onOpenChange,
 }: {
   ctx: MaturityCtx;
   stage: Stage;
   now: Level;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
 }) {
   const { toast, status } = useToast();
   const ev = ctx.evidence?.[stage];
@@ -48,7 +44,7 @@ export function EvidenceSection({
   };
 
   return (
-    <InspectorSection title="Evidence" aux={`${now ?? '?'} of 4 rungs`} open={open} onOpenChange={onOpenChange}>
+    <DetailSection title="Evidence" aux={`${now ?? '?'} of 4 rungs`}>
       {RUNGS.map((r) => {
         const on = now != null && r <= now;
         const isNext = r === nx && nx > (now ?? -1);
@@ -88,6 +84,6 @@ export function EvidenceSection({
           <span className={styles.muted}>{ctx.scanned ? `${base.evidence} · engine ${ctx.engine}` : 'not scanned yet'}</span>
         </div>
       )}
-    </InspectorSection>
+    </DetailSection>
   );
 }

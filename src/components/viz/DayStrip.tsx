@@ -6,9 +6,9 @@ import styles from './DayStrip.module.css';
  * `revertedToday` paints the newest cell red when no day is clean.
  */
 export function DayStrip({ clean, days = 14, revertedToday }: { clean: number | null; days?: number; revertedToday?: boolean }) {
-  if (clean == null) return <span className={`${styles.strip} ${styles.unk}`} title="no record · not scored" />;
+  if (clean == null) return <span className={`${styles.strip} ${styles.unk}`} role="img" aria-label="No record, not scored" title="no record · not scored" />;
   return (
-    <span className={styles.strip} title={`${clean} of the last ${days} days clean`}>
+    <span className={styles.strip} role="img" aria-label={`${clean} of the last ${days} days clean`} title={`${clean} of the last ${days} days clean`}>
       {dayCells(clean, days, revertedToday).map((c, i) => (
         <i key={i} className={c === 'clean' ? styles.f : c === 'fail' ? styles.x : undefined} />
       ))}

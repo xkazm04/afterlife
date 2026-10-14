@@ -43,6 +43,7 @@ describe('repoll', () => {
 describe('status line', () => {
   it('reads like the prototype', () => {
     expect(statusLine(184, 184, 0, 12)).toBe('184 projects · 0 filters · polled 12 s ago');
+    expect(statusLine(1, 1, 0, 0)).toBe('1 project · 0 filters · polled 0 s ago');
     expect(statusLine(9, 184, 1, 3)).toBe('9 of 184 projects · 1 filter · polled 3 s ago');
   });
   it('wraps the poll counter after 59', () => {

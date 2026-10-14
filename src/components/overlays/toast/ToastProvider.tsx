@@ -38,11 +38,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      {message ? (
-        <div className={styles.toast} role="status">
-          {message}
-        </div>
-      ) : null}
+      {/* the live region stays mounted: one inserted together with its text is often not announced */}
+      <div className={message ? styles.toast : undefined} role="status" aria-live="polite">
+        {message}
+      </div>
     </ToastContext.Provider>
   );
 }

@@ -31,16 +31,16 @@ export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; s
         ))}
       </div>
       <div className={styles.tally}>
-        <span className={styles.ok} title="hold">
+        <span className={styles.ok} title="hold" aria-label={`${n.ok} hold`}>
           ✓{n.ok}
         </span>
         {n.bad ? (
-          <span className={styles.bad} title="fail">
+          <span className={styles.bad} title="fail" aria-label={`${n.bad} fail`}>
             ✗{n.bad}
           </span>
         ) : null}
         {n.unk ? (
-          <span className={styles.unk} title="a person decides">
+          <span className={styles.unk} title="a person decides" aria-label={`${n.unk} for a person to decide`}>
             ?{n.unk}
           </span>
         ) : null}

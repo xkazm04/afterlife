@@ -1,13 +1,12 @@
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { StageMeter } from '@/components/viz/StageMeter';
 import type { FleetProject } from '@/lib/demo/types';
-import type { SectionProps } from '../../../hooks/useSectionOpen';
 import styles from './sections.module.css';
 
 /** The rung (0..4) on each of the nine stages; an unknown rung is a dashed "?", never a zero. */
-export function StagesSection({ p, stages, sec }: { p: FleetProject; stages: readonly string[]; sec: SectionProps }) {
+export function StagesSection({ p, stages, }: { p: FleetProject; stages: readonly string[] }) {
   return (
-    <InspectorSection title="Stages" {...sec}>
+    <DetailSection title="Stages">
       {p.state === 'not-set-up' ? (
         <div className={styles.muted}>Not measured</div>
       ) : (
@@ -22,6 +21,6 @@ export function StagesSection({ p, stages, sec }: { p: FleetProject; stages: rea
           );
         })
       )}
-    </InspectorSection>
+    </DetailSection>
   );
 }

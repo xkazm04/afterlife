@@ -32,10 +32,10 @@ function Status({ a }: { a: ArmState }) {
   );
 }
 
-export function TrackNode({ arm, name, state, selected, lit, events }: { arm: ArmState; name: string; state: SetupState; selected: boolean; lit: Lit; events: NodeEvents }) {
+export function TrackNode({ arm, name, state, lit, events }: { arm: ArmState; name: string; state: SetupState; lit: Lit; events: NodeEvents }) {
   const tip = `#${arm.order + 1} · ${trackWhy(state, arm)}`;
   return (
-    <MapNode focus={{ k: 'track', id: arm.id }} selected={selected} lit={lit} tip={tip} events={events} className={`${styles.tn} ${styles[arm.st] ?? ''}`}>
+    <MapNode focus={{ k: 'track', id: arm.id }} lit={lit} tip={tip} events={events} className={`${styles.tn} ${styles[arm.st] ?? ''}`}>
       <span className={styles.id}>{arm.id}</span>
       <span className={styles.lb}>{name}</span>
       <span className={styles.st}>

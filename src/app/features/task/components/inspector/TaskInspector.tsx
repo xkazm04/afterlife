@@ -78,7 +78,7 @@ export function TaskInspector({
         onOpenChange={(o) => onOpen('words', o)}
       >
         <div className={`${styles.words} ${styles.noLig}`}>
-          <UntrustedText source={task.agent}>{task.agentWords}</UntrustedText>
+          {task.agentWords ? <UntrustedText source={task.agent}>{task.agentWords}</UntrustedText> : <span className={styles.muted}>The agent left no words for this task</span>}
         </div>
         {hasMarkup(task.agentWords) ? <div className={styles.wordsNote}>tags shown as typed, not obeyed</div> : null}
       </InspectorSection>

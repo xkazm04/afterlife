@@ -73,6 +73,12 @@ export function Window(p: WindowProps) {
     </ToolbarButton>
   ) : null;
 
+  const sideShow = sideOpen ? null : (
+    <ToolbarButton title="Show sidebar" aria-label="Show sidebar" aria-expanded={false} onClick={() => setSideOpen(true)}>
+      <Icon name="sidebarToggle" />
+    </ToolbarButton>
+  );
+
   return (
     <>
       <Backdrop />
@@ -81,7 +87,7 @@ export function Window(p: WindowProps) {
           {p.sidebar}
         </Sidebar>
         <div className={styles.right}>
-          <Toolbar title={p.title} subtitle={p.subtitle} end={inspToggle}>
+          <Toolbar title={p.title} subtitle={p.subtitle} lead={sideShow} end={inspToggle}>
             {p.toolbar}
           </Toolbar>
           <div className={styles.main}>

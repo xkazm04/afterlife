@@ -4,7 +4,6 @@ import { Fragment } from 'react';
 import { useSetup } from '../../../hooks/SetupContext';
 import { doneCount, stepList } from '../../../model/flow/state';
 import { litOf } from '../../../model/map/hot';
-import { focusEq } from '../../../model/types';
 import { StepNode } from '../nodes/StepNode';
 import type { NodeEvents } from '../nodes/nodeTypes';
 import { ColumnHead } from './ColumnHead';
@@ -25,7 +24,7 @@ export function StepColumn({ events }: { events: NodeEvents }) {
       {steps.map((s, i) => (
         <Fragment key={s.n}>
           {s.phase !== steps[i - 1]?.phase ? <div className={styles.ph}>{s.phase}</div> : null}
-          <StepNode step={s} selected={focusEq(view.sel, { k: 'step', id: s.n })} lit={litOf(view.hot, { k: 'step', id: s.n })} events={events} />
+          <StepNode step={s} lit={litOf(view.hot, { k: 'step', id: s.n })} events={events} />
         </Fragment>
       ))}
     </div>

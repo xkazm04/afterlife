@@ -48,9 +48,9 @@ export function AnswerBand({
       <div className={styles.answer}>
         <span className={styles.big}>{totals.needs}</span>
         <span className={styles.words}>
-          <span className={styles.head}>decisions wait for you</span>
+          <span className={styles.head}>{totals.needs === 1 ? 'decision waits for you' : 'decisions wait for you'}</span>
           <span className={styles.who}>
-            in {totals.needsP} projects
+            {totals.needs ? `in ${totals.needsP} ${totals.needsP === 1 ? 'project' : 'projects'}` : `all clear across ${totals.n} projects`}
             {top.length ? ' · most at ' : ''}
             {top.map((p, i) => (
               <span key={p.id}>

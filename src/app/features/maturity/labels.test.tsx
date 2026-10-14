@@ -8,11 +8,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { DEMO, type DemoData } from '@/lib/demo';
 import { maturity as narrow } from '@/server/data/live/narrow';
 import { RUNGS, STAGES } from '@/schemas/stages';
-import { InspectorPanel } from './components/inspector/InspectorPanel';
+import { StageDetail } from './components/inspector/StageDetail';
 import { CREDIT_HISTORY } from './data/credit';
 import { MAT_META } from './data/meta';
 import { STAGE_EVIDENCE } from './data/stageEvidence';
 import type { MaturityApi } from './hooks/useMaturity';
+import { MaturityProvider } from './MaturityProvider';
 import { MaturityScreen } from './MaturityScreen';
 import { makeCtx, type MaturityCtx } from './model/ctx';
 import { routeViews } from './model/crag/routes';
@@ -47,17 +48,17 @@ const api = (ctx: MaturityCtx, state: MaturityState): MaturityApi => ({
   go: () => true, select: () => {}, setMode: () => {},
 });
 
-/** The whole screen, and the inspector of every stage with every section open, in the states the walkthrough reaches. */
+/** The whole screen, and the page of every stage with every section open, in the states the walkthrough reaches. */
 function everything(m: DemoData['maturity'], mode: Mode): string {
   const ctx = makeCtx(m, DEMO.stages, { mode });
   const sent = run(ctx, { type: 'go', step: 3 }, { type: 'sent', opened: { g1: '!22', g2: null, g4: null }, text: 'x' });
   const merged = [sent, { type: 'merge', id: 'g1' }, { type: 'merge', id: 'g2' }].reduce((s, x) => reduce(s as MaturityState, x as Action, ctx)) as MaturityState;
   const nolift = reduce(merged, { type: 'rescanGap', id: 'g1' }, ctx);
   const credited = [nolift, { type: 'rescanGap', id: 'g2' }, { type: 'ran', id: 'g1' }, { type: 'rescanGap', id: 'g1' }].reduce((s, x) => reduce(s as MaturityState, x as Action, ctx)) as MaturityState;
-  const parts = [renderToString(createElement(MaturityScreen, { maturity: m, stages: DEMO.stages, project: 'ledgerline', mode }))];
+  const parts = [renderToString(createElement(MaturityProvider, { maturity: m, stages: DEMO.stages, project: 'ledgerline', mode }, createElement(MaturityScreen)))];
   for (const state of [initialState(ctx), sent, merged, nolift, credited]) {
     for (const sel of ctx.stages) {
-      parts.push(renderToString(createElement(InspectorPanel, { api: api(ctx, { ...state, sel, open: { ev: true, gap: true, day0: true, hist: true } }) })));
+      parts.push(renderToString(createElement(StageDetail, { api: api(ctx, state), stage: sel })));
     }
   }
   return textOf(parts.join('\n'));
@@ -92,7 +93,7 @@ describe('every mode', () => {
     const ctx = makeCtx(SEEDED, DEMO.stages, { mode });
     const sent = run(ctx, { type: 'go', step: 3 }, { type: 'sent', opened: { g1: '!22', g4: null }, text: 'x' });
     const merged = reduce(sent, { type: 'merge', id: 'g1' }, ctx);
-    const panel = (s: MaturityState, sel: MaturityState['sel']) => textOf(renderToString(createElement(InspectorPanel, { api: api(ctx, { ...s, sel, open: { ev: true, gap: true, day0: true, hist: true } }) })));
+    const panel = (s: MaturityState, sel: MaturityState['sel']) => textOf(renderToString(createElement(StageDetail, { api: api(ctx, s), stage: sel })));
     expect(panel(merged, 'secure')).toMatch(/Rescan · engine [^<]*<\/button>.*simulated/s);
     expect(panel(sent, 'monitor')).toMatch(/integration active.*simulated|simulated.*integration active/s);
   });
@@ -100,7 +101,7 @@ describe('every mode', () => {
   it.each(['demo', 'live'] as const)('%s: same engine and not detector-only read "not checked"', (mode) => {
     const ctx = makeCtx(SEEDED, DEMO.stages, { mode });
     const s = run(ctx, { type: 'go', step: 3 }, { type: 'sent', opened: { g1: '!22' }, text: 'x' }, { type: 'merge', id: 'g1' }, { type: 'rescanGap', id: 'g1' });
-    const t = textOf(renderToString(createElement(InspectorPanel, { api: api(ctx, { ...s, sel: 'secure' }) })));
+    const t = textOf(renderToString(createElement(StageDetail, { api: api(ctx, s), stage: 'secure' })));
     expect(t).toContain('same engine · not checked');
     expect(t).toContain('not detector-only · not checked');
   });

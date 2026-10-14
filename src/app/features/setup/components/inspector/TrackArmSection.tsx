@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { Button } from '@/components/controls/Button';
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { NeedYouAux } from './parts/NeedYouAux';
 import { useToast } from '@/components/overlays/toast/useToast';
@@ -12,13 +12,12 @@ import { mrName } from '../../model/flow/wording';
 import styles from './inspector.module.css';
 import { ArmPreview } from './parts/ArmPreview';
 import { ProbeLine } from './parts/ProbeLine';
-import type { SectionProps } from './parts/useOpenSections';
 
 /**
  * The one section that changes with the track's state: Arm (ready), Merge (open), Disarm (armed), Verify
  * (probing), or why it is Locked. Arm and Disarm show the server's planned MR first and send it only on a click.
  */
-export function TrackArmSection({ id, section }: { id: string; section: (key: string) => SectionProps }) {
+export function TrackArmSection({ id }: { id: string }) {
   const { state, tracks, actions, view, writes } = useSetup();
   const { toast } = useToast();
   const a = state.arm[id];
@@ -34,7 +33,7 @@ export function TrackArmSection({ id, section }: { id: string; section: (key: st
     const w = viewOf(id, plan);
     const ready = w?.kind === 'preview';
     return (
-      <InspectorSection title={plan ? 'Disarm' : 'Arm'} aux={plan ? 'one MR · the revert' : 'preview · nothing sent'} {...section('arm')}>
+      <DetailSection title={plan ? 'Disarm' : 'Arm'} aux={plan ? 'one MR · the revert' : 'preview · nothing sent'}>
         {a.found ? <div className={styles.muted}>Read: {a.found}</div> : null}
         <ArmPreview view={w} />
         <div className={styles.acts}>
@@ -48,14 +47,14 @@ export function TrackArmSection({ id, section }: { id: string; section: (key: st
             <Button
               onClick={() => {
                 toast(`Skipped ${id} · nothing sent`);
-                view.clear();
+                view.home();
               }}
             >
               Skip
             </Button>
           )}
         </div>
-      </InspectorSection>
+      </DetailSection>
     );
   }
   const mr = mrName(a);
@@ -64,7 +63,7 @@ export function TrackArmSection({ id, section }: { id: string; section: (key: st
     if (a.simulated) rows.push(['Simulated', 'demo mode: nothing was sent to GitLab']);
     if (a.found) rows.push(['Last verify', a.found]);
     return (
-      <InspectorSection title={`Merge ${mr}${a.revert ? ' (revert)' : ''}`} aux={<NeedYouAux />} {...section('arm')}>
+      <DetailSection title={`Merge ${mr}${a.revert ? ' (revert)' : ''}`} aux={<NeedYouAux />}>
         <KeyValue rows={rows} />
         <div className={styles.acts}>
           <Button disabled={!a.url} onClick={() => actions.openMr(id)}>
@@ -74,26 +73,26 @@ export function TrackArmSection({ id, section }: { id: string; section: (key: st
             I merged it · verify
           </Button>
         </div>
-      </InspectorSection>
+      </DetailSection>
     );
   }
   if (a.st === 'undefined' || a.st === 'unknown') {
     return (
-      <InspectorSection title={a.st === 'undefined' ? 'Not defined yet' : 'Unknown'} {...section('arm')}>
+      <DetailSection title={a.st === 'undefined' ? 'Not defined yet' : 'Unknown'}>
         <div className={styles.muted}>{a.found ?? (a.st === 'undefined' ? `The repo does not define ${id}'s arm content yet` : 'The read of main failed')}</div>
-      </InspectorSection>
+      </DetailSection>
     );
   }
   if (a.st === 'probing') {
     return (
-      <InspectorSection title="Verify" {...section('arm')}>
+      <DetailSection title="Verify">
         <ProbeLine probe={null} busy what={`main for ${mr}`} />
-      </InspectorSection>
+      </DetailSection>
     );
   }
   return (
-    <InspectorSection title="Locked" {...section('arm')}>
+    <DetailSection title="Locked">
       <div className={styles.muted}>Stays locked until a probe sees {unmet(state, id).map(needLabel).join(', ')}</div>
-    </InspectorSection>
+    </DetailSection>
   );
 }

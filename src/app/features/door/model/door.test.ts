@@ -4,6 +4,7 @@ import { HOME, cityTransform, frameDistrict, groundTransform } from './camera';
 import { groundOf } from './ground';
 import { districtsOf, paintOrder } from './city';
 import { beamsOf, districtGlows, towerShape } from './shapes';
+import { activeMark, dimSet, escapeStep, redSet, toggleLock } from './filter';
 import { districtLine, fleetTotals, projectLine, topTiers } from './words';
 
 const fleet = demoSource.getFleet();
@@ -61,5 +62,30 @@ describe('words and camera', () => {
     expect(c.k).toBeLessThanOrEqual(3);
     expect(cityTransform(HOME)).toBe('translate(0.00px, 0.00px) scale(1.0000)');
     expect(groundTransform({ ...HOME, k: 3 })).toContain('scale(2.0000)');
+  });
+});
+
+describe('the legend as a filter', () => {
+  it('locks a mark on click, lets it go on the same click, and the lock outranks the hover', () => {
+    expect(toggleLock(null, 'quar')).toBe('quar');
+    expect(toggleLock('quar', 'quar')).toBeNull();
+    expect(toggleLock('quar', 'stale')).toBe('stale');
+    expect(activeMark(null, 'stale')).toBe('stale');
+    expect(activeMark('quar', 'stale')).toBe('quar');
+    expect(activeMark(null, null)).toBeNull();
+  });
+  it('lets Escape clear the lock before it climbs a level', () => {
+    expect(escapeStep('quar')).toBe('unlock');
+    expect(escapeStep(null)).toBe('up');
+  });
+  it('dims what the mark does not light, and reddens only the quarantined', () => {
+    expect(dimSet(null, fleet.projects)).toBeNull();
+    const stale = dimSet('stale', fleet.projects)!;
+    expect(stale.size).toBe(fleet.projects.length - 11);
+    expect(stale.has('docs-portal')).toBe(false);
+    expect(redSet('stale', fleet.projects)).toBeNull();
+    const red = redSet('quar', fleet.projects)!;
+    expect(red.size).toBeGreaterThan(0);
+    expect([...red].every((id) => !dimSet('quar', fleet.projects)!.has(id))).toBe(true);
   });
 });

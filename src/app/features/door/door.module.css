@@ -5,6 +5,7 @@
   --d-plate-solid: color-mix(in oklab, var(--bg) 97%, var(--tint-side));
   --d-amber-glow: color-mix(in oklab, var(--needs-you) 50%, transparent);
   --d-amber-hot: color-mix(in oklab, var(--needs-you) 55%, var(--white));
+  --d-quar-hot: color-mix(in oklab, var(--tier-quarantined) 55%, var(--white));
   --d-cy-edge: color-mix(in oklab, var(--accent) 74%, transparent);
   --d-cy-mid: color-mix(in oklab, var(--accent) 42%, transparent);
   --d-cy-dim: color-mix(in oklab, var(--accent) 22%, transparent);
@@ -71,7 +72,7 @@
   width: 2660px;
   height: 4000px;
   background: linear-gradient(90deg, color-mix(in oklab, var(--bg) 97%, transparent) 0, color-mix(in oklab, var(--bg) 95%, transparent) 2008px, transparent 2660px);
-  mask-image: linear-gradient(180deg, #000 0, #000 2560px, transparent 2700px);
+  mask-image: linear-gradient(180deg, var(--bg) 0, var(--bg) 2560px, transparent 2700px);
   pointer-events: none;
   transition: opacity 600ms var(--ease);
 }

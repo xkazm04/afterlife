@@ -10,7 +10,7 @@ const labels = (plan: readonly MenuPlanItem[]) => plan.map((p) => ('sep' in p ? 
 
 describe('row menu', () => {
   it('a promotion offers inspect, its action, Not yet and Collapse, and Copy Command once the server planned its write', () => {
-    expect(labels(rowMenuPlan(initialState(demo), 'n1', demo))).toEqual(['Show in Inspector', 'Promote', 'Not yet', '-', 'Collapse “Extend trust”']);
+    expect(labels(rowMenuPlan(initialState(demo), 'n1', demo))).toEqual(['Open', 'Promote', 'Not yet', '-', 'Collapse “Extend trust”']);
     const planned = { ...initialState(demo), writes: { n1: { kind: 'preview' as const, preview } } };
     expect(rowMenuPlan(planned, 'n1', demo)).toContainEqual({ label: 'Copy Command', intent: { kind: 'copy', text: 'glab api --method POST projects/2/merge_requests' } });
   });

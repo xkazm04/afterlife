@@ -28,8 +28,8 @@
   top: 8px;
   right: 10px;
   z-index: 2;
-  width: calc(16px * var(--ui-scale));
-  height: calc(16px * var(--ui-scale));
+  width: calc(20px * var(--ui-scale));
+  height: calc(20px * var(--ui-scale));
   padding: 0;
   border: 0;
   border-radius: 50%;

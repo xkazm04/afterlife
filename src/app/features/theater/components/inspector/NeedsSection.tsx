@@ -7,6 +7,7 @@ import styles from './Inspector.module.css';
 export function NeedsSection({ needs }: { needs: readonly NeedItem[] }) {
   return (
     <InspectorSection title="Needs me" aux={<NeedsYouBadge count={needs.length} small />}>
+      {needs.length === 0 ? <div className={styles.muted}>Nothing waits for a person here</div> : null}
       {needs.map((n) => (
         <div key={n.k} className={styles.nyi}>
           <div className={styles.t}>{n.label}</div>

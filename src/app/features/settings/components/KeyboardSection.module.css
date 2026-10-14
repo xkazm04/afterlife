@@ -20,9 +20,16 @@
 }
 .combo {
   display: inline-flex;
+  justify-content: flex-end;
+  min-width: calc(58px * var(--ui-scale));
   gap: 3px;
 }
 .or {
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.note {
+  margin: 0;
   font-size: var(--t-small);
   color: var(--text-4);
 }

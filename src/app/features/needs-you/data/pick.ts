@@ -96,3 +96,17 @@ export function loadNeedsYouView(): NeedsYouView {
     throw e;
   }
 }
+
+/** What /needs-you/[item] draws: the desk's decision `id` (demo), or null when the source has no such decision. */
+export type NeedsItemView = { kind: 'desk'; demo: NeedsYouDemo; id: string };
+
+/**
+ * One decision for its page. Only the desk has pages (n1, n2, n4, n5 and the gaps g1..); the live list decides in place,
+ * and a group, a ledger row or an unknown id has no page.
+ */
+export function loadNeedsItem(id: string): NeedsItemView | null {
+  const view = loadNeedsYouView();
+  if (view.kind !== 'desk') return null;
+  const known = ['n1', 'n2', 'n4', 'n5', ...view.demo.gaps.map((g) => g.id)];
+  return known.includes(id) ? { kind: 'desk', demo: view.demo, id } : null;
+}

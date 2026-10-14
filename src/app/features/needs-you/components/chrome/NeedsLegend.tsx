@@ -25,7 +25,7 @@ export function NeedsLegend({ tierMeans }: { tierMeans: Record<TierKey, string> 
       <hr />
       <Legend rows={[[<GradeChip key="g" state="cur">r</GradeChip>, 'Grade: draft (a link unresolved) → reviewable (all resolve) → ready to sign (a person read it). Never "attested".']]} />
       <hr />
-      <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ inspector · Space pick / act · Esc close · / search · ⌘I or Ctrl+I inspector · right-click for actions</div>
+      <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open the decision page · Space pick / act · / search · right-click for actions</div>
     </>
   );
 }

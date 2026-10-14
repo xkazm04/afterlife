@@ -23,7 +23,7 @@ export function CommandBlock({
 }) {
   const lines = typeof commands === 'string' ? [commands] : commands;
   return (
-    <pre className={styles.cmd} aria-label={label}>
+    <pre className={styles.cmd} role="group" aria-label={label}>
       {lines.map((l, i) => {
         const { code, note }: CommandLineParts = typeof l === 'string' ? { code: l } : l;
         return (

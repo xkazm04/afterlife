@@ -5,11 +5,18 @@ import { usePopover } from './popover/usePopover';
 import styles from './HelpButton.module.css';
 
 /**
- * The "?" in the status bar. Opens the legend (any content) in a sticky popover above it; click again or Escape
- * closes it. Legends and definitions live here, not inline (the two-layer rule).
+ * The "?" in the status bar. Hover or focus shows the legend (any content) above it after the popover's delay, like a
+ * tooltip; a click pins it open (sticky), and click again or Escape closes it. Legends and definitions live here, not inline (the two-layer rule).
  */
 export function HelpButton({ title = 'Legend', children }: { title?: string; children: ReactNode }) {
   const pop = usePopover();
+  const body = (
+    <>
+      <h4>{title}</h4>
+      {children}
+    </>
+  );
+  const peek = (el: Element) => pop.show(el, body, { delay: true, placement: 'above' });
   return (
     <>
       <button
@@ -19,16 +26,12 @@ export function HelpButton({ title = 'Legend', children }: { title?: string; chi
         aria-label={title}
         aria-haspopup="dialog"
         aria-expanded={pop.isSticky}
-        onClick={(e) =>
-          pop.toggle(
-            e.currentTarget,
-            <>
-              <h4>{title}</h4>
-              {children}
-            </>,
-            'above',
-          )
-        }
+        onMouseEnter={(e) => peek(e.currentTarget)}
+        onMouseLeave={pop.hide}
+        onFocus={(e) => peek(e.currentTarget)}
+        onBlur={pop.hide}
+        onKeyDown={(e) => e.key === 'Escape' && pop.close()}
+        onClick={(e) => pop.toggle(e.currentTarget, body, 'above')}
       >
         ?
       </button>

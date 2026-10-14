@@ -25,7 +25,7 @@ export function Cap({ e, y, cut, quote }: { e: LedgerEntry; y: number; cut: bool
       </div>
       {e.quote && quote ? (
         <>
-          <div className={styles.qh}>quoted from !44 · untrusted</div>
+          <div className={styles.qh}>Quoted from !44 · untrusted</div>
           <div className={styles.quote}>
             <UntrustedText source="upstream changelog quoted on !44">{quote}</UntrustedText>
           </div>

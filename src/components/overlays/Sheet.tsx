@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import styles from './Sheet.module.css';
 
 /**
@@ -22,7 +22,9 @@ export function Sheet({
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const titleId = useId();
   useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     ref.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
@@ -31,15 +33,18 @@ export function Sheet({
       onClose();
     };
     document.addEventListener('keydown', onKey, true);
-    return () => document.removeEventListener('keydown', onKey, true);
+    return () => {
+      document.removeEventListener('keydown', onKey, true);
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    };
   }, [onClose]);
 
   return (
     <>
       <div className={styles.veil} onClick={onClose} aria-hidden="true" />
-      <div ref={ref} className={styles.sheet} role="dialog" aria-modal="true" aria-label={typeof title === 'string' ? title : undefined} tabIndex={-1}>
+      <div ref={ref} className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
         <div className={styles.sh}>
-          <h2>{title}</h2>
+          <h2 id={titleId}>{title}</h2>
           {subtitle ? <div className={styles.sub}>{subtitle}</div> : null}
         </div>
         <div className={styles.sb}>{children}</div>

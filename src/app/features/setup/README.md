@@ -5,8 +5,10 @@ tracks in arm order and the belay doctor capabilities, joined by drawn edges. Pr
 tracks, and Belay writes only on a click, after showing the exact command. Arm and disarm go through the server's
 plan and preview door (`src/server/actions`). Demo mode simulates the steps and the doctor; live mode reads them.
 
-- `SetupScreen.tsx` composes `Window` (toolbar, map, inspector, status bar, legend). `app/setup/page.tsx` awaits
-  `loadSetupData`: the data source's setup, tracks and classes, and in live mode `live`, what the server read now
+- `SetupScreen.tsx` composes `Window` (toolbar, summary strip, map, status bar, legend); a node click opens
+  `/setup/[node]` (`SetupNodeScreen`, a `DetailPage`; keys `step-<n>`, `track-<id>`, `cap-<slug>`, `loadSetupNode` 404s
+  the rest). `app/setup/layout.tsx` awaits
+  `loadSetupData` and holds the flow in `SetupProvider`, so it survives map to node and back: the data source's setup, tracks and classes, and in live mode `live`, what the server read now
   (`src/server/data/setup`): each track's arm block on the target's main (`checkArm`), the belay doctor
   (`probeCapabilities` on the paired group, with each row's reason and the real probe time), and the steps a read can
   observe (`OBSERVED_STEPS`): 0 (glab's login), 1 (the pairing row), 4 (the target and the five belay projects, one
@@ -19,7 +21,8 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   GitLab calls (16 before these reads). Step 9's commands read first, then DELETE and POST each protection: GitLab
   protects a pushed main already and a second POST answers 409. `illustrative` says what is still the catalogue's.
 - `components/map/` canvas, edge layer (SVG, measured from `[data-node]`), `columns/`, `nodes/`.
-- `components/inspector/` default / step / track / capability panels; `parts/` dep lists, stats, probe line.
+- `components/inspector/` step / track / capability panels as page sections (`NodeBody`, `nodeHead` for the title and one-line lede); `parts/` dep lists, probe line.
+- `components/summary/` the strip above the map: counts and the gates only you can open.
 - `components/toolbar/` group menu, doctor lozenge (lights capabilities), Re-probe.
 - `components/shared/` DepRow, GateRow, Spinner, CapGlyph. `SetupStatus` (progress, probe age), `SetupLegend`.
 - `hooks/` `useSetupFlow` (reducer + async probes + toasts), `useArmWrite` (the planned arm/disarm MRs on screen), `useSetupView` (pick, hover, filter, Esc), `SetupContext`.
@@ -42,7 +45,7 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   not done wins over it; "Take it back" undoes it. A step's write is never sent from the screen
   (Copy only). The commands name the paired group, its host and `BELAY_PROJECT` (`data/stepDetail.ts`, `stepDetailsFor`);
   demo keeps its own. The group menu offers the paired group only; no demo row or `acme-sandbox`. The step titles and
-  phases and the tracks' names and arm order are the catalogue's, marked "demo" on their column heads and in the inspector.
+  phases and the tracks' names and arm order are the catalogue's, marked "demo" on their column heads and on the node pages.
   The shared status bar still says "illustrative demo data" in every mode (not Setup's to change).
 - `model/map/` graph closure (needs, frees), hot sets, edge paths. `model/flow/` state, reducer, probe age, wording. All pure, tested.
 - `data/` the prototype constants as typed fixtures (step detail, arm needs, capability reliance, timing).
@@ -52,7 +55,7 @@ in live (what a read saw); track `locked|ready|open|probing|armed` (arm opens an
 verifies; disarm is a revert MR), plus `undefined` (no arm content in the repo) and `unknown` (the read failed) in live.
 A doctor probe is stale after 2 min (amber, with its age); a failed probe reads "probe failed HH:MM" (amber, with its
 age), never as a fresh probe; a never-probed group is all unknown.
-Keys: Esc clears, Tab walks the map, Cmd/Ctrl+I toggles the inspector. Sizes follow `--ui-scale` (D10).
+Keys: Esc clears, Tab walks the map. Sizes follow `--ui-scale` (D10).
 
 On the shared kit: `Chip` (status/chip), `Stats` (inspector/blocks) and the comment lines under a command (`CommandBlock` notes).
 `shared/DepRow` and `shared/GateRow` stay local.

@@ -3,7 +3,6 @@
 import { useSetup } from '../../../hooks/SetupContext';
 import { armList, armedCount } from '../../../model/flow/state';
 import { litOf } from '../../../model/map/hot';
-import { focusEq } from '../../../model/types';
 import { TrackNode } from '../nodes/TrackNode';
 import type { NodeEvents } from '../nodes/nodeTypes';
 import { ColumnHead } from './ColumnHead';
@@ -27,7 +26,7 @@ export function TrackColumn({ events }: { events: NodeEvents }) {
           arm={a}
           name={tracks[a.id]?.name ?? a.id}
           state={state}
-          selected={focusEq(view.sel, { k: 'track', id: a.id })}
+         
           lit={litOf(view.hot, { k: 'track', id: a.id })}
           events={events}
         />

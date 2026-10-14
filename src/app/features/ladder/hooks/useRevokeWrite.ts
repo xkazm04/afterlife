@@ -18,7 +18,7 @@ export interface RevokeWrites {
 
 /**
  * The writes on screen. The selected class's revoke target (or the target the menu highlights) is asked for as soon as
- * it is in view, so the inspector and the dock show the server's exact commands and diff before r can send them.
+ * it is in view, so the class page and the dock show the server's exact commands and diff before r can send them.
  */
 export function useRevokeWrite(project: string, selected: ClassRow | undefined, hoverTo: Tier | null): RevokeWrites {
   const [views, setViews] = useState<Readonly<Record<string, WriteView>>>({});

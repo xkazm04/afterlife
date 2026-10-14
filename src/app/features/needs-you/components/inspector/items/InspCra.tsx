@@ -1,4 +1,3 @@
-import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
@@ -9,6 +8,7 @@ import { clockText } from '../../../model/clock/clock';
 import { gradeIndex, gradeState } from '../../../model/clock/grades';
 import { GradeChip } from '../../shared/GradeChip';
 import { ActBtn, Acts } from '../Acts';
+import { ItemHead } from '../Head';
 import type { InspProps } from '../props';
 import { ClickSec, CommandSec, Sec } from '../Sec';
 import styles from './items.module.css';
@@ -20,8 +20,7 @@ export function InspCra(p: InspProps) {
   const gi = gradeIndex(st);
   return (
     <>
-      <InspectorHeader
-        title={`CRA early warning · ${CRA.vuln}`}
+      <ItemHead
         sub={
           <span className={styles.subrow}>
             release {CRA.release} · {CRA.issue} <HonestyChip kind="seeded" />

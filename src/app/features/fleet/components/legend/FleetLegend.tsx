@@ -40,7 +40,7 @@ export function FleetLegend({ tiers }: { tiers: Record<TierKey, TierInfo> }) {
         ]}
       />
       <hr />
-      <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open · Esc close · / search · ⌘I inspector · right-click for actions</div>
+      <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open the project page · / search · right-click for actions</div>
     </>
   );
 }

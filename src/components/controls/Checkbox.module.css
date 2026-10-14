@@ -16,6 +16,9 @@
   background: var(--needs-you);
   box-shadow: none;
 }
+.cb:focus-visible {
+  box-shadow: var(--ring);
+}
 .cb:disabled {
   opacity: 0.5;
 }

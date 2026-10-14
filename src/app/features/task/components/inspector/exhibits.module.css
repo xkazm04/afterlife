@@ -93,6 +93,10 @@
   gap: 6px;
   flex-wrap: wrap;
 }
+.path {
+  display: grid;
+  grid-template-columns: calc(14px * var(--ui-scale)) minmax(0, 1fr);
+}
 .deny {
   color: var(--fail);
 }

@@ -22,6 +22,9 @@
 .lamp {
   fill: var(--d-amber-hot);
 }
+.lampQ {
+  fill: var(--d-quar-hot);
+}
 .lampStale {
   fill: color-mix(in oklab, var(--needs-you) 55%, var(--bg));
 }

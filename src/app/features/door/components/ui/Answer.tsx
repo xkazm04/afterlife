@@ -2,14 +2,14 @@
 
 import { memo } from 'react';
 import type { District } from '../../model/city';
-import { fmt, type FleetTotals, type MarkKind } from '../../model/words';
+import { fmt, plural, type FleetTotals, type MarkKind } from '../../model/words';
 import { useCountUp } from '../../hooks/useCountUp';
 import { MarkIcon } from './MarkIcon';
 import styles from './answer.module.css';
 
 // `quiet`: the mark is left out while its count is 0.
 const MARKS: readonly { kind: MarkKind; words: (t: FleetTotals, staleTop: District | null) => string; n: (t: FleetTotals) => number; quiet?: boolean }[] = [
-  { kind: 'stale', n: (t) => t.stale, words: (_, s) => ` stale${s ? ` · ${s.stale} in ${s.name}` : ''}` },
+  { kind: 'stale', n: (t) => t.stale, words: (_, s) => ` stale${s && s.stale > 0 ? ` · ${s.stale} in ${s.name}` : ''}` },
   { kind: 'quar', n: (t) => t.quar, words: () => ' classes quarantined' },
   { kind: 'norec', n: (t) => t.norec, words: (t) => ` ${t.norec === 1 ? 'class' : 'classes'} with no record yet · not quarantined`, quiet: true },
   { kind: 'split', n: (t) => t.split, words: (t) => ` ${t.split === 1 ? 'class' : 'classes'} split between agents · each at its own tier`, quiet: true },
@@ -23,8 +23,8 @@ function Count({ n, delay, dur, intro }: { n: number; delay: number; dur: number
 }
 
 /**
- * The answer, left of the city: the one loud number, who holds the most, then five drawn marks. Pointing at a mark
- * lights its towers across the city; the number and the stale mark open the district that holds the most of it.
+ * The answer, left of the city: the one loud number, who holds the most, then the drawn marks. Pointing at a mark
+ * previews it across the city, clicking locks it as the filter (again to let it go); the number opens the district that holds the most.
  */
 export const Answer = memo(function Answer({
   totals,
@@ -32,7 +32,9 @@ export const Answer = memo(function Answer({
   staleTop,
   intro,
   tabbable,
+  locked,
   onMark,
+  onLock,
   onOpen,
 }: {
   totals: FleetTotals;
@@ -40,18 +42,20 @@ export const Answer = memo(function Answer({
   staleTop: District | null;
   intro: boolean;
   tabbable: boolean;
+  locked: MarkKind | null;
   onMark: (k: MarkKind | null) => void;
-  onOpen: (k: 'needs' | 'stale') => void;
+  onLock: (k: MarkKind) => void;
+  onOpen: (k: 'needs') => void;
 }) {
   const tab = tabbable ? 0 : -1;
   const lit = (k: MarkKind) => ({ onPointerEnter: () => onMark(k), onPointerLeave: () => onMark(null), onFocus: () => onMark(k), onBlur: () => onMark(null) });
   return (
     <section className={styles.answer} aria-label="The fleet at a glance" data-role="door-answer">
-      <button type="button" className={styles.big} tabIndex={tab} data-role="door-big" aria-label={`${totals.needs} decisions wait for you`} onClick={() => onOpen('needs')} {...lit('needs')}>
+      <button type="button" className={styles.big} tabIndex={tab} data-role="door-big" aria-label={`${totals.needs} ${plural(totals.needs, 'decision')} wait${totals.needs === 1 ? 's' : ''} for you. Open the district with the most.`} onClick={() => onOpen('needs')} {...lit('needs')}>
         <Count n={totals.needs} delay={2400} dur={800} intro={intro} />
       </button>
       <div className={styles.bigSub} data-role="door-big-sub">
-        decisions wait for you
+        {plural(totals.needs, 'decision')} {totals.needs === 1 ? 'waits' : 'wait'} for you
       </div>
       <div className={styles.top}>
         {tiers.map((t) => (
@@ -69,7 +73,7 @@ export const Answer = memo(function Answer({
       <ul className={styles.marks}>
         {MARKS.filter((m) => !m.quiet || m.n(totals) > 0).map((m) => (
           <li key={m.kind}>
-            <button type="button" className={styles.mk} tabIndex={tab} data-role="door-mark" onClick={() => m.kind === 'stale' && onOpen('stale')} {...lit(m.kind)}>
+            <button type="button" className={styles.mk} tabIndex={tab} data-role="door-mark" aria-pressed={locked === m.kind} onClick={() => onLock(m.kind)} {...lit(m.kind)}>
               <MarkIcon kind={m.kind} />
               <span>
                 <b>

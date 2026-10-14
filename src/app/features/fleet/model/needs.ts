@@ -31,7 +31,7 @@ export function repoll(p: FleetProject): RepollResult {
 /** "184 projects · 0 filters · polled 12 s ago" (or "9 of 184 projects"). */
 export function statusLine(shown: number, total: number, filters: number, polledSec: number): string {
   const count = shown === total ? `${total}` : `${shown} of ${total}`;
-  return `${count} projects · ${filters} ${filters === 1 ? 'filter' : 'filters'} · polled ${polledSec} s ago`;
+  return `${count} ${total === 1 ? 'project' : 'projects'} · ${filters} ${filters === 1 ? 'filter' : 'filters'} · polled ${polledSec} s ago`;
 }
 
 /**

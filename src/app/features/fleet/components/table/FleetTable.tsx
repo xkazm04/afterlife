@@ -45,7 +45,7 @@ export function FleetTable(props: FleetTableProps) {
     body = (
       <div role="row">
         <div role="gridcell" className={styles.empty}>
-          No projects
+          No projects match. Clear the search or the filters to see the fleet.
         </div>
       </div>
     );

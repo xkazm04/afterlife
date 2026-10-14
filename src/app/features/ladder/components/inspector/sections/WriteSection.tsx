@@ -5,17 +5,17 @@ import { TIER_META } from '@/lib/tiers';
 import { commandLines } from '@/server/actions/words';
 import type { ClassRow, Tier } from '../../../model/types';
 import type { WriteView } from '../../../write/revoke';
-import { Sec, type SectionState } from '../Sec';
+import { Sec } from '../Sec';
 import styles from './sections.module.css';
 
 /**
  * The exact write behind `r`, as the server planned it from belay-policy (previewAction): its commands, then the
  * tier-state.yml diff; for a class several agents hold, one line per holder first. Shown before anything runs; the key or the click sends this preview and no other.
  */
-export function WriteSection({ cls, to, viewOf, sections }: { cls: ClassRow; to: Tier | null; viewOf: (id: string, to: Tier) => WriteView | undefined; sections: SectionState }) {
+export function WriteSection({ cls, to, viewOf }: { cls: ClassRow; to: Tier | null; viewOf: (id: string, to: Tier) => WriteView | undefined }) {
   const view = to ? viewOf(cls.id, to) : undefined;
   return (
-    <Sec id="write" title="The write behind r" aux={to ? `→ ${TIER_META[to].name}` : ''} anchor="ladder-write" sections={sections}>
+    <Sec title="The write behind r" aux={to ? `→ ${TIER_META[to].name}` : ''} wide>
       {!to ? <div className={styles.note}>Nothing to revoke</div> : null}
       {to && !view ? <div className={styles.note}>Asking Belay for the exact write…</div> : null}
       {view?.kind === 'refused' ? <div className={styles.note}>Belay refuses this write: {view.reason}</div> : null}

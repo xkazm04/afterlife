@@ -29,6 +29,22 @@ export function SceneDefs() {
           {stop(0.6, '--needs-you', 0.1)}
           {stop(1, '--needs-you', 0)}
         </linearGradient>
+        {/* the quarantine mark's red: the same beam and lamp, in the quarantined tier's colour */}
+        <linearGradient id="d-beam-q" x1="0" y1="1" x2="0" y2="0">
+          {stop(0, '--tier-quarantined', 0.92)}
+          {stop(0.22, '--tier-quarantined', 0.5)}
+          {stop(0.65, '--tier-quarantined', 0.16)}
+          {stop(1, '--tier-quarantined', 0)}
+        </linearGradient>
+        <linearGradient id="d-core-q" x1="0" y1="1" x2="0" y2="0">
+          {stop(0, '--d-quar-hot', 1)}
+          {stop(0.5, '--tier-quarantined', 0.55)}
+          {stop(1, '--tier-quarantined', 0)}
+        </linearGradient>
+        <radialGradient id="d-lamp-q">
+          {stop(0, '--d-quar-hot', 0.9)}
+          {stop(1, '--tier-quarantined', 0)}
+        </radialGradient>
         <radialGradient id="d-spill">
           {stop(0, '--needs-you', 0.34)}
           {stop(0.5, '--needs-you', 0.1)}

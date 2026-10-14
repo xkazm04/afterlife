@@ -36,7 +36,7 @@ export function TierCountCell({
   onLeave: () => void;
 }) {
   const cls = `${styles.tc} ${roleClass(role)}`;
-  if (!known) return <Cell data data-tier={tier} className={cls} title="unknown" />;
+  if (!known) return <Cell data data-tier={tier} className={cls} title="Tiers unknown for this project" />;
   return (
     <Cell data data-tier={tier} className={cls} onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <span className={styles.n}>{count}</span>

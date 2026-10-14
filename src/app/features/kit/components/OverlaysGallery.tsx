@@ -10,6 +10,7 @@ import { useToast } from '@/components/overlays/toast/useToast';
 import { TierMark } from '@/components/status/TierMark';
 import { GallerySection } from './GallerySection';
 import { Specimen } from './Specimen';
+import styles from './GallerySection.module.css';
 
 /** Menu (right-click), Popover (hover and sticky), Sheet, Toast and the status message. */
 export function OverlaysGallery({ onOpenSheet }: { onOpenSheet: () => void }) {
@@ -27,17 +28,25 @@ export function OverlaysGallery({ onOpenSheet }: { onOpenSheet: () => void }) {
     { label: 'Show Groups', checked, run: () => setChecked((v) => !v) },
     { label: 'Disabled item', disabled: true, run: () => {} },
   ];
+  const showTip = (el: Element) =>
+    pop.show(el, <><h4>ledgerline · Hands-off</h4><Legend rows={[[<TierMark key="m" tier="hands_off" />, 'dep-bump.patch']]} /></>, { delay: true });
   return (
     <GallerySection title="overlays/">
-      <Specimen label="Menu: right-click the box (fixed items), or the button (keyboard: arrows, Enter, Esc)">
+      <Specimen label="Menu: right-click or Shift+F10 on the box (fixed items), or the button (keyboard: arrows, Enter, Esc)">
         <div
-          style={{ padding: '6px 14px', border: '1px dashed var(--border-3)', borderRadius: 6 }}
+          className={styles.target}
+          tabIndex={0}
           onContextMenu={(e) => {
             e.preventDefault();
             menu.openAt(e.clientX, e.clientY, { items: items() });
           }}
+          onKeyDown={(e) => {
+            if (e.key !== 'ContextMenu' && !(e.shiftKey && e.key === 'F10')) return;
+            e.preventDefault();
+            menu.openFrom(e.currentTarget, { items: items(), highlightFirst: true });
+          }}
         >
-          right-click me
+          right-click or Shift+F10
         </div>
         <Button onClick={(e) => menu.openFrom(e.currentTarget, { items: items(), highlightFirst: true })}>Open menu</Button>
         {menu.menu}
@@ -61,15 +70,16 @@ export function OverlaysGallery({ onOpenSheet }: { onOpenSheet: () => void }) {
         <span>highlighted: {lit}</span>
         {tiers.menu}
       </Specimen>
-      <Specimen label="Popover: hover for the tooltip, click for a sticky one">
+      <Specimen label="Popover: hover or focus for the tooltip, click for a sticky one">
         <span
-          style={{ padding: '2px 8px', border: '1px dashed var(--border-3)', borderRadius: 6 }}
-          onMouseEnter={(e) =>
-            pop.show(e.currentTarget, <><h4>ledgerline · Hands-off</h4><Legend rows={[[<TierMark key="m" tier="hands_off" />, 'dep-bump.patch']]} /></>, { delay: true })
-          }
+          className={styles.target}
+          tabIndex={0}
+          onMouseEnter={(e) => showTip(e.currentTarget)}
           onMouseLeave={pop.hide}
+          onFocus={(e) => showTip(e.currentTarget)}
+          onBlur={pop.hide}
         >
-          hover me
+          hover or focus me
         </span>
         <Button onClick={(e) => pop.toggle(e.currentTarget, <><h4>Sticky</h4>Closes on Escape or an outside click.</>, 'below')}>Sticky</Button>
         {pop.popover}

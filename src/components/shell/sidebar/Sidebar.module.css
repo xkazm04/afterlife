@@ -17,6 +17,23 @@
   padding: 0 10px 0 14px;
   gap: 8px;
 }
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: var(--text-1);
+  font-weight: 700;
+  text-decoration: none;
+}
+.brand:hover {
+  background: var(--hover);
+}
+.brand img {
+  flex: none;
+}
 .push {
   margin-left: auto;
 }
@@ -35,6 +52,8 @@
   flex: none;
   padding: 4px 10px 8px;
   border-top: 1px solid var(--sep-body);
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* section heading */
@@ -65,6 +84,7 @@
   align-items: center;
   gap: 7px;
   width: 100%;
+  min-width: 0;
   height: var(--ctl-h);
   padding: 0 8px;
   border: 0;

@@ -16,6 +16,8 @@ export interface SceneProps {
   hotG: number | null;
   hotTower: Placed | null;
   dim: ReadonlySet<string> | null;
+  /** Ids whose quarantined classes glow red (the quarantine mark in force), or null. */
+  red: ReadonlySet<string> | null;
   cam: Cam;
   camMs: number;
   onHover: (gi: number | null, id: string | null) => void;
@@ -58,7 +60,7 @@ export function Scene(p: SceneProps) {
       .join(' ');
     return (
       <div key={d.gi} className={cls} data-layer={d.gi} style={{ '--i': i } as CSSProperties}>
-        <District d={d} classes={p.classes} dim={p.dim} open={p.level >= 1 && d.gi === p.curG} tabbable={p.level === 1 && d.gi === p.curG} />
+        <District d={d} classes={p.classes} dim={p.dim} red={p.red} open={p.level >= 1 && d.gi === p.curG} tabbable={p.level === 1 && d.gi === p.curG} />
       </div>
     );
   };
@@ -102,7 +104,7 @@ export function Scene(p: SceneProps) {
         {order.slice(backN).map((d, i) => layer(d, i + backN))}
         <div className={styles.beams}>
           <div className={styles.breathe} data-ambient="city">
-            <Beams ds={p.ds} dim={p.dim} />
+            <Beams ds={p.ds} dim={p.dim} red={p.red} />
           </div>
         </div>
         <div className={styles.layer}>

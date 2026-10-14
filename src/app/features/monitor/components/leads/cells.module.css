@@ -31,7 +31,10 @@
   border-color: color-mix(in oklab, var(--accent-2) 70%, transparent);
 }
 .grid[data-marked] .cell:not([data-match]) {
-  opacity: 0.45;
+  border-color: transparent;
+}
+.grid[data-marked] .cell:not([data-match]) .beat {
+  opacity: 0.35;
 }
 .top {
   display: flex;

@@ -11,7 +11,7 @@ import styles from './beams.module.css';
  * soft bloom. The layer is static (the bloom is a filtered copy rastered once); its slow breathing is one opacity
  * animation on the whole layer, which the compositor runs without repainting anything.
  */
-export const Beams = memo(function Beams({ ds, dim }: { ds: readonly District[]; dim: ReadonlySet<string> | null }) {
+export const Beams = memo(function Beams({ ds, dim, red }: { ds: readonly District[]; dim: ReadonlySet<string> | null; red: ReadonlySet<string> | null }) {
   const beams = useMemo(() => beamsOf(ds), [ds]);
   const glows = useMemo(() => districtGlows(ds), [ds]);
   return (
@@ -23,20 +23,23 @@ export const Beams = memo(function Beams({ ds, dim }: { ds: readonly District[];
             <ellipse key={i} fill="url(#d-dglow)" cx={g.cx} cy={g.cy} rx={g.rx} ry={g.ry} opacity={g.opacity} />
           ))}
         </g>
-        {beams.map((b) => (
+        {beams.map((b) => {
+          const q = !!red && red.has(b.id) && !b.stale;
+          return (
           <g key={b.id} transform={`translate(${b.x.toFixed(1)} ${b.y.toFixed(1)})`} className={dim && dim.has(b.id) ? styles.dimx : undefined}>
             <g className={styles.body}>
-              <rect fill={b.stale ? 'url(#d-beam-st)' : 'url(#d-beam)'} x={-b.w / 2} y={-b.H} width={b.w} height={b.H} />
+              <rect fill={b.stale ? 'url(#d-beam-st)' : q ? 'url(#d-beam-q)' : 'url(#d-beam)'} x={-b.w / 2} y={-b.H} width={b.w} height={b.H} />
               {b.stale ? (
                 <rect fill="url(#d-hatch-amber)" x={-b.w / 2} y={-b.H * 0.7} width={b.w} height={b.H * 0.7} />
               ) : (
-                <rect fill="url(#d-core)" x={-1} y={-b.H * 0.92} width={2} height={b.H * 0.92} />
+                <rect fill={q ? 'url(#d-core-q)' : 'url(#d-core)'} x={-1} y={-b.H * 0.92} width={2} height={b.H * 0.92} />
               )}
             </g>
-            <ellipse fill="url(#d-lamp)" rx={FA * 1.15} ry={FB * 1.15} />
-            <ellipse className={b.stale ? styles.lampStale : styles.lamp} rx={FA * 0.55} ry={FB * 0.55} />
+            <ellipse fill={q ? 'url(#d-lamp-q)' : 'url(#d-lamp)'} rx={FA * 1.15} ry={FB * 1.15} />
+            <ellipse className={b.stale ? styles.lampStale : q ? styles.lampQ : styles.lamp} rx={FA * 0.55} ry={FB * 0.55} />
           </g>
-        ))}
+          );
+        })}
       </g>
     </svg>
   );

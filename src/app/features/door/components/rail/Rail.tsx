@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { STANDING_META } from '@/lib/tiers';
 import { needsOf, type District } from '../../model/city';
 import { plural } from '../../model/words';
+import { LegendHint } from './LegendHint';
 import { TierLetter } from '../ui/TierLetter';
 import styles from './rail.module.css';
 
@@ -84,20 +85,20 @@ export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string
         </p>
       </div>
       <div className={styles.foot}>
-        <div className={styles.legend}>
+        <LegendHint>
           {TIERS.map(([t, name]) => (
             <span key={t}>
               <TierLetter tier={t} />
               {name}
             </span>
           ))}
-        </div>
+        </LegendHint>
         <Link className={styles.enter} href="/fleet">
           Enter Afterlife
         </Link>
-        {d.needs ? <Link className={styles.exit} href="/needs-you">Needs you<span>↗</span></Link> : null}
-        {d.quar ? <Link className={styles.exit} href="/ladder">Ladder<span>↗</span></Link> : null}
-        {d.setup || d.nsu ? <Link className={styles.exit} href="/setup">Setup<span>↗</span></Link> : null}
+        {d.needs ? <Link className={styles.exit} href="/needs-you">Needs you<span aria-hidden>↗</span></Link> : null}
+        {d.quar ? <Link className={styles.exit} href="/ladder">Ladder<span aria-hidden>↗</span></Link> : null}
+        {d.setup || d.nsu ? <Link className={styles.exit} href="/setup">Setup<span aria-hidden>↗</span></Link> : null}
       </div>
     </aside>
   );

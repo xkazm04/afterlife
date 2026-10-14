@@ -31,6 +31,7 @@ export function HeaderCell<K extends string>({
   const cls = [styles.c, styles.th, align === 'center' ? styles.ctr : align === 'end' ? styles.rt : '', ranked ? styles.ranked : '']
     .filter(Boolean)
     .join(' ');
+  const iconOnly = typeof children !== 'string';
   const active = sortKey !== undefined && sort?.key === sortKey;
   const inner = (
     <>
@@ -40,7 +41,7 @@ export function HeaderCell<K extends string>({
   );
   if (sortKey === undefined || !onSort) {
     return (
-      <div className={cls} role="columnheader" title={tip} data-tier={tier}>
+      <div className={cls} role="columnheader" title={tip} aria-label={iconOnly ? tip : undefined} data-tier={tier}>
         {inner}
       </div>
     );
@@ -52,6 +53,7 @@ export function HeaderCell<K extends string>({
       role="columnheader"
       aria-sort={sort ? ariaSort(sort, sortKey) : 'none'}
       title={tip}
+      aria-label={iconOnly ? tip : undefined}
       data-tier={tier}
       tabIndex={-1}
       onClick={() => onSort(sortKey)}

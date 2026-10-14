@@ -1,5 +1,6 @@
-import { SettingsScreen } from '../features/settings/SettingsScreen';
+import { redirect } from 'next/navigation';
 
+// /settings has no page of its own: the first sub-page is the front of it.
 export default function SettingsPage() {
-  return <SettingsScreen />;
+  redirect('/settings/display');
 }

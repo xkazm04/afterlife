@@ -30,15 +30,15 @@ export function StatusLozenge({
   const pick = (id: SmartId) => () => onSource(source === id ? 'all' : id);
   return (
     <Lozenge label="Fleet status">
-      <LozengeButton lead={<NeedsYouBadge count={waiting} showZero />} word={compact ? undefined : 'waiting'} pressed={source === 'needs'} title="Decisions waiting for you" onClick={pick('needs')} />
+      <LozengeButton lead={<NeedsYouBadge count={waiting} showZero />} word={compact ? undefined : 'waiting'} pressed={source === 'needs'} title="Decisions waiting for you: press to show only those, again for all" onClick={pick('needs')} />
       <LozengeDivider />
-      <LozengeButton lead={<StateGlyph state="stale" />} count={countSmart(projects, 'stale')} word={compact ? undefined : 'stale'} pressed={source === 'stale'} title="Stale feeds" onClick={pick('stale')} />
+      <LozengeButton lead={<StateGlyph state="stale" />} count={countSmart(projects, 'stale')} word={compact ? undefined : 'stale'} pressed={source === 'stale'} title="Stale feeds: press to show only those, again for all" onClick={pick('stale')} />
       <LozengeButton
         lead={<StateGlyph state="not-set-up" />}
         count={countSmart(projects, 'unwatched')}
         word={compact ? undefined : 'not watched'}
         pressed={source === 'unwatched'}
-        title="Not watched"
+        title="Not watched: press to show only those, again for all"
         onClick={pick('unwatched')}
       />
       <LozengeButton
@@ -46,7 +46,7 @@ export function StatusLozenge({
         count={countSmart(projects, 'quar')}
         word={compact ? undefined : 'quarantined'}
         pressed={source === 'quar'}
-        title="Projects with a quarantined class"
+        title="Projects with a quarantined class: press to show only those, again for all"
         onClick={pick('quar')}
       />
     </Lozenge>

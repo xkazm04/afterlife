@@ -1,11 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/controls/Button';
-import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { DetailSection } from '@/components/shell/detail/DetailPage';
+import { useToast } from '@/components/overlays/toast/useToast';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { DEFAULT_NEEDS_ACTION, NEEDS_ACTIONS } from '@/lib/demo/needsActions';
-import type { SectionProps } from '../../../hooks/useSectionOpen';
 import { decideLabel, gitlabUrl, needsMeta, waitingTitle } from '../../../model/inspector';
 import type { DeepProject } from '../../../model/types';
 import styles from './sections.module.css';
@@ -55,25 +56,13 @@ function Decision({
  * the button opens Needs you, where the decision and the operator's write belong. Other watched projects show a count
  * and two demo actions.
  */
-export function NeedsYouSection({
-  p,
-  portfolio,
-  deep,
-  live,
-  done,
-  onResolve,
-  onFlash,
-  sec,
-}: {
-  p: FleetProject;
-  portfolio: string;
-  deep: DeepProject;
-  live: boolean;
-  done: ReadonlySet<string>;
-  onResolve: (needId: string, does: string) => void;
-  onFlash: (message: string) => void;
-  sec: SectionProps;
-}) {
+export function NeedsYouSection({ p, portfolio, deep, live }: { p: FleetProject; portfolio: string; deep: DeepProject; live: boolean }) {
+  const onFlash = useToast().status;
+  const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
+  const onResolve = (id: string, does: string) => {
+    setDone((d) => new Set(d).add(id));
+    onFlash(does);
+  };
   const unwatched = p.state === 'not-set-up';
   let body;
   if (unwatched) {
@@ -107,8 +96,8 @@ export function NeedsYouSection({
     body = <div className={styles.muted}>Nothing waiting</div>;
   }
   return (
-    <InspectorSection title="Needs you" aux={p.needsYou && !unwatched ? <NeedsYouBadge count={p.needsYou} /> : null} {...sec}>
+    <DetailSection title="Needs you" aux={p.needsYou && !unwatched ? <NeedsYouBadge count={p.needsYou} /> : null}>
       {body}
-    </InspectorSection>
+    </DetailSection>
   );
 }

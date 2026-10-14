@@ -6,6 +6,7 @@ import { StageTicks } from '@/components/viz/StageTicks';
 import { getStages } from '@/lib/demo';
 import { GallerySection } from './GallerySection';
 import { Specimen } from './Specimen';
+import styles from './GallerySection.module.css';
 
 export function VizGallery() {
   return (
@@ -34,7 +35,7 @@ export function VizGallery() {
         <ProofBar proofs={null} />
       </Specimen>
       <Specimen label="ProofBar block (inspector)">
-        <div style={{ width: 200 }}>
+        <div className={styles.wide}>
           <ProofBar proofs={{ pass: 31, fail: 2, inconclusive: 4 }} block />
         </div>
       </Specimen>

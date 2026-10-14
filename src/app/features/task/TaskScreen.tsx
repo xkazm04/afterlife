@@ -89,7 +89,7 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
           <ReplayButton running={replay.running} disabled={!task.ledger.length} onClick={replay.start} />
         </>
       }
-      sidebar={<Docket tasks={tasks} visible={visible} currentId={task.id} />}
+      sidebar={<Docket tasks={tasks} visible={visible} currentId={task.id} onClear={() => applyFilters(NO_FILTERS)} />}
       inspector={<TaskInspector task={task} clock={clock} sel={sel} row={replay.row} open={panels} onOpen={(panel, open) => setPanels((p) => ({ ...p, [panel]: open }))} />}
       inspectorOpen={inspOpen}
       onInspectorOpenChange={setInspOpen}

@@ -6,7 +6,7 @@
   padding: 24px;
   background: var(--bg, #0b0f14);
   color: var(--text-1, #e6edf3);
-  font: 14px/1.5 system-ui, sans-serif;
+  font: var(--t-body, 14px) / 1.5 system-ui, sans-serif;
 }
 .card {
   max-width: 560px;
@@ -17,7 +17,7 @@
 }
 .title {
   margin: 0;
-  font-size: 18px;
+  font-size: calc(var(--t-body, 14px) * 1.3);
 }
 .note {
   margin: 0;
@@ -29,7 +29,7 @@
   grid-template-columns: max-content 1fr;
   gap: 4px 12px;
   font-family: ui-monospace, monospace;
-  font-size: 12px;
+  font-size: var(--t-small, 12px);
 }
 .detail dt {
   color: var(--text-3, #7d8a97);
@@ -53,4 +53,14 @@
   background: transparent;
   cursor: pointer;
   text-decoration: none;
+}
+.btn:hover,
+.link:hover {
+  border-color: var(--text-1, #e6edf3);
+  background: var(--hover, rgba(255, 255, 255, 0.08));
+}
+.btn:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--accent, #5ac8fa);
+  outline-offset: 2px;
 }

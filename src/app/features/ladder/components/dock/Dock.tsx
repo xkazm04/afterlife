@@ -53,7 +53,7 @@ function Line({ model }: { model: DockModel }) {
 }
 
 const fullWrite = (model: DockModel): string | undefined =>
-  model.kind === 'write' && model.view?.kind === 'preview' ? model.view.preview.commands.map((c) => c.display).join('\n') : undefined;
+  model.kind === 'idle' ? `${model.id} · nothing to revoke: ${model.reason}` : model.kind === 'write' && model.view?.kind === 'preview' ? model.view.preview.commands.map((c) => c.display).join('\n') : undefined;
 
 /** The docked strip: the exact write `r` (or the highlighted menu item) would run, as the server planned it, and the keys. */
 export function Dock({ model, onHelp, helpRef }: { model: DockModel; onHelp: () => void; helpRef: Ref<HTMLButtonElement> }) {
