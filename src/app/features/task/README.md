@@ -7,7 +7,7 @@ Route `/task/[id]` (`/task` redirects to the data source's first task). Ported f
   the sidebar, the pane, the inspector, the legend behind the status-bar `?`.
 - `components/`: `header/` (then vs now tier, state, seeded), `equation/` (verdict word, terms,
   tally), `chain/` (7-link receipt chain), `court/` (claims, checks, SVG ties), `inspector/`
-  (ruling, words, counts toward, exhibits, ledger, trace, proof), `toolbar/`, `docket/`, `help/`.
+  (ruling, Proof Block card, words, counts toward, exhibits, ledger, trace), `toolbar/`, `docket/`, `help/`.
 - `hooks/`: `useSelection`, `useReplay` (timers, toast, status), `useTaskKeys`, `useTieGeometry`
   (measures cards, re-measures on resize, inspector toggle and text size).
 - `model/` (pure, tested): `build/` merges the demo dataset with the fixtures into `TaskView` (in live mode: the source's tasks, each with its fixture if it has one) and chains
@@ -23,6 +23,7 @@ the source wins where it has a value; one with no fixture is drawn from its own 
 `fixture: false`): its proof's checks keep the claim each answers, and what only a fixture holds (agent, flow run,
 chain, ledger, trace, envelope, policy) is shown as not held, never borrowed. `firstTaskId()` names a drawn task,
 and the subtitle, status line and inspector "Ledger read" come from the source, not the prototype's constants.
+The inspector's "Proof Block" card is open for every task: the verdict rule in one sentence, then the engine, digest, policy and ledger read the task holds; a pin it does not hold (a source task with no fixture) reads "not held", never a borrowed value.
 `data/pageFacts.ts` has the page clock and the proof-class list. Ids the docket does not draw call `notFound()`.
 
 ## Honesty

@@ -7,14 +7,13 @@ import { UntrustedText } from '@/components/inspector/UntrustedText';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierChip } from '@/components/status/TierChip';
 import { Chip } from '@/components/status/chip/Chip';
-import { ObjectLink } from '@/components/controls/ObjectLink';
 import { hasMarkup } from '../../model/exhibits';
 import type { Selection } from '../../model/court/selection';
 import type { TaskView } from '../../model/types';
 import { derivedVerdict, verdictGlyph, verdictKind } from '../../model/verdict/verdict';
-import { POLICY_SHA } from '../../data/pageFacts';
 import { Exhibits } from './Exhibits';
 import { LedgerRows } from './LedgerRows';
+import { ProofBlock } from './ProofBlock';
 import { SelectionRuling } from './SelectionRuling';
 import styles from './inspector.module.css';
 
@@ -22,7 +21,7 @@ export type Panel = 'words' | 'trace' | 'ledger';
 
 /**
  * Layer 2 of the Task screen: the ruling on the selection, the agent's words (untrusted, collapsed), what this counts
- * toward, the exhibits, the ledger rows, the trace and the proof's own facts.
+ * toward, the exhibits, the ledger rows, the trace; the Proof Block card holds the proof's own pins.
  */
 export function TaskInspector({
   task,
@@ -68,6 +67,7 @@ export function TaskInspector({
       <InspectorSection title="Selection">
         <SelectionRuling task={task} sel={sel} />
       </InspectorSection>
+      <ProofBlock task={task} ledgerRead={ledgerRead} />
       <InspectorSection
         title="Agent's words"
         aux={
@@ -107,16 +107,6 @@ export function TaskInspector({
       </InspectorSection>
       <InspectorSection title="trace.jsonl" aux={task.flowRun} open={open.trace} onOpenChange={(o) => onOpen('trace', o)}>
         {task.trace.length ? <pre className={styles.trace}>{task.trace.join('\n')}</pre> : <div className={styles.muted}>No trace is held for this task</div>}
-      </InspectorSection>
-      <InspectorSection title="Proof" defaultOpen={false}>
-        <KeyValue
-          rows={[
-            ['Engine', `${task.proof.engine} · no model`],
-            ['Digest', <span key="d" className={styles.mono}>{task.proof.digest}</span>],
-            ['Policy', task.fixture ? <ObjectLink key="p" target={`policy @${POLICY_SHA}`} /> : <HonestyChip key="p" kind="unknown" />],
-            ['Ledger read', ledgerRead],
-          ]}
-        />
       </InspectorSection>
     </>
   );

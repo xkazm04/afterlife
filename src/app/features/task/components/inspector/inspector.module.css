@@ -129,3 +129,12 @@
   font-variant-ligatures: none;
   font-feature-settings: "calt" 0, "liga" 0;
 }
+.rule {
+  margin: 0 0 8px;
+  font-size: var(--t-body);
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.pin {
+  overflow-wrap: anywhere;
+}
