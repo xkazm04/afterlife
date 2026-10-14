@@ -1,0 +1,35 @@
+/* the present-mode pre-roll cue: small, bottom centre, out of the way of the pitch and the rail */
+.cue {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--sP) * 0.35);
+  transform: translateX(-50%);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.15em 0.8em;
+  border-radius: var(--r-pill);
+  font: 650 var(--fA) / 1.4 var(--mono);
+  color: var(--text-1);
+  background: var(--menu);
+  box-shadow: inset 0 0 0 1px var(--border-3);
+  pointer-events: none;
+}
+.dot {
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  background: var(--tier-quarantined);
+  animation: blink 1s steps(2, jump-none) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+  }
+}

@@ -64,7 +64,7 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
       </div>
       {present.on ? (
         <div className={`${styles.layer} ${present.idle ? styles.idle : ''}`} role="region" aria-label="Theater, presenting">
-          <Stage snaps={snaps} snap={snap} store={store} film={film} demo={demo} present />
+          <Stage snaps={snaps} snap={snap} store={store} film={film} demo={demo} present cue={v.left} />
         </div>
       ) : null}
     </>
