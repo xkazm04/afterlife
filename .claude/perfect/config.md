@@ -61,3 +61,4 @@ locale_count: 1
 
 ## Skill improvement log
 - 2026-10-14: first init. No overlay or vault existed; context map had to be hand-reconciled first (22 stale paths, 362 unmapped files after a github merge).
+- 2026-10-14: a hook blocks `git switch -c` in this checkout, so the wave ran on main with `--only` commits; set a worktree recipe or accept main for waves. Builders (Sonnet) produced one stray cp1252 byte; the repo's sourceEncoding test caught it at integration. `npm run demo:data` is not idempotent against the committed JSON (churns ~557 lines): patch the JSON by hand until the drift is reconciled. Both scouts and builders returned near-polished verdicts well; 4 of 10 directions came from verifying product-doc promises (D3 tiers, Proof Block naming, verdict derivation) against code.

@@ -6,3 +6,9 @@
 {"type":"node","kind":"progress","title":"Scouted fleet overview; near-polished; parked cleanup","context":"fleet-overview-ui","skill":"perfect"}
 {"type":"node","kind":"progress","title":"Scouted ladder; accepted show-which-trigger-fired + fix-reverts-or-incidents-label","context":"ladder-model","skill":"perfect"}
 {"type":"node","kind":"progress","title":"Scouted ladder view; near-polished","context":"ladder-view","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Shipped: delete dead 2.68MB hero PNG (c5f643f)","context":"door-visual-scene","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Shipped: derive verdict from checks; name the Proof Block (1dd13e8, 9555637)","context":"task-verdict-view","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Shipped: proof checks on stage; roll cue in present; ignore key repeat (5f6cfc1, 3f1ab9f, e74acaf)","context":"theater-view","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Shipped: Assisted class in the film (20e74f4)","context":"theater-replay-model","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Shipped: Fleet view state in the URL (5668e6f)","context":"fleet-model-hooks","skill":"perfect"}
+{"type":"node","kind":"progress","title":"Shipped: tripwire trigger shown; reverts label fixed (cd61a18, 7221cd5)","context":"ladder-model","skill":"perfect"}
