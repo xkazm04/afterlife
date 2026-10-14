@@ -9,14 +9,14 @@ import { holdersNote, shownOf } from './standing';
 import type { ActionClassView } from './types';
 
 /** "promoted 5 d ago", "no change"... Unknown history is said to be unknown, not "no change". */
-function lastMove(row: ClassTierRow, now: Date): string {
+export function lastMove(row: ClassTierRow, now: Date): string {
   const m = row.move;
   if (!m) return row.record ? 'no change' : 'unknown';
   const ago = m.at ? ageText(now.getTime() - m.at.getTime()) : null;
   switch (m.kind) {
     case 'promoted': return ago ? `promoted ${ago} ago` : 'promoted';
     case 'demoted': return `demoted ${m.note ?? ''}${ago ? ` ${ago} ago` : ''}`.trim();
-    case 'tripwire': return ago ? `${ago} ago · tripwire` : 'tripwire';
+    case 'tripwire': return `${ago ? `${ago} ago · ` : ''}tripwire${m.note ? ` · ${m.note}` : ''}`; // the trigger fired, as stored
     case 'ineligible':
       return row.record ? `record ${row.record.accepted ?? '?'} / ${row.record.needed ?? '?'} · not eligible` : 'not eligible';
     case 'note': return m.note ?? 'unknown';

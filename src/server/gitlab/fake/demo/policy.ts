@@ -1,6 +1,7 @@
 // belay-policy's two files, generated from the demo's twelve action classes: trust-policy.yml (the rules, ceilings in
 // the demo's order) and tier-state.yml (where each class stands). Formatted the way the tripwire writes them.
 import { DEMO } from '@/lib/demo';
+import { isTrigger } from '@/lib/promotion/trigger/trigger';
 import type { ActionClass } from '@/lib/demo/types';
 import { parseMove } from '@/server/index/seed/parse';
 import { DAY, GROUP_PATH, iso } from './ids';
@@ -44,7 +45,7 @@ function record(a: ActionClass, anchor: Date): string {
   const since = iso(anchor, move?.at ? move.at.getTime() - anchor.getTime() : -30 * DAY);
   const by = tripwire ? 'tripwire' : promoted ? `operator via promotion MR !${PROMOTION_MR[a.id] ?? 1}` : 'start tier + record';
   const fields = [`tier: ${a.tier}`, `since: "${since}"`, `by: "${by}"`];
-  if (tripwire) fields.push('reason: guardrail_high', 'evidence: "!44"', `cooldown_until: "${iso(anchor, 7 * DAY).slice(0, 10)}"`);
+  if (tripwire) fields.push(`reason: ${isTrigger(move?.note) ? move?.note : 'guardrail_high'}`, 'evidence: "!44"', `cooldown_until: "${iso(anchor, 7 * DAY).slice(0, 10)}"`);
   if (a.lease_days !== null) fields.push(`lease_expires: "${iso(anchor, a.lease_days * DAY)}"`);
   return `    ${a.id}: { ${fields.join(', ')} }`;
 }

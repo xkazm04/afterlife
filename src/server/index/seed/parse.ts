@@ -30,7 +30,7 @@ export function parseMove(text: string, now: Date): ClassTierRow['move'] {
   if (text === 'no change') return null;
   if ((m = /^promoted (\d+) (min|h|d) ago$/.exec(text))) return { kind: 'promoted', at: at(m[1] as string, m[2] as string), note: null };
   if ((m = /^demoted (.+) (\d+) (min|h|d) ago$/.exec(text))) return { kind: 'demoted', at: at(m[2] as string, m[3] as string), note: m[1] as string };
-  if ((m = /^(\d+) (min|h|d) ago · tripwire$/.exec(text))) return { kind: 'tripwire', at: at(m[1] as string, m[2] as string), note: null };
+  if ((m = /^(\d+) (min|h|d) ago · tripwire(?: · (\w+))?$/.exec(text))) return { kind: 'tripwire', at: at(m[1] as string, m[2] as string), note: m[3] ?? null };
   if (/^record \d+ \/ \d+ · not eligible$/.test(text)) return { kind: 'ineligible', at: null, note: null };
   return { kind: 'note', at: null, note: text };
 }

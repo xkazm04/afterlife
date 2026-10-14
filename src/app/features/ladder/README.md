@@ -77,3 +77,8 @@ pass a node label (the track id in the accent colour). `inspector/log/Axis` (to-
 
 - The legend `?` lives in the dock (as in the prototype), not the status bar; `Window` gets no `help`.
 - Toast sits at the shared offset, not above the dock.
+
+Last move after a tripwire names the trigger that fired: the poll stores the tier record's `reason` as the move's note, the
+index view writes `4 min ago · tripwire · guardrail_high`, and `loadLadderData` words it (`displayLastMove`,
+`src/lib/promotion/trigger/`) for the list, the class page and the Grant section. Only the six `DemotionTrigger`s are worded;
+a missing or unrecognised reason reads "trigger not recorded" and none is guessed.

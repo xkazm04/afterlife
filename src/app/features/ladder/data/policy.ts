@@ -1,5 +1,6 @@
 // The Ladder's policy words and the demo's own policy history. The rules themselves (thresholds, what demotes, the
 // envelope) are trust-policy.yml's, read on the server (`PolicyRules`); only how they are worded lives here.
+import { TRIGGER_WORDS } from '@/lib/promotion/trigger/trigger';
 import type { PolicyRules } from '@/server/data/types';
 
 /** Commit ids handed out, in order, to each simulated revoke (demo mode only: a live revoke names GitLab's commit). */
@@ -11,16 +12,7 @@ export const INITIAL_HEAD = { sha: 'c3d4', by: 'tripwire' } as const;
 /** The policy's revision and when it merged: the demo's history (the poller reads belay-policy's files, not its log). */
 export const POLICY_HISTORY = { version: 'v7', mergedAgo: '3 d ago' } as const;
 
-/** trust-policy.yml's demotion triggers, in words. */
-const TRIGGER: Readonly<Record<string, string>> = {
-  revert: 'revert',
-  reopened_finding: 'reopened finding',
-  post_merge_proof_fail: 'post-merge proof failure',
-  default_branch_red_1h: 'red main ≤ 1 h',
-  guardrail_high: 'guardrail high-severity block',
-  budget_breach_x2: 'budget breach twice',
-};
-const words = (ids: readonly string[]): string => ids.map((t) => TRIGGER[t] ?? t).join(' · ');
+const words = (ids: readonly string[]): string => ids.map((t) => TRIGGER_WORDS[t] ?? t).join(' · ');
 
 /** The policy popover's lines, from the rules the server read. */
 export function policyLines(r: PolicyRules): { oneStepDown: string; toQuarantined: string; envelope: string } {

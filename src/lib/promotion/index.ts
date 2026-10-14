@@ -4,3 +4,4 @@ export * from './rules';
 export * from './rungs';
 export * from './types';
 export * from './words';
+export * from './trigger/trigger';

@@ -6,7 +6,7 @@ import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { getDataSource } from '@/server/data';
 import type { IllustrativePart } from '@/server/data';
 import type { NeedsYouItem } from '@/lib/demo';
-import { cellOf, promotionId } from '@/lib/promotion';
+import { cellOf, displayLastMove, promotionId } from '@/lib/promotion';
 import { TIER_ORDER } from '@/schemas/tier';
 import type { PromotionAsk, Tier } from '../model/types';
 import type { LadderScreenProps } from '../LadderScreen';
@@ -46,7 +46,9 @@ export function loadLadderData(): LadderScreenProps {
   const asks = live ? asksOf(ds.getNeedsYou(), ds.deepProjectId(), all) : new Map<string, PromotionAsk>();
   const classes = all.map((c) => {
     const ask = asks.get(c.id);
-    const marked = live && c.record && !counted(c) ? { ...c, uncounted: true as const } : c;
+    // the one place a class enters the Ladder (list and class page): the tripwire's trigger is worded here
+    const worded = { ...c, lastMove: displayLastMove(c.lastMove) };
+    const marked = live && c.record && !counted(c) ? { ...worded, uncounted: true as const } : worded;
     return ask ? { ...marked, ask } : marked;
   });
   // The guardrail's quoted finding, by merge request: the Ladder shows it as untrusted text in the ledger.

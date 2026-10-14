@@ -57,7 +57,7 @@ const actionClasses = [
   { id: 'test.quarantine', track: 'T5', ceiling: 'supervised', tier: 'supervised', lease_days: null, record: { accepted: 2, needed: null, noEdit: 1, cleanDays: 6, reverts: 0 }, lastMove: 'no change' },
   { id: 'ci-config.change', track: 'T6', ceiling: 'assisted', tier: 'assisted', lease_days: null, record: { accepted: 5, needed: null, noEdit: 0.8, cleanDays: 10, reverts: 0 }, lastMove: 'ceiling: changes what agents may do' },
   { id: 'qa.file-bug', track: 'T7', ceiling: 'hands_off', tier: 'supervised', lease_days: null, record: { accepted: 16, needed: 15, noEdit: 1, cleanDays: 14, reverts: 0 }, lastMove: 'record 16 / 15 · eligible' },
-  { id: 'patch-bump', track: 'T8', ceiling: 'supervised', tier: 'quarantined', lease_days: null, record: { accepted: 7, needed: null, noEdit: 0.71, cleanDays: 0, reverts: 1 }, lastMove: '4 min ago · tripwire' },
+  { id: 'patch-bump', track: 'T8', ceiling: 'supervised', tier: 'quarantined', lease_days: null, record: { accepted: 7, needed: null, noEdit: 0.71, cleanDays: 0, reverts: 1 }, lastMove: '4 min ago · tripwire · guardrail_high' },
 ];
 
 const tiers = {
