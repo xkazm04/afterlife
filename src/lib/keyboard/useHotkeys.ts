@@ -9,6 +9,20 @@ export interface Hotkey extends HotkeySpec {
   allowInInput?: boolean;
   /** Default true: the browser's own action for the chord is cancelled. */
   preventDefault?: boolean;
+  /** Ignore OS auto-repeat (a held key): for toggles such as play/pause. Default false, so held arrows keep repeating. */
+  once?: boolean;
+}
+
+/** Run the first hotkey that matches `e`; returns whether one matched. A repeat of a `once` hotkey is swallowed (still default-prevented), never re-fired. */
+export function dispatchHotkey(hotkeys: readonly Hotkey[], e: KeyboardEvent): boolean {
+  for (const hk of hotkeys) {
+    if (!matchHotkey(e, hk)) continue;
+    if (!hk.mod && !hk.allowInInput && isTypingTarget(e.target)) continue;
+    if (hk.preventDefault !== false) e.preventDefault();
+    if (!(hk.once && e.repeat)) hk.handler(e);
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -24,13 +38,7 @@ export function useHotkeys(hotkeys: readonly Hotkey[], enabled = true): void {
     if (!enabled) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
-      for (const hk of ref.current) {
-        if (!matchHotkey(e, hk)) continue;
-        if (!hk.mod && !hk.allowInInput && isTypingTarget(e.target)) continue;
-        if (hk.preventDefault !== false) e.preventDefault();
-        hk.handler(e);
-        return;
-      }
+      dispatchHotkey(ref.current, e);
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
