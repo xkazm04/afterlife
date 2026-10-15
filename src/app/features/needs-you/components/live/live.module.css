@@ -1,4 +1,4 @@
-/* A selected live item: its rule counts, the server's write, Run and the answer. */
+/* A selected live item: its rule counts, its class as it is now, the server's write, Run and the answer. */
 .act {
   display: grid;
   gap: 6px;
@@ -30,4 +30,19 @@
 }
 .bad {
   color: var(--needs-you);
+}
+.evidence {
+  display: grid;
+  gap: 4px;
+  padding-left: 8px;
+  border-left: 2px solid var(--border-2);
+}
+.mono {
+  font: 400 var(--t-small) var(--mono);
+}
+.outputs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font: 400 var(--t-small) var(--mono);
 }

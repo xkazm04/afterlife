@@ -10,6 +10,6 @@ import { NeedsYouScreen } from '../features/needs-you/NeedsYouScreen';
 export default function NeedsYouPage() {
   const view = loadNeedsYouView();
   if (view.kind === 'desk') return <NeedsYouScreen demo={view.demo} />;
-  if (view.kind === 'live') return <NeedsYouLive items={view.items} seeded={view.seeded} project={view.project} />;
+  if (view.kind === 'live') return <NeedsYouLive items={view.items} seeded={view.seeded} project={view.project} evidence={view.evidence} />;
   return <NeedsYouEmpty seeded={view.seeded} />;
 }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { NeedsYouItem } from '@/lib/demo';
 import { NO_ANSWER, outcomeOf, type WriteView } from '@/server/actions/words';
+import type { LiveEvidence } from '../model/evidence/evidence';
 import { liveIntent, noAnswer, writeName, type LiveAnswer } from '../model/live';
 import { askPolicyMr, sendPolicyMr } from '../write/promote';
 
@@ -10,11 +11,13 @@ import { askPolicyMr, sendPolicyMr } from '../write/promote';
  * The live list's writes. Selecting a promotion or a re-admit asks the server for its exact write (previewAction, nothing
  * runs); Run confirms the preview on screen by its id (confirmAction), never anything else. The answer is kept as the
  * response worded it: done names the MR GitLab opened, changed puts the new write on screen, refused and failed say so.
+ * An item whose class moved since the proposal (its evidence's canRun is false) is never sent, from a click or a key.
  */
 const still = () => () => {};
+const NONE: Readonly<Record<string, LiveEvidence>> = {};
 const itemParam = () => new URLSearchParams(window.location.search).get('item');
 
-export function useLiveActs(items: readonly NeedsYouItem[], project: string) {
+export function useLiveActs(items: readonly NeedsYouItem[], project: string, evidence: Readonly<Record<string, LiveEvidence>> = NONE) {
   // `?item=<id>` opens that item selected (Ladder's p on an eligible class), when it is listed, until a click picks another
   const wanted = useSyncExternalStore(still, itemParam, () => null);
   const [picked, select] = useState<string | null | undefined>(undefined);
@@ -52,7 +55,8 @@ export function useLiveActs(items: readonly NeedsYouItem[], project: string) {
   const run = useCallback((id: string) => {
     const intent = intentOf(id);
     const view = views[id];
-    if (!intent || view?.kind !== 'preview' || sending) return;
+    const ev = evidence[id];
+    if (!intent || view?.kind !== 'preview' || sending || (ev?.kind === 'class' && !ev.canRun)) return;
     const item = items.find((n) => n.id === id);
     setSending(id);
     sendPolicyMr(intent, view)
@@ -65,7 +69,7 @@ export function useLiveActs(items: readonly NeedsYouItem[], project: string) {
         else if (o.status === 'refused') setViews((m) => ({ ...m, [id]: { kind: 'refused', reason: o.reason } }));
       }, () => setAnswers((m) => ({ ...m, [id]: noAnswer(NO_ANSWER) })))
       .finally(() => setSending(null));
-  }, [intentOf, items, views, sending]);
+  }, [intentOf, items, views, sending, evidence]);
 
   return { sel, select, intentOf, views, answers, sent, sending, run, retry };
 }
