@@ -1,8 +1,5 @@
-// The decisions waiting for a person: the lozenge count, resolving one, re-polling a feed, the status line.
+// Re-polling a feed and the status line.
 import type { FleetProject } from '@/lib/demo/types';
-
-/** Resolving a decision lowers its project's count by one, never below zero. */
-export const resolveOne = (p: FleetProject): FleetProject => ({ ...p, needsYou: Math.max(0, p.needsYou - 1) });
 
 export interface RepollResult {
   ok: boolean;

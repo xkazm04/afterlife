@@ -3,16 +3,15 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
 import { needsSum } from '../model/groups';
-import { repoll, resolveOne } from '../model/needs';
+import { repoll } from '../model/needs';
 
 /**
- * The fleet as the screen holds it: the source's projects, plus demo mode's two simulations. Re-polling a feed resets its
- * age; resolving a decision counts it down on its project. Nothing leaves the browser. When the route renders again with
- * fresh projects (live mode, after a re-poll), the screen takes them as they are.
+ * The fleet as the screen holds it: the source's projects, plus demo mode's simulated re-poll, which resets a feed's age.
+ * Nothing leaves the browser. When the route renders again with fresh projects (live mode, after a re-poll), the screen
+ * takes them as they are.
  */
 export function useFleetProjects(initial: readonly FleetProject[]) {
   const [projects, setProjects] = useState<readonly FleetProject[]>(initial);
-  const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
   const [from, setFrom] = useState(initial);
   if (from !== initial) {
     setFrom(initial);
@@ -34,15 +33,5 @@ export function useFleetProjects(initial: readonly FleetProject[]) {
     [byId],
   );
 
-  /** Marks one decision of a project done and lowers its count. A decision resolves once. */
-  const resolve = useCallback(
-    (projectId: string, needId: string) => {
-      if (done.has(needId)) return;
-      setDone((d) => new Set(d).add(needId));
-      setProjects((list) => list.map((x) => (x.id === projectId ? resolveOne(x) : x)));
-    },
-    [done],
-  );
-
-  return { projects, byId, waiting, done, poll, resolve };
+  return { projects, byId, waiting, poll };
 }

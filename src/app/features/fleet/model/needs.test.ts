@@ -1,15 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { nextPolled, repoll, repollMessage, resolveOne, statusLine } from './needs';
+import { nextPolled, repoll, repollMessage, statusLine } from './needs';
 import { makeProject } from './testProject';
-
-describe('resolveOne', () => {
-  it('lowers the count by one and stops at zero', () => {
-    const p = makeProject({ id: 'a', needsYou: 1 });
-    expect(resolveOne(p).needsYou).toBe(0);
-    expect(resolveOne(resolveOne(p)).needsYou).toBe(0);
-    expect(p.needsYou).toBe(1);
-  });
-});
 
 describe('repoll', () => {
   it('resets the age of a healthy feed', () => {
