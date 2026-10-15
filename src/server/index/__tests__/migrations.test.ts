@@ -170,3 +170,11 @@ describe('applied migrations stay frozen', () => {
     expect(CEILINGS).toBe(quoted([...TIER_ORDER, 'human_only']));
   });
 });
+
+describe('README', () => {
+  it('names every migration, by its four-digit version', () => {
+    const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
+    const missing = MIGRATIONS.map((m) => String(m.version).padStart(4, '0')).filter((v) => !readme.includes(v));
+    expect(missing).toEqual([]);
+  });
+});

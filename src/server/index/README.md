@@ -20,18 +20,37 @@ tables above. NULL means unknown, never zero.
 
 ## Layout
 
-- `db.ts` open, shared instance (`getIndex`), `closeIndex`. `migrations/` versioned SQL as TS modules, the steps in
-  `migrations/steps/` (nested at 0009 for the 10-file folder ceiling, each step's version, name and SQL unchanged, which
-  is all `migrate()` keys on: `steps/` is at its 10-file limit: the next step needs a nested folder); `migrate()` is idempotent and checksum-guarded.
-  Migration 0009 adds `class_tier.cooldown_until`, tier-state.yml's `cooldown_until` on the record
-  (`__tests__/migration9.test.ts` migrates a populated version-8 index). A test of one migration runs `migrate()`
-  through its own prefix, `migrate(db, MIGRATIONS.filter((m) => m.version <= N))`, never the whole list: it had asserted
-  `migrate(db)` applies exactly `[9]`, and adding 0010 made that `[9, 10]` and failed the gate on a correct change, while
-  the alternative, updating every older test's expected list per new migration, ties each test to every later one (c4fd9d2). `repositories/` typed, parameterised functions per table (no ORM).
+- `db.ts` open, shared instance (`getIndex`, retried after a failed open), `closeIndex`. `migrations/` versioned SQL as TS
+  modules: `steps/` holds 0001-0010 and is at the structure gate's 10-file folder ceiling, `later/` holds 0011 onward
+  (`migrate.ts` lists both). `migrate()` is idempotent and checksum-guarded: an applied migration is keyed by the sha256
+  of its sql, so none is ever edited (`__tests__/migrations.test.ts` pins all of them, and `migrations/parts.ts` writes
+  its stage, tier and ceiling lists out instead of reading `src/schemas`). A test of one migration runs `migrate()`
+  through its own prefix, `migrate(db, MIGRATIONS.filter((m) => m.version <= N))`, never the whole list: asserting that
+  `migrate(db)` applies exactly `[9]` broke when 0010 arrived, and updating every older test per new migration ties each
+  test to every later one (c4fd9d2). `repositories/` typed, parameterised functions per table (no ORM).
 - `views/` return the shapes in `src/lib/demo` (`getFleet`, `getNeedsYou`, `getActionClasses`, `getMaturity`,
   `getTasks`, and `getEvents`: the deep project's recent events, dated only by what the index holds with a time). Countdowns and ages are computed from stored instants with a `now` argument. Where the index cannot
   know a value the field is `null` (types widened in `views/types.ts`).
 - `seed/` loads `belay-demo.json` anchored at `SEED_NOW` (14:22 UTC) so tests can prove the views match the demo.
+
+## Migrations
+
+| Version | Adds |
+|---|---|
+| 0001 `fleet` | `fleet_group`, `trust_class`, `project`, `project_stage`, `class_tier` |
+| 0002 `work` | `task`, `proof`, `proposal`, `stage_cell` |
+| 0003 `ledger` | `ledger_event` and its append-only trigger |
+| 0004 `operator` | `pairing`, `setup_step`, `poll_state`, `commands_run` |
+| 0005 | `class_tier.move_kind` admits `no_record` and `refused` |
+| 0006 | each record counter stands on its own (the all-or-none check is dropped) |
+| 0007 | `class_tier.guardrail_blocks`, `count_window` |
+| 0008 | `ledger_event.verdict` |
+| 0009 | `class_tier.cooldown_until` (`__tests__/migration9.test.ts` migrates a populated version-8 index) |
+| 0010 | `ledger_event.environment` |
+| 0011 | `ledger_event.state_rev`, `withdrew`; `class_tier.receipt` |
+| 0012 | `class_tier.gated`, `gate_iid`, `gate_tier`, `gate_at` |
+| 0013 | `class_tier.sources` |
+| 0014 | `ledger_event.would`; `class_tier.trial` |
 
 ## Ledger
 
@@ -40,14 +59,15 @@ transaction; a bad chain throws `LedgerChainError` and writes nothing. Re-import
 different event at a stored seq is rejected as a fork. `verifyStoredChain` re-verifies from genesis. Migration 0008 adds
 `verdict` (the guardrail's `pass` or `block`, on a `guardrail_verdict` only); a null reads back as no `verdict` key, so an
 event without one hashes as it always did (`../ledger/README.md`). Migration 0010 adds `environment` (jsonb `{ name, tier }`,
-on a `deployed` event only, tier one of GitLab's five); a null reads back as no `environment` key, the same way.
+on a `deployed` event only, tier one of GitLab's five), 0011 `state_rev` and `withdrew` and 0014 `would` (a `tier_decision` only);
+a null reads back as no key, the same way.
 
 ## Not yet served
-Tracks, loop, setup phases, cockpit and the event feed have no view yet; `pairing`/`setup_step` have repositories
-only. Times are formatted in UTC.
+Tracks, loop, setup phases and cockpit have no view yet; `pairing`/`setup_step` have repositories only. Times are
+formatted in UTC.
 
 ## Decision: the standing key `refused`
-The stored standing key `refused` stays, with no migration 0006. Every screen shows it as Split, per holder
+The stored standing key `refused` stays (no migration renames it; 0005 admitted it). Every screen shows it as Split, per holder
 (`views/standing.ts:31-33`). A rename is backlog.
 
 ## Added by B6
