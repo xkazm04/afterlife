@@ -1,4 +1,7 @@
+import fs from 'node:fs';
 import { afterEach, describe, expect, it } from 'vitest';
+import { parse as parseYaml } from 'yaml';
+import { parsePolicy } from '../../../../engine/policy/load';
 import { DEMO } from '@/lib/demo';
 import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { upsertClassTiers } from '@/server/index/repositories/fleet/classTier';
@@ -9,7 +12,9 @@ import { readDataConfig } from '../config';
 import { demoSource } from '../demoSource';
 import { liveSource } from '../live/liveSource';
 import { buildSnapshot } from '../live/snapshot';
+import { rulesOf } from '../policy';
 import { getDataSource, setDataSource } from '../select';
+import type { PolicyRules } from '../types';
 import { GitLabError } from '@/server/gitlab/errors';
 import type { PairingRow } from '@/server/index/repositories/pairing';
 import { setupReads, type SetupPort } from '../setup/read';
@@ -106,5 +111,20 @@ describe("Setup's step 0 and step 4 when the port fails", () => {
 
   it("a group listing that fails leaves the projects step unknown, naming why, not failed", async () => {
     expect((await steps(new Error('boom')))[4]).toEqual({ state: 'unknown', reason: "listing the group's projects failed: down" });
+  });
+});
+
+describe("the policy's window_last", () => {
+  // The poller counts over the last N outputs only for a positive integer (poller/derive/tiers.ts windowOf); the rules a screen
+  // shows must name the same window, or the row reads "counted over the last 2.5 outputs" and is never met.
+  const withWindow = (n: unknown): PolicyRules | null => {
+    const raw = parseYaml(fs.readFileSync('policy/trust-policy.yml', 'utf8')) as { promotion: { assisted_to_supervised: Record<string, unknown> } };
+    raw.promotion.assisted_to_supervised.window_last = n;
+    return rulesOf(parsePolicy(raw));
+  };
+
+  it('is shown for a positive integer only; anything else is no window', () => {
+    const cases: [unknown, number | null][] = [[5, 5], [1, 1], [2.5, null], [0.5, null], [0, null], [-3, null], ['5', null], [null, null]];
+    expect(cases.map(([n]) => withWindow(n)?.toSupervised.windowLast)).toEqual(cases.map(([, shown]) => shown));
   });
 });

@@ -39,7 +39,7 @@ export function rulesOf(p: EnginePolicy): PolicyRules | null {
     startTier: isTier(p.start_tier) ? p.start_tier : null,
     cooldownDays: cooldown,
     leaseDays: num(p.grant_ttl_days),
-    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && window > 0 ? window : null, ...gatedOf(up), ...trialOf(up) },
+    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && Number.isInteger(window) && window > 0 ? window : null, ...gatedOf(up), ...trialOf(up) },
     toHandsOff: { accepted: accH, noEditRatio: noEdit, cleanDays: clean, humanKey: top?.human_key === true, ...gatedOf(top), ...trialOf(top) },
     oneStepOn: strs(p.demotion?.one_step_on),
     quarantineOn: strs(p.demotion?.quarantine_on),
