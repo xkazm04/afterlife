@@ -28,6 +28,10 @@ describe('parseArgs', () => {
     expect(() => parseArgs(['--class'], spec)).toThrow(/needs a value/);
     expect(() => parseArgs([], spec).need('class')).toThrow(/missing --class/);
   });
+  it('refuses a value on a switch: --write=false must not read as --write', () => {
+    for (const a of ['--write=false', '--write=0', '--write=']) expect(() => parseArgs([a], spec), a).toThrow(/takes no value/);
+    expect(parseArgs(['--write'], spec).has('write')).toBe(true);
+  });
 });
 
 describe('engine pin', () => {

@@ -23,6 +23,8 @@ export function parseArgs(argv: readonly string[], opts: { values: readonly stri
     const eq = a.indexOf('=');
     const key = a.slice(2, eq === -1 ? undefined : eq);
     if (switches.has(key)) {
+      // `--write=false` would otherwise read as `--write`: refuse rather than guess what the caller meant
+      if (eq !== -1) throw new EngineError(`option --${key} takes no value`);
       flags.set(key, [...(flags.get(key) ?? []), 'true']);
       continue;
     }
