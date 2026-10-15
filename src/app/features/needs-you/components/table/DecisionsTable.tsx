@@ -1,5 +1,6 @@
 import type { MouseEvent, KeyboardEventHandler, Ref } from 'react';
 import { Button } from '@/components/controls/Button';
+import { plural } from '@/lib/format/plural';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import { Cell } from '@/components/table/Cell';
 import { GroupRow } from '@/components/table/GroupRow';
@@ -91,7 +92,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
               <Cell>{waiting ? <NeedsYouBadge count={waiting} variant="group" title={`${waiting} waiting for you`} /> : null}</Cell>
               <Cell align="end" className={styles.act}>
                 {stageAll ? (
-                  <Button size="mini" variant="accent" tabIndex={-1} title="One draft MR per picked gap, into the outbox" aria-label={`Stage ${picked} picked gaps`} onClick={() => dispatch({ type: 'act', action: 'stage-gaps' })}>
+                  <Button size="mini" variant="accent" tabIndex={-1} title="One draft MR per picked gap, into the outbox" aria-label={`Stage ${plural(picked, 'picked gap')}`} onClick={() => dispatch({ type: 'act', action: 'stage-gaps' })}>
                     Stage {picked} picked
                   </Button>
                 ) : null}
