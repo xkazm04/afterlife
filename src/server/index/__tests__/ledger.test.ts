@@ -1,5 +1,5 @@
 import type { PGlite } from '@electric-sql/pglite';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { append, GENESIS, type LedgerEvent } from '@/schemas/ledger';
 import {
   appendLedgerEvents, ledgerTail, LedgerChainError, readClassEvents, readLedger, resetLedger, verifyStoredChain,
@@ -156,5 +156,28 @@ describe('stored chain integrity', () => {
     await appendLedgerEvents(db, events);
     expect(await verifyStoredChain(db, PROJECT)).toBeNull();
     await expect(db.query('delete from ledger_event')).rejects.toThrow(/append-only/);
+  });
+});
+
+describe('appendLedgerEvents cost', () => {
+  it('reads back only the stored events it was handed, never the whole chain', async () => {
+    const db = await memoryIndex();
+    const events = chain(9);
+    await appendLedgerEvents(db, events.slice(0, 8));
+
+    let rowsRead = 0;
+    const real = db.transaction.bind(db);
+    vi.spyOn(db, 'transaction').mockImplementation(((cb: (tx: never) => Promise<unknown>) =>
+      real((tx) => cb({
+        query: async (...a: unknown[]) => {
+          const r = await (tx.query as (...x: unknown[]) => Promise<{ rows: unknown[] }>)(...a);
+          rowsRead += r.rows.length;
+          return r;
+        },
+      } as never))) as unknown as typeof db.transaction);
+
+    // the importer hands over the stored tail plus the new event (src/server/ledger/importLedger.ts)
+    expect(await appendLedgerEvents(db, events.slice(7))).toEqual({ appended: 1, skipped: 1 });
+    expect(rowsRead).toBeLessThanOrEqual(3); // was 9: the tail row plus all 8 stored events
   });
 });

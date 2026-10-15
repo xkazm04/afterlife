@@ -64,7 +64,13 @@ export async function appendLedgerEvents(db: PGlite, events: readonly LedgerEven
 
   return db.transaction(async (tx) => {
     const tail = await ledgerTail(tx, projectId);
-    const stored = tail ? await readLedger(tx, projectId) : [];
+    // Only the seqs in this batch can collide with a stored event; the importer hands over the tail plus the new events.
+    const stored = tail
+      ? (await tx.query<{ seq: number; hash: string }>(
+          'select seq, hash from ledger_event where project_id = $1 and seq = any($2::int[])',
+          [projectId, events.map((e) => e.seq)],
+        )).rows
+      : [];
     const known = new Map(stored.map((e) => [e.seq, e.hash]));
     const fresh: LedgerEvent[] = [];
     for (const e of events) {
