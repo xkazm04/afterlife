@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { Window } from '@/components/shell/Window';
@@ -17,12 +17,14 @@ import { useLadderData } from './hooks/useLadderData';
 import { useLadderKeys } from './hooks/useLadderKeys';
 import { useLadderMenus } from './hooks/useLadderMenus';
 import { useLadderPopovers } from './hooks/useLadderPopovers';
+import { usePromoteWrite } from './hooks/usePromoteWrite';
 import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
 import { livePollAge, pollAge } from './model/clock';
 import { DemoChip } from './components/chrome/DemoChip';
 import { TiersStale } from './components/chrome/TiersStale';
-import { dockModel } from './model/rules/dock';
+import { dockModel, type DockModel } from './model/rules/dock';
+import { promoteAsk } from './model/rules/promote';
 import type { Tier } from './model/types';
 import type { LadderScreenProps } from './props';
 import { filterCount } from './model/view/filters';
@@ -43,6 +45,15 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
   const [pinned, setPinned] = useState<{ id: string; to: Tier } | null>(null);
   const shownTo = hoverTo ?? (pinned && pinned.id === data.sel ? pinned.to : null);
   const writes = useRevokeWrite(project, data.selected, shownTo);
+  // The selected class's promotion (eligible, or a quarantine's re-admission) is asked for; p or Promote puts it on the dock.
+  const [promoting, setPromoting] = useState<string | null>(null);
+  const promoteWant = data.selected ? promoteAsk(data.selected, data.promotionOf(data.selected)) : null;
+  const promos = usePromoteWrite(project, promoteWant);
+  const dock = dockModel(data.sel, byId, tracks, shownTo, writes.viewOf, { want: promoteWant, pinned: promoting === data.sel, viewOf: promos.viewOf });
+  const dockRef = useRef<DockModel>(dock);
+  useEffect(() => {
+    dockRef.current = dock;
+  });
   const clock = useSimClock(live);
   const pop = useLadderPopovers();
   const router = useRouter();
@@ -61,9 +72,23 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
     pop.close();
     setHoverTo(null);
     setPinned(null);
+    setPromoting(null);
   }, [pop]);
-  const onShow = useCallback((id: string, to: Tier) => setPinned({ id, to }), []);
-  const actions = useLadderActions({ project, live, data, writes, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi, onShow });
+  const onShow = useCallback((id: string, to: Tier) => {
+    setPinned({ id, to });
+    setPromoting(null);
+  }, []);
+  // The dock shows one write: p sends the promotion only while it is the one shown, r the revoke only while it is.
+  const onDock = useCallback((id: string) => dockRef.current.kind === 'promote' && dockRef.current.id === id, []);
+  const promoteScreen = useMemo(() => {
+    const show = (id: string) => {
+      setPinned(null);
+      setPromoting(id);
+    };
+    return { shown: onDock, show };
+  }, [onDock]);
+  const revokeShown = useCallback((id: string) => !onDock(id), [onDock]);
+  const actions = useLadderActions({ project, data, writes, promos, promoteScreen, revokeShown, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi, onShow });
   const menus = useLadderMenus({ data, actions, writes, onHover: setHoverTo });
 
   const toggleHelp = () => {
@@ -136,6 +161,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           sel={data.sel}
           just={state.just}
           promotionOf={data.promotionOf}
+          policy={policy}
           empty={shown === 0}
           menuing={menus.isOpen}
           onSelect={actions.select}
@@ -150,7 +176,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           tableRef={tableRef}
         />
       </div>
-      <Dock model={dockModel(data.sel, byId, tracks, shownTo, writes.viewOf)} onHelp={toggleHelp} helpRef={helpRef} />
+      <Dock model={dock} onHelp={toggleHelp} helpRef={helpRef} />
       {menus.menus}
       {pop.popover}
     </Window>

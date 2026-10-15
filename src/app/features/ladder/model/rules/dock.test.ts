@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { Track } from '@/lib/demo';
 import type { ActionPreview } from '@/server/actions/types';
+import type { PromoteView } from '../../write/promote';
 import type { WriteView } from '../../write/revoke';
 import type { ClassRow, Tier, TrackMap } from '../types';
-import { commandHead, dockModel } from './dock';
+import { commandHead, dockModel, type DockPromote } from './dock';
+import type { PromoteAsk } from './promote';
 
 const row = (id: string, o: Partial<ClassRow> = {}): ClassRow => ({
   id, track: 'T1', ceiling: 'hands_off', tier: 'hands_off', lease_days: null, record: null, lastMove: '', pending: null, ...o,
@@ -35,6 +37,28 @@ describe('dockModel', () => {
     expect(dockModel('g:T1', byId, tracks, null, viewOf)).toEqual({ kind: 'group', id: 'T1', key: 'patcher' });
     expect(dockModel(null, byId, tracks, null, viewOf)).toEqual({ kind: 'none' });
     expect(dockModel('zz', byId, tracks, null, viewOf)).toEqual({ kind: 'none' });
+  });
+});
+
+describe('dockModel and the promotion', () => {
+  const sent = { kind: 'sent' as const, mr: '!22', url: null, simulated: false };
+  const promoViews: Record<string, PromoteView> = { 'a>hands_off': { kind: 'preview', preview }, 'q>assisted': sent };
+  const promo = (want: PromoteAsk | null, pinned = false): DockPromote => ({ want, pinned, viewOf: (id, to) => promoViews[`${id}>${to}`] });
+  const up: PromoteAsk = { id: 'a', to: 'hands_off', readmit: false };
+
+  it('keeps the revoke on the strip until p pins the promotion', () => {
+    expect(dockModel('a', byId, tracks, null, viewOf, promo(up))).toMatchObject({ kind: 'write', to: 'supervised' });
+    expect(dockModel('a', byId, tracks, null, viewOf, promo(up, true))).toEqual({ kind: 'promote', id: 'a', to: 'hands_off', readmit: false, view: { kind: 'preview', preview } });
+  });
+  it('a hovered revoke target takes the strip back', () => {
+    expect(dockModel('a', byId, tracks, 'quarantined', viewOf, promo(up, true))).toMatchObject({ kind: 'write', to: 'quarantined' });
+  });
+  it('a quarantine, with nothing to revoke, shows its re-admission at once, and the MR once sent', () => {
+    expect(dockModel('q', byId, tracks, null, viewOf, promo({ id: 'q', to: 'assisted', readmit: true }))).toEqual({ kind: 'promote', id: 'q', to: 'assisted', readmit: true, view: sent });
+  });
+  it('a class the rule does not call eligible never shows a promotion', () => {
+    expect(dockModel('a', byId, tracks, null, viewOf, promo(null, true))).toMatchObject({ kind: 'write' });
+    expect(dockModel('h', byId, tracks, null, viewOf, promo(up, true))).toMatchObject({ kind: 'idle' });
   });
 });
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, type MouseEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { useMenu } from '@/components/overlays/menu/useMenu';
 import type { MenuAction, MenuEntry } from '@/components/overlays/menu/menuModel';
 import { TierMark } from '@/components/status/TierMark';
@@ -21,7 +20,6 @@ import type { RevokeWrites } from './useRevokeWrite';
  * item is reported through `onHover` so the docked strip can preview its write.
  */
 export function useLadderMenus({ data, actions, writes, onHover }: { data: LadderData; actions: LadderActions; writes: RevokeWrites; onHover: (to: Tier | null) => void }) {
-  const router = useRouter();
   const { state, dispatch, byId, trackIds } = data;
 
   const onHighlight = useCallback((item: MenuAction<Tier> | null) => onHover(item?.data ?? null), [onHover]);
@@ -77,13 +75,13 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
         { sep: true },
         ...(lower.length ? [...targetEntries(id), { sep: true as const }] : []),
         isQuarantine(c)
-          ? { label: 'Re-admit in Needs you…', run: () => router.push('/needs-you') }
+          ? { label: 'Re-admit at Assisted…', sc: 'p', run: () => actions.promote(id) }
           : { label: 'Promote…', sc: 'p', disabled: !eligible, run: () => actions.promote(id) },
         { label: 'Copy Command', disabled: !cmd, run: copy },
         ...(state.grouped ? [{ sep: true as const }, { label: `Collapse ${c.track}`, run: () => dispatch({ type: 'toggleGroup', id: c.track, open: false }) }] : []),
       ];
     },
-    [byId, data, actions, writes, targetEntries, router, state.grouped, dispatch],
+    [byId, data, actions, writes, targetEntries, state.grouped, dispatch],
   );
 
   const groupEntries = useCallback(

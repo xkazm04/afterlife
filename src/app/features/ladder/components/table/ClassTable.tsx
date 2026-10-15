@@ -12,6 +12,7 @@ import { rowDomId } from '@/components/table/model/rowNavigation';
 import type { GroupView } from '../../model/view/rows';
 import type { ClassRow, LadderSort, SortKey, TrackMap } from '../../model/types';
 import type { Promotion } from '@/lib/promotion';
+import type { PolicyRules } from '@/server/data/types';
 import { ClassLine, type LineHandlers } from './ClassLine';
 import styles from './ladderTable.module.css';
 
@@ -44,6 +45,8 @@ export interface ClassTableProps extends Omit<LineHandlers, 'onMenu'> {
   sel: string | null;
   just: string | null;
   promotionOf: (c: ClassRow) => Promotion;
+  /** trust-policy.yml as the server read it: the lease and the no-edit bar the record cells are read against. */
+  policy: PolicyRules | null;
   empty: boolean;
   menuing: boolean;
   onToggleGroup: (id: string) => void;
@@ -110,6 +113,7 @@ export function ClassTable(p: ClassTableProps) {
                     key={c.id}
                     cls={c}
                     promotion={p.promotionOf(c)}
+                    policy={p.policy}
                     selected={p.sel === c.id}
                     alt={i % 2 === 1}
                     grouped={p.grouped}

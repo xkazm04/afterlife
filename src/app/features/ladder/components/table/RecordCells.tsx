@@ -1,14 +1,19 @@
 import { Cell } from '@/components/table/Cell';
 import { DayStrip } from '@/components/viz/DayStrip';
 import { pct } from '@/lib/promotion';
+import type { PolicyRules } from '@/server/data/types';
+import { belowNoEdit, leaseLeft } from '../../model/grant/lease';
 import type { ClassRow } from '../../model/types';
 import styles from './ladderTable.module.css';
 
 const NO_RECORD = 'No record yet · not scored';
 const NOT_RECORDED = 'Not recorded · no task or ledger event states it';
 
-/** Lease, Acc, No-edit, Rv and the 14-day strip. No record, or a counter not recorded, is a dim dash (never zero); Human only has no record. */
-export function RecordCells({ cls, className }: { cls: ClassRow; className?: string }) {
+/**
+ * Lease, Acc, No-edit, Rv and the 14-day strip. No record, or a counter not recorded, is a dim dash (never zero); Human
+ * only has no record. The lease is of the policy's grant_ttl_days (none when it sets none), No-edit dims below its bar.
+ */
+export function RecordCells({ cls, policy, className }: { cls: ClassRow; policy: PolicyRules | null; className?: string }) {
   const r = cls.record;
   const none = r || cls.tier === 'human_only' ? null : (
     <span className={styles.z} title={NO_RECORD}>
@@ -20,11 +25,11 @@ export function RecordCells({ cls, className }: { cls: ClassRow; className?: str
       —
     </span>
   );
-  const lease = cls.lease_days;
+  const lease = leaseLeft(cls.lease_days, policy);
   return (
     <>
       <Cell align="end" className={className}>
-        {lease ? <span title={`${lease} d left of 14, then Supervised unless a person re-confirms`}>{lease} d</span> : <span className={styles.z}>—</span>}
+        {lease ? <span title={`${lease}, then Supervised unless a person re-confirms`}>{cls.lease_days} d</span> : <span className={styles.z}>—</span>}
       </Cell>
       <Cell align="end" className={className}>
         {r ? (
@@ -41,7 +46,7 @@ export function RecordCells({ cls, className }: { cls: ClassRow; className?: str
         )}
       </Cell>
       <Cell align="end" className={className}>
-        {r ? r.noEdit === null ? unknown : <span className={r.noEdit < 0.9 ? styles.dn : undefined}>{pct(r.noEdit)}</span> : none}
+        {r ? r.noEdit === null ? unknown : <span className={belowNoEdit(r.noEdit, policy) ? styles.dn : undefined}>{pct(r.noEdit)}</span> : none}
       </Cell>
       <Cell align="center" className={className}>
         {r ? r.reverts === null ? unknown : <span className={r.reverts ? styles.bad : styles.z}>{r.reverts}</span> : none}

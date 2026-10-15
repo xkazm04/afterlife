@@ -20,8 +20,9 @@ function pressSelects(id: string, onSelect: (id: string) => void) {
 }
 
 /**
- * Revoke → tier split button (▾ for any lower tier) and Promote; Re-admit for a real quarantine only; a note for Human
- * only, no record yet and unknown. A split class revokes from its highest holder (every holder above the target moves).
+ * Revoke → tier split button (▾ for any lower tier) and Promote (p: the policy MR the dock shows); Re-admit (the same, at
+ * Assisted) for a real quarantine only; a note for Human only, no record yet and unknown. A split class revokes from its
+ * highest holder (every holder above the target moves).
  */
 export function ActionCell({
   cls,
@@ -44,9 +45,11 @@ export function ActionCell({
   if (cell === null) return <span className={styles.z}>unknown</span>;
   if (isQuarantine(cls)) {
     return (
-      <Button href="/needs-you" variant="primary" size="mini" tabIndex={-1} title="Re-admit in Needs you · at Assisted at most">
-        Re-admit…
-      </Button>
+      <span style={{ display: 'contents' }} onMouseDown={pressSelects(cls.id, onSelect)}>
+        <Button variant="primary" size="mini" tabIndex={-1} title="Re-admit at Assisted (p): sends the policy MR the dock shows; a person merges it" onClick={() => onPromote(cls.id)}>
+          Re-admit
+        </Button>
+      </span>
     );
   }
   const first = revokeTargets(actsFrom(cls))[0];

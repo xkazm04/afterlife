@@ -1,35 +1,35 @@
 'use client';
 
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
-import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { TIER_META } from '@/lib/tiers';
 import { NO_ANSWER, commitOf, outcomeOf } from '@/server/actions/words';
-import { promotionId, whyNot } from '@/lib/promotion';
 import { actsFrom, revokeTarget } from '../model/rules/tiers';
 import { PENDING_MS, nextSha } from '../model/state/commit';
 import type { LadderSeed } from '../model/state/state';
 import type { Ceiling, Tier } from '../model/types';
 import { sendRevoke, writeKey } from '../write/revoke';
 import type { LadderData } from './useLadderData';
+import { usePromoteAction, type PromoteScreen } from './usePromoteAction';
+import type { PromoteWrites } from './usePromoteWrite';
 import type { RevokeWrites } from './useRevokeWrite';
 
-const NEEDS_YOU = '/needs-you';
 /** How long the "just landed" flash stays on a row and a new ledger entry. */
 const FRESH_MS = 1700;
-/** The pause between the promote toast and the jump to Needs you. */
-const PROMOTE_JUMP_MS = 900;
 
 /**
  * Everything the screen does: select, filter, sort, and the writes. A revoke confirms the write the server planned
  * (confirmAction) and moves the row only when the answer is done; the toast says what the answer says. In demo mode the
- * write is simulated, and six seconds later a simulated tier-gate read settles it. Belay writes only on a click or a key.
+ * write is simulated, and six seconds later a simulated tier-gate read settles it. A promotion confirms the policy MR the
+ * server planned (usePromoteAction). Belay writes only on a click or a key.
  */
 export function useLadderActions({
   project,
-  live,
   data,
   writes,
+  promos,
+  promoteScreen,
+  revokeShown,
   stamp,
   seed,
   tableRef,
@@ -39,10 +39,13 @@ export function useLadderActions({
 }: {
   /** The project the classes belong to (the index id the server actions take). */
   project: string;
-  /** Live: an eligible class opens Needs you on the promotion the poll opened for it (demo: the desk). */
-  live: boolean;
   data: LadderData;
   writes: RevokeWrites;
+  /** The promotions on screen, and where: p sends only the one the screen shows. */
+  promos: PromoteWrites;
+  promoteScreen: PromoteScreen;
+  /** Is the revoke of `id` on screen (not replaced on the dock by its promotion)? */
+  revokeShown: (id: string) => boolean;
   stamp: () => string;
   seed: LadderSeed;
   tableRef: RefObject<HTMLDivElement | null>;
@@ -52,7 +55,6 @@ export function useLadderActions({
   onShow: (id: string, to: Tier) => void;
 }) {
   const { toast, status } = useToast();
-  const router = useRouter();
   const sending = useRef(new Set<string>());
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
   const latest = useRef(data);
@@ -89,8 +91,9 @@ export function useLadderActions({
         }, PENDING_MS);
       }
       writes.clear();
+      promos.clear(); // tier-state.yml moved: a promotion planned from the old one would only come back "changed"
     },
-    [dispatch, stamp, later, writes],
+    [dispatch, stamp, later, writes, promos],
   );
 
   /**
@@ -102,9 +105,10 @@ export function useLadderActions({
       const key = writeKey(id, to);
       const view = writes.viewOf(id, to);
       dispatch({ type: 'select', id });
-      if (view?.kind !== 'preview') {
+      if (view?.kind !== 'preview' || !revokeShown(id)) {
         onShow(id, to);
-        return status(view ? `Nothing sent · ${view.reason}` : 'Nothing sent · the exact write is not on screen yet; press again once it shows');
+        if (view?.kind === 'refused') return status(`Nothing sent · ${view.reason}`);
+        return status(view ? 'Nothing sent · the exact write is on screen now; press again to send it' : 'Nothing sent · the exact write is not on screen yet; press again once it shows');
       }
       if (sending.current.has(key)) return status('Already sending this write');
       sending.current.add(key);
@@ -116,30 +120,17 @@ export function useLadderActions({
           toast(o.text);
           if (o.status === 'done') {
             landed(id, to, o.simulated, r.status === 'done' ? commitOf(r.results) : null);
-            status(o.simulated ? 'Demo: going back up is a policy MR a person merges (Needs you)' : 'No undo: going back up is a policy MR a person merges (Needs you)');
+            status(o.simulated ? 'Demo: going back up is a policy MR a person merges (p)' : 'No undo: going back up is a policy MR a person merges (p)');
           } else if (o.status === 'changed') writes.put(id, to, { kind: 'preview', preview: o.preview });
           else if (o.status === 'refused') writes.put(id, to, { kind: 'refused', reason: o.reason });
         }, () => toast(NO_ANSWER))
         .finally(() => sending.current.delete(key));
       focusTable();
     },
-    [dispatch, writes, project, landed, onShow, toast, status, focusTable],
+    [dispatch, writes, project, landed, onShow, revokeShown, toast, status, focusTable],
   );
 
-  const promote = useCallback(
-    (id?: string) => {
-      const d = latest.current;
-      const c = (id && d.byId[id]) || d.selected;
-      if (!c) return status('Select a class to promote');
-      const p = d.promotionOf(c);
-      if (p.kind === 'eligible') {
-        toast(`${c.id} → ${TIER_META[p.next].name} goes through a policy MR a person merges · opening Needs you…`);
-        const to = live ? `${NEEDS_YOU}?item=${encodeURIComponent(promotionId(project, c.id))}` : NEEDS_YOU;
-        later(() => router.push(to), PROMOTE_JUMP_MS);
-      } else status(`Promote is greyed for ${c.id}: ${whyNot(p)}`);
-    },
-    [later, router, status, toast, live, project],
-  );
+  const promote = usePromoteAction(project, data, promos, promoteScreen);
 
   /** `r` revokes one step, `q` quarantines, both on the selected class. */
   const revokeKey = useCallback(

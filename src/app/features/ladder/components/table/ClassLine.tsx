@@ -7,6 +7,7 @@ import { Row } from '@/components/table/Row';
 import { TierMark } from '@/components/status/TierMark';
 import { RungGlyph } from '@/components/viz/RungGlyph';
 import type { Promotion } from '@/lib/promotion';
+import type { PolicyRules } from '@/server/data/types';
 import { actsFrom, cellOf, holdersOf, shownName } from '../../model/rules/tiers';
 import type { ClassRow, Tier } from '../../model/types';
 import { UncountedChip } from '../chrome/UncountedChip';
@@ -32,12 +33,13 @@ export interface LineHandlers {
 export function ClassLine({
   cls,
   promotion,
+  policy,
   selected,
   alt,
   grouped,
   just,
   ...on
-}: LineHandlers & { cls: ClassRow; promotion: Promotion; selected: boolean; alt: boolean; grouped: boolean; just: boolean }) {
+}: LineHandlers & { cls: ClassRow; promotion: Promotion; policy: PolicyRules | null; selected: boolean; alt: boolean; grouped: boolean; just: boolean }) {
   const flash = just ? styles.just : undefined;
   const cell = cellOf(cls);
   const rung = actsFrom(cls);
@@ -55,7 +57,7 @@ export function ClassLine({
         <span className={styles.tn}>{shownName(cls)}</span>
       </Cell>
       <Cell className={flash}>{rung ? <RungGlyph tier={rung} ceiling={cls.ceiling} /> : null}</Cell>
-      <RecordCells cls={cls} className={flash} />
+      <RecordCells cls={cls} policy={policy} className={flash} />
       <Cell className={flash}>
         <LastMoveCell cls={cls} />
       </Cell>

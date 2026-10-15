@@ -23,13 +23,19 @@ command the screen spells.
   revoke target is in view (`hooks/useRevokeWrite.ts` asks once per target); `confirmAction(intent, previewId)` on r, the
   button or a menu target, and only for a preview on screen. A target that is not on screen yet (`q`, an unhovered menu
   item) is put on screen first and nothing is sent; press again to send it.
+- `write/promote.ts`: the same round trip for p, Promote and Re-admit, with Needs you's promote-class intent
+  (`needs-you/write/promote.ts`). `previewAction({kind: 'promote-class', project, class, to, proposal?})` as soon as the
+  class in view is eligible (`promotion()`), or quarantined (a re-admission, at Assisted); `hooks/usePromoteWrite.ts`
+  asks once per class. Any other class asks for nothing and Promote stays grey with the rule's reason. `proposal` is the
+  live promotion ask only while one is open; with none (closed unmerged, or never opened) the MR is still opened.
 - `model/`: pure, tested logic.
   - `rules/` revoke targets, the rows a revoke moves and its ledger line, the dock line. The promotion rule itself
     (`promotion()`, its counts and words) is `src/lib/promotion/`: the poller's promotion ask reads the same one.
   - `view/` frozen sort, filters, grouping and j/k walk, the to-scale timeline, ledger queries.
   - `state/` the reducer: a revoke lands only when the server answered done. Demo: the write was simulated, its commit id
     is the demo's, and 6 s later a simulated tier-gate read settles it. Live: the commit GitLab made, nothing simulated.
-- `hooks/`: data (reducer and derived rows), the writes on screen (`useRevokeWrite`), actions (sends, toasts, timers),
+- `hooks/`: data (reducer and derived rows), the writes on screen (`useRevokeWrite`, `usePromoteWrite`), actions (sends,
+  toasts, timers; p in `usePromoteAction`),
   menus, keys, popovers, sim clock.
 - `components/`: `table/` (class rows, split Revoke button), `inspector/` (class and track, `log/`, `sections/`),
   `chrome/` (toolbar, tier filter, policy lozenge), `sidebar/`, `dock/` (the line of the shared `CommandDock`), `help/`.
@@ -60,17 +66,23 @@ ahead: the class is not eligible before that date. Where each counter
 comes from is the poller's table. A record that does not state a counter (the demo fixture states no guardrail blocks
 and no window) reads it not recorded. When the poll
 found a class eligible it opened a promotion ask in Needs you, and the route attaches that ask to the class (`data/loadLadderData.ts`):
-the class reads eligible with the ask's counts, and p opens Needs you with that ask selected. A greyed Promote names the
-first rule that is unmet or not recorded, in its tooltip and on p.
+the class reads eligible with the ask's counts. p, Promote or Re-admit confirms the policy MR the server planned
+(`write/promote.ts`), and only while it is on screen: the class page shows it whole under "Promote · policy MR a person
+merges" (the revoke beside it under "Revoke · direct commit"); on the list the dock shows one write, so the first p on
+an eligible class puts the promotion on the dock and sends nothing (a quarantine, with nothing to revoke, shows its
+re-admission at once), and r there puts the revoke back first. Its diff is tier-state.yml's new record, `lease_expires`
+from `grant_ttl_days` for Hands-off. Done names the MR from the server's answer, with "Open !iid ↗"; a demo answer is
+simulated and says so. A person merges it in GitLab; Belay never does. A greyed Promote names the first rule that is
+unmet or not recorded, in its tooltip and on p, and asks the server for nothing.
 
-Keys: j k move, r revoke one step, q quarantine, p promote, Enter rule and write, 1-5 / 0 tier filter, / search,
+Keys: j k move, r revoke one step, q quarantine, p promote (or re-admit), Enter rule and write, 1-5 / 0 tier filter, / search,
 ? keys and legend, Esc closes. Arrows, Home/End, Enter and the menu key act on the focused table.
 
 ## On the shared kit
 
 The menus are the shared `useMenu` (a `glyph` per item, `onHighlight` previews the write in the dock, `vimKeys`);
 `chrome/TierFilter` is a `SegmentedControl` with node labels and counts; the pending and lag chips are `Chip compact`;
-"Re-admit…" is `Button href`; the dock is `CommandDock`; the diff under the commands is `DiffBlock`; the group rows
+Re-admit is a `Button` that sends p's write; the dock is `CommandDock`; the diff under the commands is `DiffBlock`; the group rows
 pass a node label (the track id in the accent colour). `inspector/log/Axis` (to-scale timeline) stays local.
 
 ## Not ported / differences

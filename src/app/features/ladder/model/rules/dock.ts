@@ -1,7 +1,10 @@
-// What the docked command strip says: the write that `r` (or the highlighted menu item) would run, exactly as the server
-// planned it (`view`), or that it is still being asked for, or why the server refuses it.
+// What the docked command strip says: the write that `r` (or the highlighted menu item) would run, or the promotion `p`
+// would open, exactly as the server planned it (`view`), or that it is still being asked for, or why the server refuses
+// it, or the MR a sent promotion opened. One write at a time, named, so a key never confirms one the strip does not show.
 import { isGroupNavId } from '@/components/table/model/rowNavigation';
+import type { PromoteView } from '../../write/promote';
 import type { WriteView } from '../../write/revoke';
+import type { PromoteAsk } from './promote';
 import { actsFrom, nothingToRevoke, revokeTargets } from './tiers';
 import type { ClassRow, Tier, TrackMap } from '../types';
 
@@ -9,7 +12,18 @@ export type DockModel =
   | { kind: 'none' }
   | { kind: 'group'; id: string; key: string }
   | { kind: 'idle'; id: string; reason: string }
-  | { kind: 'write'; id: string; to: Tier; previewing: boolean; view: WriteView | undefined };
+  | { kind: 'write'; id: string; to: Tier; previewing: boolean; view: WriteView | undefined }
+  | { kind: 'promote'; id: string; to: Tier; readmit: boolean; view: PromoteView | undefined };
+
+/**
+ * The promotion of the selected class, when p applies (`want`, ./promote.ts). `pinned`: p (or the Promote click) put it
+ * on the strip; a quarantine, with nothing to revoke, shows it without.
+ */
+export interface DockPromote {
+  want: PromoteAsk | null;
+  pinned: boolean;
+  viewOf: (id: string, to: Tier) => PromoteView | undefined;
+}
 
 /** The strip shows one line: a command up to its first field (the content is long), and all of it on hover. */
 export function commandHead(display: string): string {
@@ -17,13 +31,17 @@ export function commandHead(display: string): string {
   return cut === -1 ? display : `${display.slice(0, cut)} …`;
 }
 
-/** `hoverTo` is the tier of the menu item under the pointer, which the strip previews instead of the `r` target. */
+/**
+ * `hoverTo` is the tier of the menu item under the pointer, which the strip previews instead of the `r` target. The `r`
+ * target is the default; the promotion takes its place once pinned (and nothing is hovered), or when nothing can be revoked.
+ */
 export function dockModel(
   sel: string | null,
   byId: Readonly<Record<string, ClassRow>>,
   tracks: TrackMap,
   hoverTo: Tier | null,
   viewOf: (id: string, to: Tier) => WriteView | undefined,
+  promote?: DockPromote,
 ): DockModel {
   if (!sel) return { kind: 'none' };
   if (isGroupNavId(sel)) {
@@ -34,6 +52,8 @@ export function dockModel(
   if (!c) return { kind: 'none' };
   const targets = revokeTargets(actsFrom(c));
   const first = targets[0];
+  const ask = promote?.want?.id === c.id ? promote.want : null;
+  if (ask && (!first || (promote?.pinned && !hoverTo))) return { kind: 'promote', id: c.id, to: ask.to, readmit: ask.readmit, view: promote?.viewOf(c.id, ask.to) };
   if (!first) return { kind: 'idle', id: c.id, reason: nothingToRevoke(c) };
   const to = hoverTo && targets.includes(hoverTo) ? hoverTo : first;
   return { kind: 'write', id: c.id, to, previewing: !!hoverTo, view: viewOf(c.id, to) };

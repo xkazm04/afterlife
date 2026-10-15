@@ -34,7 +34,7 @@ describe('Ladder, live: the counted record', () => {
   });
 
   it('draws the live count, and a not-recorded dash for no-edit', () => {
-    const cells = renderToStaticMarkup(<RecordCells cls={cls} />).split('role="gridcell"');
+    const cells = renderToStaticMarkup(<RecordCells cls={cls} policy={null} />).split('role="gridcell"');
     expect(cells[2]).toContain('>5<'); // Acc
     expect(cells[3]).toContain('title="Not recorded · no task or ledger event states it"'); // No-edit
     expect(cells[3]).toContain('—');

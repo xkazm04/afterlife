@@ -28,7 +28,7 @@ export const KEY_ROWS: readonly (readonly [readonly string[], string])[] = [
   [['j', 'k'], 'move between classes'],
   [['r'], 'revoke one step: sends the write shown'],
   [['q'], 'quarantine: read and comment only'],
-  [['p'], 'promote · opens Needs you if eligible'],
+  [['p'], 'promote or re-admit · sends the policy MR on screen'],
   [['↵'], 'open the class page: rule and write'],
   [['/'], 'filter by name'],
   [['1', '5'], 'tier filter · 0 all'],
