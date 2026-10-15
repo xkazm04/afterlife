@@ -48,6 +48,19 @@ describe('hostile JUnit XML', () => {
     });
   }
 
+  it('reads a case under 50,000 nested tags in under 500 ms instead of overflowing the stack', () => {
+    const xml = '<a>'.repeat(50_000) + '<testcase classname="c" name="deep"/><testcase classname="c" name="two"/>';
+    let names: string[] = [];
+    expect(timed(() => (names = parseJUnit(xml).map((c) => c.name)))).toBeLessThan(500);
+    expect(names).toEqual(['deep', 'two']);
+  });
+
+  for (const [name, closer] of [['unmatched', '</b>'], ['matching', '</a>']] as const) {
+    it(`parses 40,000 nested openers followed by ${name} closers in under 500 ms`, () => {
+      expect(timed(() => parseJUnit('<a>'.repeat(40_000) + closer.repeat(40_000)))).toBeLessThan(500);
+    });
+  }
+
   it('still reads a comment, a processing instruction and a doctype around real cases', () => {
     const xml = '<?xml version="1.0"?><!DOCTYPE x><!-- hi --><testsuite><testcase classname="a" name="b"/></testsuite>';
     expect(parseJUnit(xml).map((c) => c.name)).toEqual(['b']);
