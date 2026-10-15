@@ -40,7 +40,7 @@ export const replayStartStatus = (task: TaskView): string => `ledger #${task.led
 
 export function replayStepStatus(task: TaskView, row: number): string {
   const r = task.ledger[row];
-  return r ? `ledger #${r.seq} · ${r.kind} · hash ${r.hash.slice(0, 7)} ✓` : '';
+  return r ? `ledger #${r.seq} · ${r.kind} · hash ${r.hash.slice(0, 7)} ${ledgerIntact(task.ledger.slice(0, row + 1)) ? '✓' : '✗ chain broken'}` : '';
 }
 
 export const REPLAY_DONE_STATUS = 'replayed · identical to the record';

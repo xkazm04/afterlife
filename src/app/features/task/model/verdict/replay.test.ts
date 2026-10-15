@@ -49,5 +49,7 @@ describe('replay sequence', () => {
     const tampered = { ...task, ledger: [{ ...first!, text: 'changed' }, ...rest] };
     expect(replayMessage(tampered)).toContain('HASHES DO NOT MATCH');
     expect(replayMessage(tampered)).not.toContain('hashes match');
+    expect(replayStepStatus(tampered, 0)).toMatch(/✗ chain broken$/);
+    expect(replayStepStatus(task, 3)).toMatch(/ ✓$/);
   });
 });
