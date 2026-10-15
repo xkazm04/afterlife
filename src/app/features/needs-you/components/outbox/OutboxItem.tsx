@@ -7,9 +7,11 @@ import styles from './OutboxItem.module.css';
 
 /**
  * One staged write: its kind, title and write ref, Run and Remove, and (open) the exact commands and diff. With no
- * commands (a policy MR whose write the server has not planned, or refused) Run is off and the note says why.
+ * commands (a policy MR whose write the server has not planned, or refused, or whose last send got no answer) or while its
+ * one confirm is out, Run is off and the note says why; a refused or unanswered write offers Ask again.
  */
 export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; open: boolean; selected: boolean; dispatch: (a: Action) => void }) {
+  const runnable = item.commands.length > 0 && item.runnable !== false;
   const cls = [styles.oi, item.clock ? styles.clock : '', selected ? styles.sel : '', open ? styles.open : ''].filter(Boolean).join(' ');
   return (
     <div className={cls} data-key={item.key}>
@@ -31,7 +33,8 @@ export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; 
           {item.title}
         </span>
         <span className={styles.ref}>{item.ref}</span>
-        <Button variant={item.clock ? 'primary' : 'accent'} disabled={!item.commands.length} title={item.commands.length ? undefined : item.note} onClick={() => dispatch({ type: 'run', key: item.key })}>
+        {item.askable ? <Button onClick={() => dispatch({ type: 'retry', key: item.key })}>Ask again</Button> : null}
+        <Button variant={item.clock ? 'primary' : 'accent'} disabled={!runnable} title={runnable ? undefined : item.note} onClick={() => dispatch({ type: 'run', key: item.key })}>
           Run
         </Button>
         <Button variant="ghost" onClick={() => dispatch({ type: 'remove', key: item.key })}>
