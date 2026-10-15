@@ -2,7 +2,7 @@ import { DetailPage } from '@/components/shell/detail/DetailPage';
 import { StateGlyph } from '@/components/status/StateGlyph';
 import { plural } from '@/lib/format/plural';
 import type { FleetProjectView } from '../../data/loadFleetProject';
-import { projectLede } from '../../model/inspector';
+import { projectLede, waitingTitle } from '../../model/inspector';
 import { FleetLegend } from '../legend/FleetLegend';
 import { ClassesSection } from '../inspector/sections/ClassesSection';
 import { EventsSection } from '../inspector/sections/EventsSection';
@@ -16,6 +16,8 @@ import { TracksSection } from '../inspector/sections/TracksSection';
 /** /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, feed, events, tracks). */
 export function ProjectDetail({ project: p, data, source }: FleetProjectView) {
   const deep = data.deep;
+  // An unwatched project's count is shown nowhere (the row, the group sum), so the status bar counts none either.
+  const waiting = p.state === 'not-set-up' ? 0 : p.needsYou;
   return (
     <DetailPage
       parent={{ label: 'Fleet', href: '/fleet' }}
@@ -26,7 +28,7 @@ export function ProjectDetail({ project: p, data, source }: FleetProjectView) {
           <StateGlyph state={p.state} /> {projectLede(p)}
         </>
       }
-      status={`${p.name} · ${plural(p.needsYou, 'decision')} waiting · ${data.projects.length} projects in the fleet`}
+      status={`${p.name} · ${waitingTitle(waiting, p.state === 'stale' && waiting > 0)} · ${plural(data.projects.length, 'project')} in the fleet`}
       help={<FleetLegend tiers={data.tiers} />}
       helpTitle="Legend"
     >
