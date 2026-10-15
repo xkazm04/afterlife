@@ -1,4 +1,5 @@
 import type { RecordCounters } from '@/lib/demo/types';
+import type { EnforcementReceipt } from '@/schemas/receipt';
 import type { Ceiling } from '@/schemas/tier';
 import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
 
@@ -25,6 +26,8 @@ export interface ClassTierRow {
   move: { kind: MoveKind; at: Date | null; note: string | null } | null;
   /** tier-state.yml's `cooldown_until` on the record (migration 0009): no promotion before it. Absent or null: none stated. */
   cooldownUntil?: Date | null;
+  /** Where the record was enforced (migration 0011, poller/derive/receipt.ts). Absent or null: none derived. */
+  receipt?: EnforcementReceipt | null;
 }
 
 const SPEC: TableSpec = {
@@ -33,7 +36,7 @@ const SPEC: TableSpec = {
   cols: {
     project_id: 'text', class_id: 'text', tier: 'text', since: 'timestamptz', set_by: 'text', lease_expires: 'timestamptz',
     accepted: 'int', needed: 'int', no_edit: 'float8', clean_days: 'int', reverts: 'int', guardrail_blocks: 'int', count_window: 'int',
-    move_kind: 'text', move_at: 'timestamptz', move_note: 'text', cooldown_until: 'timestamptz',
+    move_kind: 'text', move_at: 'timestamptz', move_note: 'text', cooldown_until: 'timestamptz', receipt: 'jsonb',
   },
 };
 
@@ -41,7 +44,7 @@ interface Db {
   project_id: string; class_id: string; tier: Ceiling | null; since: Date | null; set_by: string | null;
   lease_expires: Date | null; accepted: number | null; needed: number | null; no_edit: number | null;
   clean_days: number | null; reverts: number | null; guardrail_blocks: number | null; count_window: number | null; move_kind: MoveKind | null; move_at: Date | null; move_note: string | null;
-  cooldown_until: Date | null;
+  cooldown_until: Date | null; receipt: EnforcementReceipt | null;
 }
 
 const toDb = (r: ClassTierRow): Record<string, unknown> => ({
@@ -51,7 +54,7 @@ const toDb = (r: ClassTierRow): Record<string, unknown> => ({
   clean_days: r.record?.cleanDays ?? null, reverts: r.record?.reverts ?? null,
   guardrail_blocks: r.record?.guardrailBlocks ?? null, count_window: r.record?.window ?? null,
   move_kind: r.move?.kind ?? null, move_at: toIso(r.move?.at), move_note: r.move?.note ?? null,
-  cooldown_until: toIso(r.cooldownUntil),
+  cooldown_until: toIso(r.cooldownUntil), receipt: r.receipt ?? null,
 });
 
 /**
@@ -70,7 +73,7 @@ const fromDb = (r: Db): ClassTierRow => ({
   leaseExpires: asDate(r.lease_expires),
   record: recordOf(r),
   move: r.move_kind ? { kind: r.move_kind, at: asDate(r.move_at), note: r.move_note } : null,
-  cooldownUntil: asDate(r.cooldown_until),
+  cooldownUntil: asDate(r.cooldown_until), receipt: r.receipt ?? null,
 });
 
 /** Trust classes must exist first (see upsertTrustClasses). */

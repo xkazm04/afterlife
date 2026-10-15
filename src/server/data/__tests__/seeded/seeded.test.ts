@@ -1,6 +1,6 @@
 // Live mode, fed by a poll of the demo GitLab on top of the seeded index (as parity.test.ts): no seeded Ladder or Needs-you
-// item appears unlabelled. The Ladder still opens with the demo's belay-policy history, so it carries a demo mark; the
-// class records are the poll's counts and carry none. Needs you never draws the seeded desk, only the group's own items or
+// item appears unlabelled. The Ladder still opens with the demo's belay-policy head, and with the demo's ledger while the
+// project's own belay-ledger is empty, so those carry a demo mark; the class records are the poll's counts and carry none. Needs you never draws the seeded desk, only the group's own items or
 // its empty state.
 import type { PGlite } from '@electric-sql/pglite';
 import { createElement } from 'react';
@@ -54,10 +54,21 @@ const chip = (what: string) => `title="${what.replaceAll("'", '&#x27;')}: live m
 describe('the Ladder, live', () => {
   const page = () => html(createElement(LadderScreen, loadLadderData()));
 
-  it('every seeded ledger entry it draws carries a demo mark', () => {
+  it('every seeded ledger entry it draws carries a demo mark: only while the project\'s own belay-ledger is empty', async () => {
     // The ledger is drawn on each class's page now (the Ladder's inspector became /ladder/[class]).
-    const out = loadLadderData().seed.classes.map((c) => html(createElement(ClassScreen, loadLadderClass(c.id)!))).join('');
-    const drawn = LEDGER_SEED.reduce((n, e) => n + count(out, e.text.replaceAll("'", '&#x27;')), 0);
+    const pages = () => loadLadderData().seed.classes.map((c) => html(createElement(ClassScreen, loadLadderClass(c.id)!))).join('');
+    const seeded = (out: string) => LEDGER_SEED.reduce((n, e) => n + count(out, e.text.replaceAll("'", '&#x27;')), 0);
+    // the fake's chain is not empty: its own moves are drawn, unmarked, and none of the demo's
+    const own = pages();
+    expect(seeded(own)).toBe(0);
+    expect(count(own, chip("The demo's own ledger"))).toBe(0);
+    expect(own).toContain('!44 gated at Quarantined');
+    // an empty chain: the demo's opening ledger, every entry marked
+    const first = await snap();
+    setDataSource(liveSource(() => ({ ...first, data: { ...first.data, ledger: [] } })));
+    const out = pages();
+    setDataSource(liveSource(() => first));
+    const drawn = seeded(out);
     expect(drawn).toBeGreaterThan(0);
     expect(count(out, chip("The demo's own ledger"))).toBe(drawn);
   });

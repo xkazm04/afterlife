@@ -13,6 +13,7 @@ import type { WriteView } from '../../write/revoke';
 import { WhoActed } from './log/WhoActed';
 import { Sec } from './Sec';
 import { AllMoves } from './sections/AllMoves';
+import { EnforcementSection } from './sections/EnforcementSection';
 import { GrantSection } from './sections/GrantSection';
 import { PromotionRule } from './sections/PromotionRule';
 import { WriteSection } from './sections/WriteSection';
@@ -36,11 +37,13 @@ export interface ClassDetailProps {
   onRevoke: (id: string, to: Tier) => void;
   onTargets: (id: string, el: HTMLElement) => void;
   onPromote: (id: string) => void;
+  /** Live mode: the enforcement receipt is the poll's (demo: this session's simulated revoke). */
+  live?: boolean;
 }
 
 /**
  * The cards of a class page: the acts, the promotion rule as counts, the write behind r, the write behind p (only when
- * the class is eligible or quarantined), the grant, who acted, all moves.
+ * the class is eligible or quarantined), the grant, where a revoke was enforced, who acted, all moves.
  */
 export function ClassDetail(p: ClassDetailProps) {
   const c = p.cls;
@@ -80,6 +83,7 @@ export function ClassDetail(p: ClassDetailProps) {
       <WriteSection head={WRITE_HEAD.revoke} keyName="r" to={revokeTo} view={revokeTo ? p.viewOf(c.id, revokeTo) : undefined} nothing="Nothing to revoke" />
       {ask ? <WriteSection head={ask.readmit ? WRITE_HEAD.readmit : WRITE_HEAD.promote} keyName="p" to={ask.to} view={p.promote.view} nothing="" /> : null}
       <GrantSection cls={c} policy={p.policy} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} />
+      <EnforcementSection cls={c} live={!!p.live} />
       <Sec title="Who acted" aux={mine.length || ''} wide>
         <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />
       </Sec>

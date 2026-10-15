@@ -1,6 +1,7 @@
 import { toggleSort, computeOrder } from '../view/sort';
 import { nextSha, commitRevoke, settleCommit } from './commit';
 import { initialState } from './initial';
+import { applyReceipts } from './receipt';
 import type { LadderAction, LadderState } from './state';
 
 const without = (list: readonly string[], id: string): string[] => list.filter((x) => x !== id);
@@ -43,6 +44,8 @@ export function ladderReducer(s: LadderState, a: LadderAction): LadderState {
     }
     case 'settle':
       return { ...s, ...settleCommit(s.classes, s.ledger, a.sha, a.t) };
+    case 'receipts':
+      return { ...s, ...applyReceipts(s.classes, s.ledger, a.receipts) };
     case 'clearFresh':
       if (!s.just && !s.ledger.some((e) => e.isNew)) return s;
       return { ...s, just: null, ledger: s.ledger.map((e) => (e.isNew ? { ...e, isNew: false } : e)) };

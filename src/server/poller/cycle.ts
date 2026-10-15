@@ -15,6 +15,7 @@ import { readPolicy, type PolicyRead } from './derive/policy';
 import { trustClassesOf } from './derive/tiers';
 import { groupPathOf, pollProject, type ProjectPoll } from './project';
 import { createMemory, type PollMemory } from './state';
+import { readStateHistory, type StateHistory } from './stateHistory';
 
 export interface CycleResult {
   at: Date;
@@ -87,6 +88,15 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   // Recorded, not only warned: Ladder marks the class tiers stale, with the reason, until a read succeeds.
   if (policy?.ok) await recordPollOk(db, policySource(cfg.group), now);
   else await recordPollError(db, policySource(cfg.group), policy ? policy.reason : `no ${cfg.policyProject} project in the group`);
+  // tier-state.yml's commit list, once per poll: the class receipts say which revoke a gate already read. Read-only, and
+  // a failed read only leaves the receipts underived (null), with the reason as a warning.
+  let history: StateHistory | null = null;
+  if (policy?.ok && policyProject) {
+    history = await readStateHistory(port, policyProject.id, cfg.policyRef, policy.state, mem).catch((e: unknown) => {
+      result.warnings.push(`tier-state.yml history: ${e instanceof Error ? e.message : String(e)}; enforcement receipts are not derived`);
+      return null;
+    });
+  }
   const ledger: LedgerSource | null = ledgerProject ? { port, project: ledgerProject.id, ref: cfg.ledgerRef } : null;
   if (!ledger) result.warnings.push(`no ${cfg.ledgerProject} project in the group: the ledger is not imported`);
 
@@ -98,7 +108,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   await upsertGroups(db, [...new Set([...(await listGroups(db)), ...targets.map((p) => groupPathOf(p, group))])]);
   await syncClasses(db, policy ?? { ok: false, reason: '' });
   const classTrack = new Map((await listTrustClasses(db)).map((c) => [c.id, c.track]));
-  const env = { port, db, cfg, now, mem, group, policy, ledger, known, trackOf: (cls: string) => classTrack.get(cls) ?? null };
+  const env = { port, db, cfg, now, mem, group, policy, history, ledger, known, trackOf: (cls: string) => classTrack.get(cls) ?? null };
 
   for (const gl of targets) {
     const r = await pollProject({ ...env, known: await listProjects(db) }, gl);

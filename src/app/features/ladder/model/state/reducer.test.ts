@@ -50,9 +50,9 @@ describe('revoke', () => {
     expect(e).toMatchObject({ actor: 'you', kind: 'you', t: '14:24:30', isNew: true, chip: 'simulated' });
     expect(e?.text).toBe('commit e7f1 in belay-policy: dep-bump.patch Hands-off → Supervised');
   });
-  it('live: the commit GitLab made, no demo id, nothing pending (no simulated tier-gate read follows)', () => {
+  it('live: the commit GitLab made, no demo id, pending until a receipt says a gate read it (no simulated read follows)', () => {
     const live = run(open(), { type: 'revoke', id: 'dep-bump.patch', to: 'supervised', t: '14:24:30', sent: { simulated: false, commit: '1a2b3c4d' } });
-    expect(live.classes.find((c) => c.id === 'dep-bump.patch')).toMatchObject({ tier: 'supervised', pending: null });
+    expect(live.classes.find((c) => c.id === 'dep-bump.patch')).toMatchObject({ tier: 'supervised', pending: '1a2b3c4d' });
     expect(live.head).toEqual({ sha: '1a2b3c4d', by: 'you' });
     expect(live.shaIdx).toBe(0);
     expect(live.ledger.at(-1)).toMatchObject({ text: 'commit 1a2b3c4d in belay-policy: dep-bump.patch Hands-off → Supervised' });
@@ -79,10 +79,12 @@ describe('revoke', () => {
 describe('settle', () => {
   const committed = run(open(), { type: 'revoke', id: 'other', to: 'assisted', t: '14:24:30', sent: SIM });
 
-  it('clears the pending chip and records the simulated tier-gate read', () => {
+  it('clears the pending chip and records the simulated tier-gate read, and a simulated withdrawal beside it', () => {
     const s = run(committed, { type: 'settle', sha: 'e7f1', t: '14:24:36' });
     expect(s.classes.find((c) => c.id === 'other')?.pending).toBeNull();
-    expect(s.ledger.at(-1)).toMatchObject({ actor: 'tier-gate job', chip: 'simulated', t: '14:24:36', text: 'next MR pipeline read tier-state.yml @ e7f1' });
+    expect(s.ledger.at(-2)).toMatchObject({ actor: 'tier-gate job', chip: 'simulated', t: '14:24:36', text: 'next MR pipeline read tier-state.yml @ e7f1' });
+    expect(s.ledger.at(-1)).toMatchObject({ actor: 'belay-apply sweep', chip: 'simulated', t: '14:24:36', ids: ['other'] });
+    expect(s.classes.find((c) => c.id === 'other')?.simRead).toEqual({ sha: 'e7f1', t: '14:24:36' });
   });
   it('ignores a commit that is no longer pending', () => {
     const s = run(committed, { type: 'settle', sha: 'zzzz', t: '14:24:36' });

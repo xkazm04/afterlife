@@ -11,6 +11,7 @@ import { useLadderActions } from './hooks/useLadderActions';
 import { useLadderData } from './hooks/useLadderData';
 import { useLadderMenus } from './hooks/useLadderMenus';
 import { usePromoteWrite } from './hooks/usePromoteWrite';
+import { useReceipts } from './hooks/useReceipts';
 import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
 import { livePollAge, pollAge } from './model/clock';
@@ -51,6 +52,7 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
   const noop = useCallback(() => undefined, []);
   const actions = useLadderActions({ project, data, writes, promos, promoteScreen, revokeShown, stamp: clock.stamp, seed, tableRef, openDetail: noop, onReset, onShow });
   const menus = useLadderMenus({ data, actions, writes, onHover: setHoverTo });
+  useReceipts(live, seed, state.classes.some((c) => c.pending), data.dispatch);
   useHotkeys(
     [
       { key: 'r', handler: () => actions.revokeKey('step') },
@@ -93,6 +95,7 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
         onRevoke={actions.revoke}
         onTargets={menus.openTargets}
         onPromote={actions.promote}
+        live={live}
       />
       {menus.menus}
     </DetailPage>

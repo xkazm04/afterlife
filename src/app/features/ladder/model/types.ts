@@ -2,9 +2,9 @@
 import type { ActionClass, Track } from '@/lib/demo';
 import type { Counters, PromotionAsk } from '@/lib/promotion';
 import type { SortState } from '@/components/table/model/sort';
-import type { Ceiling, Tier } from '@/schemas';
+import type { Ceiling, EnforcementReceipt, Tier } from '@/schemas';
 
-export type { Ceiling, Counters, PromotionAsk, Tier, Track };
+export type { Ceiling, Counters, EnforcementReceipt, PromotionAsk, Tier, Track };
 
 /**
  * An action class as the table holds it: the demo class plus the "commit pushed, tier-gate not read yet" marker. A
@@ -17,6 +17,10 @@ export interface ClassRow extends Omit<ActionClass, 'record'> {
   uncounted?: true;
   /** Live: tier-state.yml's cooldown_until on the record (ISO): the promotion rule's cooldown row reads it. */
   cooldownUntil?: string;
+  /** Live: where the record was enforced, as the last poll derived it (src/schemas/receipt.ts). Absent: none derived. */
+  receipt?: EnforcementReceipt;
+  /** Demo: the simulated tier-gate read that settled this session's revoke (its commit id and clock time). */
+  simRead?: { sha: string; t: string };
   pending: string | null;
 }
 

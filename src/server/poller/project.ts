@@ -17,6 +17,7 @@ import { pollMaturityScan } from './maturityScan';
 import { countProofs } from './derive/rollup';
 import type { PolicyRead } from './derive/policy';
 import type { PollMemory } from './state';
+import type { StateHistory } from './stateHistory';
 
 export interface PollEnv {
   port: GitLabPort;
@@ -26,6 +27,8 @@ export interface PollEnv {
   mem: PollMemory;
   group: GlGroup;
   policy: PolicyRead | null;
+  /** tier-state.yml's commit list and record writers, when this cycle read them (the class receipts need both). */
+  history: StateHistory | null;
   ledger: LedgerSource | null;
   /** The index's projects before this cycle. */
   known: readonly ProjectRow[];
@@ -149,7 +152,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
 
       // after the tasks: a class's counters count this poll's merges
       const ledgerRead = out.ledger === 'imported' || out.ledger === 'unchanged';
-      const demotions = env.policy?.ok ? await pollClasses(tx, env.policy, id, gl.id, now, cfg.rollupWindowMs, ledgerRead) : base.demotions7d;
+      const demotions = env.policy?.ok ? await pollClasses(tx, env.policy, id, gl.id, now, cfg.rollupWindowMs, ledgerRead, env.history) : base.demotions7d;
 
       await upsertProjects(tx, [{
         ...base, gitlabId: gl.id, state: 'watching', proofs7d: countProofs(mrs, now, cfg.rollupWindowMs), demotions7d: demotions,

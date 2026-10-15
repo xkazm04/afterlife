@@ -9,9 +9,11 @@ command the screen spells.
   reads it on the server through `data/loadLadderData.ts`: the classes from the data source, the promotion thresholds
   from trust-policy.yml (`getPolicy()`: the checkout's in demo, the one the poll read in live), never a constant here.
 - `data/`: the invented ledger the demo opens with, commit ids, the policy's revision, the words for the policy's rules,
-  key rows. Plain data. In live mode the data source declares the opening history demo (`illustrative`): every seeded
-  ledger entry, the opening head, the revision and its merge age carry the kit's `Chip` "demo"
-  (`components/chrome/DemoChip.tsx`). The class records are not demo: the poll counts the record of every class one
+  key rows. Plain data. In live mode the data source declares the opening history demo (`illustrative`): the opening
+  head, the revision and its merge age carry the kit's `Chip` "demo", and so does every seeded ledger entry, drawn only
+  while the project's own belay-ledger is empty. Live, "Who acted" and "All moves" read that chain (`ds.getLedger()`,
+  mapped by `data/live/ledgerEntries.ts`: tier decisions, guardrail and proof verdicts, merges), unmarked (the chip is
+  `components/chrome/DemoChip.tsx`). The class records are not demo: the poll counts the record of every class one
   agent holds. A record it did not count (a class several agents or no agent holds keeps the record the index held: on
   the demo GitLab, the seed's) is marked "not counted" beside the class name and in the inspector's promotion rule
   (`components/chrome/UncountedChip.tsx`; `data/loadLadderData.ts` sets `uncounted` on the class). The clock is the wall
@@ -33,7 +35,14 @@ command the screen spells.
     (`promotion()`, its counts and words) is `src/lib/promotion/`: the poller's promotion ask reads the same one.
   - `view/` frozen sort, filters, grouping and j/k walk, the to-scale timeline, ledger queries.
   - `state/` the reducer: a revoke lands only when the server answered done. Demo: the write was simulated, its commit id
-    is the demo's, and 6 s later a simulated tier-gate read settles it. Live: the commit GitLab made, nothing simulated.
+    is the demo's, and 6 s later a simulated tier-gate read settles it, with a simulated withdrawal beside it. Live: the
+    commit GitLab made, pending ("Pending read") until a poll's receipt says a gated MR's tier_decision read that commit
+    (`state/receipt.ts`: settled at the time the gate read it, so the who-acted rail draws the real gap). While one is
+    pending, `hooks/useReceipts.ts` refreshes the route every 15 s to read a fresher snapshot; nothing is sent.
+  - `enforcement/enforcement.ts` the class page's "Enforced" card (`components/inspector/sections/EnforcementSection.tsx`):
+    committed <sha>; read at !N, <delay> after the commit (or "awaiting the next gated MR"); withdrawn approval or
+    auto-merge on !N; and an alarm chip when a gate read the commit and still granted the old tier. Live: the poll's
+    receipt (`server/poller/README.md`, "Enforcement receipts"). Demo: this session's simulated revoke, marked simulated.
 - `hooks/`: data (reducer and derived rows), the writes on screen (`useRevokeWrite`, `usePromoteWrite`), actions (sends,
   toasts, timers; p in `usePromoteAction`),
   menus, keys, popovers, sim clock.

@@ -18,6 +18,7 @@ import { useLadderKeys } from './hooks/useLadderKeys';
 import { useLadderMenus } from './hooks/useLadderMenus';
 import { useLadderPopovers } from './hooks/useLadderPopovers';
 import { usePromoteWrite } from './hooks/usePromoteWrite';
+import { useReceipts } from './hooks/useReceipts';
 import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
 import { livePollAge, pollAge } from './model/clock';
@@ -90,6 +91,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
   const revokeShown = useCallback((id: string) => !onDock(id), [onDock]);
   const actions = useLadderActions({ project, data, writes, promos, promoteScreen, revokeShown, stamp: clock.stamp, seed, tableRef, openDetail, onReset: resetUi, onShow });
   const menus = useLadderMenus({ data, actions, writes, onHover: setHoverTo });
+  useReceipts(live, seed, state.classes.some((c) => c.pending), dispatch);
 
   const toggleHelp = () => {
     const anchor = helpRef.current;

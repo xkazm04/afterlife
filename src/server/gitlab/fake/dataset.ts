@@ -24,6 +24,8 @@ export interface ProjectData {
   approvals: Record<string, Rec>;
   /** The commit a write through the fake made, by file path. A file no write touched has one derived from its content. */
   fileCommits?: Record<string, string>;
+  /** Each written file's commits, oldest first, with its content at each: the seeded content is the first (FAKE_SEED_AT). */
+  history?: Record<string, FileCommit[]>;
   /** Branch heads a write through the fake made (or a test set), by name. The fake keeps one tree, so files do not differ by branch. */
   branches?: Record<string, string>;
   /** Runners available to the project (GET projects/:id/runners), each with `tag_list`, `online` and `status`. */
@@ -36,6 +38,12 @@ export interface ProjectData {
   /** The project-level approval settings (GET projects/:id/approvals), e.g. merge_requests_author_approval. */
   approvalSettings?: Rec;
 }
+
+/** One commit of a file in the fake: GET repository/commits lists it, GET repository/files at `ref=<id>` reads its content. */
+export interface FileCommit { id: string; at: string; title: string; content: string }
+
+/** When the fake says a file's seeded content was committed: a fixed time before any demo or test clock. */
+export const FAKE_SEED_AT = '2026-01-01T00:00:00.000Z';
 
 export interface WriteLog { method: string; path: string; fields: Record<string, string> }
 

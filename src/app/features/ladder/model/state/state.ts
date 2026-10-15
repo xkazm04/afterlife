@@ -1,6 +1,7 @@
 // The Ladder's state and the actions that change it. The reducer is pure: time and the commit id come in as data.
 import type { LedgerSeedEntry } from '../../data/ledgerSeed';
 import type { Sent } from './commit';
+import type { Receipts } from './receipt';
 import type { Ceiling, ClassRow, Head, LadderSort, LedgerEntry, SortKey, Tier } from '../types';
 
 export interface LadderState {
@@ -50,5 +51,7 @@ export type LadderAction =
   /** The server answered done: `sent` says whether it was simulated, and the commit GitLab made if not. */
   | { type: 'revoke'; id: string; to: Tier; t: string; sent: Sent }
   | { type: 'settle'; sha: string; t: string }
+  /** Live: the receipts of a fresher snapshot, by class id. A pending revoke whose commit a gate read is settled. */
+  | { type: 'receipts'; receipts: Receipts }
   | { type: 'clearFresh' }
   | { type: 'reset'; seed: LadderSeed };

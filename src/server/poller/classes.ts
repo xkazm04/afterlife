@@ -12,6 +12,7 @@ import type { PolicyRead } from './derive/policy';
 import { eligibleOf, planPromotions, type EligibleClass } from './derive/promotion';
 import { planReadmits } from './derive/readmit';
 import { deriveTiers, ROLE_TRACK } from './derive/tiers';
+import type { StateHistory } from './stateHistory';
 
 type Policy = Extract<PolicyRead, { ok: true }>;
 
@@ -25,15 +26,15 @@ async function settledAsks(db: Queryable, projectId: string): Promise<Map<string
 }
 
 /** Writes the class tier rows and the asks; returns the demotions the tripwire wrote in the window. */
-/** `ledgerRead`: this poll read the project's belay-ledger, so the events in the index are all it holds. */
+/** `ledgerRead`: this poll read the project's belay-ledger, so the events in the index are all it holds. `history`: tier-state.yml's. */
 export async function pollClasses(
-  tx: Queryable, read: Policy, projectId: string, gitlabId: number, now: Date, windowMs: number, ledgerRead: boolean,
+  tx: Queryable, read: Policy, projectId: string, gitlabId: number, now: Date, windowMs: number, ledgerRead: boolean, history: StateHistory | null = null,
 ): Promise<number> {
   const { policy, state } = read;
   const prev = new Map((await listClassTiers(tx, projectId)).map((r) => [r.classId, r]));
   const events = await readLedger(tx, gitlabId);
   const counters = { tasks: await listTasks(tx, projectId), events, revertDemotes: demotesOnRevert(policy.demotion), ledgerRead };
-  const t = deriveTiers(policy, state, projectId, now, prev, windowMs, counters);
+  const t = deriveTiers(policy, state, projectId, now, prev, windowMs, counters, history ? { history, events } : null);
   await upsertClassTiers(tx, t.rows);
 
   const open = await listOpenProposals(tx, projectId);

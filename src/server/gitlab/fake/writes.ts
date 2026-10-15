@@ -1,6 +1,6 @@
 // Write routes of the fake: the six PlannedCommands Belay builds, applied to the in-memory state.
 import { createHash } from 'node:crypto';
-import type { FakeState, ProjectData } from './dataset';
+import { FAKE_SEED_AT, type FakeState, type ProjectData } from './dataset';
 import { atLeast, inProject, lastCommitOf } from './reads';
 import { created, fail, ok, type Route } from './server';
 
@@ -9,11 +9,20 @@ const labelsOf = (s: string | undefined): string[] => (s ?? '').split(',').map((
 const nowIso = (): string => new Date().toISOString();
 
 const findMr = (p: ProjectData, iid: string) => p.mrs.find((r) => String(r.iid) === iid);
+/** A commit's title: the first line of its message. */
+const titleOf = (f: Record<string, string>): string => (f.commit_message ?? '').split('\n')[0] ?? '';
 
-/** A file write is a commit: the content changes, and so do the file's last_commit_id and its branch's head. */
-function writeFile(p: ProjectData, path: string, content: string, st: FakeState, branch: string | undefined): void {
+/**
+ * A file write is a commit: the content changes, and so do the file's last_commit_id and its branch's head. The file's
+ * history keeps each commit with its content (the seeded content first), for the commit list and reads at a commit.
+ */
+function writeFile(p: ProjectData, path: string, content: string, st: FakeState, branch: string | undefined, title = ''): void {
+  const history = ((p.history ??= {})[path] ??= []);
+  const before = p.files[path];
+  if (!history.length && before !== undefined) history.push({ id: lastCommitOf(p, path), at: FAKE_SEED_AT, title: 'seed', content: before });
   p.files[path] = content;
   const commit = createHash('sha1').update(`commit ${st.nextId++}`).digest('hex');
+  history.push({ id: commit, at: nowIso(), title, content });
   (p.fileCommits ??= {})[path] = commit;
   if (branch) (p.branches ??= {})[branch] = commit;
 }
@@ -64,7 +73,7 @@ export const writeRoutes: Route[] = [
     if (path in p.files) return fail(400, 'A file with this name already exists');
     const taken = branchTaken(p, req.fields);
     if (taken) return fail(400, taken);
-    writeFile(p, path, req.fields.content ?? '', st, req.fields.branch);
+    writeFile(p, path, req.fields.content ?? '', st, req.fields.branch, titleOf(req.fields));
     return created({ file_path: path, branch: req.fields.branch });
   })],
   ['PUT', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req, st) => {
@@ -76,7 +85,7 @@ export const writeRoutes: Route[] = [
     if (known !== undefined && known !== lastCommitOf(p, path)) return fail(400, 'You are attempting to update a file that has changed since you started editing it.');
     const taken = branchTaken(p, req.fields);
     if (taken) return fail(400, taken);
-    writeFile(p, path, req.fields.content ?? '', st, req.fields.branch);
+    writeFile(p, path, req.fields.content ?? '', st, req.fields.branch, titleOf(req.fields));
     return ok({ file_path: path, branch: req.fields.branch });
   })],
   ['PUT', new RegExp(`^${P}/pipeline_schedules/(\\d+)$`), inProject((p, m, req) => {

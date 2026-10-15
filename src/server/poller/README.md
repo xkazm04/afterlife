@@ -115,7 +115,27 @@ Pipelines are read only to find the maturity scan job; no other row consumes the
 - **(b) Any other account's push counts as an edit**, other bots and agents included, not only a person's. It can only
   lower no-edit, never raise it.
 
+## Enforcement receipts (`stateHistory.ts`, `derive/receipt.ts`)
+
+Once per poll, after the policy read, tier-state.yml's commit list on belay-policy is read (`listCommits`: `GET
+projects/:id/repository/commits?path=tier-state.yml&ref_name=<policy ref>`, the newest 20, read-only). For each record
+the file holds, the commit that wrote it is the newest commit whose parent revision held another record (or none) for
+that agent and class; each revision is read once per process (`PollMemory.states`, by commit id). A class one agent holds
+then gets a receipt on its `class_tier` row (migration 0011, `receipt` jsonb), served by the actionClasses view and the
+snapshot: `{commit, committedAt, readIid, readAt, delaySec, withdrew[], alarm}`. `read` is the first `tier_decision` of
+that holder and class whose `state_rev` (the tier-state.yml commit its gate read, stamped by belay-apply) is that commit
+or a later one of the list; `withdrew` lists each withdrawal such a decision states (`withdrew`: the sweep took back the
+bot's approval or auto-merge); `alarm` is the first such decision at a tier above the record's (capped by the ceiling).
+A failed commit-list read only leaves the receipts null, with a warning. Ladder settles a pending revoke with it.
+
 ## Known limits (decided, not built)
+
+0. **A receipt is not always derivable, and is never guessed.** Null when the record's writer is not among the 20 commits
+   read (and they are not the file's whole history), when a revision on the way is not a tier-state the engine accepts,
+   or when a commit landed between the policy read and the commit-list read; null for a class several agents or no
+   agent holds. A tier_decision whose `state_rev` is not in the list is not counted (it may be older or newer). Decisions
+   written before belay-apply stamped `state_rev` read nothing, and a forced gate (no tier decided) ledgers no
+   withdrawal, so "awaiting the next gated MR" can outlast a gate that did read the revoke on such a path.
 
 1. **Reverts and clean days are stated only when trust-policy.yml demotes on a revert.** Only then does the tripwire
    rewrite the record's `since` on a revert, so "no revert since `since`" is a fact (`derive/counters.ts:21-25`,

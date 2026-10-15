@@ -32,8 +32,12 @@ afterAll(() => setDataSource(null));
 /** What the loaders return, as the page would send it to the client: JSON, so `undefined` and a missing key are the same. */
 const asProps = (v: unknown): unknown => JSON.parse(JSON.stringify(v)) as unknown;
 
-/** The class records: live, the poll's own counts and the cooldown tier-state.yml states (none in the fixture); demo, the fixture's. */
-const noRecords = (v: unknown): unknown => JSON.parse(JSON.stringify(v), (k: string, x: unknown) => (k === 'record' ? null : k === 'cooldownUntil' ? undefined : x)) as unknown;
+/**
+ * The class records: live, the poll's own counts, the cooldown tier-state.yml states (none in the fixture) and the
+ * receipt of where the record was enforced (from belay-policy's commit list and the ledger); demo, the fixture's.
+ */
+const noRecords = (v: unknown): unknown =>
+  JSON.parse(JSON.stringify(v), (k: string, x: unknown) => (k === 'record' ? null : k === 'cooldownUntil' || k === 'receipt' ? undefined : x)) as unknown;
 
 /** The fixture spells "no last event" as null on six projects; the index view leaves the key out. Both draw nothing. */
 const noLast = (v: unknown): unknown => {
@@ -66,9 +70,9 @@ describe('every screen loader gets the same data from the live source as from th
   });
 
   it('Ladder: classes, tiers, leases, records, last moves, the means of each tier, the thresholds, the poll age and the subtitle', () => {
-    // What live marks demo, and its clock, are listed below; everything else is the same.
+    // What live marks demo, its clock and its ledger (the project's own belay-ledger) are listed below; everything else is the same.
     const strip = (p: ReturnType<typeof loadLadderData>) => ({
-      ...p, illustrative: null, live: null, seed: { ...p.seed, ledger: p.seed.ledger.map((e) => ({ ...e, demo: undefined })), head: { ...p.seed.head, demo: undefined } },
+      ...p, illustrative: null, live: null, seed: { ...p.seed, ledger: null, head: { ...p.seed.head, demo: undefined } },
     });
     const [d, l] = both(() => noRecords(strip(loadLadderData())));
     expect(l).toEqual(d);
@@ -165,10 +169,14 @@ describe('where live differs from demo, on purpose', () => {
     expect(live.getPolicy()).toMatchObject({ toHandsOff: { accepted: 15, noEditRatio: 0.9, cleanDays: 14 }, toSupervised: { accepted: 5, reverts: 0 } });
   });
 
-  it('the Ladder marks its opening history demo in live, and keeps its own clock in demo', () => {
+  it('the Ladder marks its opening head demo in live and draws the project’s own ledger, unmarked; demo keeps its clock and its seed', () => {
     const [d, l] = both(() => loadLadderData());
     expect([d.illustrative, d.live, d.seed.head.demo, d.seed.ledger.some((e) => e.demo)]).toEqual([{ history: false, tracks: false }, false, undefined, false]);
-    expect([l.illustrative, l.live, l.seed.head.demo, l.seed.ledger.every((e) => e.demo)]).toEqual([{ history: true, tracks: true }, true, true, true]);
+    expect([l.illustrative, l.live, l.seed.head.demo, l.seed.ledger.some((e) => e.demo)]).toEqual([{ history: true, tracks: true }, true, true, false]);
+    // the fake's chain: its proof verdict, two guardrail verdicts, the merge and the tier decision (task_started and deployed are not moves)
+    expect(l.seed.ledger.map((e) => [e.ids[0], e.actor])).toEqual([
+      ['dep-bump.patch', 'proof job'], ['dep-bump.patch', 'guardrail job'], ['dep-bump.patch', 'ai-patcher-acme-lab'], ['patch-bump', 'guardrail job'], ['patch-bump', 'tier-gate job'],
+    ]);
     expect([d, l].map((x) => x.seed.classes.filter((c) => c.uncounted).length)).toEqual([0, 0]); // one holder each: all counted
   });
 

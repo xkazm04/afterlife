@@ -3,6 +3,7 @@
 import type {
   ActionClass, DemoData, FleetProject, MaturityRung, NeedsYouItem, Task, TierKey,
 } from '@/lib/demo/types';
+import type { EnforcementReceipt } from '@/schemas/receipt';
 
 export type { FleetProject, NeedsYouItem };
 
@@ -14,7 +15,8 @@ export interface FleetView {
 
 /** `tier` is what the gate acts on (null: unknown); `cell`, set where it is not the tier, is what Ladder shows. */
 /** `cooldownUntil`: tier-state.yml's cooldown_until on the record (ISO), when it states one: no promotion before it. */
-export type ActionClassView = Omit<ActionClass, 'tier'> & { tier: TierKey | null; cooldownUntil?: string };
+/** `receipt`: where the record was enforced (poller/derive/receipt.ts), when the poll derived one. */
+export type ActionClassView = Omit<ActionClass, 'tier'> & { tier: TierKey | null; cooldownUntil?: string; receipt?: EnforcementReceipt };
 
 export type MaturityRungView = Omit<MaturityRung, 'day0' | 'now' | 'next'> & {
   day0: number | null;

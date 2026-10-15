@@ -1,7 +1,7 @@
 // The GitLab port: everything Belay reads, as typed calls, and every write as a PlannedCommand.
 // Implemented by the glab adapter (live) and the fake (tests, live-mode demo).
 import type {
-  Availability, DeploymentFilter, GlDeployment, GlDiff, GlEnvironment, GlFile, GlGroup, GlInstance, GlJob,
+  Availability, CommitFilter, DeploymentFilter, GlDeployment, GlCommit, GlDiff, GlEnvironment, GlFile, GlGroup, GlInstance, GlJob,
   GlMergeRequest, GlNamespace, GlNote, GlPipeline, GlProject, GlRelease, GlSchedule, GlTestSummary,
   GlTreeEntry, GlUser, GlVulnerability, MrFilter, PageOpts, PipelineFilter, ProjectRef, TreeOpts,
 } from './types';
@@ -42,6 +42,8 @@ export interface GitLabPort {
   /** null when the file does not exist at that ref. */
   getFile(project: ProjectRef, path: string, ref: string): Promise<GlFile | null>;
   listTree(project: ProjectRef, o?: TreeOpts): Promise<GlTreeEntry[]>;
+  /** The commits of a ref, newest first; with `path`, only those that changed that file (read-only). */
+  listCommits(project: ProjectRef, f?: CommitFilter): Promise<GlCommit[]>;
 
   /** Ultimate-only: 'unavailable' (with the reason) when the plan has no vulnerability API. */
   listVulnerabilities(project: ProjectRef, o?: PageOpts): Promise<Availability<GlVulnerability[]>>;

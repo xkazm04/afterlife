@@ -22,7 +22,7 @@ describe('the proof class, live', () => {
   it('the route says the tracks are the demo catalogue live, and not in demo mode', () => {
     setDataSource(demoSource);
     expect(loadLadderData().illustrative.tracks).toBe(false);
-    const snap = { at: new Date(), deep: 'ledgerline', data: { ...DEMO, tasks: [], events: [], needsYou: [], policy: null, tiersStale: null, pairing: null } } as unknown as LiveSnapshot;
+    const snap = { at: new Date(), deep: 'ledgerline', data: { ...DEMO, tasks: [], events: [], needsYou: [], policy: null, tiersStale: null, pairing: null, ledger: [] } } as unknown as LiveSnapshot;
     setDataSource(liveSource(() => snap));
     expect(loadLadderData().illustrative.tracks).toBe(true);
   });

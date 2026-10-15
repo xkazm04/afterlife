@@ -1,7 +1,8 @@
 // What the Ladder route needs, read through the data source (demo fixture or live index) on the server. The promotion
 // thresholds are trust-policy.yml's (getPolicy). What the screen still shows of the demo beside live data, the source
-// declares in `illustrative`, and the screen marks it demo: the opening ledger and head (`policy-history`). Live, a class
-// record is the poll's count when one agent holds the class; any other record it keeps is marked `uncounted`.
+// declares in `illustrative`, and the screen marks it demo: the head (`policy-history`), and the opening ledger while the
+// project's own belay-ledger is empty (live, "Who acted" and "All moves" read that chain: ./live/ledgerEntries.ts). Live, a
+// class record is the poll's count when one agent holds the class; any other record it keeps is marked `uncounted`.
 import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { getDataSource } from '@/server/data';
 import type { IllustrativePart } from '@/server/data';
@@ -11,6 +12,7 @@ import { TIER_ORDER } from '@/schemas/tier';
 import type { PromotionAsk, Tier } from '../model/types';
 import type { LadderScreenProps } from '../LadderScreen';
 import { LEDGER_SEED } from './ledgerSeed';
+import { liveLedgerEntries } from './live/ledgerEntries';
 import { INITIAL_HEAD } from './policy';
 
 const TIERS: readonly string[] = TIER_DISPLAY_ORDER;
@@ -53,11 +55,14 @@ export function loadLadderData(): LadderScreenProps {
   });
   // The guardrail's quoted finding, by merge request: the Ladder shows it as untrusted text in the ledger.
   const quotes = Object.fromEntries(ds.getTasks().flatMap((t) => (t.mr && t.quote ? [[t.mr, t.quote] as const] : [])));
+  // Live: the deep project's own ledger. The demo's opening ledger only while that chain is empty, and then marked demo.
+  const chain = live ? ds.getLedger() : [];
+  const ledger = chain.length ? liveLedgerEntries(chain, new Date()) : history ? LEDGER_SEED.map((e) => ({ ...e, demo: true })) : LEDGER_SEED;
   return {
     project: ds.deepProjectId(),
     seed: {
       classes,
-      ledger: history ? LEDGER_SEED.map((e) => ({ ...e, demo: true })) : LEDGER_SEED,
+      ledger,
       quotes,
       head: history ? { ...INITIAL_HEAD, demo: true } : { ...INITIAL_HEAD },
     },

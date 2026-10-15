@@ -1,6 +1,8 @@
 // A revoke lands in the state only once the server answered done. Demo: the write was simulated, so the commit id is the
-// demo's own and six seconds later a simulated tier-gate read settles it. Live: the commit is the one GitLab made (read
-// back from belay-policy), and nothing settles it: Belay is not told when the next MR pipeline reads tier-state.yml.
+// demo's own and six seconds later a simulated tier-gate read settles it, with a simulated withdrawal beside it. Live: the
+// commit is the one GitLab made (read back from belay-policy), and it stays pending until a poll's receipt says a gated
+// MR's tier_decision read that commit (`state_rev`, written by belay-apply): ./receipt.ts settles it then, at the time
+// the gate read it, so the who-acted rail draws the real gap. A gate that has not run yet leaves it pending.
 import { COMMIT_SHAS } from '../../data/policy';
 import { splitTier } from '@/lib/tiers';
 import { commitText, planRows } from '../rules/plan';
@@ -15,6 +17,12 @@ export const PENDING_MS = 6000;
 
 /** What the server said about a revoke that is done: simulated (demo), or the commit GitLab made (null: not read back). */
 export type Sent = { simulated: true } | { simulated: false; commit: string | null };
+
+/** The gate that read a pending commit, from a poll's receipt: the merge request and how long after the commit. */
+export interface GateRead {
+  iid: number;
+  delaySec: number | null;
+}
 
 export interface Committed {
   classes: ClassRow[];
@@ -32,15 +40,15 @@ function lowered(c: ClassRow, to: Tier): ClassRow {
 
 /**
  * The classes, ledger and head after revoking `id` to `to` at clock time `t`, with `sha` the commit id to show (the
- * demo's id when simulated). Nothing else moves. Only a simulated commit waits for the (simulated) tier-gate read.
+ * demo's id when simulated). Nothing else moves. The commit waits for a tier-gate read: simulated (demo) or a receipt (live).
  */
 export function commitRevoke(classes: readonly ClassRow[], ledger: readonly LedgerEntry[], id: string, to: Tier, sent: Sent, sha: string | null, t: string): Committed {
   const byId = Object.fromEntries(classes.map((c) => [c.id, c]));
   const rows = planRows(byId, [{ id, to }]);
   const ids = new Set(rows.map((r) => r.cls.id));
-  const pending = sent.simulated ? sha : null;
+  const pending = sha;
   return {
-    classes: classes.map((c) => (ids.has(c.id) ? { ...lowered(c, to), lease_days: null, lastMove: `revoked by you · ${t}`, pending } : c)),
+    classes: classes.map((c) => (ids.has(c.id) ? { ...lowered(c, to), lease_days: null, lastMove: `revoked by you · ${t}`, pending, simRead: undefined } : c)),
     ledger: [
       ...ledger,
       { t, ids: [...ids], actor: 'you', where: 'Belay, on your key', kind: 'you', isNew: true, text: commitText(sha, rows), ...(sent.simulated ? { chip: 'simulated' as const } : {}) },
@@ -49,15 +57,27 @@ export function commitRevoke(classes: readonly ClassRow[], ledger: readonly Ledg
   };
 }
 
-/** The tier-gate job read tier-state.yml at `sha`: the pending chip goes and the ledger says so (simulated). */
-export function settleCommit(classes: readonly ClassRow[], ledger: readonly LedgerEntry[], sha: string, t: string): { classes: ClassRow[]; ledger: LedgerEntry[] } {
+/** "45 s", "3 min", "2 h": how long after the commit a gate read it. */
+export const delayText = (sec: number): string => (sec < 120 ? `${sec} s` : sec < 7200 ? `${Math.round(sec / 60)} min` : `${Math.round(sec / 3600)} h`);
+
+/**
+ * The tier-gate job read tier-state.yml at `sha`: the pending chip goes and the ledger says so. Without `read` it is the
+ * demo's simulated read, with a simulated withdrawal of what the old tier had granted; with one, a poll's receipt said
+ * which merge request's gate read it (live), and `t` is when.
+ */
+export function settleCommit(classes: readonly ClassRow[], ledger: readonly LedgerEntry[], sha: string, t: string, read?: GateRead): { classes: ClassRow[]; ledger: LedgerEntry[] } {
   const settled = classes.filter((c) => c.pending === sha);
   if (!settled.length) return { classes: [...classes], ledger: [...ledger] };
+  const ids = settled.map((c) => c.id);
+  const after = read && read.delaySec !== null ? `, ${delayText(read.delaySec)} after the commit` : '';
+  const entries: LedgerEntry[] = read
+    ? [{ t, ids, actor: 'tier-gate job', where: 'GitLab', kind: 'gitlab', isNew: true, text: `!${read.iid}'s gate read tier-state.yml @ ${sha}${after}` }]
+    : [
+        { t, ids, actor: 'tier-gate job', where: 'GitLab', kind: 'gitlab', chip: 'simulated', isNew: true, text: `next MR pipeline read tier-state.yml @ ${sha}` },
+        { t, ids, actor: 'belay-apply sweep', where: 'GitLab', kind: 'gitlab', chip: 'simulated', isNew: true, text: 'withdrew the approval the old tier had granted an open MR' },
+      ];
   return {
-    classes: classes.map((c) => (c.pending === sha ? { ...c, pending: null } : c)),
-    ledger: [
-      ...ledger,
-      { t, ids: settled.map((c) => c.id), actor: 'tier-gate job', where: 'GitLab', kind: 'gitlab', chip: 'simulated', isNew: true, text: `next MR pipeline read tier-state.yml @ ${sha}` },
-    ],
+    classes: classes.map((c) => (c.pending === sha ? { ...c, pending: null, ...(read ? {} : { simRead: { sha, t } }) } : c)),
+    ledger: [...ledger, ...entries],
   };
 }

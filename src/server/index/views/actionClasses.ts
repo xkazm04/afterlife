@@ -49,6 +49,7 @@ export async function getActionClasses(db: Queryable, projectId: string, now: Da
       ...(shown.cell === null || isStanding(shown.cell) ? { cell: shown.cell } : {}),
       ...(shown.holders ? { holders: shown.holders } : {}),
       ...(r.cooldownUntil ? { cooldownUntil: r.cooldownUntil.toISOString() } : {}),
+      ...(r.receipt ? { receipt: r.receipt } : {}),
     });
   }
   return out;

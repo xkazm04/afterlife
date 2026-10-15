@@ -1,6 +1,6 @@
 // GET routes of the fake. Plan-gated endpoints answer 403/404 exactly where the live Free group did.
 import { createHash } from 'node:crypto';
-import type { FakeState, Plan, ProjectData } from './dataset';
+import { FAKE_SEED_AT, type FakeState, type FileCommit, type Plan, type ProjectData } from './dataset';
 import { fail, findProject, ok, paged, type Handler, type Req, type Res, type Route } from './server';
 
 const RANK: Record<Plan, number> = { free: 0, premium: 1, ultimate: 2 };
@@ -37,13 +37,27 @@ function dirEntries(p: ProjectData, dir: string, recursive: boolean): Record<str
   return [...out.values()];
 }
 
+/** A file's commits, oldest first: its history, or (a file no write touched) the one seeded commit its id is derived from. */
+const commitsOf = (p: ProjectData, path: string): FileCommit[] =>
+  p.history?.[path] ?? (p.files[path] === undefined ? [] : [{ id: lastCommitOf(p, path), at: FAKE_SEED_AT, title: 'seed', content: p.files[path] ?? '' }]);
+
+/** The file at `ref`: a commit of its history (as it was then), else the one tree the fake keeps (a branch name). */
 function fileJson(p: ProjectData, path: string, ref: string): Res {
-  const content = p.files[path];
+  const at = commitsOf(p, path).find((c) => c.id === ref);
+  const content = at ? at.content : p.files[path];
   if (content === undefined) return fail(404, 'File Not Found');
   return ok({
     file_name: path.split('/').at(-1), file_path: path, size: Buffer.byteLength(content), encoding: 'base64', ref,
-    blob_id: blobId(content), last_commit_id: lastCommitOf(p, path), content: Buffer.from(content, 'utf8').toString('base64'),
+    blob_id: blobId(content), last_commit_id: at ? at.id : lastCommitOf(p, path), content: Buffer.from(content, 'utf8').toString('base64'),
   });
+}
+
+/** GET repository/commits, newest first; `path` keeps the commits of that file. The fake has one branch: ref_name is not read. */
+function commitList(p: ProjectData, q: URLSearchParams): Res {
+  const path = q.get('path');
+  const all = (path ? commitsOf(p, path) : Object.keys(p.files).flatMap((f) => commitsOf(p, f))).slice().reverse();
+  const rows = [...new Map(all.map((c) => [c.id, c])).values()].sort((a, b) => b.at.localeCompare(a.at));
+  return list(rows.map((c) => ({ id: c.id, short_id: c.id.slice(0, 8), title: c.title, message: c.title, created_at: c.at, committed_date: c.at, parent_ids: [] })), q);
 }
 
 const allMrs = (st: FakeState, q: URLSearchParams, only?: ProjectData): Record<string, unknown>[] => {
@@ -104,6 +118,7 @@ export const readRoutes: Route[] = [
   ['GET', new RegExp(`^${P}/pipeline_schedules$`), inProject((p, _m, { query: q }) => list(p.schedules, q))],
   ['GET', new RegExp(`^${P}/vulnerabilities$`), inProject((p, _m, { query: q }, st) => (atLeast(st, 'ultimate') ? list(p.vulnerabilities, q) : fail(403, 'Forbidden')))],
 
+  ['GET', new RegExp(`^${P}/repository/commits$`), inProject((p, _m, { query: q }) => commitList(p, q))],
   ['GET', new RegExp(`^${P}/repository/tree$`), inProject((p, _m, { query: q }) => list(dirEntries(p, q.get('path') ?? '', q.get('recursive') === 'true'), q))],
   ['GET', new RegExp(`^${P}/repository/branches/([^/]+)$`), inProject((p, m) => {
     const name = decodeURIComponent(m[2] ?? '');

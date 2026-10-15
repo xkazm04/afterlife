@@ -19,6 +19,8 @@ describe('migration 0009 on a populated version-8 index', () => {
     expect(await migrate(db, MIGRATIONS.filter((m) => m.version <= 9))).toEqual([9]);
     const [row] = await listClassTiers(db, 'ledgerline');
     expect(row).toMatchObject({ classId: 'code-fix.patch', tier: 'assisted', setBy: 'tripwire', record: { accepted: 3, reverts: 0 }, cooldownUntil: null });
+    // the repository writes every column the index has today (0011 added class_tier.receipt)
+    expect(await migrate(db)).toEqual(MIGRATIONS.filter((m) => m.version > 9).map((m) => m.version));
     await upsertClassTiers(db, [{ ...row!, cooldownUntil: new Date('2026-10-28T00:00:00Z') }]);
     expect((await listClassTiers(db, 'ledgerline'))[0]?.cooldownUntil).toEqual(new Date('2026-10-28T00:00:00Z'));
   });

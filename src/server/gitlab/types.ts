@@ -75,6 +75,9 @@ export interface GlFile { path: string; ref: string; blobId: string; size: numbe
 
 export interface GlTreeEntry { id: string; name: string; path: string; type: 'blob' | 'tree' | 'commit' }
 
+/** One entry of GET repository/commits (newest first): the id, its title, and `committed_date` (else `created_at`). */
+export interface GlCommit { id: string; title: string; committedAt: string }
+
 /** An endpoint a plan may not include: the reason says why it is not there. */
 export type Availability<T> = { status: 'available'; data: T } | { status: 'unavailable'; reason: string };
 
@@ -87,3 +90,5 @@ export interface PipelineFilter extends PageOpts { ref?: string; status?: string
 export interface MrFilter extends PageOpts { state?: 'opened' | 'merged' | 'closed' | 'all'; labels?: string[]; updatedAfter?: string }
 export interface DeploymentFilter extends PageOpts { environment?: string; status?: string }
 export interface TreeOpts { path?: string; ref?: string; recursive?: boolean }
+/** `path`: only the commits that changed that file; `ref`: GitLab's `ref_name`, the branch (or tag, or commit) to list from. */
+export interface CommitFilter extends PageOpts { path?: string; ref?: string }

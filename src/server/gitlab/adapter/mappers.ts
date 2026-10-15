@@ -1,6 +1,6 @@
 // Raw GitLab REST JSON -> domain types (core, CI and delivery).
 import type {
-  GlDeployment, GlEnvironment, GlFile, GlGroup, GlInstance, GlJob, GlNamespace, GlPipeline, GlProject,
+  GlCommit, GlDeployment, GlEnvironment, GlFile, GlGroup, GlInstance, GlJob, GlNamespace, GlPipeline, GlProject,
   GlRelease, GlSchedule, GlTestSummary, GlTreeEntry, GlUser, GlVulnerability,
 } from '../types';
 import { GitLabError } from '../errors';
@@ -84,6 +84,10 @@ export const mapVulnerability = (r: Rec): GlVulnerability => ({
 export const mapSchedule = (r: Rec): GlSchedule => ({
   id: num(r, 'id'), description: strOr(r, 'description', ''), ref: strOr(r, 'ref', ''), cron: strOr(r, 'cron', ''),
   active: bool(r, 'active'), nextRunAt: strN(r, 'next_run_at'),
+});
+
+export const mapCommit = (r: Rec): GlCommit => ({
+  id: str(r, 'id'), title: strOr(r, 'title', ''), committedAt: strOr(r, 'committed_date', str(r, 'created_at')),
 });
 
 export const mapTreeEntry = (r: Rec): GlTreeEntry => {

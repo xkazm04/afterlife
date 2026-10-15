@@ -6,7 +6,7 @@ import { planBuilders } from '../plan/builders';
 import { GlabClient, type ClientConfig } from './client';
 import { rec, recs } from './fields';
 import {
-  mapDeployment, mapEnvironment, mapFile, mapGroup, mapInstance, mapJob, mapNamespace, mapPipeline,
+  mapCommit, mapDeployment, mapEnvironment, mapFile, mapGroup, mapInstance, mapJob, mapNamespace, mapPipeline,
   mapProject, mapRelease, mapSchedule, mapTestSummary, mapTreeEntry, mapUser, mapVulnerability,
 } from './mappers';
 import { mapDiff, mapMergeRequest, mapNote } from './mappersMr';
@@ -63,6 +63,7 @@ export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
       }
     },
     listTree: (p, o = {}) => list(`projects/${id(p)}/repository/tree`, mapTreeEntry, { path: o.path, ref: o.ref, recursive: o.recursive }),
+    listCommits: (p, f = {}) => list(`projects/${id(p)}/repository/commits`, mapCommit, { path: f.path, ref_name: f.ref }, f.limit),
 
     listVulnerabilities: async (p, o = {}) => {
       try {
