@@ -25,7 +25,7 @@ export const SCREEN_KEYS: readonly ScreenKeys[] = [
     keys: [
       { keys: ['j', 'k'], does: 'Next / previous class' },
       { keys: ['/'], does: 'Search' },
-      { keys: ['0', '1-4'], does: 'All tiers / filter to one tier' },
+      { keys: ['0', '1-5'], does: 'All tiers / filter to one tier' },
       { keys: ['p'], does: 'Promote' },
       { keys: ['r', 'q'], does: 'Revoke a step / quarantine' },
       { keys: ['?'], does: 'Legend' },
@@ -46,7 +46,7 @@ export const SCREEN_KEYS: readonly ScreenKeys[] = [
   {
     screen: 'Theater',
     keys: [
-      { keys: ['1-9'], does: 'Cue a take' },
+      { keys: ['1-8'], does: 'Cue a take' },
       { keys: ['Space'], does: 'Play / pause' },
       { keys: ['r', 'l'], does: 'Roll / loop' },
       { keys: ['i', 'o'], does: 'Mark in / out' },
