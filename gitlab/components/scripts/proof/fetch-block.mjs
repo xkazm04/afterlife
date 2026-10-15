@@ -31,6 +31,11 @@ for (const src of sources) {
     process.exit(4);
   }
   const [found] = all;
+  // A bare null, number, string or array is no block: reading found.head_sha off null threw (exit 1), which tier-gate does not ledger.
+  if (found === null || typeof found !== 'object' || Array.isArray(found)) {
+    console.error(`belay: ${tag} block in note ${src.id} is not a JSON object`);
+    process.exit(4);
+  }
   const madeFor = found.head_sha ?? found.task?.head_sha;
   if (headSha && madeFor !== headSha) {
     console.error(`belay: ${tag} block in ${src.id} is for ${String(madeFor).slice(0, 8)}, not ${headSha.slice(0, 8)}: stale`);
