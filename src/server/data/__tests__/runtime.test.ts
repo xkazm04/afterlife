@@ -102,6 +102,15 @@ describe('bootLive', () => {
     expect(lines).toEqual([expect.stringMatching(/^belay: live data from the seeded fake GitLab \(replay clock\); \d+ project\(s\) polled$/)]);
   });
 
+  it('a failed start does not reject: the server must come up so its pages can name the failure and retry', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(quiet);
+    mocked.mockRejectedValue(new Error('glab is not logged in'));
+    await expect(bootLive(ENV)).resolves.toBeUndefined();
+    expect(err.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^belay: live start failed: glab is not logged in; .*retried every 30s/)]);
+    expect(lastStartFailure()?.message).toBe('glab is not logged in');
+    err.mockRestore();
+  });
+
   it('live on glab names glab, and a group that cannot be read is named', async () => {
     mocked.mockImplementation(() => fake(true));
     await bootLive({ BELAY_MODE: 'live', BELAY_GITLAB: 'glab' });
