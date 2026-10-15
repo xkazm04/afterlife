@@ -127,6 +127,18 @@ describe('the actions that skip the outbox', () => {
     expect(back.status.n1).toBe('open');
     expect(back.session).toHaveLength(0);
   });
+  it('Show again takes back the Not yet row itself, not the newest row, when another decision was made in between', () => {
+    const s = run(start(), act('snooze-n1'), act('read-note'), act('retire-n4'));
+    expect(s.session.map((r) => r.kind)).toEqual(['readmit', 'promote']);
+    const back = run(s, act('unsnooze-n1'));
+    expect(back.status.n1).toBe('open');
+    expect(back.session.map((r) => r.kind)).toEqual(['readmit']);
+  });
+  it('Not yet twice leaves one row per snooze, and Show again takes back only the latest', () => {
+    const twice = run(start(), act('snooze-n1'), act('unsnooze-n1'), act('snooze-n1'));
+    expect(twice.session).toHaveLength(1);
+    expect(run(twice, act('unsnooze-n1')).session).toHaveLength(0);
+  });
   it('the runner check is unknown until the page was opened, then simulated: nothing ran, so nothing says verified', () => {
     const none = run(start(), act('check-runner'));
     expect(none.runner.check).toBe('none');

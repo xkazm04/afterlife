@@ -67,8 +67,11 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
       return unstage(s, arg, 'Taken back. Nothing was sent.');
     case 'snooze-n1':
       return notify(decided(setStatus(s, 'n1', 'snoozed'), 'promote', 'qa.file-bug · T7 qa', 'not yet', 'no write'), 'toast', 'Not yet · no write');
-    case 'unsnooze-n1':
-      return { ...setStatus(s, 'n1', 'open'), session: s.session.slice(1) };
+    case 'unsnooze-n1': {
+      // Take back the Not yet row itself: other decisions may have been made since, so it is not always the newest.
+      const at = s.session.findIndex((r) => r.kind === 'promote' && r.result === 'not yet');
+      return { ...setStatus(s, 'n1', 'open'), session: at < 0 ? s.session : s.session.filter((_, i) => i !== at) };
+    }
     case 'merge-n1':
       return notify(setStatus(s, 'n1', 'merged'), 'toast', `The policy MR merged (simulated) · the next MR pipeline reads ${TIER_META[demo.promote.to].name}`);
     case 'retire-n4': {
