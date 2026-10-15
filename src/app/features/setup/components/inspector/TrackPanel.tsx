@@ -47,7 +47,8 @@ export function TrackPanel({ id }: { id: string }) {
   const t = tracks[id];
   if (!a || !t) return null;
   const needs = ARM_META[id]?.needs ?? [];
-  const caps = capsOf(GRAPH, id);
+  // GRAPH.capUses is the demo catalogue's illustrative table: live mode does not state it as fact (CapPanel hides the same table)
+  const caps = state.live ? [] : capsOf(GRAPH, id);
   const frees = downstream(GRAPH, id);
   const mine = classes.filter((c) => c.track === id);
   const chip = CHIP[a.st];
@@ -94,7 +95,7 @@ export function TrackPanel({ id }: { id: string }) {
         {needs.length ? needs.map((k) => (isStepKey(k) ? <StepDep key={k} n={stepOf(k)} /> : <TrackDep key={k} id={k} />)) : <div className={styles.muted}>No prerequisite</div>}
       </DetailSection>
       <DetailSection title="Relies on in GitLab">
-        {caps.length ? caps.map((c) => <CapDep key={c} name={c} />) : <div className={styles.muted}>No GitLab capability</div>}
+        {caps.length ? caps.map((c) => <CapDep key={c} name={c} />) : <div className={styles.muted}>{state.live ? 'Not mapped: Belay does not tie a track to the live capabilities yet' : 'No GitLab capability'}</div>}
       </DetailSection>
       {frees.length ? (
         <DetailSection title="Frees" aux={plural(frees.length, 'track')}>
