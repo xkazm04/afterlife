@@ -30,10 +30,12 @@ export function SegmentedControl<V extends string>({
   label: string;
 }) {
   const group = useRef<HTMLDivElement>(null);
+  const current = options.findIndex((o) => o.value === value);
   const onKey = (e: KeyboardEvent) => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    const i = options.findIndex((o) => o.value === value);
-    const next = options[(i + (e.key === 'ArrowRight' ? 1 : -1) + options.length) % options.length];
+    const forward = e.key === 'ArrowRight';
+    // no option is selected: Right starts at the first segment and Left at the last
+    const next = options[current < 0 ? (forward ? 0 : options.length - 1) : (current + (forward ? 1 : -1) + options.length) % options.length];
     if (!next) return;
     onChange(next.value);
     e.preventDefault();
@@ -41,13 +43,13 @@ export function SegmentedControl<V extends string>({
   };
   return (
     <div ref={group} className={styles.seg} role="radiogroup" aria-label={label} onKeyDown={onKey}>
-      {options.map((o) => (
+      {options.map((o, i) => (
         <button
           key={o.value}
           type="button"
           role="radio"
           aria-checked={o.value === value}
-          tabIndex={o.value === value ? 0 : -1}
+          tabIndex={i === Math.max(current, 0) ? 0 : -1}
           title={o.title}
           aria-label={o.ariaLabel}
           className={o.count !== undefined ? styles.counted : undefined}
