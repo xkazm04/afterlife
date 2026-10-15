@@ -18,5 +18,5 @@ export async function verifyArmAction(intent: unknown): Promise<ArmCheck> {
   if (!deps) return { status: 'refused', reason: 'live mode has not finished its first poll; try again in a moment' };
   if (deps.mode === 'demo') return { status: 'simulated', text: SIMULATED_VERIFY };
   const away = notLocal(await headers());
-  return away ? { status: 'refused', reason: away } : checkArm(deps, i);
+  return away ? { status: 'refused', reason: away } : checkArm(deps, i, deps.cfg.infra);
 }

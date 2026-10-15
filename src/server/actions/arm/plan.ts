@@ -6,7 +6,7 @@
 import { isKind } from '@/server/gitlab/errors';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { GlFile, GlProject } from '@/server/gitlab/types';
-import { ActionRefused, COMMIT_ID, type Plan, type PlanContext } from '../plans/context';
+import { ActionRefused, COMMIT_ID, watchedProject, type Plan, type PlanContext } from '../plans/context';
 import type { ArmTrack, DisarmTrack } from '../types';
 import { findBlock, insertBlock, removeBlock } from './block';
 import { blockerOf, holdsBlock, placementOf } from './checks';
@@ -30,19 +30,13 @@ export interface Target {
 }
 
 /**
- * The paired target project, by its index id. Read only. GitLab lists projects shared into the group as well, so a project
- * whose path is not under the group's is refused (F37): an arm writes as the operator only inside the paired group.
+ * The paired target project, by its index id. Read only: plans/context.ts watchedProject's rules, which locate() applies to
+ * every other write (F37, F47: under the group's path; F48: one match; F50: never Belay's own project).
  */
-export async function targetOf(port: GitLabPort, groupId: string | number, gitlabId: PlanContext['gitlabId'], indexId: string): Promise<Target> {
-  const all = await port.listProjects(groupId);
-  const gid = await gitlabId(indexId);
-  const project = all.find((p) => (gid !== null ? p.id === gid : p.path === indexId));
-  if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);
-  const group = (await port.getGroup(groupId)).fullPath;
-  if (!project.pathWithNamespace.startsWith(`${group}/`)) {
-    throw new ActionRefused(`${project.pathWithNamespace} is not in ${group} (it is shared into it from elsewhere): Belay arms only a project of the paired group`);
-  }
-  return { project, base: project.defaultBranch ?? 'main', group };
+export async function targetOf(port: GitLabPort, groupId: string | number, gitlabId: PlanContext['gitlabId'], infra: readonly string[], indexId: string): Promise<Target> {
+  const [all, gid, group] = await Promise.all([port.listProjects(groupId), gitlabId(indexId), port.getGroup(groupId)]);
+  const project = watchedProject(all, gid, indexId, infra, group.fullPath);
+  return { project, base: project.defaultBranch ?? 'main', group: group.fullPath };
 }
 
 function pinFor(ctx: PlanContext): ArmPin {
@@ -90,7 +84,7 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   const pin = pinFor(ctx);
   const gap = a.refuses?.(pin);
   if (gap) throw new ActionRefused(gap);
-  const t = await targetOf(ctx.port, ctx.groupId, ctx.gitlabId, intent.project);
+  const t = await targetOf(ctx.port, ctx.groupId, ctx.gitlabId, ctx.cfg.infra, intent.project);
   const file = await ciFile(ctx, t, 'an arm adds include lines to a pipeline that exists');
   const found = findBlock(file.content, a);
   if (found.state === 'armed') throw new ActionRefused(`${a.track} is already armed: its block is on ${t.base} (${CI_FILE} line ${found.from + 1})`);
@@ -128,7 +122,7 @@ const DISARM_NOTE = "Disarm removes the include lines only. BELAY_BOT_TOKEN live
 
 export async function planDisarm(ctx: PlanContext, intent: DisarmTrack): Promise<Plan> {
   const a = trackArm(intent.track);
-  const t = await targetOf(ctx.port, ctx.groupId, ctx.gitlabId, intent.project);
+  const t = await targetOf(ctx.port, ctx.groupId, ctx.gitlabId, ctx.cfg.infra, intent.project);
   const file = await ciFile(ctx, t, `there is no ${a.track} block to revert`);
   const rm = removeBlock(file.content, a);
   if (!rm.ok && rm.found.state === 'absent') throw new ActionRefused(`${a.track} is not armed on ${t.base}: ${CI_FILE} has no ${a.track} block, so there is nothing to revert`);

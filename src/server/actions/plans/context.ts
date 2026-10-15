@@ -42,27 +42,35 @@ export interface Located {
 }
 
 /**
- * The project and the group's own belay-policy. Read only. The project must be under the group's path (F47), and
- * belay-policy is the one at <group>/belay-policy, the file the gate reads: a project of that name in a subgroup, or
- * shared in from elsewhere, is never written as the policy (F46).
+ * The index project among the group's projects, for every plan that writes in one (locate, and arm's targetOf): a path is
+ * unique in its namespace only, so two matches with no GitLab id to tell them apart are refused (F48); Belay's own projects
+ * are never a target, as the poller never watches them (F50); and it must be under the group's path (F47, F37).
  */
-export async function locate(ctx: PlanContext, indexId: string): Promise<Located> {
-  const [all, gid, group] = await Promise.all([ctx.port.listProjects(ctx.groupId), ctx.gitlabId(indexId), ctx.port.getGroup(ctx.groupId)]);
+export function watchedProject(all: readonly GlProject[], gid: number | null, indexId: string, infra: readonly string[], groupPath: string): GlProject {
   const matches = all.filter((p) => (gid !== null ? p.id === gid : p.path === indexId));
-  if (matches.length > 1) { // a path is unique in its namespace only: two subgroups may each hold one (F48)
+  if (matches.length > 1) {
     throw new ActionRefused(`${indexId} names ${matches.length} projects (${matches.map((p) => p.pathWithNamespace).join(', ')}) and the index has no GitLab id for it: poll first`);
   }
   const project = matches[0];
-  const policyPath = `${group.fullPath}/${ctx.cfg.policyProject}`;
-  const policy = all.find((p) => p.pathWithNamespace === policyPath);
   if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);
-  if (ctx.cfg.infra.includes(project.path)) { // as the poller, which never watches them: tier-state.yml moves only by revoke or promote (F50)
+  if (infra.includes(project.path)) { // tier-state.yml moves only by revoke or promote
     throw new ActionRefused(`${project.path} is Belay's own project, not one it watches: nothing is planned in it`);
   }
-  if (!project.pathWithNamespace.startsWith(`${group.fullPath}/`)) { // F37's refusal, as arm's targetOf has it (F47)
-    throw new ActionRefused(`${project.pathWithNamespace} is not in ${group.fullPath} (it is shared into it from elsewhere): Belay writes only in a project of the paired group`);
+  if (!project.pathWithNamespace.startsWith(`${groupPath}/`)) {
+    throw new ActionRefused(`${project.pathWithNamespace} is not in ${groupPath} (it is shared into it from elsewhere): Belay writes only in a project of the paired group`);
   }
-  if (!policy) throw new ActionRefused(`the group has no ${policyPath} project: policy cannot be changed`);
+  return project;
+}
+
+/**
+ * The project and the group's own belay-policy. Read only. belay-policy is the one at <group>/belay-policy, the file the
+ * gate reads: a project of that name in a subgroup, or shared in from elsewhere, is never written as the policy (F46).
+ */
+export async function locate(ctx: PlanContext, indexId: string): Promise<Located> {
+  const [all, gid, group] = await Promise.all([ctx.port.listProjects(ctx.groupId), ctx.gitlabId(indexId), ctx.port.getGroup(ctx.groupId)]);
+  const project = watchedProject(all, gid, indexId, ctx.cfg.infra, group.fullPath);
+  const policy = all.find((p) => p.pathWithNamespace === `${group.fullPath}/${ctx.cfg.policyProject}`);
+  if (!policy) throw new ActionRefused(`the group has no ${group.fullPath}/${ctx.cfg.policyProject} project: policy cannot be changed`);
   return { project, policy };
 }
 
