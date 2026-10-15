@@ -21,6 +21,11 @@
   box-shadow: inset 0 0 0 1px var(--border-2), 0 18px 48px var(--shade-60);
   animation: drop var(--t-med) var(--ease);
 }
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
 @keyframes drop {
   from {
     transform: translate(-50%, -16px);

@@ -23,3 +23,10 @@ describe('Sheet focus handling', () => {
     expect(depsAfter(seeded, "addEventListener('keydown'")).toBe('onClose');
   });
 });
+
+describe('Sheet drop animation', () => {
+  it('is switched off under prefers-reduced-motion', () => {
+    const block = /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{([\s\S]*?\.sheet\s*\{[^}]*\})/.exec(css)?.[1] ?? '';
+    expect(block).toMatch(/animation:\s*none/);
+  });
+});
