@@ -9,7 +9,7 @@ export function EvidenceStrip({ resolved }: { resolved: string }) {
       <span className={styles.lbx}>Evidence {resolved}</span>
       <span className={styles.evd}>
         {EVIDENCE.map((e) => (
-          <i key={e.what} title={`${e.what} · ${e.ref} · resolves`}>
+          <i key={e.what} role="img" aria-label={`${e.what} · ${e.ref} · resolves`} title={`${e.what} · ${e.ref} · resolves`}>
             ✓
           </i>
         ))}
