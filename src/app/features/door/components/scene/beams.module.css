@@ -28,6 +28,9 @@
 .lampStale {
   fill: color-mix(in oklab, var(--needs-you) 55%, var(--bg));
 }
+.beam {
+  transition: opacity var(--d-filter-ms) linear;
+}
 .dimx {
   opacity: 0.18;
 }

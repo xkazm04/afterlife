@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { getDataSource, readDataConfig } from '@/server/data';
 import { DEFAULT_TEXT_SIZE } from '@/lib/settings/textSize';
 import { TextSizeBoot } from '@/lib/settings/TextSizeBoot';
+import { DoorFitBoot } from './features/door/components/chrome/FitBoot';
 import type { ShellData } from '@/components/shell/ShellContext';
 import { Providers } from './Providers';
 import './globals.css';
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" data-text-size={DEFAULT_TEXT_SIZE} suppressHydrationWarning>
       <head>
         <TextSizeBoot />
+        <DoorFitBoot />
       </head>
       <body>
         <Providers needsYouCount={ds.getNeedsYouCount()} data={data}>{children}</Providers>

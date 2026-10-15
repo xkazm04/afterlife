@@ -26,7 +26,7 @@ export const Beams = memo(function Beams({ ds, dim, red }: { ds: readonly Distri
         {beams.map((b) => {
           const q = !!red && red.has(b.id) && !b.stale;
           return (
-          <g key={b.id} transform={`translate(${b.x.toFixed(1)} ${b.y.toFixed(1)})`} className={dim && dim.has(b.id) ? styles.dimx : undefined}>
+          <g key={b.id} transform={`translate(${b.x.toFixed(1)} ${b.y.toFixed(1)})`} className={`${styles.beam} ${dim && dim.has(b.id) ? styles.dimx : ''}`}>
             <g className={styles.body}>
               <rect fill={b.stale ? 'url(#d-beam-st)' : q ? 'url(#d-beam-q)' : 'url(#d-beam)'} x={-b.w / 2} y={-b.H} width={b.w} height={b.H} />
               {b.stale ? (

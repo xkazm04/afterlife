@@ -21,6 +21,8 @@
   --d-stale-hatch: color-mix(in oklab, var(--stale) 40%, transparent);
   --d-unk-line: color-mix(in oklab, var(--unknown) 75%, transparent);
   --d-pink-ghost: color-mix(in oklab, var(--accent-2) 45%, transparent);
+  /* how long a filter takes to dim or light the city (scene/city.module.css, beams.module.css): linear, never a jump */
+  --d-filter-ms: 380ms;
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -161,7 +163,14 @@
 :global(html[data-door-q="lite"]) .root [data-lite="off"] {
   display: none;
 }
+/* the lite tier switches a filter at once: a fade re-rasters every district layer on each frame */
+:global(html[data-door-q="lite"]) .root {
+  --d-filter-ms: 0ms;
+}
 @media (prefers-reduced-motion: reduce) {
+  .root {
+    --d-filter-ms: 0ms;
+  }
   .scan {
     display: none;
   }

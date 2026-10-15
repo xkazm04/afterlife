@@ -51,12 +51,10 @@ describe('Door, live over the seed', () => {
     for (const n of DEMO.needsYou) expect(out).not.toContain(n.title.replaceAll("'", '&#x27;'));
   });
 
-  it('says what the status bar says, not "illustrative demo data"; demo still does', () => {
-    const out = html();
-    expect(out).not.toContain('illustrative demo data');
-    expect(out).toContain('live data · acme-lab · some parts still demo, marked<!-- --> · stylised city'); // dataLabel's words
+  it('prints no data label in either mode: the door is a picture, the app window says which data it shows', () => {
+    expect(html()).not.toContain('stylised city');
     setDataSource(demoSource);
-    expect(html()).toContain('illustrative demo data<!-- --> · stylised city');
+    expect(html()).not.toContain('illustrative demo data');
   });
 
   it('demo mode keeps all five decisions', () => {

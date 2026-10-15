@@ -37,6 +37,8 @@
 .tw {
   cursor: pointer;
   outline: none;
+  /* a filter dims or lights a tower over a short linear fade, never a jump (off on the lite tier and reduced motion) */
+  transition: opacity var(--d-filter-ms) linear;
 }
 .tw:focus-visible .tEdge {
   stroke: var(--accent-2);
@@ -71,6 +73,7 @@
 .tEdge {
   fill: none;
   stroke: var(--d-cy-edge);
+  transition: stroke var(--d-filter-ms) linear;
   stroke-width: 1;
   stroke-linejoin: round;
 }
@@ -143,12 +146,15 @@
 }
 .qBloom {
   fill: color-mix(in oklab, var(--tier-quarantined) 35%, transparent);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    fill var(--d-filter-ms) linear,
+    transform var(--d-filter-ms) linear;
 }
 /* the quarantine mark in force: the lamps swell into a red glow; they step aside in an open district */
 .redOn .qBloom {
   fill: color-mix(in oklab, var(--tier-quarantined) 70%, transparent);
-  transform-box: fill-box;
-  transform-origin: center;
   transform: scale(2.6);
 }
 .redOn .tEdge {

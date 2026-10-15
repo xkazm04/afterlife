@@ -118,11 +118,4 @@
   background: var(--sel);
   outline: none;
 }
-.note {
-  padding: 3px 10px;
-  border: 1px solid var(--border-1);
-  border-radius: 6px;
-  background: var(--d-plate);
-  font-size: 18px;
-  color: var(--text-3);
-}
+
