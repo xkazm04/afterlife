@@ -221,3 +221,33 @@ describe('revert', () => {
     expect(reverts(withRevert([other]))).toEqual([]);
   });
 });
+
+// reopened_finding reads the merged agent MRs and guardrail_high reads all of them; merged is a subset of all, so one
+// listing serves both. Two listings were two reads of the same window, 2 requests where 1 does (more past 100 MRs).
+describe('reopened_finding', () => {
+  const finding = (iid, state) => ({ iid, state, author: { username: 'ai-patcher-acme' }, description: `Fix\n\nBelay-Class: dep-bump.patch\nBelay-Finding: ${iid}00`, merged_at: ago(30) });
+  // The route map answers any state with the same list, as GitLab's 'all' does; detect() must pick the merged ones itself.
+  const withMrs = (mrs, vulnState) => {
+    const g = group({ pipelines: [] });
+    const f = fakeApi({ 'projects/1/repository/commits': [], 'projects/1/pipelines': [], 'projects/1/merge_requests': mrs, 'projects/1/merge_requests/8/notes': [], 'projects/1/merge_requests/9/notes': [] });
+    const asked = [];
+    return { ...f, gql: (q) => (asked.push(q), { data: { vulnerability: { state: vulnState } } }), asked };
+  };
+
+  it('a merged agent MR whose vulnerability is open again demotes; an open MR is never asked about', () => {
+    const g = withMrs([finding(8, 'merged'), finding(9, 'opened')], 'DETECTED');
+    const events = run(g).filter((e) => e.trigger === 'reopened_finding');
+    expect(events).toEqual([expect.objectContaining({ agent: 'ai-patcher-acme', class: 'dep-bump.patch', evidence: '!8: vulnerability 800 is DETECTED' })]);
+    expect(g.asked).toHaveLength(1);
+  });
+
+  it('a resolved vulnerability demotes nobody', () => {
+    expect(run(withMrs([finding(8, 'merged')], 'RESOLVED')).filter((e) => e.trigger === 'reopened_finding')).toEqual([]);
+  });
+
+  it('reads the lookback window of MRs once', () => {
+    const g = withMrs([finding(8, 'merged')], 'RESOLVED');
+    run(g);
+    expect(g.calls.filter((c) => c.startsWith('projects/1/merge_requests?'))).toHaveLength(1);
+  });
+});

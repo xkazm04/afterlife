@@ -68,8 +68,8 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
   for (const e of pipelineEvents({ api, apiAll, projectId, branch, now, since, ownPipelineId, headSha, mrFor, eventFor })) add(e);
 
   // 4. reopened finding: a merged agent MR with a Belay-Finding trailer whose vulnerability is open again.
-  const merged = mrsSince('merged');
-  for (const m of merged) {
+  const recent = mrsSince('all'); // one listing of the window serves this step and the next: merged is a subset of all
+  for (const m of recent.filter((x) => x.state === 'merged')) {
     const id = trailer(m.description, 'Belay-Finding', /^\d+$/);
     if (!id) continue;
     const res = gql(`query { vulnerability(id: "gid://gitlab/Vulnerability/${id}") { state } }`); // [R?]
@@ -80,7 +80,6 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
   }
 
   // 5. guardrail high: a trusted guardrail note on an agent MR with a high-severity finding.
-  const recent = mrsSince('all');
   for (const m of recent) {
     for (const note of trustedNotes(projectId, m.iid, guardrailAuthors, api)) {
       const v = blocks(note.body, 'belay-guardrail').at(-1);
