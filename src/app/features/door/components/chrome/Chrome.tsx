@@ -10,6 +10,16 @@ import styles from './chrome.module.css';
 /** Every screen of the app, from the sidebar's own list (Settings included), so the menu cannot drift from it. */
 export const SCREENS: readonly (readonly [string, string])[] = [...APP_NAV, SETTINGS_NAV].map((e) => [e.label, e.href] as const);
 
+/**
+ * Escape closes the open menu and is claimed, so the door's own Esc (up a level) does not also fire on the same press:
+ * `useDoor` skips a key whose default is prevented.
+ */
+export function claimEscape(e: { key: string; preventDefault: () => void }): boolean {
+  if (e.key !== 'Escape') return false;
+  e.preventDefault();
+  return true;
+}
+
 /** Top left: the brand plate. Top right: the way in, and every screen. */
 export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; asOf: string }) {
   const [open, setOpen] = useState(false);
@@ -17,7 +27,7 @@ export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; a
   useEffect(() => {
     if (!open) return;
     const close = (e: PointerEvent | KeyboardEvent) => {
-      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setOpen(false);
+      if (e instanceof KeyboardEvent ? claimEscape(e) : !ref.current?.contains(e.target as Node)) setOpen(false);
     };
     window.addEventListener('pointerdown', close);
     window.addEventListener('keydown', close, true);
