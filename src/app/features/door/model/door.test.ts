@@ -1,5 +1,8 @@
+import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { demoSource } from '@/server/data/demoSource';
+import { Answer } from '../components/ui/Answer';
 import { HOME, cityTransform, frameDistrict, groundTransform } from './camera';
 import { groundOf } from './ground';
 import { districtsOf, paintOrder } from './city';
@@ -87,5 +90,26 @@ describe('the legend as a filter', () => {
     const red = redSet('quar', fleet.projects)!;
     expect(red.size).toBeGreaterThan(0);
     expect([...red].every((id) => !dimSet('quar', fleet.projects)!.has(id))).toBe(true);
+  });
+});
+
+describe('copy that counts: one is singular', () => {
+  const watching = fleet.projects.find((p) => p.state === 'watching')!;
+  const lineOf = (needsYou: number) => districtLine(districtsOf(['g'], [{ ...watching, group: 'g', needsYou }])[0]!).map((x) => x[0]).join('');
+  it('says "1 decision waits" and "2 decisions wait" in the district line', () => {
+    expect(lineOf(1)).toBe('1 project · 1 decision waits');
+    expect(lineOf(2)).toBe('1 project · 2 decisions wait');
+    expect(lineOf(0)).toBe('1 project · 0 decisions wait');
+  });
+  const answer = (over: Partial<ReturnType<typeof fleetTotals>>) => {
+    const totals = { ...fleetTotals([]), ...over };
+    const props = { totals, tiers: [], staleTop: null, intro: false, tabbable: true, locked: null, onMark: () => undefined, onLock: () => undefined, onOpen: () => undefined };
+    return renderToString(createElement(Answer, props)).replace(/<[^>]*>/g, '');
+  };
+  it('says "1 class quarantined" and "1 proof passed" in the answer block', () => {
+    expect(answer({ quar: 1, pass: 1 })).toContain('1 class quarantined');
+    expect(answer({ quar: 1, pass: 1 })).toContain('1 proof passed this week');
+    expect(answer({ quar: 25, pass: 40 })).toContain('25 classes quarantined');
+    expect(answer({ quar: 25, pass: 40 })).toContain('40 proofs passed this week');
   });
 });

@@ -10,7 +10,7 @@ import styles from './answer.module.css';
 // `quiet`: the mark is left out while its count is 0.
 const MARKS: readonly { kind: MarkKind; words: (t: FleetTotals, staleTop: District | null) => string; n: (t: FleetTotals) => number; quiet?: boolean }[] = [
   { kind: 'stale', n: (t) => t.stale, words: (_, s) => ` stale${s && s.stale > 0 ? ` · ${s.stale} in ${s.name}` : ''}` },
-  { kind: 'quar', n: (t) => t.quar, words: () => ' classes quarantined' },
+  { kind: 'quar', n: (t) => t.quar, words: (t) => ` ${t.quar === 1 ? 'class' : 'classes'} quarantined` },
   { kind: 'norec', n: (t) => t.norec, words: (t) => ` ${t.norec === 1 ? 'class' : 'classes'} with no record yet · not quarantined`, quiet: true },
   { kind: 'split', n: (t) => t.split, words: (t) => ` ${t.split === 1 ? 'class' : 'classes'} split between agents · each at its own tier`, quiet: true },
   { kind: 'setup', n: (t) => t.setup, words: () => ' setting up' },
@@ -91,7 +91,7 @@ export const Answer = memo(function Answer({
               <b>
                 <Count n={totals.pass} delay={1200} dur={2000} intro={intro} />
               </b>{' '}
-              proofs passed this week ·{' '}
+              {plural(totals.pass, 'proof')} passed this week ·{' '}
               <span className={styles.fl}>
                 <Count n={totals.fail} delay={1200} dur={2000} intro={intro} />
               </span>{' '}

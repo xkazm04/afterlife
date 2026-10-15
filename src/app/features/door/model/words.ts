@@ -41,7 +41,7 @@ export function projectLine(p: FleetProject): Part[] {
 
 /** The readout's line for a district. */
 export function districtLine(d: District): Part[] {
-  const parts: Part[] = [[`${d.n} ${plural(d.n, 'project')} · `, 'plain'], [`${d.needs} ${plural(d.needs, 'decision')} wait`, 'amber']];
+  const parts: Part[] = [[`${d.n} ${plural(d.n, 'project')} · `, 'plain'], [waits(d.needs), 'amber']];
   if (d.stale) parts.push([' · ', 'plain'], [`${d.stale} stale`, 'stale']);
   if (d.setup) parts.push([` · ${d.setup} setting up`, 'plain']);
   if (d.nsu) parts.push([' · ', 'plain'], [`${d.nsu} not watched`, 'unknown']);
