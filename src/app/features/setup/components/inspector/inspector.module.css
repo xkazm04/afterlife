@@ -49,30 +49,6 @@
   color: var(--text-2);
   flex: 1;
 }
-.mk {
-  flex: none;
-  width: calc(18px * var(--ui-scale));
-  height: calc(18px * var(--ui-scale));
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font: 650 var(--t-small) / 1 var(--sys);
-  border: 1px solid var(--border-3);
-  color: var(--text-3);
-}
-.mkYou {
-  background: var(--needs-you);
-  border-color: var(--needs-you);
-  color: var(--needs-you-ink);
-}
-.mkOk {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.tid {
-  font: 650 var(--t-head) / 1 var(--mono);
-  color: var(--accent);
-}
 .probe {
   display: flex;
   gap: 6px;
