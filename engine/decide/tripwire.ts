@@ -4,9 +4,7 @@
 import { parseDocument, Scalar, YAMLMap } from 'yaml';
 import { demote, TIER_ORDER, type DemotionTrigger, type Tier } from '../../src/schemas/tier';
 import { EngineError, optStr, rec, str } from '../core/types';
-import { parseState, type EnginePolicy } from '../policy/load';
-
-const TRIGGERS: readonly DemotionTrigger[] = ['revert', 'reopened_finding', 'post_merge_proof_fail', 'default_branch_red_1h', 'guardrail_high', 'budget_breach_x2'];
+import { DEMOTION_TRIGGERS, parseState, type EnginePolicy } from '../policy/load';
 
 export interface TripwireEvent {
   trigger: DemotionTrigger;
@@ -25,7 +23,7 @@ export interface TripwireResult {
 export function parseEvent(raw: unknown): TripwireEvent {
   const e = rec(raw, 'event');
   const trigger = str(e.trigger, 'event.trigger');
-  if (!TRIGGERS.includes(trigger as DemotionTrigger)) throw new EngineError(`event.trigger "${trigger}" is not a demotion trigger`);
+  if (!DEMOTION_TRIGGERS.includes(trigger as DemotionTrigger)) throw new EngineError(`event.trigger "${trigger}" is not a demotion trigger`);
   return { trigger: trigger as DemotionTrigger, agent: str(e.agent, 'event.agent'), class: str(e.class, 'event.class'), at: optStr(e.at, 'event.at'), evidence: optStr(e.evidence, 'event.evidence') };
 }
 

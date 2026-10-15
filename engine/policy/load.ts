@@ -1,6 +1,6 @@
 // Loads and validates policy/trust-policy.yml and policy/tier-state.yml. The files are structured data
 // a person reviews; the engine refuses a malformed one instead of guessing what it meant.
-import { TIER_ORDER, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
+import { TIER_ORDER, type DemotionTrigger, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
 import { readYaml } from '../core/files';
 import { EngineError, isRecord, num, rec, strList, type Ctx } from '../core/types';
 
@@ -18,6 +18,16 @@ export interface EnginePolicy extends TrustPolicy {
 
 const CEILINGS = [...TIER_ORDER, 'human_only'];
 
+// Every trigger the tripwire can be handed. A Record keyed by the schema's union, so adding a trigger there fails the typecheck here.
+const TRIGGER_SET: Record<DemotionTrigger, true> = { revert: true, reopened_finding: true, post_merge_proof_fail: true, default_branch_red_1h: true, guardrail_high: true, budget_breach_x2: true };
+export const DEMOTION_TRIGGERS = Object.keys(TRIGGER_SET) as DemotionTrigger[];
+
+/** A trigger the tripwire never fires would sit in the policy doing nothing, so a typo there silently disarms the demotion. */
+function triggerList(v: unknown, what: string): void {
+  const unknown = strList(v, what).filter((t) => !DEMOTION_TRIGGERS.includes(t as DemotionTrigger));
+  if (unknown.length) throw new EngineError(`${what} names ${unknown.map((t) => `"${t}"`).join(', ')}, which is not a demotion trigger (${DEMOTION_TRIGGERS.join(', ')})`);
+}
+
 export function parsePolicy(raw: unknown): EnginePolicy {
   const p = rec(raw, 'trust-policy');
   if (p.version !== 1) throw new EngineError('trust-policy.version must be 1');
@@ -30,8 +40,8 @@ export function parsePolicy(raw: unknown): EnginePolicy {
     if (cls.allow_paths !== undefined) strList(cls.allow_paths, `classes.${id}.allow_paths`);
   }
   const demotion = rec(p.demotion, 'trust-policy.demotion');
-  strList(demotion.one_step_on, 'demotion.one_step_on');
-  strList(demotion.quarantine_on, 'demotion.quarantine_on');
+  triggerList(demotion.one_step_on, 'demotion.one_step_on');
+  triggerList(demotion.quarantine_on, 'demotion.quarantine_on');
   const handsOff = rec(rec(p.envelope, 'trust-policy.envelope').hands_off, 'envelope.hands_off');
   num(handsOff.max_files, 'envelope.hands_off.max_files');
   num(handsOff.max_lines, 'envelope.hands_off.max_lines');
