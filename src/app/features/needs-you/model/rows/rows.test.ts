@@ -38,6 +38,12 @@ describe('filters', () => {
     const staged = with_({ status: { ...fresh().status, n1: 'staged' } });
     expect(decisionCounts(staged)).toMatchObject({ waiting: 5, outbox: 1 });
   });
+  it('a runner that was checked and not seen is still waiting: the Waiting filter and its count keep it', () => {
+    const unseen = with_({ runner: { opened: false, check: 'none' } });
+    expect(isWaiting(unseen, 'n5')).toBe(true);
+    expect(isDecided(unseen, 'n5')).toBe(false);
+    expect(decisionCounts(unseen)).toEqual(decisionCounts(fresh()));
+  });
   it('a gap nobody acted on is not decided, but a set-aside decision is', () => {
     expect(isDecided(fresh(), 'g3')).toBe(false);
     expect(isDecided(with_({ status: { ...fresh().status, n1: 'snoozed' } }), 'n1')).toBe(true);

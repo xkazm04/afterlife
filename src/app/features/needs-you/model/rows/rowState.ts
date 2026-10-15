@@ -46,7 +46,11 @@ export function rowState(s: NeedsState, id: string): RowState {
   return s.runner.check === 'none' ? { tone: 'unk', glyph: 'unk', label: 'not seen' } : wait('waiting');
 }
 
-export const isWaiting = (s: NeedsState, id: string): boolean => rowState(s, id).tone === '';
+/** Waiting on you: amber, or unknown (a runner checked and not seen is still to do, not set aside). */
+export const isWaiting = (s: NeedsState, id: string): boolean => {
+  const tone = rowState(s, id).tone;
+  return tone === '' || tone === 'unk';
+};
 export const isInOutbox = (s: NeedsState, id: string): boolean => rowState(s, id).tone === 'stg';
 /** Decided: sent, merged, retired, checked or set aside. A gap nobody has acted on is not decided. */
 export function isDecided(s: NeedsState, id: string): boolean {
