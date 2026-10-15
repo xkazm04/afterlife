@@ -25,6 +25,11 @@ export const MAX_FILE_LINES = 2000;
 const MAX_HUNK_LINES = 400;
 const TRACK = /^T[1-8]$/;
 
+/** A repository path as the preview spells it: no empty, dot or .git segment, so one file has one spelling and none is inside .git. */
+const pathOk = (p: string): boolean => p.split('/').every((s) => s !== '' && s !== '.' && s !== '..' && s.toLowerCase() !== '.git');
+/** A name git accepts as a ref: no empty component, none starting with a dot or ending in .lock, no '..', not ending in a dot. */
+const refOk = (b: string): boolean => !b.includes('..') && !b.endsWith('.') && b.split('/').every((c) => c !== '' && !c.startsWith('.') && !c.endsWith('.lock'));
+
 /** Context (' ') and added ('+') lines, one line each, with at least one of each: context is how the hunk finds its place. */
 function hunkOf(v: unknown): string[] | null {
   if (!Array.isArray(v) || v.length < 2 || v.length > MAX_HUNK_LINES) return null;
@@ -40,7 +45,7 @@ function files(v: unknown): GapFile[] | string | null {
   for (const f of v) {
     if (!isRec(f) || (f.content === undefined) === (f.hunk === undefined)) return null; // content or a hunk, never both
     const path = str(f.path, FILE_PATH, 200);
-    if (path === null || path.split('/').includes('..') || path.endsWith('/')) return null;
+    if (path === null || !pathOk(path)) return null;
     if (f.hunk !== undefined) {
       const hunk = hunkOf(f.hunk);
       if (!hunk) return null;
@@ -92,7 +97,7 @@ export function parseIntent(raw: unknown): IntentParse {
       const fs = files(raw.files);
       if (typeof fs === 'string') return no(fs);
       const workItem = raw.workItem === undefined ? undefined : int(raw.workItem, 1, 1_000_000_000);
-      if (!stage || !gap || !title || !branch || from === null || to === null || !fs || workItem === null || branch.includes('..')) {
+      if (!stage || !gap || !title || !branch || from === null || to === null || !fs || workItem === null || !refOk(branch)) {
         return no('gap, stage, title, branch (belay/...), from/to (0-4) and 1 to 8 files are required');
       }
       return { ok: true, intent: { kind: 'stage-gap-mr', ...base, gap, stage, from, to, title, branch, files: fs, ...(workItem ? { workItem } : {}) } };
