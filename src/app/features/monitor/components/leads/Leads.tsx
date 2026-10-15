@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useCallback, useMemo, useRef, type KeyboardEvent } from 'react';
+import { step } from '../../model/nav';
 import { decisionsWord, markTest } from '../../model/totals';
 import type { FleetProject } from '@/lib/demo/types';
 import type { Lead, MarkKind } from '../../model/types';
@@ -53,20 +54,6 @@ const LeadRow = memo(function LeadRow({ lead, open, thin, selected, match, onPic
     </div>
   );
 });
-
-/** The next beat for an arrow key: along the lead, or the same place on the lead above or below. */
-function step(leads: readonly Lead[], id: string | null, key: string): string | null {
-  const li = leads.findIndex((l) => l.projects.some((p) => p.id === id));
-  const here = leads[li];
-  if (!here) return leads[0]?.projects[0]?.id ?? null;
-  const list = here.projects;
-  const i = list.findIndex((p) => p.id === id);
-  if (key === 'ArrowLeft') return list[Math.max(0, i - 1)]?.id ?? id;
-  if (key === 'ArrowRight') return list[Math.min(list.length - 1, i + 1)]?.id ?? id;
-  const to = leads[li + (key === 'ArrowUp' ? -1 : 1)]?.projects;
-  if (!to?.length) return id;
-  return to[Math.min(to.length - 1, Math.round((i / Math.max(1, list.length - 1)) * (to.length - 1)))]?.id ?? id;
-}
 
 /**
  * Seven leads, one per group. Arrows move the selection beat to beat and lead to lead; Enter opens the lead into
