@@ -35,13 +35,13 @@ describe('promoteAsk', () => {
   it('a quarantine is re-admitted at Assisted', () => {
     expect(promoteAsk(row('q', { tier: 'quarantined' }), { kind: 'readmit' })).toEqual({ id: 'q', to: 'assisted', readmit: true });
   });
-  it('demo: qa.file-bug is not eligible (repro is not a mechanical proof), so nothing is asked; patch-bump re-admits', () => {
+  it('demo: qa.file-bug (repro, now a checked proof) asks for Hands-off; patch-bump re-admits; a human-only class asks nothing', () => {
     const tracks: TrackMap = Object.fromEntries(getTracks().map((t) => [t.id, t]));
     const of = (id: string) => {
       const c = { ...getActionClasses().find((x) => x.id === id)!, pending: null } as ClassRow;
       return promoteAsk(c, promotion(c, proofClassOf(tracks, c), repoPolicy()));
     };
-    expect(of('qa.file-bug')).toBeNull();
+    expect(of('qa.file-bug')).toEqual({ id: 'qa.file-bug', to: 'hands_off', readmit: false });
     expect(of('patch-bump')).toEqual({ id: 'patch-bump', to: 'assisted', readmit: true });
     expect(of('report.submit')).toBeNull();
   });

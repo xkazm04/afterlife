@@ -37,8 +37,8 @@ describe('no-edit, counted from the merge requests\' push notes', () => {
     })]);
   });
 
-  it("on the demo's own proof class, repro (an engine stub that never passes), the same record opens no Hands-off ask", async () => {
-    const { record, asks } = await polled(() => [QA, QA], undefined, 'repro');
+  it("on a proof class the engine stubs (ledger-record, which never passes), the same record opens no Hands-off ask", async () => {
+    const { record, asks } = await polled(() => [QA, QA], undefined, 'ledger-record');
     expect(record).toMatchObject({ accepted: 15, noEdit: 1 });
     expect(asks).toEqual([]);
   });
