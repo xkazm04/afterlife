@@ -49,3 +49,15 @@ Server-only. The app imports `@/server/gitlab` (index.ts); tests and `belay doct
 - `PUT merge_requests/:iid/merge` (`fake/merge.ts`) is the only way a branch reaches its target: it fast-forwards the
   branch's changed files, answers 406 when the target's copy changed after the branch started, and deletes the branch
   when the MR asked for `remove_source_branch`. Tests call `mergeMr(gl, project, iid)` for "the person merges".
+
+## Decisions from the doctor's blocker
+
+- `probeCapabilities` reads the login, group, namespace, instance and projects first and keeps each error. `doctor/blocker.ts`
+  names the first cause that stops every probe - glab cannot start (`binary`), GitLab cannot be reached (`network`), no
+  login (`auth`), the group answers 403/404 to a signed-in user (`group`) - as `report.blocker {kind, text, fix}`. Then
+  every row is unknown, basis none, "blocked by: ...", and no endpoint GET is sent. Any other failure (a 500, a 429) is
+  not a blocker: the rows say unknown on their own.
+- `doctor/render.ts` prints `BLOCKED  <text>` and `  fix: <command>` right after the local preflight, in place of the
+  rows. Exit codes: 0 the probes answered, 2 every row unknown with no blocker, 3 blocked; `cli/belay.mjs` passes them on.
+- Setup's doctor read (`src/server/data/setup/read.ts`) returns no rows and the blocker as its error, so SetupSummary shows
+  "belay doctor: glab is not logged in to gitlab.com: run glab auth login".
