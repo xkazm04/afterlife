@@ -1,6 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { append, GENESIS, type LedgerEvent } from '@/schemas/ledger';
+import { parseLedgerEvent } from '../../../../engine/commands/ledger';
 import { isoMs } from '../../../../engine/core/types';
 import { createDemoGitLab, ledgerEvents, LEDGERLINE_GID } from '@/server/gitlab/fake/demo';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
@@ -146,5 +147,29 @@ describe('ledger parser', () => {
     };
     expect(samples.map(parser)).toEqual(samples.map(engine));
     expect(samples.filter(engine)).toHaveLength(3);
+  });
+
+  // The same pair for the ids: the writer refuses an id that is not a safe non-negative integer (engine `id`), and 1e300 is an integer.
+  it('takes the same GitLab ids as the engine writer: safe non-negative integers', () => {
+    const e = ledgerEvents(SEED_NOW)[0]!;
+    const ids = [0, 41, 2 ** 53 - 1, 2 ** 53, 1e300, -1, 1.5];
+    const fromEngine = (n: number): boolean => {
+      try {
+        parseLedgerEvent({ ...e, subject: { ...e.subject, iid: n } });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const fromParser = (n: number): boolean => {
+      try {
+        parseLedgerJsonl(JSON.stringify({ ...e, subject: { ...e.subject, iid: n } }));
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    expect(ids.map(fromParser)).toEqual(ids.map(fromEngine));
+    expect(ids.filter(fromEngine)).toHaveLength(3);
   });
 });
