@@ -3,19 +3,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { memo, useEffect, useRef, useState } from 'react';
+import { APP_NAV, SETTINGS_NAV } from '@/components/shell/sidebar/navItems';
 import bottom from './bottom.module.css';
 import styles from './chrome.module.css';
 
-export const SCREENS: readonly (readonly [string, string])[] = [
-  ['Fleet', '/fleet'],
-  ['Monitor', '/monitor'],
-  ['Needs you', '/needs-you'],
-  ['Ladder', '/ladder'],
-  ['Maturity', '/maturity'],
-  ['Task', '/task'],
-  ['Setup', '/setup'],
-  ['Theater', '/theater'],
-];
+/** Every screen of the app, from the sidebar's own list (Settings included), so the menu cannot drift from it. */
+export const SCREENS: readonly (readonly [string, string])[] = [...APP_NAV, SETTINGS_NAV].map((e) => [e.label, e.href] as const);
 
 /** Top left: the brand plate. Top right: the way in, and every screen. */
 export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; asOf: string }) {
