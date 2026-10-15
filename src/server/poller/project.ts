@@ -103,7 +103,9 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
   const { id, existing } = resolveProject(env.known, gl);
   const out: ProjectPoll = { id, gitlabId: gl.id, ok: true, tasks: 0, proofs: 0, ledger: 'skipped', issues: [] };
   try {
-    const mrs = await port.listMergeRequests(gl.id, { state: 'all', updatedAfter: new Date(now.getTime() - cfg.rollupWindowMs).toISOString(), limit: cfg.mrLimit });
+    // the tasks come out of this list, so it reaches back over the longer of the two windows (a BELAY_TASK_HOURS past 7 days)
+    const readBack = Math.max(cfg.rollupWindowMs, cfg.taskWindowMs);
+    const mrs = await port.listMergeRequests(gl.id, { state: 'all', updatedAfter: new Date(now.getTime() - readBack).toISOString(), limit: cfg.mrLimit });
     const recent = mrs.filter((m) => Date.parse(m.updatedAt) >= now.getTime() - cfg.taskWindowMs);
     const deployments: GlDeployment[] = recent.length > 0 ? await port.listDeployments(gl.id, { limit: 30 }) : [];
     const derived: Array<{ d: TaskDerivation; blocked: boolean }> = [];
