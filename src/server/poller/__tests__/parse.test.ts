@@ -3,7 +3,8 @@ import { fence } from '@/server/gitlab/fake/demo/notes';
 import { extractBlocks, withoutBlocks } from '../parse/blocks';
 import { parseGuardrailBlock } from '../parse/guardrail';
 import { parseLabels } from '../parse/labels';
-import { parseProofBlock } from '../parse/proofBlock';
+import { PROOF_CLASSES } from '../../../../engine/proofs';
+import { CLASSES, parseProofBlock } from '../parse/proofBlock';
 import { lastTrailer, parseTrailers, proseOf, TASK_ID } from '../parse/trailers';
 import { goodProof } from './proofs';
 
@@ -93,6 +94,13 @@ describe('proof block validation', () => {
     expect(withSha.ok && withSha.block.task.head_sha).toBe('a'.repeat(40));
     const without = parseProofBlock(goodProof());
     expect(without.ok && 'head_sha' in without.block.task).toBe(false);
+  });
+});
+
+describe('the proof classes the poller reads', () => {
+  it('are the engine\'s own list: a class the engine writes is never rejected here', () => {
+    expect([...CLASSES].sort()).toEqual([...PROOF_CLASSES].sort());
+    for (const cls of PROOF_CLASSES) expect(parseProofBlock({ ...goodProof(), class: cls }).ok).toBe(true);
   });
 });
 

@@ -4,9 +4,19 @@
 import { verdictOf, type Check, type Claim, type ProofBlock, type ProofClass, type Verdict } from '@/schemas/proof';
 import { field, isNum, isRec, isStr, isStrList } from './guards';
 
-const CLASSES: readonly ProofClass[] = ['exploit-test', 'cited-diff', 'rerun-stats', 'repro', 'bench-delta', 'linked-evidence', 'score-delta', 'ledger-record'];
-const VERDICTS: readonly Verdict[] = ['pass', 'fail', 'inconclusive'];
-const EVIDENCE = ['job', 'artifact', 'note', 'commit'] as const;
+type EvidenceKind = ProofBlock['evidence'][number]['kind'];
+
+// Each list is keyed by its union in @/schemas/proof, so a class, verdict or evidence kind added there fails the typecheck
+// here; a plain array of the union accepts a subset, and the poller would reject every block that uses the missing one.
+const CLASS_KEYS: Record<ProofClass, true> = {
+  'exploit-test': true, 'cited-diff': true, 'rerun-stats': true, repro: true, 'bench-delta': true, 'linked-evidence': true, 'score-delta': true, 'ledger-record': true,
+};
+const VERDICT_KEYS: Record<Verdict, true> = { pass: true, fail: true, inconclusive: true };
+const EVIDENCE_KEYS: Record<EvidenceKind, true> = { job: true, artifact: true, note: true, commit: true };
+/** The proof classes a block may name; engine/proofs PROOF_CLASSES is the same set (pinned in parse.test.ts). */
+export const CLASSES = Object.keys(CLASS_KEYS) as ProofClass[];
+const VERDICTS = Object.keys(VERDICT_KEYS) as Verdict[];
+const EVIDENCE = Object.keys(EVIDENCE_KEYS) as EvidenceKind[];
 
 export type ProofParse = { ok: true; block: ProofBlock } | { ok: false; reason: string };
 const no = (reason: string): ProofParse => ({ ok: false, reason });
