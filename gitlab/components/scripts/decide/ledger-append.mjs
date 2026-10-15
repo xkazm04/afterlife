@@ -11,7 +11,7 @@ import { fileHead, writeFile } from '../lib/repo-write.mjs';
 
 const project = arg('project') ?? die('missing --project (the belay-ledger path)');
 const branch = arg('branch', 'main');
-const file = arg('path', `events/${process.env.CI_PROJECT_ID}.jsonl`);
+const file = arg('path') ?? `events/${process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set (or pass --path)')}.jsonl`;
 const dir = arg('events');
 const keys = process.argv.flatMap((a, i) => (a === '--key' && process.argv[i + 1] ? [process.argv[i + 1]] : []));
 // Writes may use a different token from reads (BELAY_LEDGER_TOKEN, named by --write-token-var). A variable named there and

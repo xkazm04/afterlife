@@ -73,7 +73,7 @@ if (emit && ledgerTier && (!force || verdict === 'block')) {
     agent: arg('agent', 'unknown'),
     action_class: arg('class', 'unknown'),
     tier_at_time: ledgerTier,
-    subject: { project_id: Number(process.env.CI_PROJECT_ID), type: 'mr', iid: Number(mr) },
+    subject: { project_id: Number(process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set')), type: 'mr', iid: Number(mr) },
     payload_ref: `${repo}/-/merge_requests/${mr}`,
     observed_by: 'ci_job',
   };
