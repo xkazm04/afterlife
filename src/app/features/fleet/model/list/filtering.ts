@@ -17,7 +17,7 @@ export function matchesSource(p: FleetProject, source: Source): boolean {
 export function matchesSearch(p: FleetProject, q: string): boolean {
   const needle = q.trim().toLowerCase();
   if (!needle) return true;
-  return p.name.toLowerCase().includes(needle) || p.group.includes(needle) || (p.what || '').toLowerCase().includes(needle);
+  return p.name.toLowerCase().includes(needle) || p.group.toLowerCase().includes(needle) || (p.what || '').toLowerCase().includes(needle);
 }
 
 export function filterProjects(projects: readonly FleetProject[], f: FleetFilters): FleetProject[] {
