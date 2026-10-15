@@ -87,7 +87,7 @@ export const mapSchedule = (r: Rec): GlSchedule => ({
 });
 
 export const mapCommit = (r: Rec): GlCommit => ({
-  id: str(r, 'id'), title: strOr(r, 'title', ''), committedAt: strOr(r, 'committed_date', str(r, 'created_at')),
+  id: str(r, 'id'), title: strOr(r, 'title', ''), committedAt: strN(r, 'committed_date') ?? str(r, 'created_at'),
 });
 
 export const mapTreeEntry = (r: Rec): GlTreeEntry => {

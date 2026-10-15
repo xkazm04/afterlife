@@ -70,6 +70,13 @@ describe('glab adapter: pagination', () => {
   });
 });
 
+describe('glab adapter: listCommits', () => {
+  it('reads committed_date, and falls back to created_at only when it is absent', async () => {
+    const rows = [{ id: 'a', title: 't', committed_date: 'C' }, { id: 'b', title: 't', created_at: 'R' }, { id: 'c', committed_date: 'C', created_at: 'R' }];
+    expect((await adapter([okJson(rows)]).port.listCommits(1)).map((c) => c.committedAt)).toEqual(['C', 'R', 'C']);
+  });
+});
+
 describe('glab adapter: error mapping', () => {
   const kindOf = async (r: ExecResult | Error) => {
     try { await adapter([r]).port.currentUser(); } catch (e) { return e instanceof GitLabError ? e.kind : 'other'; }
