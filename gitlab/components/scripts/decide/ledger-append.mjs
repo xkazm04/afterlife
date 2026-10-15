@@ -36,6 +36,8 @@ try {
 const original = head?.content ?? null;
 let chain = original ? original.replace(/\n*$/, '\n') : '';
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-ledger-'));
+// die() and a failed write call process.exit, which skips a finally: an exit handler removes the scratch dir on every path.
+process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
 const titles = [];
 for (const f of files) {
   fs.writeFileSync(path.join(tmp, 'events.jsonl'), chain);
