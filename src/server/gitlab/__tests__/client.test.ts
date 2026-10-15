@@ -121,6 +121,13 @@ describe('glab adapter: error mapping', () => {
     expect(v.status).toBe('unavailable');
   });
 
+  it('a bare 401 is read as a status, not as the digits of a port or an id', () => {
+    const dial = (port: number) => `Get "https://git.example.com:${port}/api/v4/user": dial tcp 10.0.0.5:${port}: i/o timeout`;
+    expect(failureToError({ code: 1, stdout: '', stderr: dial(8401) }, 'x').kind).toBe('network');
+    expect(failureToError({ code: 1, stdout: '', stderr: dial(4010) }, 'x').kind).toBe('network');
+    expect(failureToError({ code: 1, stdout: '', stderr: 'ERROR: 401 Unauthorized' }, 'x').kind).toBe('auth');
+  });
+
   it('statusOf reads glab stderr and falls back to the JSON body', () => {
     expect(statusOf({ code: 1, stdout: '', stderr: 'glab: 403 Forbidden (HTTP 403)\n' })).toBe(403);
     expect(statusOf({ code: 1, stdout: '{"message":"404 Project Not Found"}', stderr: '' })).toBe(404);
