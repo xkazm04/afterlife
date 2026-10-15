@@ -10,7 +10,7 @@ import { useMenu } from '@/components/overlays/menu/useMenu';
 import { OTHER_GROUP } from '../../data/capabilities';
 import { useSetup } from '../../hooks/SetupContext';
 import { doctorCounts } from '../../model/flow/state';
-import type { CapStatus } from '../../model/types';
+import type { CapStatus, SetupState } from '../../model/types';
 import { Spinner } from '../shared/Spinner';
 import styles from './SetupToolbar.module.css';
 
@@ -19,6 +19,13 @@ const CELLS: readonly { st: CapStatus; glyph: string; word: string }[] = [
   { st: 'unavailable', glyph: '✕', word: 'unavailable' },
   { st: 'unknown', glyph: '?', word: 'unknown' },
 ];
+
+/**
+ * What the group menu says of a group. The one on screen says what the status bar says (`doctorNever`); the home group
+ * not on screen kept its rows (probed); any other group not on screen restarts as never probed when picked again.
+ */
+export const groupNote = (s: SetupState, g: string): 'probed' | 'never probed' =>
+  (g === s.group ? !s.doctorNever : g === s.homeGroup) ? 'probed' : 'never probed';
 
 /** Toolbar: the GitLab group menu, the belay doctor lozenge (it lights matching capabilities), Re-probe. */
 export function SetupToolbar() {
@@ -41,7 +48,7 @@ export function SetupToolbar() {
                 ...groups.map((g) => ({
                   label: g,
                   checked: state.group === g,
-                  sc: g === state.homeGroup ? 'probed' : 'never probed',
+                  sc: groupNote(state, g),
                   run: () => {
                     actions.pickGroup(g);
                     view.clear();
