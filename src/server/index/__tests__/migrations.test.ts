@@ -78,6 +78,38 @@ describe('db.ts', () => {
     expect(rows).toEqual([{ path: 'core' }]);
   });
 
+  it('retries after a failed open instead of replaying the rejection until restart', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-index-'));
+    dirs.push(dir);
+    const blocker = path.join(dir, 'blocked');
+    fs.writeFileSync(blocker, 'a file where the data folder should be');
+    process.env.BELAY_DATA_DIR = blocker;
+    const { getIndex } = await import('../db');
+    await expect(getIndex()).rejects.toThrow();
+
+    process.env.BELAY_DATA_DIR = path.join(dir, 'fixed');
+    const db = await getIndex();
+    expect((await db.query('select 1 as one')).rows).toEqual([{ one: 1 }]);
+  });
+
+  it('closes the handle when the migrations refuse the folder, so a retry does not open it twice', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-index-'));
+    dirs.push(dir);
+    const { openIndex, indexDir } = await import('../db');
+    const first = await openIndex({ dataDir: dir });
+    await first.query(`insert into belay_migration (version, name, checksum) values (99, 'future', 'x')`);
+    await first.close();
+
+    const close = vi.spyOn(PGlite.prototype, 'close');
+    try {
+      await expect(openIndex({ dataDir: dir })).rejects.toThrow(/newer Belay/);
+      expect(close).toHaveBeenCalledTimes(1);
+    } finally {
+      close.mockRestore();
+    }
+    expect(fs.existsSync(indexDir(dir))).toBe(true);
+  });
+
   it('opens in memory for tests', async () => {
     const { openIndex } = await import('../db');
     const db = await openIndex({ memory: true });
