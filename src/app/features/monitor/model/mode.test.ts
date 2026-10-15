@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
-import { ageLine, NO_GOOD_POLL, notWatchedMessage, polledAge, rejectedMessage, repollMessage, repollPlan, repollingMessage, resolveFor, simulateRepoll, visibleNeeds } from './mode';
+import { ageLine, NO_GOOD_POLL, notWatchedMessage, polledAge, rejectedMessage, repollMessage, repollPlan, repollingMessage, simulateRepoll, visibleNeeds } from './mode';
 
 const proj = (o: Partial<FleetProject>): FleetProject => ({ id: 'p', name: 'ledgerline', state: 'watching', feed: { ageSec: 12, ok: true }, ...o }) as FleetProject;
 const need = (id: string) => ({ id }) as NeedsYouItem;
@@ -10,13 +10,6 @@ describe('visibleNeeds', () => {
   const isSeeded = (id: string) => id.startsWith('seed');
   it('live drops the demo seeded decisions', () => expect(visibleNeeds('live', needs, isSeeded).map((n) => n.id)).toEqual(['real-1']));
   it('demo keeps them all', () => expect(visibleNeeds('demo', needs, isSeeded)).toBe(needs));
-});
-
-describe('resolveFor', () => {
-  it('demo simulates, live opens Needs you and claims nothing', () => {
-    expect(resolveFor('demo')).toBe('simulate');
-    expect(resolveFor('live')).toBe('open-needs-you');
-  });
 });
 
 describe('repoll', () => {

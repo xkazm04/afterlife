@@ -68,7 +68,5 @@ export function useMonitor(data: MonitorData) {
   const toggleLead = useCallback((group: string) => setOpenLead((g) => (g === group ? null : group)), []);
   const toggleMark = useCallback((k: MarkKind) => setMark((m) => (m === k ? null : k)), []);
 
-  return { projects, byId, leads, totals, done, selected, setSelected, openLead, setOpenLead, toggleLead, mark, toggleMark, hover, setHover, resolve, repoll };
+  return { projects, byId, leads, totals, done, selected, setSelected, openLead, toggleLead, mark, toggleMark, hover, setHover, resolve, repoll };
 }
-
-export type MonitorState = ReturnType<typeof useMonitor>;

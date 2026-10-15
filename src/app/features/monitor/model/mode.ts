@@ -9,9 +9,6 @@ export type Mode = 'demo' | 'live';
 export const visibleNeeds = (mode: Mode, needs: readonly NeedsYouItem[], isSeeded: (id: string) => boolean): readonly NeedsYouItem[] =>
   mode === 'live' ? needs.filter((n) => !isSeeded(n.id)) : needs;
 
-/** Resolve: demo marks the decision done and counts it down here; live claims nothing and opens Needs you. */
-export const resolveFor = (mode: Mode): 'simulate' | 'open-needs-you' => (mode === 'live' ? 'open-needs-you' : 'simulate');
-
 export type RepollResult = { ok: true } | { ok: false; reason: string };
 
 /** Re-poll: an unwatched project has nothing to poll in either mode; demo simulates; live asks the server. */
