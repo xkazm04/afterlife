@@ -43,6 +43,12 @@ describe('rung helpers', () => {
     expect(countLevels(levels).deep).toBe(levels.filter(isDeep).length);
   });
 
+  it('each export carries one doc block: shortMr keeps its own, not mrName', () => {
+    const raw = readFileSync(fileURLToPath(new URL('./rungs.ts', import.meta.url)), 'utf8');
+    expect(raw.match(/\*\/\s*\n\s*\/\*\*/g) ?? []).toHaveLength(0);
+    expect(raw).toMatch(/\/\*\*[^\n]*policies project is long[^\n]*\*\/\s*\nexport const shortMr/);
+  });
+
   it('counts the nine stages as the status bar does', () => {
     const levels = ctx.stages.map((s) => ctx.base[s].now);
     const c = countLevels(levels);
