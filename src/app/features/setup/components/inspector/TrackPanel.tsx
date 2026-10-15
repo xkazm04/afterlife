@@ -12,7 +12,7 @@ import { useSetup } from '../../hooks/SetupContext';
 import { wouldWrite } from '../../model/enroll/enroll';
 import { unmet } from '../../model/flow/state';
 import { mrName } from '../../model/flow/wording';
-import type { ArmState } from '../../model/types';
+import type { ArmState, ArmStatus } from '../../model/types';
 import { GRAPH } from '../../model/map/appGraph';
 import { capsOf, downstream, isStepKey, stepOf } from '../../model/map/graph';
 import { Chip, type ChipTone } from '@/components/status/chip/Chip';
@@ -26,7 +26,7 @@ import { TrackArmSection } from './TrackArmSection';
 /** What arming is not: Belay's arm MR adds the track's CI content, nothing in belay-policy. */
 const ARM_IS_NOT = 'Arming does not grant a tier and does not write tier-state.yml: a tier is earned on the record, by a policy MR a person merges.';
 
-const CHIP: Record<string, { tone: ChipTone; word: (a: ArmState) => string }> = {
+const CHIP: Record<ArmStatus, { tone: ChipTone; word: (a: ArmState) => string }> = {
   armed: { tone: 'ok', word: (a) => `armed${a.mr ? ` · ${a.mr}` : ''}${a.simulated ? ' · simulated' : ''}` },
   ready: { tone: 'accent', word: () => 'ready' },
   open: { tone: 'you', word: (a) => `merge ${mrName(a)}` },
