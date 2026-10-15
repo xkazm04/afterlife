@@ -58,11 +58,22 @@ export function proofRowFromBlock(taskId: string, block: ProofBlock): ProofRow {
   };
 }
 
-export const upsertProofs = (db: Queryable, rows: readonly ProofRow[]): Promise<void> =>
-  upsertRows(db, SPEC, rows.map((p) => ({
+/**
+ * A task has one proof (listProofsFor keys by task): the rows replace whatever other class the task had indexed, so a
+ * proof re-read under another class cannot leave the old verdict to be shown in its place.
+ */
+export async function upsertProofs(db: Queryable, rows: readonly ProofRow[]): Promise<void> {
+  if (rows.length === 0) return;
+  await upsertRows(db, SPEC, rows.map((p) => ({
     task_id: p.taskId, class: p.class, verdict: p.verdict, engine_version: p.engineVersion, engine_sha256: p.engineSha256,
     checks: p.checks, claims: p.claims, block: p.block,
   })));
+  await db.query(
+    `delete from proof where task_id = any($1::text[])
+       and (task_id, class) not in (select task_id, class from jsonb_to_recordset($2::jsonb) as x(task_id text, class text))`,
+    [rows.map((p) => p.taskId), JSON.stringify(rows.map((p) => ({ task_id: p.taskId, class: p.class })))],
+  );
+}
 
 /** Proofs for these tasks, keyed by task id. */
 export async function listProofsFor(db: Queryable, taskIds: readonly string[]): Promise<Map<string, ProofRow>> {
