@@ -123,6 +123,19 @@ describe('stubs and dispatch', () => {
     expect(b.engine.sha256).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  it('dispatches every class PROOF_CLASSES lists: none falls through to "unknown proof class"', () => {
+    const task = { flow: 'f', run_id: 'r', project_id: 1, trailer: 't' };
+    for (const cls of PROOF_CLASSES) {
+      let message = '';
+      try {
+        prove(cls, { task }, env);
+      } catch (e) {
+        message = e instanceof Error ? e.message : String(e);
+      }
+      expect(message, cls).not.toMatch(/unknown proof class/);
+    }
+  });
+
   it('rejects an input without a task', () => {
     expect(() => prove('rerun-stats', { claims: [] }, env)).toThrow(EngineError);
     expect(() => prove('exploit-test', { ...fixture('exploit', 'input.pass.json'), diff: 'x', action_class: undefined }, env)).toThrow(/action_class/);
