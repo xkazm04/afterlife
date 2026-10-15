@@ -28,6 +28,18 @@ function triggerList(v: unknown, what: string): void {
   if (unknown.length) throw new EngineError(`${what} names ${unknown.map((t) => `"${t}"`).join(', ')}, which is not a demotion trigger (${DEMOTION_TRIGGERS.join(', ')})`);
 }
 
+/** A threshold that is not a number makes every comparison false: a NaN rate calls a job that failed 5 of 6 times a flake. */
+function rerunThresholds(raw: unknown): void {
+  const r = rec(raw, 'trust-policy.rerun_stats');
+  if (r.min_runs !== undefined && !(Number.isInteger(num(r.min_runs, 'rerun_stats.min_runs')) && (r.min_runs as number) >= 1)) {
+    throw new EngineError('rerun_stats.min_runs must be a whole number of at least 1');
+  }
+  if (r.real_failure_rate !== undefined) {
+    const rate = num(r.real_failure_rate, 'rerun_stats.real_failure_rate');
+    if (rate <= 0 || rate > 1) throw new EngineError('rerun_stats.real_failure_rate must be above 0 and at most 1');
+  }
+}
+
 export function parsePolicy(raw: unknown): EnginePolicy {
   const p = rec(raw, 'trust-policy');
   if (p.version !== 1) throw new EngineError('trust-policy.version must be 1');
@@ -49,6 +61,7 @@ export function parsePolicy(raw: unknown): EnginePolicy {
   const req = (p.envelope as Record<string, unknown>).production_requires_proof;
   if (req !== undefined) strList(req, 'envelope.production_requires_proof');
   num(p.cooldown_days, 'trust-policy.cooldown_days');
+  if (p.rerun_stats !== undefined) rerunThresholds(p.rerun_stats);
   return p as unknown as EnginePolicy;
 }
 

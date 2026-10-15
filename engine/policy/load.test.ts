@@ -21,3 +21,24 @@ describe('parsePolicy: demotion triggers', () => {
     }
   });
 });
+
+describe('parsePolicy: rerun_stats thresholds', () => {
+  it('accepts the shipped block, a partial block and no block', () => {
+    expect(() => parsePolicy(base({ rerun_stats: { min_runs: 5, real_failure_rate: 0.8 } }))).not.toThrow();
+    expect(() => parsePolicy(base({ rerun_stats: { real_failure_rate: 1 } }))).not.toThrow();
+    expect(() => parsePolicy(base({ rerun_stats: {} }))).not.toThrow();
+  });
+
+  it('refuses a threshold that is not a usable number: a NaN rate would call every real failure a flake', () => {
+    const bad: [Record<string, unknown>, RegExp][] = [
+      [{ real_failure_rate: '0,8' }, /real_failure_rate must be a number/],
+      [{ real_failure_rate: 0 }, /above 0 and at most 1/],
+      [{ real_failure_rate: 80 }, /above 0 and at most 1/],
+      [{ min_runs: '5' }, /min_runs must be a number/],
+      [{ min_runs: 0 }, /whole number of at least 1/],
+      [{ min_runs: 2.5 }, /whole number of at least 1/],
+    ];
+    for (const [block, message] of bad) expect(() => parsePolicy(base({ rerun_stats: block })), JSON.stringify(block)).toThrow(message);
+    expect(() => parsePolicy(base({ rerun_stats: 5 }))).toThrow(/rerun_stats must be an object/);
+  });
+});
