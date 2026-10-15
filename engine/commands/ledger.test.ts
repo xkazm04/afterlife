@@ -1,10 +1,15 @@
 // parseLedgerEvent rebuilds an event field by field: a guardrail_verdict keeps the verdict the gate emitted (pass or block),
 // any other kind or value is refused, and an event without one carries no verdict key at all, so it hashes as before.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { append, hashEvent } from '../../src/schemas/ledger';
+import { append, hashEvent, verifyChain } from '../../src/schemas/ledger';
 import { EngineError } from '../core/types';
 import { parseLedgerJsonl } from '../../src/server/ledger/parse';
-import { parseLedgerEvent } from './ledger';
+import { capture } from '../__tests__/helpers';
+import { main } from '../cli';
+import { parseLedgerEvent, readChain } from './ledger';
 
 const event = (o: Record<string, unknown> = {}) => ({
   at: '2026-10-21T14:20:05Z', agent: 'ai-patcher-acme', action_class: 'code-fix.patch', kind: 'guardrail_verdict', tier_at_time: 'supervised',
@@ -115,6 +120,26 @@ describe('parseLedgerEvent: only lines the reader accepts are written', () => {
     expect(parseLedgerJsonl(`${JSON.stringify(line)}\n`)).toEqual([line]);
     for (const subject of [{ project_id: 1.5, iid: 44 }, { project_id: 7, iid: -1 }, { project_id: 7, iid: 0.5 }, { project_id: Number.MAX_VALUE, iid: 1.5 }]) {
       expect(() => parseLedgerEvent(event({ subject: { ...subject, type: 'mr' } })), JSON.stringify(subject)).toThrow(/non-negative integer/);
+    }
+  });
+});
+
+describe('ledger append --write', () => {
+  it('starts a new line when the chain file does not end in a newline, so the chain still verifies and reads back', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-ledger-'));
+    try {
+      const chain = path.join(dir, 'events.jsonl');
+      const ev = path.join(dir, 'event.json');
+      fs.writeFileSync(ev, JSON.stringify(event()));
+      const run = () => main(['ledger', 'append', '--event', ev, '--chain', chain, '--write'], capture(dir).io);
+      expect(run()).toBe(0);
+      fs.writeFileSync(chain, fs.readFileSync(chain, 'utf8').trimEnd()); // as a chain fetched from the API may arrive
+      expect(run()).toBe(0);
+      const lines = readChain(fs.readFileSync(chain, 'utf8'));
+      expect(lines.map((l) => l.seq)).toEqual([1, 2]);
+      expect(verifyChain(lines)).toBeNull();
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
     }
   });
 });

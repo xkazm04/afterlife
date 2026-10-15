@@ -76,10 +76,13 @@ export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult 
   const args = parseArgs(argv, { values: ['event', 'chain'], switches: ['write'] });
   if (args.positional[0] !== 'append') throw new EngineError('usage: ledger append --event <file> --chain <events.jsonl> [--write]');
   const chainFile = path.resolve(ctx.cwd, args.need('chain'));
-  const chain = fs.existsSync(chainFile) ? readChain(fs.readFileSync(chainFile, 'utf8')) : [];
+  const text = fs.existsSync(chainFile) ? fs.readFileSync(chainFile, 'utf8') : '';
+  const chain = readChain(text);
   const broken = verifyChain(chain);
   if (broken !== null) throw new EngineError(`the chain is broken at seq ${broken}; it is not extended`);
   const line = append(chain, parseLedgerEvent(readJson(ctx, args.need('event'))));
-  if (args.has('write')) fs.appendFileSync(chainFile, `${JSON.stringify(line)}\n`);
+  // a chain fetched from the API may lack its final newline: start a new line rather than glue two events together
+  const lead = text === '' || text.endsWith('\n') ? '' : '\n';
+  if (args.has('write')) fs.appendFileSync(chainFile, `${lead}${JSON.stringify(line)}\n`);
   return { json: line, summary: `ledger: appended seq ${line.seq} ${line.kind} ${line.hash.slice(0, 12)} (chain of ${chain.length + 1} verifies)`, code: 0, compact: true };
 }
