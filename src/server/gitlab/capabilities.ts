@@ -1,7 +1,10 @@
 // `belay doctor` capability probes. Each capability is available, unavailable or unknown, and never
 // guessed: an endpoint answering 403/404 is "unavailable" with the reason; a network, auth or
 // rate-limit failure is "unknown"; a capability with no safe read endpoint is decided by the plan
-// (marked basis "plan") or stays unknown.
+// (marked basis "plan") or stays unknown. When the preflight reads (user, group, instance) show one cause that stops every
+// probe - glab cannot start, GitLab cannot be reached, no login, an unreadable group - the report names it (`blocker`,
+// doctor/blocker.ts) and every row is "blocked by" it, with no endpoint GET spent.
+import { findBlocker, type Blocker } from './doctor/blocker';
 import { GitLabError } from './errors';
 import type { GitLabPort } from './port';
 import type { GlGroup, ProjectRef } from './types';
@@ -14,6 +17,10 @@ export interface Capability { id: string; label: string; status: CapabilityStatu
 export interface DoctorReport {
   group: GlGroup | null; plan: string | null; trial: boolean; version: string | null;
   projectCount: number | null; capabilities: Capability[];
+  /** The one cause that stops every probe (binary, network, login, group); null when the probes ran. */
+  blocker: Blocker | null;
+  /** The login's username, or null when the user read failed. */
+  user: string | null;
 }
 
 type Verdict = Pick<Capability, 'status' | 'basis' | 'reason'>;
@@ -68,15 +75,22 @@ async function get(port: GitLabPort, endpoint: string, note?: string): Promise<V
   }
 }
 
-const attempt = async <T>(f: () => Promise<T>): Promise<T | null> => {
-  try { return await f(); } catch { return null; }
+type Outcome<T> = { value: T; error: null } | { value: null; error: unknown };
+const attempt = async <T>(f: () => Promise<T>): Promise<Outcome<T>> => {
+  try { return { value: await f(), error: null }; } catch (error) { return { value: null, error }; }
 };
 
 export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Promise<DoctorReport> {
-  const [grp, ns, inst, projects] = await Promise.all([
-    attempt(() => port.getGroup(group)), attempt(() => port.getNamespace(group)),
+  const [me, g0, n0, i0, p0] = await Promise.all([
+    attempt(() => port.currentUser()), attempt(() => port.getGroup(group)), attempt(() => port.getNamespace(group)),
     attempt(() => port.instance()), attempt(() => port.listProjects(group)),
   ]);
+  const [grp, ns, inst, projects] = [g0.value, n0.value, i0.value, p0.value];
+  const blocker = findBlocker({ user: me.error, group: g0.error, instance: i0.error }, port.host, group);
+  const base = {
+    group: grp, plan: ns?.plan ?? null, trial: ns?.trial ?? false, version: inst?.version ?? null,
+    projectCount: projects?.length ?? null, blocker, user: me.value?.username ?? null,
+  };
   const plan = planName(ns?.plan ?? null);
   const project = projects?.[0]?.id ?? null;
   const g = `groups/${encodeURIComponent(String(group))}`;
@@ -84,23 +98,24 @@ export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Pr
   const onProject = (path: string, note?: string): Promise<Verdict> | Verdict =>
     project === null ? noProject() : get(port, `projects/${project}/${path}`, note);
 
-  const rows: Array<[string, string, Promise<Verdict> | Verdict]> = [
-    ['pipelines', 'pipelines and jobs', onProject('pipelines?per_page=1')],
-    ['merge_requests', 'merge requests (group)', get(port, `${g}/merge_requests?per_page=1`)],
-    ['releases', 'releases (group)', get(port, `${g}/releases?per_page=1`)],
-    ['ci_components', 'CI/CD components', classifyComponents(inst?.version ?? null)],
-    ['security_reports', 'SAST and other security reports in MRs', classifyPlan(plan, 'ultimate', 'security report views')],
-    ['custom_flows', 'custom flows (Duo Agent Platform)', { status: 'unknown', basis: 'none', reason: 'no REST read endpoint (GraphQL only); the doctor sends only GETs' }],
-    ['flows_api', 'Flows API (start and trace flows)', get(port, 'ai/duo_workflows/workflows', '404 may also mean this list route does not exist; confirm on the trial')],
-    ['service_accounts', 'service accounts (group)', get(port, `${g}/service_accounts?per_page=1`)],
-    ['deployment_approvals', 'deployment approvals', classifyPlan(plan, 'premium', 'deployment approval rules')],
-    ['vulnerability_api', 'vulnerability API', project === null ? classifyPlan(plan, 'ultimate', 'the vulnerability report') : onProject('vulnerabilities?per_page=1')],
-    ['audit_events', 'audit events (group)', get(port, `${g}/audit_events?per_page=1`)],
+  // Thunks: a blocked probe spends no GET on a row.
+  const rows: Array<[string, string, () => Promise<Verdict> | Verdict]> = [
+    ['pipelines', 'pipelines and jobs', () => onProject('pipelines?per_page=1')],
+    ['merge_requests', 'merge requests (group)', () => get(port, `${g}/merge_requests?per_page=1`)],
+    ['releases', 'releases (group)', () => get(port, `${g}/releases?per_page=1`)],
+    ['ci_components', 'CI/CD components', () => classifyComponents(inst?.version ?? null)],
+    ['security_reports', 'SAST and other security reports in MRs', () => classifyPlan(plan, 'ultimate', 'security report views')],
+    ['custom_flows', 'custom flows (Duo Agent Platform)', () => ({ status: 'unknown', basis: 'none', reason: 'no REST read endpoint (GraphQL only); the doctor sends only GETs' })],
+    ['flows_api', 'Flows API (start and trace flows)', () => get(port, 'ai/duo_workflows/workflows', '404 may also mean this list route does not exist; confirm on the trial')],
+    ['service_accounts', 'service accounts (group)', () => get(port, `${g}/service_accounts?per_page=1`)],
+    ['deployment_approvals', 'deployment approvals', () => classifyPlan(plan, 'premium', 'deployment approval rules')],
+    ['vulnerability_api', 'vulnerability API', () => project === null ? classifyPlan(plan, 'ultimate', 'the vulnerability report') : onProject('vulnerabilities?per_page=1')],
+    ['audit_events', 'audit events (group)', () => get(port, `${g}/audit_events?per_page=1`)],
   ];
-  const verdicts = await Promise.all(rows.map((r) => r[2]));
-  return {
-    group: grp, plan: ns?.plan ?? null, trial: ns?.trial ?? false, version: inst?.version ?? null,
-    projectCount: projects?.length ?? null,
-    capabilities: rows.map(([id, label], i) => ({ id, label, ...(verdicts[i] as Verdict) })),
-  };
+  if (blocker) {
+    const blocked: Verdict = { status: 'unknown', basis: 'none', reason: `blocked by: ${blocker.text}` };
+    return { ...base, capabilities: rows.map(([id, label]) => ({ id, label, ...blocked })) };
+  }
+  const verdicts = await Promise.all(rows.map((r) => r[2]()));
+  return { ...base, capabilities: rows.map(([id, label], i) => ({ id, label, ...(verdicts[i] as Verdict) })) };
 }

@@ -1,11 +1,10 @@
 // `belay doctor`: local preflight, then real capability probes against BELAY_GROUP_ID.
-// Run by cli/belay.mjs through tsx. Read-only: it only ever sends GETs.
+// Run by cli/belay.mjs through tsx. Read-only: it only ever sends GETs. Exit 0, 2 or 3: doctor/render.ts.
 import { defaultExec, type ExecFn } from './adapter/exec';
 import { createGlabAdapter } from './adapter/glabAdapter';
-import { probeCapabilities, type Capability } from './capabilities';
+import { probeCapabilities } from './capabilities';
 import { readConfig, resolveGlabBin } from './config';
-
-const row = (status: string, name: string, detail: string): string => `${status.padEnd(11)}  ${name.padEnd(36)} ${detail}`;
+import { doctorExitCode, renderDoctor, row } from './doctor/render';
 
 async function local(exec: ExecFn, bin: string, args: string[]): Promise<{ ok: boolean; out: string }> {
   try {
@@ -18,8 +17,6 @@ async function local(exec: ExecFn, bin: string, args: string[]): Promise<{ ok: b
   }
 }
 
-const show = (c: Capability): string => row(c.status, c.label, `[${c.basis}] ${c.reason}`);
-
 async function main(): Promise<number> {
   const cfg = readConfig();
   const bin = await resolveGlabBin(cfg, defaultExec);
@@ -30,15 +27,9 @@ async function main(): Promise<number> {
   }
   out.push(row('available', 'node', process.version));
   const port = createGlabAdapter({ bin, host: cfg.host, exec: defaultExec });
-  const user = await port.currentUser().then((u) => u.username, (e: Error) => `(${e.message})`);
-  out.push(row(user.startsWith('(') ? 'unknown' : 'available', 'signed in as', user));
   const report = await probeCapabilities(port, cfg.groupId);
-  const g = report.group;
-  out.push('', `group ${cfg.groupId}: ${g ? `${g.fullPath} (${g.visibility})` : 'not readable'}`);
-  out.push(`plan: ${report.plan ?? 'unknown'}${report.trial ? ' (trial)' : ''}   GitLab ${report.version ?? 'unknown'}   projects: ${report.projectCount ?? 'unknown'}`, '');
-  out.push(...report.capabilities.map(show));
-  console.log(out.join('\n'));
-  return report.capabilities.every((c) => c.status === 'unknown') ? 2 : 0;
+  console.log(renderDoctor(report, { local: out, groupId: cfg.groupId }).join('\n'));
+  return doctorExitCode(report);
 }
 
 main().then((code) => { process.exitCode = code; }, (e: unknown) => { console.error(e); process.exitCode = 2; });
