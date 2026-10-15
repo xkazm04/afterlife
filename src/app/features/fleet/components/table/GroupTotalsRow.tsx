@@ -46,7 +46,7 @@ export const GroupTotalsRow = memo(function GroupTotalsRow({ group, list, view, 
       </Cell>
       <TotalCells list={list} view={view} ranked={ranked} meta={meta} />
       <Cell className={cells.pc}>
-        <ProofsCell proofs={proofsSum(list)} />
+        <ProofsCell proofs={list.some((p) => p.proofs7d) ? proofsSum(list) : null} />
       </Cell>
       {view === 'tiers' ? <Cell /> : null}
       <Cell />
