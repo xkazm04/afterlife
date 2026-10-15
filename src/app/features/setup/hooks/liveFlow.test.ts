@@ -58,6 +58,14 @@ describe('live probes', () => {
     expect(r.ref.current.steps[9]).toMatchObject({ st: 'unknown', probe: { ok: false, text: 'unknown · demo mode: Belay reads nothing from GitLab' } });
   });
 
+  it('a read that answers without the asked step settles it unknown, never leaves it probing', async () => {
+    const r = rig();
+    answer.next = { status: 'steps', steps: { ...AT, steps: { 1: { state: 'done', text: 'paired' } } } };
+    await r.probes.probe(2);
+    expect(r.ref.current.steps[2]).toMatchObject({ st: 'unknown', probe: null });
+    expect(r.told).toEqual(['step 2 · Belay has no probe for this step yet: it stays unknown']);
+  });
+
   it("'I did it · verify' on a step no read can see says why; 'say so' marks it said, sends nothing, and can be taken back", async () => {
     const r = rig();
     answer.next = { status: 'steps', steps: { ...AT, steps: { 7: { state: 'unknown', reason: 'not probed' }, 8: { state: 'unknown', reason: 'belay-apply: minimum role no_one_allowed' } } } };

@@ -36,9 +36,10 @@ export function liveProbes(now: () => SetupState, dispatch: Dispatch<SetupAction
         tell(`step ${n} · could not read: ${reason}`);
         return;
       }
-      dispatch({ t: 'steps-read', steps: r.steps });
-      const read = r.steps.steps[n];
-      tell(!read || read.state === 'unknown' ? unreadText(now(), n, read?.reason ?? null) : `step ${n} · ${read.text}`);
+      // A read that leaves the asked step out still ends the probe: it reads unknown, never probing for good.
+      const read = r.steps.steps[n] ?? { state: 'unknown' as const, reason: NOT_PROBED };
+      dispatch({ t: 'steps-read', steps: { ...r.steps, steps: { ...r.steps.steps, [n]: read } } });
+      tell(read.state === 'unknown' ? unreadText(now(), n, read.reason) : `step ${n} · ${read.text}`);
     },
     sayDone: (n) => {
       if (!canSayDone(now(), n)) return;
