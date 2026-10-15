@@ -2,7 +2,7 @@
 // Quotes are compared after collapsing whitespace and nothing else: not case, not punctuation, not
 // look-alike characters. It proves the quote exists, not that the finding reads it correctly.
 import type { Check, Claim } from '../../src/schemas/proof';
-import { parseDiff, type DiffFile, type DiffHunk } from '../parse/diff';
+import { parseDiff, type DiffFile, type DiffHunk, type DiffLine } from '../parse/diff';
 import type { Draft } from './common';
 
 export const MIN_QUOTE_CHARS = 6;
@@ -14,12 +14,25 @@ function sameFile(f: DiffFile, quoted: string): boolean {
   return f.path === q || f.oldPath === q || f.newPath === q;
 }
 
+/** Each stretch of consecutive lines of one kind, joined: a quote may span lines that sit next to each other, never ones with other lines between. */
+function runsOf(h: DiffHunk, kind: DiffLine['kind']): string[] {
+  const out: string[] = [];
+  let cur: string[] = [];
+  for (const l of [...h.lines, null]) {
+    if (l?.kind === kind) cur.push(l.text);
+    else if (cur.length) {
+      out.push(squashWs(cur.join(' ')));
+      cur = [];
+    }
+  }
+  return out;
+}
+
 /** Where in this hunk the quote sits: on added lines, removed lines, or across the whole hunk. */
 function foundIn(h: DiffHunk, needle: string): string | null {
-  const side = (kinds: readonly string[]): string => squashWs(h.lines.filter((l) => kinds.includes(l.kind)).map((l) => l.text).join(' '));
-  if (side(['add']).includes(needle)) return 'added lines';
-  if (side(['del']).includes(needle)) return 'removed lines';
-  if (side(['add', 'del', 'ctx']).includes(needle)) return 'the hunk';
+  if (runsOf(h, 'add').some((r) => r.includes(needle))) return 'added lines';
+  if (runsOf(h, 'del').some((r) => r.includes(needle))) return 'removed lines';
+  if (squashWs(h.lines.map((l) => l.text).join(' ')).includes(needle)) return 'the hunk';
   return null;
 }
 
