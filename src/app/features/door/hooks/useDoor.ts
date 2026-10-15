@@ -14,7 +14,7 @@ const INTRO_MS = 3400;
  * The front door's state: the level (fleet, district, project), what is open, what the pointer is on, the lit mark (a locked one outranks the hover),
  * the camera and the intro. Every transition is a new camera target; the CSS transition does the moving.
  */
-export function useDoor(groups: readonly string[], projects: readonly FleetProject[]) {
+export function useDoor(groups: readonly string[], projects: readonly FleetProject[], held = false) {
   const ds = useMemo(() => districtsOf(groups, projects), [groups, projects]);
   const byId = useMemo(() => new Map<string, { d: District; t: Placed }>(ds.flatMap((d) => d.placed.map((t) => [t.p.id, { d, t }] as const))), [ds]);
   const [level, setLevel] = useState<Level>(0);
@@ -27,13 +27,16 @@ export function useDoor(groups: readonly string[], projects: readonly FleetProje
   const [cam, setCam] = useState<Cam>(HOME);
   const [camMs, setCamMs] = useState(850);
   const [liftFrom, setLiftFrom] = useState<{ x: number; y: number; k0: number } | null>(null);
-  const [intro, setIntro] = useState(true);
+  // held: an entrance covers the city, so its intro waits for startIntro (the door opening) instead of starting now
+  const [intro, setIntro] = useState(!held);
 
   const endIntro = useCallback(() => setIntro(false), []);
+  const startIntro = useCallback(() => setIntro(true), []);
   useEffect(() => {
+    if (!intro) return;
     const id = setTimeout(endIntro, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : INTRO_MS);
     return () => clearTimeout(id);
-  }, [endIntro]);
+  }, [intro, endIntro]);
 
   const openG = useCallback(
     (gi: number) => {
@@ -125,5 +128,5 @@ export function useDoor(groups: readonly string[], projects: readonly FleetProje
   const dim = useMemo(() => dimSet(mark, projects), [mark, projects]);
   const red = useMemo(() => redSet(mark, projects), [mark, projects]);
 
-  return { ds, byId, level, curG, curP, hotG, hotId, setHotId, mark, locked, lock, unlock, setMark, dim, red, cam, camMs, liftFrom, intro, endIntro, openG, openP, goHome, up, hover, pick };
+  return { ds, byId, level, curG, curP, hotG, hotId, setHotId, mark, locked, lock, unlock, setMark, dim, red, cam, camMs, liftFrom, intro, endIntro, startIntro, openG, openP, goHome, up, hover, pick };
 }

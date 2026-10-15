@@ -1,11 +1,14 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
 import type { Holder } from '@/lib/tiers';
 import { FilterChip } from './components/chrome/FilterChip';
 import { Splash } from './components/chrome/Splash';
 import { BottomChrome, TopChrome } from './components/chrome/Chrome';
+import { Entrance } from './components/entrance/Entrance';
+import { EntrancePicker } from './components/entrance/Picker';
+import type { EntranceId } from './components/entrance/types';
 import { L2View } from './components/l2/L2View';
 import type { Deep } from './components/l2/L2Panel';
 import { Rail } from './components/rail/Rail';
@@ -36,10 +39,18 @@ export interface DoorData {
  * project a tower, each waiting decision an amber beam. Click a district to open it, a tower to lift it out; Esc goes
  * back up; Enter Afterlife goes into the app.
  */
-export function DoorScreen({ data }: { data: DoorData }) {
+export function DoorScreen({ data, entrance = null }: { data: DoorData; entrance?: EntranceId | null }) {
   useStageFit();
   useQuality();
-  const s = useDoor(data.groups, data.projects);
+  const s = useDoor(data.groups, data.projects, entrance != null);
+  // the entrance covers the city until it opens; the city's intro starts under the opening door
+  const [door, setDoor] = useState<'shut' | 'open' | 'gone'>(entrance ? 'shut' : 'gone');
+  const { startIntro } = s;
+  const onDoorOpen = useCallback(() => {
+    setDoor('open');
+    startIntro();
+  }, [startIntro]);
+  const onDoorDone = useCallback(() => setDoor('gone'), []);
   const still = useStill();
   // what does not change with the pointer is computed once, so a hover re-renders only the readout and the marks
   const totals = useMemo(() => fleetTotals(data.projects), [data.projects]);
@@ -131,10 +142,13 @@ export function DoorScreen({ data }: { data: DoorData }) {
           ) : null}
         </div>
       </div>
-      <Splash on={s.intro} />
+      {/* the hero splash is the intro's mark only without an entrance: the door's lock is the mark then */}
+      <Splash on={s.intro && !entrance} />
       <TopChrome org={data.org} asOf={data.asOf} />
       <BottomChrome crumbs={crumbs} onBack={s.level > 0 ? s.up : null} onGo={onGo} />
       <div className={styles.grain} data-lite="off" aria-hidden />
+      {entrance && door !== 'gone' ? <Entrance id={entrance} onOpen={onDoorOpen} onDone={onDoorDone} /> : null}
+      {entrance && door === 'gone' ? <EntrancePicker current={entrance} /> : null}
     </div>
   );
 }
