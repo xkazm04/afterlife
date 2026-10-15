@@ -51,7 +51,7 @@ export function countLevels(levels: readonly Level[]): LevelCounts {
   const n = (f: (v: Level) => boolean) => levels.filter(f).length;
   return {
     total: levels.length,
-    deep: n((v) => v != null && v >= 3),
+    deep: n(isDeep),
     running: n((v) => v === 2),
     configured: n((v) => v === 1),
     absent: n((v) => v === 0),

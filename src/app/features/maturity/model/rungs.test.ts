@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, rungText, shortMr } from './rungs';
 import { ctx } from './testCtx';
@@ -32,6 +34,13 @@ describe('rung helpers', () => {
 
   it('deep means R3 or higher', () => {
     expect([null, 0, 2, 3, 4].map(isDeep)).toEqual([false, false, false, true, true]);
+  });
+
+  it('the deep count and isDeep are one rule: the R3 threshold is written once in rungs.ts', () => {
+    const src = readFileSync(fileURLToPath(new URL('./rungs.ts', import.meta.url)), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(src.match(/>=\s*3\b/g) ?? []).toHaveLength(1);
+    const levels = [null, 0, 1, 2, 3, 4];
+    expect(countLevels(levels).deep).toBe(levels.filter(isDeep).length);
   });
 
   it('counts the nine stages as the status bar does', () => {
