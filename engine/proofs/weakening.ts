@@ -25,7 +25,8 @@ const ASSERTION =
 
 const TRIVIAL = /\bassert(True|That)?\s*\(\s*true\s*\)|expect\(\s*true\s*\)\.toBe\(\s*true\s*\)|^\s*assert\s+True\s*$/;
 
-const SKIP = /@Disabled\b|@Ignore\b|\bx(it|describe|test)\(|\b(it|test|describe)\.(skip|todo)\b|@pytest\.mark\.skip|\bpytest\.skip\(|\bt\.Skip(f|Now)?\(|\bassume(True|That)?\(\s*false\s*\)/;
+// `.only` / `fit` / `fdescribe` focus one test so the rest never run; `xfail` / `fixme` / `expectedFailure` turn a red test into a pass.
+const SKIP = /@Disabled\b|@Ignore\b|\bx(it|describe|test)\(|\b(it|test|describe)\.(skip\w*|todo|only|fixme)\b|(?:^|[\s;{(])(?:fit|fdescribe)\(|@pytest\.mark\.(?:skip|xfail)|\bpytest\.(?:skip|xfail)\(|@unittest\.(?:skip\w*|expectedFailure)\b|\bt\.Skip(f|Now)?\(|\bassume(True|That)?\(\s*false\s*\)/;
 
 const DECLARATION = /@Test\b|\b(it|test)\(\s*['"`]|\bdef test_|\bfunc Test\w+\(/;
 
