@@ -1,7 +1,12 @@
 // parseLedgerEvent rebuilds an event field by field: a guardrail_verdict keeps the verdict the gate emitted (pass or block),
 // any other kind or value is refused, and an event without one carries no verdict key at all, so it hashes as before.
-import { describe, expect, it } from 'vitest';
-import { append, hashEvent } from '../../src/schemas/ledger';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterAll, describe, expect, it } from 'vitest';
+import { append, hashEvent, type LedgerKind } from '../../src/schemas/ledger';
+import { capture } from '../__tests__/helpers';
+import { main } from '../cli';
 import { EngineError } from '../core/types';
 import { parseLedgerEvent } from './ledger';
 
@@ -105,5 +110,37 @@ describe('parseLedgerEvent: what the next rung would have decided, on a tier_dec
     const parsed = parseLedgerEvent(decision());
     expect('would' in parsed).toBe(false);
     expect(append([], parsed).hash).toBe(append([], { ...parsed, would: undefined } as typeof parsed).hash);
+  });
+});
+
+describe('ledger append through the CLI: the shared parser guards the writer', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-ledger-'));
+  afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+  const cli = (raw: unknown, chain: string) => {
+    const e = path.join(tmp, 'event.json');
+    fs.writeFileSync(e, JSON.stringify(raw));
+    const c = capture();
+    const code = main(['ledger', 'append', '--event', e, '--chain', chain, '--write'], c.io);
+    return { code, json: c.json() as Record<string, unknown> };
+  };
+
+  it('refuses a project_id that is not an integer >= 0, naming it', () => {
+    for (const project_id of [1.5, -1]) {
+      const r = cli(event({ subject: { project_id, type: 'mr', iid: 44 } }), path.join(tmp, `p${project_id}.jsonl`));
+      expect(r.code).toBe(2);
+      expect(r.json.error).toMatch(/subject\.project_id/);
+    }
+  });
+
+  it('never extends a hash-valid chain whose stored line 2 is not a ledger event', () => {
+    const one = append([], parseLedgerEvent(event()));
+    const bogus = append([one], { ...parseLedgerEvent(event()), kind: 'bogus' as LedgerKind });
+    const chain = path.join(tmp, 'bogus.jsonl');
+    const text = `${JSON.stringify(one)}\n${JSON.stringify(bogus)}\n`;
+    fs.writeFileSync(chain, text);
+    const r = cli(event(), chain);
+    expect(r.code).toBe(2);
+    expect(r.json.error).toMatch(/^chain line 2: /);
+    expect(fs.readFileSync(chain, 'utf8')).toBe(text);
   });
 });
