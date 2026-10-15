@@ -59,9 +59,16 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
   in every mode: live mode never splices a real MR's quote or the index's maturity scan into the invented film. The
   real film takes nothing from the catalogue (`demo: null`); its subtitle is the source's group and deep project.
 - A missing quote draws no quote box (`Cap`, `BeatInspector`), never an empty "quoted from !44 · untrusted".
-- Tests: `model/film/fromLedger.test.ts` (the mapper, the takes, the fold, the player), `data/film.test.tsx` (the
-  screen on each film), `data/labels.test.tsx` (the REPLAY chip and legend), `data/loader.test.tsx` (the loader live
-  against a bare index and the fake group; the quote box).
+- Tests (`data/readme.test.ts` fails when a test file under this folder is missing from this list):
+  - model: `model/film/fromLedger.test.ts` (the mapper, the takes, the fold, the player), `model/film/holds.test.ts`,
+    `model/film/takeCap.test.ts`, `model/film/takeOrder.test.ts`, `model/film/who.test.ts`, `model/derive/derive.test.ts`
+    (the fold, the answers, motion), `model/replay/reducer.test.ts`, `model/replay/store.test.ts`.
+  - data and screen: `data/film.test.tsx` (the screen on each film), `data/labels.test.tsx` (the REPLAY chip and
+    legend), `data/loader.test.tsx` (the loader live against a bare index and the fake group; the quote box),
+    `data/constants.test.ts` (the invented constants against the ledger slice), `data/readme.test.ts` (this list).
+  - keys and parts: `hooks/useTheaterKeys.test.ts` (the "?" legend against the key map),
+    `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/parts/PrerollCue.test.tsx`,
+    `components/parts/ProofChecks.test.tsx`, `components/wall/wallFrame.test.ts` (the wall redraws only when it moves).
 
 ## Behaviour notes
 - The REPLAY chip reads the same in the window and in present. The illustrative film's: "Replay · seq 480–520 ·
