@@ -68,7 +68,8 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
     `data/constants.test.ts` (the invented constants against the ledger slice), `data/readme.test.ts` (this list).
   - keys and parts: `hooks/useTheaterKeys.test.ts` (the "?" legend against the key map),
     `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/rail/Autonomy.test.tsx` (why a
-    class sits at its tier), `components/parts/PrerollCue.test.tsx`,
+    class sits at its tier), `components/styles.test.ts` (every `styles.x` exists in its CSS module),
+    `components/parts/PrerollCue.test.tsx`,
     `components/parts/ProofChecks.test.tsx`, `components/wall/wallFrame.test.ts` (the wall redraws only when it moves).
 
 ## Behaviour notes

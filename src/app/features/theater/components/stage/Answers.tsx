@@ -13,7 +13,7 @@ export const Answers = memo(function Answers({ snap, prev, demo }: { snap: Snaps
   const a = deriveAnswers(snap, demo?.tracksArmed ?? 0, demo?.tracksTotal ?? 0);
   const bump = needsIncreased(prev, snap);
   const now = (
-    <Card className={`${styles.ans} ${styles.now}`}>
+    <Card className={styles.ans}>
       <span className={styles.al}>Doing now</span>
       <span className={styles.av} title={a.now}>
         {a.now}
