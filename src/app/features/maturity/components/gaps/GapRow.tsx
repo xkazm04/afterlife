@@ -3,13 +3,14 @@ import { Checkbox } from '@/components/controls/Checkbox';
 import { TierChip } from '@/components/status/TierChip';
 import type { Gap } from '../../model/ctx';
 import type { Phase } from '../../model/flow/credit';
+import type { MoveAction } from '../../model/flow/moves';
 import { rungText } from '../../model/rungs';
 import { DemoChip } from '../chrome/DemoChip';
 import { cx, onActivate } from '../cx';
 import { GapState } from './GapState';
 import styles from './gaps.module.css';
 
-/** One gap: pick box, id, stage, rung move, the invitation, tier (or "probe · read only"), diff size, state. */
+/** One gap: pick box, id, stage, rung move, the invitation, tier (or "probe · read only"), diff size, state and next move. */
 export function GapRow({
   gap,
   picked,
@@ -21,6 +22,7 @@ export function GapRow({
   onPick,
   onSelect,
   onOpen,
+  onAct,
 }: {
   gap: Gap;
   picked: boolean;
@@ -33,6 +35,8 @@ export function GapRow({
   onPick: (id: string) => void;
   onSelect: (gap: Gap) => void;
   onOpen: (gap: Gap) => void;
+  /** A sent gap's next move, from its row (simulated). */
+  onAct: (a: MoveAction) => void;
 }) {
   const mr = gap.x.kind === 'mr';
   return (
@@ -67,7 +71,7 @@ export function GapRow({
         {mr ? `+${gap.diffLines}` : <span className={styles.none}>—</span>}
       </div>
       <div className={styles.cell} role="cell">
-        <GapState picked={picked} phase={phase} mr={opened} />
+        <GapState gap={gap} picked={picked} phase={phase} mr={opened} onAct={onAct} />
       </div>
     </div>
   );
