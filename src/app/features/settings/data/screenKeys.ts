@@ -54,4 +54,15 @@ export const SCREEN_KEYS: readonly ScreenKeys[] = [
       { keys: ['f', 'Esc'], does: 'Present / leave' },
     ],
   },
+  {
+    screen: 'Task',
+    keys: [
+      { keys: ['↑', '↓'], does: 'Walk the court; in the docket, previous / next task' },
+      { keys: ['←', '→'], does: 'Cross the court' },
+      { keys: ['[', ']'], does: 'Previous / next task' },
+      { keys: ['f'], does: 'Fail only' },
+      { keys: ['r', 'w'], does: 'Replay / words' },
+      { keys: ['Esc'], does: 'Clear the selection' },
+    ],
+  },
 ];
