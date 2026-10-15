@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { nextPolled, repoll, repollMessage, resolveOne, statusLine, waitingCount } from './needs';
+import { nextPolled, repoll, repollMessage, resolveOne, statusLine } from './needs';
 import { makeProject } from './testProject';
-
-describe('waitingCount', () => {
-  it('skips unwatched projects', () => {
-    const list = [makeProject({ id: 'a', needsYou: 2 }), makeProject({ id: 'b', needsYou: 5, state: 'not-set-up' }), makeProject({ id: 'c', needsYou: 1, state: 'stale' })];
-    expect(waitingCount(list)).toBe(3);
-  });
-});
 
 describe('resolveOne', () => {
   it('lowers the count by one and stops at zero', () => {

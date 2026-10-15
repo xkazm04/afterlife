@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
-import { repoll, resolveOne, waitingCount } from '../model/needs';
+import { needsSum } from '../model/groups';
+import { repoll, resolveOne } from '../model/needs';
 
 /**
  * The fleet as the screen holds it: the source's projects, plus demo mode's two simulations. Re-polling a feed resets its
@@ -19,7 +20,7 @@ export function useFleetProjects(initial: readonly FleetProject[]) {
   }
 
   const byId = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
-  const waiting = useMemo(() => waitingCount(projects), [projects]);
+  const waiting = useMemo(() => needsSum(projects), [projects]);
 
   /** Re-polls one feed; returns the sentence for the status bar. */
   const poll = useCallback(
