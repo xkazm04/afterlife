@@ -1,3 +1,4 @@
+import type { RecordSources } from '@/lib/demo/sources';
 import type { GateSeen, RecordCounters } from '@/lib/demo/types';
 import type { EnforcementReceipt } from '@/schemas/receipt';
 import type { Ceiling } from '@/schemas/tier';
@@ -30,6 +31,8 @@ export interface ClassTierRow {
   receipt?: EnforcementReceipt | null;
   /** The gate last seen deciding for the holder since the record's since (migration 0012, poller/derive/gate.ts). Null: none. */
   gateSeen?: GateSeen | null;
+  /** The outputs behind the record's counts (migration 0013, poller/derive/sources.ts). Absent or null: none listed. */
+  sources?: RecordSources | null;
 }
 
 const SPEC: TableSpec = {
@@ -39,7 +42,7 @@ const SPEC: TableSpec = {
     project_id: 'text', class_id: 'text', tier: 'text', since: 'timestamptz', set_by: 'text', lease_expires: 'timestamptz',
     accepted: 'int', needed: 'int', no_edit: 'float8', clean_days: 'int', reverts: 'int', guardrail_blocks: 'int', count_window: 'int',
     gated: 'int', move_kind: 'text', move_at: 'timestamptz', move_note: 'text', cooldown_until: 'timestamptz', receipt: 'jsonb',
-    gate_iid: 'int', gate_tier: 'text', gate_at: 'timestamptz',
+    gate_iid: 'int', gate_tier: 'text', gate_at: 'timestamptz', sources: 'jsonb',
   },
 };
 
@@ -49,6 +52,7 @@ interface Db {
   clean_days: number | null; reverts: number | null; guardrail_blocks: number | null; count_window: number | null; move_kind: MoveKind | null; move_at: Date | null; move_note: string | null;
   cooldown_until: Date | null; receipt: EnforcementReceipt | null;
   gated: number | null; gate_iid: number | null; gate_tier: GateSeen['tierAtTime'] | null; gate_at: Date | null;
+  sources: RecordSources | null;
 }
 
 const toDb = (r: ClassTierRow): Record<string, unknown> => ({
@@ -60,6 +64,7 @@ const toDb = (r: ClassTierRow): Record<string, unknown> => ({
   move_kind: r.move?.kind ?? null, move_at: toIso(r.move?.at), move_note: r.move?.note ?? null,
   cooldown_until: toIso(r.cooldownUntil), receipt: r.receipt ?? null,
   gate_iid: r.gateSeen?.iid ?? null, gate_tier: r.gateSeen?.tierAtTime ?? null, gate_at: r.gateSeen?.at ?? null,
+  sources: r.sources ?? null,
 });
 
 /**
@@ -82,6 +87,7 @@ const fromDb = (r: Db): ClassTierRow => ({
   move: r.move_kind ? { kind: r.move_kind, at: asDate(r.move_at), note: r.move_note } : null,
   cooldownUntil: asDate(r.cooldown_until), receipt: r.receipt ?? null,
   gateSeen: r.gate_iid !== null && r.gate_tier && r.gate_at ? { iid: r.gate_iid, tierAtTime: r.gate_tier, at: new Date(r.gate_at).toISOString() } : null,
+  sources: r.sources ?? null,
 });
 
 /** Trust classes must exist first (see upsertTrustClasses). */

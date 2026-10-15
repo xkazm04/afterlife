@@ -10138,6 +10138,146 @@
         "iid": 41,
         "tierAtTime": "hands_off",
         "at": "2026-10-06T09:29:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-22T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 201,
+            "outcome": "merged",
+            "at": "2026-10-06T13:22:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 191,
+            "outcome": "merged",
+            "at": "2026-10-05T16:18:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 184,
+            "outcome": "merged",
+            "at": "2026-10-04T19:14:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 178,
+            "outcome": "merged",
+            "at": "2026-10-03T22:10:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 170,
+            "outcome": "merged",
+            "at": "2026-10-03T01:07:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 163,
+            "outcome": "merged",
+            "at": "2026-10-02T04:03:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 156,
+            "outcome": "merged",
+            "at": "2026-10-01T06:59:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 149,
+            "outcome": "merged",
+            "at": "2026-09-30T09:55:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 142,
+            "outcome": "merged",
+            "at": "2026-09-29T12:52:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 136,
+            "outcome": "merged",
+            "at": "2026-09-28T15:48:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 130,
+            "outcome": "merged",
+            "at": "2026-09-27T18:44:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 123,
+            "outcome": "merged",
+            "at": "2026-09-26T21:40:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 118,
+            "outcome": "merged",
+            "at": "2026-09-26T00:37:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 113,
+            "outcome": "merged",
+            "at": "2026-09-25T03:33:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 108,
+            "outcome": "merged",
+            "at": "2026-09-24T06:29:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 104,
+            "outcome": "merged",
+            "at": "2026-09-23T09:25:00.000Z",
+            "inWindow": true,
+            "edited": true,
+            "gated": true
+          }
+        ],
+        "total": 16,
+        "excluded": [],
+        "blocks": [],
+        "missing": [],
+        "demo": true
       }
     },
     {
@@ -10159,6 +10299,87 @@
         "iid": 39,
         "tierAtTime": "supervised",
         "at": "2026-10-05T16:10:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-27T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 200,
+            "outcome": "merged",
+            "at": "2026-10-06T12:41:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 188,
+            "outcome": "merged",
+            "at": "2026-10-05T05:46:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 179,
+            "outcome": "merged",
+            "at": "2026-10-03T22:52:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 166,
+            "outcome": "closed",
+            "at": "2026-10-02T15:58:00.000Z",
+            "inWindow": true,
+            "edited": null,
+            "gated": null
+          },
+          {
+            "iid": 158,
+            "outcome": "merged",
+            "at": "2026-10-01T09:04:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": false
+          },
+          {
+            "iid": 147,
+            "outcome": "merged",
+            "at": "2026-09-30T02:10:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": false
+          },
+          {
+            "iid": 137,
+            "outcome": "merged",
+            "at": "2026-09-28T19:16:00.000Z",
+            "inWindow": true,
+            "edited": true,
+            "gated": false
+          }
+        ],
+        "total": 7,
+        "excluded": [],
+        "blocks": [],
+        "missing": [
+          {
+            "iid": 158,
+            "fact": "tier_decision"
+          },
+          {
+            "iid": 147,
+            "fact": "tier_decision"
+          },
+          {
+            "iid": 137,
+            "fact": "tier_decision"
+          }
+        ],
+        "demo": true
       }
     },
     {
@@ -10180,6 +10401,50 @@
         "iid": 36,
         "tierAtTime": "hands_off",
         "at": "2026-10-05T11:20:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-24T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 199,
+            "outcome": "merged",
+            "at": "2026-10-06T12:00:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 174,
+            "outcome": "merged",
+            "at": "2026-10-03T12:05:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 150,
+            "outcome": "merged",
+            "at": "2026-09-30T12:11:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 126,
+            "outcome": "merged",
+            "at": "2026-09-27T12:16:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          }
+        ],
+        "total": 4,
+        "excluded": [],
+        "blocks": [],
+        "missing": [],
+        "demo": true
       }
     },
     {
@@ -10231,6 +10496,194 @@
         "iid": 43,
         "tierAtTime": "hands_off",
         "at": "2026-10-06T13:15:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-22T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 198,
+            "outcome": "merged",
+            "at": "2026-10-06T09:16:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 192,
+            "outcome": "merged",
+            "at": "2026-10-05T18:08:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 187,
+            "outcome": "merged",
+            "at": "2026-10-05T03:00:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 181,
+            "outcome": "merged",
+            "at": "2026-10-04T11:52:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 177,
+            "outcome": "merged",
+            "at": "2026-10-03T20:44:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 171,
+            "outcome": "merged",
+            "at": "2026-10-03T05:36:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 165,
+            "outcome": "merged",
+            "at": "2026-10-02T14:28:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 160,
+            "outcome": "merged",
+            "at": "2026-10-01T23:20:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 157,
+            "outcome": "merged",
+            "at": "2026-10-01T08:12:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 152,
+            "outcome": "merged",
+            "at": "2026-09-30T17:04:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 146,
+            "outcome": "merged",
+            "at": "2026-09-30T01:56:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 141,
+            "outcome": "merged",
+            "at": "2026-09-29T10:49:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 138,
+            "outcome": "merged",
+            "at": "2026-09-28T19:41:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 132,
+            "outcome": "merged",
+            "at": "2026-09-28T04:33:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 127,
+            "outcome": "merged",
+            "at": "2026-09-27T13:25:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 124,
+            "outcome": "merged",
+            "at": "2026-09-26T22:17:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 120,
+            "outcome": "merged",
+            "at": "2026-09-26T07:09:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 115,
+            "outcome": "merged",
+            "at": "2026-09-25T16:01:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 111,
+            "outcome": "merged",
+            "at": "2026-09-25T00:53:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 109,
+            "outcome": "merged",
+            "at": "2026-09-24T09:45:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 105,
+            "outcome": "merged",
+            "at": "2026-09-23T18:37:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 101,
+            "outcome": "merged",
+            "at": "2026-09-23T03:29:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          }
+        ],
+        "total": 22,
+        "excluded": [],
+        "blocks": [],
+        "missing": [],
+        "demo": true
       }
     },
     {
@@ -10252,6 +10705,170 @@
         "iid": 40,
         "tierAtTime": "hands_off",
         "at": "2026-10-06T13:05:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-22T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 197,
+            "outcome": "merged",
+            "at": "2026-10-06T08:35:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 190,
+            "outcome": "merged",
+            "at": "2026-10-05T15:05:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 185,
+            "outcome": "merged",
+            "at": "2026-10-04T21:36:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 180,
+            "outcome": "merged",
+            "at": "2026-10-04T04:07:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 173,
+            "outcome": "merged",
+            "at": "2026-10-03T10:38:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 167,
+            "outcome": "merged",
+            "at": "2026-10-02T17:09:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 162,
+            "outcome": "merged",
+            "at": "2026-10-01T23:40:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 155,
+            "outcome": "merged",
+            "at": "2026-10-01T06:11:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 151,
+            "outcome": "merged",
+            "at": "2026-09-30T12:42:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 145,
+            "outcome": "merged",
+            "at": "2026-09-29T19:13:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 139,
+            "outcome": "merged",
+            "at": "2026-09-29T01:43:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 133,
+            "outcome": "merged",
+            "at": "2026-09-28T08:14:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 128,
+            "outcome": "merged",
+            "at": "2026-09-27T14:45:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 122,
+            "outcome": "merged",
+            "at": "2026-09-26T21:16:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 119,
+            "outcome": "merged",
+            "at": "2026-09-26T03:47:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 114,
+            "outcome": "merged",
+            "at": "2026-09-25T10:18:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 110,
+            "outcome": "merged",
+            "at": "2026-09-24T16:49:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 106,
+            "outcome": "merged",
+            "at": "2026-09-23T23:20:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 102,
+            "outcome": "merged",
+            "at": "2026-09-23T05:51:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          }
+        ],
+        "total": 19,
+        "excluded": [],
+        "blocks": [],
+        "missing": [],
+        "demo": true
       }
     },
     {
@@ -10273,6 +10890,34 @@
         "iid": 38,
         "tierAtTime": "supervised",
         "at": "2026-10-04T15:40:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-30T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 196,
+            "outcome": "merged",
+            "at": "2026-10-06T07:54:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 172,
+            "outcome": "merged",
+            "at": "2026-10-03T10:08:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          }
+        ],
+        "total": 2,
+        "excluded": [],
+        "blocks": [],
+        "missing": [],
+        "demo": true
       }
     },
     {
@@ -10294,6 +10939,66 @@
         "iid": 35,
         "tierAtTime": "assisted",
         "at": "2026-10-03T10:05:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-26T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 195,
+            "outcome": "merged",
+            "at": "2026-10-06T07:13:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 183,
+            "outcome": "merged",
+            "at": "2026-10-04T16:04:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 169,
+            "outcome": "closed",
+            "at": "2026-10-03T00:56:00.000Z",
+            "inWindow": true,
+            "edited": null,
+            "gated": null
+          },
+          {
+            "iid": 159,
+            "outcome": "merged",
+            "at": "2026-10-01T09:47:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 144,
+            "outcome": "merged",
+            "at": "2026-09-29T18:39:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 131,
+            "outcome": "merged",
+            "at": "2026-09-28T03:30:00.000Z",
+            "inWindow": true,
+            "edited": true,
+            "gated": true
+          }
+        ],
+        "total": 6,
+        "excluded": [],
+        "blocks": [],
+        "missing": [],
+        "demo": true
       }
     },
     {
@@ -10315,6 +11020,146 @@
         "iid": 42,
         "tierAtTime": "supervised",
         "at": "2026-10-06T13:52:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-22T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 194,
+            "outcome": "merged",
+            "at": "2026-10-06T06:32:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 189,
+            "outcome": "merged",
+            "at": "2026-10-05T09:53:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 182,
+            "outcome": "merged",
+            "at": "2026-10-04T13:15:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 176,
+            "outcome": "merged",
+            "at": "2026-10-03T16:37:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 168,
+            "outcome": "merged",
+            "at": "2026-10-02T19:59:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 161,
+            "outcome": "merged",
+            "at": "2026-10-01T23:21:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 154,
+            "outcome": "merged",
+            "at": "2026-10-01T02:43:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 148,
+            "outcome": "merged",
+            "at": "2026-09-30T06:05:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 140,
+            "outcome": "merged",
+            "at": "2026-09-29T09:27:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 135,
+            "outcome": "merged",
+            "at": "2026-09-28T12:48:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 129,
+            "outcome": "merged",
+            "at": "2026-09-27T16:10:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 121,
+            "outcome": "merged",
+            "at": "2026-09-26T19:32:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 117,
+            "outcome": "merged",
+            "at": "2026-09-25T22:54:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 112,
+            "outcome": "merged",
+            "at": "2026-09-25T02:16:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 107,
+            "outcome": "merged",
+            "at": "2026-09-24T05:38:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 103,
+            "outcome": "merged",
+            "at": "2026-09-23T09:00:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          }
+        ],
+        "total": 16,
+        "excluded": [],
+        "blocks": [],
+        "missing": [],
+        "demo": true
       }
     },
     {
@@ -10336,6 +11181,99 @@
         "iid": 44,
         "tierAtTime": "quarantined",
         "at": "2026-10-06T14:18:00.000Z"
+      },
+      "sources": {
+        "since": "2026-09-24T11:22:00.000Z",
+        "window": null,
+        "web": null,
+        "outputs": [
+          {
+            "iid": 193,
+            "outcome": "merged",
+            "at": "2026-10-06T05:51:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 186,
+            "outcome": "merged",
+            "at": "2026-10-04T22:34:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 175,
+            "outcome": "reverted",
+            "at": "2026-10-03T15:17:00.000Z",
+            "inWindow": true,
+            "edited": null,
+            "gated": null
+          },
+          {
+            "iid": 164,
+            "outcome": "merged",
+            "at": "2026-10-02T08:01:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 153,
+            "outcome": "closed",
+            "at": "2026-10-01T00:44:00.000Z",
+            "inWindow": true,
+            "edited": null,
+            "gated": null
+          },
+          {
+            "iid": 143,
+            "outcome": "merged",
+            "at": "2026-09-29T17:28:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 134,
+            "outcome": "merged",
+            "at": "2026-09-28T10:11:00.000Z",
+            "inWindow": true,
+            "edited": false,
+            "gated": true
+          },
+          {
+            "iid": 125,
+            "outcome": "merged",
+            "at": "2026-09-27T02:55:00.000Z",
+            "inWindow": true,
+            "edited": true,
+            "gated": false
+          },
+          {
+            "iid": 116,
+            "outcome": "merged",
+            "at": "2026-09-25T19:38:00.000Z",
+            "inWindow": true,
+            "edited": true,
+            "gated": false
+          }
+        ],
+        "total": 9,
+        "excluded": [],
+        "blocks": [],
+        "missing": [
+          {
+            "iid": 125,
+            "fact": "tier_decision"
+          },
+          {
+            "iid": 116,
+            "fact": "tier_decision"
+          }
+        ],
+        "demo": true
       }
     }
   ],

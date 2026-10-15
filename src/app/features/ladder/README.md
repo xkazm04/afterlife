@@ -81,7 +81,14 @@ belay-policy main", "Human key failed: <the settings not in place>" or "Human ke
 "demo"); when it failed the promote preview says the key is not in place, and the write is still the server's to decide. Either step adds
 a `cooldown` row, not met, while the record's `cooldown_until` (tier-state.yml, stamped by the tripwire or a revoke) is
 ahead: the class is not eligible before that date. Where each counter
-comes from is the poller's table. A record that does not state a counter (the demo fixture states no guardrail blocks
+comes from is the poller's table. Each count row (accepted outputs, merged without edits, reverts, clean days, guardrail
+blocks, gated outputs, the window) names a button (`aria-expanded`, `components/inspector/sections/RuleRow.tsx`) that
+lists the outputs behind it, from the class's `sources` (the poll's list from the same tally as the counts,
+`server/poller/README.md`): "Counted" (each MR as !iid, a link to its GitLab MR when the poll knew the project's web URL,
+else plain), "Not counted" with why (outside the window, not merged, edited), and "Not read" for a fact the counts lack
+("!207: no edit fact read yet", no tier_decision, belay-ledger not read). The words are `explain()`
+(`src/lib/promotion/sources/`). Demo, the fixture's sources are illustrative (`scripts/build-demo.mjs`, consistent with
+each record: `src/lib/demo/agreement.test.ts`), plain !iids, chipped "demo". A record that does not state a counter (the demo fixture states no guardrail blocks
 and no window) reads it not recorded. When the poll
 found a class eligible it opened a promotion ask in Needs you, and the route attaches that ask to the class (`data/loadLadderData.ts`):
 the class reads eligible with the ask's counts. p, Promote or Re-admit confirms the policy MR the server planned

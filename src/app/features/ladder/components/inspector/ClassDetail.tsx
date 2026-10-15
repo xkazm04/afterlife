@@ -81,7 +81,7 @@ export function ClassDetail(p: ClassDetailProps) {
           ) : null}
         </div>
       </Sec>
-      <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} humanKey={p.humanKey} />
+      <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} humanKey={p.humanKey} sources={c.sources} />
       <WriteSection head={WRITE_HEAD.revoke} keyName="r" to={revokeTo} view={revokeTo ? p.viewOf(c.id, revokeTo) : undefined} nothing="Nothing to revoke" />
       {ask ? <WriteSection head={ask.readmit ? WRITE_HEAD.readmit : WRITE_HEAD.promote} keyName="p" to={ask.to} view={p.promote.view} nothing="" warn={humanKeyWarning(p.humanKey)} /> : null}
       <GrantSection cls={c} policy={p.policy} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} live={p.live} />

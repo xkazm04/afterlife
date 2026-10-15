@@ -102,6 +102,21 @@ several agents or none hold. It is read from the ledger events the index holds, 
 actionClasses view and the snapshot carry it as `gateSeen`, with the record's `since`; Ladder's Grant section, its track
 headers and Setup's track page show it.
 
+The outputs behind the counters (`derive/sources.ts`, the `sources` jsonb column on `class_tier`, migration 0013; the
+shape is `RecordSources` in `src/lib/demo/sources.ts`). `countRecord` selects the holder's outputs once (`tallyOf`); the
+counters are its totals (`totalsOf`) and the sources are its list (`sourcesOf`), both from `recordOf`, so a count and its
+list cannot disagree. Per output since `since`, newest first: `iid`, `outcome` (merged, reverted, closed, blocked), `at`,
+`inWindow`, `edited` (a merged output's edit fact; null when no task row states it) and `gated` (a merged output with a
+`tier_decision`; null when the ledger was not read). Beside them: `excluded` (listed outputs outside the window, reason
+`outside_window`), `blocks` (the MRs counted as guardrail blocks), `missing` (`edit`: a counted merge with no edit fact,
+why noEdit is null; `tier_decision`: a counted merge the gate did not decide, why gated falls short; `verdict`: a
+guardrail verdict stating neither pass nor block; and for the record, `ledger`: belay-ledger not read this poll, and
+`revert_policy`: the policy does not demote on a revert), the `since` and `window` used, and `web`, the project's GitLab
+web URL an MR links under (`<web>/-/merge_requests/<iid>`; null: a plain !iid). A task row and a ledger event for the
+same MR are one output. The list keeps the newest 50 outputs (`SOURCES_CAP`; `total` counts them all), and so do
+`missing` and `blocks`. A class several agents or none hold keeps the row's sources, as it keeps its record. The
+actionClasses view and the snapshot carry them as `sources`; Ladder's promotion rule lists them under each count row.
+
 The record's `cooldown_until` (stamped by the tripwire and by a revoke from `cooldown_days`) is stored on the
 `class_tier` row (migration 0009). While it is ahead of the poll's `now`, the promotion rule carries a `cooldown` row
 not met until that date, so no promotion ask opens and an open one is closed; Ladder's Promote reads the same row, and

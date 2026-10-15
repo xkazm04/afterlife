@@ -38,6 +38,59 @@
 .cells i.f {
   background: color-mix(in oklab, var(--ok) 75%, transparent);
 }
+/* a count row's disclosure, and the outputs behind the count under it */
+.rx {
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  border-radius: 3px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+}
+.rx:hover {
+  color: var(--text-1);
+}
+.rx:focus-visible {
+  box-shadow: var(--ring);
+  outline: 0;
+}
+.src {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  padding: 4px 0 2px 12px;
+}
+.srcGroup {
+  display: grid;
+  gap: 2px;
+}
+.srcHead {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.srcList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-small);
+  color: var(--text-2);
+}
+.mr {
+  font-family: var(--mono);
+  color: var(--accent);
+  text-decoration: none;
+}
+a.mr:hover {
+  text-decoration: underline;
+}
+a.mr:focus-visible {
+  box-shadow: var(--ring);
+  outline: 0;
+}
 .foot {
   display: flex;
   gap: 6px;

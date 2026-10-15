@@ -10,14 +10,14 @@ const decided = (e: CountedEvent, h: Pick<Holder, 'agent' | 'classId'>): boolean
   e.kind === 'tier_decision' && e.agent === h.agent && e.action_class === h.classId && e.subject.type === 'mr';
 
 /**
- * Gated outputs: how many of the counted merged outputs (by MR iid) have a tier_decision event for the same agent, class
- * and MR in the imported chain, whenever the gate wrote it. Null when this poll did not read the ledger (`ledgerRead`, as
- * the guardrail blocks read it): an event it did not import may be the one that gated an output, so nothing is stated.
+ * The MRs belay-apply's gate decided for the holder: a tier_decision event for the same agent, class and MR in the imported
+ * chain, whenever the gate wrote it. The gated outputs are the counted merged outputs among them (./counters.ts). Null when
+ * this poll did not read the ledger (`ledgerRead`, as the guardrail blocks read it): an event it did not import may be
+ * the one that gated an output, so nothing is stated.
  */
-export function gatedOf(src: CounterSource, h: Pick<Holder, 'agent' | 'classId'>, merged: readonly number[]): number | null {
+export function gatedSetOf(src: CounterSource, h: Pick<Holder, 'agent' | 'classId'>): Set<number> | null {
   if (!src.ledgerRead) return null;
-  const gated = new Set(src.events.filter((e) => decided(e, h)).map((e) => e.subject.iid));
-  return merged.filter((iid) => gated.has(iid)).length;
+  return new Set(src.events.filter((e) => decided(e, h)).map((e) => e.subject.iid));
 }
 
 /**

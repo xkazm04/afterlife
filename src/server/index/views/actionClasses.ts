@@ -53,6 +53,8 @@ export async function getActionClasses(db: Queryable, projectId: string, now: Da
       // the record's since, and the gate last seen deciding for its holder since then (null: none seen)
       ...(r.since ? { since: r.since.toISOString() } : {}),
       gateSeen: r.gateSeen ?? null,
+      // the outputs behind the counts, as the poll listed them (or the seed's, marked demo)
+      ...(r.sources ? { sources: r.sources } : {}),
     });
   }
   return out;

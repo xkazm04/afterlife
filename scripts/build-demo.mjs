@@ -81,6 +81,43 @@ for (const a of actionClasses) {
   a.gateSeen = g ? { iid: g[1], tierAtTime: g[2], at: g[3] } : null; // null: no gate seen (no record, or never an agent)
 }
 
+// The outputs behind each record's counts (src/lib/demo/sources.ts), illustrative like every value here and marked
+// `demo`: per class with a record, its merged outputs (record.accepted), its reverted ones (record.reverts) and, where
+// CLOSED says, a closed MR; merged without edits as record.noEdit states it (the oldest merges were edited) and gated as
+// record.gated does (the newest merges were gated; the rest are missing their tier_decision). The fixture states no
+// window, so every output is counted. The record's since is cleanDays before the demo's now (12 days for a class with a
+// revert); the outputs are spread from it to an hour or so before now, and their iids are drawn in time order across classes from !101.
+// src/lib/demo/agreement.test.ts totals them against the counters.
+const DEMO_NOW_MS = Date.parse('2026-10-06T14:22:00.000Z');
+const HOUR_MS = 3_600_000;
+const CLOSED = { 'code-fix.patch': 1, 'ci-config.change': 1, 'patch-bump': 1 };
+const drafts = [];
+actionClasses.forEach((a, k) => {
+  const r = a.record;
+  if (!r) return;
+  const since = DEMO_NOW_MS - ((r.reverts === 0 ? r.cleanDays : 12) * 24 + 3) * HOUR_MS;
+  const kinds = Array(r.accepted).fill('merged');
+  for (let i = 0; i < r.reverts; i++) kinds.splice(2, 0, 'reverted');
+  for (let i = 0; i < (CLOSED[a.id] ?? 0); i++) kinds.splice(Math.floor(kinds.length / 2), 0, 'closed');
+  const newest = DEMO_NOW_MS - HOUR_MS - k * 41 * 60_000; // each class's newest output a little apart
+  const span = newest - since - HOUR_MS;
+  const clean = Math.round(r.noEdit * r.accepted);
+  let m = 0;
+  const outputs = kinds.map((outcome, i) => {
+    const at = Math.floor((newest - (span * i) / kinds.length) / 60_000) * 60_000;
+    const merged = outcome === 'merged' ? m++ : -1;
+    return { iid: 0, outcome, at, inWindow: true, edited: merged < 0 ? null : merged >= clean, gated: merged < 0 ? null : merged < r.gated };
+  });
+  drafts.push(...outputs);
+  a.sources = { since: new Date(since).toISOString(), window: null, web: null, outputs, total: outputs.length, excluded: [], blocks: [], missing: [], demo: true };
+});
+drafts.sort((x, y) => x.at - y.at).forEach((o, i) => { o.iid = 101 + i; });
+for (const a of actionClasses) {
+  if (!a.sources) continue;
+  for (const o of a.sources.outputs) o.at = new Date(o.at).toISOString();
+  a.sources.missing = a.sources.outputs.filter((o) => o.gated === false).map((o) => ({ iid: o.iid, fact: 'tier_decision' }));
+}
+
 const tiers = {
   assisted: { label: 'ASSISTED', means: 'a human triggers every step' },
   supervised: { label: 'SUPERVISED', means: 'agent acts, a human approves the outcome' },

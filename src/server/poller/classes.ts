@@ -26,14 +26,17 @@ async function settledAsks(db: Queryable, projectId: string): Promise<Map<string
 }
 
 /** Writes the class tier rows and the asks; returns the demotions the tripwire wrote in the window. */
-/** `ledgerRead`: this poll read the project's belay-ledger, so the events in the index are all it holds. `history`: tier-state.yml's. */
+/**
+ * `ledgerRead`: this poll read the project's belay-ledger, so the events in the index are all it holds. `history`:
+ * tier-state.yml's. `web`: the project's GitLab web URL, which a record's sources link its MRs under.
+ */
 export async function pollClasses(
-  tx: Queryable, read: Policy, projectId: string, gitlabId: number, now: Date, windowMs: number, ledgerRead: boolean, history: StateHistory | null = null,
+  tx: Queryable, read: Policy, projectId: string, gitlabId: number, now: Date, windowMs: number, ledgerRead: boolean, history: StateHistory | null = null, web: string | null = null,
 ): Promise<number> {
   const { policy, state } = read;
   const prev = new Map((await listClassTiers(tx, projectId)).map((r) => [r.classId, r]));
   const events = await readLedger(tx, gitlabId);
-  const counters = { tasks: await listTasks(tx, projectId), events, revertDemotes: demotesOnRevert(policy.demotion), ledgerRead };
+  const counters = { tasks: await listTasks(tx, projectId), events, revertDemotes: demotesOnRevert(policy.demotion), ledgerRead, web };
   const t = deriveTiers(policy, state, projectId, now, prev, windowMs, counters, history ? { history, events } : null);
   await upsertClassTiers(tx, t.rows);
 

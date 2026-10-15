@@ -2,7 +2,7 @@
 // against the demo's policy (policy/trust-policy.yml), and no other class is. When they disagree, scripts/build-demo.mjs
 // is fixed, never this test.
 import { describe, expect, it } from 'vitest';
-import { isEligible, promotion } from '@/lib/promotion';
+import { explain, isEligible, promotion } from '@/lib/promotion';
 import { repoPolicy } from '@/server/data/policy';
 import { DEMO_NOW } from './clock';
 import { DEMO } from './index';
@@ -22,4 +22,35 @@ describe('the demo fixture and promotion() agree on who is eligible', () => {
       expect(isEligible(promotion(c, proofOf(c.track), rules, DEMO_NOW))).toBe(says(c.lastMove));
     });
   }
+});
+
+// The outputs behind each count (sources) agree with the counters they explain, totalled the way Ladder lists them
+// (explain()): every record has illustrative sources marked demo, and no class without a record has any.
+describe('the demo fixture\'s sources agree with its counters', () => {
+  const DAY = 86_400_000;
+  for (const c of DEMO.actionClasses) {
+    it(`${c.id}: ${c.record ? 'the listed outputs total its record' : 'no record, no sources'}`, () => {
+      const r = c.record;
+      const s = c.sources;
+      if (!r) return expect(s ?? null).toBeNull();
+      expect(s?.demo).toBe(true);
+      if (!s) return;
+      expect(s.total).toBe(s.outputs.length);
+      expect(explain('accepted', s).counted).toHaveLength(r.accepted ?? -1);
+      expect(explain('reverts', s).counted).toHaveLength(r.reverts ?? -1);
+      expect(explain('gated', s).counted).toHaveLength(r.gated ?? -1);
+      const merged = s.outputs.filter((o) => o.inWindow && o.outcome === 'merged');
+      expect(Math.abs(explain('noEdit', s).counted.length / merged.length - (r.noEdit ?? -1))).toBeLessThan(0.005);
+      if (r.reverts === 0) expect(Math.floor((DEMO_NOW.getTime() - Date.parse(s.since)) / DAY)).toBe(r.cleanDays);
+      expect(explain('gated', s).missing.map((m) => m.iid)).toEqual(merged.filter((o) => !o.gated).map((o) => o.iid));
+      expect(s.window ?? null).toBe(r.window ?? null);
+      expect(s.excluded).toEqual(s.outputs.filter((o) => !o.inWindow).map((o) => ({ iid: o.iid, reason: 'outside_window' })));
+      expect(s.outputs.every((o) => Date.parse(o.at) >= Date.parse(s.since) && Date.parse(o.at) <= DEMO_NOW.getTime())).toBe(true);
+    });
+  }
+
+  it('no MR is an output of two classes', () => {
+    const iids = DEMO.actionClasses.flatMap((c) => c.sources?.outputs.map((o) => o.iid) ?? []);
+    expect(new Set(iids).size).toBe(iids.length);
+  });
 });

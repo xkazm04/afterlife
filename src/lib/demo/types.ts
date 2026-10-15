@@ -2,6 +2,7 @@
 // it once so every screen reads it typed. A test (demo.test.ts) checks the fixture against them.
 import type { Ceiling, Stage } from '@/schemas';
 import type { ClassCell } from '@/lib/tiers';
+import type { RecordSources } from './sources';
 import type { NeedsYouItem, SetupPhase, Task } from './deepTypes';
 
 export type * from './deepTypes';
@@ -119,6 +120,8 @@ export interface ActionClass {
   gateSeen?: GateSeen | null;
   /** The record's since (ISO), when tier-state.yml states one. Absent in the demo fixture. */
   since?: string | null;
+  /** The outputs behind the record's counts. Absent: none listed. The demo fixture's are illustrative and say so (`demo`). */
+  sources?: RecordSources | null;
 }
 
 export interface MaturityRung {

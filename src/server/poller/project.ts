@@ -152,7 +152,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
 
       // after the tasks: a class's counters count this poll's merges
       const ledgerRead = out.ledger === 'imported' || out.ledger === 'unchanged';
-      const demotions = env.policy?.ok ? await pollClasses(tx, env.policy, id, gl.id, now, cfg.rollupWindowMs, ledgerRead, env.history) : base.demotions7d;
+      const demotions = env.policy?.ok ? await pollClasses(tx, env.policy, id, gl.id, now, cfg.rollupWindowMs, ledgerRead, env.history, gl.webUrl || null) : base.demotions7d;
 
       await upsertProjects(tx, [{
         ...base, gitlabId: gl.id, state: 'watching', proofs7d: countProofs(mrs, now, cfg.rollupWindowMs), demotions7d: demotions,

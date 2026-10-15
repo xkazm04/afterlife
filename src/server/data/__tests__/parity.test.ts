@@ -34,10 +34,10 @@ const asProps = (v: unknown): unknown => JSON.parse(JSON.stringify(v)) as unknow
 
 /**
  * The class records: live, the poll's own counts, the cooldown and since tier-state.yml state (none in the fixture), the
- * gate last seen in the demo ledger and the receipt of where the record was enforced (from belay-policy's commit list
- * and the ledger); demo, the fixture's (illustrative: the demo has no ledger).
+ * gate last seen in the demo ledger, the outputs behind the counts and the receipt of where the record was enforced (from
+ * belay-policy's commit list and the ledger); demo, the fixture's (illustrative: the demo has no ledger).
  */
-const LIVE_ONLY = new Set(['cooldownUntil', 'since', 'gateSeen', 'receipt']);
+const LIVE_ONLY = new Set(['cooldownUntil', 'since', 'gateSeen', 'receipt', 'sources']);
 const noRecords = (v: unknown): unknown => JSON.parse(JSON.stringify(v), (k: string, x: unknown) => (k === 'record' ? null : LIVE_ONLY.has(k) ? undefined : x)) as unknown;
 
 /** The fixture spells "no last event" as null on six projects; the index view leaves the key out. Both draw nothing. */
@@ -100,6 +100,7 @@ describe('the poll really did write what the parity rests on (it is not just the
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')).toMatchObject({ setBy: 'operator via promotion MR !33' });
     // the poll's counts: !41 since the record's since (the seed said 16), its verdict pass, no push to it but the patcher's
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: 1, cleanDays: 4, reverts: 0, guardrailBlocks: 0, gated: 0 });
+    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.sources).toMatchObject({ web: 'https://gitlab.com/acme-lab/core-banking/ledgerline', total: 1, outputs: [{ iid: 41, outcome: 'merged', inWindow: true, edited: false, gated: false }], missing: [{ iid: 41, fact: 'tier_decision' }] }); // the outputs behind them (not the seed's demo list)
     const proof = (await listProofsFor(db, ['01J8Q4'])).get('01J8Q4');
     expect(proof?.block?.task.head_sha).toBe('a41c0ffee00000000000000000000000000000a1');
   });
