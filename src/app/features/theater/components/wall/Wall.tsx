@@ -1,35 +1,30 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useReplaySlice } from '../../hooks/useReplaySlice';
-import { GUARD_STEP, motionAt, pct } from '../../model/derive/climb';
+import { GUARD_STEP, pct } from '../../model/derive/climb';
 import type { Snapshot } from '../../model/derive/snapshots';
-import { progress } from '../../model/replay/state';
 import type { ReplayStore } from '../../model/replay/store';
 import type { Film } from '../../model/types';
 import { Cap } from './Cap';
 import styles from './Wall.module.css';
+import { sameFrame, wallFrame } from './wallFrame';
 
 const y = (v: number, lift = 0): CSSProperties => ({ '--y': `${v}%`, '--lift': lift }) as CSSProperties;
 const at = (step: number): CSSProperties => ({ bottom: `${pct(step)}%` });
 
 /**
  * The rope climb. !41 climbs nine holds with the lit rope below it and the caption beside it; !44 climbs its own
- * line, falls, and is arrested at the guardbar. This is the one part that reads the film position every frame.
+ * line, falls, and is arrested at the guardbar. This is the one part that reads the film position, and it redraws
+ * only on a frame where a climber or the caption actually moved (`wallFrame`).
  * A real film draws one climber (its MR), marks only the holds an event reached, and has no !44 line and no lit rope.
  */
 export function Wall({ store, snaps, film, quote }: { store: ReplayStore; snaps: readonly Snapshot[]; film: Film; quote: string }) {
-  const reduced = useReducedMotion();
-  const { i, p } = useReplaySlice(
-    store,
-    (s) => ({ i: s.i, p: progress(s) }),
-    (a, b) => a.i === b.i && a.p === b.p,
-  );
-  const snap = snaps[i];
-  if (!snap) return null;
   const side = film.source === 'illustrative';
-  const m = motionAt(snap.e, snap.beat, p, reduced, { from: snap.from, side });
+  // Subscribes to where the climbers are, not to the raw progress: the wall redraws when something moves.
+  const m = useReplaySlice(store, wallFrame(snaps, side), sameFrame);
+  const snap = m ? snaps[m.i] : undefined;
+  if (!m || !snap) return null;
   const m44 = snap.e.sc === 'm44';
   const mr = snap.e.ev ? `!${snap.e.ev.iid}` : '!41';
   return (
