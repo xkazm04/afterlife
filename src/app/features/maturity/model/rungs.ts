@@ -1,4 +1,8 @@
 import type { MaturityRung } from '@/lib/demo';
+import { RUNGS } from '@/schemas/stages';
+
+/** The highest rung (R4 today): the schema's rung list decides, not a literal 4 here and one in the crag. */
+export const TOP_RUNG = RUNGS.length - 1;
 
 /** A rung number 0..4, or null for unknown (never treated as zero). */
 export type Level = number | null;
@@ -25,7 +29,7 @@ export const shortMr = (mr: string | null | undefined): string => (mr ?? '').rep
  * otherwise the scan's next. Capped at R4.
  */
 export function nextOf(now: Level, scanNext: number): number {
-  return now != null && now >= scanNext ? Math.min(4, now + 1) : scanNext;
+  return now != null && now >= scanNext ? Math.min(TOP_RUNG, now + 1) : scanNext;
 }
 
 /** The rung a route is drawn at: its Day 0 high point, where it is now, or the next bolt (target, not earned). */

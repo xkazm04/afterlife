@@ -1,6 +1,7 @@
 // Crag geometry. The SVG is drawn 1:1 in CSS pixels, so labels keep their size; everything is multiplied by the
 // text-size scale (--ui-scale, D10), which the screen reads once and passes in.
 import { STAGES } from '@/schemas/stages';
+import { TOP_RUNG } from '../rungs';
 
 export interface CragGeom {
   W: number;
@@ -30,7 +31,7 @@ export function cragGeom(clientW: number, clientH: number, scale: number): CragG
   const RGT = 14 * scale;
   const TOP = 44 * scale;
   const Y0 = H - 56 * scale;
-  const step = (Y0 - TOP) / 4;
+  const step = (Y0 - TOP) / TOP_RUNG;
   const colW = (W - L - RGT) / STAGE_COUNT;
   return {
     W,

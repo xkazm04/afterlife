@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, rungText, shortMr } from './rungs';
+import { RUNGS } from '@/schemas/stages';
+import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, rungText, shortMr, TOP_RUNG } from './rungs';
 import { ctx } from './testCtx';
 
 describe('rung helpers', () => {
@@ -22,6 +23,12 @@ describe('rung helpers', () => {
     expect(nextOf(2, 2)).toBe(3);
     expect(nextOf(4, 4)).toBe(4);
     expect(nextOf(null, 2)).toBe(2);
+  });
+
+  it('the top bolt is the last rung the schema lists: next never climbs past it', () => {
+    expect(TOP_RUNG).toBe(RUNGS.length - 1);
+    expect(nextOf(TOP_RUNG, TOP_RUNG)).toBe(TOP_RUNG);
+    expect(nextOf(TOP_RUNG - 1, TOP_RUNG - 1)).toBe(TOP_RUNG);
   });
 
   it('draws day 0, now or the target by mode; unknown stays unknown', () => {
