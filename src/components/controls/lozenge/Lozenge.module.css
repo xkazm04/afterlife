@@ -40,8 +40,14 @@
   background: var(--sep);
 }
 @media (max-width: 1100px) {
+  /* visually hidden, not display:none: the word is part of the button's accessible name */
   .wd {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 @media (max-width: 900px) {
