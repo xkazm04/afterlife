@@ -10,10 +10,10 @@ export interface Reel {
   takes: readonly Take[];
 }
 
-export const ILLUSTRATIVE_REEL: Reel = { entries: REPLAY_LEDGER, takes: TAKES };
+const ILLUSTRATIVE_REEL: Reel = { entries: REPLAY_LEDGER, takes: TAKES };
 
 export const N = REPLAY_LEDGER.length;
-export const DEFAULT_DWELL_MS = 2600;
+const DEFAULT_DWELL_MS = 2600;
 export const PREROLL_MS = 2000;
 export const PREROLL_REDUCED_MS = 1000;
 /** Pause between the end of a looped take and its next roll. */
@@ -89,7 +89,7 @@ export interface Readout {
 }
 
 /** What the screen (everything but the film position) reads: it changes on entry, take, marks and transport only. */
-export interface View {
+interface View {
   reel: Reel;
   i: number;
   take: number;

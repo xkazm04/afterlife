@@ -36,7 +36,7 @@ export interface Snapshot {
 }
 
 /** Where a fold starts. */
-export type Start = Pick<Snapshot, 'now' | 'pass' | 'fail' | 'needs' | 'tiers' | 'rungs'>;
+type Start = Pick<Snapshot, 'now' | 'pass' | 'fail' | 'needs' | 'tiers' | 'rungs'>;
 
 /** A real film starts from nothing: no counts, tiers, rungs or needs the ledger did not state. */
 export const EMPTY: Start = { now: '', pass: 0, fail: 0, needs: [], tiers: {}, rungs: {} };
