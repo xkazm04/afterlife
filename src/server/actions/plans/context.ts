@@ -83,16 +83,17 @@ export const dateOnly = (d: Date): string => d.toISOString().slice(0, 10);
  */
 export const minuteOf = (d: Date): Date => new Date(Math.floor(d.getTime() / 60_000) * 60_000);
 
-/** Without the file's last commit, GitLab cannot be asked to refuse a stale write: such a write is not planned at all. */
-export const NO_LAST_COMMIT =
-  'GitLab did not say which commit last changed tier-state.yml, so a write from a stale read could not be refused; nothing is planned';
-
 /** A commit id as GitLab gives one: 40 hex digits, or 64 in a SHA-256 repository. */
 export const COMMIT_ID = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
 
-/** The file's last commit, as it goes into last_commit_id: anything that is not a commit id is no answer. */
-export function lastCommitOf(file: GlFile): string {
-  if (!file.lastCommitId || !COMMIT_ID.test(file.lastCommitId)) throw new ActionRefused(NO_LAST_COMMIT);
+/**
+ * The file's last commit, as it goes into last_commit_id. Without it GitLab cannot be asked to refuse a stale write, so such
+ * a write is not planned at all: anything that is not a commit id is no answer. `path` names the file in the refusal.
+ */
+export function lastCommitOf(file: GlFile, path = 'tier-state.yml'): string {
+  if (!file.lastCommitId || !COMMIT_ID.test(file.lastCommitId)) {
+    throw new ActionRefused(`GitLab did not say which commit last changed ${path}, so a write from a stale read could not be refused; nothing is planned`);
+  }
   return file.lastCommitId;
 }
 
