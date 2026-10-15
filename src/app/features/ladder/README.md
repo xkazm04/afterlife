@@ -66,8 +66,8 @@ Setup page (`/setup/track-<id>`), where the enrollment MR that gives it a first 
 trust-policy.yml's `promotion` block as `rulesOf` reads it: to Supervised, accepted outputs, reverts, guardrail blocks
 (`guardrail_blocks`) and "counted over the last N outputs" (`window_last`: the poll counts an assisted class over its last
 N outputs); to Hands-off, accepted outputs, merged without edits, clean days, reverts (no incident count is recorded, so none is claimed), a mechanical proof
-class (`MECHANICAL_PROOFS`: never a class the engine only stubs, `engine/proofs/stubs.ts`, so only `ledger-record`
-is not met). A step that sets `gated: all` (the repo's policy sets it on Hands-off) adds "gated outputs k / accepted", met
+class (`MECHANICAL_PROOFS`: the engine's checked classes, never one it only stubs, `engine/proofs/stubs.ts`; with
+`ledger-record` built, a class with no proof class, or one the engine does not check, is the one not met). A step that sets `gated: all` (the repo's policy sets it on Hands-off) adds "gated outputs k / accepted", met
 only when every accepted output was decided by belay-apply's gate (`gatedRule`; the counter is the poller's `gated`); a
 policy without the key draws today's rows. A step that sets `trial: {min, catches}` (none does yet) adds "next-rung trial
 n of min, c caught" (`trialRule`; the counter is the poller's `trial`, `src/schemas/trial.ts`): of the MRs whose

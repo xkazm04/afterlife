@@ -1,0 +1,7 @@
+{
+  "task": { "flow": "governor", "run_id": "flow-run-7310", "project_id": 90010001, "mr_iid": 12, "trailer": "Belay-Task: 01J9ZT9G0V3R5N7K1M3P5Q7S9U" },
+  "claims": [{ "id": "t1", "text": "The next-rung trial of ai-qa-acme-lab on qa.file-bug is recomputed from belay-ledger alone" }],
+  "claim_ids": { "trial-recomputed": "t1" },
+  "chain": { "$file": "chain.jsonl" },
+  "record": { "agent": "ai-qa-acme-lab", "class": "qa.file-bug", "since": "2026-09-20T08:00:00Z" }
+}

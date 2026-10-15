@@ -6,9 +6,9 @@ import type { Counters, Gated, PromotionRules, TrialThreshold } from './types';
 /**
  * Proof classes a machine checks in this engine version (engine/proofs/index.ts CHECKED_CLASSES); Hands-off needs one of
  * these. A class the engine only stubs (engine/proofs/stubs.ts STUB_CLASSES: it answers inconclusive, never pass) is not
- * one, so 'ledger-record' is left out until the engine builds its checker. rules.test.ts pins the set against both lists.
+ * one; none is today, since 'ledger-record' has its checker. rules.test.ts pins the set against both lists.
  */
-export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set(['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta']);
+export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set(['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta', 'ledger-record']);
 
 export const isMechanical = (proofClass: string): boolean => MECHANICAL_PROOFS.has(proofClass);
 

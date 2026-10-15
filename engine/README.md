@@ -41,11 +41,19 @@ Only `prove` inlines; `gate`, `tripwire` and `ledger` read their JSON as it is.
 - **score-delta** - base and head `belay.maturity/0` scans (what `scan` prints, parsed by `src/schemas/maturity.ts`) of
   the task's project by the same engine version: no stage's rung is lower at head. A stage unknown at both ends is
   unchanged; known at one end only, or another engine version, is inconclusive.
-- **ledger-record** - stub: `inconclusive: not implemented`, exit 2.
+- **ledger-record** - a belay-ledger chain (`chain`: the `events/<id>.jsonl` text, inline or `$file`) verifies from
+  genesis (`verifyChain`; a broken link fails, naming its seq), and the next rung's trial of a holder (`record: {agent,
+  class, since}`) is recomputed from the chain alone with the poller's own rule (`src/schemas/trial.ts`): the MRs whose
+  `tier_decision` states a `would` that acts alone, and their seq range. Optional `trial: {min, catches}`: the row must be
+  met (a catch over the bound fails; short of `min` is inconclusive). What the chain cannot state stays unresolved: it
+  holds no edit fact, close or revert, so a trial MR it shows merged is "no edit fact" and any other is "open"; the
+  poller resolves those from GitLab. On a chain with no task rows beside it, the checker's row and the poller's agree
+  (`src/server/poller/derive/__tests__/gate/chain.test.ts`). Fixtures in `__fixtures__/ledger`.
 
 Evidence that is missing, unreadable or not comparable is an `ok: null` check (inconclusive), never a pass. The three
 checkers above read JSON evidence inline or as a `$file` (its text is parsed), so a CI job writes them with
-`evidence_mode: provided`; fixtures in `__fixtures__/repro`, `bench`, `score`.
+`evidence_mode: provided`; fixtures in `__fixtures__/repro`, `bench`, `score`, `ledger`. No class is a stub any more
+(`proofs/stubs.ts` keeps the inconclusive answer for one that is named before its checker exists).
 
 The block's `verdict` is `verdictOf(checks, envelope.within)`: claims never decide. `engine` is
 `{version, sha256}`, the hash of every engine source file (tests and fixtures excluded), so a verdict pins its checker.

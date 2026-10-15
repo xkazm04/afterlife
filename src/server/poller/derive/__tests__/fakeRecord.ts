@@ -26,7 +26,7 @@ export function setTier(gl: FakeGitLab, tier: string, since: Date, cls = 'code-f
   if (p.files['tier-state.yml'] === text) throw new Error(`${cls} is not in tier-state.yml`);
 }
 
-/** trust-policy.yml with `cls`'s proof class set to `proof` (a stubbed class such as 'ledger-record' never passes). */
+/** trust-policy.yml with `cls`'s proof class set to `proof` (a class the engine does not check is never mechanical). */
 export function setProof(gl: FakeGitLab, cls: string, proof: string): void {
   const p = fileOf(gl, 'belay-policy', 'trust-policy.yml');
   const text = p.files['trust-policy.yml'] ?? '';

@@ -1,9 +1,10 @@
 // Classes that are named in the Proof Block schema but not built yet. They never pass: a stub answers
 // "inconclusive: not implemented", so a tier gate waits instead of trusting a check that does not exist.
+// None today: ledger-record, the last, has its checker (./checkers/ledgerRecord.ts).
 import type { ProofClass } from '../../src/schemas/proof';
 import type { Draft } from './common';
 
-export const STUB_CLASSES: readonly ProofClass[] = ['ledger-record'];
+export const STUB_CLASSES: readonly ProofClass[] = [];
 
 export function stub(cls: ProofClass): Draft {
   return {

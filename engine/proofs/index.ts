@@ -3,6 +3,7 @@
 import type { ProofBlock, ProofClass } from '../../src/schemas/proof';
 import { EngineError, rec } from '../core/types';
 import { benchDelta } from './checkers/benchDelta';
+import { ledgerRecord } from './checkers/ledgerRecord';
 import { repro } from './checkers/repro';
 import { scoreDelta } from './checkers/scoreDelta';
 import { assemble, parseBase, type Env } from './common';
@@ -13,7 +14,7 @@ import { rerunStats } from './rerunStats';
 import { stub, STUB_CLASSES } from './stubs';
 
 /** Classes with a real checker; src/lib/promotion's MECHANICAL_PROOFS is this list (rules.test.ts pins it). */
-export const CHECKED_CLASSES: readonly ProofClass[] = ['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta'];
+export const CHECKED_CLASSES: readonly ProofClass[] = ['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta', 'ledger-record'];
 export const PROOF_CLASSES: readonly ProofClass[] = [...CHECKED_CLASSES, ...STUB_CLASSES];
 
 export function isProofClass(v: string): v is ProofClass {
@@ -39,8 +40,10 @@ export function prove(cls: ProofClass, rawInput: unknown, env: Env): ProofBlock 
     case 'score-delta':
       return assemble(cls, base, scoreDelta(input, base.task.project_id), env);
     case 'ledger-record':
-      return assemble(cls, base, stub(cls), env);
+      return assemble(cls, base, ledgerRecord(input), env);
     default:
+      // a class named in the schema with no checker yet answers inconclusive (./stubs.ts), never a pass
+      if (STUB_CLASSES.includes(cls)) return assemble(cls, base, stub(cls), env);
       throw new EngineError(`unknown proof class ${String(cls)}`);
   }
 }

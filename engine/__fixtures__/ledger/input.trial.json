@@ -1,0 +1,8 @@
+{
+  "task": { "flow": "governor", "run_id": "flow-run-7311", "project_id": 90010001, "mr_iid": 13, "trailer": "Belay-Task: 01J9ZT9G0V3R5N7K1M3P5Q7S9V" },
+  "claims": [{ "id": "t1", "text": "ai-qa-acme-lab's next-rung trial on qa.file-bug meets trust-policy.yml's trial thresholds" }],
+  "claim_ids": { "trial-recomputed": "t1" },
+  "chain": { "$file": "chain.jsonl" },
+  "record": { "agent": "ai-qa-acme-lab", "class": "qa.file-bug", "since": "2026-09-20T08:00:00Z" },
+  "trial": { "min": 15, "catches": 0 }
+}

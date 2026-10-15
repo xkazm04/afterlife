@@ -3,6 +3,7 @@ import { EngineError } from '../../core/types';
 import { checkOf, fixture, NOW, policy } from '../../__tests__/helpers';
 import { parsePolicy } from '../../policy/load';
 import { prove, PROOF_CLASSES } from '../index';
+import { STUB_CLASSES } from '../stubs';
 import { classify, DEFAULT_THRESHOLDS } from '../rerunStats';
 
 const env = { policy: policy(), now: NOW };
@@ -100,10 +101,11 @@ describe('linked-evidence', () => {
 });
 
 describe('stubs and dispatch', () => {
-  it.each(['ledger-record'] as const)('%s answers inconclusive: not implemented', (cls) => {
-    const b = prove(cls, fixture('rerun', 'flake.json'), env);
+  it('no class is a stub any more: ledger-record given another class\'s input (no chain) is inconclusive, never a pass', () => {
+    expect(STUB_CLASSES).toEqual([]);
+    const b = prove('ledger-record', fixture('rerun', 'flake.json'), env);
     expect(b.verdict).toBe('inconclusive');
-    expect(b.checks[0]?.detail).toMatch(/inconclusive: not implemented/);
+    expect(b.checks[0]?.detail).toBe('chain is missing');
   });
 
   it('knows all eight classes, and pins every block to the engine', () => {

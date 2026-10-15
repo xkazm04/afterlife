@@ -20,11 +20,11 @@ describe('promotion', () => {
     expect(RULES).toMatchObject({ toSupervised: { accepted: 5, reverts: 0 }, toHandsOff: { accepted: 15, noEditRatio: 0.9, cleanDays: 14 } });
   });
   it('counts the Hands-off rules and says not yet', () => {
-    const p = promotion(subject({}), 'ledger-record', RULES);
+    const p = promotion(subject({}), 'human-review', RULES);
     expect(p.kind).toBe('notyet');
     if (p.kind !== 'notyet') return;
     expect(p.next).toBe('hands_off');
-    expect(p.rules.map((r) => r.met)).toEqual([false, true, false, true, false]); // ledger-record is an engine stub: never mechanical
+    expect(p.rules.map((r) => r.met)).toEqual([false, true, false, true, false]); // human-review is no class the engine checks: never mechanical
     expect(p.rules[0]).toMatchObject({ value: '9 / 15', cells: [9, 15] });
     expect(p.rules[1]?.name).toBe('merged without edits ≥ 90 %');
     expect(p.rules[2]).toMatchObject({ value: '6 / 14', cells: [6, 14] });

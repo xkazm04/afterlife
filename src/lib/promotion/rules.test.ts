@@ -82,19 +82,19 @@ describe('human_key: a precondition of the promote write, never a met eligibilit
 });
 
 describe('the mechanical proof class: a stub proof never reads met', () => {
-  it("no class the engine only stubs (engine/proofs/stubs.ts: inconclusive, never pass) is mechanical", () => {
-    expect(STUB_CLASSES.length).toBeGreaterThan(0);
+  it("no class the engine only stubs (engine/proofs/stubs.ts: inconclusive, never pass) is mechanical; none is stubbed today", () => {
+    expect(STUB_CLASSES).toEqual([]); // ledger-record has its checker (engine/proofs/checkers/ledgerRecord.ts)
     expect(STUB_CLASSES.filter((c) => MECHANICAL_PROOFS.has(c))).toEqual([]);
-    expect([isMechanical('ledger-record'), isMechanical('exploit-test')]).toEqual([false, true]);
+    expect([isMechanical('ledger-record'), isMechanical('exploit-test'), isMechanical('human-review')]).toEqual([true, true, false]);
   });
   it('every class the engine checks is mechanical, and nothing else is: the set is the engine list, no more', () => {
     expect([...MECHANICAL_PROOFS].sort()).toEqual([...CHECKED_CLASSES].sort());
     expect(PROOF_CLASSES.filter((c) => !MECHANICAL_PROOFS.has(c))).toEqual([...STUB_CLASSES]);
     expect([isMechanical('repro'), isMechanical('bench-delta'), isMechanical('score-delta'), isMechanical('human-review')]).toEqual([true, true, true, false]);
   });
-  it('so a Hands-off rule on a stub proof class is not met', () => {
-    const p = promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, noEdit: 0.94, cleanDays: 14 }) }, 'ledger-record', RULES);
-    expect([p.kind, rule(p, 'mechanical proof class')]).toEqual(['notyet', { name: 'mechanical proof class', value: 'ledger-record', met: false }]);
+  it('so a Hands-off rule on a proof class the engine does not check is not met', () => {
+    const p = promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, noEdit: 0.94, cleanDays: 14 }) }, 'human-review', RULES);
+    expect([p.kind, rule(p, 'mechanical proof class')]).toEqual(['notyet', { name: 'mechanical proof class', value: 'human-review', met: false }]);
   });
 });
 

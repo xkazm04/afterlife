@@ -35,11 +35,11 @@ describe('exit codes: 0 pass, 1 fail, 2 inconclusive or error', () => {
     expect(r.err).toMatch(/\[FAIL {1}\] test-not-weakened/);
   });
 
-  it('prove: 2 on inconclusive, including a class that is not implemented', () => {
+  it('prove: 2 on inconclusive, including evidence that is missing', () => {
     const r = cli(...PROVE('ledger-record', 'rerun', 'flake.json'));
     expect(r.code).toBe(2);
     expect(r.json.verdict).toBe('inconclusive');
-    expect(r.err).toMatch(/not implemented/);
+    expect(r.err).toMatch(/chain is missing/);
     expect(cli(...PROVE('rerun-stats', 'rerun', 'real.json')).code).toBe(1);
     expect(cli(...PROVE('cited-diff', 'cited', 'input.grounded.json')).code).toBe(0);
     expect(cli(...PROVE('linked-evidence', 'linked', 'input.broken.json')).code).toBe(1);
