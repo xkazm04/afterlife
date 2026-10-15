@@ -40,7 +40,7 @@ function go(s: ReplayState, i: number): ReplayState {
 
 function roll(s: ReplayState): ReplayState {
   const { a: ia, b: ib } = rangeOf(s);
-  if (ia < 0 || ib < 0 || ib < 0) return s;
+  if (ia < 0 || ib < ia) return s;
   const counts = s.counts.map((c, k) => (k === s.take ? c + 1 : c));
   return { ...held(s, ia), stopAt: ib, preroll: s.reduced ? PREROLL_REDUCED_MS : PREROLL_MS, counts };
 }

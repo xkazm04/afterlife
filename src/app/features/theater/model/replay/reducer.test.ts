@@ -136,6 +136,15 @@ describe('takes, marks, roll, loop', () => {
     expect(s.loopIn).toBe(0);
   });
 
+  it('does not arm a roll whose out-point lies before its in-point: it would play on past the stop to the end of the film', () => {
+    const entries = [1, 2, 3, 4, 5].map((seq) => ({ seq, t: '10:00:00' }));
+    const inverted = initialState({ entries, takes: [{ name: 'backwards', a: 4, b: 2 }] });
+    const s = run(inverted, { type: 'roll' });
+    expect(s).toBe(inverted);
+    expect(s.counts).toEqual([0]);
+    expect(s.stopAt).toBeNull();
+  });
+
   it('Space during a roll pauses it; Space again free-plays', () => {
     let s = run(initialState(), { type: 'cue', take: 0 }, { type: 'roll' }, tick(2100));
     s = run(s, { type: 'toggle' });
