@@ -165,6 +165,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           promotionOf={data.promotionOf}
           policy={policy}
           empty={shown === 0}
+          live={live}
           menuing={menus.isOpen}
           onSelect={actions.select}
           onToggleGroup={(id) => dispatch({ type: 'toggleGroup', id })}

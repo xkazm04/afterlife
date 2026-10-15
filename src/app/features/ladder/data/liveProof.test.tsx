@@ -27,7 +27,7 @@ describe('the proof class, live', () => {
     expect(loadLadderData().illustrative.tracks).toBe(true);
   });
   it('is chipped demo in the Grant section and the mechanical rule row when it comes from the tracks', () => {
-    const grant = (proofDemo: boolean) => renderToString(createElement(GrantSection, { cls, policy: null, proofClass: 'repro', proofDemo }));
+    const grant = (proofDemo: boolean) => renderToString(createElement(GrantSection, { cls, policy: null, proofClass: 'repro', proofDemo, live: true }));
     expect(grant(true)).toContain(DEMO_CHIP);
     expect(grant(false)).not.toContain(DEMO_CHIP);
     const rule = (proofDemo: boolean) => renderToString(createElement(PromotionRule, { promotion, uncounted: false, proofDemo }));

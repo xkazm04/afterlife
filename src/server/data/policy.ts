@@ -9,6 +9,8 @@ import type { PolicyRules } from './types';
 
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 const strs = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+/** A step's `gated: all`, read as guardrail_blocks is: absent (or any other value) asks nothing, so no row. */
+const gatedOf = (step: { gated?: unknown } | undefined): { gated?: 'all' } => (step?.gated === 'all' ? { gated: 'all' } : {});
 
 /** The rules a screen shows, or null when a threshold is missing (the screen then says it has no thresholds). */
 export function rulesOf(p: EnginePolicy): PolicyRules | null {
@@ -28,8 +30,8 @@ export function rulesOf(p: EnginePolicy): PolicyRules | null {
     profile: typeof p.profile === 'string' ? p.profile : null,
     cooldownDays: cooldown,
     leaseDays: num(p.grant_ttl_days),
-    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && window > 0 ? window : null },
-    toHandsOff: { accepted: accH, noEditRatio: noEdit, cleanDays: clean, humanKey: top?.human_key === true },
+    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && window > 0 ? window : null, ...gatedOf(up) },
+    toHandsOff: { accepted: accH, noEditRatio: noEdit, cleanDays: clean, humanKey: top?.human_key === true, ...gatedOf(top) },
     oneStepOn: strs(p.demotion?.one_step_on),
     quarantineOn: strs(p.demotion?.quarantine_on),
     envelope: { maxFiles: num(ho.max_files) ?? 0, maxLines: num(ho.max_lines) ?? 0, environments: strs(ho.environments) },

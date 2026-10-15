@@ -86,6 +86,7 @@ reads it "not recorded", never met. Mapped to trust-policy.yml's `promotion` blo
 | needed | not in the policy: null | - |
 | guardrailBlocks (`guardrail_blocks` column, migration 0007) | merge requests in the counts with a stated guardrail block: a `guardrail_verdict` event with `verdict: 'block'`, or a task row in state `blocked` with the label `blocked` (which `derive/task.ts` `stateOf` sets only from `guardrail::block`). A merge request blocked on any head counts, even if a later head passed. 0 only when this poll read the ledger (imported or unchanged) and every `guardrail_verdict` event in the counts states `pass` (or there is none): the gate emits one, stating the verdict, with every guardrail verdict (`gitlab/components/scripts/decide/apply-gate.mjs:56`). An event written before the ledger stated the verdict, which no task row resolves as a block, leaves it null | `assisted_to_supervised.guardrail_blocks` |
 | window (`count_window` column, migration 0007) | for an assisted class only: trust-policy.yml's `window_last`. The counts above are then taken over the holder's last that many outputs since `since`: merge requests with a stated outcome (merged, reverted, closed, guardrail- or proof-blocked) by the latest time stated for each; one still in flight is not an output. Null: counted since `since` | `assisted_to_supervised.window_last` |
+| gated (`gated` column, migration 0011, `derive/gate.ts`) | the merged outputs in the counts (by MR iid) with a `tier_decision` event for the same agent, action class and MR anywhere in the imported chain. belay-apply writes `tier_decision` only when the engine decided the gate (`gitlab/components/scripts/decide/apply-gate.mjs:46-65`: a forced run writes only its `guardrail_verdict`, and `sweep.mjs` forces a wait when it cannot derive a Proof Block), so a gated output was merged after the gate derived a proof and decided. Read from the ledger (durable, hash-chained), never from proof rows (which exist only inside the task window). Null when this poll did not read the ledger (the same `ledgerRead` rule as guardrailBlocks) | `gated: all` on either step (absent: no row). The repo's policy sets it on `supervised_to_hands_off`: the row "gated outputs k / accepted" is met only when k equals accepted |
 
 `human_key` (`supervised_to_hands_off`) is neither counted nor a met row: it is the promote write's precondition
 (`HUMAN_KEY` in `src/lib/promotion/rules.ts`, "a person merges this MR; Belay never merges it"), stated beside the rule on
@@ -93,6 +94,13 @@ Ladder and in the promote preview. Belay's only write that raises a tier is the 
 opens and never merges; Belay reads no GitLab approval setting, so the precondition is stated, not checked. Live, the poller never writes a task
 `reverted` (it reads no revert MR), so reverts rests on the tripwire. A stated guardrail block is a lower bound when other
 verdicts are unresolved: enough to read the rule unmet, never met.
+
+Beside the counters, the poll stores the gate last seen for the one holder (`gate_iid`, `gate_tier`, `gate_at` on
+`class_tier`, migration 0011; `gateSeenOf` in `derive/gate.ts`): the latest `tier_decision` for its agent and class at or
+after the record's `since`, as `{ iid, tierAtTime, at }`; null when there is none (or no `since`), and null for a class
+several agents or none hold. It is read from the ledger events the index holds, imported this poll or earlier. The
+actionClasses view and the snapshot carry it as `gateSeen`, with the record's `since`; Ladder's Grant section, its track
+headers and Setup's track page show it.
 
 The record's `cooldown_until` (stamped by the tripwire and by a revoke from `cooldown_days`) is stored on the
 `class_tier` row (migration 0009). While it is ahead of the poll's `now`, the promotion rule carries a `cooldown` row

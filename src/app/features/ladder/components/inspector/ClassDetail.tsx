@@ -24,6 +24,8 @@ export interface ClassDetailProps {
   track: Track | undefined;
   /** Live: the tracks (and so each class's proof class) are the demo catalogue's. */
   tracksDemo: boolean;
+  /** Live mode (demo: the gate last seen is the demo's, read against its own clock and marked demo; the enforcement receipt is this session's simulated revoke). */
+  live: boolean;
   promotion: Promotion;
   /** The human key read back on belay-policy (the class page's load); absent: not read. */
   humanKey?: HumanKeyRead;
@@ -39,8 +41,6 @@ export interface ClassDetailProps {
   onRevoke: (id: string, to: Tier) => void;
   onTargets: (id: string, el: HTMLElement) => void;
   onPromote: (id: string) => void;
-  /** Live mode: the enforcement receipt is the poll's (demo: this session's simulated revoke). */
-  live?: boolean;
 }
 
 /**
@@ -84,7 +84,7 @@ export function ClassDetail(p: ClassDetailProps) {
       <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} humanKey={p.humanKey} />
       <WriteSection head={WRITE_HEAD.revoke} keyName="r" to={revokeTo} view={revokeTo ? p.viewOf(c.id, revokeTo) : undefined} nothing="Nothing to revoke" />
       {ask ? <WriteSection head={ask.readmit ? WRITE_HEAD.readmit : WRITE_HEAD.promote} keyName="p" to={ask.to} view={p.promote.view} nothing="" warn={humanKeyWarning(p.humanKey)} /> : null}
-      <GrantSection cls={c} policy={p.policy} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} />
+      <GrantSection cls={c} policy={p.policy} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} live={p.live} />
       <EnforcementSection cls={c} live={!!p.live} />
       <Sec title="Who acted" aux={mine.length || ''} wide>
         <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />

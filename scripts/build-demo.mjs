@@ -60,6 +60,27 @@ const actionClasses = [
   { id: 'patch-bump', track: 'T8', ceiling: 'supervised', tier: 'quarantined', lease_days: null, record: { accepted: 7, needed: null, noEdit: 0.71, cleanDays: 0, reverts: 1 }, lastMove: '4 min ago · tripwire · guardrail_high' },
 ];
 
+// Earned on gated work, illustrative like every value here (the demo has no ledger): per class with a record, the
+// accepted outputs belay-apply's gate decided (record.gated) and the gate last seen deciding for its holder (gateSeen:
+// the MR, the tier it decided at, when; the demo's day is 2026-10-06, "now" 14:22 UTC). A class that holds Hands-off or
+// is eligible has every accepted output gated; code-fix.patch and patch-bump fall short, so the row reads unmet.
+const GATE = {
+  'dep-bump.patch': [16, 41, 'hands_off', '2026-10-06T09:29:00.000Z'],
+  'code-fix.patch': [3, 39, 'supervised', '2026-10-05T16:10:00.000Z'],
+  'report.draft': [4, 36, 'hands_off', '2026-10-05T11:20:00.000Z'],
+  'guard.block': [22, 43, 'hands_off', '2026-10-06T13:15:00.000Z'],
+  'pipeline.retry': [19, 40, 'hands_off', '2026-10-06T13:05:00.000Z'],
+  'test.quarantine': [2, 38, 'supervised', '2026-10-04T15:40:00.000Z'],
+  'ci-config.change': [5, 35, 'assisted', '2026-10-03T10:05:00.000Z'],
+  'qa.file-bug': [16, 42, 'supervised', '2026-10-06T13:52:00.000Z'],
+  'patch-bump': [5, 44, 'quarantined', '2026-10-06T14:18:00.000Z'],
+};
+for (const a of actionClasses) {
+  const g = a.record ? GATE[a.id] : undefined;
+  if (g) a.record.gated = g[0];
+  a.gateSeen = g ? { iid: g[1], tierAtTime: g[2], at: g[3] } : null; // null: no gate seen (no record, or never an agent)
+}
+
 const tiers = {
   assisted: { label: 'ASSISTED', means: 'a human triggers every step' },
   supervised: { label: 'SUPERVISED', means: 'agent acts, a human approves the outcome' },
@@ -284,6 +305,17 @@ const fleet = (() => {
     p.classTiers = Object.fromEntries(CLASS_IDS.map((c) => [c, c === 'report.submit' || c === 'tier.promote' ? (p.armed ? 'human_only' : null) : null]));
     const free = CLASS_IDS.filter((c) => p.classTiers[c] === null);
     pool.filter((t) => t !== 'human_only').forEach((t, i) => { if (free[i]) p.classTiers[free[i]] = t; });
+  }
+  // No cell sits above its class ceiling (the gate would cap it): each is lowered to the ceiling, and each project's tier
+  // counts are taken from its cells (demo.test.ts pins both).
+  const rank = (t) => order.indexOf(t);
+  for (const p of projects) {
+    for (const [c, t] of Object.entries(p.classTiers)) {
+      const ceil = actionClasses.find((a) => a.id === c)?.ceiling;
+      if (t && t !== 'human_only' && ceil && ceil !== 'human_only' && rank(t) > rank(ceil)) p.classTiers[c] = ceil;
+    }
+    p.tiers = { hands_off: 0, supervised: 0, assisted: 0, quarantined: 0, human_only: 0 };
+    for (const t of Object.values(p.classTiers)) if (t) p.tiers[t]++;
   }
   return { classes: CLASS_IDS, groups, projects };
 })();

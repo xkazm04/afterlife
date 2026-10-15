@@ -1,4 +1,6 @@
 import { FeedAge } from '@/components/status/FeedAge';
+import { GateSeenLine } from '@/components/status/GateSeenLine';
+import { DEMO_NOW } from '@/lib/demo/clock';
 import { Chip, type ChipTone } from '@/components/status/chip/Chip';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
@@ -70,6 +72,11 @@ export function StatusGallery() {
         <FeedAge ageSec={12} ok />
         <FeedAge ageSec={2400} ok={false} error="poll failed" />
         <FeedAge ageSec={null} ok={null} />
+      </Specimen>
+      <Specimen label="GateSeenLine seen / seen, demo / not seen since">
+        <GateSeenLine gate={{ iid: 41, tierAtTime: 'hands_off', at: '2026-10-06T09:29:00.000Z' }} now={DEMO_NOW} />
+        <GateSeenLine gate={{ iid: 39, tierAtTime: 'supervised', at: '2026-10-05T16:10:00.000Z' }} now={DEMO_NOW} demo />
+        <GateSeenLine gate={null} since="2026-09-20T08:00:00.000Z" now={DEMO_NOW} />
       </Specimen>
     </GallerySection>
   );

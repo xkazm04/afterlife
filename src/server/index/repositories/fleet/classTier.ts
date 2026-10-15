@@ -1,4 +1,4 @@
-import type { RecordCounters } from '@/lib/demo/types';
+import type { GateSeen, RecordCounters } from '@/lib/demo/types';
 import type { EnforcementReceipt } from '@/schemas/receipt';
 import type { Ceiling } from '@/schemas/tier';
 import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
@@ -28,6 +28,8 @@ export interface ClassTierRow {
   cooldownUntil?: Date | null;
   /** Where the record was enforced (migration 0011, poller/derive/receipt.ts). Absent or null: none derived. */
   receipt?: EnforcementReceipt | null;
+  /** The gate last seen deciding for the holder since the record's since (migration 0012, poller/derive/gate.ts). Null: none. */
+  gateSeen?: GateSeen | null;
 }
 
 const SPEC: TableSpec = {
@@ -36,7 +38,8 @@ const SPEC: TableSpec = {
   cols: {
     project_id: 'text', class_id: 'text', tier: 'text', since: 'timestamptz', set_by: 'text', lease_expires: 'timestamptz',
     accepted: 'int', needed: 'int', no_edit: 'float8', clean_days: 'int', reverts: 'int', guardrail_blocks: 'int', count_window: 'int',
-    move_kind: 'text', move_at: 'timestamptz', move_note: 'text', cooldown_until: 'timestamptz', receipt: 'jsonb',
+    gated: 'int', move_kind: 'text', move_at: 'timestamptz', move_note: 'text', cooldown_until: 'timestamptz', receipt: 'jsonb',
+    gate_iid: 'int', gate_tier: 'text', gate_at: 'timestamptz',
   },
 };
 
@@ -45,6 +48,7 @@ interface Db {
   lease_expires: Date | null; accepted: number | null; needed: number | null; no_edit: number | null;
   clean_days: number | null; reverts: number | null; guardrail_blocks: number | null; count_window: number | null; move_kind: MoveKind | null; move_at: Date | null; move_note: string | null;
   cooldown_until: Date | null; receipt: EnforcementReceipt | null;
+  gated: number | null; gate_iid: number | null; gate_tier: GateSeen['tierAtTime'] | null; gate_at: Date | null;
 }
 
 const toDb = (r: ClassTierRow): Record<string, unknown> => ({
@@ -52,19 +56,22 @@ const toDb = (r: ClassTierRow): Record<string, unknown> => ({
   lease_expires: toIso(r.leaseExpires),
   accepted: r.record?.accepted ?? null, needed: r.record?.needed ?? null, no_edit: r.record?.noEdit ?? null,
   clean_days: r.record?.cleanDays ?? null, reverts: r.record?.reverts ?? null,
-  guardrail_blocks: r.record?.guardrailBlocks ?? null, count_window: r.record?.window ?? null,
+  guardrail_blocks: r.record?.guardrailBlocks ?? null, count_window: r.record?.window ?? null, gated: r.record?.gated ?? null,
   move_kind: r.move?.kind ?? null, move_at: toIso(r.move?.at), move_note: r.move?.note ?? null,
   cooldown_until: toIso(r.cooldownUntil), receipt: r.receipt ?? null,
+  gate_iid: r.gateSeen?.iid ?? null, gate_tier: r.gateSeen?.tierAtTime ?? null, gate_at: r.gateSeen?.at ?? null,
 });
 
 /**
  * A row with some counters null is a record whose unknown counters are null; with every counter null, no record. The
- * guardrail blocks and the window are read only when stated (absent: not recorded), so a seeded record keeps its shape.
+ * guardrail blocks, the window and the gated outputs are read only when stated (absent: not recorded), so a seeded record
+ * keeps its shape.
  */
 function recordOf(r: Db): RecordCounters | null {
   const rec: RecordCounters = { accepted: r.accepted, needed: r.needed, noEdit: r.no_edit, cleanDays: r.clean_days, reverts: r.reverts };
   if (r.guardrail_blocks !== null) rec.guardrailBlocks = r.guardrail_blocks;
   if (r.count_window !== null) rec.window = r.count_window;
+  if (r.gated !== null) rec.gated = r.gated;
   return Object.values(rec).every((v) => v === null) ? null : rec;
 }
 
@@ -74,6 +81,7 @@ const fromDb = (r: Db): ClassTierRow => ({
   record: recordOf(r),
   move: r.move_kind ? { kind: r.move_kind, at: asDate(r.move_at), note: r.move_note } : null,
   cooldownUntil: asDate(r.cooldown_until), receipt: r.receipt ?? null,
+  gateSeen: r.gate_iid !== null && r.gate_tier && r.gate_at ? { iid: r.gate_iid, tierAtTime: r.gate_tier, at: new Date(r.gate_at).toISOString() } : null,
 });
 
 /** Trust classes must exist first (see upsertTrustClasses). */

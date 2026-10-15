@@ -86,6 +86,7 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
         cls={cls}
         track={tracks[cls.track]}
         tracksDemo={illustrative.tracks}
+        live={live}
         promotion={promotion}
         humanKey={humanKey}
         policy={policy}
@@ -98,7 +99,6 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
         onRevoke={actions.revoke}
         onTargets={menus.openTargets}
         onPromote={actions.promote}
-        live={live}
       />
       {menus.menus}
     </DetailPage>

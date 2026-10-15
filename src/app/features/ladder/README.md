@@ -66,7 +66,12 @@ trust-policy.yml's `promotion` block as `rulesOf` reads it: to Supervised, accep
 (`guardrail_blocks`) and "counted over the last N outputs" (`window_last`: the poll counts an assisted class over its last
 N outputs); to Hands-off, accepted outputs, merged without edits, clean days, reverts (no incident count is recorded, so none is claimed), a mechanical proof
 class (`MECHANICAL_PROOFS`: never a class the engine only stubs, `engine/proofs/stubs.ts`, so only `ledger-record`
-is not met). Live, a class's track and proof class come from the demo catalogue's tracks (`illustrative.tracks`): the
+is not met). A step that sets `gated: all` (the repo's policy sets it on Hands-off) adds "gated outputs k / accepted", met
+only when every accepted output was decided by belay-apply's gate (`gatedRule`; the counter is the poller's `gated`); a
+policy without the key draws today's rows. The Grant section adds "Gated outputs" and the gate last seen deciding for the
+holder (`GateSeenLine`, `src/components/status/`): "Gate last seen !N at <tier>, <age>", or "Gate not seen since <since>";
+a track's group header shows the freshest of its classes (`model/view/rows.ts`). Demo, the gate is the fixture's
+(illustrative: the demo has no ledger), read against the demo's clock (`DEMO_NOW`) and chipped "demo". Live, a class's track and proof class come from the demo catalogue's tracks (`illustrative.tracks`): the
 Grant section, the track's header and the mechanical row computed here chip the proof class "demo"; a rule read from the
 poll's ask (the policy's own proof class) does not. The human key is not a row: under the rows the rule states the promote write's precondition, "a person merges
 this MR; Belay never merges it" (`HUMAN_KEY`), as the promote preview does. The class page reads it back from GitLab, read only, on each load

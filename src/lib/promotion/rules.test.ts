@@ -6,8 +6,10 @@ import type { PolicyRules } from '@/server/data/types';
 import { CHECKED_CLASSES, PROOF_CLASSES } from '../../../engine/proofs';
 import { STUB_CLASSES } from '../../../engine/proofs/stubs';
 import { HUMAN_KEY, isMechanical, MECHANICAL_PROOFS, NOT_RECORDED, promotion, whyNot, type Counters } from '.';
+import { ungated } from './gate/ungated';
 
-const RULES = repoPolicy() as PolicyRules;
+// policy/trust-policy.yml without its `gated` key: the rows a policy without it yields (gate/gated.test.ts pins the key)
+const RULES = ungated(repoPolicy() as PolicyRules);
 const rec = (o: Partial<Counters> = {}): Counters => ({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: 5, ...o });
 const toSupervised = (o: Partial<Counters>, rules: PolicyRules = RULES) => promotion({ tier: 'assisted', ceiling: 'supervised', record: rec(o) }, 'exploit-test', rules);
 const rule = (p: ReturnType<typeof promotion>, name: string) => (p.kind === 'eligible' || p.kind === 'notyet' ? p.rules.find((r) => r.name === name) : undefined);

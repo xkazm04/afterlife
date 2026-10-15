@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
 import { HUMAN_KEY, isEligible, pct, promotion, whyNot, type Counters, type PromotionSubject } from '.';
+import { ungated } from './gate/ungated';
 
-// The thresholds are policy/trust-policy.yml's, read the way the server reads them for the screen.
-const RULES = repoPolicy() as PolicyRules;
+// The thresholds are policy/trust-policy.yml's, read the way the server reads them for the screen, without its `gated` key:
+// these pin the rows a policy without it yields (gate/gated.test.ts pins the key).
+const RULES = ungated(repoPolicy() as PolicyRules);
 const rec = (o: Partial<Counters> = {}) => ({ accepted: 9, needed: 15, noEdit: 1, cleanDays: 6, reverts: 0, ...o });
 const subject = (o: Partial<Pick<PromotionSubject, 'tier' | 'ceiling' | 'record' | 'ask'>>) => ({
   tier: 'supervised' as const,

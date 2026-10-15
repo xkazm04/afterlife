@@ -5,3 +5,4 @@ export * from './rungs';
 export * from './types';
 export * from './words';
 export * from './trigger/trigger';
+export * from './gate/gateSeen';

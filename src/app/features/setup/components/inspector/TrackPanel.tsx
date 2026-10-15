@@ -1,10 +1,12 @@
 'use client';
 
 import { DetailSection } from '@/components/shell/detail/DetailPage';
+import { GateSeenLine } from '@/components/status/GateSeenLine';
 import { TierMark } from '@/components/status/TierMark';
-import { TIER_META } from '@/lib/tiers';
+import { DEMO_NOW } from '@/lib/demo/clock';
+import { cellName, isStanding } from '@/lib/tiers';
+import { cellOf, RUNGS } from '@/lib/promotion/rungs';
 import { plural } from '@/lib/format/plural';
-import type { Ceiling } from '@/schemas';
 import { ARM_META } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
 import { unmet } from '../../model/flow/state';
@@ -19,8 +21,8 @@ import { StepDep } from './parts/StepDep';
 import { TrackDep } from './parts/TrackDep';
 import { TrackArmSection } from './TrackArmSection';
 
-/** Per action class: never above the install ceiling (Supervised); Hands-off is earned later, by policy MR. */
-const tierOnArming = (c: Ceiling): Ceiling => (c === 'human_only' ? 'human_only' : c === 'assisted' ? 'assisted' : 'supervised');
+/** What arming is not: Belay's arm MR adds the track's CI content, nothing in belay-policy. */
+const ARM_IS_NOT = 'Arming does not grant a tier and does not write tier-state.yml: a tier is earned on the record, by a policy MR a person merges.';
 
 const CHIP: Record<string, { tone: ChipTone; word: (a: ArmState) => string }> = {
   armed: { tone: 'ok', word: (a) => `armed${a.mr ? ` · ${a.mr}` : ''}${a.simulated ? ' · simulated' : ''}` },
@@ -32,7 +34,11 @@ const CHIP: Record<string, { tone: ChipTone; word: (a: ArmState) => string }> = 
   unknown: { tone: 'unknown', word: () => 'unknown' },
 };
 
-/** A picked track: arm, merge, disarm or why it is locked; the tier it arms at; what it needs, relies on and frees. */
+/**
+ * A picked track: arm, merge, disarm or why it is locked; where each of its classes stands now (the Ladder's own action
+ * classes, with the gate last seen deciding for each); what it needs, relies on and frees. Whether Belay has the track's
+ * arm content is the arm section's fact, apart from this one.
+ */
 export function TrackPanel({ id }: { id: string }) {
   const { state, tracks, classes, illustrative } = useSetup();
   const a = state.arm[id];
@@ -54,22 +60,27 @@ export function TrackPanel({ id }: { id: string }) {
       </DetailSection>
       <TrackArmSection id={id} />
       {mine.length ? (
-        <DetailSection
-          title="Tier on arming"
-          aux={<span title="Per action class. Never above the install ceiling (Supervised); Hands-off is earned later, by policy MR.">ceiling Supervised ⓘ</span>}
-         
-        >
+        <DetailSection title="Standing" aux={<span title={ARM_IS_NOT}>not granted by arming ⓘ</span>}>
           <div className={styles.trs}>
             {mine.map((c) => {
-              const tier = tierOnArming(c.ceiling);
+              const cell = cellOf(c);
               return (
-                <div key={c.id} className={styles.trow}>
-                  <code>{c.id}</code>
-                  <TierMark tier={tier} />
-                  <span className={styles.muted}>{TIER_META[tier].name}</span>
+                <div key={c.id}>
+                  <div className={styles.trow}>
+                    <code>{c.id}</code>
+                    {cell && !isStanding(cell) ? <TierMark tier={cell} /> : null}
+                    <span className={styles.muted}>{cellName(cell, c.holders)}</span>
+                  </div>
+                  {/* the gate decides for a class held at a tier; a person acts on a human-only one */}
+                  {(RUNGS as readonly string[]).includes(cell ?? '') ? (
+                    <div className={styles.muted}>
+                      <GateSeenLine gate={c.gateSeen} since={c.since} now={state.live ? undefined : DEMO_NOW} demo={!state.live} />
+                    </div>
+                  ) : null}
                 </div>
               );
             })}
+            <div className={styles.muted}>{ARM_IS_NOT}</div>
           </div>
         </DetailSection>
       ) : null}

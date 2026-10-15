@@ -18,15 +18,21 @@ export interface PromotionAsk {
   rules: readonly (readonly [string, string, boolean])[];
 }
 
+/**
+ * A step's `gated: all`: every accepted output it counts must have been decided by belay-apply's gate (a tier_decision
+ * event). Absent: the policy does not set it, so no rule asks it.
+ */
+export type Gated = 'all';
+
 /** trust-policy.yml's promotion block. Policy numbers, not measurements. */
 export interface PromotionRules {
   /**
    * assisted_to_supervised. `guardrailBlocks`: the most guardrail blocks allowed in the counts; `windowLast`: the counts
    * are taken over the holder's last that many outputs. Null: the policy does not set it, so no rule asks it.
    */
-  toSupervised: { accepted: number; reverts: number; guardrailBlocks: number | null; windowLast: number | null };
+  toSupervised: { accepted: number; reverts: number; guardrailBlocks: number | null; windowLast: number | null; gated?: Gated };
   /** supervised_to_hands_off. `humanKey`: a person merges the promotion (human_key: true). */
-  toHandsOff: { accepted: number; noEditRatio: number; cleanDays: number; humanKey: boolean };
+  toHandsOff: { accepted: number; noEditRatio: number; cleanDays: number; humanKey: boolean; gated?: Gated };
 }
 
 /** The class the rule is asked about. `cell` absent: the tier is the cell (the demo fixture sends none). */

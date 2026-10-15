@@ -21,7 +21,7 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   GitLab calls (16 before these reads). Step 9's commands read first, then DELETE and POST each protection: GitLab
   protects a pushed main already and a second POST answers 409. `illustrative` says what is still the catalogue's.
 - `components/map/` canvas, edge layer (SVG, measured from `[data-node]`), `columns/`, `nodes/`.
-- `components/inspector/` step / track / capability panels as page sections (`NodeBody`, `nodeHead` for the title and one-line lede); `parts/` dep lists, probe line.
+- `components/inspector/` step / track / capability panels as page sections (`NodeBody`, `nodeHead` for the title and one-line lede); `parts/` dep lists, probe line. A track's "Standing" section lists each of its classes where it stands now (the action classes the Ladder reads, through the data source) with the gate last seen deciding for it (`GateSeenLine`; demo: the fixture's, chipped "demo"), and says arming does not grant a tier and does not write tier-state.yml. Whether Belay has the track's arm content is the arm section's own fact; nothing is called "not enforced" from it.
 - `components/summary/` the strip above the map: counts and the gates only you can open.
 - `components/toolbar/` group menu, doctor lozenge (lights capabilities), Re-probe.
 - `components/shared/` DepRow, GateRow, Spinner, CapGlyph. `SetupStatus` (progress, probe age), `SetupLegend`.

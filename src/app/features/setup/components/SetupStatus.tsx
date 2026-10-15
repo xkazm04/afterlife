@@ -1,7 +1,7 @@
 'use client';
 
 import { useSetup } from '../hooks/SetupContext';
-import { useNow } from '../hooks/useNow';
+import { useNow } from '@/lib/clock/useNow';
 import { armList, armedCount, doneCount, needYouCount, stepList } from '../model/flow/state';
 import { probeAgeText } from '../model/flow/probeAge';
 import styles from './SetupStatus.module.css';

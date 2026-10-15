@@ -1,10 +1,11 @@
 // Turns the demo fixture's display strings back into instants, relative to a fixed "now". The index stores
 // instants and deadlines; the views turn them into the same strings, so the round trip is exact.
+import { DEMO_NOW } from '@/lib/demo/clock';
 import type { ClassTierRow } from '../repositories/fleet/classTier';
 import type { TaskState } from '../repositories/work/task';
 
-/** portfolio.asOf in the fixture is 14:22. */
-export const SEED_NOW = new Date('2026-10-06T14:22:00.000Z');
+/** portfolio.asOf in the fixture is 14:22: the demo's own now. */
+export const SEED_NOW = DEMO_NOW;
 
 const UNIT_MS: Record<string, number> = { min: 60_000, h: 3_600_000, d: 86_400_000 };
 

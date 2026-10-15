@@ -5,6 +5,7 @@
 import type { RecordCounters } from '@/lib/demo/types';
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { TaskDetail, TaskRow } from '@/server/index/repositories/work/task';
+import { gatedOf } from './gate';
 
 /** A record's counters, each on its own: null is one nothing states. The shape of Ladder's Counters. */
 export type ClassCounters = RecordCounters;
@@ -14,7 +15,8 @@ const DAY_MS = 86_400_000;
 export type CountedTask = Pick<TaskRow, 'agent' | 'actionClass' | 'state' | 'stateLabel' | 'startedAt' | 'finishedAt' | 'mrIid'> & {
   detail?: Pick<TaskDetail, 'edited'>;
 };
-export type CountedEvent = Pick<LedgerEvent, 'agent' | 'action_class' | 'kind' | 'at' | 'subject' | 'verdict'>;
+/** `tier_at_time` is read from a tier_decision only (./gate.ts gateSeenOf); a test's event may leave it out. */
+export type CountedEvent = Pick<LedgerEvent, 'agent' | 'action_class' | 'kind' | 'at' | 'subject' | 'verdict'> & Partial<Pick<LedgerEvent, 'tier_at_time'>>;
 
 /** What the poller holds for one project: its indexed tasks and its imported ledger. */
 export interface CounterSource {
@@ -38,7 +40,7 @@ export interface Holder {
   window?: number | null;
 }
 
-const NONE: ClassCounters = { accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null, guardrailBlocks: null, window: null };
+const NONE: ClassCounters = { accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null, guardrailBlocks: null, window: null, gated: null };
 
 type Outcome = 'merged' | 'reverted' | 'closed' | 'blocked';
 const RANK: Record<Outcome, number> = { closed: 0, blocked: 1, merged: 2, reverted: 3 };
@@ -119,15 +121,17 @@ export function countRecord(src: CounterSource, h: Holder, now: Date): ClassCoun
   const inWindow = new Set(counted.map(([iid]) => iid));
   const n = (o: Outcome) => counted.filter(([, x]) => x.outcome === o).length;
   const reverts = src.revertDemotes ? n('reverted') : null;
+  const merged = counted.filter(([, x]) => x.outcome === 'merged').map(([iid]) => iid);
   return {
     accepted: n('merged'), // a reverted merge request is not an accepted output
     needed: null, // not in trust-policy.yml: the screens show the policy's own threshold
-    noEdit: noEditOf(src, h, counted.filter(([, x]) => x.outcome === 'merged').map(([iid]) => iid)),
+    noEdit: noEditOf(src, h, merged),
     reverts,
     cleanDays: reverts === 0 ? Math.max(0, Math.floor((now.getTime() - from) / DAY_MS)) : null,
     // in the window, an output outside it does not count; a merge request that is no output yet might be the next one
     guardrailBlocks: guardrailBlocks(src, h, from, new Set(all.keys()), (iid) => window === null || inWindow.has(iid) || !all.has(iid)),
     window,
+    gated: gatedOf(src, h, merged), // the merged outputs belay-apply's gate decided (./gate.ts)
   };
 }
 

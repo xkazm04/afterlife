@@ -10130,9 +10130,15 @@
         "needed": 15,
         "noEdit": 0.94,
         "cleanDays": 14,
-        "reverts": 0
+        "reverts": 0,
+        "gated": 16
       },
-      "lastMove": "promoted 5 d ago"
+      "lastMove": "promoted 5 d ago",
+      "gateSeen": {
+        "iid": 41,
+        "tierAtTime": "hands_off",
+        "at": "2026-10-06T09:29:00.000Z"
+      }
     },
     {
       "id": "code-fix.patch",
@@ -10145,9 +10151,15 @@
         "needed": null,
         "noEdit": 0.83,
         "cleanDays": 9,
-        "reverts": 0
+        "reverts": 0,
+        "gated": 3
       },
-      "lastMove": "no change"
+      "lastMove": "no change",
+      "gateSeen": {
+        "iid": 39,
+        "tierAtTime": "supervised",
+        "at": "2026-10-05T16:10:00.000Z"
+      }
     },
     {
       "id": "report.draft",
@@ -10160,9 +10172,15 @@
         "needed": 3,
         "noEdit": 1,
         "cleanDays": 12,
-        "reverts": 0
+        "reverts": 0,
+        "gated": 4
       },
-      "lastMove": "promoted 9 d ago"
+      "lastMove": "promoted 9 d ago",
+      "gateSeen": {
+        "iid": 36,
+        "tierAtTime": "hands_off",
+        "at": "2026-10-05T11:20:00.000Z"
+      }
     },
     {
       "id": "report.submit",
@@ -10171,7 +10189,8 @@
       "tier": "human_only",
       "lease_days": null,
       "record": null,
-      "lastMove": "never an agent"
+      "lastMove": "never an agent",
+      "gateSeen": null
     },
     {
       "id": "tier.demote",
@@ -10180,7 +10199,8 @@
       "tier": "hands_off",
       "lease_days": null,
       "record": null,
-      "lastMove": "demoted patch-bump 4 min ago"
+      "lastMove": "demoted patch-bump 4 min ago",
+      "gateSeen": null
     },
     {
       "id": "tier.promote",
@@ -10189,7 +10209,8 @@
       "tier": "human_only",
       "lease_days": null,
       "record": null,
-      "lastMove": "a person, via policy MR"
+      "lastMove": "a person, via policy MR",
+      "gateSeen": null
     },
     {
       "id": "guard.block",
@@ -10202,9 +10223,15 @@
         "needed": 10,
         "noEdit": 1,
         "cleanDays": 14,
-        "reverts": 0
+        "reverts": 0,
+        "gated": 22
       },
-      "lastMove": "promoted 11 d ago"
+      "lastMove": "promoted 11 d ago",
+      "gateSeen": {
+        "iid": 43,
+        "tierAtTime": "hands_off",
+        "at": "2026-10-06T13:15:00.000Z"
+      }
     },
     {
       "id": "pipeline.retry",
@@ -10217,9 +10244,15 @@
         "needed": 15,
         "noEdit": 1,
         "cleanDays": 14,
-        "reverts": 0
+        "reverts": 0,
+        "gated": 19
       },
-      "lastMove": "promoted 3 d ago"
+      "lastMove": "promoted 3 d ago",
+      "gateSeen": {
+        "iid": 40,
+        "tierAtTime": "hands_off",
+        "at": "2026-10-06T13:05:00.000Z"
+      }
     },
     {
       "id": "test.quarantine",
@@ -10232,9 +10265,15 @@
         "needed": null,
         "noEdit": 1,
         "cleanDays": 6,
-        "reverts": 0
+        "reverts": 0,
+        "gated": 2
       },
-      "lastMove": "no change"
+      "lastMove": "no change",
+      "gateSeen": {
+        "iid": 38,
+        "tierAtTime": "supervised",
+        "at": "2026-10-04T15:40:00.000Z"
+      }
     },
     {
       "id": "ci-config.change",
@@ -10247,9 +10286,15 @@
         "needed": null,
         "noEdit": 0.8,
         "cleanDays": 10,
-        "reverts": 0
+        "reverts": 0,
+        "gated": 5
       },
-      "lastMove": "ceiling: changes what agents may do"
+      "lastMove": "ceiling: changes what agents may do",
+      "gateSeen": {
+        "iid": 35,
+        "tierAtTime": "assisted",
+        "at": "2026-10-03T10:05:00.000Z"
+      }
     },
     {
       "id": "qa.file-bug",
@@ -10262,9 +10307,15 @@
         "needed": 15,
         "noEdit": 1,
         "cleanDays": 14,
-        "reverts": 0
+        "reverts": 0,
+        "gated": 16
       },
-      "lastMove": "record 16 / 15 · eligible"
+      "lastMove": "record 16 / 15 · eligible",
+      "gateSeen": {
+        "iid": 42,
+        "tierAtTime": "supervised",
+        "at": "2026-10-06T13:52:00.000Z"
+      }
     },
     {
       "id": "patch-bump",
@@ -10277,9 +10328,15 @@
         "needed": null,
         "noEdit": 0.71,
         "cleanDays": 0,
-        "reverts": 1
+        "reverts": 1,
+        "gated": 5
       },
-      "lastMove": "4 min ago · tripwire · guardrail_high"
+      "lastMove": "4 min ago · tripwire · guardrail_high",
+      "gateSeen": {
+        "iid": 44,
+        "tierAtTime": "quarantined",
+        "at": "2026-10-06T14:18:00.000Z"
+      }
     }
   ],
   "tiers": {

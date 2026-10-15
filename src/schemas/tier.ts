@@ -28,8 +28,9 @@ export interface TrustPolicy {
   cooldown_days: number;
   grant_ttl_days?: number;
   promotion: {
-    assisted_to_supervised: { accepted: number; reverts: number; guardrail_blocks: number; window_last: number };
-    supervised_to_hands_off: { accepted: number; no_edit_ratio: number; clean_days: number; human_key: true };
+    // gated: all - every accepted output the step counts was decided by belay-apply's gate (a tier_decision event)
+    assisted_to_supervised: { accepted: number; reverts: number; guardrail_blocks: number; window_last: number; gated?: 'all' };
+    supervised_to_hands_off: { accepted: number; no_edit_ratio: number; clean_days: number; human_key: true; gated?: 'all' };
   };
   demotion: { one_step_on: DemotionTrigger[]; quarantine_on: DemotionTrigger[] };
   classes: Record<string, { agent: string; proof?: string; ceiling: Ceiling; deny_paths?: string[] }>;

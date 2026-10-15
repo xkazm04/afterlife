@@ -86,14 +86,26 @@ export interface ClassRecord {
 
 /**
  * A record as the index states it: each counter on its own, null where no task or ledger event states it (never zero).
- * The fixture's records are ClassRecords, every counter set; a polled record may know some counters only. Two facts the
- * fixture never states (absent: not recorded): `guardrailBlocks`, the guardrail blocks in the counts, and `window`, the
- * number of last outputs the counts were taken over (absent or null: everything since the record's since).
+ * The fixture's records are ClassRecords, every counter set; a polled record may know some counters only. Facts a record
+ * may not state (absent: not recorded): `guardrailBlocks`, the guardrail blocks in the counts; `window`, the number of last
+ * outputs the counts were taken over (absent or null: everything since the record's since); `gated`, the counted merged
+ * outputs belay-apply's gate decided (a tier_decision event for the same agent, class and MR in the imported ledger).
  */
 export type RecordCounters = { [K in keyof ClassRecord]: ClassRecord[K] | null } & {
   guardrailBlocks?: number | null;
   window?: number | null;
+  gated?: number | null;
 };
+
+/**
+ * The latest tier_decision belay-apply's gate wrote for a class's holder since its record's since: the MR it decided, the
+ * tier it decided at and when (ISO). The demo fixture's are illustrative (the demo has no ledger).
+ */
+export interface GateSeen {
+  iid: number;
+  tierAtTime: TierKey;
+  at: string;
+}
 
 export interface ActionClass {
   id: string;
@@ -103,6 +115,10 @@ export interface ActionClass {
   lease_days: number | null;
   record: RecordCounters | null;
   lastMove: string;
+  /** The gate last seen deciding for the holder since the record's since; null: none seen. Absent: not read (a split or unheld class). */
+  gateSeen?: GateSeen | null;
+  /** The record's since (ISO), when tier-state.yml states one. Absent in the demo fixture. */
+  since?: string | null;
 }
 
 export interface MaturityRung {

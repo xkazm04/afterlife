@@ -34,7 +34,7 @@ const eligible = (src: CounterSource, tier: ClassTierRow['tier'] = 'assisted') =
 
 describe('counters from tasks and the ledger', () => {
   it('counts merged MRs since the record, once each; no-edit stays null: merges known from the ledger alone state no edit', () => {
-    expect(countRecord(five(), { agent: AGENT, classId: CLS, since: SINCE }, NOW)).toEqual({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: null });
+    expect(countRecord(five(), { agent: AGENT, classId: CLS, since: SINCE }, NOW)).toEqual({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: null, gated: 0 });
   });
 
   it('counts nothing before since, of another agent or class, or that is not a merge', () => {
@@ -45,7 +45,7 @@ describe('counters from tasks and the ledger', () => {
   });
 
   it('a record with no since counts nothing: every counter null', () => {
-    expect(countRecord(five(), { agent: AGENT, classId: CLS, since: null }, NOW)).toEqual({ accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null, guardrailBlocks: null, window: null });
+    expect(countRecord(five(), { agent: AGENT, classId: CLS, since: null }, NOW)).toEqual({ accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null, guardrailBlocks: null, window: null, gated: null });
   });
 });
 

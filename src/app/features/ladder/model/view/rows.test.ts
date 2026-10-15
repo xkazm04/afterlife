@@ -19,6 +19,11 @@ describe('buildRows', () => {
     expect(v.flat).toEqual(['g:T8', 'g:T3', 'q', 'g:T1', 's']);
     expect(v.nav[0]).toMatchObject({ kind: 'group', expanded: false });
   });
+  it('a group carries the freshest gate last seen among its classes; none seen: null', () => {
+    const seen = (iid: number, at: string) => ({ iid, tierAtTime: 'supervised' as const, at });
+    const v = buildRows([{ ...row('p', 'T8'), gateSeen: seen(1, '2026-10-05T10:00:00Z') }, { ...row('r', 'T8'), gateSeen: seen(2, '2026-10-06T10:00:00Z') }, row('q', 'T3')], true, []);
+    expect(v.groups.map((g) => [g.id, g.gate?.iid ?? null])).toEqual([['T8', 2], ['T3', null]]);
+  });
   it('is one flat list when not grouped, ignoring collapsed groups', () => {
     const v = buildRows(vis, false, ['T8']);
     expect(v.flat).toEqual(['p', 'q', 'r', 's']);

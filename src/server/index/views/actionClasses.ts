@@ -50,6 +50,9 @@ export async function getActionClasses(db: Queryable, projectId: string, now: Da
       ...(shown.holders ? { holders: shown.holders } : {}),
       ...(r.cooldownUntil ? { cooldownUntil: r.cooldownUntil.toISOString() } : {}),
       ...(r.receipt ? { receipt: r.receipt } : {}),
+      // the record's since, and the gate last seen deciding for its holder since then (null: none seen)
+      ...(r.since ? { since: r.since.toISOString() } : {}),
+      gateSeen: r.gateSeen ?? null,
     });
   }
   return out;

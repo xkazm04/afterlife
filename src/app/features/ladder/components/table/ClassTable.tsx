@@ -9,6 +9,8 @@ import { OutlineTable } from '@/components/table/OutlineTable';
 import { RowGroup } from '@/components/table/RowGroup';
 import { minWidth, px } from '@/components/table/model/columns';
 import { rowDomId } from '@/components/table/model/rowNavigation';
+import { GateSeenLine } from '@/components/status/GateSeenLine';
+import { DEMO_NOW } from '@/lib/demo/clock';
 import type { GroupView } from '../../model/view/rows';
 import type { ClassRow, LadderSort, SortKey, TrackMap } from '../../model/types';
 import type { Promotion } from '@/lib/promotion';
@@ -23,6 +25,8 @@ const COLUMNS = [
 ].join(' ');
 const MIN_WIDTH = 902;
 const EMPTY_AFTER_NAME = 9;
+/** The group row's Last move cell (after Tier ... Clean): the freshest gate seen of its track. */
+const GATE_CELL = 7;
 
 const HEADERS: readonly { key: SortKey | null; label: string; align?: 'end' | 'center'; tip?: string }[] = [
   { key: 'name', label: 'Class' },
@@ -48,6 +52,8 @@ export interface ClassTableProps extends Omit<LineHandlers, 'onMenu'> {
   /** trust-policy.yml as the server read it: the lease and the no-edit bar the record cells are read against. */
   policy: PolicyRules | null;
   empty: boolean;
+  /** Live mode (demo: the gate last seen is the demo's, read against its own clock and marked demo). */
+  live: boolean;
   menuing: boolean;
   onToggleGroup: (id: string) => void;
   onRowMenu: (id: string, e: MouseEvent) => void;
@@ -56,7 +62,10 @@ export interface ClassTableProps extends Omit<LineHandlers, 'onMenu'> {
   tableRef: Ref<HTMLDivElement>;
 }
 
-/** The class table: groups T1-T8 with sortable headers, one row per action class. A record the poll did not count says so on its row. */
+/**
+ * The class table: groups T1-T8 with sortable headers, one row per action class. A record the poll did not count says so
+ * on its row; a group header shows the freshest gate last seen among its classes.
+ */
 export function ClassTable(p: ClassTableProps) {
   const header = (
     <>
@@ -102,9 +111,15 @@ export function ClassTable(p: ClassTableProps) {
                 onToggle={p.onToggleGroup}
                 onContextMenu={p.onGroupMenu}
               >
-                {Array.from({ length: EMPTY_AFTER_NAME }, (_, i) => (
-                  <Cell key={i} />
-                ))}
+                {Array.from({ length: EMPTY_AFTER_NAME }, (_, i) =>
+                  i === GATE_CELL && g.gate ? (
+                    <Cell key={i}>
+                      <GateSeenLine gate={g.gate} now={p.live ? undefined : DEMO_NOW} demo={!p.live} />
+                    </Cell>
+                  ) : (
+                    <Cell key={i} />
+                  ),
+                )}
               </GroupRow>
             ) : null}
             {g.open

@@ -29,8 +29,10 @@ async function polled(pushesOf: (iid: number) => string[], more?: (r: Awaited<Re
 
 describe('no-edit, counted from the merge requests\' push notes', () => {
   it('15 merged outputs, none edited (the agent pushed twice to each, itself): 1, eligible for Hands-off, and an ask opens', async () => {
-    const { record, asks } = await polled(() => [QA, QA]);
-    expect(record).toMatchObject({ accepted: 15, noEdit: 1, reverts: 0, cleanDays: 20 });
+    // the demo policy's Hands-off step sets gated: all, so belay-apply's gate decided each of them (a tier_decision event)
+    const gated = (r: Awaited<ReturnType<typeof rig>>) => appendEvents(r.gl, NOW, IIDS.map((iid) => ({ iid, daysAgo: 0.01, kind: 'tier_decision' as const, agent: QA, cls: CLS })));
+    const { record, asks } = await polled(() => [QA, QA], gated);
+    expect(record).toMatchObject({ accepted: 15, noEdit: 1, reverts: 0, cleanDays: 20, gated: 15 });
     expect(asks).toEqual([expect.objectContaining({
       id: `promote:ledgerline:${CLS}`, from: 'supervised', to: 'hands_off',
       rules: expect.arrayContaining([['merged without edits ≥ 90 %', '100 %', true]]),

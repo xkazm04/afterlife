@@ -18,7 +18,7 @@ export async function seedClassRecords(db: Queryable, projectId: string, now: Da
   const rows: ClassTierRow[] = DEMO.actionClasses.map((a) => ({
     projectId, classId: a.id, tier: a.tier, since: null, setBy: null,
     leaseExpires: a.lease_days === null ? null : new Date(now.getTime() + a.lease_days * DAY),
-    record: a.record, move: parseMove(a.lastMove, now),
+    record: a.record, move: parseMove(a.lastMove, now), gateSeen: a.gateSeen ?? null,
   }));
   await upsertClassTiers(db, rows);
 }

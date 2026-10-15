@@ -25,7 +25,7 @@ export function trustPolicyYaml(): string {
     'version: 1', 'profile: standard', 'start_tier: assisted', 'cooldown_days: 7', 'grant_ttl_days: 14',
     'promotion:',
     '  assisted_to_supervised: { accepted: 5, reverts: 0, guardrail_blocks: 0, window_last: 5 }',
-    '  supervised_to_hands_off: { accepted: 15, no_edit_ratio: 0.90, clean_days: 14, human_key: true }',
+    '  supervised_to_hands_off: { accepted: 15, no_edit_ratio: 0.90, clean_days: 14, human_key: true, gated: all }',
     'demotion:',
     '  one_step_on: [revert, reopened_finding, post_merge_proof_fail, default_branch_red_1h]',
     '  quarantine_on: [guardrail_high, budget_breach_x2]',

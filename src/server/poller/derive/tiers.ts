@@ -6,9 +6,10 @@
 // tier is the most restrictive holder's. views/standing.ts writes and reads both standings.
 // A class one agent holds gets its counters counted from the project's tasks and ledger (./counters.ts) when the caller
 // passes them: stored on its row (each counter null where nothing states it) and returned beside the rows, for the
-// promotion asks. What GitLab cannot tell Belay (a split or unheld class's stored counters, a moves note) is kept from
-// the row already in the index. With tier-state.yml's history (../stateHistory.ts), a class one agent holds also gets
-// the receipt of its record (./receipt.ts): where it was enforced. Without one, or for any other class, the receipt is null.
+// promotion asks, with the gate last seen deciding for its holder (./gate.ts). What GitLab cannot tell Belay (a split or
+// unheld class's stored counters, a moves note) is kept from the row already in the index. With tier-state.yml's history
+// (../stateHistory.ts), a class one agent holds also gets the receipt of its record (./receipt.ts): where it was enforced.
+// Without one, or for any other class, the receipt is null.
 import type { Ceiling, DemotionTrigger, TierState } from '@/schemas/tier';
 import type { ClassTierRow } from '@/server/index/repositories/fleet/classTier';
 import type { TrustClassRow } from '@/server/index/repositories/fleet/taxonomy';
@@ -17,6 +18,7 @@ import { holderStandings, standingOf } from '../../../../engine/decide/standing'
 import type { EnginePolicy } from '../../../../engine/policy/load';
 import { countRecord, type ClassCounters, type CounterSource } from './counters';
 import { receiptOf, type Enforcement } from './receipt';
+import { gateSeenOf } from './gate';
 
 /** The eight tracks, by the agent role trust-policy.yml names. */
 export const ROLE_TRACK: Readonly<Record<string, number>> = {
@@ -103,13 +105,16 @@ export function deriveTiers(
     } else tier = 'human_only'; // human_only (no agent ever holds it); 'refused' always has two holders, handled above
     let record = prev?.record ?? null;
     let receipt: ClassTierRow['receipt'] = null;
+    // the gate last seen for the one holder; a class several agents or none hold has no one holder to read it for
+    let gateSeen = counters ? null : prev?.gateSeen ?? null;
     if (rec && st.kind === 'held') {
       const counted = countRecord(counters ?? NO_SOURCE, { agent: st.agent, classId: id, since: counters ? since : null, window: windowOf(policy, tier) }, now);
       held.set(id, counted);
       if (counters) record = Object.values(counted).some((v) => v !== null) ? counted : null; // the poll's count replaces the stored one
       if (enforce) receipt = receiptOf({ agent: st.agent, classId: id, tier: st.record.tier, ceiling: c.ceiling, commits: enforce.history.commits, writer: enforce.history.writerOf(st.agent, id), events: enforce.events });
+      if (counters) gateSeen = gateSeenOf(counters.events, { agent: st.agent, classId: id, since });
     }
-    rows.push({ projectId, classId: id, tier, since, setBy: byOf(rec), leaseExpires: lease, record, move, cooldownUntil: when(rec?.cooldown_until), receipt });
+    rows.push({ projectId, classId: id, tier, since, setBy: byOf(rec), leaseExpires: lease, record, move, cooldownUntil: when(rec?.cooldown_until), receipt, gateSeen });
   });
   const cutoff = now.getTime() - windowMs;
   const demotions = Object.values(state.agents)

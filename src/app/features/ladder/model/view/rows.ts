@@ -1,5 +1,7 @@
 // The rows on screen: classes grouped by track (a group leads where its first class sorts) and the keyboard walk.
 import { groupNavId, isGroupNavId, type NavItem } from '@/components/table/model/rowNavigation';
+import type { GateSeen } from '@/lib/demo/types';
+import { freshestGate } from '@/lib/promotion/gate/gateSeen';
 import type { ClassRow } from '../types';
 
 export interface GroupView {
@@ -7,6 +9,8 @@ export interface GroupView {
   id: string;
   items: ClassRow[];
   open: boolean;
+  /** The freshest gate last seen among its classes on screen (the group header shows it); null when none was seen. */
+  gate: GateSeen | null;
 }
 
 export interface RowsView {
@@ -22,9 +26,12 @@ export function buildRows(visible: readonly ClassRow[], grouped: boolean, collap
   if (grouped) {
     const order: string[] = [];
     for (const c of visible) if (!order.includes(c.track)) order.push(c.track);
-    for (const id of order) groups.push({ id, items: visible.filter((c) => c.track === id), open: !collapsed.includes(id) });
+    for (const id of order) {
+      const items = visible.filter((c) => c.track === id);
+      groups.push({ id, items, open: !collapsed.includes(id), gate: freshestGate(items) });
+    }
   } else {
-    groups.push({ id: '', items: [...visible], open: true });
+    groups.push({ id: '', items: [...visible], open: true, gate: null });
   }
   const flat: string[] = [];
   const nav: NavItem[] = [];

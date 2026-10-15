@@ -2,7 +2,7 @@
 // is not in the list, and the alarm against the record's tier capped by the ceiling.
 import { describe, expect, it } from 'vitest';
 import type { GlCommit } from '@/server/gitlab/types';
-import { receiptOf, type ReceiptEvent, type ReceiptInput } from '../receipt';
+import { receiptOf, type ReceiptEvent, type ReceiptInput } from '../../receipt';
 
 const c = (n: number): GlCommit => ({ id: String(n).repeat(40).slice(0, 40), title: `c${n}`, committedAt: `2026-10-15T10:0${n}:00.000Z` });
 // newest first: c3 is the head, c2 wrote the record, c1 is older

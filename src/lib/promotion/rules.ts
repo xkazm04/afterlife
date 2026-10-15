@@ -1,7 +1,7 @@
 // The rows of each promotion step, against trust-policy.yml's thresholds. A row is met only by a counter a task row or a
 // ledger event states. A counter nothing states reads "not recorded" and is never met. The human key is not a row: it is
 // the precondition of the promote write (HUMAN_KEY), stated beside the rows.
-import type { Counters, PromotionRules } from './types';
+import type { Counters, Gated, PromotionRules } from './types';
 
 /**
  * Proof classes a machine checks in this engine version (engine/proofs/index.ts CHECKED_CLASSES); Hands-off needs one of
@@ -33,7 +33,21 @@ const countRule = (name: string, v: number | null, need: number): PromotionRule 
   v === null ? { name, value: NOT_RECORDED, met: false } : { name, value: `${v} / ${need}`, met: v >= need, cells: [Math.min(v, need), need] };
 
 /**
- * Assisted to Supervised: accepted, reverts, and when the policy sets them, the guardrail blocks and the window. The
+ * A step's `gated: all` (when the policy sets it): "gated outputs k / accepted", met only when every counted accepted
+ * output was decided by belay-apply's gate. Not recorded when either count is (this poll did not read the ledger).
+ */
+export function gatedRule(r: Counters, gated: Gated | undefined): PromotionRule | null {
+  if (gated !== 'all') return null;
+  const k = r.gated;
+  const n = r.accepted;
+  const name = 'gated outputs';
+  if (k === null || k === undefined || n === null) return { name, value: NOT_RECORDED, met: false };
+  return { name, value: `${k} / ${n}`, met: k === n, ...(n > 0 ? { cells: [Math.min(k, n), n] as const } : {}) };
+}
+
+/**
+ * Assisted to Supervised: accepted, reverts, and when the policy sets them, the guardrail blocks, the window and the gated
+ * outputs. The
  * window is met when the record says its counts were taken over the policy's last `window_last` outputs: a record that
  * does not say (the demo fixture's) is not recorded, one counted over another window (an older policy) is not met.
  */
@@ -43,6 +57,8 @@ export function toSupervisedRules(r: Counters, t: PromotionRules['toSupervised']
   if (max !== null) rows.push({ name: 'guardrail blocks', ...counted(r.guardrailBlocks, String, (n) => n <= max) });
   const n = t.windowLast;
   if (n !== null) rows.push({ name: `counted over the last ${n} outputs`, ...counted(r.window, (w) => `last ${w}`, (w) => w === n) });
+  const gated = gatedRule(r, t.gated);
+  if (gated) rows.push(gated);
   return rows;
 }
 
@@ -68,7 +84,7 @@ export function cooldownRule(until: string | null | undefined, now: Date): Promo
  */
 export const HUMAN_KEY = 'a person merges this MR; Belay never merges it';
 
-/** Supervised to Hands-off: the counts and the mechanical proof class. */
+/** Supervised to Hands-off: the counts, the mechanical proof class, and the gated outputs when the policy sets it. */
 export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], proofClass: string): PromotionRule[] {
   const rows: PromotionRule[] = [
     countRule('accepted outputs', r.accepted, t.accepted),
@@ -77,5 +93,7 @@ export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], pr
     { name: 'reverts', ...counted(r.reverts, String, (n) => n === 0) },
     { name: 'mechanical proof class', value: proofClass, met: isMechanical(proofClass) },
   ];
+  const gated = gatedRule(r, t.gated);
+  if (gated) rows.push(gated);
   return rows;
 }
