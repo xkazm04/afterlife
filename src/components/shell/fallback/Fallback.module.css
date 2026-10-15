@@ -1,4 +1,4 @@
-/* Self-contained: global-error renders without globals.css, so every colour has a fallback. */
+/* Self-contained: global-error replaces the root layout and gets its tokens only from its own globals.css import, so every colour keeps a fallback in case that sheet is missing. */
 .page {
   min-height: 100vh;
   display: grid;
