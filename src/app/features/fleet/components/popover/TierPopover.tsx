@@ -1,11 +1,10 @@
 import { TierMark } from '@/components/status/TierMark';
 import type { FleetProject, TierKey } from '@/lib/demo/types';
-import { holdersText, STANDING_META, TIER_META, type Standing } from '@/lib/tiers';
+import { holdersText, STANDING_META, STANDINGS, TIER_META } from '@/lib/tiers';
 import { acceptedLabel } from '../../model/inspector';
 import type { DeepProject } from '../../model/types';
 import styles from './popover.module.css';
 
-const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
 
 /**
  * What the hover card on a tier count says: which classes of this project sit at that tier (and their record). The

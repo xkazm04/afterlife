@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cellLetter, cellName, cellRank, isCeiling, splitTier, standingCount, STANDING_META, TIER_DISPLAY_ORDER, TIER_META, TIER_RANK, tiersKnown, type ClassCell } from './tiers';
+import { cellLetter, cellName, cellRank, isCeiling, splitTier, standingCount, STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META, TIER_RANK, tiersKnown, type ClassCell } from './tiers';
 
 describe('tier metadata', () => {
   it('covers every displayed tier with a unique letter', () => {
@@ -16,6 +16,13 @@ describe('tier metadata', () => {
     expect(isCeiling('supervised')).toBe(true);
     expect(isCeiling('god_mode')).toBe(false);
     expect(isCeiling(null)).toBe(false);
+  });
+});
+
+describe('standings', () => {
+  it('lists exactly the standings that have metadata, in legend order', () => {
+    expect([...STANDINGS]).toEqual(['no_record', 'refused']);
+    expect(Object.keys(STANDING_META).sort()).toEqual([...STANDINGS].sort());
   });
 });
 

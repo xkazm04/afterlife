@@ -5,11 +5,10 @@ import { TierMark } from '@/components/status/TierMark';
 import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { ProjectState, TierInfo, TierKey } from '@/lib/demo/types';
-import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
+import { STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import styles from './legend.module.css';
 
 const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
-const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
 
 /** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching and the keys. The keys are the
  * Fleet table's: the project page, which has no table, passes `keys={false}`. */
