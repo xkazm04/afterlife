@@ -14,6 +14,20 @@ Route `/`, from `src/app/(door)/page.tsx`. This is the port of the front-door co
 It sits outside the app window. **Enter Afterlife** goes to `/fleet`, and **Screens** lists every
 route.
 
+## Entrance
+
+A page load opens on the treasure gates (`components/entrance/`, the winner, B, of a three-way prototype
+contest on 2026-10-15). Two graphite leaves inlaid with cyan circuit traces meet at a seam. The Belay knot is the lock
+on the seam: its pin slides in, the knot turns, the bolts draw back and an amber crack runs along the seam. At about
+2.2 s the leaves swing outward. That is `onOpen`: the city's intro (`useDoor`'s held intro) starts under the opening
+gates. At about 3.5 s the overlay is gone (`onDone`).
+
+- **Skip and reduced motion.** Any key or click opens at once. Reduced motion shows no gates.
+- **Lite tier.** It drops the motes, flare and glow.
+- **Once per page load.** A client-side return from the app goes straight to the city.
+- **`?entrance=off`** skips the gates.
+- **Hero splash.** The splash no longer covers the answer block during the intro: the gates' lock is the brand moment.
+
 The page loads its data on the server (`data/loadDoorData.ts`, through the DataSource, so it works
 in demo and live mode). An inline script (`model/fit.ts`) fits the 1600 x 1000 stage before first
 paint. `(door)/loading.tsx` shows the night ground and the brand while the city streams in.

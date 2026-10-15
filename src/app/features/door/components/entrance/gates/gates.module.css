@@ -1,0 +1,170 @@
+/* Gates (entrance B): the overlay, its palette, its clock, the dark it emerges from, the lock button and the hint.
+   The pre-open timeline runs in CSS from first paint (2200 ms, the root's `clock`); the script reads that clock and opens
+   on time. Open is [data-gopen]: the leaves swing for --g-sw, and nothing takes the pointer any more. */
+.root {
+  --g-amber: var(--needs-you);
+  --g-amber-hot: color-mix(in oklab, var(--needs-you) 50%, var(--white));
+  --g-steel: color-mix(in oklab, var(--tint-chrome) 70%, var(--bg));
+  --g-steel-lt: color-mix(in oklab, var(--tint-chrome) 92%, var(--accent));
+  --g-steel-hi: color-mix(in oklab, var(--tint-chrome) 84%, var(--white));
+  --g-steel-lo: color-mix(in oklab, var(--tint-chrome) 30%, var(--bg));
+  --g-well: color-mix(in oklab, var(--tint-chrome) 45%, var(--bg));
+  --g-pr: min(19vmin, 190px); /* the lock plate's radius */
+  --g-sw: 1300ms; /* the swing */
+  --g-swing: cubic-bezier(0.62, 0, 0.3, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  font-family: var(--sys);
+}
+/* the clock: a dot nobody sees, whose animation the script reads (an opacity no-op on the root itself would make the
+   whole overlay one offscreen surface every frame) */
+.clock {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  animation: clock 2200ms linear both;
+}
+.root[data-gp="fast"] {
+  --g-sw: 560ms;
+  --g-swing: cubic-bezier(0.45, 0, 0.3, 1);
+}
+.root[data-gopen] {
+  pointer-events: none;
+}
+@keyframes clock {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.dark {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-grad);
+}
+.root[data-gopen] .dark {
+  animation: fade calc(var(--g-sw) * 0.4) calc(var(--g-sw) * 0.08) ease-out forwards;
+}
+@keyframes fade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* the gates: emerge from the dark (a veil lifts off them), then the camera leans in as they part */
+.gates {
+  position: absolute;
+  inset: 0;
+  perspective: 130vmax;
+}
+.veil {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%, color-mix(in oklab, var(--bg) 70%, transparent), var(--bg));
+  animation: lift 900ms 100ms ease-out both;
+}
+@keyframes lift {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.root[data-gopen] .gates {
+  animation: lean var(--g-sw) var(--g-swing) forwards;
+}
+@keyframes lean {
+  to {
+    transform: scale(1.1);
+  }
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, var(--shade-60));
+}
+.root[data-gopen] .vignette {
+  animation: fade calc(var(--g-sw) * 0.5) ease-out forwards;
+}
+
+/* the lock: the knot on the seam, a real button */
+.lock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--g-pr) * 1.42);
+  height: calc(var(--g-pr) * 1.42);
+  margin: calc(var(--g-pr) * -0.71) 0 0 calc(var(--g-pr) * -0.71);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  will-change: transform, opacity;
+}
+.lock:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.root[data-gopen] .lock {
+  animation: unlock calc(var(--g-sw) * 0.32) ease-out forwards;
+}
+@keyframes unlock {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+/* the hint, after the lock has had its moment */
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5.5vh;
+  width: max-content;
+  margin: 0 auto;
+  padding: 6px 14px 6px 18px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-pill);
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  opacity: 0;
+  animation: hint 700ms 1200ms var(--ease) forwards;
+}
+@keyframes hint {
+  to {
+    opacity: 1;
+  }
+}
+.root[data-gopen] .hint {
+  animation: none;
+  opacity: 0;
+}
+
+/* a slow machine: a shorter swing (the motes, the current's front and the flare are data-lite="off") */
+:global(html[data-door-q="lite"]) .root:not([data-gp="fast"]) {
+  --g-sw: 900ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    display: none;
+  }
+}

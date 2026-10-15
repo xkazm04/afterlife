@@ -1,7 +1,4 @@
-// The entrance prototypes' shared contract: a full-screen door over the front door, the brand mark as its lock.
-
-/** Which prototype the landing page shows (`/?entrance=a|b|c`; `off` shows none). */
-export type EntranceId = 'a' | 'b' | 'c';
+// The entrance's contract: a full-screen door over the front door, the brand mark as its lock.
 
 export interface EntranceProps {
   /**

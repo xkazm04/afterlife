@@ -1,0 +1,150 @@
+/* The lock's beats on the door's 2200 ms clock (1% = 22 ms): hexagon traced 150-800 ms, pin drawn in 900-1200,
+   seat flash 1200-1600, the half turn with light round the loop 1250-1950, the amber halo 1700-2200. */
+.knot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hex,
+.loop,
+.spark {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hex {
+  stroke: var(--accent);
+  stroke-dasharray: 1;
+  animation: hex 2200ms both;
+}
+.loop {
+  stroke: var(--tier-human);
+  animation: loop 2200ms both;
+}
+.pin {
+  fill: var(--tier-quarantined);
+  animation: pin 2200ms both;
+}
+.turn {
+  transform-box: view-box;
+  transform-origin: 32px 32px;
+  animation: turn 2200ms both;
+}
+.bloom {
+  opacity: 0.8;
+  animation: bloom 2200ms both;
+}
+.bloom .hex,
+.bloom .loop {
+  stroke-width: 5;
+}
+.spark {
+  stroke: color-mix(in oklab, var(--white) 75%, var(--accent));
+  stroke-width: 4.2;
+  stroke-dasharray: 0.13 0.37;
+  animation: spark 2200ms both;
+}
+.seat {
+  fill: none;
+  stroke: var(--tier-quarantined);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: seat 2200ms both;
+}
+.haloCy,
+.haloAm {
+  animation: haloCy 2200ms both;
+}
+.haloAm {
+  animation-name: haloAm;
+}
+.cyIn {
+  stop-color: color-mix(in oklab, var(--accent) 22%, transparent);
+}
+.amIn {
+  stop-color: color-mix(in oklab, var(--needs-you) 24%, transparent);
+}
+.out {
+  stop-color: transparent;
+}
+
+@keyframes hex {
+  0%, 6.8% {
+    stroke-dashoffset: 1;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1);
+  }
+  36.4%, 100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes loop {
+  0%, 13.6% { opacity: 0; }
+  36.4%, 81.8% { opacity: 0.5; }
+  91%, 100% { opacity: 1; }
+}
+@keyframes pin {
+  0%, 40.9% {
+    opacity: 0;
+    transform: translate(7px, -12px);
+    animation-timing-function: cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+  45% { opacity: 1; }
+  54.5%, 100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes seat {
+  0%, 54.5% {
+    opacity: 0;
+    transform: scale(1);
+    animation-timing-function: ease-out;
+  }
+  55% { opacity: 0.9; }
+  72.7%, 100% {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+}
+@keyframes turn {
+  0%, 56.8% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.25, 1);
+  }
+  86.4%, 100% {
+    transform: rotate(180deg);
+  }
+}
+@keyframes spark {
+  0%, 56% {
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+  59% { opacity: 1; }
+  88.6% {
+    opacity: 1;
+    stroke-dashoffset: -1;
+  }
+  94%, 100% {
+    opacity: 0;
+    stroke-dashoffset: -1.15;
+  }
+}
+@keyframes bloom {
+  0%, 13% { opacity: 0; }
+  36.4%, 80% { opacity: 0.55; }
+  92%, 100% { opacity: 1; }
+}
+@keyframes haloCy {
+  0%, 6% { opacity: 0; }
+  36.4% { opacity: 0.7; }
+  57% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+@keyframes haloAm {
+  0%, 77% { opacity: 0; }
+  100% { opacity: 1; }
+}

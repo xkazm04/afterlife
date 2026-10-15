@@ -6,9 +6,7 @@ import type { Holder } from '@/lib/tiers';
 import { FilterChip } from './components/chrome/FilterChip';
 import { Splash } from './components/chrome/Splash';
 import { BottomChrome, TopChrome } from './components/chrome/Chrome';
-import { Entrance } from './components/entrance/Entrance';
-import { EntrancePicker } from './components/entrance/Picker';
-import type { EntranceId } from './components/entrance/types';
+import { Entrance, enteredBefore } from './components/entrance/Entrance';
 import { L2View } from './components/l2/L2View';
 import type { Deep } from './components/l2/L2Panel';
 import { Rail } from './components/rail/Rail';
@@ -39,12 +37,13 @@ export interface DoorData {
  * project a tower, each waiting decision an amber beam. Click a district to open it, a tower to lift it out; Esc goes
  * back up; Enter Afterlife goes into the app.
  */
-export function DoorScreen({ data, entrance = null }: { data: DoorData; entrance?: EntranceId | null }) {
+export function DoorScreen({ data, entrance = true }: { data: DoorData; entrance?: boolean }) {
   useStageFit();
   useQuality();
-  const s = useDoor(data.groups, data.projects, entrance != null);
-  // the entrance covers the city until it opens; the city's intro starts under the opening door
-  const [door, setDoor] = useState<'shut' | 'open' | 'gone'>(entrance ? 'shut' : 'gone');
+  // the entrance covers the city until it opens (once a page load: a return from the app goes straight to the city);
+  // the city's intro starts under the opening door
+  const [door, setDoor] = useState<'shut' | 'open' | 'gone'>(() => (entrance && !enteredBefore() ? 'shut' : 'gone'));
+  const s = useDoor(data.groups, data.projects, door === 'shut');
   const { startIntro } = s;
   const onDoorOpen = useCallback(() => {
     setDoor('open');
@@ -147,8 +146,7 @@ export function DoorScreen({ data, entrance = null }: { data: DoorData; entrance
       <TopChrome org={data.org} asOf={data.asOf} />
       <BottomChrome crumbs={crumbs} onBack={s.level > 0 ? s.up : null} onGo={onGo} />
       <div className={styles.grain} data-lite="off" aria-hidden />
-      {entrance && door !== 'gone' ? <Entrance id={entrance} onOpen={onDoorOpen} onDone={onDoorDone} /> : null}
-      {entrance && door === 'gone' ? <EntrancePicker current={entrance} /> : null}
+      {door !== 'gone' ? <Entrance onOpen={onDoorOpen} onDone={onDoorDone} /> : null}
     </div>
   );
 }

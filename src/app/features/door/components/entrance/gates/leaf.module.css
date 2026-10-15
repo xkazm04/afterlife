@@ -1,0 +1,171 @@
+/* A gate leaf: graphite slab, bevels as static shadows, the filigree, the plate half and the swing. Pre-open beats run
+   on the door's 2200 ms clock (1% = 22 ms); the swing runs once the root says open ([data-gopen], --g-sw long). */
+.leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.l {
+  left: 0;
+  transform-origin: 0 50%;
+}
+.r {
+  right: 0;
+  transform-origin: 100% 50%;
+}
+.face {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.r .face {
+  transform: scaleX(-1);
+}
+:global([data-gopen]) .l {
+  animation: swingL var(--g-sw) var(--g-swing) forwards;
+}
+:global([data-gopen]) .r {
+  animation: swingR var(--g-sw) var(--g-swing) forwards;
+}
+@keyframes swingL {
+  to {
+    transform: rotateY(-96deg);
+  }
+}
+@keyframes swingR {
+  to {
+    transform: rotateY(96deg);
+  }
+}
+
+/* the slab: lit faintly from the lock, darker toward the hinge; a hairline gap on the seam */
+.panel {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 55% at 100% 50%, color-mix(in oklab, var(--accent) 7%, transparent), transparent 70%),
+    radial-gradient(90% 60% at 70% 0%, color-mix(in oklab, var(--white) 3%, transparent), transparent 70%),
+    repeating-linear-gradient(90deg, color-mix(in oklab, var(--white) 1.4%, transparent) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, var(--g-steel-lo), var(--g-steel) 55%, var(--g-steel-lt));
+  box-shadow:
+    inset -1px 0 0 var(--shade-60),
+    inset -2px 0 0 color-mix(in oklab, var(--accent) 22%, transparent),
+    inset 1px 0 0 var(--shade-60);
+}
+/* the recessed field inside a raised stile: deep shadow under the top-left lip, a light catch on the bottom-right */
+.field {
+  position: absolute;
+  inset: 4.2vmin 3.4vmin;
+  border-radius: 0.6vmin;
+  background: linear-gradient(160deg, var(--g-well), color-mix(in oklab, var(--g-well) 70%, var(--bg)));
+  box-shadow:
+    inset 1vmin 1.2vmin 2.2vmin var(--shade-60),
+    inset -1px -1px 0 color-mix(in oklab, var(--white) 7%, transparent),
+    0 0 0 1px var(--shade-60),
+    0 0 0 0.55vmin var(--g-steel-lt),
+    -1px -1px 0 0.55vmin color-mix(in oklab, var(--white) 9%, transparent),
+    0 0 0 calc(0.55vmin + 1px) var(--shade-55);
+}
+.field::after {
+  content: '';
+  position: absolute;
+  inset: 1.5vmin;
+  border: 1px solid color-mix(in oklab, var(--accent) 11%, transparent);
+  border-radius: 0.4vmin;
+}
+
+/* the filigree: dim lines at rest, then the current's copy revealed hinge to lock (two counter-moving transforms, so
+   the lines stand still while the window over them opens; nothing repaints) */
+.sweep,
+.sweepIn {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.sweep {
+  overflow: hidden;
+  animation: sweep 2200ms both;
+}
+.sweepIn {
+  animation: sweepIn 2200ms both;
+}
+@keyframes sweep {
+  0%, 13.6% {
+    transform: translateX(-100%);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.6, 1);
+  }
+  56.8%, 100% {
+    transform: none;
+  }
+}
+@keyframes sweepIn {
+  0%, 13.6% {
+    transform: translateX(100%);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.6, 1);
+  }
+  56.8%, 100% {
+    transform: none;
+  }
+}
+/* the current's wavefront: rides the window's edge (same keyframes, not clipped), a soft tall bar */
+.front {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+  animation: sweep 2200ms both;
+}
+.bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -5%;
+  width: 10%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--accent) 30%, transparent), color-mix(in oklab, var(--accent) 8%, transparent) 55%, transparent);
+  animation: front 2200ms both;
+}
+@keyframes front {
+  0%, 14% { opacity: 0; }
+  22%, 50% { opacity: 1; }
+  60%, 100% { opacity: 0; }
+}
+/* the treasure's spill on the face near the seam; the shade that takes the face as it swings off the light */
+.warm,
+.shade {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.warm {
+  background:
+    radial-gradient(30% 34% at 100% 50%, color-mix(in oklab, var(--g-amber) 16%, transparent), transparent),
+    linear-gradient(270deg, color-mix(in oklab, var(--g-amber) 24%, transparent), color-mix(in oklab, var(--g-amber) 5%, transparent) 8%, transparent 22%);
+  animation: warm 2200ms both;
+}
+@keyframes warm {
+  0%, 79% { opacity: 0; }
+  98%, 100% { opacity: 1; }
+}
+.shade {
+  background: var(--bg);
+}
+:global([data-gopen]) .shade {
+  animation: shade var(--g-sw) ease-in forwards;
+}
+@keyframes shade {
+  to { opacity: 0.6; }
+}
+/* the leaf's thickness: turned edge-on behind the seam, lit amber by the chamber as the leaf swings */
+.edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 3.4vmin;
+  transform-origin: 100% 50%;
+  transform: rotateY(-90deg);
+  background: linear-gradient(90deg, var(--g-steel-lo), color-mix(in oklab, var(--g-amber) 45%, var(--g-steel)));
+}

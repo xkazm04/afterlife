@@ -1,0 +1,160 @@
+/* The treasure light on the seam: crack and glow from 1800 ms of the 2200 ms clock (1% = 22 ms), motes from ~1.7 s,
+   and the flare once the root says open ([data-gopen]). Gradients are static; only opacity and transform move. */
+.light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.core,
+.glow,
+.motes {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+}
+.core {
+  width: 3px;
+  margin-left: -1.5px;
+  background: linear-gradient(transparent, var(--g-amber) 16%, var(--g-amber-hot) 42% 58%, var(--g-amber) 84%, transparent);
+  transform: scaleY(0);
+  will-change: transform, opacity;
+  animation: crack 2200ms both;
+}
+.glow {
+  top: -10vh;
+  bottom: -10vh;
+  width: 24vw;
+  margin-left: -12vw;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--g-amber) 30%, transparent),
+    color-mix(in oklab, var(--g-amber) 10%, transparent) 38%,
+    transparent
+  );
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: glow 2200ms both;
+}
+@keyframes crack {
+  0%, 82% {
+    transform: scaleY(0);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.3, 1);
+  }
+  97.7%, 100% {
+    transform: none;
+  }
+}
+@keyframes glow {
+  0%, 82% {
+    opacity: 0;
+    transform: scaleX(0.2);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+:global([data-gopen]) .core {
+  animation: coreOpen calc(var(--g-sw) * 0.3) ease-out forwards;
+}
+:global([data-gopen]) .glow {
+  animation: glowOpen calc(var(--g-sw) * 0.45) ease-out forwards;
+}
+@keyframes coreOpen {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scaleX(3);
+  }
+}
+@keyframes glowOpen {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scaleX(1.6);
+  }
+}
+
+/* motes: drifting up and out of the seam, each on its own loop */
+.motes {
+  width: 0;
+}
+.mote {
+  position: absolute;
+  left: 0;
+  border-radius: 50%;
+  background: var(--g-amber-hot);
+  box-shadow: 0 0 6px 1px color-mix(in oklab, var(--g-amber) 70%, transparent);
+  opacity: 0;
+  animation-name: mote;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: backwards;
+}
+@keyframes mote {
+  from {
+    opacity: 0;
+    transform: none;
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy));
+  }
+}
+:global([data-gopen]) .motes {
+  animation: fade calc(var(--g-sw) * 0.7) ease-out forwards;
+}
+@keyframes fade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* the flare: floods the parting gap, then gives way to the city's own light */
+.flare {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 110vmax;
+  height: 110vmax;
+  margin: -55vmax 0 0 -55vmax;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--g-amber-hot) 80%, transparent),
+    color-mix(in oklab, var(--g-amber) 32%, transparent) 16%,
+    color-mix(in oklab, var(--g-amber) 6%, transparent) 42%,
+    transparent 64%
+  );
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+:global([data-gopen]) .flare {
+  animation: flare var(--g-sw) ease-out forwards;
+}
+@keyframes flare {
+  from {
+    opacity: 0;
+    transform: scale(0.2, 0.7);
+  }
+  12% {
+    opacity: 0.95;
+  }
+  45% {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
