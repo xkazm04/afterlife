@@ -8,6 +8,7 @@ import { Window } from '@/components/shell/Window';
 import { ReceiptChain } from './components/chain/ReceiptChain';
 import { Court } from './components/court/Court';
 import { Docket } from './components/docket/Docket';
+import { taskHref } from './components/docket/taskHref';
 import { VerdictEquation } from './components/equation/VerdictEquation';
 import { TaskHeader } from './components/header/TaskHeader';
 import { TaskLegend } from './components/help/TaskLegend';
@@ -49,7 +50,7 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
   const applyFilters = (next: Filters) => {
     setFilters(next);
     const id = idAfterFilter(visibleTasks(tasks, next), task.id);
-    if (id) router.replace(`/task/${id}`);
+    if (id) router.replace(taskHref(id));
   };
   const onPick = (side: Side, id: string) => {
     if (!replay.running) pick(side, id);
@@ -61,8 +62,8 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
       const id = stepTask(visible, task.id, a.delta);
       if (!id) return;
       const fromDocket = !!document.activeElement?.closest('[data-docket]');
-      router.replace(`/task/${id}`);
-      if (fromDocket) requestAnimationFrame(() => focus(`[data-docket] a[href="/task/${id}"]`));
+      router.replace(taskHref(id));
+      if (fromDocket) requestAnimationFrame(() => focus(`[data-docket] a[href="${taskHref(id)}"]`));
     } else if (a.type === 'replay') replay.start();
     else if (a.type === 'words') {
       setInspOpen(true);

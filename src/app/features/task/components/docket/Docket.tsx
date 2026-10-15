@@ -3,6 +3,7 @@ import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import type { TaskView } from '../../model/types';
 import { docketCount } from '../../model/docket/filters';
 import { derivedVerdict, verdictGlyph, verdictKind } from '../../model/verdict/verdict';
+import { taskHref } from './taskHref';
 import styles from './Docket.module.css';
 
 /**
@@ -20,7 +21,7 @@ export function Docket({ tasks, visible, currentId, onClear }: { tasks: readonly
             return (
               <SidebarItem
                 key={t.id}
-                href={`/task/${t.id}`}
+                href={taskHref(t.id)}
                 current={t.id === currentId}
                 icon={<span className={kind === 'bad' ? styles.bad : kind === 'ok' ? styles.ok : undefined}>{verdictGlyph(v.verdict)}</span>}
                 label={t.title}
