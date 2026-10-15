@@ -11,9 +11,12 @@ export class LedgerParseError extends Error {
   }
 }
 
-const KINDS: readonly LedgerKind[] = ['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event'];
-const SUBJECTS = ['mr', 'issue', 'pipeline', 'vulnerability', 'deployment'] as const;
-const OBSERVERS = ['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job'] as const;
+/** A list of exactly the members of union T: a member the list lacks, or one T does not have, is a compile error. */
+const every = <T extends string>() => <const L extends readonly T[]>(list: L & ([Exclude<T, L[number]>] extends [never] ? unknown : never)): L => list;
+
+const KINDS = every<LedgerKind>()(['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event']);
+const SUBJECTS = every<LedgerEvent['subject']['type']>()(['mr', 'issue', 'pipeline', 'vulnerability', 'deployment']);
+const OBSERVERS = every<LedgerEvent['observed_by']>()(['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job']);
 const HASH = /^[0-9a-f]{64}$/;
 
 type Rec = Record<string, unknown>;
