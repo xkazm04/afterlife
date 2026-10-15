@@ -83,19 +83,23 @@ export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Pr
   const noProject = (): Verdict => ({ status: 'unknown', basis: 'none', reason: 'the group has no project yet to probe' });
   const onProject = (path: string, note?: string): Promise<Verdict> | Verdict =>
     project === null ? noProject() : get(port, `projects/${project}/${path}`, note);
+  // A 403/404 on a group route is a verdict on the plan only when the group itself answered: a wrong BELAY_GROUP_ID or a
+  // group the login cannot see answers 404/403 on every route, which says nothing about what the plan has.
+  const onGroup = (path: string): Promise<Verdict> | Verdict =>
+    grp === null ? { status: 'unknown', basis: 'none', reason: `group ${group} could not be read, so its endpoints cannot be judged` } : get(port, `${g}/${path}`);
 
   const rows: Array<[string, string, Promise<Verdict> | Verdict]> = [
     ['pipelines', 'pipelines and jobs', onProject('pipelines?per_page=1')],
-    ['merge_requests', 'merge requests (group)', get(port, `${g}/merge_requests?per_page=1`)],
-    ['releases', 'releases (group)', get(port, `${g}/releases?per_page=1`)],
+    ['merge_requests', 'merge requests (group)', onGroup('merge_requests?per_page=1')],
+    ['releases', 'releases (group)', onGroup('releases?per_page=1')],
     ['ci_components', 'CI/CD components', classifyComponents(inst?.version ?? null)],
     ['security_reports', 'SAST and other security reports in MRs', classifyPlan(plan, 'ultimate', 'security report views')],
     ['custom_flows', 'custom flows (Duo Agent Platform)', { status: 'unknown', basis: 'none', reason: 'no REST read endpoint (GraphQL only); the doctor sends only GETs' }],
     ['flows_api', 'Flows API (start and trace flows)', get(port, 'ai/duo_workflows/workflows', '404 may also mean this list route does not exist; confirm on the trial')],
-    ['service_accounts', 'service accounts (group)', get(port, `${g}/service_accounts?per_page=1`)],
+    ['service_accounts', 'service accounts (group)', onGroup('service_accounts?per_page=1')],
     ['deployment_approvals', 'deployment approvals', classifyPlan(plan, 'premium', 'deployment approval rules')],
     ['vulnerability_api', 'vulnerability API', project === null ? classifyPlan(plan, 'ultimate', 'the vulnerability report') : onProject('vulnerabilities?per_page=1')],
-    ['audit_events', 'audit events (group)', get(port, `${g}/audit_events?per_page=1`)],
+    ['audit_events', 'audit events (group)', onGroup('audit_events?per_page=1')],
   ];
   const verdicts = await Promise.all(rows.map((r) => r[2]));
   return {
