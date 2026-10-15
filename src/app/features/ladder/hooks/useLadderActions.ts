@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { TIER_META } from '@/lib/tiers';
 import { NO_ANSWER, commitOf, outcomeOf } from '@/server/actions/words';
-import { actsFrom, revokeTarget } from '../model/rules/tiers';
+import { actsFrom, revokeTarget, selectHint } from '../model/rules/tiers';
 import { PENDING_MS, nextSha } from '../model/state/commit';
 import type { LadderSeed } from '../model/state/state';
 import type { Ceiling, Tier } from '../model/types';
@@ -136,7 +136,7 @@ export function useLadderActions({
   const revokeKey = useCallback(
     (want: 'step' | 'quarantine') => {
       const c = latest.current.selected;
-      if (!c) return status('Select a class · r revokes one step');
+      if (!c) return status(selectHint(want));
       const to = revokeTarget(actsFrom(c), want);
       if (to) revoke(c.id, to);
       else status(want === 'quarantine' ? `Nothing to quarantine on ${c.id}` : `Nothing to revoke on ${c.id}`);

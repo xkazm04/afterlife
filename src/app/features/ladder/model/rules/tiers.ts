@@ -41,6 +41,9 @@ export function revokeTarget(tier: Ceiling | null, want: 'step' | 'quarantine' =
   return lower[0] ?? null;
 }
 
+/** The status line when `r` or `q` is pressed with no class selected: it names the key that was pressed. */
+export const selectHint = (want: 'step' | 'quarantine'): string => `Select a class · ${want === 'quarantine' ? 'q quarantines it' : 'r revokes one step'}`;
+
 /** Why `r` does nothing, for the dock line. */
 export function nothingToRevoke(c: Shown): string {
   const cell = cellOf(c);
