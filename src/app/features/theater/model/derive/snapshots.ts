@@ -3,7 +3,7 @@
 import type { Ceiling, Stage } from '@/schemas';
 import { TIER_RANK } from '@/lib/tiers';
 import { INITIAL } from '../../data/constants';
-import { indexOfSeq } from '../replay/state';
+import { takeSpan } from '../replay/state';
 import type { CheckId, Film, LedgerEntry, NeedItem } from '../types';
 import { ageText, secs } from './time';
 
@@ -96,8 +96,7 @@ export function buildSnapshots(ledger: readonly LedgerEntry[], stages: readonly 
 export function filmSnapshots(film: Pick<Film, 'source' | 'entries' | 'takes'>, stages: readonly Stage[]): Snapshot[] {
   if (film.source === 'illustrative') return buildSnapshots(film.entries, stages);
   return film.takes.flatMap((t) => {
-    const a = indexOfSeq(t.a, film);
-    const b = indexOfSeq(t.b, film);
+    const { a, b } = takeSpan(t, film);
     if (a < 0 || b < a) return [];
     return buildSnapshots(film.entries.slice(a, b + 1), stages, EMPTY).map((s) => ({ ...s, i: s.i + a }));
   });
