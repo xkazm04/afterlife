@@ -55,7 +55,7 @@ export function insertBlock(text: string, a: TrackArm, group: string, pin: ArmPi
     return { ok: false, reason: "main's .gitlab-ci.yml writes include: on one line; Belay adds to a block list only, so make it a list first" };
   }
   const next = lines.slice(key + 1).find(significant);
-  const item = next ? /^(\s+)- /.exec(next) : null;
+  const item = next ? /^(\s*)- /.exec(next) : null; // the list may sit at the key's own indent
   if (next && /^\s/.test(next) && !item) return { ok: false, reason: "main's .gitlab-ci.yml has an include: that is not a list; Belay will not rewrite it" };
   const added = armBlock(a, group, pin, item?.[1] ?? '  ', false, at);
   const out = [...lines.slice(0, key + 1), ...added, ...lines.slice(key + 1)];
