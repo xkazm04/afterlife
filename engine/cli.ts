@@ -10,6 +10,7 @@ import { proveCommand } from './commands/prove';
 import { scanCommand } from './commands/scan';
 import { tripwireCommand } from './commands/tripwire';
 import { EngineError, type CommandResult, type Ctx, type ExitCode } from './core/types';
+import { ENGINE_VERSION, engineFiles, engineSha256 } from './core/version';
 
 export interface Io {
   stdout: (s: string) => void;
@@ -25,6 +26,11 @@ const COMMANDS: Record<string, (argv: readonly string[], ctx: Ctx) => CommandRes
   tripwire: tripwireCommand,
   ledger: ledgerCommand,
   scan: scanCommand,
+  // The pin every Proof Block carries, with the files it covers: the import closure of this file.
+  pin: () => {
+    const files = engineFiles();
+    return { json: { version: ENGINE_VERSION, sha256: engineSha256(), files }, summary: `engine ${ENGINE_VERSION} pinned over ${files.length} files`, code: 0 };
+  },
 };
 
 const USAGE = `usage: engine/cli.ts <command> [options]
@@ -34,6 +40,7 @@ const USAGE = `usage: engine/cli.ts <command> [options]
   tripwire --policy <p> --state <tier-state.yml> --event <event.json>
   ledger append --event <event.json> --chain <events.jsonl> [--write]
   scan --facts <facts.json>
+  pin
 exit: 0 pass, 1 fail, 2 inconclusive or error`;
 
 export function main(argv: readonly string[], io: Io = { stdout: (s) => process.stdout.write(s), stderr: (s) => process.stderr.write(s) }): ExitCode {
