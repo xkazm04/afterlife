@@ -43,7 +43,7 @@ export function FleetLegend({ tiers, keys = true }: { tiers: Record<TierKey, Tie
       {keys ? (
         <>
           <hr />
-          <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open the project page · / search · right-click for actions</div>
+          <div className={styles.keys}>↑↓ Home End move · ←→ collapse · ↩ open the project page · / or type to search · right-click or Menu key for actions</div>
         </>
       ) : null}
     </>

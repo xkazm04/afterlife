@@ -12,6 +12,11 @@ describe('FleetLegend keys line', () => {
     expect(render()).toContain('open the project page');
   });
 
+  it('names every way the table is driven: Home/End, typing to search, the Menu key', () => {
+    const out = render();
+    for (const word of ['Home', 'End', 'type to search', 'Menu key']) expect(out).toContain(word);
+  });
+
   it('is left out where there is no table to move through', () => {
     const out = render(false);
     expect(out).not.toContain('open the project page');
