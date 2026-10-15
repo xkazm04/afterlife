@@ -43,3 +43,6 @@ export const isEligible = (p: Promotion): boolean => p.kind === 'eligible';
 
 /** The Needs-you item the poller opens for an eligible class (poller/derive/promotion.ts): one id, both sides. */
 export const promotionId = (projectId: string, classId: string): string => `promote:${projectId}:${classId}`;
+
+/** The Needs-you item the poller opens for a tripwire quarantine (poller/derive/readmit.ts): one id, both sides. */
+export const readmitId = (projectId: string, classId: string): string => `readmit:${projectId}:${classId}`;

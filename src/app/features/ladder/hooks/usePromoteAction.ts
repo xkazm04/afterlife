@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { TIER_META } from '@/lib/tiers';
-import { whyNot } from '@/lib/promotion';
+import { readmitId, whyNot } from '@/lib/promotion';
 import { NO_ANSWER, mrOf, outcomeOf } from '@/server/actions/words';
 import { promoteAsk, sentWords } from '../model/rules/promote';
 import { promoteIntent, sendPromote } from '../write/promote';
@@ -54,7 +54,9 @@ export function usePromoteAction(project: string, data: LadderData, promos: Prom
       if (sending.current.has(key)) return status('Already sending this write');
       sending.current.add(key);
       status(`Sending ${what} as a policy MR…`);
-      sendPromote(promoteIntent(project, a.id, a.to, a.proposal), view)
+      // a re-admit always names its Needs-you item: closing one that is not open is a no-op, so no second MR is planned there
+      const proposal = a.proposal ?? (a.readmit ? readmitId(project, a.id) : undefined);
+      sendPromote(promoteIntent(project, a.id, a.to, proposal), view)
         .then((r) => {
           const o = r && outcomeOf(r, what);
           if (!o) return;

@@ -2,6 +2,7 @@
 // Proposals are matched by (kind, title), so one that is already in the inbox (seeded, or opened by an earlier poll)
 // is never duplicated, and only the proposals this module opened are closed when the quarantine ends. One a person acted on
 // (or dismissed) at or after the quarantine's since is not opened again: the re-admit MR is theirs to merge.
+import { readmitId } from '@/lib/promotion';
 import type { ProposalRow } from '@/server/index/repositories/work/proposal';
 import { isSettled } from './promotion';
 import type { Quarantine } from './tiers';
@@ -16,7 +17,7 @@ const REASON: Record<string, string> = {
 };
 
 export const READMIT_DOES = 'Re-admits at Assisted at most, never at its old tier.';
-export const readmitId = (projectId: string, classId: string): string => `readmit:${projectId}:${classId}`;
+export { readmitId };
 
 export const readmitTitle = (q: Quarantine): string => `Re-admit ${q.track === null ? 'T?' : `T${q.track}`} ${q.role} · ${q.classId}`;
 
