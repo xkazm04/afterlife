@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { BELAY_PROJECTS } from '../setup/read';
 
 const SERVER = path.resolve('src/server');
 const APP = path.resolve('src/app');
@@ -19,6 +20,32 @@ function sources(dir: string): string[] {
 const imports = (file: string): string[] =>
   [...fs.readFileSync(file, 'utf8').matchAll(/(?:from|import)\s*\(?\s*'([^']+)'/g)].map(([, spec = '']) =>
     spec.startsWith('@/') ? path.resolve('src', spec.slice(2)) : spec.startsWith('.') ? path.resolve(path.dirname(file), spec) : spec);
+
+describe('the READMEs', () => {
+  const read = (p: string): string => fs.readFileSync(path.join(SERVER, p), 'utf8');
+  const names = (dir: string, keep: (n: string) => boolean): string[] => fs.readdirSync(path.join(SERVER, dir)).filter((n) => /\.ts$/.test(n) && keep(n));
+  const source = (n: string): boolean => !/\.test\.ts$/.test(n);
+
+  // The folder is the ground truth, not a list in this test: a file added to it that its README does not name fails here.
+  it('data/README.md names every source file of data/, data/live/ and data/setup/', () => {
+    const readme = read('data/README.md');
+    const files = ['data', 'data/live', 'data/setup'].flatMap((d) => names(d, source));
+    expect(files.length).toBeGreaterThan(20);
+    expect(files.filter((f) => !readme.includes(f))).toEqual([]);
+  });
+
+  it('data/README.md names every belay project the Setup reads', () => {
+    const readme = read('data/README.md');
+    expect(BELAY_PROJECTS.filter((p) => !readme.includes(p))).toEqual([]);
+  });
+
+  it('ledger/README.md names every source file and every test of ledger/', () => {
+    const readme = read('ledger/README.md');
+    const files = [...names('ledger', source), ...names('ledger/__tests__', () => true)];
+    expect(files.length).toBeGreaterThan(6);
+    expect(files.filter((f) => !readme.includes(f))).toEqual([]);
+  });
+});
 
 describe('layers', () => {
   it('no source file under src/server imports from src/app', () => {
