@@ -35,7 +35,7 @@ const LIVE_CADENCE = 'the belay-maturity-scan job, on its pipeline schedule';
  */
 export function MaturityScreen() {
   const { api, project, mode } = useMaturityShared();
-  const { ctx, state, dispatch, routes, steps, pending, select, setMode } = api;
+  const { ctx, state, dispatch, routes, steps, select, setMode } = api;
   const router = useRouter();
   const open = (stage: Stage) => router.push(stagePath(stage));
   const scale = useUiScale();
@@ -47,14 +47,9 @@ export function MaturityScreen() {
   };
   const pickedByStage: Partial<Record<Stage, string>> = {};
   for (const g of ctx.gaps) if (state.picked.includes(g.id) && !state.flow[g.id]) pickedByStage[g.stage] = g.id;
-  const sheetGaps = pending.flatMap((id) => ctx.gap(id) ?? []);
-  const sheet = useGapSheet(sheetGaps, state.sheet, project, mode);
-  const closeSheet = () => {
-    const opened = sheet.opened;
-    const n = Object.keys(opened).length;
-    const text = sheet.rows.filter((r) => r.answer?.status === 'done').map((r) => r.answer?.text).join(' | ');
-    dispatch(n ? { type: 'sent', opened, text } : { type: 'cancelSheet' });
-  };
+  // The sheet's writes are the layout's (model/flow/send.ts): an answer is recorded as it arrives, so closing only closes.
+  const sheet = useGapSheet(api, project, mode);
+  const closeSheet = () => dispatch({ type: 'cancelSheet' });
   useMaturityKeys(api, onGo, sheet.send);
 
   return (
@@ -105,7 +100,7 @@ export function MaturityScreen() {
           onOpen={(g) => open(g.stage)}
         />
       </div>
-      {state.sheet && sheetGaps.length ? <SendSheet api={sheet} onClose={closeSheet} /> : null}
+      {state.sheet && sheet.rows.length ? <SendSheet api={sheet} onClose={closeSheet} /> : null}
     </Window>
   );
 }
