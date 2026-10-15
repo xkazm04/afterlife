@@ -56,7 +56,13 @@ export function GapsTable({
         ))}
       </div>
       <div role="rowgroup">
-        {gaps.length === 0 ? <div className={styles.empty}>No gaps proposed yet. Rescan to look for rungs worth exploring.</div> : null}
+        {gaps.length === 0 ? (
+          <div role="row">
+            <div role="cell" className={styles.empty}>
+              No gaps proposed yet. Rescan to look for rungs worth exploring.
+            </div>
+          </div>
+        ) : null}
         {gaps.map((g, i) => (
           <GapRow key={g.id} gap={g} picked={picked.includes(g.id)} phase={flow[g.id]} mr={mrName(mrs, g.id)} selected={selected === g.stage} alt={i % 2 === 1} live={live} onPick={onPick} onSelect={onSelect} onOpen={onOpen} />
         ))}
