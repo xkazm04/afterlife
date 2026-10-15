@@ -9,6 +9,7 @@ import { readPolicy } from '@/server/poller/derive/policy';
 import type { PromoteClass } from '../types';
 import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, type PlanContext } from './context';
 import { editRecords, lineDiff } from './tierEdit';
+import { trialParagraph } from './trial';
 
 export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promise<Plan> {
   const { policy: repo } = await locate(ctx, intent.project);
@@ -45,6 +46,9 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
   const move = `${intent.class} ${held.record.tier} -> ${intent.to}`;
   const branch = `belay/promote-${intent.class}-${dateOnly(ctx.now)}`;
   const title = `Promote ${move}`;
+  // the next rung's trial, when the chain holds one: its seq range and the chain head, for an auditor to recompute (./trial.ts)
+  const ledger = ctx.ledgerOf ? await ctx.ledgerOf(intent.project) : null;
+  const trial = trialParagraph(ledger, { agent: held.agent, classId: intent.class, since: held.record.since });
   return {
     title: `Promote ${intent.class} to ${intent.to}`,
     summary: `Opens a policy MR in ${repo.pathWithNamespace} as ${ctx.operator}. Precondition: ${HUMAN_KEY}. The next MR pipeline reads the new tier.`,
@@ -52,7 +56,7 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
       ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, startBranch: base, content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }),
       ctx.port.plan.createMr({
         project: repo.id, sourceBranch: branch, targetBranch: base, title, labels: ['belay::promotion'],
-        description: `Prepared by Belay for ${ctx.operator}.\n\nBelay-Class: ${intent.class}\n\nA person merges this; Belay never does.`,
+        description: `Prepared by Belay for ${ctx.operator}.\n\nBelay-Class: ${intent.class}\n\n${trial ? `${trial}\n\n` : ''}A person merges this; Belay never does.`,
       }),
     ],
     diff: lineDiff(file.content, content),

@@ -5,6 +5,7 @@ import type { PlannedCommand } from '@/server/gitlab/plan/types';
 import type { GlFile, GlProject } from '@/server/gitlab/types';
 import type { PollerConfig } from '@/server/poller/config';
 import type { ArmConfig } from '../arm/config';
+import type { ProjectLedger } from './trial';
 
 /** A request the action refuses, with the reason the operator reads. Nothing has run. */
 export class ActionRefused extends Error {}
@@ -20,6 +21,8 @@ export interface PlanContext {
   gitlabId: (indexId: string) => Promise<number | null>;
   /** The per-install values an arm MR names (arm/config.ts). Absent: an arm is refused. */
   arm?: ArmConfig;
+  /** The belay-ledger the index holds for an index project (./trial.ts), read only. Absent (demo) or null: not known. */
+  ledgerOf?: (indexId: string) => Promise<ProjectLedger | null>;
 }
 
 export interface Plan {

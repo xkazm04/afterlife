@@ -14,6 +14,7 @@ import { headChecked, headMismatch } from './arm/head';
 import { parseIntent } from './intents';
 import { ActionRefused, planIntent, type Plan, type PlanContext } from './plans';
 import { COMMIT_ID } from './plans/context';
+import { ledgerReader } from './plans/trial';
 import type { ActionIntent, ActionPreview, ActionResponse, CommandOutcome } from './types';
 
 export interface ActionDeps {
@@ -57,7 +58,10 @@ async function build(deps: ActionDeps, raw: unknown): Promise<Built> {
   if (!parsed.ok) return { ok: false, response: refused(parsed.reason) };
   try {
     const operator = (await deps.port.currentUser()).username;
-    const ctx: PlanContext = { port: deps.port, groupId: deps.groupId, cfg: deps.cfg, now: deps.now(), operator, gitlabId: deps.gitlabId, ...(deps.arm ? { arm: deps.arm } : {}) };
+    const ctx: PlanContext = {
+      port: deps.port, groupId: deps.groupId, cfg: deps.cfg, now: deps.now(), operator, gitlabId: deps.gitlabId, ...(deps.arm ? { arm: deps.arm } : {}),
+      ...(deps.db ? { ledgerOf: ledgerReader(deps.db, deps.gitlabId) } : {}), // the index's belay-ledger, read only (live)
+    };
     const plan = await planIntent(ctx, parsed.intent);
     return { ok: true, intent: parsed.intent, plan, preview: previewOf(deps, parsed.intent, plan), operator };
   } catch (e) {
