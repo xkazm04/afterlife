@@ -14,8 +14,6 @@ export const LEDGERLINE_ID = 'ledgerline';
 export const getFleet = () => DEMO.fleet;
 export const getProjects = (): readonly FleetProject[] => DEMO.fleet.projects;
 export const getProject = (id: string): FleetProject | undefined => DEMO.fleet.projects.find((p) => p.id === id);
-export const getGroups = () => DEMO.fleet.groups;
-export const getClassIds = () => DEMO.fleet.classes;
 export const getPortfolio = () => DEMO.portfolio;
 export const getStages = () => DEMO.stages;
 export const getTiers = () => DEMO.tiers;
@@ -29,7 +27,6 @@ export const getNeedsYou = () => DEMO.needsYou;
 export const getSetup = () => DEMO.setup;
 export const getEvents = () => DEMO.events;
 export const getCockpit = () => DEMO.cockpit;
-export const getProduct = () => DEMO.product;
 
 /** Decisions waiting for the operator: the number on the Needs you sidebar badge. */
 export const getNeedsYouCount = (): number => DEMO.needsYou.length;
