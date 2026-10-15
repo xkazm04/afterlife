@@ -1,6 +1,6 @@
 'use client';
 
-import type { Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { Button } from '@/components/controls/Button';
 import { Kbd } from '@/components/controls/Kbd';
 import help from '@/components/overlays/HelpButton.module.css';
@@ -10,6 +10,34 @@ import { DockText } from '@/components/shell/dock/DockText';
 import { TIER_META } from '@/lib/tiers';
 import { commandHead, type DockModel } from '../../model/rules/dock';
 import { sentWords, WRITE_HEAD } from '../../model/rules/promote';
+import type { PromoteView } from '../../write/promote';
+import type { WriteView } from '../../write/revoke';
+
+/** What follows a write's head: still being asked for, refused, the MR a promotion opened, or the commands as planned. */
+function Planned({ lead, view: v }: { lead: ReactNode; view: WriteView | PromoteView | undefined }) {
+  if (!v) return <>{lead}<DockText tone="note">asking Belay for the exact write…</DockText></>;
+  if (v.kind === 'refused') return <>{lead}Belay refuses this write: {v.reason}</>;
+  if (v.kind === 'sent') {
+    return (
+      <>
+        {lead}
+        {sentWords(v)}{' '}
+        {v.mr && v.url ? (
+          <Button href={v.url} size="mini" target="_blank" rel="noreferrer" title={`Open ${v.mr} in GitLab`}>
+            Open {v.mr} ↗
+          </Button>
+        ) : null}
+      </>
+    );
+  }
+  const note = v.preview.mode === 'demo' ? '(demo: simulated, nothing is sent)' : '(belay-policy, as you)';
+  return (
+    <>
+      {lead}
+      {v.preview.commands.map((c) => commandHead(c.display)).join(' && ')} <DockText tone="note">{note}</DockText>
+    </>
+  );
+}
 
 function Line({ model }: { model: DockModel }) {
   switch (model.kind) {
@@ -35,51 +63,20 @@ function Line({ model }: { model: DockModel }) {
         </>
       );
     case 'write': {
-      const v = model.view;
       const lead = (
         <>
           <DockText tone="prompt">{model.previewing ? '↵' : 'r'} ▸</DockText> {WRITE_HEAD.revoke} · <b>{model.id}</b> → {TIER_META[model.to].name} ·{' '}
         </>
       );
-      if (!v) return <>{lead}<DockText tone="note">asking Belay for the exact write…</DockText></>;
-      if (v.kind === 'refused') return <>{lead}Belay refuses this write: {v.reason}</>;
-      const note = v.preview.mode === 'demo' ? '(demo: simulated, nothing is sent)' : '(belay-policy, as you)';
-      return (
-        <>
-          {lead}
-          {v.preview.commands.map((c) => commandHead(c.display)).join(' && ')} <DockText tone="note">{note}</DockText>
-        </>
-      );
+      return <Planned lead={lead} view={model.view} />;
     }
     case 'promote': {
-      const v = model.view;
       const lead = (
         <>
           <DockText tone="prompt">p ▸</DockText> {model.readmit ? WRITE_HEAD.readmit : WRITE_HEAD.promote} · <b>{model.id}</b> → {TIER_META[model.to].name} ·{' '}
         </>
       );
-      if (!v) return <>{lead}<DockText tone="note">asking Belay for the exact write…</DockText></>;
-      if (v.kind === 'refused') return <>{lead}Belay refuses this write: {v.reason}</>;
-      if (v.kind === 'sent') {
-        return (
-          <>
-            {lead}
-            {sentWords(v)}{' '}
-            {v.mr && v.url ? (
-              <Button href={v.url} size="mini" target="_blank" rel="noreferrer" title={`Open ${v.mr} in GitLab`}>
-                Open {v.mr} ↗
-              </Button>
-            ) : null}
-          </>
-        );
-      }
-      const note = v.preview.mode === 'demo' ? '(demo: simulated, nothing is sent)' : '(belay-policy, as you)';
-      return (
-        <>
-          {lead}
-          {v.preview.commands.map((c) => commandHead(c.display)).join(' && ')} <DockText tone="note">{note}</DockText>
-        </>
-      );
+      return <Planned lead={lead} view={model.view} />;
     }
   }
 }
