@@ -29,7 +29,7 @@ export function ProjectDetail({ project: p, data, source }: FleetProjectView) {
         </>
       }
       status={`${p.name} · ${waitingTitle(waiting, p.state === 'stale' && waiting > 0)} · ${plural(data.projects.length, 'project')} in the fleet`}
-      help={<FleetLegend tiers={data.tiers} />}
+      help={<FleetLegend tiers={data.tiers} keys={false} />}
       helpTitle="Legend"
     >
       <NeedsYouSection p={p} portfolio={data.portfolio} needs={p.id === deep.id ? deep.needs : null} live={source.mode === 'live'} />

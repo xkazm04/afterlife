@@ -11,8 +11,9 @@ import styles from './legend.module.css';
 const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
 const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
 
-/** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching and the keys. */
-export function FleetLegend({ tiers }: { tiers: Record<TierKey, TierInfo> }) {
+/** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching and the keys. The keys are the
+ * Fleet table's: the project page, which has no table, passes `keys={false}`. */
+export function FleetLegend({ tiers, keys = true }: { tiers: Record<TierKey, TierInfo>; keys?: boolean }) {
   return (
     <>
       <Legend
@@ -39,8 +40,12 @@ export function FleetLegend({ tiers }: { tiers: Record<TierKey, TierInfo> }) {
           [<span key="ha" className={styles.hatch} />, 'Hatched = stale, last known values'],
         ]}
       />
-      <hr />
-      <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open the project page · / search · right-click for actions</div>
+      {keys ? (
+        <>
+          <hr />
+          <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open the project page · / search · right-click for actions</div>
+        </>
+      ) : null}
     </>
   );
 }
