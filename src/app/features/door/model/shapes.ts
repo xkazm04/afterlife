@@ -1,6 +1,5 @@
 // Path strings for a tower, a plate and a beam, in Night Shift's geometry. Windows of one tier on one tower share a
 // single path, so a tower is about ten SVG nodes rather than twenty. Pure.
-import type { FleetProject } from '@/lib/demo/types';
 import { tiersKnown } from '@/lib/tiers';
 import { FA, FB, PT, at, BEAM, needsOf, type District, type Placed, type Pt } from './city';
 
@@ -171,5 +170,3 @@ export function bracketsPath(t: Placed): string {
   const [x0, x1, y0, y1, c] = [t.x - FA - 5, t.x + FA + 5, t.y - top - FB - 5, t.y + FB + 5, 5];
   return `M${x0} ${y0 + c}V${y0}H${x0 + c} M${x1 - c} ${y0}H${x1}V${y0 + c} M${x1} ${y1 - c}V${y1}H${x1 - c} M${x0 + c} ${y1}H${x0}V${y1 - c}`;
 }
-
-export const isSetupLight = (p: FleetProject): boolean => p.state === 'setting-up';
