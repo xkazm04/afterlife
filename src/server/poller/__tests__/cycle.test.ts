@@ -133,6 +133,14 @@ describe('a failed poll looks stale, and keeps the last good time', () => {
     expect(asked.map((f) => Date.parse(f.updatedAfter ?? ''))).toEqual([NOW.getTime() - 10 * day]);
   }, 60_000);
 
+  it('an MR list that fills mrLimit is said to be cut, and one that does not is not', async () => {
+    const x = await rig();
+    const cut = await runPollCycle(x.gl.port, x.db, NOW, { cfg: { ...cfg(), mrLimit: 5 }, mem: x.mem });
+    expect(cut.projects[0]?.issues).toContainEqual(expect.stringMatching(/5 merge requests.*mrLimit/));
+    const whole = await runPollCycle(x.gl.port, x.db, NOW, { cfg: cfg(), mem: x.mem });
+    expect(whole.projects[0]?.issues.filter((i) => /mrLimit/.test(i))).toEqual([]);
+  }, 60_000);
+
   it('an unreachable group fails every project that was polled before', async () => {
     const x = await rig();
     await x.poll();
