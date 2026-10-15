@@ -9,7 +9,7 @@ import { decisionsWord, liveNeeds } from '../../model/totals';
 import styles from './inspector.module.css';
 
 /**
- * The items to act on, for the selected beat. The deep project lists its real decisions. Demo resolves one on a click
+ * The items to act on, for the selected beat. The deep project lists its real decisions (none listed: it reads like any other project). Demo resolves one on a click
  * (the button's tooltip says what it does); live claims nothing: the button opens Needs you, where it is decided; another project says how many wait and where to take them.
  */
 export function Decisions({
@@ -44,7 +44,7 @@ export function Decisions({
         </div>
       </div>
     );
-  } else if (isDeep) {
+  } else if (isDeep && needs.length) {
     body = needs.map((d) => {
       const [primary, quiet] = NEEDS_ACTIONS[d.id] ?? DEFAULT_NEEDS_ACTION;
       return (
