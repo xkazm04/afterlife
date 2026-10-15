@@ -15,12 +15,14 @@ import styles from './sections.module.css';
  * tier-state.yml diff (a promotion's lease_expires among it); for a class several agents hold, one line per holder first.
  * `head` says which write it is ("Revoke · direct commit", "Promote · policy MR a person merges"), so it is never unclear
  * which one a key confirms. Shown before anything runs; the key or the click sends this preview and no other. Once a
- * promotion was sent, the MR GitLab opened (from the server's answer), or that the demo only simulated it.
+ * promotion was sent, the MR GitLab opened (from the server's answer), or that the demo only simulated it. `warn`: one
+ * line said with the write (the human key not in place); it never blocks the write: the server decides it.
  */
-export function WriteSection({ head, keyName, to, view, nothing }: { head: string; keyName: 'r' | 'p'; to: Tier | null; view: PromoteView | undefined; nothing: string }) {
+export function WriteSection({ head, keyName, to, view, nothing, warn }: { head: string; keyName: 'r' | 'p'; to: Tier | null; view: PromoteView | undefined; nothing: string; warn?: string | null }) {
   return (
     <Sec title={head} aux={to ? `${keyName} → ${TIER_META[to].name}` : ''} wide>
       {!to ? <div className={styles.note}>{nothing}</div> : null}
+      {to && warn ? <div className={styles.note}>{warn}</div> : null}
       {to && !view ? <div className={styles.note}>Asking Belay for the exact write…</div> : null}
       {view?.kind === 'refused' ? <div className={styles.note}>Belay refuses this write: {view.reason}</div> : null}
       {view?.kind === 'sent' ? (

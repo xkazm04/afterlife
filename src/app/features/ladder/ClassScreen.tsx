@@ -19,14 +19,16 @@ import { classLede } from './model/rules/lede';
 import { promoteAsk } from './model/rules/promote';
 import { ALL_KINDS } from './model/view/moves';
 import type { ActorKind, Tier } from './model/types';
+import type { HumanKeyRead } from '@/lib/promotion';
 import type { LadderScreenProps } from './props';
 
 /**
  * /ladder/[class]: one action class on its own page, in place of the Ladder's inspector drawer. It holds its own copy of
  * the ledger state (the same reducer), so a revoke sent from here lands on this page; the Ladder reads the data source
- * afresh when you go back (live: the write is in belay-policy; demo: the simulated move is not carried back).
+ * afresh when you go back (live: the write is in belay-policy; demo: the simulated move is not carried back). `humanKey`:
+ * the promote write's precondition as the server read it back for this load.
  */
-export function ClassScreen({ id, project, seed, tracks: trackList, means, policy, tiersStale, illustrative, live, feedAgeSec, subtitle }: LadderScreenProps & { id: string }) {
+export function ClassScreen({ id, project, seed, tracks: trackList, means, policy, tiersStale, illustrative, live, feedAgeSec, subtitle, humanKey }: LadderScreenProps & { id: string; humanKey?: HumanKeyRead }) {
   const data = useLadderData(seed, trackList, policy, id);
   const { state, byId, tracks } = data;
   const cls = byId[id]!;
@@ -85,6 +87,7 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
         track={tracks[cls.track]}
         tracksDemo={illustrative.tracks}
         promotion={promotion}
+        humanKey={humanKey}
         policy={policy}
         ledger={state.ledger}
         kinds={kinds}

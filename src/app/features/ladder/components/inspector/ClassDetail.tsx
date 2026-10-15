@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/controls/Button';
 import type { PolicyRules } from '@/server/data/types';
-import { promoteTitle, type Promotion } from '@/lib/promotion';
+import { promoteTitle, type HumanKeyRead, type Promotion } from '@/lib/promotion';
 import { TIER_META } from '@/lib/tiers';
-import { WRITE_HEAD, type PromoteAsk } from '../../model/rules/promote';
+import { humanKeyWarning, WRITE_HEAD, type PromoteAsk } from '../../model/rules/promote';
 import { actsFrom, isQuarantine, revokeTargets } from '../../model/rules/tiers';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, Track } from '../../model/types';
 import { entriesFor } from '../../model/view/moves';
@@ -25,6 +25,8 @@ export interface ClassDetailProps {
   /** Live: the tracks (and so each class's proof class) are the demo catalogue's. */
   tracksDemo: boolean;
   promotion: Promotion;
+  /** The human key read back on belay-policy (the class page's load); absent: not read. */
+  humanKey?: HumanKeyRead;
   /** trust-policy.yml as the server read it: the grant's lease. */
   policy: PolicyRules | null;
   ledger: readonly LedgerEntry[];
@@ -79,9 +81,9 @@ export function ClassDetail(p: ClassDetailProps) {
           ) : null}
         </div>
       </Sec>
-      <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} />
+      <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} humanKey={p.humanKey} />
       <WriteSection head={WRITE_HEAD.revoke} keyName="r" to={revokeTo} view={revokeTo ? p.viewOf(c.id, revokeTo) : undefined} nothing="Nothing to revoke" />
-      {ask ? <WriteSection head={ask.readmit ? WRITE_HEAD.readmit : WRITE_HEAD.promote} keyName="p" to={ask.to} view={p.promote.view} nothing="" /> : null}
+      {ask ? <WriteSection head={ask.readmit ? WRITE_HEAD.readmit : WRITE_HEAD.promote} keyName="p" to={ask.to} view={p.promote.view} nothing="" warn={humanKeyWarning(p.humanKey)} /> : null}
       <GrantSection cls={c} policy={p.policy} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} />
       <EnforcementSection cls={c} live={!!p.live} />
       <Sec title="Who acted" aux={mine.length || ''} wide>

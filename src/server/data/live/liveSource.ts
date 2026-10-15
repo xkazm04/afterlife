@@ -8,7 +8,8 @@
 import { DEMO } from '@/lib/demo';
 import type { DemoData } from '@/lib/demo/types';
 import { STAGES } from '@/schemas/stages';
-import { setupReads, type SetupPort } from '../setup/read';
+import { readHumanKey } from '../setup/humanKey';
+import { NO_PORT, setupReads, type SetupPort } from '../setup/read';
 import type { DataSource, IllustrativePart } from '../types';
 import { isSeeded } from './seeded';
 import type { LiveSnapshot } from './snapshot';
@@ -43,5 +44,9 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getPolicy: () => data().policy,
     getTiersStale: () => data().tiersStale,
     setupReads: () => setupReads(port(), data().pairing, snapshot().deep),
+    humanKey: () => {
+      const p = port();
+      return p ? readHumanKey(p.port, p.groupId, p.cfg?.policyProject ?? 'belay-policy') : Promise.resolve({ state: 'unknown', missing: [], why: NO_PORT });
+    },
   };
 }

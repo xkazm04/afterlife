@@ -43,3 +43,17 @@ export interface PromotionSubject {
    */
   cooldownUntil?: string | null;
 }
+
+/**
+ * The human key as read back from GitLab, read only: on belay-policy's default branch push is allowed to no one and a merge
+ * needs Code Owner approval, and in belay-policy an MR's author cannot approve it. `missing`: each setting that is not in
+ * place, worded for a person; `why`: what could not be read (unknown, or failed with a setting not read); `where`:
+ * "belay-policy main"; `demo`: the demo's illustrative answer, not read from GitLab.
+ */
+export interface HumanKeyRead {
+  state: 'verified' | 'failed' | 'unknown';
+  missing: readonly string[];
+  why?: string;
+  where?: string;
+  demo?: true;
+}

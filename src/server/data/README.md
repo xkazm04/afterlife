@@ -8,7 +8,9 @@ rules: the promotion thresholds, the demotion triggers, the envelope) and `getLe
 `LedgerEvent`s, `@/schemas/ledger`, in seq order; see "The ledger" below). Reads are
 **synchronous**: the live source serves a snapshot that is rebuilt after every poll, so a page never waits on GitLab or the index.
 One exception, Setup: `setupReads()` is a synchronous getter (null in demo mode) for read-only port calls the Setup loader
-awaits per load (see `setup/` below).
+awaits per load (see `setup/` below). And the human key: `humanKey()` reads belay-policy's protection of its default branch and
+its approval settings through the port when the Ladder's class page loads (`setup/humanKey.ts`; no cache, nothing in the index);
+demo answers verified, marked `demo`.
 
 | Env | Values | Default |
 |---|---|---|

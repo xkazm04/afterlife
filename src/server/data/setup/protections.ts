@@ -19,7 +19,8 @@ export const OWNED = ['.gitlab-ci.yml', '.gitlab/'] as const;
 const DEVELOPER = 30;
 const MAINTAINER = 40;
 
-async function protection(c: StepCtx, p: GlProject, kind: 'protected_branches' | 'protected_tags', name: string): Promise<Rec | null> {
+/** A protected branch or tag rule as GitLab answers it; null when the name is not protected (404). Also read by humanKey.ts. */
+export async function protection(c: Pick<StepCtx, 'port'>, p: GlProject, kind: 'protected_branches' | 'protected_tags', name: string): Promise<Rec | null> {
   try {
     return obj(await c.port.get(`projects/${p.id}/${kind}/${encodeURIComponent(name)}`), kind);
   } catch (e) {

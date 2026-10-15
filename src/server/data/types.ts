@@ -2,7 +2,7 @@
 // loader changes one import and nothing else. Reads are synchronous: the live source serves a snapshot that the poller
 // refreshes after every cycle, so a page never waits on GitLab or on the index.
 import type { DemoData, Task } from '@/lib/demo/types';
-import type { PromotionRules } from '@/lib/promotion/types';
+import type { HumanKeyRead, PromotionRules } from '@/lib/promotion/types';
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { SetupReads } from './setup/read';
 
@@ -90,4 +90,11 @@ export interface DataSource {
    * mode, where Setup reads nothing.
    */
   setupReads(): SetupReads | null;
+  /**
+   * The human key on belay-policy's default branch (setup/humanKey.ts): push allowed to no one, Code Owner approval
+   * required, an MR's author cannot approve it. Live: read through the port when the class page loads, as Setup's reads
+   * are (no cache, nothing stored in the index); a refused or failed read is unknown with the reason. Demo: verified,
+   * marked `demo` (illustrative, not read from GitLab).
+   */
+  humanKey(): Promise<HumanKeyRead>;
 }

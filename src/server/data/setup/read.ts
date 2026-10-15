@@ -19,12 +19,14 @@ export interface SetupPort {
   port: GitLabPort;
   groupId: string | number;
   gitlabId: (indexId: string) => Promise<number | null>;
+  /** The poller's config, for belay-policy's name (the human key); absent: belay-policy. */
+  cfg?: { policyProject: string };
 }
 
 /** The belay projects step 4 creates beside the target. */
 export const BELAY_PROJECTS = ['belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine', 'belay-apply'] as const;
 
-const NO_PORT = 'live mode has no GitLab port yet (the first poll has not finished)';
+export const NO_PORT = 'live mode has no GitLab port yet (the first poll has not finished)';
 
 /**
  * The steps a read can observe: 0 (glab's login), 1 (the pairing row), 4 (the projects), and the human steps 3 (the plan),

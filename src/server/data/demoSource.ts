@@ -2,6 +2,7 @@
 // rules are this checkout's policy/trust-policy.yml.
 import * as demo from '@/lib/demo';
 import { repoPolicy } from './policy';
+import { DEMO_HUMAN_KEY } from './setup/humanKey';
 import type { DataSource } from './types';
 
 export const demoSource: DataSource = {
@@ -26,4 +27,5 @@ export const demoSource: DataSource = {
   getPolicy: () => repoPolicy(),
   getTiersStale: () => null,
   setupReads: () => null,
+  humanKey: () => Promise.resolve(DEMO_HUMAN_KEY),
 };

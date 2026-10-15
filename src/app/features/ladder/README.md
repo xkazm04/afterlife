@@ -69,7 +69,11 @@ class (`MECHANICAL_PROOFS`: never a class the engine only stubs, `engine/proofs/
 is not met). Live, a class's track and proof class come from the demo catalogue's tracks (`illustrative.tracks`): the
 Grant section, the track's header and the mechanical row computed here chip the proof class "demo"; a rule read from the
 poll's ask (the policy's own proof class) does not. The human key is not a row: under the rows the rule states the promote write's precondition, "a person merges
-this MR; Belay never merges it" (`HUMAN_KEY`), as the promote preview does; no GitLab approval setting is read. Either step adds
+this MR; Belay never merges it" (`HUMAN_KEY`), as the promote preview does. The class page reads it back from GitLab, read only, on each load
+(`loadHumanKey`, the data source's `humanKey()`, `server/data/setup/humanKey.ts`): push to belay-policy's default branch allowed to no one,
+Code Owner approval required there, an MR's author unable to approve it. Under the precondition it says "Human key verified on
+belay-policy main", "Human key failed: <the settings not in place>" or "Human key not read: <why>" (demo: verified, chipped
+"demo"); when it failed the promote preview says the key is not in place, and the write is still the server's to decide. Either step adds
 a `cooldown` row, not met, while the record's `cooldown_until` (tier-state.yml, stamped by the tripwire or a revoke) is
 ahead: the class is not eligible before that date. Where each counter
 comes from is the poller's table. A record that does not state a counter (the demo fixture states no guardrail blocks
