@@ -2,7 +2,7 @@
 // is a view over it, which is also what makes a demo take replayable.
 import { createHash } from 'node:crypto';
 import type { Withdrawn } from './receipt';
-import type { Tier } from './tier';
+import { TIER_ORDER, type Tier } from './tier';
 
 export type LedgerKind =
   | 'task_started'
@@ -28,6 +28,34 @@ export const WITHDRAWN_GRANTS: readonly WithdrawnGrant[] = ['approval', 'auto_me
 
 /** A commit id (sha1, 40 hex): the tier-state.yml revision a tier_decision's gate read (`state_rev`). */
 export const STATE_REV = /^[0-9a-f]{40}$/;
+
+/** What the gate decides (engine/decide/gate.ts Decision), as a tier_decision's `would` states it. */
+export type GateDecision = 'merge' | 'approve' | 'wait' | 'block';
+export const GATE_DECISIONS: readonly GateDecision[] = ['merge', 'approve', 'wait', 'block'];
+
+/**
+ * What the same gate would have decided for the same merge request with the holder's record one rung up, under the class
+ * ceiling (engine/decide/shadow.ts): the next rung's shadow decision. Recorded, never applied.
+ */
+export interface LedgerWould {
+  tier: Tier;
+  decision: GateDecision;
+}
+
+/** The rung above `t`; null at the top. */
+export const rungAbove = (t: Tier): Tier | null => TIER_ORDER[TIER_ORDER.indexOf(t) + 1] ?? null;
+
+/**
+ * A tier_decision's `would` as stated, or null when it is not one: exactly a tier and a decision, the tier the rung above
+ * the decision's own (tier_at_time). The parsers refuse anything else; the readers of a verified chain skip it.
+ */
+export function wouldOf(v: unknown, tierAtTime: Tier): LedgerWould | null {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return null;
+  const w = v as Record<string, unknown>;
+  const decision = GATE_DECISIONS.find((d) => d === w.decision);
+  if (Object.keys(w).length !== 2 || !decision || w.tier !== rungAbove(tierAtTime)) return null;
+  return { tier: w.tier as Tier, decision };
+}
 
 /** Where a deployed event deployed to: the environment's name and GitLab's tier for it. */
 export interface LedgerEnvironment {
@@ -67,6 +95,13 @@ export interface LedgerEvent {
    * longer grants it (non-empty, each at most once). Absent: nothing was withdrawn, or it was not stated.
    */
   withdrew?: WithdrawnGrant[];
+  /**
+   * tier_decision only: what the gate would have decided at the next rung (the rung above tier_at_time), from a second,
+   * shadow run of the same gate on the same inputs (gitlab/components/scripts/decide/apply-gate.mjs stamps it). Never
+   * applied: no label, no approval, no merge comes from it. Absent at the top rung or the class ceiling, and on a decision
+   * written before it was stated; absent, never null, for the same reason as `verdict`.
+   */
+  would?: LedgerWould;
   prev_hash: string;
   hash: string; // sha256(prev_hash + canonical(event without hash))
 }

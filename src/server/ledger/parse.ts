@@ -1,7 +1,7 @@
 // belay-ledger/events/<project-id>.jsonl: one LedgerEvent per line. The file is read from a GitLab repository, so every
 // line is checked field by field before it is trusted; a bad line fails the whole import (the chain is all or nothing).
-import { ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, WITHDRAWN_GRANTS, type LedgerEvent, type LedgerKind, type WithdrawnGrant } from '@/schemas/ledger';
-import { TIER_ORDER } from '@/schemas/tier';
+import { ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent, type LedgerKind, type WithdrawnGrant } from '@/schemas/ledger';
+import { TIER_ORDER, type Tier } from '@/schemas/tier';
 
 export class LedgerParseError extends Error {
   constructor(readonly line: number, reason: string) {
@@ -23,11 +23,16 @@ const str = (v: unknown): v is string => typeof v === 'string' && v !== '';
 const grants = (v: unknown): v is WithdrawnGrant[] =>
   Array.isArray(v) && v.length > 0 && new Set(v).size === v.length && v.every((x) => WITHDRAWN_GRANTS.some((g) => g === x));
 
-/** A tier_decision's state_rev and withdrew: on that kind only; absent stays absent (the hash depends on it). */
-function decisionKeys(v: Rec, kind: LedgerKind | undefined, bad: (what: string) => never): Pick<LedgerEvent, 'state_rev' | 'withdrew'> {
+/** A tier_decision's state_rev, withdrew and would: on that kind only; absent stays absent (the hash depends on it). */
+function decisionKeys(v: Rec, kind: LedgerKind | undefined, tier: Tier | undefined, bad: (what: string) => never): Pick<LedgerEvent, 'state_rev' | 'withdrew' | 'would'> {
   if ('state_rev' in v && (kind !== 'tier_decision' || !str(v.state_rev) || !STATE_REV.test(v.state_rev))) bad('state_rev must be a 40-hex commit id, on a tier_decision only');
   if ('withdrew' in v && (kind !== 'tier_decision' || !grants(v.withdrew))) bad('withdrew must name approval or auto_merge, each once, on a tier_decision only');
-  return { ...('state_rev' in v ? { state_rev: v.state_rev as string } : {}), ...('withdrew' in v ? { withdrew: [...(v.withdrew as WithdrawnGrant[])] } : {}) };
+  const would = 'would' in v && tier ? wouldOf(v.would, tier) : null;
+  if ('would' in v && (kind !== 'tier_decision' || !would)) bad('would must be the rung above tier_at_time and a decision, on a tier_decision only');
+  return {
+    ...('state_rev' in v ? { state_rev: v.state_rev as string } : {}), ...('withdrew' in v ? { withdrew: [...(v.withdrew as WithdrawnGrant[])] } : {}),
+    ...(would ? { would } : {}),
+  };
 }
 
 function toEvent(v: unknown, line: number): LedgerEvent {
@@ -55,7 +60,7 @@ function toEvent(v: unknown, line: number): LedgerEvent {
   const env = v.environment;
   const tierOf = isRec(env) ? ENVIRONMENT_TIERS.find((x) => x === env.tier) : undefined;
   if ('environment' in v && (kind !== 'deployed' || !isRec(env) || !str(env.name) || !tierOf)) bad('environment must be a name and a tier, on a deployed event only');
-  const decided = decisionKeys(v, kind, bad);
+  const decided = decisionKeys(v, kind, tier, bad);
   return {
     seq: v.seq as number, at: v.at as string, agent: v.agent as string, action_class: v.action_class as string, kind: kind as LedgerKind,
     tier_at_time: tier as LedgerEvent['tier_at_time'], subject: { project_id: s.project_id, type: subject, iid: s.iid },

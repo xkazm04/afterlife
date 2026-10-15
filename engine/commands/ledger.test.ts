@@ -82,3 +82,28 @@ describe('parseLedgerEvent: the tier-state.yml revision and the withdrawal of a 
     expect(append([], parsed).hash).toBe(append([], { ...parsed, state_rev: undefined, withdrew: undefined } as typeof parsed).hash);
   });
 });
+
+describe('parseLedgerEvent: what the next rung would have decided, on a tier_decision', () => {
+  const decision = (o: Record<string, unknown> = {}) => event({ kind: 'tier_decision', ...o });
+  const WOULD = { tier: 'hands_off', decision: 'merge' };
+
+  it('keeps a would naming the rung above tier_at_time and a decision', () => {
+    expect(parseLedgerEvent(decision({ would: WOULD })).would).toEqual(WOULD);
+    expect(parseLedgerEvent(decision({ tier_at_time: 'assisted', would: { tier: 'supervised', decision: 'approve' } })).would).toEqual({ tier: 'supervised', decision: 'approve' });
+  });
+
+  it('refuses it on any other kind, and a malformed value', () => {
+    for (const kind of ['task_started', 'proof_verdict', 'guardrail_verdict', 'merged', 'deployed', 'outcome', 'clock_event']) {
+      expect(() => parseLedgerEvent(event({ kind, would: WOULD }))).toThrow(/would/);
+    }
+    const bad = [{ tier: 'supervised', decision: 'merge' }, { tier: 'hands_off', decision: 'ship' }, { ...WOULD, extra: 1 }, null, 'merge', []];
+    for (const would of bad) expect(() => parseLedgerEvent(decision({ would }))).toThrow(EngineError);
+    expect(() => parseLedgerEvent(decision({ tier_at_time: 'hands_off', would: WOULD }))).toThrow(/would/); // no rung above
+  });
+
+  it('a decision without it carries no key and hashes as before', () => {
+    const parsed = parseLedgerEvent(decision());
+    expect('would' in parsed).toBe(false);
+    expect(append([], parsed).hash).toBe(append([], { ...parsed, would: undefined } as typeof parsed).hash);
+  });
+});

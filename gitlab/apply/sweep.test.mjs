@@ -498,6 +498,22 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(dry.writes).toEqual([]);
   });
 
+  it("(xxi) the next rung runs as a shadow: the tier_decision states what the gate would decide one rung up; nothing is applied from it", () => {
+    const decisionOf = (r) => r.writes.find((w) => w.path === `${LEDGER}/repository/commits`).body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l)).find((e) => e.kind === 'tier_decision');
+    // code-fix.patch held at assisted under its supervised ceiling: the gate waits; one rung up the same inputs approve
+    const assisted = STATE.replace('tier: supervised', 'tier: assisted');
+    const r = sweep(group({ state: assisted }));
+    expect(r.code, r.stderr).toBe(0);
+    expect(decisionOf(r)).toMatchObject({ tier_at_time: 'assisted', would: { tier: 'supervised', decision: 'approve' } });
+    expect(glabWrites(r, 'note create')[1].body.message).toMatch(/^\*\*Belay gate: WAIT\*\* \| tier `assisted`/);
+    expect(granted(r)).toEqual([]); // the shadow's approve is never given
+    expect(glabWrites(r, 'update').map((w) => w.body.label)).toEqual(['proof::pass', 'belay::tier::assisted,guardrail::pass']);
+    // at the ceiling there is no next rung, so (i)'s supervised decision states none
+    expect('would' in decisionOf(sweep(group()))).toBe(false);
+    // reporting only: nothing is written, the ledger included
+    expect(sweep(group({ state: assisted }), { CI_SERVER_FQDN: 'gitlab.example' }).writes).toEqual([]);
+  });
+
   it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {
     const human = (i) => ({ iid: 1000 + i, author: { username: `dev-${i}` } });
     const pages = Array.from({ length: 5 }, (_, p) => Array.from({ length: 100 }, (_, i) => (p === 0 && i === 0 ? { iid: 7, author: { username: 'ai-patcher-acme' } } : human(p * 100 + i))));

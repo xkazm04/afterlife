@@ -14,6 +14,8 @@
 // `--state-rev <commit>` stamps `state_rev` on the tier_decision: the tier-state.yml commit the gate read (belay-apply
 // passes the file's last_commit_id on belay-policy). `--withdrew approval,auto_merge` stamps `withdrew` on it: what the
 // caller took back from the MR because this decision no longer grants it. Both are refused on a forced call (no tier).
+// A decision file that carries `would` (engine gate --shadow-next-rung: what the gate would decide one rung up) has it
+// stamped on the tier_decision as it is; it is recorded, never applied.
 import fs from 'node:fs';
 import path from 'node:path';
 import { arg, die, glab, need, plain } from '../lib/lib.mjs';
@@ -35,6 +37,14 @@ if (stateRev !== null && !/^[0-9a-f]{40}$/.test(stateRev)) die(`--state-rev is n
 const withdrew = arg('withdrew') ? arg('withdrew').split(',') : [];
 if (withdrew.some((w) => !['approval', 'auto_merge'].includes(w)) || new Set(withdrew).size !== withdrew.length) die(`--withdrew names approval or auto_merge, each once: ${plain(arg('withdrew'))}`);
 if (force && (stateRev || withdrew.length)) die('--state-rev and --withdrew stamp a tier_decision: a forced call writes none');
+// The next rung's shadow decision (engine gate --shadow-next-rung): exactly {tier, decision}, the tier the rung above the
+// decided one. It is only stamped on the tier_decision; nothing below reads it, so no label, approval, merge or note comes from it.
+const would = force ? null : d.would ?? null;
+if (would !== null) {
+  const above = TIERS[TIERS.indexOf(d.tier) + 1];
+  const keys = typeof would === 'object' && !Array.isArray(would) ? Object.keys(would).sort().join(',') : '';
+  if (keys !== 'decision,tier' || !above || would.tier !== above || !DECISIONS.includes(would.decision)) die(`gate returned a would that is not the next rung's decision: ${plain(JSON.stringify(would))}`);
+}
 
 const guardrail = arg('guardrail') && fs.existsSync(arg('guardrail')) ? readJson(arg('guardrail')) : null;
 const verdict = guardrail && ['pass', 'block'].includes(guardrail.verdict) ? guardrail.verdict : null;
@@ -70,7 +80,7 @@ if (emit && ledgerTier && (!force || verdict === 'block')) {
   const events = force
     ? [{ kind: 'guardrail_verdict', verdict }]
     : [{ kind: 'proof_verdict' }, ...(verdict ? [{ kind: 'guardrail_verdict', verdict }] : []),
-      { kind: 'tier_decision', ...(stateRev ? { state_rev: stateRev } : {}), ...(withdrew.length ? { withdrew } : {}) }];
+      { kind: 'tier_decision', ...(stateRev ? { state_rev: stateRev } : {}), ...(withdrew.length ? { withdrew } : {}), ...(would ? { would: { tier: would.tier, decision: would.decision } } : {}) }];
   events.forEach((e, i) => fs.writeFileSync(path.join(emit, `${i}-${e.kind}.json`), JSON.stringify({ ...base, ...e })));
 }
 

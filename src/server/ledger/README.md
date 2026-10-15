@@ -37,6 +37,17 @@ A `deployed` event may state its `environment`: `{ name, tier }`, the tier being
 step, for the same reason as `verdict`. The index stores it in `ledger_event.environment` (migration 0010). Theater reads
 the tier: staging reaches hold 7, production hold 8. Tests: `__tests__/environment.test.ts`.
 
+## What the next rung would have decided
+
+A `tier_decision` may state `would`: `{ tier, decision }`, what the same gate would have decided for the same MR with the
+holder's record one rung up (`tier` is always the rung above `tier_at_time`; `decision` is `merge`, `approve`, `wait` or
+`block`). belay-apply's sweep runs the gate with `--shadow-next-rung` (`engine/decide/shadow.ts`) and apply-gate stamps
+what it returns; nothing is ever applied from it. It is absent at the top rung, at the class ceiling, on a forced gate and
+on every decision written before it, and absent, never `null`, at every step for the same reason as `verdict`. The parser,
+the engine's `ledger append` and the index (migration 0014: `ledger_event.would`, null on any other kind) refuse it on any
+other kind, on a tier that is not the rung above, and with any key but those two. The poller reads it as the next rung's
+trial (`src/server/poller/README.md`). Tests: `__tests__/would.test.ts`.
+
 Tests: `__tests__/ledger.test.ts` (full import, incremental append, blob-id skip, edited event, fork, rewind, foreign
 project, parser); `__tests__/verdict.test.ts` (the verdict: kept, refused, covered by the hash, and a chain without
 verdicts hashing exactly as main computed it, through parse, `appendLedgerEvents` and `readLedger`). Not verified live: the real `listTree`/`getFile` shapes (recorded nowhere yet; the fake serves `[R]` ones).

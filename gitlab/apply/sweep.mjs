@@ -367,8 +367,10 @@ function sweepMr(t, iid) {
   const blockOwed = guardBlocked && ledgerDone && !ledgered(blockKey);
   const settled = gateDone && ledgerDone && !relabel && !blockOwed;
   if (settled && !botAutoMerge && !botApproved()) return say(`${tag}: gate and ledger already applied for this head`);
+  // --shadow-next-rung: the same gate one rung up, in the same call (`would`), which apply-gate stamps on the tier_decision
+  // as the next rung's trial (the poller resolves it against what people did). It decides nothing and is applied nowhere.
   const g = engine(['gate', '--policy', policyFile, '--state', statesFile, '--class', actionClass, '--agent', mr.BELAY_AGENT,
-    '--proof', proofFile, '--guardrail', path.join(dir, 'guardrail-gate.json'), '--diff', diffFile]);
+    '--proof', proofFile, '--guardrail', path.join(dir, 'guardrail-gate.json'), '--diff', diffFile, '--shadow-next-rung']);
   const decisionFile = path.join(dir, 'decision.json');
   fs.writeFileSync(decisionFile, g.stdout);
   const decided = (() => {

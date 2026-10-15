@@ -2,7 +2,7 @@
 // Prints the new hash-chained line. The chain is verified first: a broken chain is never extended.
 import fs from 'node:fs';
 import path from 'node:path';
-import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, verifyChain, WITHDRAWN_GRANTS, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
+import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, verifyChain, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { parseJson, readJson } from '../core/files';
 import { EngineError, rec, str, num, type CommandResult, type Ctx } from '../core/types';
@@ -19,7 +19,7 @@ function oneOf<T extends string>(v: unknown, allowed: readonly T[], what: string
 
 /**
  * Rebuilt field by field: anything else is dropped. A verdict is kept on a guardrail_verdict only, and only pass or block;
- * an environment on a deployed event only; a state_rev and a withdrew on a tier_decision only.
+ * an environment on a deployed event only; a state_rev, a withdrew and a would on a tier_decision only.
  */
 export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_hash' | 'hash'> {
   const e = rec(raw, 'event');
@@ -33,7 +33,11 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
   if (where && kind !== 'deployed') throw new EngineError(`event.environment is for a deployed event only, not ${kind}`);
   const env = where ? rec(e.environment, 'event.environment') : null;
   // the tier-state.yml revision the gate read, and what the sweep withdrew: on a tier_decision only
-  for (const k of ['state_rev', 'withdrew'] as const) if (k in e && kind !== 'tier_decision') throw new EngineError(`event.${k} is for a tier_decision only, not ${kind}`);
+  // and what the gate would have decided at the next rung (never applied)
+  for (const k of ['state_rev', 'withdrew', 'would'] as const) if (k in e && kind !== 'tier_decision') throw new EngineError(`event.${k} is for a tier_decision only, not ${kind}`);
+  const tier = oneOf<Tier>(e.tier_at_time, TIER_ORDER, 'event.tier_at_time');
+  const would = 'would' in e ? wouldOf(e.would, tier) : null;
+  if ('would' in e && !would) throw new EngineError('event.would must be exactly {tier, decision}: the rung above tier_at_time and merge, approve, wait or block');
   const rev = 'state_rev' in e ? str(e.state_rev, 'event.state_rev') : null;
   if (rev !== null && !STATE_REV.test(rev)) throw new EngineError('event.state_rev must be a 40-hex commit id');
   const withdrew = 'withdrew' in e ? e.withdrew : null;
@@ -45,7 +49,7 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
     agent: str(e.agent, 'event.agent'),
     action_class: str(e.action_class, 'event.action_class'),
     kind,
-    tier_at_time: oneOf<Tier>(e.tier_at_time, TIER_ORDER, 'event.tier_at_time'),
+    tier_at_time: tier,
     subject: { project_id: num(s.project_id, 'subject.project_id'), type: oneOf(s.type, SUBJECTS, 'subject.type'), iid: num(s.iid, 'subject.iid') },
     payload_ref: str(e.payload_ref, 'event.payload_ref'),
     observed_by: oneOf(e.observed_by, OBSERVED, 'event.observed_by'),
@@ -54,6 +58,7 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
     ...(env ? { environment: { name: str(env.name, 'event.environment.name'), tier: oneOf(env.tier, ENVIRONMENT_TIERS, 'event.environment.tier') } } : {}),
     ...(rev !== null ? { state_rev: rev } : {}),
     ...(withdrew !== null ? { withdrew: (withdrew as unknown[]).map((w) => oneOf(w, WITHDRAWN_GRANTS, 'event.withdrew[]')) } : {}),
+    ...(would ? { would } : {}),
   };
 }
 

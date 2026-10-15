@@ -8,7 +8,7 @@ dependency beyond `yaml`. Every command writes JSON to stdout and a human summar
 |---|---|---|
 | `prove --class <ProofClass> --input <file.json> [--policy P] [--files-root D]` | Writes a `ProofBlock` | verdict: 0 / 1 / 2 |
 | `envelope --policy P --class <id> --diff <file> [--env <name>]...` | Files, lines, denied paths, environments | 0 within, 1 outside |
-| `gate --policy P --state S --class <id> --proof F --guardrail F [--agent A] [--diff F] [--env E] [--engine-sha H]` | `merge` / `approve` / `wait` / `block` | 0 / 0 / 2 / 1 |
+| `gate --policy P --state S --class <id> --proof F --guardrail F [--agent A] [--diff F] [--env E] [--engine-sha H] [--shadow-next-rung]` | `merge` / `approve` / `wait` / `block` (+ `would`) | 0 / 0 / 2 / 1 |
 | `tripwire --policy P --state S --event F` | `{demote, commit: {path, content, message}}` | 0 (2 on bad input) |
 | `ledger append --event F --chain events.jsonl [--write]` | One hash-chained ledger line | 0 (2 on a broken chain) |
 | `scan --facts facts.json` | `belay.maturity/0`: nine stage cells from the facts `collect-facts.mjs` wrote | 0 all determined, 2 any unknown or unreadable input |
@@ -93,6 +93,12 @@ hands-off lease counts as supervised). Quarantined or a guardrail block gives `b
 not follow from its checks, or of the wrong class gives `block`; an inconclusive or missing proof or guardrail gives
 `wait`. Then hands-off `merge`, supervised `approve` (a human still merges), assisted `wait`. The tripwire
 only lowers a tier with `demote()`, edits `tier-state.yml` in place (comments kept), and never promotes.
+
+`gate --shadow-next-rung` also prints `would: {tier, decision}`: `gate()` run a second time on the same inputs with a
+copy of tier-state in which the holder's record stands one rung higher (`decide/shadow.ts`; the raised record carries no
+lease). It is absent when there is no next rung: the record is at the top, the rung above is over the class ceiling, or
+no agent holds a record. The decision, the reasons and the exit code are the real gate's; belay-apply stamps `would` on
+the `tier_decision` and never applies it.
 
 ## Sustainability
 

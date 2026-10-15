@@ -1,10 +1,13 @@
 // belay gate --policy P --state S --class <id> --proof proof.json --guardrail verdict.json
-//   [--agent <service account>] [--diff <file>] [--env <name>]... [--now <iso>] [--engine-sha <sha>]
+//   [--agent <service account>] [--diff <file>] [--env <name>]... [--now <iso>] [--engine-sha <sha>] [--shadow-next-rung]
+// --shadow-next-rung adds `would`: {tier, decision}, what the gate would decide with the holder's record one rung up
+// (../decide/shadow.ts); absent when there is no next rung. The decision, the reasons and the exit code are the gate's own.
 import type { ProofBlock } from '../../src/schemas/proof';
 import { parseArgs } from '../core/args';
 import { readJson, readText } from '../core/files';
 import { EngineError, isRecord, optStr, str, type CommandResult, type Ctx, type ExitCode } from '../core/types';
 import { gate, type Decision, type GuardrailVerdict } from '../decide/gate';
+import { shadowNextRung } from '../decide/shadow';
 import { checkEnvelope } from '../policy/envelope';
 import { loadPolicy, loadState } from '../policy/load';
 import { DEFAULT_POLICY, DEFAULT_STATE } from './prove';
@@ -38,14 +41,14 @@ function toGuardrail(raw: unknown): GuardrailVerdict | undefined {
 }
 
 export function gateCommand(argv: readonly string[], ctx: Ctx): CommandResult {
-  const args = parseArgs(argv, { values: ['policy', 'state', 'class', 'proof', 'guardrail', 'agent', 'diff', 'env', 'now', 'engine-sha'] });
+  const args = parseArgs(argv, { values: ['policy', 'state', 'class', 'proof', 'guardrail', 'agent', 'diff', 'env', 'now', 'engine-sha'], switches: ['shadow-next-rung'] });
   const policy = loadPolicy(ctx, args.get('policy') ?? DEFAULT_POLICY);
   const state = loadState(ctx, args.get('state') ?? DEFAULT_STATE);
   const classId = str(args.need('class'), 'class');
   const now = args.has('now') ? new Date(args.need('now')) : ctx.now();
   if (Number.isNaN(+now)) throw new EngineError('--now is not a valid time');
   const diff = args.get('diff');
-  const result = gate({
+  const input = {
     policy,
     state,
     classId,
@@ -55,7 +58,11 @@ export function gateCommand(argv: readonly string[], ctx: Ctx): CommandResult {
     envelope: diff ? checkEnvelope(policy, classId, readText(ctx, diff), args.all('env')) : undefined,
     engineSha: args.get('engine-sha'),
     now,
-  });
+  };
+  const result = gate(input);
+  // --shadow-next-rung: the same inputs one rung up (../decide/shadow.ts), as `would`. Never the decision or the exit code.
+  const would = args.has('shadow-next-rung') ? shadowNextRung(input) : null;
   const head = `gate ${result.class}: ${result.decision.toUpperCase()}${result.tier ? ` at ${result.tier}` : ''}${result.agent ? ` (${result.agent})` : ''}`;
-  return { json: result, summary: [head, ...result.reasons.map((r) => `  - ${r}`)].join('\n'), code: EXIT[result.decision] };
+  const shadow = would ? [`  next rung (${would.tier}, never applied): ${would.decision}`] : [];
+  return { json: would ? { ...result, would } : result, summary: [head, ...result.reasons.map((r) => `  - ${r}`), ...shadow].join('\n'), code: EXIT[result.decision] };
 }

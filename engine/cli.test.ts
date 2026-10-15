@@ -121,6 +121,17 @@ describe('gate, tripwire and ledger through the CLI', () => {
     expect(wait.json.decision).toBe('wait');
   });
 
+  it('gate --shadow-next-rung: would merge at hands_off beside the real approve; the decision and exit code unchanged', () => {
+    const shadow = gate('policy/tier-state.yml', 'guardrail-pass.json', '--shadow-next-rung');
+    expect([shadow.code, shadow.json.decision, shadow.json.tier, shadow.json.would]).toEqual([0, 'approve', 'supervised', { tier: 'hands_off', decision: 'merge' }]);
+    expect(shadow.err).toMatch(/next rung \(hands_off, never applied\): merge/);
+    const { would: _would, ...rest } = shadow.json;
+    void _would;
+    expect(rest).toEqual(gate('policy/tier-state.yml', 'guardrail-pass.json').json); // the same decision, reasons and tier
+    expect('would' in gate(handsOff, 'guardrail-pass.json', '--shadow-next-rung').json).toBe(false); // no rung above hands_off
+    expect(gate('policy/tier-state.yml', 'guardrail-block.json', '--shadow-next-rung').json.would).toEqual({ tier: 'hands_off', decision: 'block' });
+  });
+
   it('gate: measures the diff itself when given one, and takes a production target', () => {
     const bump = path.join(tmp, 'bump.diff');
     fs.writeFileSync(bump, 'diff --git a/package.json b/package.json\n--- a/package.json\n+++ b/package.json\n@@ -1 +1 @@\n-a\n+b\n');
