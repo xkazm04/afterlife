@@ -15,6 +15,7 @@ import { checkArm } from '@/server/actions/arm/read';
 import { confirmIntent, previewIntent, type ActionDeps } from '@/server/actions/run';
 import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
+import { mergeMr } from '@/server/gitlab/fake/merge';
 import { createBelayProjects } from '@/server/gitlab/fake/setupDone';
 import { getPairing } from '@/server/index/repositories/pairing';
 import { readLiveSetup, setupReads } from '../setup/read';
@@ -41,7 +42,7 @@ async function armTrack(gl: FakeGitLab, deps: ActionDeps, s: SetupState, id: str
   if (p.status !== 'preview') throw new Error(`${id}: ${'reason' in p ? p.reason : p.status}`);
   const done = await confirmIntent(deps, intent, p.preview.previewId);
   const mr = done.status === 'done' ? (done.results.at(-1)?.made ?? null) : null;
-  ledgerline(gl).mrs.find((m) => m.source_branch === p.preview.branch)!.state = 'merged';
+  await mergeMr(gl, 90010001, Number(ledgerline(gl).mrs.find((m) => m.source_branch === p.preview.branch)!.iid));
   const sent = setupReducer(s, { t: 'arm-sent', id, revert: false, mr, url: null, simulated: false });
   const verdict = verdictOf(await checkArm(deps, intent), false);
   return setupReducer(setupReducer(sent, { t: 'verify-start', id }), { t: 'verify-end', id, verdict });

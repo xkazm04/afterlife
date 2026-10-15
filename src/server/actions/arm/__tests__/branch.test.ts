@@ -18,6 +18,8 @@ const disarm = { kind: 'disarm-track', project: 'ledgerline', track: 'T4' } as c
 const LEFT = 'c0ffee0000000000000000000000000000000001';
 
 const ledgerline = (gl: FakeGitLab) => gl.state.projects.find((p) => p.raw.name === 'ledgerline')!;
+/** The arm branch's own tree: the confirm's commit is there, not on main. */
+const armBranch = (gl: FakeGitLab) => ledgerline(gl).refs!['belay/arm-guardrail']!;
 const UNARMED = (() => {
   const r = removeBlock(LEDGERLINE_CI, armOf('T4')!);
   if (!r.ok) throw new Error('the demo file has no T4 block');
@@ -89,7 +91,7 @@ describe('a confirm is done only when its own commit heads the MR (F38 part 2)',
     const { gl, deps } = await rig();
     const r = await confirmIntent(deps, arm, previewId(await previewIntent(deps, arm)));
     expect(r.status).toBe('done');
-    expect(ledgerline(gl).mrs.at(-1)?.sha).toBe(lastCommitOf(ledgerline(gl), '.gitlab-ci.yml'));
+    expect(ledgerline(gl).mrs.at(-1)?.sha).toBe(lastCommitOf(armBranch(gl), '.gitlab-ci.yml'));
   });
 
   it('an MR headed by any other commit fails, naming both commits', async () => {
@@ -98,7 +100,7 @@ describe('a confirm is done only when its own commit heads the MR (F38 part 2)',
     fake = r0.gl;
     const made = await (async () => {
       const r = await confirmIntent(r0.deps, arm, previewId(await previewIntent(r0.deps, arm)));
-      return { r, commit: lastCommitOf(ledgerline(r0.gl), '.gitlab-ci.yml') };
+      return { r, commit: lastCommitOf(armBranch(r0.gl), '.gitlab-ci.yml') };
     })();
     expect(made.r.status).toBe('failed');
     const last = made.r.status === 'failed' ? made.r.results.at(-1) : undefined;

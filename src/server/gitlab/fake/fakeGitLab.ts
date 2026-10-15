@@ -5,6 +5,7 @@ import { createGlabAdapter } from '../adapter/glabAdapter';
 import type { ExecFn } from '../adapter/exec';
 import type { GitLabPort } from '../port';
 import { seedState, type FakeState, type SeedOptions } from './dataset';
+import { mergeRoutes } from './merge';
 import { readRoutes } from './reads';
 import { dispatch, toExec } from './server';
 import { settingsRoutes } from './settings';
@@ -22,7 +23,7 @@ export interface FakeOptions extends SeedOptions {
   pageSize?: number;
 }
 
-const ROUTES = [...readRoutes, ...settingsRoutes, ...writeRoutes];
+const ROUTES = [...readRoutes, ...settingsRoutes, ...writeRoutes, ...mergeRoutes];
 
 export function createFakeGitLab(o: FakeOptions = {}): FakeGitLab {
   const state = seedState(o);

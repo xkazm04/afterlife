@@ -5,6 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
 import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
+import { mergeMr } from '@/server/gitlab/fake/merge';
 import { liveRig } from '../../__tests__/rig';
 import { confirmIntent, previewIntent, type ActionDeps } from '../../run';
 import type { ActionResponse } from '../../types';
@@ -28,11 +29,11 @@ function preview(r: ActionResponse) {
 }
 const reason = (r: ActionResponse) => (r.status === 'refused' ? r.reason : `not refused: ${r.status}`);
 
-/** Preview, confirm, and the person merges: the fake has one branch, so the commit is already on main. */
+/** Preview, confirm, and the person merges the MR: only then is the commit on main. */
 async function land(gl: FakeGitLab, deps: ActionDeps, kind: 'arm-track' | 'disarm-track', track: string) {
   const p = preview(await previewIntent(deps, intent(kind, track)));
   expect((await confirmIntent(deps, intent(kind, track), p.previewId)).status).toBe('done');
-  ledgerline(gl).mrs.find((m) => m.source_branch === p.branch)!.state = 'merged';
+  expect(await mergeMr(gl, 90010001, Number(ledgerline(gl).mrs.find((m) => m.source_branch === p.branch)!.iid))).toMatchObject({ status: 200 });
   return p;
 }
 

@@ -1,7 +1,7 @@
 // Write routes of the fake: the six PlannedCommands Belay builds, applied to the in-memory state.
-import { createHash } from 'node:crypto';
-import { FAKE_SEED_AT, type FakeState, type ProjectData } from './dataset';
-import { atLeast, inProject, lastCommitOf } from './reads';
+import type { FakeState, ProjectData } from './dataset';
+import { atLeast, inProject } from './reads';
+import { lastCommitOf, writeFile, writeTarget } from './refs';
 import { created, fail, ok, type Route } from './server';
 
 const P = 'projects/([^/]+)';
@@ -12,26 +12,29 @@ const findMr = (p: ProjectData, iid: string) => p.mrs.find((r) => String(r.iid) 
 /** A commit's title: the first line of its message. */
 const titleOf = (f: Record<string, string>): string => (f.commit_message ?? '').split('\n')[0] ?? '';
 
-/**
- * A file write is a commit: the content changes, and so do the file's last_commit_id and its branch's head. The file's
- * history keeps each commit with its content (the seeded content first), for the commit list and reads at a commit.
- */
-function writeFile(p: ProjectData, path: string, content: string, st: FakeState, branch: string | undefined, title = ''): void {
-  const history = ((p.history ??= {})[path] ??= []);
-  const before = p.files[path];
-  if (!history.length && before !== undefined) history.push({ id: lastCommitOf(p, path), at: FAKE_SEED_AT, title: 'seed', content: before });
-  p.files[path] = content;
-  const commit = createHash('sha1').update(`commit ${st.nextId++}`).digest('hex');
-  history.push({ id: commit, at: nowIso(), title, content });
-  (p.fileCommits ??= {})[path] = commit;
-  if (branch) (p.branches ??= {})[branch] = commit;
-}
-
 /** GitLab's check (Commits::CreateService): start_branch onto a branch that already exists, without force, is refused. */
 const branchTaken = (p: ProjectData, f: Record<string, string>): string | null =>
   f.start_branch !== undefined && f.branch !== undefined && f.branch !== f.start_branch && p.branches?.[f.branch] !== undefined && f.force !== 'true'
     ? `A branch called '${f.branch}' already exists. Switch to that branch in order to make changes`
     : null;
+
+/**
+ * A file write is a commit on its branch's own tree (refs.ts), checked against the tree it starts from, and it moves the
+ * branch's head. `update`: GitLab refuses a create of a file that is there, an update of one that is not, and (its
+ * Files::UpdateService check) an update naming a last commit other than the file's on that branch; nothing is written.
+ */
+function commitTo(p: ProjectData, path: string, f: Record<string, string>, st: FakeState, update: boolean): string | null {
+  const at = writeTarget(p, f);
+  if (!at) return 'You can only create or edit files when you are on a branch';
+  if (path in at.read.files !== update) return update ? 'A file with this name doesn\'t exist' : 'A file with this name already exists';
+  const known = f.last_commit_id;
+  if (update && known !== undefined && known !== lastCommitOf(at.read, path)) return 'You are attempting to update a file that has changed since you started editing it.';
+  const taken = branchTaken(p, f);
+  if (taken) return taken;
+  const commit = writeFile(at.tree(), path, f.content ?? '', st, titleOf(f));
+  if (f.branch) (p.branches ??= {})[f.branch] = commit;
+  return null;
+}
 
 export const writeRoutes: Route[] = [
   ['POST', new RegExp(`^${P}/merge_requests$`), inProject((p, _m, req, st) => {
@@ -43,6 +46,7 @@ export const writeRoutes: Route[] = [
       author: { username: String((st.user as { username?: unknown }).username) }, labels: labelsOf(f.labels),
       web_url: `${String(p.raw.web_url)}/-/merge_requests/${iid}`, sha: p.branches?.[f.source_branch ?? ''] ?? null, detailed_merge_status: 'checking',
       created_at: nowIso(), updated_at: nowIso(), merged_at: null, head_pipeline: null,
+      force_remove_source_branch: f.remove_source_branch === 'true',
     };
     p.mrs.push(mr);
     p.notes[String(iid)] = [];
@@ -70,22 +74,14 @@ export const writeRoutes: Route[] = [
   ['PUT', new RegExp(`^${P}/issues/(\\d+)$`), inProject((_p, m, req) => ok({ iid: Number(m[2]), labels: labelsOf(req.fields.add_labels) }))],
   ['POST', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req, st) => {
     const path = decodeURIComponent(m[2] ?? '');
-    if (path in p.files) return fail(400, 'A file with this name already exists');
-    const taken = branchTaken(p, req.fields);
-    if (taken) return fail(400, taken);
-    writeFile(p, path, req.fields.content ?? '', st, req.fields.branch, titleOf(req.fields));
+    const refused = commitTo(p, path, req.fields, st, false);
+    if (refused) return fail(400, refused);
     return created({ file_path: path, branch: req.fields.branch });
   })],
   ['PUT', new RegExp(`^${P}/repository/files/([^/]+)$`), inProject((p, m, req, st) => {
     const path = decodeURIComponent(m[2] ?? '');
-    if (!(path in p.files)) return fail(400, 'A file with this name doesn\'t exist');
-    // GitLab's check (Files::UpdateService): an update that names a last commit other than the file's is refused, and
-    // nothing is written. The fake has one branch, so it compares with the file as it is.
-    const known = req.fields.last_commit_id;
-    if (known !== undefined && known !== lastCommitOf(p, path)) return fail(400, 'You are attempting to update a file that has changed since you started editing it.');
-    const taken = branchTaken(p, req.fields);
-    if (taken) return fail(400, taken);
-    writeFile(p, path, req.fields.content ?? '', st, req.fields.branch, titleOf(req.fields));
+    const refused = commitTo(p, path, req.fields, st, true);
+    if (refused) return fail(400, refused);
     return ok({ file_path: path, branch: req.fields.branch });
   })],
   ['PUT', new RegExp(`^${P}/pipeline_schedules/(\\d+)$`), inProject((p, m, req) => {

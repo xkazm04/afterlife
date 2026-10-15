@@ -26,8 +26,10 @@ export interface ProjectData {
   fileCommits?: Record<string, string>;
   /** Each written file's commits, oldest first, with its content at each: the seeded content is the first (FAKE_SEED_AT). */
   history?: Record<string, FileCommit[]>;
-  /** Branch heads a write through the fake made (or a test set), by name. The fake keeps one tree, so files do not differ by branch. */
+  /** Branch heads a write through the fake made (or a test set), by name. A head with no tree in `refs` reads the default branch. */
   branches?: Record<string, string>;
+  /** Each branch other than the default one that a write made, as its own tree (see refs.ts); the fields above are the default branch. */
+  refs?: Record<string, BranchTree>;
   /** Runners available to the project (GET projects/:id/runners), each with `tag_list`, `online` and `status`. */
   runners?: Rec[];
   /** Protected branches and tags by name, as GET protected_branches/:name and protected_tags/:name answer them. */
@@ -38,6 +40,12 @@ export interface ProjectData {
   /** The project-level approval settings (GET projects/:id/approvals), e.g. merge_requests_author_approval. */
   approvalSettings?: Rec;
 }
+
+/** One branch's files, with each file's last commit and history: the default branch is the ProjectData itself. */
+export type Tree = Pick<ProjectData, 'files' | 'fileCommits' | 'history'>;
+
+/** A branch forked from another: `forked` is each file's last commit on the branch it started from, when it started. */
+export interface BranchTree extends Tree { forked: Record<string, string> }
 
 /** One commit of a file in the fake: GET repository/commits lists it, GET repository/files at `ref=<id>` reads its content. */
 export interface FileCommit { id: string; at: string; title: string; content: string }
