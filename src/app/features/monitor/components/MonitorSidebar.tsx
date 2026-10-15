@@ -15,7 +15,7 @@ const MARK_COUNT: Record<MarkKind, (t: Totals) => number> = {
   watching: (t) => t.watching,
 };
 
-/** The source list: the six signals (each lights its beats on every lead) and the seven leads (each opens). */
+/** The source list: the six signals (each lights its beats on every lead) and the leads, one per group (each opens). */
 export function MonitorSidebar({
   totals,
   leads,

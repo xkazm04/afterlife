@@ -56,7 +56,7 @@ const LeadRow = memo(function LeadRow({ lead, open, thin, selected, match, onPic
 });
 
 /**
- * Seven leads, one per group. Arrows move the selection beat to beat and lead to lead; Enter opens the lead into
+ * One lead per group. Arrows move the selection beat to beat and lead to lead; Enter opens the lead into
  * named cells; the open lead takes the room and the others shrink to thin traces.
  */
 export function Leads({

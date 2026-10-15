@@ -16,7 +16,7 @@ import type { MonitorData } from './model/types';
 import styles from './monitor.module.css';
 
 /**
- * Monitor: the whole fleet as seven phosphor leads, one per group, every project a beat. Amber pips are what waits
+ * Monitor: the whole fleet as phosphor leads, one per group, every project a beat. Amber pips are what waits
  * for you; pick a beat and act on it in the inspector. Demo: nothing leaves the browser. Live: Resolve opens Needs you and Re-poll runs a real poll.
  */
 export function MonitorScreen({ data }: { data: MonitorData }) {

@@ -2,7 +2,7 @@
 
 Route `/monitor`, the in-app port of the front-door contest's runner-up, "Vital Signs" (contest
 `afterlife-front-door`, A/3). It is a quick monitor of what waits for a person: the whole fleet as
-seven phosphor leads, one per group, with every project a beat. Pick a beat, then act on it in the
+phosphor leads, one per group (the demo has seven), with every project a beat. Pick a beat, then act on it in the
 inspector. `page.tsx` loads the data on the server (`data/loadMonitorData.ts`, through the
 DataSource, so it works in demo and live mode) and renders the client `MonitorScreen`.
 
@@ -33,8 +33,8 @@ DataSource, so it works in demo and live mode) and renders the client `MonitorSc
 - `components/MonitorSidebar`, `MarkGlyph`, `MonitorStatus`, `MonitorLegend`.
 - `hooks/useMonitor` holds the screen state: resolve, re-poll (per mode), selection, the open lead, the lit
   mark and the hover. `hooks/useSize` measures a strip.
-- `model/` holds the counts, marks, readout words and beat geometry. It is pure and tested
-  (`model.test.ts`).
+- `model/` holds the counts, marks, readout words and beat geometry. Arrow-key stepping is
+  `model/nav.ts`. It is pure and tested (`model.test.ts`, `mode.test.ts`, `nav.test.ts`).
 
 ## Rendering budget
 
