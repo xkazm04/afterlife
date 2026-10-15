@@ -29,6 +29,14 @@ const html = (s: NeedsState) =>
 
 const picking = (...ids: string[]): NeedsState => ({ ...initialState(demo), gaps: Object.fromEntries(ids.map((id) => [id, true])) });
 
+describe('a search that matches nothing', () => {
+  it('says so in a cell of its row: a row with no cell is not a row a screen reader can enter', () => {
+    const out = html({ ...initialState(demo), query: 'no such decision' });
+    expect(out).toContain('No decision matches the current search or filter');
+    expect(out).toMatch(/role="row"><div role="gridcell"[^>]*>No decision matches/);
+  });
+});
+
 describe('the Stage button on the group row', () => {
   it('names one picked gap in the singular and two in the plural', () => {
     expect(html(picking('g1'))).toContain('aria-label="Stage 1 picked gap"');

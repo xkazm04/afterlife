@@ -67,7 +67,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
     >
       {groups.length === 0 ? (
         <div className={styles.empty} role="row">
-          {s.query || s.show !== 'all' ? 'No decision matches the current search or filter. Clear it to see all of them.' : 'No decisions'}
+          <div role="gridcell">{s.query || s.show !== 'all' ? 'No decision matches the current search or filter. Clear it to see all of them.' : 'No decisions'}</div>
         </div>
       ) : null}
       {groups.map((g) => {
