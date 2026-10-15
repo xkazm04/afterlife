@@ -1,6 +1,7 @@
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import type { TheaterActions } from '../../hooks/useTheaterActions';
+import { MAX_TAKES } from '../../model/film/fromLedger';
 import type { Marks, Take } from '../../model/types';
 import styles from './TakesSidebar.module.css';
 
@@ -25,7 +26,7 @@ export function TakesSidebar({ takes, take, counts, range, marked, actions }: { 
               label={t.name}
               count={counts[k] ? `${counts[k]}×` : undefined}
               current={k === take}
-              title={`${t.mr != null ? 'belay-ledger · ' : ''}seq ${t.a}–${t.b}${t.seeded ? ' · seeded' : ''}${counts[k] ? ` · rolled ${counts[k]}×` : ''}${k < 8 ? ` · key ${k + 1}` : ''}`}
+              title={`${t.mr != null ? 'belay-ledger · ' : ''}seq ${t.a}–${t.b}${t.seeded ? ' · seeded' : ''}${counts[k] ? ` · rolled ${counts[k]}×` : ''}${k < MAX_TAKES ?` · key ${k + 1}` : ''}`}
               onClick={() => actions.cue(k)}
             />
           ))}
