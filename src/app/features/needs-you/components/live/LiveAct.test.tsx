@@ -6,6 +6,7 @@ import type { NeedsYouItem } from '@/lib/demo';
 import type { ActionPreview, ActionResponse } from '@/server/actions/types';
 import { outcomeOf, type WriteView } from '@/server/actions/words';
 import { liveIntent, writeName, type LiveAnswer } from '../../model/live';
+import type { LiveEvidence } from '../../model/evidence/evidence';
 
 const actions = vi.hoisted(() => ({ previewAction: vi.fn(), confirmAction: vi.fn() }));
 vi.mock('@/server/actions/actions', () => actions);
@@ -24,8 +25,14 @@ const preview = {
   commands: [{ display: 'glab api --method POST projects/90010002/repository/commits', argv: [], risk: 'policy' }, { display: 'glab mr create --title "Promote code-fix.patch"', argv: [], risk: 'policy' }],
 } satisfies ActionPreview;
 
-const html = (item: NeedsYouItem, view: WriteView | undefined, answer?: LiveAnswer) =>
-  renderToStaticMarkup(<LiveAct item={item} intent={liveIntent(item, 'ledgerline')} view={view} answer={answer} sending={false} onRun={() => {}} onRetry={() => {}} />);
+const html = (item: NeedsYouItem, view: WriteView | undefined, answer?: LiveAnswer, evidence?: LiveEvidence) =>
+  renderToStaticMarkup(<LiveAct item={item} intent={liveIntent(item, 'ledgerline')} view={view} answer={answer} evidence={evidence} sending={false} onRun={() => {}} onRetry={() => {}} />);
+const evidenceOf = (now: 'assisted' | 'quarantined'): LiveEvidence => ({
+  kind: 'class', cls: 'code-fix.patch', tier: now, demo: false, record: null, outputs: [], more: 0, outputsLine: null, blocks: [], gate: null, trigger: null, stale: null,
+  ...(now === 'assisted'
+    ? { moved: null, movedLine: null, canRun: true }
+    : { moved: { from: 'assisted', now }, movedLine: 'code-fix.patch moved to Quarantined since this was proposed; the next poll refreshes or closes it.', canRun: false }),
+});
 
 beforeEach(() => {
   actions.previewAction.mockReset();
@@ -80,5 +87,15 @@ describe('live Needs you: the write behind an item', () => {
       expect(liveIntent(item, 'ledgerline')).toBeNull();
       expect(html(item, undefined)).toContain('Read-only here');
     }
+  });
+
+  it('Run is closed on a class that moved since the proposal, and says so; on one that did not, Run is open', () => {
+    const view: WriteView = { kind: 'preview', preview };
+    const moved = html(promote, view, undefined, evidenceOf('quarantined'));
+    expect(moved).toMatch(/<button[^>]*disabled=""[^>]*>Run · open the promotion MR</);
+    expect(moved).toContain('code-fix.patch moved to Quarantined since this was proposed');
+    const still = html(promote, view, undefined, evidenceOf('assisted'));
+    expect(still).toContain('Run · open the promotion MR');
+    expect(still).not.toMatch(/<button[^>]*disabled=""[^>]*>Run ·/);
   });
 });
