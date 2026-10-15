@@ -22,9 +22,9 @@ trigger, in the Ladder's words. When the class moved since the proposal (a promo
 Run is disabled and `useLiveActs.run` refuses it; a class the index does not hold says so and invents no record.
 
 Known gap: the repo has no DOM test environment. `package.json` has no jsdom or happy-dom, and `vitest.config.ts:13` sets
-`environment: 'node'`. So `NeedsYouLive.test.tsx` renders the view with a given acts state, and `useLiveActs`' recording of a
-done confirm into the "Sent this session" strip is untested. Adding a DOM environment is a dependency decision that has not
-been taken.
+`environment: 'node'`. So `NeedsYouLive.test.tsx` renders the view with a given acts state; the recording of a done confirm
+into the "Sent this session" strip is the pure `model/slot/liveActs.ts` reducer that `useLiveActs` wraps, tested there.
+Adding a DOM environment is a dependency decision that has not been taken.
 
 ## Parts
 - `components/band/` the CRA band: live countdown, 24 h rail, grade ladder (attested struck out), 6/6 evidence.
@@ -48,6 +48,10 @@ been taken.
   no retired tier). Reading the draft or note opens the gate.
 - `rows/`: row state, the one action per row, grouping, filters, keyboard order. `outbox/`: list rules, commands.
 - `clock/`: countdown math and the grade ladder. `menu.ts`: right-click entries as data.
+- `slot/`: one server-planned write's lifecycle (asking, ready, refused, sending, answered, unsure), the rule the desk
+  (`run.ts`) and the live list (`slot/liveActs.ts`) both follow. A confirm with no answer is unsure: the write may or may
+  not have run, so Run stays closed until it is asked for again (desk: Ask again in the outbox or the inspector; live: in
+  the row). A refused preview can be asked for again on the desk too. Each live item sends on its own.
 
 ## Data
 `data/*.ts` are the prototype's invented constants (CRA detail, week ledger, the runner step: `npx belay doctor`, which takes no arguments; its check result is the demo's simulation and says so, with no job number). n1's accepted proofs are
