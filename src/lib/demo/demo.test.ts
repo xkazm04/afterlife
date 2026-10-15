@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { TIER_ORDER, type Ceiling } from '@/schemas/tier';
+import { STAGES } from '@/schemas/stages';
 import { cappedCell } from '@/server/index/seed/seedFleet';
 import { DEMO, LEDGERLINE_ID, getNeedsYouCount, getProject, getTask } from './index';
+import { CLASS_SHORT, STAGE_SHORT } from './labels';
 
 const TIERS = ['hands_off', 'supervised', 'assisted', 'quarantined', 'human_only'];
 const STATES = ['watching', 'setting-up', 'stale', 'not-set-up'];
@@ -55,5 +57,16 @@ describe('demo fleet tiers sit under their class ceilings', () => {
       const counts = Object.fromEntries(TIERS.map((k) => [k, Object.values(p.classTiers).filter((t) => t === k).length]));
       expect(p.tiers).toEqual(counts);
     }
+  });
+});
+
+// The short column heads are keyed by hand; the ground truth is the stage schema and the fixture's own class list.
+describe('column heads name every column', () => {
+  it('has a head for each of the stages, and no head for a stage that does not exist', () => {
+    expect(Object.keys(STAGE_SHORT).sort()).toEqual([...STAGES].sort());
+    expect([...DEMO.stages].sort()).toEqual([...STAGES].sort());
+  });
+  it('has a head for each of the fixture classes', () => {
+    expect(Object.keys(CLASS_SHORT).sort()).toEqual([...DEMO.fleet.classes].sort());
   });
 });

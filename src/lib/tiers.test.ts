@@ -7,6 +7,10 @@ describe('tier metadata', () => {
     expect(new Set(letters).size).toBe(5);
     expect(letters).toEqual(['H', 'S', 'A', 'Q', 'P']);
   });
+  it('displays exactly the tiers that have metadata and a rank', () => {
+    expect([...TIER_DISPLAY_ORDER].sort()).toEqual(Object.keys(TIER_META).sort());
+    expect(Object.keys(TIER_RANK).sort()).toEqual(Object.keys(TIER_META).sort());
+  });
   it('ranks hands-off highest and human-only lowest', () => {
     const ranked = [...TIER_DISPLAY_ORDER].sort((a, b) => TIER_RANK[b] - TIER_RANK[a]);
     expect(ranked[0]).toBe('hands_off');
