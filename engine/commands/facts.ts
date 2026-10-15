@@ -19,6 +19,7 @@ export interface Runs { pipeline: { id: number; webUrl: string | null } | null; 
 
 const ok = <T>(v: T): Read<T> => ({ ok: true, v });
 const no = (why: string): Read<never> => ({ ok: false, why });
+const HTTP = /^https?:\/\//;
 const notCollected = (what: string): Read<never> => no(`${what} was not collected`);
 
 export function parseFacts(raw: unknown): Facts {
@@ -85,10 +86,11 @@ export function runs(f: Facts): Read<Runs> {
   if (!r.ok) return r;
   if (!isRecord(r.v) || !Array.isArray(r.v.jobs)) return notCollected('latest_pipeline_jobs.jobs');
   const p = r.v.pipeline;
-  const pipeline = isRecord(p) && Number.isInteger(p.id) ? { id: p.id as number, webUrl: typeof p.web_url === 'string' ? p.web_url : null } : null;
+  const pipeline = isRecord(p) && Number.isInteger(p.id) ? { id: p.id as number, webUrl: typeof p.web_url === 'string' && HTTP.test(p.web_url) ? p.web_url : null } : null;
   const jobs = r.v.jobs.flatMap((j): RunJob[] => {
     if (!isRecord(j) || typeof j.name !== 'string') return [];
-    const gone = (['id', 'status', 'web_url', 'finished_at', 'artifacts'] as const).find((k) => !(k in j));
+    // a web_url that is not http(s) is no URL: the server refuses a cell citing it (src/schemas/maturity.ts), so it is not collected
+    const gone = (['id', 'status', 'web_url', 'finished_at', 'artifacts'] as const).find((k) => !(k in j) || (k === 'web_url' && !(typeof j.web_url === 'string' && HTTP.test(j.web_url))));
     const finishedMs = typeof j.finished_at === 'string' ? Date.parse(j.finished_at) : Number.NaN;
     return [{
       id: Number(j.id), name: j.name, status: String(j.status), webUrl: typeof j.web_url === 'string' ? j.web_url : '', finishedMs,

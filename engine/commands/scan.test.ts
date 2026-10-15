@@ -120,6 +120,17 @@ describe('scan: the rubric', () => {
     }
   });
 
+  it('a job or pipeline whose web_url is null or not http(s) never becomes evidence the server would refuse', () => {
+    const facts = JSON.parse(fs.readFileSync(fx('maturity', 'full.facts.json'), 'utf8')) as { facts: { latest_pipeline_jobs: { pipeline: Record<string, unknown>; jobs: Record<string, unknown>[] } } };
+    facts.facts.latest_pipeline_jobs.pipeline.web_url = 'ftp://x/1';
+    for (const j of facts.facts.latest_pipeline_jobs.jobs) j.web_url = null;
+    const file = path.join(tmp, 'nourl.facts.json');
+    fs.writeFileSync(file, JSON.stringify(facts));
+    const r = scan(file);
+    expect(parseMaturityScan(r.json)).toMatchObject({ ok: true });
+    expect(r.cell('verify')).toMatchObject({ rung: null, note: expect.stringMatching(/web_url was not collected/) });
+  });
+
   it('an unreadable facts file is exit 2 with a JSON error', () => {
     const bad = path.join(tmp, 'bad.json');
     fs.writeFileSync(bad, '{ nope');
