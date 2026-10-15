@@ -91,6 +91,9 @@ describe('gaps', () => {
     expect(s.gapStatus).toEqual({ g1: 'staged', g2: 'staged' });
     expect(s.notice?.text).toBe('2 gaps staged · 1 write each');
   });
+  it('Stage picked counts one gap in the singular', () => {
+    expect(run(start(), act('tick:g2'), act('stage-gaps')).notice?.text).toBe('1 gap staged · 1 write each');
+  });
   it('staging one gap ticks it, and taking it back clears its status', () => {
     const s = run(start(), act('stage-gap:g3'));
     expect(s.gaps.g3).toBe(true);
