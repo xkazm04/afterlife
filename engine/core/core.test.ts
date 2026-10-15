@@ -37,23 +37,7 @@ describe('engine pin', () => {
     expect(info.sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(engineSha256()).toBe(info.sha256);
   });
-
-  it('changes when a source file changes, ignores tests, fixtures and line endings', () => {
-    const root = path.join(tmp, 'engine');
-    fs.mkdirSync(path.join(root, 'sub'), { recursive: true });
-    fs.mkdirSync(path.join(root, '__fixtures__'));
-    fs.writeFileSync(path.join(root, 'a.ts'), 'export const a = 1;\nexport const b = 2;\n');
-    fs.writeFileSync(path.join(root, 'sub', 'b.ts'), 'export const c = 3;\n');
-    const before = engineSha256(root);
-    fs.writeFileSync(path.join(root, 'a.test.ts'), 'noise');
-    fs.writeFileSync(path.join(root, '__fixtures__', 'x.ts'), 'noise');
-    fs.writeFileSync(path.join(root, 'README.md'), 'noise');
-    expect(engineSha256(root)).toBe(before);
-    fs.writeFileSync(path.join(root, 'a.ts'), 'export const a = 1;\r\nexport const b = 2;\r\n');
-    expect(engineSha256(root)).toBe(before);
-    fs.writeFileSync(path.join(root, 'sub', 'b.ts'), 'export const c = 4;\n');
-    expect(engineSha256(root)).not.toBe(before);
-  });
+  // What the hash covers (the import closure of engine/cli.ts) and what it ignores: ./pin.test.ts.
 });
 
 describe('inlineFiles and ulid', () => {
