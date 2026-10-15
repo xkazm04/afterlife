@@ -15,6 +15,12 @@ session" strip above the rows, with the response's answer and the MR it named; a
 its row with its answer. Sign-offs, gaps and setup steps stay read-only
 and say where to act. A gap item is read-only here until it carries its files from the live source (none does yet); its line points to Maturity.
 
+Live evidence (`model/evidence/evidence.ts`, `components/live/LiveEvidence`): `loadNeedsYouView` joins each promotion and
+re-admit to its class as the same snapshot holds it (nothing new is read) and passes `evidence` by item id. Beside Run:
+the tier now, the record, the five newest counted outputs linked to GitLab, guardrail blocks, the gate and a re-admit's
+trigger, in the Ladder's words. When the class moved since the proposal (a promotion's `from`, a re-admit's quarantine),
+Run is disabled and `useLiveActs.run` refuses it; a class the index does not hold says so and invents no record.
+
 Known gap: the repo has no DOM test environment. `package.json` has no jsdom or happy-dom, and `vitest.config.ts:13` sets
 `environment: 'node'`. So `NeedsYouLive.test.tsx` renders the view with a given acts state, and `useLiveActs`' recording of a
 done confirm into the "Sent this session" strip is untested. Adding a DOM environment is a dependency decision that has not
