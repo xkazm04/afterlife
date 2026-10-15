@@ -167,6 +167,13 @@ describe('view state', () => {
     const s = run({ ...start(), sel: 'n2' }, act('stage-n1'), { type: 'show', show: 'outbox' });
     expect(s.sel).toBe('n1');
   });
+  it('a search that hides the selection moves it to the first visible row, as a filter does; a search with no match leaves it alone', () => {
+    const s = run({ ...start(), sel: 'n2' }, { type: 'query', query: 'runner' });
+    expect(s.sel).toBe('n5');
+    expect(run(s, { type: 'query', query: '' }).sel).toBe('n5');
+    expect(run({ ...start(), sel: 'n2' }, { type: 'query', query: 'zzz' }).sel).toBe('n2');
+    expect(run({ ...start(), sel: 'n2' }, { type: 'query', query: 'CRA' }).sel).toBe('n2');
+  });
   it('This week expands the history, clears the filter and selects its group', () => {
     const s = run({ ...start(), show: 'waiting' }, { type: 'openHistory' });
     expect(s).toMatchObject({ show: 'all', sel: 'g:hist' });

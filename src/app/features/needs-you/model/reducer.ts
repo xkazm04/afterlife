@@ -43,7 +43,7 @@ export function reduce(s: NeedsState, action: Action, demo: NeedsYouDemo): Needs
     case 'show':
       return keepSelection({ ...s, show: action.show }, demo);
     case 'query':
-      return { ...s, query: action.query };
+      return keepSelection({ ...s, query: action.query }, demo);
     case 'toggleGroup': {
       const open = action.open ?? s.collapsed.includes(action.id);
       return { ...s, collapsed: open ? without(s.collapsed, action.id) : [...without(s.collapsed, action.id), action.id] };
