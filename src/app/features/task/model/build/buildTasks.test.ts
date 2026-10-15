@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getActionClasses, getTasks, getTracks, type Task } from '@/lib/demo';
 import { TASK_DETAIL, TASK_ORDER } from '../../data/details';
-import { taskVerdict } from '../verdict/verdict';
+import { derivedVerdict } from '../verdict/verdict';
 import { buildTasks, toVerdict } from './buildTasks';
 import { ledgerIntact } from './ledger';
 import { firstTaskId, loadTasks } from './loadTasks';
@@ -26,7 +26,7 @@ describe('loadTasks', () => {
   });
 
   it('keeps every stored verdict equal to the one derived from its checks', () => {
-    for (const t of tasks) expect(taskVerdict(t)).toBe(t.proof.verdict);
+    for (const t of tasks) expect(derivedVerdict(t).verdict).toBe(t.proof.verdict);
   });
 
   it('has a 7-link chain, with the unreached links marked n/a', () => {
@@ -107,7 +107,7 @@ describe('a data-source task with no fixture', () => {
   it('with no proof stored, its verdict is UNKNOWN with no checks: never a pass, and an unknown envelope is not inside', () => {
     const t = build([row]).at(-1);
     expect(t?.proof).toEqual({ cls: 'no proof', verdict: 'UNKNOWN', engine: 'no engine', digest: '', checks: [] });
-    expect(t && taskVerdict(t)).toBe('FAIL'); // re-derived: an unknown envelope is never read as inside it
+    expect(t && derivedVerdict(t)).toEqual({ verdict: 'UNKNOWN', stored: 'UNKNOWN', mismatch: false }); // no checks and no stored word: no verdict to invent
   });
 
   it('a source task whose fixture cannot be built is drawn from its own fields at the fixture’s place', () => {

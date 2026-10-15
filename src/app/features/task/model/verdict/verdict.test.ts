@@ -3,7 +3,7 @@ import { loadTasks } from '../build/loadTasks';
 import type { TaskView } from '../types';
 import { equationTerms, verdictWord } from './equation';
 import { verdictOf } from '@/schemas';
-import { claimStatus, derivedVerdict, isStruck, tally, taskVerdict, verdictLabel } from './verdict';
+import { claimStatus, derivedVerdict, tally, verdictLabel } from './verdict';
 import { NO_FILTERS, verdictCounts, visibleTasks } from '../docket/filters';
 
 const tasks = loadTasks();
@@ -19,15 +19,13 @@ describe('verdict of a task', () => {
   it('words the schema verdict, and reads the struck terms from decidedBy', () => {
     expect(verdictLabel('pass')).toBe('PASS');
     expect(verdictLabel('fail')).toBe('FAIL');
-    expect(isStruck({ decidedBy: 'human' })).toBe(true);
-    expect(isStruck({})).toBe(false);
   });
 
   it('never counts a check a person decides as a pass or as a fail', () => {
     expect(verdictOf([c(true), c(null, 'human')], true)).toBe('pass');
     expect(verdictOf([c(null, 'human'), c(false)], true)).toBe('fail');
-    expect(taskVerdict(get('01J8QC'))).toBe('PASS');
-    expect(taskVerdict(get('01J8Q8'))).toBe('FAIL');
+    expect(derivedVerdict(get('01J8QC')).verdict).toBe('PASS');
+    expect(derivedVerdict(get('01J8Q8')).verdict).toBe('FAIL');
     expect(tally(get('01J8QC'))).toEqual({ ok: 3, bad: 0, unk: 1 });
   });
 });
