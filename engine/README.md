@@ -8,7 +8,7 @@ dependency beyond `yaml`. Every command writes JSON to stdout and a human summar
 |---|---|---|
 | `prove --class <ProofClass> --input <file.json> [--policy P] [--files-root D]` | Writes a `ProofBlock` | verdict: 0 / 1 / 2 |
 | `envelope --policy P --class <id> --diff <file> [--env <name>]...` | Files, lines, denied paths, environments | 0 within, 1 outside |
-| `gate --policy P --state S --class <id> --proof F --guardrail F [--agent A] [--diff F] [--env E] [--engine-sha H] [--shadow-next-rung]` | `merge` / `approve` / `wait` / `block` (+ `would`) | 0 / 0 / 2 / 1 |
+| `gate --policy P --state S --class <id> --proof F --guardrail F [--agent A] [--diff F] [--env E] [--now T] [--engine-sha H] [--shadow-next-rung]` | `merge` / `approve` / `wait` / `block` (+ `would`) | 0 / 0 / 2 / 1 |
 | `tripwire --policy P --state S --event F` | `{demote, commit: {path, content, message}}` | 0 (2 on bad input) |
 | `ledger append --event F --chain events.jsonl [--write]` | One hash-chained ledger line | 0 (2 on a broken chain) |
 | `scan --facts facts.json` | `belay.maturity/0`: nine stage cells from the facts `collect-facts.mjs` wrote | 0 all determined, 2 any unknown or unreadable input |

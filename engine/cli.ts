@@ -31,6 +31,7 @@ const USAGE = `usage: engine/cli.ts <command> [options]
   prove --class <ProofClass> --input <file.json> [--policy <trust-policy.yml>] [--files-root <dir>]
   envelope --policy <trust-policy.yml> --class <id> --diff <file> [--env <name>]...
   gate --policy <p> --state <tier-state.yml> --class <id> --proof <proof.json> --guardrail <verdict.json>
+    [--agent <service account>] [--diff <file>] [--env <name>]... [--now <iso>] [--engine-sha <sha>] [--shadow-next-rung]
   tripwire --policy <p> --state <tier-state.yml> --event <event.json>
   ledger append --event <event.json> --chain <events.jsonl> [--write]
   scan --facts <facts.json>
