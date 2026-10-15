@@ -36,6 +36,11 @@ describe('filters', () => {
     expect(stepTask(fails, '01J8Q4', 1)).toBe('01J8Q8');
   });
 
+  it('steps from an id that is not visible: forward to the first, back to the last', () => {
+    expect(stepTask(tasks, 'gone', 1)).toBe('01J8Q4');
+    expect(stepTask(tasks, 'gone', -1)).toBe('01J8Q7');
+  });
+
   it('moves to the first visible task when the open one is filtered out', () => {
     const fails = visibleTasks(tasks, { verdict: 'FAIL', cls: 'all' });
     expect(idAfterFilter(fails, '01J8Q4')).toBe('01J8Q8');
