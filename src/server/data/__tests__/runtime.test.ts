@@ -5,7 +5,7 @@ import { bootLive } from '../boot';
 import { readDataConfig } from '../config';
 import type { LivePort } from '../live/ports';
 import { createLivePort } from '../live/ports';
-import { lastStartFailure, readyRuntime, startRuntime } from '../live/runtime';
+import { lastStartFailure, readyRuntime, startInFlight, startRuntime } from '../live/runtime';
 import { getDataSource } from '../select';
 
 vi.mock('../live/ports', async (orig) => ({ ...(await orig<object>()), createLivePort: vi.fn() }));
@@ -106,5 +106,21 @@ describe('bootLive', () => {
     mocked.mockImplementation(() => fake(true));
     await bootLive({ BELAY_MODE: 'live', BELAY_GITLAB: 'glab' });
     expect(lines).toEqual(['belay: live data from glab; 0 project(s) polled, group error: group is gone']);
+  });
+});
+
+describe('startInFlight', () => {
+  it('is true only between a start beginning and it finishing, either way (begun, neither ready nor failed)', async () => {
+    mocked.mockReset();
+    mocked.mockRejectedValueOnce(new Error('glab is not logged in')).mockImplementation(() => real('fake'));
+    expect(startInFlight()).toBe(false);
+    const failing = startRuntime(cfg, quiet);
+    expect(startInFlight()).toBe(true);
+    await expect(failing).rejects.toThrow();
+    expect(startInFlight()).toBe(false);
+    const ok = startRuntime(cfg, quiet);
+    expect(startInFlight()).toBe(true);
+    await ok;
+    expect(startInFlight()).toBe(false);
   });
 });

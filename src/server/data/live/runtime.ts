@@ -43,7 +43,7 @@ export const readyRuntime = (): LiveRuntime | null => (globalThis as Holder)[REA
 export const lastStartFailure = (): StartFailure | null => (globalThis as Holder)[FAILED] ?? null;
 
 /** Whether a start is in flight right now: begun, neither ready nor failed. */
-export const startInFlight = (): boolean => (globalThis as Holder)[STARTING] !== undefined;
+export const startInFlight = (): boolean => (globalThis as Holder)[STARTING] !== undefined && readyRuntime() === null;
 
 async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<LiveRuntime> {
   const { port, clock, seeded } = await createLivePort(cfg.gitlab);
