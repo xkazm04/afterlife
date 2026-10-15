@@ -49,13 +49,13 @@ export function EvidenceSection({
         const on = now != null && r <= now;
         const isNext = r === nx && nx > (now ?? -1);
         const objs = ev?.objs[r] ?? [];
-        const count = objs.length || 1;
+        const count = objs.length;
         return (
           <div key={r}>
             <div className={cx(styles.rg, !on && (isNext ? styles.nx : styles.off))}>
               <BoltGlyph on={on} deep={deep} next={isNext} />
               <span>{`R${r} ${ctx.rungNames[r] ?? ''}`}</span>
-              <span className={styles.aux}>{on ? `${count} object${count > 1 ? 's' : ''}` : isNext ? 'next' : '—'}</span>
+              <span className={styles.aux}>{on ? (count ? `${count} object${count > 1 ? 's' : ''}` : 'no links') : isNext ? 'next' : '—'}</span>
             </div>
             {isNext && ev ? <div className={styles.lack}>{ev.missing}</div> : null}
             {on && objs.length
