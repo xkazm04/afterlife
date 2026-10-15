@@ -8,14 +8,14 @@ import styles from './status.module.css';
 export function FeedAge({ ageSec, ok, error }: { ageSec: number | null; ok: boolean | null; error?: string }) {
   if (ageSec == null) {
     return (
-      <span className={`${styles.fa} ${styles.never}`} title="never polled" aria-label="never polled">
+      <span className={`${styles.fa} ${styles.never}`} title="never polled" role="img" aria-label="never polled">
         —
       </span>
     );
   }
   if (ok === false) {
     return (
-      <span className={`${styles.fa} ${styles.failing}`} title={error ?? 'stale'} aria-label={`${formatAge(ageSec)}, feed failing${error ? `: ${error}` : ''}`}>
+      <span className={`${styles.fa} ${styles.failing}`} title={error ?? 'stale'} role="img" aria-label={`${formatAge(ageSec)}, feed failing${error ? `: ${error}` : ''}`}>
         {formatAge(ageSec)}
       </span>
     );
