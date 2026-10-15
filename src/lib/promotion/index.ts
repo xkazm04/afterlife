@@ -7,3 +7,4 @@ export * from './words';
 export * from './trigger/trigger';
 export * from './gate/gateSeen';
 export * from './sources/explain';
+export * from './enroll/enroll';

@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'yaml';
+import { isTier } from '@/lib/promotion/enroll/enroll';
 import { parsePolicy, type EnginePolicy } from '../../../engine/policy/load';
 import type { PolicyRules } from './types';
 
@@ -28,6 +29,7 @@ export function rulesOf(p: EnginePolicy): PolicyRules | null {
   if (accS === null || revS === null || accH === null || noEdit === null || clean === null || cooldown === null || !ho) return null;
   return {
     profile: typeof p.profile === 'string' ? p.profile : null,
+    startTier: isTier(p.start_tier) ? p.start_tier : null,
     cooldownDays: cooldown,
     leaseDays: num(p.grant_ttl_days),
     toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && window > 0 ? window : null, ...gatedOf(up) },

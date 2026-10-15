@@ -20,6 +20,18 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 | `stage-gap-mr` | `project`, `gap`, `stage`, `from`, `to`, `title`, `branch` (`belay/...`), `files: [{path, content} or {path, hunk}]` (1 to 8), `workItem?` | one commit per file on a new branch under `belay/`, then a draft MR labelled `maturity::gap`. A hunk is applied to the base file only on an exact, contiguous, single match, else `ActionRefused`; it is never written as a whole file (`plans/hunk.ts`, 775d1ab). A content file is a new file only: content for a path the base has is refused (F83, e51a17e); a new file is shown whole in the preview (F84, 1616040); the `belay/` branch must not exist yet (F85, ebaaac1); a hunk needs the base file's `last_commit_id` (F87, 42f1f26); a blank context line never matches past the final newline (F86, 105e84e); a context that matches in two places is refused at preview and at confirm (84b74e1) |
 | `arm-track` | `project`, `track` (`T1`-`T8`) | one commit of `.gitlab-ci.yml` on a new branch `belay/arm-<key>` (`start_branch` = default, `last_commit_id` as read), then one MR labelled `belay::arm`. Adds the track's include lines between `# belay:arm` markers |
 | `disarm-track` | `project`, `track` | the same on `belay/disarm-<key>`: removes exactly the marked lines the arm added (their digest is in the begin marker), or refuses |
+| `enroll-track` | `project`, `track` (`T1`-`T8`) | a branch `belay/enroll-<track>-<date>` with the first record of each of the track's classes (`start_branch` = default, `last_commit_id` as read), then a policy MR labelled `belay::promotion`. Belay never merges |
+
+`enroll-track` decisions (`plans/enroll/`): arming adds CI content only, so an armed track's classes hold no record and the
+gate blocks every one of their MRs (no tier record) until a record exists. `planEnroll` writes, for each class whose role
+maps to the track (`ROLE_TRACK`, `poller/derive/tiers.ts`), `{tier: min(start_tier, ceiling), since, by: 'operator <user>
+via enrollment MR'}`; a `human_only` class is skipped. Raising from nothing is still a raise, so it is a person-merged MR,
+never a direct commit. The account is never invented (`plans/enroll/account.ts`): an account in tier-state.yml named for the
+role, else the poller config's names for it (`BELAY_GUARDRAIL_AUTHORS` for the guardrail), else the accounts seen acting for
+the role in the project within the task window (an agent MR whose `Belay-Class` is one of the role's classes; for the
+guardrail, which acts in notes, a note with a belay-guardrail block). Several accounts at one source, or none, is refused
+with the reason and where to set it. It also refuses when any of the track's classes already holds a record (first rung
+only: promotion takes it from there), when trust-policy.yml has no `start_tier`, and when belay-policy cannot be read.
 
 `promote-class` decisions (`plans/promote.ts`):
 

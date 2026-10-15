@@ -98,7 +98,8 @@ export function parseIntent(raw: unknown): IntentParse {
       return { ok: true, intent: { kind: 'stage-gap-mr', ...base, gap, stage, from, to, title, branch, files: fs, ...(workItem ? { workItem } : {}) } };
     }
     case 'arm-track':
-    case 'disarm-track': {
+    case 'disarm-track':
+    case 'enroll-track': {
       const track = str(raw.track, TRACK, 2);
       return track ? { ok: true, intent: { kind: raw.kind, ...base, track } } : no('track must be T1 to T8');
     }

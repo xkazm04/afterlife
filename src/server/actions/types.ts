@@ -64,7 +64,16 @@ export interface DisarmTrack extends Base {
   track: string;
 }
 
-export type ActionIntent = RevokeClass | PromoteClass | MarkCraReady | StageGapMr | ArmTrack | DisarmTrack;
+/**
+ * Enroll an armed track's classes at trust-policy.yml's start_tier (never above a class's ceiling): one branch with the
+ * first records, then a policy MR a person merges. First rung only: a class that holds a record is promotion's.
+ */
+export interface EnrollTrack extends Base {
+  kind: 'enroll-track';
+  track: string;
+}
+
+export type ActionIntent = RevokeClass | PromoteClass | MarkCraReady | StageGapMr | ArmTrack | DisarmTrack | EnrollTrack;
 export type ActionKind = ActionIntent['kind'];
 
 export interface PreviewCommand {

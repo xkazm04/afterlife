@@ -61,7 +61,8 @@ Promotion counts: a counter a record does not know is "not recorded" and never m
 record columns are the record the poll counted and stored for a class one agent holds (`server/poller/README.md`, "Record
 counters"): Acc, No-edit, Rv and Clean as counted, and a dim dash titled "Not recorded" for a counter nothing states
 (No-edit when a counted merge has no task row that states whether anyone else pushed to it; Rv and Clean unless the
-policy demotes on a revert). A class no agent holds says "No record yet". The rules are
+policy demotes on a revert). A class no agent holds says "No record yet"; its lede and its action cell link to its track's
+Setup page (`/setup/track-<id>`), where the enrollment MR that gives it a first record is sent. The rules are
 trust-policy.yml's `promotion` block as `rulesOf` reads it: to Supervised, accepted outputs, reverts, guardrail blocks
 (`guardrail_blocks`) and "counted over the last N outputs" (`window_last`: the poll counts an assisted class over its last
 N outputs); to Hands-off, accepted outputs, merged without edits, clean days, reverts (no incident count is recorded, so none is claimed), a mechanical proof

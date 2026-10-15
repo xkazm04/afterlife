@@ -8,7 +8,7 @@ import { commandLines, type WriteView } from '@/server/actions/words';
 import styles from '../inspector.module.css';
 
 /**
- * The arm (or disarm) MR exactly as the server planned it: what it does, the branch it creates, the commands, the file
+ * The arm (or disarm) MR, or a track's enrollment MR, exactly as the server planned it: what it does, the branch it creates, the commands, the file
  * diff it carries, and what to know before the click. Nothing here is written by the screen, and no MR number appears:
  * GitLab names the MR when the confirm runs.
  */

@@ -48,8 +48,8 @@ describe('an intent is validated before it is planned', () => {
     expect(bad({ from: 9 })).toBe(false);
   });
 
-  it('takes an arm or a disarm of one track, T1 to T8, and nothing else from it', () => {
-    for (const kind of ['arm-track', 'disarm-track']) {
+  it('takes an arm, a disarm or an enrollment of one track, T1 to T8, and nothing else from it', () => {
+    for (const kind of ['arm-track', 'disarm-track', 'enroll-track']) {
       const r = parseIntent({ kind, project: 'ledgerline', track: 'T4', branch: 'main', content: 'x', token: 'secret' });
       expect(r.ok && r.intent).toEqual({ kind, project: 'ledgerline', track: 'T4' });
       for (const track of [undefined, 'T0', 'T9', 't4', 'T4 ', 'T44', 4, 'guardrail']) expect(parseIntent({ kind, project: 'ledgerline', track }).ok).toBe(false);

@@ -9,6 +9,7 @@ import { cellOf, RUNGS } from '@/lib/promotion/rungs';
 import { plural } from '@/lib/format/plural';
 import { ARM_META } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
+import { wouldWrite } from '../../model/enroll/enroll';
 import { unmet } from '../../model/flow/state';
 import { mrName } from '../../model/flow/wording';
 import type { ArmState } from '../../model/types';
@@ -19,6 +20,7 @@ import styles from './inspector.module.css';
 import { CapDep } from './parts/CapDep';
 import { StepDep } from './parts/StepDep';
 import { TrackDep } from './parts/TrackDep';
+import { EnrollSection } from './EnrollSection';
 import { TrackArmSection } from './TrackArmSection';
 
 /** What arming is not: Belay's arm MR adds the track's CI content, nothing in belay-policy. */
@@ -40,7 +42,7 @@ const CHIP: Record<string, { tone: ChipTone; word: (a: ArmState) => string }> = 
  * arm content is the arm section's fact, apart from this one.
  */
 export function TrackPanel({ id }: { id: string }) {
-  const { state, tracks, classes, illustrative } = useSetup();
+  const { state, tracks, classes, illustrative, startTier } = useSetup();
   const a = state.arm[id];
   const t = tracks[id];
   if (!a || !t) return null;
@@ -59,11 +61,13 @@ export function TrackPanel({ id }: { id: string }) {
         </div>
       </DetailSection>
       <TrackArmSection id={id} />
+      <EnrollSection id={id} />
       {mine.length ? (
         <DetailSection title="Standing" aux={<span title={ARM_IS_NOT}>not granted by arming ⓘ</span>}>
           <div className={styles.trs}>
             {mine.map((c) => {
               const cell = cellOf(c);
+              const would = wouldWrite(c, startTier);
               return (
                 <div key={c.id}>
                   <div className={styles.trow}>
@@ -77,6 +81,8 @@ export function TrackPanel({ id }: { id: string }) {
                       <GateSeenLine gate={c.gateSeen} since={c.since} now={state.live ? undefined : DEMO_NOW} demo={!state.live} />
                     </div>
                   ) : null}
+                  {/* no record yet: what the enrollment MR would write (from start_tier), never shown as a tier held */}
+                  {would ? <div className={styles.muted}>{would}</div> : null}
                 </div>
               );
             })}

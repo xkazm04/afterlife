@@ -28,6 +28,12 @@ export function editRecords(text: string, edits: readonly RecordEdit[]): string 
 export function lineDiff(before: string, after: string): string[] {
   const a = before.split('\n');
   const b = after.split('\n');
-  if (a.length !== b.length) return [...a.map((l) => `- ${l}`), ...b.map((l) => `+ ${l}`)];
+  if (a.length !== b.length) { // lines added (an enrollment's new records) or removed: only what lies between the common ends
+    let head = 0;
+    while (head < a.length && head < b.length && a[head] === b[head]) head++;
+    let tail = 0;
+    while (tail < a.length - head && tail < b.length - head && a[a.length - 1 - tail] === b[b.length - 1 - tail]) tail++;
+    return [...a.slice(head, a.length - tail).map((l) => `- ${l}`), ...b.slice(head, b.length - tail).map((l) => `+ ${l}`)];
+  }
   return b.flatMap((line, i) => (line === a[i] ? [] : [`- ${a[i]}`, `+ ${line}`]));
 }

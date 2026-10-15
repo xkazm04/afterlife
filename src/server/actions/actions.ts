@@ -3,7 +3,8 @@
 // The operator's writes, as Next server actions. Two calls per write:
 //   previewAction(intent)               -> { status: 'preview', preview }   the exact commands; nothing runs
 //   confirmAction(intent, previewId)    -> { status: 'done' | 'failed' | 'changed' | 'refused', ... }
-// An intent is { kind: 'revoke-class' | 'promote-class' | 'mark-cra-ready' | 'stage-gap-mr', project, ... } (types.ts).
+// An intent is { kind: 'revoke-class' | 'promote-class' | 'mark-cra-ready' | 'stage-gap-mr' | 'arm-track' | 'disarm-track'
+// | 'enroll-track', project, ... } (types.ts).
 // Both take `unknown` and validate it: a server action is an endpoint, whatever the type says. In live mode both answer
 // only a request addressed to this machine (local.ts): anyone who can reach the port could otherwise preview and confirm.
 // A live confirm that ran its commands has polled (run.ts); the route then renders again from that snapshot in the same

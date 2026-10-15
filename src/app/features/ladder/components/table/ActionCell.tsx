@@ -1,9 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import type { MouseEvent } from 'react';
 import { Button } from '@/components/controls/Button';
 import { TIER_META } from '@/lib/tiers';
-import { promoteTitle, type Promotion } from '@/lib/promotion';
+import { enrollHref, promoteTitle, type Promotion } from '@/lib/promotion';
 import { actsFrom, cellOf, isQuarantine, revokeTargets } from '../../model/rules/tiers';
 import type { ClassRow, Tier } from '../../model/types';
 import styles from './ladderTable.module.css';
@@ -21,7 +22,8 @@ function pressSelects(id: string, onSelect: (id: string) => void) {
 
 /**
  * Revoke → tier split button (▾ for any lower tier) and Promote (p: the policy MR the dock shows); Re-admit (the same, at
- * Assisted) for a real quarantine only; a note for Human only, no record yet and unknown. A split class revokes from its
+ * Assisted) for a real quarantine only; a note for Human only and unknown, and for no record yet a link to its track's
+ * Setup page, where enrollment is sent. A split class revokes from its
  * highest holder (every holder above the target moves).
  */
 export function ActionCell({
@@ -41,7 +43,16 @@ export function ActionCell({
 }) {
   const cell = cellOf(cls);
   if (cell === 'human_only') return <span className={styles.z}>never an agent</span>;
-  if (cell === 'no_record') return <span className={styles.z}>no record yet</span>;
+  if (cell === 'no_record') {
+    const href = enrollHref(cls.track); // its first record is an enrollment MR, sent from the track's Setup page
+    return href ? (
+      <Link className={styles.z} href={href} title={`No record yet: enroll ${cls.track} in Setup (a policy MR a person merges)`}>
+        no record yet · enroll ›
+      </Link>
+    ) : (
+      <span className={styles.z}>no record yet</span>
+    );
+  }
   if (cell === null) return <span className={styles.z}>unknown</span>;
   if (isQuarantine(cls)) {
     return (

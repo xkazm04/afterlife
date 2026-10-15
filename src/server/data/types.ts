@@ -4,6 +4,7 @@
 import type { DemoData, Task } from '@/lib/demo/types';
 import type { HumanKeyRead, PromotionRules } from '@/lib/promotion/types';
 import type { LedgerEvent } from '@/schemas/ledger';
+import type { Tier } from '@/schemas/tier';
 import type { SetupReads } from './setup/read';
 
 export type DataMode = 'demo' | 'live';
@@ -21,6 +22,8 @@ export type IllustrativePart = 'tracks' | 'loop' | 'cockpit' | 'setup' | 'policy
 /** trust-policy.yml's rules as a screen shows them. Policy numbers, not measurements. */
 export interface PolicyRules {
   profile: string | null;
+  /** start_tier: the tier an enrollment MR writes a class's first record at (never above its ceiling); null: not a tier. */
+  startTier: Tier | null;
   cooldownDays: number;
   /** The lease on a hands-off grant, in days (grant_ttl_days); null: no lease. */
   leaseDays: number | null;

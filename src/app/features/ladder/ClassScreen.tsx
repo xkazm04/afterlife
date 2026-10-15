@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { DetailPage } from '@/components/shell/detail/DetailPage';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
@@ -15,7 +16,7 @@ import { useReceipts } from './hooks/useReceipts';
 import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
 import { livePollAge, pollAge } from './model/clock';
-import { classLede } from './model/rules/lede';
+import { classLede, enrollLink } from './model/rules/lede';
 import { promoteAsk } from './model/rules/promote';
 import { ALL_KINDS } from './model/view/moves';
 import type { ActorKind, Tier } from './model/types';
@@ -65,13 +66,19 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
   );
 
   const age = live ? livePollAge(clock.elapsed, feedAgeSec) : pollAge(clock.elapsed, feedAgeSec);
+  const enroll = enrollLink(cls, promotion);
   const toggleKind = (k: ActorKind) => setKinds((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
 
   return (
     <DetailPage
       parent={{ label: 'Ladder', href: '/ladder' }}
       title={cls.id}
-      lede={classLede(cls, promotion)}
+      lede={
+        <>
+          {classLede(cls, promotion)}
+          {enroll ? <> · <Link href={enroll}>enroll {cls.track} in Setup ›</Link></> : null}
+        </>
+      }
       subtitle={subtitle}
       help={<HelpContent means={means} onReset={actions.reset} />}
       helpTitle="Keys and legend"

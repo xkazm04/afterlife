@@ -11,5 +11,5 @@ export async function loadSetupData(): Promise<Omit<SetupProviderProps, 'childre
   const reads = ds.setupReads();
   const live = reads ? await readLiveSetup(reads, setup.arm.map(([id]) => id)) : null;
   const illustrative = { steps: ds.illustrative.includes('setup'), tracks: ds.illustrative.includes('tracks') };
-  return { setup, tracks: ds.getTracks(), classes: ds.getActionClasses(), live, illustrative };
+  return { setup, tracks: ds.getTracks(), classes: ds.getActionClasses(), live, illustrative, startTier: ds.getPolicy()?.startTier ?? null };
 }
