@@ -2,7 +2,7 @@
 
 Port of the approved "Policy ledger" prototype: every action class by track, with its tier, the rung inside its
 ceiling, the record behind it, and what you can revoke or promote. Belay writes on a click or a key, and the exact write
-is always on screen first (the docked strip, the inspector's "write behind r"): the server's own preview, never a
+is always on screen first (the docked strip, the class page's "write behind r"): the server's own preview, never a
 command the screen spells.
 
 - `LadderScreen.tsx`: composes the `Window` (`props.ts`: what the route hands it). The route (`app/ladder/page.tsx`)
@@ -15,7 +15,7 @@ command the screen spells.
   mapped by `data/live/ledgerEntries.ts`: tier decisions, guardrail and proof verdicts, merges), unmarked (the chip is
   `components/chrome/DemoChip.tsx`). The class records are not demo: the poll counts the record of every class one
   agent holds. A record it did not count (a class several agents or no agent holds keeps the record the index held: on
-  the demo GitLab, the seed's) is marked "not counted" beside the class name and in the inspector's promotion rule
+  the demo GitLab, the seed's) is marked "not counted" beside the class name and in the class page's promotion rule
   (`components/chrome/UncountedChip.tsx`; `data/loadLadderData.ts` sets `uncounted` on the class). The clock is the wall
   clock and the poll age counts up; a revoke's commit id is GitLab's. A class with no record says "No record yet".
   When the last poll could not read belay-policy (`getTiersStale()`), the status line marks the class tiers stale
@@ -46,7 +46,7 @@ command the screen spells.
 - `hooks/`: data (reducer and derived rows), the writes on screen (`useRevokeWrite`, `usePromoteWrite`), actions (sends,
   toasts, timers; p in `usePromoteAction`),
   menus, keys, popovers, sim clock.
-- `components/`: `table/` (class rows, split Revoke button), `inspector/` (class and track, `log/`, `sections/`),
+- `components/`: `table/` (class rows, split Revoke button), `inspector/` (the class page's cards, `log/`, `sections/`),
   `chrome/` (toolbar, tier filter, policy lozenge), `sidebar/`, `dock/` (the line of the shared `CommandDock`), `help/`.
 
 The toast says what the answer says (`@/server/actions/words`): done (simulated in demo, else naming the commit read back
