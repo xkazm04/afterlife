@@ -28,6 +28,16 @@ describe('layoutAxis', () => {
     expect(layoutAxis([ev('14:00:00', 'you', 'you'), ev('14:00:06', 'tier-gate job', 'gitlab')]).gap).toBeNull();
     expect(layoutAxis([ev('14:00:00', 'Belay', 'belay'), ev('14:00:06', 'you', 'you')]).gap).toBeNull();
   });
+  it('keeps events in order across midnight (live entries are clock times within the last 24 h)', () => {
+    const a = layoutAxis([ev('23:59:58', 'tier-gate job', 'gitlab'), ev('00:00:03', 'Belay', 'belay')]);
+    expect(a.span).toBe(5);
+    expect(a.points.map((p) => p.x)).toEqual([4, 96]);
+    expect(a.gap?.label).toBe('Belay 5 s late');
+  });
+  it('a few seconds of clock skew backwards is not a new day', () => {
+    const a = layoutAxis([ev('14:00:05', 'a', 'gitlab'), ev('14:00:03', 'b', 'gitlab'), ev('14:00:10', 'c', 'gitlab')]);
+    expect(a.span).toBe(7);
+  });
   it('never divides by zero when everything happened in the same second', () => {
     const a = layoutAxis([ev('14:00:00', 'a', 'you'), ev('14:00:00', 'b', 'you')]);
     expect(a.span).toBe(1);

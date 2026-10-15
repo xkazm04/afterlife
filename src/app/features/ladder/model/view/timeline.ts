@@ -33,9 +33,25 @@ export interface Axis {
   span: number;
 }
 
+const DAY_SEC = 86400;
+
+/**
+ * Clock times carry no date, and live entries are the last 24 h, so the ledger can run past midnight ("23:59:58" then
+ * "00:00:03"). The ledger is oldest first: a time more than half a day before the one above it is the next day. A smaller
+ * step back is clock skew between a job and a poll, and stays where it is.
+ */
+function unwrapDays(secs: readonly number[]): number[] {
+  let days = 0;
+  return secs.map((s, i) => {
+    const before = secs[i - 1];
+    if (before !== undefined && before - s > DAY_SEC / 2) days += 1;
+    return s + days * DAY_SEC;
+  });
+}
+
 /** Lay out timed events (at least two) on the axis. The first Belay poll after another event draws the gap. */
 export function layoutAxis(events: readonly LedgerEntry[]): Axis {
-  const secs = events.map((e) => toSec(e.t));
+  const secs = unwrapDays(events.map((e) => toSec(e.t)));
   const lo = Math.min(...secs);
   const hi = Math.max(...secs);
   const span = Math.max(1, hi - lo);
