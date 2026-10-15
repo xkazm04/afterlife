@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { append, hashEvent } from '../../src/schemas/ledger';
 import { EngineError } from '../core/types';
+import { parseLedgerJsonl } from '../../src/server/ledger/parse';
 import { parseLedgerEvent } from './ledger';
 
 const event = (o: Record<string, unknown> = {}) => ({
@@ -105,5 +106,15 @@ describe('parseLedgerEvent: what the next rung would have decided, on a tier_dec
     const parsed = parseLedgerEvent(decision());
     expect('would' in parsed).toBe(false);
     expect(append([], parsed).hash).toBe(append([], { ...parsed, would: undefined } as typeof parsed).hash);
+  });
+});
+
+describe('parseLedgerEvent: only lines the reader accepts are written', () => {
+  it('a line it writes parses with the server reader (parseLedgerJsonl), and the ids are non-negative integers like its own', () => {
+    const line = append([], parseLedgerEvent(event()));
+    expect(parseLedgerJsonl(`${JSON.stringify(line)}\n`)).toEqual([line]);
+    for (const subject of [{ project_id: 1.5, iid: 44 }, { project_id: 7, iid: -1 }, { project_id: 7, iid: 0.5 }, { project_id: Number.MAX_VALUE, iid: 1.5 }]) {
+      expect(() => parseLedgerEvent(event({ subject: { ...subject, type: 'mr' } })), JSON.stringify(subject)).toThrow(/non-negative integer/);
+    }
   });
 });

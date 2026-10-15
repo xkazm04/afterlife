@@ -5,12 +5,18 @@ import path from 'node:path';
 import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, verifyChain, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { parseJson, readJson } from '../core/files';
-import { EngineError, rec, str, num, type CommandResult, type Ctx } from '../core/types';
+import { EngineError, rec, str, type CommandResult, type Ctx } from '../core/types';
 import { TIER_ORDER, type Tier } from '../../src/schemas/tier';
 
 const KINDS: readonly LedgerKind[] = ['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event'];
 const OBSERVED: readonly LedgerEvent['observed_by'][] = ['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job'];
 const SUBJECTS: readonly LedgerEvent['subject']['type'][] = ['mr', 'issue', 'pipeline', 'vulnerability', 'deployment'];
+
+/** A GitLab id: the server reader (src/server/ledger/parse.ts) refuses a line whose ids are not non-negative integers. */
+function id(v: unknown, what: string): number {
+  if (typeof v !== 'number' || !Number.isSafeInteger(v) || v < 0) throw new EngineError(`${what} must be a non-negative integer`);
+  return v;
+}
 
 function oneOf<T extends string>(v: unknown, allowed: readonly T[], what: string): T {
   if (typeof v !== 'string' || !allowed.includes(v as T)) throw new EngineError(`${what} must be one of ${allowed.join(', ')}`);
@@ -50,7 +56,7 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
     action_class: str(e.action_class, 'event.action_class'),
     kind,
     tier_at_time: tier,
-    subject: { project_id: num(s.project_id, 'subject.project_id'), type: oneOf(s.type, SUBJECTS, 'subject.type'), iid: num(s.iid, 'subject.iid') },
+    subject: { project_id: id(s.project_id, 'subject.project_id'), type: oneOf(s.type, SUBJECTS, 'subject.type'), iid: id(s.iid, 'subject.iid') },
     payload_ref: str(e.payload_ref, 'event.payload_ref'),
     observed_by: oneOf(e.observed_by, OBSERVED, 'event.observed_by'),
     // absent, never undefined: an event without a verdict hashes as it always did
