@@ -23,6 +23,11 @@ export function Sheet({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // Callers pass a fresh onClose every render; the effect below must not depend on it (see Sheet.test.ts).
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
   useEffect(() => {
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     ref.current?.focus({ preventScroll: true });
@@ -30,14 +35,14 @@ export function Sheet({
       if (e.key !== 'Escape') return;
       e.preventDefault();
       e.stopPropagation();
-      onClose();
+      closeRef.current();
     };
     document.addEventListener('keydown', onKey, true);
     return () => {
       document.removeEventListener('keydown', onKey, true);
       if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <>
