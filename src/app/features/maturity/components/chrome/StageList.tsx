@@ -27,7 +27,7 @@ export function StageList({
           return (
             <SidebarItem
               key={v.stage}
-              icon={<StageMeter rung={v.lv} deep={v.lv !== null && v.lv >= 3} />}
+              icon={<StageMeter rung={v.lv} deep={v.deep} />}
               label={capitalize(v.stage)}
               count={gap ? <NeedsYouBadge small variant="group" label={gap} title="gap picked, waits for you" /> : rungText(v.lv)}
               current={selected === v.stage}

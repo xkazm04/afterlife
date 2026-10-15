@@ -1,7 +1,7 @@
 import type { Stage } from '@/schemas';
 import { markY, ropePath, type CragGeom } from '../../model/crag/geometry';
 import type { RouteView } from '../../model/crag/routes';
-import { rungText, type Mode } from '../../model/rungs';
+import { isDeep, rungText, type Mode } from '../../model/rungs';
 import { cx, onActivate } from '../cx';
 import { Clip } from './Clip';
 import styles from './crag.module.css';
@@ -32,7 +32,7 @@ export function Route({
   const x = g.xOf(i);
   const { lv } = v;
   const target = mode === 'target';
-  const nowDeep = v.now != null && v.now >= 3;
+  const nowDeep = isDeep(v.now);
   const select = () => onSelect(v.stage);
   const ringAt = v.ring != null ? { x: x + g.jig(i, v.ring), y: g.yOf(v.ring) } : null;
   const x0 = x - g.colW * 0.36;
