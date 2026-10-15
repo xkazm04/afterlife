@@ -1,6 +1,6 @@
 // belay-ledger/events/<project-id>.jsonl: one LedgerEvent per line. The file is read from a GitLab repository, so every
 // line is checked field by field before it is trusted; a bad line fails the whole import (the chain is all or nothing).
-import { ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent, type LedgerKind, type WithdrawnGrant } from '@/schemas/ledger';
+import { ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, LEDGER_KINDS, OBSERVERS, STATE_REV, SUBJECT_TYPES, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent, type LedgerKind, type WithdrawnGrant } from '@/schemas/ledger';
 import { TIER_ORDER, type Tier } from '@/schemas/tier';
 import { isoMs } from '../../../engine/core/types';
 
@@ -11,12 +11,6 @@ export class LedgerParseError extends Error {
   }
 }
 
-/** A list of exactly the members of union T: a member the list lacks, or one T does not have, is a compile error. */
-const every = <T extends string>() => <const L extends readonly T[]>(list: L & ([Exclude<T, L[number]>] extends [never] ? unknown : never)): L => list;
-
-const KINDS = every<LedgerKind>()(['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event']);
-const SUBJECTS = every<LedgerEvent['subject']['type']>()(['mr', 'issue', 'pipeline', 'vulnerability', 'deployment']);
-const OBSERVERS = every<LedgerEvent['observed_by']>()(['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job']);
 const HASH = /^[0-9a-f]{64}$/;
 
 type Rec = Record<string, unknown>;
@@ -54,7 +48,7 @@ function toEvent(v: unknown, line: number): LedgerEvent {
   };
   if (!isRec(v)) return bad('not a JSON object');
   const s = v.subject;
-  const kind = KINDS.find((k) => k === v.kind);
+  const kind = LEDGER_KINDS.find((k) => k === v.kind);
   const tier = TIER_ORDER.find((t) => t === v.tier_at_time);
   const observed = OBSERVERS.find((o) => o === v.observed_by);
   if (!isInt(v.seq) || v.seq < 1) bad('seq must be a positive integer');
@@ -64,7 +58,7 @@ function toEvent(v: unknown, line: number): LedgerEvent {
   if (!tier) bad('unknown tier_at_time');
   if (!observed) bad('unknown observed_by');
   if (!str(v.prev_hash) || !HASH.test(v.prev_hash) || !str(v.hash) || !HASH.test(v.hash)) bad('prev_hash and hash must be sha256 hex');
-  const subject = isRec(s) ? SUBJECTS.find((x) => x === s.type) : undefined;
+  const subject = isRec(s) ? SUBJECT_TYPES.find((x) => x === s.type) : undefined;
   if (!isRec(s) || !subject || !isInt(s.project_id) || !isInt(s.iid)) return bad('subject needs project_id, type and iid');
   // the guardrail's verdict: on a guardrail_verdict only, pass or block; absent stays absent (the hash depends on it)
   const verdict = 'verdict' in v ? GUARDRAIL_VERDICTS.find((x) => x === v.verdict) : undefined;

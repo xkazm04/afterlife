@@ -2,15 +2,12 @@
 // Prints the new hash-chained line. The chain is verified first: a broken chain is never extended.
 import fs from 'node:fs';
 import path from 'node:path';
-import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, verifyChain, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
+import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, LEDGER_KINDS, OBSERVERS, STATE_REV, SUBJECT_TYPES, verifyChain, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { parseJson, readJson } from '../core/files';
 import { EngineError, isoMs, rec, str, type CommandResult, type Ctx } from '../core/types';
 import { TIER_ORDER, type Tier } from '../../src/schemas/tier';
 
-const KINDS: readonly LedgerKind[] = ['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event'];
-const OBSERVED: readonly LedgerEvent['observed_by'][] = ['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job'];
-const SUBJECTS: readonly LedgerEvent['subject']['type'][] = ['mr', 'issue', 'pipeline', 'vulnerability', 'deployment'];
 
 /** A GitLab id: the server reader (src/server/ledger/parse.ts) refuses a line whose ids are not non-negative integers. */
 function id(v: unknown, what: string): number {
@@ -32,7 +29,7 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
   const s = rec(e.subject, 'event.subject');
   const at = str(e.at, 'event.at');
   isoMs(at, 'event.at');
-  const kind = oneOf(e.kind, KINDS, 'event.kind');
+  const kind = oneOf(e.kind, LEDGER_KINDS, 'event.kind');
   const stated = 'verdict' in e;
   if (stated && kind !== 'guardrail_verdict') throw new EngineError(`event.verdict is for a guardrail_verdict only, not ${kind}`);
   const where = 'environment' in e;
@@ -56,9 +53,9 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
     action_class: str(e.action_class, 'event.action_class'),
     kind,
     tier_at_time: tier,
-    subject: { project_id: id(s.project_id, 'subject.project_id'), type: oneOf(s.type, SUBJECTS, 'subject.type'), iid: id(s.iid, 'subject.iid') },
+    subject: { project_id: id(s.project_id, 'subject.project_id'), type: oneOf(s.type, SUBJECT_TYPES, 'subject.type'), iid: id(s.iid, 'subject.iid') },
     payload_ref: str(e.payload_ref, 'event.payload_ref'),
-    observed_by: oneOf(e.observed_by, OBSERVED, 'event.observed_by'),
+    observed_by: oneOf(e.observed_by, OBSERVERS, 'event.observed_by'),
     // absent, never undefined: an event without a verdict hashes as it always did
     ...(stated ? { verdict: oneOf(e.verdict, GUARDRAIL_VERDICTS, 'event.verdict') } : {}),
     ...(env ? { environment: { name: str(env.name, 'event.environment.name'), tier: oneOf(env.tier, ENVIRONMENT_TIERS, 'event.environment.tier') } } : {}),

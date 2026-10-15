@@ -4,15 +4,17 @@ import { createHash } from 'node:crypto';
 import type { Withdrawn } from './receipt';
 import { TIER_ORDER, type Tier } from './tier';
 
-export type LedgerKind =
-  | 'task_started'
-  | 'proof_verdict'
-  | 'guardrail_verdict'
-  | 'tier_decision'
-  | 'merged'
-  | 'deployed'
-  | 'outcome'
-  | 'clock_event';
+/** What a ledger event records. The list is the one definition: the type below, the engine's writer and the server's reader all read it. */
+export const LEDGER_KINDS = ['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event'] as const;
+export type LedgerKind = (typeof LEDGER_KINDS)[number];
+
+/** What a ledger event is about (its subject's type). */
+export const SUBJECT_TYPES = ['mr', 'issue', 'pipeline', 'vulnerability', 'deployment'] as const;
+export type SubjectType = (typeof SUBJECT_TYPES)[number];
+
+/** Who saw it happen. ci_job: written by a Belay CI component (gate, tripwire). */
+export const OBSERVERS = ['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job'] as const;
+export type Observer = (typeof OBSERVERS)[number];
 
 /** What the guardrail said, on a guardrail_verdict event (gitlab/components/scripts/decide/apply-gate.mjs writes it). */
 export type GuardrailVerdict = 'pass' | 'block';
@@ -70,9 +72,9 @@ export interface LedgerEvent {
   action_class: string; // key into trust-policy.yml classes
   kind: LedgerKind;
   tier_at_time: Tier;
-  subject: { project_id: number; type: 'mr' | 'issue' | 'pipeline' | 'vulnerability' | 'deployment'; iid: number };
+  subject: { project_id: number; type: SubjectType; iid: number };
   payload_ref: string; // path to the Proof Block / trace in belay-ledger
-  observed_by: 'poll' | 'flows_api' | 'govern_hook' | 'webhook' | 'ci_job'; // ci_job: written by a Belay CI component (gate, tripwire)
+  observed_by: Observer;
   /**
    * guardrail_verdict only: the verdict, pass or block. Absent on every other kind and on an event written before the gate
    * stated it. When absent the key is absent, never null: canonical() would hash a null, and an event without a verdict
