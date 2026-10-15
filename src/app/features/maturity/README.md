@@ -23,6 +23,9 @@ mode" below.
 - `model/reducer.ts` the whole screen as one reducer; `state.ts`, `steps.ts` (stepper view), `rungs.ts`, `ctx.ts`.
 - `model/flow/credit.ts` credit rules ("no lift: configured, not exercised" comes first), `commands.ts` the send label.
 - `model/crag/` geometry and the per-route view model.
+- `model/flow/send.ts` a gap's send, held by the layout's reducer (`state.send`): asking → viewed → sending → done. A done
+  answer opens the gap the moment it arrives (also after the sheet closed or the screen remounted); nothing takes the sheet
+  down while a send is in flight; closing forgets the previews, never a send. `useGapSheet` only makes the two server calls.
 
 ## Data
 `data/` typed fixtures for the prototype's `MAT_EXTRA`: stage evidence, the four proposals (with their diffs),
