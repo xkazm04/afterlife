@@ -56,10 +56,14 @@ export function parseTrace(raw: string): TestCase[] {
       }
     }
   }
-  // Surefire also prints `[ERROR]   Class.method:42 message` lines in its summary.
+  // Surefire also prints `[ERROR]   Class.method:42 message` lines in its summary. A summary line repeats a case already read
+  // when the simple class name and the method match; the set makes that one lookup per line instead of a scan of every case.
+  const simple = (classname: string): string => classname.slice(classname.lastIndexOf('.') + 1);
+  const seen = new Set(cases.map((c) => `${simple(c.classname)}#${c.name}`));
   for (const line of lines) {
     const m = /^\[ERROR\]\s+(?:[\w.$]+\.)?(\w+)\.(\w+):\d+\s+(.*)$/.exec(line);
-    if (m && !cases.some((c) => c.name === m[2] && c.classname.endsWith(m[1] ?? ''))) {
+    if (m && !seen.has(`${m[1]}#${m[2]}`)) {
+      seen.add(`${m[1]}#${m[2]}`);
       cases.push({ classname: m[1] ?? '', name: m[2] ?? '', status: 'failed', message: m[3] ?? '', output: m[3] ?? '' });
     }
   }

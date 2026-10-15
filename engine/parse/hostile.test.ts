@@ -31,6 +31,11 @@ describe('hostile trace lines', () => {
     });
   }
 
+  it('parses 40,000 distinct Surefire summary lines in under 500 ms: each is checked against the cases read so far', () => {
+    const trace = Array.from({ length: 40_000 }, (_, i) => `[ERROR]   C${i}.m${i}:42 boom`).join('\n');
+    expect(timed(() => expect(parseTrace(trace)).toHaveLength(40_000))).toBeLessThan(500);
+  });
+
   it('cleanTrace bounds each line to 4096 characters', () => {
     expect(cleanTrace('a'.repeat(N)).every((l) => l.length <= 4096)).toBe(true);
   });

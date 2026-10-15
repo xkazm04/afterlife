@@ -24,6 +24,17 @@ describe('parseTrace', () => {
     expect(status(raw)).toEqual([['a', 'failed']]);
   });
 
+  it('adds a Surefire summary failure only when no case with that simple class name and method was read', () => {
+    const raw = [
+      '[ERROR] com.x.MyPathTest.rejectsTraversal  Time elapsed: 0.01 s  <<< FAILURE!',
+      '',
+      '[ERROR]   PathTest.rejectsTraversal:42 summary of another class',
+      '[ERROR]   MyPathTest.rejectsTraversal:42 summary of the case above',
+      '[ERROR]   PathTest.rejectsTraversal:42 the same summary line twice',
+    ].join('\n');
+    expect(parseTrace(raw).map((c) => `${c.classname}#${c.name}`)).toEqual(['com.x.MyPathTest#rejectsTraversal', 'PathTest#rejectsTraversal']);
+  });
+
   it('reads Maven Surefire failures', () => {
     const raw = [
       '[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.05 s <<< FAILURE! - in com.x.PathTest',
