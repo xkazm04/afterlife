@@ -33,7 +33,9 @@ export function tripwire(policy: EnginePolicy, stateText: string, statePath: str
   const doc = parseDocument(stateText);
   if (doc.errors.length) throw new EngineError(`tier-state.yml is not valid YAML: ${doc.errors[0]?.message}`);
   const state = parseState(doc.toJS());
-  const current = state.agents[event.agent]?.[event.class];
+  // own keys only, as standing.ts does: an agent or class id read off a merge request may be `constructor`
+  const held = Object.hasOwn(state.agents, event.agent) ? state.agents[event.agent] : undefined;
+  const current = held && Object.hasOwn(held, event.class) ? held[event.class] : undefined;
   if (!current) throw new EngineError(`tier-state has no record for ${event.agent} / ${event.class}`);
   const to = demote(current.tier, event.trigger, policy);
   if (TIER_ORDER.indexOf(to) >= TIER_ORDER.indexOf(current.tier)) {
