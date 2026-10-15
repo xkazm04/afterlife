@@ -10,6 +10,9 @@ import { demoSource } from '../demoSource';
 import { liveSource } from '../live/liveSource';
 import { buildSnapshot } from '../live/snapshot';
 import { getDataSource, setDataSource } from '../select';
+import { GitLabError } from '@/server/gitlab/errors';
+import type { PairingRow } from '@/server/index/repositories/pairing';
+import { setupReads, type SetupPort } from '../setup/read';
 
 afterEach(() => setDataSource(null));
 
@@ -75,5 +78,33 @@ describe('a live snapshot of an index that knows little', () => {
     expect(d.tasks).toHaveLength(1);
     expect(d.tasks[0]).toMatchObject({ id: 'T1', track: 'T?', tierAtTime: 'quarantined' });
     expect(d.fleet.projects[0]?.proofs7d).toBeNull(); // unknown stays null
+  });
+});
+
+describe("Setup's step 1 is the snapshot's pairing row", () => {
+  const row: PairingRow = { id: 'default', gitlabHost: 'gitlab.com', groupPath: 'acme-lab', checkoutPath: '/work/ledgerline', pairedAt: null };
+  const step1 = async (pairing: PairingRow | null) => (await setupReads(null, pairing, 'ledgerline').steps()).steps[1];
+
+  it('done with a checkout, failed without one, failed with no row at all', async () => {
+    expect(await step1(row)).toEqual({ state: 'done', text: 'paired with acme-lab on gitlab.com · checkout /work/ledgerline' });
+    expect(await step1({ ...row, checkoutPath: null })).toEqual({ state: 'failed', text: 'acme-lab on gitlab.com is paired, but no checkout is recorded' });
+    expect(await step1(null)).toEqual({ state: 'failed', text: 'the index has no pairing row: no poll has paired a group yet' });
+  });
+});
+
+describe("Setup's step 0 and step 4 when the port fails", () => {
+  const steps = async (err: Error) => {
+    const port = new Proxy({}, { get: (_t, k) => (k === 'currentUser' ? () => Promise.reject(err) : () => Promise.reject(new Error('down'))) });
+    const sp: SetupPort = { port: port as unknown as SetupPort['port'], groupId: 1, gitlabId: () => Promise.resolve(null) };
+    return (await setupReads(sp, null, 'ledgerline').steps()).steps;
+  };
+
+  it('not signed in is failed with the status; any other failure of the login is unknown with what failed', async () => {
+    expect((await steps(new GitLabError('auth', 'bad token', 'user', 401)))[0]).toEqual({ state: 'failed', text: 'glab api user → 401 · not signed in (bad token)' });
+    expect((await steps(new Error('boom')))[0]).toEqual({ state: 'unknown', reason: 'glab api user failed: boom' });
+  });
+
+  it("a group listing that fails leaves the projects step unknown, naming why, not failed", async () => {
+    expect((await steps(new Error('boom')))[4]).toEqual({ state: 'unknown', reason: "listing the group's projects failed: down" });
   });
 });

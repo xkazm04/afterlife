@@ -9,7 +9,7 @@ import { probeCapabilities } from '@/server/gitlab/capabilities';
 import { GitLabError } from '@/server/gitlab/errors';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { PairingRow } from '@/server/index/repositories/pairing';
-import { why, type Listing, type StepCtx } from './ctx';
+import { done, failed, unknown, why, type Listing, type StepCtx } from './ctx';
 import { bootstrapRead, licenceRead, runnerRead, secretsRead } from './humanSteps';
 import { protectionsRead } from './protections';
 import { NOT_PROBED, stampOf, type DoctorRead, type LiveSetupRead, type ReadStamp, type StepRead, type StepsRead, type TrackRead } from './types';
@@ -59,19 +59,19 @@ async function trackRead(p: SetupPort, project: string, id: string): Promise<Tra
 async function loginRead(p: SetupPort): Promise<StepRead> {
   try {
     const u = await p.port.currentUser();
-    return { state: 'done', text: `glab api user → 200 · signed in as @${u.username}` };
+    return done(`glab api user → 200 · signed in as @${u.username}`);
   } catch (e) {
-    if (e instanceof GitLabError && e.kind === 'auth') return { state: 'failed', text: `glab api user → ${e.status ?? 'no answer'} · not signed in (${e.message})` };
-    return { state: 'unknown', reason: `glab api user failed: ${why(e)}` };
+    if (e instanceof GitLabError && e.kind === 'auth') return failed(`glab api user → ${e.status ?? 'no answer'} · not signed in (${e.message})`);
+    return unknown(`glab api user failed: ${why(e)}`);
   }
 }
 
 function pairingRead(pairing: PairingRow | null): StepRead {
-  if (!pairing) return { state: 'failed', text: 'the index has no pairing row: no poll has paired a group yet' };
+  if (!pairing) return failed('the index has no pairing row: no poll has paired a group yet');
   const where = `${pairing.groupPath} on ${pairing.gitlabHost}`;
   return pairing.checkoutPath
-    ? { state: 'done', text: `paired with ${where} · checkout ${pairing.checkoutPath}` }
-    : { state: 'failed', text: `${where} is paired, but no checkout is recorded` };
+    ? done(`paired with ${where} · checkout ${pairing.checkoutPath}`)
+    : failed(`${where} is paired, but no checkout is recorded`);
 }
 
 /** The group's projects, listed once per read of the steps: step 4 reads it, and the other steps find their projects in it. */
@@ -85,11 +85,11 @@ async function listing(p: SetupPort, project: string): Promise<Listing> {
 }
 
 function projectsRead(l: Listing, project: string, want: readonly string[]): StepRead {
-  if (!l.ok) return { state: 'unknown', reason: l.reason };
+  if (!l.ok) return unknown(l.reason);
   const has = (name: string) => (name === project ? l.target !== null : l.all.some((x) => x.path === name));
   const missing = want.filter((name) => !has(name));
   const seen = `${want.length - missing.length} of ${want.length} projects exist`;
-  return missing.length ? { state: 'failed', text: `${seen} · missing ${missing.join(', ')}` } : { state: 'done', text: seen };
+  return missing.length ? failed(`${seen} · missing ${missing.join(', ')}`) : done(seen);
 }
 
 const isoDay = (d: Date): string => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -97,7 +97,6 @@ const isoDay = (d: Date): string => `${d.getFullYear()}-${String(d.getMonth() + 
 /** Setup's reads for one load, bound to the port and the snapshot's pairing row. `port` null: every read says why not. */
 export function setupReads(port: SetupPort | null, pairing: PairingRow | null, project: string, now: () => Date = () => new Date()): SetupReads {
   const projects = [project, ...BELAY_PROJECTS];
-  const unknown = (reason: string): StepRead => ({ state: 'unknown', reason });
   return {
     group: pairing?.groupPath ?? 'not paired',
     host: pairing?.gitlabHost ?? 'gitlab.com',
