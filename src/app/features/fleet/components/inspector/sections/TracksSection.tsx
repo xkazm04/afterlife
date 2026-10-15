@@ -3,7 +3,7 @@ import type { DeepProject } from '../../../model/types';
 import { DemoChip } from '../DemoChip';
 import styles from './sections.module.css';
 
-/** The eight tracks of the deep project and what each one waits for, labelled demo when they are the catalogue's. Closed until opened. */
+/** The eight tracks of the deep project and what each one waits for, labelled demo when they are the catalogue's. */
 export function TracksSection({ deep, demo, }: { deep: DeepProject; demo: boolean }) {
   return (
     <DetailSection
