@@ -43,11 +43,12 @@ async function reads(o: { wrap?: (p: GitLabPort) => GitLabPort; project?: string
 const fileFails = (p: GitLabPort): GitLabPort => new Proxy(p, { get: (t, k, r) => (k === 'getFile' ? () => Promise.reject(new GitLabError('forbidden', '403 Forbidden', 'files', 403)) : Reflect.get(t, k, r)) });
 
 describe("a track's live state is the read of the target's main (checkArm), never setup.arm", () => {
-  it('armed: T4 is armed on ledgerline in the demo group; every other track is not defined yet', async () => {
+  it('armed: T4 is armed on ledgerline in the demo group; T3, T6 and T1 are absent; the rest are not defined yet', async () => {
     const { reads: r } = await reads();
     const { tracks, at } = await r.tracks(IDS);
     expect(tracks.T4).toEqual({ state: 'armed', text: expect.stringMatching(/T4's arm block is in \.gitlab-ci\.yml on main of .*ledgerline \(line \d+\)/) });
-    for (const id of IDS.filter((x) => x !== 'T4')) expect(tracks[id]).toEqual({ state: 'undefined', text: expect.stringMatching(new RegExp(`does not define ${id}'s arm content`)) });
+    for (const id of ['T3', 'T6', 'T1']) expect(tracks[id]).toEqual({ state: 'absent', text: expect.stringMatching(new RegExp(`has no ${id} arm block`)) });
+    for (const id of IDS.filter((x) => !['T4', 'T3', 'T6', 'T1'].includes(x))) expect(tracks[id]).toEqual({ state: 'undefined', text: expect.stringMatching(new RegExp(`does not define ${id}'s arm content`)) });
     expect(at.at).toBe(AT.toISOString());
   });
 
@@ -65,9 +66,9 @@ describe("a track's live state is the read of the target's main (checkArm), neve
 
   it('with no port yet, a defined track is unknown and says why; nothing is read as armed', async () => {
     const r = setupReads(null, null, 'ledgerline', () => AT);
-    const { tracks } = await r.tracks(['T4', 'T3']);
-    expect(tracks.T4).toEqual({ state: 'unknown', reason: expect.stringMatching(/no GitLab port/) });
-    expect(tracks.T3?.state).toBe('undefined');
+    const { tracks } = await r.tracks(['T4', 'T3', 'T5']);
+    expect([tracks.T4, tracks.T3]).toEqual(Array(2).fill({ state: 'unknown', reason: expect.stringMatching(/no GitLab port/) }));
+    expect(tracks.T5?.state).toBe('undefined');
   });
 });
 
@@ -189,8 +190,7 @@ describe("Setup's loader: demo reads nothing; live reads each state and marks th
     expect(l.illustrative).toEqual({ steps: true, tracks: true });
     const r = l.live!;
     // Not setup.arm (T4 armed, the rest ready or locked), nor DEMO.tracks (all eight armed): the read of ledgerline's main.
-    expect(r.tracks.T4?.state).toBe('armed');
-    expect(Object.entries(r.tracks).filter(([, t]) => t.state === 'undefined').map(([id]) => id)).toEqual(['T3', 'T6', 'T1', 'T5', 'T2', 'T7', 'T8']);
+    expect(Object.entries(r.tracks).map(([id, t]) => `${id} ${t.state}`)).toEqual(['T4 armed', 'T3 absent', 'T6 absent', 'T1 absent', 'T5 undefined', 'T2 undefined', 'T7 undefined', 'T8 undefined']);
     const demoRows = new Set(DEMO.setup.doctor.rows.map(([n]) => n));
     expect(r.doctor.rows.length).toBeGreaterThan(0);
     expect(r.doctor.rows.filter((x) => demoRows.has(x.label))).toEqual([]);

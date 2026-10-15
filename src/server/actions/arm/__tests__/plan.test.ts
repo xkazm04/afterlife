@@ -115,8 +115,8 @@ describe('arm-track T4', () => {
 
   it('refuses a track the repo does not define, and says so', async () => {
     const { deps } = await rig();
-    expect(reason(await previewIntent(deps, { ...arm, track: 'T3' }))).toMatch(/does not define T3's arm content/);
-    expect(reason(await previewIntent(deps, { ...disarm, track: 'T6' }))).toMatch(/does not define T6's arm content/);
+    expect(reason(await previewIntent(deps, { ...arm, track: 'T5' }))).toMatch(/does not define T5's arm content/);
+    expect(reason(await previewIntent(deps, { ...disarm, track: 'T8' }))).toMatch(/does not define T8's arm content yet \(only T4, T3, T6, T1 are\)/);
   });
 
   it('refuses without the per-install values, naming what is missing', async () => {

@@ -27,9 +27,12 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 - Re-admitting a quarantined class to Assisted is not refused during the cooldown (`promote.ts:34-35`, 565e23f). The new record keeps `cooldown_until` (`promote.ts:42`), so the class climbs no further before that date. This is the App Master's decision of 2026-10-09 (wake 1c7f329f), confirming the builder's choice; it matches the re-admit card's "does not lift the promotion cooldown".
 - The preview's summary states the precondition "a person merges this MR; Belay never merges it" (`HUMAN_KEY`, `rules.ts:66`; `promote.ts:50`, 28d308a). It is no longer counted as a met rule row, and no GitLab approval setting is read (28d308a).
 
-Arm and disarm (`arm/`): the content is the repo's own, not Belay's idea. `content.ts` holds a track's include lines as
+Arm and disarm (`arm/`): the content is the repo's own, not Belay's idea. `content/` holds a track's include lines as
 `gitlab/examples/target-project/.gitlab-ci.yml` writes them (its test checks them against the example and the templates'
-`spec:inputs`). Only T4 (guardrail: `proof-engine` cited-diff alone; the `flow-dispatch` component is gone, belay-apply starts the guardrail) is defined; any other track is refused with
+`spec:inputs`). T4 (guardrail: `proof-engine` cited-diff alone; the `flow-dispatch` component is gone, belay-apply starts the guardrail), T3
+(governor: `tier-gate`, report-only; its `proof_authors` is `BELAY_PROOF_AUTHORS`), T6 (maturity: `maturity-scan` alone; the
+scanner templates stay the person's) and T1 (patcher: `proof-engine` exploit-test with the example's `build_args`) are defined, one
+file each in `arm/content/`; a proof-engine include is told apart by its `class`, so T4 and T1 sit side by side. Any other track is refused with
 the reason. The per-install values (the example's "Replace:" list) come from the environment in live mode:
 `BELAY_PACK_VERSION`, `BELAY_ENGINE_REF`, `BELAY_ENGINE_COMMIT` (optional); a missing one is
 named in the refusal. The guardrail's consumer id is not an arm value: it lives in belay-apply's `apply.json`. T4's token notes

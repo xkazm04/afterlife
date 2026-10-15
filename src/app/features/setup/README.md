@@ -27,14 +27,14 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
 - `components/shared/` DepRow, GateRow, Spinner, CapGlyph. `SetupStatus` (progress, probe age), `SetupLegend`.
 - `hooks/` `useSetupFlow` (reducer + async probes + toasts), `useArmWrite` (the planned arm/disarm MRs on screen), `useSetupView` (pick, hover, filter, Esc), `SetupContext`.
 - `write/arm.ts` the round trip: `previewAction` when a track's Arm or Disarm section is in view (`parts/ArmPreview` shows the
-  summary, the branch the plan creates, the commands, the `.gitlab-ci.yml` diff and, for T4, its five notes: the writes are belay-apply's, BELAY_BOT_TOKEN lives there and never on the target);
+  summary, the branch the plan creates, the commands, the `.gitlab-ci.yml` diff and the track's notes (for T4, its five: the writes are belay-apply's, BELAY_BOT_TOKEN lives there and never on the target; T3, T6 and T1 say the same of theirs, and name what the person adds by hand);
   `confirmAction` with that preview's id on the click. The MR number and its address come from the confirm's answer, never
   from the demo. A track the repo does not define yet shows the server's refusal.
 - "I merged it · verify" calls `verifyArmAction`: a read of the target's default branch. A track arms (or disarms) only when
   the read saw its block there (or saw it gone); otherwise the MR stays open with what was found (`model/flow/verify.ts`).
   Demo mode reads nothing and the track says simulated.
 - Live (`model/live/`, `hooks/liveFlow.ts`, `read/reread.ts`): the opening state is the read. T4 with no block on main
-  opens ready (Arm) once step 4 reads done (its MR includes a belay-pack component, so T4 needs the projects step 4 creates; T1 and T8 inherit it through T4), else locked · needs step 4; a track with no arm content is "not defined yet"; a refused or failed read is unknown, with its reason.
+  opens ready (Arm) once step 4 reads done (its MR includes a belay-pack component, so T4 needs the projects step 4 creates; T1 and T8 inherit it through T4), else locked · needs step 4. T3 and T6 with no block open ready (their `needs` are empty, `data/armMeta.ts:5-6`); T1 opens locked until T4, T3 and T6 read armed; a track with no arm content is "not defined yet"; a refused or failed read is unknown, with its reason.
   No timer probes: a step's verify ("I did it · verify", "Read again") and Re-probe call `rereadSetupAction` (read only,
   localhost only), and a step no read observes stays unknown, "not probed". A human step not read done is still yours:
   it counts in "need you", the map marks it "you", and it reads unread (or not yet), never done; "Nothing waits for you"
@@ -63,8 +63,10 @@ Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn e
 
 ## Decisions
 
-- Setup's subject for M2 is T4 only. The other seven tracks read "not defined yet" until each one is defined.
-- Step 8 asks for no model key. Nothing in the repo reads `ANTHROPIC_API_KEY`, only T4 is defined, and plan row O5
+- Setup arms T4, T3, T6 and T1 (`src/server/actions/arm/content/`: guardrail, governor, maturity, patcher). The other four
+  tracks read "not defined yet" until each one is defined. T3 needs `BELAY_PROOF_AUTHORS` (tier-gate's `proof_authors`)
+  and refuses without it; T6's block adds `maturity-scan` only, not GitLab's scanner templates (the person includes those).
+- Step 8 asks for no model key. Nothing in the repo reads `ANTHROPIC_API_KEY`, no defined track (T4, T3, T6, T1) needs one, and plan row O5
   recommends Vertex AI, which is keyless through step 7. The key returns with T7, and only for the Anthropic-key route
   that step 2 records. Step 8 sets the four `BELAY_*` tokens on belay-apply, one command each: a silent read piped to
   `glab variable set <NAME> -R <group>/belay-apply --masked --protected --hidden`, so no value is in the command or on

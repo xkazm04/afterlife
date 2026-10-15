@@ -1,5 +1,5 @@
 // Arm and disarm a track: one MR each, as the operator, in the paired target project, from a branch the plan creates.
-// Arm adds the track's include lines to .gitlab-ci.yml (content.ts), between markers; disarm removes exactly those lines.
+// Arm adds the track's include lines to .gitlab-ci.yml (content/), between markers; disarm removes exactly those lines.
 // Both commits carry the file's last_commit_id as read, so a commit landing in between is refused by GitLab, not
 // overwritten. Neither reads, writes or names a token value, and neither sets a CI variable: the person does that.
 // The branch is new or the plan refuses (F38): a commit is never planned onto an existing branch, and force is never set.
@@ -88,12 +88,14 @@ const description = (ctx: PlanContext, what: string, notes: readonly string[]): 
 export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan> {
   const a = trackArm(intent.track);
   const pin = pinFor(ctx);
+  const gap = a.refuses?.(pin);
+  if (gap) throw new ActionRefused(gap);
   const t = await targetOf(ctx.port, ctx.groupId, ctx.gitlabId, intent.project);
   const file = await ciFile(ctx, t, 'an arm adds include lines to a pipeline that exists');
   const found = findBlock(file.content, a);
   if (found.state === 'armed') throw new ActionRefused(`${a.track} is already armed: its block is on ${t.base} (${CI_FILE} line ${found.from + 1})`);
   if (found.state === 'edited') throw new ActionRefused(`${CI_FILE} on ${t.base} has a ${a.track} block that was edited after it was added (line ${found.from + 1}): sort it out by hand first`);
-  const at = placementOf(file.content, a);
+  const at = placementOf(file.content, a, pin);
   if (typeof at === 'string') throw new ActionRefused(at);
   const wanted = a.includes(pin, at);
   const blocker = blockerOf(file.content, wanted);

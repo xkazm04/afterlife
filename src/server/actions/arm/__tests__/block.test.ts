@@ -70,20 +70,20 @@ describe('the arm block', () => {
 
 describe('what must already be in the pipeline', () => {
   it('the stage T4 runs in: cited-diff in review when the pipeline declares it, else in test', () => {
-    expect(placementOf(PIPELINE, t4)).toEqual({ 'proof-engine': 'review' });
+    expect(placementOf(PIPELINE, t4, DEMO_PIN)).toEqual({ 'proof-engine': 'review' });
     const testOnly = 'stages: [build, test, secure, package, deploy]\nbuild:\n  script: make\n';
-    expect(placementOf(testOnly, t4)).toEqual({ 'proof-engine': 'test' });
-    expect(placementOf('build:\n  script: make\n', t4)).toEqual({ 'proof-engine': 'test' }); // GitLab's defaults
-    expect(placementOf('stages: [test]\n', t4)).toEqual({ 'proof-engine': 'test' }); // no build stage needed: no flow-dispatch (F4)
+    expect(placementOf(testOnly, t4, DEMO_PIN)).toEqual({ 'proof-engine': 'test' });
+    expect(placementOf('build:\n  script: make\n', t4, DEMO_PIN)).toEqual({ 'proof-engine': 'test' }); // GitLab's defaults
+    expect(placementOf('stages: [test]\n', t4, DEMO_PIN)).toEqual({ 'proof-engine': 'test' }); // no build stage needed: no flow-dispatch (F4)
     expect(blockerOf(PIPELINE, wanted)).toBeNull();
   });
   it('refuses only when neither review nor test is declared, naming both', () => {
-    expect(placementOf('stages: [build, deploy]\n', t4)).toMatch(/proof-engine \(cited-diff\) runs in either a review or a test stage, and the pipeline declares neither review nor test/);
-    expect(placementOf('stages: [\n', t4)).toMatch(/not valid YAML/);
+    expect(placementOf('stages: [build, deploy]\n', t4, DEMO_PIN)).toMatch(/proof-engine \(cited-diff\) runs in either a review or a test stage, and the pipeline declares neither review nor test/);
+    expect(placementOf('stages: [\n', t4, DEMO_PIN)).toMatch(/not valid YAML/);
   });
   it('a test-only pipeline gets cited-diff in test, and disarm still removes exactly the block', () => {
     const testOnly = 'stages: [build, test]\n\ninclude:\n  - template: Jobs/SAST.gitlab-ci.yml\n';
-    const at = placementOf(testOnly, t4);
+    const at = placementOf(testOnly, t4, DEMO_PIN);
     if (typeof at === 'string') throw new Error(at);
     const r = insertBlock(testOnly, t4, 'acme-lab', DEMO_PIN, at);
     if (!r.ok) throw new Error(r.reason);
