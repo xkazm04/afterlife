@@ -88,13 +88,16 @@ function webUrl(v: unknown): string | null {
   }
 }
 
+/** Only a command addressed to <project>/merge_requests (createMr) opens an MR: an issue or work item's answer has an iid and a web_url too. */
+const opensMr = (cmd: PlannedCommand): boolean => cmd.argv.some((a) => /^projects\/[^/]+\/merge_requests$/.test(a));
+
 /**
  * What a command that ran made, from GitLab's answer: an MR's iid, or (a file write) the commit the file now has. Named only
  * when the answer has the shape GitLab documents (a positive iid, an http(s) address, a commit id).
  */
 async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Promise<{ named: Pick<CommandOutcome, 'made' | 'url'>; commit?: string }> {
   const b = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
-  if (Number.isSafeInteger(b.iid) && (b.iid as number) > 0) {
+  if (opensMr(cmd) && Number.isSafeInteger(b.iid) && (b.iid as number) > 0) {
     const url = webUrl(b.web_url);
     return { named: { made: `!${b.iid as number}`, ...(url ? { url } : {}) } };
   }
