@@ -2,7 +2,7 @@
 // Prints the new hash-chained line. The chain is verified first: a broken chain is never extended.
 import fs from 'node:fs';
 import path from 'node:path';
-import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, verifyChain, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
+import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, verifyChain, WITHDRAWN_GRANTS, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { parseJson, readJson } from '../core/files';
 import { EngineError, rec, str, num, type CommandResult, type Ctx } from '../core/types';
@@ -17,7 +17,10 @@ function oneOf<T extends string>(v: unknown, allowed: readonly T[], what: string
   return v as T;
 }
 
-/** Rebuilt field by field: anything else is dropped. A verdict is kept on a guardrail_verdict only, and only pass or block. */
+/**
+ * Rebuilt field by field: anything else is dropped. A verdict is kept on a guardrail_verdict only, and only pass or block;
+ * an environment on a deployed event only; a state_rev and a withdrew on a tier_decision only.
+ */
 export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_hash' | 'hash'> {
   const e = rec(raw, 'event');
   const s = rec(e.subject, 'event.subject');
@@ -29,6 +32,14 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
   const where = 'environment' in e;
   if (where && kind !== 'deployed') throw new EngineError(`event.environment is for a deployed event only, not ${kind}`);
   const env = where ? rec(e.environment, 'event.environment') : null;
+  // the tier-state.yml revision the gate read, and what the sweep withdrew: on a tier_decision only
+  for (const k of ['state_rev', 'withdrew'] as const) if (k in e && kind !== 'tier_decision') throw new EngineError(`event.${k} is for a tier_decision only, not ${kind}`);
+  const rev = 'state_rev' in e ? str(e.state_rev, 'event.state_rev') : null;
+  if (rev !== null && !STATE_REV.test(rev)) throw new EngineError('event.state_rev must be a 40-hex commit id');
+  const withdrew = 'withdrew' in e ? e.withdrew : null;
+  if ('withdrew' in e && (!Array.isArray(withdrew) || withdrew.length === 0 || new Set(withdrew).size !== withdrew.length)) {
+    throw new EngineError('event.withdrew must be a non-empty list, each grant once');
+  }
   return {
     at,
     agent: str(e.agent, 'event.agent'),
@@ -41,6 +52,8 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
     // absent, never undefined: an event without a verdict hashes as it always did
     ...(stated ? { verdict: oneOf(e.verdict, GUARDRAIL_VERDICTS, 'event.verdict') } : {}),
     ...(env ? { environment: { name: str(env.name, 'event.environment.name'), tier: oneOf(env.tier, ENVIRONMENT_TIERS, 'event.environment.tier') } } : {}),
+    ...(rev !== null ? { state_rev: rev } : {}),
+    ...(withdrew !== null ? { withdrew: (withdrew as unknown[]).map((w) => oneOf(w, WITHDRAWN_GRANTS, 'event.withdrew[]')) } : {}),
   };
 }
 

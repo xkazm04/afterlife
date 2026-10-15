@@ -329,7 +329,8 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(notes).toHaveLength(1);
     expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay: approval withdrawn\\*\\* for head \`${HEAD}\`: the gate now says (wait|block) at tier quarantined`));
     expect(granted(r)).toEqual([]);
-    expect(r.writes).toHaveLength(2);
+    // the unapprove, its note, and the one ledger commit of the withdrawal (case xx)
+    expect(r.writes).toHaveLength(3);
 
     // Once: the next sweep finds only the person's approval, and leaves it.
     expect(sweep(approvedBy(['a-maintainer'], REVOKED)).writes).toEqual([]);
@@ -455,6 +456,46 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     // No APPROVE for an earlier head: the approvals are not read before this head is gated.
     const plain = sweep(group({ pipelineSha: OLD }));
     expect(plain.reads.some((p) => p.endsWith('/approvals'))).toBe(false);
+  });
+
+  it('(xx) every tier_decision states the tier-state.yml commit its gate read; a withdrawal on a settled head is ledgered once per revision', () => {
+    const REV = '1'.repeat(40); // the live tier-state.yml's last_commit_id, as group() answers it
+    const first = sweep(group());
+    const ledger = first.writes.find((w) => w.path === `${LEDGER}/repository/commits`);
+    const decision = ledger.body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l)).find((e) => e.kind === 'tier_decision');
+    expect(decision).toMatchObject({ tier_at_time: 'supervised', state_rev: REV });
+    expect('withdrew' in decision).toBe(false);
+
+    // The head is settled (gate and ledger applied); a revoke then moves tier-state.yml to a new commit, C1.
+    const C1 = 'c1'.repeat(20);
+    const [proofNote, gateNote] = glabWrites(first, 'note create');
+    const bot = (id, n) => ({ id, system: false, author: { username: 'belay-bot' }, created_at: '2026-10-07T10:05:00Z', body: n.body.message });
+    const UNAPPROVE = 'projects/1/merge_requests/7/unapprove';
+    const revoked = (ledgerCommits) => {
+      const g = group({ notes: [bot(102, gateNote), bot(101, proofNote), guardrailNote('pass')], labels: ['proof::pass', 'guardrail::pass'], ledgerCommits, state: STATE.replace('tier: supervised', 'tier: quarantined') });
+      const live = g[`${POLICY_API}/repository/files/tier-state.yml`];
+      return { ...g, [`${POLICY_API}/repository/files/tier-state.yml`]: { ...live, last_commit_id: C1 }, 'projects/1/merge_requests/7/approvals': { approved_by: [{ user: { username: 'belay-bot' } }] }, [`POST ${UNAPPROVE}`]: { reply: {} } };
+    };
+    const head = { id: 'f'.repeat(40), message: ledger.body.commit_message };
+    const r = sweep(revoked([head]));
+    expect(r.code, r.stderr).toBe(0);
+    const appended = r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`);
+    expect(appended).toHaveLength(1);
+    const lines = appended[0].body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatchObject({ kind: 'tier_decision', tier_at_time: 'quarantined', state_rev: C1, withdrew: ['approval'], subject: { project_id: 1, type: 'mr', iid: 7 }, observed_by: 'ci_job' });
+    expect(appended[0].body.commit_message).toContain(`Belay-Head: 1!7@${HEAD}/withdrawn@${C1}`);
+    expect(appended[0].body.commit_message).not.toContain(`Belay-Head: 1!7@${HEAD}\n`);
+
+    // Deduplicated: with that commit in the ledger's history, a sweep that withdraws again on C1 appends nothing.
+    const again = sweep(revoked([head, { id: 'e'.repeat(40), message: appended[0].body.commit_message }]));
+    expect(again.code, again.stderr).toBe(0);
+    expect(again.writes.filter((w) => w.path === UNAPPROVE)).toHaveLength(1);
+    expect(again.writes.filter((w) => w.path === `${LEDGER}/repository/commits`)).toEqual([]);
+    // Reporting only: the withdrawal is said, nothing is written, the ledger included.
+    const dry = sweep(revoked([head]), { CI_SERVER_FQDN: 'gitlab.example' });
+    expect(dry.code, dry.stderr).toBe(0);
+    expect(dry.writes).toEqual([]);
   });
 
   it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {

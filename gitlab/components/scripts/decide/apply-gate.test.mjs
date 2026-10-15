@@ -18,10 +18,10 @@ const write = (name, value) => {
 };
 
 /** Runs apply-gate (reporting only) with `guardrail` as the guardrail file; returns the events it emitted, by file name. */
-function gate(guardrail, name) {
+function gate(guardrail, name, extra = []) {
   const emit = path.join(dir, `events-${name}`);
   const decision = write('decision.json', { decision: 'approve', tier: 'supervised', reasons: ['proof pass'] });
-  const args = ['--mr', '7', '--sha', HEAD, '--decision', decision, '--agent', 'ai-patcher-acme', '--class', 'code-fix.patch', '--emit-dir', emit, '--dry', '1'];
+  const args = ['--mr', '7', '--sha', HEAD, '--decision', decision, '--agent', 'ai-patcher-acme', '--class', 'code-fix.patch', '--emit-dir', emit, '--dry', '1', ...extra];
   if (guardrail !== undefined) args.push('--guardrail', write(`guardrail-${name}.json`, guardrail));
   const r = runScript(dir, 'decide/apply-gate.mjs', args, { env: ENV });
   expect(r.code, r.stderr).toBe(0);
@@ -82,5 +82,36 @@ describe('apply-gate: the guardrail_verdict event', () => {
     const lines = commit.body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
     expect(lines.map((e) => [e.seq, e.kind, e.verdict])).toEqual([[1, 'proof_verdict', undefined], [2, 'guardrail_verdict', 'block'], [3, 'tier_decision', undefined]]);
     expect(lines.filter((e) => 'verdict' in e)).toHaveLength(1);
+  });
+});
+
+describe('apply-gate: the tier-state.yml revision and the withdrawal on the tier_decision', () => {
+  const REV = 'c1'.repeat(20);
+
+  it('--state-rev and --withdrew stamp the tier_decision only; without them it carries neither key', { timeout: 120_000 }, () => {
+    const g = gate(undefined, 'rev', ['--state-rev', REV, '--withdrew', 'approval,auto_merge']);
+    expect(g.files).toEqual(['0-proof_verdict.json', '1-tier_decision.json']);
+    expect(g.read('1-tier_decision.json')).toMatchObject({ kind: 'tier_decision', tier_at_time: 'supervised', state_rev: REV, withdrew: ['approval', 'auto_merge'] });
+    expect('state_rev' in g.read('0-proof_verdict.json')).toBe(false);
+    const plain = gate(undefined, 'no-rev').read('1-tier_decision.json');
+    expect('state_rev' in plain || 'withdrew' in plain).toBe(false);
+    // and the engine keeps both through ledger-append
+    const routes = {
+      [`${LEDGER}/repository/files/events%2F1.jsonl`]: { __http: 404, message: '404 File Not Found' },
+      [`POST ${LEDGER}/repository/commits`]: { reply: { id: 'f'.repeat(40) } },
+    };
+    const r = runScript(dir, 'decide/ledger-append.mjs', ['--events', g.emit, '--project', 'acme/belay-ledger'], { routes, env: { BELAY_BOT_TOKEN: 'bot' } });
+    expect(r.code, r.stderr).toBe(0);
+    const lines = r.writes.find((w) => w.path === `${LEDGER}/repository/commits`).body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
+    expect(lines.map((e) => [e.kind, e.state_rev, e.withdrew])).toEqual([['proof_verdict', undefined, undefined], ['tier_decision', REV, ['approval', 'auto_merge']]]);
+  });
+
+  it('refuses a revision that is not a commit id, an unknown or repeated grant, and either on a forced call', () => {
+    const decision = write('decision-bad.json', { decision: 'approve', tier: 'supervised', reasons: [] });
+    const run = (extra) => runScript(dir, 'decide/apply-gate.mjs', ['--mr', '7', '--sha', HEAD, '--dry', '1', ...extra], { env: ENV });
+    for (const extra of [['--state-rev', 'c1'], ['--withdrew', 'merge'], ['--withdrew', 'approval,approval']]) {
+      expect(run(['--decision', decision, ...extra]).code).toBe(2);
+    }
+    expect(run(['--force', 'wait', '--reason', 'x', '--state-rev', REV]).stderr).toMatch(/forced call writes none/);
   });
 });

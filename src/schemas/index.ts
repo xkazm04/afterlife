@@ -5,3 +5,4 @@ export * from './tier';
 export * from './cra';
 export * from './stages';
 export * from './maturity';
+export * from './receipt';

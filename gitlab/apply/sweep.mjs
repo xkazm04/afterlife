@@ -14,7 +14,10 @@
 //   dispatch a bot note "**Belay: guardrail review requested** for head `<head>`" (the Flows API lists no runs)
 // One write is not once per head: an auto-merge the bot set is cancelled whenever the gate, re-run against the live
 // tier-state.yml, no longer says merge (F74), and an approval the bot gave is withdrawn whenever it says neither approve
-// nor merge (F89), so a revoke or a tripwire demotion reaches an MR the gate already approved or set.
+// nor merge (F89), so a revoke or a tripwire demotion reaches an MR the gate already approved or set. Every tier_decision
+// states the tier-state.yml commit its gate read (`state_rev`), and a withdrawal is ledgered once per head and revision
+// (`Belay-Head: <key>/withdrawn@<rev>`), as a tier_decision stating what was withdrawn: the poller reads both to say where
+// a revoke was enforced. A forced gate decides no tier, so a withdrawal on a forced path is not ledgered.
 // Fails closed: a failed read stops that MR's writes with GitLab's message, the other MRs go on, and the job ends red.
 // Without BELAY_BOT_TOKEN, or without BELAY_LEDGER_TOKEN, it only reports, as M1 did: the bot token never writes the ledger.
 //
@@ -139,13 +142,16 @@ function sweepMr(t, iid) {
 
   // tier-state.yml as belay-policy has it now, not as cloned when the sweep began: a revoke committed while the sweep ran
   // is what the gate reads before it grants anything (F66). Read once, when first asked.
+  // Its last_commit_id is kept: the tier_decision states it (`state_rev`), so the poller can tell which revoke this gate read.
   const statesFile = path.join(dir, 'tier-state.yml');
   let statesRead = false;
+  let stateRev = null;
   const states = () => {
     if (!statesRead) {
       const live = fileHead(cfg.policy.project, 'tier-state.yml', cfg.policy.branch);
       if (!live) throw new Error(`${cfg.policy.project} has no tier-state.yml`);
       fs.writeFileSync(statesFile, live.content);
+      stateRev = /^[0-9a-f]{40}$/.test(live.lastCommitId) ? live.lastCommitId : null;
       statesRead = true;
     }
     return statesFile;
@@ -172,6 +178,8 @@ function sweepMr(t, iid) {
    * setting, so it is withdrawn unless this head's gate says approve or merge, also while this head has no gate yet.
    */
   const botAutoMerge = m.merge_when_pipeline_succeeds === true && String(m.merge_user?.username ?? '') === cfg.bot;
+  /** What this sweep took back from the MR (written only): the tier_decision that re-decided it states it (`withdrew`). */
+  const withdrawn = [];
   // An engine gate note stands for the head of the bot's proof note before it; an APPROVE is never forced.
   const approvedEarlier = (() => {
     let proofHead = null;
@@ -188,6 +196,7 @@ function sweepMr(t, iid) {
     say(`${tag}: cancelling the auto-merge the bot set: ${why}`);
     if (!WRITE) return;
     api(`projects/${t.id}/merge_requests/${iid}/cancel_merge_when_pipeline_succeeds`, { method: 'POST' });
+    withdrawn.push('auto_merge');
     glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Belay: auto-merge cancelled** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
   };
   let approvedByBot;
@@ -205,6 +214,7 @@ function sweepMr(t, iid) {
     say(`${tag}: withdrawing the approval the bot gave: ${why}`);
     if (!WRITE) return;
     api(`projects/${t.id}/merge_requests/${iid}/unapprove`, { method: 'POST' });
+    withdrawn.push('approval');
     glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Belay: approval withdrawn** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
   };
   /** This head is not gated yet, so it says nothing more this sweep; an approval the bot gave an earlier head goes now. */
@@ -372,21 +382,40 @@ function sweepMr(t, iid) {
   const nowTier = typeof decided?.tier === 'string' ? decided.tier : null;
   if (now !== 'merge') cancelAutoMerge(now, nowTier);
   withdrawApproval(now, nowTier);
-  if (settled) return say(`${tag}: gate and ledger already applied for this head`);
+  // A grant withdrawn from this head is ledgered once per tier-state.yml revision (`<key>/withdrawn@<rev>`): a tier_decision
+  // stating the revision the gate read, the tier it decided and what was withdrawn. On a settled head it is the only event.
+  const withdrawKey = `${ledgerKey}/withdrawn@${stateRev}`;
+  const withdrawOwed = withdrawn.length > 0 && stateRev !== null && nowTier !== null && !ledgered(withdrawKey);
+  const stamp = [...(stateRev ? ['--state-rev', stateRev] : []), ...(withdrawn.length ? ['--withdrew', withdrawn.join(',')] : [])];
+  const gateArgs = (emit) => ['--mr', String(iid), '--sha', head, '--decision', decisionFile, '--guardrail', guardrailFile,
+    '--agent', mr.BELAY_AGENT, '--class', actionClass, '--emit-dir', emit, ...stamp];
+  /** Appends only the events of these kinds apply-gate emitted, under `keys` (one per kind found, in the same order). */
+  const appendKinds = (events, owed) => {
+    const found = owed.filter(([kind]) => fs.readdirSync(events).some((f) => f.endsWith(`-${kind}.json`)));
+    if (!found.length) return;
+    const only = path.join(dir, `events-${found.map(([kind]) => kind).join('-')}`);
+    fs.mkdirSync(only, { recursive: true });
+    for (const f of fs.readdirSync(events).filter((x) => found.some(([kind]) => x.endsWith(`-${kind}.json`)))) fs.copyFileSync(path.join(events, f), path.join(only, f));
+    appendLedger(only, found.map(([, key]) => key));
+  };
+  if (settled) {
+    if (withdrawOwed) {
+      const owed = path.join(dir, 'events-withdrawn');
+      const r = glue('decide/apply-gate.mjs', [...gateArgs(owed), '--dry', '1'], env, dir);
+      if (r.code > 1) throw new Error(`apply-gate exited ${r.code}`);
+      appendKinds(owed, [['tier_decision', withdrawKey]]);
+    }
+    return say(`${tag}: gate and ledger already applied for this head${withdrawOwed ? `; the withdrawal is ledgered at tier-state.yml ${stateRev.slice(0, 12)}` : ''}`);
+  }
   const events = path.join(dir, 'events');
-  const applied = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--decision', decisionFile, '--guardrail', guardrailFile,
-    '--agent', mr.BELAY_AGENT, '--class', actionClass, '--emit-dir', events, ...(WRITE && (!gateDone || relabel) ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
+  const applied = glue('decide/apply-gate.mjs', [...gateArgs(events), ...(WRITE && (!gateDone || relabel) ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
   if (applied.code > 1) throw new Error(`apply-gate exited ${applied.code}`);
-  if (!fs.existsSync(events) || (ledgerDone && !blockOwed)) return;
+  if (!fs.existsSync(events) || (ledgerDone && !blockOwed && !withdrawOwed)) return;
   if (!WRITE) return say(`${tag}: ledger events not appended (reporting only)`);
-  // The head's events carry the guardrail's block when it blocked: both keys, so it is not ledgered again on its own.
-  if (!ledgerDone) return appendLedger(events, guardBlocked ? [ledgerKey, blockKey] : [ledgerKey]);
-  const block = fs.readdirSync(events).find((f) => f.endsWith('-guardrail_verdict.json'));
-  if (!block) return;
-  const only = path.join(dir, 'events-guardrail-block');
-  fs.mkdirSync(only, { recursive: true });
-  fs.copyFileSync(path.join(events, block), path.join(only, block));
-  appendLedger(only, [blockKey]);
+  // The head's events carry the guardrail's block when it blocked, and its tier_decision what was withdrawn: every key, so
+  // neither is ledgered again on its own.
+  if (!ledgerDone) return appendLedger(events, [ledgerKey, ...(guardBlocked ? [blockKey] : []), ...(withdrawOwed ? [withdrawKey] : [])]);
+  appendKinds(events, [...(blockOwed ? [['guardrail_verdict', blockKey]] : []), ...(withdrawOwed ? [['tier_decision', withdrawKey]] : [])]);
 }
 
 const MR_PAGES = 5;

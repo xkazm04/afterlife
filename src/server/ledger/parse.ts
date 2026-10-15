@@ -1,6 +1,6 @@
 // belay-ledger/events/<project-id>.jsonl: one LedgerEvent per line. The file is read from a GitLab repository, so every
 // line is checked field by field before it is trusted; a bad line fails the whole import (the chain is all or nothing).
-import { ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, type LedgerEvent, type LedgerKind } from '@/schemas/ledger';
+import { ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, WITHDRAWN_GRANTS, type LedgerEvent, type LedgerKind, type WithdrawnGrant } from '@/schemas/ledger';
 import { TIER_ORDER } from '@/schemas/tier';
 
 export class LedgerParseError extends Error {
@@ -19,6 +19,16 @@ type Rec = Record<string, unknown>;
 const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isInt = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 const str = (v: unknown): v is string => typeof v === 'string' && v !== '';
+/** A non-empty list of withdrawn grants, each named once. */
+const grants = (v: unknown): v is WithdrawnGrant[] =>
+  Array.isArray(v) && v.length > 0 && new Set(v).size === v.length && v.every((x) => WITHDRAWN_GRANTS.some((g) => g === x));
+
+/** A tier_decision's state_rev and withdrew: on that kind only; absent stays absent (the hash depends on it). */
+function decisionKeys(v: Rec, kind: LedgerKind | undefined, bad: (what: string) => never): Pick<LedgerEvent, 'state_rev' | 'withdrew'> {
+  if ('state_rev' in v && (kind !== 'tier_decision' || !str(v.state_rev) || !STATE_REV.test(v.state_rev))) bad('state_rev must be a 40-hex commit id, on a tier_decision only');
+  if ('withdrew' in v && (kind !== 'tier_decision' || !grants(v.withdrew))) bad('withdrew must name approval or auto_merge, each once, on a tier_decision only');
+  return { ...('state_rev' in v ? { state_rev: v.state_rev as string } : {}), ...('withdrew' in v ? { withdrew: [...(v.withdrew as WithdrawnGrant[])] } : {}) };
+}
 
 function toEvent(v: unknown, line: number): LedgerEvent {
   const bad = (what: string): never => {
@@ -45,12 +55,14 @@ function toEvent(v: unknown, line: number): LedgerEvent {
   const env = v.environment;
   const tierOf = isRec(env) ? ENVIRONMENT_TIERS.find((x) => x === env.tier) : undefined;
   if ('environment' in v && (kind !== 'deployed' || !isRec(env) || !str(env.name) || !tierOf)) bad('environment must be a name and a tier, on a deployed event only');
+  const decided = decisionKeys(v, kind, bad);
   return {
     seq: v.seq as number, at: v.at as string, agent: v.agent as string, action_class: v.action_class as string, kind: kind as LedgerKind,
     tier_at_time: tier as LedgerEvent['tier_at_time'], subject: { project_id: s.project_id, type: subject, iid: s.iid },
     payload_ref: v.payload_ref as string, observed_by: observed as LedgerEvent['observed_by'],
     prev_hash: v.prev_hash as string, hash: v.hash as string, ...(verdict ? { verdict } : {}),
     ...(isRec(env) && tierOf ? { environment: { name: env.name as string, tier: tierOf } } : {}),
+    ...decided,
   };
 }
 

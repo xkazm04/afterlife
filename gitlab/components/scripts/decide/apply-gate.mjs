@@ -11,6 +11,9 @@
 // The guardrail_verdict states the guardrail file's verdict (`verdict: pass|block`); a file that states neither yields none.
 // A forced call emits one event only: the guardrail's own block, as a guardrail_verdict at `--ledger-tier t` (the tier the
 // caller read for the agent and class), when its --guardrail file states block. Any other forced call emits nothing.
+// `--state-rev <commit>` stamps `state_rev` on the tier_decision: the tier-state.yml commit the gate read (belay-apply
+// passes the file's last_commit_id on belay-policy). `--withdrew approval,auto_merge` stamps `withdrew` on it: what the
+// caller took back from the MR because this decision no longer grants it. Both are refused on a forced call (no tier).
 import fs from 'node:fs';
 import path from 'node:path';
 import { arg, die, glab, need, plain } from '../lib/lib.mjs';
@@ -27,6 +30,11 @@ const d = force ? { decision: force, tier: null, reasons: [arg('reason', 'inputs
 if (!DECISIONS.includes(d.decision)) die(`gate returned an unknown decision: ${plain(d.decision)}`);
 if (d.tier != null && !TIERS.includes(d.tier)) die(`gate returned an unknown tier: ${plain(d.tier)}`);
 const reasons = (Array.isArray(d.reasons) ? d.reasons : []).map((r) => `- ${plain(r)}`);
+const stateRev = arg('state-rev') ?? null;
+if (stateRev !== null && !/^[0-9a-f]{40}$/.test(stateRev)) die(`--state-rev is not a 40-hex commit id: ${plain(stateRev)}`);
+const withdrew = arg('withdrew') ? arg('withdrew').split(',') : [];
+if (withdrew.some((w) => !['approval', 'auto_merge'].includes(w)) || new Set(withdrew).size !== withdrew.length) die(`--withdrew names approval or auto_merge, each once: ${plain(arg('withdrew'))}`);
+if (force && (stateRev || withdrew.length)) die('--state-rev and --withdrew stamp a tier_decision: a forced call writes none');
 
 const guardrail = arg('guardrail') && fs.existsSync(arg('guardrail')) ? readJson(arg('guardrail')) : null;
 const verdict = guardrail && ['pass', 'block'].includes(guardrail.verdict) ? guardrail.verdict : null;
@@ -61,7 +69,8 @@ if (emit && ledgerTier && (!force || verdict === 'block')) {
   if (guardrail && !verdict) console.error(`belay: the guardrail file states no pass or block (${plain(guardrail.verdict)}): no guardrail_verdict event`);
   const events = force
     ? [{ kind: 'guardrail_verdict', verdict }]
-    : [{ kind: 'proof_verdict' }, ...(verdict ? [{ kind: 'guardrail_verdict', verdict }] : []), { kind: 'tier_decision' }];
+    : [{ kind: 'proof_verdict' }, ...(verdict ? [{ kind: 'guardrail_verdict', verdict }] : []),
+      { kind: 'tier_decision', ...(stateRev ? { state_rev: stateRev } : {}), ...(withdrew.length ? { withdrew } : {}) }];
   events.forEach((e, i) => fs.writeFileSync(path.join(emit, `${i}-${e.kind}.json`), JSON.stringify({ ...base, ...e })));
 }
 

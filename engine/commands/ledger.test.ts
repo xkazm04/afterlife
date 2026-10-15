@@ -57,3 +57,28 @@ describe('parseLedgerEvent: the environment of a deployed event', () => {
     expect(append([], parsed).hash).toBe(append([], { ...parsed, environment: undefined } as typeof parsed).hash);
   });
 });
+
+describe('parseLedgerEvent: the tier-state.yml revision and the withdrawal of a tier_decision', () => {
+  const decision = (o: Record<string, unknown> = {}) => event({ kind: 'tier_decision', ...o });
+  const REV = 'c1'.repeat(20);
+
+  it('keeps a 40-hex state_rev and a withdrew list on a tier_decision', () => {
+    const parsed = parseLedgerEvent(decision({ state_rev: REV, withdrew: ['approval', 'auto_merge'] }));
+    expect([parsed.state_rev, parsed.withdrew]).toEqual([REV, ['approval', 'auto_merge']]);
+  });
+
+  it('refuses them on any other kind, and a malformed value', () => {
+    for (const kind of ['task_started', 'proof_verdict', 'guardrail_verdict', 'merged', 'deployed', 'outcome', 'clock_event']) {
+      expect(() => parseLedgerEvent(event({ kind, state_rev: REV }))).toThrow(/state_rev/);
+      expect(() => parseLedgerEvent(event({ kind, withdrew: ['approval'] }))).toThrow(/withdrew/);
+    }
+    for (const state_rev of ['c1', REV.toUpperCase(), null, 1]) expect(() => parseLedgerEvent(decision({ state_rev }))).toThrow(EngineError);
+    for (const withdrew of [[], ['approval', 'approval'], ['merge'], 'approval', null]) expect(() => parseLedgerEvent(decision({ withdrew }))).toThrow(EngineError);
+  });
+
+  it('a decision without them carries neither key and hashes as before', () => {
+    const parsed = parseLedgerEvent(decision());
+    expect('state_rev' in parsed || 'withdrew' in parsed).toBe(false);
+    expect(append([], parsed).hash).toBe(append([], { ...parsed, state_rev: undefined, withdrew: undefined } as typeof parsed).hash);
+  });
+});

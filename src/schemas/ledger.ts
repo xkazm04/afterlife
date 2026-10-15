@@ -1,6 +1,7 @@
 // Append-only, hash-chained ledger: tamper-evident, not third-party anchored. Every Belay screen
 // is a view over it, which is also what makes a demo take replayable.
 import { createHash } from 'node:crypto';
+import type { Withdrawn } from './receipt';
 import type { Tier } from './tier';
 
 export type LedgerKind =
@@ -20,6 +21,13 @@ export const GUARDRAIL_VERDICTS: readonly GuardrailVerdict[] = ['pass', 'block']
 /** GitLab's deployment tier, on a deployed event's environment. */
 export type EnvironmentTier = 'production' | 'staging' | 'testing' | 'development' | 'other';
 export const ENVIRONMENT_TIERS: readonly EnvironmentTier[] = ['production', 'staging', 'testing', 'development', 'other'];
+
+/** What belay-apply's sweep took back from a merge request the gate had granted, on a tier_decision (gitlab/apply/sweep.mjs). */
+export type WithdrawnGrant = Withdrawn;
+export const WITHDRAWN_GRANTS: readonly WithdrawnGrant[] = ['approval', 'auto_merge'];
+
+/** A commit id (sha1, 40 hex): the tier-state.yml revision a tier_decision's gate read (`state_rev`). */
+export const STATE_REV = /^[0-9a-f]{40}$/;
 
 /** Where a deployed event deployed to: the environment's name and GitLab's tier for it. */
 export interface LedgerEnvironment {
@@ -48,6 +56,17 @@ export interface LedgerEvent {
    * stated. When absent the key is absent, never null, for the same reason as `verdict`: every existing chain hashes as before.
    */
   environment?: LedgerEnvironment;
+  /**
+   * tier_decision only: the commit of tier-state.yml the gate read (GitLab's last_commit_id of the file on belay-policy),
+   * so the poller can tell which revoke a gated merge request already obeyed. Absent on every other kind and on a decision
+   * written before it was stated; absent, never null, for the same reason as `verdict`.
+   */
+  state_rev?: string;
+  /**
+   * tier_decision only: what the sweep withdrew from the merge request because the gate, re-run against `state_rev`, no
+   * longer grants it (non-empty, each at most once). Absent: nothing was withdrawn, or it was not stated.
+   */
+  withdrew?: WithdrawnGrant[];
   prev_hash: string;
   hash: string; // sha256(prev_hash + canonical(event without hash))
 }
