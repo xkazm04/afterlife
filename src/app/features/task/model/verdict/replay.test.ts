@@ -43,4 +43,11 @@ describe('replay sequence', () => {
     expect(replayStepStatus(task, 0)).toMatch(/^ledger #476 · task_started · hash [0-9a-f]{7} ✓$/);
     expect(replayStepStatus(task, 99)).toBe('');
   });
+
+  it('says the hashes match only when the chain verifies, never as a fixed phrase', () => {
+    const [first, ...rest] = task.ledger;
+    const tampered = { ...task, ledger: [{ ...first!, text: 'changed' }, ...rest] };
+    expect(replayMessage(tampered)).toContain('HASHES DO NOT MATCH');
+    expect(replayMessage(tampered)).not.toContain('hashes match');
+  });
 });

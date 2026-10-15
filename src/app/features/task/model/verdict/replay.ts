@@ -1,4 +1,5 @@
 import type { TaskView } from '../types';
+import { ledgerIntact } from '../build/ledger';
 import { derivedVerdict } from './verdict';
 
 /**
@@ -31,7 +32,8 @@ export function ledgerRowAt(rv: number, checkCount: number, rowCount: number): n
 export function replayMessage(task: TaskView): string {
   const first = task.ledger[0]?.seq;
   const last = task.ledger[task.ledger.length - 1]?.seq;
-  return `Replayed ledger #${first}–#${last} · ${task.ledger.length} rows, hashes match · ${derivedVerdict(task).verdict} · agent not re-run`;
+  const hashes = ledgerIntact(task.ledger) ? 'hashes match' : 'HASHES DO NOT MATCH';
+  return `Replayed ledger #${first}–#${last} · ${task.ledger.length} rows, ${hashes} · ${derivedVerdict(task).verdict} · agent not re-run`;
 }
 
 export const replayStartStatus = (task: TaskView): string => `ledger #${task.ledger[0]?.seq} · claims as the agent wrote them`;
