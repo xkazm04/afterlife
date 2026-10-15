@@ -3,6 +3,7 @@ import type { NavItem } from '@/components/table/model/rowNavigation';
 import { groupNavId } from '@/components/table/model/rowNavigation';
 import { POLICY_REPO, PROJECT_REPO, SETTINGS_GROUP } from '../../data/constants';
 import type { NeedsYouDemo } from '../../data/types';
+import { KIND_WORDS } from '../../data/week';
 import type { GroupMode, NeedsState } from '../types';
 import { histRows } from './history';
 import { rowView } from './rowData';
@@ -47,7 +48,7 @@ export function isVisible(s: NeedsState, id: string, demo: NeedsYouDemo): boolea
   if (id.startsWith('h')) {
     if (s.show !== 'all' && s.show !== 'sent') return false;
     const r = histRows(s)[Number(id.slice(1))];
-    return !!r && (!q || [r.kind, r.what, r.result, r.ref].join(' ').toLowerCase().includes(q));
+    return !!r && (!q || [KIND_WORDS[r.kind] ?? r.kind, r.what, r.result, r.ref].join(' ').toLowerCase().includes(q));
   }
   if (s.show === 'waiting' && !isWaiting(s, id)) return false;
   if (s.show === 'outbox' && !isInOutbox(s, id)) return false;

@@ -49,6 +49,13 @@ describe('filtering', () => {
     expect(isVisible({ ...fresh(), query: 'jUnit' }, 'h1', demo)).toBe(true);
     expect(isVisible({ ...fresh(), query: 'zzz' }, 'n2', demo)).toBe(false);
   });
+  it('finds a ledger row by the kind label the State column shows, not only its internal key', () => {
+    const s = { ...fresh(), query: 'promotion' };
+    expect(isVisible(s, 'h0', demo)).toBe(true);
+    expect(isVisible({ ...fresh(), query: 'setup gate' }, 'h4', demo)).toBe(true);
+    expect(isVisible({ ...fresh(), query: 'cra sign-off' }, 'h0', demo)).toBe(false);
+    expect(isVisible({ ...fresh(), query: 'gap pick' }, 'h1', demo)).toBe(true);
+  });
   it('drops a group that has nothing left to show', () => {
     expect(ids({ ...fresh(), query: 'guardrail' }).map((g) => g.split(':')[0])).toEqual(['improve', 'hist']);
   });
