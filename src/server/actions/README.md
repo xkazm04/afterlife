@@ -35,9 +35,9 @@ only: promotion takes it from there), when trust-policy.yml has no `start_tier`,
 
 `promote-class` decisions (`plans/promote.ts`):
 
-- `planPromote` refuses (`ActionRefused`, naming the date) while the class's record has a `cooldown_until` still ahead (`promote.ts:30-35`, 565e23f). A date-only cooldown lifts at 00:00 UTC on that date (`rules.ts:51-53`).
-- Re-admitting a quarantined class to Assisted is not refused during the cooldown (`promote.ts:34-35`, 565e23f). The new record keeps `cooldown_until` (`promote.ts:42`), so the class climbs no further before that date. This is the App Master's decision of 2026-10-09 (wake 1c7f329f), confirming the builder's choice; it matches the re-admit card's "does not lift the promotion cooldown".
-- The preview's summary states the precondition "a person merges this MR; Belay never merges it" (`HUMAN_KEY`, `rules.ts:66`; `promote.ts:50`, 28d308a). It is no longer counted as a met rule row, and no GitLab approval setting is read (28d308a).
+- `planPromote` refuses (`ActionRefused`, naming the date) while the class's record has a `cooldown_until` still ahead (`planPromote`'s `cooling` check, 565e23f). A date-only cooldown lifts at 00:00 UTC on that date (`rules.ts:51-53`).
+- Re-admitting a quarantined class to Assisted is not refused during the cooldown (`planPromote`'s `readmit`, 565e23f). The new record keeps `cooldown_until` (the `record` it builds), so the class climbs no further before that date. This is the App Master's decision of 2026-10-09 (wake 1c7f329f), confirming the builder's choice; it matches the re-admit card's "does not lift the promotion cooldown".
+- The preview's summary states the precondition "a person merges this MR; Belay never merges it" (`HUMAN_KEY`, `rules.ts:66`; the `summary` of `planPromote`, 28d308a). It is no longer counted as a met rule row, and no GitLab approval setting is read (28d308a).
 - When the index's belay-ledger for the project holds the next rung's trial for the holder since its record (`plans/trial.ts`, live only: the context's `ledgerOf` reads the index, demo has none), the MR description names it: the trial MRs' `tier_decision` seq range, the file (`events/<gitlab id>.jsonl`) and its head seq and hash, and the engine command that recomputes it (`prove --class ledger-record`). The commit and its diff are the same with or without it.
 
 Arm and disarm (`arm/`): the content is the repo's own, not Belay's idea. `content/` holds a track's include lines as
@@ -58,28 +58,29 @@ branch's `.gitlab-ci.yml` that answers whether the block is there; demo mode rea
 Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
 
 - A commit goes only to a new branch. If `belay/arm-<key>` or `belay/disarm-<key>` exists, the preview refuses and names the
-  branch, its head and what to do (`arm/plan.ts:72-84`). Force is never set.
-- A 404 on the branch read means the branch is absent. Any other failure refuses (`arm/plan.ts:73-80`).
+  branch, its head and what to do (`noBranch`, `plans/context.ts`). Force is never set. A promotion, an enrollment and a gap MR check the same way: their branch (`belay/promote-<class>-<date>`, `belay/enroll-<track>-<date>`, the gap's `belay/...`) must not exist yet.
+- A 404 on the branch read means the branch is absent. Any other failure refuses (`noBranch`).
 - A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`arm/head.ts:33-42`). Only
   `arm-track` and `disarm-track` are checked (`arm/head.ts:9`); every other intent is unchanged (`run.ts:4`).
-- The arm or disarm MR sets `remove_source_branch` (`arm/plan.ts:123`, `arm/plan.ts:153`).
+- The arm or disarm MR sets `remove_source_branch` (the `createMr` of `planArm` and of `planDisarm`).
 - `belay/*` is a protected branch pattern (Setup step 9).
 - Known residual: GitLab's Files API answer names no commit, so the commit is read back with `getFile` right after the write.
   Moving arm and disarm to the Commits API is queued.
 
 Target decisions (`plans/context.ts`):
 
-- F46 (9c5737b): `locate()` takes belay-policy only at `<group>/belay-policy`, by full path (`context.ts:53-54`), so a same-named project in a subgroup or shared in is never the one a revoke or promote writes.
-- F47 (276d376): every plan that locates a target refuses one outside the paired group's path (`context.ts:59-61`), as arm's `targetOf` already did (F37).
-- F50 (180e163): Belay's own projects (`cfg.infra`) are refused as a target, so `stage-gap-mr` cannot open an MR in belay-policy (`context.ts:56-58`).
-- F52 (3014213): a record's `since` is stamped to the minute (`minuteOf`, `context.ts:72`; `revoke.ts:41`, `promote.ts:31`), so a confirm within the minute of its preview has the same `previewId` and runs, instead of always coming back `changed`.
+- F46 (9c5737b): `locate()` takes belay-policy only at `<group>/belay-policy`, by full path (`locate`'s `policy` lookup), so a same-named project in a subgroup or shared in is never the one a revoke or promote writes.
+- F47 (276d376): every plan that locates a target refuses one outside the paired group's path (`watchedProject`, `plans/context.ts`), and so does arm's `targetOf`, which calls it (F37).
+- F50 (180e163): Belay's own projects (`cfg.infra`) are refused as a target, so `stage-gap-mr` cannot open an MR in belay-policy, nor an arm or disarm (`watchedProject`; the verify read refuses them too when `verifyArmAction` passes `cfg.infra`). A path that names two projects with no GitLab id to tell them apart is refused the same way (F48).
+- F52 (3014213): a record's `since` is stamped to the minute (`minuteOf` in `plans/context.ts`; `revoke.ts:41`, `at` in `planPromote`), so a confirm within the minute of its preview has the same `previewId` and runs, instead of always coming back `changed`.
 
-- F90 (accepted residual, `plans/gap.ts:50-54`): a gap's commits and draft MR run the proposed CI (the target's MR pipeline) as the operator before anyone reviews the MR. Accepted: it is inherent to proposing a CI change by MR, and since F83, F84 and F85 the operator sees every line that will run, on a branch that is new.
+- F90 (accepted residual, `planGapMr`'s `commitFile` calls): a gap's commits and draft MR run the proposed CI (the target's MR pipeline) as the operator before anyone reviews the MR. Accepted: it is inherent to proposing a CI change by MR, and since F83, F84 and F85 the operator sees every line that will run, on a branch that is new.
+- A gap's file paths have no empty, `.` or `.git` segment (one file, one spelling, none inside `.git`) and its branch is a ref git accepts (`intents.ts` `pathOk`, `refOk`, `__tests__/intents/paths.test.ts`); anything else is refused before it is planned.
 - F92 (Low, fixed): a preview is an anonymous endpoint on the hosted replay, and a new file's preview shows every line
   (F84), one diff row each, so its cost followed a line count that had no bound of its own. The largest intent the
   validator admitted (8 files of 64K newlines, inside Next's 1MB action body limit) cost about 60 ms of CPU and a 4 MB
   answer per call. A new file is now at most `MAX_FILE_LINES` (2000) lines, refused with the bound named
-  (`intents.ts:24`, `intents.ts:50-51`, `__tests__/replay/cost.test.ts`); the worst case left is about 1.6 MB out for
+  (`MAX_FILE_LINES` and the line count in `files()`, `intents.ts`; `__tests__/replay/cost.test.ts`); the worst case left is about 1.6 MB out for
   0.5 MB in, under 15 ms. The seeded gaps (at most 46 lines a file, 18 a hunk) are admitted. A hunk was already bounded
   (400 lines of 500 characters), and so is the whole body (Next's default `serverActions.bodySizeLimit`, 1MB: keep it).
 
@@ -157,8 +158,8 @@ screen holds (`{kind: preview}` or `{kind: refused, reason}`).
 - **Setup** arm, disarm and verify (`app/features/setup/write/arm.ts`): `previewAction` when the track's Arm or Disarm
   section is in view, `confirmAction` on its button; "I merged it · verify" calls `verifyArmAction`.
 
-Not wired yet: the CRA sign-off (`mark-cra-ready`), the gap MRs (`stage-gap-mr`) and the Maturity sheet still show the
-screens' own illustrative commands.
+Not wired yet: the CRA sign-off (`mark-cra-ready`): no screen sends it, and `needs-you/data/cra.ts` still shows its own
+illustrative commands. The gap MRs (`stage-gap-mr`) are sent by the Maturity sheet (`app/features/maturity/write/gap.ts`).
 Not verified live: `start_branch` on the repository-files API, `PUT /projects/:id/issues/:iid` for a work item, and the
 policy branch being pushable by the operator (spike S8). The fake does not model branches, issues or protections; it
 models `last_commit_id` (a file write makes a new one, a stale one is refused with GitLab's 400).
