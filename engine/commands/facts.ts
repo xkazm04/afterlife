@@ -1,7 +1,7 @@
 // Reads the facts file collect-facts.mjs writes (belay.facts/0). A fact is its data or { error }; one that is missing was
 // not collected. Either way it is unknown, never absent: each reader returns why, naming the fact, and the scan leaves the
 // cell it decides null.
-import { EngineError, isRecord, rec } from '../core/types';
+import { EngineError, isoMs, isRecord, rec } from '../core/types';
 
 export type Read<T> = { ok: true; v: T } | { ok: false; why: string };
 
@@ -25,8 +25,7 @@ export function parseFacts(raw: unknown): Facts {
   const f = rec(raw, 'facts file');
   if (f.schema !== 'belay.facts/0') throw new EngineError(`facts file schema is ${JSON.stringify(f.schema ?? null)}, not belay.facts/0`);
   if (!Number.isInteger(f.project_id)) throw new EngineError('facts file project_id must be an integer');
-  const atMs = typeof f.at === 'string' ? Date.parse(f.at) : Number.NaN;
-  if (Number.isNaN(atMs)) throw new EngineError('facts file at must be an ISO time');
+  const atMs = isoMs(f.at, 'facts file at');
   return { projectId: f.project_id as number, at: f.at as string, atMs, raw: rec(f.facts, 'facts file facts') };
 }
 

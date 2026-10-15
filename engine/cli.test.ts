@@ -110,6 +110,11 @@ describe('gate, tripwire and ledger through the CLI', () => {
   const gate = (state: string, guardrail: string, ...extra: string[]) =>
     cli('gate', '--state', state, '--class', 'dep-bump.patch', '--proof', proofFile, '--guardrail', fx('events', guardrail), ...extra);
 
+  it('gate --now: an ISO instant with a zone, not whatever Date.parse tolerates', () => {
+    expect(gate(handsOff, 'guardrail-pass.json', '--now', '2026-10-21T14:20:05Z').code).toBe(0);
+    for (const now of ['10', '2026-10-21T14:20:05']) expect(gate(handsOff, 'guardrail-pass.json', '--now', now).json.error, now).toMatch(/--now must be an ISO time/);
+  });
+
   it('gate: merge and approve exit 0, block exits 1, wait exits 2', () => {
     const merge = gate(handsOff, 'guardrail-pass.json');
     expect(merge.code).toBe(0);

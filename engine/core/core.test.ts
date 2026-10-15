@@ -4,7 +4,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { parseArgs } from './args';
 import { inlineFiles } from './files';
-import { EngineError } from './types';
+import { EngineError, isoMs } from './types';
 import { ulid } from './ulid';
 import { ENGINE_VERSION, engineInfo, engineSha256 } from './version';
 import { ctx } from '../__tests__/helpers';
@@ -74,5 +74,13 @@ describe('inlineFiles and ulid', () => {
     const b = ulid(new Date('2026-10-10T00:00:00Z'));
     expect(a).toHaveLength(26);
     expect(a < b).toBe(true);
+  });
+});
+
+describe('isoMs', () => {
+  it('takes an ISO instant with a zone and nothing Date.parse would merely tolerate', () => {
+    expect(isoMs('2026-10-21T14:20:05Z', 't')).toBe(Date.UTC(2026, 9, 21, 14, 20, 5));
+    expect(isoMs('2026-10-21T16:20:05.500+02:00', 't')).toBe(Date.UTC(2026, 9, 21, 14, 20, 5, 500));
+    for (const v of ['10', '2026', '3/4/2026', 'Oct 5 2026', '2026-10-05', '2026-10-05T10:00:00', '2026-13-45T99:00:00Z', '', null, 7]) expect(() => isoMs(v, 't'), String(v)).toThrow(/t must be an ISO time/);
   });
 });

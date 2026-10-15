@@ -5,7 +5,7 @@
 import type { ProofBlock } from '../../src/schemas/proof';
 import { parseArgs } from '../core/args';
 import { readJson, readText } from '../core/files';
-import { EngineError, isRecord, optStr, str, type CommandResult, type Ctx, type ExitCode } from '../core/types';
+import { EngineError, isoMs, isRecord, optStr, str, type CommandResult, type Ctx, type ExitCode } from '../core/types';
 import { gate, type Decision, type GuardrailVerdict } from '../decide/gate';
 import { shadowNextRung } from '../decide/shadow';
 import { checkEnvelope } from '../policy/envelope';
@@ -45,8 +45,7 @@ export function gateCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   const policy = loadPolicy(ctx, args.get('policy') ?? DEFAULT_POLICY);
   const state = loadState(ctx, args.get('state') ?? DEFAULT_STATE);
   const classId = str(args.need('class'), 'class');
-  const now = args.has('now') ? new Date(args.need('now')) : ctx.now();
-  if (Number.isNaN(+now)) throw new EngineError('--now is not a valid time');
+  const now = args.has('now') ? new Date(isoMs(args.need('now'), '--now')) : ctx.now();
   const diff = args.get('diff');
   const input = {
     policy,

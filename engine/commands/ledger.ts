@@ -5,7 +5,7 @@ import path from 'node:path';
 import { append, ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, verifyChain, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent, type LedgerKind } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { parseJson, readJson } from '../core/files';
-import { EngineError, rec, str, type CommandResult, type Ctx } from '../core/types';
+import { EngineError, isoMs, rec, str, type CommandResult, type Ctx } from '../core/types';
 import { TIER_ORDER, type Tier } from '../../src/schemas/tier';
 
 const KINDS: readonly LedgerKind[] = ['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event'];
@@ -31,7 +31,7 @@ export function parseLedgerEvent(raw: unknown): Omit<LedgerEvent, 'seq' | 'prev_
   const e = rec(raw, 'event');
   const s = rec(e.subject, 'event.subject');
   const at = str(e.at, 'event.at');
-  if (Number.isNaN(+new Date(at))) throw new EngineError('event.at must be an ISO time');
+  isoMs(at, 'event.at');
   const kind = oneOf(e.kind, KINDS, 'event.kind');
   const stated = 'verdict' in e;
   if (stated && kind !== 'guardrail_verdict') throw new EngineError(`event.verdict is for a guardrail_verdict only, not ${kind}`);

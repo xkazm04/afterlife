@@ -143,3 +143,10 @@ describe('ledger append --write', () => {
     }
   });
 });
+
+describe('parseLedgerEvent: at', () => {
+  it('is an ISO instant with a zone: "10", "3/4/2026" and a zone-less time (read in the machine zone) are refused', () => {
+    expect(parseLedgerEvent(event({ at: '2026-10-21T16:20:05+02:00' })).at).toBe('2026-10-21T16:20:05+02:00');
+    for (const at of ['10', '3/4/2026', 'Oct 5 2026', '2026-10-05T10:00:00', '2026-10-05']) expect(() => parseLedgerEvent(event({ at })), at).toThrow(/event\.at must be an ISO time/);
+  });
+});

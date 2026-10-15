@@ -111,6 +111,15 @@ describe('scan: the rubric', () => {
     expect(r.cell('secure')).toMatchObject({ rung: 1 }); // configured, and not in the pipeline at all: decided without the field
   });
 
+  it('a facts file whose at is not an ISO instant with a zone is exit 2, not a scan counted from a guessed day', () => {
+    for (const at of ['10', '2026-10-08T06:00:00', '2026-10-08']) {
+      const f = path.join(tmp, 'at.facts.json');
+      fs.writeFileSync(f, fs.readFileSync(fx('maturity', 'full.facts.json'), 'utf8').replace(/"at": "[^"]*"/, `"at": "${at}"`));
+      const r = scan(f);
+      expect([r.code, (r.json as unknown as { error?: string }).error], at).toEqual([2, expect.stringMatching(/facts file at must be an ISO time/)]);
+    }
+  });
+
   it('an unreadable facts file is exit 2 with a JSON error', () => {
     const bad = path.join(tmp, 'bad.json');
     fs.writeFileSync(bad, '{ nope');
