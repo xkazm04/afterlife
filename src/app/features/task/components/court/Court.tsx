@@ -8,6 +8,7 @@ import type { TaskView } from '../../model/types';
 import { emphasis, type Selection } from '../../model/court/selection';
 import { checkShown, replayDone, type ReplayState } from '../../model/verdict/replay';
 import { checkKind } from '../../model/verdict/verdict';
+import { engineHeld } from '../engineHeld';
 import { CheckCard } from './CheckCard';
 import { ClaimCard } from './ClaimCard';
 import { Ties } from './Ties';
@@ -46,7 +47,7 @@ export function Court({ task, sel, rv, onPick }: { task: TaskView; sel: Selectio
       <div className={styles.col} aria-label="Checks">
         <div className={styles.colh}>
           <b>Checks</b>
-          <small>{task.proof.engine} · no model</small>
+          <small>{engineHeld(task.proof) ? `${task.proof.engine} · no model` : 'engine not held'}</small>
           <span className={styles.end}>
             <Chip title="only checks decide">decide</Chip>
           </span>

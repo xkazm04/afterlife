@@ -5,6 +5,7 @@ import type { Selection } from '../../model/court/selection';
 import { equationTerms, verdictWord } from '../../model/verdict/equation';
 import { checkShown, type ReplayState } from '../../model/verdict/replay';
 import { tally } from '../../model/verdict/verdict';
+import { EngineLine } from './EngineLine';
 import { Term } from './Term';
 import styles from './VerdictEquation.module.css';
 
@@ -49,7 +50,7 @@ export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; s
           <div>One ✗ term fails the proof. A struck term is decided by a person and is not counted as a pass. Claims are never terms.</div>
           <hr />
           <div className={styles.eng}>
-            {task.proof.engine} · {task.proof.digest}
+            <EngineLine proof={task.proof} />
           </div>
         </HelpButton>
       </div>
