@@ -5,14 +5,6 @@ export type Ceiling = Tier | 'human_only';
 
 export const TIER_ORDER: readonly Tier[] = ['quarantined', 'assisted', 'supervised', 'hands_off'];
 
-export const TIER_LABEL: Record<Ceiling, string> = {
-  quarantined: 'QUARANTINED',
-  assisted: 'ASSISTED',
-  supervised: 'SUPERVISED',
-  hands_off: 'HANDS-OFF',
-  human_only: 'HUMAN ONLY',
-};
-
 export type DemotionTrigger =
   | 'revert'
   | 'reopened_finding'
