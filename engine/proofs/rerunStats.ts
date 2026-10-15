@@ -45,11 +45,18 @@ export function rerunStats(input: Record<string, unknown>, policy: EnginePolicy)
   const stray = runs.filter((r) => r.sha !== sha);
   checks.push(at('same-sha', runs.length > 0 && stray.length === 0, stray.length ? `${stray.length} run(s) are not on ${sha}: ${stray.map((r) => r.job_id).join(', ')}` : `${runs.length} run(s), all on ${sha}`));
 
-  const counted = runs.filter((r) => r.sha === sha && (r.status === 'success' || (r.status === 'failed' && !INFRA.has(r.failure_reason ?? ''))));
+  const usable = runs.filter((r) => r.sha === sha && (r.status === 'success' || (r.status === 'failed' && !INFRA.has(r.failure_reason ?? ''))));
+  const ids = new Set<string>();
+  const counted = usable.filter((r) => {
+    if (ids.has(r.job_id)) return false; // one job is one run, however many records repeat it
+    ids.add(r.job_id);
+    return true;
+  });
+  const repeated = usable.length - counted.length;
   const passes = counted.filter((r) => r.status === 'success').length;
   const fails = counted.length - passes;
-  const ignored = runs.length - counted.length;
-  checks.push(at('enough-runs', counted.length >= t.min_runs ? true : null, `${counted.length} usable run(s), policy needs ${t.min_runs}${ignored ? ` (${ignored} cancelled or infrastructure failures left out)` : ''}; thresholds from ${source}`));
+  const ignored = runs.length - usable.length;
+  checks.push(at('enough-runs', counted.length >= t.min_runs ? true : null, `${counted.length} usable run(s), policy needs ${t.min_runs}${ignored ? ` (${ignored} cancelled or infrastructure failures left out)` : ''}${repeated ? ` (${repeated} repeated job record(s) counted once)` : ''}; thresholds from ${source}`));
 
   const result = classify(passes, fails, t);
   const rate = counted.length ? fails / counted.length : 0;

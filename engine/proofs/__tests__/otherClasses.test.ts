@@ -44,6 +44,14 @@ describe('rerun-stats', () => {
     expect(few.verdict).toBe('inconclusive');
   });
 
+  it('counts one job once: five records of one passing job are not five reruns', () => {
+    const one = { job_id: '9200012', sha: '4be1c0d7a9e2', status: 'success' };
+    const b = run('flake.json', { runs: Array.from({ length: 5 }, () => one), claim: { classification: 'stable-pass' } });
+    expect(checkOf(b, 'enough-runs').ok).toBeNull();
+    expect(checkOf(b, 'enough-runs').detail).toMatch(/^1 usable run\(s\).*\(4 repeated job record\(s\) counted once\)/);
+    expect(b.verdict).toBe('inconclusive');
+  });
+
   it('classifies at the thresholds: stable at no failures, real failure from the policy rate', () => {
     const t = DEFAULT_THRESHOLDS;
     expect(classify(6, 0, t)).toBe('stable-pass');
