@@ -9,7 +9,7 @@ import type { Tier } from '@/schemas/tier';
 import { readPolicy } from '@/server/poller/derive/policy';
 import { ROLE_TRACK } from '@/server/poller/derive/tiers';
 import type { EnrollTrack } from '../../types';
-import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, type PlanContext } from '../context';
+import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, noBranch, type Plan, type PlanContext } from '../context';
 import { editRecords, lineDiff, type RecordEdit } from '../tierEdit';
 import { accountFor } from './account';
 
@@ -39,12 +39,13 @@ export async function planEnroll(ctx: PlanContext, intent: EnrollTrack): Promise
   const found = await accountFor(ctx, project, role, agentOnes.map(([id]) => id), read.state);
   if (!found.ok) throw new ActionRefused(found.reason);
 
+  const branch = `belay/enroll-${intent.track}-${dateOnly(ctx.now)}`;
+  await noBranch(ctx.port, repo, branch);
   const since = minuteOf(ctx.now).toISOString();
   const by = `operator ${ctx.operator} via enrollment MR`;
   const edits: RecordEdit[] = agentOnes.map(([id, c]) => ({ agent: found.account, class: id, record: { tier: enrollTier(start, c.ceiling as Tier), since, by } }));
   const content = editRecords(file.content, edits);
   const moves = edits.map((e) => `${e.class} -> ${e.record.tier}`);
-  const branch = `belay/enroll-${intent.track}-${dateOnly(ctx.now)}`;
   const title = `Enroll ${intent.track} ${role}: ${moves.join(', ')}`;
   const notes = [
     `The account, ${found.account}, is read from ${found.from}: Belay never invents one.`,

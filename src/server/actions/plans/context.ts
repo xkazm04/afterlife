@@ -1,5 +1,6 @@
 // What every plan needs: the port to read through (never to write with: writes are only described here), the clock, who
 // the operator is, and where the project and the policy project live.
+import { isKind } from '@/server/gitlab/errors';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { PlannedCommand } from '@/server/gitlab/plan/types';
 import type { GlFile, GlProject } from '@/server/gitlab/types';
@@ -93,4 +94,22 @@ export const COMMIT_ID = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
 export function lastCommitOf(file: GlFile): string {
   if (!file.lastCommitId || !COMMIT_ID.test(file.lastCommitId)) throw new ActionRefused(NO_LAST_COMMIT);
   return file.lastCommitId;
+}
+
+/**
+ * The branch a plan names must not exist yet (F38 arm, F85 gap): Belay commits only to a new branch and never forces. A 404 is
+ * the only "absent": any other failure refuses, because a branch left by an earlier MR, a half-run confirm or anyone else
+ * would fail the confirm after the click, or carry commits nobody saw.
+ */
+export async function noBranch(port: GitLabPort, project: Pick<GlProject, 'id' | 'pathWithNamespace'>, branch: string): Promise<void> {
+  let body: unknown;
+  try {
+    body = await port.get(`projects/${encodeURIComponent(String(project.id))}/repository/branches/${encodeURIComponent(branch)}`);
+  } catch (e) {
+    if (isKind(e, 'not-found')) return;
+    throw new ActionRefused(`Belay could not read whether ${branch} exists in ${project.pathWithNamespace} (${e instanceof Error ? e.message : String(e)}): nothing is planned`);
+  }
+  const id = (body as { commit?: { id?: unknown } } | null)?.commit?.id;
+  const head = typeof id === 'string' && COMMIT_ID.test(id) ? `its head is ${id.slice(0, 8)}` : 'GitLab did not say its head';
+  throw new ActionRefused(`${branch} already exists in ${project.pathWithNamespace} (${head}): Belay commits only to a new branch, so delete the branch, or merge or close its MR, then try again`);
 }
