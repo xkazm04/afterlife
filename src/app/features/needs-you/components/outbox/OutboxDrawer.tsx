@@ -31,7 +31,7 @@ export function OutboxDrawer({ s, dispatch }: { s: NeedsState; dispatch: (a: Act
           <div className={styles.sent}>
             <h3>Sent this session · {s.sent.length}</h3>
             {s.sent.map((t) => (
-              <div key={t}>
+              <div key={t} title={t}>
                 <b>✓</b> {t}
               </div>
             ))}
