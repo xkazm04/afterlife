@@ -160,6 +160,11 @@ describe('roll-ups and tiers', () => {
     expect(old.quarantines).toHaveLength(1);
   });
 
+  it('a role that is not a track is track null, even when it names an Object property', () => {
+    const odd = { ...policy, classes: { x: { agent: 'constructor', ceiling: 'supervised' as const }, a: policy.classes.a } };
+    expect(deriveTiers(odd, state, 'p', now, new Map(), 7 * 86_400_000).classes.map((c) => c.track)).toEqual([null, 1]);
+  });
+
   it('a re-admit ask words every demotion trigger, and shows an unnamed one as written', () => {
     const reasonOf = (reason: string) =>
       planReadmits('p', [{ classId: 'd', role: 'gardener', track: 8, reason: reason as DemotionTrigger, evidence: null, since: now }], [], now).open[0]?.subject.reason;
