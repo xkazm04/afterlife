@@ -8,7 +8,8 @@ import { groundOf } from './ground';
 import { districtsOf, paintOrder } from './city';
 import { beamsOf, districtGlows, towerShape } from './shapes';
 import { activeMark, dimSet, escapeStep, redSet, toggleLock } from './filter';
-import { districtLine, fleetTotals, projectLine, topTiers } from './words';
+import { cutawayOf } from './cutaway';
+import { districtLine, fleetTotals, projectLine, staleText, topTiers } from './words';
 
 const fleet = demoSource.getFleet();
 const ds = districtsOf(fleet.groups, fleet.projects);
@@ -111,5 +112,19 @@ describe('copy that counts: one is singular', () => {
     expect(answer({ quar: 1, pass: 1 })).toContain('1 proof passed this week');
     expect(answer({ quar: 25, pass: 40 })).toContain('25 classes quarantined');
     expect(answer({ quar: 25, pass: 40 })).toContain('40 proofs passed this week');
+  });
+});
+
+describe('the stale feed says the same thing in the readout and on the tower', () => {
+  const stale = fleet.projects.find((p) => p.id === 'docs-portal')!;
+  const withFeed = (error: string | undefined) => ({ ...stale, feed: { ageSec: 2820, ok: false, ...(error === undefined ? {} : { error }) } });
+  const cases: [string | undefined, string, string[]][] = [
+    ['project token expired', 'project token expired · last good poll 47 min ago', ['feed stale', 'project token expired', 'last good poll 47 min ago']],
+    ['rate limited · 3 min ago', 'rate limited · 3 min ago', ['feed stale', 'rate limited', '3 min ago']],
+    [undefined, 'feed stale · last good poll 47 min ago', ['feed stale', 'last good poll 47 min ago']],
+  ];
+  it.each(cases)('error %j', (error, text, lines) => {
+    expect(staleText(withFeed(error))).toBe(text);
+    expect(cutawayOf(withFeed(error), fleet.classes, []).tag.lines).toEqual(lines);
   });
 });

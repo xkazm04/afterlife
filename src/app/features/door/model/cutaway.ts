@@ -3,7 +3,7 @@
 import type { FleetProject } from '@/lib/demo/types';
 import { needsOf, type Pt } from './city';
 import { pathD, points } from './shapes';
-import { ageStr } from './words';
+import { ageStr, lastGoodPoll } from './words';
 
 export const CX = 336;
 export const CY = 822;
@@ -61,8 +61,8 @@ export function cutawayOf(p: FleetProject, classes: readonly string[], stages: r
   if (never) [lines, tone] = [['never polled'], 'u'];
   else if (stale) {
     lines = ['feed stale', ...(p.feed.error ?? '').split(' · ').filter(Boolean)];
-    const a = ageStr(p.feed.ageSec);
-    if (!/ago/.test(p.feed.error ?? '') && a) lines.push(`last good poll ${a}`);
+    const last = lastGoodPoll(p);
+    if (last) lines.push(last);
     tone = 'st';
   } else [lines, tone] = [[`polled ${ageStr(p.feed.ageSec)}`], 'ok'];
   const tw = Math.max(...lines.map((l) => l.length)) * 10.2 + 26;
