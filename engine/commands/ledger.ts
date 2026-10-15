@@ -1,11 +1,13 @@
 // belay ledger append --event event.json --chain events.jsonl [--write]
 // Prints the new hash-chained line. The chain is verified first: a broken chain is never extended.
+// `ledger trial` (the auditor's recompute of a promotion's trial) is audit/trial.ts.
 import fs from 'node:fs';
 import path from 'node:path';
 import { append, parseChainText, parseEventBody, verifyChain, type EventBody, type LedgerEvent } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { readJson } from '../core/files';
 import { EngineError, type CommandResult, type Ctx } from '../core/types';
+import { TRIAL_USAGE, trialCommand } from './audit/trial';
 
 /** The event the writer takes, by the one parser the importer and the checker share (src/schemas/chain/parse.ts). */
 export function parseLedgerEvent(raw: unknown): EventBody {
@@ -22,8 +24,9 @@ export function readChain(text: string): LedgerEvent[] {
 }
 
 export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult {
+  if (argv[0] === 'trial') return trialCommand(argv.slice(1), ctx);
   const args = parseArgs(argv, { values: ['event', 'chain'], switches: ['write'] });
-  if (args.positional[0] !== 'append') throw new EngineError('usage: ledger append --event <file> --chain <events.jsonl> [--write]');
+  if (args.positional[0] !== 'append') throw new EngineError(`usage: ledger append --event <file> --chain <events.jsonl> [--write] | ${TRIAL_USAGE}`);
   const chainFile = path.resolve(ctx.cwd, args.need('chain'));
   const chain = fs.existsSync(chainFile) ? readChain(fs.readFileSync(chainFile, 'utf8')) : [];
   const broken = verifyChain(chain);

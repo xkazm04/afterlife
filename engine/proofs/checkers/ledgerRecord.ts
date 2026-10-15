@@ -46,6 +46,9 @@ export function trialFromChain(events: readonly LedgerEvent[], h: { agent: strin
   return { ...trialCount(mrs.map((m) => m.resolution)), mrs };
 }
 
+/** Why a chain that does not verify states nothing: the words chain-verifies and `ledger trial` both say. */
+export const chainBreaks = (seq: number): string => `the chain breaks at seq ${seq}: that event's hash or its link to the one before does not match`;
+
 const thresholdsOf = (v: unknown): { min: number; catches: number } | null | 'bad' => {
   if (v === undefined || v === null) return null;
   if (!isRecord(v) || !Number.isInteger(v.min) || (v.min as number) < 1 || !Number.isInteger(v.catches) || (v.catches as number) < 0) return 'bad';
@@ -73,7 +76,7 @@ export function ledgerRecord(input: Record<string, unknown>): Draft {
     !chain.ok
       ? at('chain-verifies', input.chain === undefined ? null : false, chain.reason)
       : broken !== null
-        ? at('chain-verifies', false, `the chain breaks at seq ${broken}: that event's hash or its link to the one before does not match`)
+        ? at('chain-verifies', false, chainBreaks(broken))
         : at('chain-verifies', true, `${chain.value.length} event(s) verify from genesis; head seq ${chain.value.at(-1)?.seq ?? 0} ${chain.value.at(-1)?.hash ?? 'none'}`),
   ];
   const r = isRecord(input.record) ? input.record : {};
