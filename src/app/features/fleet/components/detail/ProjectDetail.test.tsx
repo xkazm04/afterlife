@@ -22,6 +22,27 @@ const page = (over: Parameters<typeof makeProject>[0]) => {
 };
 const statusBar = (html: string) => html.match(/<footer[^>]*>(.*?)<\/footer>/s)?.[1] ?? '';
 
+describe('ProjectDetail Needs you card', () => {
+  it('lists the deep project\'s own decisions', () => {
+    setDataSource(demoSource);
+    const data = loadFleetData();
+    const project = data.projects.find((p) => p.id === data.deep.id)!;
+    const html = renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, { project, data, source: loadFleetSource() })));
+    expect(data.deep.needs.length).toBeGreaterThan(0);
+    for (const n of data.deep.needs) expect(html).toContain(n.title.replaceAll("'", '&#x27;'));
+  });
+
+  it('shows another project only its count and the demo actions', () => {
+    const html = page({ id: 'x', needsYou: 2 });
+    expect(html).toContain('2 decisions waiting');
+    expect(html).toContain('Review queue');
+  });
+
+  it('says nothing waits on a project with a zero count', () => {
+    expect(page({ id: 'x', needsYou: 0 })).toContain('Nothing waiting');
+  });
+});
+
 describe('ProjectDetail status bar', () => {
   it('counts a watching project\'s decisions plainly', () => {
     expect(statusBar(page({ id: 'x', needsYou: 2 }))).toContain('2 decisions waiting');

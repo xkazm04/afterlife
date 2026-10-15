@@ -8,7 +8,6 @@ import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { DEFAULT_NEEDS_ACTION, NEEDS_ACTIONS } from '@/lib/demo/needsActions';
 import { decideLabel, gitlabUrl, needsMeta, waitingTitle } from '../../../model/inspector';
-import type { DeepProject } from '../../../model/types';
 import styles from './sections.module.css';
 
 function Decision({
@@ -51,12 +50,13 @@ function Decision({
 }
 
 /**
- * What waits for a person on this project. The deep project lists its real decisions (the button's tooltip says exactly
+ * What waits for a person on this project. `needs` is the deep project's decisions (null for any other project: it is a
+ * client component, so the page passes it only these, not the whole deep record). The deep project lists its real decisions (the button's tooltip says exactly
  * what it does). Demo mode resolves one on a click, in this screen only. Live mode never claims a decision was made here:
  * the button opens Needs you, where the decision and the operator's write belong. Other watched projects show a count
  * and two demo actions.
  */
-export function NeedsYouSection({ p, portfolio, deep, live }: { p: FleetProject; portfolio: string; deep: DeepProject; live: boolean }) {
+export function NeedsYouSection({ p, portfolio, needs, live }: { p: FleetProject; portfolio: string; needs: readonly NeedsYouItem[] | null; live: boolean }) {
   const onFlash = useToast().status;
   const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
   const onResolve = (id: string, does: string) => {
@@ -76,10 +76,10 @@ export function NeedsYouSection({ p, portfolio, deep, live }: { p: FleetProject;
         </div>
       </div>
     );
-  } else if (p.id === deep.id && !deep.needs.length) {
+  } else if (needs && !needs.length) {
     body = <div className={styles.muted}>Nothing waiting</div>;
-  } else if (p.id === deep.id) {
-    body = deep.needs.map((n) => <Decision key={n.id} n={n} done={done.has(n.id)} live={live} onResolve={onResolve} onFlash={onFlash} />);
+  } else if (needs) {
+    body = needs.map((n) => <Decision key={n.id} n={n} done={done.has(n.id)} live={live} onResolve={onResolve} onFlash={onFlash} />);
   } else if (p.needsYou) {
     body = (
       <div className={styles.nyi}>

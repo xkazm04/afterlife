@@ -32,7 +32,7 @@ export function ProjectDetail({ project: p, data, source }: FleetProjectView) {
       help={<FleetLegend tiers={data.tiers} />}
       helpTitle="Legend"
     >
-      <NeedsYouSection p={p} portfolio={data.portfolio} deep={deep} live={source.mode === 'live'} />
+      <NeedsYouSection p={p} portfolio={data.portfolio} needs={p.id === deep.id ? deep.needs : null} live={source.mode === 'live'} />
       <ClassesSection p={p} classes={data.classes} deep={deep} />
       <ProofsSection p={p} />
       <TasksSection p={p} deep={deep} />
