@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Checkbox } from '@/components/controls/Checkbox';
 import { TierChip } from '@/components/status/TierChip';
+import { stagePath } from '../../hooks/useStepNav';
 import type { Gap } from '../../model/ctx';
 import type { Phase } from '../../model/flow/credit';
 import { rungText } from '../../model/rungs';
@@ -55,7 +56,7 @@ export function GapRow({
         <span className={styles.mv}>{`${rungText(gap.from)} → ${rungText(gap.to)}`}</span>
       </div>
       <div className={cx(styles.cell, styles.ttl)} role="cell">
-        <Link className={styles.nm} href={`/maturity/${encodeURIComponent(gap.stage)}`} title={`${gap.x.invite} · open the ${gap.stage} page (↵)`}>
+        <Link className={styles.nm} href={stagePath(gap.stage)} title={`${gap.x.invite} · open the ${gap.stage} page (↵)`}>
           {gap.title}
         </Link>
         <DemoChip on={live} what="This gap's invitation and files" />

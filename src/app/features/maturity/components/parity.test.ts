@@ -14,4 +14,7 @@ describe('components do not re-spell the model\'s rules', () => {
   it('"deep" is isDeep() from model/rungs, not a literal >= 3', () => {
     expect(hits(/>=\s*3\b/)).toEqual([]);
   });
+  it('a stage page link is stagePath(), not a second /maturity/ template', () => {
+    expect(hits(/[`'"]\/maturity\//)).toEqual([]);
+  });
 });
