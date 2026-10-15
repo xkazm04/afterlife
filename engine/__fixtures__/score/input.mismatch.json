@@ -1,0 +1,8 @@
+{
+  "task": { "flow": "maturity", "run_id": "flow-run-9422", "project_id": 102, "mr_iid": 49, "head_sha": "9e5c3a1f7b2d4f6a8c0e2b4d6f8a0c2e3b5d7f94", "trailer": "Belay-Task: 01J9ZT4K6M8P0R2S4V6X8Z0B2F" },
+  "action_class": "ci-config.change",
+  "claims": [{ "id": "s1", "text": "Running sast on every pipeline lowers no stage" }],
+  "claim_ids": { "no-stage-regressed": "s1" },
+  "base": { "scan": { "$file": "base.scan.json" }, "job_ref": "https://gitlab.example.com/acme/app/-/jobs/9422101" },
+  "head": { "scan": { "$file": "head.other-engine.scan.json" }, "job_ref": "https://gitlab.example.com/acme/app/-/jobs/9422188" }
+}

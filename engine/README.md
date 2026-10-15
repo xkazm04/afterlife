@@ -31,7 +31,21 @@ Only `prove` inlines; `gate`, `tripwire` and `ledger` read their JSON as it is.
   `rerun_stats` block in the policy, else the engine defaults (5 runs, 0.8), and the check says which.
 - **linked-evidence** - every statement's link resolves in the resolution results the input carries (the engine
   never fetches), on an allowed host; CRA clock arithmetic is recomputed. Legal wording is a `decidedBy: human` check.
-- **repro, bench-delta, score-delta, ledger-record** - stubs: `inconclusive: not implemented`, exit 2.
+- **repro** - the failure the agent claims (`expect: {status?, assertion?}`) reproduces in at least 2 probe runs against
+  the target `environment`, and every run names the MR head (`task.head_sha`, else `sha`). `runs` is the probe's JSON
+  (`[{id, sha, environment, status?, failures?, error?, job_ref?}]`); a run whose probe broke (`error`) is left out.
+- **bench-delta** - base and head JUnit (or traces): no case fails at head that did not fail at base, and every case
+  that ran at base still runs at head; base and head `bench` JSON (`{runner_tag, benchmarks: [{name, value, unit?,
+  better?}]}`) from the same runner tag: no benchmark is worse at head by more than `tolerance` (a fraction of base, from
+  the input, else the engine default 0.05; the check says which). Different runner tags are not comparable: inconclusive.
+- **score-delta** - base and head `belay.maturity/0` scans (what `scan` prints, parsed by `src/schemas/maturity.ts`) of
+  the task's project by the same engine version: no stage's rung is lower at head. A stage unknown at both ends is
+  unchanged; known at one end only, or another engine version, is inconclusive.
+- **ledger-record** - stub: `inconclusive: not implemented`, exit 2.
+
+Evidence that is missing, unreadable or not comparable is an `ok: null` check (inconclusive), never a pass. The three
+checkers above read JSON evidence inline or as a `$file` (its text is parsed), so a CI job writes them with
+`evidence_mode: provided`; fixtures in `__fixtures__/repro`, `bench`, `score`.
 
 The block's `verdict` is `verdictOf(checks, envelope.within)`: claims never decide. `engine` is
 `{version, sha256}`, the hash of every engine source file (tests and fixtures excluded), so a verdict pins its checker.

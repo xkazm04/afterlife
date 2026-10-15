@@ -1,0 +1,119 @@
+{
+  "schema": "belay.maturity/0",
+  "project_id": 102,
+  "engine_version": "1.0.0",
+  "scanned_at": "2026-10-08T07:00:00.000Z",
+  "cells": [
+    {
+      "stage": "plan",
+      "rung": 0,
+      "evidence": [],
+      "note": "absent: no issue templates on main",
+      "next_rung": 1
+    },
+    {
+      "stage": "create",
+      "rung": 1,
+      "evidence": [
+        {
+          "label": ".gitlab/CODEOWNERS",
+          "url": "https://gitlab.example.com/acme/app/-/blob/main/.gitlab/CODEOWNERS"
+        },
+        {
+          "label": "protected branch main",
+          "url": "https://gitlab.example.com/acme/app/-/settings/repository#js-protected-branches-settings"
+        }
+      ],
+      "note": "R1 holds (.gitlab/CODEOWNERS · protected branch main); R2 is not read by this rubric",
+      "next_rung": 2
+    },
+    {
+      "stage": "verify",
+      "rung": 3,
+      "evidence": [
+        {
+          "label": ".gitlab-ci.yml · job test",
+          "url": "https://gitlab.example.com/acme/app/-/blob/main/.gitlab-ci.yml"
+        },
+        {
+          "label": "job test #502",
+          "url": "https://gitlab.example.com/acme/app/-/jobs/502"
+        },
+        {
+          "label": "pipeline #9001",
+          "url": "https://gitlab.example.com/acme/app/-/pipelines/9001"
+        },
+        {
+          "label": "pipelines must succeed",
+          "url": "https://gitlab.example.com/acme/app/-/settings/merge_requests"
+        }
+      ],
+      "note": "R3 holds; no agent operates it: no .gitlab/duo/agent-config.yml",
+      "next_rung": 4
+    },
+    {
+      "stage": "package",
+      "rung": 2,
+      "evidence": [
+        {
+          "label": ".gitlab-ci.yml · job build",
+          "url": "https://gitlab.example.com/acme/app/-/blob/main/.gitlab-ci.yml"
+        },
+        {
+          "label": "job build #501",
+          "url": "https://gitlab.example.com/acme/app/-/jobs/501"
+        },
+        {
+          "label": "pipeline #9001",
+          "url": "https://gitlab.example.com/acme/app/-/pipelines/9001"
+        },
+        {
+          "label": "pipelines must succeed",
+          "url": "https://gitlab.example.com/acme/app/-/settings/merge_requests"
+        }
+      ],
+      "note": "R2 holds; build is allow_failure, so failing it blocks nothing",
+      "next_rung": 3
+    },
+    {
+      "stage": "secure",
+      "rung": 1,
+      "evidence": [
+        {
+          "label": ".gitlab-ci.yml · job sast",
+          "url": "https://gitlab.example.com/acme/app/-/blob/main/.gitlab-ci.yml"
+        }
+      ],
+      "note": "configured, not exercised: sast not run on pipeline #9001",
+      "next_rung": 2
+    },
+    {
+      "stage": "release",
+      "rung": 0,
+      "evidence": [],
+      "note": "absent: no release job in the merged CI config on main",
+      "next_rung": 1
+    },
+    {
+      "stage": "configure",
+      "rung": 0,
+      "evidence": [],
+      "note": "absent: no configure job in the merged CI config on main",
+      "next_rung": 1
+    },
+    {
+      "stage": "monitor",
+      "rung": 0,
+      "evidence": [],
+      "note": "absent: no monitor job in the merged CI config on main",
+      "next_rung": 1
+    },
+    {
+      "stage": "govern",
+      "rung": 0,
+      "evidence": [],
+      "note": "absent: no govern job in the merged CI config on main",
+      "next_rung": 1
+    }
+  ]
+}

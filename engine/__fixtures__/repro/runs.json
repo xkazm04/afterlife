@@ -1,0 +1,8 @@
+{
+  "probe": "statement-export smoke (scripted HTTP), [R] shape written for this fixture",
+  "runs": [
+    { "id": "probe-1", "sha": "3f9a2c7e1b5d8f0a4c6e2b9d7f1a3c5e8b0d2f46", "environment": "staging", "status": 500, "failures": ["GET /statements/export?month=2026-09: expected status 200, got 500"], "job_ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9500101" },
+    { "id": "probe-2", "sha": "3f9a2c7e1b5d8f0a4c6e2b9d7f1a3c5e8b0d2f46", "environment": "staging", "error": "connection reset before the response (the probe broke, not the app)", "job_ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9500102" },
+    { "id": "probe-3", "sha": "3f9a2c7e1b5d8f0a4c6e2b9d7f1a3c5e8b0d2f46", "environment": "staging", "status": 500, "failures": ["GET /statements/export?month=2026-09: expected status 200, got 500"], "job_ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9500103" }
+  ]
+}

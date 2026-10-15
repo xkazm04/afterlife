@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
+import { CHECKED_CLASSES, PROOF_CLASSES } from '../../../engine/proofs';
 import { STUB_CLASSES } from '../../../engine/proofs/stubs';
 import { HUMAN_KEY, isMechanical, MECHANICAL_PROOFS, NOT_RECORDED, promotion, whyNot, type Counters } from '.';
 
@@ -80,12 +81,18 @@ describe('human_key: a precondition of the promote write, never a met eligibilit
 
 describe('the mechanical proof class: a stub proof never reads met', () => {
   it("no class the engine only stubs (engine/proofs/stubs.ts: inconclusive, never pass) is mechanical", () => {
+    expect(STUB_CLASSES.length).toBeGreaterThan(0);
     expect(STUB_CLASSES.filter((c) => MECHANICAL_PROOFS.has(c))).toEqual([]);
-    expect([isMechanical('repro'), isMechanical('bench-delta'), isMechanical('exploit-test')]).toEqual([false, false, true]);
+    expect([isMechanical('ledger-record'), isMechanical('exploit-test')]).toEqual([false, true]);
+  });
+  it('every class the engine checks is mechanical, and nothing else is: the set is the engine list, no more', () => {
+    expect([...MECHANICAL_PROOFS].sort()).toEqual([...CHECKED_CLASSES].sort());
+    expect(PROOF_CLASSES.filter((c) => !MECHANICAL_PROOFS.has(c))).toEqual([...STUB_CLASSES]);
+    expect([isMechanical('repro'), isMechanical('bench-delta'), isMechanical('score-delta'), isMechanical('human-review')]).toEqual([true, true, true, false]);
   });
   it('so a Hands-off rule on a stub proof class is not met', () => {
-    const p = promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, noEdit: 0.94, cleanDays: 14 }) }, 'repro', RULES);
-    expect([p.kind, rule(p, 'mechanical proof class')]).toEqual(['notyet', { name: 'mechanical proof class', value: 'repro', met: false }]);
+    const p = promotion({ tier: 'supervised', ceiling: 'hands_off', record: rec({ accepted: 16, noEdit: 0.94, cleanDays: 14 }) }, 'ledger-record', RULES);
+    expect([p.kind, rule(p, 'mechanical proof class')]).toEqual(['notyet', { name: 'mechanical proof class', value: 'ledger-record', met: false }]);
   });
 });
 

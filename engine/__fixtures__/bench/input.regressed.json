@@ -1,0 +1,11 @@
+{
+  "task": { "flow": "gardener", "run_id": "flow-run-9611", "project_id": 70123456, "mr_iid": 45, "head_sha": "e5c7a9b1d3f5a7c9e1b3d5f7a9c1e3b5d7f9a1c3", "trailer": "Belay-Task: 01J9ZW8B0D2F4H6K8M0P2R4T6W" },
+  "action_class": "patch-bump",
+  "claims": [
+    { "id": "g1", "text": "jackson-databind 2.17.2 to 2.18.0 breaks no test" },
+    { "id": "g2", "text": "No benchmark moves beyond noise" }
+  ],
+  "claim_ids": { "no-new-failures": "g1", "same-tests": "g1", "bench-within-tolerance": "g2" },
+  "base": { "junit": { "$file": "base.junit.xml" }, "bench": { "$file": "base.bench.json" }, "job_ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9611101" },
+  "head": { "junit": { "$file": "head.regressed.junit.xml" }, "bench": { "$file": "head.slow.bench.json" }, "job_ref": "https://gitlab.com/afterlife3274741/ledgerline/-/jobs/9611177" }
+}

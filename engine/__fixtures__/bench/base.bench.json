@@ -1,0 +1,7 @@
+{
+  "runner_tag": "saas-linux-medium-amd64",
+  "benchmarks": [
+    { "name": "statement-export-p95", "value": 182.0, "unit": "ms" },
+    { "name": "json-roundtrip-ops", "value": 41200, "unit": "ops/s", "better": "higher" }
+  ]
+}

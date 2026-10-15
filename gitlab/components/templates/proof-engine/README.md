@@ -39,7 +39,9 @@ include:
    labels ([S] docs.gitlab.com/ci/jobs/ci_job_token). The `post` input is gone.
 7. Exits with the engine's code: 0 pass, 1 fail, 2 inconclusive or error. Only a pass leaves the job green.
 
-Classes with no real checker in the engine yet (`repro`, `bench-delta`, `score-delta`, `ledger-record`) exit 2.
+`repro`, `bench-delta` and `score-delta` have no auto builder: an earlier job (or `prepare_script`) writes their input and
+the include sets `evidence_mode: provided` (input shapes in [engine/README.md](../../../../engine/README.md)). `ledger-record`
+has no real checker in the engine yet and exits 2.
 `rerun-stats` reads the pipelines and jobs API, which a job token cannot, so a target leaves that class to belay-apply. So
 does `post_merge`: finding the merged MR of a commit (`repository/commits/:sha/merge_requests`) is not on the job token's list.
 

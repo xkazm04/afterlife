@@ -5,10 +5,10 @@ export type ProofClass =
   | 'exploit-test' // T1 patcher: red at base, green at head, same test id, finding closed on rescan
   | 'cited-diff' // T4 guardrail: every finding quotes a hunk that exists in the diff
   | 'rerun-stats' // T5 medic: N reruns of one SHA, counts recomputed from the jobs API
-  | 'repro' // T7 QA: steps replayed by a scripted browser, screenshot hash
-  | 'bench-delta' // T8 gardener: tests green, benchmark inside budget, changelog claims linked
+  | 'repro' // T7 QA: the claimed failure reproduces in >= 2 probe runs on the MR head, against the target environment
+  | 'bench-delta' // T8 gardener: no new test failure, every benchmark inside the tolerance on the same runner tag
   | 'linked-evidence' // T2 CRA: every statement links to a GitLab object that resolves
-  | 'score-delta' // T6 maturity: same engine version before/after, lift outside the noise band
+  | 'score-delta' // T6 maturity: same engine version before/after, no stage lower at head
   | 'ledger-record'; // T3 governor: tier decisions recomputed from the ledger
 
 export type Verdict = 'pass' | 'fail' | 'inconclusive';

@@ -2,6 +2,9 @@
 // verdictOf from the engine's checks alone; the agent's claims ride along but never decide anything.
 import type { ProofBlock, ProofClass } from '../../src/schemas/proof';
 import { EngineError, rec } from '../core/types';
+import { benchDelta } from './checkers/benchDelta';
+import { repro } from './checkers/repro';
+import { scoreDelta } from './checkers/scoreDelta';
 import { assemble, parseBase, type Env } from './common';
 import { citedDiff } from './citedDiff';
 import { exploitTest } from './exploitTest';
@@ -9,7 +12,9 @@ import { linkedEvidence } from './linkedEvidence';
 import { rerunStats } from './rerunStats';
 import { stub, STUB_CLASSES } from './stubs';
 
-export const PROOF_CLASSES: readonly ProofClass[] = ['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', ...STUB_CLASSES];
+/** Classes with a real checker; src/lib/promotion's MECHANICAL_PROOFS is this list (rules.test.ts pins it). */
+export const CHECKED_CLASSES: readonly ProofClass[] = ['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta'];
+export const PROOF_CLASSES: readonly ProofClass[] = [...CHECKED_CLASSES, ...STUB_CLASSES];
 
 export function isProofClass(v: string): v is ProofClass {
   return (PROOF_CLASSES as readonly string[]).includes(v);
@@ -28,8 +33,11 @@ export function prove(cls: ProofClass, rawInput: unknown, env: Env): ProofBlock 
     case 'linked-evidence':
       return assemble(cls, base, linkedEvidence(input), env);
     case 'repro':
+      return assemble(cls, base, repro(input, base), env);
     case 'bench-delta':
+      return assemble(cls, base, benchDelta(input), env);
     case 'score-delta':
+      return assemble(cls, base, scoreDelta(input, base.task.project_id), env);
     case 'ledger-record':
       return assemble(cls, base, stub(cls), env);
     default:

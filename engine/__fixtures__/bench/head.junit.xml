@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- [R] Gradle JUnit XML at the head of the patch bump: the same cases, the known failure unchanged. -->
+<testsuites>
+  <testsuite name="io.ledgerline.statements.StatementJsonTest" tests="3" skipped="0" failures="1" errors="0">
+    <testcase name="roundTripsAmounts()" classname="io.ledgerline.statements.StatementJsonTest" time="0.030"/>
+    <testcase name="readsLegacyDates()" classname="io.ledgerline.statements.StatementJsonTest" time="0.013"/>
+    <testcase name="rejectsUnknownCurrency()" classname="io.ledgerline.statements.StatementJsonTest" time="0.009">
+      <failure message="expected InvalidCurrencyException">known failure, tracked in #311</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="io.ledgerline.statements.StatementExportTest" tests="1" skipped="0" failures="0" errors="0">
+    <testcase name="exportsMonth()" classname="io.ledgerline.statements.StatementExportTest" time="0.118"/>
+  </testsuite>
+</testsuites>

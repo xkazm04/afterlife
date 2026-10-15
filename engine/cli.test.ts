@@ -36,13 +36,20 @@ describe('exit codes: 0 pass, 1 fail, 2 inconclusive or error', () => {
   });
 
   it('prove: 2 on inconclusive, including a class that is not implemented', () => {
-    const r = cli(...PROVE('repro', 'rerun', 'flake.json'));
+    const r = cli(...PROVE('ledger-record', 'rerun', 'flake.json'));
     expect(r.code).toBe(2);
     expect(r.json.verdict).toBe('inconclusive');
     expect(r.err).toMatch(/not implemented/);
     expect(cli(...PROVE('rerun-stats', 'rerun', 'real.json')).code).toBe(1);
     expect(cli(...PROVE('cited-diff', 'cited', 'input.grounded.json')).code).toBe(0);
     expect(cli(...PROVE('linked-evidence', 'linked', 'input.broken.json')).code).toBe(1);
+  });
+
+  it('prove: repro, bench-delta and score-delta pass on their fixtures and fail on a mismatched or regressed one', () => {
+    const codes = (cls: string, dir: string, ...files: string[]) => files.map((f) => cli(...PROVE(cls, dir, f)).code);
+    expect(codes('repro', 'repro', 'input.pass.json', 'input.stray.json')).toEqual([0, 1]);
+    expect(codes('bench-delta', 'bench', 'input.pass.json', 'input.regressed.json')).toEqual([0, 1]);
+    expect(codes('score-delta', 'score', 'input.pass.json', 'input.regressed.json', 'input.mismatch.json')).toEqual([0, 1, 2]);
   });
 
   it('2 with a JSON error for a bad class, a missing file, bad JSON, an unknown option or command', () => {

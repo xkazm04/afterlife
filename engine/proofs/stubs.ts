@@ -3,7 +3,7 @@
 import type { ProofClass } from '../../src/schemas/proof';
 import type { Draft } from './common';
 
-export const STUB_CLASSES: readonly ProofClass[] = ['repro', 'bench-delta', 'score-delta', 'ledger-record'];
+export const STUB_CLASSES: readonly ProofClass[] = ['ledger-record'];
 
 export function stub(cls: ProofClass): Draft {
   return {

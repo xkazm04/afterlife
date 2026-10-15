@@ -100,7 +100,7 @@ describe('linked-evidence', () => {
 });
 
 describe('stubs and dispatch', () => {
-  it.each(['repro', 'bench-delta', 'score-delta', 'ledger-record'] as const)('%s answers inconclusive: not implemented', (cls) => {
+  it.each(['ledger-record'] as const)('%s answers inconclusive: not implemented', (cls) => {
     const b = prove(cls, fixture('rerun', 'flake.json'), env);
     expect(b.verdict).toBe('inconclusive');
     expect(b.checks[0]?.detail).toMatch(/inconclusive: not implemented/);

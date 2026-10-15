@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- [R] Gradle JUnit XML at the head of a patch bump that breaks legacy date parsing, and stops running the export test. -->
+<testsuites>
+  <testsuite name="io.ledgerline.statements.StatementJsonTest" tests="3" skipped="0" failures="2" errors="0">
+    <testcase name="roundTripsAmounts()" classname="io.ledgerline.statements.StatementJsonTest" time="0.030"/>
+    <testcase name="readsLegacyDates()" classname="io.ledgerline.statements.StatementJsonTest" time="0.014">
+      <failure message="InvalidFormatException: Cannot deserialize value of type LocalDate from String &quot;09/2026&quot;">stack trace</failure>
+    </testcase>
+    <testcase name="rejectsUnknownCurrency()" classname="io.ledgerline.statements.StatementJsonTest" time="0.009">
+      <failure message="expected InvalidCurrencyException">known failure, tracked in #311</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="io.ledgerline.statements.StatementExportTest" tests="1" skipped="1" failures="0" errors="0">
+    <testcase name="exportsMonth()" classname="io.ledgerline.statements.StatementExportTest" time="0"><skipped/></testcase>
+  </testsuite>
+</testsuites>
