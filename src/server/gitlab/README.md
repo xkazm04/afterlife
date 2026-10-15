@@ -40,3 +40,12 @@ Server-only. The app imports `@/server/gitlab` (index.ts); tests and `belay doct
 
 `npx tsc --noEmit`, `npx eslint src/server/gitlab cli`, `node scripts/check-structure.mjs src/server/gitlab`,
 `npx vitest run src/server/gitlab`, `npm run doctor`.
+
+## Decisions from the branch-aware fake
+
+- The fake keeps a tree per branch (`fake/refs.ts`): the default branch is the project's own `files`; a write to any other
+  branch forks it from `start_branch` and lands there, so main is unchanged until a merge. File, tree and commit reads
+  honour `ref` / `ref_name`; an unknown branch answers 404.
+- `PUT merge_requests/:iid/merge` (`fake/merge.ts`) is the only way a branch reaches its target: it fast-forwards the
+  branch's changed files, answers 406 when the target's copy changed after the branch started, and deletes the branch
+  when the MR asked for `remove_source_branch`. Tests call `mergeMr(gl, project, iid)` for "the person merges".
