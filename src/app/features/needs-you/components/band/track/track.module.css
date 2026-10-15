@@ -21,7 +21,7 @@
 }
 .evd {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, calc(34px * var(--ui-scale))));
+  grid-template-columns: repeat(var(--evd-n), minmax(0, calc(34px * var(--ui-scale))));
   gap: 3px;
   flex: 1;
 }

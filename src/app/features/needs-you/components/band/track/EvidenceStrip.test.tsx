@@ -1,5 +1,6 @@
 // The CRA band's evidence strip: one tick per evidence link. A tick is a check mark, so each carries its link's name for
 // a screen reader (the hover title alone says nothing to one). No DOM here: the strip is rendered to markup.
+import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { EVIDENCE } from '../../../data/cra';
@@ -15,5 +16,12 @@ describe('the evidence strip', () => {
 
   it('draws one tick per link', () => {
     expect(out.match(/<i /g)).toHaveLength(EVIDENCE.length);
+  });
+
+  it('lays the ticks out in as many columns as there are links, from the data and not from a number in the stylesheet', () => {
+    expect(out).toContain(`--evd-n:${EVIDENCE.length}`);
+    const css = readFileSync(new URL('./track.module.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(css).toMatch(/repeat\(\s*var\(--evd-n\)/);
+    expect(css).not.toMatch(/repeat\(\s*\d/);
   });
 });

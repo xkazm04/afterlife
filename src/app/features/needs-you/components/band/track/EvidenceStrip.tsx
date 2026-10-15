@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { TierChip } from '@/components/status/TierChip';
 import { EVIDENCE } from '../../../data/cra';
 import styles from './track.module.css';
@@ -7,7 +8,7 @@ export function EvidenceStrip({ resolved }: { resolved: string }) {
   return (
     <div className={styles.bl}>
       <span className={styles.lbx}>Evidence {resolved}</span>
-      <span className={styles.evd}>
+      <span className={styles.evd} style={{ '--evd-n': EVIDENCE.length } as CSSProperties}>
         {EVIDENCE.map((e) => (
           <i key={e.what} role="img" aria-label={`${e.what} · ${e.ref} · resolves`} title={`${e.what} · ${e.ref} · resolves`}>
             ✓
