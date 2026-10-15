@@ -2,10 +2,13 @@
 // validate.mjs is the only check a flow's JSON gets before the engine reads it (custom flows cannot set response_schema_id).
 // It must (1) judge only a value's OWN keys, never ones inherited from Object.prototype, and (2) understand every keyword the
 // shipped schemas use: a keyword it does not know is a constraint that is silently not enforced.
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { SCRIPTS } from '../testing/harness.mjs';
+import { ROOT, SCRIPTS } from '../testing/harness.mjs';
+import { engine, tsxCommand } from './engine.mjs';
 import { blocks } from './lib.mjs';
 import { validate } from './validate.mjs';
 
@@ -86,4 +89,30 @@ describe('the shipped flow schemas', () => {
   it('the keyword walk bites: an unknown keyword is reported', () => {
     expect([...keywordsOf({ type: 'object', properties: { a: { oneOf: [] } } })].filter((k) => !SUPPORTED.has(k))).toEqual(['oneOf']);
   });
+});
+
+describe('engine', () => {
+  it('runs the checkout’s own tsx with this node, and falls back to npx when there is none', () => {
+    expect(tsxCommand(ROOT)).toMatchObject({ cmd: process.execPath, shell: false });
+    expect(tsxCommand(ROOT).args[0]).toMatch(/node_modules[\\/]tsx[\\/]dist[\\/]cli\.mjs$/);
+    const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-engine-'));
+    try {
+      expect(tsxCommand(bare)).toMatchObject({ cmd: 'npx', args: ['tsx'] });
+    } finally {
+      fs.rmSync(bare, { recursive: true, force: true });
+    }
+  });
+
+  it('answers as npx tsx does: same exit code and stdout for an unknown command', () => {
+    const env = { ...process.env, BELAY_DIR: ROOT, npm_config_offline: 'true', npm_config_cache: path.join(os.tmpdir(), 'belay-npmcache') };
+    const viaNpx = spawnSync('npx', ['tsx', 'engine/cli.ts', 'no-such-command'], { cwd: ROOT, encoding: 'utf8', env, shell: process.platform === 'win32' });
+    const saved = process.env.BELAY_DIR;
+    process.env.BELAY_DIR = ROOT;
+    try {
+      expect(engine(['no-such-command'])).toEqual({ code: viaNpx.status, stdout: viaNpx.stdout });
+    } finally {
+      if (saved === undefined) delete process.env.BELAY_DIR;
+      else process.env.BELAY_DIR = saved;
+    }
+  }, 60_000);
 });
