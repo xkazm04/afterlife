@@ -38,6 +38,33 @@ function buildChain(seeds: readonly ChainSeed[], refs: readonly (string | null)[
   return seeds.map((l, i) => ({ step: l.step, obj: l.obj, at: l.at, ref: refs[i] ?? null, na: !l.obj }));
 }
 
+/** The fields both builders read the same way from a data-source row: where the task sits and what the source says of it. */
+function sourceFields(base: Task, input: Pick<BuildInput, 'tracks' | 'actionClasses'>) {
+  return {
+    id: base.id,
+    track: base.track,
+    trackName: input.tracks.find((k) => k.id === base.track)?.name ?? '',
+    cls: base.cls,
+    mr: base.mr,
+    title: base.title,
+    tierAtTime: base.tierAtTime,
+    tierNow: input.actionClasses.find((a) => a.id === base.cls)?.tier ?? null,
+    state: base.state,
+    stats: base.stats ?? null,
+    clock: base.clock ?? null,
+    grade: base.grade ?? null,
+    linksResolved: base.linksResolved ?? null,
+  };
+}
+
+/** Each claim with the ids of the checks that answer it. */
+function claimsOf(texts: readonly string[], idAt: (i: number) => string | undefined, checks: readonly TaskCheck[]): TaskClaim[] {
+  return texts.map((text, i) => {
+    const cid = idAt(i) ?? `c${i + 1}`;
+    return { id: cid, text, checks: checks.filter((k) => k.claims.includes(cid)).map((k) => k.id) };
+  });
+}
+
 /** Merge one dataset row (or the fixture's own base row) with its fixture into the view the screen renders. */
 function buildTask(id: string, input: BuildInput): TaskView | null {
   const detail = input.details[id];
@@ -55,23 +82,12 @@ function buildTask(id: string, input: BuildInput): TaskView | null {
     const claims = c.claim === undefined ? mapped : c.claim === null ? [] : [c.claim];
     return { id: c.id, text: c.text, ok: c.ok, decidedBy: c.decidedBy ?? 'engine', ref: c.ref, claims: [...claims], link };
   });
-  const claims: TaskClaim[] = claimTexts.map((text, i) => {
-    const cid = base.proof?.claimIds?.[i] ?? detail.claimIds[i] ?? `c${i + 1}`;
-    return { id: cid, text, checks: checks.filter((k) => k.claims.includes(cid)).map((k) => k.id) };
-  });
+  const claims = claimsOf(claimTexts, (i) => base.proof?.claimIds?.[i] ?? detail.claimIds[i], checks);
   const verdict = toVerdict(proofIn.verdict);
-  const actionClass = input.actionClasses.find((a) => a.id === base.cls);
 
   return {
+    ...sourceFields(base, input),
     id,
-    track: base.track,
-    trackName: input.tracks.find((k) => k.id === base.track)?.name ?? '',
-    cls: base.cls,
-    mr: base.mr,
-    title: base.title,
-    tierAtTime: base.tierAtTime,
-    tierNow: actionClass?.tier ?? null,
-    state: base.state,
     seeded: !!detail.seeded || SEEDED.test(base.title + (base.reason ?? '')),
     fixture: true,
     agent: detail.agent,
@@ -83,10 +99,6 @@ function buildTask(id: string, input: BuildInput): TaskView | null {
     countsToward: base.countsToward ?? detail.countsToward ?? '',
     envelope: detail.envelope,
     hunk: withQuote(detail.hunk, base.quote),
-    stats: base.stats ?? null,
-    clock: base.clock ?? null,
-    grade: base.grade ?? null,
-    linksResolved: base.linksResolved ?? null,
     awareAt: detail.awareAt ?? null,
     ledger: chainLedger(detail.ledger),
     trace: detail.trace,
@@ -106,20 +118,9 @@ export function sourceTask(base: Task, input: Pick<BuildInput, 'tracks' | 'actio
   const checks: TaskCheck[] = (p?.checks ?? []).map((c) => ({
     id: c.id, text: c.text, ok: c.ok, decidedBy: c.decidedBy ?? 'engine', ref: c.ref, claims: c.claim ? [c.claim] : [], link: prove,
   }));
-  const claims: TaskClaim[] = (p?.claims ?? []).map((text, i) => {
-    const cid = p?.claimIds?.[i] ?? `c${i + 1}`;
-    return { id: cid, text, checks: checks.filter((k) => k.claims.includes(cid)).map((k) => k.id) };
-  });
+  const claims = claimsOf(p?.claims ?? [], (i) => p?.claimIds?.[i], checks);
   return {
-    id: base.id,
-    track: base.track,
-    trackName: input.tracks.find((k) => k.id === base.track)?.name ?? '',
-    cls: base.cls,
-    mr: base.mr,
-    title: base.title,
-    tierAtTime: base.tierAtTime,
-    tierNow: input.actionClasses.find((a) => a.id === base.cls)?.tier ?? null,
-    state: base.state,
+    ...sourceFields(base, input),
     seeded: SEEDED.test(base.title + (base.reason ?? '')),
     fixture: false,
     agent: UNKNOWN_AGENT,
@@ -131,10 +132,6 @@ export function sourceTask(base: Task, input: Pick<BuildInput, 'tracks' | 'actio
     countsToward: base.countsToward ?? '',
     envelope: null,
     hunk: null,
-    stats: base.stats ?? null,
-    clock: base.clock ?? null,
-    grade: base.grade ?? null,
-    linksResolved: base.linksResolved ?? null,
     awareAt: null,
     ledger: [],
     trace: [],
