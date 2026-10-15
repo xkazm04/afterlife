@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useHotkeys, type Hotkey } from '@/lib/keyboard/useHotkeys';
+import { useKeymap } from '@/lib/keyboard/keymap';
+import { useHotkeys } from '@/lib/keyboard/useHotkeys';
+import { MATURITY_KEYMAP, MATURITY_SHEET_KEYMAP, STEP_KEYS } from '../model/keymap';
 import type { Step } from '../model/state';
 import type { MaturityApi } from './useMaturity';
 
@@ -14,7 +16,7 @@ function focusStage(where: FocusWhere, stage: string, index: number) {
 }
 
 /**
- * Keyboard: ← → (or ↑ ↓) stage, or the picked gap while previewing · P pick · 1-4 steps · D N T crag · R rescan.
+ * Keyboard (model/keymap.ts): ← → (or ↑ ↓) stage, or the picked gap while previewing · P pick · 1-4 steps · D N T crag · R rescan.
  * Off while the Send sheet is open, where Enter sends and Escape cancels (the Sheet handles Escape itself).
  */
 export function useMaturityKeys(api: MaturityApi, onGo: (k: Step) => void, onSend: () => void) {
@@ -37,40 +39,27 @@ export function useMaturityKeys(api: MaturityApi, onGo: (k: Step) => void, onSen
     const g = ctx.gapByStage(state.sel);
     if (g) dispatch({ type: 'togglePick', id: g.id });
   };
-  const step = (k: Step): Hotkey => ({ key: String(k), handler: () => onGo(k) });
 
   useHotkeys(
-    [
-      { key: 'ArrowLeft', handler: arrow(-1) },
-      { key: 'ArrowUp', handler: arrow(-1) },
-      { key: 'ArrowRight', handler: arrow(1) },
-      { key: 'ArrowDown', handler: arrow(1) },
-      { key: 'p', handler: pickSelected },
-      step(1),
-      step(2),
-      step(3),
-      step(4),
-      { key: 'd', handler: () => setMode('day0') },
-      { key: 'n', handler: () => setMode('now') },
-      { key: 't', handler: () => setMode('target') },
-      { key: 'r', handler: () => dispatch({ type: 'rescanAll' }) },
-    ],
+    useKeymap(MATURITY_KEYMAP, {
+      move: [arrow(-1), arrow(1), arrow(-1), arrow(1)],
+      go: STEP_KEYS.map((k) => () => onGo(k)),
+      pick: pickSelected,
+      mode: [() => setMode('day0'), () => setMode('now'), () => setMode('target')],
+      rescan: () => dispatch({ type: 'rescanAll' }),
+    }),
     !state.sheet,
   );
 
   // The sheet: Enter sends, unless a button has focus (then Enter clicks that button: Cancel or Send).
   useHotkeys(
-    [
-      {
-        key: 'Enter',
-        preventDefault: false,
-        handler: (e) => {
-          if (e.target instanceof HTMLButtonElement) return;
-          e.preventDefault();
-          onSend();
-        },
+    useKeymap(MATURITY_SHEET_KEYMAP, {
+      send: (e) => {
+        if (e.target instanceof HTMLButtonElement) return;
+        e.preventDefault();
+        onSend();
       },
-    ],
+    }),
     state.sheet,
   );
 }

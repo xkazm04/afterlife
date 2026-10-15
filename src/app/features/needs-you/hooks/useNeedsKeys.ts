@@ -1,8 +1,10 @@
 'use client';
 
 import type { KeyboardEvent, RefObject } from 'react';
+import { useKeymap } from '@/lib/keyboard/keymap';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
+import { NEEDS_KEYMAP } from '../model/keys/keymap';
 import { navItems, type VisibleGroup } from '../model/rows/grouping';
 import { spaceAction } from '../model/rows/rowAction';
 import type { Action, NeedsState } from '../model/types';
@@ -20,7 +22,7 @@ export interface KeyOptions {
 
 /**
  * The keyboard map. On the table: arrows, Home/End, Left/Right collapse, Enter opens the decision's page, Space picks or
- * acts, ContextMenu opens the menu. Anywhere: "/" searches, Escape clears the search.
+ * acts, ContextMenu opens the menu. Anywhere (model/keys/keymap.ts): "/" searches, Escape clears the search.
  */
 export function useNeedsKeys(o: KeyOptions): (e: KeyboardEvent<HTMLElement>) => void {
   const { s, groups, dispatch, tableRef, searchRef, onActivate, onMenuKey } = o;
@@ -42,27 +44,17 @@ export function useNeedsKeys(o: KeyOptions): (e: KeyboardEvent<HTMLElement>) => 
     tableRef.current?.focus({ preventScroll: true });
   };
 
-  useHotkeys([
-    {
-      key: '/',
-      handler: () => {
-        searchRef.current?.focus();
-        searchRef.current?.select();
-      },
-    },
-    {
-      key: 'Escape',
-      allowInInput: true,
-      handler: (e) => {
-        if (e.target === searchRef.current) {
-          if (s.query) dispatch({ type: 'query', query: '' });
-          tableRef.current?.focus({ preventScroll: true });
-        }
-      },
-    },
-    { key: 'ArrowDown', allowInInput: true, preventDefault: false, handler: (e) => leaveSearch(e) },
-    { key: 'Enter', allowInInput: true, preventDefault: false, handler: (e) => leaveSearch(e) },
-  ]);
+  const focusSearch = () => {
+    searchRef.current?.focus();
+    searchRef.current?.select();
+  };
+  const escape = (e: globalThis.KeyboardEvent) => {
+    if (e.target !== searchRef.current) return;
+    if (s.query) dispatch({ type: 'query', query: '' });
+    tableRef.current?.focus({ preventScroll: true });
+  };
+
+  useHotkeys(useKeymap(NEEDS_KEYMAP, { search: focusSearch, escape, toTable: leaveSearch }));
 
   return (e) => {
     if (e.key === ' ' && e.target === e.currentTarget) {

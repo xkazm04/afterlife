@@ -1,57 +1,28 @@
-// The per-screen keys, as registered by each screen's useXKeys hook (src/app/features/<screen>/hooks). Plain data.
+// The per-screen keys, derived from the keymaps each screen's hook binds (src/app/features/<screen>/model/.../keymap.ts),
+// so the reference cannot drift from the keys. Plain data: every module it reaches is server-safe (screenKeys.test.ts).
+import { capsOf, type Keymap } from '@/lib/keyboard/keymap';
+import { FLEET_KEYMAP } from '../../fleet/model/keys/keymap';
+import { LADDER_KEYMAP } from '../../ladder/model/keymap';
+import { MATURITY_KEYMAP, MATURITY_SHEET_KEYMAP } from '../../maturity/model/keymap';
+import { NEEDS_KEYMAP } from '../../needs-you/model/keys/keymap';
+import { TASK_KEYMAP } from '../../task/model/docket/keys';
+import { THEATER_KEYMAP } from '../../theater/model/keymap';
 
 export interface ScreenKeys {
   screen: string;
   keys: readonly { keys: readonly string[]; does: string }[];
 }
 
+/** One screen's rows from its keymaps (a screen with a modal part, like Maturity's sheet, has more than one). */
+function toScreenKeys(maps: readonly Keymap[]): ScreenKeys {
+  return { screen: maps[0]?.screen ?? '', keys: maps.flatMap((m) => m.entries.map((e) => ({ keys: capsOf(e.keys), does: e.does }))) };
+}
+
 export const SCREEN_KEYS: readonly ScreenKeys[] = [
-  {
-    screen: 'Fleet',
-    keys: [
-      { keys: ['/'], does: 'Search' },
-      { keys: ['Esc'], does: 'Clear search, close the popover, then the inspector' },
-    ],
-  },
-  {
-    screen: 'Needs you',
-    keys: [
-      { keys: ['/'], does: 'Search' },
-      { keys: ['Esc'], does: 'Clear search, then close the inspector' },
-    ],
-  },
-  {
-    screen: 'Ladder',
-    keys: [
-      { keys: ['j', 'k'], does: 'Next / previous class' },
-      { keys: ['/'], does: 'Search' },
-      { keys: ['0', '1-4'], does: 'All tiers / filter to one tier' },
-      { keys: ['p'], does: 'Promote' },
-      { keys: ['r', 'q'], does: 'Revoke a step / quarantine' },
-      { keys: ['?'], does: 'Legend' },
-      { keys: ['Esc'], does: 'Clear search, then close the inspector' },
-    ],
-  },
-  {
-    screen: 'Maturity',
-    keys: [
-      { keys: ['←', '→', '↑', '↓'], does: 'Move between stages' },
-      { keys: ['1-4'], does: 'Go to a step' },
-      { keys: ['p'], does: 'Pick the selected gap' },
-      { keys: ['d', 'n', 't'], does: 'Day 0 / now / target' },
-      { keys: ['r'], does: 'Rescan all' },
-      { keys: ['Enter'], does: 'Send, in the sheet' },
-    ],
-  },
-  {
-    screen: 'Theater',
-    keys: [
-      { keys: ['1-9'], does: 'Cue a take' },
-      { keys: ['Space'], does: 'Play / pause' },
-      { keys: ['r', 'l'], does: 'Roll / loop' },
-      { keys: ['i', 'o'], does: 'Mark in / out' },
-      { keys: ['←', '→', 'Home', 'End'], does: 'Step, jump to start / end' },
-      { keys: ['f', 'Esc'], does: 'Present / leave' },
-    ],
-  },
-];
+  [FLEET_KEYMAP],
+  [NEEDS_KEYMAP],
+  [LADDER_KEYMAP],
+  [MATURITY_KEYMAP, MATURITY_SHEET_KEYMAP],
+  [TASK_KEYMAP],
+  [THEATER_KEYMAP],
+].map(toScreenKeys);
