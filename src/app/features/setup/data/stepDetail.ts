@@ -13,14 +13,6 @@ export interface StepNames {
 /** The demo's names: its commands, unchanged. */
 export const DEMO_NAMES: StepNames = { host: 'gitlab.com', group: 'acme-lab', project: 'ledgerline', projects: ['ledgerline', 'belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine', 'belay-apply'] };
 
-/**
- * A command is shown only if it runs as written: glab's own subcommands and `npx belay doctor`, the one belay command that
- * runs (cli/belay.mjs). Checked on docs.gitlab.com on 2026-10-08: `glab variable set` takes `--masked`, `--protected`
- * and `--hidden`, `-R` for the project, and the value as an argument, `-v` or stdin (/cli/variable/set); the fields of
- * `protected_branches` (/api/protected_branches) and `protected_tags` (/api/protected_tags). Where glab has no subcommand
- * (the pipeline-variable role, the job token allowlist) or Belay's CLI does not run the step yet (pair, the flows, the
- * scan, the report), the step says in prose what the agent does and cites its adopt-belay step. They name `n`'s group and project, never the demo's in live mode.
- */
 /** The four write tokens step 8 sets on belay-apply (gitlab/apply/README.md). */
 export const BELAY_TOKENS = ['BELAY_BOT_TOKEN', 'BELAY_POLICY_TOKEN', 'BELAY_DISPATCH_TOKEN', 'BELAY_LEDGER_TOKEN'] as const;
 /**
@@ -62,6 +54,14 @@ function protections(n: StepNames, project: string, kind: 'protected_branches' |
   ];
 }
 
+/**
+ * A command is shown only if it runs as written: glab's own subcommands and `npx belay doctor`, the one belay command that
+ * runs (cli/belay.mjs). Checked on docs.gitlab.com on 2026-10-08: `glab variable set` takes `--masked`, `--protected`
+ * and `--hidden`, `-R` for the project, and the value as an argument, `-v` or stdin (/cli/variable/set); the fields of
+ * `protected_branches` (/api/protected_branches) and `protected_tags` (/api/protected_tags). Where glab has no subcommand
+ * (the pipeline-variable role, the job token allowlist) or Belay's CLI does not run the step yet (pair, the flows, the
+ * scan, the report), the step says in prose what the agent does and cites its adopt-belay step. They name `n`'s group and project, never the demo's in live mode.
+ */
 const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   0: { who: 'agent', does: 'Checks git, glab and node, and that glab is signed in as you.', cmd: [own(n) ? 'glab auth status' : `glab auth status --hostname ${n.host}`, `${api(n)} user`], probe: 'glab api user → 200 · signed in as @you' },
   1: {
