@@ -35,3 +35,6 @@ Thumbs.db
 # perfect loop vault (local, not versioned)
 .perfect/
 .ai/*.local.jsonl
+
+# tiger council vault (local, not versioned)
+/tiger/
