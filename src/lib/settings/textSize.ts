@@ -44,6 +44,15 @@ export function stepTextSize(current: TextSize, direction: 1 | -1): TextSize {
 
 export type TextSizeIntent = 'bigger' | 'smaller' | 'reset';
 
+/** The keys that change the text size when held with Cmd or Ctrl. textSizeIntent and the mounted shortcuts both read this. */
+export const TEXT_SIZE_KEYS: readonly (readonly [key: string, intent: TextSizeIntent])[] = [
+  ['=', 'bigger'],
+  ['+', 'bigger'],
+  ['-', 'smaller'],
+  ['_', 'smaller'],
+  ['0', 'reset'],
+];
+
 interface KeyLike {
   key: string;
   metaKey: boolean;
@@ -54,10 +63,7 @@ interface KeyLike {
 /** Cmd or Ctrl plus = (or +) / - (or _) / 0. Returns null for every other key. */
 export function textSizeIntent(e: KeyLike): TextSizeIntent | null {
   if (!(e.metaKey || e.ctrlKey) || e.altKey) return null;
-  if (e.key === '=' || e.key === '+') return 'bigger';
-  if (e.key === '-' || e.key === '_') return 'smaller';
-  if (e.key === '0') return 'reset';
-  return null;
+  return TEXT_SIZE_KEYS.find(([key]) => key === e.key)?.[1] ?? null;
 }
 
 export function applyIntent(current: TextSize, intent: TextSizeIntent): TextSize {
