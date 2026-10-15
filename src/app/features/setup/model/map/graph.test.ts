@@ -70,6 +70,11 @@ describe('hotSets', () => {
     expect([...(h?.caps ?? [])]).toEqual(['cap1']);
     expect([...(h?.tracks ?? [])].sort()).toEqual(['A', 'B', 'C']);
   });
+  it('a filter that matches no capability lights nothing, so nothing dims (the lozenge cell reading 0)', () => {
+    expect(hotSets(tiny, null, 'unavailable', doctor)).toBeNull();
+    expect(litOf(hotSets(tiny, null, 'unavailable', doctor), { k: 'track', id: 'A' })).toBeUndefined();
+    expect(hotSets(tiny, null, 'unavailable', [])).toBeNull();
+  });
   it('a focus wins over the filter', () => {
     const h = hotSets(tiny, { k: 'cap', id: 'cap2' }, 'available', doctor);
     expect([...(h?.caps ?? [])]).toEqual(['cap2']);
