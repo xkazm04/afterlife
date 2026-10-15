@@ -34,7 +34,7 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
   the read saw its block there (or saw it gone); otherwise the MR stays open with what was found (`model/flow/verify.ts`).
   Demo mode reads nothing and the track says simulated.
 - Live (`model/live/`, `hooks/liveFlow.ts`, `read/reread.ts`): the opening state is the read. T4 with no block on main
-  opens ready (Arm) once step 4 reads done (its MR includes a belay-pack component, so T4 needs the projects step 4 creates; T1 and T8 inherit it through T4), else locked · needs step 4. T3 and T6 with no block open ready (their `needs` are empty, `data/armMeta.ts:5-6`); T1 opens locked until T4, T3 and T6 read armed; a track with no arm content is "not defined yet"; a refused or failed read is unknown, with its reason.
+  opens ready (Arm) once step 4 reads done (its MR includes a belay-pack component, so T4 needs the projects step 4 creates; T1 and T8 inherit it through T4), else locked · needs step 4. T3 and T6 also need step 4 (their includes are belay-pack components too, `data/armMeta.ts`, decided 2026-10-15), so with no block they open ready once step 4 reads done, else locked; T1 opens locked until T4, T3 and T6 read armed; a track with no arm content is "not defined yet"; a refused or failed read is unknown, with its reason.
   No timer probes: a step's verify ("I did it · verify", "Read again") and Re-probe call `rereadSetupAction` (read only,
   localhost only), and a step no read observes stays unknown, "not probed". A human step not read done is still yours:
   it counts in "need you", the map marks it "you", and it reads unread (or not yet), never done; "Nothing waits for you"
@@ -98,7 +98,7 @@ Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn e
   (`src/server/data/setup/rereadAction.ts:23`), and the `steps-read` that follows a step's "Read again" or a Re-probe
   (`hooks/liveFlow.ts:39`) does not set `projectPath`. A project renamed or moved after the load keeps its old path in the
   commands until the page reloads.
-- T4 needs step 4 (`data/armMeta.ts:4`, `ARM_META.T4.needs` is `['step:4']`), because its arm MR includes a belay-pack component,
+- T4, T3 and T6 need step 4 (`data/armMeta.ts`, `ARM_META.T4.needs` is `['step:4']`, T3 and T6 since 2026-10-15), because each arm MR includes a belay-pack component,
   and that component needs the projects step 4 creates. When live mode cannot read step 4 (a refused or failed read is
   unknown), T4 stays locked, as T5 does for step 6 (`armMeta.ts:8`; `model/live/live.test.ts:139`, "with step 4 failed T4 is
   locked and reads "needs" with step 4's label"). This fails closed: Setup does not offer an arm MR for a project that may

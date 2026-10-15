@@ -1,9 +1,11 @@
 import type { ArmMeta } from './types';
+// T4, T3 and T6 include belay-pack components, which step 4 creates: none opens ready before a probe reads it done
+// (T4 decided 2026-10-08; T3 and T6 since they gained arm content, 2026-10-15).
 
 export const ARM_META: Readonly<Record<string, ArmMeta>> = {
   T4: { title: 'Arm guardrail: block what it can quote', short: 'Guardrail', needs: ['step:4'] },
-  T3: { title: 'Arm governor: tripwire and tier-gate', short: 'Governor', needs: [] },
-  T6: { title: 'Arm maturity: scanners and stage grid', short: 'Scanners', needs: [] },
+  T3: { title: 'Arm governor: tripwire and tier-gate', short: 'Governor', needs: ['step:4'] },
+  T6: { title: 'Arm maturity: scanners and stage grid', short: 'Scanners', needs: ['step:4'] },
   T1: { title: 'Arm patcher: exploit-test proof class', short: 'Patcher', needs: ['T4', 'T3', 'T6'] },
   T5: { title: 'Arm medic: rerun stats on the gitlab--duo runner', short: 'Medic', needs: ['step:6'] },
   T2: { title: 'Arm CRA autopilot: SBOM-linked drafts', short: 'CRA', needs: ['step:12'] },

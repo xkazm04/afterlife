@@ -9,10 +9,10 @@ const run = (s: SetupState, ...actions: SetupAction[]) => actions.reduce(setupRe
 const probe = (s: SetupState, n: number, at = '14:05') => run(s, { t: 'probe-start', n }, { t: 'probe-end', n, at });
 
 describe('the opening state', () => {
-  it('matches the demo: 3 of 15 probed, 1 armed, T3 and T6 ready, the rest locked', () => {
+  it('matches the demo: 4 of 15 probed (step 4 too: T4, T3 and T6 need it), 1 armed, T3 and T6 ready, the rest locked', () => {
     const s = fresh();
     expect(stepList(s)).toHaveLength(15);
-    expect(doneCount(s)).toBe(3);
+    expect(doneCount(s)).toBe(4);
     expect(armedCount(s)).toBe(1);
     expect(armList(s).map((a) => a.st)).toEqual(['armed', 'ready', 'ready', 'locked', 'locked', 'locked', 'locked', 'locked']);
     // One record: setup.arm says T4 is armed and names no MR, so none is shown (tracks[].armedBy is not read).
@@ -27,7 +27,7 @@ describe('the opening state', () => {
     const s = fresh();
     expect(s.steps[0]?.probe).toMatchObject({ ok: true, at: '14:02' });
     expect(s.steps[6]?.probe).toMatchObject({ ok: false, text: '0 runners with tag gitlab--duo online' });
-    expect(s.steps[4]?.probe).toBeNull();
+    expect(s.steps[5]?.probe).toBeNull();
   });
 });
 

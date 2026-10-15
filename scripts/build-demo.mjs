@@ -177,7 +177,7 @@ const setup = {
   ] },
   phases: [
     { name: 'Prepare', steps: [[0, 'glab signed in as you', 'done'], [1, 'Belay running, checkout paired', 'done'], [2, 'Questions answered', 'done'], [3, 'Licence and access', 'human']] },
-    { name: 'Connect', steps: [[4, 'Projects created', 'todo'], [5, 'Demo bank pushed, paired', 'todo'], [6, 'Runner and billing', 'human'], [7, 'Google Cloud OIDC', 'human'], [8, 'Secrets', 'human']] },
+    { name: 'Connect', steps: [[4, 'Projects created', 'done'], [5, 'Demo bank pushed, paired', 'todo'], [6, 'Runner and billing', 'human'], [7, 'Google Cloud OIDC', 'human'], [8, 'Secrets', 'human']] },
     { name: 'Install', steps: [[9, 'Protections', 'todo'], [10, 'Bootstrap MR', 'human'], [11, 'Enable flows', 'todo']] },
     { name: 'Prove', steps: [[12, 'First scan and gap MR', 'todo'], [13, 'Seeded faults and schedule', 'todo'], [14, 'Report and hand back', 'todo']] },
   ],

@@ -21,11 +21,11 @@ describe('SetupScreen (server render)', () => {
   });
   it('shows the summary strip, the progress and the doctor lozenge, with no inspector', () => {
     expect(has('acme-lab / ledgerline')).toBe(true);
-    expect(has('3 of 15 steps probed')).toBe(true);
+    expect(has('4 of 15 steps probed')).toBe(true);
     expect(has('Only you can do these')).toBe(true);
     expect(has('Where you stand')).toBe(true);
     expect(has('aria-label="Inspector"')).toBe(false);
-    expect(has('3/15 steps probed')).toBe(true);
+    expect(has('4/15 steps probed')).toBe(true);
     expect(has('1/8 armed')).toBe(true);
     expect(has('5 need you')).toBe(true);
     expect(has('Re-probe')).toBe(true);
