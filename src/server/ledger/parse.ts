@@ -2,6 +2,7 @@
 // line is checked field by field before it is trusted; a bad line fails the whole import (the chain is all or nothing).
 import { ENVIRONMENT_TIERS, GUARDRAIL_VERDICTS, STATE_REV, WITHDRAWN_GRANTS, wouldOf, type LedgerEvent, type LedgerKind, type WithdrawnGrant } from '@/schemas/ledger';
 import { TIER_ORDER, type Tier } from '@/schemas/tier';
+import { isoMs } from '../../../engine/core/types';
 
 export class LedgerParseError extends Error {
   constructor(readonly line: number, reason: string) {
@@ -19,6 +20,15 @@ type Rec = Record<string, unknown>;
 const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isInt = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 const str = (v: unknown): v is string => typeof v === 'string' && v !== '';
+/** The rule the engine's `ledger append` writes by (isoMs): Date.parse alone takes '10' and reads a zone-less time in this machine's zone. */
+function isIsoInstant(v: string): boolean {
+  try {
+    isoMs(v, 'at');
+    return true;
+  } catch {
+    return false;
+  }
+}
 /** A non-empty list of withdrawn grants, each named once. */
 const grants = (v: unknown): v is WithdrawnGrant[] =>
   Array.isArray(v) && v.length > 0 && new Set(v).size === v.length && v.every((x) => WITHDRAWN_GRANTS.some((g) => g === x));
@@ -45,7 +55,7 @@ function toEvent(v: unknown, line: number): LedgerEvent {
   const tier = TIER_ORDER.find((t) => t === v.tier_at_time);
   const observed = OBSERVERS.find((o) => o === v.observed_by);
   if (!isInt(v.seq) || v.seq < 1) bad('seq must be a positive integer');
-  if (!str(v.at) || Number.isNaN(Date.parse(v.at))) bad('at must be an ISO time');
+  if (!str(v.at) || !isIsoInstant(v.at)) bad('at must be an ISO time with a zone, like 2026-10-21T14:20:05Z');
   if (!str(v.agent) || !str(v.action_class) || !str(v.payload_ref)) bad('agent, action_class and payload_ref must be strings');
   if (!kind) bad('unknown kind');
   if (!tier) bad('unknown tier_at_time');

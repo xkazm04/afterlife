@@ -1,6 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { append, GENESIS, type LedgerEvent } from '@/schemas/ledger';
+import { isoMs } from '../../../../engine/core/types';
 import { createDemoGitLab, ledgerEvents, LEDGERLINE_GID } from '@/server/gitlab/fake/demo';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
 import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
@@ -119,5 +120,31 @@ describe('ledger parser', () => {
     for (const bad of [{ ...e, kind: 'deleted' }, { ...e, hash: 'abc' }, { ...e, at: 'yesterday' }, { ...e, prev_hash: GENESIS.slice(1) }]) {
       expect(() => parseLedgerJsonl(JSON.stringify(bad))).toThrow(LedgerParseError);
     }
+  });
+
+  // One rule, two readers: the engine's `ledger append` (engine/core/types.ts isoMs) and this parser must take the same `at`.
+  // Date.parse alone takes '10' and '3/4/2026', and reads a zone-less time in the machine's zone.
+  it('takes the same `at` as the engine writer: an ISO instant with its zone, nothing else', () => {
+    const e = ledgerEvents(SEED_NOW)[0]!;
+    const samples = ['2026-10-05T14:00:00Z', '2026-10-05T14:00:00.250+02:00', '2026-10-05T14:00Z', '10', '3/4/2026', '2026-10-05', '2026-10-05T14:00:00', 'Oct 5, 2026 14:00 UTC'];
+    const engine = (at: string): boolean => {
+      try {
+        isoMs(at, 'at');
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const parser = (at: string): boolean => {
+      try {
+        parseLedgerJsonl(JSON.stringify({ ...e, at }));
+        return true;
+      } catch (err) {
+        if (err instanceof LedgerParseError && /\bat\b/.test(err.message)) return false;
+        return true; // another field's complaint (the hash is not re-computed by the parser): `at` was accepted
+      }
+    };
+    expect(samples.map(parser)).toEqual(samples.map(engine));
+    expect(samples.filter(engine)).toHaveLength(3);
   });
 });
