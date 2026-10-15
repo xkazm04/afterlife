@@ -32,9 +32,10 @@ Server-only. The app imports `@/server/gitlab` (index.ts); tests and `belay doct
 
 ## Decisions from F38
 
-- `createMr` takes an optional `removeSourceBranch`; when it is absent the argv is unchanged (`plan/builders.ts:32`, `plan/types.ts:18-19`).
-- The fake knows branch heads and answers the branch read (`fake/reads.ts:102`, `fake/dataset.ts:27-28`). Like GitLab, it refuses
-  `start_branch` onto an existing branch without `force` (`fake/writes.ts:21-25`).
+- `createMr` takes an optional `removeSourceBranch`; when it is absent the argv is unchanged (`createMr` in `plan/builders.ts`, `CreateMrInput` in `plan/types.ts`).
+- The fake knows branch heads and answers the branch read (the `repository/branches` route in `fake/reads.ts`, `ProjectData.branches` in `fake/dataset.ts`).
+  Like GitLab, it refuses `start_branch` onto an existing branch without `force` (`branchTaken` in `fake/writes.ts`).
+- Anchor by symbol, not by line number: a line number drifts with the first edit above it (3 of 5 here had).
 
 ## Gates
 

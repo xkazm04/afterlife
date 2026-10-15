@@ -1,4 +1,4 @@
-// Write routes of the fake: the six PlannedCommands Belay builds, applied to the in-memory state.
+// Write routes of the fake: the seven PlannedCommands Belay builds, applied to the in-memory state.
 import { createHash } from 'node:crypto';
 import { FAKE_SEED_AT, type FakeState, type ProjectData } from './dataset';
 import { atLeast, inProject, lastCommitOf } from './reads';
