@@ -47,8 +47,8 @@ describe('poll cycle against the demo GitLab, from an empty index', () => {
     expect(by['report.submit']?.tier).toBe('human_only');
     // the record is counted from the ledger since tier-state.yml's since (!41). !41's guardrail_verdict states pass: no
     // guardrail block in the counts; its notes were read and hold no push by anyone but the patcher: no-edit 1/1. The demo
-    // ledger holds no tier_decision for !41: 0 gated outputs, and no gate seen for it since its since
-    expect(by['dep-bump.patch']?.record).toEqual({ accepted: 1, needed: null, noEdit: 1, cleanDays: 5, reverts: 0, guardrailBlocks: 0, gated: 0 });
+    // ledger holds no tier_decision for !41: 0 gated outputs, no next-rung trial, and no gate seen for it since its since
+    expect(by['dep-bump.patch']?.record).toEqual({ accepted: 1, needed: null, noEdit: 1, cleanDays: 5, reverts: 0, guardrailBlocks: 0, gated: 0, trial: { n: 0, catches: 0 } });
     expect([by['dep-bump.patch']?.gateSeen, by['patch-bump']?.gateSeen]).toEqual([null, { iid: 44, tierAtTime: 'quarantined', at: new Date(NOW.getTime() - 4 * 60_000).toISOString() }]);
   });
 

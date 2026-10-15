@@ -53,6 +53,28 @@ describe('the outputs behind a count, on its row', () => {
     expect(html).toContain('no edit fact read yet');
   });
 
+  it('the next-rung trial row expands to its trial MRs: agreed and caught counted, the unresolved ones not, each saying why', () => {
+    const at = '2026-10-05T10:00:00.000Z';
+    const trial = [
+      { iid: 301, tier: 'hands_off' as const, at, resolution: 'agreed' as const }, { iid: 302, tier: 'hands_off' as const, at, resolution: 'closed' as const },
+      { iid: 303, tier: 'hands_off' as const, at, resolution: 'no_edit_fact' as const }, { iid: 304, tier: 'hands_off' as const, at, resolution: 'closed_by_agent' as const },
+    ];
+    const html = renderToStaticMarkup(<RuleRow rule={{ name: 'next-rung trial', value: '2 of 15, 1 caught', met: false, cells: [2, 15] }} sources={{ ...sources!, trial }} defaultOpen />);
+    expect(html).toContain('aria-expanded="true"');
+    expect(list(html, 'Counted')).toEqual(['!301', '!302']);
+    expect(list(html, 'Not counted')).toEqual(['!303', '!304']);
+    expect(html).toContain('Hands-off would have merged; closed by a person: caught');
+    expect(html).toContain('closed by an agent account: not a person turning it down');
+    expect(html).toContain('Never applied.');
+  });
+
+  it('demo: qa.file-bug\'s illustrative trial lists its 16 agreed MRs, chipped demo', () => {
+    const c = DEMO.actionClasses.find((a) => a.id === 'qa.file-bug');
+    const html = renderToStaticMarkup(<RuleRow rule={{ name: 'next-rung trial', value: '16 of 15, 0 caught', met: true }} sources={c?.sources} defaultOpen />);
+    expect(list(html, 'Counted')).toHaveLength(16);
+    expect(html).toContain('>demo<');
+  });
+
   it('demo: a class\'s illustrative outputs are plain !iids, chipped demo', () => {
     const c = DEMO.actionClasses.find((a) => a.id === 'code-fix.patch');
     const html = renderToStaticMarkup(<RuleRow rule={{ name: 'gated outputs', value: '3 / 6', met: false }} sources={c?.sources} defaultOpen />);

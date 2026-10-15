@@ -1,7 +1,7 @@
 // The rows of each promotion step, against trust-policy.yml's thresholds. A row is met only by a counter a task row or a
 // ledger event states. A counter nothing states reads "not recorded" and is never met. The human key is not a row: it is
 // the precondition of the promote write (HUMAN_KEY), stated beside the rows.
-import type { Counters, Gated, PromotionRules } from './types';
+import type { Counters, Gated, PromotionRules, TrialThreshold } from './types';
 
 /**
  * Proof classes a machine checks in this engine version (engine/proofs/index.ts CHECKED_CLASSES); Hands-off needs one of
@@ -45,9 +45,24 @@ export function gatedRule(r: Counters, gated: Gated | undefined): PromotionRule 
   return { name, value: `${k} / ${n}`, met: k === n, ...(n > 0 ? { cells: [Math.min(k, n), n] as const } : {}) };
 }
 
+/** The row name of a step's `trial`: words and sources key on it (./sources/explain.ts). */
+export const TRIAL_ROW = 'next-rung trial';
+
 /**
- * Assisted to Supervised: accepted, reverts, and when the policy sets them, the guardrail blocks, the window and the gated
- * outputs. The
+ * A step's `trial: {min, catches}` (when the policy sets it): "next-rung trial n of min, c caught", met only when at least
+ * `min` trial merge requests resolved and at most `catches` of them were caught. Not recorded when the record does not
+ * state the trial (this poll did not read the ledger).
+ */
+export function trialRule(r: Counters, t: TrialThreshold | undefined): PromotionRule | null {
+  if (!t) return null;
+  const v = r.trial;
+  if (v === null || v === undefined) return { name: TRIAL_ROW, value: NOT_RECORDED, met: false };
+  return { name: TRIAL_ROW, value: `${v.n} of ${t.min}, ${v.catches} caught`, met: v.n >= t.min && v.catches <= t.catches, cells: [Math.min(v.n, t.min), t.min] };
+}
+
+/**
+ * Assisted to Supervised: accepted, reverts, and when the policy sets them, the guardrail blocks, the window, the gated
+ * outputs and the next rung's trial. The
  * window is met when the record says its counts were taken over the policy's last `window_last` outputs: a record that
  * does not say (the demo fixture's) is not recorded, one counted over another window (an older policy) is not met.
  */
@@ -59,6 +74,8 @@ export function toSupervisedRules(r: Counters, t: PromotionRules['toSupervised']
   if (n !== null) rows.push({ name: `counted over the last ${n} outputs`, ...counted(r.window, (w) => `last ${w}`, (w) => w === n) });
   const gated = gatedRule(r, t.gated);
   if (gated) rows.push(gated);
+  const trial = trialRule(r, t.trial);
+  if (trial) rows.push(trial);
   return rows;
 }
 
@@ -84,7 +101,7 @@ export function cooldownRule(until: string | null | undefined, now: Date): Promo
  */
 export const HUMAN_KEY = 'a person merges this MR; Belay never merges it';
 
-/** Supervised to Hands-off: the counts, the mechanical proof class, and the gated outputs when the policy sets it. */
+/** Supervised to Hands-off: the counts, the mechanical proof class, and the gated outputs and the trial when the policy sets them. */
 export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], proofClass: string): PromotionRule[] {
   const rows: PromotionRule[] = [
     countRule('accepted outputs', r.accepted, t.accepted),
@@ -95,5 +112,7 @@ export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], pr
   ];
   const gated = gatedRule(r, t.gated);
   if (gated) rows.push(gated);
+  const trial = trialRule(r, t.trial);
+  if (trial) rows.push(trial);
   return rows;
 }

@@ -118,6 +118,20 @@ for (const a of actionClasses) {
   a.sources.missing = a.sources.outputs.filter((o) => o.gated === false).map((o) => ({ iid: o.iid, fact: 'tier_decision' }));
 }
 
+// The next rung run as a trial (src/schemas/trial.ts), illustrative like every value here and marked demo with the
+// sources: a class below its ceiling whose rung above acts alone (supervised approves, hands_off merges) has every gated
+// merge as a trial MR, its tier_decision stamped half an hour before the merge; merged without edits agreed, edited is a
+// catch. record.trial totals the list (src/lib/demo/agreement.test.ts checks it).
+const RANK = ['quarantined', 'assisted', 'supervised', 'hands_off'];
+for (const a of actionClasses) {
+  const next = RANK[RANK.indexOf(a.tier) + 1];
+  if (!a.sources || !next || RANK.indexOf(next) > RANK.indexOf(a.ceiling) || next === 'assisted') continue;
+  a.sources.trial = a.sources.outputs.filter((o) => o.gated === true).map((o) => ({
+    iid: o.iid, tier: next, at: new Date(Date.parse(o.at) - 30 * 60_000).toISOString(), resolution: o.edited ? 'edited' : 'agreed',
+  }));
+  a.record.trial = { n: a.sources.trial.length, catches: a.sources.trial.filter((x) => x.resolution !== 'agreed').length };
+}
+
 const tiers = {
   assisted: { label: 'ASSISTED', means: 'a human triggers every step' },
   supervised: { label: 'SUPERVISED', means: 'agent acts, a human approves the outcome' },

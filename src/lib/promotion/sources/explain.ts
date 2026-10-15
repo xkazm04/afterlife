@@ -2,9 +2,11 @@
 // requests it counted, the ones it left out and why, and the facts it could not read. Ladder's Promotion rule draws it
 // under a count row; the demo agreement test totals it against the fixture's counters. Pure: no clock, no I/O.
 import type { CountedOutput, MissingFact, RecordSources } from '@/lib/demo/sources';
+import { TRIAL_ROW } from '../rules';
+import { trialLines } from './trial';
 
 /** The record counter a promotion rule row reads. */
-export type CountKey = 'accepted' | 'noEdit' | 'reverts' | 'cleanDays' | 'guardrailBlocks' | 'gated' | 'window';
+export type CountKey = 'accepted' | 'noEdit' | 'reverts' | 'cleanDays' | 'guardrailBlocks' | 'gated' | 'window' | 'trial';
 
 /** The counter behind a rule row, by the row's name (./rules.ts); null for a row no count backs (proof class, cooldown). */
 export function countKeyOf(name: string): CountKey | null {
@@ -15,6 +17,7 @@ export function countKeyOf(name: string): CountKey | null {
   if (name === 'guardrail blocks') return 'guardrailBlocks';
   if (name === 'gated outputs') return 'gated';
   if (name.startsWith('counted over the last')) return 'window';
+  if (name === TRIAL_ROW) return 'trial';
   return null;
 }
 
@@ -35,7 +38,7 @@ export interface Explained {
 /** Each counter's facts that can be missing: why it is null, or short. */
 const FACTS: Record<CountKey, readonly MissingFact[]> = {
   accepted: [], noEdit: ['edit'], reverts: ['revert_policy'], cleanDays: ['revert_policy'],
-  guardrailBlocks: ['ledger', 'verdict'], gated: ['ledger', 'tier_decision'], window: [],
+  guardrailBlocks: ['ledger', 'verdict'], gated: ['ledger', 'tier_decision'], window: [], trial: ['ledger'],
 };
 
 const MISSING: Record<MissingFact, string> = {
@@ -78,5 +81,9 @@ export function explain(key: CountKey, s: RecordSources): Explained {
       return e(merged.filter((o) => o.gated === true).map((o) => line(o, "decided by belay-apply's gate, merged")), []);
     case 'window':
       return e(inW.map((o) => line(o, o.outcome)), out.map(outside(s)), [from, capped].filter(Boolean).join(' '));
+    case 'trial': {
+      const t = trialLines(s);
+      return e(t.counted, t.excluded, t.note);
+    }
   }
 }

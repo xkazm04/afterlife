@@ -29,8 +29,9 @@ export interface TrustPolicy {
   grant_ttl_days?: number;
   promotion: {
     // gated: all - every accepted output the step counts was decided by belay-apply's gate (a tier_decision event)
-    assisted_to_supervised: { accepted: number; reverts: number; guardrail_blocks: number; window_last: number; gated?: 'all' };
-    supervised_to_hands_off: { accepted: number; no_edit_ratio: number; clean_days: number; human_key: true; gated?: 'all' };
+    // trial: {min, catches} - the next rung's trial (src/schemas/trial.ts): at least `min` resolved, at most `catches` caught
+    assisted_to_supervised: { accepted: number; reverts: number; guardrail_blocks: number; window_last: number; gated?: 'all'; trial?: { min: number; catches: number } };
+    supervised_to_hands_off: { accepted: number; no_edit_ratio: number; clean_days: number; human_key: true; gated?: 'all'; trial?: { min: number; catches: number } };
   };
   demotion: { one_step_on: DemotionTrigger[]; quarantine_on: DemotionTrigger[] };
   classes: Record<string, { agent: string; proof?: string; ceiling: Ceiling; deny_paths?: string[] }>;

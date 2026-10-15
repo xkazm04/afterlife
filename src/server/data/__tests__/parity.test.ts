@@ -99,7 +99,7 @@ describe('the poll really did write what the parity rests on (it is not just the
     const tiers = await listClassTiers(db, 'ledgerline');
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')).toMatchObject({ setBy: 'operator via promotion MR !33' });
     // the poll's counts: !41 since the record's since (the seed said 16), its verdict pass, no push to it but the patcher's
-    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: 1, cleanDays: 4, reverts: 0, guardrailBlocks: 0, gated: 0 });
+    expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.record).toEqual({ accepted: 1, needed: null, noEdit: 1, cleanDays: 4, reverts: 0, guardrailBlocks: 0, gated: 0, trial: { n: 0, catches: 0 } });
     expect(tiers.find((t) => t.classId === 'dep-bump.patch')?.sources).toMatchObject({ web: 'https://gitlab.com/acme-lab/core-banking/ledgerline', total: 1, outputs: [{ iid: 41, outcome: 'merged', inWindow: true, edited: false, gated: false }], missing: [{ iid: 41, fact: 'tier_decision' }] }); // the outputs behind them (not the seed's demo list)
     const proof = (await listProofsFor(db, ['01J8Q4'])).get('01J8Q4');
     expect(proof?.block?.task.head_sha).toBe('a41c0ffee00000000000000000000000000000a1');

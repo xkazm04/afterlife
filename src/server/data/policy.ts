@@ -12,6 +12,13 @@ const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFi
 const strs = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 /** A step's `gated: all`, read as guardrail_blocks is: absent (or any other value) asks nothing, so no row. */
 const gatedOf = (step: { gated?: unknown } | undefined): { gated?: 'all' } => (step?.gated === 'all' ? { gated: 'all' } : {});
+/** A step's `trial: {min, catches}`, read as gated is: absent, or not a positive min and a catches of 0 or more, asks nothing. */
+function trialOf(step: { trial?: unknown } | undefined): { trial?: { min: number; catches: number } } {
+  const t = step?.trial;
+  if (typeof t !== 'object' || t === null) return {};
+  const { min, catches } = t as Record<string, unknown>;
+  return Number.isInteger(min) && (min as number) > 0 && Number.isInteger(catches) && (catches as number) >= 0 ? { trial: { min: min as number, catches: catches as number } } : {};
+}
 
 /** The rules a screen shows, or null when a threshold is missing (the screen then says it has no thresholds). */
 export function rulesOf(p: EnginePolicy): PolicyRules | null {
@@ -32,8 +39,8 @@ export function rulesOf(p: EnginePolicy): PolicyRules | null {
     startTier: isTier(p.start_tier) ? p.start_tier : null,
     cooldownDays: cooldown,
     leaseDays: num(p.grant_ttl_days),
-    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && window > 0 ? window : null, ...gatedOf(up) },
-    toHandsOff: { accepted: accH, noEditRatio: noEdit, cleanDays: clean, humanKey: top?.human_key === true, ...gatedOf(top) },
+    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && window > 0 ? window : null, ...gatedOf(up), ...trialOf(up) },
+    toHandsOff: { accepted: accH, noEditRatio: noEdit, cleanDays: clean, humanKey: top?.human_key === true, ...gatedOf(top), ...trialOf(top) },
     oneStepOn: strs(p.demotion?.one_step_on),
     quarantineOn: strs(p.demotion?.quarantine_on),
     envelope: { maxFiles: num(ho.max_files) ?? 0, maxLines: num(ho.max_lines) ?? 0, environments: strs(ho.environments) },

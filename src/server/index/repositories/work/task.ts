@@ -12,6 +12,11 @@ export type TaskDetail = Partial<Pick<Task, 'chain' | 'agentWords' | 'countsTowa
    * agent that opened it (a push note by another account, poller/parse/pushes.ts). Absent: nobody stated it.
    */
   edited?: boolean;
+  /**
+   * A closed MR only, when GitLab named who closed it (the MR's `closed_by`): that account, and whether it is an agent
+   * account (config.agents). An agent closing its own MR is no person turning it down (src/schemas/trial.ts). Absent: not stated.
+   */
+  closedBy?: { username: string; agent: boolean };
 };
 
 export interface TaskRow {

@@ -60,6 +60,14 @@ describe('the grant: the gated outputs and the gate last seen', () => {
     const human = renderToStaticMarkup(<GrantSection cls={{ ...held, tier: 'human_only', ceiling: 'human_only', record: null, gateSeen: null }} policy={seven} proofClass="" proofDemo={false} live />);
     expect(human).not.toContain('Gate');
   });
+  it('the next rung\'s trial below the ceiling: its count (demo chipped), not recorded when unstated, no line at the ceiling', () => {
+    const below: ClassRow = { ...held, ceiling: 'hands_off', record: { ...held.record!, trial: { n: 16, catches: 1 } } };
+    const demo = renderToStaticMarkup(<GrantSection cls={below} policy={seven} proofClass="exploit-test" proofDemo={false} live={false} />);
+    expect(demo).toMatch(/Trial at Hands-off.*16 resolved, 1 caught.*>demo</);
+    const live = renderToStaticMarkup(<GrantSection cls={{ ...below, record: { ...below.record!, trial: null } }} policy={seven} proofClass="exploit-test" proofDemo={false} live />);
+    expect(live).toMatch(/Trial at Hands-off.*not recorded/);
+    expect(renderToStaticMarkup(<GrantSection cls={held} policy={seven} proofClass="exploit-test" proofDemo={false} live />)).not.toContain('Trial at');
+  });
 });
 
 describe('the write sections', () => {

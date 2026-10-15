@@ -1,6 +1,6 @@
 // Types for the illustrative demo fixture (data/belay-demo.json). The JSON is plain data; these types describe
 // it once so every screen reads it typed. A test (demo.test.ts) checks the fixture against them.
-import type { Ceiling, Stage } from '@/schemas';
+import type { Ceiling, Stage, TrialCount } from '@/schemas';
 import type { ClassCell } from '@/lib/tiers';
 import type { RecordSources } from './sources';
 import type { NeedsYouItem, SetupPhase, Task } from './deepTypes';
@@ -90,12 +90,15 @@ export interface ClassRecord {
  * The fixture's records are ClassRecords, every counter set; a polled record may know some counters only. Facts a record
  * may not state (absent: not recorded): `guardrailBlocks`, the guardrail blocks in the counts; `window`, the number of last
  * outputs the counts were taken over (absent or null: everything since the record's since); `gated`, the counted merged
- * outputs belay-apply's gate decided (a tier_decision event for the same agent, class and MR in the imported ledger).
+ * outputs belay-apply's gate decided (a tier_decision event for the same agent, class and MR in the imported ledger);
+ * `trial`, the next rung's trial: `n` merge requests whose tier_decision says the next rung would have acted alone and
+ * whose outcome resolves it, `catches` of them a person turned down (src/schemas/trial.ts; null: the ledger was not read).
  */
 export type RecordCounters = { [K in keyof ClassRecord]: ClassRecord[K] | null } & {
   guardrailBlocks?: number | null;
   window?: number | null;
   gated?: number | null;
+  trial?: TrialCount | null;
 };
 
 /**

@@ -69,7 +69,12 @@ N outputs); to Hands-off, accepted outputs, merged without edits, clean days, re
 class (`MECHANICAL_PROOFS`: never a class the engine only stubs, `engine/proofs/stubs.ts`, so only `ledger-record`
 is not met). A step that sets `gated: all` (the repo's policy sets it on Hands-off) adds "gated outputs k / accepted", met
 only when every accepted output was decided by belay-apply's gate (`gatedRule`; the counter is the poller's `gated`); a
-policy without the key draws today's rows. The Grant section adds "Gated outputs" and the gate last seen deciding for the
+policy without the key draws today's rows. A step that sets `trial: {min, catches}` (none does yet) adds "next-rung trial
+n of min, c caught" (`trialRule`; the counter is the poller's `trial`, `src/schemas/trial.ts`): of the MRs whose
+tier_decision says the rung above would have acted alone, n resolved and c caught by a person (edited before merging,
+closed, or reverted); met only at n >= min and c <= catches, and whyNot names it ("next-rung trial is not met (25 of 15,
+10 caught)"). The Grant section shows the trial below the ceiling either way ("Trial at Hands-off: 16 resolved, 0
+caught"; demo: the fixture's, chipped "demo"). The Grant section adds "Gated outputs" and the gate last seen deciding for the
 holder (`GateSeenLine`, `src/components/status/`): "Gate last seen !N at <tier>, <age>", or "Gate not seen since <since>";
 a track's group header shows the freshest of its classes (`model/view/rows.ts`). Demo, the gate is the fixture's
 (illustrative: the demo has no ledger), read against the demo's clock (`DEMO_NOW`) and chipped "demo". Live, a class's track and proof class come from the demo catalogue's tracks (`illustrative.tracks`): the
@@ -83,11 +88,13 @@ belay-policy main", "Human key failed: <the settings not in place>" or "Human ke
 a `cooldown` row, not met, while the record's `cooldown_until` (tier-state.yml, stamped by the tripwire or a revoke) is
 ahead: the class is not eligible before that date. Where each counter
 comes from is the poller's table. Each count row (accepted outputs, merged without edits, reverts, clean days, guardrail
-blocks, gated outputs, the window) names a button (`aria-expanded`, `components/inspector/sections/RuleRow.tsx`) that
+blocks, gated outputs, the window, the next-rung trial) names a button (`aria-expanded`, `components/inspector/sections/RuleRow.tsx`) that
 lists the outputs behind it, from the class's `sources` (the poll's list from the same tally as the counts,
 `server/poller/README.md`): "Counted" (each MR as !iid, a link to its GitLab MR when the poll knew the project's web URL,
 else plain), "Not counted" with why (outside the window, not merged, edited), and "Not read" for a fact the counts lack
-("!207: no edit fact read yet", no tier_decision, belay-ledger not read). The words are `explain()`
+("!207: no edit fact read yet", no tier_decision, belay-ledger not read). The trial row lists its trial MRs: counted
+("Hands-off would have merged; closed by a person: caught") and not counted (still open, no edit fact, closed by an agent
+account). The words are `explain()`
 (`src/lib/promotion/sources/`). Demo, the fixture's sources are illustrative (`scripts/build-demo.mjs`, consistent with
 each record: `src/lib/demo/agreement.test.ts`), plain !iids, chipped "demo". A record that does not state a counter (the demo fixture states no guardrail blocks
 and no window) reads it not recorded. When the poll

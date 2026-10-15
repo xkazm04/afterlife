@@ -1,7 +1,8 @@
 // The outputs behind a record's counts (src/lib/demo/sources.ts): the same tally countRecord totals (./counters.ts), listed.
 // Each output since the record's since, newest first, with whether the window counts it, whether anyone else pushed to it
 // and whether belay-apply's gate decided it; the ones outside the window; the guardrail blocks; and every fact the counts
-// could not read, which is why a counter is null or short. ./tiers.ts stores it on the class's class_tier row (0013).
+// could not read, which is why a counter is null or short; and the next rung's trial MRs with how each resolved.
+// ./tiers.ts stores it on the class's class_tier row (0013).
 import { SOURCES_CAP, type CountedOutput, type RecordSources } from '@/lib/demo/sources';
 import { NONE, tallyOf, totalsOf, type ClassCounters, type CounterSource, type Holder, type Tally } from './counters';
 
@@ -31,6 +32,8 @@ export function sourcesOf(t: Tally, src: CounterSource): RecordSources {
     excluded: outputs.filter((o) => !o.inWindow).map((o) => ({ iid: o.iid, reason: 'outside_window' as const })),
     blocks: t.blocks.iids.slice(0, SOURCES_CAP),
     missing: missing.slice(0, SOURCES_CAP),
+    // the next rung's trial MRs, each with how it resolved (the same list the trial counter totals)
+    ...(t.trial ? { trial: t.trial.list.slice(0, SOURCES_CAP).map((x) => ({ iid: x.iid, tier: x.tier, at: new Date(x.at).toISOString(), resolution: x.resolution })) } : {}),
   };
 }
 

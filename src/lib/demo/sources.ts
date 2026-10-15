@@ -1,6 +1,7 @@
 // The outputs behind a record's counts: which merge requests the poll counted, which it left out and why, and which facts
 // it could not read. The poll derives it from the same selected outputs it totals (server/poller/derive/sources.ts), so a
 // count and its list can never disagree. Plain types and the cap; no logic.
+import type { Tier, TrialResolution } from '@/schemas';
 
 /** An output's stated outcome: merged and reverted from a task row or a ledger merge, closed and blocked from a task row. */
 export type OutputOutcome = 'merged' | 'reverted' | 'closed' | 'blocked';
@@ -44,8 +45,21 @@ export interface RecordSources {
   /** The merge requests counted as guardrail blocks (an output, or one with a verdict that is no output yet). */
   blocks: number[];
   missing: { iid: number | null; fact: MissingFact }[];
+  /**
+   * The next rung's trial merge requests (src/schemas/trial.ts), newest decision first, at most SOURCES_CAP: each with
+   * how it resolved. Absent: none listed (the ledger was not read, or a record listed before the trial was).
+   */
+  trial?: TrialSource[];
   /** The demo fixture's: illustrative (the demo has no ledger), marked demo wherever it is shown. */
   demo?: true;
+}
+
+/** A trial merge request: the tier its tier_decision's `would` acted alone at, when that decision was made (ISO), and how it resolved. */
+export interface TrialSource {
+  iid: number;
+  tier: Tier;
+  at: string;
+  resolution: TrialResolution;
 }
 
 /** The most outputs (and missing facts, and blocks) a record's sources list: the newest. */

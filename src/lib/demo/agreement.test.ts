@@ -46,6 +46,13 @@ describe('the demo fixture\'s sources agree with its counters', () => {
       expect(s.window ?? null).toBe(r.window ?? null);
       expect(s.excluded).toEqual(s.outputs.filter((o) => !o.inWindow).map((o) => ({ iid: o.iid, reason: 'outside_window' })));
       expect(s.outputs.every((o) => Date.parse(o.at) >= Date.parse(s.since) && Date.parse(o.at) <= DEMO_NOW.getTime())).toBe(true);
+      // the next rung's trial: listed exactly when the record states it, its resolved lines total n and its catches
+      expect(s.trial === undefined).toBe(r.trial === undefined);
+      if (r.trial && s.trial) {
+        const t = explain('trial', s);
+        expect([t.counted.length, t.counted.filter((l) => /caught/.test(l.text)).length]).toEqual([r.trial.n, r.trial.catches]);
+        expect(s.trial.every((x) => merged.some((o) => o.iid === x.iid && o.gated === true && Date.parse(x.at) < Date.parse(o.at)))).toBe(true);
+      }
     });
   }
 

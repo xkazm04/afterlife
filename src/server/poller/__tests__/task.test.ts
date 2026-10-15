@@ -106,6 +106,13 @@ describe('state labels', () => {
     expect(open(['proof::inconclusive'])).toBe('proof inconclusive');
   });
 
+  it('a closed MR keeps who closed it, as GitLab names it (closed_by), and whether that is an agent account', () => {
+    expect(derive(mr({ state: 'closed', closedBy: 'alice' }))?.task.detail.closedBy).toEqual({ username: 'alice', agent: false });
+    expect(derive(mr({ state: 'closed', closedBy: 'ai-patcher-acme-lab' }))?.task.detail.closedBy).toEqual({ username: 'ai-patcher-acme-lab', agent: true });
+    expect('closedBy' in (derive(mr({ state: 'closed', closedBy: null }))?.task.detail ?? {})).toBe(false); // not stated
+    expect('closedBy' in (derive(mr({ closedBy: 'alice' }))?.task.detail ?? {})).toBe(false); // open: not closed
+  });
+
   it('strips Draft: from the title, reads the tier label and the track of the class', () => {
     const d = derive();
     expect(d?.task).toMatchObject({ title: 'Fix it', tierAtTime: 'supervised', track: 1, actionClass: 'dep-bump.patch', mrIid: 41 });

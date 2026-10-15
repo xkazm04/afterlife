@@ -97,10 +97,13 @@ export function deriveTask(f: TaskFacts, projectId: string, cfg: PollerConfig, t
   // the notes are this poll's read of the MR: whether anyone but its agent pushed to it before it merged (null: a
   // push-related note in a shape not recognised, so no fact is stated)
   const edited = mr.state === 'merged' ? editedBefore(f.notes, mr.author, mr.mergedAt) : null;
+  // who closed it, as GitLab names it, and whether that is an agent account: a person closing it turned the work down
+  const closer = mr.state === 'closed' && mr.closedBy ? mr.closedBy : null;
   const detail: TaskDetail = {
     ...(words ? { agentWords: words } : {}),
     ...(hit ? { quote: hit.quote, reason: hit.explanation } : {}),
     ...(edited !== null ? { edited } : {}),
+    ...(closer ? { closedBy: { username: closer, agent: allows(cfg.agents, closer) } } : {}),
   };
   const { state, label } = stateOf(f, labels, proof?.verdict ?? null, stale);
   const cls = t.class;

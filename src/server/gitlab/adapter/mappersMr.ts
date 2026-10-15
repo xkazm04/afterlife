@@ -10,6 +10,7 @@ export const mapMergeRequest = (r: Rec): GlMergeRequest => ({
   mergeStatus: strN(r, 'detailed_merge_status') ?? strN(r, 'merge_status'),
   createdAt: str(r, 'created_at'), updatedAt: str(r, 'updated_at'), mergedAt: strN(r, 'merged_at'),
   headPipelineId: r.head_pipeline && typeof r.head_pipeline === 'object' ? numN(r.head_pipeline as Rec, 'id') : null,
+  closedBy: r.closed_by && typeof r.closed_by === 'object' ? strN(r.closed_by as Rec, 'username') : null,
 });
 
 export const mapNote = (r: Rec): GlNote => ({

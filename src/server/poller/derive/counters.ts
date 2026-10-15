@@ -6,7 +6,7 @@
 import type { RecordCounters } from '@/lib/demo/types';
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { TaskDetail, TaskRow } from '@/server/index/repositories/work/task';
-import { gatedSetOf } from './gate';
+import { gatedSetOf, trialOf, type TrialTally } from './gate';
 
 /** A record's counters, each on its own: null is one nothing states. The shape of Ladder's Counters. */
 export type ClassCounters = RecordCounters;
@@ -14,10 +14,10 @@ export type ClassCounters = RecordCounters;
 const DAY_MS = 86_400_000;
 
 export type CountedTask = Pick<TaskRow, 'agent' | 'actionClass' | 'state' | 'stateLabel' | 'startedAt' | 'finishedAt' | 'mrIid'> & {
-  detail?: Pick<TaskDetail, 'edited'>;
+  detail?: Pick<TaskDetail, 'edited' | 'closedBy'>;
 };
-/** `tier_at_time` is read from a tier_decision only (./gate.ts gateSeenOf); a test's event may leave it out. */
-export type CountedEvent = Pick<LedgerEvent, 'agent' | 'action_class' | 'kind' | 'at' | 'subject' | 'verdict'> & Partial<Pick<LedgerEvent, 'tier_at_time'>>;
+/** `tier_at_time`, `would` and `seq` are read from a tier_decision only (./gate.ts); a test's event may leave them out. */
+export type CountedEvent = Pick<LedgerEvent, 'agent' | 'action_class' | 'kind' | 'at' | 'subject' | 'verdict'> & Partial<Pick<LedgerEvent, 'tier_at_time' | 'would' | 'seq'>>;
 
 /** What the poller holds for one project: its indexed tasks and its imported ledger. */
 export interface CounterSource {
@@ -43,7 +43,7 @@ export interface Holder {
   window?: number | null;
 }
 
-export const NONE: ClassCounters = { accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null, guardrailBlocks: null, window: null, gated: null };
+export const NONE: ClassCounters = { accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null, guardrailBlocks: null, window: null, gated: null, trial: null };
 
 export type Outcome = 'merged' | 'reverted' | 'closed' | 'blocked';
 const RANK: Record<Outcome, number> = { closed: 0, blocked: 1, merged: 2, reverted: 3 };
@@ -143,6 +143,8 @@ export interface Tally {
   blocks: Blocks;
   /** The MRs belay-apply's gate decided (./gate.ts); null when this poll did not read the ledger. */
   gated: ReadonlySet<number> | null;
+  /** The next rung's trial, over every output since `from` (not the window); null when this poll did not read the ledger. */
+  trial: TrialTally | null;
 }
 
 /** The holder's outputs and the facts about them; null when the record has no since (nothing can be counted). */
@@ -157,7 +159,8 @@ export function tallyOf(src: CounterSource, h: Holder): Tally | null {
   const merged = counted.filter(([, x]) => x.outcome === 'merged').map(([iid]) => iid);
   // in the window, an output outside it does not count; a merge request that is no output yet might be the next one
   const blocks = blocksOf(src, h, from, all, (iid) => window === null || inWindow.has(iid) || !all.has(iid));
-  return { from, window, ordered, counted, inWindow, merged, edits: editsOf(src, h), blocks, gated: gatedSetOf(src, h) };
+  const edits = editsOf(src, h);
+  return { from, window, ordered, counted, inWindow, merged, edits, blocks, gated: gatedSetOf(src, h), trial: trialOf(src, h, from, all, edits) };
 }
 
 /** The counters of a tally. */
@@ -174,6 +177,7 @@ export function totalsOf(t: Tally, src: CounterSource, now: Date): ClassCounters
     guardrailBlocks: t.blocks.count,
     window: t.window,
     gated: gated === null ? null : t.merged.filter((iid) => gated.has(iid)).length, // the merged outputs the gate decided
+    trial: t.trial ? t.trial.count : null, // the next rung's trial: resolved trial MRs and the catches among them
   };
 }
 

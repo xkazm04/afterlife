@@ -30,7 +30,7 @@ afterAll(() => setDataSource(null));
 
 describe('Ladder, live: the counted record', () => {
   it('reaches the row with each unknown counter null', () => {
-    expect(cls.record).toEqual({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: 5, gated: 0 });
+    expect(cls.record).toEqual({ accepted: 5, needed: null, noEdit: null, cleanDays: 10, reverts: 0, guardrailBlocks: 0, window: 5, gated: 0, trial: { n: 0, catches: 0 } });
   });
 
   it('draws the live count, and a not-recorded dash for no-edit', () => {

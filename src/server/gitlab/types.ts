@@ -41,6 +41,8 @@ export interface GlMergeRequest {
   state: string; draft: boolean; sourceBranch: string; targetBranch: string; author: string;
   labels: string[]; webUrl: string; sha: string | null; mergeStatus: string | null;
   createdAt: string; updatedAt: string; mergedAt: string | null; headPipelineId: number | null;
+  /** A closed MR: the username GitLab names in `closed_by`. Null or absent: not stated (not closed, or not returned). */
+  closedBy?: string | null;
 }
 
 export interface GlNote { id: number; body: string; author: string; system: boolean; createdAt: string }
