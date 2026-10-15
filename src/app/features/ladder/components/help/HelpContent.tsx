@@ -11,12 +11,12 @@ import type { Ceiling } from '../../model/types';
 import styles from './help.module.css';
 
 /** Behind "?": the keys, the legend of every mark in the table, and Reset demo. */
-export function HelpContent({ means, onReset }: { means: Readonly<Record<Ceiling, string>>; onReset: () => void }) {
+export function HelpContent({ means, onReset, rows = KEY_ROWS }: { means: Readonly<Record<Ceiling, string>>; onReset: () => void; rows?: typeof KEY_ROWS }) {
   return (
     <>
       <h4>Keys</h4>
       <div className={styles.keys}>
-        {KEY_ROWS.map(([caps, what]) => (
+        {rows.map(([caps, what]) => (
           <div key={what} style={{ display: 'contents' }}>
             <span className={styles.caps}>
               {caps.map((k) => (

@@ -5,6 +5,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { DetailPage } from '@/components/shell/detail/DetailPage';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { HelpContent } from './components/help/HelpContent';
+import { keyRowsFor } from './components/help/keyRows';
 import { DemoChip } from './components/chrome/DemoChip';
 import { TiersStale } from './components/chrome/TiersStale';
 import { ClassDetail } from './components/inspector/ClassDetail';
@@ -56,14 +57,13 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
   const actions = useLadderActions({ project, data, writes, promos, promoteScreen, revokeShown, stamp: clock.stamp, seed, tableRef, openDetail: noop, onReset, onShow });
   const menus = useLadderMenus({ data, actions, writes, onHover: setHoverTo });
   useReceipts(live, seed, state.classes.some((c) => c.pending), data.dispatch);
-  useHotkeys(
-    [
-      { key: 'r', handler: () => actions.revokeKey('step') },
-      { key: 'q', handler: () => actions.revokeKey('quarantine') },
-      { key: 'p', handler: () => actions.promote(id) },
-    ],
-    !menus.isOpen,
-  );
+  // The keys this page binds; its "?" lists these (and Esc), not the list's j k, Enter, / and tier keys.
+  const keys: Record<string, () => void> = {
+    r: () => actions.revokeKey('step'),
+    q: () => actions.revokeKey('quarantine'),
+    p: () => actions.promote(id),
+  };
+  useHotkeys(Object.entries(keys).map(([key, handler]) => ({ key, handler })), !menus.isOpen);
 
   const age = live ? livePollAge(clock.elapsed, feedAgeSec) : pollAge(clock.elapsed, feedAgeSec);
   const enroll = enrollLink(cls, promotion);
@@ -80,7 +80,7 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
         </>
       }
       subtitle={subtitle}
-      help={<HelpContent means={means} onReset={actions.reset} />}
+      help={<HelpContent means={means} onReset={actions.reset} rows={keyRowsFor(Object.keys(keys))} />}
       helpTitle="Keys and legend"
       status={
         <>
