@@ -9,6 +9,7 @@ import { districtsOf, paintOrder } from './city';
 import { beamsOf, districtGlows, towerShape } from './shapes';
 import { activeMark, dimSet, escapeStep, redSet, toggleLock } from './filter';
 import { cutawayOf } from './cutaway';
+import { stageFit, stageFitSource } from './fit';
 import { districtLine, fleetTotals, projectLine, staleText, topTiers } from './words';
 
 const fleet = demoSource.getFleet();
@@ -126,5 +127,17 @@ describe('the stale feed says the same thing in the readout and on the tower', (
   it.each(cases)('error %j', (error, text, lines) => {
     expect(staleText(withFeed(error))).toBe(text);
     expect(cutawayOf(withFeed(error), fleet.classes, []).tag.lines).toEqual(lines);
+  });
+});
+
+describe('the stage fit: the inline script before paint and the resize hook agree', () => {
+  const run = (w: number, h: number) => {
+    const vars: Record<string, string> = {};
+    const doc = { documentElement: { style: { setProperty: (k: string, v: string) => (vars[k] = v) }, dataset: {} } };
+    new Function('innerWidth', 'innerHeight', 'document', 'location', 'localStorage', stageFitSource())(w, h, doc, { search: '' }, { getItem: () => null, setItem: () => undefined });
+    return vars;
+  };
+  it.each([[1920, 1080], [1600, 1000], [1366, 768], [390, 844], [2560, 1600]])('%i x %i', (w, h) => {
+    expect(stageFit(w, h)).toEqual(run(w, h));
   });
 });
