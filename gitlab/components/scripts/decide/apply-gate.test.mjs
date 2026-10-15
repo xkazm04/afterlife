@@ -116,6 +116,21 @@ describe('apply-gate: the tier-state.yml revision and the withdrawal on the tier
   });
 });
 
+describe('apply-gate: --force stands in for the engine only to withhold (wait or block), never to grant', () => {
+  const forced = (decision, extra = []) =>
+    runScript(dir, 'decide/apply-gate.mjs', ['--mr', '7', '--sha', HEAD, '--force', decision, '--reason', 'x', ...extra], { env: { ...ENV, BELAY_BOT_TOKEN: 'bot' } });
+  it.each(['merge', 'approve', 'allow'])('refuses --force %j and applies nothing', (decision) => {
+    const r = forced(decision);
+    expect(r.code, r.stderr).toBe(2);
+    expect(r.stderr).toMatch(/--force must be wait or block/);
+    expect(r.writes).toEqual([]);
+  });
+  it('still accepts wait (exit 0) and block (exit 1)', () => {
+    expect(forced('wait', ['--dry', '1']).code).toBe(0);
+    expect(forced('block', ['--dry', '1']).code).toBe(1);
+  });
+});
+
 describe("apply-gate: the next rung's shadow decision (would) is stamped, never applied", () => {
   /** apply-gate on a decision file, writing (a bot token) unless `dry`; returns its writes and the events it emitted. */
   const run = (name, decision, { dry = false } = {}) => {

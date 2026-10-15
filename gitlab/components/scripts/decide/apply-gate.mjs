@@ -28,6 +28,7 @@ const repo = process.env.CI_PROJECT_URL ?? die('CI_PROJECT_URL is not set');
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
 
 const force = arg('force');
+if (force && !['wait', 'block'].includes(force)) die(`--force must be wait or block (it only withholds, it never grants): ${plain(force)}`);
 const d = force ? { decision: force, tier: null, reasons: [arg('reason', 'inputs missing')] } : readJson(need('decision'));
 if (!DECISIONS.includes(d.decision)) die(`gate returned an unknown decision: ${plain(d.decision)}`);
 if (d.tier != null && !TIERS.includes(d.tier)) die(`gate returned an unknown tier: ${plain(d.tier)}`);
