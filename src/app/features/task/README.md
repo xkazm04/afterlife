@@ -41,3 +41,11 @@ Replay states the chain check as it was computed: "sha256 chain verified", "illu
 
 ## Tests
 `npx vitest run src/app/features/task`
+
+## Opening on the reason
+`model/verdict/reasons.ts` names the terms that decided a verdict, in check order: a FAIL's failing engine checks, then an
+envelope breach; an INCONCLUSIVE's undetermined checks. A struck term is never a reason; each carries `alone` (setting it
+right by itself changes the verdict). A task opens on its first deciding check (a PASS opens on nothing); `?check=<id>` or
+`?claim=<id>` opens that card instead, and the screen writes the selection back with `history.replaceState`, so
+`/task/01J8Q8?check=envelope` is an address for a reason. The equation names them under the word ("FAIL because envelope ·
+envelope breached"), and `n` walks every reason of the visible tasks, wrapping.
