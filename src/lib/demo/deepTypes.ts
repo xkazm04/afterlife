@@ -47,9 +47,12 @@ export interface Task {
   linksResolved?: number[];
 }
 
+/** The inbox vocabulary: what a proposal is called on the Needs you list. */
+export type NeedsKind = 'promote' | 'signoff' | 'gaps' | 'readmit' | 'setup';
+
 export interface NeedsYouItem {
   id: string;
-  kind: string;
+  kind: NeedsKind;
   title: string;
   from?: TierKey;
   to?: TierKey;
