@@ -2,7 +2,7 @@ import type { DiffFile } from '../../../data/types';
 import { cx } from '../../cx';
 import styles from './gap.module.css';
 
-const added = (f: DiffFile): number => f.lines.filter((l) => l.startsWith('+')).length;
+const count = (f: DiffFile, sign: '+' | '-'): number => f.lines.filter((l) => l.startsWith(sign)).length;
 
 /** The gap's diff: file tabs when it touches more than one file, then the lines, additions tinted. */
 export function DiffView({ files, index, onTab }: { files: readonly DiffFile[]; index: number; onTab: (i: number) => void }) {
@@ -23,7 +23,7 @@ export function DiffView({ files, index, onTab }: { files: readonly DiffFile[]; 
       <div className={styles.diff}>
         <div className={styles.fh}>
           <span>{f.path}</span>
-          <span className={styles.aux}>{`${f.isNew ? 'new · ' : ''}+${added(f)} −0`}</span>
+          <span className={styles.aux}>{`${f.isNew ? 'new · ' : ''}+${count(f, '+')} −${count(f, '-')}`}</span>
         </div>
         <pre>
           {f.lines.map((l, i) => (
