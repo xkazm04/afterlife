@@ -1,13 +1,14 @@
 .dep {
   display: flex;
   align-items: center;
-  gap: 7px;
+  --bleed: calc(6px * var(--ui-scale));
+  gap: calc(7px * var(--ui-scale));
   height: calc(22px * var(--ui-scale));
-  padding: 0 6px;
-  margin: 0 -6px;
-  width: calc(100% + 12px);
+  padding: 0 var(--bleed);
+  margin: 0 calc(var(--bleed) * -1);
+  width: calc(100% + var(--bleed) * 2);
   border: 0;
-  border-radius: 5px;
+  border-radius: calc(5px * var(--ui-scale));
   background: none;
   text-align: left;
   font: inherit;

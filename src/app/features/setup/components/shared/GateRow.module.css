@@ -1,13 +1,14 @@
 .gate {
   display: grid;
   grid-template-columns: calc(16px * var(--ui-scale)) minmax(0, 1fr) auto;
-  gap: 1px 8px;
+  --bleed: calc(6px * var(--ui-scale));
+  gap: calc(1px * var(--ui-scale)) calc(8px * var(--ui-scale));
   align-items: center;
-  width: calc(100% + 12px);
-  margin: 0 -6px;
-  padding: 4px 6px;
+  width: calc(100% + var(--bleed) * 2);
+  margin: 0 calc(var(--bleed) * -1);
+  padding: calc(4px * var(--ui-scale)) var(--bleed);
   border: 0;
-  border-radius: 5px;
+  border-radius: calc(5px * var(--ui-scale));
   background: none;
   text-align: left;
   font: inherit;
