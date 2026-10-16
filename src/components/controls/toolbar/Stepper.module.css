@@ -64,6 +64,15 @@
   color: var(--on-accent);
   box-shadow: none;
 }
+/* visually hidden, not display:none: it is the past step's done state for assistive tech */
+.done {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .q {
   font-size: var(--t-small);
   color: var(--text-3);

@@ -42,8 +42,9 @@ export function Stepper<K extends string | number>({
             title={`${s.title} (${s.k})`}
             onClick={() => onGo(s.k)}
           >
-            <i className={styles.n}>{s.past ? '✓' : s.k}</i>
+            <i className={styles.n} aria-hidden="true">{s.past ? '✓' : s.k}</i>
             {s.name}
+            {s.past ? <span className={styles.done}> (done)</span> : null}
             {s.count != null && s.loud ? (
               <NeedsYouBadge small count={s.count} title={`${s.count} picked, waits for you`} />
             ) : s.loud ? null : (
