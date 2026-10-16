@@ -10,7 +10,7 @@ import { StatusCounts } from './components/chrome/StatusCounts';
 import { StageDetail } from './components/inspector/StageDetail';
 import inspector from './components/inspector/inspector.module.css';
 import { MaturityLegend } from './components/legend/MaturityLegend';
-import { MAT_META } from './data/meta';
+import { projectLabel } from './data/meta';
 import { stagePath, useStepNav } from './hooks/useStepNav';
 import { useMaturityShared } from './MaturityProvider';
 import { stageLede } from './model/flow/lede';
@@ -29,7 +29,7 @@ export function StageScreen({ stage }: { stage: Stage }) {
       parent={{ label: 'Maturity', href: '/maturity' }}
       title={capitalize(stage)}
       lede={stageLede(ctx, state, stage)}
-      subtitle={ctx.live ? project : MAT_META.project.replace('/', ' / ')}
+      subtitle={projectLabel(ctx, project)}
       toolbar={<Stepper steps={steps} onGo={onGo} label="Next move" />}
       help={<MaturityLegend />}
       helpTitle="Legend"

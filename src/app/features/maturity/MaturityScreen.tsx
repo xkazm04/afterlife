@@ -10,12 +10,12 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { Stage } from '@/schemas';
 import { Crag } from './components/crag/Crag';
 import { ScanMeta } from './components/chrome/ScanMeta';
-import { StageList } from './components/chrome/StageList';
+import { StageList, pickedByStage } from './components/chrome/StageList';
 import { Stepper } from '@/components/controls/toolbar/Stepper';
 import { GapsTable } from './components/gaps/GapsTable';
 import { SendSheet } from './components/sheet/SendSheet';
 import { StatusCounts } from './components/chrome/StatusCounts';
-import { MAT_META } from './data/meta';
+import { MAT_META, projectLabel } from './data/meta';
 import { useGapSheet } from './hooks/useGapSheet';
 import { stagePath, useStepNav } from './hooks/useStepNav';
 import { useMaturityShared } from './MaturityProvider';
@@ -45,8 +45,6 @@ export function MaturityScreen() {
   const onGo = (k: Step) => {
     if (go(k) && k === 1) gapsRef.current?.scrollIntoView({ block: 'nearest' });
   };
-  const pickedByStage: Partial<Record<Stage, string>> = {};
-  for (const g of ctx.gaps) if (state.picked.includes(g.id) && !state.flow[g.id]) pickedByStage[g.stage] = g.id;
   const sheetGaps = pending.flatMap((id) => ctx.gap(id) ?? []);
   const sheet = useGapSheet(sheetGaps, state.sheet, project, mode);
   const closeSheet = () => {
@@ -60,8 +58,8 @@ export function MaturityScreen() {
   return (
     <Window
       title="Maturity"
-      subtitle={ctx.live ? project : MAT_META.project.replace('/', ' / ')}
-      sidebar={<StageList routes={routes} pickedByStage={pickedByStage} selected={state.sel} onSelect={open} />}
+      subtitle={projectLabel(ctx, project)}
+      sidebar={<StageList routes={routes} pickedByStage={pickedByStage(pending, ctx)} selected={state.sel} onSelect={open} />}
       toolbar={
         <>
           <SegmentedControl label="Crag shows" options={MODES} value={state.mode} onChange={setMode} />
