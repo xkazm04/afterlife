@@ -69,7 +69,13 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<L
     });
     return inFlight;
   };
-  await rt.refresh();
+  try {
+    await rt.refresh();
+  } catch (e) {
+    // The seeded index is this start's own and the retry opens another; the real one is a singleton and stays open.
+    if (seeded) await db.close().catch(() => undefined);
+    throw e;
+  }
   rt.scheduler = startScheduler(rt.refresh, pollIntervalMs(), onError);
   return rt;
 }
