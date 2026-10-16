@@ -11,6 +11,7 @@ import { FleetSidebar } from './components/sidebar/FleetSidebar';
 import { FleetStatus } from './components/FleetStatus';
 import { FleetTable } from './components/table/FleetTable';
 import { FleetToolbar } from './components/toolbar/FleetToolbar';
+import { useFleetChanges } from './hooks/changes/useFleetChanges';
 import { useEvent } from './hooks/useEvent';
 import { useFleetKeys } from './hooks/useFleetKeys';
 import { useFleetList } from './hooks/useFleetList';
@@ -20,6 +21,7 @@ import { useNarrow } from './hooks/useNarrow';
 import { useRepoll } from './hooks/useRepoll';
 import { useRowHandlers } from './hooks/useRowHandlers';
 import { useToolbarCompact } from './hooks/useToolbarCompact';
+import type { Baseline } from './model/changes/baseline';
 import { menuFilterCount, sourceLabel } from './model/list/filtering';
 import { sortLabel } from './model/list/sorting';
 import type { FleetListState } from './model/list/urlState';
@@ -28,14 +30,16 @@ import type { FleetData, FleetMeta, FleetSource, Source } from './model/types';
 /**
  * Fleet: every project as one row, by tier counts, by action class or by stage. Open a row (click its name, Enter) for the project's page,
  * right-click for actions, press a tier header to rank by it. `source` says which data source drew it and carries the
- * deep project's recent events. Nothing here writes.
+ * deep project's recent events. Nothing here writes, but the viewer's last look (model/changes; `baseline` replaces the
+ * stored one, for tests).
  */
-export function FleetScreen({ data, source, start }: { data: FleetData; source: FleetSource; start?: FleetListState }) {
+export function FleetScreen({ data, source, start, baseline }: { data: FleetData; source: FleetSource; start?: FleetListState; baseline?: Baseline | null }) {
   const { status } = useToast();
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const proj = useFleetProjects(data.projects);
-  const list = useFleetList(proj.projects, data.groups, start);
+  const changes = useFleetChanges(proj.projects, baseline);
+  const list = useFleetList(proj.projects, data.groups, start, changes.ids);
   const pop = usePopover(380);
   const narrow = useNarrow(tableRef);
   const compact = useToolbarCompact(searchRef);
@@ -101,6 +105,10 @@ export function FleetScreen({ data, source, start }: { data: FleetData; source: 
     list.setSource(s);
     if (tableRef.current) tableRef.current.scrollTop = 0;
   };
+  const markSeen = () => {
+    changes.markSeen();
+    if (list.filters.source === 'changed') pickSource('all');
+  };
 
   return (
     <Window
@@ -130,7 +138,7 @@ export function FleetScreen({ data, source, start }: { data: FleetData; source: 
           searchRef={searchRef}
         />
       }
-      sidebar={<FleetSidebar projects={proj.projects} groups={data.groups} source={list.filters.source} onSource={pickSource} />}
+      sidebar={<FleetSidebar projects={proj.projects} groups={data.groups} source={list.filters.source} onSource={pickSource} changed={changes.count} onMarkSeen={markSeen} />}
       status={
         <FleetStatus key={snap.n} shown={list.visible.length} total={proj.projects.length} filters={list.filterTotal} startSec={data.lastPollSec} live={source.mode === 'live'} />
       }
@@ -152,6 +160,7 @@ export function FleetScreen({ data, source, start }: { data: FleetData; source: 
         tableRef={tableRef}
         onKeyDown={onKeyDown}
         handlers={handlers}
+        marks={changes.marks}
       />
       {menus.node}
       {pop.popover}

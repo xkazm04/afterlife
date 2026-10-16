@@ -15,6 +15,7 @@ import type { FleetProject, TierKey } from '@/lib/demo/types';
 import { cellName, standingCount, TIER_DISPLAY_ORDER, tiersKnown, type Standing } from '@/lib/tiers';
 import { columnRole } from '../../model/list/sorting';
 import type { FleetMeta, FleetView } from '../../model/types';
+import { ChangeMark } from './cells/ChangeMark';
 import { ProofsCell } from './cells/ProofsCell';
 import { TierCountCell } from './cells/TierCountCell';
 import cells from './cells/cells.module.css';
@@ -31,6 +32,8 @@ export interface ProjectRowProps {
   alt: boolean;
   grouped: boolean;
   h: RowHandlers;
+  /** What moved since the last look, as the change mark's title; absent when nothing did. */
+  mark?: string;
 }
 
 const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
@@ -86,6 +89,7 @@ export const ProjectRow = memo(function ProjectRow(props: ProjectRowProps) {
         <Link href={`/fleet/${encodeURIComponent(p.id)}`} className={`${styles.name} ${unwatched ? styles.unwatched : ''}`} title={`Open ${p.name}`}>
           {p.name}
         </Link>
+        {props.mark ? <ChangeMark title={props.mark} /> : null}
       </Cell>
       <Cell align="center" title={STATE_LABEL[p.state]}>
         <StateGlyph state={p.state} />

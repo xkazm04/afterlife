@@ -11,9 +11,10 @@ import type { FleetFilters, FleetView, SortKey, Source } from '../model/types';
 
 /**
  * What the list shows and how: the view, the sort, grouping and collapsed groups, and the filters. It returns the
- * visible projects (filtered, then sorted), their group blocks and the rows the keyboard walks.
+ * visible projects (filtered, then sorted), their group blocks and the rows the keyboard walks. `changed` is what the
+ * Changed source lists (the ids that moved since the last look).
  */
-export function useFleetList(projects: readonly FleetProject[], groups: readonly string[], start: FleetListState = DEFAULT_LIST_STATE) {
+export function useFleetList(projects: readonly FleetProject[], groups: readonly string[], start: FleetListState = DEFAULT_LIST_STATE, changed?: ReadonlySet<string>) {
   const [view, setViewState] = useState<FleetView>(start.view);
   const [sort, setSort] = useState<SortState<SortKey>>(start.sort);
   const toggleSort = useCallback((key: SortKey) => setSort((s) => nextSort(s, key, { initial: INITIAL_SORT, defaultDir })), []);
@@ -28,7 +29,7 @@ export function useFleetList(projects: readonly FleetProject[], groups: readonly
     window.history.replaceState(window.history.state, '', query ? `?${query}` : window.location.pathname);
   }, [query]);
 
-  const visible = useMemo(() => sortProjects(filterProjects(projects, filters), sort), [projects, filters, sort]);
+  const visible = useMemo(() => sortProjects(filterProjects(projects, filters, changed), sort), [projects, filters, sort, changed]);
   const blocks = useMemo(() => groupBlocks(groups, visible), [groups, visible]);
   const nav = useMemo(() => navItems(blocks, collapsed, grouped, visible), [blocks, collapsed, grouped, visible]);
 

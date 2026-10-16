@@ -30,6 +30,8 @@ export interface FleetTableProps {
   tableRef: RefObject<HTMLDivElement | null>;
   onKeyDown: KeyboardEventHandler<HTMLDivElement>;
   handlers: RowHandlers;
+  /** Change-mark titles by project id (model/changes). */
+  marks?: Readonly<Record<string, string>>;
 }
 
 /** The treegrid: header, then group rows with their projects (or the flat list), for the chosen view. */
@@ -38,7 +40,7 @@ export function FleetTable(props: FleetTableProps) {
   const grid = gridFor(view, narrow);
   const ranked = rankedTier(sort);
   const row = (p: FleetProject, i: number) => (
-    <ProjectRow key={p.id} p={p} view={view} ranked={ranked} narrow={narrow} meta={meta} selected={selected === p.id} alt={i % 2 === 1} grouped={grouped} h={h} />
+    <ProjectRow key={p.id} p={p} view={view} ranked={ranked} narrow={narrow} meta={meta} selected={selected === p.id} alt={i % 2 === 1} grouped={grouped} h={h} mark={props.marks?.[p.id]} />
   );
   let body;
   if (!visible.length) {

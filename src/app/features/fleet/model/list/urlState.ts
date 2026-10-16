@@ -37,7 +37,7 @@ const all = (p: RawParams, k: string): string[] => {
 };
 const first = (p: RawParams, k: string): string | undefined => all(p, k)[0];
 
-const isSource = (s: string): s is Source => s === 'all' || (SMART as readonly string[]).includes(s) || (s.startsWith('g:') && s.length > 2);
+const isSource = (s: string): s is Source => s === 'all' || s === 'changed' || (SMART as readonly string[]).includes(s) || (s.startsWith('g:') && s.length > 2);
 const isSortKey = (s: string): s is SortKey =>
   PLAIN_SORTS.includes(s) ||
   (s.startsWith('tier:') && (TIER_DISPLAY_ORDER as readonly string[]).includes(s.slice(5))) ||

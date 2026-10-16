@@ -6,6 +6,7 @@ import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { ProjectState, TierInfo, TierKey } from '@/lib/demo/types';
 import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
+import { ChangeMark } from '../table/cells/ChangeMark';
 import styles from './legend.module.css';
 
 const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
@@ -37,6 +38,7 @@ export function FleetLegend({ tiers }: { tiers: Record<TierKey, TierInfo> }) {
           ],
           [<StageTicks key="st" rungs={[1, 3, null]} />, 'Stage rungs 0–4; dashed = unknown'],
           [<span key="ha" className={styles.hatch} />, 'Hatched = stale, last known values'],
+          [<ChangeMark key="ch" />, 'Moved since your last look (hover for what); Mark seen in the sidebar resets it'],
         ]}
       />
       <hr />

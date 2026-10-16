@@ -6,8 +6,8 @@ export type FleetView = 'tiers' | 'classes' | 'stages';
 /** The six smart filters of the sidebar (and the toolbar lozenge). */
 export type SmartId = 'needs' | 'stale' | 'setup' | 'unwatched' | 'quar' | 'handsoff';
 
-/** What the list shows: everything, one group ("g:payments") or one smart filter. */
-export type Source = 'all' | SmartId | `g:${string}`;
+/** What the list shows: everything, one group ("g:payments"), one smart filter, or what changed since the last look. */
+export type Source = 'all' | SmartId | 'changed' | `g:${string}`;
 
 export type SortKey =
   | 'attention'

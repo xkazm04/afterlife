@@ -7,6 +7,7 @@ import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierMark } from '@/components/status/TierMark';
 import type { FleetProject } from '@/lib/demo/types';
+import { ChangeMark } from '../table/cells/ChangeMark';
 import { SMART_FILTERS } from '../../model/list/smartFilters';
 import type { SmartId, Source } from '../../model/types';
 import styles from './sidebar.module.css';
@@ -14,6 +15,13 @@ import styles from './sidebar.module.css';
 const folder = (
   <span className={styles.folder}>
     <Icon name="folder" />
+  </span>
+);
+
+const changeIcon = <ChangeMark />;
+const seenIcon = (
+  <span className={styles.folder}>
+    <Icon name="check" />
   </span>
 );
 
@@ -30,22 +38,31 @@ const SMART_ICONS: Record<SmartId, ReactNode> = {
   handsoff: <TierMark tier="hands_off" />,
 };
 
-/** The source list: all projects, one entry per group, and the six smart filters, each with its count. */
+/**
+ * The source list: all projects, what changed since the last look (with Mark seen once something did), one entry per
+ * group, and the six smart filters, each with its count.
+ */
 export function FleetSidebar({
   projects,
   groups,
   source,
   onSource,
+  changed,
+  onMarkSeen,
 }: {
   projects: readonly FleetProject[];
   groups: readonly string[];
   source: Source;
   onSource: (s: Source) => void;
+  changed: number;
+  onMarkSeen: () => void;
 }) {
   return (
     <>
       <SidebarSection title="Fleet">
         <SidebarItem icon={folder} label="All projects" count={projects.length} current={source === 'all'} onClick={() => onSource('all')} />
+        <SidebarItem icon={changeIcon} label="Changed since last look" count={changed} current={source === 'changed'} onClick={() => onSource('changed')} />
+        {changed ? <SidebarItem icon={seenIcon} label="Mark seen" title="Take this look as the one the marks compare with" onClick={onMarkSeen} /> : null}
       </SidebarSection>
       <SidebarSection title="Groups">
         {groups.map((g) => (
