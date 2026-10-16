@@ -11,7 +11,7 @@ import { ARM_META } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
 import { wouldWrite } from '../../model/enroll/enroll';
 import { unmet } from '../../model/flow/state';
-import { mrName } from '../../model/flow/wording';
+import { mergeLabel } from '../../model/flow/wording';
 import type { ArmState, ArmStatus } from '../../model/types';
 import { GRAPH } from '../../model/map/appGraph';
 import { capsOf, downstream, isStepKey, stepOf } from '../../model/map/graph';
@@ -29,7 +29,7 @@ const ARM_IS_NOT = 'Arming does not grant a tier and does not write tier-state.y
 const CHIP: Record<ArmStatus, { tone: ChipTone; word: (a: ArmState) => string }> = {
   armed: { tone: 'ok', word: (a) => `armed${a.mr ? ` · ${a.mr}` : ''}${a.simulated ? ' · simulated' : ''}` },
   ready: { tone: 'accent', word: () => 'ready' },
-  open: { tone: 'you', word: (a) => `merge ${mrName(a)}` },
+  open: { tone: 'you', word: (a) => `merge ${mergeLabel(a)}` },
   probing: { tone: 'accent', word: () => 'probing' },
   locked: { tone: 'unknown', word: () => 'locked' },
   undefined: { tone: 'unknown', word: () => 'not defined yet' },

@@ -8,7 +8,7 @@ import { NeedYouAux } from './parts/NeedYouAux';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { useSetup } from '../../hooks/SetupContext';
 import { needLabel, unmet } from '../../model/flow/state';
-import { mrName } from '../../model/flow/wording';
+import { mergeLabel, mrName } from '../../model/flow/wording';
 import styles from './inspector.module.css';
 import { ArmPreview } from './parts/ArmPreview';
 import { ProbeLine } from './parts/ProbeLine';
@@ -63,7 +63,7 @@ export function TrackArmSection({ id }: { id: string }) {
     if (a.simulated) rows.push(['Simulated', 'demo mode: nothing was sent to GitLab']);
     if (a.found) rows.push(['Last verify', a.found]);
     return (
-      <DetailSection title={`Merge ${mr}${a.revert ? ' (revert)' : ''}`} aux={<NeedYouAux />}>
+      <DetailSection title={`Merge ${mergeLabel(a)}`} aux={<NeedYouAux />}>
         <KeyValue rows={rows} />
         <div className={styles.acts}>
           <Button disabled={!a.url} onClick={() => actions.openMr(id)}>

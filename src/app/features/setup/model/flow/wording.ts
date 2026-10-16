@@ -4,6 +4,9 @@ import { needLabel, unmet } from './state';
 /** The MR a track is armed by or waits on, as GitLab named it; never a number GitLab did not give. */
 export const mrName = (a: ArmState): string => a.mr ?? (a.simulated ? 'the simulated MR' : 'the MR');
 
+/** The MR a person is asked to merge, said once for every place that names it: a revert says so, so a disarm never reads as an arm. */
+export const mergeLabel = (a: ArmState): string => `${mrName(a)}${a.revert ? ' (revert)' : ''}`;
+
 /** Why a track is in the state it is in: the tooltip on its node. */
 export function trackWhy(s: SetupState, a: ArmState): string {
   switch (a.st) {
