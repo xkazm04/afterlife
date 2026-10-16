@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
+import { useShellSync } from './live/useShellSync';
 
 /** What the status bar needs to say about the data the screens show. Plain values: it crosses from server to client. */
 export interface ShellData {
@@ -27,9 +28,18 @@ export const DEMO_SHELL: ShellInfo = {
 
 const ShellContext = createContext<ShellInfo>(DEMO_SHELL);
 
-/** The root layout reads the data source on the server and passes the numbers and the mode the chrome needs. */
-export function ShellProvider({ value, children }: { value: ShellInfo; children: ReactNode }) {
+/**
+ * The root layout reads the data source on the server and passes the numbers and the mode the chrome needs. With `sync`
+ * (the app's Providers) the client re-reads them on navigation and focus (live/useShellSync.ts); without it (tests, the
+ * kit) the value is static and nothing is fetched.
+ */
+export function ShellProvider({ value, sync = false, children }: { value: ShellInfo; sync?: boolean; children: ReactNode }) {
+  if (sync) return <SyncedShell value={value}>{children}</SyncedShell>;
   return <ShellContext.Provider value={value}>{children}</ShellContext.Provider>;
+}
+
+function SyncedShell({ value, children }: { value: ShellInfo; children: ReactNode }) {
+  return <ShellContext.Provider value={useShellSync(value)}>{children}</ShellContext.Provider>;
 }
 
 export function useShellInfo(): ShellInfo {
