@@ -40,6 +40,11 @@ describe('the kit galleries', () => {
     expect(all.length).toBeGreaterThan(30);
     expect(all.filter((l, i) => all.indexOf(l) !== i)).toEqual([]);
   });
+  it('gives each CommandBlock in the inspector column its own group name', () => {
+    const names = labels(render(createElement(InspectorGallery))).filter((l) => l.startsWith('Command'));
+    expect(names.length).toBe(3);
+    expect(names.filter((l, i) => names.indexOf(l) !== i)).toEqual([]);
+  });
   it('draws the inspector column', () => {
     expect(render(createElement(InspectorGallery))).toContain('UntrustedText');
   });
