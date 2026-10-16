@@ -23,6 +23,7 @@ export function Menu<D = unknown>({
   onHighlight,
   vimKeys,
   initialActive = -1,
+  label,
 }: {
   items: readonly MenuEntry<D>[];
   x: number;
@@ -33,6 +34,8 @@ export function Menu<D = unknown>({
   onHighlight?: (item: MenuAction<D> | null) => void;
   vimKeys?: boolean;
   initialActive?: number;
+  /** The menu's accessible name (what it is a menu of: "Sort", "Row actions"). Without one a screen reader hears an unnamed menu. */
+  label?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const uid = useId();
@@ -81,7 +84,7 @@ export function Menu<D = unknown>({
   };
 
   return createPortal(
-    <div ref={ref} className={styles.menu} role="menu" tabIndex={-1} aria-activedescendant={active >= 0 ? `${uid}-${active}` : undefined} style={{ left: pos.x, top: pos.y }} onKeyDown={onKey} onMouseLeave={() => setActive(-1)}>
+    <div ref={ref} className={styles.menu} role="menu" aria-label={label} tabIndex={-1} aria-activedescendant={active >= 0 ? `${uid}-${active}` : undefined} style={{ left: pos.x, top: pos.y }} onKeyDown={onKey} onMouseLeave={() => setActive(-1)}>
       {items.map((it, i) => {
         if ('sep' in it) return <div key={i} className={styles.sep} role="separator" />;
         if ('head' in it)

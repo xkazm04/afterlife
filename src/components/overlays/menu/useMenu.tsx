@@ -31,12 +31,13 @@ export interface MenuApi<D = unknown> {
  * - `build` (optional) makes the entries from current state on every render, so a checkable item can stay open
  *   and reflect what it just changed (sort and filter menus). Checkable items from `build` keep the menu open.
  * - Entries passed to openAt/openFrom are fixed (a context menu for one row) and every click closes the menu.
+ * - `label` names the menu for assistive tech.
  * - `onHighlight` hears the highlighted action (its `data` says which); `vimKeys` adds j / k.
  * Focus returns to the opener (or `returnTo`) when the menu closes by key or by running an item.
  */
 export function useMenu<D = unknown>(
   build?: () => readonly MenuEntry<D>[],
-  cfg: { onHighlight?: (item: MenuAction<D> | null) => void; vimKeys?: boolean } = {},
+  cfg: { onHighlight?: (item: MenuAction<D> | null) => void; vimKeys?: boolean; label?: string } = {},
 ): MenuApi<D> {
   const [open, setOpen] = useState<OpenState<D> | null>(null);
 
@@ -87,6 +88,7 @@ export function useMenu<D = unknown>(
         onClose={shut}
         onHighlight={cfg.onHighlight}
         vimKeys={cfg.vimKeys}
+        label={cfg.label}
       />
     );
   }
