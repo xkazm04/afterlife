@@ -20,6 +20,7 @@ import { readPollerConfig } from '@/server/poller/config';
 import { runPollCycle } from '@/server/poller/cycle';
 import { FleetScreen } from '../FleetScreen';
 import { loadFleetData } from './loadFleetData';
+import { loadFleetProject } from './loadFleetProject';
 import { loadFleetSource } from './loadFleetSource';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/fleet', useRouter: () => ({ push: () => undefined, refresh: () => undefined }) }));
@@ -36,6 +37,10 @@ beforeAll(async () => {
 }, 60_000);
 afterAll(() => setDataSource(null));
 
+const deepNeeds = () => {
+  const needs = loadFleetProject('ledgerline')?.view.depth.needs;
+  return needs?.kind === 'decisions' ? needs.items : null;
+};
 const html = () => renderToString(createElement(ToastProvider, null, createElement(FleetScreen, { data: loadFleetData(), source: loadFleetSource() })));
 
 describe('Fleet, live over the seed', () => {
@@ -44,7 +49,7 @@ describe('Fleet, live over the seed', () => {
     expect([
       getDataSource().getNeedsYouCount(),
       loadFleetData().projects.find((p) => p.id === 'ledgerline')?.needsYou,
-      loadFleetData().deep.needs.length,
+      deepNeeds()?.length,
       view.kind === 'live' ? view.items.length : 0,
     ]).toEqual([0, 0, 0, 0]);
   });
@@ -56,6 +61,6 @@ describe('Fleet, live over the seed', () => {
 
   it('demo mode keeps all five decisions', () => {
     setDataSource(demoSource);
-    expect(loadFleetData().deep.needs).toHaveLength(5); // last in this file: afterAll resets the source
+    expect(deepNeeds()).toHaveLength(5); // last in this file: afterAll resets the source
   });
 });

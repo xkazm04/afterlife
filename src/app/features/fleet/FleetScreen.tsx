@@ -39,7 +39,7 @@ export function FleetScreen({ data, source, start }: { data: FleetData; source: 
   const pop = usePopover(380);
   const narrow = useNarrow(tableRef);
   const compact = useToolbarCompact(searchRef);
-  const [sel, setSel] = useState<string | null>(data.deep.id);
+  const [sel, setSel] = useState<string | null>(data.deepId);
   const repoll = useRepoll(source.mode, proj.byId, proj.poll, status);
   // A fresh snapshot (live mode, after a re-poll) restarts the poll counter from its age.
   const [snap, setSnap] = useState({ data, n: 0 });

@@ -2,7 +2,7 @@
 // project and the docket draws it, so /task/<id> has data. Proved against the fake GitLab (ledgerline !45), never GitLab.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
-import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
+import { loadFleetProject } from '@/app/features/fleet/data/loadFleetProject';
 import { TASK_ORDER } from '@/app/features/task/data/details';
 import { firstTaskId, loadTasks } from '@/app/features/task/model/build/loadTasks';
 import { createDemoGitLab, EXTRA_TASK } from '@/server/gitlab/fake/demo';
@@ -39,9 +39,10 @@ describe('a poller-derived task with no Task fixture', () => {
   });
 
   it('the Fleet inspector lists it for ledgerline, with its stored verdict', () => {
-    const data = loadFleetData();
-    expect(data.deep.id).toBe('ledgerline');
-    expect(data.deep.tasks.find((t) => t.id === EXTRA_TASK.id)).toEqual({
+    const v = loadFleetProject('ledgerline');
+    expect(v?.data.deepId).toBe('ledgerline');
+    const tasks = v?.view.depth.tasks.kind === 'list' ? v.view.depth.tasks.tasks : [];
+    expect(tasks.find((t) => t.id === EXTRA_TASK.id)).toEqual({
       id: '01J8QD', title: 'Bump jackson-databind 2.17.1 → 2.17.2', mr: '!45', track: 'T1', state: 'proved · awaiting merge', verdict: 'PASS',
     });
   });

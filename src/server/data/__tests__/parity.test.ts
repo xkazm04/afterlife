@@ -7,6 +7,7 @@ import { STAGES } from '@/schemas/stages';
 import { loadDoorData } from '@/app/features/door/data/loadDoorData';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
+import { loadFleetProject } from '@/app/features/fleet/data/loadFleetProject';
 import { loadFleetSource } from '@/app/features/fleet/data/loadFleetSource';
 import { loadMaturityData } from '@/app/features/maturity/data/loadMaturityData';
 import { loadNeedsYouView, MissingNeedsYouData, pickNeedsYouDemo } from '@/app/features/needs-you/data/pick';
@@ -60,14 +61,13 @@ function both<T>(read: () => T): [T, T] {
 }
 
 describe('every screen loader gets the same data from the live source as from the demo source', () => {
-  it('Fleet: 184 projects, groups, classes, tier counts, rungs, feed ages, the deep project and the status-bar facts', () => {
-    // The deep project's needsYou and its needs list are listed below where live differs (they exclude the seeded items); nothing else is normalised.
-    const sameDeep = (v: unknown) => {
-      const p = v as { projects: { id: string; needsYou: number }[]; deep: { needs: unknown[] } };
-      return { ...p, projects: p.projects.map((x) => (x.id === 'ledgerline' ? { ...x, needsYou: 0 } : x)), deep: { ...p.deep, needs: [] } };
-    };
-    const [d, l] = both(() => noRecords(loadFleetData()));
-    expect(noLast(sameDeep(l))).toEqual(noLast(sameDeep(d)));
+  it('Fleet: 184 projects, groups, classes, tier counts, rungs, feed ages, the deep project’s page and the status-bar facts', () => {
+    // Listed below where live differs: the deep project's needsYou and needs (no seeded items) and its events. Its accepted
+    // counts for the tier card are class records (normalised as `record` is); its demo labels follow the mode. Nothing else.
+    const page = (v = loadFleetProject('ledgerline')!.view, d = v.depth) => d.kind === 'deep' && { ...d, needs: null, events: null, feed: d.feed.rows, tracks: { ...d.tracks.deep, needs: null } };
+    const read = (f = loadFleetData()) => ({ ...f, projects: f.projects.map((x) => (x.id === 'ledgerline' ? { ...x, needsYou: 0 } : x)), records: null, page: page() });
+    const [d, l] = both(() => noRecords(read()));
+    expect(noLast(l)).toEqual(noLast(d));
   });
 
   it('Ladder: classes, tiers, leases, records, last moves, the means of each tier, the thresholds, the poll age and the subtitle', () => {
