@@ -2,9 +2,10 @@
 import { listOpenProposals, type ProposalKind } from '../repositories/work/proposal';
 import type { Queryable } from '../repositories/sql';
 import { countdown } from './format';
+import type { NeedsKind } from '@/lib/demo/types';
 import type { NeedsYouItem } from './types';
 
-const KIND: Record<ProposalKind, string> = {
+const KIND: Record<ProposalKind, NeedsKind> = {
   promotion: 'promote',
   cra_signoff: 'signoff',
   gap: 'gaps',

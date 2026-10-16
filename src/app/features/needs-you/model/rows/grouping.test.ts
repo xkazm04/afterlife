@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../data/pick';
 import { initialState } from '../state';
 import type { NeedsState } from '../types';
-import { groupOf, groupsFor, isVisible, navItems, visibleGroups } from './grouping';
+import { ON_A_CLOCK, groupOf, groupsFor, isVisible, navItems, visibleGroups } from './grouping';
 
 const demo = pickNeedsYouDemo();
 const fresh = (): NeedsState => initialState(demo);
@@ -26,6 +26,13 @@ describe('grouping', () => {
       const all = groupsFor(mode, fresh()).filter((g) => !g.hist).flatMap((g) => [...g.ids]).sort();
       expect(all).toEqual(['g1', 'g2', 'g3', 'g4', 'n1', 'n2', 'n4', 'n5']);
     }
+  });
+  it('flags the clock groups and the Stage group on the group, one clock decision', () => {
+    expect(groupsFor('kind', fresh()).filter((g) => g.clock).map((g) => g.id)).toEqual(['clock']);
+    expect(groupsFor('deadline', fresh()).filter((g) => g.clock).map((g) => g.id)).toEqual(['d-clock']);
+    expect(groupsFor('project', fresh()).some((g) => g.clock)).toBe(false);
+    expect(groupsFor('kind', fresh()).filter((g) => g.stages).map((g) => g.id)).toEqual(['improve']);
+    expect(ON_A_CLOCK).toBe(1);
   });
   it('finds the group a row belongs to', () => {
     expect(groupOf('kind', fresh(), 'n4')?.id).toBe('trust');

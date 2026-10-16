@@ -11,10 +11,10 @@ import { OutlineTable } from '@/components/table/OutlineTable';
 import { RowGroup } from '@/components/table/RowGroup';
 import type { NeedsYouDemo } from '../../data/types';
 import { pickedGaps } from '../../model/act';
-import { clockText } from '../../model/clock/clock';
 import { isGapId, isWaiting } from '../../model/rows/rowState';
 import type { VisibleGroup } from '../../model/rows/grouping';
 import type { Action, NeedsState } from '../../model/types';
+import { ClockText } from './ClockText';
 import { DecisionRow } from './DecisionRow';
 import { HistoryRow } from './HistoryRow';
 import styles from './table.module.css';
@@ -22,13 +22,11 @@ import styles from './table.module.css';
 // The prototype's widths at the Smaller setting; each fixed track gives up a few px before the pane scrolls.
 // The title column keeps room for its indent, pick box and the seeded chip.
 const COLUMNS = [range(190, 4000), range(92, 100), range(100, 108), range(34, 40), range(70, 74), range(92, 98), range(120, 132)].join(' ');
-const CLOCK_GROUPS = ['clock', 'd-clock'];
 
 export interface DecisionsTableProps {
   s: NeedsState;
   demo: NeedsYouDemo;
   groups: readonly VisibleGroup[];
-  leftSec: number;
   menuing: boolean;
   tableRef: Ref<HTMLDivElement>;
   onKeyDown: KeyboardEventHandler<HTMLDivElement>;
@@ -72,7 +70,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
       ) : null}
       {groups.map((g) => {
         const waiting = g.hist ? 0 : g.visible.filter((id) => isWaiting(s, id)).length;
-        const stageAll = picked > 0 && (g.id === 'improve' || (s.group !== 'kind' && g.visible.some(isGapId)));
+        const stageAll = picked > 0 && (g.stages || (s.group !== 'kind' && g.visible.some(isGapId)));
         return (
           <RowGroup key={g.id}>
             <GroupRow
@@ -88,7 +86,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
               <Cell />
               <Cell />
               <Cell />
-              <Cell align="end">{CLOCK_GROUPS.includes(g.id) ? <span className={`${styles.mono} ${styles.due}`}>{clockText(p.leftSec)}</span> : null}</Cell>
+              <Cell align="end">{g.clock ? <span className={`${styles.mono} ${styles.due}`}><ClockText /></span> : null}</Cell>
               <Cell>{waiting ? <NeedsYouBadge count={waiting} variant="group" title={`${waiting} waiting for you`} /> : null}</Cell>
               <Cell align="end" className={styles.act}>
                 {stageAll ? (
@@ -103,7 +101,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
                   g.hist ? (
                     <HistoryRow key={id} id={id} index={i} s={s} dispatch={dispatch} onActivate={p.onActivate} onContextMenu={p.onRowMenu} />
                   ) : (
-                    <DecisionRow key={id} id={id} index={i} s={s} demo={p.demo} leftSec={p.leftSec} dispatch={dispatch} onActivate={p.onActivate} onContextMenu={p.onRowMenu} />
+                    <DecisionRow key={id} id={id} index={i} s={s} demo={p.demo} dispatch={dispatch} onActivate={p.onActivate} onContextMenu={p.onRowMenu} />
                   ),
                 )
               : null}
