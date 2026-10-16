@@ -1,6 +1,6 @@
 import type { ProofCheck } from '@/lib/demo/types';
 import type { ProofBlock, Verdict } from '@/schemas/proof';
-import { upsertRows, type Queryable, type TableSpec } from '../sql';
+import { upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 export interface ProofRow {
   taskId: string;
@@ -20,6 +20,7 @@ const SPEC: TableSpec = {
   key: ['task_id', 'class'],
   cols: { task_id: 'text', class: 'text', verdict: 'text', engine_version: 'text', engine_sha256: 'text', checks: 'jsonb', claims: 'jsonb', block: 'jsonb' },
 };
+registerSpec(SPEC);
 
 interface Db {
   task_id: string; class: string; verdict: Verdict | null; engine_version: string | null; engine_sha256: string | null;

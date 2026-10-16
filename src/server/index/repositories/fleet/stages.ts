@@ -1,11 +1,12 @@
 import { STAGES } from '@/schemas/stages';
-import { upsertRows, type Queryable, type TableSpec } from '../sql';
+import { upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 const SPEC: TableSpec = {
   table: 'project_stage',
   key: ['project_id', 'stage'],
   cols: { project_id: 'text', stage: 'text', rung: 'smallint' },
 };
+registerSpec(SPEC);
 
 /** Nine rungs 0..4 in STAGES order; null = unknown. */
 export type StageRungs = readonly (number | null)[];

@@ -13,7 +13,7 @@ interface Db {
   would: LedgerEvent['would'] | null;
 }
 
-const COLS = 'seq, at, agent, action_class, kind, tier_at_time, subject, payload_ref, observed_by, prev_hash, hash, verdict, environment, state_rev, withdrew, would';
+export const LEDGER_COLS = 'seq, at, agent, action_class, kind, tier_at_time, subject, payload_ref, observed_by, prev_hash, hash, verdict, environment, state_rev, withdrew, would';
 
 // A null verdict, environment, state_rev, withdrew or would reads back as no key at all: the hash of an event without one does not change (src/schemas/ledger.ts).
 const fromDb = (r: Db): LedgerEvent => ({
@@ -37,7 +37,7 @@ export async function ledgerTail(db: Queryable, projectId: number): Promise<Chai
 
 export async function readLedger(db: Queryable, projectId: number, fromSeq = 1): Promise<LedgerEvent[]> {
   const { rows } = await db.query<Db>(
-    `select ${COLS} from ledger_event where project_id = $1 and seq >= $2 order by seq`,
+    `select ${LEDGER_COLS} from ledger_event where project_id = $1 and seq >= $2 order by seq`,
     [projectId, fromSeq],
   );
   return rows.map(fromDb);
@@ -81,7 +81,7 @@ export async function appendLedgerEvents(db: PGlite, events: readonly LedgerEven
     assertExtends(tail, fresh);
     for (const e of fresh) {
       await tx.query(
-        `insert into ledger_event (project_id, ${COLS}, at_ts)
+        `insert into ledger_event (project_id, ${LEDGER_COLS}, at_ts)
          values ($1, $2, $3::text, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12, $13, $14::jsonb, $15, $16::jsonb, $17::jsonb, ($3::text)::timestamptz)`,
         [projectId, e.seq, e.at, e.agent, e.action_class, e.kind, e.tier_at_time, JSON.stringify(e.subject),
           e.payload_ref, e.observed_by, e.prev_hash, e.hash, e.verdict ?? null,
@@ -110,7 +110,7 @@ export async function resetLedger(db: PGlite, projectId: number): Promise<void> 
 /** Events of one action class, newest last (what a class record is recomputed from). */
 export async function readClassEvents(db: Queryable, projectId: number, actionClass: string): Promise<LedgerEvent[]> {
   const { rows } = await db.query<Db>(
-    `select ${COLS} from ledger_event where project_id = $1 and action_class = $2 order by seq`,
+    `select ${LEDGER_COLS} from ledger_event where project_id = $1 and action_class = $2 order by seq`,
     [projectId, actionClass],
   );
   return rows.map(fromDb);

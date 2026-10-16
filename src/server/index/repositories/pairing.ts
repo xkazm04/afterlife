@@ -1,5 +1,5 @@
 // pairing: where Belay is paired. setup_step: what each setup step measured (by Belay's probes, never an agent's say-so).
-import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from './sql';
+import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from './sql';
 
 export interface PairingRow {
   id: string;
@@ -28,11 +28,13 @@ const PAIRING: TableSpec = {
   key: ['id'],
   cols: { id: 'text', gitlab_host: 'text', group_path: 'text', checkout_path: 'text', paired_at: 'timestamptz' },
 };
+registerSpec(PAIRING);
 const STEP: TableSpec = {
   table: 'setup_step',
   key: ['pairing_id', 'step'],
   cols: { pairing_id: 'text', step: 'int', who: 'text', state: 'text', probe: 'jsonb', probed_at: 'timestamptz' },
 };
+registerSpec(STEP);
 
 export const upsertPairing = (db: Queryable, p: PairingRow): Promise<void> =>
   upsertRows(db, PAIRING, [{ id: p.id, gitlab_host: p.gitlabHost, group_path: p.groupPath, checkout_path: p.checkoutPath, paired_at: toIso(p.pairedAt) }]);

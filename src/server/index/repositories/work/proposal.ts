@@ -1,4 +1,4 @@
-import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
+import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 export type ProposalKind = 'promotion' | 'cra_signoff' | 'gap' | 'readmit' | 'setup_gate';
 export type ProposalState = 'open' | 'acted' | 'dismissed' | 'expired';
@@ -29,6 +29,7 @@ const SPEC: TableSpec = {
     due_at: 'timestamptz', opened_at: 'timestamptz', acted_at: 'timestamptz', acted_as: 'text',
   },
 };
+registerSpec(SPEC);
 
 interface Db {
   id: string; project_id: string; kind: ProposalKind; state: ProposalState; parent_id: string | null; title: string;
