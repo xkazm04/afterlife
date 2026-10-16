@@ -17,7 +17,7 @@ Pitch" prototype. Two films, chosen by the loader (`data/loadTheaterData.ts`, on
   status line, "?" legend. Present mode moves the stage to a fixed full-viewport layer (`F`, `Esc`).
 - `components/stage/` stage, four answers, pitch, closing board. `wall/` the rope, holds, climbers and the
   riding caption. `rail/` autonomy chips, stages with evidence, CRA clock. `chrome/` transport, takes
-  sidebar, status line, help. `inspector/` the current beat (and a real event's facts). `parts/` ReplayChip.
+  sidebar, status line, help. `inspector/` the current beat (and a real event's facts). `parts/` ReplayChip, RungSteps (the rung bar of Board and StageRows).
 - `hooks/` the store and its frame clock (`useReplayStore`), slice subscription, present mode, keys, actions.
 
 ## Model (pure, tested)
@@ -69,7 +69,7 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
   - keys and parts: `hooks/useTheaterKeys.test.ts` (the "?" legend against the key map),
     `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/rail/Autonomy.test.tsx` (why a
     class sits at its tier), `components/styles.test.ts` (every `styles.x` exists in its CSS module),
-    `components/parts/PrerollCue.test.tsx`,
+    `components/parts/PrerollCue.test.tsx`, `components/parts/RungSteps.test.tsx` (the one rung bar),
     `components/parts/ProofChecks.test.tsx`, `components/wall/wallFrame.test.ts` (the wall redraws only when it moves).
 
 ## Behaviour notes

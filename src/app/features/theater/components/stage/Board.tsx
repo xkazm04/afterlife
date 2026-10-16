@@ -1,6 +1,7 @@
 import { EVIDENCE_RUNG, type Snapshot } from '../../model/derive/snapshots';
 import type { TheaterDemo } from '../../model/types';
 import { Card } from '@/components/surface/Card';
+import { RungSteps } from '../parts/RungSteps';
 import styles from './Board.module.css';
 
 /** The closing wall: nine stages as nine tiles, each with its rung steps and the evidence the last scan saw. */
@@ -21,11 +22,7 @@ export function Board({ snap, demo, last }: { snap: Snapshot; demo: TheaterDemo;
                 <span>{st}</span>
                 <span className={styles.rr}>R{r}</span>
               </div>
-              <div className={styles.steps}>
-                {[1, 2, 3, 4].map((k) => (
-                  <i key={k} className={r >= k ? styles.on : undefined} />
-                ))}
-              </div>
+              <RungSteps rung={r} evidence={r >= EVIDENCE_RUNG} />
               <div className={styles.evt}>
                 {demo.rungNames[r]} · {m?.evidence}
                 {m && m.day0 == null ? ' · day 0 ?' : ''}
