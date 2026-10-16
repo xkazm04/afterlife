@@ -14,7 +14,7 @@ export const unscaledSpacing = (css: string): string[] =>
   );
 
 const css = (rel: string) => readFileSync(join(__dirname, rel), 'utf8');
-const block = (src: string, sel: string): string => stripCss(src).match(new RegExp(`(?:^|\})\s*${sel.replace('.', '\.')}\s*\{([^}]*)\}`))?.[1] ?? '';
+const block = (src: string, cls: string): string => stripCss(src).match(new RegExp(String.raw`(?:^|\})\s*\.` + cls + String.raw`\s*\{([^}]*)\}`))?.[1] ?? '';
 
 describe('fleet inspector and popover spacing', () => {
   it.each([['sections.module.css'], ['../../popover/popover.module.css']])('%s: no raw px gap, padding or margin', (f) => {
@@ -27,7 +27,7 @@ describe('fleet inspector and popover spacing', () => {
   });
 
   it('the tier name in Autonomy by class truncates inside its 72px track instead of spilling over the next row', () => {
-    const tn = block(css('sections.module.css'), '.tn');
+    const tn = block(css('sections.module.css'), 'tn');
     expect(tn).toMatch(/overflow:\s*hidden/);
     expect(tn).toMatch(/text-overflow:\s*ellipsis/);
     expect(tn).toMatch(/white-space:\s*nowrap/);

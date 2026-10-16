@@ -32,6 +32,10 @@
 .tn {
   color: var(--text-2);
   font-size: var(--t-small);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .none .id {
   color: var(--text-4);
