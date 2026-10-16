@@ -12,7 +12,7 @@ import styles from './inspector.module.css';
 export function Sec({ k, title, aux, def = true, p, children }: { k: string; title: string; aux?: ReactNode; def?: boolean; p: Pick<InspProps, 's' | 'dispatch'>; children: ReactNode }) {
   const open = p.s.sections[k] ?? def;
   const toggle = (
-    <button type="button" className={styles.tog} aria-expanded={open} aria-label={`${open ? 'Hide' : 'Show'} ${title}`} onClick={() => p.dispatch({ type: 'section', key: k, open: !open })}>
+    <button type="button" className={styles.tog} aria-expanded={open} aria-controls={open ? `insp-${k}` : undefined} aria-label={`${open ? 'Hide' : 'Show'} ${title}`} onClick={() => p.dispatch({ type: 'section', key: k, open: !open })}>
       {open ? 'Hide' : 'Show'}
     </button>
   );
