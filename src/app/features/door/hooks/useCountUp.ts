@@ -17,7 +17,7 @@ export function useCountUp(n: number, delay: number, dur: number, intro: boolean
     booted = true;
   }, []);
   useEffect(() => {
-    if (!counting) return;
+    if (!counting || !intro) return; // once the intro ended the value is discarded (see the return): stop the frame loop
     let raf = 0;
     const t0 = performance.now();
     const step = (now: number) => {
@@ -28,6 +28,6 @@ export function useCountUp(n: number, delay: number, dur: number, intro: boolean
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [counting, n, delay, dur]);
+  }, [counting, intro, n, delay, dur]);
   return counting && intro ? v : n;
 }
