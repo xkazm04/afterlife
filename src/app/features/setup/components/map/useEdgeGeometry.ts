@@ -44,12 +44,24 @@ export function useEdgeGeometry(canvas: RefObject<HTMLElement | null>): Measured
       const next = measure(cv);
       setM((prev) => (same(prev, next) ? prev : next));
     };
+    if (typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(run);
     ro.observe(cv);
-    cv.querySelectorAll('[data-node]').forEach((el) => ro.observe(el));
+    const watched = new Set<Element>();
+    const watch = () =>
+      cv.querySelectorAll('[data-node]').forEach((el) => {
+        if (watched.has(el)) return;
+        watched.add(el);
+        ro.observe(el);
+      });
+    watch();
+    // A node that mounts later (a re-probe returning more doctor rows) is observed and measured too.
+    const mo = typeof MutationObserver === 'undefined' ? null : new MutationObserver(() => { watch(); run(); });
+    mo?.observe(cv, { childList: true, subtree: true });
     window.addEventListener('resize', run);
     return () => {
       ro.disconnect();
+      mo?.disconnect();
       window.removeEventListener('resize', run);
     };
   }, [canvas]);
