@@ -4,7 +4,17 @@
 // last_commit_id, "Last known file commit ID. Only considered in update, move, and delete actions." [R]: GitLab then
 // refuses the commit (400, "...has changed since you started editing it") if the file moved since that commit, on the
 // branch the commit starts from. Callers also serialise with resource_group.
-import { api, enc, httpStatus } from './lib.mjs';
+import { api, die, enc, httpStatus } from './lib.mjs';
+
+/**
+ * The token a script writes with (F88): the variable `--write-token-var` names. A variable named and not set dies before any
+ * read, so the read token never writes in its place. Without the flag: BELAY_BOT_TOKEN when set, else undefined (the caller's
+ * own glab login, a person running it by hand). The caller sets GITLAB_TOKEN to it just before its write, not earlier.
+ */
+export function writeToken(named) {
+  if (named && !process.env[named]) die(`${named} is not set (named by --write-token-var): nothing committed`);
+  return process.env[named ?? 'BELAY_BOT_TOKEN'];
+}
 
 /**
  * Returns the file text, or null when GitLab answers 404 (the file, or the ref, is not there). Any other failure (401, 403,
