@@ -7,6 +7,7 @@ import { PROOF_CLASSES } from '../../../../engine/proofs';
 import { CLASSES, parseProofBlock } from '../parse/proofBlock';
 import { lastTrailer, parseTrailers, proseOf, TASK_ID } from '../parse/trailers';
 import { goodProof } from './proofs';
+import trailerCases from '../../../../gitlab/components/scripts/lib/fixtures/trailer-cases.json';
 
 describe('fenced blocks', () => {
   it('reads every valid block with the tag, in order, and ignores a malformed one', () => {
@@ -51,6 +52,13 @@ describe('trailers', () => {
     const d = `I fixed it.\n\n${fence('belay-claims', { c: 1 })}\n\nBelay-Task: 01J8Q4\nBelay-Finding: V-204\n`;
     expect(proseOf(d)).toBe('I fixed it.');
     expect(parseTrailers(d).finding).toBe('V-204');
+  });
+});
+
+describe('trailers shared with the CI glue', () => {
+  // gitlab/components/scripts/lib/lib.test.mjs runs the same cases through lib.mjs trailer(): the two readers must agree.
+  it.each(trailerCases)('$name', ({ text, key, want }) => {
+    expect(lastTrailer(text, key, /^\S+$/)).toBe(want);
   });
 });
 

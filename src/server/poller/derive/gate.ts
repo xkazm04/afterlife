@@ -30,8 +30,9 @@ export function gateSeenOf(events: readonly CountedEvent[], h: Pick<Holder, 'age
   const from = h.since.getTime();
   let best: { at: number; e: CountedEvent } | null = null;
   for (const e of events) {
+    if (!decided(e, h) || !e.tier_at_time) continue; // the cheap test first: a date is parsed only for this holder's decisions
     const at = Date.parse(e.at);
-    if (!decided(e, h) || !e.tier_at_time || Number.isNaN(at) || at < from) continue;
+    if (Number.isNaN(at) || at < from) continue;
     if (!best || at >= best.at) best = { at, e };
   }
   if (!best || !best.e.tier_at_time) return null;

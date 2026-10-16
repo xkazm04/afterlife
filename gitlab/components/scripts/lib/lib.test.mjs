@@ -9,7 +9,8 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ROOT, SCRIPTS } from '../testing/harness.mjs';
 import { engine, tsxCommand } from './engine.mjs';
-import { blocks } from './lib.mjs';
+import { blocks, trailer } from './lib.mjs';
+import trailerCases from './fixtures/trailer-cases.json' with { type: 'json' };
 import { validate } from './validate.mjs';
 
 describe('blocks', () => {
@@ -115,4 +116,9 @@ describe('engine', () => {
       else process.env.BELAY_DIR = saved;
     }
   }, 60_000);
+
+  // The poller reads the same cases (src/server/poller/__tests__/parse.test.ts): one trailer rule, two readers.
+  it.each(trailerCases)('reads a trailer as the poller does: $name', ({ text, key, want }) => {
+    expect(trailer(text, key)).toBe(want);
+  });
 });
