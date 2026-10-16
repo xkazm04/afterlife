@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SMART_FILTERS } from './smartFilters';
 import { DEFAULT_LIST_STATE, decodeListState, encodeListState, type FleetListState } from './urlState';
 
 const back = (s: FleetListState) => decodeListState(new URLSearchParams(encodeListState(s)));
@@ -44,5 +45,11 @@ describe('fleet list URL state', () => {
 
   it('drops a sort the decoded view does not have', () => {
     expect(decodeListState({ view: 'classes', sort: 'tier:supervised' }).sort).toEqual(DEFAULT_LIST_STATE.sort);
+  });
+});
+
+describe('smart-filter ids in the URL', () => {
+  it.each(SMART_FILTERS.map((f) => f.id))('keeps the %s smart filter through a round trip', (id) => {
+    expect(back({ ...DEFAULT_LIST_STATE, filters: { ...DEFAULT_LIST_STATE.filters, source: id } }).filters.source).toBe(id);
   });
 });

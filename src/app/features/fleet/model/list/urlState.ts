@@ -5,6 +5,7 @@ import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import type { SortDir, SortState } from '@/components/table/model/sort';
 import type { FleetFilters, FleetView, SmartId, SortKey, Source } from '../types';
 import { EMPTY_FILTERS } from './filtering';
+import { SMART_FILTERS } from './smartFilters';
 import { INITIAL_SORT, defaultDir } from './sorting';
 
 export interface FleetListState {
@@ -28,7 +29,7 @@ export type RawParams = Record<string, string | string[] | undefined>;
 
 const VIEWS: readonly FleetView[] = ['tiers', 'classes', 'stages'];
 const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
-const SMART: readonly SmartId[] = ['needs', 'stale', 'setup', 'unwatched', 'quar', 'handsoff'];
+const SMART: readonly SmartId[] = SMART_FILTERS.map((s) => s.id);
 const PLAIN_SORTS = ['attention', 'name', 'state', 'needs', 'proofs', 'stages', 'feed'];
 
 const all = (p: RawParams, k: string): string[] => {
