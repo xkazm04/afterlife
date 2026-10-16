@@ -25,7 +25,7 @@ export function LedgerSection({ i, entries, range, onSeek }: { i: number; entrie
           onClick={() => onSeek(k)}
         >
           <span className={styles.tm}>{r.t}</span>
-          <span className={styles.by}>{shortOf(r.by)}</span>
+          <span className={styles.by}>{shortOf(r)}</span>
           <span className={styles.tx}>{r.x}</span>
         </button>
       ))}
