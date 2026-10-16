@@ -1,8 +1,11 @@
+import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { demoSource } from '@/server/data/demoSource';
 import { Answer } from '../components/ui/Answer';
+import { COUNT_END } from '../hooks/useCountUp';
+import { INTRO_MS } from '../hooks/useDoor';
 import { HOME, cityTransform, frameDistrict, groundTransform } from './camera';
 import { groundOf } from './ground';
 import { districtsOf, paintOrder } from './city';
@@ -139,5 +142,15 @@ describe('the stage fit: the inline script before paint and the resize hook agre
   };
   it.each([[1920, 1080], [1600, 1000], [1366, 768], [390, 844], [2560, 1600]])('%i x %i', (w, h) => {
     expect(stageFit(w, h)).toEqual(run(w, h));
+  });
+});
+
+describe('the intro outlasts the count-ups', () => {
+  it('INTRO_MS is not below the moment the last count finishes', () => {
+    expect(INTRO_MS).toBeGreaterThanOrEqual(COUNT_END);
+  });
+  it('Answer takes every count schedule from useCountUp, none by literal', () => {
+    const src = readFileSync(new URL('../components/ui/Answer.tsx', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(src).not.toMatch(/delay=\{\d/);
   });
 });

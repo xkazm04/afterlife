@@ -8,7 +8,8 @@ import { activeMark, dimSet, escapeStep, redSet, toggleLock } from '../model/fil
 import type { MarkKind } from '../model/words';
 
 export type Level = 0 | 1 | 2;
-const INTRO_MS = 3400;
+/** How long the intro runs before it ends by itself; never below COUNT_END (hooks/useCountUp), see door.test.ts. */
+export const INTRO_MS = 3400;
 
 /**
  * The front door's state: the level (fleet, district, project), what is open, what the pointer is on, the lit mark (a locked one outranks the hover),

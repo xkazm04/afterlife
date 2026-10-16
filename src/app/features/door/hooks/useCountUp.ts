@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react';
 
 const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+/** The count-up schedules the door uses (ms): the headline waits for the marks to land, then every mark and proof count runs together. */
+export const COUNT_BIG = { delay: 2400, dur: 800 } as const;
+export const COUNT_MARK = { delay: 1200, dur: 2000 } as const;
+/** When the last count finishes: the intro (useDoor's INTRO_MS) must not end before it, or the numbers jump to final mid-count. */
+export const COUNT_END = Math.max(COUNT_BIG.delay + COUNT_BIG.dur, COUNT_MARK.delay + COUNT_MARK.dur);
+
 /** The first door of a page load arrives server-rendered with its final numbers; only later client mounts count up. */
 let booted = false;
 
