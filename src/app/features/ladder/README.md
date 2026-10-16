@@ -43,6 +43,12 @@ command the screen spells.
     committed <sha>; read at !N, <delay> after the commit (or "awaiting the next gated MR"); withdrawn approval or
     auto-merge on !N; and an alarm chip when a gate read the commit and still granted the old tier. Live: the poll's
     receipt (`server/poller/README.md`, "Enforcement receipts"). Demo: this session's simulated revoke, marked simulated.
+  - `clock.ts` the screen's time. A ledger entry's time is an instant (`LedgerEntry.at`, epoch ms); its label `t` is
+    derived once from it (`clockLabel`: "14:20:03" within a day, else "3 d ago") in the screen's one zone, which
+    `data/loadLadderData.ts` picks on the server (live: the server's zone, demo: UTC) and puts in the seed (`tz`, copied
+    to `LadderState.tz`). The live chain (`liveLedgerEntries(events, now, tz)`), a revoke (`stamp()` is an instant, the
+    reducer labels it) and a receipt-settled read are labelled in that zone, never the browser's. The who-acted rail
+    orders and scales by `at`, so a rail over midnight stays in order. The demo's instants sit on `DEMO_NOW`'s day.
 - `hooks/`: data (reducer and derived rows), the writes on screen (`useRevokeWrite`, `usePromoteWrite`), actions (sends,
   toasts, timers; p in `usePromoteAction`),
   menus, keys, popovers, sim clock.
