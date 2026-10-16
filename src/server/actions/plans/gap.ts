@@ -36,7 +36,7 @@ export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<P
     diff.push(...shown);
   }
   commands.push(ctx.port.plan.createMr({
-    project: project.id, sourceBranch: intent.branch, targetBranch: base, labels: ['maturity::gap'],
+    project: project.id, sourceBranch: intent.branch, targetBranch: base, labels: ['maturity::gap'], removeSourceBranch: true,
     title: `Draft: Maturity gap ${intent.gap}: ${intent.title}`,
     description: `${intent.stage} R${intent.from} -> R${intent.to}. Prepared by Belay for ${ctx.operator}.${intent.workItem ? `\n\nRelated to #${intent.workItem}` : ''}`,
   }));

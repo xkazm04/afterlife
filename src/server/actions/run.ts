@@ -144,8 +144,24 @@ async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promi
   return { status: ok ? 'done' : 'failed', preview: b.preview, results };
 }
 
+/** The previews a live confirm is running now. A second confirm of one of them (a double click, two tabs) is refused, not run again. */
+const running = new Set<string>();
+
 /** Step 2: runs what `previewId` names, if and only if the plan is still exactly that. */
 export async function confirmIntent(deps: ActionDeps, raw: unknown, previewId: string): Promise<ActionResponse> {
+  const guarded = deps.mode === 'live';
+  if (guarded) {
+    if (running.has(previewId)) return refused('this preview is already running; wait for its answer');
+    running.add(previewId);
+  }
+  try {
+    return await confirm(deps, raw, previewId);
+  } finally {
+    if (guarded) running.delete(previewId);
+  }
+}
+
+async function confirm(deps: ActionDeps, raw: unknown, previewId: string): Promise<ActionResponse> {
   const b = await build(deps, raw);
   if (!b.ok) return b.response;
   if (b.preview.previewId !== previewId) return { status: 'changed', preview: b.preview };

@@ -59,7 +59,7 @@ export async function planEnroll(ctx: PlanContext, intent: EnrollTrack): Promise
     commands: [
       ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, startBranch: base, content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }),
       ctx.port.plan.createMr({
-        project: repo.id, sourceBranch: branch, targetBranch: base, title, labels: ['belay::promotion'],
+        project: repo.id, sourceBranch: branch, targetBranch: base, title, labels: ['belay::promotion'], removeSourceBranch: true,
         description: `Prepared by Belay for ${ctx.operator}: the first records of ${intent.track}'s classes, at start_tier.\n\n${edits.map((e) => `Belay-Class: ${e.class}`).join('\n')}\n\nA person merges this; Belay never does.`,
       }),
     ],
