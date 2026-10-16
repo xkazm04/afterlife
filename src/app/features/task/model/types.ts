@@ -107,6 +107,22 @@ export interface LedgerRow {
   hash: string;
 }
 
+/**
+ * How the task's ledger rows were checked. 'sha256': the real chain's rows (live), the whole chain re-verified on the server
+ * with the schema's verifyChain. 'illustrative': the fixture's rows, chained with the FNV stand-in (demo). brokenAt: the seq
+ * of the first link that does not verify, or null when every link does.
+ */
+export interface LedgerCheck {
+  hash: 'sha256' | 'illustrative';
+  brokenAt: number | null;
+}
+
+/** A task's ledger: its rows and how they were checked. */
+export interface TaskLedger {
+  ledger: LedgerRow[];
+  ledgerCheck: LedgerCheck;
+}
+
 export interface TaskView {
   id: string;
   track: string;
@@ -140,6 +156,8 @@ export interface TaskView {
   grade: string | null;
   linksResolved: number[] | null;
   awareAt: string | null;
+  /** Live: the task's merge request slice of the real chain, never the fixture's. Demo: the fixture's illustrative rows. */
   ledger: LedgerRow[];
+  ledgerCheck: LedgerCheck;
   trace: string[];
 }

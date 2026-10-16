@@ -1,5 +1,6 @@
 import type { ActionClass, Task, Track } from '@/lib/demo';
-import type { ChainLink, ChainSeed, Hunk, TaskCheck, TaskClaim, TaskDetail, TaskView, Verdict } from '../types';
+import type { ChainLink, ChainSeed, Hunk, LedgerSeed, TaskCheck, TaskClaim, TaskDetail, TaskLedger, TaskView, Verdict } from '../types';
+import { firstBrokenSeq } from '../verdict/replay';
 import { chainLedger } from './ledger';
 
 export interface BuildInput {
@@ -12,6 +13,11 @@ export interface BuildInput {
   order: readonly string[];
   /** Live mode: only the source's own tasks are drawn; a fixture with no source task of its id is neither drawn nor counted. */
   live?: boolean;
+  /**
+   * Live mode: a task's ledger from the real chain, by its merge request (chain/taskLedger, server-side). When given, every
+   * task's ledger is the chain's, never the fixture's. Absent (demo): a fixture's illustrative rows, a source task's none.
+   */
+  ledgerFor?: (mr: string | null) => TaskLedger;
 }
 
 /** What a task with no fixture says it does not know. */
@@ -32,6 +38,12 @@ function withQuote(hunk: Hunk | undefined, quote: string | undefined): Hunk | nu
 export function toVerdict(word: string | null | undefined): Verdict {
   const w = (word ?? '').toUpperCase();
   return w === 'PASS' || w === 'FAIL' || w === 'INCONCLUSIVE' ? w : 'UNKNOWN';
+}
+
+/** The fixture's rows, chained with the FNV stand-in and checked the way the replay checks them. */
+function illustrative(seeds: readonly LedgerSeed[]): TaskLedger {
+  const ledger = chainLedger(seeds);
+  return { ledger, ledgerCheck: { hash: 'illustrative', brokenAt: firstBrokenSeq(ledger) } };
 }
 
 function buildChain(seeds: readonly ChainSeed[], refs: readonly (string | null)[]): ChainLink[] {
@@ -88,7 +100,7 @@ function buildTask(id: string, input: BuildInput): TaskView | null {
     grade: base.grade ?? null,
     linksResolved: base.linksResolved ?? null,
     awareAt: detail.awareAt ?? null,
-    ledger: chainLedger(detail.ledger),
+    ...(input.ledgerFor?.(base.mr) ?? illustrative(detail.ledger)),
     trace: detail.trace,
   };
 }
@@ -96,10 +108,10 @@ function buildTask(id: string, input: BuildInput): TaskView | null {
 /**
  * A data-source task the screen has no fixture for, drawn from its own fields alone: its proof's checks keep the claim
  * each answers (a check with no tie answers none), and its evidence link is the chain's Prove step when there is a chain.
- * What only a fixture holds stays unknown: no agent or flow run, no ledger or trace, no envelope or hunk. Nothing is
- * borrowed from another task.
+ * What only a fixture holds stays unknown: no agent or flow run, no trace, no envelope or hunk. Its ledger is the real
+ * chain's in live mode, none in demo. Nothing is borrowed from another task.
  */
-export function sourceTask(base: Task, input: Pick<BuildInput, 'tracks' | 'actionClasses'>): TaskView {
+export function sourceTask(base: Task, input: Pick<BuildInput, 'tracks' | 'actionClasses' | 'ledgerFor'>): TaskView {
   const chain = base.chain ? buildChain(base.chain, []) : [];
   const prove = chain.findIndex((l) => l.step === 'Prove');
   const p = base.proof;
@@ -136,7 +148,7 @@ export function sourceTask(base: Task, input: Pick<BuildInput, 'tracks' | 'actio
     grade: base.grade ?? null,
     linksResolved: base.linksResolved ?? null,
     awareAt: null,
-    ledger: [],
+    ...(input.ledgerFor?.(base.mr) ?? illustrative([])),
     trace: [],
   };
 }

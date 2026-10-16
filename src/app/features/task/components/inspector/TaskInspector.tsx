@@ -10,6 +10,7 @@ import { Chip } from '@/components/status/chip/Chip';
 import { hasMarkup } from '../../model/exhibits';
 import type { Selection } from '../../model/court/selection';
 import type { TaskView } from '../../model/types';
+import { ledgerCheckLabel } from '../../model/verdict/replay';
 import { derivedVerdict, verdictGlyph, verdictKind } from '../../model/verdict/verdict';
 import { Exhibits } from './Exhibits';
 import { LedgerRows } from './LedgerRows';
@@ -42,7 +43,7 @@ export function TaskInspector({
 }) {
   const verdict = derivedVerdict(task).verdict;
   const kind = verdictKind(verdict);
-  const ledgerRead = !task.fixture ? (
+  const ledgerRead = !task.fixture && !task.ledger.length ? (
     <HonestyChip key="l" kind="unknown">no rows</HonestyChip>
   ) : clock.ageSec === null ? (
     <HonestyChip key="l" kind="unknown">no poll yet</HonestyChip>
@@ -102,7 +103,7 @@ export function TaskInspector({
       <InspectorSection title="Exhibits" aux={task.proof.cls}>
         <Exhibits task={task} />
       </InspectorSection>
-      <InspectorSection title="Ledger" aux={`${task.ledger.length} rows · reads only`} open={open.ledger} onOpenChange={(o) => onOpen('ledger', o)}>
+      <InspectorSection title="Ledger" aux={`${task.ledger.length} rows · ${ledgerCheckLabel(task.ledgerCheck)} · reads only`} open={open.ledger} onOpenChange={(o) => onOpen('ledger', o)}>
         {task.ledger.length ? <LedgerRows rows={task.ledger} active={row} /> : <div className={styles.muted}>No ledger rows are held for this task</div>}
       </InspectorSection>
       <InspectorSection title="trace.jsonl" aux={task.flowRun} open={open.trace} onOpenChange={(o) => onOpen('trace', o)}>
