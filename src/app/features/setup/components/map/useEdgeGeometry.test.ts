@@ -33,7 +33,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-function mount(nodes: ReturnType<typeof node>[]) {
+function useMount(nodes: ReturnType<typeof node>[]) {
   const cv = { getBoundingClientRect: () => rect(0), querySelectorAll: () => nodes };
   useEdgeGeometry({ current: cv as unknown as HTMLElement });
   h.effect?.();
@@ -43,13 +43,13 @@ const caps = () => Object.keys((h.state as Measured | null)?.geom.caps ?? {}).le
 
 describe('useEdgeGeometry', () => {
   it('measures the nodes present at mount', () => {
-    mount([node('cap:a', 0)]);
+    useMount([node('cap:a', 0)]);
     roCallback?.();
     expect(caps()).toBe(1);
   });
 
   it('observes and measures a node added after mount (a re-probe that returns more doctor rows)', () => {
-    const { nodes } = mount([node('cap:a', 0)]);
+    const { nodes } = useMount([node('cap:a', 0)]);
     for (let i = 0; i < 8; i++) nodes.push(node(`cap:n${i}`, 20 * i));
     moCallback?.();
     roCallback?.();
@@ -59,6 +59,6 @@ describe('useEdgeGeometry', () => {
 
   it('does nothing, and does not throw, where ResizeObserver is missing', () => {
     vi.stubGlobal('ResizeObserver', undefined);
-    expect(() => mount([node('cap:a', 0)])).not.toThrow();
+    expect(() => useMount([node('cap:a', 0)])).not.toThrow();
   });
 });
