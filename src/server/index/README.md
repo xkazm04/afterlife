@@ -51,6 +51,7 @@ tables above. NULL means unknown, never zero.
 | 0012 | `class_tier.gated`, `gate_iid`, `gate_tier`, `gate_at` |
 | 0013 | `class_tier.sources` |
 | 0014 | `ledger_event.would`; `class_tier.trial` |
+| 0015 | index `stage_cell (project_id, scanned_at)`: the latest-scan reads stop walking a project's history |
 
 ## Ledger
 

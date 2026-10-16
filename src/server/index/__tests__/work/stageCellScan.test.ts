@@ -25,7 +25,7 @@ async function rowsTouched(scans: number): Promise<{ latestScanAt: number; lates
   await db.exec('analyze stage_cell');
   const plan = async (sql: string): Promise<number> => {
     const { rows } = await db.query<{ 'QUERY PLAN': { Plan: PlanNode }[] }>(`explain (analyze, format json, costs off, timing off) ${sql}`);
-    return touched(rows[0]['QUERY PLAN'][0].Plan);
+    return touched(rows[0]!['QUERY PLAN'][0]!.Plan);
   };
   return {
     // the two statements of repositories/work/stageCell.ts
@@ -40,8 +40,8 @@ describe('stage_cell latest-scan reads', () => {
   it('touch a constant number of rows however long the scan history grows', async () => {
     const small = await rowsTouched(100);
     const large = await rowsTouched(1000);
-    // 9 cells of the newest scan, plus the single entry max(scanned_at) reads: independent of the 9 x scans stored.
-    expect(large.latestScanAt).toBeLessThanOrEqual(2);
+    // 9 cells of the newest scan, plus the one index entry max(scanned_at) reads (3 nodes): independent of the 9 x scans stored.
+    expect(large.latestScanAt).toBeLessThanOrEqual(3);
     expect(large.latestCells).toBeLessThanOrEqual(12);
     expect(large.latestCells).toBe(small.latestCells);
   }, 60_000);
