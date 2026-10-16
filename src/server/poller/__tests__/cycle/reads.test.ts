@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { GlProject } from '@/server/gitlab/types';
 import { listProjects } from '@/server/index/repositories/fleet/project';
-import { runPollCycle } from '../cycle';
-import { cfg, NOW, rig } from './helpers';
+import { runPollCycle } from '../../cycle';
+import { cfg, NOW, rig } from '../helpers';
 
 const PROJECT_TABLE = /from project order by/;
 

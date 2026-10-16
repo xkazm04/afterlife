@@ -100,7 +100,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   const ledger: LedgerSource | null = ledgerProject ? { port, project: ledgerProject.id, ref: cfg.ledgerRef } : null;
   if (!ledger) result.warnings.push(`no ${cfg.ledgerProject} project in the group: the ledger is not imported`);
 
-  const known = await listProjects(db);
+  const known = [...(await listProjects(db))]; // read once; pollProject adds the row it writes
   for (const gone of known.filter((k) => k.gitlabId !== null && !all.some((p) => p.id === k.gitlabId && !p.archived))) {
     await recordPollError(db, projectSource(gone.id), 'the project is no longer in the group (moved, archived or deleted)');
     await setProjectState(db, gone.id, 'stale');
@@ -111,7 +111,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   const env = { port, db, cfg, now, mem, group, policy, history, ledger, known, trackOf: (cls: string) => classTrack.get(cls) ?? null };
 
   for (const gl of targets) {
-    const r = await pollProject({ ...env, known: await listProjects(db) }, gl);
+    const r = await pollProject(env, gl);
     result.projects.push(r);
     if (!r.ok) result.ok = false;
   }
