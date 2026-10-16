@@ -161,6 +161,7 @@ export function FleetScreen({ data, source, start, baseline }: { data: FleetData
         onKeyDown={onKeyDown}
         handlers={handlers}
         marks={changes.marks}
+        fleetEmpty={proj.projects.length === 0}
       />
       {menus.node}
       {pop.popover}

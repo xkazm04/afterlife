@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
 import { repollAction } from '@/server/actions/repollAction';
 import { notWatchedMessage, rejectedMessage, repollMessage, repollPlan, repollingMessage, simulateRepoll } from '../model/mode';
@@ -29,6 +29,7 @@ export function useMonitor(data: MonitorData) {
   const [openLead, setOpenLead] = useState<string | null>(null);
   const [mark, setMark] = useState<MarkKind | null>(null);
   const [hover, setHover] = useState<Hover>(null);
+  const polling = useRef<Set<string>>(new Set());
 
   const byId = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
   const leads = useMemo(() => leadsOf(data.groups, projects), [data.groups, projects]);
@@ -57,9 +58,18 @@ export function useMonitor(data: MonitorData) {
         return say(r.message);
       }
       say(repollingMessage(p.name));
+      // one server poll per feed at a time: the server throttles a second one and would answer with a failure for a poll that was in fact running
+      if (polling.current.has(id)) return;
+      polling.current.add(id);
       repollAction(id).then(
-        (r) => say(repollMessage(p.name, r)),
-        (e: unknown) => say(rejectedMessage(p.name, e)),
+        (r) => {
+          polling.current.delete(id);
+          say(repollMessage(p.name, r));
+        },
+        (e: unknown) => {
+          polling.current.delete(id);
+          say(rejectedMessage(p.name, e));
+        },
       );
     },
     [byId, data.mode],
@@ -68,7 +78,5 @@ export function useMonitor(data: MonitorData) {
   const toggleLead = useCallback((group: string) => setOpenLead((g) => (g === group ? null : group)), []);
   const toggleMark = useCallback((k: MarkKind) => setMark((m) => (m === k ? null : k)), []);
 
-  return { projects, byId, leads, totals, done, selected, setSelected, openLead, setOpenLead, toggleLead, mark, toggleMark, hover, setHover, resolve, repoll };
+  return { projects, byId, leads, totals, done, selected, setSelected, openLead, toggleLead, mark, toggleMark, hover, setHover, resolve, repoll };
 }
-
-export type MonitorState = ReturnType<typeof useMonitor>;

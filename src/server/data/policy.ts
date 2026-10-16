@@ -4,11 +4,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'yaml';
+import { DEMOTION_TRIGGERS, type DemotionTrigger } from '@/schemas/tier';
 import { isTier } from '@/lib/promotion/enroll/enroll';
 import { parsePolicy, type EnginePolicy } from '../../../engine/policy/load';
 import type { PolicyRules } from './types';
 
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+const triggers = (v: unknown): DemotionTrigger[] => strs(v).filter((t): t is DemotionTrigger => (DEMOTION_TRIGGERS as readonly string[]).includes(t));
 const strs = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 /** A step's `gated: all`, read as guardrail_blocks is: absent (or any other value) asks nothing, so no row. */
 const gatedOf = (step: { gated?: unknown } | undefined): { gated?: 'all' } => (step?.gated === 'all' ? { gated: 'all' } : {});
@@ -39,10 +41,10 @@ export function rulesOf(p: EnginePolicy): PolicyRules | null {
     startTier: isTier(p.start_tier) ? p.start_tier : null,
     cooldownDays: cooldown,
     leaseDays: num(p.grant_ttl_days),
-    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && window > 0 ? window : null, ...gatedOf(up), ...trialOf(up) },
+    toSupervised: { accepted: accS, reverts: revS, guardrailBlocks: blocks, windowLast: window !== null && Number.isInteger(window) && window > 0 ? window : null, ...gatedOf(up), ...trialOf(up) },
     toHandsOff: { accepted: accH, noEditRatio: noEdit, cleanDays: clean, humanKey: top?.human_key === true, ...gatedOf(top), ...trialOf(top) },
-    oneStepOn: strs(p.demotion?.one_step_on),
-    quarantineOn: strs(p.demotion?.quarantine_on),
+    oneStepOn: triggers(p.demotion?.one_step_on),
+    quarantineOn: triggers(p.demotion?.quarantine_on),
     envelope: { maxFiles: num(ho.max_files) ?? 0, maxLines: num(ho.max_lines) ?? 0, environments: strs(ho.environments) },
   };
 }
@@ -55,8 +57,9 @@ export function repoPolicy(root: string = process.cwd()): PolicyRules | null {
   let rules: PolicyRules | null = null;
   try {
     rules = rulesOf(parsePolicy(parse(fs.readFileSync(path.join(root, 'policy', 'trust-policy.yml'), 'utf8'))));
-  } catch {
+  } catch (e) {
     rules = null;
+    console.warn(`belay: no trust policy from ${path.join(root, 'policy', 'trust-policy.yml')}: ${e instanceof Error ? e.message : String(e)}`); // once per root: the cache below
   }
   cached = { root, rules };
   return rules;

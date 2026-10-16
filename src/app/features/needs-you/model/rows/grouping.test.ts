@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../data/pick';
 import { initialState } from '../state';
 import type { NeedsState } from '../types';
-import { groupOf, groupsFor, isVisible, navItems, visibleGroups } from './grouping';
+import { ON_A_CLOCK, groupOf, groupsFor, isVisible, navItems, visibleGroups } from './grouping';
 
 const demo = pickNeedsYouDemo();
 const fresh = (): NeedsState => initialState(demo);
@@ -27,6 +27,13 @@ describe('grouping', () => {
       expect(all).toEqual(['g1', 'g2', 'g3', 'g4', 'n1', 'n2', 'n4', 'n5']);
     }
   });
+  it('flags the clock groups and the Stage group on the group, one clock decision', () => {
+    expect(groupsFor('kind', fresh()).filter((g) => g.clock).map((g) => g.id)).toEqual(['clock']);
+    expect(groupsFor('deadline', fresh()).filter((g) => g.clock).map((g) => g.id)).toEqual(['d-clock']);
+    expect(groupsFor('project', fresh()).some((g) => g.clock)).toBe(false);
+    expect(groupsFor('kind', fresh()).filter((g) => g.stages).map((g) => g.id)).toEqual(['improve']);
+    expect(ON_A_CLOCK).toBe(1);
+  });
   it('finds the group a row belongs to', () => {
     expect(groupOf('kind', fresh(), 'n4')?.id).toBe('trust');
     expect(groupOf('project', fresh(), 'n4')?.id).toBe('p-pol');
@@ -48,6 +55,13 @@ describe('filtering', () => {
     expect(ids({ ...fresh(), query: 'RUNNER' })).toEqual(['setup:n5']);
     expect(isVisible({ ...fresh(), query: 'jUnit' }, 'h1', demo)).toBe(true);
     expect(isVisible({ ...fresh(), query: 'zzz' }, 'n2', demo)).toBe(false);
+  });
+  it('finds a ledger row by the kind label the State column shows, not only its internal key', () => {
+    const s = { ...fresh(), query: 'promotion' };
+    expect(isVisible(s, 'h0', demo)).toBe(true);
+    expect(isVisible({ ...fresh(), query: 'setup gate' }, 'h4', demo)).toBe(true);
+    expect(isVisible({ ...fresh(), query: 'cra sign-off' }, 'h0', demo)).toBe(false);
+    expect(isVisible({ ...fresh(), query: 'gap pick' }, 'h1', demo)).toBe(true);
   });
   it('drops a group that has nothing left to show', () => {
     expect(ids({ ...fresh(), query: 'guardrail' }).map((g) => g.split(':')[0])).toEqual(['improve', 'hist']);

@@ -2,17 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
-import type { ActionResponse } from '@/server/actions/types';
-import { commandLines, mrOf, NO_ANSWER, outcomeOf } from '@/server/actions/words';
+import { commandLines } from '@/server/actions/words';
 import { BASE_MIN, DOCTOR_MS, PROBE_MS, REDUCED_MAX_MS } from '../data/timing';
 import { copyText } from '../model/clipboard/copy';
 import { clockLabel } from '../model/flow/probeAge';
 import { probeWillPass, setupReducer } from '../model/flow/reducer';
 import { stepDetail } from '../model/flow/state';
 import { verdictOf } from '../model/flow/verify';
-import { mrName } from '../model/flow/wording';
+import { mrName, noMrAddress } from '../model/flow/wording';
 import type { SetupState } from '../model/types';
-import { checkArm, sendArm } from '../write/arm';
+import { checkArm } from '../write/arm';
+import { armClick } from './armFlow';
 import { liveProbes } from './liveFlow';
 import type { ArmWrites } from './useArmWrite';
 
@@ -53,6 +53,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
   const [state, dispatch] = useReducer(setupReducer, initial);
   const ref = useRef(state);
   const start = useRef(0);
+  const sending = useRef(new Set<string>());
   const { toast, status } = useToast();
   useEffect(() => {
     ref.current = state;
@@ -92,34 +93,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
       const a = ref.current.arm[id];
       return a ? mrName(a) : 'the MR';
     };
-    /** The click: confirm exactly the preview on screen. Moves the track only on a done, with what GitLab named. */
-    const send = async (id: string, revert: boolean) => {
-      if (ref.current.arm[id]?.st !== (revert ? 'armed' : 'ready')) return;
-      const what = `${revert ? 'disarm' : 'arm'} ${id}`;
-      let r: ActionResponse | null;
-      try {
-        r = await sendArm(ref.current.project, id, revert, writes.viewOf(id, revert));
-      } catch {
-        writes.clear();
-        say(`${what}: ${NO_ANSWER}`);
-        toast(NO_ANSWER);
-        return;
-      }
-      const o = r ? outcomeOf(r, what) : null;
-      if (!r || !o) {
-        toast(`Nothing sent · ${what}: the exact MR is not on screen yet`);
-        return;
-      }
-      if (o.status === 'changed') writes.put(id, revert, { kind: 'preview', preview: o.preview });
-      else writes.clear();
-      if (o.status === 'done' && r.status === 'done') {
-        const mr = mrOf(r.results);
-        const url = r.results.find((x) => x.made === mr)?.url ?? null;
-        dispatch({ t: 'arm-sent', id, revert, mr, url, simulated: o.simulated });
-      }
-      say(o.text);
-      toast(o.text);
-    };
+    const send = (id: string, revert: boolean) => armClick({ now: () => ref.current, dispatch, writes, say, toast, out: sending.current }, id, revert);
     return {
       probe,
       send: async (n) => {
@@ -160,7 +134,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
       openMr: (id) => {
         const a = ref.current.arm[id];
         if (a?.url) window.open(a.url, '_blank', 'noopener,noreferrer');
-        else toast(a?.simulated ? 'Demo mode opened no MR: there is nothing to open' : `GitLab gave no address for ${nameOf(id)}`);
+        else toast(noMrAddress(!!a?.simulated, nameOf(id)));
       },
       disarm: (id) => send(id, true),
       reprobe: async () => {

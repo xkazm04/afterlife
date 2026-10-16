@@ -1,12 +1,12 @@
 .strip {
-  padding: 10px 14px 8px;
+  padding: calc(10px * var(--ui-scale)) calc(14px * var(--ui-scale)) calc(8px * var(--ui-scale));
   border-bottom: 1px solid var(--border);
 }
 .top {
   display: flex;
   align-items: flex-end;
   flex-wrap: wrap;
-  gap: 4px 22px;
+  gap: calc(4px * var(--ui-scale)) calc(22px * var(--ui-scale));
 }
 .top > div {
   margin-bottom: 0;
@@ -21,7 +21,7 @@
 }
 .gates {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 0 14px;
-  margin-top: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(calc(260px * var(--ui-scale)), 1fr));
+  gap: 0 calc(14px * var(--ui-scale));
+  margin-top: calc(6px * var(--ui-scale));
 }

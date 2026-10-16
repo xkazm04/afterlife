@@ -5,21 +5,9 @@ export type Ceiling = Tier | 'human_only';
 
 export const TIER_ORDER: readonly Tier[] = ['quarantined', 'assisted', 'supervised', 'hands_off'];
 
-export const TIER_LABEL: Record<Ceiling, string> = {
-  quarantined: 'QUARANTINED',
-  assisted: 'ASSISTED',
-  supervised: 'SUPERVISED',
-  hands_off: 'HANDS-OFF',
-  human_only: 'HUMAN ONLY',
-};
-
-export type DemotionTrigger =
-  | 'revert'
-  | 'reopened_finding'
-  | 'post_merge_proof_fail'
-  | 'default_branch_red_1h'
-  | 'guardrail_high'
-  | 'budget_breach_x2';
+/** Every trigger the tripwire can be handed: the one list the engine, the policy reader and the screens share. */
+export const DEMOTION_TRIGGERS = ['revert', 'reopened_finding', 'post_merge_proof_fail', 'default_branch_red_1h', 'guardrail_high', 'budget_breach_x2'] as const;
+export type DemotionTrigger = (typeof DEMOTION_TRIGGERS)[number];
 
 export interface TrustPolicy {
   version: 1;

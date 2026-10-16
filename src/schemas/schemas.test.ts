@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { append, verifyChain, type LedgerEvent } from './ledger';
+import { append, LEDGER_KINDS, OBSERVERS, SUBJECT_TYPES, verifyChain, type LedgerEvent } from './ledger';
 import { verdictOf, type Check } from './proof';
 import { demote, type TrustPolicy } from './tier';
 import { due } from './cra';
@@ -43,6 +43,17 @@ describe('ledger chain', () => {
     expect(verifyChain(chain)).toBeNull();
     const tampered = chain.map((e) => (e.seq === 2 ? { ...e, tier_at_time: 'hands_off' as const } : e));
     expect(verifyChain(tampered)).toBe(2);
+  });
+});
+
+// The writer (engine/commands/ledger.ts) and the reader (src/server/ledger/parse.ts) both take these lists, so a kind one accepts
+// and the other refuses cannot exist; the unions are derived from them, so a member cannot be in a type and not in a list.
+describe('ledger vocabularies', () => {
+  it('lists every kind, subject type and observer once', () => {
+    expect([...LEDGER_KINDS]).toEqual(['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event']);
+    expect([...SUBJECT_TYPES]).toEqual(['mr', 'issue', 'pipeline', 'vulnerability', 'deployment']);
+    expect([...OBSERVERS]).toEqual(['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job']);
+    for (const l of [LEDGER_KINDS, SUBJECT_TYPES, OBSERVERS]) expect(new Set(l).size).toBe(l.length);
   });
 });
 

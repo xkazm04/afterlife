@@ -3,28 +3,34 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { memo, useEffect, useRef, useState } from 'react';
+import { APP_NAV, SETTINGS_NAV } from '@/components/shell/sidebar/navItems';
 import bottom from './bottom.module.css';
 import styles from './chrome.module.css';
 
-export const SCREENS: readonly (readonly [string, string])[] = [
-  ['Fleet', '/fleet'],
-  ['Monitor', '/monitor'],
-  ['Needs you', '/needs-you'],
-  ['Ladder', '/ladder'],
-  ['Maturity', '/maturity'],
-  ['Task', '/task'],
-  ['Setup', '/setup'],
-  ['Theater', '/theater'],
-];
+/** Every screen of the app, from the sidebar's own list (Settings included), so the menu cannot drift from it. */
+export const SCREENS: readonly (readonly [string, string])[] = [...APP_NAV, SETTINGS_NAV].map((e) => [e.label, e.href] as const);
+
+/**
+ * Escape closes the open menu and is claimed, so the door's own Esc (up a level) does not also fire on the same press:
+ * `useDoor` skips a key whose default is prevented.
+ */
+export function claimEscape(e: { key: string; preventDefault: () => void }): boolean {
+  if (e.key !== 'Escape') return false;
+  e.preventDefault();
+  return true;
+}
 
 /** Top left: the brand plate. Top right: the way in, and every screen. */
 export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; asOf: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!open) return;
     const close = (e: PointerEvent | KeyboardEvent) => {
-      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setOpen(false);
+      const esc = e instanceof KeyboardEvent && claimEscape(e);
+      if (esc || (!(e instanceof KeyboardEvent) && !ref.current?.contains(e.target as Node))) setOpen(false);
+      if (esc) toggle.current?.focus(); // the list unmounts under a keyboard user: focus goes back to Screens, not to the body
     };
     window.addEventListener('pointerdown', close);
     window.addEventListener('keydown', close, true);
@@ -49,7 +55,7 @@ export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; a
           <Link className={styles.enter} href="/fleet" data-role="door-enter">
             Enter Afterlife
           </Link>
-          <button type="button" className={styles.menuBtn} aria-expanded={open} aria-controls="door-menu" aria-label="Screens, all of the app" onClick={() => setOpen((v) => !v)}>
+          <button ref={toggle} type="button" className={styles.menuBtn} aria-expanded={open} aria-controls="door-menu" aria-label="Screens, all of the app" onClick={() => setOpen((v) => !v)}>
             Screens<span className={styles.cv}>▾</span>
           </button>
         </div>

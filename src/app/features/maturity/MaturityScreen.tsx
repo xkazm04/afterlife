@@ -10,12 +10,12 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { Stage } from '@/schemas';
 import { Crag } from './components/crag/Crag';
 import { ScanMeta } from './components/chrome/ScanMeta';
-import { StageList } from './components/chrome/StageList';
+import { StageList, pickedByStage } from './components/chrome/StageList';
 import { Stepper } from '@/components/controls/toolbar/Stepper';
 import { GapsTable } from './components/gaps/GapsTable';
 import { SendSheet } from './components/sheet/SendSheet';
 import { StatusCounts } from './components/chrome/StatusCounts';
-import { MAT_META } from './data/meta';
+import { MAT_META, projectLabel } from './data/meta';
 import { useGapSheet } from './hooks/useGapSheet';
 import { stagePath, useStepNav } from './hooks/useStepNav';
 import { useMaturityShared } from './MaturityProvider';
@@ -36,7 +36,7 @@ const LIVE_CADENCE = 'the belay-maturity-scan job, on its pipeline schedule';
  */
 export function MaturityScreen() {
   const { api, project, mode } = useMaturityShared();
-  const { ctx, state, dispatch, routes, steps, select, setMode } = api;
+  const { ctx, state, dispatch, routes, steps, pending, select, setMode } = api;
   const router = useRouter();
   const open = (stage: Stage) => router.push(stagePath(stage));
   const scale = useUiScale();
@@ -46,8 +46,6 @@ export function MaturityScreen() {
   const onGo = (k: Step) => {
     if (go(k) && k === 1) gapsRef.current?.scrollIntoView({ block: 'nearest' });
   };
-  const pickedByStage: Partial<Record<Stage, string>> = {};
-  for (const g of ctx.gaps) if (state.picked.includes(g.id) && !state.flow[g.id]) pickedByStage[g.stage] = g.id;
   // The sheet's writes are the layout's (model/flow/send.ts): an answer is recorded as it arrives, so closing only closes.
   const sheet = useGapSheet(api, project, mode);
   const closeSheet = () => dispatch({ type: 'cancelSheet' });
@@ -56,8 +54,8 @@ export function MaturityScreen() {
   return (
     <Window
       title="Maturity"
-      subtitle={ctx.live ? project : MAT_META.project.replace('/', ' / ')}
-      sidebar={<StageList routes={routes} pickedByStage={pickedByStage} selected={state.sel} onSelect={open} />}
+      subtitle={projectLabel(ctx, project)}
+      sidebar={<StageList routes={routes} pickedByStage={pickedByStage(pending, ctx)} selected={state.sel} onSelect={open} />}
       toolbar={
         <>
           <SegmentedControl label="Crag shows" options={MODES} value={state.mode} onChange={setMode} />

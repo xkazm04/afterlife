@@ -1,6 +1,7 @@
 import { EVIDENCE_RUNG, type Snapshot } from '../../model/derive/snapshots';
 import type { TheaterDemo } from '../../model/types';
 import { Card } from '@/components/surface/Card';
+import { RungSteps } from '../parts/RungSteps';
 import styles from './Rail.module.css';
 
 /** Stages with evidence: nine rows of four rung steps, "n / 9" on top. A stage that just crossed into evidence lifts. */
@@ -22,11 +23,7 @@ export function StageRows({ snap, prev, demo }: { snap: Snapshot; prev?: Snapsho
           return (
             <div key={st} className={cls.filter(Boolean).join(' ')} title={`${st} · R${r} ${demo.rungNames[r] ?? ''}`}>
               <span>{st}</span>
-              <span className={styles.bar}>
-                {[1, 2, 3, 4].map((k) => (
-                  <i key={k} className={r >= k ? styles.on : undefined} />
-                ))}
-              </span>
+              <RungSteps rung={r} evidence={r >= EVIDENCE_RUNG} className={styles.bar} />
             </div>
           );
         })}

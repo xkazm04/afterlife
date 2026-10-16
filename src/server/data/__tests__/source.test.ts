@@ -1,4 +1,7 @@
+import fs from 'node:fs';
 import { afterEach, describe, expect, it } from 'vitest';
+import { parse as parseYaml } from 'yaml';
+import { parsePolicy } from '../../../../engine/policy/load';
 import { DEMO } from '@/lib/demo';
 import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { upsertClassTiers } from '@/server/index/repositories/fleet/classTier';
@@ -9,7 +12,12 @@ import { readDataConfig } from '../config';
 import { demoSource } from '../demoSource';
 import { liveSource } from '../live/liveSource';
 import { buildSnapshot } from '../live/snapshot';
+import { rulesOf } from '../policy';
 import { getDataSource, setDataSource } from '../select';
+import type { PolicyRules } from '../types';
+import { GitLabError } from '@/server/gitlab/errors';
+import type { PairingRow } from '@/server/index/repositories/pairing';
+import { setupReads, type SetupPort } from '../setup/read';
 
 afterEach(() => setDataSource(null));
 
@@ -75,5 +83,48 @@ describe('a live snapshot of an index that knows little', () => {
     expect(d.tasks).toHaveLength(1);
     expect(d.tasks[0]).toMatchObject({ id: 'T1', track: 'T?', tierAtTime: 'quarantined' });
     expect(d.fleet.projects[0]?.proofs7d).toBeNull(); // unknown stays null
+  });
+});
+
+describe("Setup's step 1 is the snapshot's pairing row", () => {
+  const row: PairingRow = { id: 'default', gitlabHost: 'gitlab.com', groupPath: 'acme-lab', checkoutPath: '/work/ledgerline', pairedAt: null };
+  const step1 = async (pairing: PairingRow | null) => (await setupReads(null, pairing, 'ledgerline').steps()).steps[1];
+
+  it('done with a checkout, failed without one, failed with no row at all', async () => {
+    expect(await step1(row)).toEqual({ state: 'done', text: 'paired with acme-lab on gitlab.com · checkout /work/ledgerline' });
+    expect(await step1({ ...row, checkoutPath: null })).toEqual({ state: 'failed', text: 'acme-lab on gitlab.com is paired, but no checkout is recorded' });
+    expect(await step1(null)).toEqual({ state: 'failed', text: 'the index has no pairing row: no poll has paired a group yet' });
+  });
+});
+
+describe("Setup's step 0 and step 4 when the port fails", () => {
+  const steps = async (err: Error) => {
+    const port = new Proxy({}, { get: (_t, k) => (k === 'currentUser' ? () => Promise.reject(err) : () => Promise.reject(new Error('down'))) });
+    const sp: SetupPort = { port: port as unknown as SetupPort['port'], groupId: 1, gitlabId: () => Promise.resolve(null) };
+    return (await setupReads(sp, null, 'ledgerline').steps()).steps;
+  };
+
+  it('not signed in is failed with the status; any other failure of the login is unknown with what failed', async () => {
+    expect((await steps(new GitLabError('auth', 'bad token', 'user', 401)))[0]).toEqual({ state: 'failed', text: 'glab api user → 401 · not signed in (bad token)' });
+    expect((await steps(new Error('boom')))[0]).toEqual({ state: 'unknown', reason: 'glab api user failed: boom' });
+  });
+
+  it("a group listing that fails leaves the projects step unknown, naming why, not failed", async () => {
+    expect((await steps(new Error('boom')))[4]).toEqual({ state: 'unknown', reason: "listing the group's projects failed: down" });
+  });
+});
+
+describe("the policy's window_last", () => {
+  // The poller counts over the last N outputs only for a positive integer (poller/derive/tiers.ts windowOf); the rules a screen
+  // shows must name the same window, or the row reads "counted over the last 2.5 outputs" and is never met.
+  const withWindow = (n: unknown): PolicyRules | null => {
+    const raw = parseYaml(fs.readFileSync('policy/trust-policy.yml', 'utf8')) as { promotion: { assisted_to_supervised: Record<string, unknown> } };
+    raw.promotion.assisted_to_supervised.window_last = n;
+    return rulesOf(parsePolicy(raw));
+  };
+
+  it('is shown for a positive integer only; anything else is no window', () => {
+    const cases: [unknown, number | null][] = [[5, 5], [1, 1], [2.5, null], [0.5, null], [0, null], [-3, null], ['5', null], [null, null]];
+    expect(cases.map(([n]) => withWindow(n)?.toSupervised.windowLast)).toEqual(cases.map(([, shown]) => shown));
   });
 });

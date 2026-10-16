@@ -10,10 +10,10 @@ export interface Reel {
   takes: readonly Take[];
 }
 
-export const ILLUSTRATIVE_REEL: Reel = { entries: REPLAY_LEDGER, takes: TAKES };
+const ILLUSTRATIVE_REEL: Reel = { entries: REPLAY_LEDGER, takes: TAKES };
 
 export const N = REPLAY_LEDGER.length;
-export const DEFAULT_DWELL_MS = 2600;
+const DEFAULT_DWELL_MS = 2600;
 export const PREROLL_MS = 2000;
 export const PREROLL_REDUCED_MS = 1000;
 /** Pause between the end of a looped take and its next roll. */
@@ -52,9 +52,14 @@ export const dwell = (i: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entri
 export const seqAt = (i: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entries[i]?.seq ?? 0;
 export const indexOfSeq = (seq: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entries.findIndex((e) => e.seq === seq);
 export const takeAt = (k: number, r: Reel = ILLUSTRATIVE_REEL): Take => r.takes[k] ?? r.takes[0] ?? { name: '', a: 0, b: 0 };
+/** A take's entries as reel indexes, first to last (-1 where its seq is not in the reel). The one rule for "which entries are this take's". */
+export const takeSpan = (t: Take, r: Reel): Marks => ({ a: indexOfSeq(t.a, r), b: indexOfSeq(t.b, r) });
 /** The take holding entry i. A take is a run of entries (a real film's MRs interleave in seq, never in index). */
 export const takeOfIndex = (i: number, r: Reel = ILLUSTRATIVE_REEL): number =>
-  r.takes.findIndex((t) => i >= indexOfSeq(t.a, r) && i <= indexOfSeq(t.b, r));
+  r.takes.findIndex((t) => {
+    const { a, b } = takeSpan(t, r);
+    return i >= a && i <= b;
+  });
 /** The lowest and highest seq among entries a..b (reel indexes, inclusive). A seq is a label: it need not rise with the index. */
 export function seqLabel(r: Reel, a: number, b: number): Marks {
   const seqs = r.entries.slice(Math.max(0, a), b + 1).map((e) => e.seq);
@@ -69,8 +74,7 @@ export const progress = (s: Pick<ReplayState, 'reel' | 'i' | 't'>): number => Ma
 /** The range a roll plays, as reel indexes: the marked in/out, or the selected take's own. */
 export function rangeOf(s: Pick<ReplayState, 'reel' | 'take' | 'mark'>): Marks {
   if (s.mark) return s.mark;
-  const t = takeAt(s.take, s.reel);
-  return { a: indexOfSeq(t.a, s.reel), b: indexOfSeq(t.b, s.reel) };
+  return takeSpan(takeAt(s.take, s.reel), s.reel);
 }
 
 /** The range a roll plays, as seq labels (the lowest and highest seq inside it). */
@@ -89,7 +93,7 @@ export interface Readout {
 }
 
 /** What the screen (everything but the film position) reads: it changes on entry, take, marks and transport only. */
-export interface View {
+interface View {
   reel: Reel;
   i: number;
   take: number;

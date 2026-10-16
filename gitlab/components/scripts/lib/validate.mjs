@@ -31,10 +31,12 @@ export function validate(value, schema, at = '$') {
     if (schema.items) value.forEach((item, i) => bad.push(...validate(item, schema.items, `${at}[${i}]`)));
   }
   if (kind(value) === 'object') {
-    for (const k of schema.required ?? []) if (!(k in value)) bad.push(`${at}: missing ${k}`);
+    // Own keys only: `k in value` and `props[k]` also find Object.prototype's (constructor, toString, __proto__ ...), which
+    // would let a smuggled key of that name past additionalProperties:false.
+    for (const k of schema.required ?? []) if (!Object.hasOwn(value, k)) bad.push(`${at}: missing ${k}`);
     const props = schema.properties ?? {};
     for (const [k, v] of Object.entries(value)) {
-      if (props[k]) bad.push(...validate(v, props[k], `${at}.${k}`));
+      if (Object.hasOwn(props, k)) bad.push(...validate(v, props[k], `${at}.${k}`));
       else if (schema.additionalProperties === false) bad.push(`${at}: unexpected ${k}`);
     }
   }

@@ -45,6 +45,11 @@ describe('filterProjects', () => {
     expect(filterProjects(P, { ...EMPTY_FILTERS, q: 'DATA' }).map((p) => p.id)).toEqual(['d']);
     expect(filterProjects(P, { ...EMPTY_FILTERS, q: 'b' }).map((p) => p.id)).toEqual(['b']);
   });
+  it('finds a project by its group whatever the case of the group path', () => {
+    const mixed = [makeProject({ id: 'x', name: 'zed', group: 'Core-Banking' })];
+    expect(filterProjects(mixed, { ...EMPTY_FILTERS, q: 'core' }).map((p) => p.id)).toEqual(['x']);
+    expect(filterProjects(mixed, { ...EMPTY_FILTERS, q: 'CORE-BANK' }).map((p) => p.id)).toEqual(['x']);
+  });
   it('ANDs the menu filters: any chosen state, any class at a chosen tier', () => {
     const f = { ...EMPTY_FILTERS, states: new Set(['stale' as const, 'watching' as const]), tiers: new Set(['quarantined' as const]) };
     expect(filterProjects(P, f).map((p) => p.id)).toEqual(['b']);

@@ -7,7 +7,7 @@ import { cx } from '../cx';
 export function Backdrop({ g, hatchId, rungNames }: { g: CragGeom; hatchId: string; rungNames: readonly string[] }) {
   const s = g.scale;
   const gap = g.yOf(0) - g.yOf(1);
-  return (
+  const art = (
     <g className={styles.inert}>
       <defs>
         <pattern id={hatchId} width={6 * s} height={6 * s} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -22,17 +22,24 @@ export function Backdrop({ g, hatchId, rungNames }: { g: CragGeom; hatchId: stri
           <path className={cx(styles.contour, styles.main)} d={wavyPath(g, g.yOf(r), 4, r)} />
         </g>
       ))}
-      {[0, 1, 2, 3, 4].map((r) => {
-        const y = r === 0 ? g.Y0 + 4 * s : g.yOf(r);
-        const name = rungNames[r] ?? '';
-        return (
-          <g key={r}>
-            <title>{`R${r} ${name}: ${MAT_META.rungMeans[r] ?? ''}`}</title>
-            <text className={styles.rlab} x={14 * s} y={y - s}>{`R${r}`}</text>
-            <text className={styles.rlab2} x={14 * s} y={y + 13 * s}>{name}</text>
-          </g>
-        );
-      })}
     </g>
+  );
+  // Outside the inert group: a <title> tooltip needs the pointer, and the group sets pointer-events: none.
+  const labels = [0, 1, 2, 3, 4].map((r) => {
+    const y = r === 0 ? g.Y0 + 4 * s : g.yOf(r);
+    const name = rungNames[r] ?? '';
+    return (
+      <g key={r}>
+        <title>{`R${r} ${name}: ${MAT_META.rungMeans[r] ?? ''}`}</title>
+        <text className={styles.rlab} x={14 * s} y={y - s}>{`R${r}`}</text>
+        <text className={styles.rlab2} x={14 * s} y={y + 13 * s}>{name}</text>
+      </g>
+    );
+  });
+  return (
+    <>
+      {art}
+      {labels}
+    </>
   );
 }

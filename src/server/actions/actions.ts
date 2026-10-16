@@ -33,9 +33,10 @@ export async function previewAction(intent: unknown): Promise<ActionResponse> {
 
 export async function confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> {
   const deps = actionDeps();
-  if (!deps || typeof previewId !== 'string') return NOT_READY;
+  if (!deps) return NOT_READY;
   const away = await fromElsewhere(deps);
   if (away) return away;
+  if (typeof previewId !== 'string') return { status: 'refused', reason: 'a confirm names the preview id of the preview it confirms: preview first' };
   const r = await confirmIntent(deps, intent, previewId);
   // Done and failed ran commands and polled; refused and changed ran nothing; demo never runs anything.
   if (deps.mode === 'live' && (r.status === 'done' || r.status === 'failed')) refresh();

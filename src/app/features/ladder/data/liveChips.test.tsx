@@ -5,6 +5,7 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
+import { rowDomId } from '@/components/table/model/rowNavigation';
 import { DEMO } from '@/lib/demo';
 import { setDataSource } from '@/server/data';
 import { HUMAN_KEY } from '@/lib/promotion';
@@ -49,7 +50,7 @@ afterAll(() => setDataSource(null));
 
 /** The rendered table row of one class. */
 const rowOf = (id: string): string => {
-  const start = page.indexOf(`id="row-${id.replace(/[^\w-]/g, '_')}"`);
+  const start = page.indexOf(`id="${rowDomId(id)}"`);
   expect(start).toBeGreaterThan(-1);
   const next = page.indexOf('id="row-', start + 1);
   return page.slice(start, next === -1 ? undefined : next);

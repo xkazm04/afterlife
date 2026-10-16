@@ -1,0 +1,50 @@
+import { describe, expect, it } from 'vitest';
+import { policy } from '../__tests__/helpers';
+import { DEMOTION_TRIGGERS as SCHEMA_TRIGGERS } from '../../src/schemas/tier';
+import { DEMOTION_TRIGGERS, parsePolicy } from './load';
+
+const base = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+  ...(policy() as unknown as Record<string, unknown>),
+  demotion: { one_step_on: ['revert'], quarantine_on: ['guardrail_high'] },
+  ...over,
+});
+
+describe('parsePolicy: demotion triggers', () => {
+  it('takes the trigger list from the schema: one definition, not a copy', () => {
+    expect(SCHEMA_TRIGGERS).toHaveLength(6);
+    expect(DEMOTION_TRIGGERS).toBe(SCHEMA_TRIGGERS);
+  });
+
+  it('accepts every trigger the tripwire can fire, in either list', () => {
+    expect(DEMOTION_TRIGGERS).toHaveLength(6);
+    expect(() => parsePolicy(base({ demotion: { one_step_on: [...DEMOTION_TRIGGERS], quarantine_on: [...DEMOTION_TRIGGERS] } }))).not.toThrow();
+  });
+
+  it('refuses a trigger the tripwire never fires: a typo would silently disarm the demotion', () => {
+    for (const list of ['one_step_on', 'quarantine_on'] as const) {
+      const demotion = { one_step_on: [], quarantine_on: [], [list]: ['guardrail_hgh'] };
+      expect(() => parsePolicy(base({ demotion })), list).toThrow(new RegExp(`demotion.${list} names "guardrail_hgh"`));
+    }
+  });
+});
+
+describe('parsePolicy: rerun_stats thresholds', () => {
+  it('accepts the shipped block, a partial block and no block', () => {
+    expect(() => parsePolicy(base({ rerun_stats: { min_runs: 5, real_failure_rate: 0.8 } }))).not.toThrow();
+    expect(() => parsePolicy(base({ rerun_stats: { real_failure_rate: 1 } }))).not.toThrow();
+    expect(() => parsePolicy(base({ rerun_stats: {} }))).not.toThrow();
+  });
+
+  it('refuses a threshold that is not a usable number: a NaN rate would call every real failure a flake', () => {
+    const bad: [Record<string, unknown>, RegExp][] = [
+      [{ real_failure_rate: '0,8' }, /real_failure_rate must be a number/],
+      [{ real_failure_rate: 0 }, /above 0 and at most 1/],
+      [{ real_failure_rate: 80 }, /above 0 and at most 1/],
+      [{ min_runs: '5' }, /min_runs must be a number/],
+      [{ min_runs: 0 }, /whole number of at least 1/],
+      [{ min_runs: 2.5 }, /whole number of at least 1/],
+    ];
+    for (const [block, message] of bad) expect(() => parsePolicy(base({ rerun_stats: block })), JSON.stringify(block)).toThrow(message);
+    expect(() => parsePolicy(base({ rerun_stats: 5 }))).toThrow(/rerun_stats must be an object/);
+  });
+});

@@ -3,7 +3,7 @@ import type { DoctorRead, ReadStamp, StepsRead } from '@/server/data/setup/types
 import { STEP_DETAIL } from '../../data/stepDetail';
 import { doctorRowsOf, stepFromRead } from '../live/live';
 import type { ArmState, DoctorRow, SetupState, StepState } from '../types';
-import { toCapStatus, recomputeLocks, unmet, armList } from './state';
+import { toCapStatus, recomputeLocks } from './state';
 import type { Verdict } from './verify';
 
 /** Every change to the setup. Probes are the only thing that moves a step to done; Belay writes only on a click. */
@@ -60,11 +60,8 @@ function verifyEnd(s: SetupState, id: string, v: Verdict): SetupState {
   if (!a || a.st !== 'probing') return s;
   if (!v.ok) return setArm(s, id, { st: 'open', found: v.text });
   if (!a.revert) return recomputeLocks(setArm(s, id, { st: 'armed', found: null }));
-  // A merged revert disarms it; anything ready that leaned on it locks again.
-  const disarmed = setArm(s, id, { st: 'ready', mr: null, url: null, revert: false, simulated: false, found: null });
-  let arm = disarmed.arm;
-  for (const b of armList(disarmed)) if (b.st === 'ready' && unmet(disarmed, b.id).length) arm = { ...arm, [b.id]: { ...b, st: 'locked' } };
-  return recomputeLocks({ ...disarmed, arm });
+  // A merged revert disarms it; anything ready that leaned on it locks again (recomputeLocks).
+  return recomputeLocks(setArm(s, id, { st: 'ready', mr: null, url: null, revert: false, simulated: false, found: null }));
 }
 
 function pickGroup(s: SetupState, group: string, now: number, at: string): SetupState {

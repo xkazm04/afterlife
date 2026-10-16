@@ -29,6 +29,9 @@ Adding a DOM environment is a dependency decision that has not been taken.
 ## Parts
 - `components/band/` the CRA band: live countdown, 24 h rail, grade ladder (attested struck out), 6/6 evidence.
 - `components/table/` decisions grouped By kind / project / deadline, one action per row, "Decided this week".
+- `components/detail/` `/needs-you/[item]`: one decision as short cards (the inspector), opened from a row's title or Enter. It
+  shares the desk's state with the list through the layout's `NeedsStore`, so a write staged there lands in the list's outbox
+  and staging sends the viewer back to `/needs-you`. Only the desk has pages (`loadNeedsItem`); the live list decides in place.
 - `components/outbox/` the drawer: staged writes with exact command + diff, Run, Remove, sent this session.
 - `write/promote.ts` the policy MRs, through the server actions: n1 (promote) and n4 (re-admit, a promote-class to
   Assisted). `previewAction` when the decision is selected or staged; its commands and diff are what the outbox and the

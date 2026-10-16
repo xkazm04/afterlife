@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
+import { PROOF_CLASSES as SCHEMA_CLASSES } from '@/schemas/proof';
 import { CHECKED_CLASSES, PROOF_CLASSES } from '../../../engine/proofs';
 import { STUB_CLASSES } from '../../../engine/proofs/stubs';
 import { HUMAN_KEY, isMechanical, MECHANICAL_PROOFS, NOT_RECORDED, promotion, whyNot, type Counters } from '.';
@@ -89,6 +90,7 @@ describe('the mechanical proof class: a stub proof never reads met', () => {
   });
   it('every class the engine checks is mechanical, and nothing else is: the set is the engine list, no more', () => {
     expect([...MECHANICAL_PROOFS].sort()).toEqual([...CHECKED_CLASSES].sort());
+    expect([...MECHANICAL_PROOFS, ...STUB_CLASSES].sort()).toEqual([...SCHEMA_CLASSES].sort()); // the schema list is the union: a ninth class must take a side
     expect(PROOF_CLASSES.filter((c) => !MECHANICAL_PROOFS.has(c))).toEqual([...STUB_CLASSES]);
     expect([isMechanical('repro'), isMechanical('bench-delta'), isMechanical('score-delta'), isMechanical('human-review')]).toEqual([true, true, true, false]);
   });

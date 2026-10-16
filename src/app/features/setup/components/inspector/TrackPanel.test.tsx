@@ -51,6 +51,24 @@ describe('Setup, a track page: its classes where they stand now', () => {
     expect(html).not.toContain('>demo<');
   });
 
+  it('"Relies on in GitLab" lists the demo catalogue\'s capabilities in demo and none in live (CapPanel hides the same illustrative table)', () => {
+    const demo = page(getActionClasses(), null, 'T3');
+    expect(demo).toContain('Service accounts for flows');
+    expect(demo).toContain('Pipelines, MRs, releases');
+    const at = { at: '2026-10-07T09:30:00.000Z', label: '11:30' };
+    const steps = Object.fromEntries(Array.from({ length: 15 }, (_, n) => [n, { state: 'unknown' as const, reason: 'not probed' }]));
+    const live: LiveSetupRead = {
+      group: 'kazdanm', host: 'gitlab.com', project: 'afterlife', projects: ['afterlife'],
+      tracks: Object.fromEntries(getSetup().arm.map(([id]) => [id, { state: 'undefined' as const, text: 'not defined' }])),
+      tracksAt: at, doctor: { ...at, error: null, rows: [] }, steps: { ...at, steps },
+    };
+    const html = page(getActionClasses(), live, 'T3');
+    const section = html.slice(html.indexOf('Relies on in GitLab'));
+    expect(section).not.toContain('Service accounts for flows');
+    expect(section).not.toContain('Pipelines, MRs, releases');
+    expect(section).toContain('Not mapped: Belay does not tie a track to the live capabilities yet');
+  });
+
   it('T4 with no record yet: Standing shows what the enrollment MR would write (start_tier), not a grant and no Supervised', () => {
     const classes = getActionClasses().map((c) => (c.id === 'guard.block' ? { ...c, tier: 'quarantined' as const, cell: 'no_record' as const } : c));
     const html = page(classes, null, 'T4', 'assisted');

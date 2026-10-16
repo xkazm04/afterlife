@@ -12,7 +12,7 @@ import { StageMeter } from '@/components/viz/StageMeter';
 import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { FleetProject, TierKey } from '@/lib/demo/types';
-import { cellName, standingCount, TIER_DISPLAY_ORDER, tiersKnown, type Standing } from '@/lib/tiers';
+import { cellName, standingCount, STANDINGS, TIER_DISPLAY_ORDER, tiersKnown } from '@/lib/tiers';
 import { columnRole } from '../../model/list/sorting';
 import type { FleetMeta, FleetView } from '../../model/types';
 import { ChangeMark } from './cells/ChangeMark';
@@ -36,7 +36,6 @@ export interface ProjectRowProps {
   mark?: string;
 }
 
-const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
 
 /** The proofs cell's tooltip: its numbers say pass and fail only by position and colour. */
 const proofsTitle = (c: FleetProject['proofs7d']) => (c ? `Last 7 days: ${c.pass} pass, ${c.fail} fail` : 'Proofs unknown for the last 7 days');

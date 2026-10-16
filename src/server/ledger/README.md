@@ -48,6 +48,10 @@ the engine's `ledger append` and the index (migration 0014: `ledger_event.would`
 other kind, on a tier that is not the rung above, and with any key but those two. The poller reads it as the next rung's
 trial (`src/server/poller/README.md`). Tests: `__tests__/would.test.ts`.
 
+A `tier_decision` may also state `state_rev` (the 40-hex commit of tier-state.yml the gate read) and `withdrew` (the grants, `approval` and `auto_merge`, each at most once, that the sweep withdrew because the gate no longer grants them). Both are kept on a `tier_decision` only, are absent and never `null`, and are stored in `ledger_event.state_rev` and `ledger_event.withdrew`. Tests: `__tests__/stateRev.test.ts`.
+
 Tests: `__tests__/ledger.test.ts` (full import, incremental append, blob-id skip, edited event, fork, rewind, foreign
 project, parser); `__tests__/verdict.test.ts` (the verdict: kept, refused, covered by the hash, and a chain without
 verdicts hashing exactly as main computed it, through parse, `appendLedgerEvents` and `readLedger`). Not verified live: the real `listTree`/`getFile` shapes (recorded nowhere yet; the fake serves `[R]` ones).
+
+A line carrying a key this reader does not know is refused with `LedgerParseError` naming the key and the line (it is newer than the reader, not a tampered chain). Tests: `__tests__/unknownKey.test.ts`.

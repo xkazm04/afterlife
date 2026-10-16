@@ -5,7 +5,7 @@
 // Both are branch MRs (plans/mr/branchMr.ts): the branch is new or the plan refuses (F38), force is never set, GitLab
 // removes the branch on merge, and a confirm is done only when the MR is headed by the commit it made.
 import type { GlFile, GlProject } from '@/server/gitlab/types';
-import { ActionRefused, COMMIT_ID, targetIn, type Plan, type PlanContext } from '../plans/context';
+import { ActionRefused, lastCommitOf, targetIn, type Plan, type PlanContext } from '../plans/context';
 import { branchMr } from '../plans/mr/branchMr';
 import type { ArmTrack, DisarmTrack } from '../types';
 import { findBlock, insertBlock, removeBlock } from './block';
@@ -47,10 +47,7 @@ function pinFor(ctx: PlanContext): ArmPin {
 async function ciFile(ctx: PlanContext, t: Target, missing: string): Promise<GlFile & { lastCommitId: string }> {
   const file = await ctx.port.getFile(t.project.id, CI_FILE, t.base);
   if (!file) throw new ActionRefused(`${t.project.pathWithNamespace} has no ${CI_FILE} on ${t.base}: ${missing}`);
-  if (!file.lastCommitId || !COMMIT_ID.test(file.lastCommitId)) {
-    throw new ActionRefused(`GitLab did not say which commit last changed ${CI_FILE}, so a write from a stale read could not be refused; nothing is planned`);
-  }
-  return { ...file, lastCommitId: file.lastCommitId };
+  return { ...file, lastCommitId: lastCommitOf(file, CI_FILE) };
 }
 
 async function noOpenMr(ctx: PlanContext, t: Target, branch: string): Promise<void> {

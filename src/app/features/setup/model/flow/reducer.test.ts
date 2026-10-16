@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getSetup } from '@/lib/demo';
+import type { StepRead } from '@/server/data/setup/types';
 import type { SetupState } from '../types';
 import { probeWillPass, setupReducer, type SetupAction } from './reducer';
 import { armList, armedCount, createSetupState, doctorCounts, doneCount, needYouCount, stepList, unmet } from './state';
@@ -107,6 +108,22 @@ describe('arm, merge, verify, disarm', () => {
   it('only an armed track can be disarmed', () => {
     const s = fresh();
     expect(run(s, sent('T3', true))).toBe(s);
+  });
+});
+
+describe('a read that takes a step back', () => {
+  const at = { at: '2026-10-15T09:00:00.000Z', label: '09:00' };
+  const reread = (n: number, read: StepRead): SetupAction => ({ t: 'steps-read', steps: { ...at, steps: { [n]: read } } });
+  it('a failed step 4 locks the ready tracks that need it, as a merged revert does; an armed track stays armed', () => {
+    const s = run(fresh(), reread(4, { state: 'failed', text: 'the belay projects are gone' }));
+    expect(s.steps[4]?.st).toBe('failed');
+    expect(armList(s).map((a) => a.st)).toEqual(['armed', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked']);
+  });
+  it('a refused read of step 4 locks them too, and the next read that sees it done opens them again', () => {
+    const lost = run(fresh(), reread(4, { state: 'unknown', reason: 'the server did not answer' }));
+    expect([lost.arm.T3?.st, lost.arm.T6?.st]).toEqual(['locked', 'locked']);
+    const back = run(lost, reread(4, { state: 'done', text: 'five projects found' }));
+    expect([back.arm.T3?.st, back.arm.T6?.st]).toEqual(['ready', 'ready']);
   });
 });
 

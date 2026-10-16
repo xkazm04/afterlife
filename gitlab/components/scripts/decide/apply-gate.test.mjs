@@ -116,6 +116,41 @@ describe('apply-gate: the tier-state.yml revision and the withdrawal on the tier
   });
 });
 
+describe('apply-gate: --force stands in for the engine only to withhold (wait or block), never to grant', () => {
+  const forced = (decision, extra = []) =>
+    runScript(dir, 'decide/apply-gate.mjs', ['--mr', '7', '--sha', HEAD, '--force', decision, '--reason', 'x', ...extra], { env: { ...ENV, BELAY_BOT_TOKEN: 'bot' } });
+  it.each(['merge', 'approve', 'allow'])('refuses --force %j and applies nothing', (decision) => {
+    const r = forced(decision);
+    expect(r.code, r.stderr).toBe(2);
+    expect(r.stderr).toMatch(/--force must be wait or block/);
+    expect(r.writes).toEqual([]);
+  });
+  it('still accepts wait (exit 0) and block (exit 1)', () => {
+    expect(forced('wait', ['--dry', '1']).code).toBe(0);
+    expect(forced('block', ['--dry', '1']).code).toBe(1);
+  });
+});
+
+describe('apply-gate: a ledger event names the project by CI_PROJECT_ID, or is not written', () => {
+  const emitWith = (env) => {
+    const emit = path.join(dir, `events-pid-${env.CI_PROJECT_ID ?? 'none'}`);
+    const decision = write('decision-pid.json', { decision: 'approve', tier: 'supervised', reasons: [] });
+    const r = runScript(dir, 'decide/apply-gate.mjs', ['--mr', '7', '--sha', HEAD, '--decision', decision, '--emit-dir', emit, '--dry', '1'], { env: { ...ENV, ...env } });
+    return { r, emit };
+  };
+  it('unset: exit 2, no event files (it used to write project_id: NaN, which JSON stores as null)', () => {
+    const { r, emit } = emitWith({ CI_PROJECT_ID: undefined });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain('CI_PROJECT_ID is not set');
+    expect(fs.existsSync(emit) ? fs.readdirSync(emit) : []).toEqual([]);
+  });
+  it('set: the event carries the numeric id', () => {
+    const { r, emit } = emitWith({ CI_PROJECT_ID: '42' });
+    expect(r.code, r.stderr).toBe(0);
+    expect(JSON.parse(fs.readFileSync(path.join(emit, '0-proof_verdict.json'), 'utf8')).subject.project_id).toBe(42);
+  });
+});
+
 describe("apply-gate: the next rung's shadow decision (would) is stamped, never applied", () => {
   /** apply-gate on a decision file, writing (a bot token) unless `dry`; returns its writes and the events it emitted. */
   const run = (name, decision, { dry = false } = {}) => {

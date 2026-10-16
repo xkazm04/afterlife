@@ -1,11 +1,19 @@
+import { readFileSync } from 'node:fs';
+import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { demoSource } from '@/server/data/demoSource';
+import { Answer } from '../components/ui/Answer';
+import { COUNT_END } from '../hooks/useCountUp';
+import { INTRO_MS } from '../hooks/useDoor';
 import { HOME, cityTransform, frameDistrict, groundTransform } from './camera';
 import { groundOf } from './ground';
 import { districtsOf, paintOrder } from './city';
 import { beamsOf, districtGlows, towerShape } from './shapes';
 import { activeMark, dimSet, escapeStep, redSet, toggleLock } from './filter';
-import { districtLine, fleetTotals, projectLine, topTiers } from './words';
+import { cutawayOf } from './cutaway';
+import { stageFit, stageFitSource } from './fit';
+import { districtLine, fleetTotals, projectLine, staleText, topTiers } from './words';
 
 const fleet = demoSource.getFleet();
 const ds = districtsOf(fleet.groups, fleet.projects);
@@ -87,5 +95,62 @@ describe('the legend as a filter', () => {
     const red = redSet('quar', fleet.projects)!;
     expect(red.size).toBeGreaterThan(0);
     expect([...red].every((id) => !dimSet('quar', fleet.projects)!.has(id))).toBe(true);
+  });
+});
+
+describe('copy that counts: one is singular', () => {
+  const watching = fleet.projects.find((p) => p.state === 'watching')!;
+  const lineOf = (needsYou: number) => districtLine(districtsOf(['g'], [{ ...watching, group: 'g', needsYou }])[0]!).map((x) => x[0]).join('');
+  it('says "1 decision waits" and "2 decisions wait" in the district line', () => {
+    expect(lineOf(1)).toBe('1 project · 1 decision waits');
+    expect(lineOf(2)).toBe('1 project · 2 decisions wait');
+    expect(lineOf(0)).toBe('1 project · 0 decisions wait');
+  });
+  const answer = (over: Partial<ReturnType<typeof fleetTotals>>) => {
+    const totals = { ...fleetTotals([]), ...over };
+    const props = { totals, tiers: [], staleTop: null, intro: false, tabbable: true, locked: null, onMark: () => undefined, onLock: () => undefined, onOpen: () => undefined };
+    return renderToString(createElement(Answer, props)).replace(/<[^>]*>/g, '');
+  };
+  it('says "1 class quarantined" and "1 proof passed" in the answer block', () => {
+    expect(answer({ quar: 1, pass: 1 })).toContain('1 class quarantined');
+    expect(answer({ quar: 1, pass: 1 })).toContain('1 proof passed this week');
+    expect(answer({ quar: 25, pass: 40 })).toContain('25 classes quarantined');
+    expect(answer({ quar: 25, pass: 40 })).toContain('40 proofs passed this week');
+  });
+});
+
+describe('the stale feed says the same thing in the readout and on the tower', () => {
+  const stale = fleet.projects.find((p) => p.id === 'docs-portal')!;
+  const withFeed = (error: string | undefined) => ({ ...stale, feed: { ageSec: 2820, ok: false, ...(error === undefined ? {} : { error }) } });
+  const cases: [string | undefined, string, string[]][] = [
+    ['project token expired', 'project token expired · last good poll 47 min ago', ['feed stale', 'project token expired', 'last good poll 47 min ago']],
+    ['rate limited · 3 min ago', 'rate limited · 3 min ago', ['feed stale', 'rate limited', '3 min ago']],
+    [undefined, 'feed stale · last good poll 47 min ago', ['feed stale', 'last good poll 47 min ago']],
+  ];
+  it.each(cases)('error %j', (error, text, lines) => {
+    expect(staleText(withFeed(error))).toBe(text);
+    expect(cutawayOf(withFeed(error), fleet.classes, []).tag.lines).toEqual(lines);
+  });
+});
+
+describe('the stage fit: the inline script before paint and the resize hook agree', () => {
+  const run = (w: number, h: number) => {
+    const vars: Record<string, string> = {};
+    const doc = { documentElement: { style: { setProperty: (k: string, v: string) => (vars[k] = v) }, dataset: {} } };
+    new Function('innerWidth', 'innerHeight', 'document', 'location', 'localStorage', stageFitSource())(w, h, doc, { search: '' }, { getItem: () => null, setItem: () => undefined });
+    return vars;
+  };
+  it.each([[1920, 1080], [1600, 1000], [1366, 768], [390, 844], [2560, 1600]])('%i x %i', (w, h) => {
+    expect(stageFit(w, h)).toEqual(run(w, h));
+  });
+});
+
+describe('the intro outlasts the count-ups', () => {
+  it('INTRO_MS is not below the moment the last count finishes', () => {
+    expect(INTRO_MS).toBeGreaterThanOrEqual(COUNT_END);
+  });
+  it('Answer takes every count schedule from useCountUp, none by literal', () => {
+    const src = readFileSync(new URL('../components/ui/Answer.tsx', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(src).not.toMatch(/delay=\{\d/);
   });
 });

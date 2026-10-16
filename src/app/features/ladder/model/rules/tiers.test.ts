@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ClassRow } from '../types';
-import { actsFrom, cellOf, isQuarantine, nothingToRevoke, revokeTarget, revokeTargets, shownName } from './tiers';
+import { actsFrom, cellOf, isQuarantine, nothingToRevoke, revokeTarget, revokeTargets, selectHint, shownName } from './tiers';
 
 describe('revokeTargets', () => {
   it('lists every lower rung, nearest first', () => {
@@ -27,6 +27,13 @@ describe('revokeTarget', () => {
     expect(nothingToRevoke({ tier: 'human_only' })).toBe('never an agent');
     expect(nothingToRevoke({ tier: 'quarantined' })).toBe('already read and comment only');
     expect(nothingToRevoke({ tier: 'quarantined', cell: 'no_record' })).toMatch(/^no record yet/);
+  });
+});
+
+describe('selectHint', () => {
+  it('names the key that was pressed, not the other one', () => {
+    expect(selectHint('step')).toBe('Select a class · r revokes one step');
+    expect(selectHint('quarantine')).toBe('Select a class · q quarantines it');
   });
 });
 

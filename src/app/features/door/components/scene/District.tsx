@@ -6,7 +6,7 @@ import { paintOrder, type District as D } from '../../model/city';
 import { plateShape, towerShape, type TowerShape } from '../../model/shapes';
 import styles from './city.module.css';
 
-const TIER_CLASS: Record<string, string> = {
+export const TIER_CLASS: Record<string, string> = {
   hands_off: styles.wHandsOff!,
   supervised: styles.wSupervised!,
   assisted: styles.wAssisted!,

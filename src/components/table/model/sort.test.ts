@@ -19,6 +19,12 @@ describe('nextSort', () => {
   it('treats the opposite default as already flipped', () => {
     expect(nextSort({ key: 'needs', dir: 1 }, 'needs', rules)).toEqual(initial);
   });
+  it('does not stall when the initial sort is the opposite of its column default', () => {
+    const asc = { initial: { key: 'name', dir: 1 } as SortState<Key>, defaultDir: () => -1 as const };
+    const a = nextSort(asc.initial, 'name', asc);
+    expect(a).toEqual({ key: 'name', dir: -1 });
+    expect(nextSort(a, 'name', asc)).toEqual(asc.initial);
+  });
   it('reports aria-sort', () => {
     expect(ariaSort({ key: 'name', dir: 1 }, 'name')).toBe('ascending');
     expect(ariaSort({ key: 'name', dir: -1 }, 'name')).toBe('descending');

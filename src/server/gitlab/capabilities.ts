@@ -3,7 +3,8 @@
 // rate-limit failure is "unknown"; a capability with no safe read endpoint is decided by the plan
 // (marked basis "plan") or stays unknown. When the preflight reads (user, group, instance) show one cause that stops every
 // probe - glab cannot start, GitLab cannot be reached, no login, an unreadable group - the report names it (`blocker`,
-// doctor/blocker.ts) and every row is "blocked by" it, with no endpoint GET spent.
+// doctor/blocker.ts). For glab, network or login every row is "blocked by" it, with no endpoint GET spent; for an unreadable
+// group the rows still run, and its group routes say they cannot be judged.
 import { findBlocker, type Blocker } from './doctor/blocker';
 import { GitLabError } from './errors';
 import type { GitLabPort } from './port';
@@ -17,11 +18,14 @@ export interface Capability { id: string; label: string; status: CapabilityStatu
 export interface DoctorReport {
   group: GlGroup | null; plan: string | null; trial: boolean; version: string | null;
   projectCount: number | null; capabilities: Capability[];
-  /** The one cause that stops every probe (binary, network, login, group); null when the probes ran. */
+  /** The one cause that stops every probe (binary, network, login, group); null when there is none. */
   blocker: Blocker | null;
   /** The login's username, or null when the user read failed. */
   user: string | null;
+  /** Why each of the four context reads (group, namespace, instance, projects) that failed, failed. */
+  errors: ReadError[];
 }
+export interface ReadError { read: 'group' | 'namespace' | 'instance' | 'projects'; kind: string; message: string }
 
 type Verdict = Pick<Capability, 'status' | 'basis' | 'reason'>;
 const RANK: Record<PlanName, number> = { free: 0, premium: 1, ultimate: 2 };
@@ -76,20 +80,26 @@ async function get(port: GitLabPort, endpoint: string, note?: string): Promise<V
 }
 
 type Outcome<T> = { value: T; error: null } | { value: null; error: unknown };
-const attempt = async <T>(f: () => Promise<T>): Promise<Outcome<T>> => {
-  try { return { value: await f(), error: null }; } catch (error) { return { value: null, error }; }
+/** One preflight read; a failed context read (not the user read) also lands in `errors`, kind and message, so the doctor can say why. */
+const attempt = async <T>(read: ReadError['read'] | null, errors: ReadError[], f: () => Promise<T>): Promise<Outcome<T>> => {
+  try { return { value: await f(), error: null }; } catch (e) {
+    if (read) errors.push(e instanceof GitLabError ? { read, kind: e.kind, message: e.message } : { read, kind: 'unexpected', message: e instanceof Error ? e.message : String(e) });
+    return { value: null, error: e };
+  }
 };
 
 export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Promise<DoctorReport> {
+  const errors: ReadError[] = [];
   const [me, g0, n0, i0, p0] = await Promise.all([
-    attempt(() => port.currentUser()), attempt(() => port.getGroup(group)), attempt(() => port.getNamespace(group)),
-    attempt(() => port.instance()), attempt(() => port.listProjects(group)),
+    attempt(null, errors, () => port.currentUser()), attempt('group', errors, () => port.getGroup(group)),
+    attempt('namespace', errors, () => port.getNamespace(group)), attempt('instance', errors, () => port.instance()),
+    attempt('projects', errors, () => port.listProjects(group)),
   ]);
   const [grp, ns, inst, projects] = [g0.value, n0.value, i0.value, p0.value];
   const blocker = findBlocker({ user: me.error, group: g0.error, instance: i0.error }, port.host, group);
   const base = {
     group: grp, plan: ns?.plan ?? null, trial: ns?.trial ?? false, version: inst?.version ?? null,
-    projectCount: projects?.length ?? null, blocker, user: me.value?.username ?? null,
+    projectCount: projects?.length ?? null, blocker, user: me.value?.username ?? null, errors,
   };
   const plan = planName(ns?.plan ?? null);
   const project = projects?.[0]?.id ?? null;
@@ -97,22 +107,27 @@ export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Pr
   const noProject = (): Verdict => ({ status: 'unknown', basis: 'none', reason: 'the group has no project yet to probe' });
   const onProject = (path: string, note?: string): Promise<Verdict> | Verdict =>
     project === null ? noProject() : get(port, `projects/${project}/${path}`, note);
+  // A 403/404 on a group route is a verdict on the plan only when the group itself answered: a wrong BELAY_GROUP_ID or a
+  // group the login cannot see answers 404/403 on every route, which says nothing about what the plan has.
+  const onGroup = (path: string): Promise<Verdict> | Verdict =>
+    grp === null ? { status: 'unknown', basis: 'none', reason: `group ${group} could not be read, so its endpoints cannot be judged` } : get(port, `${g}/${path}`);
 
   // Thunks: a blocked probe spends no GET on a row.
   const rows: Array<[string, string, () => Promise<Verdict> | Verdict]> = [
     ['pipelines', 'pipelines and jobs', () => onProject('pipelines?per_page=1')],
-    ['merge_requests', 'merge requests (group)', () => get(port, `${g}/merge_requests?per_page=1`)],
-    ['releases', 'releases (group)', () => get(port, `${g}/releases?per_page=1`)],
+    ['merge_requests', 'merge requests (group)', () => onGroup('merge_requests?per_page=1')],
+    ['releases', 'releases (group)', () => onGroup('releases?per_page=1')],
     ['ci_components', 'CI/CD components', () => classifyComponents(inst?.version ?? null)],
     ['security_reports', 'SAST and other security reports in MRs', () => classifyPlan(plan, 'ultimate', 'security report views')],
     ['custom_flows', 'custom flows (Duo Agent Platform)', () => ({ status: 'unknown', basis: 'none', reason: 'no REST read endpoint (GraphQL only); the doctor sends only GETs' })],
     ['flows_api', 'Flows API (start and trace flows)', () => get(port, 'ai/duo_workflows/workflows', '404 may also mean this list route does not exist; confirm on the trial')],
-    ['service_accounts', 'service accounts (group)', () => get(port, `${g}/service_accounts?per_page=1`)],
+    ['service_accounts', 'service accounts (group)', () => onGroup('service_accounts?per_page=1')],
     ['deployment_approvals', 'deployment approvals', () => classifyPlan(plan, 'premium', 'deployment approval rules')],
     ['vulnerability_api', 'vulnerability API', () => project === null ? classifyPlan(plan, 'ultimate', 'the vulnerability report') : onProject('vulnerabilities?per_page=1')],
-    ['audit_events', 'audit events (group)', () => get(port, `${g}/audit_events?per_page=1`)],
+    ['audit_events', 'audit events (group)', () => onGroup('audit_events?per_page=1')],
   ];
-  if (blocker) {
+  // An unreadable group is named, but the rows still run: its routes say why they cannot be judged (onGroup), the rest answer.
+  if (blocker && blocker.kind !== 'group') {
     const blocked: Verdict = { status: 'unknown', basis: 'none', reason: `blocked by: ${blocker.text}` };
     return { ...base, capabilities: rows.map(([id, label]) => ({ id, label, ...blocked })) };
   }

@@ -36,6 +36,7 @@ describe('navItems', () => {
 describe('group totals', () => {
   it('sums needs-you over watched projects only', () => {
     expect(needsSum(P)).toBe(3);
+    expect(needsSum([makeProject({ id: 'a', needsYou: 2 }), makeProject({ id: 'b', needsYou: 5, state: 'not-set-up' }), makeProject({ id: 'c', needsYou: 1, state: 'stale' })])).toBe(3);
   });
   it('sums tier counts over projects whose tiers are known; none known is unknown, not 0', () => {
     expect(tierTotal(P, 'hands_off')).toBe(2);

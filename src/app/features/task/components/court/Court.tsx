@@ -8,6 +8,7 @@ import type { TaskView } from '../../model/types';
 import { emphasis, type Selection } from '../../model/court/selection';
 import { checkShown, replayDone, type ReplayState } from '../../model/verdict/replay';
 import { checkKind } from '../../model/verdict/verdict';
+import { engineHeld } from '../engineHeld';
 import { CheckCard } from './CheckCard';
 import { ClaimCard } from './ClaimCard';
 import { Ties } from './Ties';
@@ -24,7 +25,7 @@ export function Court({ task, sel, rv, onPick }: { task: TaskView; sel: Selectio
   return (
     <section ref={ref} className={styles.court} aria-label="Claims tested by checks">
       <Ties task={task} sel={sel} rv={rv} geo={geo} />
-      <div className={styles.col} aria-label="Claims">
+      <div className={styles.col} role="group" aria-label="Claims">
         <div className={styles.colh}>
           <b>Claims</b>
           <small>{task.agent}</small>
@@ -43,10 +44,10 @@ export function Court({ task, sel, rv, onPick }: { task: TaskView; sel: Selectio
       <div className={styles.lane} data-lane>
         <span>tested by</span>
       </div>
-      <div className={styles.col} aria-label="Checks">
+      <div className={styles.col} role="group" aria-label="Checks">
         <div className={styles.colh}>
           <b>Checks</b>
-          <small>{task.proof.engine} · no model</small>
+          <small>{engineHeld(task.proof) ? `${task.proof.engine} · no model` : 'engine not held'}</small>
           <span className={styles.end}>
             <Chip title="only checks decide">decide</Chip>
           </span>

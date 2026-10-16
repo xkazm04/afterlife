@@ -33,6 +33,12 @@ describe('tripwire triggers', () => {
     expect(r.note).toMatch(/already quarantined/);
   });
 
+  it('has no record for an agent or class that only Object.prototype holds, so a merge request cannot name `constructor`', () => {
+    for (const over of <Record<string, string>[]>[{ class: 'constructor' }, { class: 'toString' }, { agent: 'constructor' }, { agent: '__proto__' }]) {
+      expect(() => tripwire(P, STATE, 'tier-state.yml', ev('revert', over), NOW), JSON.stringify(over)).toThrow(/tier-state has no record for/);
+    }
+  });
+
   it('does nothing for a trigger the policy does not list', () => {
     const quiet = { ...P, demotion: { one_step_on: [], quarantine_on: [] } };
     expect(tripwire(quiet, STATE, 'tier-state.yml', ev('revert'), NOW).demote).toBeNull();

@@ -12,6 +12,10 @@ export interface TableSpec {
   readonly key: readonly string[];
 }
 
+/** Every TableSpec a repository declares, so a test can hold their column lists against the migrated schema. */
+export const TABLE_SPECS: TableSpec[] = [];
+export const registerSpec = (spec: TableSpec): void => { TABLE_SPECS.push(spec); };
+
 /** Insert or update many rows in one statement. Row keys are the column names; a missing key is NULL. */
 export async function upsertRows(db: Queryable, spec: TableSpec, rows: readonly object[]): Promise<void> {
   if (rows.length === 0) return;

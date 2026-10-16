@@ -3,11 +3,18 @@
 import { useEffect, useRef } from 'react';
 import { useKeymap } from '@/lib/keyboard/keymap';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
-import { MATURITY_KEYMAP, MATURITY_SHEET_KEYMAP, STEP_KEYS } from '../model/keymap';
-import type { Step } from '../model/state';
+import type { MaturityCtx } from '../model/ctx';
+import { MATURITY_KEYMAP, MATURITY_SHEET_KEYMAP, STEP_KEYS } from '../model/keys/keymap';
+import { reduce } from '../model/reducer';
+import type { MaturityState, Step } from '../model/state';
 import type { MaturityApi } from './useMaturity';
 
 type FocusWhere = 'crag' | 'list' | null;
+
+/** Whether an arrow press changes the selection: if not, no effect would clear the focus origin it armed. */
+export function movesSelection(state: MaturityState, ctx: MaturityCtx, dir: 1 | -1): boolean {
+  return reduce(state, { type: 'move', dir }, ctx).sel !== state.sel;
+}
 
 /** Focus the newly selected stage in the part the arrow key came from (the crag column or the sidebar row). */
 function focusStage(where: FocusWhere, stage: string, index: number) {
@@ -16,7 +23,7 @@ function focusStage(where: FocusWhere, stage: string, index: number) {
 }
 
 /**
- * Keyboard (model/keymap.ts): ← → (or ↑ ↓) stage, or the picked gap while previewing · P pick · 1-4 steps · D N T crag · R rescan.
+ * Keyboard (model/keys/keymap.ts): ← → (or ↑ ↓) stage, or the picked gap while previewing · P pick · 1-4 steps · D N T crag · R rescan.
  * Off while the Send sheet is open, where Enter sends and Escape cancels (the Sheet handles Escape itself).
  */
 export function useMaturityKeys(api: MaturityApi, onGo: (k: Step) => void, onSend: () => void) {
@@ -32,7 +39,9 @@ export function useMaturityKeys(api: MaturityApi, onGo: (k: Step) => void, onSen
   const arrow = (dir: 1 | -1) => (e: KeyboardEvent) => {
     const t = e.target instanceof Element ? e.target : null;
     if (t?.closest('[role="radiogroup"]')) return;
-    where.current = t?.closest('[data-crag]') ? 'crag' : t?.closest('[data-stagelist]') ? 'list' : null;
+    const from = t?.closest('[data-crag]') ? 'crag' : t?.closest('[data-stagelist]') ? 'list' : null;
+    where.current = from;
+    if (!movesSelection(state, ctx, dir)) where.current = null;
     dispatch({ type: 'move', dir });
   };
   const pickSelected = () => {

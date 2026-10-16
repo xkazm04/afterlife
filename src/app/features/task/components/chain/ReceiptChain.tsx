@@ -11,7 +11,7 @@ import styles from './ReceiptChain.module.css';
 export function ReceiptChain({ task, lit }: { task: TaskView; lit: number }) {
   if (!task.chain.length) {
     return (
-      <div className={styles.none} aria-label="Receipt chain">
+      <div className={styles.none} role="group" aria-label="Receipt chain">
         <HonestyChip kind="unknown" /> No receipt chain is held for this task
       </div>
     );

@@ -5,15 +5,15 @@ import { TierMark } from '@/components/status/TierMark';
 import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { ProjectState, TierInfo, TierKey } from '@/lib/demo/types';
-import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
+import { STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import { ChangeMark } from '../table/cells/ChangeMark';
 import styles from './legend.module.css';
 
 const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
-const STANDINGS: readonly Standing[] = ['no_record', 'refused'];
 
-/** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching and the keys. */
-export function FleetLegend({ tiers }: { tiers: Record<TierKey, TierInfo> }) {
+/** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching, change marks and the keys.
+ * The change mark and the keys are the Fleet table's: the project page, which has no table, passes `keys={false}`. */
+export function FleetLegend({ tiers, keys = true }: { tiers: Record<TierKey, TierInfo>; keys?: boolean }) {
   return (
     <>
       <Legend
@@ -38,11 +38,16 @@ export function FleetLegend({ tiers }: { tiers: Record<TierKey, TierInfo> }) {
           ],
           [<StageTicks key="st" rungs={[1, 3, null]} />, 'Stage rungs 0–4; dashed = unknown'],
           [<span key="ha" className={styles.hatch} />, 'Hatched = stale, last known values'],
-          [<ChangeMark key="ch" />, 'Moved since your last look (hover for what); Mark seen in the sidebar resets it'],
+          // a change mark is the Fleet table's too: the project page has no rows to mark
+          ...(keys ? [[<ChangeMark key="ch" />, 'Moved since your last look (hover for what); Mark seen in the sidebar resets it'] as const] : []),
         ]}
       />
-      <hr />
-      <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open the project page · / search · right-click for actions</div>
+      {keys ? (
+        <>
+          <hr />
+          <div className={styles.keys}>↑↓ Home End move · ←→ collapse · ↩ open the project page · / or type to search · right-click or Menu key for actions</div>
+        </>
+      ) : null}
     </>
   );
 }

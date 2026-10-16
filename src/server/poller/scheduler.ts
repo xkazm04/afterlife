@@ -7,10 +7,13 @@ export interface Scheduler {
   stop(): void;
 }
 
-/** BELAY_POLL_SECONDS, default 30, never below 5 (the rate limit is spike S7). */
+/** setTimeout runs a longer delay after 1 ms, which would turn "poll rarely" into "poll back to back". */
+const MAX_TIMER_MS = 2 ** 31 - 1;
+
+/** BELAY_POLL_SECONDS, default 30, never below 5 (the rate limit is spike S7), never past the longest timer. */
 export function pollIntervalMs(env: Record<string, string | undefined> = process.env): number {
   const s = Number(env.BELAY_POLL_SECONDS);
-  return (Number.isFinite(s) && s > 0 ? Math.max(5, s) : 30) * 1000;
+  return Math.min(MAX_TIMER_MS, (Number.isFinite(s) && s > 0 ? Math.max(5, s) : 30) * 1000);
 }
 
 export function startScheduler(tick: () => Promise<unknown>, intervalMs: number, onError: (e: unknown) => void = () => undefined): Scheduler {
@@ -20,7 +23,7 @@ export function startScheduler(tick: () => Promise<unknown>, intervalMs: number,
 
   const arm = (): void => {
     if (stopped) return;
-    timer = setTimeout(() => void run(), intervalMs);
+    timer = setTimeout(() => void run(), Math.min(intervalMs, MAX_TIMER_MS));
     timer.unref();
   };
   const run = (): Promise<void> => {

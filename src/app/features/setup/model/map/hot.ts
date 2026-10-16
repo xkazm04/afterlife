@@ -13,7 +13,7 @@ export interface Hot {
  * - A track lights what it needs (tracks, steps, capabilities) and what it frees.
  * - A step lights the tracks it frees and everything behind them.
  * - A capability lights the tracks that rely on it and everything behind them.
- * - With no focus, the filter lights every capability of that status.
+ * - With no focus, the filter lights every capability of that status (a status no row holds lights nothing).
  * Returns null when nothing is lit (nothing dims).
  */
 export function hotSets(g: Graph, focus: Focus | null, capFilter: CapStatus | null, doctor: readonly DoctorRow[]): Hot | null {
@@ -28,6 +28,7 @@ export function hotSets(g: Graph, focus: Focus | null, capFilter: CapStatus | nu
   };
   if (!focus) {
     for (const r of doctor) if (r.st === capFilter) capHot(r.name);
+    if (h.caps.size === 0) return null; // a lozenge cell reading 0 matches nothing: light nothing, dim nothing
   } else if (focus.k === 'track') {
     const u = upstream(g, focus.id);
     h.tracks.add(focus.id);

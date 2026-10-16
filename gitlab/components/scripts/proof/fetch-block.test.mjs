@@ -73,6 +73,25 @@ describe('the medic verdict is read from trusted notes only', () => {
   });
 });
 
+describe('a trusted block that is not a JSON object is a failed block (exit 4), never a crash (exit 1)', () => {
+  // tier-gate answers exit 4 with a forced block that is ledgered; any other code just ends the job red, unrecorded.
+  const fetchWith = (json, extra = []) => {
+    const body = '```belay-guardrail\n' + json + '\n```';
+    return runScript(dir, 'proof/fetch-block.mjs', ['--mr', '7', '--tag', 'belay-guardrail', '--authors', 'ai-guardrail-acme', '--head-sha', HEAD, '--out', 'g2.json', ...extra],
+      { routes: { 'projects/1/merge_requests/7/notes': [note(1, 'ai-guardrail-acme', body)] } });
+  };
+  it.each(['null', '5', '"pass"', '[]'])('%s exits 4 and writes nothing', (json) => {
+    const r = fetchWith(json);
+    expect(r.code, r.stderr).toBe(4);
+    expect(r.stderr).toMatch(/not a JSON object/);
+    expect(fs.existsSync(path.join(dir, 'g2.json'))).toBe(false);
+  });
+  it('an object block for the head is still taken', () => {
+    const r = fetchWith(JSON.stringify({ verdict: 'pass', head_sha: HEAD, findings: [] }));
+    expect(r.code, r.stderr).toBe(0);
+  });
+});
+
 describe('F67: a trusted note with two blocks of the tag is ambiguous', () => {
   it('exits 4 and says why, rather than taking the last block (which a quote can put there)', () => {
     const verdict = (v) => '```belay-guardrail\n' + JSON.stringify({ schema: 'belay.guardrail/1', verdict: v, head_sha: HEAD, findings: [] }) + '\n```';

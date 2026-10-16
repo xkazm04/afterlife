@@ -13,6 +13,16 @@ describe('scheduler', () => {
     expect(pollIntervalMs({ BELAY_POLL_SECONDS: '-4' })).toBe(30_000);
   });
 
+  it('an interval past the timer ceiling waits that long, it does not fire at once (a timer past 2^31-1 ms runs after 1 ms)', async () => {
+    const MAX_TIMER_MS = 2 ** 31 - 1;
+    expect(pollIntervalMs({ BELAY_POLL_SECONDS: '3000000' })).toBeLessThanOrEqual(MAX_TIMER_MS);
+    let ticks = 0;
+    const s = startScheduler(async () => void ticks++, 3_000_000_000);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(ticks).toBe(0);
+    s.stop();
+  });
+
   it('runs a cycle each interval, the next one only after the last has finished', async () => {
     let running = 0;
     let peak = 0;

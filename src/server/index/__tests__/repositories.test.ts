@@ -92,6 +92,22 @@ describe('work repositories', () => {
     expect((await listProofsFor(db, [])).size).toBe(0);
   });
 
+  it('keep one proof per task: a proof of a new class replaces the old one, whatever the names sort to', async () => {
+    await upsertTasks(db, [{
+      id: 'T-reclass', projectId: 'a', track: 1, agent: null, actionClass: 'a.class', mrIid: 50, title: 'Reclassed', tierAtTime: null,
+      state: 'proved', stateLabel: null, startedAt: null, finishedAt: null, detail: {},
+    }]);
+    const proof = (cls: string, verdict: 'pass' | 'fail') => ({
+      taskId: 'T-reclass', class: cls, verdict, engineVersion: '1', engineSha256: 'abc', checks: [], claims: [], block: null,
+    });
+    await upsertProofs(db, [proof('zz-old-class', 'pass')]);
+    await upsertProofs(db, [proof('aa-new-class', 'fail')]); // the MR was re-proved under another class
+    const shown = (await listProofsFor(db, ['T-reclass'])).get('T-reclass');
+    expect([shown?.class, shown?.verdict]).toEqual(['aa-new-class', 'fail']);
+    const { rows } = await db.query<{ n: number }>(`select count(*)::int as n from proof where task_id = 'T-reclass'`);
+    expect(rows[0]?.n).toBe(1);
+  });
+
   it('close a proposal once, and only while it is open', async () => {
     await upsertProposals(db, [
       { id: 'p1', projectId: 'a', kind: 'promotion', state: 'open', parentId: null, title: 'Promote', subject: { does: 'x' }, dueAt: null, openedAt: NOW, actedAt: null, actedAs: null },

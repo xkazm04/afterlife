@@ -58,6 +58,22 @@ function cleanPath(p: string): string | null {
   return t.replace(/^[ab]\//, '');
 }
 
+const QUOTED = /^"(?:[^"\\]|\\.)*"/;
+
+/**
+ * The two paths of a `diff --git <a> <b>` line. Git quotes each one on its own, and a mode change or a binary file has no
+ * `---` / `+++` lines to name it, so a header this cannot split would drop the file (and its denied path) from the diff.
+ */
+function headerPaths(rest: string): [string, string] | null {
+  const q = QUOTED.exec(rest);
+  if (q) {
+    const b = rest.slice(q[0].length).trimStart();
+    return b ? [q[0], b] : null;
+  }
+  const m = /^(.+?) ("b\/.*"|b\/.+)$/.exec(rest);
+  return m ? [m[1] ?? '', m[2] ?? ''] : null;
+}
+
 function blank(): DiffFile {
   return { oldPath: null, newPath: null, path: '', status: 'modified', hunks: [], added: 0, removed: 0, binary: false };
 }
@@ -106,9 +122,9 @@ export function parseDiff(text: string): DiffFile[] {
     } else if (line.startsWith('diff --git ')) {
       const f = (cur = begin());
       sawOld = false;
-      const h = /^diff --git (.+?) b\/(.+)$/.exec(line);
-      f.oldPath = h ? cleanPath(h[1] ?? '') : null;
-      f.newPath = h ? cleanPath(`b/${h[2] ?? ''}`) : null;
+      const h = headerPaths(line.slice(11));
+      f.oldPath = h ? cleanPath(h[0]) : null;
+      f.newPath = h ? cleanPath(h[1]) : null;
     } else if (line.startsWith('--- ') && (!cur || cur.hunks.length > 0 || sawOld)) {
       const f = (cur = begin());
       f.oldPath = cleanPath(line.slice(4));

@@ -3,11 +3,13 @@
 // is never duplicated, and only the proposals this module opened are closed when the quarantine ends. One a person acted on
 // (or dismissed) at or after the quarantine's since is not opened again: the re-admit MR is theirs to merge.
 import { readmitId } from '@/lib/promotion';
+import type { DemotionTrigger } from '@/schemas/tier';
 import type { ProposalRow } from '@/server/index/repositories/work/proposal';
 import { isSettled } from './promotion';
 import type { Quarantine } from './tiers';
 
-const REASON: Record<string, string> = {
+// Keyed by the schema's union: a trigger added there fails the typecheck here, not at the first quarantine it fires.
+const REASON: Readonly<Record<DemotionTrigger, string>> = {
   guardrail_high: 'guardrail high severity',
   budget_breach_x2: 'budget breached twice',
   revert: 'a revert',
@@ -15,6 +17,8 @@ const REASON: Record<string, string> = {
   post_merge_proof_fail: 'a post-merge proof failure',
   default_branch_red_1h: 'the default branch red for an hour',
 };
+/** A record's reason is text from a YAML file: one the schema does not name is shown as written. */
+const reasonWords = (r: string): string => (Object.hasOwn(REASON, r) ? REASON[r as DemotionTrigger] : r);
 
 export const READMIT_DOES = 'Re-admits at Assisted at most, never at its old tier.';
 export { readmitId };
@@ -22,7 +26,7 @@ export { readmitId };
 export const readmitTitle = (q: Quarantine): string => `Re-admit ${q.track === null ? 'T?' : `T${q.track}`} ${q.role} · ${q.classId}`;
 
 export function readmitProposal(projectId: string, q: Quarantine, now: Date): ProposalRow {
-  const why = q.reason ? (REASON[q.reason] ?? q.reason) : 'a tripwire';
+  const why = q.reason ? reasonWords(q.reason) : 'a tripwire';
   return {
     id: readmitId(projectId, q.classId), projectId, kind: 'readmit', state: 'open', parentId: null, title: readmitTitle(q),
     subject: { reason: q.evidence ? `${why} on ${q.evidence}` : why, does: READMIT_DOES },

@@ -93,6 +93,16 @@ describe('gate: tampering and fail-closed behaviour', () => {
     expect(r.reasons.join(' ')).toMatch(/needs a exploit-test proof, got cited-diff/);
   });
 
+  it('blocks a class whose policy entry declares no proof class: any proof would otherwise satisfy it', () => {
+    const bare = { ...P, classes: { ...P.classes, 'bare.class': { agent: 'patcher', ceiling: 'hands_off' as const } } };
+    const held = { version: 1 as const, policy_sha: 'x', agents: { [AGENT]: { 'bare.class': rec('hands_off') } } };
+    for (const cls of ['exploit-test', 'cited-diff', 'linked-evidence'] as const) {
+      const r = gate({ policy: bare, state: held, classId: 'bare.class', proof: proof(cls, true), guardrail: PASS, now: NOW });
+      expect(r.decision, cls).toBe('block');
+      expect(r.reasons.join(' ')).toMatch(/bare\.class declares no proof class/);
+    }
+  });
+
   it('blocks a proof made by another engine build, when the gate pins one', () => {
     expect(decide({ engineSha: 'abc' }).decision).toBe('merge');
     expect(decide({ engineSha: 'zzz' }).decision).toBe('block');

@@ -1,22 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { STANDING_META } from '@/lib/tiers';
+import { STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
+import type { Ceiling } from '@/schemas/tier';
 import { needsOf, type District } from '../../model/city';
 import { plural } from '../../model/words';
 import { LegendHint } from './LegendHint';
 import { TierLetter } from '../ui/TierLetter';
 import styles from './rail.module.css';
 
-const TIERS = [
-  ['hands_off', 'Hands-off'],
-  ['supervised', 'Supervised'],
-  ['assisted', 'Assisted'],
-  ['quarantined', 'Quarantined'],
-  ['human_only', 'Human only'],
-  ['no_record', STANDING_META.no_record.name],
-  ['refused', STANDING_META.refused.name],
-] as const;
+/** Every cell a class can hold on the door: the five tiers, then the two standings (all from lib/tiers). */
+export const DOOR_TIERS: readonly (Ceiling | Standing)[] = [...TIER_DISPLAY_ORDER, ...STANDINGS];
+
+/** The name lib/tiers gives a cell. */
+export const tierName = (t: string): string => (t in TIER_META ? TIER_META[t as Ceiling].name : STANDING_META[t as Standing].name);
+
+/** The L2 autonomy list's wording: the name in lower case; a split class keeps its longer sentence. */
+export const tierLabel = (t: string): string => (t === 'refused' ? 'split, each holder at its own tier' : tierName(t).toLowerCase());
+
+export const legendTiers = (): (readonly [Ceiling | Standing, string])[] => DOOR_TIERS.map((t) => [t, tierName(t)] as const);
 
 function Ico({ kind }: { kind: 'stale' | 'setup' | 'nsu' }) {
   return (
@@ -86,7 +88,7 @@ export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string
       </div>
       <div className={styles.foot}>
         <LegendHint>
-          {TIERS.map(([t, name]) => (
+          {legendTiers().map(([t, name]) => (
             <span key={t}>
               <TierLetter tier={t} />
               {name}

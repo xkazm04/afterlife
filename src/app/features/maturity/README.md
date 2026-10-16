@@ -7,21 +7,25 @@ and each stage's one-line evidence note are the index's (the poller stores the n
 mode" below.
 
 ## Parts
+- `MaturityProvider.tsx` holds the one `useMaturity` session in the `/maturity` layout, so the list and a stage page share it.
 - `MaturityScreen.tsx` composes the `Window`: toolbar (crag mode, Stepper, ScanMeta, Rescan), sidebar `StageList`,
-  content (`Crag` over `GapsTable`), `SendSheet`, inspector, status counts.
+  content (`Crag` over `GapsTable`), `SendSheet`, status counts. `StageScreen.tsx` is `/maturity/[stage]`: a `DetailPage`
+  of `StageDetail`, the legend and the preview picker.
 - `components/crag/` the SVG: `Backdrop`, `Route` (rope, bolts, d0 chalk, climber, `?`), `Clip` (pickable gap tag),
   `LegendButton`. Drawn 1:1 in CSS px; strokes and labels use `--ui-scale`, geometry uses the same scale in JS.
-- `components/chrome/` ScanMeta, StageList, StatusCounts (the Stepper, the rung meter and the gap badge are shared).
+- `components/chrome/` ScanMeta, StageList, StatusCounts, DemoChip (the Stepper, the rung meter and the gap badge are shared);
+  `components/legend/` the "?" legend, used by the crag popover and the stage page.
 - `components/gaps/` the picked-gaps table. `components/sheet/` Send as you: the server's preview of each gap (commands and diff) first.
 - `write/` the gap door: `gap.ts` builds the stage-gap-mr intent from the proposal data (a new file as its + lines, a change to an
   existing file as a hunk the server applies to the file or refuses), asks (`previewAction`) and sends (`confirmAction(intent,
   previewId)`); `sheet.ts` is what the sheet does with those. Needs you's gap Run uses the same door.
-- `components/inspector/` evidence per rung, gap (diff tabs, after-merge checks), day 0, credit history.
-- `hooks/` `useMaturity` (reducer + toasts), `useMaturityKeys` (arrows, P, 1-4, D/N/T, R), `useElementSize`, `useUiScale`.
+- `components/inspector/` `StageDetail`'s cards: evidence per rung, gap (diff tabs, after-merge checks), day 0, credit history.
+- `hooks/` `useMaturity` (reducer + toasts), `useMaturityKeys` (arrows, P, 1-4, D/N/T, R), `useGapSheet` (the Send sheet's
+  asks and sends), `useStepNav` (stepper and stage-page navigation), `useElementSize`, `useUiScale`.
 
 ## Model (pure, tested)
 - `model/reducer.ts` the whole screen as one reducer; `state.ts`, `steps.ts` (stepper view), `rungs.ts`, `ctx.ts`.
-- `model/flow/credit.ts` credit rules ("no lift: configured, not exercised" comes first), `commands.ts` the send label.
+- `model/flow/credit.ts` credit rules ("no lift: configured, not exercised" comes first), `commands.ts` the send label, `lede.ts` the line a stage page opens with.
 - `model/crag/` geometry and the per-route view model.
 - `model/flow/send.ts` a gap's send, held by the layout's reducer (`state.send`): asking → viewed → sending → done. A done
   answer opens the gap the moment it arrives (also after the sheet closed or the screen remounted); nothing takes the sheet
@@ -33,6 +37,7 @@ mode" below.
 ## Data
 `data/` typed fixtures for the prototype's `MAT_EXTRA`: stage evidence, the four proposals (with their diffs),
 credit history, meta. The shared dataset (`getMaturity()`) supplies rungs, engine, scan time and the gap list.
+`data/loadMaturityData.ts` is what the Maturity layout needs, read through the data source. `data/loadMaturityStage.ts` is the `/maturity/[stage]` loader: the stage asked for, or null when the data source has none.
 
 ## On the shared kit
 `Stepper` (controls/toolbar), the verdict chip is `Chip tone="ok"|"neutral"`, the rung meter is `StageMeter deep`, the

@@ -10,7 +10,7 @@ import path from 'node:path';
 import { api, apiAll, arg, CLASS_ID, die, gql, need } from '../lib/lib.mjs';
 import { detect, eventKey, trailerClass } from '../lib/detect.mjs';
 import { engine } from '../lib/engine.mjs';
-import { fileHead, readFile, writeFile } from '../lib/repo-write.mjs';
+import { fileHead, readFile, writeFile, writeToken } from '../lib/repo-write.mjs';
 
 const projectId = process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set');
 const dir = need('policy-dir'); // a clone of belay-policy, depth >= 300
@@ -19,8 +19,7 @@ const branch = process.env.CI_DEFAULT_BRANCH ?? 'main';
 const STATE = 'tier-state.yml';
 // Writes may use a different token from reads (BELAY_POLICY_TOKEN, named by --write-token-var). A variable named there and
 // not set is refused before any read (F88's sibling): the read token never commits in its place.
-const named = arg('write-token-var');
-if (named && !process.env[named]) die(`${named} is not set (named by --write-token-var): nothing committed`);
+const token = writeToken(arg('write-token-var'));
 
 const log = spawnSync('git', ['-C', dir, 'log', '-n', '300', '--format=%B'], { encoding: 'utf8' });
 if (log.status !== 0) die('cannot read the belay-policy history');
@@ -107,9 +106,7 @@ if (messages.length === 0) {
   process.exit(skipped.length ? 2 : 0);
 }
 const message = [`tripwire: ${messages.length} demotion(s)`, '', ...messages.map((m) => `- ${m}`), '', ...keys.map((k) => `Belay-Event: ${k}`)].join('\n');
-// The write token: the one --write-token-var names; without the flag, BELAY_BOT_TOKEN when set, else the caller's own login.
-const writeToken = process.env[named ?? 'BELAY_BOT_TOKEN'];
-if (writeToken) process.env.GITLAB_TOKEN = writeToken;
+if (token) process.env.GITLAB_TOKEN = token;
 
 const policyBranch = arg('policy-branch', 'main');
 let head;

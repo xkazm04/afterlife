@@ -7,6 +7,8 @@ import type { Tier } from './tier';
 // The vocabularies and the one event parser (writer, importer and checker share it) live in ./chain; this stays the import path.
 export * from './chain/kinds';
 export { parseChainText, parseEventBody, parseStoredLine, type ChainRead, type EventBody, type ParseResult } from './chain/parse';
+// origin/main's names for the same unions.
+export type { LedgerObserver as Observer, LedgerSubjectType as SubjectType } from './chain/kinds';
 
 /** Where a deployed event deployed to: the environment's name and GitLab's tier for it. */
 export interface LedgerEnvironment {

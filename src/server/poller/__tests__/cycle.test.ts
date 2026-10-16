@@ -4,7 +4,8 @@ import { getActionClasses, getFleet, getNeedsYou, getTask, getTasks } from '@/se
 import { getPairing } from '@/server/index/repositories/pairing';
 import { getPollState } from '@/server/index/repositories/pollState';
 import { readLedger } from '@/server/index/repositories/ledger/ledger';
-import { failing, NOW, rig, type Rig } from './helpers';
+import { runPollCycle } from '../cycle';
+import { cfg, failing, NOW, rig, type Rig } from './helpers';
 
 const LEDGERLINE = 'ledgerline';
 let r: Rig;
@@ -119,6 +120,25 @@ describe('a failed poll looks stale, and keeps the last good time', () => {
     const later = new Date(NOW.getTime() + 60_000);
     await x.poll(later);
     expect((await getFleet(x.db, later)).projects[0]).toMatchObject({ state: 'stale', feed: { ok: false, error: expect.stringContaining('no longer in the group') } });
+  }, 60_000);
+
+  it('the MR read reaches back as far as the longer of the roll-up and the task window', async () => {
+    const x = await rig();
+    const asked: Array<{ updatedAfter?: string; limit?: number }> = [];
+    const spy = new Proxy(x.gl.port, {
+      get: (t, k, rcv) => (k === 'listMergeRequests' ? (p: number, f: { updatedAfter?: string; limit?: number }) => (asked.push(f), t.listMergeRequests(p, f)) : Reflect.get(t, k, rcv)),
+    });
+    const day = 86_400_000;
+    await runPollCycle(spy, x.db, NOW, { cfg: { ...cfg(), taskWindowMs: 10 * day }, mem: x.mem }); // BELAY_TASK_HOURS=240
+    expect(asked.map((f) => Date.parse(f.updatedAfter ?? ''))).toEqual([NOW.getTime() - 10 * day]);
+  }, 60_000);
+
+  it('an MR list that fills mrLimit is said to be cut, and one that does not is not', async () => {
+    const x = await rig();
+    const cut = await runPollCycle(x.gl.port, x.db, NOW, { cfg: { ...cfg(), mrLimit: 5 }, mem: x.mem });
+    expect(cut.projects[0]?.issues).toContainEqual(expect.stringMatching(/5 merge requests.*mrLimit/));
+    const whole = await runPollCycle(x.gl.port, x.db, NOW, { cfg: cfg(), mem: x.mem });
+    expect(whole.projects[0]?.issues.filter((i) => /mrLimit/.test(i))).toEqual([]);
   }, 60_000);
 
   it('an unreachable group fails every project that was polled before', async () => {

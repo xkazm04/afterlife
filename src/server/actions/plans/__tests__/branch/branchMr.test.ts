@@ -8,12 +8,12 @@ import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
 import type { GitLabPort, PlannedCommand } from '@/server/gitlab/port';
 import type { GlProject } from '@/server/gitlab/types';
 import { SEED_NOW } from '@/server/index/seed';
-import { liveRig, policyFiles } from '../../__tests__/rig';
-import { removeBlock } from '../../arm/block';
-import { DEMO_PIN } from '../../arm/config';
-import { armOf } from '../../arm/content';
-import { confirmIntent, previewIntent, type ActionDeps } from '../../run';
-import type { ActionResponse } from '../../types';
+import { liveRig, policyFiles } from '../../../__tests__/rig';
+import { removeBlock } from '../../../arm/block';
+import { DEMO_PIN } from '../../../arm/config';
+import { armOf } from '../../../arm/content';
+import { confirmIntent, previewIntent, type ActionDeps } from '../../../run';
+import type { ActionResponse } from '../../../types';
 
 const DAY = SEED_NOW.toISOString().slice(0, 10);
 const LEFT = 'c0ffee0000000000000000000000000000000001';

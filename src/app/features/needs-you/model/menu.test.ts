@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../data/pick';
-import { groupMenuPlan, rowMenuPlan, type MenuPlanItem } from './menu';
+import { copyCommand, groupMenuPlan, rowMenuPlan, type MenuPlanItem } from './menu';
 import type { ActionPreview } from '@/server/actions/types';
 import { initialState } from './state';
 
@@ -30,6 +30,22 @@ describe('row menu', () => {
   it('names the group of the current mode', () => {
     const s = { ...initialState(demo), group: 'project' as const };
     expect(labels(rowMenuPlan(s, 'n1', demo))).toContain('Collapse “acme-lab/belay-policy”');
+  });
+});
+
+describe('copy command', () => {
+  it('says Copied once the clipboard took it, and shows the command when it refused', async () => {
+    const said: string[] = [];
+    copyCommand('npx belay doctor', { writeText: () => Promise.resolve() }, (t) => said.push(t));
+    copyCommand('npx belay doctor', { writeText: () => Promise.reject(new Error('denied')) }, (t) => said.push(t));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(said).toEqual(['Copied command', 'npx belay doctor']);
+  });
+  it('shows the command instead of throwing where there is no Clipboard API (an insecure origin)', () => {
+    const said: string[] = [];
+    expect(() => copyCommand('npx belay doctor', undefined, (t) => said.push(t))).not.toThrow();
+    expect(said).toEqual(['npx belay doctor']);
   });
 });
 

@@ -2,6 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { loadTasks } from '../build/loadTasks';
 import { NO_FILTERS, classCount, docketCount, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdictCounts, visibleTasks } from './filters';
 import { TASK_KEYMAP, actionFor } from './keys';
+import { PROOF_CLASSES as ENGINE_CLASSES } from '../../../../../../engine/proofs';
+import { PROOF_CLASSES as SCHEMA_CLASSES } from '@/schemas/proof';
+import { PROOF_CLASSES } from '../../data/pageFacts';
+
+describe('class menu', () => {
+  it('offers every proof class the engine can write, so no task is unfilterable', () => {
+    expect([...PROOF_CLASSES].sort()).toEqual([...ENGINE_CLASSES].sort());
+    expect([...PROOF_CLASSES]).toEqual([...SCHEMA_CLASSES]); // the menu keeps the schema's order
+  });
+});
 
 const tasks = loadTasks();
 const idle = { inDocket: false, inChrome: false, replaying: false };
@@ -34,6 +44,11 @@ describe('filters', () => {
     expect(stepTask([], '01J8Q4', 1)).toBeNull();
     const fails = visibleTasks(tasks, { verdict: 'FAIL', cls: 'all' });
     expect(stepTask(fails, '01J8Q4', 1)).toBe('01J8Q8');
+  });
+
+  it('steps from an id that is not visible: forward to the first, back to the last', () => {
+    expect(stepTask(tasks, 'gone', 1)).toBe('01J8Q4');
+    expect(stepTask(tasks, 'gone', -1)).toBe('01J8Q7');
   });
 
   it('moves to the first visible task when the open one is filtered out', () => {

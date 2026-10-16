@@ -28,11 +28,11 @@ export const classCount = (tasks: readonly TaskView[], cls: string): number => t
 /** The "f" key: fail only, or back to all verdicts. */
 export const toggleFailOnly = (f: Filters): Filters => ({ ...f, verdict: f.verdict === 'FAIL' ? 'all' : 'FAIL' });
 
-/** The next/previous visible task id, wrapping. Null when nothing is visible. */
+/** The next/previous visible task id, wrapping. From an id that is not visible: forward is the first, back is the last. Null when nothing is visible. */
 export function stepTask(visible: readonly TaskView[], currentId: string, delta: 1 | -1): string | null {
   if (!visible.length) return null;
   const at = visible.findIndex((t) => t.id === currentId);
-  const next = visible[(at + delta + visible.length) % visible.length];
+  const next = visible[at < 0 ? (delta === 1 ? 0 : visible.length - 1) : (at + delta + visible.length) % visible.length];
   return next?.id ?? null;
 }
 

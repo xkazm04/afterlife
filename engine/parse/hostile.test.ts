@@ -31,6 +31,11 @@ describe('hostile trace lines', () => {
     });
   }
 
+  it('parses 40,000 distinct Surefire summary lines in under 500 ms: each is checked against the cases read so far', () => {
+    const trace = Array.from({ length: 40_000 }, (_, i) => `[ERROR]   C${i}.m${i}:42 boom`).join('\n');
+    expect(timed(() => expect(parseTrace(trace)).toHaveLength(40_000))).toBeLessThan(500);
+  });
+
   it('cleanTrace bounds each line to 4096 characters', () => {
     expect(cleanTrace('a'.repeat(N)).every((l) => l.length <= 4096)).toBe(true);
   });
@@ -40,6 +45,19 @@ describe('hostile JUnit XML', () => {
   for (const [name, open] of [['comment', '<!--'], ['processing instruction', '<?'], ['doctype', '<!DOCTYPE']] as const) {
     it(`parses ${N / 1000} KB of unclosed ${name} openers in under 500 ms`, () => {
       expect(timed(() => parseJUnit(open.repeat(N / open.length)))).toBeLessThan(500);
+    });
+  }
+
+  it('reads a case under 50,000 nested tags in under 500 ms instead of overflowing the stack', () => {
+    const xml = '<a>'.repeat(50_000) + '<testcase classname="c" name="deep"/><testcase classname="c" name="two"/>';
+    let names: string[] = [];
+    expect(timed(() => (names = parseJUnit(xml).map((c) => c.name)))).toBeLessThan(500);
+    expect(names).toEqual(['deep', 'two']);
+  });
+
+  for (const [name, closer] of [['unmatched', '</b>'], ['matching', '</a>']] as const) {
+    it(`parses 40,000 nested openers followed by ${name} closers in under 500 ms`, () => {
+      expect(timed(() => parseJUnit('<a>'.repeat(40_000) + closer.repeat(40_000)))).toBeLessThan(500);
     });
   }
 

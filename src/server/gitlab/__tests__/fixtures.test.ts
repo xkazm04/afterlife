@@ -2,6 +2,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { planBuilders } from '../plan/builders';
 
 const ROOT = join(import.meta.dirname, '..', '__fixtures__');
 
@@ -24,6 +25,18 @@ describe('fixtures', () => {
     expect(typeof fx._shape).toBe('string');
     if (name.startsWith('live/')) expect(fx._shape).toMatch(/^recorded live 2026-10-06/);
     else expect(fx._shape).toMatch(/^\[R\] from docs/);
+  });
+
+  it('README anchors by symbol: no `file.ts:line` pointer that drifts with the next edit', () => {
+    const readme = readFileSync(join(ROOT, '..', 'README.md'), 'utf8');
+    expect(readme.match(/\.tsx?:\d+/g) ?? []).toEqual([]);
+  });
+
+  it('the fake names as many writes as the plan has builders', () => {
+    const header = readFileSync(join(ROOT, '..', 'fake', 'writes.ts'), 'utf8').split('\n')[0] ?? '';
+    const words = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+    const builders = Object.keys(planBuilders()).length;
+    expect(words.indexOf(/the (\w+) PlannedCommands/.exec(header)?.[1] ?? '') + 1).toBe(builders);
   });
 
   it('holds no token, email or credential field', () => {

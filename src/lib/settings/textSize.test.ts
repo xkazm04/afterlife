@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_TEXT_SIZE,
+  TEXT_SIZE_KEYS,
   TEXT_SIZE_STORAGE_KEY,
   applyIntent,
   bootScriptSource,
@@ -56,6 +57,10 @@ describe('keyboard intent', () => {
     expect(textSizeIntent(key('0'))).toBeNull();
     expect(textSizeIntent(key('=', { ctrlKey: true, altKey: true }))).toBeNull();
     expect(textSizeIntent(key('a', { ctrlKey: true }))).toBeNull();
+  });
+  it('has one key table, which the mounted shortcuts and the intent reader share', () => {
+    expect(TEXT_SIZE_KEYS.map(([k]) => k)).toEqual(['=', '+', '-', '_', '0']);
+    for (const [k, intent] of TEXT_SIZE_KEYS) expect(textSizeIntent(key(k, { ctrlKey: true }))).toBe(intent);
   });
   it('applies an intent', () => {
     expect(applyIntent('smaller', 'bigger')).toBe('standard');

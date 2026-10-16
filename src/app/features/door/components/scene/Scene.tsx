@@ -51,7 +51,8 @@ export function Scene(p: SceneProps) {
   const order = depthOrder(p.ds);
   const backY = order[0]?.cy;
   const backN = order.filter((d) => d.cy === backY).length;
-  const backB = Math.max(...order.slice(0, backN).map((d) => d.B[1])) + PT;
+  // an empty fleet has no back row: the haze then ends at the horizon (Math.max of nothing is -Infinity)
+  const backB = backN ? Math.max(...order.slice(0, backN).map((d) => d.B[1])) + PT : HZ - 30;
   const vars = { '--cam-ms': `${p.camMs}ms` } as CSSProperties;
 
   const layer = (d: D, i: number) => {
@@ -85,8 +86,9 @@ export function Scene(p: SceneProps) {
       }}
       onFocus={(e) => {
         const t = target(e);
-        if (t.id) p.onHover(t.gi, t.id);
+        if (t.id) report(t);
       }}
+      onBlur={() => report({ gi: null, id: null })}
     >
       <div className={styles.ground} style={{ transform: groundTransform(p.cam) }}>
         <div className={styles.layer}>

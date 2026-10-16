@@ -6,6 +6,16 @@ import type { Stage } from '@/schemas';
 import type { RouteView } from '../../model/crag/routes';
 import { capitalize, rungText } from '../../model/rungs';
 
+/** The picked, unsent gap on each stage, from `pending` (the screen's one definition of waiting; the last gap on a stage wins). */
+export function pickedByStage(pending: readonly string[], ctx: { gap: (id: string) => { id: string; stage: Stage } | undefined }): Partial<Record<Stage, string>> {
+  const out: Partial<Record<Stage, string>> = {};
+  for (const id of pending) {
+    const g = ctx.gap(id);
+    if (g) out[g.stage] = g.id;
+  }
+  return out;
+}
+
 /** The nine stages as a source list: rung meter, name, and the rung (or the picked gap's id, which waits for you). */
 export function StageList({
   routes,
@@ -27,7 +37,7 @@ export function StageList({
           return (
             <SidebarItem
               key={v.stage}
-              icon={<StageMeter rung={v.lv} deep={v.lv !== null && v.lv >= 3} />}
+              icon={<StageMeter rung={v.lv} deep={v.deep} />}
               label={capitalize(v.stage)}
               count={gap ? <NeedsYouBadge small variant="group" label={gap} title="gap picked, waits for you" /> : rungText(v.lv)}
               current={selected === v.stage}

@@ -1,10 +1,11 @@
 // A failed live start must not stick: the next start begins afresh, the failure is kept and named, and the pages retry
 // no more often than the poll interval.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { bootLive } from '../boot';
 import { readDataConfig } from '../config';
 import type { LivePort } from '../live/ports';
 import { createLivePort } from '../live/ports';
-import { lastStartFailure, readyRuntime, startRuntime } from '../live/runtime';
+import { lastStartFailure, readyRuntime, startInFlight, startRuntime } from '../live/runtime';
 import { getDataSource } from '../select';
 
 vi.mock('../live/ports', async (orig) => ({ ...(await orig<object>()), createLivePort: vi.fn() }));
@@ -74,5 +75,61 @@ describe('the pages after a failed start', () => {
     expect(read).toThrow();
     expect(mocked).toHaveBeenCalledTimes(2); // one retry, the second read sees it in flight
     await vi.waitFor(() => expect(readyRuntime()).not.toBeNull());
+  });
+});
+
+describe('bootLive', () => {
+  let lines: string[] = [];
+  let log: { mockRestore(): void };
+  const fake = (broken = false): Promise<LivePort> =>
+    real('fake').then((p) => (broken ? { ...p, port: new Proxy(p.port, { get: (t, k, r) => (k === 'getGroup' ? () => Promise.reject(new Error('group is gone')) : Reflect.get(t, k, r)) }) } : p));
+
+  beforeEach(() => {
+    lines = [];
+    log = vi.spyOn(console, 'log').mockImplementation((m: unknown) => void lines.push(String(m)));
+    mocked.mockReset();
+  });
+  afterEach(() => log.mockRestore());
+
+  it('demo mode starts nothing and says nothing', async () => {
+    await bootLive({});
+    expect([mocked.mock.calls.length, lines]).toEqual([0, []]);
+  });
+
+  it('live on the fake group names the replay clock and the polled projects', async () => {
+    mocked.mockImplementation(() => fake());
+    await bootLive(ENV);
+    expect(lines).toEqual([expect.stringMatching(/^belay: live data from the seeded fake GitLab \(replay clock\); \d+ project\(s\) polled$/)]);
+  });
+
+  it('a failed start does not reject: the server must come up so its pages can name the failure and retry', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(quiet);
+    mocked.mockRejectedValue(new Error('glab is not logged in'));
+    await expect(bootLive(ENV)).resolves.toBeUndefined();
+    expect(err.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^belay: live start failed: glab is not logged in; .*retried every 30s/)]);
+    expect(lastStartFailure()?.message).toBe('glab is not logged in');
+    err.mockRestore();
+  });
+
+  it('live on glab names glab, and a group that cannot be read is named', async () => {
+    mocked.mockImplementation(() => fake(true));
+    await bootLive({ BELAY_MODE: 'live', BELAY_GITLAB: 'glab' });
+    expect(lines).toEqual(['belay: live data from glab; 0 project(s) polled, group error: group is gone']);
+  });
+});
+
+describe('startInFlight', () => {
+  it('is true only between a start beginning and it finishing, either way (begun, neither ready nor failed)', async () => {
+    mocked.mockReset();
+    mocked.mockRejectedValueOnce(new Error('glab is not logged in')).mockImplementation(() => real('fake'));
+    expect(startInFlight()).toBe(false);
+    const failing = startRuntime(cfg, quiet);
+    expect(startInFlight()).toBe(true);
+    await expect(failing).rejects.toThrow();
+    expect(startInFlight()).toBe(false);
+    const ok = startRuntime(cfg, quiet);
+    expect(startInFlight()).toBe(true);
+    await ok;
+    expect(startInFlight()).toBe(false);
   });
 });

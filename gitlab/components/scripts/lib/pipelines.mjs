@@ -35,7 +35,7 @@ export function pipelineEvents({ api, apiAll, projectId, branch, now, since, own
   const jobs = new Map();
   /** A pipeline's jobs, the latest attempt of each, read once. */
   const jobsOf = (id) => {
-    if (!jobs.has(String(id))) jobs.set(String(id), apiAll(`projects/${projectId}/pipelines/${id}/jobs`, JOB_PAGES));
+    if (!jobs.has(String(id))) jobs.set(String(id), apiAll(`projects/${projectId}/pipelines/${id}/jobs`, JOB_PAGES, { strict: true }));
     return jobs.get(String(id));
   };
   /** Adds post_merge_proof_fail when the pipeline's proof failed. True when the pipeline ran the proof at all. */

@@ -1,5 +1,6 @@
 // Pure sorting for outline tables. Rules carried over from the Fleet prototype:
-// - clicking a column cycles: default direction -> opposite direction -> back to the initial sort;
+// - clicking a column cycles: default direction -> opposite direction -> back to the initial sort
+//   (a column that is already the initial sort in its non-default direction just flips);
 // - rows whose value is unknown (null) always sink to the bottom, whatever the direction;
 // - ties fall back to a tiebreak comparator (the Fleet uses "attention").
 
@@ -22,7 +23,9 @@ export function nextSort<K extends string>(current: SortState<K>, key: K, rules:
   const first = rules.defaultDir?.(key) ?? -1;
   if (current.key !== key) return { key, dir: first };
   if (current.dir === first) return { key, dir: (first * -1) as SortDir };
-  return rules.initial;
+  // Back to the initial sort, unless the column already IS the initial sort: that click would change nothing.
+  const back = rules.initial;
+  return back.key === current.key && back.dir === current.dir ? { key, dir: first } : back;
 }
 
 /** aria-sort value for a header. */

@@ -1,6 +1,6 @@
 'use client';
 
-import type { NeedsYouItem } from '@/lib/demo';
+import type { NeedsKind, NeedsYouItem } from '@/lib/demo';
 import { plural } from '@/lib/format/plural';
 import { Chip } from '@/components/status/chip/Chip';
 import { LiveAct } from './components/live/LiveAct';
@@ -9,7 +9,7 @@ import { useLiveActs, type LiveActs } from './hooks/useLiveActs';
 import empty from './NeedsYouEmpty.module.css';
 import styles from './NeedsYouLive.module.css';
 
-const KIND: Readonly<Record<string, string>> = {
+const KIND: Readonly<Record<NeedsKind, string>> = {
   promote: 'Extend trust',
   signoff: 'CRA sign-off',
   gaps: 'Maturity gaps',
@@ -71,7 +71,7 @@ export function NeedsYouLiveView({ items, seeded, acts, evidence = {} }: {
           return (
             <li key={n.id} className={`${styles.item} ${open ? styles.open : ''}`}>
               <button type="button" className={styles.head} aria-expanded={open} onClick={() => acts.select(open ? null : n.id)}>
-                <Chip compact>{KIND[n.kind] ?? n.kind}</Chip>
+                <Chip compact>{KIND[n.kind]}</Chip>
                 <b className={styles.title} title={n.title}>{n.title}</b>
                 {n.dueIn ? <span className={styles.due}>due in {n.dueIn}</span> : null}
               </button>

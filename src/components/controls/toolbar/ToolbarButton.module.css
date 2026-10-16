@@ -14,12 +14,17 @@
   white-space: nowrap;
   flex: none;
 }
-.tbtn:hover {
+/* :where keeps the old specificity, so a pressed or active button still wins over its hover fill */
+.tbtn:hover:where(:not(:disabled)) {
   background: var(--ctl);
 }
 .tbtn[aria-pressed="true"] {
   color: var(--accent);
   background: var(--accent-soft);
+}
+
+.tbtn:disabled {
+  color: var(--text-4);
 }
 
 /* popup button: a filled pill with a label and a chevron */
@@ -28,7 +33,7 @@
   padding: 0 6px 0 8px;
   font-size: var(--t-head);
 }
-.pu:hover {
+.pu:hover:where(:not(:disabled)) {
   background: var(--ctl-hi);
 }
 .on {

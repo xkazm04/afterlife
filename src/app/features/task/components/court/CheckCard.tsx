@@ -3,7 +3,6 @@ import { Chip } from '@/components/status/chip/Chip';
 import type { CheckKind, TaskCheck, TaskView } from '../../model/types';
 import { linkLabel, type Emphasis } from '../../model/court/selection';
 import { checkGlyph } from '../../model/verdict/verdict';
-import { activateOnKey } from './ClaimCard';
 import styles from './cards.module.css';
 
 const KIND_CLASS: Record<CheckKind, string> = { ok: styles.check_ok ?? '', bad: styles.check_bad ?? '', unk: styles.check_unk ?? '' };
@@ -26,16 +25,16 @@ export function CheckCard({
 }) {
   const cls = [styles.cd, styles.check, KIND_CLASS[kind], styles[emphasis], landed ? '' : styles.hidden].filter(Boolean).join(' ');
   return (
-    <div
-      role="button"
-      tabIndex={landed ? 0 : -1}
-      data-check-card={check.id}
-      aria-pressed={emphasis === 'sel'}
-      aria-hidden={landed ? undefined : true}
-      className={cls}
-      onClick={onSelect}
-      onKeyDown={(e) => activateOnKey(e, onSelect)}
-    >
+    <div data-check-card={check.id} aria-hidden={landed ? undefined : true} className={cls}>
+      {/* The select control is a sibling of the evidence link, stretched over the card: a link inside a button is not reachable. */}
+      <button
+        type="button"
+        className={styles.pick}
+        tabIndex={landed ? 0 : -1}
+        aria-pressed={emphasis === 'sel'}
+        aria-label={`${check.id}: ${check.text}`}
+        onClick={onSelect}
+      />
       <div className={styles.top}>
         <span className={styles.nm}>
           <span className={styles.g}>{checkGlyph(check.ok)}</span>
@@ -49,7 +48,7 @@ export function CheckCard({
       </div>
       <div className={styles.txt}>{check.text}</div>
       <div className={styles.meta}>
-        <span>
+        <span className={styles.lnk}>
           <ObjectLink target={check.ref} />
         </span>
         <span>{linkLabel(task, check.link)}</span>

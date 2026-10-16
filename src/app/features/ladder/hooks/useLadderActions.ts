@@ -49,6 +49,7 @@ export function useLadderActions({
 }) {
   const { toast, status } = useToast();
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const simCountRef = useRef(0); // simulated commits handed out: bumped when asked, so two answers in one render get two ids
   const latest = useRef(data);
   useEffect(() => {
     latest.current = data;
@@ -70,7 +71,7 @@ export function useLadderActions({
 
   const select = useCallback((id: string) => dispatch({ type: 'select', id }), [dispatch]);
 
-  const { revoke, revokeTrack, revokeKey } = useRevokeActions({ project, latest, dispatch, writes, promos, revokeShown, onShow, stamp, later, focusTable });
+  const { revoke, revokeTrack, revokeKey } = useRevokeActions({ project, latest, dispatch, writes, promos, revokeShown, onShow, stamp, later, focusTable, simCountRef });
   const promote = usePromoteAction(project, data, promos, promoteScreen);
 
   const setSource = useCallback(
@@ -85,6 +86,7 @@ export function useLadderActions({
   const reset = useCallback(() => {
     timers.current.forEach(clearTimeout);
     timers.current.clear();
+    simCountRef.current = 0;
     dispatch({ type: 'reset', seed });
     onReset();
     toast('Demo reset');

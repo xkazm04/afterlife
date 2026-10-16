@@ -56,6 +56,27 @@ describe('parseDiff', () => {
     expect(parseDiff(diff).map((f) => f.path)).toEqual(['dir/späce.txt']);
   });
 
+  it('keeps a header-only change to a quoted path: a mode change or a binary file has no --- / +++ lines to name it', () => {
+    const diff = [
+      'diff --git "a/docs/sch\\303\\251ma.png" "b/docs/sch\\303\\251ma.png"',
+      'new file mode 100644',
+      'Binary files /dev/null and "b/docs/sch\\303\\251ma.png" differ',
+      'diff --git "a/d\\303\\244/CODEOWNERS" b/plain.txt',
+      'old mode 100644',
+      'new mode 100755',
+      'diff --git a/old.txt "b/q\\"uote.txt"',
+      'old mode 100644',
+      'new mode 100755',
+    ].join('\n');
+    const files = parseDiff(diff);
+    expect(files.map((f) => [f.path, f.status, f.binary])).toEqual([
+      ['docs/schéma.png', 'added', true],
+      ['plain.txt', 'renamed', false],
+      ['q"uote.txt', 'renamed', false],
+    ]);
+    expect(files[1]?.oldPath).toBe('dä/CODEOWNERS');
+  });
+
   it('returns nothing for text that is not a diff', () => {
     expect(parseDiff('')).toEqual([]);
     expect(parseDiff('hello\nworld')).toEqual([]);

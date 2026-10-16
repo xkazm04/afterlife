@@ -3,14 +3,14 @@
 import { memo } from 'react';
 import type { District } from '../../model/city';
 import { fmt, plural, type FleetTotals, type MarkKind } from '../../model/words';
-import { useCountUp } from '../../hooks/useCountUp';
+import { COUNT_BIG, COUNT_MARK, useCountUp } from '../../hooks/useCountUp';
 import { MarkIcon } from './MarkIcon';
 import styles from './answer.module.css';
 
 // `quiet`: the mark is left out while its count is 0.
 const MARKS: readonly { kind: MarkKind; words: (t: FleetTotals, staleTop: District | null) => string; n: (t: FleetTotals) => number; quiet?: boolean }[] = [
   { kind: 'stale', n: (t) => t.stale, words: (_, s) => ` stale${s && s.stale > 0 ? ` · ${s.stale} in ${s.name}` : ''}` },
-  { kind: 'quar', n: (t) => t.quar, words: () => ' classes quarantined' },
+  { kind: 'quar', n: (t) => t.quar, words: (t) => ` ${t.quar === 1 ? 'class' : 'classes'} quarantined` },
   { kind: 'norec', n: (t) => t.norec, words: (t) => ` ${t.norec === 1 ? 'class' : 'classes'} with no record yet · not quarantined`, quiet: true },
   { kind: 'split', n: (t) => t.split, words: (t) => ` ${t.split === 1 ? 'class' : 'classes'} split between agents · each at its own tier`, quiet: true },
   { kind: 'setup', n: (t) => t.setup, words: () => ' setting up' },
@@ -52,7 +52,7 @@ export const Answer = memo(function Answer({
   return (
     <section className={styles.answer} aria-label="The fleet at a glance" data-role="door-answer">
       <button type="button" className={styles.big} tabIndex={tab} data-role="door-big" aria-label={`${totals.needs} ${plural(totals.needs, 'decision')} wait${totals.needs === 1 ? 's' : ''} for you. Open the district with the most.`} onClick={() => onOpen('needs')} {...lit('needs')}>
-        <Count n={totals.needs} delay={2400} dur={800} intro={intro} />
+        <Count n={totals.needs} {...COUNT_BIG} intro={intro} />
       </button>
       <div className={styles.bigSub} data-role="door-big-sub">
         {plural(totals.needs, 'decision')} {totals.needs === 1 ? 'waits' : 'wait'} for you
@@ -77,7 +77,7 @@ export const Answer = memo(function Answer({
               <MarkIcon kind={m.kind} />
               <span>
                 <b>
-                  <Count n={m.n(totals)} delay={1200} dur={2000} intro={intro} />
+                  <Count n={m.n(totals)} {...COUNT_MARK} intro={intro} />
                 </b>
                 {m.words(totals, staleTop)}
               </span>
@@ -89,11 +89,11 @@ export const Answer = memo(function Answer({
             <MarkIcon kind="proof" />
             <span>
               <b>
-                <Count n={totals.pass} delay={1200} dur={2000} intro={intro} />
+                <Count n={totals.pass} {...COUNT_MARK} intro={intro} />
               </b>{' '}
-              proofs passed this week ·{' '}
+              {plural(totals.pass, 'proof')} passed this week ·{' '}
               <span className={styles.fl}>
-                <Count n={totals.fail} delay={1200} dur={2000} intro={intro} />
+                <Count n={totals.fail} {...COUNT_MARK} intro={intro} />
               </span>{' '}
               failed
             </span>

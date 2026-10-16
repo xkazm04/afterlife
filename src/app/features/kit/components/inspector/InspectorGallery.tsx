@@ -30,10 +30,11 @@ export function InspectorGallery() {
         <ProofBar proofs={{ pass: 31, fail: 2, inconclusive: 1 }} block />
       </InspectorSection>
       <InspectorSection title="CommandBlock">
-        <CommandBlock commands={['glab issue update 131 -R acme-lab/ledgerline --label "cra::ready-to-sign"', 'glab issue note 131 -m "Read by @operator."']} />
+        <CommandBlock label="Command: issue update and note" commands={['glab issue update 131 -R acme-lab/ledgerline --label "cra::ready-to-sign"', 'glab issue note 131 -m "Read by @operator."']} />
       </InspectorSection>
       <InspectorSection title="CommandBlock notes, comments, no prompt">
         <CommandBlock
+          label="Command: notes and comments, no prompt"
           commands={[
             { note: '# 1 · one commit, as you' },
             { code: 'glab api --method POST "projects/acme/repository/commits" \\' },
@@ -41,7 +42,7 @@ export function InspectorGallery() {
           ]}
           prompt={false}
         />
-        <CommandBlock commands={['git pull --ff-only', { note: '# runs as @you via glab · flags illustrative' }]} />
+        <CommandBlock label="Command: trailing comment line" commands={['git pull --ff-only', { note: '# runs as @you via glab · flags illustrative' }]} />
       </InspectorSection>
       <InspectorSection title="DiffBlock" aux="added, removed, context">
         <DiffBlock file="# tier-state.yml" lines={parseDiff(['  dep-bump.patch:', '-   tier: hands_off', '+   tier: supervised', '+   moved: { by: "@operator" }'])} />

@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, rungText, shortMr } from './rungs';
+import { RUNGS } from '@/schemas/stages';
+import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, rungText, shortMr, TOP_RUNG } from './rungs';
 import { ctx } from './testCtx';
 
 describe('rung helpers', () => {
@@ -22,6 +25,12 @@ describe('rung helpers', () => {
     expect(nextOf(null, 2)).toBe(2);
   });
 
+  it('the top bolt is the last rung the schema lists: next never climbs past it', () => {
+    expect(TOP_RUNG).toBe(RUNGS.length - 1);
+    expect(nextOf(TOP_RUNG, TOP_RUNG)).toBe(TOP_RUNG);
+    expect(nextOf(TOP_RUNG - 1, TOP_RUNG - 1)).toBe(TOP_RUNG);
+  });
+
   it('draws day 0, now or the target by mode; unknown stays unknown', () => {
     const monitor = ctx.base.monitor;
     expect(levelFor('day0', monitor, 1)).toBeNull();
@@ -32,6 +41,19 @@ describe('rung helpers', () => {
 
   it('deep means R3 or higher', () => {
     expect([null, 0, 2, 3, 4].map(isDeep)).toEqual([false, false, false, true, true]);
+  });
+
+  it('the deep count and isDeep are one rule: the R3 threshold is written once in rungs.ts', () => {
+    const src = readFileSync(fileURLToPath(new URL('./rungs.ts', import.meta.url)), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(src.match(/>=\s*3\b/g) ?? []).toHaveLength(1);
+    const levels = [null, 0, 1, 2, 3, 4];
+    expect(countLevels(levels).deep).toBe(levels.filter(isDeep).length);
+  });
+
+  it('each export carries one doc block: shortMr keeps its own, not mrName', () => {
+    const raw = readFileSync(fileURLToPath(new URL('./rungs.ts', import.meta.url)), 'utf8');
+    expect(raw.match(/\*\/\s*\n\s*\/\*\*/g) ?? []).toHaveLength(0);
+    expect(raw).toMatch(/\/\*\*[^\n]*policies project is long[^\n]*\*\/\s*\nexport const shortMr/);
   });
 
   it('counts the nine stages as the status bar does', () => {

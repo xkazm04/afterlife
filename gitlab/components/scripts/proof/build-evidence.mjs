@@ -64,8 +64,8 @@ if (cls === 'exploit-test') {
   const v = checked(json(need('verdict')), 'medic-verdict.schema.json', 'belay-medic block');
   if (!v.job) die('the belay-medic block names no job', 2);
   const runs = [];
-  for (const p of apiAll(`projects/${projectId}/pipelines?sha=${v.sha}`, 2)) {
-    for (const j of apiAll(`projects/${projectId}/pipelines/${p.id}/jobs`, 2)) {
+  for (const p of apiAll(`projects/${projectId}/pipelines?sha=${v.sha}`, 2, { strict: true })) {
+    for (const j of apiAll(`projects/${projectId}/pipelines/${p.id}/jobs`, 2, { strict: true })) {
       if (j.name === v.job) runs.push({ job_id: String(j.id), sha: j.pipeline?.sha ?? v.sha, status: j.status, failure_reason: j.failure_reason });
     }
   }

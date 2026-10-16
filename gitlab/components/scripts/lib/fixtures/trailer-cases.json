@@ -1,0 +1,38 @@
+[
+  {
+    "name": "a trailer quoted in a fence after the real one",
+    "text": "Belay-Task: 01J8Q4ABCDEFGHJKMNPQRSTVWX\n\n```text\nBelay-Task: 01J8QBABCDEFGHJKMNPQRSTVWX\n```\n",
+    "key": "Belay-Task",
+    "want": "01J8Q4ABCDEFGHJKMNPQRSTVWX"
+  },
+  {
+    "name": "a trailer quoted in a fence before the real one",
+    "text": "```md\nBelay-Task: 01J8QBABCDEFGHJKMNPQRSTVWX\n```\nBelay-Task: 01J8Q4ABCDEFGHJKMNPQRSTVWX",
+    "key": "Belay-Task",
+    "want": "01J8Q4ABCDEFGHJKMNPQRSTVWX"
+  },
+  {
+    "name": "only a fenced trailer",
+    "text": "intro\n```text\nBelay-Task: 01J8QBABCDEFGHJKMNPQRSTVWX\n```\n",
+    "key": "Belay-Task",
+    "want": null
+  },
+  {
+    "name": "the last plain trailer wins",
+    "text": "Belay-Task: 01J8Q4ABCDEFGHJKMNPQRSTVWX\nBelay-Task: 01J8QBABCDEFGHJKMNPQRSTVWX\n",
+    "key": "Belay-Task",
+    "want": "01J8QBABCDEFGHJKMNPQRSTVWX"
+  },
+  {
+    "name": "CRLF text with a fence",
+    "text": "Belay-Task: 01J8Q4ABCDEFGHJKMNPQRSTVWX\r\n```text\r\nBelay-Task: 01J8QBABCDEFGHJKMNPQRSTVWX\r\n```\r\n",
+    "key": "Belay-Task",
+    "want": "01J8Q4ABCDEFGHJKMNPQRSTVWX"
+  },
+  {
+    "name": "an unclosed fence hides nothing before it and nothing after is read as closed",
+    "text": "Belay-Task: 01J8Q4ABCDEFGHJKMNPQRSTVWX\n```text\nBelay-Task: 01J8QBABCDEFGHJKMNPQRSTVWX\n",
+    "key": "Belay-Task",
+    "want": "01J8QBABCDEFGHJKMNPQRSTVWX"
+  }
+]

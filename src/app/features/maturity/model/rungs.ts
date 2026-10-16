@@ -1,4 +1,8 @@
 import type { MaturityRung } from '@/lib/demo';
+import { RUNGS } from '@/schemas/stages';
+
+/** The highest rung (R4 today): the schema's rung list decides, not a literal 4 here and one in the crag. */
+export const TOP_RUNG = RUNGS.length - 1;
 
 /** A rung number 0..4, or null for unknown (never treated as zero). */
 export type Level = number | null;
@@ -15,9 +19,9 @@ export const rungText = (n: Level): string => (n == null ? '?' : `R${n}`);
 
 export const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** The MR id as the table and the crag tags show it (the policies project is long). */
 /** The MR GitLab named for a gap the server opened one for, else the gap's id: never an MR number the screen made up. */
 export const mrName = (mrs: Readonly<Record<string, string>>, id: string): string => mrs[id] ?? id;
+/** The MR id as the table and the crag tags show it (the policies project is long). */
 export const shortMr = (mr: string | null | undefined): string => (mr ?? '').replace('ledgerline-policies', 'pol');
 
 /**
@@ -25,7 +29,7 @@ export const shortMr = (mr: string | null | undefined): string => (mr ?? '').rep
  * otherwise the scan's next. Capped at R4.
  */
 export function nextOf(now: Level, scanNext: number): number {
-  return now != null && now >= scanNext ? Math.min(4, now + 1) : scanNext;
+  return now != null && now >= scanNext ? Math.min(TOP_RUNG, now + 1) : scanNext;
 }
 
 /** The rung a route is drawn at: its Day 0 high point, where it is now, or the next bolt (target, not earned). */
@@ -51,7 +55,7 @@ export function countLevels(levels: readonly Level[]): LevelCounts {
   const n = (f: (v: Level) => boolean) => levels.filter(f).length;
   return {
     total: levels.length,
-    deep: n((v) => v != null && v >= 3),
+    deep: n(isDeep),
     running: n((v) => v === 2),
     configured: n((v) => v === 1),
     absent: n((v) => v === 0),

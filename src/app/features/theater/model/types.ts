@@ -86,7 +86,7 @@ export interface Marks {
 export interface Hold {
   n: number;
   label: string;
-  stage: string;
+  stage: Stage;
   who?: string;
   text?: string;
 }

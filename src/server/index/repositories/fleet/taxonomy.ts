@@ -1,6 +1,6 @@
 // The two small lookup lists the fleet grid is drawn from: groups (GitLab) and trust classes (trust-policy.yml).
 import type { Ceiling } from '@/schemas/tier';
-import { upsertRows, type Queryable, type TableSpec } from '../sql';
+import { upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 export interface TrustClassRow {
   id: string;
@@ -12,11 +12,13 @@ export interface TrustClassRow {
 }
 
 const GROUP: TableSpec = { table: 'fleet_group', key: ['path'], cols: { path: 'text', ord: 'int' } };
+registerSpec(GROUP);
 const CLASS: TableSpec = {
   table: 'trust_class',
   key: ['id'],
   cols: { id: 'text', ord: 'int', track: 'smallint', agent: 'text', ceiling: 'text' },
 };
+registerSpec(CLASS);
 
 /** Group paths in display order. */
 export const upsertGroups = (db: Queryable, paths: readonly string[]): Promise<void> =>

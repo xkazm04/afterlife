@@ -1,4 +1,4 @@
-// Write routes of the fake: the six PlannedCommands Belay builds, applied to the in-memory state.
+// Write routes of the fake: the seven PlannedCommands Belay builds, applied to the in-memory state.
 import type { FakeState, ProjectData } from './dataset';
 import { atLeast, inProject } from './reads';
 import { lastCommitOf, writeFile, writeTarget } from './refs';

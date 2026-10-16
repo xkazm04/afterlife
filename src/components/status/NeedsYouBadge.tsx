@@ -26,7 +26,7 @@ export function NeedsYouBadge({
   if (label === undefined && !count && !showZero) return null;
   const tip = title ?? (label !== undefined ? undefined : variant === 'last-known' ? `${count} waiting, last known` : `${count} waiting for you`);
   return (
-    <span className={`${styles.ny} ${variant !== 'live' ? styles.outline : ''} ${small ? styles.small : ''}`} title={tip} aria-label={tip}>
+    <span className={`${styles.ny} ${variant !== 'live' ? styles.outline : ''} ${small ? styles.small : ''}`} title={tip} role={tip ? 'img' : undefined} aria-label={tip}>
       {label ?? count}
     </span>
   );

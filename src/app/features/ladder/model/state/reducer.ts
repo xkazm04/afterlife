@@ -38,14 +38,14 @@ export function ladderReducer(s: LadderState, a: LadderAction): LadderState {
     case 'revoke': {
       // Dispatched once the server answered done: simulated (demo, the demo hands out the commit id) or the real commit.
       if (!s.classes.some((c) => c.id === a.id)) return s;
-      const sha = a.sent.simulated ? nextSha(s.shaIdx) : a.sent.commit;
+      const sha = a.sent.simulated ? (a.sha ?? nextSha(s.shaIdx)) : a.sent.commit;
       const done = commitRevoke(s.classes, s.ledger, a.id, a.to, a.sent, sha, a.at, s.tz);
       return { ...s, ...done, shaIdx: s.shaIdx + (a.sent.simulated ? 1 : 0), sel: a.id, just: a.id };
     }
     case 'revokeTrack': {
       // One commit for the whole track: every moved class pending on the same sha, the track header stays selected.
       if (!a.changes.some((ch) => s.classes.some((c) => c.id === ch.id))) return s;
-      const sha = a.sent.simulated ? nextSha(s.shaIdx) : a.sent.commit;
+      const sha = a.sent.simulated ? (a.sha ?? nextSha(s.shaIdx)) : a.sent.commit;
       const done = commitChanges(s.classes, s.ledger, a.changes, a.sent, sha, a.at, s.tz);
       return { ...s, ...done, shaIdx: s.shaIdx + (a.sent.simulated ? 1 : 0) };
     }

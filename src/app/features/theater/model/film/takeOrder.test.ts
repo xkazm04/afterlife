@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import type { LedgerEvent, LedgerKind } from '@/schemas/ledger';
 import { reduce, type Action } from '../replay/reducer';
-import { initialState, rangeLabel, seqLabel, seqRange, slateText, type ReplayState } from '../replay/state';
+import { initialState, rangeLabel, seqLabel, seqRange, slateText, takeSpan, type ReplayState } from '../replay/state';
 import { ledgerFilm } from './fromLedger';
 
 const ev = (seq: number, iid: number, kind: LedgerKind): LedgerEvent => ({
@@ -55,5 +55,12 @@ describe('a film whose MRs interleave in seq', () => {
       const done = run(s, { type: 'tick', dt: 3000 }, { type: 'tick', dt: 1_000_000 });
       expect(done.i).toBe(lastOf[k]);
     });
+  });
+});
+
+describe('the span of a take in the reel', () => {
+  it('is its first and last seq as reel indexes, the one rule the roll, the take under the playhead and the fold share', () => {
+    expect(film.takes.map((t) => takeSpan(t, reel))).toEqual([{ a: 0, b: 1 }, { a: 2, b: 4 }, { a: 5, b: 7 }]);
+    expect(takeSpan({ name: 'gone', a: 99, b: 100 }, reel)).toEqual({ a: -1, b: -1 });
   });
 });

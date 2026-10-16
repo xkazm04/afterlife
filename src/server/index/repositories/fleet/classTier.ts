@@ -3,7 +3,7 @@ import type { GateSeen, RecordCounters } from '@/lib/demo/types';
 import type { EnforcementReceipt } from '@/schemas/receipt';
 import type { Ceiling } from '@/schemas/tier';
 import type { TrialCount } from '@/schemas/trial';
-import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
+import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 /**
  * How the class last changed. 'note' carries a fixed explanation in `note`. 'no_record' and 'refused' are standings, read
@@ -46,6 +46,7 @@ const SPEC: TableSpec = {
     gate_iid: 'int', gate_tier: 'text', gate_at: 'timestamptz', sources: 'jsonb', trial: 'jsonb',
   },
 };
+registerSpec(SPEC);
 
 interface Db {
   project_id: string; class_id: string; tier: Ceiling | null; since: Date | null; set_by: string | null;

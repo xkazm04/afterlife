@@ -111,3 +111,17 @@ describe('collect-facts', () => {
     expect(run(http(404, '404 File Not Found')).codeowners).toEqual([]);
   });
 });
+
+describe('ledger-append: the default ledger file is named by CI_PROJECT_ID', () => {
+  it('unset and no --path: refuses, writes nothing (it used to commit events/undefined.jsonl)', () => {
+    const r = runScript(dir, 'decide/ledger-append.mjs', ['--event', event, '--project', LEDGER, '--branch', 'main'], { routes: { [COMMITS]: { reply: {} } }, env: { CI_PROJECT_ID: undefined } });
+    expect(r.code).not.toBe(0);
+    expect(r.stderr).toMatch(/CI_PROJECT_ID is not set/);
+    expect(r.writes).toEqual([]);
+  });
+  it('unset but --path given: appends to that path', () => {
+    const r = runScript(dir, 'decide/ledger-append.mjs', appendArgs, { routes: { [FILE_URL]: http(404, '404 File Not Found'), [COMMITS]: { reply: {} } }, env: { CI_PROJECT_ID: undefined } });
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.writes[0].body.actions[0]).toMatchObject({ action: 'create', file_path: FILE });
+  });
+});

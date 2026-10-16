@@ -3,7 +3,7 @@
 import type { LedgerEntry } from '../types';
 
 /** Holds run from beat 1 (bottom) to beat 9 (top): eight steps. */
-export const HOLD_STEPS = 8;
+const HOLD_STEPS = 8;
 /** The !44 line's guardbar sits at hold 5 (step 4). */
 export const GUARD_STEP = 4;
 /** On the ground the !41 chip sits this many bolt-heights below hold 1, so it is never clipped by the pane. */
@@ -15,7 +15,7 @@ const CAP_MAX = 7.2;
 /** Caption percent from the bottom, beside a climber at this step, never off the wall. */
 const capAt = (step: number): number => Math.min(pct(CAP_MAX), Math.max(pct(CAP_MIN), pct(step)));
 
-export const easeOut = (k: number): number => 1 - Math.pow(1 - k, 3);
+const easeOut = (k: number): number => 1 - Math.pow(1 - k, 3);
 /** Hold step -> percent from the bottom of the wall. */
 export const pct = (step: number): number => (step / HOLD_STEPS) * 100;
 
@@ -36,7 +36,7 @@ export interface Motion {
 }
 
 /** `from`: the beat before this entry (default: the hold below). `side`: the illustrative !44 line is drawn. */
-export interface MotionOpts {
+interface MotionOpts {
   from?: number;
   side?: boolean;
 }

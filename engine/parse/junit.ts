@@ -89,29 +89,41 @@ function* tokens(xml: string): Generator<Tok> {
 function parseTree(xml: string): XNode {
   const root: XNode = { name: '#root', attrs: {}, children: [], text: '' };
   const stack: XNode[] = [root];
+  const where = new Map<string, number[]>(); // tag name -> its open positions in the stack, innermost last: a closer finds its opener without scanning the stack
   for (const t of tokens(xml)) {
     const top = stack.at(-1) ?? root;
     if (t.cdata !== undefined) top.text += t.cdata;
     else if (t.name !== undefined) {
       if (t.closing) {
-        const at = stack.map((n) => n.name).lastIndexOf(t.name);
-        if (at > 0) stack.length = at; // tolerate unbalanced closers
+        const at = where.get(t.name)?.at(-1); // tolerate unbalanced closers: no opener means nothing closes
+        if (at !== undefined) {
+          for (let i = stack.length - 1; i >= at; i--) where.get((stack[i] as XNode).name)?.pop();
+          stack.length = at;
+        }
         continue;
       }
       const attrs: Record<string, string> = {};
       for (const a of (t.attrs ?? '').matchAll(ATTR)) attrs[a[1] ?? ''] = decodeEntities(a[2] ?? a[3] ?? '');
       const node: XNode = { name: t.name, attrs, children: [], text: '' };
       top.children.push(node);
-      if (!t.selfClosing) stack.push(node);
+      if (!t.selfClosing) {
+        stack.push(node);
+        const open = where.get(t.name);
+        if (open) open.push(stack.length - 1);
+        else where.set(t.name, [stack.length - 1]);
+      }
     } else if (t.text !== undefined) top.text += decodeEntities(t.text);
   }
   return root;
 }
 
-function descendants(n: XNode, name: string, out: XNode[] = []): XNode[] {
-  for (const c of n.children) {
-    if (c.name === name) out.push(c);
-    descendants(c, name, out);
+/** Document order, walked with a stack of its own: recursion would overflow on a report nested a few thousand tags deep. */
+function descendants(root: XNode, name: string): XNode[] {
+  const out: XNode[] = [];
+  const todo = [...root.children].reverse();
+  for (let n = todo.pop(); n; n = todo.pop()) {
+    if (n.name === name) out.push(n);
+    for (let i = n.children.length - 1; i >= 0; i--) todo.push(n.children[i] as XNode);
   }
   return out;
 }

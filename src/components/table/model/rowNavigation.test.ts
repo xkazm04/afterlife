@@ -57,7 +57,13 @@ describe('navigate keys', () => {
 describe('helpers', () => {
   it('builds safe DOM ids', () => {
     expect(rowDomId('ledger-service')).toBe('row-ledger-service');
-    expect(rowDomId('g:core banking')).toBe('row-g-core_banking');
+    expect(rowDomId('g:core banking')).toBe('row-g_3a_core_20_banking');
+  });
+  it('maps distinct ids to distinct DOM ids', () => {
+    const ids = ['g:a', 'g-a', 'qa.bug', 'qa_bug', 'qa_2e_bug', 'a b', 'a_b', 'a-b', 'é', '_', '', '😀', 'x:y', 'x_3a_y'];
+    const dom = ids.map(rowDomId);
+    expect(new Set(dom).size).toBe(ids.length);
+    for (const d of dom) expect(d).toMatch(/^row-[\w-]*$/);
   });
   it('detects type-ahead characters', () => {
     const base = { ctrlKey: false, metaKey: false, altKey: false };

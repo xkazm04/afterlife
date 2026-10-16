@@ -2,7 +2,7 @@
 
 export type StepWho = 'agent' | 'human';
 
-/** Per-step detail the demo dataset lacks (adopt-belay skill, steps 0-14). Commands are illustrative. */
+/** Per-step detail the demo dataset lacks (adopt-belay skill, steps 0-14). A command is shown only if it runs as written (stepDetail.ts). */
 export interface StepDetail {
   who: StepWho;
   /** Gate title in "Only you can do these" (human steps). */

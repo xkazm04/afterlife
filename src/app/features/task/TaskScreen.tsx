@@ -8,6 +8,7 @@ import { Window } from '@/components/shell/Window';
 import { ReceiptChain } from './components/chain/ReceiptChain';
 import { Court } from './components/court/Court';
 import { Docket } from './components/docket/Docket';
+import { taskHref } from './components/docket/taskHref';
 import { VerdictEquation } from './components/equation/VerdictEquation';
 import { TaskHeader } from './components/header/TaskHeader';
 import { TaskLegend } from './components/help/TaskLegend';
@@ -15,6 +16,7 @@ import { TaskInspector, type Panel } from './components/inspector/TaskInspector'
 import { ClassMenuButton } from './components/toolbar/ClassMenuButton';
 import { ReplayButton } from './components/toolbar/ReplayButton';
 import { VerdictLozenge } from './components/toolbar/VerdictLozenge';
+import { cardSelector } from './hooks/useTieGeometry';
 import { usePageClock } from './hooks/usePageClock';
 import { useReplay } from './hooks/useReplay';
 import { useSelection } from './hooks/useSelection';
@@ -56,20 +58,24 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
   const applyFilters = (next: Filters) => {
     setFilters(next);
     const id = idAfterFilter(visibleTasks(tasks, next), task.id);
-    if (id) router.replace(`/task/${id}`);
+    if (id) router.replace(taskHref(id));
   };
   const onPick = (side: Side, id: string) => {
     if (!replay.running) pick(side, id);
   };
-  const focus = (selector: string) => document.querySelector<HTMLElement>(selector)?.focus();
+  /** A check card is a container whose select button takes the focus; a claim card or a docket link is focused itself. */
+  const focus = (selector: string) => {
+    const el = document.querySelector<HTMLElement>(selector);
+    (el?.querySelector<HTMLElement>('button[aria-pressed]') ?? el)?.focus();
+  };
 
   const run = (a: TaskAction) => {
     if (a.type === 'step') {
       const id = stepTask(visible, task.id, a.delta);
       if (!id) return;
       const fromDocket = !!document.activeElement?.closest('[data-docket]');
-      router.replace(`/task/${id}`);
-      if (fromDocket) requestAnimationFrame(() => focus(`[data-docket] a[href="/task/${id}"]`));
+      router.replace(taskHref(id));
+      if (fromDocket) requestAnimationFrame(() => focus(`[data-docket] a[href="${taskHref(id)}"]`));
     } else if (a.type === 'replay') replay.start();
     else if (a.type === 'words') {
       setInspOpen(true);
@@ -81,11 +87,11 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
       if (!next) return;
       if (next.id !== task.id) return router.replace(selectionHref(next.id, next.sel));
       set(next.sel);
-      if (next.sel) focus(`[data-${next.sel.side}-card="${next.sel.id}"]`);
+      if (next.sel) focus(cardSelector(next.sel.side, next.sel.id));
     } else {
       const next = arrowSelection(task, sel, a.key);
       set(next);
-      if (next) focus(`[data-${next.side}-card="${next.id}"]`);
+      if (next) focus(cardSelector(next.side, next.id));
     }
   };
   useTaskKeys(run, replay.running);

@@ -44,6 +44,15 @@ describe('cited-diff: every finding quotes a hunk that exists', () => {
     expect(checkOf(q('x.kt', 'val danger = eval(input) val danger = parse(input)'), 'quote-in-diff').detail).toMatch(/the hunk/); // spans removed and added lines
   });
 
+  it('does not stitch a quote from added lines that have other lines between them', () => {
+    const d = ['diff --git a/x.kt b/x.kt', '--- a/x.kt', '+++ b/x.kt', '@@ -1 +1,3 @@', '+alpha beta', '-old line', '+gamma delta', '+epsilon', ''].join('\n');
+    const base = fixture('cited', 'input.grounded.json');
+    const q = (text: string) => checkOf(run({ ...base, diff: d, claims: [{ id: 'q', text: 't', quote: { file: 'x.kt', text } }] }), 'quote-in-diff');
+    expect(q('beta gamma delta').ok).toBe(false); // alpha beta and gamma delta are never adjacent in the file
+    expect(q('gamma delta epsilon').detail).toMatch(/added lines/); // consecutive added lines still join
+    expect(q('alpha beta old line').detail).toMatch(/the hunk/); // a quote that follows the hunk's own order still passes
+  });
+
   it('does not accept a quote that is too short to show anything', () => {
     const b = run(withQuote('CHANGELOG.md', 'AI'));
     expect(checkOf(b, 'quote-in-diff').ok).toBe(false);

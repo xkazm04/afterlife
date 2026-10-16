@@ -7,6 +7,7 @@ import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { useSetup } from '../../hooks/SetupContext';
 import { enrollGate, enrollWhyNot } from '../../model/enroll/enroll';
+import { noMrAddress } from '../../model/flow/wording';
 import styles from './inspector.module.css';
 import { ArmPreview } from './parts/ArmPreview';
 import { NeedYouAux } from './parts/NeedYouAux';
@@ -35,7 +36,7 @@ export function EnrollSection({ id }: { id: string }) {
       <DetailSection title={`Merge ${mr}`} aux={<NeedYouAux />}>
         <KeyValue rows={rows} />
         <div className={styles.acts}>
-          <Button disabled={!sent.url} onClick={() => sent.url && window.open(sent.url, '_blank', 'noopener,noreferrer')}>
+          <Button onClick={() => (sent.url ? window.open(sent.url, '_blank', 'noopener,noreferrer') : toast(noMrAddress(sent.simulated, mr)))}>
             Open {mr} ↗
           </Button>
         </div>

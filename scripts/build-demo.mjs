@@ -122,6 +122,7 @@ for (const a of actionClasses) {
 // sources: a class below its ceiling whose rung above acts alone (supervised approves, hands_off merges) has every gated
 // merge as a trial MR, its tier_decision stamped half an hour before the merge; merged without edits agreed, edited is a
 // catch. record.trial totals the list (src/lib/demo/agreement.test.ts checks it).
+// Ladder order, lowest rung first; the one copy (the trial block and the fleet clamp both read it).
 const RANK = ['quarantined', 'assisted', 'supervised', 'hands_off'];
 for (const a of actionClasses) {
   const next = RANK[RANK.indexOf(a.tier) + 1];
@@ -316,7 +317,6 @@ const fleet = (() => {
     'reporting', 'audit', 'pricing', 'onboarding', 'limits', 'disputes', 'treasury', 'rates', 'search', 'docs', 'billing', 'scheduler',
     'ingest', 'warehouse', 'ml-scoring', 'feature-store', 'mobile', 'web', 'partner-api', 'webhooks', 'config', 'secrets', 'runner-pool'];
   const suffixes = ['service', 'api', 'worker', 'web', 'batch', 'adapter', 'sync', 'ui', 'cli', 'lib'];
-  const order = ['quarantined', 'assisted', 'supervised', 'hands_off'];
   const seen = new Set(portfolio.projects.map((p) => p.id));
   const projects = portfolio.projects.map((p, i) => ({ ...p, group: i < 3 ? 'core-banking' : i === 3 ? 'risk' : i === 4 ? 'internal-tools' : 'core-banking' }));
   while (projects.length < 184) {
@@ -330,7 +330,7 @@ const fleet = (() => {
       if (c === 'report.submit' || c === 'tier.promote') return [c, state === 'not-set-up' ? null : 'human_only'];
       if (state === 'not-set-up' || rnd() > armed / 8) return [c, null];
       const maturity = state === 'setting-up' ? 0.25 : 0.7;
-      let t = order[1 + Math.min(2, Math.floor(rnd() * 3 * maturity + rnd() * 1.2))];
+      let t = RANK[1 + Math.min(2, Math.floor(rnd() * 3 * maturity + rnd() * 1.2))];
       if (rnd() < 0.015) t = 'quarantined';
       return [c, t];
     }));
@@ -359,7 +359,7 @@ const fleet = (() => {
   }
   // No cell sits above its class ceiling (the gate would cap it): each is lowered to the ceiling, and each project's tier
   // counts are taken from its cells (demo.test.ts pins both).
-  const rank = (t) => order.indexOf(t);
+  const rank = (t) => RANK.indexOf(t);
   for (const p of projects) {
     for (const [c, t] of Object.entries(p.classTiers)) {
       const ceil = actionClasses.find((a) => a.id === c)?.ceiling;

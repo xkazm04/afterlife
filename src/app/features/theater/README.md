@@ -17,7 +17,7 @@ Pitch" prototype. Two films, chosen by the loader (`data/loadTheaterData.ts`, on
   status line, "?" legend. Present mode moves the stage to a fixed full-viewport layer (`F`, `Esc`).
 - `components/stage/` stage, four answers, pitch, closing board. `wall/` the rope, holds, climbers and the
   riding caption. `rail/` autonomy chips, stages with evidence, CRA clock. `chrome/` transport, takes
-  sidebar, status line, help. `inspector/` the current beat (and a real event's facts). `parts/` ReplayChip.
+  sidebar, status line, help. `inspector/` the current beat (and a real event's facts). `parts/` ReplayChip, RungSteps (the rung bar of Board and StageRows).
 - `hooks/` the store and its frame clock (`useReplayStore`), slice subscription, present mode, keys, actions.
 
 ## Model (pure, tested)
@@ -62,9 +62,20 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
   in every mode: live mode never splices a real MR's quote or the index's maturity scan into the invented film. The
   real film takes nothing from the catalogue (`demo: null`); its subtitle is the source's group and deep project.
 - A missing quote draws no quote box (`Cap`, `BeatInspector`), never an empty "quoted from !44 · untrusted".
-- Tests: `model/film/fromLedger.test.ts` (the mapper, the takes, the fold, the player), `data/film.test.tsx` (the
-  screen on each film), `data/labels.test.tsx` (the REPLAY chip and legend), `data/loader.test.tsx` (the loader live
-  against a bare index and the fake group; the quote box).
+- Tests (`data/readme.test.ts` fails when a test file under this folder is missing from this list):
+  - model: `model/film/fromLedger.test.ts` (the mapper, the takes, the fold, the player), `model/film/holds.test.ts`,
+    `model/film/takeCap.test.ts`, `model/film/takeOrder.test.ts`, `model/film/who.test.ts`, `model/derive/derive.test.ts`
+    (the fold, the answers, motion), `model/replay/reducer.test.ts`, `model/replay/store.test.ts`,
+    `model/replay/cue.test.ts` (the `#seq=` address a screen opens on).
+  - data and screen: `data/film.test.tsx` (the screen on each film), `data/labels.test.tsx` (the REPLAY chip and
+    legend), `data/loader.test.tsx` (the loader live against a bare index and the fake group; the quote box),
+    `data/constants.test.ts` (the invented constants against the ledger slice), `data/readme.test.ts` (this list).
+  - keys and parts: `hooks/useTheaterKeys.test.ts` (the "?" legend against the key map),
+    `hooks/frameClock.test.ts` (the frame clock asks for no frames while the film is held),
+    `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/rail/Autonomy.test.tsx` (why a
+    class sits at its tier), `components/styles.test.ts` (every `styles.x` exists in its CSS module),
+    `components/parts/PrerollCue.test.tsx`, `components/parts/RungSteps.test.tsx` (the one rung bar),
+    `components/parts/ProofChecks.test.tsx`, `components/wall/wallFrame.test.ts` (the wall redraws only when it moves).
 
 ## Behaviour notes
 - The REPLAY chip reads the same in the window and in present. The illustrative film's: "Replay · seq 480–520 ·

@@ -82,7 +82,7 @@ describe('live Needs you: the write behind an item', () => {
   });
 
   it('a sign-off, a gap or a setup step sends nothing and says where to act', () => {
-    for (const kind of ['signoff', 'gaps', 'setup']) {
+    for (const kind of ['signoff', 'gaps', 'setup'] as const) {
       const item: NeedsYouItem = { id: `x-${kind}`, kind, title: 'Something · x', does: 'd' };
       expect(liveIntent(item, 'ledgerline')).toBeNull();
       expect(html(item, undefined)).toContain('Read-only here');

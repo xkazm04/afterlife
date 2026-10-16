@@ -6,6 +6,7 @@ import { equationTerms, verdictWord } from '../../model/verdict/equation';
 import { becauseLine } from '../../model/verdict/reasons';
 import { checkShown, type ReplayState } from '../../model/verdict/replay';
 import { tally } from '../../model/verdict/verdict';
+import { EngineLine } from './EngineLine';
 import { Term } from './Term';
 import styles from './VerdictEquation.module.css';
 
@@ -35,16 +36,16 @@ export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; s
         ))}
       </div>
       <div className={styles.tally}>
-        <span className={styles.ok} title="hold" aria-label={`${n.ok} hold`}>
+        <span className={styles.ok} title="hold" role="img" aria-label={`${n.ok} hold`}>
           ✓{n.ok}
         </span>
         {n.bad ? (
-          <span className={styles.bad} title="fail" aria-label={`${n.bad} fail`}>
+          <span className={styles.bad} title="fail" role="img" aria-label={`${n.bad} fail`}>
             ✗{n.bad}
           </span>
         ) : null}
         {n.unk ? (
-          <span className={styles.unk} title="a person decides" aria-label={`${n.unk} for a person to decide`}>
+          <span className={styles.unk} title="a person decides" role="img" aria-label={`${n.unk} for a person to decide`}>
             ?{n.unk}
           </span>
         ) : null}
@@ -52,7 +53,7 @@ export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; s
           <div>One ✗ term fails the proof. A struck term is decided by a person and is not counted as a pass. Claims are never terms.</div>
           <hr />
           <div className={styles.eng}>
-            {task.proof.engine} · {task.proof.digest}
+            <EngineLine proof={task.proof} />
           </div>
         </HelpButton>
       </div>

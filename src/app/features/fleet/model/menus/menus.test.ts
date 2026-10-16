@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { MenuEntry } from '@/components/overlays/menu/menuModel';
+import { STATE_LABEL } from '@/lib/demo/labels';
+import type { ProjectState } from '@/lib/demo/types';
+import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { makeProject } from '../testProject';
+import { SORT_MENU_KEYS, STATE_RANK } from '../list/sorting';
 import { EMPTY_FILTERS } from '../list/filtering';
 import { groupMenu, projectPath, rowMenu } from './contextMenus';
 import { filterMenu, sortMenu } from './toolbarMenus';
@@ -52,6 +56,17 @@ describe('filterMenu', () => {
     expect(args.onState).toHaveBeenCalledWith('stale');
     find(filterMenu(args), 'Hands-off')?.run();
     expect(args.onTier).toHaveBeenCalledWith('hands_off');
+  });
+});
+
+describe('menus follow the enumerations they list', () => {
+  it('sorts by every tier, in the tiers’ display order', () => {
+    expect(SORT_MENU_KEYS.filter((k) => k.startsWith('tier:'))).toEqual(TIER_DISPLAY_ORDER.map((t) => `tier:${t}`));
+  });
+  it('filters by every project state', () => {
+    const args = { filters: EMPTY_FILTERS, onState: vi.fn(), onTier: vi.fn(), onNeedsOnly: vi.fn(), onClear: vi.fn() };
+    const labels = actions(filterMenu(args)).map((e) => e.label);
+    for (const s of Object.keys(STATE_RANK)) expect(labels).toContain(STATE_LABEL[s as ProjectState]);
   });
 });
 

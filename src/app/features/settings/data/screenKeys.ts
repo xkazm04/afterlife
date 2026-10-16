@@ -3,7 +3,7 @@
 import { capsOf, type Keymap } from '@/lib/keyboard/keymap';
 import { FLEET_KEYMAP } from '../../fleet/model/keys/keymap';
 import { LADDER_KEYMAP } from '../../ladder/model/keymap';
-import { MATURITY_KEYMAP, MATURITY_SHEET_KEYMAP } from '../../maturity/model/keymap';
+import { MATURITY_KEYMAP, MATURITY_SHEET_KEYMAP } from '../../maturity/model/keys/keymap';
 import { NEEDS_KEYMAP } from '../../needs-you/model/keys/keymap';
 import { TASK_KEYMAP } from '../../task/model/docket/keys';
 import { THEATER_KEYMAP } from '../../theater/model/keymap';

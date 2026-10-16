@@ -7,7 +7,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { main } from '../cli';
 import { capture, ctx, ROOT } from '../__tests__/helpers';
-import { inlineFiles, readInput } from './files';
+import { inlineFiles, readInput, readText } from './files';
 
 const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'belay-files-')));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
@@ -75,5 +75,12 @@ describe('only prove inlines $file', () => {
     const c = capture();
     main(['gate', '--policy', policy, '--state', path.join(ROOT, 'policy', 'tier-state.yml'), '--class', 'dep-bump.patch', '--proof', proof, '--guardrail', guard], c.io);
     expect(c.out()).not.toContain(SECRET);
+  });
+});
+
+describe('readText names why a read failed', () => {
+  it('keeps the cannot read prefix the gate keys on and adds the errno, so a directory is not a missing file', () => {
+    expect(() => readText(ctx, path.join(tmp, 'absent.json'))).toThrow(/^cannot read .*absent\.json \(ENOENT\)$/);
+    expect(() => readText(ctx, tmp)).toThrow(/^cannot read .* \((EISDIR|EPERM|EACCES)\)$/);
   });
 });

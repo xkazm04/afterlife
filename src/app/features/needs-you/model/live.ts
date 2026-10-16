@@ -1,7 +1,7 @@
 // Live Needs you: what each item the poll found can do from this list. A promotion or a re-admit is one policy MR through
 // the server actions (write/promote.ts), the door the desk uses: the exact write is the server's preview, and Run confirms
 // that preview by its id. Every other kind is read-only here and says where to act today. Pure.
-import type { NeedsYouItem } from '@/lib/demo';
+import type { NeedsKind, NeedsYouItem } from '@/lib/demo';
 import { TIER_META } from '@/lib/tiers';
 import { TIER_ORDER } from '@/schemas/tier';
 import type { PromoteClass } from '@/server/actions/types';
@@ -20,19 +20,19 @@ export function liveIntent(item: Pick<NeedsYouItem, 'id' | 'kind' | 'title' | 't
 }
 
 /** The button: "Open the promotion MR" / "Open the re-admit MR". */
-export const runLabel = (kind: string): string => (kind === 'readmit' ? 'Run · open the re-admit MR' : 'Run · open the promotion MR');
+export const runLabel = (kind: NeedsKind): string => (kind === 'readmit' ? 'Run · open the re-admit MR' : 'Run · open the promotion MR');
 
 /** The write, as an answer names it: "code-fix.patch → Supervised". */
 export const writeName = (intent: PromoteClass): string => `${intent.class} → ${TIER_META[intent.to].name}`;
 
-const ELSEWHERE: Readonly<Record<string, string>> = {
+const ELSEWHERE: Readonly<Partial<Record<NeedsKind, string>>> = {
   signoff: 'Read-only here: sign off on the CRA clock work item in GitLab. This list does not send the sign-off yet.',
   gaps: 'Read-only here: open a gap merge request from Maturity, which previews it first. A gap sends from this list only when it carries its files from the live source, and none does yet.',
   setup: 'Read-only here: finish this step in Setup or in GitLab.',
 };
 
 /** Where to act on an item this list sends nothing for. */
-export const elsewhere = (kind: string): string => ELSEWHERE[kind] ?? 'Read-only here: act on it in GitLab.';
+export const elsewhere = (kind: NeedsKind): string => ELSEWHERE[kind] ?? 'Read-only here: act on it in GitLab.';
 
 /** What the list holds of a sent write's answer: only what the response said. */
 export interface LiveAnswer {

@@ -5,6 +5,9 @@ import { renderToString } from 'react-dom/server';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { DEMO } from '@/lib/demo';
+import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
+import { loadFleetProject } from '@/app/features/fleet/data/loadFleetProject';
+import { loadMonitorData } from '@/app/features/monitor/data/loadMonitorData';
 import { loadNeedsYouView } from '@/app/features/needs-you/data/pick';
 import { demoSource } from '@/server/data/demoSource';
 import { replayClock } from '@/server/data/live/clock';
@@ -44,6 +47,13 @@ describe('Door, live over the seed', () => {
       loadDoorData().deep.needs.length,
       view.kind === 'live' ? view.items.length : 0,
     ]).toEqual([0, 0, 0, 0]);
+  });
+
+  it('door, fleet and monitor list the same decisions', () => {
+    const ids = (needs: readonly { id: string }[]) => needs.map((n) => n.id);
+    const needs = loadFleetProject(loadFleetData().deepId)!.view.depth.needs;
+    expect(ids(needs.kind === 'decisions' ? needs.items : [])).toEqual(ids(loadDoorData().deep.needs));
+    expect(ids(loadMonitorData().needs)).toEqual(ids(loadDoorData().deep.needs));
   });
 
   it('draws no seeded decision title', () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { DemotionTrigger } from '@/schemas/tier';
 import { guardrailNote, proofNote } from '@/server/gitlab/fake/demo/notes';
 import { deriveTask } from '../derive/task';
 import { deriveTiers } from '../derive/tiers';
@@ -7,6 +8,7 @@ import { countProofs } from '../derive/rollup';
 import { cfg } from './helpers';
 import { dep, goodProof, mr, note, SHA } from './proofs';
 
+const TRIGGERS: readonly DemotionTrigger[] = ['revert', 'reopened_finding', 'post_merge_proof_fail', 'default_branch_red_1h', 'guardrail_high', 'budget_breach_x2'];
 const PROOF = 'ai-proof-acme-lab';
 const GUARD = 'ai-guardrail-acme-lab';
 const derive = (m = mr(), notes = [note(PROOF, proofNote(goodProof(SHA)))], deployments = [dep('production')]) =>
@@ -156,6 +158,20 @@ describe('roll-ups and tiers', () => {
     const old = deriveTiers(policy, st, 'p', new Date('2026-10-20T00:00:00Z'), new Map(), 7 * 86_400_000);
     expect(old.demotions).toBe(0);
     expect(old.quarantines).toHaveLength(1);
+  });
+
+  it('a role that is not a track is track null, even when it names an Object property', () => {
+    const odd = { ...policy, classes: { x: { agent: 'constructor', ceiling: 'supervised' as const }, a: policy.classes.a } };
+    expect(deriveTiers(odd, state, 'p', now, new Map(), 7 * 86_400_000).classes.map((c) => c.track)).toEqual([null, 1]);
+  });
+
+  it('a re-admit ask words every demotion trigger, and shows an unnamed one as written', () => {
+    const reasonOf = (reason: string) =>
+      planReadmits('p', [{ classId: 'd', role: 'gardener', track: 8, reason: reason as DemotionTrigger, evidence: null, since: now }], [], now).open[0]?.subject.reason;
+    expect(TRIGGERS.map(reasonOf)).toEqual([
+      'a revert', 'a reopened finding', 'a post-merge proof failure', 'the default branch red for an hour', 'guardrail high severity', 'budget breached twice',
+    ]);
+    expect([reasonOf('flaky_tests'), reasonOf('constructor')]).toEqual(['flaky_tests', 'constructor']);
   });
 
   it('re-admit asks are not duplicated, and close when the quarantine ends', () => {

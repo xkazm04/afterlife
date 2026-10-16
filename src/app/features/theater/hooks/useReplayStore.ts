@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import { cueOf, type Cue } from '../model/replay/cue';
 import { initialState, seqAt, type Reel } from '../model/replay/state';
 import { createReplayStore, type ReplayStore } from '../model/replay/store';
+import { frameClock } from './frameClock';
 import { useReducedMotion } from './useReducedMotion';
-
-const MAX_FRAME_MS = 100;
 
 /** The page's `#seq=` address as a cue (model/replay/cue.ts); none when the host refuses the read. */
 function cueFromAddress(reel: Reel): Cue | null {
@@ -38,25 +37,12 @@ export function useReplayStore(reel: Reel, onMissingSeq?: (seq: number) => void)
   }, [store, onMissingSeq]);
 
   useEffect(() => {
-    let raf = 0;
-    let last = performance.now();
-    const frame = (now: number) => {
-      const dt = Math.min(MAX_FRAME_MS, now - last);
-      last = now;
-      const s = store.get();
-      if (s.playing || s.preroll > 0 || s.loopIn > 0) store.dispatch({ type: 'tick', dt });
-      raf = requestAnimationFrame(frame);
-    };
-    const start = () => {
-      cancelAnimationFrame(raf);
-      last = performance.now();
-      raf = requestAnimationFrame(frame);
-    };
-    const onVisibility = () => (document.hidden ? cancelAnimationFrame(raf) : start());
-    if (!document.hidden) start();
+    const clock = frameClock(store, { raf: requestAnimationFrame, caf: cancelAnimationFrame, now: () => performance.now() });
+    const onVisibility = () => (document.hidden ? clock.stop() : clock.start());
+    if (!document.hidden) clock.start();
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
-      cancelAnimationFrame(raf);
+      clock.stop();
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [store]);

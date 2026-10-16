@@ -70,6 +70,13 @@ describe('glab adapter: pagination', () => {
   });
 });
 
+describe('glab adapter: listCommits', () => {
+  it('reads committed_date, and falls back to created_at only when it is absent', async () => {
+    const rows = [{ id: 'a', title: 't', committed_date: 'C' }, { id: 'b', title: 't', created_at: 'R' }, { id: 'c', committed_date: 'C', created_at: 'R' }];
+    expect((await adapter([okJson(rows)]).port.listCommits(1)).map((c) => c.committedAt)).toEqual(['C', 'R', 'C']);
+  });
+});
+
 describe('glab adapter: error mapping', () => {
   const kindOf = async (r: ExecResult | Error) => {
     try { await adapter([r]).port.currentUser(); } catch (e) { return e instanceof GitLabError ? e.kind : 'other'; }
@@ -119,6 +126,13 @@ describe('glab adapter: error mapping', () => {
     expect(await adapter([httpFail(404, 'Not found')]).port.testReportSummary(1, 5)).toBeNull();
     const v = await adapter([httpFail(403, 'Forbidden')]).port.listVulnerabilities(1);
     expect(v.status).toBe('unavailable');
+  });
+
+  it('a bare 401 is read as a status, not as the digits of a port or an id', () => {
+    const dial = (port: number) => `Get "https://git.example.com:${port}/api/v4/user": dial tcp 10.0.0.5:${port}: i/o timeout`;
+    expect(failureToError({ code: 1, stdout: '', stderr: dial(8401) }, 'x').kind).toBe('network');
+    expect(failureToError({ code: 1, stdout: '', stderr: dial(4010) }, 'x').kind).toBe('network');
+    expect(failureToError({ code: 1, stdout: '', stderr: 'ERROR: 401 Unauthorized' }, 'x').kind).toBe('auth');
   });
 
   it('statusOf reads glab stderr and falls back to the JSON body', () => {

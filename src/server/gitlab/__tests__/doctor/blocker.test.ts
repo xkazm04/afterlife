@@ -53,6 +53,11 @@ describe('probeCapabilities names the one blocker', () => {
     expect(r.blocker?.kind).toBe('group');
     expect(r.blocker?.text).toContain('999');
     expect(r.blocker?.fix).toContain('BELAY_GROUP_ID');
+    // The rows ran past an unreadable group, so the doctor prints them and does not call them unprobed.
+    const lines = renderDoctor(r, { local: LOCAL, groupId: 999 });
+    expect(lines[LOCAL.length]?.startsWith('BLOCKED  group 999')).toBe(true);
+    expect(lines.some((l) => l.includes('not probed'))).toBe(false);
+    for (const c of r.capabilities) expect(lines.some((l) => l.includes(c.label))).toBe(true);
   });
 
   it('a healthy Free group: no blocker, and the rows are the rows the doctor printed before', async () => {

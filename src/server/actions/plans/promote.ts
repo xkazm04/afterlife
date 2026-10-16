@@ -43,9 +43,9 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
     ...(intent.to === 'hands_off' && ttl ? { lease_expires: new Date(at.getTime() + ttl * 86_400_000).toISOString() } : {}),
     ...(cooling && cooldown ? { cooldown_until: cooldown } : {}),
   };
+  const branch = `belay/promote-${intent.class}-${dateOnly(ctx.now)}`;
   const content = editRecords(file.content, [{ agent: held.agent, class: intent.class, record }]);
   const move = `${intent.class} ${held.record.tier} -> ${intent.to}`;
-  const branch = `belay/promote-${intent.class}-${dateOnly(ctx.now)}`;
   const title = `Promote ${move}`;
   // the next rung's trial, when the chain holds one: its seq range and the chain head, for an auditor to recompute (./trial.ts)
   const ledger = ctx.ledgerOf ? await ctx.ledgerOf(intent.project) : null;

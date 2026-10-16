@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { ask, readyRows, sendRow, sheetRows, toAsk, type SheetRow } from '../write/sheet';
 import type { MaturityApi } from './useMaturity';
 import type { DataMode } from '../write/gap';
+import type { WriteView } from '@/server/actions/words';
 
 export interface GapSheetApi {
   rows: readonly SheetRow[];
@@ -12,6 +13,23 @@ export interface GapSheetApi {
   sending: boolean;
   send: () => void;
   retry: (id: string) => void;
+}
+
+/** Asks for a row's write and hands the answer on, unless the sheet closed since: a closed sheet forgets what it asked. */
+export function createAsker(askRow: (row: SheetRow) => Promise<WriteView>, put: (id: string, view: WriteView) => void) {
+  let generation = 0;
+  return {
+    ask(row: SheetRow): void {
+      const mine = generation;
+      void askRow(row).then((v) => {
+        if (mine === generation) put(row.id, v);
+      });
+    },
+    /** Answers still in flight are dropped when they land. */
+    close(): void {
+      generation += 1;
+    },
+  };
 }
 
 /**
@@ -23,13 +41,15 @@ export interface GapSheetApi {
 export function useGapSheet({ ctx, state, dispatch }: Pick<MaturityApi, 'ctx' | 'state' | 'dispatch'>, project: string, mode: DataMode): GapSheetApi {
   const rows = useMemo(() => sheetRows(state, ctx, project, mode), [state, ctx, project, mode]);
 
+  // One asker per sheet's life: closing it drops the answers still in flight, so a quick reopen never takes an old preview.
+  const asker = useMemo(() => createAsker(ask, (id, view) => dispatch({ type: 'viewed', id, view })), [dispatch]);
   useEffect(() => {
-    if (!state.sheet) return;
+    if (!state.sheet) return asker.close();
     const asking = toAsk(rows);
     if (!asking.length) return;
     dispatch({ type: 'ask', ids: asking.map((r) => r.id) });
-    for (const row of asking) void ask(row).then((view) => dispatch({ type: 'viewed', id: row.id, view }));
-  }, [state.sheet, rows, dispatch]);
+    for (const row of asking) asker.ask(row);
+  }, [state.sheet, rows, dispatch, asker]);
 
   const sending = rows.some((r) => r.phase === 'sending');
   const send = useCallback(() => {

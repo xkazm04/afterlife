@@ -4,7 +4,7 @@ import { Stats } from '@/components/inspector/blocks/Stats';
 import { GATE_FREES } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
 import { armList, doneCount, humanGates, needYouCount, openArms, stepDetail, stepList } from '../../model/flow/state';
-import { mrName } from '../../model/flow/wording';
+import { mergeLabel } from '../../model/flow/wording';
 import { GateRow } from '../shared/GateRow';
 import styles from './SetupSummary.module.css';
 
@@ -38,7 +38,7 @@ export function SetupSummary() {
       </div>
       <div className={styles.gates} aria-label="Only you can do these">
         {open.map((a) => (
-          <GateRow key={a.id} glyph="!" title={`Merge ${mrName(a)}${a.revert ? ' (revert)' : ''}`} tag={a.id} sub="then verify" onGo={() => view.go({ k: 'track', id: a.id })} />
+          <GateRow key={a.id} glyph="!" title={`Merge ${mergeLabel(a)}`} tag={a.id} sub="then verify" onGo={() => view.go({ k: 'track', id: a.id })} />
         ))}
         {gates.map((s) => (
           <GateRow

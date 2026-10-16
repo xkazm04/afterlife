@@ -1,6 +1,6 @@
 // Loads and validates policy/trust-policy.yml and policy/tier-state.yml. The files are structured data
 // a person reviews; the engine refuses a malformed one instead of guessing what it meant.
-import { TIER_ORDER, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
+import { DEMOTION_TRIGGERS, TIER_ORDER, type DemotionTrigger, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
 import { readYaml } from '../core/files';
 import { EngineError, isRecord, num, rec, strList, type Ctx } from '../core/types';
 
@@ -18,6 +18,26 @@ export interface EnginePolicy extends TrustPolicy {
 
 const CEILINGS = [...TIER_ORDER, 'human_only'];
 
+export { DEMOTION_TRIGGERS };
+
+/** A trigger the tripwire never fires would sit in the policy doing nothing, so a typo there silently disarms the demotion. */
+function triggerList(v: unknown, what: string): void {
+  const unknown = strList(v, what).filter((t) => !(DEMOTION_TRIGGERS as readonly string[]).includes(t));
+  if (unknown.length) throw new EngineError(`${what} names ${unknown.map((t) => `"${t}"`).join(', ')}, which is not a demotion trigger (${DEMOTION_TRIGGERS.join(', ')})`);
+}
+
+/** A threshold that is not a number makes every comparison false: a NaN rate calls a job that failed 5 of 6 times a flake. */
+function rerunThresholds(raw: unknown): void {
+  const r = rec(raw, 'trust-policy.rerun_stats');
+  if (r.min_runs !== undefined && !(Number.isInteger(num(r.min_runs, 'rerun_stats.min_runs')) && (r.min_runs as number) >= 1)) {
+    throw new EngineError('rerun_stats.min_runs must be a whole number of at least 1');
+  }
+  if (r.real_failure_rate !== undefined) {
+    const rate = num(r.real_failure_rate, 'rerun_stats.real_failure_rate');
+    if (rate <= 0 || rate > 1) throw new EngineError('rerun_stats.real_failure_rate must be above 0 and at most 1');
+  }
+}
+
 export function parsePolicy(raw: unknown): EnginePolicy {
   const p = rec(raw, 'trust-policy');
   if (p.version !== 1) throw new EngineError('trust-policy.version must be 1');
@@ -30,8 +50,8 @@ export function parsePolicy(raw: unknown): EnginePolicy {
     if (cls.allow_paths !== undefined) strList(cls.allow_paths, `classes.${id}.allow_paths`);
   }
   const demotion = rec(p.demotion, 'trust-policy.demotion');
-  strList(demotion.one_step_on, 'demotion.one_step_on');
-  strList(demotion.quarantine_on, 'demotion.quarantine_on');
+  triggerList(demotion.one_step_on, 'demotion.one_step_on');
+  triggerList(demotion.quarantine_on, 'demotion.quarantine_on');
   const handsOff = rec(rec(p.envelope, 'trust-policy.envelope').hands_off, 'envelope.hands_off');
   num(handsOff.max_files, 'envelope.hands_off.max_files');
   num(handsOff.max_lines, 'envelope.hands_off.max_lines');
@@ -39,6 +59,7 @@ export function parsePolicy(raw: unknown): EnginePolicy {
   const req = (p.envelope as Record<string, unknown>).production_requires_proof;
   if (req !== undefined) strList(req, 'envelope.production_requires_proof');
   num(p.cooldown_days, 'trust-policy.cooldown_days');
+  if (p.rerun_stats !== undefined) rerunThresholds(p.rerun_stats);
   return p as unknown as EnginePolicy;
 }
 

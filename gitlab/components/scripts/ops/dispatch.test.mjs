@@ -21,3 +21,12 @@ describe('dispatch goal', () => {
     expect(r.stderr).not.toContain('goal must be');
   });
 });
+
+describe('dispatch project', () => {
+  it('without CI_PROJECT_ID it refuses before any call, instead of posting a run with no project_id', () => {
+    const r = runScript(dir, 'ops/dispatch.mjs', ['--goal', '42', '--consumer-id', '5'], { env: { CI_PROJECT_ID: undefined } });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain('CI_PROJECT_ID is not set');
+    expect(r.writes).toEqual([]);
+  });
+});

@@ -9,7 +9,7 @@ import { LadderToolbar } from './components/chrome/LadderToolbar';
 import { PolicyLozenge } from './components/chrome/PolicyLozenge';
 import { Dock } from './components/dock/Dock';
 import { HelpContent } from './components/help/HelpContent';
-import { PolicyContent } from './components/help/PolicyContent';
+import { PolicyContent, PolicyHeadProvider } from './components/help/PolicyContent';
 import { LadderSidebar } from './components/sidebar/LadderSidebar';
 import { ClassTable } from './components/table/ClassTable';
 import { useLadderActions } from './hooks/useLadderActions';
@@ -99,7 +99,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
   };
   const togglePolicy = () => {
     const anchor = policyRef.current;
-    if (anchor) pop.toggle('policy', anchor, <PolicyContent head={state.head} rules={policy} history={illustrative.history} />, 'below');
+    if (anchor) pop.toggle('policy', anchor, <PolicyContent rules={policy} history={illustrative.history} />, 'below');
   };
   useLadderKeys({ data, actions, searchRef, enabled: !menus.isOpen, toggleHelp });
 
@@ -181,7 +181,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
       </div>
       <Dock model={dock} onHelp={toggleHelp} helpRef={helpRef} />
       {menus.menus}
-      {pop.popover}
+      <PolicyHeadProvider head={state.head}>{pop.popover}</PolicyHeadProvider>
     </Window>
   );
 }

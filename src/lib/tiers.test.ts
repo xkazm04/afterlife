@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { cellLetter, cellName, cellRank, isCeiling, splitTier, standingCount, STANDING_META, TIER_DISPLAY_ORDER, TIER_META, TIER_RANK, tiersKnown, type ClassCell } from './tiers';
+import { cellLetter, cellName, cellRank, isCeiling, splitTier, standingCount, STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META, TIER_RANK, tiersKnown, type ClassCell } from './tiers';
 
 describe('tier metadata', () => {
   it('covers every displayed tier with a unique letter', () => {
     const letters = TIER_DISPLAY_ORDER.map((t) => TIER_META[t].letter);
     expect(new Set(letters).size).toBe(5);
     expect(letters).toEqual(['H', 'S', 'A', 'Q', 'P']);
+  });
+  it('displays exactly the tiers that have metadata and a rank', () => {
+    expect([...TIER_DISPLAY_ORDER].sort()).toEqual(Object.keys(TIER_META).sort());
+    expect(Object.keys(TIER_RANK).sort()).toEqual(Object.keys(TIER_META).sort());
   });
   it('ranks hands-off highest and human-only lowest', () => {
     const ranked = [...TIER_DISPLAY_ORDER].sort((a, b) => TIER_RANK[b] - TIER_RANK[a]);
@@ -16,6 +20,13 @@ describe('tier metadata', () => {
     expect(isCeiling('supervised')).toBe(true);
     expect(isCeiling('god_mode')).toBe(false);
     expect(isCeiling(null)).toBe(false);
+  });
+});
+
+describe('standings', () => {
+  it('lists exactly the standings that have metadata, in legend order', () => {
+    expect([...STANDINGS]).toEqual(['no_record', 'refused']);
+    expect(Object.keys(STANDING_META).sort()).toEqual([...STANDINGS].sort());
   });
 });
 

@@ -55,7 +55,7 @@ export function replayMessage(task: TaskView): string {
   const first = task.ledger[0]?.seq;
   const last = task.ledger[task.ledger.length - 1]?.seq;
   const broken = ledgerBreak(task);
-  const check = broken !== null ? `chain broken at #${broken}` : task.ledgerCheck.hash === 'sha256' ? 'sha256 chain verified' : 'illustrative hashes match';
+  const check = broken !== null ? `HASHES DO NOT MATCH, chain broken at #${broken}` : task.ledgerCheck.hash === 'sha256' ? 'sha256 chain verified' : 'illustrative hashes match';
   return `Replayed ledger #${first}–#${last} · ${task.ledger.length} rows, ${check} · ${derivedVerdict(task).verdict} · agent not re-run`;
 }
 

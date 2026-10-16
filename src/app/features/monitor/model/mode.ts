@@ -1,16 +1,9 @@
 // What differs between demo and live mode on this screen, as pure decisions. Demo simulates in the browser; live never
 // claims what the browser did not do (Fleet's b5e2b63 made the same split).
-import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
+import type { FleetProject } from '@/lib/demo/types';
 import { formatAge } from '@/lib/format/time';
 
 export type Mode = 'demo' | 'live';
-
-/** Live mode lists the group's own decisions only: the ids the demo seeds into an index are not the group's. */
-export const visibleNeeds = (mode: Mode, needs: readonly NeedsYouItem[], isSeeded: (id: string) => boolean): readonly NeedsYouItem[] =>
-  mode === 'live' ? needs.filter((n) => !isSeeded(n.id)) : needs;
-
-/** Resolve: demo marks the decision done and counts it down here; live claims nothing and opens Needs you. */
-export const resolveFor = (mode: Mode): 'simulate' | 'open-needs-you' => (mode === 'live' ? 'open-needs-you' : 'simulate');
 
 export type RepollResult = { ok: true } | { ok: false; reason: string };
 

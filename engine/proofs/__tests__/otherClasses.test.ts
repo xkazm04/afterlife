@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EngineError } from '../../core/types';
 import { checkOf, fixture, NOW, policy } from '../../__tests__/helpers';
 import { parsePolicy } from '../../policy/load';
+import { PROOF_CLASSES as SCHEMA_CLASSES } from '../../../src/schemas/proof';
 import { prove, PROOF_CLASSES } from '../index';
 import { STUB_CLASSES } from '../stubs';
 import { classify, DEFAULT_THRESHOLDS } from '../rerunStats';
@@ -42,6 +43,14 @@ describe('rerun-stats', () => {
     expect(b.verdict).toBe('fail');
     const few = run('flake.json', { runs: (fixture('rerun', 'flake.json').runs as unknown[]).slice(0, 4), claim: { classification: 'flake' } });
     expect(few.verdict).toBe('inconclusive');
+  });
+
+  it('counts one job once: five records of one passing job are not five reruns', () => {
+    const one = { job_id: '9200012', sha: '4be1c0d7a9e2', status: 'success' };
+    const b = run('flake.json', { runs: Array.from({ length: 5 }, () => one), claim: { classification: 'stable-pass' } });
+    expect(checkOf(b, 'enough-runs').ok).toBeNull();
+    expect(checkOf(b, 'enough-runs').detail).toMatch(/^1 usable run\(s\).*\(4 repeated job record\(s\) counted once\)/);
+    expect(b.verdict).toBe('inconclusive');
   });
 
   it('classifies at the thresholds: stable at no failures, real failure from the policy rate', () => {
@@ -110,9 +119,23 @@ describe('stubs and dispatch', () => {
 
   it('knows all eight classes, and pins every block to the engine', () => {
     expect(PROOF_CLASSES).toHaveLength(8);
+    expect([...PROOF_CLASSES].sort()).toEqual([...SCHEMA_CLASSES].sort());
     const b = prove('rerun-stats', fixture('rerun', 'flake.json'), env);
     expect(b.engine.version).toBe('1.0.0');
     expect(b.engine.sha256).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('dispatches every class PROOF_CLASSES lists: none falls through to "unknown proof class"', () => {
+    const task = { flow: 'f', run_id: 'r', project_id: 1, trailer: 't' };
+    for (const cls of PROOF_CLASSES) {
+      let message = '';
+      try {
+        prove(cls, { task }, env);
+      } catch (e) {
+        message = e instanceof Error ? e.message : String(e);
+      }
+      expect(message, cls).not.toMatch(/unknown proof class/);
+    }
   });
 
   it('rejects an input without a task', () => {

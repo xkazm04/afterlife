@@ -91,13 +91,13 @@ function webUrl(v: unknown): string | null {
   }
 }
 
-/**
- * What a command that ran made, from GitLab's answer: an MR's iid, or (a file write) the commit the file now has. Named only
- * when the answer has the shape GitLab documents (a positive iid, an http(s) address, a commit id).
- */
+/** Only createMr (<project>/merge_requests) opens an MR: an issue or work item's answer has an iid and a web_url too. */
+const opensMr = (cmd: PlannedCommand): boolean => cmd.argv.some((a) => /^projects\/[^/]+\/merge_requests$/.test(a));
+
+/** What a command made, from GitLab's answer as documented: an MR's iid and http(s) address, or a file write's commit id. */
 async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Promise<{ named: Pick<CommandOutcome, 'made' | 'url'>; commit?: string }> {
   const b = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
-  if (Number.isSafeInteger(b.iid) && (b.iid as number) > 0) {
+  if (opensMr(cmd) && Number.isSafeInteger(b.iid) && (b.iid as number) > 0) {
     const url = webUrl(b.web_url);
     return { named: { made: `!${b.iid as number}`, ...(url ? { url } : {}) } };
   }
@@ -158,11 +158,25 @@ async function once(deps: ActionDeps, b: Extract<Built, { ok: true }>, previewId
   }
 }
 
+/** The previews a live confirm in this process is running now: a second one (a double click, two tabs) is refused at once. */
+const running = new Set<string>();
+
 /**
  * Step 2: runs what `previewId` names, if and only if the plan is still exactly that. Live, the record is read first,
  * before anything is planned: a done previewId answers with its response, a running one is refused (runs/journal.ts).
  */
 export async function confirmIntent(deps: ActionDeps, raw: unknown, previewId: string): Promise<ActionResponse> {
+  if (deps.mode !== 'live') return confirm(deps, raw, previewId);
+  if (running.has(previewId)) return refused('this preview is still running from an earlier click; wait for its answer');
+  running.add(previewId);
+  try {
+    return await confirm(deps, raw, previewId);
+  } finally {
+    running.delete(previewId);
+  }
+}
+
+async function confirm(deps: ActionDeps, raw: unknown, previewId: string): Promise<ActionResponse> {
   if (deps.mode === 'live' && deps.db && parseIntent(raw).ok) {
     const before = await answered(deps.db, previewId, deps.now());
     if (before) return before;

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { parseArgs } from './args';
 import { inlineFiles } from './files';
-import { EngineError } from './types';
+import { EngineError, isoMs } from './types';
 import { ulid } from './ulid';
 import { ENGINE_VERSION, engineInfo, engineSha256 } from './version';
 import { ctx } from '../__tests__/helpers';
@@ -27,6 +27,10 @@ describe('parseArgs', () => {
     expect(() => parseArgs(['--nope', '1'], spec)).toThrow(EngineError);
     expect(() => parseArgs(['--class'], spec)).toThrow(/needs a value/);
     expect(() => parseArgs([], spec).need('class')).toThrow(/missing --class/);
+  });
+  it('refuses a value on a switch: --write=false must not read as --write', () => {
+    for (const a of ['--write=false', '--write=0', '--write=']) expect(() => parseArgs([a], spec), a).toThrow(/takes no value/);
+    expect(parseArgs(['--write'], spec).has('write')).toBe(true);
   });
 });
 
@@ -55,4 +59,37 @@ describe('inlineFiles and ulid', () => {
     expect(a).toHaveLength(26);
     expect(a < b).toBe(true);
   });
+});
+
+describe('isoMs', () => {
+  it('takes an ISO instant with a zone and nothing Date.parse would merely tolerate', () => {
+    expect(isoMs('2026-10-21T14:20:05Z', 't')).toBe(Date.UTC(2026, 9, 21, 14, 20, 5));
+    expect(isoMs('2026-10-21T16:20:05.500+02:00', 't')).toBe(Date.UTC(2026, 9, 21, 14, 20, 5, 500));
+    for (const v of ['10', '2026', '3/4/2026', 'Oct 5 2026', '2026-10-05', '2026-10-05T10:00:00', '2026-13-45T99:00:00Z', '', null, 7]) expect(() => isoMs(v, 't'), String(v)).toThrow(/t must be an ISO time/);
+  });
+});
+
+describe('the documented options are the parsed options', () => {
+  const dir = path.join(import.meta.dirname, '..');
+  const strip = (src: string): string => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1');
+  const optionsOf = (cmd: string): string[] => {
+    const src = strip(fs.readFileSync(path.join(dir, 'commands', `${cmd}.ts`), 'utf8'));
+    return [...src.matchAll(/(?:values|switches): \[([^\]]*)\]/g)].flatMap((m) => [...(m[1] ?? '').matchAll(/'([a-z-]+)'/g)].map((o) => o[1] as string));
+  };
+  const usage = strip(fs.readFileSync(path.join(dir, 'cli.ts'), 'utf8')).split('const USAGE = `')[1]?.split('`')[0] ?? '';
+  const readme = fs.readFileSync(path.join(dir, 'README.md'), 'utf8').split('\n');
+  const block = (lines: string[], start: (l: string) => boolean): string => {
+    const at = lines.findIndex(start);
+    return lines.slice(at, lines.findIndex((l, i) => i > at && !l.startsWith('    '))).join(' ');
+  };
+  for (const cmd of ['prove', 'envelope', 'gate', 'tripwire', 'ledger', 'scan']) {
+    it(`${cmd}: every option parseArgs accepts is in the usage text and the README table`, () => {
+      const opts = optionsOf(cmd);
+      expect(opts.length, 'found its parseArgs options').toBeGreaterThan(0);
+      const u = block(usage.split('\n'), (l) => l.startsWith(`  ${cmd} `));
+      const r = readme.find((l) => l.startsWith(`| \`${cmd} `)) ?? '';
+      expect(opts.filter((o) => !u.includes(`--${o}`)), 'missing from USAGE in engine/cli.ts').toEqual([]);
+      expect(opts.filter((o) => !r.includes(`--${o}`)), 'missing from engine/README.md').toEqual([]);
+    });
+  }
 });

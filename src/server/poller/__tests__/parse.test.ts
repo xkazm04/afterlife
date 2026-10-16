@@ -3,9 +3,11 @@ import { fence } from '@/server/gitlab/fake/demo/notes';
 import { extractBlocks, withoutBlocks } from '../parse/blocks';
 import { parseGuardrailBlock } from '../parse/guardrail';
 import { parseLabels } from '../parse/labels';
-import { parseProofBlock } from '../parse/proofBlock';
+import { PROOF_CLASSES } from '../../../../engine/proofs';
+import { CLASSES, parseProofBlock } from '../parse/proofBlock';
 import { lastTrailer, parseTrailers, proseOf, TASK_ID } from '../parse/trailers';
 import { goodProof } from './proofs';
+import trailerCases from '../../../../gitlab/components/scripts/lib/fixtures/trailer-cases.json';
 
 describe('fenced blocks', () => {
   it('reads every valid block with the tag, in order, and ignores a malformed one', () => {
@@ -53,6 +55,13 @@ describe('trailers', () => {
   });
 });
 
+describe('trailers shared with the CI glue', () => {
+  // gitlab/components/scripts/lib/lib.test.mjs runs the same cases through lib.mjs trailer(): the two readers must agree.
+  it.each(trailerCases)('$name', ({ text, key, want }) => {
+    expect(lastTrailer(text, key, /^\S+$/)).toBe(want);
+  });
+});
+
 describe('labels', () => {
   it('reads proof, guardrail and tier', () => {
     expect(parseLabels(['proof::pass', 'guardrail::pass', 'belay::tier::hands_off', 'bug'])).toEqual({ proof: 'pass', guardrail: 'pass', tier: 'hands_off' });
@@ -93,6 +102,13 @@ describe('proof block validation', () => {
     expect(withSha.ok && withSha.block.task.head_sha).toBe('a'.repeat(40));
     const without = parseProofBlock(goodProof());
     expect(without.ok && 'head_sha' in without.block.task).toBe(false);
+  });
+});
+
+describe('the proof classes the poller reads', () => {
+  it('are the engine\'s own list: a class the engine writes is never rejected here', () => {
+    expect([...CLASSES].sort()).toEqual([...PROOF_CLASSES].sort());
+    for (const cls of PROOF_CLASSES) expect(parseProofBlock({ ...goodProof(), class: cls }).ok).toBe(true);
   });
 });
 

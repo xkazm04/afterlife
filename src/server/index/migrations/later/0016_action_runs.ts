@@ -4,8 +4,8 @@
 // died mid-send. Additive: older Belay refuses an index that ran it (migrate.ts), so keep this file in any rollback.
 import { type Migration } from '../parts';
 
-export const m0015: Migration = {
-  version: 15,
+export const m0016: Migration = {
+  version: 16,
   name: 'action_runs',
   sql: `
 create table action_runs (

@@ -1,3 +1,6 @@
+'use client';
+
+import { createContext, useContext, type ReactNode } from 'react';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { PolicyRules } from '@/server/data/types';
 import { POLICY_HISTORY, policyLines } from '../../data/policy';
@@ -5,12 +8,24 @@ import type { Head } from '../../model/types';
 import { DemoChip } from '../chrome/DemoChip';
 import styles from './help.module.css';
 
+const HeadContext = createContext<Head | null>(null);
+
+/**
+ * The popover is built once, at press time, and stored: whatever it captured is stale after the next write. Its
+ * tier-state.yml head is read from here instead, so it follows the screen's head (the lozenge's) while it is open.
+ */
+export function PolicyHeadProvider({ head, children }: { head: Head; children: ReactNode }) {
+  return <HeadContext.Provider value={head}>{children}</HeadContext.Provider>;
+}
+
 /**
  * The policy behind the toolbar lozenge. The rules are trust-policy.yml's, as the server read them; the thresholds are
  * policy numbers, not measurements. The revision, when it merged and an opening head are the demo's history: marked demo
  * in live mode (`history`, `head.demo`).
  */
-export function PolicyContent({ head, rules, history }: { head: Head; rules: PolicyRules | null; history: boolean }) {
+export function PolicyContent({ rules, history }: { rules: PolicyRules | null; history: boolean }) {
+  const head = useContext(HeadContext);
+  if (!head) throw new Error('PolicyContent renders inside a PolicyHeadProvider');
   const lines = rules ? policyLines(rules) : null;
   const unread = 'trust-policy.yml has not been read';
   return (

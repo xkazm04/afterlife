@@ -105,11 +105,16 @@ export const unmet = (s: SetupState, id: string): string[] => (ARM_META[id]?.nee
 /** "a runner (step 6)" or "T4 Guardrail". */
 export const needLabel = (k: string): string => (isStepKey(k) ? (NEED_LABEL[k] ?? k) : `${k} ${ARM_META[k]?.short ?? ''}`.trim());
 
-/** Locked tracks whose needs are all met become ready. */
+/**
+ * Keeps `locked` and `ready` true to the needs: a locked track whose needs are all met becomes ready, and a ready one
+ * with a need unmet (a step a read now sees undone, a track disarmed) locks again. Armed, open and the rest are untouched.
+ */
 export function recomputeLocks(s: SetupState): SetupState {
   let arm = s.arm;
   for (const a of armList(s)) {
-    if (a.st === 'locked' && unmet(s, a.id).length === 0) arm = { ...arm, [a.id]: { ...a, st: 'ready' } };
+    const open = unmet(s, a.id).length === 0;
+    if (a.st === 'locked' && open) arm = { ...arm, [a.id]: { ...a, st: 'ready' } };
+    else if (a.st === 'ready' && !open) arm = { ...arm, [a.id]: { ...a, st: 'locked' } };
   }
   return arm === s.arm ? s : { ...s, arm };
 }

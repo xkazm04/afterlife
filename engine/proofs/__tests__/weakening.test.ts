@@ -43,6 +43,12 @@ describe('findWeakening', () => {
     expect(kinds(edit(T, ['-    assertThrows<ExportFileNotFound> { f() }', '+    assertThrows<Exception> { f() }']))).toEqual(['loosened-assertion']);
     expect(kinds(edit('web/a.test.ts', ['-  expect(a).toBe(2);', '+  expect(a).toBeDefined();']))).toEqual(['loosened-assertion']);
   });
+  it('flags the other ways to stop a test counting: focus (.only, fit), expected failure, conditional skip', () => {
+    for (const line of ['+  describe.only("a", () => {})', '+  it.only("x", () => {})', '+fit("x", () => {})', '+  fdescribe("a", () => {})', '+  test.fixme("x", () => {})', '+  it.skipIf(ci)("x", () => {})', '+@pytest.mark.xfail', '+    pytest.xfail("later")', '+    @unittest.skip("later")', '+    @unittest.expectedFailure']) {
+      expect(kinds(edit('web/foo.test.ts', [' ctx', line, ' ctx'])), line).toEqual(['skip-added']);
+    }
+    for (const line of ['+  model.fit(x, y)', '+  const benefit(1)', '+  it("only one", () => {})']) expect(kinds(edit('web/foo.test.ts', [' ctx', line, ' ctx'])), line).toEqual([]);
+  });
   it('flags skipped, disabled and focused-out tests', () => {
     for (const line of ['+    @Disabled("flaky")', '+    @Ignore', '+  it.skip("x", () => {})', '+  xit("x", () => {})', '+@pytest.mark.skip(reason="no")', '+    t.Skip("later")', '+    assumeTrue(false)']) {
       expect(kinds(edit(T, [' fun a() {', line, ' }'])), line).toEqual(['skip-added']);
@@ -51,6 +57,10 @@ describe('findWeakening', () => {
   it('flags a deleted test file and a removed test case', () => {
     expect(kinds('diff --git a/src/test/kotlin/FooTest.kt b/src/test/kotlin/FooTest.kt\ndeleted file mode 100644\n--- a/src/test/kotlin/FooTest.kt\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-class FooTest\n-fun a() {}\n')).toEqual(['file-deleted']);
     expect(kinds(edit(T, [' class FooTest {', '-    @Test', '-    fun b() {}', ' }']))).toEqual(['test-removed']);
+  });
+  it('flags an expected value edited to match the output, but not a changed actual', () => {
+    expect(kinds(edit('web/a.test.ts', ['-  expect(f(2)).toBe(4);', '+  expect(f(2)).toBe(5);']))).toEqual(['changed-assertion']);
+    expect(kinds(edit('web/a.test.ts', ['-  expect(f(2)).toBe(4);', '+  expect(f(2, opts)).toBe(4);']))).toEqual([]);
   });
   it('flags an assertion that cannot fail', () => {
     expect(kinds(edit(T, ['+    assertTrue(true)']))).toEqual(['trivial-assertion']);

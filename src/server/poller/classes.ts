@@ -11,7 +11,7 @@ import { demotesOnRevert } from './derive/counters';
 import type { PolicyRead } from './derive/policy';
 import { eligibleOf, planPromotions, type EligibleClass } from './derive/promotion';
 import { planReadmits } from './derive/readmit';
-import { deriveTiers, ROLE_TRACK } from './derive/tiers';
+import { deriveTiers, trackOfRole } from './derive/tiers';
 import type { StateHistory } from './stateHistory';
 
 type Policy = Extract<PolicyRead, { ok: true }>;
@@ -50,7 +50,7 @@ export async function pollClasses(
     const row = byId.get(id);
     const c = policy.classes[id];
     if (!row || !c) return [];
-    const e = eligibleOf({ row, record, role: c.agent, track: ROLE_TRACK[c.agent] ?? null, ceiling: c.ceiling, proof: c.proof ?? '' }, rules, now);
+    const e = eligibleOf({ row, record, role: c.agent, track: trackOfRole(c.agent), ceiling: c.ceiling, proof: c.proof ?? '' }, rules, now);
     return e ? [e] : [];
   });
   const promotions = planPromotions(projectId, eligible, new Map(t.rows.map((r) => [r.classId, r.since])), open, settled, now);

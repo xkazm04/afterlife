@@ -5,23 +5,23 @@ Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` r
 client `FleetScreen`.
 
 ## Parts
-- `FleetScreen.tsx` composes the Window: toolbar, sidebar, table, inspector, status bar, legend.
+- `FleetScreen.tsx` composes the Window: toolbar, sidebar, table, status bar, legend. A row opens its page, `/fleet/[project]` (`components/detail/ProjectDetail.tsx`).
 - `components/table/` the treegrid on the shared `OutlineTable`: `FleetTable`, `FleetHeader`,
   `ProjectRow`, `GroupTotalsRow`, and `cells/` (tier counts and pips, proofs).
 - `components/toolbar/` views, status lozenge (a filter too), Sort / Filter / Search.
 - `components/sidebar/` all projects, groups, six smart filters. `components/legend/` the "?".
-- `components/inspector/` project and group inspector; `sections/` one file per section.
+- `components/inspector/sections/` one file per card of the project page (there is no inspector drawer and no group page).
   The deep project (ledgerline) has resolvable decisions, class records, tasks (each linking to `/task/<id>`), events,
   tracks.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
-  handlers, narrow / compact measuring, section open state, and `useRepoll` (simulated in demo, the server in live).
+  handlers, narrow / compact measuring, and `useRepoll` (simulated in demo, the server in live).
 
 ## Model (pure, tested)
 - `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank). `model/list/urlState.ts` encodes view, sort, filters, search, grouping and folded groups as search params (default = clean URL); `/fleet` decodes them on the server and the list replaces the URL as they change, so Back from a project restores the screen.
 - `model/columns.ts` columns and grid tracks per view. `model/groups.ts` group totals, keyboard rows.
-- `model/menus/` the Sort, Filter and context menus. `model/needs.ts` waiting count, resolve,
-  re-poll, status line. `model/inspector.ts` the inspector's wording.
+- `model/menus/` the Sort, Filter and context menus. `model/needs.ts` the
+  re-poll and status line. `model/inspector.ts` the project page's wording.
 - `model/project/view.ts` a project's page, decided once on the server (`data/loadFleetProject.ts`): its depth (the deep
   project's decisions, records, tasks, events and tracks, or any other's fleet row) and its buttons per mode (a link, disabled
   with the reason, or a flash in demo mode only). `/fleet` itself gets only `deepId` and the tier card's accepted counts.
@@ -39,7 +39,7 @@ demo's feed in demo mode and, in live mode, read from the index's tasks, proofs 
 of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
 
 ## Behaviour to know
-- Demo mode: resolving a decision and re-polling only change this screen's state; nothing is written.
+- Demo mode: re-polling only changes this screen's state; nothing is written.
 - Live mode: Re-poll calls the `repollAction` server action (`src/server/actions/repollAction.ts`), which runs one poll
   cycle of the live runtime (a read) and renders the route again from the fresh snapshot; the status bar says
   "Re-polled" only after that resolved, and says it failed otherwise. A decision's button opens Needs you instead of
@@ -50,7 +50,7 @@ of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
   a per-project score and not computed from proofs). A project's tiers are known when it has class cells
   (`tiersKnown` in `src/lib/tiers.ts`), never from `armed`, which counts armed tracks; unknown tiers show an empty
   cell, never 0. A class with no record yet ("–", No record yet) or split (several agents hold it: its most
-  restrictive holder's letter then "÷", each holder at its own tier in the title, popover and inspector, as CI gates
+  restrictive holder's letter then "÷", each holder at its own tier in the title, popover and project page, as CI gates
   each MR at its author's record) sits beside the Quarantined count, never in it, nor in the Has quarantine filter.
 - Below 900px of pane the Tiers view drops pips and shows letter marks. Below ~1190px x scale of
   toolbar the lozenge drops its words (counts and tooltips stay).

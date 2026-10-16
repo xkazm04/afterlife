@@ -60,7 +60,8 @@ export function gate(g: GateInput): GateResult {
   if (!p) waits.push('no proof block yet');
   else {
     const proofClass = g.policy.classes[g.classId]?.proof;
-    if (proofClass && p.class !== proofClass) blocks.push(`${g.classId} needs a ${proofClass} proof, got ${p.class}`);
+    if (!proofClass) blocks.push(`${g.classId} declares no proof class in the policy, so no proof can satisfy it`);
+    else if (p.class !== proofClass) blocks.push(`${g.classId} needs a ${proofClass} proof, got ${p.class}`);
     const derived = verdictOf(p.checks, p.envelope.within);
     if (derived !== p.verdict) blocks.push(`proof says ${p.verdict} but its checks give ${derived}`);
     if (g.engineSha && p.engine.sha256 !== g.engineSha) blocks.push('the proof was made by a different engine build than this gate');

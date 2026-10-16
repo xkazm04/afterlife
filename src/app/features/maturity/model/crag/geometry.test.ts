@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { clipBox, cragGeom, markY, ropePath, wavyPath } from './geometry';
+import { RUNGS, STAGES } from '@/schemas/stages';
+import { clipBox, cragGeom, markY, ropePath, STAGE_COUNT, wavyPath } from './geometry';
 
 describe('cragGeom', () => {
   it('keeps a minimum size and scales it with the text size', () => {
@@ -11,11 +12,17 @@ describe('cragGeom', () => {
     expect(big.L).toBeCloseTo(124.8);
   });
 
+  it('has one column per stage the schema lists, so a changed stage list moves the crag with it', () => {
+    expect(STAGE_COUNT).toBe(STAGES.length);
+    const g = cragGeom(1000, 600, 1);
+    expect(g.xOf(STAGES.length - 1) + g.colW / 2).toBeCloseTo(g.W - g.RGT);
+  });
+
   it('puts R4 above R0 and spaces the nine columns evenly', () => {
     const g = cragGeom(1000, 600, 1);
     expect(g.Y0).toBe(544);
     expect(g.yOf(0)).toBe(g.Y0);
-    expect(g.yOf(4)).toBe(44);
+    expect(g.yOf(RUNGS.length - 1)).toBe(44);
     expect(g.yOf(2)).toBe((g.Y0 + 44) / 2);
     expect(g.xOf(1) - g.xOf(0)).toBeCloseTo(g.colW);
     expect(g.xOf(8) + g.colW / 2).toBeCloseTo(g.W - g.RGT);

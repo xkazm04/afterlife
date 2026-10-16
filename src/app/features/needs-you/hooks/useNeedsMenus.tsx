@@ -6,7 +6,7 @@ import type { MenuEntry } from '@/components/overlays/menu/menuModel';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { rowDomId } from '@/components/table/model/rowNavigation';
 import type { NeedsYouDemo } from '../data/types';
-import { groupMenuPlan, rowMenuPlan, type MenuIntent, type MenuPlanItem } from '../model/menu';
+import { copyCommand, groupMenuPlan, rowMenuPlan, type MenuIntent, type MenuPlanItem } from '../model/menu';
 import { isDecisionId } from '../model/rows/rowState';
 import type { Action, NeedsState } from '../model/types';
 
@@ -25,10 +25,7 @@ export function useNeedsMenus(s: NeedsState, demo: NeedsYouDemo, dispatch: (a: A
       dispatch({ type: 'select', id: `g:${intent.group}` });
     } else if (intent.kind === 'toggle') dispatch({ type: 'toggleGroup', id: intent.group });
     else if (intent.kind === 'expandAll') dispatch({ type: 'expandAll' });
-    else {
-      const done = () => status('Copied command');
-      navigator.clipboard.writeText(intent.text).then(done, () => status(intent.text));
-    }
+    else copyCommand(intent.text, navigator.clipboard, status);
   };
   const entries = (plan: readonly MenuPlanItem[], id: string): MenuEntry[] =>
     plan.map((p) => ('sep' in p ? { sep: true as const } : { label: p.label, sc: p.sc, run: () => run(p.intent, id) }));

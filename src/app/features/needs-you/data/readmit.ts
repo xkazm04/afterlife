@@ -1,22 +1,27 @@
 import type { ClickCopy } from './types';
 
+/** The commit the tripwire tripped on: the timeline row and the page path both read it from READMIT.tripwire. */
+const TRIPWIRE = 'e7f19d0';
+
 /**
  * n4, re-admit a quarantined class after a guardrail trip (seeded). Timeline rows: time, track, text. The re-admission
  * MR is planned by the server (a promote-class to Assisted, write/promote.ts); Retire has no write (model/act.ts).
  */
 export const READMIT: Pick<ClickCopy, 'does'> & {
   openedAt: string;
+  tripwire: string;
   track: string;
   mr: string;
   note: string;
   timeline: readonly (readonly [string, string, string])[];
 } = {
   openedAt: '14:20',
+  tripwire: TRIPWIRE,
   track: 'T8',
   mr: '!44',
   note: '!44#note_5',
   timeline: [
-    ['14:20', 'T3', 'tripwire: patch-bump → Quarantined · e7f19d0, no person'],
+    ['14:20', 'T3', `tripwire: patch-bump → Quarantined · ${TRIPWIRE}, no person`],
     ['14:21', 'T4', 'guardrail blocked !44 · hidden instruction quoted'],
     ['14:22', '—', 'flow disabled for write classes'],
   ],

@@ -24,10 +24,6 @@ const COLUMNS = [
   `minmax(${px(176)}, 12fr)`, px(104), px(70), px(44), px(50), px(56), px(30), px(108), `minmax(${px(100)}, 16fr)`, px(164),
 ].join(' ');
 const MIN_WIDTH = 902;
-const EMPTY_AFTER_NAME = 9;
-/** The group row's Last move cell (after Tier ... Clean): the freshest gate seen of its track. */
-const GATE_CELL = 7;
-
 const HEADERS: readonly { key: SortKey | null; label: string; align?: 'end' | 'center'; tip?: string }[] = [
   { key: 'name', label: 'Class' },
   { key: 'tier', label: 'Tier' },
@@ -39,6 +35,11 @@ const HEADERS: readonly { key: SortKey | null; label: string; align?: 'end' | 'c
   { key: 'clean', label: 'Clean · 14 d', tip: 'Clean days of the last 14' },
   { key: 'move', label: 'Last move' },
 ];
+
+// A group row has its label in the Class column, then one cell under each other column (the headers after Class, and the
+// action column's): both counts follow HEADERS. The freshest gate of its track sits under Last move.
+const EMPTY_AFTER_NAME = HEADERS.length;
+const GATE_CELL = HEADERS.findIndex((h) => h.key === 'move') - 1;
 
 export interface ClassTableProps extends Omit<LineHandlers, 'onMenu'> {
   groups: readonly GroupView[];

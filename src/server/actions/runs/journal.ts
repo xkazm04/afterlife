@@ -1,4 +1,4 @@
-// The run journal (action_runs, migration 0015): what each previewId's live confirm did, kept under that id. A confirm
+// The run journal (action_runs, migration 0016): what each previewId's live confirm did, kept under that id. A confirm
 // claims the id before its first command and finishes it with the response it sent, so a confirm that got no answer can
 // be asked about (`recallRun`), and a repeat or a concurrent confirm of one previewId never runs the commands twice.
 // Recall: ran (the response, done or failed), running (in this process, now), never (no confirm claimed it), or unknown

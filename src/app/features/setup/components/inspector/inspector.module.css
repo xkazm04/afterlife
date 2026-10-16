@@ -1,21 +1,21 @@
 /* Shared by the inspector panels. Sizes come from the text-size variables (D10). */
 .chips {
   display: flex;
-  gap: 5px;
+  gap: calc(5px * var(--ui-scale));
   flex-wrap: wrap;
-  margin-top: 6px;
+  margin-top: calc(6px * var(--ui-scale));
 }
 .does {
-  margin: 6px 0 0;
+  margin: calc(6px * var(--ui-scale)) 0 0;
   font-size: var(--t-head);
   color: var(--text-3);
   line-height: 1.4;
 }
 .acts {
   display: flex;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: calc(8px * var(--ui-scale));
 }
 .muted {
   color: var(--text-3);
@@ -24,8 +24,8 @@
 .cmdh {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 8px 0 4px;
+  gap: calc(6px * var(--ui-scale));
+  margin: calc(8px * var(--ui-scale)) 0 calc(4px * var(--ui-scale));
   font-size: var(--t-small);
   color: var(--text-3);
 }
@@ -36,12 +36,12 @@
 .trs {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: calc(3px * var(--ui-scale));
 }
 .trow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   font-size: var(--t-head);
 }
 .trow code {
@@ -49,33 +49,9 @@
   color: var(--text-2);
   flex: 1;
 }
-.mk {
-  flex: none;
-  width: calc(18px * var(--ui-scale));
-  height: calc(18px * var(--ui-scale));
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font: 650 var(--t-small) / 1 var(--sys);
-  border: 1px solid var(--border-3);
-  color: var(--text-3);
-}
-.mkYou {
-  background: var(--needs-you);
-  border-color: var(--needs-you);
-  color: var(--needs-you-ink);
-}
-.mkOk {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.tid {
-  font: 650 var(--t-head) / 1 var(--mono);
-  color: var(--accent);
-}
 .probe {
   display: flex;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   align-items: baseline;
   font-size: var(--t-head);
   color: var(--text-2);
@@ -92,8 +68,8 @@
   color: var(--text-4);
 }
 .notes {
-  margin: 8px 0 0;
-  padding-left: 18px;
+  margin: calc(8px * var(--ui-scale)) 0 0;
+  padding-left: calc(18px * var(--ui-scale));
   font-size: var(--t-head);
   color: var(--text-2);
   line-height: 1.4;

@@ -7,9 +7,12 @@ import { ItemHead } from '../Head';
 import type { InspProps } from '../props';
 import { ClickSec, CommandSec, Sec } from '../Sec';
 
+/** How stale the last check is: the seeded runner page was opened at RUNNER.openedAt, two hours before the demo clock. */
+const CHECKED_AGE = '2 h old';
+
 function RunnerChip({ check }: { check: 'ok' | 'none' | null }) {
   if (check === 'ok') return <Chip compact tone="ok">online · simulated</Chip>;
-  return <HonestyChip kind="unknown">{check === 'none' ? '? not seen yet' : '? unknown · 2 h old'}</HonestyChip>;
+  return <HonestyChip kind="unknown">{check === 'none' ? '? not seen yet' : `? unknown · ${CHECKED_AGE}`}</HonestyChip>;
 }
 
 /** n5: finish the runner setup step. Belay opens the page and checks again; it writes nothing. */
@@ -33,7 +36,7 @@ export function InspRunner(p: InspProps) {
         <KeyValue
           rows={[
             ['Runner', <RunnerChip key="r" check={check} />],
-            ['Checked', check ? 'just now · simulated' : `${RUNNER.openedAt} · 2 h old`],
+            ['Checked', check ? 'just now · simulated' : `${RUNNER.openedAt} · ${CHECKED_AGE}`],
             ['Billing', 'Belay cannot see it'],
           ]}
         />

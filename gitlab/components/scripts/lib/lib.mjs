@@ -54,17 +54,25 @@ export function api(path, { method = 'GET', body, raw = false } = {}) {
   return out.trim() ? JSON.parse(out) : null;
 }
 
-/** Manual paging: never relies on how --paginate joins arrays. */
-export function apiAll(path, maxPages = 5) {
+/**
+ * Manual paging over any one-page reader `get`: never relies on how --paginate joins arrays. Stops at a short or empty page
+ * or at the cap. The one implementation of the rule; `apiAll` is it over glab, and test doubles call it with a fake `get`.
+ * `strict`: reaching the cap with every page full throws, so a caller that must have the whole list never mistakes a prefix
+ * for it (a list of exactly maxPages*100 rows also throws: a full last page cannot be told from a longer list).
+ */
+export function pageAll(get, path, maxPages = 5, { strict = false } = {}) {
   const rows = [];
   for (let page = 1; page <= maxPages; page++) {
-    const got = api(`${path}${path.includes('?') ? '&' : '?'}per_page=100&page=${page}`);
+    const got = get(`${path}${path.includes('?') ? '&' : '?'}per_page=100&page=${page}`);
     if (!Array.isArray(got) || got.length === 0) break;
     rows.push(...got);
     if (got.length < 100) break;
+    if (strict && page === maxPages) throw new Error(`more than ${maxPages * 100} rows at ${path.split('?')[0]}: refusing to guess`);
   }
   return rows;
 }
+
+export const apiAll = (path, maxPages = 5, opts) => pageAll(api, path, maxPages, opts);
 
 export function gql(query) {
   const out = glab(['api', 'graphql', '--hostname', HOST, '-f', `query=${query}`]);
@@ -102,11 +110,42 @@ export function blocks(text, tag) {
   return out;
 }
 
-/** Last `Key: value` trailer line in a text, or null. The value must match `shape`. */
+/** Index just past the line break at `at` (LF or CRLF), or -1. */
+const breakAfter = (src, at) => (src[at] === '\n' ? at + 1 : src[at] === '\r' && src[at + 1] === '\n' ? at + 2 : -1);
+
+/** Text with every fenced block (any tag) removed: the poller's withoutBlocks (src/server/poller/parse/blocks.ts), same scan. */
+export function withoutBlocks(text) {
+  const src = String(text ?? '');
+  let out = '';
+  let kept = 0;
+  let at = 0;
+  let seen = -1; // the opener's line end is found once per scan position, not once per opener (hostile text stays linear)
+  const nl = /[\r\n]/g;
+  while ((at = src.indexOf('```', at)) !== -1) {
+    if (seen < at + 3) {
+      nl.lastIndex = at + 3;
+      const m = nl.exec(src);
+      seen = m ? m.index : src.length;
+    }
+    const body = seen < src.length ? breakAfter(src, seen) : -1;
+    if (body === -1) {
+      at += 1;
+      continue;
+    }
+    const end = src.indexOf('\n```', body);
+    if (end === -1) break;
+    out += src.slice(kept, at);
+    kept = end + 4;
+    at = kept;
+  }
+  return out + src.slice(kept);
+}
+
+/** Last `Key: value` trailer line in a text outside any fenced block (as the poller reads it), or null. The value must match `shape`. */
 export function trailer(text, key, shape = /^\S+$/) {
   const re = new RegExp(`^${key}:[ \\t]*(.+?)[ \\t]*$`, 'gmi');
   let found = null;
-  for (const m of String(text ?? '').matchAll(re)) if (shape.test(m[1])) found = m[1];
+  for (const m of withoutBlocks(text).matchAll(re)) if (shape.test(m[1])) found = m[1];
   return found;
 }
 

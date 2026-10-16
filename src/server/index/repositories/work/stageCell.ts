@@ -1,5 +1,5 @@
 import type { Stage } from '@/schemas/stages';
-import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
+import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 export interface StageCellRow {
   projectId: string;
@@ -25,6 +25,7 @@ const SPEC: TableSpec = {
     evidence_note: 'text', engine_version: 'text', scanned_at: 'timestamptz',
   },
 };
+registerSpec(SPEC);
 
 interface Db {
   project_id: string; stage: Stage; rung: number | null; base_rung: number | null; next_rung: number | null;

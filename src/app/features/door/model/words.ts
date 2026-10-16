@@ -17,11 +17,16 @@ export function ageStr(sec: number | null | undefined): string | null {
   return m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ${m % 60} min ago`;
 }
 
+/** "last good poll 47 min ago", unless the feed's own error already carries its age. The one place that rule lives. */
+export function lastGoodPoll(p: FleetProject): string | null {
+  const a = /ago/.test(p.feed.error ?? '') ? null : ageStr(p.feed.ageSec);
+  return a ? `last good poll ${a}` : null;
+}
+
 export function staleText(p: FleetProject): string {
   const e = p.feed.error || 'feed stale';
-  if (/ago/.test(e)) return e;
-  const a = ageStr(p.feed.ageSec);
-  return a ? `${e} · last good poll ${a}` : e;
+  const last = lastGoodPoll(p);
+  return last ? `${e} · ${last}` : e;
 }
 
 const waits = (n: number): string => `${n} ${plural(n, 'decision')} wait${n === 1 ? 's' : ''}`;
@@ -41,7 +46,7 @@ export function projectLine(p: FleetProject): Part[] {
 
 /** The readout's line for a district. */
 export function districtLine(d: District): Part[] {
-  const parts: Part[] = [[`${d.n} ${plural(d.n, 'project')} · `, 'plain'], [`${d.needs} ${plural(d.needs, 'decision')} wait`, 'amber']];
+  const parts: Part[] = [[`${d.n} ${plural(d.n, 'project')} · `, 'plain'], [waits(d.needs), 'amber']];
   if (d.stale) parts.push([' · ', 'plain'], [`${d.stale} stale`, 'stale']);
   if (d.setup) parts.push([` · ${d.setup} setting up`, 'plain']);
   if (d.nsu) parts.push([' · ', 'plain'], [`${d.nsu} not watched`, 'unknown']);

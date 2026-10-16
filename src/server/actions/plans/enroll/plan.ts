@@ -40,12 +40,12 @@ export async function planEnroll(ctx: PlanContext, intent: EnrollTrack): Promise
   const found = await accountFor(ctx, project, role, agentOnes.map(([id]) => id), read.state);
   if (!found.ok) throw new ActionRefused(found.reason);
 
+  const branch = `belay/enroll-${intent.track}-${dateOnly(ctx.now)}`;
   const since = minuteOf(ctx.now).toISOString();
   const by = `operator ${ctx.operator} via enrollment MR`;
   const edits: RecordEdit[] = agentOnes.map(([id, c]) => ({ agent: found.account, class: id, record: { tier: enrollTier(start, c.ceiling as Tier), since, by } }));
   const content = editRecords(file.content, edits);
   const moves = edits.map((e) => `${e.class} -> ${e.record.tier}`);
-  const branch = `belay/enroll-${intent.track}-${dateOnly(ctx.now)}`;
   const title = `Enroll ${intent.track} ${role}: ${moves.join(', ')}`;
   const notes = [
     `The account, ${found.account}, is read from ${found.from}: Belay never invents one.`,

@@ -24,7 +24,12 @@ export async function openIndex(opts: OpenOptions = {}): Promise<PGlite> {
   if (!opts.memory) mkdirSync(indexDir(opts.dataDir), { recursive: true }); // PGlite creates only the last folder
   const db = opts.memory ? new PGlite() : new PGlite(indexDir(opts.dataDir));
   await db.waitReady;
-  await migrate(db);
+  try {
+    await migrate(db);
+  } catch (err) {
+    await db.close().catch(() => undefined); // a refused folder must not stay open under the retry that follows
+    throw err;
+  }
   return db;
 }
 
@@ -35,8 +40,15 @@ type Holder = { [KEY]?: Promise<PGlite> };
 /** The single shared instance for the running app. */
 export function getIndex(): Promise<PGlite> {
   const holder = globalThis as Holder;
-  holder[KEY] ??= openIndex();
-  return holder[KEY];
+  const shared = holder[KEY];
+  if (shared) return shared;
+  const opening = openIndex();
+  holder[KEY] = opening;
+  // A failed open is not kept: the next call retries instead of replaying the rejection until the process restarts.
+  opening.catch(() => {
+    if (holder[KEY] === opening) holder[KEY] = undefined;
+  });
+  return opening;
 }
 
 export async function closeIndex(): Promise<void> {

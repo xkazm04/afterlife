@@ -91,6 +91,9 @@ describe('gaps', () => {
     expect(s.gapStatus).toEqual({ g1: 'staged', g2: 'staged' });
     expect(s.notice?.text).toBe('2 gaps staged · 1 write each');
   });
+  it('Stage picked counts one gap in the singular', () => {
+    expect(run(start(), act('tick:g2'), act('stage-gaps')).notice?.text).toBe('1 gap staged · 1 write each');
+  });
   it('staging one gap ticks it, and taking it back clears its status', () => {
     const s = run(start(), act('stage-gap:g3'));
     expect(s.gaps.g3).toBe(true);
@@ -127,6 +130,18 @@ describe('the actions that skip the outbox', () => {
     expect(back.status.n1).toBe('open');
     expect(back.session).toHaveLength(0);
   });
+  it('Show again takes back the Not yet row itself, not the newest row, when another decision was made in between', () => {
+    const s = run(start(), act('snooze-n1'), act('read-note'), act('retire-n4'));
+    expect(s.session.map((r) => r.kind)).toEqual(['readmit', 'promote']);
+    const back = run(s, act('unsnooze-n1'));
+    expect(back.status.n1).toBe('open');
+    expect(back.session.map((r) => r.kind)).toEqual(['readmit']);
+  });
+  it('Not yet twice leaves one row per snooze, and Show again takes back only the latest', () => {
+    const twice = run(start(), act('snooze-n1'), act('unsnooze-n1'), act('snooze-n1'));
+    expect(twice.session).toHaveLength(1);
+    expect(run(twice, act('unsnooze-n1')).session).toHaveLength(0);
+  });
   it('the runner check is unknown until the page was opened, then simulated: nothing ran, so nothing says verified', () => {
     const none = run(start(), act('check-runner'));
     expect(none.runner.check).toBe('none');
@@ -154,6 +169,13 @@ describe('view state', () => {
   it('a filter that hides the selection moves it to the first visible row', () => {
     const s = run({ ...start(), sel: 'n2' }, act('stage-n1'), { type: 'show', show: 'outbox' });
     expect(s.sel).toBe('n1');
+  });
+  it('a search that hides the selection moves it to the first visible row, as a filter does; a search with no match leaves it alone', () => {
+    const s = run({ ...start(), sel: 'n2' }, { type: 'query', query: 'runner' });
+    expect(s.sel).toBe('n5');
+    expect(run(s, { type: 'query', query: '' }).sel).toBe('n5');
+    expect(run({ ...start(), sel: 'n2' }, { type: 'query', query: 'zzz' }).sel).toBe('n2');
+    expect(run({ ...start(), sel: 'n2' }, { type: 'query', query: 'CRA' }).sel).toBe('n2');
   });
   it('This week expands the history, clears the filter and selects its group', () => {
     const s = run({ ...start(), show: 'waiting' }, { type: 'openHistory' });

@@ -24,7 +24,8 @@ export function CapPanel({ name }: { name: string }) {
           <Chip>belay doctor · {state.group}</Chip>
         </div>
       </DetailSection>
-      <DetailSection title="Probe" aux={state.doctorNever ? 'never probed' : state.doctorProbedAt}>
+      <DetailSection title="Probe" aux={state.doctorNever ? 'never probed' : state.doctorError ? `probe failed ${state.doctorProbedAt}` : state.doctorProbedAt}>
+        {state.doctorError ? <div className={styles.err}>{`belay doctor: ${state.doctorError}`}</div> : null}
         <Button disabled={state.doctorBusy} onClick={() => void actions.reprobe()}>
           {state.doctorBusy ? (
             <>

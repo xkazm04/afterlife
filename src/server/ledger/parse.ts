@@ -1,7 +1,9 @@
 // belay-ledger/events/<project-id>.jsonl: one LedgerEvent per line. The file is read from a GitLab repository, so every
 // line is checked field by field before it is trusted; a bad line fails the whole import (the chain is all or nothing).
-// The rules are the one parser the engine's writer and ledger-record checker share (src/schemas/chain/parse.ts).
+// The rules are the one parser the engine's writer and ledger-record checker share (src/schemas/chain/parse.ts), and this
+// reader's stricter ones on top: no unknown key, `at` as the engine writes it (isoMs), and safe-integer ids.
 import { parseChainText, type LedgerEvent } from '@/schemas/ledger';
+import { isoMs } from '../../../engine/core/types';
 
 export class LedgerParseError extends Error {
   constructor(readonly line: number, reason: string) {
@@ -10,9 +12,60 @@ export class LedgerParseError extends Error {
   }
 }
 
+type Rec = Record<string, unknown>;
+const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/** Every key a line may carry. The hash covers the line as written, so a key dropped here would read as a tampered chain. */
+const KNOWN_KEYS: ReadonlySet<string> = new Set([
+  'seq', 'at', 'agent', 'action_class', 'kind', 'tier_at_time', 'subject', 'payload_ref', 'observed_by', 'prev_hash', 'hash',
+  'verdict', 'environment', 'state_rev', 'withdrew', 'would',
+]);
+
+/** The rule the engine's `ledger append` writes by (isoMs): Date.parse alone takes '10' and reads a zone-less time in this machine's zone. */
+function isIsoInstant(v: unknown): boolean {
+  try {
+    isoMs(v, 'at');
+    return true;
+  } catch {
+    return false;
+  }
+}
+const unsafeId = (v: unknown): boolean => typeof v === 'number' && !Number.isSafeInteger(v);
+
+/** This reader's own refusal of a parsed JSON line, or null; the shared parser judges the rest. */
+function stricter(v: unknown): string | null {
+  if (!isRec(v)) return null;
+  const unknown = Object.keys(v).find((k) => !KNOWN_KEYS.has(k));
+  if (unknown !== undefined) return `unknown key "${unknown}": written by a newer version than this reader, not a tampered chain`;
+  if (typeof v.at === 'string' && v.at !== '' && !isIsoInstant(v.at)) return 'at must be an ISO time with a zone, like 2026-10-21T14:20:05Z';
+  const s = isRec(v.subject) ? v.subject : {};
+  if (unsafeId(v.seq) || unsafeId(s.project_id) || unsafeId(s.iid)) return 'seq, subject.project_id and subject.iid must be safe integers';
+  return null;
+}
+
+/** The first line, before `upto` (1-based, exclusive), this reader refuses on its own; lines that are not JSON are the shared parser's. */
+function firstStricter(text: string, upto: number): { line: number; reason: string } | null {
+  for (const [i, raw] of text.split('\n').entries()) {
+    if (i + 1 >= upto) break;
+    const line = raw.replace(/\r$/, '');
+    if (line.trim() === '') continue;
+    let json: unknown;
+    try {
+      json = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    const reason = stricter(json);
+    if (reason !== null) return { line: i + 1, reason };
+  }
+  return null;
+}
+
 /** Parses a whole file. Blank lines are skipped; any other bad line throws LedgerParseError with its number. */
 export function parseLedgerJsonl(text: string): LedgerEvent[] {
   const r = parseChainText(text);
+  const own = firstStricter(text, r.ok ? Infinity : r.line);
+  if (own) throw new LedgerParseError(own.line, own.reason);
   if (!r.ok) throw new LedgerParseError(r.line, r.reason);
   return r.events;
 }

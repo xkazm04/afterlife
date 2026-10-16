@@ -20,7 +20,7 @@ export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; 
           type="button"
           className={styles.disc}
           aria-expanded={open}
-          aria-label={open ? 'Collapse the commands' : 'Show the commands'}
+          aria-label={`${open ? 'Collapse' : 'Show'} the commands of ${item.title}`}
           onClick={(e) => {
             e.stopPropagation();
             dispatch({ type: 'itemShut', key: item.key });
@@ -33,11 +33,11 @@ export function OutboxItem({ item, open, selected, dispatch }: { item: OutItem; 
           {item.title}
         </span>
         <span className={styles.ref}>{item.ref}</span>
-        {item.askable ? <Button onClick={() => dispatch({ type: 'retry', key: item.key })}>Ask again</Button> : null}
-        <Button variant={item.clock ? 'primary' : 'accent'} disabled={!runnable} title={runnable ? undefined : item.note} onClick={() => dispatch({ type: 'run', key: item.key })}>
+        {item.askable ? <Button aria-label={`Ask again for ${item.title}`} onClick={() => dispatch({ type: 'retry', key: item.key })}>Ask again</Button> : null}
+        <Button variant={item.clock ? 'primary' : 'accent'} disabled={!runnable} title={runnable ? undefined : item.note} aria-label={`Run ${item.title}`} onClick={() => dispatch({ type: 'run', key: item.key })}>
           Run
         </Button>
-        <Button variant="ghost" onClick={() => dispatch({ type: 'remove', key: item.key })}>
+        <Button variant="ghost" aria-label={`Remove ${item.title}`} onClick={() => dispatch({ type: 'remove', key: item.key })}>
           Remove
         </Button>
       </div>

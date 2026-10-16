@@ -1,7 +1,7 @@
 // Maturity's keys, declared once: hooks/useMaturityKeys binds them, Settings > Keyboard lists them. Pure, server-safe.
 // Two maps because they switch: the screen's keys are off while the Send sheet is open, the sheet's only on then.
 import { defineKeymap } from '@/lib/keyboard/keymap';
-import type { Step } from './state';
+import type { Step } from '../state';
 
 /** The stepper's steps, one digit key each. */
 export const STEP_KEYS: readonly Step[] = [1, 2, 3, 4];

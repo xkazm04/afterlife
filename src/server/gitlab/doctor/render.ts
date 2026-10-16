@@ -1,5 +1,6 @@
 // What `belay doctor` prints and the code it exits with. A blocker comes first, with its fix on the next line, and stands
-// in for the rows it blocked; otherwise the login, the group and one row per capability.
+// in for the rows it blocked (an unreadable group blocks none: its rows follow); then the login, the group and one row per
+// capability.
 // Exit codes: 0 the probes answered, 2 every capability unknown with no blocker named, 3 blocked (see doctor/blocker.ts).
 import type { Capability, DoctorReport } from '../capabilities';
 
@@ -17,8 +18,11 @@ export function renderDoctor(report: DoctorReport, o: RenderOpts): string[] {
   const b = report.blocker;
   if (b) {
     out.push(`BLOCKED  ${b.text}`, `  fix: ${b.fix}`, '');
-    out.push(`${report.capabilities.length} capabilities not probed until this is fixed: run belay doctor again after.`);
-    return out;
+    // An unreadable group stops only the group's own reads: the capability rows still ran, so they are printed below.
+    if (b.kind !== 'group') {
+      out.push(`${report.capabilities.length} capabilities not probed until this is fixed: run belay doctor again after.`);
+      return out;
+    }
   }
   out.push(row(report.user ? 'available' : 'unknown', 'signed in as', report.user ?? '(the user read failed)'));
   const g = report.group;

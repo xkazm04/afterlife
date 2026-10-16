@@ -8,7 +8,7 @@ import type { Stage } from '@/schemas';
 import { gitlabUrl } from '../../data/meta';
 import type { EvidenceRung } from '../../data/types';
 import type { MaturityCtx } from '../../model/ctx';
-import { nextOf, type Level } from '../../model/rungs';
+import { isDeep, nextOf, type Level } from '../../model/rungs';
 import { cx } from '../cx';
 import { BoltGlyph } from './BoltGlyph';
 import styles from './inspector.module.css';
@@ -34,7 +34,7 @@ export function EvidenceSection({
   const ev = ctx.evidence?.[stage];
   const base = ctx.base[stage];
   const nx = nextOf(now, base.next);
-  const deep = now != null && now >= 3;
+  const deep = isDeep(now);
   const creditedBy = (g => (g ? `gap ${g.id}` : 'its MR'))(ctx.gapByStage(stage));
   const link = (path: string) => (e: MouseEvent) => {
     e.preventDefault();
@@ -49,13 +49,13 @@ export function EvidenceSection({
         const on = now != null && r <= now;
         const isNext = r === nx && nx > (now ?? -1);
         const objs = ev?.objs[r] ?? [];
-        const count = objs.length || 1;
+        const count = objs.length;
         return (
           <div key={r}>
             <div className={cx(styles.rg, !on && (isNext ? styles.nx : styles.off))}>
               <BoltGlyph on={on} deep={deep} next={isNext} />
               <span>{`R${r} ${ctx.rungNames[r] ?? ''}`}</span>
-              <span className={styles.aux}>{on ? `${count} object${count > 1 ? 's' : ''}` : isNext ? 'next' : '—'}</span>
+              <span className={styles.aux}>{on ? (count ? `${count} object${count > 1 ? 's' : ''}` : 'no links') : isNext ? 'next' : '—'}</span>
             </div>
             {isNext && ev ? <div className={styles.lack}>{ev.missing}</div> : null}
             {on && objs.length

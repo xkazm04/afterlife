@@ -19,17 +19,6 @@ export function splitDuration(totalSec: number): { d: number; h: number; m: numb
   return { d: Math.floor(t / 86400), h: Math.floor((t % 86400) / 3600), m: Math.floor((t % 3600) / 60), s: t % 60 };
 }
 
-/** Countdown as prose: "19 h 12 m", "2 d 19 h", "45 s". Shows the two largest non-zero units. */
-export function formatDuration(totalSec: number): string {
-  const { d, h, m, s } = splitDuration(totalSec);
-  const parts: string[] = [];
-  if (d) parts.push(`${d} d`);
-  if (h) parts.push(`${h} h`);
-  if (m) parts.push(`${m} m`);
-  if (!parts.length) parts.push(`${s} s`);
-  return parts.slice(0, 2).join(' ');
-}
-
 /** Hours may pass 24: "19:11:59", "49:00:05". */
 export function formatClock(totalSec: number): string {
   const t = Math.max(0, Math.floor(totalSec));

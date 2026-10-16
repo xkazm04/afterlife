@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react';
 
 const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+/** The count-up schedules the door uses (ms): the headline waits for the marks to land, then every mark and proof count runs together. */
+export const COUNT_BIG = { delay: 2400, dur: 800 } as const;
+export const COUNT_MARK = { delay: 1200, dur: 2000 } as const;
+/** When the last count finishes: the intro (useDoor's INTRO_MS) must not end before it, or the numbers jump to final mid-count. */
+export const COUNT_END = Math.max(COUNT_BIG.delay + COUNT_BIG.dur, COUNT_MARK.delay + COUNT_MARK.dur);
+
 /** The first door of a page load arrives server-rendered with its final numbers; only later client mounts count up. */
 let booted = false;
 
@@ -17,7 +23,7 @@ export function useCountUp(n: number, delay: number, dur: number, intro: boolean
     booted = true;
   }, []);
   useEffect(() => {
-    if (!counting) return;
+    if (!counting || !intro) return; // once the intro ended the value is discarded (see the return): stop the frame loop
     let raf = 0;
     const t0 = performance.now();
     const step = (now: number) => {
@@ -28,6 +34,6 @@ export function useCountUp(n: number, delay: number, dur: number, intro: boolean
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [counting, n, delay, dur]);
+  }, [counting, intro, n, delay, dur]);
   return counting && intro ? v : n;
 }

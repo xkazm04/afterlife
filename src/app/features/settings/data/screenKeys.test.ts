@@ -1,7 +1,9 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { actionFor, TASK_KEYMAP } from '../../task/model/docket/keys';
+import { MAX_TAKES } from '../../theater/model/film/fromLedger';
 import { SCREEN_KEYS } from './screenKeys';
 
 const rowsOf = (screen: string) => SCREEN_KEYS.find((s) => s.screen === screen)?.keys ?? [];
@@ -16,6 +18,30 @@ describe('SCREEN_KEYS, derived from the screens keymaps', () => {
   });
   it('lists the Task screen and its keys', () => {
     expect(capsOn('Task')).toEqual(expect.arrayContaining(['[', ']', 'r', 'w', 'f', 'Esc']));
+  });
+});
+
+// Ground truth, not the list: the tier list, the take cap and the key hooks on disk turn this red if a screen changes.
+describe('SCREEN_KEYS against the ground truth', () => {
+  it('names the Ladder tier filter by the real tier count', () => {
+    expect(capsOn('Ladder')).toContain(`1-${TIER_DISPLAY_ORDER.length}`);
+  });
+  it('names the Theater take keys by the real take cap', () => {
+    expect(capsOn('Theater')).toContain(`1-${MAX_TAKES}`);
+  });
+  it('has a row for every screen that registers a useXKeys hook', () => {
+    const features = resolve(__dirname, '../..');
+    const hooks = readdirSync(features, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .flatMap((d) => {
+        try {
+          return readdirSync(join(features, d.name, 'hooks')).filter((f) => /^use\w*Keys\.ts$/.test(f));
+        } catch {
+          return [];
+        }
+      });
+    expect(hooks.length).toBe(6);
+    expect(SCREEN_KEYS.length).toBe(hooks.length);
   });
 });
 
@@ -65,7 +91,7 @@ describe('screenKeys.ts stays server-safe', () => {
       'app/features/fleet/model/keys/keymap.ts',
       'app/features/needs-you/model/keys/keymap.ts',
       'app/features/ladder/model/keymap.ts',
-      'app/features/maturity/model/keymap.ts',
+      'app/features/maturity/model/keys/keymap.ts',
       'app/features/task/model/docket/keys.ts',
       'app/features/theater/model/keymap.ts',
     ])

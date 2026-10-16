@@ -70,8 +70,11 @@ const when = (s: string | undefined): Date | null => {
 const byOf = (r: { by?: unknown } | null): string | null => (typeof r?.by === 'string' ? r.by : null);
 
 /** The classes in the policy's order, with the track their agent role belongs to. */
+/** The track of an agent role, null for a role the table does not name (a role is YAML text: 'constructor' is not a track). */
+export const trackOfRole = (role: string): number | null => (Object.hasOwn(ROLE_TRACK, role) ? (ROLE_TRACK[role] ?? null) : null);
+
 export const trustClassesOf = (policy: EnginePolicy): TrustClassRow[] =>
-  Object.entries(policy.classes).map(([id, c], ord) => ({ id, ord, track: ROLE_TRACK[c.agent] ?? null, agent: c.agent, ceiling: c.ceiling }));
+  Object.entries(policy.classes).map(([id, c], ord) => ({ id, ord, track: trackOfRole(c.agent), agent: c.agent, ceiling: c.ceiling }));
 
 export function deriveTiers(
   policy: EnginePolicy, state: TierState, projectId: string, now: Date, existing: ReadonlyMap<string, ClassTierRow>, windowMs: number,
@@ -82,7 +85,7 @@ export function deriveTiers(
   const quarantines: Quarantine[] = [];
   const held = new Map<string, ClassCounters>();
   Object.entries(policy.classes).forEach(([id, c]) => {
-    const track = ROLE_TRACK[c.agent] ?? null;
+    const track = trackOfRole(c.agent);
     const prev = existing.get(id);
     const holders = holderStandings(policy.classes, state, id, now);
     const st = standingOf(policy.classes, state, id, now);

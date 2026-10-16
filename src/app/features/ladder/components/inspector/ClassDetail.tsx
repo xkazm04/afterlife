@@ -5,7 +5,7 @@ import type { PolicyRules } from '@/server/data/types';
 import { promoteTitle, type HumanKeyRead, type Promotion } from '@/lib/promotion';
 import { TIER_META } from '@/lib/tiers';
 import { humanKeyWarning, WRITE_HEAD, type PromoteAsk } from '../../model/rules/promote';
-import { actsFrom, isQuarantine, revokeTargets } from '../../model/rules/tiers';
+import { actsFrom, isQuarantine, nothingToRevoke, revokeTargets } from '../../model/rules/tiers';
 import type { ActorKind, ClassRow, LedgerEntry, Tier, Track } from '../../model/types';
 import { entriesFor } from '../../model/view/moves';
 import type { PromoteView } from '../../write/promote';
@@ -53,6 +53,8 @@ export function ClassDetail(p: ClassDetailProps) {
   const first = revokeTargets(from)[0];
   const mine = entriesFor(p.ledger, c.id);
   const eligible = p.promotion.kind === 'eligible';
+  const promotable = !!from && from !== 'human_only' && !isQuarantine(c);
+  const acts = !!first || isQuarantine(c) || promotable;
   const revokeTo = p.writeTo ?? first ?? null;
   const ask = p.promote.ask;
   return (
@@ -74,12 +76,13 @@ export function ClassDetail(p: ClassDetailProps) {
               Re-admit
             </Button>
           ) : null}
-          {from && from !== 'human_only' && !isQuarantine(c) ? (
+          {promotable ? (
             <Button variant={eligible ? 'primary' : 'default'} className={eligible ? undefined : styles.off} aria-disabled={!eligible} title={promoteTitle(p.promotion)} onClick={() => p.onPromote(c.id)}>
               Promote
             </Button>
           ) : null}
         </div>
+        {acts ? null : <div className={styles.none}>Nothing to do: {nothingToRevoke(c)}</div>}
       </Sec>
       <PromotionRule promotion={p.promotion} uncounted={!!c.uncounted && !c.ask} proofDemo={p.tracksDemo && !c.ask} humanKey={p.humanKey} sources={c.sources} />
       <WriteSection head={WRITE_HEAD.revoke} keyName="r" to={revokeTo} view={revokeTo ? p.viewOf(c.id, revokeTo) : undefined} nothing="Nothing to revoke" />

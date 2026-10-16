@@ -28,7 +28,10 @@ async function main(): Promise<number> {
   out.push(row('available', 'node', process.version));
   const port = createGlabAdapter({ bin, host: cfg.host, exec: defaultExec });
   const report = await probeCapabilities(port, cfg.groupId);
-  console.log(renderDoctor(report, { local: out, groupId: cfg.groupId }).join('\n'));
+  const lines = renderDoctor(report, { local: out, groupId: cfg.groupId });
+  // why each failed context read failed, just above the rows (a blocked report lists no rows)
+  if (!report.blocker) lines.splice(lines.length - report.capabilities.length, 0, ...report.errors.map((x) => `could not read ${x.read}: ${x.kind}: ${x.message}`));
+  console.log(lines.join('\n'));
   return doctorExitCode(report);
 }
 

@@ -25,7 +25,8 @@ export function isCeiling(value: unknown): value is Ceiling {
  * in tier-state.yml holds it yet: the gate blocks it) and 'refused' (several agents hold it: CI gates each merge request
  * at its author's own record, so the class has one tier per holder; the key keeps the name the index stores it under).
  */
-export type Standing = 'no_record' | 'refused';
+export const STANDINGS = ['no_record', 'refused'] as const;
+export type Standing = (typeof STANDINGS)[number];
 /** One class of one project on Fleet and the door: its tier, a standing, or null when unknown. */
 export type ClassCell = Ceiling | Standing | null;
 

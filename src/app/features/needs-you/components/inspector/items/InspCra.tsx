@@ -35,7 +35,7 @@ export function InspCra(p: InspProps) {
               <ActBtn dispatch={dispatch} action="read-draft">
                 {s.read.draft ? 'Draft read ✓' : 'Read the draft'}
               </ActBtn>
-              <ActBtn dispatch={dispatch} action="stage-n2" variant="primary" disabled={!s.read.draft}>
+              <ActBtn dispatch={dispatch} action="stage-n2" variant="primary" disabled={!s.read.draft} title={s.read.draft ? undefined : 'Read the draft first: ready to sign means a person read it'}>
                 Ready to sign
               </ActBtn>
             </>

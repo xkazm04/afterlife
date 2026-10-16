@@ -7,7 +7,7 @@ import { TIER_META } from '@/lib/tiers';
 import type { ActionResponse } from '@/server/actions/types';
 import { NO_ANSWER, commitOf, outcomeOf, type WriteView } from '@/server/actions/words';
 import { nothingInTrack, trackChanges, type TrackWant } from '../../model/rules/batch/batch';
-import { actsFrom, revokeTarget } from '../../model/rules/tiers';
+import { actsFrom, revokeTarget, selectHint } from '../../model/rules/tiers';
 import { PENDING_MS, nextSha } from '../../model/state/commit';
 import type { Change, Tier } from '../../model/types';
 import { sendRevoke, sendRevokeTrack, trackKey, writeKey } from '../../write/revoke';
@@ -51,6 +51,7 @@ export function useRevokeActions({
   stamp,
   later,
   focusTable,
+  simCountRef,
 }: {
   project: string;
   latest: RefObject<LadderData>;
@@ -62,6 +63,8 @@ export function useRevokeActions({
   stamp: () => number;
   later: (fn: () => void, ms: number) => void;
   focusTable: () => void;
+  /** Simulated commits handed out: bumped when asked, so two answers in one render get two ids (reset zeroes it). */
+  simCountRef: RefObject<number>;
 }) {
   const { toast, status } = useToast();
   const sending = useRef(new Set<string>());
@@ -69,8 +72,9 @@ export function useRevokeActions({
   /** The server answered done: the rows move. A simulated (demo) commit is settled by a simulated tier-gate read. */
   const landed = useCallback(
     (land: Landing, simulated: boolean, commit: string | null) => {
-      const sha = simulated ? nextSha(latest.current.state.shaIdx) : commit;
-      dispatch({ ...land, at: stamp(), sent: simulated ? { simulated: true } : { simulated: false, commit } });
+      // The hook names the demo id and the action carries it, so the row's pending id and the settle timer's are one.
+      const sha = simulated ? nextSha(simCountRef.current++) : commit;
+      dispatch({ ...land, at: stamp(), sent: simulated ? { simulated: true } : { simulated: false, commit }, ...(simulated && sha ? { sha } : {}) });
       later(() => dispatch({ type: 'clearFresh' }), FRESH_MS);
       if (simulated && sha) {
         later(() => {
@@ -81,7 +85,7 @@ export function useRevokeActions({
       writes.clear();
       promos.clear(); // tier-state.yml moved: a promotion planned from the old one would only come back "changed"
     },
-    [latest, dispatch, stamp, later, writes, promos],
+    [simCountRef, dispatch, stamp, later, writes, promos],
   );
 
   const sendShown = useCallback(
@@ -141,7 +145,7 @@ export function useRevokeActions({
   const revokeKey = useCallback(
     (want: TrackWant) => {
       const { selected: c, sel } = latest.current;
-      if (!c) return sel && isGroupNavId(sel) ? revokeTrack(sel.slice(2), want) : status('Select a class · r revokes one step');
+      if (!c) return sel && isGroupNavId(sel) ? revokeTrack(sel.slice(2), want) : status(selectHint(want));
       const to = revokeTarget(actsFrom(c), want);
       if (to) revoke(c.id, to);
       else status(want === 'quarantine' ? `Nothing to quarantine on ${c.id}` : `Nothing to revoke on ${c.id}`);

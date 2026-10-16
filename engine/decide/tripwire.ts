@@ -4,9 +4,7 @@
 import { parseDocument, Scalar, YAMLMap } from 'yaml';
 import { demote, TIER_ORDER, type DemotionTrigger, type Tier } from '../../src/schemas/tier';
 import { EngineError, optStr, rec, str } from '../core/types';
-import { parseState, type EnginePolicy } from '../policy/load';
-
-const TRIGGERS: readonly DemotionTrigger[] = ['revert', 'reopened_finding', 'post_merge_proof_fail', 'default_branch_red_1h', 'guardrail_high', 'budget_breach_x2'];
+import { DEMOTION_TRIGGERS, parseState, type EnginePolicy } from '../policy/load';
 
 export interface TripwireEvent {
   trigger: DemotionTrigger;
@@ -25,7 +23,7 @@ export interface TripwireResult {
 export function parseEvent(raw: unknown): TripwireEvent {
   const e = rec(raw, 'event');
   const trigger = str(e.trigger, 'event.trigger');
-  if (!TRIGGERS.includes(trigger as DemotionTrigger)) throw new EngineError(`event.trigger "${trigger}" is not a demotion trigger`);
+  if (!DEMOTION_TRIGGERS.includes(trigger as DemotionTrigger)) throw new EngineError(`event.trigger "${trigger}" is not a demotion trigger`);
   return { trigger: trigger as DemotionTrigger, agent: str(e.agent, 'event.agent'), class: str(e.class, 'event.class'), at: optStr(e.at, 'event.at'), evidence: optStr(e.evidence, 'event.evidence') };
 }
 
@@ -35,7 +33,9 @@ export function tripwire(policy: EnginePolicy, stateText: string, statePath: str
   const doc = parseDocument(stateText);
   if (doc.errors.length) throw new EngineError(`tier-state.yml is not valid YAML: ${doc.errors[0]?.message}`);
   const state = parseState(doc.toJS());
-  const current = state.agents[event.agent]?.[event.class];
+  // own keys only, as standing.ts does: an agent or class id read off a merge request may be `constructor`
+  const held = Object.hasOwn(state.agents, event.agent) ? state.agents[event.agent] : undefined;
+  const current = held && Object.hasOwn(held, event.class) ? held[event.class] : undefined;
   if (!current) throw new EngineError(`tier-state has no record for ${event.agent} / ${event.class}`);
   const to = demote(current.tier, event.trigger, policy);
   if (TIER_ORDER.indexOf(to) >= TIER_ORDER.indexOf(current.tier)) {

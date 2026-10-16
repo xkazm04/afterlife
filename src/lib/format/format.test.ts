@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatAge, formatClock, formatDuration, pad2, splitDuration } from './time';
+import { formatAge, formatClock, pad2, splitDuration } from './time';
 import { plural, pluralWord } from './plural';
 
 describe('formatAge', () => {
@@ -22,12 +22,6 @@ describe('durations', () => {
   it('splits seconds', () => {
     expect(splitDuration(2 * 86400 + 3 * 3600 + 4 * 60 + 5)).toEqual({ d: 2, h: 3, m: 4, s: 5 });
     expect(splitDuration(-5)).toEqual({ d: 0, h: 0, m: 0, s: 0 });
-  });
-  it('shows the two largest units', () => {
-    expect(formatDuration(19 * 3600 + 12 * 60 + 59)).toBe('19 h 12 m');
-    expect(formatDuration(2 * 86400 + 19 * 3600 + 12 * 60)).toBe('2 d 19 h');
-    expect(formatDuration(45)).toBe('45 s');
-    expect(formatDuration(0)).toBe('0 s');
   });
   it('formats a clock that may pass 24 hours', () => {
     expect(formatClock(19 * 3600 + 11 * 60 + 59)).toBe('19:11:59');

@@ -6,11 +6,24 @@ import path from 'node:path';
 import { append, parseChainText, parseEventBody, verifyChain, type EventBody, type LedgerEvent } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
 import { readJson } from '../core/files';
-import { EngineError, type CommandResult, type Ctx } from '../core/types';
+import { EngineError, isoMs, isRecord, type CommandResult, type Ctx } from '../core/types';
 import { TRIAL_USAGE, trialCommand } from './audit/trial';
 
-/** The event the writer takes, by the one parser the importer and the checker share (src/schemas/chain/parse.ts). */
+/** A GitLab id: a safe integer >= 0, as the server reader (src/server/ledger/parse.ts) takes it; 2 ** 53 and 1e300 are integers too. */
+function id(v: unknown, what: string): void {
+  if (typeof v !== 'number' || !Number.isSafeInteger(v) || v < 0) throw new EngineError(`${what} must be a non-negative integer`);
+}
+
+/**
+ * The event the writer takes, by the one parser the importer and the checker share (src/schemas/chain/parse.ts), after the
+ * writer's own stricter rules: `at` an ISO instant with its zone (isoMs), and ids that are safe integers.
+ */
 export function parseLedgerEvent(raw: unknown): EventBody {
+  if (isRecord(raw)) {
+    isoMs(raw.at, 'event.at');
+    const s = raw.subject;
+    if (isRecord(s)) for (const k of ['project_id', 'iid'] as const) id(s[k], `event.subject.${k}`);
+  }
   const r = parseEventBody(raw);
   if (!r.ok) throw new EngineError(`event: ${r.reason}`);
   return r.event;
@@ -28,10 +41,13 @@ export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult 
   const args = parseArgs(argv, { values: ['event', 'chain'], switches: ['write'] });
   if (args.positional[0] !== 'append') throw new EngineError(`usage: ledger append --event <file> --chain <events.jsonl> [--write] | ${TRIAL_USAGE}`);
   const chainFile = path.resolve(ctx.cwd, args.need('chain'));
-  const chain = fs.existsSync(chainFile) ? readChain(fs.readFileSync(chainFile, 'utf8')) : [];
+  const text = fs.existsSync(chainFile) ? fs.readFileSync(chainFile, 'utf8') : '';
+  const chain = readChain(text);
   const broken = verifyChain(chain);
   if (broken !== null) throw new EngineError(`the chain is broken at seq ${broken}; it is not extended`);
   const line = append(chain, parseLedgerEvent(readJson(ctx, args.need('event'))));
-  if (args.has('write')) fs.appendFileSync(chainFile, `${JSON.stringify(line)}\n`);
+  // a chain fetched from the API may lack its final newline: start a new line rather than glue two events together
+  const lead = text === '' || text.endsWith('\n') ? '' : '\n';
+  if (args.has('write')) fs.appendFileSync(chainFile, `${lead}${JSON.stringify(line)}\n`);
   return { json: line, summary: `ledger: appended seq ${line.seq} ${line.kind} ${line.hash.slice(0, 12)} (chain of ${chain.length + 1} verifies)`, code: 0, compact: true };
 }

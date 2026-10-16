@@ -25,7 +25,7 @@ export class GitLabError extends Error {
 export interface RawFailure { code: number; stdout: string; stderr: string }
 
 const NETWORK = /dial tcp|no such host|i\/o timeout|connection (refused|reset)|timeout|ENOTFOUND|ECONNRESET|EAI_AGAIN|network is unreachable/i;
-const NO_LOGIN = /no token|not logged in|authentication required|glab auth login|401/i;
+const NO_LOGIN = /no token|not logged in|authentication required|glab auth login|\b401\b/i;
 
 /** The HTTP status glab reports: "glab: 403 Forbidden (HTTP 403)" or "glab: HTTP 404" on stderr. */
 export function statusOf(f: RawFailure): number | null {

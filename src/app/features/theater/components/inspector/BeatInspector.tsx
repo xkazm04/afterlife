@@ -20,7 +20,7 @@ export function BeatInspector({ snap, film, demo, onSeek }: { snap: Snapshot; fi
   const e = snap.e;
   return (
     <>
-      <InspectorHeader title={<>{whoOf(e.by)}{e.seeded ? <HonestyChip kind="seeded" /> : null}</>} sub={`seq ${e.seq} · ${e.ev?.at ?? e.t}`}>
+      <InspectorHeader title={<>{whoOf(e)}{e.seeded ? <HonestyChip kind="seeded" /> : null}</>} sub={`seq ${e.seq} · ${e.ev?.at ?? e.t}`}>
         <div className={styles.x}>{e.x}</div>
         {e.quote && demo?.quote ? (
           <>

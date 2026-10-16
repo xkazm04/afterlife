@@ -13,7 +13,7 @@ export function Cap({ e, y, cut, quote }: { e: LedgerEntry; y: number; cut: bool
   return (
     <div className={`${styles.cap} ${cut ? styles.cut : ''}`} style={{ '--y': `${y}%` } as CSSProperties}>
       <div className={styles.who}>
-        <span>{whoOf(e.by)}</span>
+        <span>{whoOf(e)}</span>
         {e.seeded ? <HonestyChip kind="seeded" /> : null}
         <span className={styles.sq}>
           seq {e.seq} · {e.t}
