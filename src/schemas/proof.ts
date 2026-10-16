@@ -1,15 +1,19 @@
 // The Proof Block: the spine of all eight tracks. An agent writes claims (untrusted); the
 // model-free proof engine writes checks (trusted). Only checks decide the verdict.
 
-export type ProofClass =
-  | 'exploit-test' // T1 patcher: red at base, green at head, same test id, finding closed on rescan
-  | 'cited-diff' // T4 guardrail: every finding quotes a hunk that exists in the diff
-  | 'rerun-stats' // T5 medic: N reruns of one SHA, counts recomputed from the jobs API
-  | 'repro' // T7 QA: the claimed failure reproduces in >= 2 probe runs on the MR head, against the target environment
-  | 'bench-delta' // T8 gardener: no new test failure, every benchmark inside the tolerance on the same runner tag
-  | 'linked-evidence' // T2 CRA: every statement links to a GitLab object that resolves
-  | 'score-delta' // T6 maturity: same engine version before/after, no stage lower at head
-  | 'ledger-record'; // T3 governor: tier decisions recomputed from the ledger
+/** Every proof class, in the order the task screen's class menu lists them. The one value list: the union derives from it. */
+export const PROOF_CLASSES = [
+  'exploit-test', // T1 patcher: red at base, green at head, same test id, finding closed on rescan
+  'cited-diff', // T4 guardrail: every finding quotes a hunk that exists in the diff
+  'bench-delta', // T8 gardener: no new test failure, every benchmark inside the tolerance on the same runner tag
+  'rerun-stats', // T5 medic: N reruns of one SHA, counts recomputed from the jobs API
+  'linked-evidence', // T2 CRA: every statement links to a GitLab object that resolves
+  'repro', // T7 QA: the claimed failure reproduces in >= 2 probe runs on the MR head, against the target environment
+  'score-delta', // T6 maturity: same engine version before/after, no stage lower at head
+  'ledger-record', // T3 governor: tier decisions recomputed from the ledger
+] as const;
+
+export type ProofClass = (typeof PROOF_CLASSES)[number];
 
 export type Verdict = 'pass' | 'fail' | 'inconclusive';
 

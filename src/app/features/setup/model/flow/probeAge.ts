@@ -1,7 +1,6 @@
+import { pad2 } from '@/lib/format/time';
 import { STALE_AFTER_MS } from '../../data/timing';
 import type { SetupState } from '../types';
-
-const pad2 = (n: number) => String(n).padStart(2, '0');
 
 /** The demo clock: `baseMin` minutes after midnight at `startMs`, then real minutes. "14:02". */
 export function clockLabel(baseMin: number, startMs: number, nowMs: number): string {

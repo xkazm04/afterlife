@@ -1,5 +1,5 @@
 // The CRA legal clock: arithmetic from a deadline. It never pauses and never goes below zero.
-import { pad2 } from '@/lib/format/time';
+import { formatClock, pad2, splitDuration } from '@/lib/format/time';
 
 /** Seconds left after `elapsedSec` have passed since the page showed `remainingSec`. */
 export function secondsLeft(remainingSec: number, elapsedSec: number): number {
@@ -8,14 +8,13 @@ export function secondsLeft(remainingSec: number, elapsedSec: number): number {
 
 /** Hours, minutes and seconds as two-digit strings. Hours may pass 24. */
 export function clockParts(sec: number): { h: string; m: string; s: string } {
-  const t = Math.max(0, Math.floor(sec));
-  return { h: pad2(Math.floor(t / 3600)), m: pad2(Math.floor((t % 3600) / 60)), s: pad2(t % 60) };
+  const { d, h, m, s } = splitDuration(sec);
+  return { h: pad2(d * 24 + h), m: pad2(m), s: pad2(s) };
 }
 
 /** "19:11:59". */
 export function clockText(sec: number): string {
-  const { h, m, s } = clockParts(sec);
-  return `${h}:${m}:${s}`;
+  return formatClock(sec);
 }
 
 /** How much of the window has passed, 0 to 100, to two decimals. */
