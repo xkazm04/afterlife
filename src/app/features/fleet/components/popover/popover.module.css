@@ -1,7 +1,7 @@
 .pl {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   height: calc(18px * var(--ui-scale));
 }
 .pl code {
@@ -10,7 +10,7 @@
 }
 .rec {
   margin-left: auto;
-  padding-left: 12px;
+  padding-left: calc(12px * var(--ui-scale));
   color: var(--text-3);
   font-size: var(--t-small);
 }

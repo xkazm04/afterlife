@@ -30,7 +30,7 @@ export function ClassesSection({ p, classes, deep, }: { p: FleetProject; classes
               <span className={styles.id}>{c}</span>
               <span className={styles.rec}>{recordLabel(dc)}</span>
               {t ? <TierMark tier={t} holders={holders} /> : <span />}
-              <span className={styles.tn}>{cellName(t, holders)}</span>
+              <span className={styles.tn} title={cellName(t, holders)}>{cellName(t, holders)}</span>
             </div>
           );
         })
