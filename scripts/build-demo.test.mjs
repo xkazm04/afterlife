@@ -27,4 +27,10 @@ describe('scripts/build-demo.mjs', () => {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
+
+  it('holds the tier order once', () => {
+    const src = fs.readFileSync(path.join(root, 'scripts/build-demo.mjs'), 'utf8').replace(/^\s*\/\/.*$/gm, '');
+    const copies = src.match(/\[\s*'quarantined'\s*,\s*'assisted'\s*,\s*'supervised'\s*,\s*'hands_off'\s*\]/g) ?? [];
+    expect(copies).toHaveLength(1);
+  });
 });
