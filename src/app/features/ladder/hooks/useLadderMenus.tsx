@@ -91,6 +91,9 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
       { label: 'Expand All', run: () => dispatch({ type: 'expandAll' }) },
       { sep: true },
       { label: `Show Only ${tid}`, run: () => actions.setSource(tid) },
+      { sep: true },
+      { label: 'Quarantine track…', sc: 'q', run: () => actions.revokeTrack(tid, 'quarantine') },
+      { label: 'One step down, whole track…', sc: 'r', run: () => actions.revokeTrack(tid, 'step') },
     ],
     [state.collapsed, dispatch, trackIds, actions],
   );

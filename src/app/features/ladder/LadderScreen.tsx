@@ -45,12 +45,12 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
   // A target r cannot send yet (q, an unhovered menu item): its write is put on screen first, until the selection moves.
   const [pinned, setPinned] = useState<{ id: string; to: Tier } | null>(null);
   const shownTo = hoverTo ?? (pinned && pinned.id === data.sel ? pinned.to : null);
-  const writes = useRevokeWrite(project, data.selected, shownTo);
+  const writes = useRevokeWrite(project, data.selected, shownTo, data);
   // The selected class's promotion (eligible, or a quarantine's re-admission) is asked for; p or Promote puts it on the dock.
   const [promoting, setPromoting] = useState<string | null>(null);
   const promoteWant = data.selected ? promoteAsk(data.selected, data.promotionOf(data.selected)) : null;
   const promos = usePromoteWrite(project, promoteWant);
-  const dock = dockModel(data.sel, byId, tracks, shownTo, writes.viewOf, { want: promoteWant, pinned: promoting === data.sel, viewOf: promos.viewOf });
+  const dock = dockModel(data.sel, byId, tracks, shownTo, writes.viewOf, { want: promoteWant, pinned: promoting === data.sel, viewOf: promos.viewOf }, writes.trackViewOf, writes.trackWant);
   const dockRef = useRef<DockModel>(dock);
   useEffect(() => {
     dockRef.current = dock;
