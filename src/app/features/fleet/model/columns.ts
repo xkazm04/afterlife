@@ -71,3 +71,6 @@ export function gridFor(view: FleetView, narrow: boolean, meta: FleetMeta): Grid
   const n = meta.stages.length;
   return { columns: `${lead} ${repeatPx(n, 54)} ${px(96)} ${px(52)}`, minWidth: minWidth(LEAD_PX + n * 54 + TAIL_PX) };
 }
+
+/** Table width at or below which the Tiers view goes narrow: `max` px at the Smaller setting, scaled like the grid's minimum widths. */
+export const narrowLimit = (max: number, scale: number): number => max * (scale > 0 ? scale : 1);

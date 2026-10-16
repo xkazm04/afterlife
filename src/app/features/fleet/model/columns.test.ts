@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
-import { fleetColumns, gridFor } from './columns';
+import { fleetColumns, gridFor, narrowLimit } from './columns';
 import type { FleetMeta } from './types';
 
 const meta: FleetMeta = { classes: DEMO.fleet.classes, stages: DEMO.stages, tiers: DEMO.tiers };
@@ -57,5 +57,17 @@ describe('gridFor tracks follow the columns', () => {
   it('keeps the demo minimum widths', () => {
     expect(gridFor('classes', false, meta).minWidth).toBe('calc(870px * var(--ui-scale))');
     expect(gridFor('stages', false, meta).minWidth).toBe('calc(852px * var(--ui-scale))');
+  });
+});
+
+describe('narrowLimit', () => {
+  it('scales the 900px threshold with the text size, as the grid minimums do', () => {
+    expect(narrowLimit(900, 1)).toBe(900);
+    expect(narrowLimit(900, 1.15)).toBeCloseTo(1035);
+    expect(narrowLimit(900, 1.3)).toBeCloseTo(1170);
+  });
+  it('falls back to 1 for a missing or broken scale', () => {
+    expect(narrowLimit(900, NaN)).toBe(900);
+    expect(narrowLimit(900, 0)).toBe(900);
   });
 });
