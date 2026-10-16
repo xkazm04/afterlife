@@ -9,7 +9,7 @@ import { clockLabel } from '../model/flow/probeAge';
 import { probeWillPass, setupReducer } from '../model/flow/reducer';
 import { stepDetail } from '../model/flow/state';
 import { verdictOf } from '../model/flow/verify';
-import { mrName } from '../model/flow/wording';
+import { mrName, noMrAddress } from '../model/flow/wording';
 import type { SetupState } from '../model/types';
 import { checkArm } from '../write/arm';
 import { armClick } from './armFlow';
@@ -134,7 +134,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
       openMr: (id) => {
         const a = ref.current.arm[id];
         if (a?.url) window.open(a.url, '_blank', 'noopener,noreferrer');
-        else toast(a?.simulated ? 'Demo mode opened no MR: there is nothing to open' : `GitLab gave no address for ${nameOf(id)}`);
+        else toast(noMrAddress(!!a?.simulated, nameOf(id)));
       },
       disarm: (id) => send(id, true),
       reprobe: async () => {

@@ -66,7 +66,7 @@ export function TrackArmSection({ id }: { id: string }) {
       <DetailSection title={`Merge ${mergeLabel(a)}`} aux={<NeedYouAux />}>
         <KeyValue rows={rows} />
         <div className={styles.acts}>
-          <Button disabled={!a.url} onClick={() => actions.openMr(id)}>
+          <Button onClick={() => actions.openMr(id)}>
             Open {mr} ↗
           </Button>
           <Button variant="primary" onClick={() => void actions.armVerify(id)}>

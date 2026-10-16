@@ -4,6 +4,10 @@ import { needLabel, unmet } from './state';
 /** The MR a track is armed by or waits on, as GitLab named it; never a number GitLab did not give. */
 export const mrName = (a: ArmState): string => a.mr ?? (a.simulated ? 'the simulated MR' : 'the MR');
 
+/** Why an MR cannot be opened from here: a demo MR is only simulated, and GitLab may name an MR without giving its address. */
+export const noMrAddress = (simulated: boolean, name: string): string =>
+  simulated ? 'Demo mode opened no MR: there is nothing to open' : `GitLab gave no address for ${name}`;
+
 /** The MR a person is asked to merge, said once for every place that names it: a revert says so, so a disarm never reads as an arm. */
 export const mergeLabel = (a: ArmState): string => `${mrName(a)}${a.revert ? ' (revert)' : ''}`;
 

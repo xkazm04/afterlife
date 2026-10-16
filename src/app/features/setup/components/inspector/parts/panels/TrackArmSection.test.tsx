@@ -50,6 +50,14 @@ describe('TrackArmSection: open is the person\'s merge', () => {
   });
 });
 
+describe('TrackArmSection: an MR with no address still explains itself', () => {
+  it('Open stays enabled when the MR has no url, so the click can say why', () => {
+    for (const simulated of [true, false]) {
+      expect(isDisabled(buttonTag(panel({ st: 'open', mr: '!5', url: null, simulated }).html, 'Open !5'))).toBe(false);
+    }
+  });
+});
+
 describe('TrackArmSection: the states with nothing to click', () => {
   it('probing shows a verify line', () => {
     expect(panel({ st: 'probing', mr: '!5' }).html).toContain('main for !5');

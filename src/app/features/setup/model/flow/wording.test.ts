@@ -3,7 +3,7 @@ import { getSetup } from '@/lib/demo';
 import { createSetupState } from './state';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { mergeLabel, mrName, trackWhy } from './wording';
+import { mergeLabel, mrName, noMrAddress, trackWhy } from './wording';
 
 const s0 = createSetupState(getSetup(), 0);
 
@@ -24,6 +24,10 @@ describe('wording', () => {
     for (const f of ['inspector/nodeHead.ts', 'inspector/TrackPanel.tsx', 'inspector/TrackArmSection.tsx', 'summary/SetupSummary.tsx']) {
       expect(strip(readFileSync(join(root, f), 'utf8')), f).toContain('mergeLabel(a)');
     }
+  });
+  it('says why an MR cannot be opened, in demo and live', () => {
+    expect(noMrAddress(true, 'the simulated MR')).toBe('Demo mode opened no MR: there is nothing to open');
+    expect(noMrAddress(false, '!5')).toBe('GitLab gave no address for !5');
   });
   it('says why a track is locked, ready or armed', () => {
     expect(trackWhy(s0, s0.arm.T1!)).toBe('locked · needs T3 Governor, T6 Scanners');

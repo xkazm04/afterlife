@@ -23,7 +23,7 @@ export interface Spies {
 }
 
 /** The panel's markup, with every action a spy (read through `spies.actions.name`). */
-export function renderPanel(ui: ReactNode, state: SetupState, opts: { view?: WriteView } = {}): { html: string; spies: Spies } {
+export function renderPanel(ui: ReactNode, state: SetupState, opts: { view?: WriteView; sent?: { mr: string | null; url: string | null; simulated: boolean } } = {}): { html: string; spies: Spies } {
   const actions: Spies['actions'] = {};
   const home = vi.fn();
   const api = {
@@ -34,7 +34,7 @@ export function renderPanel(ui: ReactNode, state: SetupState, opts: { view?: Wri
     view: { home, go: vi.fn(), pick: vi.fn() },
     actions: new Proxy({}, { get: (_, k: string) => (actions[k] ??= vi.fn()) }),
     writes: { viewOf: () => opts.view, want: () => {}, put: () => {}, clear: () => {}, round: 0 },
-    enroll: { viewOf: () => opts.view, sentOf: () => undefined, want: () => {}, send: async () => '' },
+    enroll: { viewOf: () => opts.view, sentOf: () => opts.sent, want: () => {}, send: async () => '' },
     startTier: null,
   } as unknown as SetupApi;
   const html = renderToStaticMarkup(
