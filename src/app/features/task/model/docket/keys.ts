@@ -9,6 +9,7 @@ export type TaskAction =
   | { type: 'words' }
   | { type: 'failOnly' }
   | { type: 'escape' }
+  | { type: 'reason' }
   | { type: 'arrow'; key: ArrowKey };
 
 const ARROWS: readonly string[] = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
@@ -29,6 +30,7 @@ export function actionFor(key: string, ctx: KeyContext): TaskAction | null {
   if (key === 'w') return { type: 'words' };
   if (key === 'f') return { type: 'failOnly' };
   if (key === 'Escape') return { type: 'escape' };
+  if (key === 'n') return ctx.replaying ? null : { type: 'reason' };
   if (!ARROWS.includes(key)) return null;
   if ((key === 'ArrowUp' || key === 'ArrowDown') && ctx.inDocket) return { type: 'step', delta: key === 'ArrowDown' ? 1 : -1 };
   if (ctx.replaying || ctx.inChrome) return null;
@@ -42,4 +44,5 @@ export const TASK_KEYMAP = defineKeymap('Task', [
   { id: 'words', keys: [{ key: 'w' }], does: "Show / hide the agent's words" },
   { id: 'failOnly', keys: [{ key: 'f' }], does: 'Failing only, on / off' },
   { id: 'escape', keys: [{ key: 'Escape' }], does: 'Clear the selection' },
+  { id: 'reason', keys: [{ key: 'n' }], does: 'Next reason for a FAIL or INCONCLUSIVE verdict' },
 ]);
