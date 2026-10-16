@@ -57,12 +57,16 @@ branch's `.gitlab-ci.yml` that answers whether the block is there; demo mode rea
 
 Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
 
-- A commit goes only to a new branch. If `belay/arm-<key>` or `belay/disarm-<key>` exists, the preview refuses and names the
-  branch, its head and what to do (`arm/plan.ts:72-84`). Force is never set.
-- A 404 on the branch read means the branch is absent. Any other failure refuses (`arm/plan.ts:73-80`).
-- A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`arm/head.ts:33-42`). Only
-  `arm-track` and `disarm-track` are checked (`arm/head.ts:9`); every other intent is unchanged (`run.ts:4`).
-- The arm or disarm MR sets `remove_source_branch` (`arm/plan.ts:123`, `arm/plan.ts:153`).
+- Every branch MR (`promote-class`, `enroll-track`, `stage-gap-mr`, `arm-track`, `disarm-track`) is built by one primitive,
+  `plans/mr/branchMr.ts` (0a2fd39): `newBranch(ctx, project, branch)` is the preflight, `branchMr(ctx, {project, base,
+  branch, commits, mr})` runs it, then plans the commits (`start_branch` on the first) and the MR. A plan for a new MR
+  write goes through it; `BRANCH_MR_KINDS` names the intents that do.
+- A commit goes only to a new branch. If the branch exists, the preview refuses and names the branch, its head and what to
+  do (`plans/mr/branchMr.ts:22-33`). Force is never set.
+- A 404 on the branch read means the branch is absent. Any other failure refuses (`plans/mr/branchMr.ts:23-28`).
+- A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`arm/head.ts:34-43`). Every
+  intent in `BRANCH_MR_KINDS` is checked (`arm/head.ts:10`); revoke and the CRA label open no MR and are not.
+- Every branch MR sets `remove_source_branch` (`plans/mr/branchMr.ts:54`), so a merged branch never blocks the next plan.
 - `belay/*` is a protected branch pattern (Setup step 9).
 - Known residual: GitLab's Files API answer names no commit, so the commit is read back with `getFile` right after the write.
   Moving arm and disarm to the Commits API is queued.
@@ -73,6 +77,7 @@ Target decisions (`plans/context.ts`):
 - F47 (276d376): every plan that locates a target refuses one outside the paired group's path (`context.ts:59-61`), as arm's `targetOf` already did (F37).
 - F50 (180e163): Belay's own projects (`cfg.infra`) are refused as a target, so `stage-gap-mr` cannot open an MR in belay-policy (`context.ts:56-58`).
 - F52 (3014213): a record's `since` is stamped to the minute (`minuteOf`, `context.ts:72`; `revoke.ts:41`, `promote.ts:31`), so a confirm within the minute of its preview has the same `previewId` and runs, instead of always coming back `changed`.
+- One target rule (0a2fd39): `targetIn(ctx, indexId, infra)` (`context.ts:55-70`) holds F48, F50 and F47; `locate()` adds belay-policy to it, and arm's `targetOf` calls it with `cfg.infra`, so an arm is refused in Belay's own projects and on an ambiguous path too. Setup's own `checkArm` read passes no `infra`.
 
 - F90 (accepted residual, `plans/gap.ts:50-54`): a gap's commits and draft MR run the proposed CI (the target's MR pipeline) as the operator before anyone reviews the MR. Accepted: it is inherent to proposing a CI change by MR, and since F83, F84 and F85 the operator sees every line that will run, on a branch that is new.
 - F92 (Low, fixed): a preview is an anonymous endpoint on the hosted replay, and a new file's preview shows every line
