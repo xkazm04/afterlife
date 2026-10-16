@@ -15,7 +15,7 @@ export const withArm = (s: SetupState, id: string, a: Partial<ArmState>): SetupS
 export const withStep = (s: SetupState, n: number, x: Partial<StepState>): SetupState => ({ ...s, steps: { ...s.steps, [n]: { ...s.steps[n]!, ...x } } });
 
 /** A planned MR the Arm and Disarm buttons can be enabled by. */
-export const PREVIEW = { kind: 'preview', preview: { summary: 'one MR', branch: 'belay/arm', mode: 'demo', commands: [{ display: 'glab mr create' }], diff: [], notes: [] } } as unknown as WriteView;
+export const PREVIEW = { kind: 'preview', preview: { summary: 'one MR', branch: 'belay/arm', mode: 'demo', commands: [{ display: 'git push belay/arm' }], diff: [], notes: [] } } as unknown as WriteView;
 
 export interface Spies {
   actions: Record<string, ReturnType<typeof vi.fn>>;
