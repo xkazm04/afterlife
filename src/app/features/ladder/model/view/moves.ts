@@ -2,6 +2,8 @@
 import { isClockTime } from '../clock';
 import type { ActorKind, ClassRow, LedgerEntry } from '../types';
 
+const DAY_MS = 86_400_000;
+
 /** The actor toggles of "All moves", in display order. */
 export const KIND_LABELS: Readonly<Record<ActorKind, string>> = {
   gitlab: 'GitLab jobs',
@@ -31,5 +33,13 @@ export function entriesForTrack(ledger: readonly LedgerEntry[], classes: readonl
 export const filterByKinds = (ledger: readonly LedgerEntry[], kinds: readonly ActorKind[]): LedgerEntry[] =>
   ledger.filter((e) => kinds.includes(e.kind)).reverse();
 
-/** Events with a clock time (not "11 d ago"): the ones that can be placed on a to-scale timeline. */
-export const timedEntries = (entries: readonly LedgerEntry[]): LedgerEntry[] => entries.filter((e) => isClockTime(e.t));
+/**
+ * The events the to-scale timeline draws: those within a day of the newest of them (by instant). Only an entry labelled
+ * with a clock time is a candidate: one labelled "11 d ago" was old when the screen opened, and its label could not name
+ * its place on the rail.
+ */
+export function timedEntries(entries: readonly LedgerEntry[]): LedgerEntry[] {
+  const recent = entries.filter((e) => isClockTime(e.t));
+  const newest = Math.max(...recent.map((e) => e.at));
+  return recent.filter((e) => newest - e.at < DAY_MS);
+}

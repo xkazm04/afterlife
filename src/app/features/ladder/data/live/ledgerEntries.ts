@@ -4,20 +4,12 @@
 // verdict, the proof verdict and the merge. Nothing here is the demo's, so no entry carries the demo mark.
 import type { LedgerEvent } from '@/schemas/ledger';
 import { TIER_META } from '@/lib/tiers';
-import { wallTime } from '../../model/clock';
+import { clockLabel } from '../../model/clock';
 import type { LedgerSeedEntry } from '../ledgerSeed';
 
 /** The newest events shown: a class page reads its own, the rail only the timed ones. */
 export const LIVE_LEDGER_MAX = 200;
-const DAY_MS = 86_400_000;
 const WITHDRAWN = { approval: 'the approval', auto_merge: 'the auto-merge' } as const;
-
-/** "14:20:03" within a day of `now` (on the rail, to scale), else "3 d ago". */
-const timeOf = (at: string, now: Date): string => {
-  const ms = Date.parse(at);
-  const age = now.getTime() - ms;
-  return age < DAY_MS ? wallTime(new Date(ms)) : `${Math.max(1, Math.floor(age / DAY_MS))} d ago`;
-};
 
 function said(e: LedgerEvent): { actor: string; text: string } | null {
   const mr = `!${e.subject.iid}`;
@@ -38,12 +30,17 @@ function said(e: LedgerEvent): { actor: string; text: string } | null {
   }
 }
 
-/** Oldest first, as the ledger runs. A guardrail block quotes its MR's finding (resolved like the seed's). */
-export function liveLedgerEntries(events: readonly LedgerEvent[], now: Date): LedgerSeedEntry[] {
+/**
+ * Oldest first, as the ledger runs. Each entry carries the event's instant (`at`, epoch ms) and its label in the screen's
+ * zone `tz` (an IANA name: the one loadLadderData puts in the seed) as of `now`: "14:20:03" within a day, else "3 d ago".
+ * A guardrail block quotes its MR's finding (resolved like the seed's).
+ */
+export function liveLedgerEntries(events: readonly LedgerEvent[], now: Date, tz: string): LedgerSeedEntry[] {
   return events.slice(-LIVE_LEDGER_MAX).flatMap((e): LedgerSeedEntry[] => {
     const s = said(e);
     if (!s) return [];
     const quote = e.kind === 'guardrail_verdict' && e.verdict === 'block' ? { quoteMr: `!${e.subject.iid}` } : {};
-    return [{ t: timeOf(e.at, now), ids: [e.action_class], actor: s.actor, where: 'GitLab', kind: 'gitlab', text: s.text, ...quote }];
+    const at = Date.parse(e.at);
+    return [{ at, t: clockLabel(at, tz, now), ids: [e.action_class], actor: s.actor, where: 'GitLab', kind: 'gitlab', text: s.text, ...quote }];
   });
 }

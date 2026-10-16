@@ -38,7 +38,8 @@ export function useLadderActions({
   promoteScreen: PromoteScreen;
   /** Is the revoke of `id` on screen (not replaced on the dock by its promotion)? */
   revokeShown: (id: string) => boolean;
-  stamp: () => string;
+  /** The instant now (epoch ms): the screen's clock (useSimClock). */
+  stamp: () => number;
   seed: LadderSeed;
   tableRef: RefObject<HTMLDivElement | null>;
   openDetail: (id?: string) => void;

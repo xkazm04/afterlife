@@ -32,7 +32,7 @@ describe('a live revoke is confirmed where the gate read it', () => {
     const poll = () => runPollCycle(gl.port, db, SEED_NOW, { cfg: readPollerConfig(144060371, {}), mem });
     const classes = async () => (await getActionClasses(db, 'ledgerline', SEED_NOW)).map(actionClass);
     const receipts = async () => Object.fromEntries((await getActionClasses(db, 'ledgerline', SEED_NOW)).flatMap((c) => (c.receipt ? [[c.id, c.receipt] as const] : [])));
-    let s: LadderState = initialState({ classes: await classes(), ledger: [], quotes: {}, head: { sha: '?', by: '?' } });
+    let s: LadderState = initialState({ classes: await classes(), ledger: [], quotes: {}, head: { sha: '?', by: '?' }, tz: 'UTC' });
     const run = (a: LadderAction) => (s = ladderReducer(s, a));
     const pending = () => s.classes.filter((c) => pendingRead.test(c, '', null)).length;
     const before = (await gl.port.getFile(POLICY_GID, 'tier-state.yml', 'main'))!.lastCommitId!;
@@ -46,7 +46,7 @@ describe('a live revoke is confirmed where the gate read it', () => {
     if (done.status !== 'done') throw new Error(JSON.stringify(done));
     const c1 = (await gl.port.getFile(POLICY_GID, 'tier-state.yml', 'main'))!.lastCommitId!;
     expect(policyFiles(gl)['tier-state.yml']).toContain('by: operator');
-    run({ type: 'revoke', id: CLS, to: 'supervised', t: '14:24:30', sent: { simulated: false, commit: commitOf(done.results) } });
+    run({ type: 'revoke', id: CLS, to: 'supervised', at: SEED_NOW.getTime(), sent: { simulated: false, commit: commitOf(done.results) } });
     expect(c1.startsWith(s.classes.find((c) => c.id === CLS)!.pending!)).toBe(true);
     expect(pending()).toBe(1);
 

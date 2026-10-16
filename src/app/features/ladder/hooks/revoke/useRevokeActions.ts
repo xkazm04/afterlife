@@ -18,7 +18,7 @@ import type { RevokeWrites } from '../useRevokeWrite';
 /** How long the "just landed" flash stays on a row and a new ledger entry. */
 const FRESH_MS = 1700;
 
-/** What lands once the server answered done: one class, or every change of a track. The time and the answer are added then. */
+/** What lands once the server answered done: one class, or every change of a track. The instant and the answer are added then. */
 type Landing = { type: 'revoke'; id: string; to: Tier } | { type: 'revokeTrack'; track: string; changes: readonly Change[] };
 
 /** One write the screen can send: what the toast calls it, the view on screen, and how to show, send and replace it. */
@@ -59,7 +59,7 @@ export function useRevokeActions({
   promos: PromoteWrites;
   revokeShown: (id: string) => boolean;
   onShow: (id: string, to: Tier) => void;
-  stamp: () => string;
+  stamp: () => number;
   later: (fn: () => void, ms: number) => void;
   focusTable: () => void;
 }) {
@@ -70,11 +70,11 @@ export function useRevokeActions({
   const landed = useCallback(
     (land: Landing, simulated: boolean, commit: string | null) => {
       const sha = simulated ? nextSha(latest.current.state.shaIdx) : commit;
-      dispatch({ ...land, t: stamp(), sent: simulated ? { simulated: true } : { simulated: false, commit } });
+      dispatch({ ...land, at: stamp(), sent: simulated ? { simulated: true } : { simulated: false, commit } });
       later(() => dispatch({ type: 'clearFresh' }), FRESH_MS);
       if (simulated && sha) {
         later(() => {
-          dispatch({ type: 'settle', sha, t: stamp() });
+          dispatch({ type: 'settle', sha, at: stamp() });
           later(() => dispatch({ type: 'clearFresh' }), FRESH_MS);
         }, PENDING_MS);
       }

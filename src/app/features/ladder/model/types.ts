@@ -19,7 +19,7 @@ export interface ClassRow extends Omit<ActionClass, 'record'> {
   cooldownUntil?: string;
   /** Live: where the record was enforced, as the last poll derived it (src/schemas/receipt.ts). Absent: none derived. */
   receipt?: EnforcementReceipt;
-  /** Demo: the simulated tier-gate read that settled this session's revoke (its commit id and clock time). */
+  /** Demo: the simulated tier-gate read that settled this session's revoke (its commit id and clock label). */
   simRead?: { sha: string; t: string };
   pending: string | null;
 }
@@ -28,7 +28,12 @@ export interface ClassRow extends Omit<ActionClass, 'record'> {
 export type ActorKind = 'gitlab' | 'you' | 'person' | 'belay';
 
 export interface LedgerEntry {
-  /** "14:20:03" for a timed event, "11 d ago" for an old one. */
+  /** When it happened (epoch ms): the ground truth. The rail orders and scales by it. */
+  at: number;
+  /**
+   * Its label, derived once from `at` in the screen's zone (model/clock.ts clockLabel, the zone in LadderState.tz):
+   * "14:20:03" within a day of when it was written, "11 d ago" for an older one. Display only, never parsed back.
+   */
   t: string;
   ids: string[];
   actor: string;

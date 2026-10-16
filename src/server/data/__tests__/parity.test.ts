@@ -71,9 +71,9 @@ describe('every screen loader gets the same data from the live source as from th
   });
 
   it('Ladder: classes, tiers, leases, records, last moves, the means of each tier, the thresholds, the poll age and the subtitle', () => {
-    // What live marks demo, its clock and its ledger (the project's own belay-ledger) are listed below; everything else is the same.
+    // What live marks demo, its clock and zone, and its ledger (the project's own belay-ledger) are listed below; the rest is the same.
     const strip = (p: ReturnType<typeof loadLadderData>) => ({
-      ...p, illustrative: null, live: null, seed: { ...p.seed, ledger: null, head: { ...p.seed.head, demo: undefined } },
+      ...p, illustrative: null, live: null, seed: { ...p.seed, ledger: null, tz: null, head: { ...p.seed.head, demo: undefined } },
     });
     const [d, l] = both(() => noRecords(strip(loadLadderData())));
     expect(l).toEqual(d);

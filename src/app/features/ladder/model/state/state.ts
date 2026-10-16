@@ -1,4 +1,5 @@
-// The Ladder's state and the actions that change it. The reducer is pure: time and the commit id come in as data.
+// The Ladder's state and the actions that change it. The reducer is pure: time (an instant, `at`, epoch ms) and the
+// commit id come in as data; the reducer labels the instant in the state's zone.
 import type { LedgerSeedEntry } from '../../data/ledgerSeed';
 import type { Sent } from './commit';
 import type { Receipts } from './receipt';
@@ -23,6 +24,8 @@ export interface LadderState {
   sel: string | null;
   /** The class whose revoke just landed (its row flashes once). */
   just: string | null;
+  /** The screen's one zone (IANA), from the seed: every ledger label this session writes is in it. */
+  tz: string;
 }
 
 /** A class as the route hands it: the data source's, with the promotion the poll opened for it (live). */
@@ -35,6 +38,8 @@ export interface LadderSeed {
   quotes: Readonly<Record<string, string>>;
   /** tier-state.yml's head when the screen opens. */
   head: Head;
+  /** The zone the server labelled the ledger in (IANA; demo 'UTC'): the client labels its own entries in it too. */
+  tz: string;
 }
 
 export type LadderAction =
@@ -49,10 +54,11 @@ export type LadderAction =
   | { type: 'source'; src: string }
   | { type: 'query'; q: string }
   /** The server answered done: `sent` says whether it was simulated, and the commit GitLab made if not. */
-  | { type: 'revoke'; id: string; to: Tier; t: string; sent: Sent }
+  | { type: 'revoke'; id: string; to: Tier; at: number; sent: Sent }
   /** A whole track's write answered done: every change in one commit. */
-  | { type: 'revokeTrack'; track: string; changes: readonly Change[]; t: string; sent: Sent }
-  | { type: 'settle'; sha: string; t: string }
+  | { type: 'revokeTrack'; track: string; changes: readonly Change[]; at: number; sent: Sent }
+  /** Demo: the simulated tier-gate read of commit `sha`, at `at`. */
+  | { type: 'settle'; sha: string; at: number }
   /** Live: the receipts of a fresher snapshot, by class id. A pending revoke whose commit a gate read is settled. */
   | { type: 'receipts'; receipts: Receipts }
   | { type: 'clearFresh' }

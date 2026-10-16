@@ -28,5 +28,6 @@ export function initialState(seed: LadderSeed): LadderState {
     q: '',
     sel: 'patch-bump',
     just: null,
+    tz: seed.tz,
   };
 }
