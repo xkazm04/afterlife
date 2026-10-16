@@ -1,5 +1,6 @@
 // belay-ledger events -> a film. Pure; it imports only types from @/schemas/ledger, and the loader runs it on the server.
-// Each entry states only what its event states (at, agent, kind, class, tier at the time, verdict, MR, seq, hash prefix).
+// Each entry states only what its event states: its facts are the one event-to-facts table's (@/schemas/chain/facts).
+import { eventFacts } from '@/schemas/chain/facts';
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { Film, LedgerEntry, Take } from '../types';
 import { HOLDS, holdOf } from './holds';
@@ -37,7 +38,7 @@ export function entriesOf(events: readonly LedgerEvent[]): LedgerEntry[] {
         at: e.at, kind: e.kind, actionClass: e.action_class, tier: e.tier_at_time,
         ...(e.verdict ? { verdict: e.verdict } : {}),
         ...(e.environment ? { environment: e.environment } : {}),
-        iid: e.subject.iid, hash: e.hash.slice(0, HASH_PREFIX),
+        iid: e.subject.iid, hash: e.hash.slice(0, HASH_PREFIX), facts: eventFacts(e),
       },
     };
   });

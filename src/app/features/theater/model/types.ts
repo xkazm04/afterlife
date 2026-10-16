@@ -1,6 +1,7 @@
 // Types for a film (the illustrative slice, or one read from belay-ledger) and the things derived from it. Plain shapes.
 // Client code imports only types from @/schemas/ledger (that module imports node:crypto).
 import type { Ceiling, Stage } from '@/schemas';
+import type { Fact } from '@/schemas/chain/facts';
 import type { GuardrailVerdict, LedgerEnvironment, LedgerKind } from '@/schemas/ledger';
 
 export type Actor = 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7' | 'T8' | 'scanner' | 'engine' | 'deploy' | 'belay';
@@ -31,6 +32,8 @@ export interface LedgerFacts {
   iid: number;
   /** The event hash's first 12 hex digits. */
   hash: string;
+  /** Every key the event states, as the inspector's rows (@/schemas/chain/facts): an absent key has none. */
+  facts: readonly Fact[];
 }
 
 /** One film entry: a line of the illustrative slice, or (with `ev`) one belay-ledger event. */

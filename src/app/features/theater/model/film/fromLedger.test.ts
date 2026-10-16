@@ -2,7 +2,8 @@
 // guardrail_verdict pass, merged, deployed; !44 guardrail_verdict block, tier_decision quarantined) mapped MR by MR.
 import { describe, expect, it } from 'vitest';
 import { STAGES } from '@/schemas/stages';
-import type { LedgerEvent } from '@/schemas/ledger';
+import { eventFacts } from '@/schemas/chain/facts';
+import { append, type LedgerEvent } from '@/schemas/ledger';
 import { ledgerEvents } from '@/server/gitlab/fake/demo/ledger';
 import { SEED_NOW } from '@/server/index/seed';
 import { INITIAL } from '../../data/constants';
@@ -35,9 +36,20 @@ describe('one MR\'s events -> the film\'s entries', () => {
     const g = e41[2]!;
     const ev = of(41)[2]!;
     expect(g).toMatchObject({ seq: ev.seq, by: ev.agent, t: ev.at.slice(11, 19) });
-    expect(g.ev).toEqual({ at: ev.at, kind: 'guardrail_verdict', actionClass: 'dep-bump.patch', tier: 'hands_off', verdict: 'pass', iid: 41, hash: ev.hash.slice(0, 12) });
+    expect(g.ev).toEqual({ at: ev.at, kind: 'guardrail_verdict', actionClass: 'dep-bump.patch', tier: 'hands_off', verdict: 'pass', iid: 41, hash: ev.hash.slice(0, 12), facts: eventFacts(ev) });
     expect(e41[0]?.ev).not.toHaveProperty('verdict');
     for (const e of e41) expect(e).not.toHaveProperty('seeded');
+  });
+
+  it('a decision carries the tier-state revision it read, what the sweep withdrew and what the next rung would decide', () => {
+    const last = events.at(-1)!;
+    const body = { ...last, tier_at_time: 'supervised', state_rev: 'c1'.repeat(20), withdrew: ['approval', 'auto_merge'], would: { tier: 'hands_off', decision: 'merge' } } as Omit<LedgerEvent, 'seq' | 'prev_hash' | 'hash'>;
+    const facts = entriesOf([append(events, body)])[0]?.ev?.facts;
+    expect(facts).toContainEqual({ label: 'Tier-state read', value: 'c1c1c1c1' });
+    expect(facts).toContainEqual({ label: 'Withdrew', value: 'the approval and the auto-merge' });
+    const would = facts?.find((f) => f.label === 'Next rung would');
+    expect(would?.value).toContain('merge');
+    expect(would?.value).toContain('hands_off');
   });
 
   it('carries no text from the invented slice, and no INITIAL value', () => {
