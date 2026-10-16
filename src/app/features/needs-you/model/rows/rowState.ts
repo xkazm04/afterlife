@@ -1,5 +1,4 @@
 // What a row says in its State column, and the three questions the filters ask of it.
-import { DECISION_IDS } from '../../data/constants';
 import type { NeedsState } from '../types';
 
 export type GlyphKind = 'wait' | 'stg' | 'ok' | 'unk' | 'dash' | 'open';
@@ -64,8 +63,11 @@ export interface Counts {
   outbox: number;
   decided: number;
 }
+/** The desk's row ids in table order: the fixed decisions around one row per proposal the screen was opened with. */
+export const decisionIds = (s: Pick<NeedsState, 'gaps'>): readonly string[] => ['n2', 'n1', 'n4', ...Object.keys(s.gaps), 'n5'];
+
 export function decisionCounts(s: NeedsState): Counts {
-  const ids = DECISION_IDS;
+  const ids = decisionIds(s);
   return {
     all: ids.length,
     waiting: ids.filter((id) => isWaiting(s, id)).length,
