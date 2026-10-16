@@ -13,7 +13,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto calc(17px * var(--ui-scale)) calc(72px * var(--ui-scale));
   align-items: center;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   height: calc(20px * var(--ui-scale));
   font-size: var(--t-head);
 }
@@ -46,7 +46,7 @@
   display: grid;
   grid-template-columns: calc(64px * var(--ui-scale)) auto 1fr;
   align-items: center;
-  gap: 8px;
+  gap: calc(8px * var(--ui-scale));
   height: calc(19px * var(--ui-scale));
   font-size: var(--t-head);
 }
@@ -59,9 +59,9 @@
 /* proofs */
 .prf {
   display: flex;
-  gap: 14px;
+  gap: calc(14px * var(--ui-scale));
   font-size: var(--t-head);
-  margin-bottom: 6px;
+  margin-bottom: calc(6px * var(--ui-scale));
 }
 .prf b {
   font-size: var(--t-title);
@@ -84,12 +84,12 @@
 
 /* needs you */
 .nyi {
-  padding: 7px 0;
+  padding: calc(7px * var(--ui-scale)) 0;
   border-top: 1px solid var(--sep-body);
 }
 .nyi:first-child {
   border-top: 0;
-  padding-top: 2px;
+  padding-top: calc(2px * var(--ui-scale));
 }
 .t {
   font-size: var(--t-head);
@@ -99,12 +99,12 @@
 .m {
   font-size: var(--t-small);
   color: var(--text-3);
-  margin-top: 2px;
+  margin-top: calc(2px * var(--ui-scale));
 }
 .acts {
   display: flex;
-  gap: 6px;
-  margin-top: 6px;
+  gap: calc(6px * var(--ui-scale));
+  margin-top: calc(6px * var(--ui-scale));
 }
 .done {
   font-size: var(--t-small);
@@ -115,9 +115,9 @@
 .ev {
   display: grid;
   grid-template-columns: calc(36px * var(--ui-scale)) calc(24px * var(--ui-scale)) 1fr;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   font-size: var(--t-head);
-  padding: 2px 0;
+  padding: calc(2px * var(--ui-scale)) 0;
   align-items: baseline;
 }
 .tm {
@@ -147,10 +147,10 @@
 .task {
   display: grid;
   grid-template-columns: calc(14px * var(--ui-scale)) minmax(0, 1fr);
-  column-gap: 6px;
+  column-gap: calc(6px * var(--ui-scale));
   align-items: baseline;
-  margin: 0 -4px;
-  padding: 3px 4px;
+  margin: 0 calc(-4px * var(--ui-scale));
+  padding: calc(3px * var(--ui-scale)) calc(4px * var(--ui-scale));
   border-radius: 4px;
   color: inherit;
   text-decoration: none;
