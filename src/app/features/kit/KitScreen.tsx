@@ -23,6 +23,7 @@ import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierMark } from '@/components/status/TierMark';
 import { Icon } from '@/components/icons/Icon';
 import { ControlsGallery } from './components/ControlsGallery';
+import { FallbackGallery } from './components/fallback/FallbackGallery';
 import { OverlaysGallery } from './components/OverlaysGallery';
 import { ShellGallery } from './components/ShellGallery';
 import { StatusGallery } from './components/StatusGallery';
@@ -85,7 +86,7 @@ export function KitScreen() {
         </>
       }
       inspector={<InspectorGallery />}
-      status="kit gallery · 6 sections · text size follows Settings"
+      status="kit gallery · 7 sections · text size follows Settings"
       help={
         <Legend
           rows={[
@@ -102,6 +103,7 @@ export function KitScreen() {
         <ControlsGallery />
         <OverlaysGallery onOpenSheet={() => setSheet(true)} />
         <ShellGallery />
+        <FallbackGallery />
         <TableGallery />
       </PaneScroll>
       {sheet ? (

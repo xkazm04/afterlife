@@ -1,0 +1,23 @@
+/* A frame that contains fixed and 100vh descendants: the transform makes it their containing block, so a full-page
+   fallback or a whole Window draws inside the specimen instead of over the gallery. */
+.frame {
+  position: relative;
+  transform: translateZ(0);
+  width: calc(520px * var(--ui-scale));
+  height: calc(260px * var(--ui-scale));
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--sep);
+  overflow: hidden;
+}
+.tall {
+  width: calc(720px * var(--ui-scale));
+  height: calc(340px * var(--ui-scale));
+}
+.frame > main {
+  min-height: 100%;
+  height: 100%;
+}
+.bar {
+  display: flex;
+  gap: 8px;
+}

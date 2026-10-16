@@ -14,6 +14,6 @@ describe('kit specimen coverage', () => {
   it('names every wanted shared component somewhere in the kit', () => {
     const files = walk(__dirname).filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f));
     const code = files.map((f) => strip(readFileSync(f, 'utf8'))).join('\n');
-    expect(WANTED.filter((n) => !new RegExp(`\b${n}\b`).test(code))).toEqual([]);
+    expect(WANTED.filter((n) => !new RegExp(`\\b${n}\\b`).test(code))).toEqual([]);
   });
 });
