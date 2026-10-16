@@ -100,6 +100,8 @@ export interface Film {
   entries: readonly LedgerEntry[];
   takes: readonly Take[];
   holds: readonly Hold[];
+  /** A real film asked (`/theater?mr=N`) for an MR the ledger has no events for: N. The film is the unfocused one. */
+  missing?: number;
 }
 
 /** The catalogue parts the illustrative film shows around the climb (read from lib/demo). A real film has none. */

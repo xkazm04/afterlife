@@ -8,7 +8,7 @@ import { HOLDS, holdOf } from './holds';
 /** An entry that moves the climber dwells longer, as on the illustrative slice. */
 const HOLD_DWELL_MS = 3400;
 const HASH_PREFIX = 12;
-/** A real film keeps the 8 newest MRs, one per take key (1-8, hooks/useTheaterKeys.ts). */
+/** A real film keeps 8 MRs, one per take key (1-8, hooks/useTheaterKeys.ts). */
 export const MAX_TAKES = 8;
 
 /** hh:mm:ss of an ISO time, in UTC (the same on the server and in the browser); the raw text if it is not one. */
@@ -44,22 +44,35 @@ export function entriesOf(events: readonly LedgerEvent[]): LedgerEntry[] {
   });
 }
 
+/** What the address asks of the film: `mr`, the MR to film first (`/theater?mr=N`). */
+export interface FilmFocus {
+  mr?: number;
+}
+
 /**
  * The deep project's ledger as a film, one take per MR (events about anything but an MR are not filmed), or null when
- * no event names an MR. Only the MAX_TAKES newest MRs (by last seq) are kept, and only their entries are filmed. Of
- * those, the first take is the newest with a `merged` event, else the newest; the rest follow newest first.
+ * no event names an MR. Only MAX_TAKES MRs are kept, and only their entries are filmed. With a focus MR the ledger
+ * holds, that MR is the first take wherever it sits in the chain; the other slots are filled by the rule below. A focus
+ * MR the ledger does not hold leaves the film as it is and is named in `missing`. Unfocused: the MAX_TAKES newest MRs
+ * (by last seq), the first take the newest with a `merged` event, else the newest; the rest follow newest first.
  */
-export function ledgerFilm(events: readonly LedgerEvent[]): Film | null {
+export function ledgerFilm(events: readonly LedgerEvent[], focus: FilmFocus = {}): Film | null {
   const byMr = new Map<number, LedgerEvent[]>();
   for (const e of [...events].sort((a, b) => a.seq - b.seq)) {
     if (e.subject.type !== 'mr') continue;
     byMr.set(e.subject.iid, [...(byMr.get(e.subject.iid) ?? []), e]);
   }
   const lastSeq = (es: readonly LedgerEvent[]): number => es[es.length - 1]?.seq ?? 0;
-  const mrs = [...byMr].sort(([, a], [, b]) => lastSeq(b) - lastSeq(a)).slice(0, MAX_TAKES);
-  const first = mrs.find(([, es]) => es.some((e) => e.kind === 'merged')) ?? mrs[0];
-  if (!first) return null;
-  const order = [first, ...mrs.filter((m) => m !== first)];
+  const focused = focus.mr !== undefined ? byMr.get(focus.mr) : undefined;
+  const pinned = focused ? [[focus.mr!, focused] as [number, LedgerEvent[]]] : [];
+  const rest = [...byMr]
+    .filter(([iid]) => !focused || iid !== focus.mr)
+    .sort(([, a], [, b]) => lastSeq(b) - lastSeq(a))
+    .slice(0, MAX_TAKES - pinned.length);
+  const first = rest.find(([, es]) => es.some((e) => e.kind === 'merged')) ?? rest[0];
+  const order = [...pinned, ...(first ? [first] : []), ...rest.filter((m) => m !== first)];
+  if (!order.length) return null;
   const takes: Take[] = order.map(([iid, es]) => ({ name: `!${iid}`, a: es[0]?.seq ?? 0, b: lastSeq(es), mr: iid }));
-  return { source: 'belay-ledger', entries: order.flatMap(([, es]) => entriesOf(es)), takes, holds: HOLDS };
+  const missing = focus.mr !== undefined && !focused ? { missing: focus.mr } : {};
+  return { source: 'belay-ledger', entries: order.flatMap(([, es]) => entriesOf(es)), takes, holds: HOLDS, ...missing };
 }

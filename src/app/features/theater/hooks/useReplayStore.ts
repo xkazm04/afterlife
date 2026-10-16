@@ -1,27 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { indexOfSeq, initialState, seqAt, type Reel } from '../model/replay/state';
+import { cueOf, type Cue } from '../model/replay/cue';
+import { initialState, seqAt, type Reel } from '../model/replay/state';
 import { createReplayStore, type ReplayStore } from '../model/replay/store';
 import { useReducedMotion } from './useReducedMotion';
 
 const MAX_FRAME_MS = 100;
 
-/** `#seq=NNN` (or `?seq=NNN`) cues a take: it shows that entry's settled frame, paused. */
-function cuedIndex(reel: Reel): number {
+/** The page's `#seq=` address as a cue (model/replay/cue.ts); none when the host refuses the read. */
+function cueFromAddress(reel: Reel): Cue | null {
   try {
-    const m = /seq=(\d+)/.exec(window.location.hash + window.location.search);
-    return m ? indexOfSeq(Number(m[1]), reel) : -1;
+    return cueOf(reel, window.location.hash + window.location.search);
   } catch {
-    return -1;
+    return null;
   }
 }
 
 /**
  * Owns the replay store and everything that makes it run: the frame clock (paused while the tab is hidden),
- * autoplay or the cued take on mount, the reduced-motion flag, and the `#seq=` address of the playhead.
+ * autoplay or the cued take on mount, the reduced-motion flag, and the `#seq=` address of the playhead. A cued seq
+ * the film does not hold autoplays take 1 as no cue does, and is handed to `onMissingSeq` (a stable function, such as a
+ * state setter) so the screen can say so.
  */
-export function useReplayStore(reel: Reel): ReplayStore {
+export function useReplayStore(reel: Reel, onMissingSeq?: (seq: number) => void): ReplayStore {
   const [store] = useState(() => createReplayStore(initialState(reel)));
   const reduced = useReducedMotion();
 
@@ -30,9 +32,10 @@ export function useReplayStore(reel: Reel): ReplayStore {
   }, [store, reduced]);
 
   useEffect(() => {
-    const cue = cuedIndex(store.get().reel);
-    store.dispatch(cue >= 0 ? { type: 'settled', i: cue } : { type: 'play', on: true });
-  }, [store]);
+    const cue = cueFromAddress(store.get().reel);
+    if (cue && 'missingSeq' in cue) onMissingSeq?.(cue.missingSeq);
+    store.dispatch(cue && 'i' in cue ? { type: 'settled', i: cue.i } : { type: 'play', on: true });
+  }, [store, onMissingSeq]);
 
   useEffect(() => {
     let raf = 0;
