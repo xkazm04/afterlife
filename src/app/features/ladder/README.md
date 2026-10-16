@@ -142,3 +142,7 @@ of more than 12 classes (one revoke-class intent's limit) is refused before anyt
 server's own preview of that one intent (`write/revoke.ts`, `trackIntent`); the two-press rule holds (r on a track whose
 dock shows the quarantine puts the one-step write on screen first), and the reducer lands it as one commit
 (`revokeTrack`): every moved class pending on the same sha, one ledger line naming every move.
+
+Every live move links to its run: `liveLedgerEntries` gives each entry `replay: /theater?mr=<iid>` and `LogItem` draws it
+as "Replay !N" (Who acted, All moves). The Theater films the same `ds.getLedger()` chain with that MR first. The demo's
+seeded moves carry none: demo mode plays the illustrative film, which has no such MR.
