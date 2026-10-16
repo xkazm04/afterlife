@@ -54,17 +54,22 @@ export function api(path, { method = 'GET', body, raw = false } = {}) {
   return out.trim() ? JSON.parse(out) : null;
 }
 
-/** Manual paging: never relies on how --paginate joins arrays. */
-export function apiAll(path, maxPages = 5) {
+/**
+ * Manual paging over any one-page reader `get`: never relies on how --paginate joins arrays. Stops at a short or empty page
+ * or at the cap. The one implementation of the rule; `apiAll` is it over glab, and test doubles call it with a fake `get`.
+ */
+export function pageAll(get, path, maxPages = 5) {
   const rows = [];
   for (let page = 1; page <= maxPages; page++) {
-    const got = api(`${path}${path.includes('?') ? '&' : '?'}per_page=100&page=${page}`);
+    const got = get(`${path}${path.includes('?') ? '&' : '?'}per_page=100&page=${page}`);
     if (!Array.isArray(got) || got.length === 0) break;
     rows.push(...got);
     if (got.length < 100) break;
   }
   return rows;
 }
+
+export const apiAll = (path, maxPages = 5) => pageAll(api, path, maxPages);
 
 export function gql(query) {
   const out = glab(['api', 'graphql', '--hostname', HOST, '-f', `query=${query}`]);

@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { pageAll } from '../lib/lib.mjs';
 
 export const SCRIPTS = path.resolve(import.meta.dirname, '..');
 export const ROOT = path.resolve(SCRIPTS, '..', '..', '..');
@@ -57,16 +58,7 @@ export function fakeApi(routes) {
     if (method !== 'GET' || !(base in routes)) throw new Error(`fake api: ${method} ${p} is not faked`);
     return Number(new URLSearchParams(query).get('page') ?? '1') > 1 ? [] : structuredClone(routes[base]);
   };
-  const apiAll = (p, maxPages = 5) => {
-    const rows = [];
-    for (let page = 1; page <= maxPages; page++) {
-      const got = api(`${p}${p.includes('?') ? '&' : '?'}per_page=100&page=${page}`);
-      if (!Array.isArray(got) || got.length === 0) break;
-      rows.push(...got);
-      if (got.length < 100) break;
-    }
-    return rows;
-  };
+  const apiAll = (p, maxPages = 5) => pageAll(api, p, maxPages);
   const gql = () => {
     throw new Error('fake api: graphql is not faked');
   };
