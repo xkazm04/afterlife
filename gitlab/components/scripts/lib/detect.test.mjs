@@ -110,8 +110,16 @@ describe('post_merge_proof_fail: a newer pipeline of the same commit that ran no
     const g = group({ pipelines: [failed], jobs: { 501: [] } });
     const pages = (p) => (/[?&]page=2(&|$)/.test(p) ? [proofJob()] : many);
     const api = (p, o) => (p.startsWith('projects/1/pipelines/501/jobs') ? pages(p) : g.api(p, o));
-    const apiAll = (p, maxPages = 5) => pageAll(api, p, maxPages);
+    const apiAll = (p, maxPages = 5, o) => pageAll(api, p, maxPages, o);
     expect(run({ ...g, api, apiAll }).map((e) => e.trigger)).toEqual(['post_merge_proof_fail']);
+  });
+
+  it('refuses to guess when a pipeline has more jobs than it reads: the sweep goes red, a proof job is not read as absent', () => {
+    const full = Array.from({ length: 100 }, (_, i) => ({ id: i + 1, name: `test ${i}`, status: 'success', finished_at: ago(13) }));
+    const g = group({ pipelines: [failed], jobs: { 501: [] } });
+    const api = (p, o) => (p.startsWith('projects/1/pipelines/501/jobs') ? full : g.api(p, o));
+    const apiAll = (p, maxPages = 5, o) => pageAll(api, p, maxPages, o);
+    expect(() => run({ ...g, api, apiAll })).toThrow(/refusing to guess/);
   });
 });
 
@@ -162,7 +170,7 @@ describe('guardrail_high: F65, an agent cannot push its blocked MR out of the wi
       if (notes) return notes[1] === '1' && Number(q.get('page') ?? 1) === 1 ? [block] : [];
       return g.api(p, o);
     };
-    const apiAll = (p, maxPages = 5) => pageAll(api, p, maxPages);
+    const apiAll = (p, maxPages = 5, o) => pageAll(api, p, maxPages, o);
     return { ...g, api, apiAll };
   }
 

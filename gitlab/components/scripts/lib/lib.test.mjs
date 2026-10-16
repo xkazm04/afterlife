@@ -143,4 +143,14 @@ describe('pageAll: the paging rule every apiAll reader and test double shares', 
     expect(pageAll(r.get, 'x', 2)).toHaveLength(200);
     expect(r.asked).toHaveLength(2);
   });
+
+  it('strict: a cap reached with a full last page throws instead of returning a prefix as the whole', () => {
+    const r = reader([full(1), full(2), full(3)]);
+    expect(() => pageAll(r.get, 'x', 2, { strict: true })).toThrow(/more than 200 rows .*refusing to guess/);
+  });
+
+  it('strict: a list that ends before the cap is returned whole', () => {
+    expect(pageAll(reader([full(1), [{ n: 2 }]]).get, 'x', 2, { strict: true })).toHaveLength(101);
+    expect(pageAll(reader([full(1), []]).get, 'x', 2, { strict: true })).toHaveLength(100);
+  });
 });
