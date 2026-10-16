@@ -25,7 +25,7 @@ describe('handleLeadsKey', () => {
     const { d } = press('Enter', 'b');
     expect(d.onToggle).toHaveBeenCalledWith('web');
   });
-  it.fails('Enter refocuses the selected beat, because the toggle swaps strip for cells (or back) and unmounts the focused node', () => {
+  it('Enter refocuses the selected beat, because the toggle swaps strip for cells (or back) and unmounts the focused node', () => {
     const { d } = press('Enter', 'c');
     expect(d.focusId).toHaveBeenCalledWith('c');
   });

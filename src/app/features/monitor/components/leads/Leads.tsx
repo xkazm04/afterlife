@@ -74,7 +74,10 @@ export function handleLeadsKey(e: Pick<KeyboardEvent, 'key' | 'target' | 'preven
     d.focusId(next);
   } else if (e.key === 'Enter' && (e.target as Element).getAttribute('role') === 'button') {
     const lead = d.leads.find((l) => l.projects.some((p) => p.id === d.selected));
-    if (lead) d.onToggle(lead.group);
+    if (lead && d.selected) {
+      d.onToggle(lead.group);
+      d.focusId(d.selected);
+    }
   }
 }
 
