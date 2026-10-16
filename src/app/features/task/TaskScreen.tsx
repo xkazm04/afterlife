@@ -16,6 +16,7 @@ import { TaskInspector, type Panel } from './components/inspector/TaskInspector'
 import { ClassMenuButton } from './components/toolbar/ClassMenuButton';
 import { ReplayButton } from './components/toolbar/ReplayButton';
 import { VerdictLozenge } from './components/toolbar/VerdictLozenge';
+import { cardSelector } from './hooks/useTieGeometry';
 import { usePageClock } from './hooks/usePageClock';
 import { useReplay } from './hooks/useReplay';
 import { useSelection } from './hooks/useSelection';
@@ -55,7 +56,11 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
   const onPick = (side: Side, id: string) => {
     if (!replay.running) pick(side, id);
   };
-  const focus = (selector: string) => document.querySelector<HTMLElement>(selector)?.focus();
+  /** A check card is a container whose select button takes the focus; a claim card or a docket link is focused itself. */
+  const focus = (selector: string) => {
+    const el = document.querySelector<HTMLElement>(selector);
+    (el?.querySelector<HTMLElement>('button[aria-pressed]') ?? el)?.focus();
+  };
 
   const run = (a: TaskAction) => {
     if (a.type === 'step') {
@@ -73,7 +78,7 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
     else {
       const next = arrowSelection(task, sel, a.key);
       set(next);
-      if (next) focus(`[data-${next.side}-card="${next.id}"]`);
+      if (next) focus(cardSelector(next.side, next.id));
     }
   };
   useTaskKeys(run, replay.running);

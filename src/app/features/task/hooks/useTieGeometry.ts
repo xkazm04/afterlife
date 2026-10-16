@@ -15,6 +15,12 @@ export interface Geometry {
   scale: number;
 }
 
+/** Attribute selector for a card by id. Ids come from the data source, so `"`, `\` and newlines are escaped: an odd id then misses instead of throwing a SyntaxError from a layout effect. */
+export function cardSelector(side: 'claim' | 'check', id: string): string {
+  const escaped = id.replace(/[\\"]/g, '\\$&').replace(/\n/g, '\\a ');
+  return `[data-${side}-card="${escaped}"]`;
+}
+
 const EMPTY: Geometry = { taskId: '', claims: {}, checks: {}, laneX: 0, scale: 1 };
 const sameGeometry = (a: Geometry, b: Geometry) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -25,11 +31,11 @@ function measure(court: HTMLElement, task: TaskView): Geometry {
   const claims: Record<string, Point> = {};
   const checks: Record<string, Point> = {};
   for (const c of task.claims) {
-    const el = court.querySelector<HTMLElement>(`[data-claim-card="${c.id}"]`);
+    const el = court.querySelector<HTMLElement>(cardSelector('claim', c.id));
     if (el) claims[c.id] = at(el, el.offsetLeft + el.offsetWidth);
   }
   for (const c of task.proof.checks) {
-    const el = court.querySelector<HTMLElement>(`[data-check-card="${c.id}"]`);
+    const el = court.querySelector<HTMLElement>(cardSelector('check', c.id));
     if (el) checks[c.id] = at(el, el.offsetLeft);
   }
   const lane = court.querySelector<HTMLElement>('[data-lane]');
