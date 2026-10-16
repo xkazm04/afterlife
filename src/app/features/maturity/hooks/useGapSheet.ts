@@ -17,6 +17,23 @@ export interface GapSheetApi {
   retry: (id: string) => void;
 }
 
+/** Asks for a row's write and hands the answer on, unless the sheet closed since: a closed sheet forgets what it asked. */
+export function createAsker(askRow: (row: SheetRow) => Promise<WriteView>, put: (id: string, view: WriteView) => void) {
+  let generation = 0;
+  return {
+    ask(row: SheetRow): void {
+      const mine = generation;
+      void askRow(row).then((v) => {
+        if (mine === generation) put(row.id, v);
+      });
+    },
+    /** Answers still in flight are dropped when they land. */
+    close(): void {
+      generation += 1;
+    },
+  };
+}
+
 /**
  * The Send sheet's writes. When the sheet opens on the picked gaps, each sendable gap's write is asked for (previewAction,
  * nothing runs); the button confirms the ones on screen by their preview ids. Nothing here moves a rung: the next scan does.
@@ -31,10 +48,14 @@ export function useGapSheet(gaps: readonly Gap[], open: boolean, project: string
     [gaps, project, mode, views, answers],
   );
 
-  const askRow = useCallback((row: SheetRow) => {
-    asked.current.add(row.id);
-    void ask(row).then((v) => setViews((m) => ({ ...m, [row.id]: v })));
-  }, []);
+  const [asker] = useState(() => createAsker(ask, (id, v) => setViews((m) => ({ ...m, [id]: v }))));
+  const askRow = useCallback(
+    (row: SheetRow) => {
+      asked.current.add(row.id);
+      asker.ask(row);
+    },
+    [asker],
+  );
   useEffect(() => {
     if (open) for (const row of toAsk(rows)) if (!asked.current.has(row.id)) askRow(row);
   }, [open, rows, askRow]);
@@ -49,8 +70,11 @@ export function useGapSheet(gaps: readonly Gap[], open: boolean, project: string
     }
   }
   useEffect(() => {
-    if (!open) asked.current.clear();
-  }, [open]);
+    if (!open) {
+      asked.current.clear();
+      asker.close();
+    }
+  }, [open, asker]);
 
   const retry = useCallback((id: string) => {
     setViews((m) => Object.fromEntries(Object.entries(m).filter(([k]) => k !== id)));
