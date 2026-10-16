@@ -2,10 +2,17 @@
 
 import { useEffect, useRef } from 'react';
 import { useHotkeys, type Hotkey } from '@/lib/keyboard/useHotkeys';
-import type { Step } from '../model/state';
+import { reduce } from '../model/reducer';
+import type { MaturityCtx } from '../model/ctx';
+import type { MaturityState, Step } from '../model/state';
 import type { MaturityApi } from './useMaturity';
 
 type FocusWhere = 'crag' | 'list' | null;
+
+/** Whether an arrow press changes the selection: if not, no effect would clear the focus origin it armed. */
+export function movesSelection(state: MaturityState, ctx: MaturityCtx, dir: 1 | -1): boolean {
+  return reduce(state, { type: 'move', dir }, ctx).sel !== state.sel;
+}
 
 /** Focus the newly selected stage in the part the arrow key came from (the crag column or the sidebar row). */
 function focusStage(where: FocusWhere, stage: string, index: number) {
@@ -30,7 +37,9 @@ export function useMaturityKeys(api: MaturityApi, onGo: (k: Step) => void, onSen
   const arrow = (dir: 1 | -1) => (e: KeyboardEvent) => {
     const t = e.target instanceof Element ? e.target : null;
     if (t?.closest('[role="radiogroup"]')) return;
-    where.current = t?.closest('[data-crag]') ? 'crag' : t?.closest('[data-stagelist]') ? 'list' : null;
+    const from = t?.closest('[data-crag]') ? 'crag' : t?.closest('[data-stagelist]') ? 'list' : null;
+    where.current = from;
+    if (!movesSelection(state, ctx, dir)) where.current = null;
     dispatch({ type: 'move', dir });
   };
   const pickSelected = () => {
