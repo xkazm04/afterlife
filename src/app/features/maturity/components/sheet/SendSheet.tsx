@@ -6,7 +6,7 @@ import { parseDiff } from '@/components/inspector/blocks/diff';
 import { Sheet } from '@/components/overlays/Sheet';
 import { TierChip } from '@/components/status/TierChip';
 import { commandLines } from '@/server/actions/words';
-import { sendLabel } from '../../model/flow/commands';
+import { sendLabel, sentLabel } from '../../model/flow/commands';
 import type { GapSheetApi } from '../../hooks/useGapSheet';
 import type { SheetRow } from '../../write/sheet';
 import styles from './SendSheet.module.css';
@@ -39,10 +39,11 @@ function Write({ row, onRetry }: { row: SheetRow; onRetry: (id: string) => void 
  */
 export function SendSheet({ api, onClose }: { api: GapSheetApi; onClose: () => void }) {
   const { rows, ready, sending, send, retry } = api;
-  const done = rows.some((r) => r.answer?.status === 'done');
+  const doneCount = rows.filter((r) => r.answer?.status === 'done').length;
+  const done = doneCount > 0;
   return (
     <Sheet
-      title={ready || done ? sendLabel(ready || rows.filter((r) => r.answer?.status === 'done').length) : 'Nothing to send yet'}
+      title={ready ? sendLabel(ready) : done ? sentLabel(doneCount) : 'Nothing to send yet'}
       subtitle="your glab login · Belay holds no merge token · you merge each MR in GitLab"
       onClose={onClose}
       footer={
