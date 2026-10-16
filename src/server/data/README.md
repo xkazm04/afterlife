@@ -89,3 +89,9 @@ data" is a client component and still says so.
 The recent events are the index's own (`getEvents` in `../index/views/events.ts`): a task's MR opened and merged, the last
 poll, and each task's standing (state, proof verdict) on its newest row. They are not the demo's feed, so the Fleet reads
 them through `loadFleetSource`, beside `loadFleetData`, and `parity.test.ts` lists them where live differs from demo.
+
+`getPollHealth()`: live, the poll's health on the snapshot (`pollHealthOf` in `live/snapshot.ts`): the age of the last
+cycle that read the group (`group:<g>` poll_state, by the source's read clock), that cycle's error if the last one failed,
+and how many of the polled (GitLab-linked) projects' last polls failed; null in demo mode. `shell/read.ts` adds the poll
+interval, and the status bar says it on every screen (`components/shell/bars/poll/`), with a Re-poll of the whole group
+on a failure (`repollGroupAction`, the same 10 s gap as a project re-poll).
