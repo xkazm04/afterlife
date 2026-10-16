@@ -57,6 +57,7 @@ export function useLadderActions({
   const { toast, status } = useToast();
   const sending = useRef(new Set<string>());
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const simCount = useRef(0); // simulated commits handed out: bumped when asked, so two answers in one render get two ids
   const latest = useRef(data);
   useEffect(() => {
     latest.current = data;
@@ -81,8 +82,8 @@ export function useLadderActions({
   /** The server answered done: the row moves. A simulated (demo) commit is settled by a simulated tier-gate read. */
   const landed = useCallback(
     (id: string, to: Tier, simulated: boolean, commit: string | null) => {
-      const sha = simulated ? nextSha(latest.current.state.shaIdx) : commit;
-      dispatch({ type: 'revoke', id, to, t: stamp(), sent: simulated ? { simulated: true } : { simulated: false, commit } });
+      const sha = simulated ? nextSha(simCount.current++) : commit;
+      dispatch({ type: 'revoke', id, to, t: stamp(), sent: simulated ? { simulated: true } : { simulated: false, commit }, ...(simulated && sha ? { sha } : {}) });
       later(() => dispatch({ type: 'clearFresh' }), FRESH_MS);
       if (simulated && sha) {
         later(() => {
@@ -156,6 +157,7 @@ export function useLadderActions({
   const reset = useCallback(() => {
     timers.current.forEach(clearTimeout);
     timers.current.clear();
+    simCount.current = 0;
     dispatch({ type: 'reset', seed });
     onReset();
     toast('Demo reset');

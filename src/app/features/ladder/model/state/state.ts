@@ -49,7 +49,8 @@ export type LadderAction =
   | { type: 'source'; src: string }
   | { type: 'query'; q: string }
   /** The server answered done: `sent` says whether it was simulated, and the commit GitLab made if not. */
-  | { type: 'revoke'; id: string; to: Tier; t: string; sent: Sent }
+  /** `sha` (demo only): the simulated commit id the settle timer will name; without it the reducer takes the next one. */
+  | { type: 'revoke'; id: string; to: Tier; t: string; sent: Sent; sha?: string }
   | { type: 'settle'; sha: string; t: string }
   /** Live: the receipts of a fresher snapshot, by class id. A pending revoke whose commit a gate read is settled. */
   | { type: 'receipts'; receipts: Receipts }
