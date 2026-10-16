@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { policy } from '../__tests__/helpers';
+import { DEMOTION_TRIGGERS as SCHEMA_TRIGGERS } from '../../src/schemas/tier';
 import { DEMOTION_TRIGGERS, parsePolicy } from './load';
 
 const base = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
@@ -9,6 +10,11 @@ const base = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
 });
 
 describe('parsePolicy: demotion triggers', () => {
+  it('takes the trigger list from the schema: one definition, not a copy', () => {
+    expect(SCHEMA_TRIGGERS).toHaveLength(6);
+    expect(DEMOTION_TRIGGERS).toBe(SCHEMA_TRIGGERS);
+  });
+
   it('accepts every trigger the tripwire can fire, in either list', () => {
     expect(DEMOTION_TRIGGERS).toHaveLength(6);
     expect(() => parsePolicy(base({ demotion: { one_step_on: [...DEMOTION_TRIGGERS], quarantine_on: [...DEMOTION_TRIGGERS] } }))).not.toThrow();

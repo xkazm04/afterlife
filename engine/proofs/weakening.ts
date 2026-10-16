@@ -5,7 +5,7 @@ import type { DiffFile } from '../parse/diff';
 
 export interface Weakening {
   file: string;
-  kind: 'file-deleted' | 'removed-assertion' | 'loosened-assertion' | 'skip-added' | 'test-removed' | 'trivial-assertion';
+  kind: 'file-deleted' | 'removed-assertion' | 'loosened-assertion' | 'skip-added' | 'test-removed' | 'trivial-assertion' | 'changed-assertion';
   detail: string;
 }
 
@@ -43,6 +43,15 @@ export function strengthOf(line: string): number | null {
   return 3;
 }
 
+const MATCHER = /^(.*\.(?:toBe\w*|toEqual|toStrictEqual|toMatch\w*|toContain|toHaveLength))\((.*)\);?$/;
+
+/** The same actual under test, a different expected value: `expect(f(2)).toBe(4)` -> `toBe(5)`. A changed actual is a refactor, not this. */
+function expectationEdited(before: string, after: string): boolean {
+  const b = MATCHER.exec(before);
+  const a = MATCHER.exec(after);
+  return b !== null && a !== null && b[1] === a[1] && b[2] !== a[2];
+}
+
 const norm = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
 export function findWeakening(files: readonly DiffFile[]): Weakening[] {
@@ -78,6 +87,9 @@ export function findWeakening(files: readonly DiffFile[]): Weakening[] {
         if (r === undefined) out.push({ file: f.path, kind: 'removed-assertion', detail: `removed "${l}"` });
         else if ((strengthOf(r) ?? 0) < (strengthOf(l) ?? 0)) {
           out.push({ file: f.path, kind: 'loosened-assertion', detail: `"${l}" became weaker "${r}"` });
+        } else if ((strengthOf(r) ?? 0) === (strengthOf(l) ?? 0) && expectationEdited(l, r)) {
+          // Same strength, different line: an expected value edited to match the output is the cheapest red-to-green fake.
+          out.push({ file: f.path, kind: 'changed-assertion', detail: `"${l}" became "${r}"` });
         }
       });
     }
