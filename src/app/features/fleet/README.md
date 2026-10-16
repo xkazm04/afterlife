@@ -20,8 +20,8 @@ client `FleetScreen`.
 ## Model (pure, tested)
 - `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank). `model/list/urlState.ts` encodes view, sort, filters, search, grouping and folded groups as search params (default = clean URL); `/fleet` decodes them on the server and the list replaces the URL as they change, so Back from a project restores the screen.
 - `model/columns.ts` columns and grid tracks per view. `model/groups.ts` group totals, keyboard rows.
-- `model/menus/` the Sort, Filter and context menus. `model/needs.ts` waiting count, resolve,
-  re-poll, status line. `model/inspector.ts` the project page's wording.
+- `model/menus/` the Sort, Filter and context menus. `model/needs.ts` the
+  re-poll and status line. `model/inspector.ts` the project page's wording.
 
 ## Data
 Everything comes through the DataSource (`@/server/data`): the demo fixture, or the live index. The deep project's tasks
@@ -31,7 +31,7 @@ demo's feed in demo mode and, in live mode, read from the index's tasks, proofs 
 of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
 
 ## Behaviour to know
-- Demo mode: resolving a decision and re-polling only change this screen's state; nothing is written.
+- Demo mode: re-polling only changes this screen's state; nothing is written.
 - Live mode: Re-poll calls the `repollAction` server action (`src/server/actions/repollAction.ts`), which runs one poll
   cycle of the live runtime (a read) and renders the route again from the fresh snapshot; the status bar says
   "Re-polled" only after that resolved, and says it failed otherwise. A decision's button opens Needs you instead of
