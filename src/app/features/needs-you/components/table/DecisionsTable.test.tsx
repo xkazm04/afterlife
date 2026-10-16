@@ -3,9 +3,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../data/pick';
-import { visibleGroups } from '../../model/rows/grouping';
+import { groupsFor, visibleGroups } from '../../model/rows/grouping';
 import { initialState } from '../../model/state';
-import type { NeedsState } from '../../model/types';
+import type { GroupMode, NeedsState } from '../../model/types';
 import { CRA } from '../../data/cra';
 import { ClockProvider } from '../../hooks/ClockProvider';
 import { clockText } from '../../model/clock/clock';
@@ -28,6 +28,8 @@ const html = (s: NeedsState) =>
       onGroupMenu={() => {}}
     />,
   );
+
+const groupsAll = (mode: GroupMode, s: NeedsState) => groupsFor(mode, s).map((g) => g.id);
 
 const picking = (...ids: string[]): NeedsState => ({ ...initialState(demo), gaps: Object.fromEntries(ids.map((id) => [id, true])) });
 
@@ -59,5 +61,15 @@ describe('the clock cells read the shared tick', () => {
       </ClockProvider>,
     );
     expect(out.split(clockText(CRA.remainingSec)).length - 1).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('the countdown on the group row of the sign-off', () => {
+  // Collapsed, so the group header is the only place the clock can be read.
+  it.each<GroupMode>(['kind', 'deadline'])('is shown in By %s mode on the group that holds the sign-off', (mode) => {
+    const s = initialState(demo);
+    const collapsed: NeedsState = { ...s, group: mode, collapsed: groupsAll(mode, s) };
+    const out = html(collapsed);
+    expect(out.split(clockText(CRA.remainingSec)).length - 1).toBe(1);
   });
 });
