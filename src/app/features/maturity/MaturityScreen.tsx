@@ -15,7 +15,7 @@ import { Stepper } from '@/components/controls/toolbar/Stepper';
 import { GapsTable } from './components/gaps/GapsTable';
 import { SendSheet } from './components/sheet/SendSheet';
 import { StatusCounts } from './components/chrome/StatusCounts';
-import { MAT_META } from './data/meta';
+import { MAT_META, projectLabel } from './data/meta';
 import { useGapSheet } from './hooks/useGapSheet';
 import { stagePath, useStepNav } from './hooks/useStepNav';
 import { useMaturityShared } from './MaturityProvider';
@@ -58,7 +58,7 @@ export function MaturityScreen() {
   return (
     <Window
       title="Maturity"
-      subtitle={ctx.live ? project : MAT_META.project.replace('/', ' / ')}
+      subtitle={projectLabel(ctx, project)}
       sidebar={<StageList routes={routes} pickedByStage={pickedByStage(pending, ctx)} selected={state.sel} onSelect={open} />}
       toolbar={
         <>

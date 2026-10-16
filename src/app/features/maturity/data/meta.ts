@@ -19,3 +19,6 @@ export const MAT_META = {
 
 /** Where an evidence link would open. */
 export const gitlabUrl = (path: string): string => `https://${MAT_META.host}/${MAT_META.project}${path}`;
+
+/** The window subtitle both screens show: the live project, or the demo project spelled with spaces. */
+export const projectLabel = (ctx: { live: boolean }, project: string): string => (ctx.live ? project : MAT_META.project.replace('/', ' / '));
