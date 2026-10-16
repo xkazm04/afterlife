@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { FleetProject, NeedsYouItem, Track } from '@/lib/demo/types';
 import { needsOf } from '../../model/city';
 import { ageStr, plural, staleText } from '../../model/words';
+import { DOOR_TIERS, tierLabel } from '../rail/Rail';
 import { TierLetter } from '../ui/TierLetter';
 import { Demo } from './Demo';
 import styles from './l2panel.module.css';
@@ -17,9 +18,6 @@ export interface Deep {
   /** Demo text the source serves beside live data (live mode): labelled, so it never passes for live. */
   illustrative: { cockpit: boolean; tracks: boolean };
 }
-
-const TIERS = ['hands_off', 'supervised', 'assisted', 'quarantined', 'human_only', 'no_record', 'refused'] as const;
-const TIER_NAME: Record<string, string> = { hands_off: 'hands-off', supervised: 'supervised', assisted: 'assisted', quarantined: 'quarantined', human_only: 'human only', no_record: 'no record yet', refused: 'split, each holder at its own tier' };
 
 function Num({ v, k, tone }: { v: React.ReactNode; k: string; tone?: string }) {
   return (
@@ -145,10 +143,10 @@ export function L2Panel({ p, group, classes, deep, rungs }: { p: FleetProject; g
             <div className={styles.block}>
               <h3>Autonomy by class</h3>
               <div className={styles.tiers}>
-                {TIERS.filter((t) => at(t) > 0).map((t) => (
+                {DOOR_TIERS.filter((t) => at(t) > 0).map((t) => (
                   <span key={t}>
                     <TierLetter tier={t} />
-                    {at(t)} {TIER_NAME[t]}
+                    {at(t)} {tierLabel(t)}
                   </span>
                 ))}
                 {nulls ? (
