@@ -25,11 +25,13 @@ chain, ledger, trace, envelope, policy) is shown as not held, never borrowed. `f
 and the subtitle, status line and inspector "Ledger read" come from the source, not the prototype's constants.
 The inspector's "Proof Block" card is open for every task: the verdict rule in one sentence, then the engine, digest, policy and ledger read the task holds; a pin it does not hold (a source task with no fixture) reads "not held", never a borrowed value.
 `data/pageFacts.ts` has the page clock and the proof-class list. Ids the docket does not draw call `notFound()`.
+The ledger: in live mode every task's rows are its merge request's slice of the real chain (`ds.getLedger()`, events whose subject is `mr` with `!${iid}` equal to the task's `mr`), each with its seq, sha256 hash and prev_hash, never the fixture's; a task with no merge request, or one the chain never names, holds none. `model/build/chain/taskLedger.ts` verifies the whole chain once with `verifyChain` and is server-only (node:crypto, imported only by `loadTasks`); `TaskView.ledgerCheck` (`hash: 'sha256' | 'illustrative'`, `brokenAt`) is the plain result a client component reads. Demo keeps the fixture rows, marked illustrative (FNV).
 
 ## Honesty
 Claims, agent words, the hunk and the trace are untrusted: rendered as text, ligatures off, never a
 term of the verdict. Unknown is dashed, an undecided check is a struck term (never a pass), unreached
 chain links are dashed n/a, replay re-derives from the ledger and never re-runs the agent.
+Replay states the chain check as it was computed: "sha256 chain verified", "illustrative hashes match" (the FNV rows re-checked from themselves), or "chain broken at #n"; the inspector's Ledger aux says the same.
 
 ## On the shared kit
 - Chips are `Chip` (plain, invariant), the object link is `controls/ObjectLink`, and the docket's "2 / 7" is the
