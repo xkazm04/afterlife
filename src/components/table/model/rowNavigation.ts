@@ -26,9 +26,12 @@ const STEPS: Record<string, number | undefined> = { ArrowDown: 1, ArrowUp: -1, H
 export const groupNavId = (group: string): string => `g:${group}`;
 export const isGroupNavId = (id: string): boolean => id.startsWith('g:');
 
-/** The DOM id of a row element (used by aria-activedescendant and scrolling). Safe characters only. */
+/**
+ * The DOM id of a row element (used by aria-activedescendant and scrolling). Injective: "_" is only ever
+ * an escape ("_<hex code point>_") for a character outside [A-Za-z0-9-], so two ids never share a DOM id.
+ */
 export function rowDomId(id: string): string {
-  return `row-${id.replace(/^g:/, 'g-').replace(/[^\w-]/g, '_')}`;
+  return `row-${id.replace(/[^A-Za-z0-9-]/gu, (ch) => `_${ch.codePointAt(0)?.toString(16)}_`)}`;
 }
 
 /** Move by `delta` rows, clamped. With nothing selected, the first row is selected. */
