@@ -43,7 +43,7 @@ function Exit({ href, children, enter }: { href: string; children: string; enter
  * The project's page beside its cutaway: state, numbers, then (ledgerline) its decisions and tracks; exits at the foot.
  * The cockpit lines and the tracks are labelled demo when the source still serves them from the demo (live mode).
  */
-export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: string; classes: readonly string[]; deep: Deep }) {
+export function L2Panel({ p, group, classes, deep, rungs }: { p: FleetProject; group: string; classes: readonly string[]; deep: Deep; rungs: number }) {
   const [pick, setPick] = useState(0);
   const nsu = p.state === 'not-set-up';
   const stale = p.state === 'stale';
@@ -162,7 +162,7 @@ export function L2Panel({ p, group, classes, deep }: { p: FleetProject; group: s
             <div className={styles.block}>
               <h3>Stages</h3>
               <div className={styles.line}>
-                {known} of 9 rungs known{known < 9 ? <span className={styles.u}> · {9 - known} unknown</span> : null}
+                {known} of {rungs} rungs known{known < rungs ? <span className={styles.u}> · {rungs - known} unknown</span> : null}
               </div>
             </div>
             {p.last ? (

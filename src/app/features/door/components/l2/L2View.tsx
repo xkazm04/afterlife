@@ -62,7 +62,7 @@ export function L2View({
       </div>
       {/* the panel mounts a frame after the cutaway starts to lift: two light frames instead of one heavy one (it fades
           in after 200 ms anyway) */}
-      {lifted ? <L2Panel p={p} group={group} classes={classes} deep={deep} /> : null}
+      {lifted ? <L2Panel p={p} group={group} classes={classes} deep={deep} rungs={stages.length} /> : null}
     </section>
   );
 }
