@@ -23,9 +23,10 @@ export interface KeyContext {
 /** Map a key to an action, or null to leave it alone. Escape clears the selection (a popover has already consumed its own). */
 export function actionFor(key: string, ctx: KeyContext): TaskAction | null {
   if (key === '[' || key === ']') return { type: 'step', delta: key === ']' ? 1 : -1 };
-  if (key === 'r') return { type: 'replay' };
-  if (key === 'w') return { type: 'words' };
-  if (key === 'f') return { type: 'failOnly' };
+  const letter = key.length === 1 ? key.toLowerCase() : key;
+  if (letter === 'r') return { type: 'replay' };
+  if (letter === 'w') return { type: 'words' };
+  if (letter === 'f') return { type: 'failOnly' };
   if (key === 'Escape') return { type: 'escape' };
   if (!ARROWS.includes(key)) return null;
   if ((key === 'ArrowUp' || key === 'ArrowDown') && ctx.inDocket) return { type: 'step', delta: key === 'ArrowDown' ? 1 : -1 };
