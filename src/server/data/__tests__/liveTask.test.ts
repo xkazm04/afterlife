@@ -30,7 +30,8 @@ beforeAll(async () => {
 }, 60_000);
 afterAll(() => setDataSource(null));
 
-const asProps = (v: unknown): unknown => JSON.parse(JSON.stringify(v)) as unknown;
+/** A task's ledger is the real chain's in live mode, never the fixture's: left out where live is compared with demo. */
+const noLedger = (k: string, v: unknown) => (k === 'ledger' || k === 'ledgerCheck' ? undefined : v);
 
 describe('a poller-derived task with no Task fixture', () => {
   it('is in the data source, and is no fixture', () => {
@@ -65,15 +66,27 @@ describe('a poller-derived task with no Task fixture', () => {
     ]);
   });
 
-  it('firstTaskId() is the first task the docket draws, and each drawn task with a fixture equals its demo rendering', () => {
-    const drawn = asProps(loadTasks()) as { id: string }[];
+  it('firstTaskId() is the first task the docket draws, and each drawn task with a fixture equals its demo rendering but its ledger', () => {
+    // The ledger is the real chain's in live mode (the Task feature's liveDocket.test.ts), never the fixture's: left out here.
+    const drawn = JSON.parse(JSON.stringify(loadTasks(), noLedger)) as { id: string }[];
     expect(firstTaskId()).toBe(drawn[0]?.id);
     expect(firstTaskId()).toBe(live.getTasks()[0]?.id);
     setDataSource(demoSource);
-    const demo = asProps(loadTasks()) as { id: string }[];
+    const demo = JSON.parse(JSON.stringify(loadTasks(), noLedger)) as { id: string }[];
     setDataSource(live);
     const withFixture = drawn.filter((t) => (TASK_ORDER as readonly string[]).includes(t.id));
     expect(withFixture.length).toBeGreaterThan(0);
     for (const t of withFixture) expect(t).toEqual(demo.find((x) => x.id === t.id));
+  });
+
+  it('every drawn task’s ledger is its merge request’s slice of the polled chain, sha256 and verified', () => {
+    const chain = live.getLedger();
+    const tasks = loadTasks();
+    for (const t of tasks) {
+      const slice = chain.filter((e) => e.subject.type === 'mr' && `!${e.subject.iid}` === t.mr);
+      expect(t.ledger.map((r) => [r.seq, r.hash, r.prev])).toEqual(slice.map((e) => [e.seq, e.hash, e.prev_hash]));
+      expect(t.ledgerCheck).toEqual({ hash: 'sha256', brokenAt: null });
+    }
+    expect(tasks.find((t) => t.id === '01J8Q4')?.ledger.length).toBeGreaterThan(0);
   });
 });

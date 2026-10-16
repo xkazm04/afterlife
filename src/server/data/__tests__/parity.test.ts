@@ -133,8 +133,8 @@ describe('where live differs from demo, on purpose', () => {
     expect(live.getStages()).not.toBe(DEMO.stages);
   });
 
-  it('Task: live draws only the source’s own tasks, never a demo-only fixture; each one with a fixture is drawn as in demo', () => {
-    const [d, l] = both(() => asProps(loadTasks()) as { id: string }[]);
+  it('Task: live draws only the source’s own tasks, never a demo-only fixture; each one with a fixture is drawn as in demo, all but its ledger', () => {
+    const [d, l] = both(() => JSON.parse(JSON.stringify(loadTasks(), (k: string, v: unknown) => (k === 'ledger' || k === 'ledgerCheck' ? undefined : v))) as { id: string }[]);
     expect(l.map((t) => t.id)).toEqual(['01J8Q4', '01J8Q9', '01J8QB', '01J8QC']);
     for (const id of ['01J8Q7', '01J8Q8', '01J8QA']) expect(l.map((t) => t.id)).not.toContain(id);
     const withFixture = l.filter((t) => d.some((x) => x.id === t.id));

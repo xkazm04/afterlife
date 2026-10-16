@@ -34,10 +34,10 @@ describe('the docket in live mode', () => {
   });
 
   it('keeps the render detail a source task with a fixture gets in demo mode, all but the ledger', () => {
-    const omit = ({ ledger: _l, ledgerCheck: _c, ...rest }: TaskView) => JSON.stringify(rest);
-    const demo = omit(loadTasks().find((t) => t.id === '01J8Q4')!);
+    const omit = (t: TaskView | undefined) => JSON.stringify(t, (k: string, v: unknown) => (k === 'ledger' || k === 'ledgerCheck' ? undefined : v));
+    const demo = omit(loadTasks().find((t) => t.id === '01J8Q4'));
     setDataSource(live());
-    expect(omit(loadTasks()[0]!)).toBe(demo);
+    expect(omit(loadTasks()[0])).toBe(demo);
   });
 
   it('names a task the docket draws when the source has none of the fixtures first', () => {
