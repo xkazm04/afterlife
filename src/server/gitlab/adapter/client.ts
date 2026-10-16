@@ -76,6 +76,10 @@ export class GlabClient {
   /** Runs a planned write once. No retry: a write is never repeated without the operator. */
   async run(argv: readonly string[]): Promise<ExecResult> {
     const r = await this.cfg.exec(this.cfg.bin, argv);
+    if (r.code === 124 && /i\/o timeout/.test(r.stderr)) {
+      // The 60 s kill came after glab sent the request: GitLab may have applied it.
+      throw new GitLabError('api', 'glab timed out after 60 s; write outcome unknown. Read the branch or MR before retrying', argv.find((a) => /^[a-z_]+\//.test(a)) ?? 'glab api');
+    }
     if (r.code !== 0) throw failureToError(r, argv.find((a) => /^[a-z_]+\//.test(a)) ?? 'glab api');
     return r;
   }
