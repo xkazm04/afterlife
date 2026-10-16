@@ -22,6 +22,9 @@ client `FleetScreen`.
 - `model/columns.ts` columns and grid tracks per view. `model/groups.ts` group totals, keyboard rows.
 - `model/menus/` the Sort, Filter and context menus. `model/needs.ts` waiting count, resolve,
   re-poll, status line. `model/inspector.ts` the inspector's wording.
+- `model/project/view.ts` a project's page, decided once on the server (`data/loadFleetProject.ts`): its depth (the deep
+  project's decisions, records, tasks, events and tracks, or any other's fleet row) and its buttons per mode (a link, disabled
+  with the reason, or a flash in demo mode only). `/fleet` itself gets only `deepId` and the tier card's accepted counts.
 
 ## Data
 Everything comes through the DataSource (`@/server/data`): the demo fixture, or the live index. The deep project's tasks
