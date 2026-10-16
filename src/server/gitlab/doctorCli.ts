@@ -36,6 +36,7 @@ async function main(): Promise<number> {
   const g = report.group;
   out.push('', `group ${cfg.groupId}: ${g ? `${g.fullPath} (${g.visibility})` : 'not readable'}`);
   out.push(`plan: ${report.plan ?? 'unknown'}${report.trial ? ' (trial)' : ''}   GitLab ${report.version ?? 'unknown'}   projects: ${report.projectCount ?? 'unknown'}`, '');
+  out.push(...report.errors.map((x) => `could not read ${x.read}: ${x.kind}: ${x.message}`));
   out.push(...report.capabilities.map(show));
   console.log(out.join('\n'));
   return report.capabilities.every((c) => c.status === 'unknown') ? 2 : 0;

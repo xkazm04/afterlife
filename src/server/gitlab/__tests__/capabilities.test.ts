@@ -118,4 +118,23 @@ describe('probeCapabilities', () => {
     expect(r.plan).toBeNull();
     expect(r.capabilities.every((c) => c.status === 'unknown')).toBe(true);
   });
+
+  it('keeps the kind and message of each failed context read, so the doctor can say why', async () => {
+    const fake = createFakeGitLab({ plan: 'free' }).port;
+    const mixed: GitLabPort = {
+      ...fake,
+      getGroup: async (g) => { throw new GitLabError('not-found', '404 Group Not Found', String(g), 404); },
+      getNamespace: async (g) => { throw new GitLabError('auth', 'glab auth login', String(g), 401); },
+      instance: async () => { throw new GitLabError('network', 'no such host', 'metadata'); },
+      listProjects: async () => { throw new Error('boom'); },
+    };
+    const r = await probeCapabilities(mixed, 999);
+    expect([...r.errors].sort((a, b) => a.read.localeCompare(b.read))).toEqual([
+      { read: 'group', kind: 'not-found', message: '404 Group Not Found' },
+      { read: 'instance', kind: 'network', message: 'no such host' },
+      { read: 'namespace', kind: 'auth', message: 'glab auth login' },
+      { read: 'projects', kind: 'unexpected', message: 'boom' },
+    ]);
+    expect((await probeCapabilities(fake, 144060371)).errors).toEqual([]);
+  });
 });
