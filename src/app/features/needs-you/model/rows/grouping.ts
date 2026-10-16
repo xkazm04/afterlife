@@ -20,33 +20,37 @@ export interface GroupDef {
   stages?: boolean;
 }
 export const HIST_GROUP = 'hist';
-const GAPS = ['g1', 'g2', 'g3', 'g4'];
-
-const BASE: Record<GroupMode, readonly GroupDef[]> = {
-  kind: [
-    { id: 'clock', name: 'Legal clock', ids: ['n2'], clock: true },
-    { id: 'trust', name: 'Extend trust', ids: ['n1', 'n4'] },
-    { id: 'improve', name: 'Improve the project', ids: GAPS, stages: true },
-    { id: 'setup', name: 'Finish setup', ids: ['n5'] },
-  ],
-  project: [
-    { id: 'p-ll', name: PROJECT_REPO, ids: ['n2', ...GAPS] },
-    { id: 'p-pol', name: POLICY_REPO, ids: ['n1', 'n4'] },
-    { id: 'p-set', name: SETTINGS_GROUP, ids: ['n5'] },
-  ],
-  deadline: [
-    { id: 'd-clock', name: 'On a clock', ids: ['n2'], clock: true },
-    { id: 'd-none', name: 'No deadline · oldest first', ids: ['n5', 'n1', ...GAPS, 'n4'] },
-  ],
-};
+/** The groups of a mode. The gap ids are the proposals the screen was opened with (the keys of `gaps`), never a list here. */
+function baseFor(mode: GroupMode, gaps: readonly string[]): readonly GroupDef[] {
+  switch (mode) {
+    case 'kind':
+      return [
+        { id: 'clock', name: 'Legal clock', ids: ['n2'], clock: true },
+        { id: 'trust', name: 'Extend trust', ids: ['n1', 'n4'] },
+        { id: 'improve', name: 'Improve the project', ids: gaps, stages: true },
+        { id: 'setup', name: 'Finish setup', ids: ['n5'] },
+      ];
+    case 'project':
+      return [
+        { id: 'p-ll', name: PROJECT_REPO, ids: ['n2', ...gaps] },
+        { id: 'p-pol', name: POLICY_REPO, ids: ['n1', 'n4'] },
+        { id: 'p-set', name: SETTINGS_GROUP, ids: ['n5'] },
+      ];
+    case 'deadline':
+      return [
+        { id: 'd-clock', name: 'On a clock', ids: ['n2'], clock: true },
+        { id: 'd-none', name: 'No deadline · oldest first', ids: ['n5', 'n1', ...gaps, 'n4'] },
+      ];
+  }
+}
 
 /** How many decisions are on a clock: the rows of the clock groups, counted once (By kind lists each row once). */
-export const ON_A_CLOCK = BASE.kind.filter((g) => g.clock).reduce((n, g) => n + g.ids.length, 0);
+export const ON_A_CLOCK = baseFor('kind', []).filter((g) => g.clock).reduce((n, g) => n + g.ids.length, 0);
 
 /** The groups for a mode, with "Decided this week" last. */
-export function groupsFor(mode: GroupMode, s: Pick<NeedsState, 'session'>): readonly GroupDef[] {
+export function groupsFor(mode: GroupMode, s: Pick<NeedsState, 'session' | 'gaps'>): readonly GroupDef[] {
   const hist: GroupDef = { id: HIST_GROUP, name: 'Decided this week', ids: histRows(s).map((_, i) => `h${i}`), hist: true };
-  return [...BASE[mode], hist];
+  return [...baseFor(mode, Object.keys(s.gaps)), hist];
 }
 
 /** Does the row pass the sidebar filter and the search box? */
@@ -86,7 +90,7 @@ export function navItems(groups: readonly VisibleGroup[]): readonly NavItem[] {
 }
 
 /** The group a row belongs to in the current mode. */
-export function groupOf(mode: GroupMode, s: Pick<NeedsState, 'session'>, id: string): GroupDef | undefined {
+export function groupOf(mode: GroupMode, s: Pick<NeedsState, 'session' | 'gaps'>, id: string): GroupDef | undefined {
   return groupsFor(mode, s).find((g) => g.ids.includes(id));
 }
 
