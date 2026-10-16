@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadTasks } from '../build/loadTasks';
 import { NO_FILTERS, classCount, docketCount, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdictCounts, visibleTasks } from './filters';
-import { actionFor } from './keys';
+import { TASK_KEYMAP, actionFor } from './keys';
 
 const tasks = loadTasks();
 const idle = { inDocket: false, inChrome: false, replaying: false };
@@ -73,5 +73,12 @@ describe('key map', () => {
     expect(actionFor('ArrowDown', { ...idle, inChrome: true })).toBeNull();
     expect(actionFor('ArrowRight', { ...idle, replaying: true })).toBeNull();
     expect(actionFor('r', { ...idle, replaying: true })).toEqual({ type: 'replay' });
+  });
+
+  it('walks the verdict reasons with n, but not during a replay', () => {
+    expect(actionFor('n', idle)).toEqual({ type: 'reason' });
+    expect(actionFor('n', { ...idle, inDocket: true })).toEqual({ type: 'reason' });
+    expect(actionFor('n', { ...idle, replaying: true })).toBeNull();
+    expect(TASK_KEYMAP.entries.flatMap((e) => e.keys.map((k) => k.key))).toContain('n');
   });
 });
