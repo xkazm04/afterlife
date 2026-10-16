@@ -16,6 +16,7 @@ import { TaskInspector, type Panel } from './components/inspector/TaskInspector'
 import { ClassMenuButton } from './components/toolbar/ClassMenuButton';
 import { ReplayButton } from './components/toolbar/ReplayButton';
 import { VerdictLozenge } from './components/toolbar/VerdictLozenge';
+import { cardSelector } from './hooks/useTieGeometry';
 import { usePageClock } from './hooks/usePageClock';
 import { useReplay } from './hooks/useReplay';
 import { useSelection } from './hooks/useSelection';
@@ -73,7 +74,7 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
     else {
       const next = arrowSelection(task, sel, a.key);
       set(next);
-      if (next) focus(`[data-${next.side}-card="${next.id}"]`);
+      if (next) focus(cardSelector(next.side, next.id));
     }
   };
   useTaskKeys(run, replay.running);
