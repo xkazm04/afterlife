@@ -53,3 +53,5 @@ A `tier_decision` may also state `state_rev` (the 40-hex commit of tier-state.ym
 Tests: `__tests__/ledger.test.ts` (full import, incremental append, blob-id skip, edited event, fork, rewind, foreign
 project, parser); `__tests__/verdict.test.ts` (the verdict: kept, refused, covered by the hash, and a chain without
 verdicts hashing exactly as main computed it, through parse, `appendLedgerEvents` and `readLedger`). Not verified live: the real `listTree`/`getFile` shapes (recorded nowhere yet; the fake serves `[R]` ones).
+
+A line carrying a key this reader does not know is refused with `LedgerParseError` naming the key and the line (it is newer than the reader, not a tampered chain). Tests: `__tests__/unknownKey.test.ts`.
