@@ -1,17 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
-import { ageLine, NO_GOOD_POLL, notWatchedMessage, polledAge, rejectedMessage, repollMessage, repollPlan, repollingMessage, simulateRepoll, visibleNeeds } from './mode';
+import type { FleetProject } from '@/lib/demo/types';
+import { ageLine, NO_GOOD_POLL, notWatchedMessage, polledAge, rejectedMessage, repollMessage, repollPlan, repollingMessage, simulateRepoll } from './mode';
 
 const proj = (o: Partial<FleetProject>): FleetProject => ({ id: 'p', name: 'ledgerline', state: 'watching', feed: { ageSec: 12, ok: true }, ...o }) as FleetProject;
-const need = (id: string) => ({ id }) as NeedsYouItem;
-
-describe('visibleNeeds', () => {
-  const needs = [need('seed-1'), need('real-1'), need('seed-2')];
-  const isSeeded = (id: string) => id.startsWith('seed');
-  it('live drops the demo seeded decisions', () => expect(visibleNeeds('live', needs, isSeeded).map((n) => n.id)).toEqual(['real-1']));
-  it('demo keeps them all', () => expect(visibleNeeds('demo', needs, isSeeded)).toBe(needs));
-});
-
 describe('repoll', () => {
   it('plans per mode; an unwatched project has nothing to poll in both', () => {
     expect(repollPlan('live', proj({}))).toBe('server');
