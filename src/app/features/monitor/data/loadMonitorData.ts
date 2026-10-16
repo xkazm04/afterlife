@@ -1,7 +1,6 @@
 // Reads the data source (demo fixture or live index) once, on the server, into the shape the Monitor needs.
 import { getDataSource } from '@/server/data';
-import { isSeeded } from '@/server/data/live/seeded';
-import { visibleNeeds } from '../model/mode';
+import { ownDecisions } from '@/server/data/live/seeded';
 import type { MonitorData } from '../model/types';
 
 export function loadMonitorData(): MonitorData {
@@ -16,6 +15,6 @@ export function loadMonitorData(): MonitorData {
     projects: fleet.projects,
     stages: ds.getStages(),
     deepId: ds.deepProjectId(),
-    needs: visibleNeeds(ds.mode, ds.getNeedsYou(), isSeeded),
+    needs: ownDecisions(ds.mode, ds.getNeedsYou()),
   };
 }

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { stageFit } from '../model/fit';
 
-/** Keeps the stage fitted on resize (the first fit runs before paint: model/fit.ts). */
+/** Keeps the stage fitted on resize. The first fit is before paint: the inline script (model/fit.ts) on a full load, this layout effect on a client return. */
 export function useStageFit(): void {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const fit = () => {
       for (const [k, v] of Object.entries(stageFit(innerWidth, innerHeight))) document.documentElement.style.setProperty(k, v);
     };

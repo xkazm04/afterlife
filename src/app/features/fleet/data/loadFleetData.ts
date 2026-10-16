@@ -1,7 +1,7 @@
 // Reads the data source (demo fixture or live index) once, on the server, into the shape the Fleet screen needs. What
 // the two sources serve differently on purpose (the mode, the recent events) is `loadFleetSource`, beside this one.
 import { getDataSource } from '@/server/data';
-import { isSeeded } from '@/server/data/live/seeded';
+import { ownDecisions } from '@/server/data/live/seeded';
 import { fleetTask } from '../model/inspector';
 import type { FleetData } from '../model/types';
 
@@ -20,7 +20,7 @@ export function loadFleetData(): FleetData {
     deep: {
       id: ds.deepProjectId(),
       // live lists the group's own decisions only, as /needs-you does: the ids the demo seeds into an index are not its
-      needs: ds.mode === 'live' ? ds.getNeedsYou().filter((n) => !isSeeded(n.id)) : ds.getNeedsYou(),
+      needs: ownDecisions(ds.mode, ds.getNeedsYou()),
       actionClasses: Object.fromEntries(ds.getActionClasses().map((c) => [c.id, c])),
       tasks: ds.getTasks().map(fleetTask),
       tracks: ds.getTracks(),

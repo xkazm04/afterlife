@@ -3,7 +3,7 @@
 import { memo } from 'react';
 import type { District } from '../../model/city';
 import { fmt, plural, type FleetTotals, type MarkKind } from '../../model/words';
-import { useCountUp } from '../../hooks/useCountUp';
+import { COUNT_BIG, COUNT_MARK, useCountUp } from '../../hooks/useCountUp';
 import { MarkIcon } from './MarkIcon';
 import styles from './answer.module.css';
 
@@ -52,7 +52,7 @@ export const Answer = memo(function Answer({
   return (
     <section className={styles.answer} aria-label="The fleet at a glance" data-role="door-answer">
       <button type="button" className={styles.big} tabIndex={tab} data-role="door-big" aria-label={`${totals.needs} ${plural(totals.needs, 'decision')} wait${totals.needs === 1 ? 's' : ''} for you. Open the district with the most.`} onClick={() => onOpen('needs')} {...lit('needs')}>
-        <Count n={totals.needs} delay={2400} dur={800} intro={intro} />
+        <Count n={totals.needs} {...COUNT_BIG} intro={intro} />
       </button>
       <div className={styles.bigSub} data-role="door-big-sub">
         {plural(totals.needs, 'decision')} {totals.needs === 1 ? 'waits' : 'wait'} for you
@@ -77,7 +77,7 @@ export const Answer = memo(function Answer({
               <MarkIcon kind={m.kind} />
               <span>
                 <b>
-                  <Count n={m.n(totals)} delay={1200} dur={2000} intro={intro} />
+                  <Count n={m.n(totals)} {...COUNT_MARK} intro={intro} />
                 </b>
                 {m.words(totals, staleTop)}
               </span>
@@ -89,11 +89,11 @@ export const Answer = memo(function Answer({
             <MarkIcon kind="proof" />
             <span>
               <b>
-                <Count n={totals.pass} delay={1200} dur={2000} intro={intro} />
+                <Count n={totals.pass} {...COUNT_MARK} intro={intro} />
               </b>{' '}
               {plural(totals.pass, 'proof')} passed this week ·{' '}
               <span className={styles.fl}>
-                <Count n={totals.fail} delay={1200} dur={2000} intro={intro} />
+                <Count n={totals.fail} {...COUNT_MARK} intro={intro} />
               </span>{' '}
               failed
             </span>

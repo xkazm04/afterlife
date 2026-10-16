@@ -5,7 +5,7 @@
 import type { ClassRecord, NeedsYouItem, RecordCounters } from '@/lib/demo';
 import { TIER_ORDER, type Tier } from '@/schemas/tier';
 import { getDataSource } from '@/server/data';
-import { isSeeded, SEEDED_ITEMS } from '@/server/data/live/seeded';
+import { ownDecisions, SEEDED_ITEMS } from '@/server/data/live/seeded';
 import type { NeedsYouDemo } from './types';
 
 export class MissingNeedsYouData extends Error {}
@@ -85,7 +85,7 @@ export function loadNeedsYouView(): NeedsYouView {
   const ds = getDataSource();
   if (ds.mode === 'live') {
     const all = ds.getNeedsYou();
-    const items = all.filter((n) => !isSeeded(n.id));
+    const items = ownDecisions('live', all);
     const seeded = all.length - items.length;
     return items.length ? { kind: 'live', items, seeded, project: ds.deepProjectId() } : { kind: 'empty', seeded };
   }

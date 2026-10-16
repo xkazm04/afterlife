@@ -1,6 +1,6 @@
 // Reads the data source (demo fixture or live index) once, on the server, into the shape the front door needs.
 import { getDataSource } from '@/server/data';
-import { isSeeded } from '@/server/data/live/seeded';
+import { ownDecisions } from '@/server/data/live/seeded';
 import type { DoorData } from '../DoorScreen';
 
 export function loadDoorData(): DoorData {
@@ -20,7 +20,7 @@ export function loadDoorData(): DoorData {
       id: ds.deepProjectId(),
       cockpit: { running: cockpit.running, doingNow: cockpit.doingNow, goingWell: cockpit.goingWell, needsMe: cockpit.needsMe },
       // live lists the group's own decisions only, as /needs-you does: the ids the demo seeds into an index are not its
-      needs: ds.mode === 'live' ? ds.getNeedsYou().filter((n) => !isSeeded(n.id)) : ds.getNeedsYou(),
+      needs: ownDecisions(ds.mode, ds.getNeedsYou()),
       tracks: ds.getTracks(),
       illustrative: { cockpit: shown('cockpit'), tracks: shown('tracks') },
     },
