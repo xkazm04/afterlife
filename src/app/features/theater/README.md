@@ -31,8 +31,11 @@ Pitch" prototype. Two films, chosen by the loader (`data/loadTheaterData.ts`, on
 - Frame state depends only on (entry, film time), so a take replays exactly. `#seq=NNN` cues a take, paused.
 
 ## The real film
-Each entry states only what its event states: at, agent, kind, action_class, tier_at_time, verdict when present, the
-MR iid, seq, and a 12-digit hash prefix. It starts from an empty state: no counts, tiers, rungs or needs. A kind moves
+Each entry states only what its event states, through the one event-facts table (`@/schemas/chain/facts`): every key
+of LedgerEvent is a row or hidden on purpose (seq and agent ride on the entry, prev_hash is the chain's), so a key the
+chain gains is a typecheck error until it is described. The inspector draws the rows: kind, class, tier at the time,
+verdict, environment, the tier-state revision read, what was withdrawn, what the next rung would decide, the subject,
+payload, observer, at and a 12-digit hash prefix. A key the event does not state has no row. It starts from an empty state: no counts, tiers, rungs or needs. A kind moves
 the climber only to the hold that the kind is; a hold the ledger does not reach stays unclimbed (only reached holds
 are drawn done, and there is no lit rope).
 
