@@ -23,6 +23,7 @@ import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierMark } from '@/components/status/TierMark';
 import { Icon } from '@/components/icons/Icon';
 import { ControlsGallery } from './components/ControlsGallery';
+import { FallbackGallery } from './components/fallback/FallbackGallery';
 import { OverlaysGallery } from './components/OverlaysGallery';
 import { ShellGallery } from './components/ShellGallery';
 import { StatusGallery } from './components/StatusGallery';
@@ -57,7 +58,7 @@ export function KitScreen() {
       subtitle="Shared components, every state"
       toolbar={
         <>
-          <SegmentedControl label="Gallery view" options={VIEWS} value={view} onChange={setView} />
+          <SegmentedControl label="Segmented control specimen" options={VIEWS} value={view} onChange={setView} />
           <Spacer />
           <Lozenge label="Fleet status">
             <LozengeButton lead={<NeedsYouBadge count={115} />} word="waiting" title="Decisions waiting for you" pressed />
@@ -85,7 +86,7 @@ export function KitScreen() {
         </>
       }
       inspector={<InspectorGallery />}
-      status="kit gallery · 6 sections · text size follows Settings"
+      status="kit gallery · 7 sections · text size follows Settings"
       help={
         <Legend
           rows={[
@@ -102,6 +103,7 @@ export function KitScreen() {
         <ControlsGallery />
         <OverlaysGallery onOpenSheet={() => setSheet(true)} />
         <ShellGallery />
+        <FallbackGallery />
         <TableGallery />
       </PaneScroll>
       {sheet ? (
