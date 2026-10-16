@@ -1,6 +1,6 @@
 // Loads and validates policy/trust-policy.yml and policy/tier-state.yml. The files are structured data
 // a person reviews; the engine refuses a malformed one instead of guessing what it meant.
-import { TIER_ORDER, type DemotionTrigger, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
+import { DEMOTION_TRIGGERS, TIER_ORDER, type DemotionTrigger, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
 import { readYaml } from '../core/files';
 import { EngineError, isRecord, num, rec, strList, type Ctx } from '../core/types';
 
@@ -18,13 +18,11 @@ export interface EnginePolicy extends TrustPolicy {
 
 const CEILINGS = [...TIER_ORDER, 'human_only'];
 
-// Every trigger the tripwire can be handed. A Record keyed by the schema's union, so adding a trigger there fails the typecheck here.
-const TRIGGER_SET: Record<DemotionTrigger, true> = { revert: true, reopened_finding: true, post_merge_proof_fail: true, default_branch_red_1h: true, guardrail_high: true, budget_breach_x2: true };
-export const DEMOTION_TRIGGERS = Object.keys(TRIGGER_SET) as DemotionTrigger[];
+export { DEMOTION_TRIGGERS };
 
 /** A trigger the tripwire never fires would sit in the policy doing nothing, so a typo there silently disarms the demotion. */
 function triggerList(v: unknown, what: string): void {
-  const unknown = strList(v, what).filter((t) => !DEMOTION_TRIGGERS.includes(t as DemotionTrigger));
+  const unknown = strList(v, what).filter((t) => !(DEMOTION_TRIGGERS as readonly string[]).includes(t));
   if (unknown.length) throw new EngineError(`${what} names ${unknown.map((t) => `"${t}"`).join(', ')}, which is not a demotion trigger (${DEMOTION_TRIGGERS.join(', ')})`);
 }
 
