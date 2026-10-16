@@ -115,6 +115,15 @@ tripwire demotion; the answer is `failed`. Without a `last_commit_id` from GitLa
   environment: the group is the fake's own `GROUP_ID` and the poller settings are the defaults (`deps.ts:27-31`).
   - F93 (Low, fixed): demo read the server's `BELAY_*` settings all the same, and a refusal named one to any caller
     (`BELAY_POLICY_PROJECT` in "the group has no acme-lab/<name> project"); `__tests__/replay/env.test.ts`.
+- **Run journal** (`runs/journal.ts`, table `action_runs`, migration 0015): a live confirm claims its `previewId`
+  atomically before the first command and finishes it with the response it sent (`cut` when it threw). `confirmIntent`
+  reads the record before it plans: a done within `RECALL_MS` (15 min) answers with that response, one still running in
+  this process is refused as still running, and only a confirm that claimed the id executes, so a repeat or a parallel
+  confirm never runs the commands twice. A failed or cut run, or one a dead process left running, may run again.
+  `recallAction(previewId: unknown)` (`runs/recallAction.ts`, `'use server'`, `notLocal` like the writes) answers a confirm
+  that got no answer: `{kind: 'ran', response, at}` | `{kind: 'running', since}` | `{kind: 'never'}` | `{kind: 'unknown'}`
+  (a cut run, or a row another process left running). Demo answers never; an away caller or a server not ready, unknown.
+  It writes nothing. Needs you's Ask again on an unsure write asks it first.
 
 A server action is an endpoint: validated, and it acts as whoever is logged in to `glab`. `previewId` is a digest of the
 commands, not a secret: any caller that can reach the port can preview and then confirm. Next's own check (the Origin's
