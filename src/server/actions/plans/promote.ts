@@ -56,7 +56,7 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
     commands: [
       ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, startBranch: base, content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }),
       ctx.port.plan.createMr({
-        project: repo.id, sourceBranch: branch, targetBranch: base, title, labels: ['belay::promotion'],
+        project: repo.id, sourceBranch: branch, targetBranch: base, title, labels: ['belay::promotion'], removeSourceBranch: true,
         description: `Prepared by Belay for ${ctx.operator}.\n\nBelay-Class: ${intent.class}\n\n${trial ? `${trial}\n\n` : ''}A person merges this; Belay never does.`,
       }),
     ],

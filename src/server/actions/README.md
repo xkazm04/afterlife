@@ -62,7 +62,7 @@ Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
 - A 404 on the branch read means the branch is absent. Any other failure refuses (`noBranch`).
 - A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`arm/head.ts:33-42`). Only
   `arm-track` and `disarm-track` are checked (`arm/head.ts:9`); every other intent is unchanged (`run.ts:4`).
-- The arm or disarm MR sets `remove_source_branch` (the `createMr` of `planArm` and of `planDisarm`).
+- Every MR the door opens sets `remove_source_branch` (the `createMr` of arm, disarm, promote, enroll and the gap MR), so a merged or closed MR does not leave a branch that `noBranch` would refuse on a same-day retry.
 - `belay/*` is a protected branch pattern (Setup step 9).
 - Known residual: GitLab's Files API answer names no commit, so the commit is read back with `getFile` right after the write.
   Moving arm and disarm to the Commits API is queued.
