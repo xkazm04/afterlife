@@ -54,6 +54,17 @@
 .quote {
   margin-top: 4px;
 }
+.replay {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: var(--t-small);
+  color: var(--accent);
+  text-decoration: none;
+}
+.replay:hover,
+.replay:focus-visible {
+  text-decoration: underline;
+}
 .dim .x,
 .dim .who b {
   color: var(--text-4);

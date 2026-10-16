@@ -50,6 +50,8 @@ export interface LedgerEntry {
   isNew?: boolean;
   /** The demo's own history shown beside live data (live mode): it carries a demo mark. */
   demo?: boolean;
+  /** Live: the Theater filming this move's MR first (`/theater?mr=<iid>`). The demo's moves have no run to replay. */
+  replay?: string;
 }
 
 export type SortKey = 'move' | 'name' | 'track' | 'tier' | 'ceiling' | 'lease' | 'acc' | 'noedit' | 'rv' | 'clean';

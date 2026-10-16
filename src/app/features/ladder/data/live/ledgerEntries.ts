@@ -1,7 +1,8 @@
 // Live: the Ladder's "Who acted" and "All moves" from the deep project's own belay-ledger (ds.getLedger(), verified on
 // import), mapped here on the server (@/schemas/ledger imports node:crypto). Only the moves a class page speaks of are
 // kept: the gate's tier decision (with the tier-state.yml revision it read and what the sweep withdrew), the guardrail's
-// verdict, the proof verdict and the merge. Nothing here is the demo's, so no entry carries the demo mark.
+// verdict, the proof verdict and the merge. Nothing here is the demo's, so no entry carries the demo mark. Each links
+// to its MR's run in the Theater, which films the same chain (`/theater?mr=<iid>` puts that MR first).
 import type { LedgerEvent } from '@/schemas/ledger';
 import { TIER_META } from '@/lib/tiers';
 import { clockLabel } from '../../model/clock';
@@ -33,7 +34,7 @@ function said(e: LedgerEvent): { actor: string; text: string } | null {
 /**
  * Oldest first, as the ledger runs. Each entry carries the event's instant (`at`, epoch ms) and its label in the screen's
  * zone `tz` (an IANA name: the one loadLadderData puts in the seed) as of `now`: "14:20:03" within a day, else "3 d ago".
- * A guardrail block quotes its MR's finding (resolved like the seed's).
+ * A guardrail block quotes its MR's finding (resolved like the seed's). `replay` is the Theater filming its MR first.
  */
 export function liveLedgerEntries(events: readonly LedgerEvent[], now: Date, tz: string): LedgerSeedEntry[] {
   return events.slice(-LIVE_LEDGER_MAX).flatMap((e): LedgerSeedEntry[] => {
@@ -41,6 +42,7 @@ export function liveLedgerEntries(events: readonly LedgerEvent[], now: Date, tz:
     if (!s) return [];
     const quote = e.kind === 'guardrail_verdict' && e.verdict === 'block' ? { quoteMr: `!${e.subject.iid}` } : {};
     const at = Date.parse(e.at);
-    return [{ at, t: clockLabel(at, tz, now), ids: [e.action_class], actor: s.actor, where: 'GitLab', kind: 'gitlab', text: s.text, ...quote }];
+    const replay = `/theater?mr=${e.subject.iid}`;
+    return [{ at, t: clockLabel(at, tz, now), ids: [e.action_class], actor: s.actor, where: 'GitLab', kind: 'gitlab', text: s.text, replay, ...quote }];
   });
 }
