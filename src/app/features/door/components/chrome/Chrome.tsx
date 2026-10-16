@@ -24,10 +24,13 @@ export function claimEscape(e: { key: string; preventDefault: () => void }): boo
 export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; asOf: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!open) return;
     const close = (e: PointerEvent | KeyboardEvent) => {
-      if (e instanceof KeyboardEvent ? claimEscape(e) : !ref.current?.contains(e.target as Node)) setOpen(false);
+      const esc = e instanceof KeyboardEvent && claimEscape(e);
+      if (esc || (!(e instanceof KeyboardEvent) && !ref.current?.contains(e.target as Node))) setOpen(false);
+      if (esc) toggle.current?.focus(); // the list unmounts under a keyboard user: focus goes back to Screens, not to the body
     };
     window.addEventListener('pointerdown', close);
     window.addEventListener('keydown', close, true);
@@ -52,7 +55,7 @@ export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; a
           <Link className={styles.enter} href="/fleet" data-role="door-enter">
             Enter Afterlife
           </Link>
-          <button type="button" className={styles.menuBtn} aria-expanded={open} aria-controls="door-menu" aria-label="Screens, all of the app" onClick={() => setOpen((v) => !v)}>
+          <button ref={toggle} type="button" className={styles.menuBtn} aria-expanded={open} aria-controls="door-menu" aria-label="Screens, all of the app" onClick={() => setOpen((v) => !v)}>
             Screens<span className={styles.cv}>▾</span>
           </button>
         </div>
