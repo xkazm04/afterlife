@@ -52,6 +52,11 @@ Adding a DOM environment is a dependency decision that has not been taken.
   (`run.ts`) and the live list (`slot/liveActs.ts`) both follow. A confirm with no answer is unsure: the write may or may
   not have run, so Run stays closed until it is asked for again (desk: Ask again in the outbox or the inspector; live: in
   the row). A refused preview can be asked for again on the desk too. Each live item sends on its own.
+- Ask again on an unsure write first asks the server what its previewId did (`recallAction`, server/actions/runs/):
+  `recalled` in `slot/slot.ts` settles a recorded done or failed as a confirm's answer, reopens Run on the kept preview
+  when nothing ran (never), stays unsure saying the write is still running (running), and stays unsure with Check GitLab
+  when the server cannot say (unknown): the next Ask again then asks for the write afresh. The desk folds the recall in
+  with `run.ts` `recalledItem` (the hook's own step, `useNeedsYou`); the live list with liveActs' `recalled` action.
 
 ## Data
 `data/*.ts` are the prototype's invented constants (CRA detail, week ledger, the runner step: `npx belay doctor`, which takes no arguments; its check result is the demo's simulation and says so, with no job number). n1's accepted proofs are
