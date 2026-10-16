@@ -86,8 +86,9 @@ export function Scene(p: SceneProps) {
       }}
       onFocus={(e) => {
         const t = target(e);
-        if (t.id) p.onHover(t.gi, t.id);
+        if (t.id) report(t);
       }}
+      onBlur={() => report({ gi: null, id: null })}
     >
       <div className={styles.ground} style={{ transform: groundTransform(p.cam) }}>
         <div className={styles.layer}>
