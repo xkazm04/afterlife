@@ -1,9 +1,10 @@
+import { useLeftSec } from '../../hooks/ClockProvider';
 import { clockParts } from '../../model/clock/clock';
 import styles from './Countdown.module.css';
 
 /** The big digits: arithmetic from a deadline. It does not pause, and it goes grey once the packet is signed. */
-export function Countdown({ leftSec, signed }: { leftSec: number; signed: boolean }) {
-  const { h, m, s } = clockParts(leftSec);
+export function Countdown({ signed }: { signed: boolean }) {
+  const { h, m, s } = clockParts(useLeftSec());
   return (
     <div className={`${styles.digits} ${signed ? styles.signed : ''}`} role="timer" aria-label="time left" title="Arithmetic from a deadline. It does not pause.">
       {h}

@@ -6,6 +6,9 @@ import { pickNeedsYouDemo } from '../../data/pick';
 import { visibleGroups } from '../../model/rows/grouping';
 import { initialState } from '../../model/state';
 import type { NeedsState } from '../../model/types';
+import { CRA } from '../../data/cra';
+import { ClockProvider } from '../../hooks/ClockProvider';
+import { clockText } from '../../model/clock/clock';
 import { DecisionsTable } from './DecisionsTable';
 
 const demo = pickNeedsYouDemo();
@@ -16,7 +19,6 @@ const html = (s: NeedsState) =>
       s={s}
       demo={demo}
       groups={visibleGroups(s, demo)}
-      leftSec={3600}
       menuing={false}
       tableRef={null}
       onKeyDown={() => {}}
@@ -45,5 +47,17 @@ describe('the Stage button on the group row', () => {
 
   it('is absent while no gap is picked', () => {
     expect(html(picking())).not.toMatch(/aria-label="Stage \d/);
+  });
+});
+
+describe('the clock cells read the shared tick', () => {
+  it('shows the full window on the sign-off row and both clock group headers before the first tick', () => {
+    const s = initialState(demo);
+    const out = renderToStaticMarkup(
+      <ClockProvider>
+        <DecisionsTable s={s} demo={demo} groups={visibleGroups(s, demo)} menuing={false} tableRef={null} onKeyDown={() => {}} dispatch={() => {}} onActivate={() => {}} onRowMenu={() => {}} onGroupMenu={() => {}} />
+      </ClockProvider>,
+    );
+    expect(out.split(clockText(CRA.remainingSec)).length - 1).toBeGreaterThanOrEqual(2);
   });
 });

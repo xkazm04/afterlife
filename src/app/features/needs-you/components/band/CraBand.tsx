@@ -13,7 +13,7 @@ import styles from './CraBand.module.css';
  * The CRA legal clock: the one dominant element. Live countdown, the 24 h rail, the grade ladder (attested struck
  * out), the evidence strip and the buttons. Clicking it selects the sign-off row.
  */
-export function CraBand({ s, leftSec, linksResolved, dispatch }: { s: NeedsState; leftSec: number; linksResolved: string; dispatch: (a: Action) => void }) {
+export function CraBand({ s, linksResolved, dispatch }: { s: NeedsState; linksResolved: string; dispatch: (a: Action) => void }) {
   const signed = s.status.n2 === 'sent';
   const cls = [styles.band, signed ? styles.signed : '', s.sel === 'n2' ? styles.on : ''].filter(Boolean).join(' ');
   return (
@@ -25,13 +25,13 @@ export function CraBand({ s, leftSec, linksResolved, dispatch }: { s: NeedsState
             <HonestyChip kind="seeded">drill · seeded</HonestyChip>
           </span>
         </div>
-        <Countdown leftSec={leftSec} signed={signed} />
+        <Countdown signed={signed} />
         <div className={styles.bmeta}>
           {CRA.vuln} · {CRA.release} · {CRA.issue} · does not pause
         </div>
       </div>
       <div className={styles.trk}>
-        <Rail24 totalSec={CRA.totalSec} leftSec={leftSec} awareAt={CRA.awareAt} dueClock={CRA.dueClock} signed={signed} />
+        <Rail24 totalSec={CRA.totalSec} awareAt={CRA.awareAt} dueClock={CRA.dueClock} signed={signed} />
         <GradeLadder current={gradeIndex(s.status.n2)} />
         <EvidenceStrip resolved={linksResolved} />
       </div>

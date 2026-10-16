@@ -11,10 +11,10 @@ import { OutlineTable } from '@/components/table/OutlineTable';
 import { RowGroup } from '@/components/table/RowGroup';
 import type { NeedsYouDemo } from '../../data/types';
 import { pickedGaps } from '../../model/act';
-import { clockText } from '../../model/clock/clock';
 import { isGapId, isWaiting } from '../../model/rows/rowState';
 import type { VisibleGroup } from '../../model/rows/grouping';
 import type { Action, NeedsState } from '../../model/types';
+import { ClockText } from './ClockText';
 import { DecisionRow } from './DecisionRow';
 import { HistoryRow } from './HistoryRow';
 import styles from './table.module.css';
@@ -28,7 +28,6 @@ export interface DecisionsTableProps {
   s: NeedsState;
   demo: NeedsYouDemo;
   groups: readonly VisibleGroup[];
-  leftSec: number;
   menuing: boolean;
   tableRef: Ref<HTMLDivElement>;
   onKeyDown: KeyboardEventHandler<HTMLDivElement>;
@@ -88,7 +87,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
               <Cell />
               <Cell />
               <Cell />
-              <Cell align="end">{CLOCK_GROUPS.includes(g.id) ? <span className={`${styles.mono} ${styles.due}`}>{clockText(p.leftSec)}</span> : null}</Cell>
+              <Cell align="end">{CLOCK_GROUPS.includes(g.id) ? <span className={`${styles.mono} ${styles.due}`}><ClockText /></span> : null}</Cell>
               <Cell>{waiting ? <NeedsYouBadge count={waiting} variant="group" title={`${waiting} waiting for you`} /> : null}</Cell>
               <Cell align="end" className={styles.act}>
                 {stageAll ? (
@@ -103,7 +102,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
                   g.hist ? (
                     <HistoryRow key={id} id={id} index={i} s={s} dispatch={dispatch} onActivate={p.onActivate} onContextMenu={p.onRowMenu} />
                   ) : (
-                    <DecisionRow key={id} id={id} index={i} s={s} demo={p.demo} leftSec={p.leftSec} dispatch={dispatch} onActivate={p.onActivate} onContextMenu={p.onRowMenu} />
+                    <DecisionRow key={id} id={id} index={i} s={s} demo={p.demo} dispatch={dispatch} onActivate={p.onActivate} onContextMenu={p.onRowMenu} />
                   ),
                 )
               : null}

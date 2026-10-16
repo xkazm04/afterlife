@@ -6,12 +6,12 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { Cell } from '@/components/table/Cell';
 import { Row } from '@/components/table/Row';
 import type { NeedsYouDemo } from '../../data/types';
-import { clockText } from '../../model/clock/clock';
 import { rowAction } from '../../model/rows/rowAction';
 import { rowView } from '../../model/rows/rowData';
 import { rowState } from '../../model/rows/rowState';
 import type { Action, NeedsState } from '../../model/types';
 import { DecisionGlyph } from '../shared/DecisionGlyph';
+import { ClockText } from './ClockText';
 import { MoveCell } from './MoveCell';
 import styles from './table.module.css';
 
@@ -24,7 +24,7 @@ export interface RowHandlers {
 }
 
 /** One decision: title (with a pick box for a gap), what moves, what the click writes, track, when, state, one action. */
-export function DecisionRow({ id, index, s, demo, leftSec, dispatch, onActivate, onContextMenu }: RowHandlers & { id: string; index: number; s: NeedsState; demo: NeedsYouDemo; leftSec: number }) {
+export function DecisionRow({ id, index, s, demo, dispatch, onActivate, onContextMenu }: RowHandlers & { id: string; index: number; s: NeedsState; demo: NeedsYouDemo }) {
   const v = rowView(s, id, demo);
   if (!v) return null;
   const state = rowState(s, id);
@@ -64,7 +64,7 @@ export function DecisionRow({ id, index, s, demo, leftSec, dispatch, onActivate,
         <span className={`${styles.mono} ${styles.track}`}>{v.track}</span>
       </Cell>
       <Cell align="end">
-        <span className={`${styles.mono} ${v.due ? styles.due : styles.when}`}>{v.due ? clockText(leftSec) : v.when}</span>
+        <span className={`${styles.mono} ${v.due ? styles.due : styles.when}`}>{v.due ? <ClockText /> : v.when}</span>
       </Cell>
       <Cell>
         <span className={`${styles.stx} ${TONE[state.tone] ?? ''}`}>
