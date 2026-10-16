@@ -42,11 +42,19 @@ function decisionKeys(v: Rec, kind: LedgerKind | undefined, tier: Tier | undefin
   };
 }
 
+/** Every key a line may carry. The hash covers the line as written, so a key dropped here would read as a tampered chain. */
+const KNOWN_KEYS: ReadonlySet<string> = new Set([
+  'seq', 'at', 'agent', 'action_class', 'kind', 'tier_at_time', 'subject', 'payload_ref', 'observed_by', 'prev_hash', 'hash',
+  'verdict', 'environment', 'state_rev', 'withdrew', 'would',
+]);
+
 function toEvent(v: unknown, line: number): LedgerEvent {
   const bad = (what: string): never => {
     throw new LedgerParseError(line, what);
   };
   if (!isRec(v)) return bad('not a JSON object');
+  const unknown = Object.keys(v).find((k) => !KNOWN_KEYS.has(k));
+  if (unknown !== undefined) bad(`unknown key "${unknown}": written by a newer version than this reader, not a tampered chain`);
   const s = v.subject;
   const kind = LEDGER_KINDS.find((k) => k === v.kind);
   const tier = TIER_ORDER.find((t) => t === v.tier_at_time);

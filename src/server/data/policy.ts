@@ -57,8 +57,9 @@ export function repoPolicy(root: string = process.cwd()): PolicyRules | null {
   let rules: PolicyRules | null = null;
   try {
     rules = rulesOf(parsePolicy(parse(fs.readFileSync(path.join(root, 'policy', 'trust-policy.yml'), 'utf8'))));
-  } catch {
+  } catch (e) {
     rules = null;
+    console.warn(`belay: no trust policy from ${path.join(root, 'policy', 'trust-policy.yml')}: ${e instanceof Error ? e.message : String(e)}`); // once per root: the cache below
   }
   cached = { root, rules };
   return rules;
