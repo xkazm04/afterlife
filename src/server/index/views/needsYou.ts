@@ -1,5 +1,5 @@
 // The Needs-you inbox: open proposals, oldest first. Countdowns are computed from the stored deadline.
-import { listOpenProposals, type ProposalKind } from '../repositories/work/proposal';
+import { countOpenInbox, listOpenProposals, type ProposalKind } from '../repositories/work/proposal';
 import type { Queryable } from '../repositories/sql';
 import { countdown } from './format';
 import type { NeedsYouItem } from './types';
@@ -24,10 +24,4 @@ export async function getNeedsYou(db: Queryable, projectId: string, now: Date = 
 }
 
 /** The number on the sidebar badge. */
-export async function getNeedsYouCount(db: Queryable, projectId: string): Promise<number> {
-  const { rows } = await db.query<{ n: number }>(
-    `select count(*)::int as n from proposal where project_id = $1 and state = 'open' and parent_id is null`,
-    [projectId],
-  );
-  return rows[0]?.n ?? 0;
-}
+export const getNeedsYouCount = (db: Queryable, projectId: string): Promise<number> => countOpenInbox(db, projectId);

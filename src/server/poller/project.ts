@@ -6,6 +6,7 @@ import type { GlDeployment, GlGroup, GlMergeRequest, GlNote, GlProject } from '@
 import { importLedger, type LedgerSource } from '@/server/ledger/importLedger';
 import { upsertProjects, type ProjectRow } from '@/server/index/repositories/fleet/project';
 import { deleteProofs, upsertProofs } from '@/server/index/repositories/work/proof';
+import { countOpenInbox } from '@/server/index/repositories/work/proposal';
 import { getTaskRow, upsertTasks, type TaskDetail, type TaskRow } from '@/server/index/repositories/work/task';
 import { recordPollError, recordPollOk, projectSource } from '@/server/index/repositories/pollState';
 import { setProjectState } from '@/server/index/repositories/fleet/project';
@@ -161,7 +162,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
 
       const row: ProjectRow = {
         ...base, gitlabId: gl.id, state: 'watching', proofs7d: countProofs(mrs, now, cfg.rollupWindowMs), demotions7d: demotions,
-        needsYou: await count(tx, "select count(*)::int as n from proposal where project_id = $1 and state = 'open' and parent_id is null", id),
+        needsYou: await countOpenInbox(tx, id),
         craOpen: await count(tx, "select count(*)::int as n from proposal where project_id = $1 and state = 'open' and kind = 'cra_signoff'", id),
       };
       await upsertProjects(tx, [row]);

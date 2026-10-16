@@ -68,3 +68,12 @@ export async function closeProposal(
   );
   return rows.length === 1;
 }
+
+/** The Needs-you count: a project's open, top-level proposals (a gap's picks are not counted). Badge and Fleet row both read it. */
+export async function countOpenInbox(db: Queryable, projectId: string): Promise<number> {
+  const { rows } = await db.query<{ n: number }>(
+    `select count(*)::int as n from proposal where project_id = $1 and state = 'open' and parent_id is null`,
+    [projectId],
+  );
+  return rows[0]?.n ?? 0;
+}
