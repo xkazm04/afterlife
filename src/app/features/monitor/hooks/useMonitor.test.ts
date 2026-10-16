@@ -23,7 +23,7 @@ describe('useMonitor.repoll in live mode', () => {
     repollAction.mockReset();
   });
 
-  it.fails('a second click while the poll runs does not start a second server poll', async () => {
+  it('a second click while the poll runs does not start a second server poll', async () => {
     let finish!: (r: { ok: true }) => void;
     repollAction.mockReturnValue(new Promise((res) => (finish = res)));
     const say = vi.fn();
