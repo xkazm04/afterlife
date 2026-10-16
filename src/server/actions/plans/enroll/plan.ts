@@ -10,6 +10,7 @@ import { readPolicy } from '@/server/poller/derive/policy';
 import { ROLE_TRACK } from '@/server/poller/derive/tiers';
 import type { EnrollTrack } from '../../types';
 import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, type PlanContext } from '../context';
+import { branchMr } from '../mr/branchMr';
 import { editRecords, lineDiff, type RecordEdit } from '../tierEdit';
 import { accountFor } from './account';
 
@@ -52,18 +53,19 @@ export async function planEnroll(ctx: PlanContext, intent: EnrollTrack): Promise
     ...(skipped.length ? [`${skipped.join(', ')}: human only, so no record is written.`] : []),
     'A person merges this MR; Belay never does. The gate reads the new records on the next MR pipeline after the merge.',
   ];
+  const mr = await branchMr(ctx, {
+    project: repo, base, branch,
+    commits: [{ path: 'tier-state.yml', content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }],
+    mr: {
+      title, labels: ['belay::promotion'],
+      description: `Prepared by Belay for ${ctx.operator}: the first records of ${intent.track}'s classes, at start_tier.\n\n${edits.map((e) => `Belay-Class: ${e.class}`).join('\n')}\n\nA person merges this; Belay never does.`,
+    },
+  });
   return {
     title: `Enroll ${intent.track}'s classes at ${start}`,
     summary: `Opens a policy MR in ${repo.pathWithNamespace} as ${ctx.operator} that gives ${edits.length > 1 ? `${edits.length} classes their first records` : `${edits[0]?.class} its first record`} under ${found.account}.`,
-    commands: [
-      ctx.port.plan.commitFile({ project: repo.id, path: 'tier-state.yml', branch, startBranch: base, content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }),
-      ctx.port.plan.createMr({
-        project: repo.id, sourceBranch: branch, targetBranch: base, title, labels: ['belay::promotion'],
-        description: `Prepared by Belay for ${ctx.operator}: the first records of ${intent.track}'s classes, at start_tier.\n\n${edits.map((e) => `Belay-Class: ${e.class}`).join('\n')}\n\nA person merges this; Belay never does.`,
-      }),
-    ],
+    ...mr,
     diff: lineDiff(file.content, content),
-    branch,
     notes,
   };
 }

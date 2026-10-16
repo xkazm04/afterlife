@@ -1,12 +1,13 @@
-// F38 part 2: an arm or disarm confirm is done only when the MR GitLab opened is headed by the commit this confirm made.
+// F38 part 2: a branch MR's confirm (plans/mr/branchMr.ts: promote, enroll, a gap, arm, disarm) is done only when the MR
+// GitLab opened is headed by the commit this confirm made.
 // Anything else means someone pushed to the branch between the commit and the MR, and the MR (authored by the operator,
-// "Prepared by Belay") would carry a commit nobody previewed. Only these two intents are checked; every other write
-// keeps its behaviour.
+// "Prepared by Belay") would carry a commit nobody previewed. A write that opens no MR (revoke, a CRA label) is not checked.
 import type { GitLabPort, ProjectRef } from '@/server/gitlab/port';
 import { COMMIT_ID } from '../plans/context';
+import { BRANCH_MR_KINDS } from '../plans/mr/branchMr';
 import type { ActionIntent } from '../types';
 
-export const headChecked = (kind: ActionIntent['kind']): boolean => kind === 'arm-track' || kind === 'disarm-track';
+export const headChecked = (kind: ActionIntent['kind']): boolean => (BRANCH_MR_KINDS as readonly string[]).includes(kind);
 
 const asRec = (v: unknown): Record<string, unknown> => (typeof v === 'object' && v !== null ? (v as Record<string, unknown>) : {});
 

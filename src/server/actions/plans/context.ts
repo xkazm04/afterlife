@@ -30,7 +30,7 @@ export interface Plan {
   summary: string;
   commands: PlannedCommand[];
   diff: string[];
-  /** The branch the commands create, when they create one. */
+  /** The branch a branch MR creates (mr/branchMr.ts): the MR's head is checked against the confirm's commit (F38). */
   branch?: string;
   /** What the operator must know before the click, in order. */
   notes?: readonly string[];
@@ -41,27 +41,42 @@ export interface Located {
   policy: GlProject;
 }
 
+/** A target as targetIn found it, with the group's full path and its project list (a plan may need either). */
+export interface Targeted {
+  project: GlProject;
+  group: string;
+  all: GlProject[];
+}
+
 /**
- * The project and the group's own belay-policy. Read only. The project must be under the group's path (F47), and
- * belay-policy is the one at <group>/belay-policy, the file the gate reads: a project of that name in a subgroup, or
- * shared in from elsewhere, is never written as the policy (F46).
+ * The one target rule, for every write (locate) and arm (arm/plan.ts targetOf). Read only. The project is the one the index
+ * names, never ambiguous (F48), never one of Belay's own (`infra`, F50), and under the group's path (F37, F47).
  */
-export async function locate(ctx: PlanContext, indexId: string): Promise<Located> {
+export async function targetIn(ctx: Pick<PlanContext, 'port' | 'groupId' | 'gitlabId'>, indexId: string, infra: readonly string[]): Promise<Targeted> {
   const [all, gid, group] = await Promise.all([ctx.port.listProjects(ctx.groupId), ctx.gitlabId(indexId), ctx.port.getGroup(ctx.groupId)]);
   const matches = all.filter((p) => (gid !== null ? p.id === gid : p.path === indexId));
   if (matches.length > 1) { // a path is unique in its namespace only: two subgroups may each hold one (F48)
     throw new ActionRefused(`${indexId} names ${matches.length} projects (${matches.map((p) => p.pathWithNamespace).join(', ')}) and the index has no GitLab id for it: poll first`);
   }
   const project = matches[0];
-  const policyPath = `${group.fullPath}/${ctx.cfg.policyProject}`;
-  const policy = all.find((p) => p.pathWithNamespace === policyPath);
   if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);
-  if (ctx.cfg.infra.includes(project.path)) { // as the poller, which never watches them: tier-state.yml moves only by revoke or promote (F50)
+  if (infra.includes(project.path)) { // as the poller, which never watches them: tier-state.yml moves only by revoke or promote (F50)
     throw new ActionRefused(`${project.path} is Belay's own project, not one it watches: nothing is planned in it`);
   }
-  if (!project.pathWithNamespace.startsWith(`${group.fullPath}/`)) { // F37's refusal, as arm's targetOf has it (F47)
+  if (!project.pathWithNamespace.startsWith(`${group.fullPath}/`)) { // F37, F47
     throw new ActionRefused(`${project.pathWithNamespace} is not in ${group.fullPath} (it is shared into it from elsewhere): Belay writes only in a project of the paired group`);
   }
+  return { project, group: group.fullPath, all };
+}
+
+/**
+ * The project (targetIn) and the group's own belay-policy. Read only. belay-policy is the one at <group>/belay-policy, the
+ * file the gate reads: a project of that name in a subgroup, or shared in from elsewhere, is never written as the policy (F46).
+ */
+export async function locate(ctx: PlanContext, indexId: string): Promise<Located> {
+  const { project, group, all } = await targetIn(ctx, indexId, ctx.cfg.infra);
+  const policyPath = `${group}/${ctx.cfg.policyProject}`;
+  const policy = all.find((p) => p.pathWithNamespace === policyPath);
   if (!policy) throw new ActionRefused(`the group has no ${policyPath} project: policy cannot be changed`);
   return { project, policy };
 }
