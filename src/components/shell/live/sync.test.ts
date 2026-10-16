@@ -8,7 +8,7 @@ import { initSync, readAnswer, shouldSync, syncReducer, type SyncAction, type Sy
 
 const info = (needsYouCount: number): ShellInfo => ({
   needsYouCount,
-  data: { mode: 'live', fakeGitlab: false, group: 'acme', illustrative: false },
+  data: { mode: 'live', fakeGitlab: false, group: 'acme', illustrative: false, poll: null },
 });
 const run = (s: SyncState, ...actions: SyncAction[]) => actions.reduce(syncReducer, s);
 const issued = (s: SyncState, n: number) => run(s, ...Array.from({ length: n }, () => ({ type: 'issue' }) as const));

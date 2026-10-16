@@ -3,6 +3,22 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { useShellSync } from './live/useShellSync';
 
+/**
+ * The poller's health as the server last read it (the snapshot's, by the source's own clock) and the interval it polls
+ * at: the status bar's poll line (bars/poll/pollLine.ts). The client adds only the time since it received this.
+ */
+export interface ShellPoll {
+  /** Seconds since the last cycle that read the group; null: none ever did. */
+  ageSec: number | null;
+  /** Why the last cycle could not read the group; null: it could. */
+  error: string | null;
+  /** Polled projects whose last poll failed, of all the polled projects. */
+  failing: number;
+  of: number;
+  /** BELAY_POLL_SECONDS: how often the poller runs. */
+  intervalSec: number;
+}
+
 /** What the status bar needs to say about the data the screens show. Plain values: it crosses from server to client. */
 export interface ShellData {
   mode: 'demo' | 'live';
@@ -12,6 +28,8 @@ export interface ShellData {
   group: string;
   /** The source declares parts that are still the demo's narrative beside the live data. */
   illustrative: boolean;
+  /** Live: the poll's health. Demo: null, nothing is polled. */
+  poll: ShellPoll | null;
 }
 
 export interface ShellInfo {
@@ -23,7 +41,7 @@ export interface ShellInfo {
 /** Without a provider the shell is the demo: tests and the kit render that way. */
 export const DEMO_SHELL: ShellInfo = {
   needsYouCount: 0,
-  data: { mode: 'demo', fakeGitlab: false, group: 'not paired', illustrative: false },
+  data: { mode: 'demo', fakeGitlab: false, group: 'not paired', illustrative: false, poll: null },
 };
 
 const ShellContext = createContext<ShellInfo>(DEMO_SHELL);

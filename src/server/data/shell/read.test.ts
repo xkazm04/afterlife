@@ -39,13 +39,18 @@ describe('readShellInfo', () => {
   it('demo: the values the root layout built inline (the five seeded decisions, the demo group, nothing illustrative)', () => {
     expect(readShellInfo(demoSource, {})).toEqual({
       needsYouCount: 5,
-      data: { mode: 'demo', fakeGitlab: false, group: demoSource.getPortfolio().group, illustrative: false },
+      data: { mode: 'demo', fakeGitlab: false, group: demoSource.getPortfolio().group, illustrative: false, poll: null },
     });
   });
 
   it('live on the fake GitLab: the mode, the fake flag, the snapshot\'s group, and the illustrative catalogue are named', () => {
     const info = readShellInfo(liveSource(() => S), { BELAY_MODE: 'live', BELAY_GITLAB: 'fake' });
-    expect(info.data).toEqual({ mode: 'live', fakeGitlab: true, group: S.data.portfolio.group, illustrative: true });
+    expect(info.data).toEqual({ mode: 'live', fakeGitlab: true, group: S.data.portfolio.group, illustrative: true, poll: { ...S.data.poll, intervalSec: 30 } });
+  });
+
+  it('live: the poll’s health is the snapshot’s, with the interval the poller keeps (BELAY_POLL_SECONDS)', () => {
+    expect(S.data.poll).toMatchObject({ error: null, failing: 0 });
+    expect(readShellInfo(liveSource(() => S), { BELAY_POLL_SECONDS: '45' }).data.poll).toEqual({ ...S.data.poll, intervalSec: 45 });
   });
 
   it('live: one new decision in the snapshot is one more on the badge; a seeded one is not, as the Needs-you screen lists them', () => {

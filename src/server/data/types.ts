@@ -46,6 +46,18 @@ export interface TiersStale {
   lastOk: string | null;
 }
 
+/**
+ * The poller's health as of the snapshot, by the source's own clock. `ageSec`: seconds since the last cycle that read the
+ * group (null: none ever did); `error`: why the last cycle could not read it (null: it could); `failing` of `of`: the
+ * polled projects (those linked to GitLab) whose last poll failed.
+ */
+export interface PollHealth {
+  ageSec: number | null;
+  error: string | null;
+  failing: number;
+  of: number;
+}
+
 export interface DataSource {
   readonly mode: DataMode;
   /**
@@ -87,6 +99,8 @@ export interface DataSource {
    * stale; null once a read succeeds. Demo: always null.
    */
   getTiersStale(): TiersStale | null;
+  /** Live: the last poll's health (the status bar's poll line). Demo: null, nothing is polled. */
+  getPollHealth(): PollHealth | null;
   /**
    * Setup's live reads (its tracks' arm blocks, the belay doctor, the steps a read can observe), bound to the port and
    * the snapshot's pairing row. The getter is synchronous; the reads are port calls the Setup loader awaits. Null in demo
