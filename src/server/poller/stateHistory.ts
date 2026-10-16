@@ -49,6 +49,9 @@ async function revisionAt(port: GitLabPort, project: ProjectRef, commit: string,
 /** `state`: tier-state.yml as this poll read it from `ref`. GitLab errors pass through (the caller decides). */
 export async function readStateHistory(port: GitLabPort, project: ProjectRef, ref: string, state: TierState, mem: PollMemory, depth = HISTORY_DEPTH): Promise<StateHistory> {
   const commits = await port.listCommits(project, { path: STATE_FILE, ref, limit: depth });
+  // only these commits are read again next poll: a revision that fell out of the list is dropped, not kept for the process's life
+  const listed = new Set(commits.map((c) => c.id));
+  for (const k of mem.states.keys()) if (!listed.has(k)) mem.states.delete(k);
   const writers = new Map<string, GlCommit | null>();
   const open = new Map<string, TierRecord>();
   for (const [agent, classes] of Object.entries(state.agents)) for (const [cls, r] of Object.entries(classes)) open.set(key(agent, cls), r);

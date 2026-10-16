@@ -14,7 +14,7 @@ import type { EnginePolicy } from '../../../engine/policy/load';
 import { readPolicy, type PolicyRead } from './derive/policy';
 import { trustClassesOf } from './derive/tiers';
 import { groupPathOf, pollProject, type ProjectPoll } from './project';
-import { createMemory, type PollMemory } from './state';
+import { createMemory, forgetProjects, type PollMemory } from './state';
 import { readStateHistory, type StateHistory } from './stateHistory';
 
 export interface CycleResult {
@@ -78,6 +78,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   const ledgerProject = all.find((p) => p.pathWithNamespace === `${group.fullPath}/${cfg.ledgerProject}`);
   all = all.filter(own);
   const targets = all.filter((p) => !p.archived && !cfg.infra.includes(p.path));
+  forgetProjects(mem, new Set(targets.map((p) => p.id)));
   let policy: PolicyRead | null = null;
   if (!policyProject) result.warnings.push(`no ${cfg.policyProject} project in the group: class tiers are not updated`);
   else {
