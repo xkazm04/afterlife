@@ -55,6 +55,32 @@ const LeadRow = memo(function LeadRow({ lead, open, thin, selected, match, onPic
   );
 });
 
+export interface LeadsKeyDeps {
+  leads: readonly Lead[];
+  selected: string | null;
+  onPick: (id: string) => void;
+  onToggle: (group: string) => void;
+  /** Puts keyboard focus back on a beat once the render that follows has settled. */
+  focusId: (id: string) => void;
+}
+
+/** Arrows move the pick; Enter opens or closes the lead. Either way the focused node may be replaced, so focus goes back to the selected beat. */
+export function handleLeadsKey(e: Pick<KeyboardEvent, 'key' | 'target' | 'preventDefault'>, d: LeadsKeyDeps): void {
+  if (e.key.startsWith('Arrow')) {
+    e.preventDefault();
+    const next = step(d.leads, d.selected, e.key);
+    if (!next) return;
+    d.onPick(next);
+    d.focusId(next);
+  } else if (e.key === 'Enter' && (e.target as Element).getAttribute('role') === 'button') {
+    const lead = d.leads.find((l) => l.projects.some((p) => p.id === d.selected));
+    if (lead && d.selected) {
+      d.onToggle(lead.group);
+      d.focusId(d.selected);
+    }
+  }
+}
+
 /**
  * One lead per group. Arrows move the selection beat to beat and lead to lead; Enter opens the lead into
  * named cells; the open lead takes the room and the others shrink to thin traces.
@@ -85,21 +111,10 @@ export function Leads({
   const ref = useRef<HTMLDivElement>(null);
   const match = useMemo(() => (mark ? new Set(projects.filter(markTest(mark)).map((p) => p.id)) : null), [mark, projects]);
 
-  const onKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key.startsWith('Arrow')) {
-        e.preventDefault();
-        const next = step(leads, selected, e.key);
-        if (!next) return;
-        onPick(next);
-        requestAnimationFrame(() => ref.current?.querySelector<HTMLElement | SVGElement>(`[data-id="${next}"]`)?.focus());
-      } else if (e.key === 'Enter' && (e.target as Element).getAttribute('role') === 'button') {
-        const lead = leads.find((l) => l.projects.some((p) => p.id === selected));
-        if (lead) onToggle(lead.group);
-      }
-    },
-    [leads, selected, onPick, onToggle],
-  );
+  const focusId = useCallback((id: string) => {
+    requestAnimationFrame(() => ref.current?.querySelector<HTMLElement | SVGElement>(`[data-id="${id}"]`)?.focus());
+  }, []);
+  const onKeyDown = useCallback((e: KeyboardEvent) => handleLeadsKey(e, { leads, selected, onPick, onToggle, focusId }), [leads, selected, onPick, onToggle, focusId]);
 
   return (
     <div ref={ref} className={styles.leads} data-paused={paused || undefined} onKeyDown={onKeyDown} role="group" aria-label="Leads, one per group">
