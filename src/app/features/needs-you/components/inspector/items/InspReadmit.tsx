@@ -28,7 +28,7 @@ export function InspReadmit(p: InspProps) {
             <HonestyChip kind="seeded" />
           </span>
         }
-        path={`tier-state.yml · tripwire e7f19d0 · ${READMIT.openedAt}`}
+        path={`tier-state.yml · tripwire ${READMIT.tripwire} · ${READMIT.openedAt}`}
       />
       {st === 'open' || st === 'staged' ? (
         <Acts>
