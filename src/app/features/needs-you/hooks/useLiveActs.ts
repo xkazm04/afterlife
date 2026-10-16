@@ -2,17 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from 'react';
 import type { NeedsYouItem } from '@/lib/demo';
+import { recallAction } from '@/server/actions/runs/recallAction';
 import type { LiveEvidence } from '../model/evidence/evidence';
 import { liveIntent, writeName } from '../model/live';
 import { LIVE_EMPTY, liveAnswers, liveReduce, liveViews } from '../model/slot/liveActs';
-import { beginSend, needsAsk } from '../model/slot/slot';
+import { beginSend, needsAsk, needsRecall } from '../model/slot/slot';
 import { askPolicyMr, sendPolicyMr } from '../write/promote';
 
 /**
  * The live list's writes. Selecting a promotion or a re-admit asks the server for its exact write (previewAction, nothing
  * runs); Run confirms the preview on screen by its id (confirmAction), never anything else. Each item is one write slot
  * (model/slot, the desk's rule) in a pure reducer (model/slot/liveActs.ts): this hook only asks and confirms. Changed puts
- * the new write on screen, refused and failed say so, done names the MR, and no answer closes Run until it is asked again.
+ * the new write on screen, refused and failed say so, done names the MR, and no answer closes Run until it is asked again:
+ * Ask again then first asks the server what that preview did (recallAction), and only asks afresh when it cannot say.
  * An item whose class moved since the proposal (its evidence's canRun is false) is never sent, from a click or a key.
  */
 const still = () => () => {};
@@ -44,8 +46,21 @@ export function useLiveActs(items: readonly NeedsYouItem[], project: string, evi
     });
   }, [toAsk, intentOf]);
 
-  /** A preview that failed, or a confirm that got no answer: ask again. */
-  const retry = useCallback((id: string) => dispatch({ type: 'retry', id }), []);
+  /** A preview that failed, or a confirm that got no answer: ask again (an unsure one asks what its preview did first). */
+  const recalling = useRef(new Set<string>());
+  const retry = useCallback((id: string) => {
+    const slot = state.slots[id];
+    if (!needsRecall(slot) || slot?.view?.kind !== 'preview') return dispatch({ type: 'retry', id });
+    if (recalling.current.has(id)) return;
+    recalling.current.add(id);
+    const intent = intentOf(id);
+    const item = items.find((n) => n.id === id);
+    const what = intent ? writeName(intent) : undefined;
+    recallAction(slot.view.preview.previewId)
+      .catch(() => ({ kind: 'unknown' as const }))
+      .then((recall) => dispatch({ type: 'recalled', id, item, recall, ...(what ? { what } : {}) }))
+      .finally(() => recalling.current.delete(id));
+  }, [state.slots, intentOf, items]);
 
   const run = useCallback((id: string) => {
     const intent = intentOf(id);

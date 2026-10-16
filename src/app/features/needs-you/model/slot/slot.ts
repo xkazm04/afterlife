@@ -1,10 +1,13 @@
 // One server-planned write (a policy MR, a gap MR), from the ask to the answer: the one rule every screen that sends one
 // follows. Asking: the exact write is not on screen yet (or is asked for again). Ready: the preview is on screen and Run
 // confirms it. Refused: there is no write, only why. Sending: one confirm is out. Answered: done, the write ran. Unsure:
-// the confirm got no answer, so the write may or may not have run: Run stays closed until the write is asked for again.
+// the confirm got no answer, so the write may or may not have run: Run stays closed. Ask again first asks the server what
+// its previewId did (`recalled`): ran is the answer, never opens Run on the same preview, running stays unsure; when the
+// server cannot say (unknown), the next Ask again asks for the write afresh.
 // Pure: the desk reducer and the live list's reducer hold one slot per key.
+import type { Recall } from '@/server/actions/runs/journal';
 import type { ActionResponse } from '@/server/actions/types';
-import { mrOf, NO_ANSWER, outcomeOf, type Outcome, type WriteView } from '@/server/actions/words';
+import { mrOf, NO_ANSWER, outcomeOf, STILL_RUNNING, type Outcome, type WriteView } from '@/server/actions/words';
 
 export type Phase = 'asking' | 'ready' | 'refused' | 'sending' | 'answered' | 'unsure';
 
@@ -23,6 +26,8 @@ export interface WriteSlot {
   /** The server's preview, or why there is none. Kept while sending, answered and unsure, never run again from there. */
   view?: WriteView;
   answer?: SlotAnswer;
+  /** Unsure, and the server could not say whether it ran: Ask again now asks for the write afresh. */
+  recalled?: true;
 }
 
 const phaseOf = (view: WriteView | undefined): Phase => (!view ? 'asking' : view.kind === 'preview' ? 'ready' : 'refused');
@@ -61,6 +66,24 @@ export function settle(slot: WriteSlot | undefined, r: ActionResponse | null, wh
   if (o.status === 'refused') return { phase: 'refused', view: { kind: 'refused', reason: o.reason }, answer };
   if (o.status === 'failed') return { ...slot, phase: phaseOf(view), answer };
   return { ...slot, phase: 'answered', answer };
+}
+
+const unsureWith = (slot: WriteSlot, text: string, extra: Partial<WriteSlot> = {}): WriteSlot =>
+  ({ phase: 'unsure', ...(slot.view ? { view: slot.view } : {}), answer: { status: 'unsure', text, simulated: false, mr: null }, ...extra });
+
+/** Ask again on an unsure write: ask the server what its previewId did first, unless it already could not say. */
+export const needsRecall = (slot: WriteSlot | undefined): boolean => slot?.phase === 'unsure' && !slot.recalled && slot.view?.kind === 'preview';
+
+/**
+ * The server's record of an unsure write (`recallAction`). Ran: its response settles the slot as a confirm's would. Never:
+ * nothing ran, so the kept preview is ready again. Running: still unsure, saying so. Unknown: unsure, check GitLab.
+ */
+export function recalled<S extends WriteSlot | undefined>(slot: S, r: Recall, what: string): S | WriteSlot {
+  if (!slot || slot.phase !== 'unsure') return slot;
+  if (r.kind === 'ran') return settle(slot, r.response, what);
+  if (r.kind === 'never') return slot.view?.kind === 'preview' ? { phase: 'ready', view: slot.view } : asked();
+  if (r.kind === 'running') return unsureWith(slot, STILL_RUNNING);
+  return unsureWith(slot, NO_ANSWER, { recalled: true });
 }
 
 /** What an unsure write shows where the preview was: no write to run, and why. */

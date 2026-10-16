@@ -1,7 +1,9 @@
 // preview, then confirm. The first call plans the commands and returns them with a digest; the second call plans again and
 // runs them only if the digest still matches what the operator saw. Live: each command is written to commands_run
 // BEFORE it runs, then finished with its exit code; a poll follows. Demo: nothing runs, the result says "simulated".
-// An arm or disarm is done only when the MR it opened is headed by the commit it made (arm/head.ts, F38).
+// Every branch MR (promote, enroll, a gap, arm, disarm) is done only when the MR it opened is headed by the commit it made
+// (arm/head.ts, F38). Live, a confirm is kept under its previewId (runs/journal.ts): a repeat answers from the record,
+// one sent while the same previewId is running is refused, and neither runs the commands again.
 import { createHash } from 'node:crypto';
 import type { PGlite } from '@electric-sql/pglite';
 import { GitLabError } from '@/server/gitlab/errors';
@@ -12,6 +14,7 @@ import { closeProposal } from '@/server/index/repositories/work/proposal';
 import type { PollerConfig } from '@/server/poller/config';
 import { headChecked, headMismatch } from './arm/head';
 import { parseIntent } from './intents';
+import { answered, claim, finish } from './runs/journal';
 import { ActionRefused, planIntent, type Plan, type PlanContext } from './plans';
 import { COMMIT_ID } from './plans/context';
 import { ledgerReader } from './plans/trial';
@@ -103,7 +106,7 @@ async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Pro
   return f?.lastCommitId && COMMIT_ID.test(f.lastCommitId) ? { named: { made: `commit ${f.lastCommitId.slice(0, 8)}` }, commit: f.lastCommitId } : { named: {} };
 }
 
-/** Arm and disarm only (F38): the MR this confirm opened must be headed by the commit it made, or the confirm failed. */
+/** Every branch MR (headChecked, F38): the MR this confirm opened must be headed by the commit it made, or it failed. */
 async function checkHead(deps: ActionDeps, b: Extract<Built, { ok: true }>, results: CommandOutcome[], commit: string | null, mrBody: unknown): Promise<void> {
   const last = results.at(-1);
   const file = b.plan.commands.find((c) => c.file)?.file;
@@ -141,8 +144,29 @@ async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promi
   return { status: ok ? 'done' : 'failed', preview: b.preview, results };
 }
 
-/** Step 2: runs what `previewId` names, if and only if the plan is still exactly that. */
+/** Live: claims `previewId` (or answers from the record when another confirm holds it), runs it, and keeps its answer. */
+async function once(deps: ActionDeps, b: Extract<Built, { ok: true }>, previewId: string): Promise<ActionResponse> {
+  const db = deps.db;
+  if (!db) return execute(deps, b);
+  if (!(await claim(db, previewId, deps.now()))) return (await answered(db, previewId, deps.now())) ?? refused('this write ran moments ago; ask for it again');
+  let r: ActionResponse | null = null;
+  try {
+    r = await execute(deps, b);
+    return r;
+  } finally {
+    await finish(db, previewId, r, deps.now()); // a throw is no answer: the run is cut, and recalls as unknown
+  }
+}
+
+/**
+ * Step 2: runs what `previewId` names, if and only if the plan is still exactly that. Live, the record is read first,
+ * before anything is planned: a done previewId answers with its response, a running one is refused (runs/journal.ts).
+ */
 export async function confirmIntent(deps: ActionDeps, raw: unknown, previewId: string): Promise<ActionResponse> {
+  if (deps.mode === 'live' && deps.db && parseIntent(raw).ok) {
+    const before = await answered(deps.db, previewId, deps.now());
+    if (before) return before;
+  }
   const b = await build(deps, raw);
   if (!b.ok) return b.response;
   if (b.preview.previewId !== previewId) return { status: 'changed', preview: b.preview };
@@ -150,5 +174,5 @@ export async function confirmIntent(deps: ActionDeps, raw: unknown, previewId: s
     const results = b.plan.commands.map((c): CommandOutcome => ({ display: c.display, exit: 0, ok: true, simulated: true }));
     return { status: 'done', preview: b.preview, results };
   }
-  return execute(deps, b);
+  return once(deps, b, previewId);
 }

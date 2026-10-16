@@ -4,15 +4,16 @@
 import { OPERATOR } from '../data/constants';
 import { CRA } from '../data/cra';
 import type { NeedsYouDemo } from '../data/types';
+import type { Recall } from '@/server/actions/runs/journal';
 import type { ActionResponse } from '@/server/actions/types';
-import type { WriteView } from '@/server/actions/words';
+import { NEVER_RAN, type WriteView } from '@/server/actions/words';
 import { deskIntent } from '../write/desk';
 import { notify } from './state';
 import { buildOutItem, unstageItem } from './outbox/outbox';
 import { isPolicyKey, POLICY_KEYS, policyTitle } from './outbox/policy';
 import { isGapId } from './rows/rowState';
 import { decided } from './rows/history';
-import { beginSend, canAsk, canRun, needsAsk, retry, settle, shown, viewed, type SlotAnswer, type WriteSlot } from './slot/slot';
+import { beginSend, canAsk, canRun, needsAsk, recalled, retry, settle, shown, viewed, type SlotAnswer, type WriteSlot } from './slot/slot';
 import type { NeedsState, PolicyKey } from './types';
 
 /** The toast after a demo write ran: always names who it ran as. */
@@ -80,13 +81,26 @@ function door(key: string, demo: NeedsYouDemo): { what: string; done: (s: NeedsS
  */
 export function ran(s: NeedsState, key: string, r: ActionResponse | null, demo: NeedsYouDemo): NeedsState {
   const d = door(key, demo);
-  if (!d) return s;
+  return d ? answered(s, key, settle(s.slots?.[key], r, d.what), d, demo) : s;
+}
+
+function answered(s: NeedsState, key: string, slot: WriteSlot, d: NonNullable<ReturnType<typeof door>>, demo: NeedsYouDemo): NeedsState {
   const before = s.slots?.[key];
-  const slot = settle(before, r, d.what);
   const next = put(s, key, slot, demo);
   const a = slot.answer;
   if (!a || a === before?.answer) return next; // a preview is not an answer: nothing was sent
   return notify(a.status === 'done' ? d.done(next, a) : next, 'toast', a.text);
+}
+
+/**
+ * Ask again on an unsure write asked the server what its previewId did (`recalled`, slot.ts). A recalled done is sent
+ * exactly as a confirm's done is; never opens Run on the same write and says so; running and unknown stay unsure.
+ */
+export function recalledItem(s: NeedsState, key: string, r: Recall, demo: NeedsYouDemo): NeedsState {
+  const d = door(key, demo);
+  const slot = d && recalled(s.slots?.[key], r, d.what);
+  if (!d || !slot || slot === s.slots?.[key]) return s;
+  return slot.answer ? answered(s, key, slot, d, demo) : notify(put(s, key, slot, demo), 'toast', NEVER_RAN);
 }
 
 /** The writes to ask the server for now: in view (selected or staged), with a door, and not asked yet or asked again. */

@@ -1,10 +1,11 @@
 // The live list's writes, pure: one slot per item (model/slot/slot.ts, the desk's rule) and the items a done confirm sent.
 // `useLiveActs` wraps this with useReducer and only runs the effects (ask, confirm).
 import type { NeedsYouItem } from '@/lib/demo';
+import type { Recall } from '@/server/actions/runs/journal';
 import type { ActionResponse } from '@/server/actions/types';
 import type { WriteView } from '@/server/actions/words';
 import type { LiveAnswer } from '../live';
-import { beginSend, retry, settle, shown, viewed, type WriteSlot } from './slot';
+import { beginSend, recalled, retry, settle, shown, viewed, type WriteSlot } from './slot';
 
 export interface LiveState {
   slots: Readonly<Record<string, WriteSlot>>;
@@ -22,7 +23,9 @@ export type LiveAction =
   | { type: 'retry'; id: string }
   | { type: 'sending'; id: string }
   /** The confirm's response, or null when it got none. `what` names the write in the answer (default: the item's title). */
-  | { type: 'ran'; id: string; item?: NeedsYouItem; response: ActionResponse | null; what?: string };
+  | { type: 'ran'; id: string; item?: NeedsYouItem; response: ActionResponse | null; what?: string }
+  /** What the server recorded for an unsure item's previewId (Ask again asks it first). */
+  | { type: 'recalled'; id: string; item?: NeedsYouItem; recall: Recall; what?: string };
 
 function put(s: LiveState, id: string, slot: WriteSlot | null | undefined): LiveState {
   return slot && slot !== s.slots[id] ? { ...s, slots: { ...s.slots, [id]: slot } } : s;
@@ -37,12 +40,16 @@ export function liveReduce(s: LiveState, a: LiveAction): LiveState {
       return put(s, a.id, retry(slot));
     case 'sending':
       return put(s, a.id, beginSend(slot));
-    case 'ran': {
-      const next = put(s, a.id, settle(slot, a.response, a.what ?? a.item?.title ?? a.id));
-      const done = next.slots[a.id]?.answer?.status === 'done';
-      return done && a.item ? { ...next, sent: { ...next.sent, [a.id]: a.item } } : next;
-    }
+    case 'ran':
+      return keepSent(put(s, a.id, settle(slot, a.response, a.what ?? a.item?.title ?? a.id)), a.id, a.item);
+    case 'recalled':
+      return keepSent(put(s, a.id, recalled(slot, a.recall, a.what ?? a.item?.title ?? a.id)), a.id, a.item);
   }
+}
+
+/** A done answer (from a confirm or a recall) keeps its item in Sent this session. */
+function keepSent(s: LiveState, id: string, item: NeedsYouItem | undefined): LiveState {
+  return item && s.slots[id]?.answer?.status === 'done' && s.sent[id] !== item ? { ...s, sent: { ...s.sent, [id]: item } } : s;
 }
 
 const each = <T,>(s: LiveState, f: (slot: WriteSlot) => T | undefined): Readonly<Record<string, T>> =>

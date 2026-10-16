@@ -21,6 +21,12 @@ export const unreachable = (e: unknown): WriteView => ({ kind: 'refused', reason
 /** A confirm that got no answer: nobody knows whether the write ran. */
 export const NO_ANSWER = 'No answer from the server: the write may or may not have run. Check GitLab before sending it again.';
 
+/** Asked whether an unsure write ran (runs/recallAction.ts), the server says it is still being sent: no answer yet. */
+export const STILL_RUNNING = 'Still running: Belay is sending this write now. Ask again in a moment for its answer.';
+
+/** Asked whether an unsure write ran, the server has no record of a send: nothing ran, and Run is open on the same write. */
+export const NEVER_RAN = 'Nothing ran: Belay has no record of this write being sent. Run is open again on the same write.';
+
 /** What GitLab made ("!22", "commit 1a2b3c4d"), in order. Empty when no result says. */
 export const madeOf = (results: readonly CommandOutcome[]): string[] => results.flatMap((r) => (r.made ? [r.made] : []));
 
