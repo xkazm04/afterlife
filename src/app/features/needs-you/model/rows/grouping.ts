@@ -14,15 +14,19 @@ export interface GroupDef {
   name: string;
   ids: readonly string[];
   hist?: boolean;
+  /** The group row shows the countdown. */
+  clock?: boolean;
+  /** The group row carries the Stage button for picked gaps. */
+  stages?: boolean;
 }
 export const HIST_GROUP = 'hist';
 const GAPS = ['g1', 'g2', 'g3', 'g4'];
 
 const BASE: Record<GroupMode, readonly GroupDef[]> = {
   kind: [
-    { id: 'clock', name: 'Legal clock', ids: ['n2'] },
+    { id: 'clock', name: 'Legal clock', ids: ['n2'], clock: true },
     { id: 'trust', name: 'Extend trust', ids: ['n1', 'n4'] },
-    { id: 'improve', name: 'Improve the project', ids: GAPS },
+    { id: 'improve', name: 'Improve the project', ids: GAPS, stages: true },
     { id: 'setup', name: 'Finish setup', ids: ['n5'] },
   ],
   project: [
@@ -31,10 +35,13 @@ const BASE: Record<GroupMode, readonly GroupDef[]> = {
     { id: 'p-set', name: SETTINGS_GROUP, ids: ['n5'] },
   ],
   deadline: [
-    { id: 'd-clock', name: 'On a clock', ids: ['n2'] },
+    { id: 'd-clock', name: 'On a clock', ids: ['n2'], clock: true },
     { id: 'd-none', name: 'No deadline · oldest first', ids: ['n5', 'n1', ...GAPS, 'n4'] },
   ],
 };
+
+/** How many decisions are on a clock: the rows of the clock groups, counted once (By kind lists each row once). */
+export const ON_A_CLOCK = BASE.kind.filter((g) => g.clock).reduce((n, g) => n + g.ids.length, 0);
 
 /** The groups for a mode, with "Decided this week" last. */
 export function groupsFor(mode: GroupMode, s: Pick<NeedsState, 'session'>): readonly GroupDef[] {

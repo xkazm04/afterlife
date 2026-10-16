@@ -17,7 +17,7 @@ import { useNeedsStore } from './hooks/NeedsStore';
 import { useNeedsKeys } from './hooks/useNeedsKeys';
 import { useNeedsMenus } from './hooks/useNeedsMenus';
 import { useReveal } from './hooks/useReveal';
-import { visibleGroups } from './model/rows/grouping';
+import { ON_A_CLOCK, visibleGroups } from './model/rows/grouping';
 import { decisionCounts, isDecisionId } from './model/rows/rowState';
 import type { Action } from './model/types';
 import styles from './NeedsYouScreen.module.css';
@@ -54,7 +54,7 @@ export function NeedsYouScreen({ demo }: { demo: NeedsYouDemo }) {
       subtitle={PROJECT_REPO.replace('/', ' / ')}
       toolbar={<NeedsToolbar s={s} dispatch={dispatch} searchRef={searchRef} />}
       sidebar={<NeedsSidebar s={s} dispatch={dispatch} />}
-      status={`${plural(counts.all, 'decision')} · ${counts.waiting} waiting · 1 on a clock · ${s.out.length} in outbox · ledger read ${LEDGER_READ_AT}`}
+      status={`${plural(counts.all, 'decision')} · ${counts.waiting} waiting · ${ON_A_CLOCK} on a clock · ${s.out.length} in outbox · ledger read ${LEDGER_READ_AT}`}
       help={<NeedsLegend tierMeans={demo.tierMeans} />}
     >
       <ClockProvider>
