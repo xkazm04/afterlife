@@ -53,7 +53,12 @@ describe('values from GitLab are checked before they are used', () => {
             return f && { ...f, lastCommitId: patch.lastCommitId };
           };
         }
-        if (k === 'execute' && patch.body) return async (c: PlannedCommand) => ({ ...(await t.execute(c)), body: patch.body });
+        if (k === 'execute' && patch.body) { // the MR's answer only, over GitLab's own, which still names its head (F38)
+          return async (c: PlannedCommand) => {
+            const out = await t.execute(c);
+            return c.argv.some((a) => a.endsWith('/merge_requests')) ? { ...out, body: { ...(out.body as object), ...patch.body } } : out;
+          };
+        }
         return Reflect.get(t, k, r);
       },
     });
