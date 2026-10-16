@@ -20,11 +20,13 @@ export const UNKNOWN_RUN = 'flow run unknown';
 
 const SEEDED = /seeded/;
 
-/** The dataset's quote replaces the third hunk line (the added one), minus its "+" marker. */
-function withQuote(hunk: Hunk | undefined, quote: string | undefined): Hunk | null {
+/** The dataset's quote replaces the hunk's first added line, minus its "+" marker; a hunk with no added line is left as it is. */
+export function withQuote(hunk: Hunk | undefined, quote: string | undefined): Hunk | null {
   if (!hunk) return null;
   if (!quote) return hunk;
-  const lines = hunk.lines.map((l, i) => (i === 2 ? ([l[0], quote.replace(/^\+\s?/, '')] as const) : l));
+  const at = hunk.lines.findIndex((l) => l[0] === '+');
+  if (at < 0) return hunk;
+  const lines = hunk.lines.map((l, i) => (i === at ? ([l[0], quote.replace(/^\+\s?/, '')] as const) : l));
   return { ...hunk, lines };
 }
 
