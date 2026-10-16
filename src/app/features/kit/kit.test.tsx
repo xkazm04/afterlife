@@ -2,6 +2,7 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { ToastContext } from '@/components/overlays/toast/useToast';
+import { KitScreen } from './KitScreen';
 import { ControlsGallery } from './components/ControlsGallery';
 import { FallbackGallery } from './components/fallback/FallbackGallery';
 import { OverlaysGallery } from './components/OverlaysGallery';
@@ -44,6 +45,11 @@ describe('the kit galleries', () => {
     const names = labels(render(createElement(InspectorGallery))).filter((l) => l.startsWith('Command'));
     expect(names.length).toBe(3);
     expect(names.filter((l, i) => names.indexOf(l) !== i)).toEqual([]);
+  });
+  it('names the toolbar segmented control as a specimen, not as a gallery filter it is not', () => {
+    const html = render(createElement(KitScreen));
+    expect(html).toContain('aria-label="Segmented control specimen"');
+    expect(html).not.toContain('Gallery view');
   });
   it('draws the inspector column', () => {
     expect(render(createElement(InspectorGallery))).toContain('UntrustedText');
