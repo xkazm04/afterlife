@@ -54,14 +54,20 @@ export interface GridSpec {
 }
 
 const NAME = range(150, 240);
+const LEAD_PX = 150 + 24 + 44;
+const TAIL_PX = 96 + 52;
 
-/** Grid tracks of the data columns (the table adds the filler). A narrow pane drops the tier pips and name. */
-export function gridFor(view: FleetView, narrow: boolean): GridSpec {
+/** Grid tracks of the data columns (the table adds the filler). A narrow pane drops the tier pips and name. One track per column of `fleetColumns`. */
+export function gridFor(view: FleetView, narrow: boolean, meta: FleetMeta): GridSpec {
   const lead = `${NAME} ${px(24)} ${px(44)}`;
   if (view === 'tiers') {
     const tiers = repeatPx(5, narrow ? 50 : 88);
     return { columns: `${lead} ${tiers} ${px(96)} ${px(66)} ${px(52)}`, minWidth: minWidth(narrow ? 684 : 872) };
   }
-  if (view === 'classes') return { columns: `${lead} ${repeatPx(12, 42)} ${px(96)} ${px(52)}`, minWidth: minWidth(870) };
-  return { columns: `${lead} ${repeatPx(9, 54)} ${px(96)} ${px(52)}`, minWidth: minWidth(852) };
+  if (view === 'classes') {
+    const n = meta.classes.length;
+    return { columns: `${lead} ${repeatPx(n, 42)} ${px(96)} ${px(52)}`, minWidth: minWidth(LEAD_PX + n * 42 + TAIL_PX) };
+  }
+  const n = meta.stages.length;
+  return { columns: `${lead} ${repeatPx(n, 54)} ${px(96)} ${px(52)}`, minWidth: minWidth(LEAD_PX + n * 54 + TAIL_PX) };
 }
