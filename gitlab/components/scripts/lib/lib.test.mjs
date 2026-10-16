@@ -9,7 +9,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ROOT, SCRIPTS } from '../testing/harness.mjs';
 import { engine, tsxCommand } from './engine.mjs';
-import { blocks, trailer } from './lib.mjs';
+import { blocks, pageAll, trailer } from './lib.mjs';
 import trailerCases from './fixtures/trailer-cases.json' with { type: 'json' };
 import { validate } from './validate.mjs';
 
@@ -120,5 +120,43 @@ describe('engine', () => {
   // The poller reads the same cases (src/server/poller/__tests__/parse.test.ts): one trailer rule, two readers.
   it.each(trailerCases)('reads a trailer as the poller does: $name', ({ text, key, want }) => {
     expect(trailer(text, key)).toBe(want);
+  });
+});
+
+describe('pageAll: the paging rule every apiAll reader and test double shares', () => {
+  const full = (n) => Array.from({ length: 100 }, (_, i) => ({ n, i }));
+  /** A reader that answers each page from `pages` (an array of rows) and records the paths asked. */
+  const reader = (pages) => {
+    const asked = [];
+    return { asked, get: (p) => (asked.push(p), pages[Number(new URLSearchParams(p.split('?')[1]).get('page')) - 1]) };
+  };
+
+  it('stops at a short page without asking for the next', () => {
+    const r = reader([full(1), [{ n: 2 }]]);
+    expect(pageAll(r.get, 'x?a=1', 5)).toHaveLength(101);
+    expect(r.asked).toEqual(['x?a=1&per_page=100&page=1', 'x?a=1&per_page=100&page=2']);
+  });
+
+  it('stops at an empty or non-array page, and starts a bare path with ?', () => {
+    const r = reader([full(1), [], full(3)]);
+    expect(pageAll(r.get, 'x', 5)).toHaveLength(100);
+    expect(r.asked[0]).toBe('x?per_page=100&page=1');
+    expect(pageAll(() => null, 'x', 5)).toEqual([]);
+  });
+
+  it('stops at the page cap even when every page is full', () => {
+    const r = reader([full(1), full(2), full(3)]);
+    expect(pageAll(r.get, 'x', 2)).toHaveLength(200);
+    expect(r.asked).toHaveLength(2);
+  });
+
+  it('strict: a cap reached with a full last page throws instead of returning a prefix as the whole', () => {
+    const r = reader([full(1), full(2), full(3)]);
+    expect(() => pageAll(r.get, 'x', 2, { strict: true })).toThrow(/more than 200 rows .*refusing to guess/);
+  });
+
+  it('strict: a list that ends before the cap is returned whole', () => {
+    expect(pageAll(reader([full(1), [{ n: 2 }]]).get, 'x', 2, { strict: true })).toHaveLength(101);
+    expect(pageAll(reader([full(1), []]).get, 'x', 2, { strict: true })).toHaveLength(100);
   });
 });

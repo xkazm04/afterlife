@@ -50,6 +50,12 @@ describe('collect-facts for the maturity scan', () => {
     });
   });
 
+  it('a pipeline with more jobs than it reads is {error}, never a prefix kept as the whole list', () => {
+    const full = Array.from({ length: 100 }, (_, i) => ({ id: i + 1, name: `j${i}`, stage: 'test', status: 'success' }));
+    const facts = collect({ ...routes, 'projects/1/pipelines/77/jobs': { __pages: [full, full, full] } }).json.facts;
+    expect(facts.latest_pipeline_jobs).toEqual({ error: expect.stringContaining('refusing to guess') });
+  });
+
   it('lists the issue templates; no templates folder is [], an unreadable one is {error}', () => {
     expect(collect().json.facts.issue_templates).toEqual(['maturity-gap.md']);
     expect(collect({ ...routes, 'projects/1/repository/tree': { __http: 404, message: '404 Tree Not Found' } }).json.facts.issue_templates).toEqual([]);

@@ -35,6 +35,14 @@ describe('build-evidence: untrusted {"$file"} never reaches the engine', () => {
     expect(e.diff).toEqual({ $file: path.join(dir, 'mr.diff') });
   });
 
+  it('rerun-stats: more pipelines for the sha than it reads is refused, not counted as the whole history', () => {
+    const full = Array.from({ length: 100 }, (_, i) => ({ id: i + 1 }));
+    const r = build('rerun-stats', ['--verdict', write('v4.json', medic('test')), '--out', 'e4.json'], { routes: { 'projects/1/pipelines': { __pages: [full, full, full] } } });
+    expect(r.code).not.toBe(0);
+    expect(r.stderr).toContain('refusing to guess');
+    expect(fs.existsSync(path.join(dir, 'e4.json'))).toBe(false);
+  });
+
   it('rerun-stats: a medic block whose job is a {"$file"} object is refused before any API call', () => {
     const r = build('rerun-stats', ['--verdict', write('v3.json', medic({ $file: SECRET })), '--out', 'e3.json'], { routes: { 'projects/1/pipelines': [] } });
     expect(r.code).toBe(2);

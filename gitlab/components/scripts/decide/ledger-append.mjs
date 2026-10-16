@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { arg, die } from '../lib/lib.mjs';
 import { engine } from '../lib/engine.mjs';
-import { fileHead, writeFile } from '../lib/repo-write.mjs';
+import { fileHead, writeFile, writeToken } from '../lib/repo-write.mjs';
 
 const project = arg('project') ?? die('missing --project (the belay-ledger path)');
 const branch = arg('branch', 'main');
@@ -16,8 +16,7 @@ const dir = arg('events');
 const keys = process.argv.flatMap((a, i) => (a === '--key' && process.argv[i + 1] ? [process.argv[i + 1]] : []));
 // Writes may use a different token from reads (BELAY_LEDGER_TOKEN, named by --write-token-var). A variable named there and
 // not set is refused before any read (F88): the read token never writes in its place.
-const named = arg('write-token-var');
-if (named && !process.env[named]) die(`${named} is not set (named by --write-token-var): nothing committed`);
+const token = writeToken(arg('write-token-var'));
 const files = dir
   ? fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.json')).sort().map((f) => path.join(dir, f)) : []
   : [arg('event') ?? die('missing --event or --events')];
@@ -55,10 +54,7 @@ for (const f of files) {
   titles.push(`${parsed.kind} #${parsed.seq}`);
 }
 
-// The write token: the one --write-token-var names; without the flag, BELAY_BOT_TOKEN when set, else the caller's own
-// glab login (a person running it by hand, gitlab/components/README.md).
-const writeToken = process.env[named ?? 'BELAY_BOT_TOKEN'];
-if (writeToken) process.env.GITLAB_TOKEN = writeToken;
+if (token) process.env.GITLAB_TOKEN = token;
 writeFile({
   project,
   branch,

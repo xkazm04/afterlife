@@ -61,7 +61,7 @@ take('latest_pipeline_jobs', () => {
   const [p] = api(`projects/${id}/pipelines?ref=${enc(branch)}&status=success&order_by=id&sort=desc&per_page=1`) ?? [];
   if (!p) return { pipeline: null, jobs: [] };
   // R2 is "ran in the last 14 days and produced an artifact": a job's finish time and artifact types, and its URL as evidence
-  const jobs = apiAll(`projects/${id}/pipelines/${p.id}/jobs`, 2).map((j) => ({
+  const jobs = apiAll(`projects/${id}/pipelines/${p.id}/jobs`, 2, { strict: true }).map((j) => ({
     id: j.id, name: j.name, stage: j.stage, status: j.status, web_url: j.web_url, finished_at: j.finished_at ?? null,
     artifacts: (j.artifacts ?? []).map((a) => a.file_type),
   }));
