@@ -102,11 +102,42 @@ export function blocks(text, tag) {
   return out;
 }
 
-/** Last `Key: value` trailer line in a text, or null. The value must match `shape`. */
+/** Index just past the line break at `at` (LF or CRLF), or -1. */
+const breakAfter = (src, at) => (src[at] === '\n' ? at + 1 : src[at] === '\r' && src[at + 1] === '\n' ? at + 2 : -1);
+
+/** Text with every fenced block (any tag) removed: the poller's withoutBlocks (src/server/poller/parse/blocks.ts), same scan. */
+export function withoutBlocks(text) {
+  const src = String(text ?? '');
+  let out = '';
+  let kept = 0;
+  let at = 0;
+  let seen = -1; // the opener's line end is found once per scan position, not once per opener (hostile text stays linear)
+  const nl = /[\r\n]/g;
+  while ((at = src.indexOf('```', at)) !== -1) {
+    if (seen < at + 3) {
+      nl.lastIndex = at + 3;
+      const m = nl.exec(src);
+      seen = m ? m.index : src.length;
+    }
+    const body = seen < src.length ? breakAfter(src, seen) : -1;
+    if (body === -1) {
+      at += 1;
+      continue;
+    }
+    const end = src.indexOf('\n```', body);
+    if (end === -1) break;
+    out += src.slice(kept, at);
+    kept = end + 4;
+    at = kept;
+  }
+  return out + src.slice(kept);
+}
+
+/** Last `Key: value` trailer line in a text outside any fenced block (as the poller reads it), or null. The value must match `shape`. */
 export function trailer(text, key, shape = /^\S+$/) {
   const re = new RegExp(`^${key}:[ \\t]*(.+?)[ \\t]*$`, 'gmi');
   let found = null;
-  for (const m of String(text ?? '').matchAll(re)) if (shape.test(m[1])) found = m[1];
+  for (const m of withoutBlocks(text).matchAll(re)) if (shape.test(m[1])) found = m[1];
   return found;
 }
 
