@@ -13,6 +13,7 @@ import { SORT_KEYS, SORT_NAMES, defaultDir } from '../model/view/sort';
 import type { LadderActions } from './useLadderActions';
 import type { LadderData } from './useLadderData';
 import type { RevokeWrites } from './useRevokeWrite';
+import { copyCommand } from '../write/copy';
 
 /**
  * The menus of the table: the sort menu (checks stay open), the row and group context menus and the "take it to"
@@ -68,7 +69,7 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
       const cmd = view?.kind === 'preview' ? commandLines(view.preview).join('\n') : null;
       const copy = () => {
         if (!cmd) return;
-        navigator.clipboard?.writeText(cmd).then(() => actions.flash(`Copied the write for ${id}`), () => actions.flash(cmd));
+        copyCommand(cmd, navigator.clipboard, actions.flash, `Copied the write for ${id}`);
       };
       return [
         { label: 'Open class page', sc: '↩', run: () => actions.openDetail(id) },
