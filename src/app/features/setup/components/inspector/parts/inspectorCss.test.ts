@@ -33,3 +33,21 @@ describe('inspector.module.css', () => {
     expect(unused('.a { color: red; }\n.b { color: blue; }', ['const x = styles.a; // styles.b'])).toEqual(['b']);
   });
 });
+
+/** Lengths a stylesheet states in raw px: not inside calc(N px * var(--ui-scale)), and not a border or outline (a hairline stays 1px). */
+export const rawPx = (css: string): string[] =>
+  [...stripCss(css).matchAll(/([\w-]+)\s*:\s*([^;{}]+)/g)].flatMap(([, prop, value]) =>
+    /^(border|outline)(-(top|right|bottom|left))?(-width)?$/.test(prop!) ? [] : (value!.replace(/calc\(\s*[\d.]+px\s*\*\s*var\(--ui-scale\)\s*\)/g, '').match(/-?[\d.]+px/g) ?? []).map((v) => `${prop}: ${v}`),
+  );
+
+describe('Sizes follow --ui-scale (D10)', () => {
+  const files = ['../inspector.module.css', '../../shared/DepRow.module.css', '../../shared/GateRow.module.css'];
+  it.each(files)('%s states no raw px length', (f) => {
+    expect(rawPx(readFileSync(join(__dirname, f), 'utf8'))).toEqual([]);
+  });
+
+  it('control: a raw gap and a bleed written in px are counted; a scaled length, a hairline and a comment are not', () => {
+    const css = '/* gap: 9px */ .a { gap: 6px; margin: 0 -6px; width: calc(100% + 12px); border: 1px solid red; padding: calc(4px * var(--ui-scale)); }';
+    expect(rawPx(css)).toEqual(['gap: 6px', 'margin: -6px', 'width: 12px']);
+  });
+});

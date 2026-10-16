@@ -1,7 +1,7 @@
 import { CAP_NOTE, CAP_SHORT } from '../../data/capabilities';
 import { GATE_FREES } from '../../data/armMeta';
 import { isSaid, stepDetail, unmet, needLabel, capSt } from '../../model/flow/state';
-import { mrName, saidText } from '../../model/flow/wording';
+import { mergeLabel, saidText } from '../../model/flow/wording';
 import type { Focus, SetupState } from '../../model/types';
 import type { Track } from '@/lib/demo/types';
 
@@ -33,7 +33,7 @@ export function nodeHead(state: SetupState, tracks: Readonly<Record<string, Trac
     const lede: Record<string, string> = {
       armed: `Armed${a.mr ? ` by ${a.mr}` : ''}: a revert disarms it.`,
       ready: 'Ready: one MR arms it.',
-      open: `Only you can merge ${mrName(a)}.`,
+      open: `Only you can merge ${mergeLabel(a)}.`,
       probing: 'Verifying the merge on main.',
       undefined: 'Not defined in the repo yet.',
       unknown: 'Unknown: the read of main failed.',

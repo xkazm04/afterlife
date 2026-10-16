@@ -18,6 +18,7 @@ describe('nodeHead: track', () => {
     ['ready', {}, 'Ready: one MR arms it.'],
     ['open', { mr: '!9' }, 'Only you can merge !9.'],
     ['open', {}, 'Only you can merge the MR.'],
+    ['open', { mr: '!5', revert: true }, 'Only you can merge !5 (revert).'],
     ['probing', {}, 'Verifying the merge on main.'],
     ['undefined', {}, 'Not defined in the repo yet.'],
     ['unknown', {}, 'Unknown: the read of main failed.'],
