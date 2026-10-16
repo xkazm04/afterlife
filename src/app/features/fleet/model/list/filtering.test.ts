@@ -66,3 +66,14 @@ describe('counts', () => {
     expect(s.size).toBe(1);
   });
 });
+
+describe('the Changed source', () => {
+  it('lists exactly the projects that moved since the last look', () => {
+    const fleet = [...P, makeProject({ id: 'fx-rates' }), makeProject({ id: 'docs-portal' })];
+    const changed = new Set(['fx-rates', 'docs-portal']);
+    expect(filterProjects(fleet, { ...EMPTY_FILTERS, source: 'changed' }, changed).map((p) => p.id)).toEqual(['fx-rates', 'docs-portal']);
+    expect(filterProjects(fleet, { ...EMPTY_FILTERS, source: 'changed' })).toEqual([]);
+    expect(sourceLabel('changed')).toBe('Changed since last look');
+    expect(filterCount({ ...EMPTY_FILTERS, source: 'changed' })).toBe(1);
+  });
+});

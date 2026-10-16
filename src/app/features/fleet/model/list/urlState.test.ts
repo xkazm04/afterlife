@@ -46,3 +46,12 @@ describe('fleet list URL state', () => {
     expect(decodeListState({ view: 'classes', sort: 'tier:supervised' }).sort).toEqual(DEFAULT_LIST_STATE.sort);
   });
 });
+
+describe('the Changed source in the URL', () => {
+  it('decodes and round-trips', () => {
+    expect(decodeListState({ src: 'changed' }).filters.source).toBe('changed');
+    const s: FleetListState = { ...DEFAULT_LIST_STATE, filters: { ...DEFAULT_LIST_STATE.filters, source: 'changed' } };
+    expect(encodeListState(s)).toBe('src=changed');
+    expect(back(s)).toEqual(s);
+  });
+});
