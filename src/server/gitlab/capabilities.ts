@@ -14,7 +14,10 @@ export interface Capability { id: string; label: string; status: CapabilityStatu
 export interface DoctorReport {
   group: GlGroup | null; plan: string | null; trial: boolean; version: string | null;
   projectCount: number | null; capabilities: Capability[];
+  /** Why each of the four context reads (group, namespace, instance, projects) that failed, failed. */
+  errors: ReadError[];
 }
+export interface ReadError { read: 'group' | 'namespace' | 'instance' | 'projects'; kind: string; message: string }
 
 type Verdict = Pick<Capability, 'status' | 'basis' | 'reason'>;
 const RANK: Record<PlanName, number> = { free: 0, premium: 1, ultimate: 2 };
@@ -68,14 +71,18 @@ async function get(port: GitLabPort, endpoint: string, note?: string): Promise<V
   }
 }
 
-const attempt = async <T>(f: () => Promise<T>): Promise<T | null> => {
-  try { return await f(); } catch { return null; }
+const attempt = async <T>(read: ReadError['read'], errors: ReadError[], f: () => Promise<T>): Promise<T | null> => {
+  try { return await f(); } catch (e) {
+    errors.push(e instanceof GitLabError ? { read, kind: e.kind, message: e.message } : { read, kind: 'unexpected', message: e instanceof Error ? e.message : String(e) });
+    return null;
+  }
 };
 
 export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Promise<DoctorReport> {
+  const errors: ReadError[] = [];
   const [grp, ns, inst, projects] = await Promise.all([
-    attempt(() => port.getGroup(group)), attempt(() => port.getNamespace(group)),
-    attempt(() => port.instance()), attempt(() => port.listProjects(group)),
+    attempt('group', errors, () => port.getGroup(group)), attempt('namespace', errors, () => port.getNamespace(group)),
+    attempt('instance', errors, () => port.instance()), attempt('projects', errors, () => port.listProjects(group)),
   ]);
   const plan = planName(ns?.plan ?? null);
   const project = projects?.[0]?.id ?? null;
@@ -104,7 +111,7 @@ export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Pr
   const verdicts = await Promise.all(rows.map((r) => r[2]));
   return {
     group: grp, plan: ns?.plan ?? null, trial: ns?.trial ?? false, version: inst?.version ?? null,
-    projectCount: projects?.length ?? null,
+    projectCount: projects?.length ?? null, errors,
     capabilities: rows.map(([id, label], i) => ({ id, label, ...(verdicts[i] as Verdict) })),
   };
 }
