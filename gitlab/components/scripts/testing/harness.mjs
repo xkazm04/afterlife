@@ -58,7 +58,7 @@ export function fakeApi(routes) {
     if (method !== 'GET' || !(base in routes)) throw new Error(`fake api: ${method} ${p} is not faked`);
     return Number(new URLSearchParams(query).get('page') ?? '1') > 1 ? [] : structuredClone(routes[base]);
   };
-  const apiAll = (p, maxPages = 5) => pageAll(api, p, maxPages);
+  const apiAll = (p, maxPages = 5, o) => pageAll(api, p, maxPages, o);
   const gql = () => {
     throw new Error('fake api: graphql is not faked');
   };
