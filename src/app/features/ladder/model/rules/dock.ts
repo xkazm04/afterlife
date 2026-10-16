@@ -4,15 +4,18 @@
 import { isGroupNavId } from '@/components/table/model/rowNavigation';
 import type { PromoteView } from '../../write/promote';
 import type { WriteView } from '../../write/revoke';
+import { nothingInTrack, trackChanges, type Skipped, type TrackWant } from './batch/batch';
 import type { PromoteAsk } from './promote';
 import { actsFrom, nothingToRevoke, revokeTargets } from './tiers';
-import type { ClassRow, Tier, TrackMap } from '../types';
+import type { Change, ClassRow, Tier, TrackMap } from '../types';
 
 export type DockModel =
   | { kind: 'none' }
   | { kind: 'group'; id: string; key: string }
   | { kind: 'idle'; id: string; reason: string }
   | { kind: 'write'; id: string; to: Tier; previewing: boolean; view: WriteView | undefined }
+  /** A track header: every class of track `id` lowered in one write, and the classes it leaves as they are. */
+  | { kind: 'batch'; id: string; want: TrackWant; changes: Change[]; skipped: Skipped[]; view: WriteView | undefined }
   | { kind: 'promote'; id: string; to: Tier; readmit: boolean; view: PromoteView | undefined };
 
 /**
@@ -34,6 +37,8 @@ export function commandHead(display: string): string {
 /**
  * `hoverTo` is the tier of the menu item under the pointer, which the strip previews instead of the `r` target. The `r`
  * target is the default; the promotion takes its place once pinned (and nothing is hovered), or when nothing can be revoked.
+ * On a track header, with `batchViewOf` (the track writes asked for), the strip shows the track's write: `want`, a
+ * quarantine unless r put the one-step write on screen.
  */
 export function dockModel(
   sel: string | null,
@@ -42,11 +47,16 @@ export function dockModel(
   hoverTo: Tier | null,
   viewOf: (id: string, to: Tier) => WriteView | undefined,
   promote?: DockPromote,
+  batchViewOf?: (track: string, want: TrackWant) => WriteView | undefined,
+  want: TrackWant = 'quarantine',
 ): DockModel {
   if (!sel) return { kind: 'none' };
   if (isGroupNavId(sel)) {
     const id = sel.slice(2);
-    return { kind: 'group', id, key: tracks[id]?.key ?? '' };
+    if (!batchViewOf) return { kind: 'group', id, key: tracks[id]?.key ?? '' };
+    const batch = trackChanges(Object.values(byId), id, want);
+    if (!batch.changes.length) return { kind: 'idle', id, reason: nothingInTrack(batch) };
+    return { kind: 'batch', id, want, changes: batch.changes, skipped: batch.skipped, view: batchViewOf(id, want) };
   }
   const c = byId[sel];
   if (!c) return { kind: 'none' };

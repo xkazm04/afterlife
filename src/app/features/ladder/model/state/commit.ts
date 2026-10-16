@@ -7,7 +7,7 @@ import { COMMIT_SHAS } from '../../data/policy';
 import { splitTier } from '@/lib/tiers';
 import { commitText, planRows } from '../rules/plan';
 import { holdersOf, rungIndex } from '../rules/tiers';
-import type { ClassRow, Head, LedgerEntry, Tier } from '../types';
+import type { Change, ClassRow, Head, LedgerEntry, Tier } from '../types';
 
 /** The demo's commit id for the next simulated revoke. */
 export const nextSha = (shaIdx: number): string => COMMIT_SHAS[shaIdx % COMMIT_SHAS.length] ?? 'e7f1';
@@ -39,23 +39,31 @@ function lowered(c: ClassRow, to: Tier): ClassRow {
 }
 
 /**
- * The classes, ledger and head after revoking `id` to `to` at clock time `t`, with `sha` the commit id to show (the
- * demo's id when simulated). Nothing else moves. The commit waits for a tier-gate read: simulated (demo) or a receipt (live).
+ * The classes, ledger and head after committing `changes` at clock time `t`, with `sha` the commit id to show (the demo's
+ * id when simulated): one commit, every moved class pending on it, one ledger line naming every move. Nothing else moves.
+ * The commit waits for a tier-gate read: simulated (demo) or a receipt (live).
  */
-export function commitRevoke(classes: readonly ClassRow[], ledger: readonly LedgerEntry[], id: string, to: Tier, sent: Sent, sha: string | null, t: string): Committed {
+export function commitChanges(classes: readonly ClassRow[], ledger: readonly LedgerEntry[], changes: readonly Change[], sent: Sent, sha: string | null, t: string): Committed {
   const byId = Object.fromEntries(classes.map((c) => [c.id, c]));
-  const rows = planRows(byId, [{ id, to }]);
-  const ids = new Set(rows.map((r) => r.cls.id));
+  const rows = planRows(byId, changes);
+  const to = new Map(rows.map((r) => [r.cls.id, r.to]));
   const pending = sha;
   return {
-    classes: classes.map((c) => (ids.has(c.id) ? { ...lowered(c, to), lease_days: null, lastMove: `revoked by you · ${t}`, pending, simRead: undefined } : c)),
+    classes: classes.map((c) => {
+      const down = to.get(c.id);
+      return down ? { ...lowered(c, down), lease_days: null, lastMove: `revoked by you · ${t}`, pending, simRead: undefined } : c;
+    }),
     ledger: [
       ...ledger,
-      { t, ids: [...ids], actor: 'you', where: 'Belay, on your key', kind: 'you', isNew: true, text: commitText(sha, rows), ...(sent.simulated ? { chip: 'simulated' as const } : {}) },
+      { t, ids: [...to.keys()], actor: 'you', where: 'Belay, on your key', kind: 'you', isNew: true, text: commitText(sha, rows), ...(sent.simulated ? { chip: 'simulated' as const } : {}) },
     ],
     head: { sha: sha ?? '?', by: 'you' },
   };
 }
+
+/** One class revoked to `to`: commitChanges with one change. */
+export const commitRevoke = (classes: readonly ClassRow[], ledger: readonly LedgerEntry[], id: string, to: Tier, sent: Sent, sha: string | null, t: string): Committed =>
+  commitChanges(classes, ledger, [{ id, to }], sent, sha, t);
 
 /** "45 s", "3 min", "2 h": how long after the commit a gate read it. */
 export const delayText = (sec: number): string => (sec < 120 ? `${sec} s` : sec < 7200 ? `${Math.round(sec / 60)} min` : `${Math.round(sec / 3600)} h`);

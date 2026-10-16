@@ -135,3 +135,21 @@ describe('revoke on a class several agents hold', () => {
     expect(s.ledger.at(-1)?.text).toMatch(/qa\.file-bug Supervised → Assisted/);
   });
 });
+
+describe('revoke a whole track', () => {
+  const t1 = initialState({ ...seed, classes: [cls('dep-bump.patch', 'T1'), cls('code-fix.patch', 'T1', { tier: 'supervised' }), cls('tier.demote', 'T3')] });
+  const changes = [{ id: 'dep-bump.patch', to: 'quarantined' as const }, { id: 'code-fix.patch', to: 'quarantined' as const }];
+  const after = run(t1, { type: 'revokeTrack', track: 'T1', changes, t: '14:24:30', sent: SIM });
+
+  it('lands every change in one commit: each class pending on the same sha, one ledger line naming every move', () => {
+    expect(after.classes.filter((c) => c.track === 'T1').map((c) => [c.tier, c.pending])).toEqual([['quarantined', 'e7f1'], ['quarantined', 'e7f1']]);
+    expect(after.classes.find((c) => c.id === 'tier.demote')).toEqual(t1.classes.find((c) => c.id === 'tier.demote'));
+    expect(after.shaIdx).toBe(1);
+    expect(after.ledger).toHaveLength(t1.ledger.length + 1);
+    expect(after.ledger.at(-1)).toMatchObject({ ids: ['dep-bump.patch', 'code-fix.patch'], text: 'commit e7f1 in belay-policy: dep-bump.patch Hands-off → Quarantined · code-fix.patch Supervised → Quarantined' });
+  });
+  it('the simulated gate read settles both at once', () => {
+    const s = run(after, { type: 'settle', sha: 'e7f1', t: '14:24:36' });
+    expect(s.classes.filter((c) => c.track === 'T1').map((c) => c.pending)).toEqual([null, null]);
+  });
+});

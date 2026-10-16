@@ -2,7 +2,7 @@
 import type { LedgerSeedEntry } from '../../data/ledgerSeed';
 import type { Sent } from './commit';
 import type { Receipts } from './receipt';
-import type { Ceiling, ClassRow, Head, LadderSort, LedgerEntry, SortKey, Tier } from '../types';
+import type { Ceiling, Change, ClassRow, Head, LadderSort, LedgerEntry, SortKey, Tier } from '../types';
 
 export interface LadderState {
   classes: ClassRow[];
@@ -50,6 +50,8 @@ export type LadderAction =
   | { type: 'query'; q: string }
   /** The server answered done: `sent` says whether it was simulated, and the commit GitLab made if not. */
   | { type: 'revoke'; id: string; to: Tier; t: string; sent: Sent }
+  /** A whole track's write answered done: every change in one commit. */
+  | { type: 'revokeTrack'; track: string; changes: readonly Change[]; t: string; sent: Sent }
   | { type: 'settle'; sha: string; t: string }
   /** Live: the receipts of a fresher snapshot, by class id. A pending revoke whose commit a gate read is settled. */
   | { type: 'receipts'; receipts: Receipts }

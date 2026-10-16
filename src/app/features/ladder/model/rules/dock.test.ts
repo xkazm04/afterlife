@@ -40,6 +40,31 @@ describe('dockModel', () => {
   });
 });
 
+describe('dockModel on a track header', () => {
+  const t1 = { 'dep-bump.patch': row('dep-bump.patch'), 'code-fix.patch': row('code-fix.patch', { tier: 'supervised' }), 'pipeline.retry': row('pipeline.retry', { track: 'T5' }) };
+  const trackViews: Record<string, WriteView> = { 'g:T1>quarantine': { kind: 'preview', preview } };
+  const batchViewOf = (track: string, want: 'step' | 'quarantine') => trackViews[`g:${track}>${want}`];
+  const changes = [{ id: 'dep-bump.patch', to: 'quarantined' }, { id: 'code-fix.patch', to: 'quarantined' }];
+
+  it('shows the one write that quarantines the whole track, with the preview the server planned', () => {
+    expect(dockModel('g:T1', t1, tracks, null, viewOf, undefined, batchViewOf)).toEqual({ kind: 'batch', id: 'T1', want: 'quarantine', changes, skipped: [], view: { kind: 'preview', preview } });
+  });
+  it('a track with nothing to lower is idle, and names its classes', () => {
+    const t8 = { 'patch-bump': row('patch-bump', { track: 'T8', tier: 'quarantined' }) };
+    const d = dockModel('g:T8', t8, tracks, null, viewOf, undefined, batchViewOf);
+    expect(d).toMatchObject({ kind: 'idle', id: 'T8' });
+    expect(d.kind === 'idle' && d.reason).toContain('patch-bump');
+  });
+  it('a track over the limit of one write is idle with the refusal, and no preview is looked up', () => {
+    const many = Object.fromEntries(Array.from({ length: 13 }, (_, i) => [`c${i}`, row(`c${i}`, { track: 'T3' })]));
+    const asked: string[] = [];
+    const d = dockModel('g:T3', many, tracks, null, viewOf, undefined, (t, w) => { asked.push(`${t}>${w}`); return undefined; });
+    expect(d).toMatchObject({ kind: 'idle', id: 'T3' });
+    expect(d.kind === 'idle' && d.reason).toMatch(/13 classes.*12/);
+    expect(asked).toEqual([]);
+  });
+});
+
 describe('dockModel and the promotion', () => {
   const sent = { kind: 'sent' as const, mr: '!22', url: null, simulated: false };
   const promoViews: Record<string, PromoteView> = { 'a>hands_off': { kind: 'preview', preview }, 'q>assisted': sent };
