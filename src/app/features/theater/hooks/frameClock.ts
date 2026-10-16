@@ -10,29 +10,55 @@ export interface FrameHost {
 }
 
 export interface FrameClock {
-  /** Begin (or restart) ticking; the first dt is measured from now. */
+  /** Begin (or restart) the clock; it asks for frames only while the film runs, and wakes when it starts running. */
   start: () => void;
   stop: () => void;
 }
 
-/** The film clock: one `tick` per display frame while the film is running. */
-export function frameClock(store: Pick<ReplayStore, 'get' | 'dispatch'>, host: FrameHost): FrameClock {
+/**
+ * The film clock: one `tick` per display frame while the film is running (playing, pre-rolling or looping). A held
+ * film asks for no frames at all; a dispatch that makes it run again wakes the clock, and the first dt counts from
+ * the wake, not from the idle gap.
+ */
+export function frameClock(store: Pick<ReplayStore, 'get' | 'dispatch' | 'subscribe'>, host: FrameHost): FrameClock {
   let id = 0;
+  let armed = false;
+  let on = false;
   let last = 0;
+  const running = () => {
+    const s = store.get();
+    return s.playing || s.preroll > 0 || s.loopIn > 0;
+  };
   const frame = (now: number) => {
     const dt = Math.min(MAX_FRAME_MS, now - last);
     last = now;
-    const s = store.get();
-    if (s.playing || s.preroll > 0 || s.loopIn > 0) store.dispatch({ type: 'tick', dt });
+    if (running()) store.dispatch({ type: 'tick', dt });
+    if (on && running()) id = host.raf(frame);
+    else armed = false;
+  };
+  const wake = () => {
+    if (!on || armed || !running()) return;
+    armed = true;
+    last = host.now();
     id = host.raf(frame);
   };
-  const stop = () => host.caf(id);
+  const stop = () => {
+    on = false;
+    armed = false;
+    host.caf(id);
+  };
+  let unsub = () => {};
   return {
     start: () => {
       stop();
-      last = host.now();
-      id = host.raf(frame);
+      unsub();
+      on = true;
+      unsub = store.subscribe(wake);
+      wake();
     },
-    stop,
+    stop: () => {
+      stop();
+      unsub();
+    },
   };
 }

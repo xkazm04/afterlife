@@ -44,23 +44,67 @@ function setup() {
 }
 
 describe('frameClock', () => {
-  it('BASELINE: asks for a frame per display frame, 60 in a second, of a held film', () => {
+  it('asks for no frames in a second of a held film', () => {
     const { store, d, clock } = setup();
     store.dispatch({ type: 'play', on: false });
     clock.start();
     d.callbacks = 0;
     run(d, 60);
-    expect(d.callbacks).toBe(60);
+    expect(d.callbacks).toBe(0);
   });
 
-  it('ticks every frame while the film plays', () => {
+  it('wakes on Space, ticks every frame while the film plays, and sleeps again when held', () => {
+    const { store, d, clock } = setup();
+    clock.start();
+    run(d, 5);
+    store.dispatch({ type: 'toggle' });
+    const t0 = store.get().t;
+    d.callbacks = 0;
+    run(d, 10);
+    expect(store.get().playing).toBe(true);
+    expect(store.get().t).toBeGreaterThan(t0);
+    expect(d.callbacks).toBe(10);
+    store.dispatch({ type: 'toggle' });
+    d.callbacks = 0;
+    run(d, 30);
+    expect(d.callbacks).toBeLessThanOrEqual(1);
+  });
+
+  it('counts the first dt of a wake from the wake, not from the idle gap', () => {
     const { store, d, clock } = setup();
     store.dispatch({ type: 'play', on: false });
     clock.start();
+    run(d, 600);
     store.dispatch({ type: 'toggle' });
     const t0 = store.get().t;
+    d.frame();
+    expect(store.get().t - t0).toBeLessThan(FRAME_MS * 2);
+  });
+
+  it('pre-rolls, plays through and goes quiet at the end of a roll', () => {
+    const { store, d, clock } = setup();
+    store.dispatch({ type: 'play', on: false });
+    clock.start();
+    store.dispatch({ type: 'roll' });
+    expect(store.get().preroll).toBeGreaterThan(0);
+    for (let k = 0; k < 20000 && d.callbacks < 20000 && (store.get().playing || store.get().preroll > 0); k++) d.frame();
+    expect(store.get().playing).toBe(false);
+    expect(store.get().preroll).toBe(0);
+    d.callbacks = 0;
+    run(d, 60);
+    expect(d.callbacks).toBe(0);
+  });
+
+  it('stays quiet while stopped and resumes when started', () => {
+    const { store, d, clock } = setup();
+    clock.start();
+    clock.stop();
+    store.dispatch({ type: 'toggle' });
+    d.callbacks = 0;
     run(d, 10);
-    expect(store.get().t).toBeGreaterThan(t0);
+    expect(d.callbacks).toBe(0);
+    clock.start();
+    run(d, 10);
     expect(d.callbacks).toBe(10);
   });
 });
