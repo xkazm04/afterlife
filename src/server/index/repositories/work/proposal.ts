@@ -1,4 +1,4 @@
-import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
+import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 export type ProposalKind = 'promotion' | 'cra_signoff' | 'gap' | 'readmit' | 'setup_gate';
 export type ProposalState = 'open' | 'acted' | 'dismissed' | 'expired';
@@ -29,6 +29,7 @@ const SPEC: TableSpec = {
     due_at: 'timestamptz', opened_at: 'timestamptz', acted_at: 'timestamptz', acted_as: 'text',
   },
 };
+registerSpec(SPEC);
 
 interface Db {
   id: string; project_id: string; kind: ProposalKind; state: ProposalState; parent_id: string | null; title: string;
@@ -66,4 +67,13 @@ export async function closeProposal(
     [id, state, at.toISOString(), actedAs],
   );
   return rows.length === 1;
+}
+
+/** The Needs-you count: a project's open, top-level proposals (a gap's picks are not counted). Badge and Fleet row both read it. */
+export async function countOpenInbox(db: Queryable, projectId: string): Promise<number> {
+  const { rows } = await db.query<{ n: number }>(
+    `select count(*)::int as n from proposal where project_id = $1 and state = 'open' and parent_id is null`,
+    [projectId],
+  );
+  return rows[0]?.n ?? 0;
 }

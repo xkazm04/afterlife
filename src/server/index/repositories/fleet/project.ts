@@ -1,5 +1,5 @@
 import type { ProjectState, ProofCounts } from '@/lib/demo/types';
-import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
+import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 export interface ProjectRow {
   id: string;
@@ -32,6 +32,7 @@ const SPEC: TableSpec = {
     last_at: 'timestamptz', last_track: 'text', last_text: 'text',
   },
 };
+registerSpec(SPEC);
 
 interface Db {
   id: string; gitlab_id: number | null; name: string; what: string; group_path: string; state: ProjectState;

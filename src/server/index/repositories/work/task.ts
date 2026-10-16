@@ -1,6 +1,6 @@
 import type { Task } from '@/lib/demo/types';
 import type { Ceiling } from '@/schemas/tier';
-import { asDate, toIso, upsertRows, type Queryable, type TableSpec } from '../sql';
+import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
 export type TaskState = 'started' | 'proved' | 'blocked' | 'merged' | 'reverted' | 'closed';
 
@@ -44,6 +44,7 @@ const SPEC: TableSpec = {
     tier_at_time: 'text', state: 'text', state_label: 'text', started_at: 'timestamptz', finished_at: 'timestamptz', detail: 'jsonb',
   },
 };
+registerSpec(SPEC);
 
 interface Db {
   id: string; project_id: string; track: number | null; agent: string | null; action_class: string | null;
