@@ -3,11 +3,13 @@ import { loadTasks } from '../build/loadTasks';
 import { NO_FILTERS, classCount, docketCount, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdictCounts, visibleTasks } from './filters';
 import { actionFor } from './keys';
 import { PROOF_CLASSES as ENGINE_CLASSES } from '../../../../../../engine/proofs';
+import { PROOF_CLASSES as SCHEMA_CLASSES } from '@/schemas/proof';
 import { PROOF_CLASSES } from '../../data/pageFacts';
 
 describe('class menu', () => {
   it('offers every proof class the engine can write, so no task is unfilterable', () => {
     expect([...PROOF_CLASSES].sort()).toEqual([...ENGINE_CLASSES].sort());
+    expect([...PROOF_CLASSES]).toEqual([...SCHEMA_CLASSES]); // the menu keeps the schema's order
   });
 });
 

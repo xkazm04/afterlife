@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EngineError } from '../../core/types';
 import { checkOf, fixture, NOW, policy } from '../../__tests__/helpers';
 import { parsePolicy } from '../../policy/load';
+import { PROOF_CLASSES as SCHEMA_CLASSES } from '../../../src/schemas/proof';
 import { prove, PROOF_CLASSES } from '../index';
 import { STUB_CLASSES } from '../stubs';
 import { classify, DEFAULT_THRESHOLDS } from '../rerunStats';
@@ -118,6 +119,7 @@ describe('stubs and dispatch', () => {
 
   it('knows all eight classes, and pins every block to the engine', () => {
     expect(PROOF_CLASSES).toHaveLength(8);
+    expect([...PROOF_CLASSES].sort()).toEqual([...SCHEMA_CLASSES].sort());
     const b = prove('rerun-stats', fixture('rerun', 'flake.json'), env);
     expect(b.engine.version).toBe('1.0.0');
     expect(b.engine.sha256).toMatch(/^[0-9a-f]{64}$/);

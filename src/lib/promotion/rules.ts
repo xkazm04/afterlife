@@ -1,6 +1,7 @@
 // The rows of each promotion step, against trust-policy.yml's thresholds. A row is met only by a counter a task row or a
 // ledger event states. A counter nothing states reads "not recorded" and is never met. The human key is not a row: it is
 // the precondition of the promote write (HUMAN_KEY), stated beside the rows.
+import type { ProofClass } from '@/schemas/proof';
 import type { Counters, Gated, PromotionRules, TrialThreshold } from './types';
 
 /**
@@ -8,7 +9,7 @@ import type { Counters, Gated, PromotionRules, TrialThreshold } from './types';
  * these. A class the engine only stubs (engine/proofs/stubs.ts STUB_CLASSES: it answers inconclusive, never pass) is not
  * one; none is today, since 'ledger-record' has its checker. rules.test.ts pins the set against both lists.
  */
-export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set(['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta', 'ledger-record']);
+export const MECHANICAL_PROOFS: ReadonlySet<string> = new Set<string>(['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta', 'ledger-record'] as const satisfies readonly ProofClass[]);
 
 export const isMechanical = (proofClass: string): boolean => MECHANICAL_PROOFS.has(proofClass);
 

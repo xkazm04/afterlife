@@ -14,7 +14,7 @@ import { rerunStats } from './rerunStats';
 import { stub, STUB_CLASSES } from './stubs';
 
 /** Classes with a real checker; src/lib/promotion's MECHANICAL_PROOFS is this list (rules.test.ts pins it). */
-export const CHECKED_CLASSES: readonly ProofClass[] = ['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta', 'ledger-record'];
+export const CHECKED_CLASSES = ['exploit-test', 'cited-diff', 'rerun-stats', 'linked-evidence', 'repro', 'bench-delta', 'score-delta', 'ledger-record'] as const satisfies readonly ProofClass[];
 export const PROOF_CLASSES: readonly ProofClass[] = [...CHECKED_CLASSES, ...STUB_CLASSES];
 
 export function isProofClass(v: string): v is ProofClass {
