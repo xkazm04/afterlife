@@ -56,7 +56,11 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
   const onPick = (side: Side, id: string) => {
     if (!replay.running) pick(side, id);
   };
-  const focus = (selector: string) => document.querySelector<HTMLElement>(selector)?.focus();
+  /** A check card is a container whose select button takes the focus; a claim card or a docket link is focused itself. */
+  const focus = (selector: string) => {
+    const el = document.querySelector<HTMLElement>(selector);
+    (el?.querySelector<HTMLElement>('button[aria-pressed]') ?? el)?.focus();
+  };
 
   const run = (a: TaskAction) => {
     if (a.type === 'step') {
