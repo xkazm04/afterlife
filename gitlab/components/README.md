@@ -228,6 +228,14 @@ and exploit-test chains (`mr-context` to `fetch-block` to `build-evidence` to `p
 with its idempotence, and a two-event ledger append. belay-apply's two sweeps (`../apply/*.test.mjs`) run these same
 scripts end to end. `scripts/target-tokens.test.mjs` expands the target example with every component it includes and
 fails on any write token.
+
+Transient GitLab failures (`lib/lib.mjs` `glab()`, tested in `lib/glab-retry.test.mjs`): a read (a GET, a GraphQL query) is
+tried 3 times in all on 429, 502, 503, 504, a dropped connection or a glab that answers nothing in `BELAY_GLAB_TIMEOUT_MS`
+(default 120 s), 0.5 s then 1 s apart, or Retry-After when glab shows it (at most 5 s). Any other failure, and the last one,
+is thrown as it came, so a fail-closed read still fails closed. A write (a POST, PUT or DELETE, `glab mr note`, `update`,
+`approve`, `merge`) runs once: one that failed with a 5xx or no answer says it may or may not have landed. It is made again
+only when a read first shows it did not land; `writeFile` does that for the commits API (the file's last commit unchanged, or
+the file not there). A GraphQL answer that carries `errors` throws.
 `scripts/hand/` holds the M1 hand-run's two operator scripts (`check-proof.mjs`, `derive-gate.mjs`): they read with the
 operator's own `glab` login and write nothing to GitLab. They import `../apply/ci-touch.mjs`, so they need the Belay
 checkout's `node_modules` (`yaml`), as belay-apply does.
