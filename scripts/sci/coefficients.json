@@ -1,0 +1,76 @@
+{
+  "_about": "Price and coefficient book for scripts/sci (DECISIONS.md D6). Every figure names its source and the date it was read. [S] = read in the source on that date; [E] = Belay's own estimate, stated as one, with its range. SCI = ((E * I) + M) per R, R = one proven merge request (https://sci.greensoftware.foundation/, read 2026-10-18).",
+  "runner": {
+    "default": "small",
+    "sizes": {
+      "small": { "vcpu": 2, "memoryGb": 8, "costFactor": 1, "tags": ["saas-linux-small-amd64", "saas-linux-small-arm64"] },
+      "medium": { "vcpu": 4, "memoryGb": 16, "costFactor": 2, "tags": ["saas-linux-medium-amd64", "saas-linux-medium-arm64"] },
+      "large": { "vcpu": 8, "memoryGb": 32, "costFactor": 3, "tags": ["saas-linux-large-amd64", "saas-linux-large-arm64"] }
+    },
+    "source": "[S] vCPU and memory: https://docs.gitlab.com/ci/runners/hosted_runners/linux/ ; cost factors 1/2/3: https://docs.gitlab.com/ci/pipelines/compute_minutes/ (usage = duration / 60 * cost factor; created and pending time excluded)",
+    "date": "2026-10-18",
+    "note": "An untagged job runs on small. A job on a self-managed runner is costed as small: the export does not say what hardware it had."
+  },
+  "cpuPower": {
+    "minWattsPerVcpu": 0.71,
+    "maxWattsPerVcpu": 4.26,
+    "utilization": { "low": 0.1, "central": 0.5, "high": 1.0 },
+    "source": "[S] min/max: Cloud Carbon Footprint methodology, GCP median min and max watts (0% and 100% CPU), https://www.cloudcarbonfootprint.org/docs/methodology/ ; [E] utilization: CCF's default 50% central, 10% and 100% as bounds (a CI job is often I/O bound while it clones and installs)",
+    "date": "2026-10-18"
+  },
+  "memoryPower": {
+    "kWhPerGbHour": 0.000392,
+    "source": "[S] Cloud Carbon Footprint methodology, memory coefficient, https://www.cloudcarbonfootprint.org/docs/methodology/",
+    "date": "2026-10-18"
+  },
+  "pue": {
+    "value": 1.1,
+    "source": "[S] Cloud Carbon Footprint methodology, GCP PUE, https://www.cloudcarbonfootprint.org/docs/methodology/",
+    "date": "2026-10-18"
+  },
+  "gridIntensity": {
+    "region": "us-east1",
+    "unit": "gCO2e/kWh",
+    "regions": { "us-east1": 560, "us-central1": 430, "europe-west1": 122, "europe-west3": 345 },
+    "source": "[S] Google Cloud region-carbon-info, yearly 2023 grid carbon intensity, https://github.com/GoogleCloudPlatform/region-carbon-info/blob/main/data/yearly/2023.csv ; hosted runners default to us-east1: https://docs.gitlab.com/ci/runners/hosted_runners/linux/",
+    "date": "2026-10-18",
+    "note": "Location-based grid intensity, not Google's market-based figure (CFE 0.29 in us-east1). The Cloud Run region is not fixed in the repo yet; pass --region once it is."
+  },
+  "embodied": {
+    "machineType": "n2d-standard-2",
+    "hostTotalKgCo2e": 2321.46,
+    "hostVcpu": 224,
+    "lifespanYears": 4,
+    "source": "[S] host total: ccf-coefficients output/coefficients-gcp-embodied.csv, row n2d-standard-2, https://github.com/cloud-carbon-footprint/ccf-coefficients ; 4-year lifespan and M = TE * (TiR/EL) * (RR/ToR): https://www.cloudcarbonfootprint.org/docs/embodied-emissions and the SCI spec ; [E] host of 224 vCPU (the largest n2d type, n2d-standard-224) as ToR",
+    "date": "2026-10-18",
+    "note": "GitLab's docs no longer name the machine type ('might change'); n2d-standard-2 is the type GitLab documented for the small runner before. RR = the job's vCPU."
+  },
+  "price": {
+    "usdPerComputeMinute": 0.01,
+    "source": "[S] GitLab additional compute minutes: $10 per 1,000 minutes, https://about.gitlab.com/pricing/faq-compute-minutes/",
+    "date": "2026-10-18",
+    "note": "The marginal price. Minutes inside a plan's monthly quota (400 Free, 10,000 Premium) are prepaid, so their cash cost is zero until the quota runs out."
+  },
+  "llmJudge": {
+    "inputTokensPerVerdict": { "low": 2000, "central": 6000, "high": 20000 },
+    "outputTokensPerVerdict": { "low": 200, "central": 500, "high": 1500 },
+    "tokensSource": "[E] a judge reads what the engine reads for one Proof Block (proof-engine template artifacts: diff.patch, the evidence JSON, trust-policy.yml) plus a rubric, and writes a short reasoned verdict. Central: a ~200-line diff (~2.5k tokens), evidence and test output (~2k), policy and rubric (~1.5k). Calibrate with --judge-input-tokens from real artifacts (bytes / 4).",
+    "whPer1kInputTokens": { "low": 0.07, "central": 0.21, "high": 2.8 },
+    "whPer1kOutputTokens": { "low": 0.2, "central": 0.6, "high": 8.0 },
+    "energySource": "[S] Epoch AI, 'How much energy does ChatGPT use?' (2025-02-07), https://epoch.ai/gradient-updates/how-much-energy-does-chatgpt-use : ~0.3 Wh per GPT-4o query of 500 output tokens (0.6 Wh/1k out), ~2.4 Wh with a 10k-token input ((2.4 - 0.3) / 10 = 0.21 Wh/1k in). [E] bounds from the same article's stated uncertainty: 'down to about 0.1 Wh' (x1/3) and '1 to 4 Wh' (x13).",
+    "usdPerMTokInput": 2,
+    "usdPerMTokOutput": 10,
+    "priceSource": "[S] Anthropic API list price for Claude Sonnet 5.5 ($2 / $10 per million input / output tokens), https://claude.com/pricing , as a mid-tier reference judge",
+    "date": "2026-10-18",
+    "note": "The judge is charged its inference energy at the runner region's grid intensity, with no embodied share and no CI job to gather its evidence. Both omissions flatter the judge, so the ratio is conservative for the model-free claim."
+  },
+  "pollReads": {
+    "intervalSeconds": 30,
+    "perCycleFixed": 5,
+    "perProjectSteady": 5,
+    "perChangedMr": 1,
+    "source": "[S] read from the poller (2026-10-18). Fixed per cycle: getGroup + listProjects (src/server/poller/cycle.ts), getFile trust-policy.yml + tier-state.yml (src/server/poller/derive/policy.ts), listCommits tier-state.yml (src/server/poller/stateHistory.ts). Per watched project, warm memory: listMergeRequests and listDeployments (src/server/poller/project.ts), listTree of the ledger (src/server/ledger/importLedger.ts), listPipelines and listJobs of the scan (src/server/poller/maturityScan.ts). Per MR updated since the last cycle: listNotes (project.ts). Interval: BELAY_POLL_SECONDS default 30 (src/server/poller/scheduler.ts).",
+    "date": "2026-10-18",
+    "note": "One read is one port call (one glab api command); a list longer than a page costs more than one HTTP request. A changed ledger, a new scan job or a new tier-state commit adds one read each. The reads the CI jobs make (mr-context, fetch-block) are not counted here."
+  }
+}
