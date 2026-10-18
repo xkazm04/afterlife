@@ -13,8 +13,11 @@ export interface PlanItem {
 /** The step marker is for tooling (and the test fake): every prompt the runner sends carries one. */
 export const stepMarker = (step: string, lane = ''): string => `\n<!-- belay:step=${step}${lane ? ` lane=${lane}` : ''} -->`;
 
-export function planPrompt(base: string, repo: FleetRepo, lanes: number): string {
-  return `${base}\n\n## This wave\n- repo: ${repo.slug}\n- base: ${repo.base}\n- plan at most ${lanes} lane(s)\n- gates every lane must pass:\n${repo.gates.map((g) => `  - ${g}`).join('\n')}\n${stepMarker('plan')}`;
+export function planPrompt(base: string, repo: FleetRepo, lanes: number, history: readonly string[] = [], baseRef?: string): string {
+  const done = history.length
+    ? `\n## Earlier waves on this repo (do not re-plan a landed item; a parked or failed one only with a new approach)\n${history.map((h) => `- ${h}`).join('\n')}\n`
+    : '';
+  return `${base}\n\n## This wave\n- repo: ${repo.slug}\n- base: ${baseRef ?? repo.base}\n- plan at most ${lanes} lane(s)\n- gates every lane must pass:\n${repo.gates.map((g) => `  - ${g}`).join('\n')}\n${done}${stepMarker('plan')}`;
 }
 
 export function lanePrompt(base: string, item: PlanItem, capUsd: number): string {

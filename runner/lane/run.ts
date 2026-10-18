@@ -27,6 +27,8 @@ export interface LaneCtx {
 export interface LaneResult {
   outcome: LaneOutcome;
   costUsd: number;
+  /** The tail of the lane's final message (at most 1500 chars), for the reflect step. */
+  text: string;
 }
 
 /** The lane's claim is its last DONE:/PARK: line; anything else is a failed lane. */
@@ -44,12 +46,14 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   let costUsd = 0;
   let outcome: LaneOutcome = 'failed';
   let parkReason: string | undefined;
+  let text = '';
   const commits: string[] = [];
   log({ kind: 'lane.start', lane: item.lane, title: item.title });
   try {
     await addWorktree(ctx.repoPath, dir, ctx.baseSha, branch);
     const a = await callClaude({ prompt: lanePrompt(ctx.lanePromptText, item, ctx.laneCapUsd), cwd: dir, model: ctx.model, timeoutMs: ctx.timeoutMs });
     costUsd = a.costUsd ?? 0;
+    text = a.text.slice(-1500);
     if (a.usage) {
       log({ kind: 'lane.usage', lane: item.lane, model: a.model ?? ctx.model, ...a.usage, costUsd });
     }
@@ -77,7 +81,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
     await removeWorktree(ctx.repoPath, dir, branch);
   }
   log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
-  return { outcome, costUsd };
+  return { outcome, costUsd, text };
 }
 
 async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem): Promise<{ outcome: LaneOutcome; parkReason?: string; commit?: string }> {

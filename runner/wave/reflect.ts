@@ -9,11 +9,29 @@ import { callClaude } from '../agent/spawn';
 import { stepMarker } from './plan';
 import type { Log } from './events';
 
-export async function reflect(o: { prompt: string; runFile: string; model: string; timeoutMs: number; log: Log }): Promise<void> {
+export interface ReflectInput {
+  prompt: string;
+  runFile: string;
+  model: string;
+  timeoutMs: number;
+  log: Log;
+  /** The lanes' final texts (WaveResult.notes). */
+  notes: readonly string[];
+  /** The prompts the wave ran with, so a proposal can be a diff against them. */
+  current: { plan: string; lane: string };
+}
+
+export async function reflect(o: ReflectInput): Promise<void> {
   const events = fs.readFileSync(o.runFile, 'utf8');
+  const context = [
+    `## The wave's events (jsonl)\n${events}`,
+    `## Lane result texts\n${o.notes.join('\n\n') || '(no lanes ran)'}`,
+    `## plan.md as run\n${o.current.plan}`,
+    `## lane.md as run\n${o.current.lane}`,
+  ].join('\n\n');
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-reflect-'));
   try {
-    const a = await callClaude({ prompt: `${o.prompt}\n\n## The wave's events (jsonl)\n${events}\n${stepMarker('reflect')}`, cwd: scratch, model: o.model, timeoutMs: o.timeoutMs });
+    const a = await callClaude({ prompt: `${o.prompt}\n\n${context}\n${stepMarker('reflect')}`, cwd: scratch, model: o.model, timeoutMs: o.timeoutMs });
     if (a.usage) o.log({ kind: 'lane.usage', lane: 'reflect', model: a.model ?? o.model, ...a.usage, costUsd: a.costUsd ?? 0 });
     if (a.text && !a.timedOut) fs.writeFileSync(o.runFile.replace(/\.jsonl$/, '.proposals.md'), `${a.text.trim()}\n`);
   } catch {

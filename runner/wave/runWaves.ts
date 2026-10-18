@@ -11,6 +11,7 @@ import { waveBranch } from '../../src/schemas/run';
 import type { RunOptions } from '../index';
 import { makeLog, runFile } from './events';
 import { loadPrompts } from './prompts';
+import { waveHistory } from './history';
 import { reflect } from './reflect';
 import { runWave } from './wave';
 
@@ -31,13 +32,19 @@ export async function runWaves(opts: RunOptions, emit: (e: RunEvent) => void): P
   const waveCapUsd = Math.min(opts.waveCapUsd, repo.waveCapUsd ?? Infinity);
   const timeoutMs = opts.laneTimeoutMs ?? DEFAULT_LANE_TIMEOUT_MS;
   let wave = 0;
+  // Waves of one run stack: wave n+1 starts from wave n's branch when wave n landed something, since the
+  // person has not merged it yet. A wave that landed nothing leaves the base where it was.
+  let baseRef: string | undefined;
   try {
     for (let i = 0; i < opts.waves; i++) {
       wave = 1;
       while ((await branchExists(repo.path, waveBranch(wave))) || fs.existsSync(runFile(runsDir, repo.slug, wave))) wave++;
       const log = makeLog({ runsDir, repo: repo.slug, wave, promptVersion: prompts.version, emit });
-      await runWave({ repo, opts, wave, prompts, log, laneCapUsd, waveCapUsd, timeoutMs });
-      await reflect({ prompt: prompts.text.reflect, runFile: runFile(runsDir, repo.slug, wave), model: opts.model, timeoutMs, log });
+      const history = waveHistory(runsDir, repo.slug);
+      const r = await runWave({ repo, opts, wave, prompts, log, laneCapUsd, waveCapUsd, timeoutMs, history, ...(baseRef ? { baseRef } : {}) });
+      if (r.landed > 0) baseRef = r.branch;
+      const current = { plan: prompts.text.plan, lane: prompts.text.lane };
+      await reflect({ prompt: prompts.text.reflect, runFile: runFile(runsDir, repo.slug, wave), model: opts.model, timeoutMs, log, notes: r.notes, current });
     }
     return 0;
   } catch (e) {
