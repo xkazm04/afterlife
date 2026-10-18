@@ -1,0 +1,31 @@
+# Build context for infra/cloudrun/Dockerfile (BuildKit reads <Dockerfile>.dockerignore).
+# Dependencies and build output: the image installs and builds its own.
+**/node_modules
+.next
+out
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Local runtime data and secrets.
+.belay
+**/.env*
+*.log
+
+# Local planning and agent material (never public).
+docs
+design
+.contest
+.claude
+DECISIONS.md
+scratch
+.personas
+.perfect
+.spark
+.ai
+tiger
+
+# VCS and editors.
+.git
+.vscode
+.idea
