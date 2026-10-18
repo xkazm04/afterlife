@@ -42,6 +42,14 @@ describe('foldWave', () => {
     expect('mergeable' in r).toBe(false);
     expect('endedAt' in r).toBe(false);
   });
+  it("the runner's own plan and reflect calls cost the wave but are no lanes", () => {
+    const overhead = (lane: string, costUsd: number) =>
+      JSON.stringify({ v: 'belay.run/0', repo: 'alpha', promptVersion: 'abc123def456', kind: 'lane.usage', ts: '2026-10-18T09:00:30Z', wave: 2, lane, model: 'sonnet', inputTokens: 1, outputTokens: 1, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd });
+    const r = foldWave(events([...WAVE_2_RUNNING, overhead('plan', 0.07), overhead('reflect', 0.05)]), false)!;
+    expect(r.lanes.map((l) => l.lane)).toEqual(['a']);
+    expect(r).toMatchObject({ open: 1, tokens: 19 });
+    expect(r.costUsd).toBeCloseTo(0.13);
+  });
   it('no events, no wave', () => expect(foldWave([], false)).toBeNull());
 });
 

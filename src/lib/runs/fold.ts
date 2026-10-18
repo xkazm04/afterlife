@@ -41,11 +41,14 @@ export function foldWave(events: readonly RunEvent[], hasProposals: boolean): Ru
   if (!first) return null;
   const start = events.find((e) => e.kind === 'wave.start');
   const end = events.findLast((e) => e.kind === 'wave.end');
-  const lanes = foldLanes(events, start?.promptVersion ?? first.promptVersion);
+  const folded = foldLanes(events, start?.promptVersion ?? first.promptVersion);
+  // The runner's own calls (plan, reflect) report usage under a lane id with no lane.start or lane.end: their
+  // tokens and cost belong to the wave, but they are not lanes - never counted open, never a row.
+  const lanes = folded.filter((l) => l.title !== undefined || l.outcome !== undefined);
   const counts = emptyCounts();
   for (const l of lanes) if (l.outcome) counts[l.outcome] += 1;
-  const withTokens = lanes.filter((l) => l.tokens !== undefined);
-  const withCost = lanes.filter((l) => l.costUsd !== undefined);
+  const withTokens = folded.filter((l) => l.tokens !== undefined);
+  const withCost = folded.filter((l) => l.costUsd !== undefined);
   const w: RunWave = {
     repo: first.repo,
     wave: first.wave,
