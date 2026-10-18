@@ -51,19 +51,31 @@ export function fileHead(project, path, ref) {
  * mode 'commit' pushes to `branch`; mode 'mr' commits to a new branch and opens an MR (fallback for a protected branch,
  * spike S8). `lastCommitId`: the commit the new content was computed from; sent with an update so a stale write is
  * refused rather than landing over a newer file.
+ * A commit that failed with no clear answer (5xx, no HTTP answer) is made again only once a read shows it did not land: the
+ * file's last commit is still `lastCommitId` (an update), or the file is not there (a create, or the new branch of mode
+ * 'mr'). A retry that races a late landing is refused by GitLab too (stale last_commit_id, file or branch already there).
+ * An update without lastCommitId has no such proof and is never made again. Opening the MR is never retried.
  */
 export function writeFile({ project, branch, path, content, message, mode = 'commit', exists, lastCommitId }) {
   const action = { action: exists ? 'update' : 'create', file_path: path, content, ...(exists && lastCommitId ? { last_commit_id: lastCommitId } : {}) };
+  const unlandedOn = (ref, created) => (created || action.last_commit_id
+    ? () => {
+      const now = fileHead(project, path, ref);
+      return created ? now === null : now?.lastCommitId === action.last_commit_id;
+    }
+    : undefined);
   if (mode === 'commit') {
     return api(`projects/${enc(project)}/repository/commits`, {
       method: 'POST',
       body: { branch, commit_message: message, actions: [action] },
+      unlanded: unlandedOn(branch, !exists),
     });
   }
   const work = `belay/${path.replace(/[^A-Za-z0-9]+/g, '-')}-${Date.now()}`;
   api(`projects/${enc(project)}/repository/commits`, {
     method: 'POST',
     body: { branch: work, start_branch: branch, commit_message: message, actions: [action] },
+    unlanded: unlandedOn(work, true), // the branch is new: no file there means no commit
   });
   return api(`projects/${enc(project)}/merge_requests`, {
     method: 'POST',

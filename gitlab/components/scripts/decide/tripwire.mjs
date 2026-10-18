@@ -130,7 +130,9 @@ try {
     mode: arg('write-mode', 'commit'),
     lastCommitId: head.lastCommitId,
   });
-} catch {
+} catch (e) {
+  // No clear answer (5xx, network): the commit may be there. The next run's clone shows it by its Belay-Event lines.
+  if (e.landed === 'unknown') die(`the commit of ${STATE} to ${project} got no clear answer: it may or may not have landed. The next run reads the policy history, so an event it carries is not applied twice.`, 3);
   // glab printed GitLab's answer above: a 400 here is the file moving since it was read (last_commit_id).
   die(`${project} refused the commit of ${STATE} (see GitLab's answer above): nothing committed; the next run tries again.`, 3);
 }

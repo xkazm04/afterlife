@@ -68,6 +68,26 @@ function backoff(e, next) {
   return Number(process.env.BELAY_GLAB_BACKOFF_MS ?? 500) * 2 ** (next - 2);
 }
 
+/** True only when the caller's read answered true. No probe, a probe that throws, or any other answer: not proven. */
+function provenUnlanded(unlanded) {
+  if (typeof unlanded !== 'function') return false;
+  try {
+    return unlanded() === true;
+  } catch (e) {
+    console.error(`belay: could not read whether the write landed (${String(e?.message ?? e).split('\n')[0]}): not trying it again`);
+    return false;
+  }
+}
+
+/** A write's failure with a 5xx or no HTTP answer: GitLab may have done it and lost the answer. A 4xx (429 too) did not land. */
+function unknownIfAmbiguous(e) {
+  const status = httpStatus(e);
+  if (status === null ? !transient(e) : status < 500) return e;
+  e.landed = 'unknown';
+  e.message = `${e.message} [the write may or may not have landed: read GitLab before making it again]`;
+  return e;
+}
+
 /** What a log line names a call by: `api GET <path>`, `api graphql`, `mr note`. Never a body or a token. */
 const what = (args) => (args[0] === 'api' && args.includes('-X') ? `api ${args.slice(args.indexOf('-X') + 1, args.indexOf('-X') + 3).join(' ')}` : args.slice(0, 2).join(' '));
 
@@ -75,14 +95,17 @@ const what = (args) => (args[0] === 'api' && args.includes('-X') ? `api ${args.s
  * Runs glab. Its stderr is captured so a caller can read the HTTP status, and still printed. A failure is thrown with
  * `.stderr` and `.stdout` (GitLab's answer: glab prints the body on stdout, "glab: <message> (HTTP <status>)" on stderr).
  * `read`: the call changes nothing (a GET, a GraphQL query), so a transient failure is tried again, ATTEMPTS in all. Anything
- * else is a write and runs once.
+ * else is a write and is never tried again blindly: only when `unlanded()`, a read the caller supplies, returns true (it shows
+ * the write did not land). A write that failed with a 5xx or no HTTP answer is thrown with `.landed = 'unknown'` and a message
+ * that says so.
  */
-export function glab(args, input, { read = false } = {}) {
+export function glab(args, input, { read = false, unlanded } = {}) {
   for (let attempt = 1; ; attempt++) {
     try {
       return glabOnce(args, input);
     } catch (e) {
-      if (!read || attempt >= ATTEMPTS || !transient(e)) throw e;
+      const again = attempt < ATTEMPTS && transient(e) && (read || provenUnlanded(unlanded));
+      if (!again) throw read ? e : unknownIfAmbiguous(e);
       const ms = backoff(e, attempt + 1);
       console.error(`belay: glab ${what(args)} failed (${httpStatus(e) ?? 'no HTTP answer'}): attempt ${attempt + 1} of ${ATTEMPTS} in ${ms} ms`);
       sleep(ms);
@@ -96,11 +119,14 @@ export function httpStatus(e) {
   return m ? Number(m[1] ?? m[2]) : null;
 }
 
-/** REST call through `glab api` (docs.gitlab.com/cli/api: -X, -H, --input, --hostname). */
-export function api(path, { method = 'GET', body, raw = false } = {}) {
+/**
+ * REST call through `glab api` (docs.gitlab.com/cli/api: -X, -H, --input, --hostname). A GET is retried on a transient
+ * failure; a write only with `unlanded`, a read that returns true when the write is shown not to have landed (see glab()).
+ */
+export function api(path, { method = 'GET', body, raw = false, unlanded } = {}) {
   const args = ['api', '--hostname', HOST, '-X', method, path];
   if (body !== undefined) args.push('-H', 'Content-Type: application/json', '--input', '-');
-  const out = glab(args, body === undefined ? undefined : JSON.stringify(body), { read: method === 'GET' });
+  const out = glab(args, body === undefined ? undefined : JSON.stringify(body), { read: method === 'GET', unlanded });
   if (raw) return out;
   return out.trim() ? JSON.parse(out) : null;
 }

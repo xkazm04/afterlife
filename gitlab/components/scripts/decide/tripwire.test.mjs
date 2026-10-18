@@ -175,3 +175,30 @@ describe('tripwire.mjs takes Belay-Event keys from whole lines of belay-policy h
     expect(commits(r).map((c) => c.events)).toEqual([[key]]);
   }, 60_000);
 });
+
+// A commit that got no clear answer (502, a dropped connection) is made again only once belay-policy shows it did not land.
+describe('tripwire.mjs when GitLab answers its commit with a 502', () => {
+  const failed = { pipelines: [pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob] } };
+  const flaky = (faults) => {
+    const r = routes(failed);
+    r[COMMITS] = { __transient: faults, then: r[COMMITS] };
+    return runScript(dir, 'decide/tripwire.mjs', [
+      '--mode', 'sweep', '--policy-dir', policyClone(`flaky-${faults.length}`), '--policy-project', POLICY, '--policy-branch', 'main',
+      '--guardrail-authors', 'ai-guardrail-acme', '--agent-prefix', 'ai-', '--lookback-hours', '24', '--write-mode', 'commit',
+    ], { routes: r, env: { CI_PIPELINE_ID: '502', BELAY_GLAB_BACKOFF_MS: '0' } });
+  };
+
+  it('commits once more when tier-state.yml still has the last commit it read: one demotion lands', () => {
+    const r = flaky([502]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(commits(r)).toHaveLength(1);
+  }, 60_000);
+
+  it('after three, exits 3 saying the commit may or may not have landed, never "nothing committed"', () => {
+    const r = flaky([502, 502, 502]);
+    expect(r.code).toBe(3);
+    expect(r.writes).toEqual([]);
+    expect(r.stderr).toMatch(/may or may not have landed/);
+    expect(r.stderr).not.toMatch(/refused the commit/);
+  }, 60_000);
+});
