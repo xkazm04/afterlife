@@ -1,0 +1,64 @@
+{
+  "ascent": "3c304182d51e0f6dd54e51e784fbf3458b49c033",
+  "sources": [
+    {
+      "file": "plan.md",
+      "from": [
+        {
+          "path": "src/lib/local/lane-plan-prompt.ts",
+          "sha256": "5c55ba60df7a3e522041f81be951bd7c15afee47fcd3782254b0eee566db3228"
+        },
+        {
+          "path": "src/lib/local/runner-types.ts",
+          "sha256": "509bd144c1c1fef5819ee6974b099ad0912c10cbc8c23f2566ba8fe7de5f9a2a"
+        },
+        {
+          "path": "src/lib/local/lane-reservation.ts",
+          "sha256": "87801fae9cb0a4209199e535ce1bd1a3f2dac9f03771ada498fcb28a7f6a6333"
+        },
+        {
+          "path": "src/lib/local/loop-lane.ts",
+          "sha256": "3f9f5ec1dc54d23cf918caf11094ed6b441a578a25b3789c7f284f6a08b7d520"
+        },
+        {
+          "path": ".claude/skills/infinite/references/ladder.md",
+          "sha256": "62eecf0576aaaa8495cde4d52067f6074b58fe963214230a34aae3eb05bc1cb7"
+        }
+      ]
+    },
+    {
+      "file": "lane.md",
+      "from": [
+        {
+          "path": "src/lib/local/lane-park.ts",
+          "sha256": "220f1ee01a607451804d22f6958e636d782ea404b83e04821c8dd84910e232c2"
+        },
+        {
+          "path": "src/lib/local/lane-report.ts",
+          "sha256": "88cb925c79c09d072907e212bbd1ff5d5427ecb44a4a78680fe08c9d69e43f94"
+        },
+        {
+          "path": "src/lib/org/lane-brief.ts",
+          "sha256": "6c0a2c20e8976950cab567541585d9fee712b72eabe56e7c5550c36e92c4fd39"
+        },
+        {
+          "path": "src/lib/org/followups.ts",
+          "sha256": "ef51ceddd9917b1d37ea1cf856cb1f852f8a5cebd30b356b4c1332d847c31b7e"
+        }
+      ]
+    },
+    {
+      "file": "reflect.md",
+      "from": [
+        {
+          "path": ".claude/skills/infinite/references/reflect.md",
+          "sha256": "6c23c51110660daae660916ced83670bdd10b13ab1751cf35eeca0af35d7806b"
+        },
+        {
+          "path": ".claude/skills/infinite/SKILL.md",
+          "sha256": "9a71cd64e774ecfcaccb198cad96dede231ce71899ff4db6960a2da059d01925"
+        }
+      ]
+    }
+  ]
+}
