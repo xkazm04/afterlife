@@ -107,6 +107,16 @@ describe('a read', () => {
     expect(lib.httpStatus(thrown(() => lib.gql(m)))).toBe(502);
     expect(calls(`query=${m}`)).toBe(1);
   });
+
+  // GraphQL reports a failure in a 200 answer's `errors`. Read as data, it was "no vulnerability state": a reopened
+  // finding the token could not see demoted nobody (detect.mjs step 4).
+  it('through GraphQL: an answer that carries errors throws, never reads as data', () => {
+    const q = 'query { vulnerability(id: "gid://gitlab/Vulnerability/9") { state } }';
+    serve({ [`query=${q}`]: { data: { vulnerability: null }, errors: [{ message: 'The resource that you are attempting to access does not exist or you don\'t have permission' }] } });
+    expect(() => lib.gql(q)).toThrow(/GraphQL.*does not exist or you don't have permission/);
+    serve({ [`query=${q}`]: { data: { vulnerability: null } } }); // no such vulnerability, and no error: data
+    expect(lib.gql(q)).toEqual({ data: { vulnerability: null } });
+  });
 });
 
 describe('a write', () => {

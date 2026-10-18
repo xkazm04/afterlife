@@ -163,9 +163,12 @@ export function pageAll(get, path, maxPages = 5, { strict = false } = {}) {
 
 export const apiAll = (path, maxPages = 5, opts) => pageAll(api, path, maxPages, opts);
 
+/** A GraphQL call. An answer with `errors` (GraphQL reports a failure in a 200) throws: unknown, never "no data". */
 export function gql(query) {
   const out = glab(['api', 'graphql', '--hostname', HOST, '-f', `query=${query}`], undefined, { read: !/^\s*mutation\b/.test(query) });
-  return JSON.parse(out);
+  const res = JSON.parse(out);
+  if (Array.isArray(res?.errors) && res.errors.length) throw new Error(`GraphQL answered with errors: ${res.errors.map((x) => String(x?.message ?? x)).join('; ').slice(0, 300)}`);
+  return res;
 }
 
 export const enc = encodeURIComponent;
