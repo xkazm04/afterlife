@@ -1,9 +1,9 @@
 // No DOM here: the screen is rendered to markup for the fixture's data and for none.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { WAVE_1, WAVE_2_RUNNING } from './model/fixture';
-import { foldRuns, foldWave } from './model/fold';
-import { parseRunLine } from './model/parse';
+import { WAVE_1, WAVE_2_RUNNING } from '@/lib/runs/fixture';
+import { foldRuns, foldWave } from '@/lib/runs/fold';
+import { parseRunLine } from '@/lib/runs/parse';
 import type { RunEvent } from '@/schemas/run/run';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/runs', useRouter: () => ({ push: () => {} }) }));

@@ -2,9 +2,9 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { WAVE_1, WAVE_2_RUNNING } from '@/app/features/runs/model/fixture';
-import { foldRuns, foldWave } from '@/app/features/runs/model/fold';
-import { parseRunLine } from '@/app/features/runs/model/parse';
+import { WAVE_1, WAVE_2_RUNNING } from '@/lib/runs/fixture';
+import { foldRuns, foldWave } from '@/lib/runs/fold';
+import { parseRunLine } from '@/lib/runs/parse';
 import type { RunEvent } from '@/schemas/run/run';
 import { waveMetaOf } from './model/meta';
 import { selectLive } from './model/select';

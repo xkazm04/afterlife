@@ -1,6 +1,6 @@
 import { CommandBlock } from '@/components/inspector/CommandBlock';
 import { mergeCommands } from '../model/format';
-import type { RunWave } from '../model/types';
+import type { RunWave } from '@/lib/runs/types';
 import styles from '../RunsScreen.module.css';
 
 /** What the person would run to take a mergeable wave. Text only: Belay merges and pushes nothing. */

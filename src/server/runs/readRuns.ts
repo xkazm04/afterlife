@@ -4,9 +4,9 @@
 import 'server-only';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { foldRuns, foldWave } from '@/app/features/runs/model/fold';
-import { parseRunLine } from '@/app/features/runs/model/parse';
-import type { RunWave, RunsData } from '@/app/features/runs/model/types';
+import { foldRuns, foldWave } from '@/lib/runs/fold';
+import { parseRunLine } from '@/lib/runs/parse';
+import type { RunWave, RunsData } from '@/lib/runs/types';
 import type { RunEvent } from '@/schemas/run/run';
 
 export const defaultRunsRoot = (): string => process.env.BELAY_DATA_DIR ?? '.belay';

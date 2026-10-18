@@ -3,7 +3,7 @@
 import 'server-only';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseRunLine } from '@/app/features/runs/model/parse';
+import { parseRunLine } from '@/lib/runs/parse';
 import { defaultRunsRoot, readRuns } from '@/server/runs/readRuns';
 import type { RunEvent } from '@/schemas/run/run';
 import { waveMetaOf } from '../model/meta';

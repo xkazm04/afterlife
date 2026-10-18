@@ -1,6 +1,6 @@
 // The live film's plain shapes. The payload is what GET /api/runs returns: exactly readRuns()'s RunsData, plus what the
 // fold drops and the live view needs (the newest event's ts, the wave cap, the planned lane count, each lane's start).
-import type { RunLane, RunsData } from '@/app/features/runs/model/types';
+import type { RunLane, RunsData } from '@/lib/runs/types';
 
 export interface WaveMeta {
   /** ts of the newest event in the wave's file: is the runner still talking. */

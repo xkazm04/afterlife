@@ -1,7 +1,7 @@
 // The live film's frame, folded from the polled payload and an INJECTED clock (so stale detection is testable).
 // Header facts answer: running (repo, wave, lane n/m), doing what, going well, needs me. Nothing is invented: an absent
 // figure stays absent, and a quiet runner freezes the frame (stale) instead of letting the elapsed clock run on.
-import type { RunLane, RunWave } from '@/app/features/runs/model/types';
+import type { RunLane, RunWave } from '@/lib/runs/types';
 import { waveKey, type LivePayload, type LiveView, type WaveMeta } from './types';
 
 export const STALE_MS = 30_000;

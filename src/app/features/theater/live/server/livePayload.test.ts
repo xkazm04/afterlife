@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { WAVE_1, WAVE_2_RUNNING } from '@/app/features/runs/model/fixture';
+import { WAVE_1, WAVE_2_RUNNING } from '@/lib/runs/fixture';
 import { loadLivePayload } from './livePayload';
 
 let root = '';

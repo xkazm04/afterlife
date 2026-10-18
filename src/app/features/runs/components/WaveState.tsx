@@ -1,6 +1,6 @@
 import type { LaneOutcome } from '@/schemas/run/run';
 import { Chip, type ChipTone } from '@/components/status/chip/Chip';
-import type { RunWave } from '../model/types';
+import type { RunWave } from '@/lib/runs/types';
 
 export const LANE_TONE: Record<LaneOutcome, ChipTone> = { landed: 'ok', parked: 'you', failed: 'bad', budget: 'lag', timeout: 'bad' };
 

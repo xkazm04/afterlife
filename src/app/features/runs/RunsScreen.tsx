@@ -6,7 +6,7 @@ import { MergePanel } from './components/MergePanel';
 import { RunsEmpty } from './components/RunsEmpty';
 import { RunsHeader } from './components/RunsHeader';
 import { RunsTable, waveId } from './components/RunsTable';
-import type { RunsData } from './model/types';
+import type { RunsData } from '@/lib/runs/types';
 import styles from './RunsScreen.module.css';
 
 /**

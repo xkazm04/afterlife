@@ -1,7 +1,7 @@
 import { Stats } from '@/components/inspector/blocks/Stats';
 import { Chip } from '@/components/status/chip/Chip';
 import { pct, tokens, usd } from '../model/format';
-import type { RunsData } from '../model/types';
+import type { RunsData } from '@/lib/runs/types';
 import styles from '../RunsScreen.module.css';
 
 /** The totals strip: waves, lanes, landed share, tokens, dollars. A figure no run reported reads "-", never 0. */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { foldRuns, foldWave } from './fold';
 import { WAVE_1, WAVE_2_RUNNING } from './fixture';
-import { DASH, mergeCommands, outcomeWords, tokens, usd, wall } from './format';
+import { DASH, mergeCommands, outcomeWords, tokens, usd, wall } from '@/app/features/runs/model/format';
 import { parseRunLine } from './parse';
 import type { RunEvent } from '@/schemas/run/run';
 

@@ -12,7 +12,7 @@ import { groupNavId, isGroupNavId, rowDomId, type NavItem } from '@/components/t
 import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { Chip } from '@/components/status/chip/Chip';
 import { outcomeWords, pct, tokens, usd, wall } from '../model/format';
-import type { RunLane, RunRepo, RunWave } from '../model/types';
+import type { RunLane, RunRepo, RunWave } from '@/lib/runs/types';
 import { LANE_TONE, WaveState } from './WaveState';
 
 const COLUMNS = [260, 130, 190, 220, 80, 80, 80, 110].map(px).join(' ');
