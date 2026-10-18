@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Window } from '@/components/shell/Window';
 import { Stage } from './components/stage/Stage';
 import { StatusLine } from './components/chrome/StatusLine';
@@ -22,10 +22,13 @@ import styles from './TheaterScreen.module.css';
 /**
  * Theater: a film replayed as one change climbing the loop. Route /theater. The film is the deep project's own
  * belay-ledger, one take per MR, when it names an MR; else the illustrative slice (seq 480-520), always labelled so.
+ * An address the film cannot honour (`?mr=` the ledger has no events for, `#seq=` it does not hold) is said in the
+ * status bar, never played in silence as another run.
  */
 export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
   const snaps = useMemo(() => filmSnapshots(film, demo?.stages ?? []), [film, demo]);
-  const store = useReplayStore(film);
+  const [missingSeq, setMissingSeq] = useState<number | null>(null);
+  const store = useReplayStore(film, setMissingSeq);
   const present = usePresent();
   const actions = useTheaterActions(store);
   useTheaterKeys(actions, present, { takes: film.takes.length, entries: film.entries.length });
@@ -45,6 +48,12 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
   }
   const range = rangeLabel(v);
   const readout = readoutFrom(v);
+  const notice =
+    film.missing !== undefined
+      ? `!${film.missing} has no events in the ledger: the newest runs play instead.`
+      : missingSeq !== null
+        ? `seq ${missingSeq} is not on this film: take 1 plays instead.`
+        : null;
 
   return (
     <>
@@ -55,7 +64,12 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
           toolbar={<Transport playing={v.playing} loop={v.loop} readout={readout} actions={actions} onPresent={() => present.set(true)} />}
           sidebar={<TakesSidebar takes={film.takes} take={v.take} counts={v.counts} range={range} marked={v.mark !== null} actions={actions} />}
           inspector={<BeatInspector snap={snap} film={film} demo={demo} onSeek={actions.seek} />}
-          status={<StatusLine state={v} />}
+          status={
+            <>
+              {notice ? <span role="status">{notice} · </span> : null}
+              <StatusLine state={v} />
+            </>
+          }
           help={<TheaterHelp film={film} />}
           helpTitle="Keys and marks"
         >

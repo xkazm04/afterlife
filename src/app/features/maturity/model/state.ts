@@ -2,6 +2,7 @@ import type { Stage } from '@/schemas';
 import type { CreditEntry } from '../data/types';
 import type { MaturityCtx } from './ctx';
 import type { Phase } from './flow/credit';
+import type { SendSlot } from './flow/send';
 import type { Level, Mode } from './rungs';
 
 export type Step = 1 | 2 | 3 | 4;
@@ -23,6 +24,8 @@ export interface MaturityState {
   file: Readonly<Record<string, number>>;
   /** The Send-as-you sheet is open (only ever with step 3). */
   sheet: boolean;
+  /** Gap id -> its write on the open sheet (asked, on screen, sending, answered). Empty whenever the sheet is closed. */
+  send: Readonly<Record<string, SendSlot>>;
   picked: readonly string[];
   /** The rung each stage holds now; changes only when a rescan credits. */
   now: Readonly<Record<Stage, Level>>;
@@ -49,6 +52,7 @@ export function initialState(ctx: MaturityCtx): MaturityState {
     pv: null,
     file: {},
     sheet: false,
+    send: {},
     picked: ctx.gaps.filter((g) => g.picked).map((g) => g.id),
     now: Object.fromEntries(ctx.stages.map((s) => [s, ctx.base[s].now])) as Record<Stage, Level>,
     flow: {},
@@ -68,3 +72,7 @@ export function pendingIds(s: MaturityState, ctx: MaturityCtx): string[] {
 }
 
 export const inFlightIds = (s: MaturityState): string[] => Object.keys(s.flow);
+
+/** Raise a one-line notice (toast and status bar). */
+export const say = (s: MaturityState, text: string): MaturityState => ({ ...s, notice: { seq: (s.notice?.seq ?? 0) + 1, text } });
+export const openGap = (s: MaturityState): MaturityState => ({ ...s, open: { ...s.open, gap: true } });

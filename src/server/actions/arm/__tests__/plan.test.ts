@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
 import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
+import { mergeMr } from '@/server/gitlab/fake/merge';
 import { liveRig } from '../../__tests__/rig';
 import { confirmIntent, previewIntent, type ActionDeps } from '../../run';
 import type { ActionResponse } from '../../types';
@@ -67,16 +68,20 @@ describe('arm-track T4', () => {
     const r = await confirmIntent(deps, arm, p.previewId);
     expect(r.status === 'done' && r.results.map((x) => x.made)).toEqual([expect.stringMatching(/^commit [0-9a-f]{8}$/), expect.stringMatching(/^!\d+$/)]);
     const added = p.diff.slice(1).map((l) => l.slice(2));
+    // The commit is on belay/arm-guardrail: main stays unarmed until the person merges the MR.
+    expect(files(gl)['.gitlab-ci.yml']).toBe(UNARMED);
+    expect(await checkArm(deps, arm)).toMatchObject({ status: 'read', armed: false });
+    await mergeMr(gl, 90010001, Number(ledgerline(gl).mrs.find((m) => m.source_branch === 'belay/arm-guardrail')!.iid));
     expect(files(gl)['.gitlab-ci.yml']).toContain(added.join('\n'));
     expect(await checkArm(deps, arm)).toMatchObject({ status: 'read', armed: true });
 
-    // The fake has one branch, so the arm's commit is already "on main"; the person merges the MR.
-    ledgerline(gl).mrs.find((m) => m.source_branch === 'belay/arm-guardrail')!.state = 'merged';
     const d = preview(await previewIntent(deps, disarm));
     expect(d).toMatchObject({ kind: 'disarm-track', branch: 'belay/disarm-guardrail' });
     expect(d.commands[1]?.argv.join(' ')).toContain('-f remove_source_branch=true');
     expect(d.diff.slice(1)).toEqual(added.map((l) => `- ${l}`));
     expect((await confirmIntent(deps, disarm, d.previewId)).status).toBe('done');
+    expect(await checkArm(deps, disarm)).toMatchObject({ status: 'read', armed: true });
+    await mergeMr(gl, 90010001, Number(ledgerline(gl).mrs.find((m) => m.source_branch === 'belay/disarm-guardrail')!.iid));
     expect(files(gl)['.gitlab-ci.yml']).toBe(UNARMED);
     expect(await checkArm(deps, disarm)).toMatchObject({ status: 'read', armed: false, text: expect.stringMatching(/has no T4 arm block/) });
   });

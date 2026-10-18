@@ -2,7 +2,7 @@
 // project and the docket draws it, so /task/<id> has data. Proved against the fake GitLab (ledgerline !45), never GitLab.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
-import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
+import { loadFleetProject } from '@/app/features/fleet/data/loadFleetProject';
 import { TASK_ORDER } from '@/app/features/task/data/details';
 import { firstTaskId, loadTasks } from '@/app/features/task/model/build/loadTasks';
 import { createDemoGitLab, EXTRA_TASK } from '@/server/gitlab/fake/demo';
@@ -30,7 +30,8 @@ beforeAll(async () => {
 }, 60_000);
 afterAll(() => setDataSource(null));
 
-const asProps = (v: unknown): unknown => JSON.parse(JSON.stringify(v)) as unknown;
+/** A task's ledger is the real chain's in live mode, never the fixture's: left out where live is compared with demo. */
+const noLedger = (k: string, v: unknown) => (k === 'ledger' || k === 'ledgerCheck' ? undefined : v);
 
 describe('a poller-derived task with no Task fixture', () => {
   it('is in the data source, and is no fixture', () => {
@@ -39,9 +40,10 @@ describe('a poller-derived task with no Task fixture', () => {
   });
 
   it('the Fleet inspector lists it for ledgerline, with its stored verdict', () => {
-    const data = loadFleetData();
-    expect(data.deep.id).toBe('ledgerline');
-    expect(data.deep.tasks.find((t) => t.id === EXTRA_TASK.id)).toEqual({
+    const v = loadFleetProject('ledgerline');
+    expect(v?.data.deepId).toBe('ledgerline');
+    const tasks = v?.view.depth.tasks.kind === 'list' ? v.view.depth.tasks.tasks : [];
+    expect(tasks.find((t) => t.id === EXTRA_TASK.id)).toEqual({
       id: '01J8QD', title: 'Bump jackson-databind 2.17.1 → 2.17.2', mr: '!45', track: 'T1', state: 'proved · awaiting merge', verdict: 'PASS',
     });
   });
@@ -64,15 +66,27 @@ describe('a poller-derived task with no Task fixture', () => {
     ]);
   });
 
-  it('firstTaskId() is the first task the docket draws, and each drawn task with a fixture equals its demo rendering', () => {
-    const drawn = asProps(loadTasks()) as { id: string }[];
+  it('firstTaskId() is the first task the docket draws, and each drawn task with a fixture equals its demo rendering but its ledger', () => {
+    // The ledger is the real chain's in live mode (the Task feature's liveDocket.test.ts), never the fixture's: left out here.
+    const drawn = JSON.parse(JSON.stringify(loadTasks(), noLedger)) as { id: string }[];
     expect(firstTaskId()).toBe(drawn[0]?.id);
     expect(firstTaskId()).toBe(live.getTasks()[0]?.id);
     setDataSource(demoSource);
-    const demo = asProps(loadTasks()) as { id: string }[];
+    const demo = JSON.parse(JSON.stringify(loadTasks(), noLedger)) as { id: string }[];
     setDataSource(live);
     const withFixture = drawn.filter((t) => (TASK_ORDER as readonly string[]).includes(t.id));
     expect(withFixture.length).toBeGreaterThan(0);
     for (const t of withFixture) expect(t).toEqual(demo.find((x) => x.id === t.id));
+  });
+
+  it('every drawn task’s ledger is its merge request’s slice of the polled chain, sha256 and verified', () => {
+    const chain = live.getLedger();
+    const tasks = loadTasks();
+    for (const t of tasks) {
+      const slice = chain.filter((e) => e.subject.type === 'mr' && `!${e.subject.iid}` === t.mr);
+      expect(t.ledger.map((r) => [r.seq, r.hash, r.prev])).toEqual(slice.map((e) => [e.seq, e.hash, e.prev_hash]));
+      expect(t.ledgerCheck).toEqual({ hash: 'sha256', brokenAt: null });
+    }
+    expect(tasks.find((t) => t.id === '01J8Q4')?.ledger.length).toBeGreaterThan(0);
   });
 });

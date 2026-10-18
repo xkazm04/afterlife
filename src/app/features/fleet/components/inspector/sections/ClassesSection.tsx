@@ -1,17 +1,16 @@
 import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { TierMark } from '@/components/status/TierMark';
-import type { FleetProject } from '@/lib/demo/types';
+import type { ActionClass, FleetProject } from '@/lib/demo/types';
 import { cellName, tiersKnown } from '@/lib/tiers';
 import { classTip, recordLabel } from '../../../model/inspector';
-import type { DeepProject } from '../../../model/types';
 import styles from './sections.module.css';
 
 /**
- * The tier of each action class (a split class names each holder at its own tier). The deep project also shows its record
- * (16/15 · 9 d) and the last move as a tooltip. The heading counts the classes whose tier is known, read from the cells
+ * The tier of each action class (a split class names each holder at its own tier). A class the source has a record for (the
+ * deep project's) also shows it (16/15 · 9 d) and the last move as a tooltip. The heading counts the classes whose tier is known, read from the cells
  * (tiersKnown), never from `armed`, which counts armed tracks.
  */
-export function ClassesSection({ p, classes, deep, }: { p: FleetProject; classes: readonly string[]; deep: DeepProject }) {
+export function ClassesSection({ p, classes, records }: { p: FleetProject; classes: readonly string[]; records: Readonly<Record<string, ActionClass>> }) {
   const unwatched = p.state === 'not-set-up';
   const known = !unwatched && tiersKnown(p);
   return (
@@ -24,7 +23,7 @@ export function ClassesSection({ p, classes, deep, }: { p: FleetProject; classes
         classes.map((c) => {
           const t = p.classTiers[c];
           const holders = p.holders?.[c];
-          const dc = p.id === deep.id ? deep.actionClasses[c] : undefined;
+          const dc = records[c];
           return (
             <div key={c} className={`${styles.cl} ${t ? '' : styles.none}`} title={classTip(dc)}>
               <span className={styles.id}>{c}</span>

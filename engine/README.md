@@ -11,7 +11,9 @@ dependency beyond `yaml`. Every command writes JSON to stdout and a human summar
 | `gate --policy P --state S --class <id> --proof F --guardrail F [--agent A] [--diff F] [--env E] [--now T] [--engine-sha H] [--shadow-next-rung]` | `merge` / `approve` / `wait` / `block` (+ `would`) | 0 / 0 / 2 / 1 |
 | `tripwire --policy P --state S --event F` | `{demote, commit: {path, content, message}}` | 0 (2 on bad input) |
 | `ledger append --event F --chain events.jsonl [--write]` | One hash-chained ledger line | 0 (2 on a broken chain) |
+| `ledger trial --chain events.jsonl --agent A --class C --since T [--through N] [--head H]` | `{verifies, head, trial}`: a holder's next-rung trial recomputed from the chain cut at seq N, anchored to head hash H (ledger-record's rule, no input JSON); the line a promotion MR prints | 0, 1 broken or not the named chain, 2 bad input |
 | `scan --facts facts.json` | `belay.maturity/0`: nine stage cells from the facts `collect-facts.mjs` wrote | 0 all determined, 2 any unknown or unreadable input |
+| `pin` | `{version, sha256, files}`: the engine pin every Proof Block carries and the files it covers | 0 (2 on an import it cannot follow) |
 
 Policy defaults to `policy/trust-policy.yml`, state to `policy/tier-state.yml`. In a proof input,
 `{"$file": "x.diff"}` is replaced by that file's text (relative to the input). The file must resolve, symlinks
@@ -56,7 +58,10 @@ checkers above read JSON evidence inline or as a `$file` (its text is parsed), s
 (`proofs/stubs.ts` keeps the inconclusive answer for one that is named before its checker exists).
 
 The block's `verdict` is `verdictOf(checks, envelope.within)`: claims never decide. `engine` is
-`{version, sha256}`, the hash of every engine source file (tests and fixtures excluded), so a verdict pins its checker.
+`{version, sha256}`, the hash of every source file the engine runs: the import closure of `engine/cli.ts`
+(`core/imports.ts`), which takes in the rules it imports from `src/schemas` (`verdictOf`, the trial rule, the hash chain,
+`demote`, the CRA clock) and leaves out tests, fixtures and any file nothing imports. An import it cannot resolve, an alias
+(`@/x`) or a dynamic `import()` is an error, never a smaller pin. So a verdict pins its checker; `pin` prints the list.
 
 ## Maturity scan
 

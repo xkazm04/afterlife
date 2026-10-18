@@ -7,7 +7,9 @@ import help from '@/components/overlays/HelpButton.module.css';
 import { CommandDock } from '@/components/shell/dock/CommandDock';
 import { DockKey } from '@/components/shell/dock/DockKey';
 import { DockText } from '@/components/shell/dock/DockText';
+import { pluralWord } from '@/lib/format/plural';
 import { TIER_META } from '@/lib/tiers';
+import { commandLines } from '@/server/actions/words';
 import { commandHead, type DockModel } from '../../model/rules/dock';
 import { sentWords, WRITE_HEAD } from '../../model/rules/promote';
 import type { PromoteView } from '../../write/promote';
@@ -56,6 +58,25 @@ function Line({ model }: { model: DockModel }) {
           · select a class · <DockText tone="prompt">r</DockText> revokes one step
         </>
       );
+    case 'batch': {
+      const v = model.view;
+      const n = model.changes.length;
+      const lead = (
+        <>
+          <DockText tone="prompt">{model.want === 'quarantine' ? 'q' : 'r'} ▸</DockText> {WRITE_HEAD.revoke} · {model.want === 'quarantine' ? 'Quarantine' : 'One step down'}{' '}
+          <b>track {model.id}</b> · {n} {pluralWord(n, 'class', 'classes')} in one commit{model.skipped.length ? ` · leaves ${skippedText(model)}` : ''} ·{' '}
+        </>
+      );
+      if (!v) return <>{lead}<DockText tone="note">asking Belay for the exact write…</DockText></>;
+      if (v.kind === 'refused') return <>{lead}Belay refuses this write: {v.reason}</>;
+      const note = v.preview.mode === 'demo' ? '(demo: simulated, nothing is sent)' : '(belay-policy, as you)';
+      return (
+        <>
+          {lead}
+          {v.preview.commands.map((c) => commandHead(c.display)).join(' && ')} <DockText tone="note">{note}</DockText>
+        </>
+      );
+    }
     case 'idle':
       return (
         <>
@@ -81,8 +102,15 @@ function Line({ model }: { model: DockModel }) {
   }
 }
 
+/** The classes a track's write leaves as they are, each with why. */
+const skippedText = (model: Extract<DockModel, { kind: 'batch' }>): string => model.skipped.map((s) => `${s.id} (${s.why})`).join(', ');
+
 function fullWrite(model: DockModel): string | undefined {
   if (model.kind === 'idle') return `${model.id} · nothing to revoke: ${model.reason}`;
+  if (model.kind === 'batch' && model.view?.kind === 'preview') {
+    const moves = model.changes.map((c) => `${c.id} → ${TIER_META[c.to].name}`).join('\n');
+    return `${moves}${model.skipped.length ? `\nleaves ${skippedText(model)}` : ''}\n\n${commandLines(model.view.preview).join('\n')}`;
+  }
   if ((model.kind === 'write' || model.kind === 'promote') && model.view?.kind === 'preview') return model.view.preview.commands.map((c) => c.display).join('\n');
   return model.kind === 'promote' && model.view?.kind === 'sent' ? sentWords(model.view) : undefined;
 }

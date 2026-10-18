@@ -1,18 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { ask, readyRows, sendRow, sheetRows, toAsk, type SheetRow } from '../write/sheet';
+import type { MaturityApi } from './useMaturity';
+import type { DataMode } from '../write/gap';
 import type { WriteView } from '@/server/actions/words';
-import { gapSend, type DataMode } from '../write/gap';
-import { ask, readyRows, sendReady, toAsk, type GapAnswer, type SheetRow } from '../write/sheet';
-import type { Gap } from '../model/ctx';
 
 export interface GapSheetApi {
   rows: readonly SheetRow[];
   /** How many writes the button would confirm. */
   ready: number;
   sending: boolean;
-  /** The gaps the server opened an MR for, with the MR it named (null when it named none). */
-  opened: Readonly<Record<string, string | null>>;
   send: () => void;
   retry: (id: string) => void;
 }
@@ -35,63 +33,32 @@ export function createAsker(askRow: (row: SheetRow) => Promise<WriteView>, put: 
 }
 
 /**
- * The Send sheet's writes. When the sheet opens on the picked gaps, each sendable gap's write is asked for (previewAction,
- * nothing runs); the button confirms the ones on screen by their preview ids. Nothing here moves a rung: the next scan does.
+ * The Send sheet's two server calls. Everything they learn goes to the layout's reducer (model/flow/send.ts): when the sheet
+ * opens each sendable gap's write is asked for (previewAction, nothing runs) and its view dispatched; the button confirms the
+ * ones on screen by their preview ids and dispatches each answer as it arrives, so an answer reaches the state even if this
+ * screen is gone by then. Nothing here holds state or moves a rung: the next scan does.
  */
-export function useGapSheet(gaps: readonly Gap[], open: boolean, project: string, mode: DataMode): GapSheetApi {
-  const [views, setViews] = useState<Readonly<Record<string, WriteView>>>({});
-  const [answers, setAnswers] = useState<Readonly<Record<string, GapAnswer>>>({});
-  const [sending, setSending] = useState(false);
-  const asked = useRef(new Set<string>());
-  const rows = useMemo<SheetRow[]>(
-    () => gaps.map((g) => ({ id: g.id, title: g.title, send: gapSend(project, g, mode), view: views[g.id], answer: answers[g.id] })),
-    [gaps, project, mode, views, answers],
-  );
+export function useGapSheet({ ctx, state, dispatch }: Pick<MaturityApi, 'ctx' | 'state' | 'dispatch'>, project: string, mode: DataMode): GapSheetApi {
+  const rows = useMemo(() => sheetRows(state, ctx, project, mode), [state, ctx, project, mode]);
 
-  const [asker] = useState(() => createAsker(ask, (id, v) => setViews((m) => ({ ...m, [id]: v }))));
-  const askRow = useCallback(
-    (row: SheetRow) => {
-      asked.current.add(row.id);
-      asker.ask(row);
-    },
-    [asker],
-  );
+  // One asker per sheet's life: closing it drops the answers still in flight, so a quick reopen never takes an old preview.
+  const asker = useMemo(() => createAsker(ask, (id, view) => dispatch({ type: 'viewed', id, view })), [dispatch]);
   useEffect(() => {
-    if (open) for (const row of toAsk(rows)) if (!asked.current.has(row.id)) askRow(row);
-  }, [open, rows, askRow]);
+    if (!state.sheet) return asker.close();
+    const asking = toAsk(rows);
+    if (!asking.length) return;
+    dispatch({ type: 'ask', ids: asking.map((r) => r.id) });
+    for (const row of asking) asker.ask(row);
+  }, [state.sheet, rows, dispatch, asker]);
 
-  // A sheet that closed forgets what it asked: the files may have moved before it opens again.
-  const [wasOpen, setWasOpen] = useState(open);
-  if (wasOpen !== open) {
-    setWasOpen(open);
-    if (!open) {
-      setViews({});
-      setAnswers({});
-    }
-  }
-  useEffect(() => {
-    if (!open) {
-      asked.current.clear();
-      asker.close();
-    }
-  }, [open, asker]);
-
-  const retry = useCallback((id: string) => {
-    setViews((m) => Object.fromEntries(Object.entries(m).filter(([k]) => k !== id)));
-    asked.current.delete(id);
-  }, []);
-
+  const sending = rows.some((r) => r.phase === 'sending');
   const send = useCallback(() => {
-    if (sending) return;
-    setSending(true);
-    void sendReady(rows)
-      .then((sent) => {
-        setAnswers((m) => ({ ...m, ...Object.fromEntries(sent.map((s) => [s.id, s.answer])) }));
-        setViews((m) => ({ ...m, ...Object.fromEntries(sent.flatMap((s) => (s.view ? [[s.id, s.view]] : []))) }));
-      })
-      .finally(() => setSending(false));
-  }, [rows, sending]);
+    const ready = readyRows(rows);
+    if (sending || !ready.length) return;
+    dispatch({ type: 'sending', ids: ready.map((r) => r.id) });
+    for (const row of ready) void sendRow(row).then((s) => dispatch({ type: 'answered', id: s.id, answer: s.answer, ...(s.view ? { view: s.view } : {}) }));
+  }, [rows, sending, dispatch]);
+  const retry = useCallback((id: string) => dispatch({ type: 'retry', id }), [dispatch]);
 
-  const opened = useMemo(() => Object.fromEntries(rows.filter((r) => r.answer?.status === 'done').map((r) => [r.id, r.answer?.mr ?? null])), [rows]);
-  return { rows, ready: readyRows(rows).length, sending, opened, send, retry };
+  return { rows, ready: readyRows(rows).length, sending, send, retry };
 }

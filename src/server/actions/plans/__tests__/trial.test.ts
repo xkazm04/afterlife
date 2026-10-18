@@ -1,5 +1,5 @@
 // A promotion MR names the next rung's trial when the chain holds one: the seq range of its tier_decisions and the chain
-// head (seq and hash) of the belay-ledger file, so an auditor can recompute it with the engine's ledger-record. The write
+// head (seq and hash) of the belay-ledger file, so an auditor can recompute it with one pasted `ledger trial` command. The write
 // itself (the tier-state.yml commit) does not change, and without a trial the description is as before.
 import { describe, expect, it } from 'vitest';
 import { append, type LedgerEvent } from '@/schemas/ledger';
@@ -43,8 +43,11 @@ describe('planPromote: the trial in the MR description', () => {
     const after = await preview(deps);
     const head = more.at(-1)!;
     expect(description(after)).toContain(`Next-rung trial: 2 trial MR(s), tier_decision seq ${last.seq + 1}-${last.seq + 3} in belay-ledger events/${gid}.jsonl; chain head seq ${head.seq}, hash ${head.hash}.`);
-    expect(description(after)).toContain(`prove --class ledger-record`);
-    expect(description(after)).toContain(`record: { agent: ${QA}, class: qa.file-bug, since: `);
+    // the auditor's line is one runnable command, every value filled in: no input.json to hand-write
+    const since = description(after).match(/--since (\S+)/)?.[1];
+    expect(since).toBeDefined();
+    expect(description(after)).toContain(`npx tsx engine/cli.ts ledger trial --chain events/${gid}.jsonl --through ${head.seq} --head ${head.hash} --agent ${QA} --class qa.file-bug --since ${since}`);
+    expect(description(after)).not.toContain('<input.json>');
     // the write is unchanged: the same commit, the same diff
     expect(after.commands[0]?.argv).toEqual(before.commands[0]?.argv);
     expect(after.diff).toEqual(before.diff);

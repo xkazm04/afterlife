@@ -1,41 +1,49 @@
 // The engine pins itself: a verdict carries {version, sha256 of the engine source}, so anyone can tell
-// which checker produced it. Tests and fixtures are not part of the checker and are left out.
+// which checker produced it. The source is the import closure of engine/cli.ts (./imports.ts): every file
+// that runs, including the rules it imports from src/schemas, and nothing that merely sits in the folder.
+// Tests and fixtures are not imported by the checker, so they are not part of it.
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { importClosure } from './imports';
 
 export const ENGINE_VERSION = '1.0.0';
 
-const ENGINE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const ENTRY = 'engine/cli.ts';
 
-function sourceFiles(dir: string, out: string[] = []): string[] {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) {
-      if (e.name !== '__fixtures__' && e.name !== '__tests__') sourceFiles(p, out);
-    } else if (e.name.endsWith('.ts') && !e.name.endsWith('.test.ts')) out.push(p);
-  }
-  return out;
+export interface PinTarget {
+  root: string; // paths in the pin are relative to it
+  entry: string; // root-relative
 }
 
-let cached: string | undefined;
+const isDefault = (t: Partial<PinTarget>) => (t.root ?? REPO_ROOT) === REPO_ROOT && (t.entry ?? ENTRY) === ENTRY;
+let cached: { files: string[]; sha256: string } | undefined;
 
-/** sha256 over each source file's relative path and its content, with line endings normalised. */
-export function engineSha256(root: string = ENGINE_ROOT): string {
-  if (root === ENGINE_ROOT && cached) return cached;
-  const files = sourceFiles(root)
-    .map((f) => path.relative(root, f).split(path.sep).join('/'))
-    .sort();
+function pin(t: Partial<PinTarget>): { files: string[]; sha256: string } {
+  if (isDefault(t) && cached) return cached;
+  const root = t.root ?? REPO_ROOT;
+  const files = importClosure(root, t.entry ?? ENTRY);
+  // sha256 over each file's root-relative path and its content, with line endings normalised.
   const h = createHash('sha256');
   for (const rel of files) {
     h.update(`${rel}\0`);
     h.update(fs.readFileSync(path.join(root, rel), 'utf8').replace(/\r\n/g, '\n'));
     h.update('\0');
   }
-  const digest = h.digest('hex');
-  if (root === ENGINE_ROOT) cached = digest;
-  return digest;
+  const out = { files, sha256: h.digest('hex') };
+  if (isDefault(t)) cached = out;
+  return out;
+}
+
+/** The pinned files: repo-relative, sorted. */
+export function engineFiles(t: Partial<PinTarget> = {}): string[] {
+  return [...pin(t).files];
+}
+
+export function engineSha256(t: Partial<PinTarget> = {}): string {
+  return pin(t).sha256;
 }
 
 export function engineInfo(): { version: string; sha256: string } {

@@ -2,6 +2,7 @@
 import type { ActionResponse } from '@/server/actions/types';
 import type { WriteView } from '@/server/actions/words';
 import type { DiffLine, WeekRow } from '../data/types';
+import type { WriteSlot } from './slot/slot';
 
 export type GroupMode = 'kind' | 'project' | 'deadline';
 export type ShowFilter = 'all' | 'waiting' | 'outbox' | 'sent';
@@ -46,6 +47,10 @@ export interface OutItem {
   diff?: readonly DiffLine[];
   /** Shown above the commands: whether Run simulates (demo) or runs as you, that the write is still being asked for, or why there is none. */
   note?: string;
+  /** False: Run is closed although commands are shown (a confirm of this write is out). Unset: open when there are commands. */
+  runnable?: boolean;
+  /** The write was refused or got no answer: it can be asked for again. */
+  askable?: boolean;
 }
 
 /** A row of "Decided this week". `fresh` marks one decided in this session. */
@@ -83,7 +88,9 @@ export interface NeedsState {
   session: readonly HistRow[];
   runner: { opened: boolean; check: null | 'none' | 'ok' };
   submitted: boolean;
-  /** The exact write of each decision the server plans (a policy MR, a gap MR), as it planned it. Absent while it is being asked for. */
+  /** Each server-planned write's lifecycle (a policy MR, a gap MR): asked, previewed, sent, answered. Unset until the first. */
+  slots?: Readonly<Partial<Record<string, WriteSlot>>>;
+  /** The exact write of each such decision as the screen draws it (`shown(slot)`), kept beside its slot by run.ts. Absent while asked for. */
   writes: Readonly<Partial<Record<string, WriteView>>>;
   notice: Notice | null;
   /** Set when an action wants the inspector open on a section: the screen reveals it once per id. */
@@ -95,8 +102,12 @@ export type Action =
   | { type: 'run'; key: string }
   /** The server planned (or refused) a decision's write: a policy MR (n1, n4) or a gap MR (g1..). */
   | { type: 'write'; key: string; view: WriteView }
-  /** The server answered Run on such a decision. */
-  | { type: 'ran'; key: string; response: ActionResponse }
+  /** Run on such a decision: its one confirm is out. */
+  | { type: 'sending'; key: string }
+  /** The server answered Run on such a decision, or (null) the confirm got no answer: it may or may not have run. */
+  | { type: 'ran'; key: string; response: ActionResponse | null }
+  /** Ask again for a write that was refused or got no answer. */
+  | { type: 'retry'; key: string }
   | { type: 'remove'; key: string }
   | { type: 'select'; id: string }
   | { type: 'group'; mode: GroupMode }

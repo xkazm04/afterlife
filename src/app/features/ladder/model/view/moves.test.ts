@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { ActorKind, LedgerEntry } from '../types';
 import { ALL_KINDS, KIND_LABELS, entriesFor, filterByKinds, lastMoveIndex, timedEntries } from './moves';
 
-const e = (t: string, ids: string[], kind: ActorKind): LedgerEntry => ({ t, ids, actor: 'x', where: '', kind, text: '' });
-const ledger = [e('11 d ago', ['a'], 'person'), e('14:00:00', ['a', 'b'], 'gitlab'), e('14:00:05', ['b'], 'belay'), e('14:00:09', ['a'], 'you')];
+/** An entry at an instant (epoch ms), with the label the screen gives it. */
+const e = (t: string, ids: string[], kind: ActorKind, at: number): LedgerEntry => ({ at, t, ids, actor: 'x', where: '', kind, text: '' });
+const T0 = Date.parse('2026-10-06T14:00:00Z');
+const ledger = [e('11 d ago', ['a'], 'person', T0 - 11 * 86_400_000), e('14:00:00', ['a', 'b'], 'gitlab', T0), e('14:00:05', ['b'], 'belay', T0 + 5000), e('14:00:09', ['a'], 'you', T0 + 9000)];
 
 describe('ledger questions', () => {
   it('finds the newest entry that mentions a class, -1 when it never moved', () => {

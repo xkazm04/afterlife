@@ -1,5 +1,5 @@
-import type { TaskView } from '../types';
-import { ledgerIntact } from '../build/ledger';
+import { GENESIS, fnv } from '../build/ledger';
+import type { LedgerCheck, LedgerRow, TaskView } from '../types';
 import { derivedVerdict } from './verdict';
 
 /**
@@ -29,18 +29,42 @@ export function ledgerRowAt(rv: number, checkCount: number, rowCount: number): n
   return Math.min(rowCount - 1, Math.round((Math.max(rv, 0) / checkCount) * (rowCount - 1)));
 }
 
+/** The seq of the first illustrative (FNV) row whose hash is not the one its predecessor and its own fields give, or null. */
+export function firstBrokenSeq(rows: readonly LedgerRow[]): number | null {
+  let prev = GENESIS;
+  for (const r of rows) {
+    if (r.prev !== prev || r.hash !== fnv(prev + r.seq + r.at + r.kind + r.text)) return r.seq;
+    prev = r.hash;
+  }
+  return null;
+}
+
+/**
+ * Where the task's chain breaks, as the replay checks it: illustrative rows are re-checked here, from the rows themselves;
+ * the real chain was verified on the server (node:crypto) and its result is read from `ledgerCheck`.
+ */
+export const ledgerBreak = (task: TaskView): number | null =>
+  task.ledgerCheck.hash === 'illustrative' ? firstBrokenSeq(task.ledger) : task.ledgerCheck.brokenAt;
+
+/** The inspector's word for a ledger check. */
+export const ledgerCheckLabel = (c: LedgerCheck): string =>
+  c.brokenAt !== null ? `chain broken at #${c.brokenAt}` : c.hash === 'sha256' ? 'sha256 · chain verified' : 'illustrative';
+
+/** The replay's result, stating the chain check as it was computed: verified, illustrative, or where it breaks. */
 export function replayMessage(task: TaskView): string {
   const first = task.ledger[0]?.seq;
   const last = task.ledger[task.ledger.length - 1]?.seq;
-  const hashes = ledgerIntact(task.ledger) ? 'hashes match' : 'HASHES DO NOT MATCH';
-  return `Replayed ledger #${first}–#${last} · ${task.ledger.length} rows, ${hashes} · ${derivedVerdict(task).verdict} · agent not re-run`;
+  const broken = ledgerBreak(task);
+  const check = broken !== null ? `HASHES DO NOT MATCH, chain broken at #${broken}` : task.ledgerCheck.hash === 'sha256' ? 'sha256 chain verified' : 'illustrative hashes match';
+  return `Replayed ledger #${first}–#${last} · ${task.ledger.length} rows, ${check} · ${derivedVerdict(task).verdict} · agent not re-run`;
 }
 
 export const replayStartStatus = (task: TaskView): string => `ledger #${task.ledger[0]?.seq} · claims as the agent wrote them`;
 
 export function replayStepStatus(task: TaskView, row: number): string {
   const r = task.ledger[row];
-  return r ? `ledger #${r.seq} · ${r.kind} · hash ${r.hash.slice(0, 7)} ${ledgerIntact(task.ledger.slice(0, row + 1)) ? '✓' : '✗ chain broken'}` : '';
+  const broken = ledgerBreak(task);
+  return r ? `ledger #${r.seq} · ${r.kind} · hash ${r.hash.slice(0, 7)} ${broken !== null && r.seq >= broken ? '✗' : '✓'}` : '';
 }
 
 export const REPLAY_DONE_STATUS = 'replayed · identical to the record';

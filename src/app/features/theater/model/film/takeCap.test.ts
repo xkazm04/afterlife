@@ -26,3 +26,23 @@ describe('the real film is capped at 8 takes', () => {
     expect(old.takes.map((t) => t.mr)).toEqual([10, 9, 8, 7, 6, 5, 4, 3]);
   });
 });
+
+describe('?mr= focuses the film on one MR', () => {
+  it('the focused MR is take 1 even past the cap; the other 7 are the newest, and only those 8 are filmed', () => {
+    const film = ledgerFilm(tenMrs(null), { mr: 1 })!;
+    expect(film.takes.map((t) => t.mr)).toEqual([1, 10, 9, 8, 7, 6, 5, 4]);
+    expect(film.entries).toHaveLength(16);
+    expect(new Set(film.entries.map((e) => e.ev?.iid))).toEqual(new Set([1, 4, 5, 6, 7, 8, 9, 10]));
+    expect(film.missing).toBeUndefined();
+  });
+
+  it('after the focus, the rest keep today\'s rule: the newest merged, then newest first', () => {
+    expect(ledgerFilm(tenMrs(6), { mr: 2 })!.takes.map((t) => t.mr)).toEqual([2, 6, 10, 9, 8, 7, 5, 4]);
+  });
+
+  it('an MR with no events leaves the film as it is and names the miss', () => {
+    const film = ledgerFilm(tenMrs(null), { mr: 99 })!;
+    expect(film.takes.map((t) => t.mr)).toEqual([10, 9, 8, 7, 6, 5, 4, 3]);
+    expect(film.missing).toBe(99);
+  });
+});

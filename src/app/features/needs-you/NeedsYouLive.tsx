@@ -4,6 +4,7 @@ import type { NeedsKind, NeedsYouItem } from '@/lib/demo';
 import { plural } from '@/lib/format/plural';
 import { Chip } from '@/components/status/chip/Chip';
 import { LiveAct } from './components/live/LiveAct';
+import type { LiveEvidence } from './model/evidence/evidence';
 import { useLiveActs, type LiveActs } from './hooks/useLiveActs';
 import empty from './NeedsYouEmpty.module.css';
 import styles from './NeedsYouLive.module.css';
@@ -21,19 +22,27 @@ export interface NeedsYouLiveProps {
   seeded: number;
   /** The project the items belong to: the id the server actions plan the writes for. */
   project: string;
+  /** Each promotion's and re-admit's class as the snapshot holds it now, by item id. */
+  evidence: Readonly<Record<string, LiveEvidence>>;
 }
 
 /**
  * Live mode: the open inbox items the poller found in your group, as the index holds them. The desk (the demo's five
  * items, the !44 incident, the patch-bump record) is never drawn here, nor any item the demo seeded. A promotion or a
- * re-admit has one action, a policy MR through the server actions; the rest are read-only and say where to act.
+ * re-admit has one action, a policy MR through the server actions, beside its class as it is now (closed when the class
+ * moved since the proposal); the rest are read-only and say where to act.
  */
-export function NeedsYouLive({ items, seeded, project }: NeedsYouLiveProps) {
-  return <NeedsYouLiveView items={items} seeded={seeded} acts={useLiveActs(items, project)} />;
+export function NeedsYouLive({ items, seeded, project, evidence }: NeedsYouLiveProps) {
+  return <NeedsYouLiveView items={items} seeded={seeded} evidence={evidence} acts={useLiveActs(items, project, evidence)} />;
 }
 
 /** The list for a given state of the acts (split from the hook so the screen can be rendered in a test). */
-export function NeedsYouLiveView({ items, seeded, acts }: { items: readonly NeedsYouItem[]; seeded: number; acts: LiveActs }) {
+export function NeedsYouLiveView({ items, seeded, acts, evidence = {} }: {
+  items: readonly NeedsYouItem[];
+  seeded: number;
+  acts: LiveActs;
+  evidence?: Readonly<Record<string, LiveEvidence>>;
+}) {
   // a done write's item leaves `items` on the refresh; it stays here, with the response's answer, outside the rows
   const sentGone = Object.values(acts.sent).filter((n) => !items.some((i) => i.id === n.id));
   return (
@@ -74,6 +83,7 @@ export function NeedsYouLiveView({ items, seeded, acts }: { items: readonly Need
                   intent={acts.intentOf(n.id)}
                   view={acts.views[n.id]}
                   answer={acts.answers[n.id]}
+                  evidence={evidence[n.id]}
                   sending={acts.sending === n.id}
                   onRun={() => acts.run(n.id)}
                   onRetry={() => acts.retry(n.id)}

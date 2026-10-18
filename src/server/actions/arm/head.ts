@@ -1,15 +1,13 @@
-// F38 part 2: an arm or disarm confirm is done only when the MR GitLab opened is headed by the commit this confirm made.
+// F38 part 2: a branch MR's confirm (plans/mr/branchMr.ts: promote, enroll, a gap, arm, disarm) is done only when the MR
+// GitLab opened is headed by the commit this confirm made.
 // Anything else means someone pushed to the branch between the commit and the MR, and the MR (authored by the operator,
-// "Prepared by Belay") would carry a commit nobody previewed. A promotion and an enrollment are checked too: their MR is the
-// policy MR a person merges as the human key, so a tier pushed in between would ride on it. A gap (several commits, a draft
-// MR) and the direct writes (revoke, a label) keep their behaviour.
+// "Prepared by Belay") would carry a commit nobody previewed. A write that opens no MR (revoke, a CRA label) is not checked.
 import type { GitLabPort, ProjectRef } from '@/server/gitlab/port';
 import { COMMIT_ID } from '../plans/context';
+import { BRANCH_MR_KINDS } from '../plans/mr/branchMr';
 import type { ActionIntent } from '../types';
 
-const HEAD_CHECKED: ReadonlySet<ActionIntent['kind']> = new Set(['arm-track', 'disarm-track', 'promote-class', 'enroll-track']);
-
-export const headChecked = (kind: ActionIntent['kind']): boolean => HEAD_CHECKED.has(kind);
+export const headChecked = (kind: ActionIntent['kind']): boolean => (BRANCH_MR_KINDS as readonly string[]).includes(kind);
 
 const asRec = (v: unknown): Record<string, unknown> => (typeof v === 'object' && v !== null ? (v as Record<string, unknown>) : {});
 

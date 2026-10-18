@@ -6,7 +6,7 @@ const row = (id: string, o: Partial<ClassRow> = {}): ClassRow => ({
   id, track: 'T1', ceiling: 'hands_off', tier: 'supervised', lease_days: null,
   record: { accepted: 5, needed: null, noEdit: 1, cleanDays: 5, reverts: 0 }, lastMove: '', pending: null, ...o,
 });
-const ev = (ids: string[]): LedgerEntry => ({ t: '14:00:00', ids, actor: 'a', where: 'w', kind: 'you', text: '' });
+const ev = (ids: string[]): LedgerEntry => ({ at: Date.parse('2026-10-06T14:00:00Z'), t: '14:00:00', ids, actor: 'a', where: 'w', kind: 'you', text: '' });
 
 const classes = [
   row('b', { track: 'T2', record: { accepted: 9, needed: null, noEdit: 0.5, cleanDays: 2, reverts: 1 }, lease_days: 4 }),

@@ -2,6 +2,7 @@ import { Button } from '@/components/controls/Button';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { MaturityCtx, Gap } from '../../../model/ctx';
 import { creditChecks, timeline, type Phase } from '../../../model/flow/credit';
+import { nextMove } from '../../../model/flow/moves';
 import type { Action } from '../../../model/reducer';
 import { rungText, type Level } from '../../../model/rungs';
 import { cx } from '../../cx';
@@ -16,7 +17,6 @@ const MARK = { ok: ['✓', styles.mok], no: ['✗', styles.mno], q: ['·', style
  */
 export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: MaturityCtx; gap: Gap; phase: Phase; now: Level; mr: string; dispatch: (a: Action) => void }) {
   const x = gap.x;
-  const id = gap.id;
   if (x.kind === 'probe') {
     return (
       <>
@@ -30,6 +30,8 @@ export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: Maturi
     );
   }
   const decided = phase === 'nolift' || phase === 'credited';
+  // The same next move the gaps table offers in this gap's row (model/flow/moves.ts).
+  const move = nextMove(phase, gap);
   return (
     <>
       <div className={styles.gh}>
@@ -59,23 +61,15 @@ export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: Maturi
         </>
       ) : null}
       <div className={styles.acts}>
-        {phase === 'opened' ? (
+        {move ? (
           <>
-            <Button onClick={() => dispatch({ type: 'merge', id })}>Merge in GitLab</Button>
-            <HonestyChip kind="simulated" />
-          </>
-        ) : null}
-        {phase === 'merged' || phase === 'ran' ? (
-          <>
-            <Button variant="accent" title={`Rescan, engine ${ctx.engine} · read only (simulated)`} onClick={() => dispatch({ type: 'rescanGap', id })}>
-              {`Rescan · engine ${ctx.engine}`}
-            </Button>
-            <HonestyChip kind="simulated" />
-          </>
-        ) : null}
-        {phase === 'nolift' ? (
-          <>
-            <Button onClick={() => dispatch({ type: 'ran', id })}>{x.runsOn === 'tag' ? 'Tagged release runs' : 'Pipeline runs on main'}</Button>
+            {move.action.type === 'rescanGap' ? (
+              <Button variant="accent" title={`Rescan, engine ${ctx.engine} · read only (simulated)`} onClick={() => dispatch(move.action)}>
+                {`${move.label} · engine ${ctx.engine}`}
+              </Button>
+            ) : (
+              <Button onClick={() => dispatch(move.action)}>{move.label}</Button>
+            )}
             <HonestyChip kind="simulated" />
           </>
         ) : null}

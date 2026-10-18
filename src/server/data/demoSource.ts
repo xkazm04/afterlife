@@ -26,6 +26,7 @@ export const demoSource: DataSource = {
   getLedger: () => [],
   getPolicy: () => repoPolicy(),
   getTiersStale: () => null,
+  getPollHealth: () => null,
   setupReads: () => null,
   humanKey: () => Promise.resolve(DEMO_HUMAN_KEY),
 };

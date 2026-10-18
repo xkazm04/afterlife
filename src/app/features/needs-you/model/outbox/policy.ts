@@ -3,7 +3,7 @@
 // the outbox item says so and has nothing to run.
 import { parseDiff } from '@/components/inspector/blocks/diff';
 import { TIER_META } from '@/lib/tiers';
-import { commandLines, type WriteView } from '@/server/actions/words';
+import { commandLines, NO_ANSWER, type WriteView } from '@/server/actions/words';
 import type { NeedsYouDemo } from '../../data/types';
 import type { OutItem, PolicyKey } from '../types';
 
@@ -16,9 +16,14 @@ type Slice = Pick<NeedsYouDemo, 'promote' | 'readmit'>;
 export const policyTitle = (key: PolicyKey, demo: Slice): string =>
   key === 'n1' ? `Promote ${demo.promote.cls} to ${TIER_META[demo.promote.to].name}` : `Re-admit ${demo.readmit.cls} as Assisted`;
 
+/** An unsure write: Run stays closed until the write is asked for again. */
+export const UNSURE_NOTE = 'Run is closed: the last send got no answer, so the write may or may not have run. Check GitLab, then ask for it again.';
+
 /** The line above a write's commands: what Run does with it, or why there is nothing to run. */
 export function policyNote(view: WriteView | undefined): string {
   if (!view) return 'Asking Belay for the exact write…';
+  // the slot's unsure write (slot/slot.ts UNSURE_VIEW): the last confirm got no answer
+  if (view.kind === 'refused' && view.reason === NO_ANSWER) return UNSURE_NOTE;
   if (view.kind === 'refused') return `Belay refuses this write: ${view.reason}. Nothing can run.`;
   return view.preview.mode === 'demo' ? 'Demo: Run simulates this write; nothing is sent to GitLab.' : view.preview.summary;
 }

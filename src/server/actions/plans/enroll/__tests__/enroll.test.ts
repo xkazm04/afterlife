@@ -18,6 +18,7 @@ import { checkArm } from '../../../arm/read';
 import { confirmIntent, previewIntent, type ActionDeps } from '../../../run';
 import type { ActionResponse } from '../../../types';
 import { SEED_NOW } from '@/server/index/seed';
+import { mergeMr } from '@/server/gitlab/fake/merge';
 
 const ENROLL = { kind: 'enroll-track', project: 'ledgerline', track: 'T4' } as const;
 const GUARDRAIL = 'ai-guardrail-acme-lab';
@@ -40,7 +41,7 @@ async function armedT4(): Promise<ActionRig & { deps: ActionDeps }> {
   const arm = { kind: 'arm-track', project: 'ledgerline', track: 'T4' } as const;
   const p = preview(await previewIntent(deps, arm));
   expect((await confirmIntent(deps, arm, p.previewId)).status).toBe('done');
-  ledgerline(r).mrs.find((m) => m.source_branch === p.branch)!.state = 'merged';
+  await mergeMr(r.gl, ledgerline(r).raw.id as number, Number(ledgerline(r).mrs.find((m) => m.source_branch === p.branch)!.iid));
   expect(await checkArm(deps, arm)).toMatchObject({ status: 'read', armed: true });
   const doc = parseDocument(policyFiles(r.gl)['tier-state.yml']!);
   doc.deleteIn(['agents', GUARDRAIL]);
@@ -74,14 +75,15 @@ describe('enroll-track T4', () => {
     expect(commit).toMatch(/-f last_commit_id=[0-9a-f]{40}/);
     expect(mr).toContain('-f labels=belay::promotion');
     expect(mr).toContain('A person merges this; Belay never does.');
-    expect(r.gl.state.writes).toHaveLength(2); // the arm's two; the preview wrote nothing
+    expect(r.gl.state.writes).toHaveLength(3); // the arm's two and the person's merge; the preview wrote nothing
 
     const done = await confirmIntent(r.deps, ENROLL, p.previewId);
     expect(done.status === 'done' && done.results.map((x) => x.made)).toEqual([expect.stringMatching(/^commit [0-9a-f]{8}$/), expect.stringMatching(/^!\d+$/)]);
     const opened = policyMrs(r).find((m) => m.source_branch === p.branch)!;
     expect(opened).toMatchObject({ state: 'opened', labels: ['belay::promotion'] }); // Belay never merges
 
-    opened.state = 'merged'; // the fake has one branch: the person's merge is the MR's state
+    expect(gateNow(r)).toMatchObject({ decision: 'block' }); // the record is on the branch: main has none until the merge
+    await mergeMr(r.gl, r.gl.state.projects.find((x) => x.raw.name === 'belay-policy')!.raw.id as number, Number(opened.iid));
     await runPollCycle(r.deps.port, r.db, SEED_NOW, { cfg: r.deps.cfg });
     const after = await guardBlock(r);
     expect(after).toMatchObject({ tier: 'assisted' });

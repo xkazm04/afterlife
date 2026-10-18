@@ -43,6 +43,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getLedger: () => data().ledger,
     getPolicy: () => data().policy,
     getTiersStale: () => data().tiersStale,
+    getPollHealth: () => data().poll,
     setupReads: () => setupReads(port(), data().pairing, snapshot().deep),
     humanKey: () => {
       const p = port();

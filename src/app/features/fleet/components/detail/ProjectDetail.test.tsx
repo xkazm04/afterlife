@@ -5,7 +5,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { demoSource, setDataSource } from '@/server/data';
 import { loadFleetData } from '../../data/loadFleetData';
+import { loadFleetProject } from '../../data/loadFleetProject';
 import { loadFleetSource } from '../../data/loadFleetSource';
+import { projectView } from '../../model/project/view';
 import { makeProject } from '../../model/testProject';
 import { ProjectDetail } from './ProjectDetail';
 
@@ -18,18 +20,19 @@ const page = (over: Parameters<typeof makeProject>[0]) => {
   setDataSource(demoSource);
   const project = makeProject(over);
   const data = { ...loadFleetData(), projects: [project] };
-  return renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, { project, data, source: loadFleetSource() })));
+  const view = projectView(project, null, { portfolio: data.portfolio, deepId: data.deepId, source: loadFleetSource() });
+  return renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, { project, data, view })));
 };
 const statusBar = (html: string) => html.match(/<footer[^>]*>(.*?)<\/footer>/s)?.[1] ?? '';
 
 describe('ProjectDetail Needs you card', () => {
   it('lists the deep project\'s own decisions', () => {
     setDataSource(demoSource);
-    const data = loadFleetData();
-    const project = data.projects.find((p) => p.id === data.deep.id)!;
-    const html = renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, { project, data, source: loadFleetSource() })));
-    expect(data.deep.needs.length).toBeGreaterThan(0);
-    for (const n of data.deep.needs) expect(html).toContain(n.title.replaceAll("'", '&#x27;'));
+    const pv = loadFleetProject(loadFleetData().deepId)!;
+    const html = renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, pv)));
+    const needs = pv.view.depth.needs.kind === 'decisions' ? pv.view.depth.needs.items : [];
+    expect(needs.length).toBeGreaterThan(0);
+    for (const n of needs) expect(html).toContain(n.title.replaceAll("'", '&#x27;'));
   });
 
   it('shows another project only its count and the demo actions', () => {

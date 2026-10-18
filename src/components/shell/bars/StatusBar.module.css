@@ -18,5 +18,43 @@
 }
 .demo {
   margin-left: auto;
+  flex: none;
   color: var(--text-4);
+}
+/* The poll line: it truncates before the data label and the help button do. */
+.poll {
+  margin-left: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.poll + .demo {
+  margin-left: 0;
+}
+.pollText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pollText::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: var(--r-pill);
+  background: currentColor;
+  vertical-align: middle;
+}
+.ok {
+  color: var(--text-4);
+}
+.ok .pollText::before {
+  background: var(--ok);
+}
+.late {
+  color: var(--stale);
+}
+.failed {
+  color: var(--fail);
 }

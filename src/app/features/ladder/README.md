@@ -43,6 +43,12 @@ command the screen spells.
     committed <sha>; read at !N, <delay> after the commit (or "awaiting the next gated MR"); withdrawn approval or
     auto-merge on !N; and an alarm chip when a gate read the commit and still granted the old tier. Live: the poll's
     receipt (`server/poller/README.md`, "Enforcement receipts"). Demo: this session's simulated revoke, marked simulated.
+  - `clock.ts` the screen's time. A ledger entry's time is an instant (`LedgerEntry.at`, epoch ms); its label `t` is
+    derived once from it (`clockLabel`: "14:20:03" within a day, else "3 d ago") in the screen's one zone, which
+    `data/loadLadderData.ts` picks on the server (live: the server's zone, demo: UTC) and puts in the seed (`tz`, copied
+    to `LadderState.tz`). The live chain (`liveLedgerEntries(events, now, tz)`), a revoke (`stamp()` is an instant, the
+    reducer labels it) and a receipt-settled read are labelled in that zone, never the browser's. The who-acted rail
+    orders and scales by `at`, so a rail over midnight stays in order. The demo's instants sit on `DEMO_NOW`'s day.
 - `hooks/`: data (reducer and derived rows), the writes on screen (`useRevokeWrite`, `usePromoteWrite`), actions (sends,
   toasts, timers; p in `usePromoteAction`),
   menus, keys, popovers, sim clock.
@@ -127,3 +133,16 @@ Last move after a tripwire names the trigger that fired: the poll stores the tie
 index view writes `4 min ago · tripwire · guardrail_high`, and `loadLadderData` words it (`displayLastMove`,
 `src/lib/promotion/trigger/`) for the list, the class page and the Grant section. Only the six `DemotionTrigger`s are worded;
 a missing or unrecognised reason reads "trigger not recorded" and none is guessed.
+
+A whole track is braked in one write: on a track header q (or the group menu's "Quarantine track…") quarantines every
+class of the track, and r ("One step down, whole track…") takes each one rung down from its own tier. The changes come
+from the rows (`model/rules/batch/`): a class that cannot be lowered (human only, no record yet, already quarantined) is
+left as it is and named on the dock with why, because the server refuses the whole write for any one of them, and a track
+of more than 12 classes (one revoke-class intent's limit) is refused before anything is asked. The dock shows the
+server's own preview of that one intent (`write/revoke.ts`, `trackIntent`); the two-press rule holds (r on a track whose
+dock shows the quarantine puts the one-step write on screen first), and the reducer lands it as one commit
+(`revokeTrack`): every moved class pending on the same sha, one ledger line naming every move.
+
+Every live move links to its run: `liveLedgerEntries` gives each entry `replay: /theater?mr=<iid>` and `LogItem` draws it
+as "Replay !N" (Who acted, All moves). The Theater films the same `ds.getLedger()` chain with that MR first. The demo's
+seeded moves carry none: demo mode plays the illustrative film, which has no such MR.

@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { DetailSection } from '@/components/shell/detail/DetailPage';
-import type { FleetProject } from '@/lib/demo/types';
 import { verdictMark } from '../../../model/inspector';
-import type { DeepProject } from '../../../model/types';
+import type { TasksSlice } from '../../../model/project/view';
 import styles from './sections.module.css';
 
 const TONE = { ok: styles.vok, bad: styles.vbad, unk: styles.vunk, none: styles.vnone } as const;
@@ -11,13 +10,12 @@ const TONE = { ok: styles.vok, bad: styles.vbad, unk: styles.vunk, none: styles.
  * The tasks the data source holds for the deep project, each with its stored verdict, linking to its Task page. Tasks are
  * read for the deep project only, and any other project says so.
  */
-export function TasksSection({ p, deep, }: { p: FleetProject; deep: DeepProject }) {
-  const isDeep = p.id === deep.id;
+export function TasksSection({ tasks }: { tasks: TasksSlice }) {
   let body;
-  if (!isDeep) body = <div className={styles.muted}>Tasks are listed for {deep.id} only</div>;
-  else if (!deep.tasks.length) body = <div className={styles.muted}>No tasks</div>;
+  if (tasks.kind === 'elsewhere') body = <div className={styles.muted}>Tasks are listed for {tasks.deepId} only</div>;
+  else if (!tasks.tasks.length) body = <div className={styles.muted}>No tasks</div>;
   else {
-    body = deep.tasks.map((t) => {
+    body = tasks.tasks.map((t) => {
       const m = verdictMark(t.verdict);
       return (
         <Link key={t.id} href={`/task/${encodeURIComponent(t.id)}`} className={styles.task} title={`${t.id} · ${m.word} · ${t.state}\n${t.title}`}>
@@ -36,7 +34,7 @@ export function TasksSection({ p, deep, }: { p: FleetProject; deep: DeepProject 
     });
   }
   return (
-    <DetailSection title="Tasks" aux={isDeep ? deep.tasks.length : null}>
+    <DetailSection title="Tasks" aux={tasks.kind === 'list' ? tasks.tasks.length : null}>
       {body}
     </DetailSection>
   );

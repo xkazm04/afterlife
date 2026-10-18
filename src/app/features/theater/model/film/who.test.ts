@@ -8,7 +8,7 @@ import { shortOf, whoOf } from './who';
 const slice = (by: string) => ({ by });
 const real = (by: string): Pick<LedgerEntry, 'by' | 'ev'> => ({
   by,
-  ev: { at: '2026-10-01T00:00:00Z', kind: 'merged', actionClass: 'merge', tier: 'assisted', iid: 1, hash: 'abcdef12' },
+  ev: { at: '2026-10-01T00:00:00Z', kind: 'merged', actionClass: 'merge', tier: 'assisted', iid: 1, hash: 'abcdef12', facts: [] },
 });
 
 describe('whoOf', () => {

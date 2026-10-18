@@ -3,7 +3,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { replayClock } from '@/server/data/live/clock';
-import { buildSnapshot } from '@/server/data/live/snapshot';
+import { buildSnapshot, pollHealthOf } from '@/server/data/live/snapshot';
 import { GitLabError } from '@/server/gitlab/errors';
 import { createDemoGitLab } from '@/server/gitlab/fake/demo';
 import type { GitLabPort } from '@/server/gitlab/port';
@@ -11,7 +11,7 @@ import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { seedDemo, SEED_NOW } from '@/server/index/seed';
 import { readPollerConfig } from '@/server/poller/config';
 import { runPollCycle } from '@/server/poller/cycle';
-import { REPOLL_GAP_MS, repollProject, type RepollRuntime } from '../repoll';
+import { REPOLL_GAP_MS, repollGroup, repollProject, type RepollRuntime } from '../repoll';
 
 /** The fake GitLab behind a switch: once `fail` names a call, that call is refused with a 401. */
 async function fakeRuntime() {
@@ -97,5 +97,53 @@ describe('re-poll cannot be driven to flood GitLab', () => {
     expect((await repollProject(rt, 'ledgerline', now)).result.ok).toBe(false);
     expect((await repollProject(rt, 'ledgerline', now)).result).toEqual({ ok: false, reason: expect.stringContaining('re-poll again in') });
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('the snapshot carries the poll’s health, by the source’s own clock', () => {
+  it('a good cycle: no error, no project failing, of the projects it polled', async () => {
+    const { rt } = await fakeRuntime();
+    const of = rt.last!.projects.length;
+    expect(of).toBeGreaterThan(0);
+    // the replay clock polls at 14:21:48 and reads at 14:22:00, as the project feeds' 12 s say
+    expect(rt.snapshot!.data.poll).toEqual({ ageSec: 12, error: null, failing: 0, of });
+    const now = new Date(SEED_NOW);
+    expect(pollHealthOf([{ source: 'group:1', lastOk: now, lastError: null }], now)).toEqual({ ageSec: 0, error: null, failing: 0, of: 0 });
+  });
+
+  it('a cycle that cannot read the group: its reason, the last good cycle’s age, every project failing', async () => {
+    const { rt, fail } = await fakeRuntime();
+    fail.call = 'getGroup';
+    await rt.refresh();
+    const poll = rt.snapshot!.data.poll;
+    expect(poll.error).toContain('401');
+    expect(poll.ageSec).toBe(12); // last_ok survives recordPollError
+    expect(poll.of).toBeGreaterThan(0);
+    expect(poll.failing).toBe(poll.of);
+  });
+});
+
+describe('re-poll the whole group, from any screen', () => {
+  it('runs refresh exactly once, and shares the one gap with a project re-poll', async () => {
+    const { rt, refresh } = await fakeRuntime();
+    let t = 9_000_000;
+    const now = () => t;
+    expect(await repollGroup(rt, now)).toEqual({ result: { ok: true }, polled: true });
+    expect(refresh).toHaveBeenCalledTimes(1);
+    t += 3_000;
+    expect((await repollGroup(rt, now)).result).toEqual({ ok: false, reason: expect.stringMatching(/re-poll again in \d+s/) });
+    expect((await repollProject(rt, 'ledgerline', now)).result).toEqual({ ok: false, reason: expect.stringMatching(/re-poll again in 7s/) });
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('a group re-poll within the gap of a project re-poll runs no cycle; a group GitLab refuses is a failure', async () => {
+    const { rt, refresh, fail } = await fakeRuntime();
+    const now = () => 7_000_000;
+    expect((await repollProject(rt, 'ledgerline', now)).result.ok).toBe(true);
+    expect((await repollGroup(rt, now)).result).toEqual({ ok: false, reason: expect.stringMatching(/re-poll again in \d+s/) });
+    expect(refresh).toHaveBeenCalledTimes(1);
+    fail.call = 'getGroup';
+    expect(await repollGroup(rt, () => 7_000_000 + REPOLL_GAP_MS)).toEqual({ result: { ok: false, reason: expect.stringContaining('401') }, polled: true });
+    expect(await repollGroup(null)).toEqual({ result: { ok: false, reason: 'live mode has not finished its first poll' }, polled: false });
   });
 });

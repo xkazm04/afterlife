@@ -21,6 +21,7 @@ import { stagePath, useStepNav } from './hooks/useStepNav';
 import { useMaturityShared } from './MaturityProvider';
 import { useMaturityKeys } from './hooks/useMaturityKeys';
 import { useUiScale } from './hooks/useUiScale';
+import { rescanTitle } from './model/flow/moves';
 import { MODES } from './model/rungs';
 import type { Step } from './model/state';
 import styles from './MaturityScreen.module.css';
@@ -45,14 +46,9 @@ export function MaturityScreen() {
   const onGo = (k: Step) => {
     if (go(k) && k === 1) gapsRef.current?.scrollIntoView({ block: 'nearest' });
   };
-  const sheetGaps = pending.flatMap((id) => ctx.gap(id) ?? []);
-  const sheet = useGapSheet(sheetGaps, state.sheet, project, mode);
-  const closeSheet = () => {
-    const opened = sheet.opened;
-    const n = Object.keys(opened).length;
-    const text = sheet.rows.filter((r) => r.answer?.status === 'done').map((r) => r.answer?.text).join(' | ');
-    dispatch(n ? { type: 'sent', opened, text } : { type: 'cancelSheet' });
-  };
+  // The sheet's writes are the layout's (model/flow/send.ts): an answer is recorded as it arrives, so closing only closes.
+  const sheet = useGapSheet(api, project, mode);
+  const closeSheet = () => dispatch({ type: 'cancelSheet' });
   useMaturityKeys(api, onGo, sheet.send);
 
   return (
@@ -67,7 +63,7 @@ export function MaturityScreen() {
           <Stepper steps={steps} onGo={onGo} label="Next move" />
           <Spacer />
           <ScanMeta engine={ctx.engine} scannedAt={state.scannedAt} ageMin={state.ageMin} scanned={ctx.scanned} cadence={ctx.live ? LIVE_CADENCE : MAT_META.rescanEvery} />
-          <ToolbarButton className={styles.rescan} title="Rescan, read only (R). Simulated: nothing is scanned, no rung moves" onClick={() => dispatch({ type: 'rescanAll' })}>
+          <ToolbarButton className={styles.rescan} title={rescanTitle(state, ctx)} onClick={() => dispatch({ type: 'rescanAll' })}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" aria-hidden="true" className={styles.rescanIcon}>
               <path d="M10.2 4.6A4.5 4.5 0 1 0 10.5 7" />
               <path d="M10.6 1.6v3h-3" />
@@ -101,9 +97,10 @@ export function MaturityScreen() {
           onPick={(id) => dispatch({ type: 'togglePick', id })}
           onSelect={(g) => select(g.stage)}
           onOpen={(g) => open(g.stage)}
+          onAct={dispatch}
         />
       </div>
-      {state.sheet && sheetGaps.length ? <SendSheet api={sheet} onClose={closeSheet} /> : null}
+      {state.sheet && sheet.rows.length ? <SendSheet api={sheet} onClose={closeSheet} /> : null}
     </Window>
   );
 }

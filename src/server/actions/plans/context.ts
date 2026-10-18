@@ -1,6 +1,5 @@
 // What every plan needs: the port to read through (never to write with: writes are only described here), the clock, who
 // the operator is, and where the project and the policy project live.
-import { isKind } from '@/server/gitlab/errors';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { PlannedCommand } from '@/server/gitlab/plan/types';
 import type { GlFile, GlProject } from '@/server/gitlab/types';
@@ -31,7 +30,7 @@ export interface Plan {
   summary: string;
   commands: PlannedCommand[];
   diff: string[];
-  /** The branch the commands create, when they create one. */
+  /** The branch a branch MR creates (mr/branchMr.ts): the MR's head is checked against the confirm's commit (F38). */
   branch?: string;
   /** What the operator must know before the click, in order. */
   notes?: readonly string[];
@@ -42,36 +41,43 @@ export interface Located {
   policy: GlProject;
 }
 
+/** A target as targetIn found it, with the group's full path and its project list (a plan may need either). */
+export interface Targeted {
+  project: GlProject;
+  group: string;
+  all: GlProject[];
+}
+
 /**
- * The index project among the group's projects, for every plan that writes in one (locate, and arm's targetOf): a path is
- * unique in its namespace only, so two matches with no GitLab id to tell them apart are refused (F48); Belay's own projects
- * are never a target, as the poller never watches them (F50); and it must be under the group's path (F47, F37).
+ * The one target rule, for every write (locate) and arm (arm/plan.ts targetOf). Read only. The project is the one the index
+ * names, never ambiguous (F48), never one of Belay's own (`infra`, F50), and under the group's path (F37, F47).
  */
-export function watchedProject(all: readonly GlProject[], gid: number | null, indexId: string, infra: readonly string[], groupPath: string): GlProject {
+export async function targetIn(ctx: Pick<PlanContext, 'port' | 'groupId' | 'gitlabId'>, indexId: string, infra: readonly string[]): Promise<Targeted> {
+  const [all, gid, group] = await Promise.all([ctx.port.listProjects(ctx.groupId), ctx.gitlabId(indexId), ctx.port.getGroup(ctx.groupId)]);
   const matches = all.filter((p) => (gid !== null ? p.id === gid : p.path === indexId));
   if (matches.length > 1) {
     throw new ActionRefused(`${indexId} names ${matches.length} projects (${matches.map((p) => p.pathWithNamespace).join(', ')}) and the index has no GitLab id for it: poll first`);
   }
   const project = matches[0];
   if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);
-  if (infra.includes(project.path)) { // tier-state.yml moves only by revoke or promote
+  if (infra.includes(project.path)) { // as the poller, which never watches them: tier-state.yml moves only by revoke or promote (F50)
     throw new ActionRefused(`${project.path} is Belay's own project, not one it watches: nothing is planned in it`);
   }
-  if (!project.pathWithNamespace.startsWith(`${groupPath}/`)) {
-    throw new ActionRefused(`${project.pathWithNamespace} is not in ${groupPath} (it is shared into it from elsewhere): Belay writes only in a project of the paired group`);
+  if (!project.pathWithNamespace.startsWith(`${group.fullPath}/`)) { // F37, F47
+    throw new ActionRefused(`${project.pathWithNamespace} is not in ${group.fullPath} (it is shared into it from elsewhere): Belay writes only in a project of the paired group`);
   }
-  return project;
+  return { project, group: group.fullPath, all };
 }
 
 /**
- * The project and the group's own belay-policy. Read only. belay-policy is the one at <group>/belay-policy, the file the
- * gate reads: a project of that name in a subgroup, or shared in from elsewhere, is never written as the policy (F46).
+ * The project (targetIn) and the group's own belay-policy. Read only. belay-policy is the one at <group>/belay-policy, the
+ * file the gate reads: a project of that name in a subgroup, or shared in from elsewhere, is never written as the policy (F46).
  */
 export async function locate(ctx: PlanContext, indexId: string): Promise<Located> {
-  const [all, gid, group] = await Promise.all([ctx.port.listProjects(ctx.groupId), ctx.gitlabId(indexId), ctx.port.getGroup(ctx.groupId)]);
-  const project = watchedProject(all, gid, indexId, ctx.cfg.infra, group.fullPath);
-  const policy = all.find((p) => p.pathWithNamespace === `${group.fullPath}/${ctx.cfg.policyProject}`);
-  if (!policy) throw new ActionRefused(`the group has no ${group.fullPath}/${ctx.cfg.policyProject} project: policy cannot be changed`);
+  const { project, group, all } = await targetIn(ctx, indexId, ctx.cfg.infra);
+  const policyPath = `${group}/${ctx.cfg.policyProject}`;
+  const policy = all.find((p) => p.pathWithNamespace === policyPath);
+  if (!policy) throw new ActionRefused(`the group has no ${policyPath} project: policy cannot be changed`);
   return { project, policy };
 }
 
@@ -95,22 +101,4 @@ export function lastCommitOf(file: GlFile, path = 'tier-state.yml'): string {
     throw new ActionRefused(`GitLab did not say which commit last changed ${path}, so a write from a stale read could not be refused; nothing is planned`);
   }
   return file.lastCommitId;
-}
-
-/**
- * The branch a plan names must not exist yet (F38 arm, F85 gap): Belay commits only to a new branch and never forces. A 404 is
- * the only "absent": any other failure refuses, because a branch left by an earlier MR, a half-run confirm or anyone else
- * would fail the confirm after the click, or carry commits nobody saw.
- */
-export async function noBranch(port: GitLabPort, project: Pick<GlProject, 'id' | 'pathWithNamespace'>, branch: string): Promise<void> {
-  let body: unknown;
-  try {
-    body = await port.get(`projects/${encodeURIComponent(String(project.id))}/repository/branches/${encodeURIComponent(branch)}`);
-  } catch (e) {
-    if (isKind(e, 'not-found')) return;
-    throw new ActionRefused(`Belay could not read whether ${branch} exists in ${project.pathWithNamespace} (${e instanceof Error ? e.message : String(e)}): nothing is planned`);
-  }
-  const id = (body as { commit?: { id?: unknown } } | null)?.commit?.id;
-  const head = typeof id === 'string' && COMMIT_ID.test(id) ? `its head is ${id.slice(0, 8)}` : 'GitLab did not say its head';
-  throw new ActionRefused(`${branch} already exists in ${project.pathWithNamespace} (${head}): Belay commits only to a new branch, so delete the branch, or merge or close its MR, then try again`);
 }

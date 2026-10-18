@@ -6,6 +6,8 @@ import type { ClassRecord, NeedsYouItem, RecordCounters } from '@/lib/demo';
 import { TIER_ORDER, type Tier } from '@/schemas/tier';
 import { getDataSource } from '@/server/data';
 import { ownDecisions, SEEDED_ITEMS } from '@/server/data/live/seeded';
+import { liveEvidence, type LiveEvidence } from '../model/evidence/evidence';
+import { classOfTitle } from '../model/live';
 import type { NeedsYouDemo } from './types';
 
 export class MissingNeedsYouData extends Error {}
@@ -70,7 +72,7 @@ export function pickNeedsYouDemo(): NeedsYouDemo {
 /** What the route draws: the desk (demo), the group's own open items (live), or the honest empty state. */
 export type NeedsYouView =
   | { kind: 'desk'; demo: NeedsYouDemo }
-  | { kind: 'live'; items: readonly NeedsYouItem[]; seeded: number; project: string }
+  | { kind: 'live'; items: readonly NeedsYouItem[]; seeded: number; project: string; evidence: Readonly<Record<string, LiveEvidence>> }
   | { kind: 'empty'; seeded: number };
 
 /** The inbox items the demo seeds: the data source owns the predicate; re-exported for this screen's importers. */
@@ -87,7 +89,14 @@ export function loadNeedsYouView(): NeedsYouView {
     const all = ds.getNeedsYou();
     const items = ownDecisions('live', all);
     const seeded = all.length - items.length;
-    return items.length ? { kind: 'live', items, seeded, project: ds.deepProjectId() } : { kind: 'empty', seeded };
+    if (!items.length) return { kind: 'empty', seeded };
+    // each promotion and re-admit beside its class as this same snapshot holds it now: nothing new is read
+    const classes = ds.getActionClasses();
+    const stale = ds.getTiersStale();
+    const evidence = Object.fromEntries(items.filter((n) => n.kind === 'promote' || n.kind === 'readmit').map((n) => [
+      n.id, liveEvidence(n, classes.find((c) => c.id === classOfTitle(n.title)), stale),
+    ]));
+    return { kind: 'live', items, seeded, project: ds.deepProjectId(), evidence };
   }
   try {
     return { kind: 'desk', demo: pickNeedsYouDemo() };

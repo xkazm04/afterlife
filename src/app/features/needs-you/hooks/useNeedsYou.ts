@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
-import { NO_ANSWER } from '@/server/actions/words';
+import type { Recall } from '@/server/actions/runs/journal';
+import { recallAction } from '@/server/actions/runs/recallAction';
 import type { NeedsYouDemo } from '../data/types';
-import { isPolicyKey, POLICY_KEYS } from '../model/outbox/policy';
+import { isPolicyKey } from '../model/outbox/policy';
 import { reduce } from '../model/reducer';
 import { isGapId } from '../model/rows/rowState';
+import { keysToAsk, recalledItem } from '../model/run';
+import { beginSend, needsRecall } from '../model/slot/slot';
 import { initialState } from '../model/state';
 import type { Action, NeedsState } from '../model/types';
 import { askDesk, deskIntent, sendDesk } from '../write/desk';
@@ -14,33 +17,41 @@ import { askDesk, deskIntent, sendDesk } from '../write/desk';
 /**
  * The screen state: one reducer, with each notice it produces shown once as a toast or a status-bar message. A policy-MR
  * decision (n1, n4) and a gap MR (g1..) are the server's: the exact write is asked for as soon as it is selected or staged
- * (previewAction), and Run is confirmAction with that preview's id. The reducer records only what the server answered.
+ * (previewAction), and Run is confirmAction with that preview's id, once (the slot's beginSend). The reducer records only what
+ * the server answered; a confirm with no answer closes Run until the write is asked for again, and Ask again on it first
+ * asks the server what its preview did (recallAction, the hook's own 'recalled' step: model/run.ts recalledItem).
  */
+/** The hook's own step: what the server recorded for an unsure write's preview, folded in by recalledItem. */
+type Recalled = { type: 'recalled'; key: string; recall: Recall };
+
 export function useNeedsYou(demo: NeedsYouDemo): { s: NeedsState; dispatch: (a: Action) => void } {
   const { toast, status } = useToast();
-  const reducer = useCallback((s: NeedsState, a: Action) => reduce(s, a, demo), [demo]);
+  const reducer = useCallback(
+    (s: NeedsState, a: Action | Recalled) => (a.type === 'recalled' ? recalledItem(s, a.key, a.recall, demo) : reduce(s, a, demo)),
+    [demo],
+  );
   const [s, dispatchRaw] = useReducer(reducer, demo, initialState);
-  const asked = useRef(new Set<string>());
-  const sending = useRef(new Set<string>());
+  const sending = useRef(new Set<string>()); // in flight, before the 'sending' render lands
   const { notice } = s;
   useEffect(() => {
     if (!notice) return;
     (notice.channel === 'toast' ? toast : status)(notice.text);
   }, [notice, toast, status]);
 
-  // "When the action opens": selected in the table or staged in the outbox.
-  const inView = [
-    ...POLICY_KEYS.filter((k) => s.sel === k || s.status[k] === 'staged'),
-    ...demo.gaps.map((g) => g.id).filter((id) => s.sel === id || s.gapStatus[id] === 'staged'),
-  ].join(',');
+  // "When the action opens": selected in the table or staged in the outbox; asked again after a refusal or no answer.
+  const toAsk = keysToAsk(s, demo).join(',');
+  const asking = useRef(new Set<string>()); // in flight only: whether to ask is the slots' (keysToAsk)
   useEffect(() => {
-    for (const key of inView.split(',')) {
-      const intent = key ? deskIntent(key, demo) : null; // a gap with no door (the probe) asks for nothing
-      if (!intent || asked.current.has(key)) continue;
-      asked.current.add(key);
-      void askDesk(intent).then((view) => dispatchRaw({ type: 'write', key, view }));
+    for (const key of toAsk.split(',')) {
+      const intent = key ? deskIntent(key, demo) : null;
+      if (!intent || asking.current.has(key)) continue;
+      asking.current.add(key);
+      void askDesk(intent).then((view) => {
+        asking.current.delete(key);
+        dispatchRaw({ type: 'write', key, view });
+      });
     }
-  }, [inView, demo]);
+  }, [toAsk, demo]);
 
   const latest = useRef(s);
   useEffect(() => {
@@ -48,18 +59,34 @@ export function useNeedsYou(demo: NeedsYouDemo): { s: NeedsState; dispatch: (a: 
   });
   const run = useCallback(
     (key: string) => {
-      const view = latest.current.writes[key];
+      const slot = latest.current.slots?.[key];
       const intent = deskIntent(key, demo);
-      if (!intent || view?.kind !== 'preview') return status('Nothing sent · the exact write is not on screen yet');
-      if (sending.current.has(key)) return status('Already sending this write');
+      if (slot?.phase === 'sending' || sending.current.has(key)) return status('Already sending this write');
+      if (!intent || !beginSend(slot)) return status('Nothing sent · there is no write on screen to run');
       sending.current.add(key);
+      dispatchRaw({ type: 'sending', key });
       status('Sending…');
-      sendDesk(intent, view)
-        .then((response) => response && dispatchRaw({ type: 'ran', key, response }), () => toast(NO_ANSWER))
+      // beginSend held a preview, so sendDesk confirms it; a throw is no answer: the write may or may not have run
+      sendDesk(intent, slot?.view)
+        .then((response) => dispatchRaw({ type: 'ran', key, response }), () => dispatchRaw({ type: 'ran', key, response: null }))
         .finally(() => sending.current.delete(key));
     },
-    [demo, status, toast],
+    [demo, status],
   );
-  const dispatch = useCallback((a: Action) => (a.type === 'run' && (isPolicyKey(a.key) || isGapId(a.key)) ? run(a.key) : dispatchRaw(a)), [run]);
+  const recalling = useRef(new Set<string>());
+  const recall = useCallback((key: string) => {
+    const view = latest.current.slots?.[key]?.view;
+    if (view?.kind !== 'preview' || recalling.current.has(key)) return;
+    recalling.current.add(key);
+    status('Asking Belay whether it ran…');
+    recallAction(view.preview.previewId)
+      .catch((): Recall => ({ kind: 'unknown' }))
+      .then((r) => dispatchRaw({ type: 'recalled', key, recall: r }))
+      .finally(() => recalling.current.delete(key));
+  }, [status]);
+  const dispatch = useCallback((a: Action) => {
+    if (a.type === 'retry' && needsRecall(latest.current.slots?.[a.key])) return recall(a.key);
+    return a.type === 'run' && (isPolicyKey(a.key) || isGapId(a.key)) ? run(a.key) : dispatchRaw(a);
+  }, [run, recall]);
   return useMemo(() => ({ s, dispatch }), [s, dispatch]);
 }

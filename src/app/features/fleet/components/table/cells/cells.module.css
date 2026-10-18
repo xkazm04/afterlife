@@ -61,3 +61,16 @@
   color: var(--text-3);
   font-size: var(--t-small);
 }
+/* the name cell's change mark: moved since the viewer's last look (its title says what) */
+.chg {
+  flex: none;
+  width: calc(6px * var(--ui-scale));
+  height: calc(6px * var(--ui-scale));
+  margin-left: calc(6px * var(--ui-scale));
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 calc(2px * var(--ui-scale)) color-mix(in oklab, var(--accent) 25%, transparent);
+}
+.chgIcon {
+  margin-left: 0;
+}

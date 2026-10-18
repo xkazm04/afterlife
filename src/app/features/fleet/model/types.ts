@@ -6,8 +6,8 @@ export type FleetView = 'tiers' | 'classes' | 'stages';
 /** The six smart filters of the sidebar (and the toolbar lozenge). */
 export type SmartId = 'needs' | 'stale' | 'setup' | 'unwatched' | 'quar' | 'handsoff';
 
-/** What the list shows: everything, one group ("g:payments") or one smart filter. */
-export type Source = 'all' | SmartId | `g:${string}`;
+/** What the list shows: everything, one group ("g:payments"), one smart filter, or what changed since the last look. */
+export type Source = 'all' | SmartId | 'changed' | `g:${string}`;
 
 export type SortKey =
   | 'attention'
@@ -50,7 +50,10 @@ export interface FleetTask {
   verdict: TaskVerdict | null;
 }
 
-/** The deep data the data source has for one project (ledgerline): its decisions, class records, tasks and tracks. */
+/**
+ * The deep data the data source has for one project (ledgerline): its decisions, class records, tasks and tracks. Read on
+ * the server for that project's page only (model/project/view.ts); the /fleet client never receives it.
+ */
 export interface DeepProject {
   id: string;
   needs: NeedsYouItem[];
@@ -71,7 +74,10 @@ export interface FleetData {
   classes: string[];
   stages: string[];
   tiers: Record<TierKey, TierInfo>;
-  deep: DeepProject;
+  /** The project the source reads deep (its page lists decisions, tasks and tracks). */
+  deepId: string;
+  /** The deep project's class records for the tier popover, by class id: "16/15 accepted". Classes with no record are absent. */
+  records: Record<string, string>;
   lastPollSec: number;
 }
 

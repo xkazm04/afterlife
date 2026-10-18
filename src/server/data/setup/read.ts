@@ -6,6 +6,7 @@
 import { checkArm } from '@/server/actions/arm/read';
 import { armOf, NOT_DEFINED } from '@/server/actions/arm/content';
 import { probeCapabilities } from '@/server/gitlab/capabilities';
+import { blockerLine } from '@/server/gitlab/doctor/blocker';
 import { GitLabError } from '@/server/gitlab/errors';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { PairingRow } from '@/server/index/repositories/pairing';
@@ -112,6 +113,8 @@ export function setupReads(port: SetupPort | null, pairing: PairingRow | null, p
       if (!port) return { ...at, rows: [], error: NO_PORT };
       try {
         const r = await probeCapabilities(port.port, port.groupId);
+        // A blocker (no login, no glab, no network, no group) is the one line Setup shows, with its fix, instead of rows.
+        if (r.blocker) return { ...at, rows: [], error: blockerLine(r.blocker) };
         return { ...at, rows: r.capabilities.map((c) => ({ id: c.id, label: c.label, status: c.status, reason: c.reason })), error: null };
       } catch (e) {
         return { ...at, rows: [], error: `belay doctor failed: ${why(e)}` };

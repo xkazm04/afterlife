@@ -13,9 +13,12 @@ import { StagesSection } from '../inspector/sections/StagesSection';
 import { TasksSection } from '../inspector/sections/TasksSection';
 import { TracksSection } from '../inspector/sections/TracksSection';
 
-/** /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, feed, events, tracks). */
-export function ProjectDetail({ project: p, data, source }: FleetProjectView) {
-  const deep = data.deep;
+/**
+ * /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, feed, events, tracks). How
+ * deep the project is read and what its buttons do were decided on the server (`view`); each section draws its slice.
+ */
+export function ProjectDetail({ project: p, data, view }: FleetProjectView) {
+  const { depth } = view;
   // An unwatched project's count is shown nowhere (the row, the group sum), so the status bar counts none either.
   const waiting = p.state === 'not-set-up' ? 0 : p.needsYou;
   return (
@@ -32,14 +35,14 @@ export function ProjectDetail({ project: p, data, source }: FleetProjectView) {
       help={<FleetLegend tiers={data.tiers} keys={false} />}
       helpTitle="Legend"
     >
-      <NeedsYouSection p={p} portfolio={data.portfolio} needs={p.id === deep.id ? deep.needs : null} live={source.mode === 'live'} />
-      <ClassesSection p={p} classes={data.classes} deep={deep} />
+      <NeedsYouSection p={p} needs={depth.needs} actions={view.actions} live={view.mode === 'live'} />
+      <ClassesSection p={p} classes={data.classes} records={depth.records} />
       <ProofsSection p={p} />
-      <TasksSection p={p} deep={deep} />
+      <TasksSection tasks={depth.tasks} />
       <StagesSection p={p} stages={data.stages} />
-      <FeedSection p={p} deep={deep} demoCockpit={source.illustrative.cockpit} />
-      <EventsSection p={p} deep={deep} source={source} />
-      {p.id === deep.id ? <TracksSection deep={deep} demo={source.illustrative.tracks} /> : null}
+      <FeedSection {...depth.feed} />
+      <EventsSection events={depth.events} live={view.mode === 'live'} />
+      {depth.kind === 'deep' ? <TracksSection {...depth.tracks} /> : null}
     </DetailPage>
   );
 }

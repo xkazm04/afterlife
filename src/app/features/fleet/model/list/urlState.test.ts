@@ -48,6 +48,15 @@ describe('fleet list URL state', () => {
   });
 });
 
+describe('the Changed source in the URL', () => {
+  it('decodes and round-trips', () => {
+    expect(decodeListState({ src: 'changed' }).filters.source).toBe('changed');
+    const s: FleetListState = { ...DEFAULT_LIST_STATE, filters: { ...DEFAULT_LIST_STATE.filters, source: 'changed' } };
+    expect(encodeListState(s)).toBe('src=changed');
+    expect(back(s)).toEqual(s);
+  });
+});
+
 describe('smart-filter ids in the URL', () => {
   it.each(SMART_FILTERS.map((f) => f.id))('keeps the %s smart filter through a round trip', (id) => {
     expect(back({ ...DEFAULT_LIST_STATE, filters: { ...DEFAULT_LIST_STATE.filters, source: id } }).filters.source).toBe(id);

@@ -18,6 +18,6 @@ describe('the seeded filter is one implementation', () => {
   });
   it('the four screens that list decisions call ownDecisions', () => {
     const users = app.filter(({ s }) => /\bownDecisions\(/.test(s)).map((f) => f.p.replaceAll('\\', '/').split('src/app/features/')[1]);
-    expect(users.sort()).toEqual(['door/data/loadDoorData.ts', 'fleet/data/loadFleetData.ts', 'monitor/data/loadMonitorData.ts', 'needs-you/data/pick.ts']);
+    expect(users.sort()).toEqual(['door/data/loadDoorData.ts', 'fleet/data/loadFleetProject.ts', 'monitor/data/loadMonitorData.ts', 'needs-you/data/pick.ts']);
   });
 });

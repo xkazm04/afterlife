@@ -30,6 +30,8 @@ export interface FleetTableProps {
   tableRef: RefObject<HTMLDivElement | null>;
   onKeyDown: KeyboardEventHandler<HTMLDivElement>;
   handlers: RowHandlers;
+  /** Change-mark titles by project id (model/changes). */
+  marks?: Readonly<Record<string, string>>;
   /** The fleet itself has no projects (not a filter hiding them): the empty line must not ask to clear one. */
   fleetEmpty?: boolean;
 }
@@ -40,7 +42,7 @@ export function FleetTable(props: FleetTableProps) {
   const grid = gridFor(view, narrow, meta);
   const ranked = rankedTier(sort);
   const row = (p: FleetProject, i: number) => (
-    <ProjectRow key={p.id} p={p} view={view} ranked={ranked} narrow={narrow} meta={meta} selected={selected === p.id} alt={i % 2 === 1} grouped={grouped} h={h} />
+    <ProjectRow key={p.id} p={p} view={view} ranked={ranked} narrow={narrow} meta={meta} selected={selected === p.id} alt={i % 2 === 1} grouped={grouped} h={h} mark={props.marks?.[p.id]} />
   );
   let body;
   if (!visible.length) {

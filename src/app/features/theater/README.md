@@ -31,8 +31,11 @@ Pitch" prototype. Two films, chosen by the loader (`data/loadTheaterData.ts`, on
 - Frame state depends only on (entry, film time), so a take replays exactly. `#seq=NNN` cues a take, paused.
 
 ## The real film
-Each entry states only what its event states: at, agent, kind, action_class, tier_at_time, verdict when present, the
-MR iid, seq, and a 12-digit hash prefix. It starts from an empty state: no counts, tiers, rungs or needs. A kind moves
+Each entry states only what its event states, through the one event-facts table (`@/schemas/chain/facts`): every key
+of LedgerEvent is a row or hidden on purpose (seq and agent ride on the entry, prev_hash is the chain's), so a key the
+chain gains is a typecheck error until it is described. The inspector draws the rows: kind, class, tier at the time,
+verdict, environment, the tier-state revision read, what was withdrawn, what the next rung would decide, the subject,
+payload, observer, at and a 12-digit hash prefix. A key the event does not state has no row. It starts from an empty state: no counts, tiers, rungs or needs. A kind moves
 the climber only to the hold that the kind is; a hold the ledger does not reach stays unclimbed (only reached holds
 are drawn done, and there is no lit rope).
 
@@ -62,7 +65,8 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
 - Tests (`data/readme.test.ts` fails when a test file under this folder is missing from this list):
   - model: `model/film/fromLedger.test.ts` (the mapper, the takes, the fold, the player), `model/film/holds.test.ts`,
     `model/film/takeCap.test.ts`, `model/film/takeOrder.test.ts`, `model/film/who.test.ts`, `model/derive/derive.test.ts`
-    (the fold, the answers, motion), `model/replay/reducer.test.ts`, `model/replay/store.test.ts`.
+    (the fold, the answers, motion), `model/replay/reducer.test.ts`, `model/replay/store.test.ts`,
+    `model/replay/cue.test.ts` (the `#seq=` address a screen opens on).
   - data and screen: `data/film.test.tsx` (the screen on each film), `data/labels.test.tsx` (the REPLAY chip and
     legend), `data/loader.test.tsx` (the loader live against a bare index and the fake group; the quote box),
     `data/constants.test.ts` (the invented constants against the ledger slice), `data/readme.test.ts` (this list).
@@ -84,6 +88,12 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
 - Present mode hides the toolbar, so a rolled take's pre-roll shows as a small "Rolling in n…" pill at the stage's bottom centre (`parts/PrerollCue`, from the view's `left`); gone the moment playback starts, never in normal playback, 1 s (one count) under reduced motion.
 - Space, R, L and F ignore OS auto-repeat (`once` on the hotkey); the arrows still repeat when held.
 - Beat 4 of the illustrative film lists the five proof checks on the stage (`stage/ProofChecks`), top right of the pitch, in the window and in present: it ticks from the snapshot's `checks` (the inspector's field), is a static labelled list (no live region), and a real film never shows it.
+- `/theater?mr=N` films MR N first: the page awaits `searchParams` and the loader hands `{ mr }` to `ledgerFilm`, which puts
+  that MR's take first wherever it sits in the chain (past the 8-newest cap too) and fills the other 7 slots by the
+  unfocused rule. Every live Ladder move links here ("Replay !N"). An MR with no events leaves the film as it is and
+  sets `film.missing`; a `#seq=` the film does not hold is `{ missingSeq }` (`model/replay/cue.ts`, `cueOf`), autoplays
+  take 1 as no cue does, and is named. Either miss is said in the status bar, never played in silence as another run.
+  The illustrative film has no MR and ignores `?mr=`.
 
 ## On the shared kit
 `Card` is `surface/Card`, and a take with no rolls has no count column (`SidebarItem` hides an empty count).

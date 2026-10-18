@@ -37,6 +37,7 @@ demo answers verified, marked `demo`.
 | `live/runtime.ts`, `boot.ts` | one port + index + poller + snapshot per process, kept on `globalThis`; started by `src/instrumentation.ts` (`register`); a failed start is kept, named on the pages, and retried no more often than the poll interval |
 | `setup/` | Setup's live reads (`read.ts`): each track's arm block on the target's main (`checkArm`; a track with no arm content is "not defined yet", a refused or failed read is unknown with its reason), the belay doctor (`probeCapabilities` on the configured group, stamped with the real time), and the steps a read observes (`OBSERVED_STEPS`): 0 (`glab api user`), 1 (the snapshot's pairing row), 3 (the group's plan, `humanSteps.ts`), 4 (the target and belay-pack, belay-policy, belay-ledger, belay-engine and belay-apply in the group), 6 (a gitlab--duo runner online), 8 (the settings of belay-apply that hold no secret; it never reads done), 9 (every protection it lists, read back: `protections.ts`) and 10 (the bootstrap MR). Every other step is unknown, "not probed". `ctx.ts` is what one load's step reads share (the port, the group, the one project listing). `humanKey.ts` reads the human key on belay-policy. `rereadAction.ts` (`'use server'`, localhost only, read only) is Re-probe and a step's verify. `types.ts` is what the screen receives |
 | `live/clock.ts`, `ports.ts` | system clock vs the fake group's **replay clock** (polled 14:21:48, read 14:22:00, always) |
+| `shell/read.ts` | `readShellInfo(ds, env)`: the shell's numbers (the Needs-you badge, the status bar's mode, fake flag, group, illustrative). The root layout renders it and `GET /api/shell` (`src/app/api/shell/route.ts`, no-store; 503 with the reason before the first live poll, never a demo payload) answers it, so the client re-reads it on navigation and focus (`components/shell/live/`): a layout does not re-render on navigation |
 
 ## The ledger
 
@@ -90,3 +91,9 @@ data" is a client component and still says so.
 The recent events are the index's own (`getEvents` in `../index/views/events.ts`): a task's MR opened and merged, the last
 poll, and each task's standing (state, proof verdict) on its newest row. They are not the demo's feed, so the Fleet reads
 them through `loadFleetSource`, beside `loadFleetData`, and `parity.test.ts` lists them where live differs from demo.
+
+`getPollHealth()`: live, the poll's health on the snapshot (`pollHealthOf` in `live/snapshot.ts`): the age of the last
+cycle that read the group (`group:<g>` poll_state, by the source's read clock), that cycle's error if the last one failed,
+and how many of the polled (GitLab-linked) projects' last polls failed; null in demo mode. `shell/read.ts` adds the poll
+interval, and the status bar says it on every screen (`components/shell/bars/poll/`), with a Re-poll of the whole group
+on a failure (`repollGroupAction`, the same 10 s gap as a project re-poll).

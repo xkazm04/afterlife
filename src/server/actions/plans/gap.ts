@@ -2,18 +2,18 @@
 // is the proposal. A file is a new file's content from the screen, or a hunk applied to a file the project holds (never a whole
 // existing file, F83); the preview shows either before the click.
 import type { StageGapMr } from '../types';
-import { ActionRefused, lastCommitOf, locate, noBranch, type Plan, type PlanContext } from './context';
+import { ActionRefused, lastCommitOf, locate, type Plan, type PlanContext } from './context';
 import { applyHunk } from './hunk';
+import { branchMr, type BranchMrInput } from './mr/branchMr';
 
 export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<Plan> {
   const { project } = await locate(ctx, intent.project);
   const base = project.defaultBranch ?? 'main';
   if (intent.to <= intent.from) throw new ActionRefused(`gap ${intent.gap} would not raise ${intent.stage}: ${intent.from} -> ${intent.to}`);
-  await noBranch(ctx.port, project, intent.branch);
 
-  const commands = [];
+  const commits: Array<BranchMrInput['commits'][number]> = [];
   const diff: string[] = [];
-  for (const [i, f] of intent.files.entries()) {
+  for (const f of intent.files) {
     const file = await ctx.port.getFile(project.id, f.path, base);
     let content: string;
     let shown: string[];
@@ -28,21 +28,22 @@ export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<P
       const lines = content.split('\n');
       shown = [`+ ${f.path} (${lines.length} lines)`, ...lines.map((l) => `+ ${l}`)]; // every line: an included job file runs in the MR pipeline (F84)
     }
-    commands.push(ctx.port.plan.commitFile({
-      project: project.id, path: f.path, branch: intent.branch, content, action: file ? 'update' : 'create',
-      ...(file?.lastCommitId ? { lastCommitId: file.lastCommitId } : {}),
-      message: `Maturity gap ${intent.gap}: ${intent.title}\n\nOperator: ${ctx.operator}`, ...(i === 0 ? { startBranch: base } : {}),
-    }));
+    commits.push({
+      path: f.path, content, action: file ? 'update' : 'create', ...(file?.lastCommitId ? { lastCommitId: file.lastCommitId } : {}),
+      message: `Maturity gap ${intent.gap}: ${intent.title}\n\nOperator: ${ctx.operator}`,
+    });
     diff.push(...shown);
   }
-  commands.push(ctx.port.plan.createMr({
-    project: project.id, sourceBranch: intent.branch, targetBranch: base, labels: ['maturity::gap'], removeSourceBranch: true,
-    title: `Draft: Maturity gap ${intent.gap}: ${intent.title}`,
-    description: `${intent.stage} R${intent.from} -> R${intent.to}. Prepared by Belay for ${ctx.operator}.${intent.workItem ? `\n\nRelated to #${intent.workItem}` : ''}`,
-  }));
+  const mr = await branchMr(ctx, { // the branch must be new (F85, as arm's F38)
+    project, base, branch: intent.branch, commits,
+    mr: {
+      labels: ['maturity::gap'], title: `Draft: Maturity gap ${intent.gap}: ${intent.title}`,
+      description: `${intent.stage} R${intent.from} -> R${intent.to}. Prepared by Belay for ${ctx.operator}.${intent.workItem ? `\n\nRelated to #${intent.workItem}` : ''}`,
+    },
+  });
   return {
     title: `Open the draft MR for gap ${intent.gap}`,
     summary: `${intent.files.length} file(s) on a new branch of ${project.pathWithNamespace}, then a draft MR, as ${ctx.operator}. Nothing is merged.`,
-    commands, diff,
+    ...mr, diff,
   };
 }

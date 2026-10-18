@@ -14,7 +14,7 @@ const row = (id: string, done: boolean): SheetRow => ({
 });
 
 const titleOf = (rows: SheetRow[], ready: number): string => {
-  const api: GapSheetApi = { rows, ready, sending: false, opened: {}, send: () => {}, retry: () => {} };
+  const api: GapSheetApi = { rows, ready, sending: false, send: () => {}, retry: () => {} };
   const html = renderToStaticMarkup(createElement(SendSheet, { api, onClose: () => {} }));
   const m = /<h2[^>]*>(.*?)<\/h2>/.exec(html);
   if (!m) throw new Error(`no sheet title in: ${html.slice(0, 300)}`);

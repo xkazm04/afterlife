@@ -54,18 +54,28 @@ describe('ledger-record', () => {
 
   it('never passes on missing or unreadable input: no chain, a line that is not JSON, no record, bad thresholds', () => {
     expect(run({ chain: undefined }).verdict).toBe('inconclusive');
-    expect(checkOf(run({ chain: `${CHAIN}{ nope\n` }), 'chain-verifies')).toMatchObject({ ok: false, detail: 'chain line 12 is not JSON' });
+    expect(checkOf(run({ chain: `${CHAIN}{ nope\n` }), 'chain-verifies')).toMatchObject({ ok: false, detail: 'chain line 12: not valid JSON' });
     expect(checkOf(run({ record: { agent: 'ai-qa-acme-lab', class: 'qa.file-bug' } }), 'trial-recomputed').ok).toBeNull();
     for (const trial of [{ min: 0, catches: 0 }, { min: 15 }, 'all']) expect(run({ trial }).verdict).toBe('inconclusive');
   });
 
-  it('a would the importer would refuse (not the rung above), hashed into a chain, is no trial', () => {
+  it('a would the importer refuses (not the rung above), hashed into a chain, fails the chain as the importer does; it is no trial', () => {
     const es = events();
     const body = { ...es[2]!, subject: { ...es[2]!.subject, iid: 250 }, tier_at_time: 'assisted' as const };
     const { seq: _s, prev_hash: _p, hash: _h, ...rest } = body;
     void [_s, _p, _h];
     const forged = [...es, append(es, rest)];
-    expect(checkOf(run({ chain: jsonl(forged) }), 'chain-verifies').ok).toBe(true);
+    expect(checkOf(run({ chain: jsonl(forged) }), 'chain-verifies')).toMatchObject({ ok: false, detail: expect.stringMatching(/^chain line 12: would/) });
     expect(trialFromChain(forged, H).mrs.map((m) => m.iid)).toEqual([201, 202, 203]);
+  });
+
+  it('a hash-valid chain whose line 2 is no ledger event (kind bogus) does not verify, and names line 2', () => {
+    const [one, two] = events();
+    const { seq: _s, prev_hash: _p, hash: _h, ...rest } = two!;
+    void [_s, _p, _h];
+    const b = run({ chain: jsonl([one!, append([one!], { ...rest, kind: 'bogus' as LedgerEvent['kind'] })]) });
+    expect(checkOf(b, 'chain-verifies')).toMatchObject({ ok: false, detail: expect.stringMatching(/^chain line 2: /) });
+    expect(checkOf(b, 'trial-recomputed').ok).toBeNull();
+    expect(b.verdict).toBe('fail');
   });
 });

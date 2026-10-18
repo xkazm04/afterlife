@@ -6,12 +6,13 @@ import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { ProjectState, TierInfo, TierKey } from '@/lib/demo/types';
 import { STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
+import { ChangeMark } from '../table/cells/ChangeMark';
 import styles from './legend.module.css';
 
 const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
 
-/** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching and the keys. The keys are the
- * Fleet table's: the project page, which has no table, passes `keys={false}`. */
+/** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching, change marks and the keys.
+ * The change mark and the keys are the Fleet table's: the project page, which has no table, passes `keys={false}`. */
 export function FleetLegend({ tiers, keys = true }: { tiers: Record<TierKey, TierInfo>; keys?: boolean }) {
   return (
     <>
@@ -37,6 +38,8 @@ export function FleetLegend({ tiers, keys = true }: { tiers: Record<TierKey, Tie
           ],
           [<StageTicks key="st" rungs={[1, 3, null]} />, 'Stage rungs 0–4; dashed = unknown'],
           [<span key="ha" className={styles.hatch} />, 'Hatched = stale, last known values'],
+          // a change mark is the Fleet table's too: the project page has no rows to mark
+          ...(keys ? [[<ChangeMark key="ch" />, 'Moved since your last look (hover for what); Mark seen in the sidebar resets it'] as const] : []),
         ]}
       />
       {keys ? (

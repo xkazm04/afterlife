@@ -30,7 +30,7 @@ describe('two concurrent confirms of one preview', () => {
       const [a, b] = await Promise.all([confirmIntent(deps, intents[name], p.preview.previewId), confirmIntent(deps, intents[name], p.preview.previewId)]);
       const answers = [a, b];
       expect(answers.filter((r) => r.status === 'done')).toHaveLength(1);
-      expect(answers.filter((r) => r.status === 'refused' && /already running/.test(r.reason))).toHaveLength(1);
+      expect(answers.filter((r) => r.status === 'refused' && /still running/.test(r.reason))).toHaveLength(1);
       expect(counter.n).toBe(planned);
       expect(await listCommands(db, 'ledgerline')).toHaveLength(planned);
     });

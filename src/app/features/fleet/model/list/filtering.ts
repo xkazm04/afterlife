@@ -8,8 +8,10 @@ export const EMPTY_FILTERS: FleetFilters = { source: 'all', q: '', states: new S
 
 export const isGroupSource = (s: Source): s is `g:${string}` => s.startsWith('g:');
 
-export function matchesSource(p: FleetProject, source: Source): boolean {
+/** `changed`: the ids that moved since the last look (model/changes); without it the Changed source matches nothing. */
+export function matchesSource(p: FleetProject, source: Source, changed?: ReadonlySet<string>): boolean {
   if (source === 'all') return true;
+  if (source === 'changed') return changed?.has(p.id) ?? false;
   if (isGroupSource(source)) return p.group === source.slice(2);
   return smartFilter(source as SmartId).test(p);
 }
@@ -20,10 +22,10 @@ export function matchesSearch(p: FleetProject, q: string): boolean {
   return p.name.toLowerCase().includes(needle) || p.group.toLowerCase().includes(needle) || (p.what || '').toLowerCase().includes(needle);
 }
 
-export function filterProjects(projects: readonly FleetProject[], f: FleetFilters): FleetProject[] {
+export function filterProjects(projects: readonly FleetProject[], f: FleetFilters, changed?: ReadonlySet<string>): FleetProject[] {
   return projects.filter(
     (p) =>
-      matchesSource(p, f.source) &&
+      matchesSource(p, f.source, changed) &&
       (f.states.size === 0 || f.states.has(p.state)) &&
       (f.tiers.size === 0 || (tiersKnown(p) && [...f.tiers].some((t) => p.tiers[t] > 0))) &&
       matchesSearch(p, f.q),
@@ -48,6 +50,7 @@ export function toggleIn<T extends ProjectState | TierKey>(set: ReadonlySet<T>, 
 /** The toolbar subtitle part after the portfolio name. */
 export function sourceLabel(source: Source): string {
   if (source === 'all') return 'All projects';
+  if (source === 'changed') return 'Changed since last look';
   if (isGroupSource(source)) return source.slice(2);
   return smartFilter(source as SmartId).label;
 }

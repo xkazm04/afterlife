@@ -1,8 +1,9 @@
 import type { Stage } from '@/schemas';
 import type { MaturityCtx } from './ctx';
-import { rescanOutcome } from './flow/credit';
-import { rungText, type Mode } from './rungs';
-import { inFlightIds, pendingIds, type MaturityState, type SectionKey, type Step } from './state';
+import { rescanAll, rescanGap, type MoveAction } from './flow/moves';
+import { closeSheet, sendingIds, sendStep, sent, sheetIds, type SendAction } from './flow/send';
+import type { Mode } from './rungs';
+import { inFlightIds, openGap, pendingIds, say, type MaturityState, type SectionKey, type Step } from './state';
 import { nextStage } from './steps';
 
 export type Action =
@@ -17,23 +18,25 @@ export type Action =
   | { type: 'cancelSheet' }
   /** The server opened these gaps' MRs (the MR it named, or null). Moves no rung: the next scan decides that. */
   | { type: 'sent'; opened: Readonly<Record<string, string | null>>; text: string }
-  | { type: 'merge'; id: string }
-  | { type: 'ran'; id: string }
-  | { type: 'rescanGap'; id: string }
-  | { type: 'rescanAll' };
+  /** A sent gap's next move (merge, its job runs, the rescan of that gap): model/flow/moves.ts. */
+  | MoveAction
+  | { type: 'rescanAll' }
+  | SendAction;
 
-const say = (s: MaturityState, text: string): MaturityState => ({ ...s, notice: { seq: (s.notice?.seq ?? 0) + 1, text } });
-const openGap = (s: MaturityState): MaturityState => ({ ...s, open: { ...s.open, gap: true } });
-
-/** Keeps the stepper honest after any change: a step whose precondition vanished falls back, the preview follows picks. */
+/**
+ * Keeps the stepper honest after any change: a step whose precondition vanished falls back, the preview follows picks. The
+ * sheet stays while it shows a gap (an answered one too); a closed sheet holds no writes (the files may move before it opens).
+ */
 function settle(s: MaturityState, ctx: MaturityCtx): MaturityState {
   const pend = pendingIds(s, ctx);
   let step = s.step;
-  if ((step === 2 || step === 3) && !pend.length) step = 1;
+  if (step === 2 && !pend.length) step = 1;
+  if (step === 3 && !sheetIds(s, ctx).length) step = 1;
   if (step === 4 && !inFlightIds(s).length) step = 1;
   const pv = step === 2 && !(s.pv && pend.includes(s.pv)) ? (pend[0] ?? null) : s.pv;
   const sheet = step === 3 ? s.sheet : false;
-  return step === s.step && pv === s.pv && sheet === s.sheet ? s : { ...s, step, pv, sheet };
+  const send = sheet || !Object.keys(s.send).length ? s.send : {};
+  return step === s.step && pv === s.pv && sheet === s.sheet && send === s.send ? s : { ...s, step, pv, sheet, send };
 }
 
 function togglePick(s: MaturityState, ctx: MaturityCtx, id: string): MaturityState {
@@ -76,36 +79,6 @@ function move(s: MaturityState, ctx: MaturityCtx, dir: 1 | -1): MaturityState {
   return { ...s, sel: nextStage(ctx, s.sel, dir) };
 }
 
-function sent(s: MaturityState, ctx: MaturityCtx, opened: Readonly<Record<string, string | null>>, text: string): MaturityState {
-  const ids = Object.keys(opened).filter((id) => ctx.gap(id) && !s.flow[id]);
-  const first = ids[0] ? ctx.gap(ids[0]) : undefined;
-  if (!first) return s;
-  const flow = { ...s.flow };
-  const mrs = { ...s.mrs };
-  for (const id of ids) {
-    flow[id] = 'opened';
-    const mr = opened[id];
-    if (mr) mrs[id] = mr;
-  }
-  return say(openGap({ ...s, flow, mrs, picked: s.picked.filter((p) => !ids.includes(p)), sheet: false, step: 4, sel: first.stage }), text);
-}
-
-/** A simulated rescan stamps the demo's clock; in live mode it invents no time, so the scan's own stays. */
-const rescanned = (s: MaturityState, ctx: MaturityCtx): MaturityState => (ctx.nowClock ? { ...s, scannedAt: ctx.nowClock, ageMin: 0 } : s);
-
-function rescanGap(s: MaturityState, ctx: MaturityCtx, id: string): MaturityState {
-  const g = ctx.gap(id);
-  const phase = s.flow[id];
-  if (!g || (phase !== 'merged' && phase !== 'ran')) return s;
-  const stamped = rescanned(s, ctx);
-  if (rescanOutcome(g.x.needsRun, phase) === 'nolift') {
-    return say({ ...stamped, flow: { ...s.flow, [id]: 'nolift' } }, `rescan · engine ${ctx.engine} · ${g.stage} stays ${rungText(g.from)}: configured, not exercised (simulated)`);
-  }
-  const row = { mr: s.mrs[id] ?? `gap ${id}`, stage: g.stage, move: `${rungText(g.from)} → ${rungText(g.to)}`, verdict: 'credited' as const, why: `rescan${ctx.nowClock ? ` ${ctx.nowClock}` : ''} (simulated)` };
-  const next = { ...stamped, flow: { ...s.flow, [id]: 'credited' as const }, now: { ...s.now, [g.stage]: g.to }, sel: g.stage, animKey: s.animKey + 1, log: [...s.log, row] };
-  return say(next, `rescan · engine ${ctx.engine} · ${g.stage} ${rungText(g.from)} → ${rungText(g.to)} credited (simulated)`);
-}
-
 function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
   switch (a.type) {
     case 'mode':
@@ -125,7 +98,7 @@ function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
     case 'section':
       return s.open[a.key] === a.open ? s : { ...s, open: { ...s.open, [a.key]: a.open } };
     case 'cancelSheet':
-      return { ...s, sheet: false, step: s.step === 3 ? (pendingIds(s, ctx).length ? 2 : 1) : s.step };
+      return closeSheet(s, ctx);
     case 'sent':
       return sent(s, ctx, a.opened, a.text);
     case 'merge': {
@@ -142,11 +115,17 @@ function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
     case 'rescanGap':
       return rescanGap(s, ctx, a.id);
     case 'rescanAll':
-      return say(rescanned(s, ctx), `rescan · engine ${ctx.engine} · read only · no rung moved (simulated)`);
+      return rescanAll(s, ctx);
+    default:
+      return sendStep(s, ctx, a);
   }
 }
 
+/** While a send is in flight nothing may take the sheet down: its answers are on their way to it. */
+const HOLDS: ReadonlySet<Action['type']> = new Set<Action['type']>(['go', 'cancelSheet', 'togglePick', 'sent']);
+
 /** The whole screen as one pure reducer. `ctx` is the shared dataset joined with the screen's fixtures. */
 export function reduce(s: MaturityState, a: Action, ctx: MaturityCtx): MaturityState {
+  if (HOLDS.has(a.type) && sendingIds(s).length) return s;
   return settle(step(s, ctx, a), ctx);
 }

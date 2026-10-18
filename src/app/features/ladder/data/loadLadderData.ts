@@ -57,7 +57,9 @@ export function loadLadderData(): LadderScreenProps {
   const quotes = Object.fromEntries(ds.getTasks().flatMap((t) => (t.mr && t.quote ? [[t.mr, t.quote] as const] : [])));
   // Live: the deep project's own ledger. The demo's opening ledger only while that chain is empty, and then marked demo.
   const chain = live ? ds.getLedger() : [];
-  const ledger = chain.length ? liveLedgerEntries(chain, new Date()) : history ? LEDGER_SEED.map((e) => ({ ...e, demo: true })) : LEDGER_SEED;
+  // The screen's one zone, chosen here on the server: every ledger label, now and after a click, is in it. Demo: UTC.
+  const tz = live ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC';
+  const ledger = chain.length ? liveLedgerEntries(chain, new Date(), tz) : history ? LEDGER_SEED.map((e) => ({ ...e, demo: true })) : LEDGER_SEED;
   return {
     project: ds.deepProjectId(),
     seed: {
@@ -65,6 +67,7 @@ export function loadLadderData(): LadderScreenProps {
       ledger,
       quotes,
       head: history ? { ...INITIAL_HEAD, demo: true } : { ...INITIAL_HEAD },
+      tz,
     },
     tracks: ds.getTracks(),
     means: Object.fromEntries(TIER_DISPLAY_ORDER.map((t) => [t, tiers[t].means])) as LadderScreenProps['means'],

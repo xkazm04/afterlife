@@ -35,7 +35,8 @@ function Write({ row, onRetry }: { row: SheetRow; onRetry: (id: string) => void 
 /**
  * "Send as you": each picked gap's exact write as the server planned it (commands and diff), shown before anything is
  * written. The button confirms each preview on screen by its id; each gap's answer is only what the response says. Belay
- * holds no merge token; you merge each MR in GitLab. A probe has no server door yet and says so. Escape or Close closes it.
+ * holds no merge token; you merge each MR in GitLab. A probe has no server door yet and says so. Escape or Close closes it,
+ * except while a send is in flight (Cancel is disabled and the reducer refuses).
  */
 export function SendSheet({ api, onClose }: { api: GapSheetApi; onClose: () => void }) {
   const { rows, ready, sending, send, retry } = api;
@@ -50,7 +51,9 @@ export function SendSheet({ api, onClose }: { api: GapSheetApi; onClose: () => v
         <>
           <span className={styles.count}>{`${rows.length} gap${rows.length === 1 ? '' : 's'} · ${ready} ready to send · one MR per gap`}</span>
           <Spacer />
-          <Button onClick={onClose}>{done ? 'Close' : 'Cancel'}</Button>
+          <Button onClick={onClose} disabled={sending} title={sending ? 'Wait for the answers: a send is in flight' : undefined}>
+            {done ? 'Close' : 'Cancel'}
+          </Button>
           {ready ? (
             <Button variant="primary" onClick={send} disabled={sending} title="Confirms each write above by its preview id">
               {sending ? 'Sending…' : sendLabel(ready)}

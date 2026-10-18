@@ -1,8 +1,7 @@
 // The one reducer of the screen. Pure: the screen turns `notice` and `reveal` into a toast and a scroll.
 import { HIST_GROUP, navItems, visibleGroups } from './rows/grouping';
 import { act, unstage } from './act';
-import { isPolicyKey } from './outbox/policy';
-import { ranGap, ranPolicy, runItem, wroteGap, wrotePolicy } from './run';
+import { ran, retried, runItem, sending, wrote } from './run';
 import type { NeedsYouDemo } from '../data/types';
 import type { Action, NeedsState } from './types';
 
@@ -31,9 +30,13 @@ export function reduce(s: NeedsState, action: Action, demo: NeedsYouDemo): Needs
     case 'run':
       return runItem(s, action.key);
     case 'write':
-      return isPolicyKey(action.key) ? wrotePolicy(s, action.key, action.view, demo) : wroteGap(s, action.key, action.view, demo);
+      return wrote(s, action.key, action.view, demo);
+    case 'sending':
+      return sending(s, action.key, demo);
     case 'ran':
-      return isPolicyKey(action.key) ? ranPolicy(s, action.key, action.response, demo) : ranGap(s, action.key, action.response, demo);
+      return ran(s, action.key, action.response, demo);
+    case 'retry':
+      return retried(s, action.key, demo);
     case 'remove':
       return unstage(s, action.key, 'Removed. Nothing was sent.');
     case 'select':

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Spacer } from '@/components/controls/Spacer';
 import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
@@ -21,25 +21,27 @@ import { usePageClock } from './hooks/usePageClock';
 import { useReplay } from './hooks/useReplay';
 import { useSelection } from './hooks/useSelection';
 import { useTaskKeys } from './hooks/useTaskKeys';
-import { arrowSelection, litLink, type Side } from './model/court/selection';
+import { arrowSelection, litLink, type Selection, type Side } from './model/court/selection';
 import { NO_FILTERS, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdictCounts, visibleTasks, type Filters } from './model/docket/filters';
 import type { TaskAction } from './model/docket/keys';
 import type { PageFacts } from './model/build/loadPage';
 import type { TaskView } from './model/types';
+import { nextReason, selectionHref } from './model/verdict/reasons';
 import styles from './TaskScreen.module.css';
 
 /**
  * /task/[id]: one task's proof, cross-examined. The verdict equation, the receipt chain and the claims-against-checks
  * court sit in the pane; everything about the selection lives in the inspector; the docket is in the sidebar.
- * This screen reads only: nothing on it writes.
+ * This screen reads only: nothing on it writes. It opens on `initial` (the URL's ?check= / ?claim=, else the verdict's first
+ * deciding check) and keeps the selection in the URL, so a reason has an address.
  */
-export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; task: TaskView; page: PageFacts }) {
+export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly TaskView[]; task: TaskView; page: PageFacts; initial: Selection }) {
   const router = useRouter();
   const clock = usePageClock(page);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [inspOpen, setInspOpen] = useState(true);
   const [panels, setPanels] = useState<Record<Panel, boolean>>({ words: false, trace: false, ledger: true });
-  const { sel, pick, set, clear } = useSelection(task.id);
+  const { sel, pick, set, clear } = useSelection(task.id, initial);
   const replay = useReplay(task, {
     onStart: () => {
       clear();
@@ -47,6 +49,11 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
     },
   });
   const visible = visibleTasks(tasks, filters);
+  // The selection is the address: replaceState keeps useSearchParams in step without a server render.
+  useEffect(() => {
+    const href = selectionHref(task.id, sel);
+    if (`${location.pathname}${location.search}` !== href) window.history.replaceState(null, '', href);
+  }, [task.id, sel]);
 
   const applyFilters = (next: Filters) => {
     setFilters(next);
@@ -75,7 +82,13 @@ export function TaskScreen({ tasks, task, page }: { tasks: readonly TaskView[]; 
       setPanels((p) => ({ ...p, words: !p.words }));
     } else if (a.type === 'failOnly') applyFilters(toggleFailOnly(filters));
     else if (a.type === 'escape') clear();
-    else {
+    else if (a.type === 'reason') {
+      const next = nextReason(visible, task.id, sel);
+      if (!next) return;
+      if (next.id !== task.id) return router.replace(selectionHref(next.id, next.sel));
+      set(next.sel);
+      if (next.sel) focus(cardSelector(next.sel.side, next.sel.id));
+    } else {
       const next = arrowSelection(task, sel, a.key);
       set(next);
       if (next) focus(cardSelector(next.side, next.id));

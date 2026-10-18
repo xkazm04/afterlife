@@ -57,14 +57,18 @@ branch's `.gitlab-ci.yml` that answers whether the block is there; demo mode rea
 
 Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
 
-- A commit goes only to a new branch. If `belay/arm-<key>` or `belay/disarm-<key>` exists, the preview refuses and names the
-  branch, its head and what to do (`noBranch`, `plans/context.ts`). Force is never set. A promotion, an enrollment and a gap MR check the same way: their branch (`belay/promote-<class>-<date>`, `belay/enroll-<track>-<date>`, the gap's `belay/...`) must not exist yet.
-- A 404 on the branch read means the branch is absent. Any other failure refuses (`noBranch`).
-- A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`arm/head.ts:33-42`). Checked for
-  `arm-track`, `disarm-track`, `promote-class` and `enroll-track` (`HEAD_CHECKED`, `arm/head.ts`): a promotion or enrollment MR is the
-  policy MR the human key merges, so a tier pushed to its branch in between must not ride on it (`arm/__tests__/policyHead.test.ts`).
-  A gap MR (several commits, a draft) and the direct writes are unchanged.
-- Every MR the door opens sets `remove_source_branch` (the `createMr` of arm, disarm, promote, enroll and the gap MR), so a merged or closed MR does not leave a branch that `noBranch` would refuse on a same-day retry.
+- Every branch MR (`promote-class`, `enroll-track`, `stage-gap-mr`, `arm-track`, `disarm-track`) is built by one primitive,
+  `plans/mr/branchMr.ts` (0a2fd39): `newBranch(ctx, project, branch)` is the preflight, `branchMr(ctx, {project, base,
+  branch, commits, mr})` runs it, then plans the commits (`start_branch` on the first) and the MR. A plan for a new MR
+  write goes through it; `BRANCH_MR_KINDS` names the intents that do.
+- A commit goes only to a new branch. If the branch exists (`belay/arm-<key>`, `belay/disarm-<key>`,
+  `belay/promote-<class>-<date>`, `belay/enroll-<track>-<date>`, the gap's `belay/...`), the preview refuses and names the
+  branch, its head and what to do (`newBranch`, `plans/mr/branchMr.ts`). Force is never set.
+- A 404 on the branch read means the branch is absent. Any other failure refuses (`newBranch`).
+- A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`headMismatch`, `arm/head.ts`).
+  Every intent in `BRANCH_MR_KINDS` is checked (`headChecked`); revoke and the CRA label open no MR and are not.
+- Every branch MR sets `remove_source_branch` (`branchMr`), so a merged or closed MR does not leave a branch that
+  `newBranch` would refuse on a same-day retry (`plans/__tests__/branch/removeBranch.test.ts`).
 - `belay/*` is a protected branch pattern (Setup step 9).
 - Known residual: GitLab's Files API answer names no commit, so the commit is read back with `getFile` right after the write.
   Moving arm and disarm to the Commits API is queued.
@@ -72,9 +76,10 @@ Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
 Target decisions (`plans/context.ts`):
 
 - F46 (9c5737b): `locate()` takes belay-policy only at `<group>/belay-policy`, by full path (`locate`'s `policy` lookup), so a same-named project in a subgroup or shared in is never the one a revoke or promote writes.
-- F47 (276d376): every plan that locates a target refuses one outside the paired group's path (`watchedProject`, `plans/context.ts`), and so does arm's `targetOf`, which calls it (F37).
-- F50 (180e163): Belay's own projects (`cfg.infra`) are refused as a target, so `stage-gap-mr` cannot open an MR in belay-policy, nor an arm or disarm (`watchedProject`; the verify read refuses them too when `verifyArmAction` passes `cfg.infra`). A path that names two projects with no GitLab id to tell them apart is refused the same way (F48).
+- F47 (276d376): every plan that locates a target refuses one outside the paired group's path (`targetIn`, `plans/context.ts`), and so does arm's `targetOf`, which calls it (F37).
+- F50 (180e163): Belay's own projects (`cfg.infra`) are refused as a target, so `stage-gap-mr` cannot open an MR in belay-policy, nor an arm or disarm (`targetIn`; the verify read refuses them too when `verifyArmAction` passes `cfg.infra`). A path that names two projects with no GitLab id to tell them apart is refused the same way (F48).
 - F52 (3014213): a record's `since` is stamped to the minute (`minuteOf` in `plans/context.ts`; `revoke.ts:41`, `at` in `planPromote`), so a confirm within the minute of its preview has the same `previewId` and runs, instead of always coming back `changed`.
+- One target rule (0a2fd39): `targetIn(ctx, indexId, infra)` (`plans/context.ts`) holds F48, F50 and F47; `locate()` adds belay-policy to it, and arm's `targetOf` calls it with `cfg.infra`, so an arm is refused in Belay's own projects and on an ambiguous path too. Setup's own `checkArm` read passes no `infra`.
 
 - F90 (accepted residual, `planGapMr`'s `commitFile` calls): a gap's commits and draft MR run the proposed CI (the target's MR pipeline) as the operator before anyone reviews the MR. Accepted: it is inherent to proposing a CI change by MR, and since F83, F84 and F85 the operator sees every line that will run, on a branch that is new.
 - A gap's file paths have no empty, `.` or `.git` segment (one file, one spelling, none inside `.git`) and its branch is a ref git accepts (`intents.ts` `pathOk`, `refOk`, `__tests__/intents/paths.test.ts`); anything else is refused before it is planned.
@@ -113,6 +118,16 @@ tripwire demotion; the answer is `failed`. Without a `last_commit_id` from GitLa
   environment: the group is the fake's own `GROUP_ID` and the poller settings are the defaults (`deps.ts:27-31`).
   - F93 (Low, fixed): demo read the server's `BELAY_*` settings all the same, and a refusal named one to any caller
     (`BELAY_POLICY_PROJECT` in "the group has no acme-lab/<name> project"); `__tests__/replay/env.test.ts`.
+- **Run journal** (`runs/journal.ts`, table `action_runs`, migration 0016): a live confirm claims its `previewId`
+  atomically before the first command and finishes it with the response it sent (`cut` when it threw). `confirmIntent`
+  reads the record before it plans: a done within `RECALL_MS` (15 min) answers with that response, one still running in
+  this process is refused as still running, and only a confirm that claimed the id executes, so a repeat or a parallel
+  confirm never runs the commands twice. Before that, `confirmIntent` refuses a second live confirm of a `previewId` this
+  process is still running, at once ("already running"; `__tests__/confirm/concurrent.test.ts`). A failed or cut run, or one a dead process left running, may run again.
+  `recallAction(previewId: unknown)` (`runs/recallAction.ts`, `'use server'`, `notLocal` like the writes) answers a confirm
+  that got no answer: `{kind: 'ran', response, at}` | `{kind: 'running', since}` | `{kind: 'never'}` | `{kind: 'unknown'}`
+  (a cut run, or a row another process left running). Demo answers never; an away caller or a server not ready, unknown.
+  It writes nothing. Needs you's Ask again on an unsure write asks it first.
 
 A server action is an endpoint: validated, and it acts as whoever is logged in to `glab`. `previewId` is a digest of the
 commands, not a secret: any caller that can reach the port can preview and then confirm. Next's own check (the Origin's

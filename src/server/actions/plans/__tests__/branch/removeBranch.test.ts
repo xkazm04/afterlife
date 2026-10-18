@@ -2,8 +2,8 @@
 // last MR left behind (noBranch refuses one that exists). Arm and disarm already do; promote, enroll and the gap MR must too.
 import { parseDocument } from 'yaml';
 import { describe, expect, it } from 'vitest';
-import { liveRig, policyFiles } from '../../__tests__/rig';
-import { previewIntent } from '../../run';
+import { liveRig, policyFiles } from '../../../__tests__/rig';
+import { previewIntent } from '../../../run';
 
 const FLAG = 'remove_source_branch=true';
 const promote = { kind: 'promote-class', project: 'ledgerline', class: 'qa.file-bug', to: 'hands_off' };

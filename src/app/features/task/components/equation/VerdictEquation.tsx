@@ -3,6 +3,7 @@ import { HelpButton } from '@/components/overlays/HelpButton';
 import type { TaskView } from '../../model/types';
 import type { Selection } from '../../model/court/selection';
 import { equationTerms, verdictWord } from '../../model/verdict/equation';
+import { becauseLine } from '../../model/verdict/reasons';
 import { checkShown, type ReplayState } from '../../model/verdict/replay';
 import { tally } from '../../model/verdict/verdict';
 import { EngineLine } from './EngineLine';
@@ -11,12 +12,14 @@ import styles from './VerdictEquation.module.css';
 
 /**
  * The verdict as an equation: PASS or FAIL, then verdict = the AND of the engine's checks. One failed term fails the proof
- * (the box is hatched red). While a replay runs the word waits and terms land one by one.
+ * (the box is hatched red). While a replay runs the word waits and terms land one by one. Once it has landed, a FAIL or
+ * INCONCLUSIVE names its deciding terms under the word ("FAIL because envelope · envelope breached").
  */
 export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; sel: Selection; rv: ReplayState; onSelect: (id: string) => void }) {
   const { word, waiting, fail, mismatch, stored } = verdictWord(task, rv);
   const terms = equationTerms(task, sel, rv);
   const n = tally(task, (i) => checkShown(rv, i));
+  const because = waiting ? null : becauseLine(task);
   return (
     <section className={`${styles.eq} ${fail ? styles.fail : ''}`} role="group" aria-label="Verdict">
       <div className={`${styles.v} ${waiting ? styles.wait : ''}`} aria-live="polite">
@@ -54,6 +57,11 @@ export function VerdictEquation({ task, sel, rv, onSelect }: { task: TaskView; s
           </div>
         </HelpButton>
       </div>
+      {because ? (
+        <div className={styles.because} role="note">
+          {because}
+        </div>
+      ) : null}
       {mismatch ? (
         <div className={styles.flag} role="status">
           <Chip tone="bad" title="The stored verdict is not what the checks derive; the checks win">

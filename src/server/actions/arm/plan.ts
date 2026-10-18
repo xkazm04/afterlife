@@ -2,10 +2,11 @@
 // Arm adds the track's include lines to .gitlab-ci.yml (content/), between markers; disarm removes exactly those lines.
 // Both commits carry the file's last_commit_id as read, so a commit landing in between is refused by GitLab, not
 // overwritten. Neither reads, writes or names a token value, and neither sets a CI variable: the person does that.
-// The branch is new or the plan refuses (F38): a commit is never planned onto an existing branch, and force is never set.
-import type { GitLabPort } from '@/server/gitlab/port';
+// Both are branch MRs (plans/mr/branchMr.ts): the branch is new or the plan refuses (F38), force is never set, GitLab
+// removes the branch on merge, and a confirm is done only when the MR is headed by the commit it made.
 import type { GlFile, GlProject } from '@/server/gitlab/types';
-import { ActionRefused, lastCommitOf, noBranch, watchedProject, type Plan, type PlanContext } from '../plans/context';
+import { ActionRefused, lastCommitOf, targetIn, type Plan, type PlanContext } from '../plans/context';
+import { branchMr } from '../plans/mr/branchMr';
 import type { ArmTrack, DisarmTrack } from '../types';
 import { findBlock, insertBlock, removeBlock } from './block';
 import { blockerOf, holdsBlock, placementOf } from './checks';
@@ -29,13 +30,12 @@ export interface Target {
 }
 
 /**
- * The paired target project, by its index id. Read only: plans/context.ts watchedProject's rules, which locate() applies to
- * every other write (F37, F47: under the group's path; F48: one match; F50: never Belay's own project).
+ * The paired target project, by its index id: plans/context.ts targetIn, the rule every write uses (never ambiguous, never
+ * one of Belay's own `infra`, never a project shared in from outside the group). Read only.
  */
-export async function targetOf(port: GitLabPort, groupId: string | number, gitlabId: PlanContext['gitlabId'], infra: readonly string[], indexId: string): Promise<Target> {
-  const [all, gid, group] = await Promise.all([port.listProjects(groupId), gitlabId(indexId), port.getGroup(groupId)]);
-  const project = watchedProject(all, gid, indexId, infra, group.fullPath);
-  return { project, base: project.defaultBranch ?? 'main', group: group.fullPath };
+export async function targetOf(ctx: Pick<PlanContext, 'port' | 'groupId' | 'gitlabId'>, indexId: string, infra: readonly string[]): Promise<Target> {
+  const { project, group } = await targetIn(ctx, indexId, infra);
+  return { project, base: project.defaultBranch ?? 'main', group };
 }
 
 function pinFor(ctx: PlanContext): ArmPin {
@@ -63,7 +63,7 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   const pin = pinFor(ctx);
   const gap = a.refuses?.(pin);
   if (gap) throw new ActionRefused(gap);
-  const t = await targetOf(ctx.port, ctx.groupId, ctx.gitlabId, ctx.cfg.infra, intent.project);
+  const t = await targetOf(ctx, intent.project, ctx.cfg.infra);
   const file = await ciFile(ctx, t, 'an arm adds include lines to a pipeline that exists');
   const found = findBlock(file.content, a);
   if (found.state === 'armed') throw new ActionRefused(`${a.track} is already armed: its block is on ${t.base} (${CI_FILE} line ${found.from + 1})`);
@@ -75,24 +75,21 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   if (blocker) throw new ActionRefused(blocker);
   const branch = `belay/arm-${a.key}`;
   await noOpenMr(ctx, t, branch);
-  await noBranch(ctx.port, t.project, branch);
   const ins = insertBlock(file.content, a, t.group, pin, at);
   if (!ins.ok) throw new ActionRefused(ins.reason);
   if (!holdsBlock(ins.content, wanted)) throw new ActionRefused(`Belay could not add ${a.track}'s lines to ${CI_FILE} without breaking it: nothing is planned`);
 
   const stages = wanted.map((w) => `${w.component} in ${at[w.component] ?? '?'}`).join(', ');
   const what = `Adds ${a.track}'s include lines (${stages}) to ${CI_FILE}, between belay:arm markers. Disarm opens an MR that removes exactly these lines.`;
+  const mr = await branchMr(ctx, {
+    project: t.project, base: t.base, branch,
+    commits: [{ path: CI_FILE, content: ins.content, action: 'update', lastCommitId: file.lastCommitId, message: `${a.title}\n\nBelay-Track: ${a.track}\nOperator: ${ctx.operator}` }],
+    mr: { title: a.title, labels: [MR_LABEL], description: description(ctx, what, a.notes) },
+  });
   return {
     title: a.title,
     summary: `Opens one MR in ${t.project.pathWithNamespace} as ${ctx.operator}, from a new branch ${branch} off ${t.base}. You merge it; then Verify reads ${t.base}.`,
-    branch, notes: a.notes,
-    commands: [
-      ctx.port.plan.commitFile({
-        project: t.project.id, path: CI_FILE, branch, startBranch: t.base, content: ins.content, action: 'update', lastCommitId: file.lastCommitId,
-        message: `${a.title}\n\nBelay-Track: ${a.track}\nOperator: ${ctx.operator}`,
-      }),
-      ctx.port.plan.createMr({ project: t.project.id, sourceBranch: branch, targetBranch: t.base, title: a.title, labels: [MR_LABEL], removeSourceBranch: true, description: description(ctx, what, a.notes) }),
-    ],
+    ...mr, notes: a.notes,
     diff: [`@@ ${CI_FILE} · after line ${ins.after}`, ...ins.added.map((l) => `+ ${l}`)],
   };
 }
@@ -101,28 +98,24 @@ const DISARM_NOTE = "Disarm removes the include lines only. BELAY_BOT_TOKEN live
 
 export async function planDisarm(ctx: PlanContext, intent: DisarmTrack): Promise<Plan> {
   const a = trackArm(intent.track);
-  const t = await targetOf(ctx.port, ctx.groupId, ctx.gitlabId, ctx.cfg.infra, intent.project);
+  const t = await targetOf(ctx, intent.project, ctx.cfg.infra);
   const file = await ciFile(ctx, t, `there is no ${a.track} block to revert`);
   const rm = removeBlock(file.content, a);
   if (!rm.ok && rm.found.state === 'absent') throw new ActionRefused(`${a.track} is not armed on ${t.base}: ${CI_FILE} has no ${a.track} block, so there is nothing to revert`);
   if (!rm.ok) throw new ActionRefused(`the ${a.track} block on ${t.base} was edited after it was added: Belay removes only exactly what it added, so revert it by hand`);
   const branch = `belay/disarm-${a.key}`;
   await noOpenMr(ctx, t, branch);
-  await noBranch(ctx.port, t.project, branch);
-
   const title = `Disarm ${a.track} ${a.key}: revert its arm block`;
   const what = `Removes exactly the ${rm.removed.length} lines ${a.track}'s arm MR added to ${CI_FILE} (markers included), and nothing else.`;
+  const mr = await branchMr(ctx, {
+    project: t.project, base: t.base, branch,
+    commits: [{ path: CI_FILE, content: rm.content, action: 'update', lastCommitId: file.lastCommitId, message: `${title}\n\nBelay-Track: ${a.track}\nOperator: ${ctx.operator}` }],
+    mr: { title, labels: [MR_LABEL], description: description(ctx, what, [DISARM_NOTE]) },
+  });
   return {
     title,
     summary: `Opens one MR in ${t.project.pathWithNamespace} as ${ctx.operator}, from a new branch ${branch} off ${t.base}: the revert of the arm block. You merge it; then Verify reads ${t.base}.`,
-    branch, notes: [DISARM_NOTE],
-    commands: [
-      ctx.port.plan.commitFile({
-        project: t.project.id, path: CI_FILE, branch, startBranch: t.base, content: rm.content, action: 'update', lastCommitId: file.lastCommitId,
-        message: `${title}\n\nBelay-Track: ${a.track}\nOperator: ${ctx.operator}`,
-      }),
-      ctx.port.plan.createMr({ project: t.project.id, sourceBranch: branch, targetBranch: t.base, title, labels: [MR_LABEL], removeSourceBranch: true, description: description(ctx, what, [DISARM_NOTE]) }),
-    ],
+    ...mr, notes: [DISARM_NOTE],
     diff: [`@@ ${CI_FILE} · lines ${rm.from + 1}-${rm.from + rm.removed.length}`, ...rm.removed.map((l) => `- ${l}`)],
   };
 }

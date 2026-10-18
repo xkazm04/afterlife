@@ -6,7 +6,8 @@ import type { ActionPreview, ActionResponse } from '@/server/actions/types';
 const actions = vi.hoisted(() => ({ previewAction: vi.fn(), confirmAction: vi.fn() }));
 vi.mock('@/server/actions/actions', () => actions);
 
-const { askRevoke, revokeIntent, sendRevoke } = await import('./revoke');
+const { askRevoke, revokeIntent, sendRevoke, trackIntent } = await import('./revoke');
+const { parseIntent } = await import('@/server/actions/intents');
 
 const preview: ActionPreview = {
   kind: 'revoke-class', title: 'Revoke dep-bump.patch', summary: 'Commits tier-state.yml to acme-lab/belay-policy on main as kazdanm.',
@@ -47,6 +48,15 @@ describe('the revoke round trip', () => {
     expect(await askRevoke('ledgerline', 'patch-bump', 'quarantined')).toEqual({ kind: 'refused', reason: 'patch-bump is quarantined: Belay only lowers' });
     actions.previewAction.mockRejectedValueOnce(new Error('fetch failed'));
     expect(await askRevoke('ledgerline', 'patch-bump', 'quarantined')).toEqual({ kind: 'refused', reason: 'fetch failed' });
+  });
+
+  it('a whole track is one revoke-class intent the server parses as it is, every change and the reason with it', () => {
+    const changes = [{ id: 'dep-bump.patch', to: 'quarantined' as const }, { id: 'code-fix.patch', to: 'quarantined' as const }];
+    const parsed = parseIntent(trackIntent('ledgerline', 'T1', changes, 'quarantine'));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok || parsed.intent.kind !== 'revoke-class') return;
+    expect(parsed.intent.changes).toEqual([{ class: 'dep-bump.patch', to: 'quarantined' }, { class: 'code-fix.patch', to: 'quarantined' }]);
+    expect(parsed.intent.why).toBe('quarantine track T1 from the Ladder');
   });
 
   it('the intent names one class and the tier it goes down to, nothing else', () => {

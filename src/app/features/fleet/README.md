@@ -22,6 +22,14 @@ client `FleetScreen`.
 - `model/columns.ts` columns and grid tracks per view. `model/groups.ts` group totals, keyboard rows.
 - `model/menus/` the Sort, Filter and context menus. `model/needs.ts` the
   re-poll and status line. `model/inspector.ts` the project page's wording.
+- `model/project/view.ts` a project's page, decided once on the server (`data/loadFleetProject.ts`): its depth (the deep
+  project's decisions, records, tasks, events and tracks, or any other's fleet row) and its buttons per mode (a link, disabled
+  with the reason, or a flash in demo mode only). `/fleet` itself gets only `deepId` and the tier card's accepted counts.
+- `model/changes/` what moved since the viewer's last look: `diff.ts` digests each project (tier counts, needs you,
+  failing proofs, demotions, state) and returns typed changes, never from unknown (tiers unknown then read are a first
+  read; null proofs say nothing); `baseline.ts` keeps the last look in localStorage (`belay.fleet.lastLook`) and never
+  throws. `hooks/changes/useFleetChanges.ts` reads it after mount (no marks in server HTML), re-diffs each snapshot and
+  takes Mark seen; a first visit takes that look as the baseline.
 
 ## Data
 Everything comes through the DataSource (`@/server/data`): the demo fixture, or the live index. The deep project's tasks
@@ -46,6 +54,8 @@ of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
   each MR at its author's record) sits beside the Quarantined count, never in it, nor in the Has quarantine filter.
 - Below 900px of pane the Tiers view drops pips and shows letter marks. Below ~1190px x scale of
   toolbar the lozenge drops its words (counts and tooltips stay).
+- A project that moved since the last look has a dot after its name (`cells/ChangeMark.tsx`), titled with what moved
+  and since when; the sidebar's "Changed since last look" (`src=changed`) lists only those, and Mark seen resets it.
 
 ## Local parts that other screens might want
 - `components/toolbar/CountDot.tsx` the cyan count on a filtered toolbar button.

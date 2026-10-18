@@ -40,6 +40,9 @@ export function derivedVerdict(task: Pick<TaskView, 'proof' | 'envelope'>): Deri
   return { verdict, stored, mismatch: stored !== 'UNKNOWN' && stored !== verdict };
 }
 
+/** Whether a check is a struck term: a person decides it, so it does not weigh on the verdict (reasons.ts reads it). */
+export const isStruck = (c: { decidedBy?: 'engine' | 'human' }): boolean => c.decidedBy === 'human';
+
 export interface Tally {
   ok: number;
   bad: number;

@@ -1,4 +1,4 @@
-// The hosted replay (BELAY_MODE=replay) is demo on every path. Each of the five server actions is a public endpoint there,
+// The hosted replay (BELAY_MODE=replay) is demo on every path. Each server action is a public endpoint there,
 // so each is called as an anonymous caller would, in replay, demo and with BELAY_MODE unset, and must spawn nothing (no
 // glab, no git), open no index (PGlite), reach no network, write no file, start no poll and execute nothing. Boot, too:
 // the instrumentation hook starts no runtime. A guard, not a fix: it passes on the code as it was (questions 1 and 4).
@@ -18,7 +18,8 @@ vi.mock('next/cache', () => ({ refresh: () => { hit.refresh++; } }));
 vi.mock('@/server/data/live/runtime', async (orig) => ({ ...(await orig<object>()), startRuntime: () => { hit.start++; throw new Error('a runtime was started'); } }));
 
 const { confirmAction, previewAction } = await import('../../actions');
-const { repollAction } = await import('../../repollAction');
+const { repollAction, repollGroupAction } = await import('../../repollAction');
+const { recallAction } = await import('../../runs/recallAction');
 const { verifyArmAction } = await import('../../arm/verifyAction');
 const { rereadSetupAction } = await import('@/server/data/setup/rereadAction');
 const { register } = await import('@/instrumentation');
@@ -53,6 +54,8 @@ describe.each([['replay'], ['demo'], [undefined]])('BELAY_MODE=%s', (mode) => {
       expect(c.status === 'done' && c.results.every((r) => r.simulated)).toBe(true);
     }
     expect(await repollAction('ledgerline')).toEqual({ ok: false, reason: 'demo mode has nothing to poll' });
+    expect(await repollGroupAction()).toEqual({ ok: false, reason: 'demo mode has nothing to poll' });
+    expect(await recallAction('p-anything')).toEqual({ kind: 'never' });
     expect(await verifyArmAction(arm)).toMatchObject({ status: 'simulated' });
     expect(await rereadSetupAction('doctor')).toMatchObject({ status: 'refused', reason: expect.stringMatching(/^demo mode/) });
     await register();

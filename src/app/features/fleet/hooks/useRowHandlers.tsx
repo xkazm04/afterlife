@@ -11,6 +11,9 @@ import { useEvent } from './useEvent';
 import type { useFleetList } from './useFleetList';
 import type { useFleetMenus } from './useFleetMenus';
 
+/** The tier card of a project the source reads no records for. */
+const NO_RECORDS: Readonly<Record<string, string>> = {};
+
 /**
  * The callbacks every table row receives. Their identities never change (useEvent), so selecting a row re-renders
  * only the row that lost the selection and the one that gained it.
@@ -35,7 +38,7 @@ export function useRowHandlers(o: {
   const onToggleGroup = useEvent((g: string) => o.list.toggleGroup(g));
   const onTierEnter = useEvent((el: HTMLElement, p: FleetProject, tier: TierKey) => {
     if (o.menus.isOpen) return;
-    o.pop.show(el, <TierPopover p={p} tier={tier} classes={o.data.classes} deep={o.data.deep} />, { delay: true });
+    o.pop.show(el, <TierPopover p={p} tier={tier} classes={o.data.classes} records={p.id === o.data.deepId ? o.data.records : NO_RECORDS} />, { delay: true });
   });
   const onTierLeave = useEvent(() => o.pop.hide());
   return useMemo(

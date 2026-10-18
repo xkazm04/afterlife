@@ -4,9 +4,9 @@
 import { parseDocument } from 'yaml';
 import { describe, expect, it } from 'vitest';
 import type { GitLabPort } from '@/server/gitlab/port';
-import { liveRig, policyFiles } from '../../__tests__/rig';
-import { previewIntent } from '../../run';
-import type { ActionResponse } from '../../types';
+import { liveRig, policyFiles } from '../../../__tests__/rig';
+import { previewIntent } from '../../../run';
+import type { ActionResponse } from '../../../types';
 
 const HEAD = 'a'.repeat(40);
 /** The same port, except that every branch the plan asks about is already there. */

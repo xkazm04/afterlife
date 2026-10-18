@@ -7,6 +7,8 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { setDataSource } from '@/server/data';
 import { fakeGroupLive } from '@/server/data/__tests__/fakeGroup';
+import { ledgerEvents } from '@/server/gitlab/fake/demo/ledger';
+import { SEED_NOW } from '@/server/index/seed';
 import { demoSource } from '@/server/data/demoSource';
 import { replayClock } from '@/server/data/live/clock';
 import { liveSource } from '@/server/data/live/liveSource';
@@ -14,8 +16,10 @@ import { buildSnapshot } from '@/server/data/live/snapshot';
 import type { DataSource } from '@/server/data/types';
 import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { BeatInspector } from '../components/inspector/BeatInspector';
+import { EventSection } from '../components/inspector/EventSection';
 import { Cap } from '../components/wall/Cap';
 import { buildSnapshots } from '../model/derive/snapshots';
+import { ledgerFilm } from '../model/film/fromLedger';
 import type { Film } from '../model/types';
 import { REPLAY_LEDGER } from './ledger';
 import { loadTheaterData } from './loadTheaterData';
@@ -70,5 +74,13 @@ describe('a missing quote never renders an empty "quoted from !44 · untrusted" 
     const html = (quote: string) => renderToString(createElement(BeatInspector, { snap, film: film as Film, demo: { ...demo!, quote }, onSeek: () => undefined }));
     expect(html('')).not.toContain('untrusted');
     expect(html('q')).toContain('Quoted from !44 · untrusted');
+  });
+});
+
+describe('the real film\'s inspector draws every fact its event states', () => {
+  it('the deployed !41 entry has an Environment row', () => {
+    const e = ledgerFilm(ledgerEvents(SEED_NOW))!.entries[4]!;
+    const html = renderToString(createElement(EventSection, { seq: e.seq, ev: e.ev! }));
+    expect(html).toMatch(/<dt>Environment<\/dt><dd>production \(production\)<\/dd>/);
   });
 });

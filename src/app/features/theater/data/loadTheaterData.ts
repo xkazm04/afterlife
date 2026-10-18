@@ -27,9 +27,21 @@ function illustrative(): TheaterData {
   };
 }
 
-export function loadTheaterData(): TheaterData {
+/** The page's search params the loader reads: `mr`, the MR to film first. */
+export interface TheaterParams {
+  mr?: string | string[];
+}
+
+/** `?mr=N` (digits only, the first if repeated) as the film's focus; anything else is no focus. */
+function focusOf(params: TheaterParams): { mr?: number } {
+  const raw = Array.isArray(params.mr) ? params.mr[0] : params.mr;
+  return raw !== undefined && /^\d+$/.test(raw) ? { mr: Number(raw) } : {};
+}
+
+/** `/theater?mr=N` films MR N first (the illustrative film has no MR, so it ignores it). */
+export function loadTheaterData(params: TheaterParams = {}): TheaterData {
   const ds = getDataSource();
-  const real = ledgerFilm(ds.getLedger());
+  const real = ledgerFilm(ds.getLedger(), focusOf(params));
   if (!real) return illustrative();
   return { film: real, demo: null, subtitle: `${ds.getPortfolio().group} / ${ds.deepProjectId()}` };
 }

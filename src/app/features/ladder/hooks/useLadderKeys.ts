@@ -1,15 +1,17 @@
 'use client';
 
 import type { RefObject } from 'react';
-import { useHotkeys, type Hotkey } from '@/lib/keyboard/useHotkeys';
+import { useKeymap } from '@/lib/keyboard/keymap';
+import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import type { Ceiling } from '../model/types';
 import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
+import { LADDER_KEYMAP } from '../model/keymap';
 import { stepClass } from '../model/view/rows';
 import type { LadderActions } from './useLadderActions';
 import type { LadderData } from './useLadderData';
 
 /**
- * The Ladder's keys, document-wide: j k r q p / ? 1-5 0 Esc. (Arrow keys, Home, End, Enter and the context-menu key
+ * The Ladder's keys, document-wide, declared in model/keymap.ts: j k r q p / ? 1-5 0 Esc. (Arrow keys, Home, End, Enter and the context-menu key
  * belong to the focused table.) Off while a menu is open: the menu has its own keys.
  */
 export function useLadderKeys({
@@ -44,17 +46,14 @@ export function useLadderKeys({
     if (inSearch) actions.focusTable();
   };
 
-  const keys: Hotkey[] = [
-    { key: 'Escape', allowInInput: true, handler: escape },
-    { key: 'j', handler: step(1) },
-    { key: 'k', handler: step(-1) },
-    { key: 'r', handler: () => actions.revokeKey('step') },
-    { key: 'q', handler: () => actions.revokeKey('quarantine') },
-    { key: 'p', handler: () => actions.promote() },
-    { key: '/', handler: focusSearch },
-    { key: '?', handler: toggleHelp },
-    { key: '0', handler: tier(null) },
-    ...TIER_DISPLAY_ORDER.map((t, i): Hotkey => ({ key: String(i + 1), handler: tier(t) })),
-  ];
+  const keys = useKeymap(LADDER_KEYMAP, {
+    step: [step(1), step(-1)],
+    search: focusSearch,
+    tier: [tier(null), ...TIER_DISPLAY_ORDER.map(tier)],
+    promote: () => actions.promote(),
+    revoke: [() => actions.revokeKey('step'), () => actions.revokeKey('quarantine')],
+    help: toggleHelp,
+    escape,
+  });
   useHotkeys(keys, enabled);
 }

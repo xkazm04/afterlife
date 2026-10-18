@@ -7,11 +7,14 @@ import { DEMO } from '@/lib/demo';
 import type { ActionPreview, ActionResponse } from '@/server/actions/types';
 import { SendSheet } from '../components/sheet/SendSheet';
 import { gapSend } from './gap';
+import { reduce, type Action } from '../model/reducer';
+import { initialState, type MaturityState } from '../model/state';
+import { ctx } from '../model/testCtx';
 import type { SheetRow } from './sheet';
 
 const actions = vi.hoisted(() => ({ previewAction: vi.fn(), confirmAction: vi.fn() }));
 vi.mock('@/server/actions/actions', () => actions);
-const { ask, readyRows, sendReady, toAsk } = await import('./sheet');
+const { ask, readyRows, sendReady, sheetRows, toAsk } = await import('./sheet');
 
 const preview = (id: string): ActionPreview => ({
   kind: 'stage-gap-mr', title: `Open the draft MR for gap ${id}`, summary: 's', risk: 'low', previewId: `pv-${id}`, mode: 'demo',
@@ -43,8 +46,8 @@ describe('opening Send previews each picked gap', () => {
 });
 
 describe("the commands on screen are the preview's", () => {
-  const html = (rows: SheetRow[]) =>
-    renderToStaticMarkup(createElement(SendSheet, { api: { rows, ready: readyRows(rows).length, sending: false, opened: {}, send: () => {}, retry: () => {} }, onClose: () => {} }));
+  const html = (rows: SheetRow[], sending = false) =>
+    renderToStaticMarkup(createElement(SendSheet, { api: { rows, ready: readyRows(rows).length, sending, send: () => {}, retry: () => {} }, onClose: () => {} }));
   it("shows the server's command and diff, and none of the old hand-written ones", () => {
     const out = html([withView(row('g1')), withView(row('g4'))]);
     expect(out).toContain('glab api --method PUT projects/90010001/repository/files/g1');
@@ -66,6 +69,27 @@ describe("the commands on screen are the preview's", () => {
     expect(out).toContain('context lines do not match');
     expect(out).toContain('Ask again');
     expect(out).toContain('Failed · gap g2 · command 2 of 3');
+  });
+  it('Cancel is disabled while sending: a send in flight cannot be walked away from', () => {
+    expect(html([withView(row('g1'))], true)).toMatch(/<button[^>]*disabled[^>]*>Cancel<\/button>/);
+    expect(html([withView(row('g1'))])).not.toMatch(/<button[^>]*disabled[^>]*>Cancel<\/button>/);
+  });
+});
+
+describe("the sheet's rows are the layout's state", () => {
+  const run = (s: MaturityState, ...actions: Action[]) => actions.reduce((acc, a) => reduce(acc, a, ctx), s);
+  const viewed = () => run(initialState(ctx), { type: 'go', step: 3 }, { type: 'ask', ids: ['g1', 'g2'] }, { type: 'viewed', id: 'g1', view: { kind: 'preview', preview: preview('g1') } });
+  it('derives view and answer from MaturityState alone: two calls on one state give equal rows (a remount shows the same)', () => {
+    const s = run(viewed(), { type: 'sending', ids: ['g1'] }, { type: 'answered', id: 'g1', answer: { status: 'done', text: 'opened !22', mr: '!22' } });
+    const a = sheetRows(s, ctx, 'ledgerline', 'demo');
+    expect(a).toEqual(sheetRows(s, ctx, 'ledgerline', 'demo'));
+    expect(a.map((r) => [r.id, r.view?.kind, r.answer?.mr])).toEqual([['g1', 'preview', '!22'], ['g2', undefined, undefined]]);
+    expect(readyRows(a)).toEqual([]);
+  });
+  it('after Cancel and Send again, g1 is asked for again', () => {
+    const s = run(viewed(), { type: 'cancelSheet' }, { type: 'go', step: 3 });
+    expect(toAsk(sheetRows(s, ctx, 'ledgerline', 'demo')).map((r) => r.id)).toEqual(['g1', 'g2']);
+    expect(toAsk(sheetRows(viewed(), ctx, 'ledgerline', 'demo')).map((r) => r.id)).toEqual([]);
   });
 });
 

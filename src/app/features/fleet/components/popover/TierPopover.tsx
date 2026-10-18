@@ -1,17 +1,15 @@
 import { TierMark } from '@/components/status/TierMark';
 import type { FleetProject, TierKey } from '@/lib/demo/types';
 import { holdersText, STANDING_META, STANDINGS, TIER_META } from '@/lib/tiers';
-import { acceptedLabel } from '../../model/inspector';
-import type { DeepProject } from '../../model/types';
 import styles from './popover.module.css';
 
-
 /**
- * What the hover card on a tier count says: which classes of this project sit at that tier (and their record). The
+ * What the hover card on a tier count says: which classes of this project sit at that tier (and their record, from
+ * `records`: this project's accepted counts by class, empty where the source reads none). The
  * Quarantined card then lists, set apart, the classes that are not a quarantine: no record yet, and split (several agents
  * hold it, each at its own tier).
  */
-export function TierPopover({ p, tier, classes, deep }: { p: FleetProject; tier: TierKey; classes: readonly string[]; deep: DeepProject }) {
+export function TierPopover({ p, tier, classes, records }: { p: FleetProject; tier: TierKey; classes: readonly string[]; records: Readonly<Record<string, string>> }) {
   const here = classes.filter((c) => p.classTiers[c] === tier);
   const apart = tier === 'quarantined' ? STANDINGS.flatMap((s) => classes.filter((c) => p.classTiers[c] === s).map((c) => [c, s] as const)) : [];
   return (
@@ -25,7 +23,7 @@ export function TierPopover({ p, tier, classes, deep }: { p: FleetProject; tier:
           <div key={c} className={styles.pl}>
             <TierMark tier={tier} />
             <code>{c}</code>
-            <span className={styles.rec}>{p.id === deep.id ? acceptedLabel(deep.actionClasses[c]) : ''}</span>
+            <span className={styles.rec}>{records[c] ?? ''}</span>
           </div>
         ))
       ) : (

@@ -52,6 +52,7 @@ tables above. NULL means unknown, never zero.
 | 0013 | `class_tier.sources` |
 | 0014 | `ledger_event.would`; `class_tier.trial` |
 | 0015 | index `stage_cell (project_id, scanned_at)`: the latest-scan reads stop walking a project's history |
+| 0016 `action_runs` | `action_runs`: the run journal, one row per previewId a live confirm claimed (`server/actions/runs/journal.ts`) |
 
 ## Ledger
 

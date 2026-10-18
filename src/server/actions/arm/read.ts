@@ -15,11 +15,11 @@ export type ArmCheck =
 
 export const SIMULATED_VERIFY = 'Simulated · demo mode: Belay read nothing from GitLab';
 
-/** `infra`: Belay's own projects, which are no target (the poller's cfg.infra; verifyArmAction passes it, Setup's read has none). */
+/** `infra`: Belay's own projects (cfg.infra), refused as a target as a plan refuses them; Setup's read of its target names none. */
 export async function checkArm(deps: Pick<ActionDeps, 'port' | 'groupId' | 'gitlabId'>, intent: ArmTrack | DisarmTrack, infra: readonly string[] = []): Promise<ArmCheck> {
   try {
     const a = trackArm(intent.track);
-    const t = await targetOf(deps.port, deps.groupId, deps.gitlabId, infra, intent.project);
+    const t = await targetOf(deps, intent.project, infra);
     const where = `${CI_FILE} on ${t.base} of ${t.project.pathWithNamespace}`;
     const file = await deps.port.getFile(t.project.id, CI_FILE, t.base);
     if (!file) return { status: 'read', armed: false, text: `there is no ${where}` };

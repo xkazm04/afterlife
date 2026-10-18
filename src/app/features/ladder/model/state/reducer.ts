@@ -1,5 +1,5 @@
 import { toggleSort, computeOrder } from '../view/sort';
-import { nextSha, commitRevoke, settleCommit } from './commit';
+import { nextSha, commitChanges, commitRevoke, settleCommit } from './commit';
 import { initialState } from './initial';
 import { applyReceipts } from './receipt';
 import type { LadderAction, LadderState } from './state';
@@ -39,13 +39,20 @@ export function ladderReducer(s: LadderState, a: LadderAction): LadderState {
       // Dispatched once the server answered done: simulated (demo, the demo hands out the commit id) or the real commit.
       if (!s.classes.some((c) => c.id === a.id)) return s;
       const sha = a.sent.simulated ? (a.sha ?? nextSha(s.shaIdx)) : a.sent.commit;
-      const done = commitRevoke(s.classes, s.ledger, a.id, a.to, a.sent, sha, a.t);
+      const done = commitRevoke(s.classes, s.ledger, a.id, a.to, a.sent, sha, a.at, s.tz);
       return { ...s, ...done, shaIdx: s.shaIdx + (a.sent.simulated ? 1 : 0), sel: a.id, just: a.id };
     }
+    case 'revokeTrack': {
+      // One commit for the whole track: every moved class pending on the same sha, the track header stays selected.
+      if (!a.changes.some((ch) => s.classes.some((c) => c.id === ch.id))) return s;
+      const sha = a.sent.simulated ? (a.sha ?? nextSha(s.shaIdx)) : a.sent.commit;
+      const done = commitChanges(s.classes, s.ledger, a.changes, a.sent, sha, a.at, s.tz);
+      return { ...s, ...done, shaIdx: s.shaIdx + (a.sent.simulated ? 1 : 0) };
+    }
     case 'settle':
-      return { ...s, ...settleCommit(s.classes, s.ledger, a.sha, a.t) };
+      return { ...s, ...settleCommit(s.classes, s.ledger, a.sha, a.at, s.tz) };
     case 'receipts':
-      return { ...s, ...applyReceipts(s.classes, s.ledger, a.receipts) };
+      return { ...s, ...applyReceipts(s.classes, s.ledger, a.receipts, s.tz) };
     case 'clearFresh':
       if (!s.just && !s.ledger.some((e) => e.isNew)) return s;
       return { ...s, just: null, ledger: s.ledger.map((e) => (e.isNew ? { ...e, isNew: false } : e)) };

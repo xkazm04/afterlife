@@ -13,7 +13,7 @@
 // short of `min` is inconclusive (unresolved MRs may yet resolve), never a pass.
 //
 // Input: `chain` (the JSONL text, inline or `$file`), `record: {agent, class, since}`, optional `trial: {min, catches}`.
-import { verifyChain, wouldOf, type LedgerEvent } from '../../../src/schemas/ledger';
+import { parseChainText, verifyChain, wouldOf, type LedgerEvent } from '../../../src/schemas/ledger';
 import type { Check } from '../../../src/schemas/proof';
 import { resolveTrial, trialCount, trialDecisions, type TrialCount, type TrialResolution } from '../../../src/schemas/trial';
 import { isRecord } from '../../core/types';
@@ -25,21 +25,14 @@ export interface ChainTrial extends TrialCount {
   mrs: { iid: number; seq: number | null; resolution: TrialResolution }[];
 }
 
-/** The chain's lines as events; a line that is not a JSON object is a reason, never an exception. */
+/**
+ * The chain's lines as events, each parsed as the importer parses it (src/schemas/chain/parse.ts): a line the product
+ * would refuse is a reason naming that line, never an exception, and never a chain that verifies.
+ */
 function readChain(raw: unknown): Read<LedgerEvent[]> {
   if (typeof raw !== 'string' || raw.trim() === '') return { ok: false, reason: 'chain is missing' };
-  const events: LedgerEvent[] = [];
-  for (const [i, line] of raw.split('\n').entries()) {
-    if (line.trim() === '') continue;
-    try {
-      const e = JSON.parse(line) as unknown;
-      if (!isRecord(e) || !isRecord(e.subject)) return { ok: false, reason: `chain line ${i + 1} is not a ledger event` };
-      events.push(e as unknown as LedgerEvent);
-    } catch {
-      return { ok: false, reason: `chain line ${i + 1} is not JSON` };
-    }
-  }
-  return { ok: true, value: events };
+  const r = parseChainText(raw);
+  return r.ok ? { ok: true, value: r.events } : { ok: false, reason: `chain line ${r.line}: ${r.reason}` };
 }
 
 /** The trial row of a holder, from a chain alone: the outcomes it states are its `merged` events, with no edit fact. */
@@ -52,6 +45,9 @@ export function trialFromChain(events: readonly LedgerEvent[], h: { agent: strin
   }));
   return { ...trialCount(mrs.map((m) => m.resolution)), mrs };
 }
+
+/** Why a chain that does not verify states nothing: the words chain-verifies and `ledger trial` both say. */
+export const chainBreaks = (seq: number): string => `the chain breaks at seq ${seq}: that event's hash or its link to the one before does not match`;
 
 const thresholdsOf = (v: unknown): { min: number; catches: number } | null | 'bad' => {
   if (v === undefined || v === null) return null;
@@ -80,7 +76,7 @@ export function ledgerRecord(input: Record<string, unknown>): Draft {
     !chain.ok
       ? at('chain-verifies', input.chain === undefined ? null : false, chain.reason)
       : broken !== null
-        ? at('chain-verifies', false, `the chain breaks at seq ${broken}: that event's hash or its link to the one before does not match`)
+        ? at('chain-verifies', false, chainBreaks(broken))
         : at('chain-verifies', true, `${chain.value.length} event(s) verify from genesis; head seq ${chain.value.at(-1)?.seq ?? 0} ${chain.value.at(-1)?.hash ?? 'none'}`),
   ];
   const r = isRecord(input.record) ? input.record : {};

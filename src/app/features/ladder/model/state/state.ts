@@ -1,8 +1,9 @@
-// The Ladder's state and the actions that change it. The reducer is pure: time and the commit id come in as data.
+// The Ladder's state and the actions that change it. The reducer is pure: time (an instant, `at`, epoch ms) and the
+// commit id come in as data; the reducer labels the instant in the state's zone.
 import type { LedgerSeedEntry } from '../../data/ledgerSeed';
 import type { Sent } from './commit';
 import type { Receipts } from './receipt';
-import type { Ceiling, ClassRow, Head, LadderSort, LedgerEntry, SortKey, Tier } from '../types';
+import type { Ceiling, Change, ClassRow, Head, LadderSort, LedgerEntry, SortKey, Tier } from '../types';
 
 export interface LadderState {
   classes: ClassRow[];
@@ -23,6 +24,8 @@ export interface LadderState {
   sel: string | null;
   /** The class whose revoke just landed (its row flashes once). */
   just: string | null;
+  /** The screen's one zone (IANA), from the seed: every ledger label this session writes is in it. */
+  tz: string;
 }
 
 /** A class as the route hands it: the data source's, with the promotion the poll opened for it (live). */
@@ -35,6 +38,8 @@ export interface LadderSeed {
   quotes: Readonly<Record<string, string>>;
   /** tier-state.yml's head when the screen opens. */
   head: Head;
+  /** The zone the server labelled the ledger in (IANA; demo 'UTC'): the client labels its own entries in it too. */
+  tz: string;
 }
 
 export type LadderAction =
@@ -50,8 +55,11 @@ export type LadderAction =
   | { type: 'query'; q: string }
   /** The server answered done: `sent` says whether it was simulated, and the commit GitLab made if not. */
   /** `sha` (demo only): the simulated commit id the settle timer will name; without it the reducer takes the next one. */
-  | { type: 'revoke'; id: string; to: Tier; t: string; sent: Sent; sha?: string }
-  | { type: 'settle'; sha: string; t: string }
+  | { type: 'revoke'; id: string; to: Tier; at: number; sent: Sent; sha?: string }
+  /** A whole track's write answered done: every change in one commit (`sha` as for revoke). */
+  | { type: 'revokeTrack'; track: string; changes: readonly Change[]; at: number; sent: Sent; sha?: string }
+  /** Demo: the simulated tier-gate read of commit `sha`, at `at`. */
+  | { type: 'settle'; sha: string; at: number }
   /** Live: the receipts of a fresher snapshot, by class id. A pending revoke whose commit a gate read is settled. */
   | { type: 'receipts'; receipts: Receipts }
   | { type: 'clearFresh' }
