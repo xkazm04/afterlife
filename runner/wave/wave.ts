@@ -67,13 +67,13 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
     cost += p.costUsd;
     for (const item of p.items) {
       if (cost >= c.waveCapUsd) break;
-      const r = await runLane({ repoPath: repo.path, gates: repo.gates, baseSha, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log }, item);
+      const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], baseSha, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log }, item);
       cost += r.costUsd;
       if (r.outcome === 'landed') landed++;
       notes.push(`### ${item.lane} (${r.outcome})
 ${r.text.trim() || '(no final text)'}`);
     }
-    const green = landed > 0 && (await runGates(repo.gates, waveDir, c.timeoutMs)).ok;
+    const green = landed > 0 && (await runGates(repo.setup ?? [], waveDir, c.timeoutMs)).ok && (await runGates(repo.gates, waveDir, c.timeoutMs)).ok;
     log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost });
   } finally {
     await removeWorktree(repo.path, waveDir, landed > 0 ? undefined : branch);

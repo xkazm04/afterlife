@@ -47,6 +47,11 @@ describe('loadFleet', () => {
       { slug: 'b', path: '/y', base: 'dev', gates: ['make'] },
     ]);
   });
+  it('keeps a setup list, and leaves the key out when there is none', () => {
+    const [a] = loadFleet(write('repos:\n  - {slug: a, path: /x, base: main, gates: [t], setup: [npm ci]}\n'));
+    expect(a).toEqual({ slug: 'a', path: '/x', base: 'main', gates: ['t'], setup: ['npm ci'] });
+    expect(() => loadFleet(write('repos:\n  - {slug: a, path: /x, base: main, gates: [t], setup: npm ci}\n'))).toThrow();
+  });
   it.each([
     ['no repos', 'repos: []\n'],
     ['no gates', 'repos:\n  - {slug: a, path: /x, base: main, gates: []}\n'],

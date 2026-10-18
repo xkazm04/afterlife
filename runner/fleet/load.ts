@@ -29,9 +29,13 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     if (!Array.isArray(gates) || gates.length === 0 || !gates.every((g) => typeof g === 'string' && g.trim())) {
       throw new Error(`${where}: gates must be a non-empty list of commands`);
     }
+    const { setup } = r;
+    if (setup !== undefined && (!Array.isArray(setup) || !setup.every((g) => typeof g === 'string' && g.trim()))) {
+      throw new Error(`${where}: setup must be a list of commands`);
+    }
     const laneCapUsd = cap(r.laneCapUsd, where, 'laneCapUsd');
     const waveCapUsd = cap(r.waveCapUsd, where, 'waveCapUsd');
-    return { slug, path, base, gates: gates as string[], ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}) };
+    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}) };
   });
 }
 

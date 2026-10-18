@@ -8,6 +8,8 @@ export interface FleetRepo {
   path: string;
   base: string;
   gates: string[];
+  /** Commands run in every fresh worktree before the lane and before the wave gate (dependency installs). */
+  setup?: string[];
   laneCapUsd?: number;
   waveCapUsd?: number;
 }

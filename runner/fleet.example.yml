@@ -1,5 +1,7 @@
 # Copy to .belay/fleet.yml (gitignored) and point `path` at your checkouts.
 # Each gate is its own command, run in the lane worktree, exit code asserted; all green or nothing commits.
+# `setup` runs in every fresh worktree first (a worktree has no node_modules or venv). Prefer real installs
+# over junctions into the main checkout: removing a worktree must never reach the main checkout's files.
 # Gates below come from each repo's .claude/scan-sweep/config.md / AGENTS.md / .ai/manifest.yaml.
 repos:
   - slug: athena-portable
@@ -7,6 +9,9 @@ repos:
     base: main
     laneCapUsd: 3
     waveCapUsd: 25
+    setup:
+      - uv sync
+      - pnpm install --frozen-lockfile --prefer-offline
     gates:
       - uv run ruff check .
       - uv run ruff format --check .
@@ -16,6 +21,8 @@ repos:
   - slug: paypal
     path: /path/to/paypal
     base: main
+    setup:
+      - pnpm --dir apps/desktop/client install --frozen-lockfile --prefer-offline
     gates:
       - cargo fmt --all --check
       - cargo clippy --workspace --all-targets -- -D warnings
@@ -23,6 +30,8 @@ repos:
   - slug: gravitone-gcloud
     path: /path/to/gravitone-gcloud
     base: main
+    setup:
+      - npm ci --prefer-offline --no-audit --no-fund
     gates:
       - npm run typecheck
       - npm run lint:ratchet

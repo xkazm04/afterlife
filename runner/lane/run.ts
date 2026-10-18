@@ -13,6 +13,8 @@ import { runGates } from './verify';
 export interface LaneCtx {
   repoPath: string;
   gates: string[];
+  /** FleetRepo.setup: run in the fresh lane worktree before claude starts; a red setup fails the lane. */
+  setup: string[];
   baseSha: string;
   wave: number;
   /** The wave branch's own worktree: landed commits are cherry-picked here. */
@@ -51,6 +53,8 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   log({ kind: 'lane.start', lane: item.lane, title: item.title });
   try {
     await addWorktree(ctx.repoPath, dir, ctx.baseSha, branch);
+    const ready = await runGates(ctx.setup, dir, ctx.timeoutMs);
+    if (!ready.ok) throw new Error(`setup red: ${ready.failed}`);
     const a = await callClaude({ prompt: lanePrompt(ctx.lanePromptText, item, ctx.laneCapUsd), cwd: dir, model: ctx.model, timeoutMs: ctx.timeoutMs });
     costUsd = a.costUsd ?? 0;
     text = a.text.slice(-1500);
