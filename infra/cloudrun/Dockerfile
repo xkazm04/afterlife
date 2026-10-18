@@ -23,7 +23,7 @@ COPY . .
 RUN npm run build
 
 # 3. Runtime: the standalone server only. No glab, no token, no BELAY_* but BELAY_MODE, no volume,
-#    BELAY_DATA_DIR unset (contract items 1, 2, 4).
+#    BELAY_DATA_DIR unset (contract items 1, 2, 4). The files stay root-owned: the node user can read, not rewrite them.
 FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
@@ -31,11 +31,11 @@ ENV NODE_ENV=production \
     BELAY_MODE=replay \
     HOSTNAME=0.0.0.0 \
     PORT=8080
-COPY --from=build --chown=node:node /app/.next/standalone ./
-COPY --from=build --chown=node:node /app/.next/static ./.next/static
-COPY --from=build --chown=node:node /app/public ./public
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
 # F98: demo reads <cwd>/policy/trust-policy.yml; without it the Ladder draws no thresholds.
-COPY --from=build --chown=node:node /app/policy ./policy
+COPY --from=build /app/policy ./policy
 USER node
 EXPOSE 8080
 # F24: the standalone server reads HOSTNAME and PORT (Cloud Run sets PORT). Never npm start or next dev.
