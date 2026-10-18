@@ -60,8 +60,10 @@ Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
 - A commit goes only to a new branch. If `belay/arm-<key>` or `belay/disarm-<key>` exists, the preview refuses and names the
   branch, its head and what to do (`noBranch`, `plans/context.ts`). Force is never set. A promotion, an enrollment and a gap MR check the same way: their branch (`belay/promote-<class>-<date>`, `belay/enroll-<track>-<date>`, the gap's `belay/...`) must not exist yet.
 - A 404 on the branch read means the branch is absent. Any other failure refuses (`noBranch`).
-- A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`arm/head.ts:33-42`). Only
-  `arm-track` and `disarm-track` are checked (`arm/head.ts:9`); every other intent is unchanged (`run.ts:4`).
+- A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`arm/head.ts:33-42`). Checked for
+  `arm-track`, `disarm-track`, `promote-class` and `enroll-track` (`HEAD_CHECKED`, `arm/head.ts`): a promotion or enrollment MR is the
+  policy MR the human key merges, so a tier pushed to its branch in between must not ride on it (`plans/__tests__/head.test.ts`).
+  A gap MR (several commits, a draft) and the direct writes are unchanged.
 - Every MR the door opens sets `remove_source_branch` (the `createMr` of arm, disarm, promote, enroll and the gap MR), so a merged or closed MR does not leave a branch that `noBranch` would refuse on a same-day retry.
 - `belay/*` is a protected branch pattern (Setup step 9).
 - Known residual: GitLab's Files API answer names no commit, so the commit is read back with `getFile` right after the write.

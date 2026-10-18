@@ -1,7 +1,7 @@
 // preview, then confirm. The first call plans the commands and returns them with a digest; the second call plans again and
 // runs them only if the digest still matches what the operator saw. Live: each command is written to commands_run
 // BEFORE it runs, then finished with its exit code; a poll follows. Demo: nothing runs, the result says "simulated".
-// An arm or disarm is done only when the MR it opened is headed by the commit it made (arm/head.ts, F38).
+// An arm, disarm, promotion or enrollment is done only when the MR it opened is headed by the commit it made (arm/head.ts, F38).
 import { createHash } from 'node:crypto';
 import type { PGlite } from '@electric-sql/pglite';
 import { GitLabError } from '@/server/gitlab/errors';
@@ -106,7 +106,7 @@ async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Pro
   return f?.lastCommitId && COMMIT_ID.test(f.lastCommitId) ? { named: { made: `commit ${f.lastCommitId.slice(0, 8)}` }, commit: f.lastCommitId } : { named: {} };
 }
 
-/** Arm and disarm only (F38): the MR this confirm opened must be headed by the commit it made, or the confirm failed. */
+/** Arm, disarm, promote and enroll (F38): the MR this confirm opened must be headed by the commit it made, or the confirm failed. */
 async function checkHead(deps: ActionDeps, b: Extract<Built, { ok: true }>, results: CommandOutcome[], commit: string | null, mrBody: unknown): Promise<void> {
   const last = results.at(-1);
   const file = b.plan.commands.find((c) => c.file)?.file;

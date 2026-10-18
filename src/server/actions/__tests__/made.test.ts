@@ -69,10 +69,12 @@ describe('values from GitLab are checked before they are used', () => {
   it('an MR address that is not http(s) never reaches the screen; a made-up iid is not named', async () => {
     const { deps } = await liveRig(answering({ body: { iid: 9, web_url: 'javascript:alert(document.domain)' } }));
     const r = await confirmIntent(deps, promote, idOf(await previewIntent(deps, promote)));
-    expect(r.status === 'done' && r.results[1]).toMatchObject({ ok: true, made: '!9' });
-    expect(r.status === 'done' && r.results.some((x) => 'url' in x)).toBe(false);
+    // This answer names no head commit, so the promotion's head check fails it (arm/head.ts); what it made is still named.
+    const results = 'results' in r ? r.results : [];
+    expect(results[1]).toMatchObject({ made: '!9' });
+    expect(results.some((x) => 'url' in x)).toBe(false);
     const odd = await liveRig(answering({ body: { iid: -1.5 } }));
     const s = await confirmIntent(odd.deps, promote, idOf(await previewIntent(odd.deps, promote)));
-    expect(s.status === 'done' && s.results[1]?.made).not.toBe('!-1.5');
+    expect('results' in s && s.results[1]?.made).not.toBe('!-1.5');
   });
 });
