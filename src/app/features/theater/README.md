@@ -1,7 +1,9 @@
 # Theater (F7)
 
 Route `/theater`. A film replayed as one change climbing the nine holds of the loop. Ported from the approved "The
-Pitch" prototype. Two films, chosen by the loader (`data/loadTheaterData.ts`, on the server):
+Pitch" prototype. Three films. Which one is `live/model/mode.ts` (`theaterMode`) then the loader (`data/loadTheaterData.ts`, on the server). Precedence: `?mr=N` > `?live=1` > a running wave > the ledger film > the illustrative film.
+
+- **The live film** (`live/`): the runner's own belay.run/0 files (`.belay/runs`), shown as a header (running: repo, wave, lane n/m; doing what: the current lane's title; going well: landed, parked, failed, $ spent of the wave cap; needs me: mergeable waves, linking to /runs), the running lane as the hero (title, elapsed, cost so far) and a rail of the last finished lanes with outcome chips. The client polls `GET /api/runs` every 2 s while the tab is visible (paused when hidden). STALE: the newest event is over 30 s old while a wave runs; the frame freezes (elapsed stops at that event) and the badge says LIVE · STALE; it never invents motion. With `?live=1` and no wave running it shows the newest finished wave, badged LAST WAVE. The badge (LIVE, LIVE · STALE, LAST WAVE) is always visible; present mode (F, Esc) works; there is no transport, nothing to seek. `/api/runs` returns `readRuns()`'s data plus `meta` (per repo's newest wave: newest event ts, wave cap, planned lanes, each lane's start) and `generatedAt`, which the fold drops.
 
 - **The real film**: when the data source's `getLedger()` (the deep project's hash-chained belay-ledger events) names
   at least one MR, Theater plays them, one take per MR. The first take is the newest MR (by its last event's seq) that
@@ -56,6 +58,7 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
 !44 line and its quote, and the loop's narrative per hold (who, what). Nothing is marked "demo" instead.
 
 ## Data
+- `live/model/select.ts` (`selectLive`, `isStale`, injected clock), `mode.ts`, `meta.ts`; `live/server/livePayload.ts`; `live/hooks/useLivePayload.ts`; `live/components/`.
 - `data/ledger.ts` REPLAY_LEDGER; `data/constants.ts` takes, who, checks, initial state, CRA anchor, keys.
 - `loadTheaterData` keeps the films apart from live data. The illustrative film's catalogue parts (`TheaterDemo`:
   stages, tracks, rungs, the !44 quote), its holds (the loop) and its subtitle come from the catalogue (`DEMO`) only,
@@ -70,6 +73,7 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
   - data and screen: `data/film.test.tsx` (the screen on each film), `data/labels.test.tsx` (the REPLAY chip and
     legend), `data/loader.test.tsx` (the loader live against a bare index and the fake group; the quote box),
     `data/constants.test.ts` (the invented constants against the ledger slice), `data/readme.test.ts` (this list).
+  - live: `live/model/select.test.ts` (header facts, stale freeze with an injected clock, the precedence), `live/LiveScreen.test.tsx` (the live stage rendered), `live/server/livePayload.test.ts` (the payload off disk).
   - keys and parts: `hooks/useTheaterKeys.test.ts` (the "?" legend against the key map),
     `hooks/frameClock.test.ts` (the frame clock asks for no frames while the film is held),
     `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/rail/Autonomy.test.tsx` (why a

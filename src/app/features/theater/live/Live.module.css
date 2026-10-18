@@ -1,0 +1,94 @@
+/* The live film: header, hero, rail. Fills its container like the replay stage; present (data-present) scales the type. */
+.stage {
+  --k: 1;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(14px * var(--ui-scale));
+  padding: calc(14px * var(--ui-scale)) calc(16px * var(--ui-scale));
+  overflow: auto;
+  color: var(--text-2);
+  font-size: var(--t-body);
+}
+.stage[data-present] {
+  font-size: max(18px, 2vh);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.facts {
+  display: flex;
+  gap: 8px 24px;
+  flex-wrap: wrap;
+  margin: 0;
+}
+.facts div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.facts dt {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.facts dd {
+  margin: 0;
+  color: var(--text-1);
+}
+.hero {
+  padding: calc(18px * var(--ui-scale)) 0;
+}
+.hero h2 {
+  margin: 0;
+  font-size: calc(var(--t-head) * 1.6);
+  color: var(--text-1);
+  font-weight: 650;
+}
+.stage[data-present] .hero h2 {
+  font-size: max(32px, 5vh);
+}
+.hero[data-stale] {
+  opacity: 0.6;
+}
+.sub {
+  margin: 6px 0 0;
+  color: var(--text-3);
+}
+.rail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rail li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.laneTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-1);
+}
+.laneFig {
+  color: var(--text-3);
+  font-size: var(--t-small);
+  white-space: nowrap;
+}
+.empty {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--text-3);
+  line-height: 1.5;
+}

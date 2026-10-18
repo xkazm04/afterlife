@@ -30,6 +30,8 @@ function illustrative(): TheaterData {
 /** The page's search params the loader reads: `mr`, the MR to film first. */
 export interface TheaterParams {
   mr?: string | string[];
+  /** `1` asks for the live film (live/model/mode.ts decides; the loader ignores it). */
+  live?: string | string[];
 }
 
 /** `?mr=N` (digits only, the first if repeated) as the film's focus; anything else is no focus. */
