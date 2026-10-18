@@ -158,6 +158,32 @@ describe('a write', () => {
   });
 });
 
+// Only hangs are timed here: a call that must answer in time would turn red on a slow machine, not on a bug.
+describe('a glab that hangs', () => {
+  beforeAll(() => {
+    process.env.BELAY_GLAB_TIMEOUT_MS = '3000';
+  });
+  afterAll(() => {
+    delete process.env.BELAY_GLAB_TIMEOUT_MS;
+  });
+
+  it('is killed at the timeout and, on a read, tried again; the third is thrown with code ETIMEDOUT', () => {
+    serve({ [MR]: flaky(['hang', 'hang', 'hang'], { iid: 7 }) });
+    const t = Date.now();
+    const e = thrown(() => lib.api(MR));
+    expect(Date.now() - t).toBeLessThan(60_000); // unkilled, the three would hang 90 s
+    expect(calls(MR)).toBe(3);
+    expect(e.code).toBe('ETIMEDOUT');
+    expect(e.message).toMatch(/gave no answer in 3000 ms/);
+  });
+
+  it('on a write is not tried again: it may have landed', () => {
+    serve({ [`POST ${MR}/notes`]: flaky(['hang'], { reply: {} }) });
+    expect(thrown(() => lib.api(`${MR}/notes`, { method: 'POST', body: { body: 'x' } })).landed).toBe('unknown');
+    expect(calls(`POST ${MR}/notes`)).toBe(1);
+  });
+});
+
 describe('writeFile (belay-policy, belay-ledger)', () => {
   const L1 = '1'.repeat(40);
   const L2 = '2'.repeat(40);

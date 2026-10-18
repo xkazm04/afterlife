@@ -34,9 +34,9 @@ const httpError = (route) => {
 
 // A route `{ "__transient": [502, "net", ...], "then": <route> }` fails its first calls, one entry each, then answers as
 // `then` (a GET's reply, or a write's `{reply}`). A number fails as an HTTP error (an object `{status, retryAfter}` also prints
-// a Retry-After line); "net" fails with no HTTP answer, as glab does on a dropped connection. With `"__landed": true` a write
-// is recorded before it fails (the write landed, the answer was lost). The count of calls per route is kept in
-// $FAKE_GLAB_ROUTES.calls.json, across the separate glab processes one job makes.
+// a Retry-After line); "net" fails with no HTTP answer, as glab does on a dropped connection; "hang" answers nothing for
+// 30 s. With `"__landed": true` a write is recorded before it fails (the write landed, the answer was lost). The count of
+// calls per route is kept in $FAKE_GLAB_ROUTES.calls.json, across the separate glab processes one job makes.
 const mrSub = argv[0] === 'mr' ? (argv[1] === 'note' ? `note ${argv[2]}` : argv[1]) : null;
 const routeKey = mrSub ? `GLAB mr ${mrSub}` : method === 'GET' ? base : `${method} ${base}`;
 const flaky = routes[routeKey];
@@ -52,6 +52,7 @@ if (flaky && typeof flaky === 'object' && Array.isArray(flaky.__transient)) {
       fs.appendFileSync(process.env.FAKE_GLAB_WRITES ?? '', `${JSON.stringify({ method: mrSub ? 'GLAB' : method, path: mrSub ? `mr ${mrSub}` : base, body: raw ? JSON.parse(raw) : null })}\n`);
     }
     const fault = flaky.__transient[n];
+    if (fault === 'hang') Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 30_000); // killed by the caller's timeout
     if (fault === 'net') {
       console.error(`glab: Get "https://gitlab.example/api/v4/${base}": dial tcp 10.0.0.1:443: connect: connection reset by peer`);
       process.exit(1);

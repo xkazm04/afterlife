@@ -22,10 +22,22 @@ export function need(name) {
   return v;
 }
 
-/** One glab run. A failure is thrown with `.stderr` and `.stdout`, as glab() documents. */
+/**
+ * One glab run. A failure is thrown with `.stderr` and `.stdout`, as glab() documents. A run that gives no answer within
+ * $BELAY_GLAB_TIMEOUT_MS (default 120 s) is killed and thrown with code ETIMEDOUT: a hung connection no longer holds the
+ * job until GitLab's own job timeout.
+ */
 function glabOnce(args, input) {
-  const r = spawnSync(GLAB, [...GLAB_PRE, ...args], { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'pipe'], maxBuffer: 64 << 20 });
+  const timeout = Number(process.env.BELAY_GLAB_TIMEOUT_MS ?? 120_000);
+  const r = spawnSync(GLAB, [...GLAB_PRE, ...args], { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'pipe'], maxBuffer: 64 << 20, timeout, killSignal: 'SIGKILL' });
   if (r.stderr) process.stderr.write(r.stderr);
+  if (r.error?.code === 'ETIMEDOUT') {
+    const e = new Error(`glab ${what(args)} gave no answer in ${timeout} ms`);
+    e.code = 'ETIMEDOUT';
+    e.stderr = r.stderr ?? '';
+    e.stdout = r.stdout ?? '';
+    throw e;
+  }
   if (r.error) throw r.error;
   if (r.status !== 0) {
     const e = new Error((r.stderr.trim() || r.stdout.trim() || `glab exited ${r.status}`).split('\n')[0]);
@@ -58,7 +70,7 @@ export function setSleep(fn) {
 export function transient(e) {
   const status = httpStatus(e);
   if (status !== null) return TRANSIENT.has(status);
-  return NETWORK.test(`${e?.stderr ?? ''}\n${e?.message ?? ''}`);
+  return e?.code === 'ETIMEDOUT' || NETWORK.test(`${e?.stderr ?? ''}\n${e?.message ?? ''}`);
 }
 
 /** The wait before attempt `next`: Retry-After when glab shows it (capped), else 0.5 s, 1 s ($BELAY_GLAB_BACKOFF_MS scales it). */
