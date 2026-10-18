@@ -58,6 +58,7 @@ export const GLYPHS = {
       <path d="M5 13.5h5" />
     </>,
   ),
+  runs: nav(<path d="M2 2.5v10M2 4.5h6M2 7.5h9M2 10.5h5" strokeLinecap="round" />),
   settings: nav(
     <>
       <path d="M1.5 4h5M10.5 4h3M1.5 11h2M7 11h6.5" />

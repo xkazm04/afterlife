@@ -42,8 +42,8 @@ describe('activeNavKey', () => {
 });
 
 describe('nav data', () => {
-  it('lists the eight screens in order, Settings apart', () => {
-    expect(APP_NAV.map((e) => e.label)).toEqual(['Fleet', 'Monitor', 'Needs you', 'Ladder', 'Maturity', 'Task', 'Setup', 'Theater']);
+  it('lists the nine screens in order, Settings apart', () => {
+    expect(APP_NAV.map((e) => e.label)).toEqual(['Fleet', 'Monitor', 'Needs you', 'Ladder', 'Maturity', 'Task', 'Setup', 'Theater', 'Runs']);
     expect(SETTINGS_NAV.href).toBe('/settings');
     expect(APP_NAV.filter((e) => e.needsYouBadge).map((e) => e.key)).toEqual(['needs-you']);
   });
