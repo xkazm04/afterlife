@@ -24,6 +24,7 @@ export function runScript(dir, script, args, { routes = {}, env = {} } = {}) {
   const writesFile = path.join(dir, 'fake-glab-writes.jsonl');
   const readsFile = path.join(dir, 'fake-glab-reads.txt');
   fs.writeFileSync(routesFile, JSON.stringify(routes));
+  fs.rmSync(`${routesFile}.calls.json`, { force: true }); // fake-glab's per-route call counts (__transient)
   fs.writeFileSync(writesFile, '');
   fs.writeFileSync(readsFile, '');
   const r = spawnSync(process.execPath, [path.join(SCRIPTS, script), ...args], {

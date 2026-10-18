@@ -22,11 +22,8 @@ export function need(name) {
   return v;
 }
 
-/**
- * Runs glab. Its stderr is captured so a caller can read the HTTP status, and still printed. A failure is thrown with
- * `.stderr` and `.stdout` (GitLab's answer: glab prints the body on stdout, "glab: <message> (HTTP <status>)" on stderr).
- */
-export function glab(args, input) {
+/** One glab run. A failure is thrown with `.stderr` and `.stdout`, as glab() documents. */
+function glabOnce(args, input) {
   const r = spawnSync(GLAB, [...GLAB_PRE, ...args], { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'pipe'], maxBuffer: 64 << 20 });
   if (r.stderr) process.stderr.write(r.stderr);
   if (r.error) throw r.error;
@@ -39,6 +36,60 @@ export function glab(args, input) {
   return r.stdout;
 }
 
+/** Attempts a read gets in all. The last failure is thrown as it came, so every fail-closed caller still fails closed. */
+export const ATTEMPTS = 3;
+/** Statuses that say "try again later" and nothing about the request itself. 500 is not one: it can be the request's own fault. */
+const TRANSIENT = new Set([429, 502, 503, 504]);
+/** What Go's net/http says when no HTTP answer came back (glab then names no status). */
+const NETWORK = /dial tcp|connection (?:reset|refused)|i\/o timeout|TLS handshake timeout|no such host|unexpected EOF|context deadline exceeded|Client\.Timeout exceeded|network is unreachable|broken pipe|server closed idle connection/i;
+const RETRY_AFTER_CAP_MS = 5000;
+
+let sleep = (ms) => {
+  if (ms > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+};
+/** Swaps the backoff sleep (tests record it instead of waiting); returns the one it replaced. */
+export function setSleep(fn) {
+  const was = sleep;
+  sleep = fn;
+  return was;
+}
+
+/** True for a failure worth another attempt: 429, 502, 503, 504, or no HTTP answer at all (network, timeout). 4xx never. */
+export function transient(e) {
+  const status = httpStatus(e);
+  if (status !== null) return TRANSIENT.has(status);
+  return NETWORK.test(`${e?.stderr ?? ''}\n${e?.message ?? ''}`);
+}
+
+/** The wait before attempt `next`: Retry-After when glab shows it (capped), else 0.5 s, 1 s ($BELAY_GLAB_BACKOFF_MS scales it). */
+function backoff(e, next) {
+  const after = /Retry-After:\s*(\d+)/i.exec(`${e?.stderr ?? ''}\n${e?.stdout ?? ''}`);
+  if (after) return Math.min(Number(after[1]) * 1000, RETRY_AFTER_CAP_MS);
+  return Number(process.env.BELAY_GLAB_BACKOFF_MS ?? 500) * 2 ** (next - 2);
+}
+
+/** What a log line names a call by: `api GET <path>`, `api graphql`, `mr note`. Never a body or a token. */
+const what = (args) => (args[0] === 'api' && args.includes('-X') ? `api ${args.slice(args.indexOf('-X') + 1, args.indexOf('-X') + 3).join(' ')}` : args.slice(0, 2).join(' '));
+
+/**
+ * Runs glab. Its stderr is captured so a caller can read the HTTP status, and still printed. A failure is thrown with
+ * `.stderr` and `.stdout` (GitLab's answer: glab prints the body on stdout, "glab: <message> (HTTP <status>)" on stderr).
+ * `read`: the call changes nothing (a GET, a GraphQL query), so a transient failure is tried again, ATTEMPTS in all. Anything
+ * else is a write and runs once.
+ */
+export function glab(args, input, { read = false } = {}) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return glabOnce(args, input);
+    } catch (e) {
+      if (!read || attempt >= ATTEMPTS || !transient(e)) throw e;
+      const ms = backoff(e, attempt + 1);
+      console.error(`belay: glab ${what(args)} failed (${httpStatus(e) ?? 'no HTTP answer'}): attempt ${attempt + 1} of ${ATTEMPTS} in ${ms} ms`);
+      sleep(ms);
+    }
+  }
+}
+
 /** The HTTP status glab reported on a failure ("glab: <message> (HTTP 404)"), or null when it named none (network, no login). */
 export function httpStatus(e) {
   const m = /\(HTTP (\d{3})\)|\bHTTP (\d{3})\b/.exec(String(e?.stderr ?? ''));
@@ -49,7 +100,7 @@ export function httpStatus(e) {
 export function api(path, { method = 'GET', body, raw = false } = {}) {
   const args = ['api', '--hostname', HOST, '-X', method, path];
   if (body !== undefined) args.push('-H', 'Content-Type: application/json', '--input', '-');
-  const out = glab(args, body === undefined ? undefined : JSON.stringify(body));
+  const out = glab(args, body === undefined ? undefined : JSON.stringify(body), { read: method === 'GET' });
   if (raw) return out;
   return out.trim() ? JSON.parse(out) : null;
 }
@@ -75,7 +126,7 @@ export function pageAll(get, path, maxPages = 5, { strict = false } = {}) {
 export const apiAll = (path, maxPages = 5, opts) => pageAll(api, path, maxPages, opts);
 
 export function gql(query) {
-  const out = glab(['api', 'graphql', '--hostname', HOST, '-f', `query=${query}`]);
+  const out = glab(['api', 'graphql', '--hostname', HOST, '-f', `query=${query}`], undefined, { read: !/^\s*mutation\b/.test(query) });
   return JSON.parse(out);
 }
 
