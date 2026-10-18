@@ -16,12 +16,14 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "runner:prompt-drift": "node scripts/prompt-drift.mjs",
     "test:watch": "vitest",
     "verify": "npm run typecheck && npm run lint && npm run check:structure && npm run test && npm run build",
     "doctor": "node cli/belay.mjs doctor",
     "demo:data": "node scripts/build-demo.mjs",
-    "check:structure": "node scripts/check-structure.mjs src && node scripts/check-structure.mjs engine",
-    "engine": "tsx engine/cli.ts"
+    "check:structure": "node scripts/check-structure.mjs src && node scripts/check-structure.mjs engine && node scripts/check-structure.mjs runner",
+    "engine": "tsx engine/cli.ts",
+    "runner": "node cli/belay.mjs run"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.3",

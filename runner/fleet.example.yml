@@ -1,0 +1,29 @@
+# Copy to .belay/fleet.yml (gitignored) and point `path` at your checkouts.
+# Each gate is its own command, run in the lane worktree, exit code asserted; all green or nothing commits.
+# Gates below come from each repo's .claude/scan-sweep/config.md / AGENTS.md / .ai/manifest.yaml.
+repos:
+  - slug: athena-portable
+    path: /path/to/athena-portable
+    base: main
+    laneCapUsd: 3
+    waveCapUsd: 25
+    gates:
+      - uv run ruff check .
+      - uv run ruff format --check .
+      - uv run mypy
+      - uv run pytest -m "not provider and not eval"
+      - pnpm typecheck && pnpm lint && pnpm test
+  - slug: paypal
+    path: /path/to/paypal
+    base: main
+    gates:
+      - cargo fmt --all --check
+      - cargo clippy --workspace --all-targets -- -D warnings
+      - cargo test --workspace
+  - slug: gravitone-gcloud
+    path: /path/to/gravitone-gcloud
+    base: main
+    gates:
+      - npm run typecheck
+      - npm run lint:ratchet
+      - npm test

@@ -1,30 +1,34 @@
 #!/usr/bin/env node
-// belay - command-line companion of the app: doctor | pair | scan | replay.
-// Every write it will ever make prints the exact command first; today only `doctor` runs, and it
-// only reads. The doctor logic is TypeScript (src/server/gitlab), run here through tsx.
+// belay - command-line companion of the app: doctor | run | pair | scan | replay.
+// Every write it will ever make prints the exact command first. `doctor` only reads; `run` is the one verb
+// that spends: it prints repo, base, caps and model before anything starts, and --dry-run stops right there.
+// The logic is TypeScript (src/server/gitlab, runner/), run here through tsx.
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-const [, , cmd = 'help'] = process.argv;
+const [, , cmd = 'help', ...rest] = process.argv;
 const root = fileURLToPath(new URL('..', import.meta.url));
 
-function doctor() {
+function viaTsx(verb, entryUrl, args = []) {
   let tsx;
   try {
     tsx = createRequire(import.meta.url).resolve('tsx/cli');
   } catch {
-    console.error('belay doctor needs tsx (a dev dependency): run `npm install` first.');
+    console.error(`belay ${verb} needs tsx (a dev dependency): run \`npm install\` first.`);
     return 2;
   }
-  const entry = fileURLToPath(new URL('../src/server/gitlab/doctorCli.ts', import.meta.url));
-  const r = spawnSync(process.execPath, [tsx, entry], { cwd: root, stdio: 'inherit', env: process.env });
+  const entry = fileURLToPath(new URL(entryUrl, import.meta.url));
+  const r = spawnSync(process.execPath, [tsx, entry, ...args], { cwd: root, stdio: 'inherit', env: process.env });
   return r.status ?? 2;
 }
 
 switch (cmd) {
   case 'doctor':
-    process.exitCode = doctor();
+    process.exitCode = viaTsx('doctor', '../src/server/gitlab/doctorCli.ts');
+    break;
+  case 'run':
+    process.exitCode = viaTsx('run', '../runner/main.ts', rest);
     break;
   case 'pair':
   case 'scan':
@@ -33,5 +37,5 @@ switch (cmd) {
     process.exitCode = 2;
     break;
   default:
-    console.log('usage: belay doctor | pair <checkout> | scan [--propose] | replay <ledger-slice>');
+    console.log('usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--dry-run] | pair <checkout> | scan [--propose] | replay <ledger-slice>');
 }

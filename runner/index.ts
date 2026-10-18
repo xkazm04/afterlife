@@ -1,6 +1,7 @@
 // The cycle runner: waves of headless `claude -p` lanes in worktrees of fleet repos, gated, committed to
-// belay/wave-<n>, metered. The only place in the repo that reads ANTHROPIC_API_KEY. Stubs until WP1 lands.
-import type { RunEvent } from '../src/schemas/run';
+// belay/wave-<n>, metered. The only place in the repo that touches the Anthropic key (runner/agent/spawn.ts).
+// The wire contract is src/schemas/run (belay.run/0); the implementation is split by concern under runner/.
+export type { RunEvent } from '../src/schemas/run';
 
 export interface FleetRepo {
   slug: string;
@@ -18,14 +19,15 @@ export interface RunOptions {
   laneCapUsd: number;
   waveCapUsd: number;
   model: string;
+  /** Fleet file; default <afterlife>/.belay/fleet.yml. */
+  fleet?: string;
+  /** Where run files go; default <afterlife>/.belay/runs. */
+  runsDir?: string;
+  /** Per-lane wall-clock ceiling; default 20 minutes. */
+  laneTimeoutMs?: number;
 }
 
 export const RUN_DEFAULTS = { waves: 1, lanes: 6, laneCapUsd: 3, waveCapUsd: 25, model: 'sonnet' } as const;
 
-export function loadFleet(_file: string): FleetRepo[] {
-  throw new Error('runner: loadFleet not implemented');
-}
-
-export async function runWaves(_opts: RunOptions, _emit: (e: RunEvent) => void): Promise<number> {
-  throw new Error('runner: runWaves not implemented');
-}
+export { loadFleet } from './fleet/load';
+export { runWaves } from './wave/runWaves';
