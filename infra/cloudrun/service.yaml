@@ -1,0 +1,46 @@
+# Cloud Run service for the Belay hosted replay (infra/cloudrun/README.md, "The replay's security contract").
+# Applied by the operator with `gcloud run services replace` (deploy.sh prints the commands; it runs nothing).
+# IMAGE_URL is substituted at deploy time. Public (allUsers invoker) is an IAM binding, not part of this file.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: belay-replay
+  labels:
+    app: belay
+    mode: replay
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        # Contract item 6 (F99): the app has no rate limit, so instances x concurrency is the spend bound.
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "2"
+        # CPU only while a request is in flight (no idle billing).
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/startup-cpu-boost: "false"
+    spec:
+      containerConcurrency: 20
+      timeoutSeconds: 30
+      containers:
+        - name: belay
+          image: IMAGE_URL
+          ports:
+            - name: http1
+              containerPort: 8080
+          # Contract item 1 and 2: replay, never live; no other BELAY_* and no token of any kind.
+          env:
+            - name: BELAY_MODE
+              value: replay
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 6
+      # Contract item 4: no volumes.
