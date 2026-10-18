@@ -10,7 +10,7 @@ repos:
     laneCapUsd: 3
     waveCapUsd: 25
     setup:
-      - uv sync
+      - uv sync --extra dev
       - pnpm install --frozen-lockfile --prefer-offline
     gates:
       - uv run ruff check .
