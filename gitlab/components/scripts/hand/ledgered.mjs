@@ -1,4 +1,4 @@
-// Whether belay-ledger already carries an MR's head, by the key belay-apply appends under (../../../apply/sweep.mjs:120-133):
+// Whether belay-ledger already carries an MR's head, by the key belay-apply appends under (../../../apply/sweep.mjs:129-142):
 // `Belay-Head: <project id>!<iid>@<head>` in the message of a commit of events/<project id>.jsonl since the MR was opened.
 // The id is the numeric one GitLab answered for the project, never the CI_PROJECT_ID string as given. Reads only.
 import { apiAll, enc } from '../lib/lib.mjs';

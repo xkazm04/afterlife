@@ -83,12 +83,14 @@ On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (
 
 - The proof job writes a proof only for an MR whose author starts with `agent_prefix` (default `ai-`) and whose description has
   a `Belay-Task: <ULID>` trailer. Otherwise `mr-context.mjs` exits 10 and the job is green with nothing written
-  (`mr-context.mjs:22-26`).
-- `tier-gate`'s `proof_authors` input (`tier-gate/template.yml:37`) must include the operator's username, or the gate never
+  (`mr-context.mjs:21-26`).
+- `tier-gate`'s `proof_authors` input (`tier-gate/template.yml:39`) must include the operator's username, or the gate never
   trusts the hand-posted note.
 - `.env.local` for the app: `BELAY_MODE=live`, `BELAY_GROUP_ID=<the group V-204 runs in>` (the default is not that group),
-  `BELAY_PROJECT=<target project path>`, `BELAY_PROOF_AUTHORS=<operator username>`
-  (`src/server/data/README.md:12-15`, `src/server/poller/config.ts:44`).
+  `BELAY_PROJECT=<target project's path, its last segment>`, `BELAY_PROOF_AUTHORS=<operator username>`
+  (`src/server/data/README.md:17-20`, `src/server/poller/config.ts:69`). In live mode on a real group the poller refuses to
+  run when one of the last three is missing or malformed, and logs `belay: poll failed` naming it every poll
+  (`liveConfigProblems`, `src/server/poller/config.ts:43`): it never falls back to the default group.
 - Every component defaults `engine_project` and `policy_project` to `$CI_PROJECT_NAMESPACE/belay-*`, the namespace the
   target itself sits in (F30; `tier-gate/template.yml:21,24`). For a top-level target that is the group, as before. A target
   whose `belay-*` projects sit elsewhere passes both inputs explicitly. belay-apply names all of them in its `apply.json`.
@@ -118,13 +120,14 @@ nothing is written.
 CI_PROJECT_URL=https://gitlab.com/<target path> BELAY_BOT_TOKEN=by-hand node gitlab/components/scripts/proof/post-proof.mjs --proof <dir>/proof.json --mr <iid>
 ```
 
-`post-proof` only checks that the variable is set (`post-proof.mjs:39`) and never reads its value: `glab` posts with the
+`post-proof` only checks that the variable is set (`post-proof.mjs:43`) and never reads its value: `glab` posts with the
 operator's own login. `by-hand` is not a secret. If `glab` is not on PATH, set `BELAY_GLAB=<path to glab.exe>`. It runs
 `glab mr note create <iid> -R <url> -m <note>`, then `glab mr update <iid> -R <url> --label proof::<verdict> --unlabel` the
-other two.
+other two. If `<dir>/proof.json` is not there (step 1 refused and removed it, or a mistyped path) it exits 2 and posts nothing;
+only an empty file posts an inconclusive note.
 
 **3. Set `guardrail::pass`**, only when the guardrail's `belay-guardrail` verdict for the current head is `pass` (read it in the
-MR's notes: `glab mr view <iid> -R <target path> --comments`). It is the rule `apply-gate.mjs:39-42` applies:
+MR's notes: `glab mr view <iid> -R <target path> --comments`). It is the rule `apply-gate.mjs:50-61` applies:
 
 ```
 glab mr update <iid> -R <target path> --label guardrail::pass --unlabel guardrail::block
@@ -146,8 +149,9 @@ the policy project's default branch has them now; the diff from base to head fro
 checkout (`BELAY_DIR`, default the checkout the script is in); then `apply-gate --dry 1 --emit-dir <new dir>/events` with the
 MR's agent and class. It reads no job artifact and writes nothing to GitLab. `<new dir>` must be new or empty, so no earlier
 head's events are appended; it also holds `decision.json` and every input the gate read. Exit 0: the events are written,
-append them. Exit 3: nothing to append, and it says why (no proof note of yours for this head, no guardrail verdict yet or an
-inconclusive one, no `Belay-Class`, a CI change, another target branch). Exit 2: a failed read or a wrong input.
+append them. Exit 3: nothing to append, and it says why (no proof note of yours for this head or an ambiguous one, already
+ledgered, no guardrail verdict yet or an inconclusive one, no `Belay-Class`, a CI change, another target branch). Exit 2: a
+failed read (the notes included) or a wrong input.
 `--guardrail-authors` is the guardrail flow's service account username as its notes show it (see Preconditions).
 
 F90 is closed by this step and step 1 (see "F90" below): the four checks d22518e added here are gone, because the derivation
@@ -157,12 +161,13 @@ note for this head, and `tier_at_time` is the engine's, from the live `tier-stat
 `--guardrail-authors` is the guardrail's real account, as in step 3.
 
 `derive-gate` writes `<new dir>/ledger-key`, `<project id>!<iid>@<head>` with the numeric id GitLab answers for the project (never
-`CI_PROJECT_ID` as typed), the key belay-apply forms (`sweep.mjs:120`); `--key` puts it on the commit as `Belay-Head: <key>`, so
+`CI_PROJECT_ID` as typed), the key belay-apply forms (`sweep.mjs:129`); `--key` puts it on the commit as `Belay-Head: <key>`, so
 belay-apply (M2) finds the head ledgered and skips it. Once per head is enforced, not asked: before it writes any events
 `derive-gate` reads the commits of `events/<project id>.jsonl` on `--ledger-branch` (default `main`) since the MR was opened
-(`sweep.mjs:124-133`, same 5-page cap) and, if one carries the key, exits 3 with `already ledgered for this head` and writes no
+(`sweep.mjs:133-142`, same 5-page cap) and, if one carries the key, exits 3 with `already ledgered for this head` and writes no
 `events` directory. A ledger it cannot read, or more commits than the cap, is exit 2: whether the head was appended is not known.
-The command it prints on success is step 4's second line with the key filled in. Only a head ledgered by hand without `--key`
+The command it prints on success is step 4's second line with the key, `BELAY_DIR` and the numeric project id filled in,
+every path single-quoted so Git Bash keeps its backslashes: paste it as printed. Only a head ledgered by hand without `--key`
 (before this) is not recognised.
 
 `ledger-append` takes every `*.json` in the directory, in name order, in one commit, each as seq n+1 on the chain it reads from
@@ -183,7 +188,7 @@ gate emits one event only: the guardrail's own block, as a `guardrail_verdict` w
 `--ledger-tier <tier>` and a guardrail file that states block (belay-apply passes both). A forced call for any other cause
 emits nothing. Here, in the target's tier-gate, a forced call gets neither flag and emits nothing, and `derive-gate` makes
 no forced call at all (exit 3): the guardrail's own block on an MR the gate cannot decide is ledgered only by belay-apply. **Never
-hand-write an event**: `LedgerEvent.observed_by` has no value for a person (`src/schemas/ledger.ts:29`), and `ci_job` would be false.
+hand-write an event**: `LedgerEvent.observed_by` has no value for a person (`src/schemas/ledger.ts:28`), and `ci_job` would be false.
 
 Checked on 2026-10-07: every `glab` subcommand and flag above against `glab 1.120.0 --help` (`api`, `mr view`, `mr update`,
 `mr note create`; no command that talks to a host was run), and step 2 by running the script against a fake `glab`: the note
