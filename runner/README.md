@@ -46,8 +46,14 @@ and run files. If `prompts/<name>.md` is absent the runner uses a minimal inline
 
 ## The API-key boundary
 
-`runner/` is the only directory that may hand a model key to a process, and it never reads or logs it: the claude child
-inherits the runner's environment as is (`agent/spawn.ts`). Nothing in `src/` or `cli/` touches it.
+`runner/` is the only directory that may hand a model key to a process, and it never reads or logs it. claude gets
+`agentEnv()` (`proc/proc.ts`): the runner's environment minus every secret-shaped variable (`*_TOKEN`, `*_SECRET`,
+`*_PASSWORD`, `*_API_KEY`, ...) except its own `ANTHROPIC_*` / `CLAUDE_CODE_*` (plus `AWS_*` on Bedrock, Google
+credentials on Vertex). Every other child - setup, gates, git and its hooks - gets `childEnv()`, with no secret at all:
+a lane agent edits the files those children run, so anything they inherit is the agent's. `BELAY_PASS_ENV=NPM_TOKEN,...`
+hands named variables through anyway (a private registry for `setup`). Env scrubbing does not stop a gate reading the
+user's credential files (`~/.claude`, `~/.npmrc`): run the runner as a user that holds only what it needs. Nothing in
+`src/` or `cli/` touches the key.
 
 ## Tests
 

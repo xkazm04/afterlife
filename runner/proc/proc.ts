@@ -17,6 +17,7 @@ export interface ProcOptions {
   timeoutMs?: number;
   /** A shell is needed for gate command lines and for claude.cmd on Windows; argv must then be shell-safe. */
   shell?: boolean;
+  /** Default childEnv(): no secrets. Only claude is spawned with agentEnv(). */
   env?: NodeJS.ProcessEnv;
 }
 
@@ -37,6 +38,34 @@ export function killTree(pid: number | undefined): Promise<void> {
   });
 }
 
+/** Names a child must not inherit: forge and registry tokens, cloud keys, passwords and the model key. */
+const SECRET_NAME = /(^|_)(TOKEN|SECRET|PASSWORD|PASSWD|PAT|API_?KEY|PRIVATE_KEY|ACCESS_KEY|CREDENTIALS?)(_|$)/i;
+/** What claude itself needs to authenticate (API key, OAuth token, Bedrock or Vertex). */
+const AGENT_AUTH = /^(ANTHROPIC_|CLAUDE_CODE_)/i;
+
+function scrubbed(keep: (name: string) => boolean): NodeJS.ProcessEnv {
+  const pass = new Set((process.env.BELAY_PASS_ENV ?? '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean));
+  const out: Record<string, string | undefined> = {};
+  for (const [k, v] of Object.entries(process.env)) {
+    if (!SECRET_NAME.test(k) || pass.has(k.toUpperCase()) || keep(k)) out[k] = v;
+  }
+  return out as NodeJS.ProcessEnv;
+}
+
+/**
+ * The env of every child but claude: gates, setup and git (whose hooks may live in the worktree, e.g. husky).
+ * A lane agent edits the files those children run, so they get no secret at all; BELAY_PASS_ENV=A,B names
+ * variables the operator hands through anyway (a private registry token for setup).
+ */
+export const childEnv = (): NodeJS.ProcessEnv => scrubbed(() => false);
+
+/** claude's env: the scrubbed env plus its own credentials (and AWS / Google ones when it runs on Bedrock / Vertex). */
+export function agentEnv(): NodeJS.ProcessEnv {
+  const bedrock = !!process.env.CLAUDE_CODE_USE_BEDROCK;
+  const vertex = !!process.env.CLAUDE_CODE_USE_VERTEX;
+  return scrubbed((k) => AGENT_AUTH.test(k) || (bedrock && /^AWS_/i.test(k)) || (vertex && /^GOOGLE_APPLICATION_CREDENTIALS$/i.test(k)));
+}
+
 export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Promise<ProcResult> {
   return new Promise((resolve) => {
     let stdout = '';
@@ -52,7 +81,7 @@ export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Pr
     };
     const child = spawn(cmd, args, {
       cwd: opts.cwd,
-      env: opts.env ?? process.env,
+      env: opts.env ?? childEnv(),
       shell: opts.shell ?? false,
       windowsHide: true,
       detached: process.platform !== 'win32',
