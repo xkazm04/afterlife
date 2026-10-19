@@ -133,6 +133,21 @@ describe('derive-gate (M1 hand-run step 4, F90)', { timeout: 120_000 }, () => {
     for (const x of [notMine, ci]) noArtifactNoWrite(x.r);
   });
 
+  it('exits 2 when the notes cannot be read (not known), and 3 when the proof note is ambiguous', () => {
+    const down = derive('notes-down', { notes: { __http: 403, message: '403 Forbidden' } });
+    expect(down.r.code, down.r.stderr).toBe(2);
+    expect(down.r.stderr).toMatch(/reading the belay-proof note failed/);
+    expect(down.files).toEqual([]);
+
+    const twice = note(40, OP, 'belay-proof', PROOF);
+    twice.body += `\n\n\`\`\`belay-proof\n${JSON.stringify(PROOF)}\n\`\`\``;
+    const ambiguous = derive('proof-twice', { notes: [note(50, 'ai-guardrail-acme', 'belay-guardrail', verdict('pass')), twice] });
+    expect(ambiguous.r.code, ambiguous.r.stderr).toBe(3);
+    expect(ambiguous.r.stderr).toMatch(/belay-proof note for this head is ambiguous/);
+    expect(ambiguous.files).toEqual([]);
+    for (const x of [down, ambiguous]) noArtifactNoWrite(x.r);
+  });
+
   it('refuses an out directory that already holds files, before any read', () => {
     const out = path.join(dir, 'out-used');
     fs.mkdirSync(out, { recursive: true });

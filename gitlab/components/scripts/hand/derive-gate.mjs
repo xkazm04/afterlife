@@ -96,7 +96,8 @@ try {
 
 const proof = glue('proof/fetch-block.mjs', ['--mr', iid, '--tag', 'belay-proof', '--authors', proofAuthors, '--head-sha', head, '--out', at('proof.json')]);
 if (proof === 3) nothing(`no belay-proof note by ${proofAuthors} for head ${head.slice(0, 8)}: post the proof first (steps 1 and 2)`);
-if (proof !== 0) nothing(`the belay-proof note for this head cannot be read (fetch-block exited ${proof})`);
+if (proof === 4) nothing('the belay-proof note for this head is ambiguous (two blocks) or not a JSON object: post one proof note');
+if (proof !== 0) die(`reading the belay-proof note failed (fetch-block exited ${proof})`);
 const gr = glue('proof/fetch-block.mjs', ['--mr', iid, '--tag', 'belay-guardrail', '--authors', guardrailAuthors, '--head-sha', head,
   '--schema', path.join(SCRIPTS, '..', '..', 'flows', 'schemas', 'guardrail-verdict.schema.json'), '--out', at('guardrail.json'), '--gate-out', at('guardrail-gate.json')]);
 if (gr === 3) nothing(`no belay-guardrail verdict by ${guardrailAuthors} for head ${head.slice(0, 8)}: the ledger line waits`);
