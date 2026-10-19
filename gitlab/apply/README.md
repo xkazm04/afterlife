@@ -226,3 +226,7 @@ push after the sweep read the head is never merged. The ledger records the proof
 - Residual, by design: the evidence is still the output of the target's own test job. The agent writes the code and the
   test, so the exploit test is what is proven, not every other line. belay-apply only removes the agent's control over
   *which jobs* ran (CI changes wait for a person) and over *what was posted*.
+
+## Cloning belay-policy
+
+`clonePolicy` tries a clone 3 times in all when git failed on the network or the server (timeout, DNS, connection reset, early EOF, RPC failed, HTTP 429/5xx), waiting 0.5 s then 1 s (`BELAY_CLONE_BACKOFF_MS` scales it; never over 5 s). An auth failure, 401/403/404, a missing repository or a missing branch is never retried, and neither is a failure git did not describe as transient. After the last failure it removes the destination and throws an Error carrying git's first stderr line; it never ends the process. `sweep.mjs` prints that and exits 2, writing nothing. `tripwire-sweep.mjs` skips the one target whose clone failed, raises its exit to 2 and sweeps the rest.

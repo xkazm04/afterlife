@@ -59,12 +59,33 @@ export function targetsOf(cfg, log) {
   return out;
 }
 
+const CLONE_ATTEMPTS = 3;
+const CLONE_BACKOFF_CAP_MS = 5000;
+// What git prints when the network or the server failed, not when the request was wrong: worth another try. An auth
+// failure, a missing repository or a missing branch never matches, so it is never retried.
+const CLONE_TRANSIENT = /timed out|timeout|could not resolve host|connection reset|early eof|rpc failed|\b(?:429|5\d\d)\b/i;
+const CLONE_PERMANENT = /authentication failed|\b(?:401|403|404)\b|not found|could not read from remote/i;
+
+let sleep = (ms) => {
+  if (ms > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+};
+/** Swaps the clone backoff sleep (tests record it instead of waiting); returns the one it replaced. */
+export function setCloneSleep(fn) {
+  const was = sleep;
+  sleep = fn;
+  return was;
+}
+
+/** The wait before attempt `next`: 0.5 s, 1 s ($BELAY_CLONE_BACKOFF_MS scales it), never over 5 s. */
+const cloneBackoff = (next) => Math.min(Number(process.env.BELAY_CLONE_BACKOFF_MS ?? 500) * 2 ** (next - 2), CLONE_BACKOFF_CAP_MS);
+
 /**
  * A fresh clone of belay-policy into `dest`. `remote` is a URL or path (tests); in CI it is built here from CI_JOB_TOKEN,
  * which belay-policy's job token allowlist must grant to belay-apply. The token never reaches argv or .git/config.
+ * A clone that failed on the network or the server is tried again, 3 attempts in all; any failure left after that throws
+ * an Error carrying git's first stderr line, so a caller can skip one target instead of ending the process.
  */
 export function clonePolicy(cfg, remote, dest, depth = 300) {
-  fs.rmSync(dest, { recursive: true, force: true });
   const env = { ...process.env, GIT_TERMINAL_PROMPT: '0' };
   const args = ['-c', 'core.autocrlf=false', 'clone', '-q', '--depth', String(depth), '--branch', cfg.policy.branch];
   let url = remote;
@@ -76,9 +97,18 @@ export function clonePolicy(cfg, remote, dest, depth = 300) {
     const basic = Buffer.from(`gitlab-ci-token:${process.env.CI_JOB_TOKEN ?? die('CI_JOB_TOKEN is not set')}`).toString('base64');
     Object.assign(env, { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.extraHeader', GIT_CONFIG_VALUE_0: `Authorization: Basic ${basic}` });
   }
-  const r = spawnSync('git', [...args, url, dest], { encoding: 'utf8', env });
-  if (r.status !== 0) die(`cannot clone ${cfg.policy.project}: ${(r.stderr ?? '').trim().split('\n')[0]}`);
-  return dest;
+  for (let attempt = 1; ; attempt++) {
+    fs.rmSync(dest, { recursive: true, force: true });
+    const r = spawnSync('git', [...args, url, dest], { encoding: 'utf8', env });
+    if (r.status === 0) return dest;
+    const first = (r.stderr ?? '').trim().split('\n')[0];
+    const err = `${r.stderr ?? ''} ${r.error?.message ?? ''}`;
+    if (attempt >= CLONE_ATTEMPTS || CLONE_PERMANENT.test(err) || !CLONE_TRANSIENT.test(err)) {
+      fs.rmSync(dest, { recursive: true, force: true });
+      throw new Error(`cannot clone ${cfg.policy.project}: ${first || r.error?.message || `git exited ${r.status}`}`);
+    }
+    sleep(cloneBackoff(attempt + 1));
+  }
 }
 
 /** The four write tokens of belay-apply. A child never inherits one: its call hands it the one it writes with (F71). */

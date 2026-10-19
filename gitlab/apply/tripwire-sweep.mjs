@@ -30,7 +30,14 @@ for (const t of targetsOf(cfg, say)) {
     say(`${t.path_with_namespace}: cannot read it (${e.message}): skipped`);
     continue;
   }
-  const dir = clonePolicy(cfg, arg('policy-remote'), path.join(work, `policy-${t.id}`));
+  let dir;
+  try {
+    dir = clonePolicy(cfg, arg('policy-remote'), path.join(work, `policy-${t.id}`));
+  } catch (e) {
+    worst = Math.max(worst, 2);
+    say(`${t.path_with_namespace}: cannot clone the policy (${e.message}): skipped`);
+    continue;
+  }
   const r = glue('decide/tripwire.mjs', [
     '--mode', 'sweep', '--policy-dir', dir, '--policy-project', cfg.policy.project, '--policy-branch', cfg.policy.branch,
     '--guardrail-authors', cfg.guardrailAuthors, '--agent-prefix', cfg.agentPrefix, '--lookback-hours', String(cfg.lookbackHours),

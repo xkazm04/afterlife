@@ -43,7 +43,13 @@ const say = (m) => console.error(`belay-apply: ${m}`);
 if (!WRITE) say(`${MISSING.join(' and ')} ${MISSING.length > 1 ? 'are' : 'is'} not set: reporting only, nothing is written`);
 
 fs.mkdirSync(work, { recursive: true });
-const policyDir = clonePolicy(cfg, arg('policy-remote'), path.join(work, 'policy'), 1);
+let policyDir;
+try {
+  policyDir = clonePolicy(cfg, arg('policy-remote'), path.join(work, 'policy'), 1);
+} catch (e) {
+  console.error(`belay-apply: ${e.message}`);
+  process.exit(2);
+}
 const policyFile = path.join(policyDir, 'trust-policy.yml');
 const proofClassOf = (actionClass) => parse(fs.readFileSync(policyFile, 'utf8'))?.classes?.[actionClass]?.proof ?? null;
 

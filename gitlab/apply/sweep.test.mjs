@@ -564,4 +564,12 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(r.writes).toEqual([]);
     expect(r.stderr).toMatch(/acme\/ledgerline!7: stopped, nothing more written for it: .*500 Internal Server Error/);
   });
+
+  it('a policy clone that fails for good fails the job closed, with the clone message and no write', () => {
+    const missing = pathToFileURL(path.join(dir, 'no-such-policy')).href;
+    const r = runScript(dir, '../../apply/sweep.mjs', ['--config', CONFIG, '--policy-remote', missing, '--work', path.join(dir, 'work-missing')], { routes: {}, env: TOKENS });
+    expect(r.code).toBe(2);
+    expect(r.writes).toEqual([]);
+    expect(r.stderr).toMatch(/belay-apply: cannot clone acme[/]belay-policy: /);
+  });
 });

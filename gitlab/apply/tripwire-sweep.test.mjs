@@ -94,4 +94,20 @@ describe('belay-apply tripwire sweep', { timeout: 120_000 }, () => {
     expect(r.writes).toEqual([]);
     expect(r.reads).toEqual([]);
   });
+
+  it('a target whose policy clone fails is skipped, the sweep continues, and the exit is 2', () => {
+    const config = path.join(dir, 'apply-two.json');
+    fs.writeFileSync(config, JSON.stringify({
+      group: 'acme', policy: { project: 'acme/belay-policy', branch: 'main' }, ledger: { project: 'acme/belay-ledger' },
+      bot: 'belay-bot', guardrail_authors: 'ai-guardrail-acme', targets: { 'acme/ledgerline': {}, 'acme/second': {} },
+    }));
+    const missing = pathToFileURL(path.join(dir, 'no-such-policy')).href;
+    const r = runScript(dir, '../../apply/tripwire-sweep.mjs', ['--config', config, '--policy-remote', missing, '--work', path.join(dir, 'work-two')], {
+      routes: { ...routes, 'groups/acme/projects': [{ id: 1, path_with_namespace: 'acme/ledgerline', default_branch: 'main' }, { id: 2, path_with_namespace: 'acme/second', default_branch: 'main' }], 'projects/2': { id: 2, default_branch: 'main' } },
+      env: { BELAY_BOT_TOKEN: 'bot', BELAY_POLICY_TOKEN: 'policy' },
+    });
+    expect(r.stderr).toMatch(/acme\/ledgerline: cannot clone the policy \(cannot clone acme\/belay-policy: .*\): skipped/);
+    expect(r.stderr).toMatch(/acme\/second: cannot clone the policy/);
+    expect(r.code, r.stderr).toBe(2);
+  });
 });
