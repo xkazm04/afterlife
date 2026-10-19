@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_TIMEOUT_MS, agentEnv, childEnv, killAll, runProc } from '../proc/proc';
+import { parseFleet } from '../fleet/load';
 import { runGates } from '../lane/verify';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-sec-'));
@@ -86,5 +87,15 @@ describe('runner abort', () => {
     await killAll();
     const r = await p;
     expect(r.code === 0).toBe(false);
+  });
+});
+
+describe('fleet values that reach git argv', () => {
+  const fleet = (base: string) => `repos:\n  - slug: r\n    path: /x\n    base: ${JSON.stringify(base)}\n    gates: [npm test]\n`;
+  it.each(['--output=/tmp/pwn', '-c core.hooksPath=/tmp', 'main\nHEAD', 'ma in'])('rejects base %j, which git would read as an option or a second argument', (base) => {
+    expect(() => parseFleet(fleet(base), 'f.yml')).toThrow(/base/);
+  });
+  it.each(['main', 'origin/main', 'release/1.2', 'v2.0.0', 'a1b2c3d', 'HEAD~1'])('accepts base %j', (base) => {
+    expect(parseFleet(fleet(base), 'f.yml')[0]?.base).toBe(base);
   });
 });

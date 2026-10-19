@@ -25,7 +25,8 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     if (seen.has(slug)) throw new Error(`${where}: duplicate slug "${slug}"`);
     seen.add(slug);
     if (typeof path !== 'string' || !path) throw new Error(`${where}: path is required`);
-    if (typeof base !== 'string' || !base) throw new Error(`${where}: base is required`);
+    // base reaches git argv (rev-parse, worktree add): a leading '-' would be read as an option.
+    if (typeof base !== 'string' || !/^[A-Za-z0-9_][A-Za-z0-9._/~^@{}-]*$/.test(base)) throw new Error(`${where}: base must be a git ref or sha`);
     if (!Array.isArray(gates) || gates.length === 0 || !gates.every((g) => typeof g === 'string' && g.trim())) {
       throw new Error(`${where}: gates must be a non-empty list of commands`);
     }
