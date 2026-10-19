@@ -27,9 +27,13 @@ export function hasRunningWave(p: Pick<LivePayload, 'repos'>): boolean {
 export function selectLive(p: LivePayload, now: number): LiveView {
   const waves = p.repos.flatMap((r) => r.waves);
   const mergeable = waves.filter((w) => !w.running && w.mergeable).length;
+  const replayable = waves
+    .filter((x) => !x.running && x.endedAt !== undefined)
+    .sort((a, b) => (b.endedAt ?? '').localeCompare(a.endedAt ?? ''))
+    .map((x) => ({ repo: x.repo, wave: x.wave }));
   const running = newest(waves.filter((w) => w.running), (w) => w.startedAt);
   const w = running ?? newest(waves.filter((x) => x.endedAt !== undefined), (x) => x.endedAt);
-  if (!w) return { phase: 'none', stale: false, lanesTotal: 0, lanesDone: 0, landed: 0, parked: 0, failed: 0, mergeable, finished: [] };
+  if (!w) return { phase: 'none', stale: false, lanesTotal: 0, lanesDone: 0, landed: 0, parked: 0, failed: 0, mergeable, finished: [], replayable: [] };
   const meta = p.meta[waveKey(w.repo, w.wave)];
   const stale = w.running && isStale(meta?.lastEventAt ?? w.startedAt, now);
   const current = w.running ? currentLane(w, meta) : undefined;
@@ -44,6 +48,7 @@ export function selectLive(p: LivePayload, now: number): LiveView {
     parked: w.counts.parked,
     failed: w.counts.failed + w.counts.timeout + w.counts.budget,
     mergeable,
+    replayable,
     finished: w.lanes.filter((l) => l.outcome).reverse().slice(0, RAIL),
   };
   if (current) {

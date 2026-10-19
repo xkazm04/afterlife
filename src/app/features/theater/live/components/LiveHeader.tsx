@@ -39,6 +39,18 @@ export function LiveHeader({ v }: { v: LiveView }) {
             <Link href="/runs">{v.mergeable} mergeable wave{v.mergeable === 1 ? '' : 's'}</Link>
           </dd>
         </div>
+        <div>
+          <dt>replay</dt>
+          <dd>
+            {v.replayable.length === 0 ? (
+              'no finished wave yet'
+            ) : (
+              <Link href="/theater?live=0" title={v.replayable.map((w) => `${w.repo} wave ${w.wave}`).join(', ')}>
+                {v.replayable.length} finished wave{v.replayable.length === 1 ? '' : 's'}
+              </Link>
+            )}
+          </dd>
+        </div>
       </dl>
     </header>
   );

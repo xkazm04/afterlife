@@ -30,7 +30,7 @@ function illustrative(): TheaterData {
 /** The page's search params the loader reads: `mr`, the MR to film first. */
 export interface TheaterParams {
   mr?: string | string[];
-  /** `1` asks for the live film (live/model/mode.ts decides; the loader ignores it). */
+  /** `1` asks for the live film, `0` for the replay (live/model/mode.ts decides; the loader ignores it). */
   live?: string | string[];
 }
 

@@ -38,6 +38,12 @@ describe('selectLive', () => {
     expect(v.finished.map((l) => l.lane)).toEqual(['b', 'a']);
   });
 
+  it('a running wave beside a finished one still lists the finished one as replayable', () => {
+    const v = selectLive(p, T);
+    expect(v.phase).toBe('running');
+    expect(v.replayable).toEqual([{ repo: 'alpha', wave: 1 }]);
+  });
+
   it('no waves at all is none', () => {
     expect(selectLive({ ...foldRuns([], 0), meta: {}, generatedAt: 0 }, T)).toMatchObject({ phase: 'none', finished: [] });
   });
@@ -70,6 +76,7 @@ describe('theaterMode: ?mr= > ?live=1 > a running wave > replay', () => {
     [{}, true, 'live'],
     [{}, false, 'replay'],
     [{ live: '0' }, false, 'replay'],
+    [{ live: '0' }, true, 'replay'],
     [{ mr: 'x', live: '1' }, false, 'live'],
   ] as const)('%j with a running wave %s plays %s', (params, running, want) => {
     expect(theaterMode(params, running)).toBe(want);

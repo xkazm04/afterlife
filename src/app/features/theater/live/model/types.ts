@@ -44,6 +44,8 @@ export interface LiveView {
   capUsd?: number;
   /** Finished waves (all repos) whose branch is mergeable. */
   mergeable: number;
+  /** Every finished wave (all repos), newest first: what the replay can still be asked for while another wave runs. */
+  replayable: { repo: string; wave: number }[];
   /** Ended lanes, newest first. */
   finished: RunLane[];
 }
