@@ -56,6 +56,16 @@ describe('envelope', () => {
     expect(checkEnvelope(p, 'dep-bump.patch', rename).within).toBe(false);
     expect(checkEnvelope(p, 'code-fix.patch', diffOf([['.gitlab-ci.yml', 1]])).within).toBe(true); // only dep-bump denies it
   });
+  it('denies a path whose name holds a line break or a line separator (git quotes it, the parser decodes it)', () => {
+    for (const name of ['a\nb.yml', 'a\rb.yml', 'a b.yml']) {
+      expect(matchesPath('.gitlab/**', `.gitlab/${name}`), JSON.stringify(name)).toBe(true);
+      expect(matchesPath('**/secrets/**', `x/secrets/${name}`), JSON.stringify(name)).toBe(true);
+    }
+    const added = 'diff --git "a/.gitlab/a\\nb.yml" "b/.gitlab/a\\nb.yml"\nnew file mode 100644\n--- /dev/null\n+++ "b/.gitlab/a\\nb.yml"\n@@ -0,0 +1 @@\n+x\n';
+    const r = checkEnvelope(p, 'dep-bump.patch', added);
+    expect(r.within).toBe(false);
+    expect(r.violations.join('; ')).toMatch(/denied path \.gitlab\/\*\*/);
+  });
   it('binds dep-bump.patch to manifests, lockfiles and test paths (allow_paths), fail-closed', () => {
     const src = checkEnvelope(p, 'dep-bump.patch', diffOf([['src/main/App.kt', 3]]));
     expect(src.within).toBe(false);

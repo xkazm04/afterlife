@@ -20,7 +20,9 @@ export function globToRegExp(pattern: string): RegExp {
     else if (c === '?') re += '[^/]';
     else re += escapeChar(c);
   }
-  return new RegExp(`^${re}$`);
+  // dotAll: `.*` from `**` must cross a line break too, or a file named ".gitlab/a<LF>b.yml" (git quotes it, parseDiff
+  // decodes it) slips past a `.gitlab/**` deny rule.
+  return new RegExp(`^${re}$`, 's');
 }
 
 export function matchesPath(pattern: string, file: string): boolean {
