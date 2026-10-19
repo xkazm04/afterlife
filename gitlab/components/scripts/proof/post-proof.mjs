@@ -3,7 +3,7 @@
 // CI job token cannot (docs.gitlab.com/ci/jobs/ci_job_token), so without BELAY_BOT_TOKEN this only reports.
 // If the engine wrote no proof at all (--code 2 and an empty file), the verdict is inconclusive and the note says so.
 import fs from 'node:fs';
-import { arg, die, fence, glab, need, plain } from '../lib/lib.mjs';
+import { arg, die, fence, glab, need, plain, ULID } from '../lib/lib.mjs';
 
 const mr = need('mr');
 const repo = process.env.CI_PROJECT_URL ?? die('CI_PROJECT_URL is not set');
@@ -27,8 +27,12 @@ if (proof) {
   const checks = Array.isArray(proof.checks) ? proof.checks : [];
   const failed = checks.filter((c) => c.ok === false).length;
   const open = checks.filter((c) => c.ok === null).length;
-  const raw = String(proof.task?.trailer ?? '');
-  const trailerLine = raw.startsWith('Belay-Task:') ? raw : `Belay-Task: ${raw}`;
+  // The class and the trailer sit outside the fence, as the poster's own text: whoever shaped the proof file (an evidence
+  // file an agent's job wrote, in evidence_mode provided) must not add a line, a fence or a mention there.
+  if (!/^[a-z][a-z0-9-]{0,63}$/.test(String(proof.class))) die(`proof has no valid class: ${plain(proof.class)}`);
+  const task = String(proof.task?.trailer ?? '').replace(/^Belay-Task:[ 	]*/, '');
+  if (!ULID.test(task)) die(`proof's task.trailer is not "Belay-Task: <ULID>": ${plain(proof.task?.trailer)}`);
+  const trailerLine = `Belay-Task: ${task}`;
   body = [
     `**Belay proof: ${verdict.toUpperCase()}** | class \`${proof.class}\` | ${checks.length} checks, ${failed} failed, ${open} undetermined | engine ${plain(proof.engine?.version ?? '?')}`,
     '',
