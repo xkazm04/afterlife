@@ -162,8 +162,31 @@ describe('derive-gate (M1 hand-run step 4, F90)', { timeout: 120_000 }, () => {
     const got = derive('key');
     expect(got.r.code, got.r.stderr).toBe(0);
     expect(fs.readFileSync(path.join(got.out, 'ledger-key'), 'utf8').trim()).toBe(KEY);
-    expect(got.r.stderr).toContain(`ledger-append.mjs --events ${path.join(got.out, 'events')} --project ${LEDGER} --branch main --key '${KEY}'`);
+    expect(got.r.stderr).toContain(`ledger-append.mjs' --events '${path.join(got.out, 'events')}' --project '${LEDGER}' --branch 'main' --key '${KEY}'`);
     noArtifactNoWrite(got.r);
+  });
+
+  it('prints an append command that runs as printed in bash: BELAY_DIR set, C:\\ paths kept, the key on the commit', () => {
+    const got = derive('printed');
+    expect(got.r.code, got.r.stderr).toBe(0);
+    const printed = /^Append them once: (.*)$/m.exec(got.r.stderr)?.[1];
+    expect(printed).toContain(`BELAY_DIR='${ROOT}'`);
+    const ledgerApi = `projects/${encodeURIComponent(LEDGER)}`;
+    const routesFile = path.join(dir, 'printed-routes.json');
+    const writesFile = path.join(dir, 'printed-writes.jsonl');
+    fs.writeFileSync(routesFile, JSON.stringify({
+      [`${ledgerApi}/repository/files/events%2F1.jsonl`]: { __http: 404, message: '404 File Not Found' },
+      [`POST ${ledgerApi}/repository/commits`]: { reply: { id: 'f'.repeat(40) } },
+    }));
+    fs.writeFileSync(writesFile, '');
+    // The operator's shell: no BELAY_DIR and no CI_PROJECT_ID of its own, so the command must carry both.
+    const r = spawnSync('bash', ['-c', printed], { cwd: dir, encoding: 'utf8', env: { PATH: process.env.PATH, SYSTEMROOT: process.env.SYSTEMROOT,
+      BELAY_GLAB: `${process.execPath}|${path.join(ROOT, 'gitlab/components/scripts/testing/fake-glab.mjs')}`, FAKE_GLAB_ROUTES: routesFile, FAKE_GLAB_WRITES: writesFile } });
+    expect(r.status, r.stderr).toBe(0);
+    const [write] = fs.readFileSync(writesFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+    expect(write.body.actions.map((a) => a.file_path)).toEqual(['events/1.jsonl']);
+    expect(write.body.commit_message.split('\n')).toContain(`Belay-Head: ${KEY}`);
+    expect(write.body.actions[0].content.trim().split('\n')).toHaveLength(3);
   });
 
   it('refuses a head the ledger already carries (exit 3, no events directory), not another head of the same MR', () => {

@@ -124,4 +124,6 @@ const events = fs.readdirSync(at('events')).sort();
 fs.writeFileSync(at('ledger-key'), `${key}
 `);
 console.error(`belay: !${iid} head ${head}: gate ${decided.decision} at tier ${decided.tier ?? '?'}. ${events.length} event(s) in ${at('events')}: ${events.join(', ')}.`);
-console.error(`Append them once: CI_PROJECT_ID=${project.id} node ${path.join(SCRIPTS, 'decide', 'ledger-append.mjs')} --events ${at('events')} --project ${ledgerProject} --branch ${ledgerBranch} --key '${key}'`);
+// Single-quoted for Git Bash, where an unquoted C:\ path loses its backslashes. ledger-append runs the engine, so it needs BELAY_DIR.
+const q = (s) => `'${String(s).replace(/'/g, "'\\''")}'`;
+console.error(`Append them once: BELAY_DIR=${q(process.env.BELAY_DIR)} CI_PROJECT_ID=${project.id} node ${q(path.join(SCRIPTS, 'decide', 'ledger-append.mjs'))} --events ${q(at('events'))} --project ${q(ledgerProject)} --branch ${q(ledgerBranch)} --key '${key}'`);
