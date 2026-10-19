@@ -8,19 +8,43 @@ import { readFile } from '../lib/repo-write.mjs';
 
 const SHA = /^[0-9a-f]{40}$/;
 
-/** The MR's diff as one unified diff, from the compare API; a truncated diff is refused. sweep.mjs's diffOf, verbatim. */
+/** The C escapes git writes in a quoted path; engine/parse/diff.ts undoes them, and an octal escape for any other control byte. */
+const C_ESCAPES = { '\x07': 'a', '\b': 'b', '\t': 't', '\n': 'n', '\v': 'v', '\f': 'f', '\r': 'r', '"': '"', '\\': '\\' };
+const special = (c) => c === '"' || c === '\\' || c.charCodeAt(0) < 0x20 || c.charCodeAt(0) === 0x7f;
+
+/**
+ * A path as git writes it in a diff: quoted, with C escapes, when it holds a quote, a backslash or a control character. Left
+ * bare, a line break in a file name began a header line of its own: a new file `infra/x<LF>+++ b/ok.txt` read as `ok.txt`,
+ * outside every deny_paths rule (F127).
+ */
+export function gitPath(prefix, p) {
+  const s = `${prefix}${p}`;
+  if (![...s].some(special)) return s;
+  const esc = (c) => (!special(c) ? c : C_ESCAPES[c] ? `\\${C_ESCAPES[c]}` : `\\${c.charCodeAt(0).toString(8).padStart(3, '0')}`);
+  return `"${[...s].map(esc).join('')}"`;
+}
+
+/** The compare API's `diffs` as one unified diff, each path as git writes it. A truncated file is refused. */
+export function unifiedDiff(diffs) {
+  const parts = [];
+  for (const d of diffs) {
+    if (d.too_large || d.collapsed) throw new Error(`the diff of ${d.new_path} is too large for GitLab to return: incomplete`);
+    const a = d.new_file ? '/dev/null' : gitPath('a/', d.old_path);
+    const b = d.deleted_file ? '/dev/null' : gitPath('b/', d.new_path);
+    parts.push(`diff --git ${gitPath('a/', d.old_path)} ${gitPath('b/', d.new_path)}\n${d.new_file ? 'new file mode 100644\n' : ''}${d.deleted_file ? 'deleted file mode 100644\n' : ''}--- ${a}\n+++ ${b}\n${String(d.diff ?? '').replace(/\n?$/, '\n')}`);
+  }
+  return parts.join('');
+}
+
+/**
+ * The MR's diff as one unified diff, from the compare API; a truncated diff is refused. sweep.mjs's diffOf, except that
+ * paths are quoted as git quotes them (F127; sweep.mjs, outside this folder, still writes them bare).
+ */
 export function diffOf(projectId, base, head) {
   const c = api(`projects/${projectId}/repository/compare?from=${base}&to=${head}&straight=false`);
   if (!c || !Array.isArray(c.diffs)) throw new Error('the compare API gave no diffs');
   if (c.compare_timeout) throw new Error('GitLab timed out comparing the MR: its diff is incomplete');
-  const parts = [];
-  for (const d of c.diffs) {
-    if (d.too_large || d.collapsed) throw new Error(`the diff of ${d.new_path} is too large for GitLab to return: incomplete`);
-    const a = d.new_file ? '/dev/null' : `a/${d.old_path}`;
-    const b = d.deleted_file ? '/dev/null' : `b/${d.new_path}`;
-    parts.push(`diff --git a/${d.old_path} b/${d.new_path}\n${d.new_file ? 'new file mode 100644\n' : ''}${d.deleted_file ? 'deleted file mode 100644\n' : ''}--- ${a}\n+++ ${b}\n${String(d.diff ?? '').replace(/\n?$/, '\n')}`);
-  }
-  return { text: parts.join(''), changed: c.diffs.flatMap((d) => [d.old_path, d.new_path]) };
+  return { text: unifiedDiff(c.diffs), changed: c.diffs.flatMap((d) => [d.old_path, d.new_path]) };
 }
 
 /**
