@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
-import { agentEnv, childEnv } from '../proc/proc';
+import { agentEnv, childEnv, runProc } from '../proc/proc';
 import { runGates } from '../lane/verify';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-sec-'));
@@ -52,5 +52,16 @@ describe('child environment', () => {
     plant(planted);
     fs.writeFileSync(path.join(tmp, 'probe.mjs'), "process.exit(process.env.GITLAB_TOKEN || process.env.ANTHROPIC_API_KEY ? 1 : 0);\n");
     expect(await runGates(['node probe.mjs'], tmp, 20_000)).toEqual({ ok: true });
+  });
+});
+
+describe('child output', () => {
+  it('keeps only the tail once a child prints past the cap, so a flooding gate cannot exhaust the runner', async () => {
+    const script = "process.stdout.write('x'.repeat(300000)); process.stdout.write('TAIL');";
+    const r = await runProc(process.execPath, ['-e', script], { maxOutput: 100_000 });
+    expect(r.code).toBe(0);
+    expect(r.stdout.length).toBeLessThanOrEqual(100_000);
+    expect(r.stdout.endsWith('TAIL')).toBe(true);
+    expect(r.truncated).toBe(true);
   });
 });

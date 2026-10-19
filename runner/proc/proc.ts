@@ -8,6 +8,8 @@ export interface ProcResult {
   stdout: string;
   stderr: string;
   timedOut: boolean;
+  /** stdout or stderr passed maxOutput and only its tail was kept. */
+  truncated: boolean;
 }
 
 export interface ProcOptions {
@@ -19,7 +21,12 @@ export interface ProcOptions {
   shell?: boolean;
   /** Default childEnv(): no secrets. Only claude is spawned with agentEnv(). */
   env?: NodeJS.ProcessEnv;
+  /** Characters kept per stream (the tail); default MAX_OUTPUT. A child cannot grow the runner's heap past it. */
+  maxOutput?: number;
 }
+
+/** 32 MiB: a long claude stream-json fits, a gate printing in a loop does not take the runner down. */
+export const MAX_OUTPUT = 32 * 1024 * 1024;
 
 /** taskkill /T /F on Windows (the only thing that reaches grandchildren), the process group elsewhere. */
 export function killTree(pid: number | undefined): Promise<void> {
@@ -71,13 +78,21 @@ export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Pr
     let stdout = '';
     let stderr = '';
     let timedOut = false;
+    let truncated = false;
+    const max = opts.maxOutput ?? MAX_OUTPUT;
+    const keep = (acc: string, d: Buffer): string => {
+      const next = acc + d.toString('utf8');
+      if (next.length <= max) return next;
+      truncated = true;
+      return next.slice(-max);
+    };
     let settled = false;
     let timer: NodeJS.Timeout | undefined;
     const done = (code: number | null) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      resolve({ code, stdout, stderr, timedOut });
+      resolve({ code, stdout, stderr, timedOut, truncated });
     };
     const child = spawn(cmd, args, {
       cwd: opts.cwd,
@@ -93,8 +108,8 @@ export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Pr
         void killTree(child.pid).then(() => done(null));
       }, opts.timeoutMs);
     }
-    child.stdout.on('data', (d: Buffer) => (stdout += d.toString('utf8')));
-    child.stderr.on('data', (d: Buffer) => (stderr += d.toString('utf8')));
+    child.stdout.on('data', (d: Buffer) => (stdout = keep(stdout, d)));
+    child.stderr.on('data', (d: Buffer) => (stderr = keep(stderr, d)));
     child.on('error', (e) => {
       stderr += String(e);
       done(null);
