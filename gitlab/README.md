@@ -8,7 +8,7 @@ header names the page for each construct) and tested against a fake `glab` and t
 |---|---|---|
 | [`flows/patcher.yml`](flows/README.md) | Custom flow: exploit test, then patch, then an MR with claims (T1) | M1, 9 Oct |
 | `flows/guardrail.yml` | Custom flow: cited-diff review of agent MRs, blocks with a quoted hunk (T4) | 12 Oct |
-| `flows/medic.yml`, `flows/qa.yml`, `flows/cra.yml`, `flows/gardener.yml` | T5, T7, T2, T8 | 15-20 Oct |
+| `flows/medic.yml`, `flows/qa.yml`, `flows/cra.yml`, `flows/gardener.yml` | T5, T7, T2, T8. T7 and T8 were cut on 19 Oct 2026 (no green loop), not enabled | 15-20 Oct |
 | `flows/schemas/*.json` | JSON Schemas for what the flows write (checked in CI, since custom flows cannot enforce one) | with each flow |
 | [`components/`](components/README.md) | the CI/CD Catalog project `belay-pack`: `templates/<name>/template.yml` and the Node glue in `scripts/` | M1 to M2 |
 | `components/templates/proof-engine/` | the model-free re-derivation of every Proof Block, report-only in the target | M1 |

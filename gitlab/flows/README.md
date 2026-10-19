@@ -5,14 +5,16 @@ A flow's agents write **claims and drafts**. A verdict is only ever written by a
 
 ## The six
 
+Cut on 19 Oct 2026: `qa.yml` (T7) and `gardener.yml` (T8). The checkpoint failed: no green loop. Cut means not enabled, not published to the AI Catalog, not filmed. The files stay as design records.
+
 | File | Track | Trigger (chosen when enabling the flow) | What it writes | Tier ceiling, proof |
 |---|---|---|---|---|
 | `patcher.yml` | T1 | Pipeline events, status Passed, on the scheduled security-scan pipeline of the default branch; or mention/assign on a finding issue | a branch `belay/<task>` and an MR whose description has the `Belay-Task`, `Belay-Class`, `Belay-Finding` trailers and a `belay-claims` block | dep-bump hands-off, code-fix supervised; `exploit-test` |
 | `guardrail.yml` | T4 | Merge request, action Created (people's MRs); for agent MRs started by belay-apply's sweep or by a person assigning the reviewer | an MR note with a `belay-guardrail` block (`head_sha`, findings with quoted hunks) | blocks at every tier, never merges; `cited-diff` |
 | `medic.yml` | T5 | Pipeline events, status Failed | MR note or issue with a `belay-medic` block; for a flake, a tracking issue and a quarantine MR | retry hands-off, quarantine supervised; `rerun-stats` |
-| `qa.yml` | T7 | mention, or a person's assign (no dispatch from belay-apply yet) | MR note with a `belay-qa` block: bugs with replayable steps | files only; `repro` (engine stub today) |
+| `qa.yml` (cut 19 Oct 2026) | T7 | mention, or a person's assign (no dispatch from belay-apply yet) | MR note with a `belay-qa` block: bugs with replayable steps | files only; `repro` (engine stub today) |
 | `cra.yml` | T2 | Work item, actions Created and Status changed (clock items) | work item note with a `belay-cra` block: statements with evidence links, `awaiting_signoff: true` | drafts hands-off, **submit is human only**; `linked-evidence` |
-| `gardener.yml` | T8 | mention or assign by a person on an upgrade MR (no dispatch from belay-apply yet, so a bot's MR waits for a person) | its own MR (trailers, `belay-claims` block with quoted changelog claims) | supervised; `bench-delta` (engine stub today) |
+| `gardener.yml` (cut 19 Oct 2026) | T8 | mention or assign by a person on an upgrade MR (no dispatch from belay-apply yet, so a bot's MR waits for a person) | its own MR (trailers, `belay-claims` block with quoted changelog claims) | supervised; `bench-delta` (engine stub today) |
 
 Flow results are ordinary GitLab objects, so Belay reads them by polling. No flow has a tool that merges, approves, labels, or
 edits `tier-state.yml`; the toolsets are listed in each file and checked against the documented tool names.
