@@ -199,6 +199,15 @@ rely on were not seen live. Most are the shapes belay-apply's sweep reads (a pip
 `repository/compare`, raw files), and belay-apply has not run live either; `jobs/:id` naming its `pipeline.id` only
 `check-proof` reads.
 
+Checked on 2026-10-19: every `node` command above against the script it names (each exists; the flags are the ones it
+parses; exit 10, 1, 2 and 3 as stated) and every `file:line` citation against the code, and the `glab` flags again against
+`glab 1.120.0 --help`. No command talked to a host: steps 1, 2 and 4 ran against the fake `glab` and the real engine
+(`hand/*.test.mjs`, `proof/post-proof.test.mjs`), including step 4's printed append command run as printed in Git Bash, and
+the `.env.local` preconditions against `src/server/poller/config.ts` (`poller/__tests__/config.test.ts`). Fixed: a failed
+notes read in `derive-gate` was exit 3, not 2; its printed append command lacked `BELAY_DIR` and lost its paths'
+backslashes; `post-proof` posted an inconclusive note for a missing proof file; live mode silently watched the default
+group, or believed no proof note, when a variable was missing; eight citations had drifted.
+
 ### F90: closed
 
 F90 (Medium, scan 4cb6213a): step 4 appended the `.belay/events` of the target's tier-gate job, made in the agent's own MR
