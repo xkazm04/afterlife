@@ -27,11 +27,20 @@ const draw = (p: LivePayload, now: number, present = false) => renderToStaticMar
 
 describe('the replay link names the wave it opens', () => {
   const p = payload(WAVE_1, WAVE_2_RUNNING);
-  it('the header links each finished wave by repo and wave, not a bare ?live=0', () => {
+  it('the header links each finished wave by repo and wave, and keeps the bare ledger film link beside them', () => {
     const out = draw(p, T);
     expect(out).toContain('href="/theater?live=0&amp;repo=alpha&amp;wave=1"');
     expect(out).toContain('alpha wave 1');
-    expect(out).not.toContain('href="/theater?live=0"');
+    expect(out).toContain('href="/theater?live=0"');
+    expect(out).toContain('Replay film');
+  });
+
+  it('the ledger film link is there when no wave has finished', () => {
+    const v = selectLive(payload(WAVE_2_RUNNING), T);
+    expect(v.replayable).toEqual([]);
+    const out = renderToStaticMarkup(<LiveStage v={v} present={false} />);
+    expect(out).toContain('href="/theater?live=0"');
+    expect(out).toContain('no finished wave yet');
   });
 
   it('the link resolves to a view of that finished wave while another wave runs', () => {

@@ -42,6 +42,10 @@ export function LiveHeader({ v }: { v: LiveView }) {
         <div>
           <dt>replay</dt>
           <dd>
+            <Link href="/theater?live=0" title="Open the ledger replay film">
+              Replay film
+            </Link>
+            {' · '}
             {v.replayable.length === 0 ? (
               'no finished wave yet'
             ) : (
