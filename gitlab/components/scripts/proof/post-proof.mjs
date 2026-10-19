@@ -8,10 +8,14 @@ import { arg, die, fence, glab, need, plain } from '../lib/lib.mjs';
 const mr = need('mr');
 const repo = process.env.CI_PROJECT_URL ?? die('CI_PROJECT_URL is not set');
 const verdicts = ['pass', 'fail', 'inconclusive'];
+// An empty file is the engine's "no proof"; a missing one is a wrong path, or the M1 hand-run's step 1 refusing (it removes
+// its --out): neither may become an inconclusive note.
+const proofFile = need('proof');
+if (!fs.existsSync(proofFile)) die(`no proof file at ${proofFile}: nothing posted`);
 
 let proof = null;
 try {
-  proof = JSON.parse(fs.readFileSync(need('proof'), 'utf8'));
+  proof = JSON.parse(fs.readFileSync(proofFile, 'utf8'));
 } catch {
   proof = null;
 }
