@@ -24,7 +24,17 @@ export function hasRunningWave(p: Pick<LivePayload, 'repos'>): boolean {
   return p.repos.some((r) => r.waves.some((w) => w.running));
 }
 
-export function selectLive(p: LivePayload, now: number): LiveView {
+/** A finished wave the URL names (`?repo=&wave=`): the view then shows it, not the running or newest one. */
+export interface WaveFocus {
+  repo: string;
+  wave: number;
+}
+
+export function hasFinishedWave(p: Pick<LivePayload, 'repos'>, f: WaveFocus): boolean {
+  return p.repos.some((r) => r.waves.some((w) => w.repo === f.repo && w.wave === f.wave && !w.running && w.endedAt !== undefined));
+}
+
+export function selectLive(p: LivePayload, now: number, focus?: WaveFocus): LiveView {
   const waves = p.repos.flatMap((r) => r.waves);
   const mergeable = waves.filter((w) => !w.running && w.mergeable).length;
   const replayable = waves
@@ -32,7 +42,8 @@ export function selectLive(p: LivePayload, now: number): LiveView {
     .sort((a, b) => (b.endedAt ?? '').localeCompare(a.endedAt ?? ''))
     .map((x) => ({ repo: x.repo, wave: x.wave }));
   const running = newest(waves.filter((w) => w.running), (w) => w.startedAt);
-  const w = running ?? newest(waves.filter((x) => x.endedAt !== undefined), (x) => x.endedAt);
+  const focused = focus && hasFinishedWave(p, focus) ? waves.find((x) => x.repo === focus.repo && x.wave === focus.wave) : undefined;
+  const w = focused ?? running ?? newest(waves.filter((x) => x.endedAt !== undefined), (x) => x.endedAt);
   if (!w) return { phase: 'none', stale: false, lanesTotal: 0, lanesDone: 0, landed: 0, parked: 0, failed: 0, mergeable, finished: [], replayable: [] };
   const meta = p.meta[waveKey(w.repo, w.wave)];
   const stale = w.running && isStale(meta?.lastEventAt ?? w.startedAt, now);

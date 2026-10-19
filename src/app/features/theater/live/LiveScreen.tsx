@@ -7,7 +7,7 @@ import { usePresent } from '../hooks/usePresent';
 import outer from '../TheaterScreen.module.css';
 import { LiveStage } from './components/LiveStage';
 import { useLivePayload } from './hooks/useLivePayload';
-import { selectLive } from './model/select';
+import { selectLive, type WaveFocus } from './model/select';
 import type { LivePayload } from './model/types';
 
 /**
@@ -15,9 +15,9 @@ import type { LivePayload } from './model/types';
  * going well, needs me), the running lane and a rail of finished lanes. No transport: nothing to seek in a live run.
  * Present mode keeps working (F, Esc). A quiet runner freezes the frame and says STALE; it never invents motion.
  */
-export function LiveScreen({ initial }: { initial: LivePayload }) {
+export function LiveScreen({ initial, focus }: { initial: LivePayload; focus?: WaveFocus }) {
   const { payload, now } = useLivePayload(initial);
-  const v = useMemo(() => selectLive(payload, now), [payload, now]);
+  const v = useMemo(() => selectLive(payload, now, focus), [payload, now, focus]);
   const present = usePresent();
   useHotkeys([
     { key: 'f', once: true, handler: present.toggle },

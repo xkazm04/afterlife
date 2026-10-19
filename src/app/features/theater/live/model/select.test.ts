@@ -6,7 +6,7 @@ import { foldRuns, foldWave } from '@/lib/runs/fold';
 import { parseRunLine } from '@/lib/runs/parse';
 import type { RunEvent } from '@/schemas/run/run';
 import { waveMetaOf } from './meta';
-import { theaterMode } from './mode';
+import { theaterMode, waveFocusOf } from './mode';
 import { hasRunningWave, isStale, selectLive, STALE_MS } from './select';
 import { waveKey, type LivePayload } from './types';
 
@@ -78,7 +78,20 @@ describe('theaterMode: ?mr= > ?live=1 > a running wave > replay', () => {
     [{ live: '0' }, false, 'replay'],
     [{ live: '0' }, true, 'replay'],
     [{ mr: 'x', live: '1' }, false, 'live'],
+    [{ live: '0', repo: 'alpha', wave: '1' }, true, 'wave'],
+    [{ mr: '41', live: '0', repo: 'alpha', wave: '1' }, true, 'replay'],
+    [{ live: '0', repo: 'alpha', wave: 'x' }, true, 'replay'],
+    [{ live: '0', repo: 'alpha' }, false, 'replay'],
   ] as const)('%j with a running wave %s plays %s', (params, running, want) => {
     expect(theaterMode(params, running)).toBe(want);
+  });
+});
+
+describe('waveFocusOf', () => {
+  it('needs a repo and a digits-only wave', () => {
+    expect(waveFocusOf({ repo: 'alpha', wave: '2' })).toEqual({ repo: 'alpha', wave: 2 });
+    expect(waveFocusOf({ repo: 'alpha', wave: '2x' })).toBeUndefined();
+    expect(waveFocusOf({ wave: '2' })).toBeUndefined();
+    expect(waveFocusOf({ live: '0' })).toBeUndefined();
   });
 });

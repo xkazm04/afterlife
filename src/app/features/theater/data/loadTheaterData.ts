@@ -32,6 +32,9 @@ export interface TheaterParams {
   mr?: string | string[];
   /** `1` asks for the live film, `0` for the replay (live/model/mode.ts decides; the loader ignores it). */
   live?: string | string[];
+  /** `repo` and `wave` name one finished wave for the live screen (live/model/mode.ts); the loader ignores them. */
+  repo?: string | string[];
+  wave?: string | string[];
 }
 
 /** `?mr=N` (digits only, the first if repeated) as the film's focus; anything else is no focus. */

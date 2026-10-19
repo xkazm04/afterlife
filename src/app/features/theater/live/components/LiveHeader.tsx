@@ -45,9 +45,17 @@ export function LiveHeader({ v }: { v: LiveView }) {
             {v.replayable.length === 0 ? (
               'no finished wave yet'
             ) : (
-              <Link href="/theater?live=0" title={v.replayable.map((w) => `${w.repo} wave ${w.wave}`).join(', ')}>
-                {v.replayable.length} finished wave{v.replayable.length === 1 ? '' : 's'}
-              </Link>
+              <>
+                {v.replayable.length} finished wave{v.replayable.length === 1 ? '' : 's'}:{' '}
+                {v.replayable.map((w, i) => (
+                  <span key={`${w.repo}/${w.wave}`}>
+                    {i > 0 ? ', ' : ''}
+                    <Link href={`/theater?live=0&repo=${encodeURIComponent(w.repo)}&wave=${w.wave}`} title={`Show ${w.repo} wave ${w.wave} as it ended`}>
+                      {w.repo} wave {w.wave}
+                    </Link>
+                  </span>
+                ))}
+              </>
             )}
           </dd>
         </div>
