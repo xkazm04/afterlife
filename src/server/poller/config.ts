@@ -32,8 +32,33 @@ export interface PollerConfig {
 
 const list = (v: string | undefined): string[] => (v ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 const HOUR = 3_600_000;
+const NAME = /^[A-Za-z0-9_.-]+$/;
+const GROUP = /^(\d+|[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)*)$/;
 
+/**
+ * Live mode on a real group (BELAY_MODE=live, BELAY_GITLAB not fake) has no defaults to fall back on: the default group is
+ * not the operator's, and with no BELAY_PROOF_AUTHORS no hand-posted proof note (M1) is ever believed. What is missing or
+ * malformed, each by its variable's name; [] when nothing is, or in any other mode.
+ */
+export function liveConfigProblems(env: Record<string, string | undefined>): string[] {
+  if (env.BELAY_MODE !== 'live' || env.BELAY_GITLAB === 'fake') return [];
+  const problems: string[] = [];
+  const group = env.BELAY_GROUP_ID?.trim();
+  if (!group) problems.push('BELAY_GROUP_ID is not set (the group to watch; there is no default in live mode)');
+  else if (!GROUP.test(group)) problems.push(`BELAY_GROUP_ID is not a group id or path: ${JSON.stringify(group)}`);
+  const project = env.BELAY_PROJECT?.trim();
+  if (!project) problems.push('BELAY_PROJECT is not set (the target project\'s path, its last segment)');
+  else if (!NAME.test(project)) problems.push(`BELAY_PROJECT is not a project path (its last segment, no group): ${JSON.stringify(project)}`);
+  const authors = list(env.BELAY_PROOF_AUTHORS);
+  if (!authors.length) problems.push('BELAY_PROOF_AUTHORS is not set (the usernames whose belay-proof notes count, the operator\'s in M1)');
+  else if (!authors.every((a) => NAME.test(a))) problems.push(`BELAY_PROOF_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(env.BELAY_PROOF_AUTHORS)}`);
+  return problems;
+}
+
+/** Throws, naming every missing or malformed variable, in live mode on a real group (`liveConfigProblems`). */
 export function readPollerConfig(group: string | number, env: Record<string, string | undefined> = process.env): PollerConfig {
+  const problems = liveConfigProblems(env);
+  if (problems.length) throw new Error(`BELAY_MODE=live: ${problems.join('; ')}`);
   const policyProject = env.BELAY_POLICY_PROJECT || 'belay-policy';
   const ledgerProject = env.BELAY_LEDGER_PROJECT || 'belay-ledger';
   const hours = Number(env.BELAY_TASK_HOURS);
