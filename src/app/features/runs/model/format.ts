@@ -26,5 +26,3 @@ export function outcomeWords(c: Record<string, number>, open: number): string {
   return parts.length ? parts.join(', ') : DASH;
 }
 
-/** The commands a person runs to take a mergeable wave; text only, nothing here runs them. */
-export const mergeCommands = (repo: string, branch: string): string[] => [`git -C ${repo} merge --ff-only ${branch}`, `git -C ${repo} push`];

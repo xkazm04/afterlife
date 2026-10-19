@@ -11,6 +11,8 @@ import { FleetSidebar } from './components/sidebar/FleetSidebar';
 import { FleetStatus } from './components/FleetStatus';
 import { FleetTable } from './components/table/FleetTable';
 import { FleetToolbar } from './components/toolbar/FleetToolbar';
+import { RunnerFleet } from './components/runner/RunnerFleet';
+import runnerStyles from './components/runner/runner.module.css';
 import { useFleetChanges } from './hooks/changes/useFleetChanges';
 import { useEvent } from './hooks/useEvent';
 import { useFleetKeys } from './hooks/useFleetKeys';
@@ -26,14 +28,15 @@ import { menuFilterCount, sourceLabel } from './model/list/filtering';
 import { sortLabel } from './model/list/sorting';
 import type { FleetListState } from './model/list/urlState';
 import type { FleetData, FleetMeta, FleetSource, Source } from './model/types';
+import type { RunnerDesk } from '@/lib/runs/desk/types';
 
 /**
  * Fleet: every project as one row, by tier counts, by action class or by stage. Open a row (click its name, Enter) for the project's page,
  * right-click for actions, press a tier header to rank by it. `source` says which data source drew it and carries the
  * deep project's recent events. Nothing here writes, but the viewer's last look (model/changes; `baseline` replaces the
- * stored one, for tests).
+ * stored one, for tests). `runner`, when given, is the cycle runner's strip above the table (real local repos and runs).
  */
-export function FleetScreen({ data, source, start, baseline }: { data: FleetData; source: FleetSource; start?: FleetListState; baseline?: Baseline | null }) {
+export function FleetScreen({ data, source, start, baseline, runner }: { data: FleetData; source: FleetSource; start?: FleetListState; baseline?: Baseline | null; runner?: RunnerDesk }) {
   const { status } = useToast();
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -110,6 +113,27 @@ export function FleetScreen({ data, source, start, baseline }: { data: FleetData
     if (list.filters.source === 'changed') pickSource('all');
   };
 
+  const table = (
+    <FleetTable
+      view={list.view}
+      narrow={narrow}
+      sort={list.sort}
+      onSort={list.toggleSort}
+      meta={meta}
+      blocks={list.blocks}
+      visible={list.visible}
+      grouped={list.grouped}
+      collapsed={list.collapsed}
+      selected={sel}
+      menuing={menus.isOpen}
+      tableRef={tableRef}
+      onKeyDown={onKeyDown}
+      handlers={handlers}
+      marks={changes.marks}
+      fleetEmpty={proj.projects.length === 0}
+    />
+  );
+
   return (
     <Window
       title="Belay"
@@ -145,24 +169,14 @@ export function FleetScreen({ data, source, start, baseline }: { data: FleetData
       help={<FleetLegend tiers={data.tiers} />}
       helpTitle="Legend"
     >
-      <FleetTable
-        view={list.view}
-        narrow={narrow}
-        sort={list.sort}
-        onSort={list.toggleSort}
-        meta={meta}
-        blocks={list.blocks}
-        visible={list.visible}
-        grouped={list.grouped}
-        collapsed={list.collapsed}
-        selected={sel}
-        menuing={menus.isOpen}
-        tableRef={tableRef}
-        onKeyDown={onKeyDown}
-        handlers={handlers}
-        marks={changes.marks}
-        fleetEmpty={proj.projects.length === 0}
-      />
+      {runner ? (
+        <div className={runnerStyles.stack}>
+          <RunnerFleet desk={runner} />
+          <div className={runnerStyles.tableBox}>{table}</div>
+        </div>
+      ) : (
+        table
+      )}
       {menus.node}
       {pop.popover}
     </Window>

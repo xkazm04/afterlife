@@ -15,6 +15,7 @@ and live mode alike, so it is not part of the `DataSource`.
 - `RunsScreen.tsx`: header totals (waves, lanes, landed, tokens, spent, the skipped-lines badge when > 0), then one
   `OutlineTable`: repo groups, wave rows (state chip running / mergeable / not mergeable, branch, outcomes, cost, prompt
   version), and a wave's lanes under it on Enter or double-click. Select a mergeable wave and `MergePanel` shows the
-  commands the person runs: `git -C <repo> merge --ff-only belay/wave-<n>` then `git -C <repo> push`. Text only; nothing
-  here merges, pushes or writes. `<repo>` is the fleet slug as the events carry it, not a path.
+  commands the person runs, from the desk's merge decisions (`readDesk()`): `git -C <path> switch <base>`, `merge --ff-only
+  belay/wave-<n>`, `push`, with `<path>` and `<base>` from `.belay/fleet.yml` (the slug only when the repo is not listed). A
+  mergeable wave git says is in its base already reads "nothing to merge". Text only; nothing here merges, pushes or writes.
 - `components/RunsEmpty.tsx`: no runs yet names `belay run --repo <slug>` and `.belay/runs/`.

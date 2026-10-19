@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { foldRuns, foldWave } from './fold';
 import { WAVE_1, WAVE_2_RUNNING } from './fixture';
-import { DASH, mergeCommands, outcomeWords, tokens, usd, wall } from '@/app/features/runs/model/format';
+import { DASH, outcomeWords, tokens, usd, wall } from '@/app/features/runs/model/format';
 import { parseRunLine } from './parse';
 import type { RunEvent } from '@/schemas/run/run';
 
@@ -68,10 +68,9 @@ describe('foldRuns', () => {
 });
 
 describe('words', () => {
-  it('format figures and the merge commands', () => {
+  it('format figures', () => {
     expect(tokens(1234)).toBe('1.2k');
     expect(wall(75)).toBe('1m 15s');
     expect(outcomeWords({ landed: 2, parked: 0 }, 1)).toBe('2 landed, 1 open');
-    expect(mergeCommands('alpha', 'belay/wave-1')).toEqual(['git -C alpha merge --ff-only belay/wave-1', 'git -C alpha push']);
   });
 });

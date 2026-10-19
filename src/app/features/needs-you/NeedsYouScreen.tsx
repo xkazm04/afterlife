@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { Window } from '@/components/shell/Window';
+import type { RunnerNeed } from '@/lib/runs/desk/types';
+import { RunnerNeeds } from './components/runner/RunnerNeeds';
 import { plural } from '@/lib/format/plural';
 import { LEDGER_READ_AT, PROJECT_REPO } from './data/constants';
 import type { NeedsYouDemo } from './data/types';
@@ -26,7 +28,7 @@ import styles from './NeedsYouScreen.module.css';
  * Needs you: every decision that waits for a person, and nothing else. The CRA clock is the loudest thing on the
  * screen; every write is staged in the outbox first, with its exact command and diff, and runs only on Run.
  */
-export function NeedsYouScreen({ demo }: { demo: NeedsYouDemo }) {
+export function NeedsYouScreen({ demo, runner = [] }: { demo: NeedsYouDemo; runner?: readonly RunnerNeed[] }) {
   const { s, dispatch: dispatchRaw } = useNeedsStore();
   const router = useRouter();
   const tableRef = useRef<HTMLDivElement>(null);
@@ -59,6 +61,7 @@ export function NeedsYouScreen({ demo }: { demo: NeedsYouDemo }) {
     >
       <ClockProvider>
         <div className={styles.content}>
+          <RunnerNeeds needs={runner} />
           <CraBand s={s} linksResolved={demo.signoff.linksResolved} dispatch={dispatch} />
           <div className={styles.tw}>
             <DecisionsTable

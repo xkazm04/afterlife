@@ -1,0 +1,44 @@
+/* The cycle runner's decisions: a strip of cards, on the desk above the CRA band and in the live and empty pages. */
+.strip {
+  flex: none;
+  max-height: 40%;
+  overflow: auto;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--sep);
+}
+.title {
+  margin: 0 0 6px;
+  font-size: var(--t-head);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  font-size: var(--t-body);
+}
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dim {
+  color: var(--text-3);
+  font-weight: 400;
+  font-size: var(--t-small);
+}
+.does {
+  color: var(--text-2);
+  font-size: var(--t-small);
+}

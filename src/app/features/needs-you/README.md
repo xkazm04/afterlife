@@ -42,6 +42,10 @@ Adding a DOM environment is a dependency decision that has not been taken.
   ask-when-in-view, confirm-by-previewId, answer-only-what-the-response-says as the policy MRs. The probe (g4) and a gap with no
   proposal files are not sent and say why. The files are Maturity's proposal data, not copied here. Nothing moves a rung.
 - `components/inspector/` one view per selection; "The click" lists what a button will and will not do.
+- `components/runner/` the cycle runner's decisions (`RunnerNeeds`), on the desk above the CRA band and in the live and
+  empty pages: a mergeable wave not yet in its base (the exact `git -C <path> switch / merge --ff-only / push`, from
+  `.belay/fleet.yml`'s path) and the lanes its repo's newest wave parked. Read by `readDesk()` (`src/server/runs/`, folded by
+  `src/lib/runs/desk/`), real local data in demo and live alike. Text only: Belay merges and pushes nothing.
 - `components/chrome/` toolbar, sidebar filters, legend. `components/shared/` marks used by the above.
 - `hooks/` reducer + notices, right-click menus, keyboard map, 1 s clock tick.
 

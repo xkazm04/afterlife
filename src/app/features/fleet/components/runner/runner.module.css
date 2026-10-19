@@ -1,0 +1,67 @@
+/* Fleet's content pane with the runner strip: the strip on top, the trust table filling what is left (it fills its
+   positioned parent). */
+.stack {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.tableBox {
+  position: relative;
+  flex: 1;
+  min-height: calc(120px * var(--ui-scale));
+}
+.strip {
+  flex: none;
+  max-height: 45%;
+  overflow: auto;
+  border-bottom: 1px solid var(--sep);
+  font-size: var(--t-small);
+}
+.sum {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 6px 16px;
+  cursor: pointer;
+  color: var(--text-2);
+}
+.sum b {
+  color: var(--text-1);
+}
+.needs {
+  color: var(--needs-you);
+  font-weight: 650;
+}
+.dim {
+  color: var(--text-3);
+}
+.note {
+  margin: 0;
+  padding: 0 16px 6px;
+  color: var(--text-2);
+}
+.table {
+  width: calc(100% - 32px);
+  margin: 0 16px 8px;
+  border-collapse: collapse;
+}
+.table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-3);
+}
+.table th,
+.table td {
+  height: var(--row-h);
+  padding: 0 10px 0 0;
+  white-space: nowrap;
+}
+.path {
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--mono, monospace);
+  color: var(--text-2);
+}

@@ -4,6 +4,8 @@ import type { NeedsKind, NeedsYouItem } from '@/lib/demo';
 import { plural } from '@/lib/format/plural';
 import { Chip } from '@/components/status/chip/Chip';
 import { LiveAct } from './components/live/LiveAct';
+import { RunnerNeeds } from './components/runner/RunnerNeeds';
+import type { RunnerNeed } from '@/lib/runs/desk/types';
 import type { LiveEvidence } from './model/evidence/evidence';
 import { useLiveActs, type LiveActs } from './hooks/useLiveActs';
 import empty from './NeedsYouEmpty.module.css';
@@ -24,6 +26,8 @@ export interface NeedsYouLiveProps {
   project: string;
   /** Each promotion's and re-admit's class as the snapshot holds it now, by item id. */
   evidence: Readonly<Record<string, LiveEvidence>>;
+  /** The cycle runner's decisions (real local data), drawn above the group's. */
+  runner?: readonly RunnerNeed[];
 }
 
 /**
@@ -32,16 +36,17 @@ export interface NeedsYouLiveProps {
  * re-admit has one action, a policy MR through the server actions, beside its class as it is now (closed when the class
  * moved since the proposal); the rest are read-only and say where to act.
  */
-export function NeedsYouLive({ items, seeded, project, evidence }: NeedsYouLiveProps) {
-  return <NeedsYouLiveView items={items} seeded={seeded} evidence={evidence} acts={useLiveActs(items, project, evidence)} />;
+export function NeedsYouLive({ items, seeded, project, evidence, runner }: NeedsYouLiveProps) {
+  return <NeedsYouLiveView items={items} seeded={seeded} evidence={evidence} runner={runner} acts={useLiveActs(items, project, evidence)} />;
 }
 
 /** The list for a given state of the acts (split from the hook so the screen can be rendered in a test). */
-export function NeedsYouLiveView({ items, seeded, acts, evidence = {} }: {
+export function NeedsYouLiveView({ items, seeded, acts, evidence = {}, runner = [] }: {
   items: readonly NeedsYouItem[];
   seeded: number;
   acts: LiveActs;
   evidence?: Readonly<Record<string, LiveEvidence>>;
+  runner?: readonly RunnerNeed[];
 }) {
   // a done write's item leaves `items` on the refresh; it stays here, with the response's answer, outside the rows
   const sentGone = Object.values(acts.sent).filter((n) => !items.some((i) => i.id === n.id));
@@ -51,6 +56,7 @@ export function NeedsYouLiveView({ items, seeded, acts, evidence = {} }: {
       <p>
         {items.length} {items.length === 1 ? 'decision waits' : 'decisions wait'} for a person, read from your GitLab group by the last poll.
       </p>
+      <RunnerNeeds needs={runner} />
       {sentGone.length ? (
         <section aria-label="Sent this session">
           <h2 className={styles.sentTitle}>Sent this session</h2>

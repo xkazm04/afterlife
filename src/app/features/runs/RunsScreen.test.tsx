@@ -41,6 +41,13 @@ describe('RunsScreen', () => {
     expect(renderToStaticMarkup(<MergePanel w={w2!} />)).toBe('');
   });
 
+  it("with the desk's merges: the fleet path's commands, or nothing to merge when the wave is in", () => {
+    const w1 = data.repos[0]!.waves[1]!;
+    const need = { kind: 'merge-wave' as const, id: 'merge:alpha:1', repo: 'alpha', wave: 1, branch: 'belay/wave-1', base: 'main', path: '/w/alpha', landed: 1, checked: true, commands: ['git -C /w/alpha switch main', 'git -C /w/alpha merge --ff-only belay/wave-1', 'git -C /w/alpha push'] };
+    expect(renderToStaticMarkup(<MergePanel w={w1} needs={[need]} />)).toContain('git -C /w/alpha merge --ff-only belay/wave-1');
+    expect(renderToStaticMarkup(<MergePanel w={w1} needs={[]} />)).toContain('nothing to merge');
+  });
+
   it('writes nothing: no button, only text', () => {
     expect(renderToStaticMarkup(<RunsScreen data={data} />)).not.toContain('<button class="Button');
   });

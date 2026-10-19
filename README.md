@@ -21,13 +21,14 @@ project, `ledgerline`. The GitLab flows, the proof engine and the tripwire come 
 
 | Route | Screen | Answers |
 |---|---|---|
-| `/` | Fleet | Across all projects: who may act alone, what is stale, what needs me? |
-| `/needs-you` | Needs you | What is waiting for me, and what will my click do? Includes the CRA legal clock and the outbox. |
+| `/` | Fleet | Across all projects: who may act alone, what is stale, what needs me? The cycle runner's repos sit in a strip above. |
+| `/needs-you` | Needs you | What is waiting for me, and what will my click do? Includes the CRA legal clock, the outbox, and the cycle runner's waves to merge and lanes it parked. |
 | `/ladder` | Ladder | What may each agent do right now, and how do I take it away? |
 | `/maturity` | Maturity | Which DevSecOps stages are real, and which gap do we close next? |
 | `/task/[id]` | Task | What did this agent do, and why may I believe it? Shows the claims against the checks. |
 | `/setup` | Setup | What blocks each track, and what only I can do. |
-| `/theater` | Theater | Deterministic replay for recording, with present mode (`F`). |
+| `/runs` | Runs | What did the cycle runner do in each repo, what did it cost, and which wave can I take? |
+| `/theater` | Theater | Deterministic replay for recording, with present mode (`F`); `?live=1` films the running wave. |
 | `/settings` | Settings | Text size: Smaller, Standard or Larger. ⌘= / ⌘- / ⌘0 change it. |
 
 ## Run

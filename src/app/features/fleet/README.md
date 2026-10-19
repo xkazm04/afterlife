@@ -13,6 +13,11 @@ client `FleetScreen`.
 - `components/inspector/sections/` one file per card of the project page (there is no inspector drawer and no group page).
   The deep project (ledgerline) has resolvable decisions, class records, tasks (each linking to `/task/<id>`), events,
   tracks.
+- `components/runner/` the cycle runner's strip above the table (`RunnerFleet`, collapsed `<details>`): every repo of
+  `.belay/fleet.yml` and any repo that still has runs, with its checkout and base, its newest wave in words (running, to
+  merge, merged, not mergeable), its lanes' outcomes, tokens, spend, and the decisions it left (a link to `/needs-you`).
+  `app/fleet/page.tsx` reads it with `readDesk()` (`src/server/runs/`), real local data in demo and live alike; the trust
+  table below is the data source's, untouched. Read-only.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
   handlers, narrow / compact measuring, and `useRepoll` (simulated in demo, the server in live).
