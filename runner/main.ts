@@ -1,7 +1,18 @@
 // `belay run` lands here (cli/belay.mjs runs this through tsx): parse flags, print what is about to be
 // spent, stop there on --dry-run, otherwise run the waves and narrate each event. Exit 2 = bad usage.
 import { RUN_DEFAULTS, loadFleet, runWaves, type RunOptions } from './index';
+import { killAll } from './proc/proc';
 import { defaultFleetFile } from './wave/runWaves';
+
+// Lanes run detached (their own process group on POSIX): stopping the runner must stop them too, or claude
+// keeps editing and spending with nobody to gate it. The lane worktrees under <repo>/.claude/worktrees stay
+// behind for a person to remove; nothing was pushed.
+for (const sig of ['SIGINT', 'SIGTERM'] as const) {
+  process.once(sig, () => {
+    console.error(`belay run: ${sig}, stopping every lane`);
+    void killAll().finally(() => process.exit(130));
+  });
+}
 
 const USAGE = 'usage: belay run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--dry-run]';
 

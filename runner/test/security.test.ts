@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_TIMEOUT_MS, agentEnv, childEnv, runProc } from '../proc/proc';
+import { DEFAULT_TIMEOUT_MS, agentEnv, childEnv, killAll, runProc } from '../proc/proc';
 import { runGates } from '../lane/verify';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-sec-'));
@@ -76,5 +76,15 @@ describe('child lifetime', () => {
     vi.useRealTimers();
     const r = await p;
     expect(r.timedOut).toBe(true);
+  });
+});
+
+describe('runner abort', () => {
+  it('killAll ends every live child tree, so an aborted run leaves no claude spending', async () => {
+    const p = runProc(process.execPath, ['-e', 'setTimeout(() => {}, 600000)'], { timeoutMs: 600_000 });
+    await new Promise((r) => setTimeout(r, 200));
+    await killAll();
+    const r = await p;
+    expect(r.code === 0).toBe(false);
   });
 });

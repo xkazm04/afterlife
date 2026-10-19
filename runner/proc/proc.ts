@@ -77,6 +77,14 @@ export function agentEnv(): NodeJS.ProcessEnv {
   return scrubbed((k) => AGENT_AUTH.test(k) || (bedrock && /^AWS_/i.test(k)) || (vertex && /^GOOGLE_APPLICATION_CREDENTIALS$/i.test(k)));
 }
 
+/** Children still running; killAll() ends them when the runner itself is stopped. */
+const live = new Set<number>();
+
+/** Kills every live child tree. Lanes are detached on POSIX, so a Ctrl-C to the runner never reaches them. */
+export async function killAll(): Promise<void> {
+  await Promise.all([...live].map((pid) => killTree(pid)));
+}
+
 export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Promise<ProcResult> {
   return new Promise((resolve) => {
     let stdout = '';
@@ -95,6 +103,7 @@ export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Pr
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      if (child.pid) live.delete(child.pid);
       resolve({ code, stdout, stderr, timedOut, truncated });
     };
     const child = spawn(cmd, args, {
@@ -105,6 +114,7 @@ export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Pr
       detached: process.platform !== 'win32',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+    if (child.pid) live.add(child.pid);
     const timer = setTimeout(() => {
       timedOut = true;
       void killTree(child.pid).then(() => done(null));
