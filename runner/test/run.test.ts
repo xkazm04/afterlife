@@ -86,4 +86,11 @@ describe('runWaves with a fake claude', () => {
     expect(r.ends['hang-a']).toMatchObject({ outcome: 'timeout' });
     expect(r.lines.some((e) => e.kind === 'lane.usage' && e.lane === 'hang-a')).toBe(false);
   }, 90_000);
+
+  it('parks a green lane that edits agent or hook config, so a landed commit cannot arm later waves', async () => {
+    const r = await run(['cfg-a', 'ok-b']);
+    expect(r.ends['cfg-a']).toMatchObject({ outcome: 'parked', parkReason: expect.stringContaining('.claude/settings.json') });
+    expect(r.ends['ok-b']).toMatchObject({ outcome: 'landed' });
+    expect(sh(repoDir, 'ls-tree', '-r', '--name-only', `belay/wave-${r.wave}`)).not.toContain('.claude/settings.json');
+  }, 90_000);
 });

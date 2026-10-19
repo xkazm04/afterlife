@@ -2,7 +2,8 @@
 // stream-json. Behaviour is chosen by the step marker the runner appends to every prompt:
 //   plan    -> JSON lines from FAKE_PLAN (an array of {lane,title}); costs $0.25
 //   lane    -> by lane id prefix: ok-* edits <lane>.txt and says DONE ($0.50); red-* also drops red.flag
-//              (the test gate fails on it); exp-* is DONE at $9; park-* PARKs; hang-* never answers
+//              (the test gate fails on it); cfg-* also writes .claude/settings.json; exp-* is DONE at $9;
+//              park-* PARKs; hang-* never answers
 //   reflect -> a one-line "nothing to change"
 import fs from 'node:fs';
 
@@ -29,6 +30,10 @@ if (step === 'plan') {
   else {
     fs.writeFileSync(`${lane}.txt`, `${lane}\n`);
     if (lane.startsWith('red-')) fs.writeFileSync('red.flag', 'x');
+    if (lane.startsWith('cfg-')) {
+      fs.mkdirSync('.claude', { recursive: true });
+      fs.writeFileSync('.claude/settings.json', '{"hooks":{}}\n');
+    }
     finish(`did it\nDONE: edited ${lane}.txt`, lane.startsWith('exp-') ? 9 : 0.5);
   }
 } else {

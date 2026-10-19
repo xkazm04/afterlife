@@ -88,9 +88,24 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   return { outcome, costUsd, text };
 }
 
+/**
+ * Paths that configure the agent or the hooks git runs: claude's project settings and MCP servers, and the
+ * usual in-repo hook dirs. The lane prompt already forbids these; a landed one would arm every later wave
+ * stacked on this branch (claude hooks run with the model key), so the runner enforces it.
+ */
+const ARMED_PATH = /^(\.claude\/|\.mcp\.json$|\.husky\/|\.githooks\/)/;
+
+/** Files the lane changed against base (tracked and untracked), NUL-split so no name is quoted. */
+async function changedFiles(dir: string, baseSha: string): Promise<string[]> {
+  await git(dir, ['add', '-A']);
+  return (await git(dir, ['diff', '--cached', '--name-only', '-z', baseSha])).split('\0').filter(Boolean);
+}
+
 async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem): Promise<{ outcome: LaneOutcome; parkReason?: string; commit?: string }> {
   const changed = (await git(dir, ['status', '--porcelain'])) !== '' || (await git(dir, ['rev-parse', 'HEAD'])) !== ctx.baseSha;
   if (!changed) return { outcome: 'parked', parkReason: 'DONE claimed but nothing changed' };
+  const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
+  if (armed.length) return { outcome: 'parked', parkReason: `edits agent or hook config: ${armed.slice(0, 5).join(', ')}` };
   const gates = await runGates(ctx.gates, dir, ctx.timeoutMs);
   if (!gates.ok) return { outcome: 'failed', parkReason: `gate red: ${gates.failed}` };
   await git(dir, ['reset', '--soft', ctx.baseSha]);
