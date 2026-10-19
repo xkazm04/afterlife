@@ -1,30 +1,21 @@
-// Server side of the live film: readRuns()'s data plus the per-wave meta the fold drops. Only each repo's newest wave is
-// re-read (it is the one that can be running); the parser is the runs feature's own, so a bad line is skipped the same way.
+// Server side of the live film: readRuns()'s data plus the per-wave meta the fold drops. Meta is built from the events
+// readRuns already parsed (for each repo's newest wave, the one that can be running): the file is not read a second time.
 import 'server-only';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { parseRunLine } from '@/lib/runs/parse';
 import { defaultRunsRoot, readRuns } from '@/server/runs/readRuns';
 import type { RunEvent } from '@/schemas/run/run';
 import { waveMetaOf } from '../model/meta';
 import { waveKey, type LivePayload } from '../model/types';
 
 export function loadLivePayload(root: string = defaultRunsRoot()): LivePayload {
-  const runs = readRuns(root);
+  const events = new Map<string, RunEvent[]>();
+  const runs = readRuns(root, (w, e) => events.set(waveKey(w.repo, w.wave), e));
   const meta: LivePayload['meta'] = {};
   for (const r of runs.repos) {
     const w = r.waves[0];
     if (!w) continue;
-    try {
-      const events = readFileSync(join(root, 'runs', w.repo, `${w.wave}.jsonl`), 'utf8')
-        .split(/\r?\n/)
-        .map((l) => (l.trim() ? parseRunLine(l) : null))
-        .filter((e): e is RunEvent => e !== null);
-      const m = waveMetaOf(events);
-      if (m) meta[waveKey(w.repo, w.wave)] = m;
-    } catch {
-      /* the file went away between the two reads: no meta, the frame degrades to what the fold knows */
-    }
+    const key = waveKey(w.repo, w.wave);
+    const m = waveMetaOf(events.get(key) ?? []);
+    if (m) meta[key] = m;
   }
   return { ...runs, meta, generatedAt: Date.now() };
 }
