@@ -4,8 +4,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
-import { agentEnv, childEnv, runProc } from '../proc/proc';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_TIMEOUT_MS, agentEnv, childEnv, runProc } from '../proc/proc';
 import { runGates } from '../lane/verify';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-sec-'));
@@ -63,5 +63,18 @@ describe('child output', () => {
     expect(r.stdout.length).toBeLessThanOrEqual(100_000);
     expect(r.stdout.endsWith('TAIL')).toBe(true);
     expect(r.truncated).toBe(true);
+  });
+});
+
+describe('child lifetime', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('a child spawned without a timeout (git, and the hooks it runs) is still killed at the default ceiling', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const p = runProc(process.execPath, ['-e', 'setTimeout(() => {}, 600000)']);
+    await vi.advanceTimersByTimeAsync(DEFAULT_TIMEOUT_MS);
+    vi.useRealTimers();
+    const r = await p;
+    expect(r.timedOut).toBe(true);
   });
 });

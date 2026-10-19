@@ -16,6 +16,7 @@ export interface ProcOptions {
   cwd?: string;
   /** Written to stdin, then stdin is closed. */
   input?: string;
+  /** Default DEFAULT_TIMEOUT_MS. */
   timeoutMs?: number;
   /** A shell is needed for gate command lines and for claude.cmd on Windows; argv must then be shell-safe. */
   shell?: boolean;
@@ -27,6 +28,9 @@ export interface ProcOptions {
 
 /** 32 MiB: a long claude stream-json fits, a gate printing in a loop does not take the runner down. */
 export const MAX_OUTPUT = 32 * 1024 * 1024;
+
+/** No child outlives this unless its caller sets timeoutMs: git runs hooks a lane agent can rewrite to hang. */
+export const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000;
 
 /** taskkill /T /F on Windows (the only thing that reaches grandchildren), the process group elsewhere. */
 export function killTree(pid: number | undefined): Promise<void> {
@@ -87,7 +91,6 @@ export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Pr
       return next.slice(-max);
     };
     let settled = false;
-    let timer: NodeJS.Timeout | undefined;
     const done = (code: number | null) => {
       if (settled) return;
       settled = true;
@@ -102,12 +105,10 @@ export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Pr
       detached: process.platform !== 'win32',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
-    if (opts.timeoutMs) {
-      timer = setTimeout(() => {
-        timedOut = true;
-        void killTree(child.pid).then(() => done(null));
-      }, opts.timeoutMs);
-    }
+    const timer = setTimeout(() => {
+      timedOut = true;
+      void killTree(child.pid).then(() => done(null));
+    }, opts.timeoutMs || DEFAULT_TIMEOUT_MS);
     child.stdout.on('data', (d: Buffer) => (stdout = keep(stdout, d)));
     child.stderr.on('data', (d: Buffer) => (stderr = keep(stderr, d)));
     child.on('error', (e) => {
