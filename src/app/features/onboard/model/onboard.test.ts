@@ -48,7 +48,9 @@ describe('the estate funnel', () => {
 
 describe('the batch machine', () => {
   const batch = planBatch(data.projects, runs, 5, 'acme-lab');
-  const after = runBatch(runs, batch, data.projects, 50, 'acme-lab');
+  // the server confirmed every write but the last: GitLab named an MR for the first, none for the rest (demo mode)
+  const opened = Object.fromEntries(batch.writes.slice(0, 4).map((id, i) => [id, i === 0 ? { mr: '!50' } : { mr: null, branch: `belay/enroll-T6-${id}` }]));
+  const after = { runs: runBatch(runs, batch, data.projects, 'acme-lab', opened) };
   it('lists what only a person can do apart: 11 tokens, 1 merge, 8 unfinished setups', () => {
     expect(batch.yours).toHaveLength(20);
     expect(batch.yours).toContain('fx-rates');
@@ -62,13 +64,30 @@ describe('the batch machine', () => {
     const means = batch.writes.map((id) => ratedMean(P(id))!);
     expect(means).toEqual([...means].sort((a, b) => a - b));
   });
-  it('a run lands the reads, opens arm MRs in belay-policy, and nothing moves until a person merges', () => {
+  it('a run lands the reads, waits on the enroll MRs the server confirmed, and nothing moves until a person merges', () => {
     expect(funnel(steps(after.runs)).baselined).toBe(184);
     const w = batch.writes[0]!;
     expect(after.runs[w]).toMatchObject({ step: 'watching', waiting: 'merge', mr: '!50', mrRepo: 'acme-lab/belay-policy' });
-    expect(after.nextMr).toBe(55);
     expect(nextAction(P(w), after.runs[w]!, 'acme-lab')?.cmd).toEqual(['glab mr view 50 -R acme-lab/belay-policy --web']);
     expect(resolve(after.runs, w, P(w), 'acme-lab')[w]).toMatchObject({ step: 'cycling', waiting: null });
+    const unnamed = batch.writes[1]!;
+    expect(nextAction(P(unnamed), after.runs[unnamed]!, 'acme-lab')).toMatchObject({
+      label: 'Merge the enroll MR', cmd: [`glab mr list -R acme-lab/belay-policy --source-branch belay/enroll-T6-${unnamed}`],
+    });
+  });
+  it('a write the server did not confirm does not move, and no MR number is made up', () => {
+    const refused = batch.writes[4]!;
+    expect(after.runs[refused]).toEqual(runs[refused]);
+    for (const r of Object.values(after.runs)) if (r.mr) expect(r.mr).toBe('!50');
+  });
+  it('a write carries the server intent Setup sends, and spells no command of its own', () => {
+    const fresh = data.projects.find((p) => runs[p.id]?.step === 'watching')!;
+    expect(nextAction(fresh, { step: 'baselined', waiting: null, mr: null }, 'acme-lab')).toMatchObject({
+      kind: 'bootstrap', writes: 1, cmd: [], intent: { kind: 'arm-track', project: fresh.id, track: 'T6' },
+    });
+    expect(nextAction(fresh, runs[fresh.id]!, 'acme-lab')).toMatchObject({
+      kind: 'cycle', writes: 1, cmd: [], intent: { kind: 'enroll-track', project: fresh.id, track: 'T6' },
+    });
   });
   it('bootstraps come first once scans land, best rated first, unrated last (unknown is never zero)', () => {
     const next = planBatch(data.projects, after.runs, 20, 'acme-lab');
@@ -87,10 +106,7 @@ describe('the batch machine', () => {
     expect(resolve(runs, stale.id, stale, 'acme-lab')[stale.id]?.step).toBe('watching');
     expect(resolve(runs, 'ledgerline', P('ledgerline'), 'acme-lab')).toEqual(runs);
   });
-  it('every command is complete: a bootstrap commits and pushes before its draft MR; no bare !N reaches a shell', () => {
-    const fresh = data.projects.find((p) => runs[p.id]?.step === 'watching')!;
-    const boot = nextAction(fresh, { step: 'baselined', waiting: null, mr: null }, 'acme-lab')!.cmd.join('\n');
-    expect(boot).toMatch(/commit[\s\S]*push -u origin belay\/bootstrap[\s\S]*glab mr create .* --draft/);
+  it('no bare !N reaches a shell, and a project in cycles has no next action', () => {
     for (const [id, r] of Object.entries(after.runs)) {
       if (r.mr) expect(nextAction(P(id), r, 'acme-lab')!.cmd.join(' ')).not.toMatch(/mr view !/);
     }

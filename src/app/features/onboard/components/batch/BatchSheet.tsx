@@ -3,12 +3,15 @@ import { Spacer } from '@/components/controls/Spacer';
 import { CommandBlock } from '@/components/inspector/CommandBlock';
 import { Sheet } from '@/components/overlays/Sheet';
 import type { FleetProject } from '@/lib/demo/types';
+import type { OnboardWrites } from '../../hooks/useOnboardWrites';
 import { nextAction, type Batch, type ProjectRun } from '../../model/batch';
+import { WritePreview } from './WritePreview';
 import styles from './sheet.module.css';
 
 /**
- * The batch before it runs: the exact commands for every read and every write, in the order they run. Afterlife
- * shows these first and writes only on the click; each MR then waits for a person to merge it. Simulated in the demo.
+ * The batch before it runs: the exact commands for every read, and for every write the server's preview of its MR, in the
+ * order they run. Afterlife writes only on the click, and only a write whose preview is on screen; each MR then waits for
+ * a person to merge it. Reads are simulated; demo mode simulates the writes server side.
  */
 export function BatchSheet({
   batch,
@@ -16,6 +19,8 @@ export function BatchSheet({
   byId,
   org,
   scope,
+  writes,
+  running = false,
   onRun,
   onClose,
 }: {
@@ -24,12 +29,14 @@ export function BatchSheet({
   byId: ReadonlyMap<string, FleetProject>;
   org: string;
   scope: string;
+  writes: Pick<OnboardWrites, 'viewOf' | 'want'>;
+  running?: boolean;
   onRun: () => void;
   onClose: () => void;
 }) {
   const parts = [
     { title: 'Reads', note: 'read-only: nothing is written', ids: batch.reads },
-    { title: 'Writes', note: 'one MR each, with your glab login', ids: batch.writes },
+    { title: 'Writes', note: "one MR each, with your glab login, as the server previews it", ids: batch.writes },
   ];
   const empty = !batch.reads.length && !batch.writes.length;
   return (
@@ -40,11 +47,11 @@ export function BatchSheet({
       footer={
         <>
           <span className={styles.count}>
-            {batch.reads.length} read{batch.reads.length === 1 ? '' : 's'} · {batch.writes.length} MR{batch.writes.length === 1 ? '' : 's'} · simulated
+            {batch.reads.length} read{batch.reads.length === 1 ? '' : 's'} · {batch.writes.length} MR{batch.writes.length === 1 ? '' : 's'} · reads simulated
           </span>
           <Spacer />
           <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" disabled={empty} onClick={onRun}>
+          <Button variant="primary" disabled={empty || running} onClick={onRun}>
             Run as you
           </Button>
         </>
@@ -68,7 +75,11 @@ export function BatchSheet({
                     <b>{p.name}</b>
                     <span>{a.label}</span>
                   </div>
-                  <CommandBlock commands={a.cmd} prompt={false} label={`Commands for ${p.name}`} />
+                  {a.intent ? (
+                    <WritePreview intent={a.intent} view={writes.viewOf(a.intent)} want={writes.want} label={`Commands for ${p.name}`} />
+                  ) : (
+                    <CommandBlock commands={a.cmd} prompt={false} label={`Commands for ${p.name}`} />
+                  )}
                 </div>
               );
             })}

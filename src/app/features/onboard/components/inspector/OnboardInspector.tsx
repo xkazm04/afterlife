@@ -7,7 +7,7 @@ import { ProjectPanel } from './ProjectPanel';
 import styles from './inspector.module.css';
 
 const READS = ['the group and its projects (group API)', 'CI config, pipelines and their reports', 'MRs, notes and deployments', 'its own policy and ledger repos'];
-const WRITES = ['a bootstrap MR per project: policy record, proof jobs', 'an arm MR in belay-policy to start a cycle', 'only on your click, after the exact commands'];
+const WRITES = ['a bootstrap MR per project: T6 armed in its CI', 'an enroll MR in belay-policy to start a cycle', "only on your click, after the server's exact preview"];
 const YOURS = [
   'merge every MR in GitLab (Afterlife holds no merge token)',
   'mint and renew project tokens',
@@ -32,7 +32,7 @@ function Lines({ items, mark }: { items: readonly string[]; mark: string }) {
 export function OnboardInspector({ o, data }: { o: OnboardApi; data: OnboardData }) {
   const picked = o.selected ? o.byId.get(o.selected) : undefined;
   const run = o.selected ? o.runs[o.selected] : undefined;
-  if (picked && run) return <ProjectPanel p={picked} run={run} org={data.org} onResolve={o.resolve} />;
+  if (picked && run) return <ProjectPanel p={picked} run={run} org={data.org} onResolve={o.resolve} writes={o.writes} />;
   return (
     <>
       <InspectorHeader title={`${data.org} · ${data.host}`} sub={`${o.counts.discovered} projects in ${data.groups.length} groups`} />

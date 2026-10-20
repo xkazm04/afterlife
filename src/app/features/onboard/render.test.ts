@@ -31,7 +31,7 @@ describe('Onboard parts render', () => {
     const out = html(createElement(BatchTable, { batch, runs, byId, org: 'acme-lab', filter: null, selected: null, onSelect: () => {}, onResolve: () => {} }));
     expect(out).toContain('Only you');
     expect(out).toContain('I merged it: re-probe (simulated)');
-    expect(out).toContain('Arm T6: open cycle C1');
+    expect(out).toContain('Enroll T6: open cycle C1');
     expect(out).toContain('I finished the setup: re-probe (simulated)');
     expect(out).not.toContain('aria-selected');
     expect(html(createElement(BatchTable, { batch, runs, byId, org: 'acme-lab', filter: 'paired', selected: null, onSelect: () => {}, onResolve: () => {} }))).toContain(
@@ -47,7 +47,9 @@ describe('Onboard parts render', () => {
     const scanned = data.projects.find((p) => p.state === 'not-set-up')!;
     const out = html(createElement(ProjectPanel, { p: scanned, run: { step: 'baselined', waiting: null, mr: null, simulated: true }, org: 'acme-lab', onResolve: () => {} }));
     expect(out).toContain('Scanned in this session (simulated)');
-    {
-    }
+    const due = html(createElement(ProjectPanel, { p: scanned, run: { step: 'watching', waiting: null, mr: null }, org: 'acme-lab', onResolve: () => {} }));
+    expect(due).toContain('Enroll T6: open cycle C1');
+    expect(due).toContain('the server&#x27;s preview');
+    expect(due).not.toContain('glab mr create');
   });
 });

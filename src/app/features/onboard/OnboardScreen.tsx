@@ -19,8 +19,8 @@ import styles from './onboard.module.css';
 
 /**
  * Onboard: a company's GitLab estate brought in as a funnel, discovered to in cycles, a batch at a time. Every read
- * runs on its own; every write is an MR opened as you after the exact commands, and waits for a person to merge it.
- * Only a probe moves a project on. Runs are simulated in the demo and say so.
+ * runs on its own; every write is an MR opened as you after the server's exact preview, and waits for a person to merge
+ * it. Only a probe moves a project on. Reads are simulated and say so.
  */
 export function OnboardScreen({ data, startPreview = false }: { data: OnboardData; startPreview?: boolean }) {
   const o = useOnboard(data, startPreview);
@@ -63,7 +63,7 @@ export function OnboardScreen({ data, startPreview = false }: { data: OnboardDat
           <BatchTable batch={o.batch} runs={o.runs} byId={o.byId} org={data.org} filter={o.filter} selected={o.selected} onSelect={o.setSelected} onResolve={o.resolve} />
         </section>
       </div>
-      {o.sheet ? <BatchSheet batch={o.batch} runs={o.runs} byId={o.byId} org={data.org} scope={scope} onRun={o.run} onClose={() => o.setSheet(false)} /> : null}
+      {o.sheet ? <BatchSheet batch={o.batch} runs={o.runs} byId={o.byId} org={data.org} scope={scope} writes={o.writes} running={o.running} onRun={() => void o.run()} onClose={() => o.setSheet(false)} /> : null}
     </Window>
   );
 }

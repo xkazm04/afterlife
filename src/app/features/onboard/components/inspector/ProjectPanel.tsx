@@ -4,13 +4,30 @@ import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { StageTicks } from '@/components/viz/StageTicks';
 import type { FleetProject } from '@/lib/demo/types';
+import type { OnboardWrites } from '../../hooks/useOnboardWrites';
 import { nextAction, pathOf, type ProjectRun } from '../../model/batch';
+import { WritePreview } from '../batch/WritePreview';
 import { RESOLVE_WORD } from '../batch/BatchTable';
 import { rank, STEP_MEANS, STEP_WORD, STEPS } from '../../model/funnel';
 import styles from './inspector.module.css';
 
-/** One project: where it stands on the funnel, its day-0 baseline, and its one next step with the exact commands. */
-export function ProjectPanel({ p, run, org, onResolve }: { p: FleetProject; run: ProjectRun; org: string; onResolve: (id: string) => void }) {
+/**
+ * One project: where it stands on the funnel, its day-0 baseline, and its one next step with the exact commands (for a
+ * write, the server's preview of it; without `writes` none is asked for and none is spelled).
+ */
+export function ProjectPanel({
+  p,
+  run,
+  org,
+  onResolve,
+  writes,
+}: {
+  p: FleetProject;
+  run: ProjectRun;
+  org: string;
+  onResolve: (id: string) => void;
+  writes?: Pick<OnboardWrites, 'viewOf' | 'want'>;
+}) {
   const a = nextAction(p, run, org);
   const rated = p.stages.some((s) => s != null);
   return (
@@ -41,7 +58,15 @@ export function ProjectPanel({ p, run, org, onResolve }: { p: FleetProject; run:
             <p className={styles.p}>
               <b>{a.label}</b> · moves it to {STEP_WORD[a.to].toLowerCase()} once {a.writes ? 'a person merges the MR' : a.who === 'you' ? 'the probe sees it done' : 'the probe confirms it'}.
             </p>
-            <CommandBlock commands={a.cmd} prompt={false} label={`Next for ${p.name}`} />
+            {a.intent ? (
+              writes ? (
+                <WritePreview intent={a.intent} view={writes.viewOf(a.intent)} want={writes.want} label={`Next for ${p.name}`} />
+              ) : (
+                <p className={styles.p}>The exact MR is the server&apos;s preview, asked for when the batch is previewed.</p>
+              )
+            ) : (
+              <CommandBlock commands={a.cmd} prompt={false} label={`Next for ${p.name}`} />
+            )}
             {RESOLVE_WORD[a.kind] ? (
               <Button size="mini" onClick={() => onResolve(p.id)} title="Simulated: the probe finds it done">
                 {RESOLVE_WORD[a.kind]} · re-probe

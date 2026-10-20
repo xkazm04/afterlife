@@ -39,13 +39,13 @@ describe('src/app holds no hand-written write to belay-policy', () => {
 
 // A gap is opened through the server's gap door (stage-gap-mr): one commit per file, a draft MR labelled maturity::gap. A screen
 // that spelled `glab mr create` or a commit to repository/commits drifted from it in commit shape, base branch, title and
-// work-item link, and `belay probe` / `belay scan` are commands that do not exist.
+// work-item link, and `belay probe` is a command that does not exist. `belay scan` is not listed: cli/belay.mjs has it now,
+// and it only reads (a day-0 scan of a checkout), so a screen may show it as the read it is.
 const HAND_WRITTEN_GAP: readonly [string, RegExp][] = [
   ['a glab mr create', /\bglab mr create\b/],
   ['a commit through glab api to repository/commits', /repository\/commits/],
   ['a glab issue create', /\bglab issue create\b/],
   ['a belay probe', /\bbelay probe\b/],
-  ['a belay scan', /\bbelay scan\b/],
 ];
 
 /**
@@ -54,7 +54,7 @@ const HAND_WRITTEN_GAP: readonly [string, RegExp][] = [
  */
 const NOT_A_SEND: readonly string[] = [path.join('features', 'kit')];
 
-describe('src/app holds no hand-written gap MR, gap issue, probe or scan', () => {
+describe('src/app holds no hand-written gap MR, gap issue or probe', () => {
   const files = sources(APP).filter((f) => !NOT_A_SEND.some((n) => f.includes(n)));
   it.each(HAND_WRITTEN_GAP)('no %s', (_what, re) => {
     const hits = files.flatMap((f) => fs.readFileSync(f, 'utf8').split('\n').flatMap((line, i) => (re.test(line) ? [`${path.relative(APP, f)}:${i + 1}: ${line.trim()}`] : [])));

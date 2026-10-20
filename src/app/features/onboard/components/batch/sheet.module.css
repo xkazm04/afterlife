@@ -40,3 +40,8 @@
   font-size: var(--t-small);
   color: var(--text-3);
 }
+.note {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}

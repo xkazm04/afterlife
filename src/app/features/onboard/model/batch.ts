@@ -1,6 +1,9 @@
 // The onboarding machine: one next action per project, and a batch that runs every read and at most N writes. A
 // write opens an MR as you and then waits for a person to merge it; only a probe moves a project on. Pure.
+// A write is never spelled here: it is an intent (arm-track or enroll-track, as Setup sends them), and the screen shows
+// the server's preview of it (previewAction) and confirms that preview. Only reads and a person's own steps carry commands.
 import type { FleetProject } from '@/lib/demo/types';
+import type { ArmTrack, EnrollTrack } from '@/server/actions/types';
 import { rank, type Step } from './funnel';
 
 /** A project's place in the run: its step, and what it waits for from a person (if anything). */
@@ -10,13 +13,21 @@ export interface ProjectRun {
   waiting: 'merge' | 'token' | 'setup' | null;
   /** The MR a write opened, while it waits for its merge (null when its number is not known). */
   mr: string | null;
-  /** The repository that MR lives in (the project, or belay-policy for an arm MR). */
+  /** The repository that MR lives in (the project for its arm MR, or belay-policy for an enroll MR). */
   mrRepo?: string;
+  /** The branch the server's preview named, to look the MR up by when GitLab named no number. */
+  branch?: string;
   /** Moved by a simulated run in this session (the demo data has no ratings for a simulated scan). */
   simulated?: boolean;
 }
 
 export type ActionKind = 'scan' | 'poll' | 'bootstrap' | 'cycle' | 'merge' | 'token' | 'setup';
+
+/** The track an onboarding arms on a project (its bootstrap) and then enrolls in belay-policy (its first cycle). */
+export const ONBOARD_TRACK = 'T6';
+
+/** A write as the server actions take it. The commands are the server's preview, never written here. */
+export type OnboardIntent = ArmTrack | EnrollTrack;
 
 export interface NextAction {
   kind: ActionKind;
@@ -25,8 +36,10 @@ export interface NextAction {
   /** MRs this action opens. */
   writes: number;
   label: string;
-  /** The exact commands, shown before anything runs. */
+  /** The exact commands of a read or a person's step. Empty for a write: its commands are the server's preview of `intent`. */
   cmd: string[];
+  /** The write, for a write: what is previewed, and confirmed on the click. */
+  intent?: OnboardIntent;
   /** The step a probe moves the project to once the action is done (and merged, for a write). */
   to: Step;
 }
@@ -41,8 +54,8 @@ export function nextAction(p: FleetProject, run: ProjectRun, org: string): NextA
     const into = run.step === 'watching' ? 'cycling' : 'paired';
     const repo = run.mrRepo ?? path;
     // the MR number without its "!": a bare !60 is history expansion in an interactive shell
-    const cmd = run.mr ? `glab mr view ${run.mr.replace(/^!/, '')} -R ${repo} --web` : `glab mr list -R ${repo} --source-branch belay/bootstrap`;
-    return { kind: 'merge', who: 'you', writes: 0, label: `Merge ${run.mr ?? 'the bootstrap MR'}`, cmd: [cmd], to: into };
+    const cmd = run.mr ? `glab mr view ${run.mr.replace(/^!/, '')} -R ${repo} --web` : `glab mr list -R ${repo} --source-branch ${run.branch ?? 'belay/bootstrap'}`;
+    return { kind: 'merge', who: 'you', writes: 0, label: `Merge ${run.mr ?? (run.step === 'watching' ? 'the enroll MR' : 'the bootstrap MR')}`, cmd: [cmd], to: into };
   }
   if (run.waiting === 'token') {
     return {
@@ -59,29 +72,15 @@ export function nextAction(p: FleetProject, run: ProjectRun, org: string): NextA
       return { kind: 'scan', who: 'afterlife', writes: 0, label: 'Day-0 scan (read-only)', cmd: [`glab repo clone ${path}`, `(cd ${n} && npx belay scan)`], to: 'baselined' };
     case 'baselined':
       return {
-        kind: 'bootstrap', who: 'you', writes: 1, label: 'Open the bootstrap MR',
-        cmd: [
-          `git -C ${n} switch -c belay/bootstrap`,
-          `npx belay pair ${n} --write`,
-          `git -C ${n} add -A && git -C ${n} commit -m "Belay bootstrap"`,
-          `git -C ${n} push -u origin belay/bootstrap`,
-          `glab mr create -R ${path} --source-branch belay/bootstrap --title "Belay bootstrap" --description "Policy record and proof jobs" --draft`,
-        ],
-        to: 'paired',
+        kind: 'bootstrap', who: 'you', writes: 1, label: `Arm ${ONBOARD_TRACK}: open the bootstrap MR`, cmd: [],
+        intent: { kind: 'arm-track', project: p.id, track: ONBOARD_TRACK }, to: 'paired',
       };
     case 'paired':
       return { kind: 'poll', who: 'afterlife', writes: 0, label: 'First poll', cmd: ['npx belay doctor'], to: 'watching' };
     case 'watching':
       return {
-        kind: 'cycle', who: 'you', writes: 1, label: 'Arm T6: open cycle C1',
-        cmd: [
-          `git -C belay-policy switch -c arm/t6-${n}`,
-          `$EDITOR belay-policy/tier-state.yml   # arm T6 on ${path}`,
-          `git -C belay-policy commit -am "Arm T6 maturity on ${n}"`,
-          `git -C belay-policy push -u origin arm/t6-${n}`,
-          `glab mr create -R ${org}/belay-policy --source-branch arm/t6-${n} --title "Arm T6 maturity on ${n}" --description "Opens cycle C1" --draft`,
-        ],
-        to: 'cycling',
+        kind: 'cycle', who: 'you', writes: 1, label: `Enroll ${ONBOARD_TRACK}: open cycle C1`, cmd: [],
+        intent: { kind: 'enroll-track', project: p.id, track: ONBOARD_TRACK }, to: 'cycling',
       };
     default:
       return null;
@@ -142,11 +141,24 @@ export function planBatch(
   return out;
 }
 
+/** What the server answered for one confirmed write: the MR GitLab named (null when it named none), and its branch. */
+export interface Opened {
+  mr: string | null;
+  branch?: string;
+}
+
 /**
- * Run a batch (simulated in the demo): reads land at once, as their probe would confirm; each write opens an MR
- * numbered from `firstMr` and waits for its merge. Projects outside the batch, and the person steps, do not move.
+ * Run a batch: reads land at once (simulated, as their probe would confirm); a write moves only when the server confirmed
+ * it (`opened`), and then waits for its merge under the MR GitLab named, never a number made up here. Writes the server
+ * refused, projects outside the batch, and the person steps do not move.
  */
-export function runBatch(runs: Readonly<Record<string, ProjectRun>>, batch: Batch, projects: readonly FleetProject[], firstMr: number, org: string) {
+export function runBatch(
+  runs: Readonly<Record<string, ProjectRun>>,
+  batch: Batch,
+  projects: readonly FleetProject[],
+  org: string,
+  opened: Readonly<Record<string, Opened>>,
+): Record<string, ProjectRun> {
   const next: Record<string, ProjectRun> = { ...runs };
   const byId = new Map(projects.map((p) => [p.id, p]));
   for (const id of batch.reads) {
@@ -155,15 +167,15 @@ export function runBatch(runs: Readonly<Record<string, ProjectRun>>, batch: Batc
     const a = p && run ? nextAction(p, run, org) : null;
     if (a && run) next[id] = { ...run, step: a.to, simulated: true };
   }
-  let mr = firstMr;
   for (const id of batch.writes) {
     const p = byId.get(id);
     const run = runs[id];
-    if (!p || !run) continue;
+    const o = opened[id];
+    if (!p || !run || !o) continue;
     const repo = run.step === 'watching' ? `${org}/belay-policy` : pathOf(p, org);
-    next[id] = { ...run, waiting: 'merge', mr: `!${mr++}`, mrRepo: repo, simulated: true };
+    next[id] = { ...run, waiting: 'merge', mr: o.mr, mrRepo: repo, ...(o.branch ? { branch: o.branch } : {}) };
   }
-  return { runs: next, nextMr: mr };
+  return next;
 }
 
 /** A person did their part (merged, or renewed the token) and the probe confirmed it: the project moves on. */

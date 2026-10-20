@@ -2,24 +2,24 @@
 
 import { useMemo, useState } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
-import { planBatch, resolve as resolveRun, runBatch } from '../model/batch';
+import { nextAction, planBatch, resolve as resolveRun, runBatch, type OnboardIntent } from '../model/batch';
 import { initialRuns, type OnboardData } from '../model/build';
 import { baseline, byGroup, funnel, type Step } from '../model/funnel';
+import { useOnboardWrites } from './useOnboardWrites';
 
 export const BATCH_SIZES = ['5', '10', '20'] as const;
 export type BatchSize = (typeof BATCH_SIZES)[number];
 
-/** The first MR number a simulated batch opens (the demo group's MRs run below it). */
-const FIRST_MR = 60;
-
 /**
  * The Onboard screen state: where every project stands (simulated runs move it), the batch size and scope (a
- * group, or the estate), what is selected, the step filter and the preview sheet. Nothing is written: a run is simulated and says so.
+ * group, or the estate), what is selected, the step filter and the preview sheet. Reads are simulated and say so; a write
+ * is the server's preview, confirmed on Run (demo mode simulates it server side), and only a confirmed one moves.
  */
 export function useOnboard(data: OnboardData, startPreview = false) {
   const { status } = useToast();
   const [runs, setRuns] = useState(() => initialRuns(data));
-  const [nextMr, setNextMr] = useState(FIRST_MR);
+  const writes = useOnboardWrites();
+  const [running, setRunning] = useState(false);
   const [size, setSize] = useState<BatchSize>('5');
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState<Step | null>(null);
@@ -38,13 +38,26 @@ export function useOnboard(data: OnboardData, startPreview = false) {
   );
   const byId = useMemo(() => new Map(data.projects.map((p) => [p.id, p])), [data]);
 
-  const run = () => {
-    const r = runBatch(runs, batch, data.projects, nextMr, data.org);
-    setRuns(r.runs);
-    setNextMr(r.nextMr);
-    setSheet(false);
-    const mrs = r.nextMr - nextMr;
-    status(`Simulated: ${batch.reads.length} read${batch.reads.length === 1 ? '' : 's'} landed · ${mrs} MR${mrs === 1 ? '' : 's'} opened as you, each waits for your merge`);
+  const run = async () => {
+    if (running) return;
+    setRunning(true);
+    const intents = batch.writes.flatMap((id): OnboardIntent[] => {
+      const p = byId.get(id);
+      const r = runs[id];
+      const i = p && r ? nextAction(p, r, data.org)?.intent : undefined;
+      return i ? [i] : [];
+    });
+    try {
+      const { opened, notSent } = await writes.sendAll(intents);
+      setRuns((cur) => runBatch(cur, batch, data.projects, data.org, opened));
+      setSheet(false);
+      const mrs = Object.keys(opened).length;
+      const reads = `Simulated: ${batch.reads.length} read${batch.reads.length === 1 ? '' : 's'} landed`;
+      const sent = `${mrs} write${mrs === 1 ? '' : 's'} confirmed as you, each waits for your merge`;
+      status(`${reads} · ${sent}${notSent.length ? ` · ${notSent.length} not sent: ${notSent[0]}` : ''}`);
+    } finally {
+      setRunning(false);
+    }
   };
 
   /** A person did their part; the (simulated) probe confirms it and the project moves on. */
@@ -55,7 +68,7 @@ export function useOnboard(data: OnboardData, startPreview = false) {
     status(`Simulated probe: ${p.name} moves on`);
   };
 
-  return { runs, steps, counts, groups, base, batch, byId, size, setSize, selected, setSelected, filter, setFilter, group, setGroup, sheet, setSheet, run, resolve };
+  return { runs, writes, running, steps, counts, groups, base, batch, byId, size, setSize, selected, setSelected, filter, setFilter, group, setGroup, sheet, setSheet, run, resolve };
 }
 
 export type OnboardApi = ReturnType<typeof useOnboard>;
