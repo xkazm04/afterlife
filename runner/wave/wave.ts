@@ -72,8 +72,8 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
       const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, baseSha, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log }, item);
       cost += r.costUsd;
       if (r.outcome === 'landed') landed++;
-      notes.push(`### ${item.lane} (${r.outcome})
-${r.text.trim() || '(no final text)'}`);
+      const why = r.parkReason ? `Runner's reason: ${r.parkReason}\n` : '';
+      notes.push(`### ${item.lane} (${r.outcome})\n${why}${r.text.trim() || '(no final text)'}`);
     }
     const green = landed > 0 && (await runGates(repo.setup ?? [], waveDir, c.timeoutMs)).ok && (await runGates(repo.gates, waveDir, c.timeoutMs)).ok;
     log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost });

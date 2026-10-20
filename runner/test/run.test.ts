@@ -17,7 +17,7 @@ const sh = (cwd: string, ...a: string[]) => spawnSync('git', a, { cwd, encoding:
 
 beforeAll(() => {
   fs.mkdirSync(repoDir);
-  fs.writeFileSync(path.join(repoDir, 'gate.mjs'), "import fs from 'node:fs'; process.exit(fs.existsSync('red.flag') ? 1 : 0);\n");
+  fs.writeFileSync(path.join(repoDir, 'gate.mjs'), "import fs from 'node:fs'; if (fs.existsSync('red.flag')) { console.log('checking'); console.error('\\x1b[31mFAIL\\x1b[0m red.flag is present'); process.exit(1); }\n");
   fs.writeFileSync(path.join(repoDir, '.gitignore'), '.claude/worktrees/\n');
   sh(repoDir, 'init', '-q', '-b', 'main');
   sh(repoDir, 'config', 'user.email', 't@example.com');
@@ -57,7 +57,7 @@ describe('runWaves with a fake claude', () => {
     }
     expect(r.ends['ok-a']).toMatchObject({ outcome: 'landed' });
     expect(r.ends['ok-a']?.kind === 'lane.end' && r.ends['ok-a'].commits).toHaveLength(1);
-    expect(r.ends['red-b']).toMatchObject({ outcome: 'failed' });
+    expect(r.ends['red-b']).toMatchObject({ outcome: 'failed', parkReason: 'gate red: node gate.mjs (exit 1)\nchecking\nFAIL red.flag is present' });
     expect(r.ends['red-b']?.kind === 'lane.end' && r.ends['red-b'].commits).toEqual([]);
     expect(r.ends['park-c']).toMatchObject({ outcome: 'parked', parkReason: expect.stringContaining('gate-surface') });
     const end = r.lines.find((e) => e.kind === 'wave.end');

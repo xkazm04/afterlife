@@ -8,7 +8,7 @@ import { git, runProc } from '../proc/proc';
 import type { LaneOutcome } from '../../src/schemas/run';
 import type { Log } from '../wave/events';
 import { lanePrompt, type PlanItem } from '../wave/plan';
-import { runGates } from './verify';
+import { runGates, type GateVerdict } from './verify';
 
 export interface LaneCtx {
   repoPath: string;
@@ -33,7 +33,15 @@ export interface LaneResult {
   costUsd: number;
   /** The tail of the lane's final message (at most 1500 chars), for the reflect step. */
   text: string;
+  /** Why it did not land (lane.end's parkReason), red gate output included. */
+  parkReason?: string;
 }
+
+/** A stop whose message is a complete park reason (a red setup with its output): kept whole, not cut to 300. */
+class LaneStop extends Error {}
+
+/** `<what> red: <gate> (exit N)` then the red gate's output tail on the following lines. */
+const redReason = (what: string, v: GateVerdict): string => `${what} red: ${v.failed ?? '?'}${v.tail ? `\n${v.tail}` : ''}`;
 
 /** The lane's claim is its last DONE:/PARK: line; anything else is a failed lane. */
 export function readClaim(text: string): { kind: 'DONE' | 'PARK'; rest: string } | null {
@@ -56,7 +64,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   try {
     await addWorktree(ctx.repoPath, dir, ctx.baseSha, branch);
     const ready = await runGates(ctx.setup, dir, ctx.timeoutMs);
-    if (!ready.ok) throw new Error(`setup red: ${ready.failed}`);
+    if (!ready.ok) throw new LaneStop(redReason('setup', ready));
     const a = await callClaude({ prompt: lanePrompt(ctx.lanePromptText, item, ctx.laneCapUsd, { gates: ctx.gates, commands: ctx.bash }), cwd: dir, model: ctx.model, timeoutMs: ctx.timeoutMs, permissions: { step: 'lane', bash: ctx.bash } });
     costUsd = a.costUsd ?? 0;
     text = a.text.slice(-1500);
@@ -82,12 +90,12 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
       if (landed.commit) commits.push(landed.commit);
     }
   } catch (e) {
-    parkReason = e instanceof Error ? e.message.slice(0, 300) : String(e);
+    parkReason = e instanceof LaneStop ? e.message : e instanceof Error ? e.message.slice(0, 300) : String(e);
   } finally {
     await removeWorktree(ctx.repoPath, dir, branch);
   }
   log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
-  return { outcome, costUsd, text };
+  return { outcome, costUsd, text, ...(parkReason ? { parkReason } : {}) };
 }
 
 /**
@@ -109,7 +117,7 @@ async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem): Promise
   const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
   if (armed.length) return { outcome: 'parked', parkReason: `edits agent or hook config: ${armed.slice(0, 5).join(', ')}` };
   const gates = await runGates(ctx.gates, dir, ctx.timeoutMs);
-  if (!gates.ok) return { outcome: 'failed', parkReason: `gate red: ${gates.failed}` };
+  if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates) };
   await git(dir, ['reset', '--soft', ctx.baseSha]);
   await git(dir, ['add', '-A']);
   await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`]);

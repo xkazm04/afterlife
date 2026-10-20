@@ -37,7 +37,8 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
 3. Per lane, sequentially: `lane.start`; a worktree on `belay/wave-<n>-<lane>` from `base`; one claude call
    (`prompts/lane.md` + the item); `lane.usage`; then the fleet gates, each its own spawn, exit code asserted.
    All green: one commit `belay(wave-<n>): <title>`, cherry-picked onto the wave branch. Any red gate: nothing is
-   committed. The lane worktree and branch are always removed. `lane.end`.
+   committed, and `parkReason` is `gate red: <gate> (exit N)` followed by the last 1200 characters of that gate's
+   stdout then stderr, ANSI stripped (the reflect step sees it too). The lane worktree and branch are always removed. `lane.end`.
 4. `wave.end`: `mergeable` = at least one lane landed AND the gates are green on the wave branch itself.
 5. Reflect: one claude call (`prompts/reflect.md` + the wave's events) in an empty scratch dir; its text is written to
    `.belay/runs/<repo>/<wave>.proposals.md`, its usage is emitted as `lane.usage` with lane `reflect` (after `wave.end`).

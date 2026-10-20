@@ -8,6 +8,7 @@ import { loadFleet } from '../fleet/load';
 import { lanePrompt, parsePlan } from '../wave/plan';
 import { loadPrompts } from '../wave/prompts';
 import { readClaim } from '../lane/run';
+import { gateTail } from '../lane/verify';
 
 const line = (o: unknown) => JSON.stringify(o);
 
@@ -23,6 +24,19 @@ describe('parseStream', () => {
     ['empty', '', { text: '', usage: null, costUsd: null, isError: false }],
   ])('%s', (_name, stdout, want) => {
     expect(parseStream(stdout)).toMatchObject(want);
+  });
+});
+
+describe('gateTail', () => {
+  it('strips colour codes, keeps the last frame of a \\r progress line, puts stderr after stdout', () => {
+    expect(gateTail('\x1b[1m\x1b[32mok\x1b[0m 3 passed\n 10%\r 50%\r100%\n', '\x1b[31merror[E0308]\x1b[0m: mismatched types\n')).toBe('ok 3 passed\n100%\nerror[E0308]: mismatched types');
+    expect(gateTail('', '')).toBe('');
+  });
+  it('keeps only the tail of a long output', () => {
+    const t = gateTail(`${'x'.repeat(5000)}END`, '', 1200);
+    expect(t).toHaveLength(1203);
+    expect(t.startsWith('...')).toBe(true);
+    expect(t.endsWith('END')).toBe(true);
   });
 });
 
