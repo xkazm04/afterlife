@@ -43,10 +43,20 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
    committed, and `parkReason` is `gate red: <gate> (exit N)` followed by the last 1200 characters of that gate's
    stdout then stderr, ANSI stripped (the reflect step sees it too). A lane that changed anything and did not land
    saves its diff against base (untracked files included, `--binary`) to `<runs>/<repo>/<wave>.<lane>.patch` before
-   its worktree goes; `lane.end.patch` names it relative to the runs dir. `git apply` it on base to pick the work up. The lane worktree and branch are always removed. `lane.end`.
+   its worktree goes; `lane.end.patch` names it relative to the runs dir. `git apply` it on base to pick the work up.
+   The lane worktree and branch are always removed. `lane.end`.
 4. `wave.end`: `mergeable` = at least one lane landed AND the gates are green on the wave branch itself.
 5. Reflect: one claude call (`prompts/reflect.md` + the wave's events) in an empty scratch dir; its text is written to
    `.belay/runs/<repo>/<wave>.proposals.md`, its usage is emitted as `lane.usage` with lane `reflect` (after `wave.end`).
+
+## Removing a worktree
+
+The runner deletes a worktree's dir itself (`fs.rm`, `rmdir /s /q` as the Windows fallback), never with
+`git worktree remove --force`: git for Windows (2.43) follows a junction inside the worktree and empties its target,
+e.g. a pnpm store a `setup` install linked in, and a removal that fails partway leaves an unregistered dir behind.
+`fs.rm` unlinks a junction or symlink without entering it. Then `git worktree prune` drops the record; a dir that
+would not go is printed to stderr. Each wave starts by deleting any `belay-wave-*` dir under `.claude/worktrees`
+that git no longer lists as a worktree. Only paths under `<repo>/.claude/worktrees` are ever deleted.
 
 ## Outcomes and caps
 

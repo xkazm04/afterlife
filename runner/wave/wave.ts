@@ -3,7 +3,7 @@
 // the wave branch itself. Nothing here pushes or merges: belay/wave-<n> is left for a person.
 import { bashPrefixes } from '../agent/permissions';
 import { callClaude } from '../agent/spawn';
-import { addWorktree, removeWorktree, resolveRef, worktreeDir } from '../git/worktree';
+import { addWorktree, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
 import { runLane } from '../lane/run';
 import { runGates } from '../lane/verify';
 import { git } from '../proc/proc';
@@ -64,6 +64,8 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
   const branch = waveBranch(wave);
   const waveDir = worktreeDir(repo.path, `belay-wave-${wave}`);
   log({ kind: 'wave.start', base, lanes: c.opts.lanes, laneCapUsd: c.laneCapUsd, waveCapUsd: c.waveCapUsd, model: c.opts.model });
+  // Dirs an interrupted run or a half-failed removal left behind (unregistered, so no live wave's).
+  await sweepStaleWorktrees(repo.path);
   await addWorktree(repo.path, waveDir, baseSha, branch);
   let cost = 0;
   let landed = 0;
