@@ -2,7 +2,7 @@
 // unknown kind, or a field the fold relies on missing or the wrong type. The caller counts the nulls.
 import { RUN_SCHEMA, type RunEvent } from '@/schemas/run/run';
 
-const KINDS = new Set(['wave.start', 'lane.start', 'lane.usage', 'lane.end', 'wave.end']);
+const KINDS = new Set(['wave.start', 'wave.plan', 'lane.start', 'lane.usage', 'lane.end', 'wave.end']);
 const OUTCOMES = new Set(['landed', 'parked', 'failed', 'budget', 'timeout']);
 
 const str = (v: unknown): v is string => typeof v === 'string';
@@ -21,6 +21,8 @@ export function parseRunLine(line: string): RunEvent | null {
   if (!str(o.ts) || !str(o.repo) || !num(o.wave) || !str(o.promptVersion)) return null;
   const ok = (good: boolean): RunEvent | null => (good ? (o as unknown as RunEvent) : null);
   switch (o.kind) {
+    case 'wave.plan':
+      return ok(num(o.raw) && num(o.parsed) && Array.isArray(o.items) && o.items.every(str));
     case 'lane.start':
       return ok(str(o.lane) && str(o.title));
     case 'lane.usage':

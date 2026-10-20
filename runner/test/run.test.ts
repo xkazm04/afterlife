@@ -48,7 +48,12 @@ describe('runWaves with a fake claude', () => {
     const mainBefore = sh(repoDir, 'rev-parse', 'main');
     const r = await run(['ok-a', 'red-b', 'park-c']);
     expect(r.code).toBe(0);
-    expect(new Set(r.lines.map((e) => e.kind))).toEqual(new Set(['wave.start', 'lane.start', 'lane.usage', 'lane.end', 'wave.end']));
+    expect(new Set(r.lines.map((e) => e.kind))).toEqual(new Set(['wave.start', 'wave.plan', 'lane.start', 'lane.usage', 'lane.end', 'wave.end']));
+    // The plan's answer is on record right after the planner's own usage: what it wrote, what parsed, which lanes.
+    const planAt = r.lines.findIndex((e) => e.kind === 'wave.plan');
+    expect(r.lines[planAt]).toMatchObject({ raw: 3, parsed: 3, items: ['ok-a', 'red-b', 'park-c'] });
+    expect(r.lines[planAt]).not.toHaveProperty('voided');
+    expect(r.lines[planAt - 1]).toMatchObject({ kind: 'lane.usage', lane: 'plan' });
     for (const e of r.lines) {
       expect(e.v).toBe(RUN_SCHEMA);
       expect(e.repo).toBe('temp');
@@ -79,6 +84,12 @@ describe('runWaves with a fake claude', () => {
     expect(sh(repoDir, 'branch', '--list', 'belay/wave-*-*')).toBe('');
     expect(fs.readFileSync(r.file.replace('.jsonl', '.proposals.md'), 'utf8')).toContain('Nothing worth changing');
     expect(r.lines.some((e) => e.kind === 'lane.usage' && e.lane === 'reflect')).toBe(true);
+  }, 90_000);
+
+  it('records a plan that wrote more lines than run, and runs only the asked-for count', async () => {
+    const r = await run(['park-x', 'park-y'], { lanes: 1 });
+    expect(r.lines.find((e) => e.kind === 'wave.plan')).toMatchObject({ raw: 2, parsed: 1, items: ['park-x'] });
+    expect(r.lines.filter((e) => e.kind === 'lane.start')).toHaveLength(1);
   }, 90_000);
 
   it('halts a lane over its cap as budget and skips lanes once the wave cap is reached', async () => {

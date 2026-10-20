@@ -5,7 +5,7 @@
 
 export const RUN_SCHEMA = 'belay.run/0' as const;
 
-export type RunEventKind = 'wave.start' | 'lane.start' | 'lane.usage' | 'lane.end' | 'wave.end';
+export type RunEventKind = 'wave.start' | 'wave.plan' | 'lane.start' | 'lane.usage' | 'lane.end' | 'wave.end';
 
 /** How a lane ended. `budget` = halted at laneCapUsd or waveCapUsd; `timeout` = its process tree was killed. */
 export type LaneOutcome = 'landed' | 'parked' | 'failed' | 'budget' | 'timeout';
@@ -27,6 +27,19 @@ export interface WaveStart extends RunEventBase {
   laneCapUsd: number;
   waveCapUsd: number;
   model: string;
+}
+
+/**
+ * What the plan step answered, once per wave after wave.start (added later in belay.run/0: older files have none).
+ * `raw` = lines of the planner's final message that looked like JSON; `parsed` = items that parsed and will run
+ * (at most wave.start's `lanes`); `items` = their lane ids. `voided` says why a plan ran nothing regardless.
+ */
+export interface WavePlan extends RunEventBase {
+  kind: 'wave.plan';
+  raw: number;
+  parsed: number;
+  items: string[];
+  voided?: 'timeout' | 'error' | 'dirty';
 }
 
 export interface LaneStart extends RunEventBase {
@@ -67,7 +80,7 @@ export interface WaveEnd extends RunEventBase {
   costUsd: number;
 }
 
-export type RunEvent = WaveStart | LaneStart | LaneUsage | LaneEnd | WaveEnd;
+export type RunEvent = WaveStart | WavePlan | LaneStart | LaneUsage | LaneEnd | WaveEnd;
 
 export function waveBranch(wave: number): string {
   return `belay/wave-${wave}`;

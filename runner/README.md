@@ -33,7 +33,10 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
 1. `wave.start`. Branch `belay/wave-<n>` is created from `base` in its own worktree (`<repo>/.claude/worktrees/belay-wave-<n>`).
 2. Plan: one read-only claude call in a detached worktree of `base` (`prompts/plan.md` + repo context). It answers in
    JSON lines `{"lane","title","files","why","challenge"}`; the first `--lanes` that parse run. A plan session that
-   changed its worktree is voided. Its cost is emitted as `lane.usage` with lane `plan`.
+   changed its worktree is voided. Its cost is emitted as `lane.usage` with lane `plan`, then `wave.plan` records the
+   answer: `raw` (lines that looked like JSON), `parsed` (items that will run), `items` (their lane ids) and, when
+   the plan ran nothing regardless, `voided` (`timeout`, `error` or `dirty`). Fewer items than `wave.start.lanes`
+   is a planner that under-filled.
 3. Per lane, sequentially: `lane.start`; a worktree on `belay/wave-<n>-<lane>` from `base`; one claude call
    (`prompts/lane.md` + the item); `lane.usage`; then the fleet gates, each its own spawn, exit code asserted.
    All green: one commit `belay(wave-<n>): <title>`, cherry-picked onto the wave branch. Any red gate: nothing is

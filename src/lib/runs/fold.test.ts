@@ -16,6 +16,20 @@ describe('parseRunLine', () => {
   });
 });
 
+describe('wave.plan', () => {
+  const plan = { v: 'belay.run/0', repo: 'alpha', promptVersion: 'abc123def456', kind: 'wave.plan', ts: '2026-10-17T10:00:00.5Z', wave: 1 };
+  it('parses a plan summary and rejects a malformed one', () => {
+    expect(parseRunLine(JSON.stringify({ ...plan, raw: 6, parsed: 1, items: ['a'] }))).toMatchObject({ kind: 'wave.plan', raw: 6, parsed: 1 });
+    expect(parseRunLine(JSON.stringify({ ...plan, raw: 1, parsed: 0, items: [], voided: 'dirty' }))).not.toBeNull();
+    expect(parseRunLine(JSON.stringify({ ...plan, raw: '6', parsed: 1, items: ['a'] }))).toBeNull();
+    expect(parseRunLine(JSON.stringify({ ...plan, raw: 6, parsed: 1, items: [1] }))).toBeNull();
+  });
+  it('is not a lane: folding it in changes no row, count or cost', () => {
+    const withPlan = [WAVE_1[0]!, JSON.stringify({ ...plan, raw: 3, parsed: 2, items: ['a', 'b'] }), ...WAVE_1.slice(1)];
+    expect(foldWave(events(withPlan), true)).toEqual(foldWave(events(WAVE_1), true));
+  });
+});
+
 describe('foldWave', () => {
   const w = foldWave(events(WAVE_1), true)!;
   it('folds lanes from their events', () => {

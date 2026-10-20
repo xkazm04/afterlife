@@ -34,6 +34,9 @@ export function lanePrompt(base: string, item: PlanItem, capUsd: number, checks:
 
 const slug = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
 
+/** Lines of the planner's answer that look like a JSON object: what it tried to plan, parsed or not. */
+export const jsonLines = (text: string): number => text.split(/\r?\n/).filter((l) => l.trim().startsWith('{')).length;
+
 export function parsePlan(text: string, max: number): PlanItem[] {
   const items: PlanItem[] = [];
   const seen = new Set<string>();
