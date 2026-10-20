@@ -14,14 +14,14 @@ for (const sig of ['SIGINT', 'SIGTERM'] as const) {
   });
 }
 
-const USAGE = 'usage: belay run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--dry-run]';
+const USAGE = 'usage: belay run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run]';
 
 function flags(argv: string[]): Map<string, string> | null {
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i] ?? '';
     if (!a.startsWith('--')) return null;
-    if (a === '--dry-run') out.set(a, '1');
+    if (a === '--dry-run' || a === '--skip-base-gates') out.set(a, '1');
     else {
       const v = argv[++i];
       if (v === undefined || v.startsWith('--')) return null;
@@ -52,6 +52,7 @@ async function main(argv: string[]): Promise<number> {
     waveCapUsd: positive(f.get('--wave-cap'), RUN_DEFAULTS.waveCapUsd),
     model: f.get('--model') ?? RUN_DEFAULTS.model,
     fleet: f.get('--fleet') ?? defaultFleetFile(),
+    ...(f.has('--skip-base-gates') ? { skipBaseGates: true } : {}),
   };
   if ([opts.waves, opts.lanes, opts.laneCapUsd, opts.waveCapUsd].some(Number.isNaN)) {
     console.error(`${USAGE}\nbelay run: counts and caps must be positive numbers`);

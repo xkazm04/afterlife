@@ -27,6 +27,8 @@ export interface RunOptions {
   fleet?: string;
   /** Where run files go; default <afterlife>/.belay/runs. */
   runsDir?: string;
+  /** Skip the check that base's setup and gates are green before the plan (a person knows they are red). */
+  skipBaseGates?: boolean;
   /** Per-lane wall-clock ceiling; default 20 minutes. */
   laneTimeoutMs?: number;
 }

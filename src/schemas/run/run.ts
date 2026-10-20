@@ -78,6 +78,10 @@ export interface WaveEnd extends RunEventBase {
   branch: string;
   mergeable: boolean;
   costUsd: number;
+  /** False when nothing landed and the branch was deleted (`branch` then names one that does not exist). Absent in older files. */
+  branchKept?: boolean;
+  /** Setup or a gate was red on base before any lane ran: its reason and output tail. The wave planned nothing. */
+  baseRed?: string;
 }
 
 export type RunEvent = WaveStart | WavePlan | LaneStart | LaneUsage | LaneEnd | WaveEnd;

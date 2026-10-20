@@ -29,6 +29,9 @@ export function gateTail(stdout: string, stderr: string, max = GATE_TAIL_CHARS):
   return text.length > max ? `...${text.slice(-max)}` : text;
 }
 
+/** `<what> red: <gate> (exit N)` then the red gate's output tail on the following lines. */
+export const redReason = (what: string, v: GateVerdict): string => `${what} red: ${v.failed ?? '?'}${v.tail ? `\n${v.tail}` : ''}`;
+
 export async function runGates(gates: string[], cwd: string, timeoutMs: number): Promise<GateVerdict> {
   for (const gate of gates) {
     const r = await runProc(gate, [], { cwd, shell: true, timeoutMs });

@@ -10,7 +10,7 @@ import type { LaneOutcome } from '../../src/schemas/run';
 import type { Log } from '../wave/events';
 import { lanePrompt, type PlanItem } from '../wave/plan';
 import { savePatch } from './patch';
-import { runGates, type GateVerdict } from './verify';
+import { redReason, runGates } from './verify';
 
 export interface LaneCtx {
   repoPath: string;
@@ -46,8 +46,6 @@ export interface LaneResult {
 /** A stop whose message is a complete park reason (a red setup with its output): kept whole, not cut to 300. */
 class LaneStop extends Error {}
 
-/** `<what> red: <gate> (exit N)` then the red gate's output tail on the following lines. */
-const redReason = (what: string, v: GateVerdict): string => `${what} red: ${v.failed ?? '?'}${v.tail ? `\n${v.tail}` : ''}`;
 
 /** The lane's claim is its last DONE:/PARK: line; anything else is a failed lane. */
 export function readClaim(text: string): { kind: 'DONE' | 'PARK'; rest: string } | null {

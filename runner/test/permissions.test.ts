@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { bashPrefixes, permissionArgs, type PermissionProfile } from '../agent/permissions';
-import { callClaude, claudeArgs, PATH_TOKEN } from '../agent/spawn';
+import { callClaude, claudeArgs, PATH_TOKEN, shellLine } from '../agent/spawn';
 import { loadFleet } from '../fleet/load';
 
 describe('bashPrefixes', () => {
@@ -71,6 +71,16 @@ describe('claudeArgs', () => {
   it.each(['C:\\Users\\Jane Doe\\Temp\\s.json', '/tmp/a&b/s.json', '/tmp/"x"/s.json', '/tmp/%PATH%/s.json'])('refuses settings path %j', (p) => {
     expect(PATH_TOKEN.test(p)).toBe(false);
     expect(() => claudeArgs('sonnet', { step: 'plan' }, p)).toThrow(/shell-safe/);
+  });
+});
+
+describe('shellLine (the one cmd.exe line for claude.cmd, instead of argv with shell:true)', () => {
+  it('joins plain tokens and quotes a bin path with a space', () => {
+    expect(shellLine('claude', ['-p', '--tools=', '--settings', 'C:\\T\\s.json'])).toBe('claude -p --tools= --settings C:\\T\\s.json');
+    expect(shellLine('C:\\Program Files\\claude\\claude.cmd', ['-p'])).toBe('"C:\\Program Files\\claude\\claude.cmd" -p');
+  });
+  it.each([['claude&calc', ['-p']], ['cl"aude', ['-p']], ['claude', ['a b']], ['claude', ['']], ['claude', ['%PATH%']], ['claude', ['x|y']]])('refuses %j %j', (bin, args) => {
+    expect(() => shellLine(bin, args)).toThrow(/shell-safe/);
   });
 });
 

@@ -42,6 +42,18 @@ export function claudeArgs(model: string, permissions: PermissionProfile, settin
   return ['-p', '--output-format', 'stream-json', '--verbose', '--model', model, '--permission-mode', p.mode, `--tools=${p.tools}`, '--strict-mcp-config', '--settings', settingsFile];
 }
 
+/**
+ * One cmd.exe command line for claude.cmd. Passing argv with shell:true is what node deprecates (DEP0190: it
+ * only concatenates), so the line is built here, where every argument is already checked to be a plain token;
+ * a bin path with spaces is quoted, one with a quote or a cmd metacharacter is refused.
+ */
+export function shellLine(bin: string, args: readonly string[]): string {
+  if (/["%&|<>^\r\n]/.test(bin)) throw new Error(`runner: claude binary path is not shell-safe: ${bin}`);
+  const bad = args.find((a) => !/^[A-Za-z0-9_:\\/.,=~-]+$/.test(a));
+  if (bad !== undefined) throw new Error(`runner: argument is not shell-safe: ${bad}`);
+  return [/\s/.test(bin) ? `"${bin}"` : bin, ...args].join(' ');
+}
+
 export async function callClaude(call: AgentCall): Promise<AgentOutcome> {
   const bin = process.env.BELAY_CLAUDE_BIN || 'claude';
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-perm-'));
@@ -52,9 +64,12 @@ export async function callClaude(call: AgentCall): Promise<AgentOutcome> {
     // A script bin (the test fake) runs under this node; a real claude needs a shell on Windows (claude.cmd).
     const script = /\.(c|m)?js$/.test(bin);
     const env = agentEnv();
+    const io = { cwd: call.cwd, input: call.prompt, timeoutMs: call.timeoutMs, env };
     const r = script
-      ? await runProc(process.execPath, [bin, ...args], { cwd: call.cwd, input: call.prompt, timeoutMs: call.timeoutMs, env })
-      : await runProc(bin, args, { cwd: call.cwd, input: call.prompt, timeoutMs: call.timeoutMs, env, shell: process.platform === 'win32' });
+      ? await runProc(process.execPath, [bin, ...args], io)
+      : process.platform === 'win32'
+        ? await runProc(shellLine(bin, args), [], { ...io, shell: true })
+        : await runProc(bin, args, io);
     return { ...parseStream(r.stdout), timedOut: r.timedOut, exitCode: r.code, stderr: r.stderr };
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

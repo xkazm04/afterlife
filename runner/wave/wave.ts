@@ -5,7 +5,7 @@ import { bashPrefixes } from '../agent/permissions';
 import { callClaude } from '../agent/spawn';
 import { addWorktree, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
 import { runLane } from '../lane/run';
-import { runGates } from '../lane/verify';
+import { redReason, runGates } from '../lane/verify';
 import { git } from '../proc/proc';
 import { waveBranch } from '../../src/schemas/run';
 import type { FleetRepo, RunOptions } from '../index';
@@ -36,6 +36,16 @@ export interface WaveResult {
   branch: string;
   /** One block per lane, `### <lane> (<outcome>)` + its final text, for the reflect step. */
   notes: string[];
+  /** Set when setup or a gate was red on base itself: the wave ended before the plan, nothing was spent. */
+  baseRed?: string;
+}
+
+/** Setup then the gates in the fresh wave worktree, on base: why base is red, or null when it is green. */
+async function baseRedReason(repo: FleetRepo, waveDir: string, timeoutMs: number): Promise<string | null> {
+  const setup = await runGates(repo.setup ?? [], waveDir, timeoutMs);
+  if (!setup.ok) return redReason('base setup', setup);
+  const gates = await runGates(repo.gates, waveDir, timeoutMs);
+  return gates.ok ? null : redReason('base gate', gates);
 }
 
 /** The plan step: one read-only call. A plan session that changed the worktree voids the plan. */
@@ -72,6 +82,12 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
   const notes: string[] = [];
   const bash = bashPrefixes([...(repo.setup ?? []), ...repo.gates], repo.laneTools);
   try {
+    // A gate red on base fails every lane for a reason that is not its own: stop before any model spend.
+    const red = c.opts.skipBaseGates ? null : await baseRedReason(repo, waveDir, c.timeoutMs);
+    if (red) {
+      log({ kind: 'wave.end', branch, mergeable: false, costUsd: 0, branchKept: false, baseRed: red });
+      return { costUsd: 0, landed: 0, branch, notes: [], baseRed: red };
+    }
     const p = await plan(c, baseSha);
     cost += p.costUsd;
     for (const item of p.items) {
@@ -83,7 +99,7 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
       notes.push(`### ${item.lane} (${r.outcome})\n${why}${r.text.trim() || '(no final text)'}`);
     }
     const green = landed > 0 && (await runGates(repo.setup ?? [], waveDir, c.timeoutMs)).ok && (await runGates(repo.gates, waveDir, c.timeoutMs)).ok;
-    log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost });
+    log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost, branchKept: landed > 0 });
   } finally {
     await removeWorktree(repo.path, waveDir, landed > 0 ? undefined : branch);
   }

@@ -37,5 +37,5 @@ switch (cmd) {
     process.exitCode = 2;
     break;
   default:
-    console.log('usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--dry-run] | pair <checkout> | scan [--propose] | replay <ledger-slice>');
+    console.log('usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run] | pair <checkout> | scan [--propose] | replay <ledger-slice>');
 }

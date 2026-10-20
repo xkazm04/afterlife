@@ -8,7 +8,7 @@ merges or writes to GitLab: the wave branch is left for a person.
 
 ```
 npm run runner -- --repo athena-portable            # = belay run --repo ...
-belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [--model sonnet] [--fleet .belay/fleet.yml] [--dry-run]
+belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [--model sonnet] [--fleet .belay/fleet.yml] [--skip-base-gates] [--dry-run]
 ```
 
 `run` prints repo, base, caps and model before spending; `--dry-run` stops there. Copy `fleet.example.yml` to
@@ -31,6 +31,9 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
 ## A wave
 
 1. `wave.start`. Branch `belay/wave-<n>` is created from `base` in its own worktree (`<repo>/.claude/worktrees/belay-wave-<n>`).
+   Setup and the gates run there once, on base: if any is red, every lane would fail for a reason not its own, so the
+   wave ends at once (`wave.end` with `baseRed` = the reason and output tail, nothing spent, no reflect) and the run
+   exits 1. `--skip-base-gates` skips this check when a person knows base is red.
 2. Plan: one read-only claude call in a detached worktree of `base` (`prompts/plan.md` + repo context). It answers in
    JSON lines `{"lane","title","files","why","challenge"}`; the first `--lanes` that parse run. A plan session that
    changed its worktree is voided. Its cost is emitted as `lane.usage` with lane `plan`, then `wave.plan` records the
@@ -45,7 +48,8 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
    saves its diff against base (untracked files included, `--binary`) to `<runs>/<repo>/<wave>.<lane>.patch` before
    its worktree goes; `lane.end.patch` names it relative to the runs dir. `git apply` it on base to pick the work up.
    The lane worktree and branch are always removed. `lane.end`.
-4. `wave.end`: `mergeable` = at least one lane landed AND the gates are green on the wave branch itself.
+4. `wave.end`: `mergeable` = at least one lane landed AND the gates are green on the wave branch itself. `branchKept`
+   is false when nothing landed and the branch was deleted (`branch` still names it; older files have no key).
 5. Reflect: one claude call (`prompts/reflect.md` + the wave's events) in an empty scratch dir; its text is written to
    `.belay/runs/<repo>/<wave>.proposals.md`, its usage is emitted as `lane.usage` with lane `reflect` (after `wave.end`).
 

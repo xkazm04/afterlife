@@ -1,6 +1,6 @@
 // runWaves: the runner's entry. Resolves the repo from the fleet file, numbers each wave after the ones
 // already on disk (a branch or a run file), and runs them one after another. Returns a process exit code:
-// 0 when every wave ran, 1 when a wave threw (its error is printed, earlier waves stay on disk).
+// 0 when every wave ran, 1 when a wave threw or its base was red (printed; earlier waves stay on disk).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,6 +42,11 @@ export async function runWaves(opts: RunOptions, emit: (e: RunEvent) => void): P
       const log = makeLog({ runsDir, repo: repo.slug, wave, promptVersion: prompts.version, emit });
       const history = waveHistory(runsDir, repo.slug);
       const r = await runWave({ repo, opts, wave, prompts, log, laneCapUsd, waveCapUsd, timeoutMs, history, runsDir, ...(baseRef ? { baseRef } : {}) });
+      if (r.baseRed) {
+        // Every later wave would start from the same red base: stop, and spend nothing on reflecting.
+        console.error(`runner: ${repo.slug} is red on ${baseRef ?? repo.base} before any lane ran; wave ${wave} ended unplanned (pass --skip-base-gates to run anyway)\n${r.baseRed}`);
+        return 1;
+      }
       if (r.landed > 0) baseRef = r.branch;
       const current = { plan: prompts.text.plan, lane: prompts.text.lane };
       await reflect({ prompt: prompts.text.reflect, runFile: runFile(runsDir, repo.slug, wave), model: opts.model, timeoutMs, log, notes: r.notes, current });

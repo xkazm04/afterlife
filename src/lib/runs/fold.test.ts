@@ -16,6 +16,15 @@ describe('parseRunLine', () => {
   });
 });
 
+describe('wave.end branchKept', () => {
+  it('a wave whose branch was deleted names no branch; one without the key (older files) keeps it', () => {
+    const last = JSON.parse(WAVE_1[WAVE_1.length - 1]!) as Record<string, unknown>;
+    const dropped = [...WAVE_1.slice(0, -1), JSON.stringify({ ...last, mergeable: false, branchKept: false, baseRed: 'base gate red: x (exit 1)' })];
+    expect(foldWave(events(dropped), false)).not.toHaveProperty('branch');
+    expect(foldWave(events(WAVE_1), false)?.branch).toBe('belay/wave-1');
+  });
+});
+
 describe('wave.plan', () => {
   const plan = { v: 'belay.run/0', repo: 'alpha', promptVersion: 'abc123def456', kind: 'wave.plan', ts: '2026-10-17T10:00:00.5Z', wave: 1 };
   it('parses a plan summary and rejects a malformed one', () => {
