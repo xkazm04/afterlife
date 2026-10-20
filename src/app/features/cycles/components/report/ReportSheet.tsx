@@ -2,17 +2,16 @@
 
 import { Button } from '@/components/controls/Button';
 import { Spacer } from '@/components/controls/Spacer';
-import { CommandBlock } from '@/components/inspector/CommandBlock';
 import { Sheet } from '@/components/overlays/Sheet';
 import { useToast } from '@/components/overlays/toast/useToast';
 import type { CyclesData } from '../../model/build';
-import { cycleReport, postCommand } from '../../model/report/report';
+import { cycleReport, reportTitle } from '../../model/report/report';
 import type { Cycle } from '../../model/types';
 import styles from './report.module.css';
 
 /**
- * The hand-back of a closed cycle: the report exactly as it would be posted, the command that posts it as an issue
- * (as you, from a file), and a copy button. Nothing is posted from here.
+ * The hand-back of a closed cycle: the report exactly as it would be posted, the title to post it under, and a copy
+ * button. Nothing is posted from here, and no command that posts it is spelled here (a screen never hand-writes a write).
  */
 export function ReportSheet({ cycle, data, onClose }: { cycle: Cycle; data: CyclesData; onClose: () => void }) {
   const { status } = useToast();
@@ -42,8 +41,9 @@ export function ReportSheet({ cycle, data, onClose }: { cycle: Cycle; data: Cycl
       <pre className={styles.md} tabIndex={0} aria-label={`${cycle.id} report, Markdown`}>
         {md}
       </pre>
-      <p className={styles.how}>To post it as an issue, as you, save it as {cycle.id.toLowerCase()}-report.md and run:</p>
-      <CommandBlock commands={[postCommand(cycle, data.project)]} prompt={false} label="Post the report" />
+      <p className={styles.how}>
+        To post it, as you, open a new issue in {data.project} titled <b>{reportTitle(cycle, data.project)}</b> and paste the copied Markdown as its description.
+      </p>
     </Sheet>
   );
 }

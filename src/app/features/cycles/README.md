@@ -28,8 +28,9 @@ A saved design becomes the planned cycle for this browser session (demo).
 ## Reporting a cycle
 A closed cycle's inspector has **Report**: the hand-back as Markdown (`model/report/report.ts`, tested), exactly as it
 would be posted: net rungs and the rungs held after it, every change with its verdict and why, the misses carried
-forward, the drift caught, both proofs as they stand, and what runs next. Copy it, or post it as an issue, as you,
-with the `glab issue create` command the sheet shows. Nothing is posted from the app.
+forward, the drift caught, both proofs as they stand, and what runs next. Copy it and paste it into a new issue, as
+you, under the title the sheet names. Nothing is posted from the app, and the sheet spells no posting command: a screen
+never hand-writes a write (`src/server/actions/__tests__/handwritten.test.ts`).
 
 ## The estate scope
 `/cycles?scope=estate` (the toolbar switch) rolls every project with a recorded cycle up per group

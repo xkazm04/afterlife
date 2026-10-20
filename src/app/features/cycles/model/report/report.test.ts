@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO, DEMO_CYCLES } from '@/lib/demo';
 import { buildCycles } from '../build';
-import { cycleReport, postCommand, reportTitle } from './report';
+import * as report from './report';
+import { cycleReport, reportTitle } from './report';
 const { cycles: CLOSED_CYCLES, today: TODAY, cadence: CADENCE_DAYS } = DEMO_CYCLES;
 
 const data = buildCycles(DEMO.maturity, CLOSED_CYCLES, { project: 'acme-lab/ledgerline', today: TODAY, cadence: CADENCE_DAYS });
@@ -30,10 +31,8 @@ describe('the cycle report', () => {
     const r = cycleReport(C('C6'), { ...data, drift: ['monitor'] });
     expect(r).toContain('does NOT match the 14:02 scan on: monitor');
   });
-  it('posts as an issue with the exact command, from a file', () => {
+  it('names the issue title to paste it under, and spells no command that posts it', () => {
     expect(reportTitle(C('C6'), 'acme-lab/ledgerline')).toBe('Afterlife C6 · Block the critical · acme-lab/ledgerline');
-    expect(postCommand(C('C6'), 'acme-lab/ledgerline')).toBe(
-      'glab issue create -R acme-lab/ledgerline --title "Afterlife C6 · Block the critical · acme-lab/ledgerline" --label afterlife::cycle --description "$(cat c6-report.md)"',
-    );
+    expect(Object.keys(report).sort()).toEqual(['cycleReport', 'reportTitle']);
   });
 });
