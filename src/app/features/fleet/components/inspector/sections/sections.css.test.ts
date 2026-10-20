@@ -17,7 +17,7 @@ const css = (rel: string) => readFileSync(join(__dirname, rel), 'utf8');
 const block = (src: string, cls: string): string => stripCss(src).match(new RegExp(String.raw`(?:^|\})\s*\.` + cls + String.raw`\s*\{([^}]*)\}`))?.[1] ?? '';
 
 describe('fleet inspector and popover spacing', () => {
-  it.each([['sections.module.css'], ['../../popover/popover.module.css']])('%s: no raw px gap, padding or margin', (f) => {
+  it.each([['sections.module.css'], ['tasks/tasks.module.css'], ['../../popover/popover.module.css']])('%s: no raw px gap, padding or margin', (f) => {
     expect(unscaledSpacing(css(f))).toEqual([]);
   });
 

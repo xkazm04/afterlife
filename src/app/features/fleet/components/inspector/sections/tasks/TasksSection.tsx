@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { DetailSection } from '@/components/shell/detail/DetailPage';
-import { verdictMark } from '../../../model/inspector';
-import type { TasksSlice } from '../../../model/project/view';
-import styles from './sections.module.css';
+import { verdictMark } from '../../../../model/inspector';
+import type { TasksSlice } from '../../../../model/project/view';
+import shared from '../sections.module.css';
+import styles from './tasks.module.css';
 
 const TONE = { ok: styles.vok, bad: styles.vbad, unk: styles.vunk, none: styles.vnone } as const;
 
@@ -12,8 +13,8 @@ const TONE = { ok: styles.vok, bad: styles.vbad, unk: styles.vunk, none: styles.
  */
 export function TasksSection({ tasks }: { tasks: TasksSlice }) {
   let body;
-  if (tasks.kind === 'elsewhere') body = <div className={styles.muted}>Tasks are listed for {tasks.deepId} only</div>;
-  else if (!tasks.tasks.length) body = <div className={styles.muted}>No tasks</div>;
+  if (tasks.kind === 'elsewhere') body = <div className={shared.muted}>Tasks are listed for {tasks.deepId} only</div>;
+  else if (!tasks.tasks.length) body = <div className={shared.muted}>No tasks</div>;
   else {
     body = tasks.tasks.map((t) => {
       const m = verdictMark(t.verdict);

@@ -11,7 +11,7 @@ import { ImprovementSection } from '../inspector/sections/ImprovementSection';
 import { NeedsYouSection } from '../inspector/sections/NeedsYouSection';
 import { ProofsSection } from '../inspector/sections/ProofsSection';
 import { StagesSection } from '../inspector/sections/StagesSection';
-import { TasksSection } from '../inspector/sections/TasksSection';
+import { TasksSection } from '../inspector/sections/tasks/TasksSection';
 import { TracksSection } from '../inspector/sections/TracksSection';
 
 /**
