@@ -41,7 +41,7 @@ export async function runWaves(opts: RunOptions, emit: (e: RunEvent) => void): P
       while ((await branchExists(repo.path, waveBranch(wave))) || fs.existsSync(runFile(runsDir, repo.slug, wave))) wave++;
       const log = makeLog({ runsDir, repo: repo.slug, wave, promptVersion: prompts.version, emit });
       const history = waveHistory(runsDir, repo.slug);
-      const r = await runWave({ repo, opts, wave, prompts, log, laneCapUsd, waveCapUsd, timeoutMs, history, ...(baseRef ? { baseRef } : {}) });
+      const r = await runWave({ repo, opts, wave, prompts, log, laneCapUsd, waveCapUsd, timeoutMs, history, runsDir, ...(baseRef ? { baseRef } : {}) });
       if (r.landed > 0) baseRef = r.branch;
       const current = { plan: prompts.text.plan, lane: prompts.text.lane };
       await reflect({ prompt: prompts.text.reflect, runFile: runFile(runsDir, repo.slug, wave), model: opts.model, timeoutMs, log, notes: r.notes, current });

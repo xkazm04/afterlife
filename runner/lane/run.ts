@@ -1,13 +1,15 @@
 // One lane, start to end: a worktree on belay/wave-<n>-<lane>, one claude call, the caps, the gates, and -
 // only on green - one commit `belay(wave-<n>): <title>` cherry-picked onto the wave branch. Every way out
 // maps to a LaneOutcome; a red gate can never reach the commit line. The lane worktree and its branch are
-// always removed, so a lane leaves nothing behind but (maybe) a commit on the wave branch.
+// always removed, so a lane leaves nothing behind but (maybe) a commit on the wave branch - or, when it changed
+// something and did not land, a patch next to the run file.
 import { callClaude } from '../agent/spawn';
 import { addWorktree, removeWorktree, worktreeDir } from '../git/worktree';
 import { git, runProc } from '../proc/proc';
 import type { LaneOutcome } from '../../src/schemas/run';
 import type { Log } from '../wave/events';
 import { lanePrompt, type PlanItem } from '../wave/plan';
+import { savePatch } from './patch';
 import { runGates, type GateVerdict } from './verify';
 
 export interface LaneCtx {
@@ -26,6 +28,10 @@ export interface LaneCtx {
   timeoutMs: number;
   lanePromptText: string;
   log: Log;
+  /** Where a lane that did not land saves its diff: <runsDir>/<repo>/<wave>.<lane>.patch. */
+  runsDir: string;
+  /** The fleet slug, for the patch's path. */
+  repo: string;
 }
 
 export interface LaneResult {
@@ -58,6 +64,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   let costUsd = 0;
   let outcome: LaneOutcome = 'failed';
   let parkReason: string | undefined;
+  let patch: string | undefined;
   let text = '';
   const commits: string[] = [];
   log({ kind: 'lane.start', lane: item.lane, title: item.title });
@@ -92,9 +99,10 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   } catch (e) {
     parkReason = e instanceof LaneStop ? e.message : e instanceof Error ? e.message.slice(0, 300) : String(e);
   } finally {
+    if (outcome !== 'landed') patch = await savePatch(dir, ctx.baseSha, { runsDir: ctx.runsDir, repo: ctx.repo, wave, lane: item.lane });
     await removeWorktree(ctx.repoPath, dir, branch);
   }
-  log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
+  log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), ...(patch ? { patch } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
   return { outcome, costUsd, text, ...(parkReason ? { parkReason } : {}) };
 }
 

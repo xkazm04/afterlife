@@ -24,6 +24,8 @@ export interface WaveCtx {
   timeoutMs: number;
   /** What earlier waves of this repo planned and how each lane ended, so the planner does not re-plan them. */
   history: string[];
+  /** The run files' root; a lane that did not land saves its patch under it. */
+  runsDir: string;
   /** Stack this wave on an earlier, unmerged wave branch instead of repo.base. */
   baseRef?: string;
 }
@@ -69,7 +71,7 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
     cost += p.costUsd;
     for (const item of p.items) {
       if (cost >= c.waveCapUsd) break;
-      const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, baseSha, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log }, item);
+      const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, baseSha, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log, runsDir: c.runsDir, repo: repo.slug }, item);
       cost += r.costUsd;
       if (r.outcome === 'landed') landed++;
       const why = r.parkReason ? `Runner's reason: ${r.parkReason}\n` : '';

@@ -52,7 +52,10 @@ export interface LaneEnd extends RunEventBase {
   lane: string;
   outcome: LaneOutcome;
   commits: string[];
+  /** Why it did not land; a red gate's reason is its summary line, then the tail of that gate's output. */
   parkReason?: string;
+  /** A lane that changed files and did not land: its diff against base, relative to the runs dir (`<repo>/<wave>.<lane>.patch`). */
+  patch?: string;
   wallSec: number;
 }
 

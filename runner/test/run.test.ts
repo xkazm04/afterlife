@@ -60,6 +60,15 @@ describe('runWaves with a fake claude', () => {
     expect(r.ends['red-b']).toMatchObject({ outcome: 'failed', parkReason: 'gate red: node gate.mjs (exit 1)\nchecking\nFAIL red.flag is present' });
     expect(r.ends['red-b']?.kind === 'lane.end' && r.ends['red-b'].commits).toEqual([]);
     expect(r.ends['park-c']).toMatchObject({ outcome: 'parked', parkReason: expect.stringContaining('gate-surface') });
+    // The red lane's work survives its worktree as a patch that applies to base; a lane that changed nothing has none.
+    const patch = `temp/${r.wave}.red-b.patch`;
+    expect(r.ends['red-b']).toMatchObject({ patch });
+    const body = fs.readFileSync(path.join(runsDir, patch), 'utf8');
+    expect(body).toContain('red-b.txt');
+    expect(body).toContain('red.flag');
+    expect(spawnSync('git', ['apply', '--check', path.join(runsDir, patch)], { cwd: repoDir }).status).toBe(0);
+    expect(r.ends['park-c']).not.toHaveProperty('patch');
+    expect(r.ends['ok-a']).not.toHaveProperty('patch');
     const end = r.lines.find((e) => e.kind === 'wave.end');
     expect(end).toMatchObject({ branch: `belay/wave-${r.wave}`, mergeable: true });
     // The wave branch holds exactly the landed commit; red.flag never reached it; main did not move.
