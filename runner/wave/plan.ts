@@ -17,7 +17,7 @@ export function planPrompt(base: string, repo: FleetRepo, lanes: number, history
   const done = history.length
     ? `\n## Earlier waves on this repo (do not re-plan a landed item; a parked or failed one only with a new approach)\n${history.map((h) => `- ${h}`).join('\n')}\n`
     : '';
-  return `${base}\n\n## This wave\n- repo: ${repo.slug}\n- base: ${baseRef ?? repo.base}\n- plan at most ${lanes} lane(s)\n- gates every lane must pass:\n${repo.gates.map((g) => `  - ${g}`).join('\n')}\n${done}${stepMarker('plan')}`;
+  return `${base}\n\n## This wave\n- repo: ${repo.slug}\n- base: ${baseRef ?? repo.base}\n- plan exactly ${lanes} lane(s), fewer only if fewer real items exist (then just emit fewer lines)\n- gates every lane must pass:\n${repo.gates.map((g) => `  - ${g}`).join('\n')}\n${done}${stepMarker('plan')}`;
 }
 
 /** What a lane is checked by: the repo's gates (run by the runner after it) and the Bash prefixes it may run itself. */
