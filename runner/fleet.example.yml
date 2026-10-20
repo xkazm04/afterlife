@@ -2,6 +2,8 @@
 # Each gate is its own command, run in the lane worktree, exit code asserted; all green or nothing commits.
 # `setup` runs in every fresh worktree first (a worktree has no node_modules or venv). Prefer real installs
 # over junctions into the main checkout: removing a worktree must never reach the main checkout's files.
+# A lane may run (Bash) the command prefixes of its repo's setup and gates - `uv run ruff`, `cargo fmt`, `npm run
+# typecheck` - plus any `laneTools` prefixes listed here (cheap targeted checks); never git or the network.
 # Gates below come from each repo's .claude/scan-sweep/config.md / AGENTS.md / .ai/manifest.yaml.
 repos:
   - slug: athena-portable
@@ -23,6 +25,8 @@ repos:
     base: main
     setup:
       - pnpm --dir apps/desktop/client install --frozen-lockfile --prefer-offline
+    laneTools:
+      - cargo check
     gates:
       - cargo fmt --all --check
       - cargo clippy --workspace --all-targets -- -D warnings
@@ -32,6 +36,9 @@ repos:
     base: main
     setup:
       - npm ci --prefer-offline --no-audit --no-fund
+    laneTools:
+      - npx vitest run
+      - npx tsc --noEmit
     gates:
       - npm run typecheck
       - npm run lint:ratchet

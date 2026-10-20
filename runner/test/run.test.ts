@@ -11,20 +11,29 @@ import { runWaves, type RunOptions } from '../index';
 const FAKE = path.resolve(import.meta.dirname, 'fakeClaude.mjs');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-run-'));
 const repoDir = path.join(tmp, 'repo');
+/** A repo whose base is red on its own: red.flag is committed. */
+const redDir = path.join(tmp, 'red');
 const runsDir = path.join(tmp, 'runs');
 const fleet = path.join(tmp, 'fleet.yml');
 const sh = (cwd: string, ...a: string[]) => spawnSync('git', a, { cwd, encoding: 'utf8' }).stdout.trim();
 
-beforeAll(() => {
+function initRepo(repoDir: string, red: boolean) {
   fs.mkdirSync(repoDir);
-  fs.writeFileSync(path.join(repoDir, 'gate.mjs'), "import fs from 'node:fs'; process.exit(fs.existsSync('red.flag') ? 1 : 0);\n");
+  if (red) fs.writeFileSync(path.join(repoDir, 'red.flag'), 'x');
+  fs.writeFileSync(path.join(repoDir, 'gate.mjs'), "import fs from 'node:fs'; if (fs.existsSync('red.flag')) { console.log('checking'); console.error('\\x1b[31mFAIL\\x1b[0m red.flag is present'); process.exit(1); }\n");
   fs.writeFileSync(path.join(repoDir, '.gitignore'), '.claude/worktrees/\n');
   sh(repoDir, 'init', '-q', '-b', 'main');
   sh(repoDir, 'config', 'user.email', 't@example.com');
   sh(repoDir, 'config', 'user.name', 'T');
   sh(repoDir, 'add', '-A');
   sh(repoDir, 'commit', '-q', '-m', 'init');
-  fs.writeFileSync(fleet, `repos:\n  - slug: temp\n    path: ${JSON.stringify(repoDir)}\n    base: main\n    gates: [node gate.mjs]\n`);
+}
+
+beforeAll(() => {
+  initRepo(repoDir, false);
+  initRepo(redDir, true);
+  const entry = (slug: string, dir: string) => `  - slug: ${slug}\n    path: ${JSON.stringify(dir)}\n    base: main\n    gates: [node gate.mjs]\n`;
+  fs.writeFileSync(fleet, `repos:\n${entry('temp', repoDir)}${entry('temp-red', redDir)}`);
   process.env.BELAY_CLAUDE_BIN = FAKE;
 });
 afterAll(() => {
@@ -37,7 +46,7 @@ async function run(plan: string[], over: Partial<RunOptions> = {}) {
   const seen: RunEvent[] = [];
   const code = await runWaves({ repo: 'temp', waves: 1, lanes: 6, laneCapUsd: 3, waveCapUsd: 25, model: 'sonnet', fleet, runsDir, ...over }, (e) => seen.push(e));
   const wave = seen[0]?.wave ?? 0;
-  const file = path.join(runsDir, 'temp', `${wave}.jsonl`);
+  const file = path.join(runsDir, over.repo ?? 'temp', `${wave}.jsonl`);
   const lines = fs.readFileSync(file, 'utf8').trim().split('\n').map((l) => JSON.parse(l) as RunEvent);
   const ends = Object.fromEntries(lines.filter((e) => e.kind === 'lane.end').map((e) => [e.lane, e]));
   return { code, seen, lines, ends, wave, file };
@@ -48,7 +57,12 @@ describe('runWaves with a fake claude', () => {
     const mainBefore = sh(repoDir, 'rev-parse', 'main');
     const r = await run(['ok-a', 'red-b', 'park-c']);
     expect(r.code).toBe(0);
-    expect(new Set(r.lines.map((e) => e.kind))).toEqual(new Set(['wave.start', 'lane.start', 'lane.usage', 'lane.end', 'wave.end']));
+    expect(new Set(r.lines.map((e) => e.kind))).toEqual(new Set(['wave.start', 'wave.plan', 'lane.start', 'lane.usage', 'lane.end', 'wave.end']));
+    // The plan's answer is on record right after the planner's own usage: what it wrote, what parsed, which lanes.
+    const planAt = r.lines.findIndex((e) => e.kind === 'wave.plan');
+    expect(r.lines[planAt]).toMatchObject({ raw: 3, parsed: 3, items: ['ok-a', 'red-b', 'park-c'] });
+    expect(r.lines[planAt]).not.toHaveProperty('voided');
+    expect(r.lines[planAt - 1]).toMatchObject({ kind: 'lane.usage', lane: 'plan' });
     for (const e of r.lines) {
       expect(e.v).toBe(RUN_SCHEMA);
       expect(e.repo).toBe('temp');
@@ -57,11 +71,21 @@ describe('runWaves with a fake claude', () => {
     }
     expect(r.ends['ok-a']).toMatchObject({ outcome: 'landed' });
     expect(r.ends['ok-a']?.kind === 'lane.end' && r.ends['ok-a'].commits).toHaveLength(1);
-    expect(r.ends['red-b']).toMatchObject({ outcome: 'failed' });
+    expect(r.ends['red-b']).toMatchObject({ outcome: 'failed', parkReason: 'gate red: node gate.mjs (exit 1)\nchecking\nFAIL red.flag is present' });
     expect(r.ends['red-b']?.kind === 'lane.end' && r.ends['red-b'].commits).toEqual([]);
     expect(r.ends['park-c']).toMatchObject({ outcome: 'parked', parkReason: expect.stringContaining('gate-surface') });
+    // The red lane's work survives its worktree as a patch that applies to base; a lane that changed nothing has none.
+    const patch = `temp/${r.wave}.red-b.patch`;
+    expect(r.ends['red-b']).toMatchObject({ patch });
+    const body = fs.readFileSync(path.join(runsDir, patch), 'utf8');
+    expect(body).toContain('red-b.txt');
+    expect(body).toContain('red.flag');
+    expect(spawnSync('git', ['apply', '--check', path.join(runsDir, patch)], { cwd: repoDir }).status).toBe(0);
+    expect(r.ends['park-c']).not.toHaveProperty('patch');
+    expect(r.ends['ok-a']).not.toHaveProperty('patch');
     const end = r.lines.find((e) => e.kind === 'wave.end');
-    expect(end).toMatchObject({ branch: `belay/wave-${r.wave}`, mergeable: true });
+    expect(end).toMatchObject({ branch: `belay/wave-${r.wave}`, mergeable: true, branchKept: true });
+    expect(end).not.toHaveProperty('baseRed');
     // The wave branch holds exactly the landed commit; red.flag never reached it; main did not move.
     const log = sh(repoDir, 'log', '--format=%s', `main..belay/wave-${r.wave}`);
     expect(log).toBe(`belay(wave-${r.wave}): do ok-a`);
@@ -72,13 +96,34 @@ describe('runWaves with a fake claude', () => {
     expect(r.lines.some((e) => e.kind === 'lane.usage' && e.lane === 'reflect')).toBe(true);
   }, 90_000);
 
+  it('ends a wave before the plan when base is red on its own, and runs it with skipBaseGates', async () => {
+    const r = await run(['ok-a'], { repo: 'temp-red' });
+    expect(r.code).toBe(1);
+    expect(r.lines.map((e) => e.kind)).toEqual(['wave.start', 'wave.end']);
+    expect(r.lines[1]).toMatchObject({ mergeable: false, costUsd: 0, branchKept: false, baseRed: 'base gate red: node gate.mjs (exit 1)\nchecking\nFAIL red.flag is present' });
+    expect(fs.existsSync(r.file.replace('.jsonl', '.proposals.md'))).toBe(false);
+    expect(sh(redDir, 'branch', '--list', 'belay/*')).toBe('');
+    const s = await run(['park-a'], { repo: 'temp-red', skipBaseGates: true });
+    expect(s.code).toBe(0);
+    expect(s.lines.find((e) => e.kind === 'wave.plan')).toMatchObject({ parsed: 1 });
+    expect(s.lines.find((e) => e.kind === 'wave.end')).not.toHaveProperty('baseRed');
+  }, 90_000);
+
+  it('records a plan that wrote more lines than run, and runs only the asked-for count', async () => {
+    const r = await run(['park-x', 'park-y'], { lanes: 1 });
+    expect(r.lines.find((e) => e.kind === 'wave.plan')).toMatchObject({ raw: 2, parsed: 1, items: ['park-x'] });
+    expect(r.lines.filter((e) => e.kind === 'lane.start')).toHaveLength(1);
+  }, 90_000);
+
   it('halts a lane over its cap as budget and skips lanes once the wave cap is reached', async () => {
     const r = await run(['exp-a', 'ok-b', 'ok-c'], { laneCapUsd: 3, waveCapUsd: 5 });
     expect(r.ends['exp-a']).toMatchObject({ outcome: 'budget' });
     expect(r.ends['exp-a']?.kind === 'lane.end' && r.ends['exp-a'].commits).toEqual([]);
     // plan $0.25 + exp $9 >= $5: the other lanes never start, and the wave still ends.
     expect(r.lines.filter((e) => e.kind === 'lane.start')).toHaveLength(1);
-    expect(r.lines.find((e) => e.kind === 'wave.end')).toMatchObject({ mergeable: false });
+    // Nothing landed: the branch the event names was deleted, and the event says so.
+    expect(r.lines.find((e) => e.kind === 'wave.end')).toMatchObject({ mergeable: false, branchKept: false });
+    expect(sh(repoDir, 'branch', '--list', `belay/wave-${r.wave}`)).toBe('');
   }, 90_000);
 
   it('kills a hung lane at the timeout', async () => {

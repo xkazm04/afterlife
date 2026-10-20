@@ -1,20 +1,24 @@
 // One lane, start to end: a worktree on belay/wave-<n>-<lane>, one claude call, the caps, the gates, and -
 // only on green - one commit `belay(wave-<n>): <title>` cherry-picked onto the wave branch. Every way out
 // maps to a LaneOutcome; a red gate can never reach the commit line. The lane worktree and its branch are
-// always removed, so a lane leaves nothing behind but (maybe) a commit on the wave branch.
+// always removed, so a lane leaves nothing behind but (maybe) a commit on the wave branch - or, when it changed
+// something and did not land, a patch next to the run file.
 import { callClaude } from '../agent/spawn';
 import { addWorktree, removeWorktree, worktreeDir } from '../git/worktree';
 import { git, runProc } from '../proc/proc';
 import type { LaneOutcome } from '../../src/schemas/run';
 import type { Log } from '../wave/events';
 import { lanePrompt, type PlanItem } from '../wave/plan';
-import { runGates } from './verify';
+import { savePatch } from './patch';
+import { redReason, runGates } from './verify';
 
 export interface LaneCtx {
   repoPath: string;
   gates: string[];
   /** FleetRepo.setup: run in the fresh lane worktree before claude starts; a red setup fails the lane. */
   setup: string[];
+  /** Bash prefixes the lane's claude may run (permissions.ts bashPrefixes over setup, gates and laneTools). */
+  bash: string[];
   baseSha: string;
   wave: number;
   /** The wave branch's own worktree: landed commits are cherry-picked here. */
@@ -24,6 +28,10 @@ export interface LaneCtx {
   timeoutMs: number;
   lanePromptText: string;
   log: Log;
+  /** Where a lane that did not land saves its diff: <runsDir>/<repo>/<wave>.<lane>.patch. */
+  runsDir: string;
+  /** The fleet slug, for the patch's path. */
+  repo: string;
 }
 
 export interface LaneResult {
@@ -31,7 +39,13 @@ export interface LaneResult {
   costUsd: number;
   /** The tail of the lane's final message (at most 1500 chars), for the reflect step. */
   text: string;
+  /** Why it did not land (lane.end's parkReason), red gate output included. */
+  parkReason?: string;
 }
+
+/** A stop whose message is a complete park reason (a red setup with its output): kept whole, not cut to 300. */
+class LaneStop extends Error {}
+
 
 /** The lane's claim is its last DONE:/PARK: line; anything else is a failed lane. */
 export function readClaim(text: string): { kind: 'DONE' | 'PARK'; rest: string } | null {
@@ -48,14 +62,15 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   let costUsd = 0;
   let outcome: LaneOutcome = 'failed';
   let parkReason: string | undefined;
+  let patch: string | undefined;
   let text = '';
   const commits: string[] = [];
   log({ kind: 'lane.start', lane: item.lane, title: item.title });
   try {
     await addWorktree(ctx.repoPath, dir, ctx.baseSha, branch);
     const ready = await runGates(ctx.setup, dir, ctx.timeoutMs);
-    if (!ready.ok) throw new Error(`setup red: ${ready.failed}`);
-    const a = await callClaude({ prompt: lanePrompt(ctx.lanePromptText, item, ctx.laneCapUsd), cwd: dir, model: ctx.model, timeoutMs: ctx.timeoutMs });
+    if (!ready.ok) throw new LaneStop(redReason('setup', ready));
+    const a = await callClaude({ prompt: lanePrompt(ctx.lanePromptText, item, ctx.laneCapUsd, { gates: ctx.gates, commands: ctx.bash }), cwd: dir, model: ctx.model, timeoutMs: ctx.timeoutMs, permissions: { step: 'lane', bash: ctx.bash } });
     costUsd = a.costUsd ?? 0;
     text = a.text.slice(-1500);
     if (a.usage) {
@@ -80,12 +95,13 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
       if (landed.commit) commits.push(landed.commit);
     }
   } catch (e) {
-    parkReason = e instanceof Error ? e.message.slice(0, 300) : String(e);
+    parkReason = e instanceof LaneStop ? e.message : e instanceof Error ? e.message.slice(0, 300) : String(e);
   } finally {
+    if (outcome !== 'landed') patch = await savePatch(dir, ctx.baseSha, { runsDir: ctx.runsDir, repo: ctx.repo, wave, lane: item.lane });
     await removeWorktree(ctx.repoPath, dir, branch);
   }
-  log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
-  return { outcome, costUsd, text };
+  log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), ...(patch ? { patch } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
+  return { outcome, costUsd, text, ...(parkReason ? { parkReason } : {}) };
 }
 
 /**
@@ -107,7 +123,7 @@ async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem): Promise
   const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
   if (armed.length) return { outcome: 'parked', parkReason: `edits agent or hook config: ${armed.slice(0, 5).join(', ')}` };
   const gates = await runGates(ctx.gates, dir, ctx.timeoutMs);
-  if (!gates.ok) return { outcome: 'failed', parkReason: `gate red: ${gates.failed}` };
+  if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates) };
   await git(dir, ['reset', '--soft', ctx.baseSha]);
   await git(dir, ['add', '-A']);
   await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`]);

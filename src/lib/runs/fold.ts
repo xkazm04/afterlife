@@ -61,7 +61,7 @@ export function foldWave(events: readonly RunEvent[], hasProposals: boolean): Ru
   if (withTokens.length) w.tokens = withTokens.reduce((n, l) => n + (l.tokens ?? 0), 0);
   if (end?.kind === 'wave.end') {
     w.costUsd = end.costUsd;
-    w.branch = end.branch;
+    if (end.branchKept !== false) w.branch = end.branch;
     w.mergeable = end.mergeable;
     w.endedAt = end.ts;
   } else if (withCost.length) w.costUsd = withCost.reduce((n, l) => n + (l.costUsd ?? 0), 0);

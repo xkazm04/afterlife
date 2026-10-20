@@ -5,9 +5,10 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseStream } from '../agent/stream';
 import { loadFleet } from '../fleet/load';
-import { parsePlan } from '../wave/plan';
+import { lanePrompt, parsePlan } from '../wave/plan';
 import { loadPrompts } from '../wave/prompts';
 import { readClaim } from '../lane/run';
+import { gateTail } from '../lane/verify';
 
 const line = (o: unknown) => JSON.stringify(o);
 
@@ -23,6 +24,19 @@ describe('parseStream', () => {
     ['empty', '', { text: '', usage: null, costUsd: null, isError: false }],
   ])('%s', (_name, stdout, want) => {
     expect(parseStream(stdout)).toMatchObject(want);
+  });
+});
+
+describe('gateTail', () => {
+  it('strips colour codes, keeps the last frame of a \\r progress line, puts stderr after stdout', () => {
+    expect(gateTail('\x1b[1m\x1b[32mok\x1b[0m 3 passed\n 10%\r 50%\r100%\n', '\x1b[31merror[E0308]\x1b[0m: mismatched types\n')).toBe('ok 3 passed\n100%\nerror[E0308]: mismatched types');
+    expect(gateTail('', '')).toBe('');
+  });
+  it('keeps only the tail of a long output', () => {
+    const t = gateTail(`${'x'.repeat(5000)}END`, '', 1200);
+    expect(t).toHaveLength(1203);
+    expect(t.startsWith('...')).toBe(true);
+    expect(t.endsWith('END')).toBe(true);
   });
 });
 
@@ -52,6 +66,13 @@ describe('loadFleet', () => {
     expect(a).toEqual({ slug: 'a', path: '/x', base: 'main', gates: ['t'], setup: ['npm ci'] });
     expect(() => loadFleet(write('repos:\n  - {slug: a, path: /x, base: main, gates: [t], setup: npm ci}\n'))).toThrow();
   });
+  it('keeps laneTools prefixes and refuses a bare launcher or shell syntax', () => {
+    const [a] = loadFleet(write('repos:\n  - {slug: a, path: /x, base: main, gates: [t], laneTools: [npx vitest run, " cargo check "]}\n'));
+    expect(a?.laneTools).toEqual(['npx vitest run', 'cargo check']);
+    for (const bad of ['[npx]', '["npx vitest; curl x"]', '["Bash(x)"]', 'npx vitest']) {
+      expect(() => loadFleet(write(`repos:\n  - {slug: a, path: /x, base: main, gates: [t], laneTools: ${bad}}\n`))).toThrow(/laneTools/);
+    }
+  });
   it.each([
     ['no repos', 'repos: []\n'],
     ['no gates', 'repos:\n  - {slug: a, path: /x, base: main, gates: []}\n'],
@@ -70,6 +91,15 @@ describe('parsePlan and prompts', () => {
   it('keeps well-formed lines, drops the rest, dedupes lanes, caps the count', () => {
     const text = ['not json', '{"lane":"Fix A","title":"Fix a","files":["a.ts"],"why":"a.ts:1","challenge":"c"}', '{"lane":"fix-a","title":"dup"}', '{"lane":"b"}', '{"lane":"c","title":"C"}', '{"lane":"d","title":"D"}'].join('\n');
     expect(parsePlan(text, 2).map((i) => i.lane)).toEqual(['fix-a', 'c']);
+  });
+  it('the lane prompt lists the gates and the commands the lane may run', () => {
+    const item = { lane: 'a', title: 'A', files: ['a.rs'], why: 'a.rs:1', challenge: 'c' };
+    const p = lanePrompt('BASE', item, 3, { gates: ['cargo fmt --all --check', 'cargo test --workspace'], commands: ['cargo fmt', 'cargo check'] });
+    expect(p).toContain('  - cargo fmt --all --check\n  - cargo test --workspace');
+    expect(p).toContain('  - cargo fmt ...\n  - cargo check ...');
+    expect(p).toMatch(/run the cheap ones: the formatter/);
+    expect(p.trimEnd().endsWith('<!-- belay:step=lane lane=a -->')).toBe(true);
+    expect(lanePrompt('BASE', item, 3, { gates: ['make'], commands: [] })).toContain('you cannot run a shell check');
   });
   it('promptVersion is 12 hex, stable, and a missing dir falls back on all three', () => {
     const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-prompts-'));

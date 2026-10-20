@@ -6,6 +6,9 @@ import type { FleetRepo } from '../index';
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
+/** Two or more plain argv words: `npx vitest run`, `cargo check`. */
+const LANE_TOOL = /^[A-Za-z0-9][A-Za-z0-9@%+=:,./_-]*( [A-Za-z0-9@%+=:,./_-]+)+$/;
+
 function cap(v: unknown, where: string, key: string): number | undefined {
   if (v === undefined) return undefined;
   if (typeof v !== 'number' || !(v > 0)) throw new Error(`${where}: ${key} must be a positive number`);
@@ -34,9 +37,14 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     if (setup !== undefined && (!Array.isArray(setup) || !setup.every((g) => typeof g === 'string' && g.trim()))) {
       throw new Error(`${where}: setup must be a list of commands`);
     }
+    const { laneTools } = r;
+    // Each becomes an allow rule `Bash(<prefix>:*)` in the lane's settings: plain words only, never a bare launcher.
+    if (laneTools !== undefined && (!Array.isArray(laneTools) || !laneTools.every((t) => typeof t === 'string' && LANE_TOOL.test(t.trim())))) {
+      throw new Error(`${where}: laneTools must be a list of command prefixes of two or more plain words`);
+    }
     const laneCapUsd = cap(r.laneCapUsd, where, 'laneCapUsd');
     const waveCapUsd = cap(r.waveCapUsd, where, 'waveCapUsd');
-    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}) };
+    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}) };
   });
 }
 

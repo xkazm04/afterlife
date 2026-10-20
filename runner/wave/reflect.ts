@@ -31,7 +31,7 @@ export async function reflect(o: ReflectInput): Promise<void> {
   ].join('\n\n');
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-reflect-'));
   try {
-    const a = await callClaude({ prompt: `${o.prompt}\n\n${context}\n${stepMarker('reflect')}`, cwd: scratch, model: o.model, timeoutMs: o.timeoutMs });
+    const a = await callClaude({ prompt: `${o.prompt}\n\n${context}\n${stepMarker('reflect')}`, cwd: scratch, model: o.model, timeoutMs: o.timeoutMs, permissions: { step: 'reflect' } });
     if (a.usage) o.log({ kind: 'lane.usage', lane: 'reflect', model: a.model ?? o.model, ...a.usage, costUsd: a.costUsd ?? 0 });
     if (a.text && !a.timedOut) fs.writeFileSync(o.runFile.replace(/\.jsonl$/, '.proposals.md'), `${a.text.trim()}\n`);
   } catch {
