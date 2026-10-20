@@ -16,7 +16,8 @@ next-env.d.ts
 .claude/*
 !.claude/perfect/
 design/
-/docs/
+/docs/*
+!/docs/concepts/
 DECISIONS.md
 scratch/
 
