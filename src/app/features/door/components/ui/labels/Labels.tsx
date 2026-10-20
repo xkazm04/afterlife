@@ -2,9 +2,9 @@
 
 import { memo } from 'react';
 import type { CSSProperties } from 'react';
-import { PT, type District } from '../../model/city';
-import { districtLine } from '../../model/words';
-import styles from './answer.module.css';
+import { PT, type District } from '../../../model/city';
+import { districtLine } from '../../../model/words';
+import styles from './labels.module.css';
 
 /** One label under each district plate: its name, its count, its amber decisions and stale chip. Opens the district. */
 export const Labels = memo(function Labels({ ds, hotG, tabbable, onHover, onOpen }: { ds: readonly District[]; hotG: number | null; tabbable: boolean; onHover: (gi: number | null) => void; onOpen: (gi: number) => void }) {

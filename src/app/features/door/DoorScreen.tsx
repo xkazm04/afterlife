@@ -13,7 +13,7 @@ import { Rail } from './components/rail/Rail';
 import { Scene } from './components/scene/Scene';
 import { SceneDefs } from './components/scene/SceneDefs';
 import { Answer } from './components/ui/Answer';
-import { Labels } from './components/ui/Labels';
+import { Labels } from './components/ui/labels/Labels';
 import { Readout } from './components/ui/Readout';
 import { useDoor } from './hooks/useDoor';
 import { useStageFit } from './hooks/useStageFit';
