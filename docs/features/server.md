@@ -55,7 +55,7 @@
 - **Ledger import** (`ledger/importLedger.ts`): list `events/`, skip if the blob id is unchanged, parse each line,
   verify the whole file from genesis, then append from the stored tail in one transaction.
 - **Cycle import** (`ledger/importCycles.ts`): `cycles/<project-id>.jsonl`, one hash-chained line per closed
-  improvement cycle (`src/schemas/cycle.ts`). It must verify, belong to the project and extend what is stored; it then
+  improvement cycle (`src/schemas/cycle/index.ts`). It must verify, belong to the project and extend what is stored; it then
   replaces the project's `cycle_record` rows (keyed by the index's project id). `getCycles()` serves the deep project's
   history and `getEstateCycles()` every project's (`views/cycles.ts`); the seed writes the estate projects the demo
   GitLab does not hold (`seed/seedCycles.ts`).

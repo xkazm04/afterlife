@@ -1,7 +1,7 @@
 // A snapshot is everything the live source serves, read from the index in one go after each poll cycle. Pages read it
 // synchronously. What the index cannot yet serve (tracks, the loop, setup phases, the cockpit text) is the demo's
 // catalogue, unchanged: see data/README.md for the list.
-import type { CycleHistory } from '@/lib/demo/cycleTypes';
+import type { CycleHistory } from '@/lib/demo/cycles/types';
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
 import type { LedgerEvent } from '@/schemas/ledger';
 import { clock, getActionClasses, getEstateCycles, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';

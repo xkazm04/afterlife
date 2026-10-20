@@ -1,7 +1,7 @@
 // The closed cycles of acme-lab/ledgerline, day 0 to the 14:02 scan. ILLUSTRATIVE, like belay-demo.json, and written
 // to reconcile with it: replayed from the day-0 rungs these six cycles land exactly on the 14:02 rungs (a test
 // holds it), and every Maturity credit-history entry (!17 to !23) is a change here. Same engine throughout.
-import type { Cycle, CycleHistory } from './cycleTypes';
+import type { Cycle, CycleHistory } from './types';
 
 const ENGINE = 'v1';
 

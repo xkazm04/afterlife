@@ -30,11 +30,11 @@
 `getCycles()` (the closed history) → `model/build.ts` `buildCycles()` → `CyclesScreen` (client).
 
 - **Where the history comes from.** Each closed cycle is one line of `belay-ledger/cycles/<project-id>.jsonl`
-  (`src/schemas/cycle.ts`): theme, engine, the opening and closing rescans as instants, and every change with its
+  (`src/schemas/cycle/index.ts`): theme, engine, the opening and closing rescans as instants, and every change with its
   verdict. Lines are hash-chained like the event ledger. The poller imports the file into `cycle_record`; it must
   verify from the first cycle and may only extend what is stored (an edited, shortened or rewritten history is
   rejected and the feed fails). The view counts days from the first cycle's opening. Demo mode reads the same six
-  cycles from `src/lib/demo/cycles.ts`; the fake GitLab serves them as the file, so live mode reads them from the
+  cycles from `src/lib/demo/cycles/deep.ts`; the fake GitLab serves them as the file, so live mode reads them from the
   ledger and lands on the same screen.
 
 - `model/replay.ts`: `applyCycle`, `replay`, `chainBreaks`, `reconcile`, `heatGrid`, `summarize`, `reach`, `total`.
@@ -74,8 +74,8 @@
 | `components/report/` | `ReportSheet`: the Markdown, copy, the post command |
 | `components/estate/`, `ScopeSwitch.tsx` | The estate scope: `EstateScreen`, `EstateBand`, `EstateTable`, `EstateInspector`; the scope switch |
 | `model/estate/estate.ts`, `data/loadEstateData.ts` | `buildEstate` (per-project replay against fleet rungs, group roll-ups), `unwind`; its loader |
-| `src/lib/demo/estate.ts` | Five more projects' histories (illustrative), one per group, each reconciling with its fleet rungs |
-| `src/lib/demo/cycles.ts` | Demo history C1–C6 (illustrative, written to reconcile with the demo scan); domain types in `src/lib/demo/cycleTypes.ts` |
+| `src/lib/demo/cycles/estate.ts` | Five more projects' histories (illustrative), one per group, each reconciling with its fleet rungs |
+| `src/lib/demo/cycles/deep.ts` | Demo history C1–C6 (illustrative, written to reconcile with the demo scan); domain types in `src/lib/demo/cycles/types.ts` |
 | `src/server/ledger/importCycles.ts`, `parseCycles.ts` | The cycle file: parse, verify, import |
 | `src/server/index/views/cycles.ts` | `cycle_record` → the screen's history |
 | `model/` | The pure model above |

@@ -1,6 +1,6 @@
 // The Cycles screen's history: a project's closed cycles from cycle_record, counted in days since the first cycle opened
 // (day 0, the onboarding scan). A project with no cycle file has an empty history, not a made-up one.
-import type { Cycle, CycleHistory } from '@/lib/demo/cycleTypes';
+import type { Cycle, CycleHistory } from '@/lib/demo/cycles/types';
 import type { CycleRecord } from '@/schemas/cycle';
 import { listAllCycleRecords, listCycleRecords } from '../../repositories/ledger/cycles';
 import type { Queryable } from '../../repositories/sql';

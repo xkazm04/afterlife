@@ -1,4 +1,4 @@
-// belay-ledger/cycles/<project-id>.jsonl for the demo group: the deep project's closed cycles (src/lib/demo/cycles.ts)
+// belay-ledger/cycles/<project-id>.jsonl for the demo group: the deep project's closed cycles (src/lib/demo/cycles/deep.ts)
 // as the autopilot would record them, a week apart at the demo's scan clock. Built with the schema's own appendCycle,
 // so it verifies; read back, it is the same history (parity.test.ts).
 import { DEMO_CYCLES } from '@/lib/demo';

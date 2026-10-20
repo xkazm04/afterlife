@@ -1,7 +1,7 @@
 // What the screens' server loaders read. The surface is the one `@/lib/demo` has always had (the getX accessors), so a
 // loader changes one import and nothing else. Reads are synchronous: the live source serves a snapshot that the poller
 // refreshes after every cycle, so a page never waits on GitLab or on the index.
-import type { CycleHistory } from '@/lib/demo/cycleTypes';
+import type { CycleHistory } from '@/lib/demo/cycles/types';
 import type { DemoData, Task } from '@/lib/demo/types';
 import type { HumanKeyRead, PromotionRules } from '@/lib/promotion/types';
 import type { LedgerEvent } from '@/schemas/ledger';

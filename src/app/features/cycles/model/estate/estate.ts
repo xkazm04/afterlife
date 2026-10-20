@@ -1,7 +1,7 @@
 // The estate in cycles: every project whose ledger records a closed cycle, rolled up per group. Pure. Each project's
 // history is held to account against its own rungs today: unwound to day 0 and replayed, it must hold the chain and
 // land exactly on the fleet's rungs, or the row says it does not reconcile.
-import type { CycleHistory } from '@/lib/demo/cycleTypes';
+import type { CycleHistory } from '@/lib/demo/cycles/types';
 import type { FleetProject } from '@/lib/demo/types';
 import { STAGES, type Stage } from '@/schemas/stages';
 import { chainBreaks, moves, reconcile, replay, summarize, total } from '../replay';

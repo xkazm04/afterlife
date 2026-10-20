@@ -1,14 +1,14 @@
 // Demo-mode data source. Every screen reads the same illustrative fixture (data/belay-demo.json, a copy that
 // lives inside src so the app has no dependency outside it). Accessors are typed; screens never touch the JSON.
 import raw from './data/belay-demo.json';
-import { DEMO_CYCLES } from './cycles';
-import { ESTATE_CYCLES } from './estate';
+import { DEMO_CYCLES } from './cycles/deep';
+import { ESTATE_CYCLES } from './cycles/estate';
 import type { DemoData, FleetProject, Task } from './types';
 
 export type * from './types';
-export type * from './cycleTypes';
-export { DEMO_CYCLES } from './cycles';
-export { ESTATE_CYCLES } from './estate';
+export type * from './cycles/types';
+export { DEMO_CYCLES } from './cycles/deep';
+export { ESTATE_CYCLES } from './cycles/estate';
 
 // The one place the JSON meets the types. demo.test.ts validates the shape (tier keys, ids, counts).
 export const DEMO: DemoData = raw as unknown as DemoData;

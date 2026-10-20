@@ -2,8 +2,8 @@
 // credits it. Hash-chained like the event ledger (same canonical form), so an edited, dropped or reordered cycle is
 // visible. A record carries instants, not day numbers: a reader counts days from the first cycle's opening.
 import { createHash } from 'node:crypto';
-import { canonical, GENESIS } from './ledger';
-import type { Stage } from './stages';
+import { canonical, GENESIS } from '../ledger';
+import type { Stage } from '../stages';
 
 /** What the closing rescan made of a change. A closed cycle has no pending or planned change. */
 export type ClosedVerdict = 'credited' | 'nolift' | 'rejected' | 'resolved' | 'regressed';

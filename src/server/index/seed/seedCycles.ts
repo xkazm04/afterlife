@@ -2,7 +2,7 @@
 // at the demo's scan clock, counted back from the anchor's day. The fake GitLab serves the deep project's history this
 // way; the rest of the estate in cycles has no GitLab project, so the seed writes theirs (like the other 183 projects).
 import { DEMO, ESTATE_CYCLES } from '@/lib/demo';
-import type { CycleHistory } from '@/lib/demo/cycleTypes';
+import type { CycleHistory } from '@/lib/demo/cycles/types';
 import { appendCycle, type CycleRecord } from '@/schemas/cycle';
 import { replaceCycleRecords } from '../repositories/ledger/cycles';
 import type { Queryable } from '../repositories/sql';

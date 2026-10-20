@@ -1,7 +1,7 @@
-// The Cycles screen's own types. The domain (a cycle, its changes, verdicts) lives with the data: @/lib/demo/cycleTypes.
+// The Cycles screen's own types. The domain (a cycle, its changes, verdicts) lives with the data: @/lib/demo/cycles/types.
 import type { Stage } from '@/schemas/stages';
 
-export { PHASES, type Phase, type Verdict, type ChangeKind, type CycleChange, type CycleState, type Cycle, type CycleHistory } from '@/lib/demo/cycleTypes';
+export { PHASES, type Phase, type Verdict, type ChangeKind, type CycleChange, type CycleState, type Cycle, type CycleHistory } from '@/lib/demo/cycles/types';
 
 /** A rung per stage; null = unknown (never zero). */
 export type Rungs = Readonly<Record<Stage, number | null>>;

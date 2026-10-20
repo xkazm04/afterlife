@@ -2,7 +2,7 @@
 // each). ILLUSTRATIVE, like belay-demo.json, and written to reconcile with it: replayed from day 0, each history lands
 // exactly on the project's fleet rungs today (estate.test.ts holds it). The other 178 projects have no cycle record.
 import type { Stage } from '@/schemas/stages';
-import type { Cycle, CycleChange, CycleHistory, Verdict } from './cycleTypes';
+import type { Cycle, CycleChange, CycleHistory, Verdict } from './types';
 
 type Closed = Exclude<Verdict, 'pending' | 'planned'>;
 
