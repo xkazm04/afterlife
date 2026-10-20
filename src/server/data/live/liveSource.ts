@@ -49,5 +49,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
       const p = port();
       return p ? readHumanKey(p.port, p.groupId, p.cfg?.policyProject ?? 'belay-policy') : Promise.resolve({ state: 'unknown', missing: [], why: NO_PORT });
     },
+    getCycles: () => data().estate[snapshot().deep] ?? { cycles: [], today: 0, cadence: 7 },
+    getEstateCycles: () => data().estate,
   };
 }

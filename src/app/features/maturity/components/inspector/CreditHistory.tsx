@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { CreditEntry } from '../../data/types';
@@ -38,6 +39,9 @@ export function CreditHistory({
       ) : (
         <div className={styles.muted}>{live ? 'No credit recorded: Belay keeps no credit history for this project yet.' : 'No earlier cycles on this stage.'}</div>
       )}
+      <Link href="/cycles" className={styles.toCycles}>
+        Every cycle, every stage ›
+      </Link>
     </DetailSection>
   );
 }

@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   description: 'Proof-carrying agents for the post-code lifecycle on GitLab.',
 };
 
+/** Every project, as small as the command palette needs it (it ships with every page). */
+function projectRefs() {
+  return getDataSource()
+    .getFleet()
+    .projects.map((p) => ({ id: p.id, name: p.name, group: p.group, state: p.state }));
+}
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   // The shell's first paint; on navigation and focus the client re-reads the same function through /api/shell.
   const { needsYouCount, data } = readShellInfo(getDataSource());
@@ -27,7 +34,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <DoorFitBoot />
       </head>
       <body>
-        <Providers needsYouCount={needsYouCount} data={data}>{children}</Providers>
+        <Providers needsYouCount={needsYouCount} data={data} projects={projectRefs()}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

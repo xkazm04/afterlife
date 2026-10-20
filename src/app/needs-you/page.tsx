@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import { loadNeedsYouView } from '../features/needs-you/data/pick';
 import { NeedsYouEmpty } from '../features/needs-you/NeedsYouEmpty';
 import { NeedsYouLive } from '../features/needs-you/NeedsYouLive';
 import { NeedsYouScreen } from '../features/needs-you/NeedsYouScreen';
 import { readDesk } from '@/server/runs/readDesk';
+
+export const metadata: Metadata = { title: 'Belay Needs you' };
 
 /**
  * Demo: the desk. Live: the group's own open items, or the empty state (never the demo's seeded desk). In live mode

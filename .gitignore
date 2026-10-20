@@ -18,6 +18,8 @@ next-env.d.ts
 design/
 /docs/*
 !/docs/concepts/
+!/docs/features/
+!/docs/report/
 DECISIONS.md
 scratch/
 

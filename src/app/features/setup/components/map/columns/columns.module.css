@@ -26,8 +26,14 @@
   color: var(--text-2);
   font-weight: 600;
 }
+.sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .aux {
   margin-left: auto;
+  flex: none;
   font-weight: 500;
   color: var(--text-3);
 }

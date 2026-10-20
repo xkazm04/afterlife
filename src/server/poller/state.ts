@@ -12,16 +12,19 @@ export interface PollMemory {
   notes: Map<string, { updatedAt: string; notes: GlNote[] }>;
   /** Ledger blob ids already imported. */
   ledger: BlobCache;
+  /** Cycle-file blob ids already imported. */
+  cycles: BlobCache;
   /** GitLab project id -> the maturity scan job last settled (stored, or refused for good with this issue). */
   scans: Map<number, { jobId: number; issue: string | null }>;
   /** tier-state.yml by commit id (a commit never changes): stateHistory.ts reads each revision once. */
   states: Map<string, StateRevision>;
 }
 
-export const createMemory = (): PollMemory => ({ notes: new Map(), ledger: new Map(), scans: new Map(), states: new Map() });
+export const createMemory = (): PollMemory => ({ notes: new Map(), ledger: new Map(), cycles: new Map(), scans: new Map(), states: new Map() });
 
-/** Forget what is held for a GitLab project that is no longer polled (left the group, archived): its notes and its scan. */
+/** Forget what is held for a GitLab project that is no longer polled (left the group, archived): its notes, its scan and its cycle file. */
 export function forgetProjects(mem: PollMemory, polled: ReadonlySet<number>): void {
   for (const key of mem.notes.keys()) if (!polled.has(Number(key.slice(0, key.indexOf('!'))))) mem.notes.delete(key);
   for (const id of mem.scans.keys()) if (!polled.has(id)) mem.scans.delete(id);
+  for (const id of mem.cycles.keys()) if (!polled.has(id)) mem.cycles.delete(id);
 }

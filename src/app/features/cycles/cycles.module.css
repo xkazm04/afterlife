@@ -1,0 +1,49 @@
+/* The Cycles pane: answer band, the grid card, the selected cycle's rail and changes; the pane scrolls. */
+.content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(16px * var(--ui-scale));
+  padding: calc(16px * var(--ui-scale)) calc(18px * var(--ui-scale)) calc(22px * var(--ui-scale));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.card {
+  flex: none;
+  overflow-x: auto;
+  padding: calc(12px * var(--ui-scale)) calc(14px * var(--ui-scale));
+  border-radius: 10px;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+.detail {
+  display: grid;
+  gap: calc(10px * var(--ui-scale));
+}
+.dh {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.dh h2 {
+  margin: 0;
+  font: 700 var(--t-title) var(--mono);
+  color: var(--text-1);
+}
+.dh h2 span {
+  font-family: var(--sys);
+  font-weight: 600;
+  color: var(--text-2);
+}
+.state {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--ok);
+}
+.state[data-state="running"] {
+  color: var(--accent);
+}
+.state[data-state="planned"] {
+  color: var(--text-3);
+}

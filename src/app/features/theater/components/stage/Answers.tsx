@@ -13,7 +13,7 @@ export const Answers = memo(function Answers({ snap, prev, demo }: { snap: Snaps
   const a = deriveAnswers(snap, demo?.tracksArmed ?? 0, demo?.tracksTotal ?? 0);
   const bump = needsIncreased(prev, snap);
   const now = (
-    <Card className={styles.ans}>
+    <Card className={`${styles.ans} ${styles.now}`}>
       <span className={styles.al}>Doing now</span>
       <span className={styles.av} title={a.now}>
         {a.now}
@@ -37,13 +37,15 @@ export const Answers = memo(function Answers({ snap, prev, demo }: { snap: Snaps
         </span>
       </Card>
       {now}
-      <Card className={styles.ans} title="This week · counts only">
+      <Card className={`${styles.ans} ${styles.well}`} title="This week · counts only">
         <span className={styles.al}>Going well</span>
         <span className={styles.av}>
           <b className={styles.ok}>{a.well.pass}</b>
           <small>pass</small>
+          <wbr />
           <b className={a.well.fail ? styles.bad : undefined}>{a.well.fail}</b>
           <small>fail</small>
+          <wbr />
           <b>{a.well.demotions}</b>
           <small>{demotionWord(a.well.demotions)}</small>
         </span>

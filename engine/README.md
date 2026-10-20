@@ -12,7 +12,7 @@ dependency beyond `yaml`. Every command writes JSON to stdout and a human summar
 | `tripwire --policy P --state S --event F` | `{demote, commit: {path, content, message}}` | 0 (2 on bad input) |
 | `ledger append --event F --chain events.jsonl [--write]` | One hash-chained ledger line | 0 (2 on a broken chain) |
 | `ledger trial --chain events.jsonl --agent A --class C --since T [--through N] [--head H]` | `{verifies, head, trial}`: a holder's next-rung trial recomputed from the chain cut at seq N, anchored to head hash H (ledger-record's rule, no input JSON); the line a promotion MR prints | 0, 1 broken or not the named chain, 2 bad input |
-| `scan --facts facts.json` | `belay.maturity/0`: nine stage cells from the facts `collect-facts.mjs` wrote | 0 all determined, 2 any unknown or unreadable input |
+| `scan --facts facts.json \| --dir <checkout> [--propose]` | `belay.maturity/0`. `--facts`: nine stage cells from the facts `collect-facts.mjs` wrote. `--dir`: the Day-0 read of a local checkout (`engine/scan`: its files and CI config, nothing read from GitLab), with the next change per stage under `--propose`; read-only | `--facts`: 0 all determined, 2 any unknown or unreadable input. `--dir`: 0, 2 when every stage is unknown or it is not a directory |
 | `pin` | `{version, sha256, files}`: the engine pin every Proof Block carries and the files it covers | 0 (2 on an import it cannot follow) |
 
 Policy defaults to `policy/trust-policy.yml`, state to `policy/tier-state.yml`. In a proof input,

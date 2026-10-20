@@ -55,3 +55,12 @@ project, parser); `__tests__/verdict.test.ts` (the verdict: kept, refused, cover
 verdicts hashing exactly as main computed it, through parse, `appendLedgerEvents` and `readLedger`). Not verified live: the real `listTree`/`getFile` shapes (recorded nowhere yet; the fake serves `[R]` ones).
 
 A line carrying a key this reader does not know is refused with `LedgerParseError` naming the key and the line (it is newer than the reader, not a tampered chain). Tests: `__tests__/unknownKey.test.ts`.
+
+## Cycles (`parseCycles.ts`, `importCycles.ts`)
+
+`belay-ledger/cycles/<project-id>.jsonl` holds one line per closed improvement cycle (`src/schemas/cycle.ts`): theme,
+engine, `opened_at` and `closed_at` (the rescans), and the changes with their verdicts. Lines are chained with the same
+canonical hash as events, numbered 1, 2, 3, and never run backwards in time. `importCycles` skips an unchanged blob,
+then requires the whole file to verify, to hold only this project's cycles and to extend the stored chain (not shorter,
+no stored cycle changed); it replaces the project's `cycle_record` rows in one transaction. A rejected file fails the
+project's feed like a rejected ledger. Tests: `__tests__/cycles.test.ts`.

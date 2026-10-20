@@ -1,0 +1,103 @@
+/* The next-batch table: three sections (only you, reads, writes), one row per project. */
+.t {
+  display: grid;
+  gap: calc(10px * var(--ui-scale));
+}
+.sec {
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--border-1);
+}
+.sh {
+  display: flex;
+  align-items: center;
+  min-height: var(--hdr-h);
+  padding: 0 10px;
+  border-bottom: 1px solid var(--sep);
+  background: var(--surface-1);
+  font-size: var(--t-head);
+  color: var(--text-2);
+}
+.sh b {
+  color: var(--text-1);
+  font-weight: 650;
+}
+.aux {
+  color: var(--text-4);
+  font-size: var(--t-small);
+}
+.row {
+  display: grid;
+  /* name and action give way first; the step, who and the button keep their width (the button must stay reachable) */
+  grid-template-columns: minmax(0, 1.2fr) calc(80px * var(--ui-scale)) minmax(0, 2fr) calc(62px * var(--ui-scale)) calc(72px * var(--ui-scale));
+  align-items: center;
+  gap: 8px;
+  min-height: var(--row-h);
+  padding: 0 10px;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  cursor: default;
+}
+.row:nth-child(odd) {
+  background: var(--alt);
+}
+.row:hover {
+  background: var(--hover);
+}
+.row[data-selected] {
+  background: var(--sel-dim);
+}
+.name {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.name button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-1);
+  cursor: default;
+}
+.name span {
+  font-size: var(--t-small);
+  color: var(--text-4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.step {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-3);
+}
+.step[data-step="watching"] {
+  color: var(--accent);
+}
+.act {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.who {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+/* the one loud colour: what waits for a person */
+.who[data-who="you"] {
+  color: var(--needs-you);
+  font-weight: 600;
+}
+.end {
+  justify-self: end;
+  font: 500 var(--t-small) var(--mono);
+  color: var(--text-3);
+}
+.none {
+  padding: 8px 10px;
+  font-size: var(--t-small);
+  color: var(--text-4);
+}

@@ -46,6 +46,7 @@
 }
 .trk {
   min-width: 0;
+  container: cratrack / inline-size;
   display: grid;
   gap: calc(7px * var(--ui-scale));
 }

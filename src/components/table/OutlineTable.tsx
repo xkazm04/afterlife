@@ -26,6 +26,7 @@ export function OutlineTable({
   activeId,
   onKeyDown,
   tableRef,
+  stickyEnd,
 }: {
   label: string;
   columns: string;
@@ -39,12 +40,14 @@ export function OutlineTable({
   activeId?: string;
   onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
   tableRef?: Ref<HTMLDivElement>;
+  /** Pin the last data column (a row's actions) to the right edge, so it stays in reach in a narrow pane. */
+  stickyEnd?: boolean;
 }) {
   const vars = { '--cols': `${columns} minmax(0, 1fr)`, '--minw': minWidth } as CSSProperties;
   return (
     <div
       ref={tableRef}
-      className={`${styles.tbl} ${flat ? styles.flat : ''} ${menuing ? styles.menuing : ''}`}
+      className={`${styles.tbl} ${flat ? styles.flat : ''} ${menuing ? styles.menuing : ''} ${stickyEnd ? styles.stickyEnd : ''}`}
       style={vars}
       tabIndex={0}
       role="treegrid"

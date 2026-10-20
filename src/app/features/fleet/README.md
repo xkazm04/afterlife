@@ -12,7 +12,8 @@ client `FleetScreen`.
 - `components/sidebar/` all projects, groups, six smart filters. `components/legend/` the "?".
 - `components/inspector/sections/` one file per card of the project page (there is no inspector drawer and no group page).
   The deep project (ledgerline) has resolvable decisions, class records, tasks (each linking to `/task/<id>`), events,
-  tracks.
+  tracks. `ImprovementSection` places the project in the loop: in cycles (what they earned, link to Cycles), ready to
+  start one, or to be onboarded first. `/fleet?project=<id>` (the command palette's links) redirects to `/fleet/<id>`.
 - `components/runner/` the cycle runner's strip above the table (`RunnerFleet`, collapsed `<details>`): every repo of
   `.belay/fleet.yml` and any repo that still has runs, with its checkout and base, its newest wave in words (running, to
   merge, merged, not mergeable), its lanes' outcomes, tokens, spend, and the decisions it left (a link to `/needs-you`).

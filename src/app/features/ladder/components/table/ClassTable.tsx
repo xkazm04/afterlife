@@ -89,6 +89,7 @@ export function ClassTable(p: ClassTableProps) {
       activeId={p.sel ? rowDomId(p.sel) : undefined}
       onKeyDown={p.onKeyDown}
       tableRef={p.tableRef}
+      stickyEnd
     >
       {p.empty ? (
         <div className={styles.empty}>

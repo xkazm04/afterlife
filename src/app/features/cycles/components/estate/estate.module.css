@@ -1,0 +1,145 @@
+/* The estate scope of Cycles: answer band, the per-group table, a foot line; the pane scrolls. */
+.content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(16px * var(--ui-scale));
+  padding: calc(16px * var(--ui-scale)) calc(18px * var(--ui-scale)) calc(22px * var(--ui-scale));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.t {
+  display: grid;
+  gap: calc(8px * var(--ui-scale));
+  overflow-x: auto;
+}
+.sec {
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--border-1);
+}
+.row {
+  display: grid;
+  grid-template-columns: minmax(calc(200px * var(--ui-scale)), 1.6fr) repeat(6, calc(56px * var(--ui-scale)));
+  align-items: center;
+  gap: 8px;
+  min-height: var(--row-h);
+  padding: 0 10px;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  cursor: default;
+}
+.sec .row:nth-child(even) {
+  background: var(--alt);
+}
+.sec .row:hover {
+  background: var(--hover);
+}
+.row[data-selected] {
+  background: var(--sel-dim);
+}
+.head {
+  min-height: var(--hdr-h);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-3);
+}
+.group {
+  min-height: var(--hdr-h);
+  border-bottom: 1px solid var(--sep);
+  background: var(--surface-1);
+  font-size: var(--t-head);
+}
+.name {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.name b {
+  color: var(--text-1);
+  font-weight: 650;
+}
+.name button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-1);
+  cursor: default;
+}
+.name span {
+  font-size: var(--t-small);
+  color: var(--text-4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.num i {
+  font-style: normal;
+  color: var(--text-4);
+}
+.num[data-bad] {
+  color: var(--accent-2);
+}
+.net {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--accent);
+}
+.none {
+  grid-column: 2 / -1;
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.proof {
+  flex: none;
+  font-style: normal;
+  color: var(--fail);
+}
+.proof[data-ok] {
+  color: var(--ok);
+}
+.foot {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.foot a {
+  color: var(--accent);
+}
+.empty,
+.note {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cycles {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-small);
+  color: var(--text-2);
+}
+.cycles b {
+  color: var(--text-1);
+}
+.cycles ul {
+  margin: 3px 0 0;
+  padding-left: 14px;
+  color: var(--text-3);
+}
+.cycles li[data-verdict="regressed"] {
+  color: var(--accent-2);
+}

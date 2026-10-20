@@ -1,0 +1,46 @@
+/* The Onboard inspector. */
+.lines,
+.funnel {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  line-height: 1.35;
+}
+.lines li {
+  display: grid;
+  grid-template-columns: calc(14px * var(--ui-scale)) 1fr;
+}
+.lines li > span {
+  color: var(--text-4);
+}
+.funnel li {
+  display: flex;
+  gap: 7px;
+  color: var(--text-4);
+}
+.funnel li[data-done] {
+  color: var(--text-2);
+}
+.funnel li[data-done] > span {
+  color: var(--accent);
+}
+.p {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.p b {
+  color: var(--text-1);
+}
+.next {
+  display: grid;
+  gap: 8px;
+}
+.next > button {
+  justify-self: start;
+}

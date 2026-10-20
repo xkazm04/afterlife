@@ -30,6 +30,8 @@ export interface DoorData {
   stages: readonly string[];
   projects: readonly FleetProject[];
   deep: Deep;
+  /** Projects in improvement cycles and the rungs they have earned since day 0 (the deep project, in the demo). */
+  cycles: { projects: number; gained: number };
 }
 
 /**
@@ -126,7 +128,7 @@ export function DoorScreen({ data, entrance = true }: { data: DoorData; entrance
       </div>
       <div className={`${styles.stage} ${styles.uiStage}`}>
         <div className={styles.ui}>
-          <Answer totals={totals} tiers={tiersTop} staleTop={staleTop} intro={s.intro} tabbable={s.level === 0} locked={s.locked} onMark={s.setMark} onLock={s.lock} onOpen={onOpenTop} />
+          <Answer totals={totals} tiers={tiersTop} staleTop={staleTop} cycles={data.cycles} intro={s.intro} tabbable={s.level === 0} locked={s.locked} onMark={s.setMark} onLock={s.lock} onOpen={onOpenTop} />
           <FilterChip kind={s.locked} open={s.locked === 'stale' && staleTop && staleTop.stale > 0 ? staleTop.name : null} onClear={s.unlock} onOpen={() => onOpenTop('stale')} />
           <Labels ds={s.ds} hotG={s.hotG} tabbable={s.level === 0} onHover={onLabelHover} onOpen={s.openG} />
           <Readout name={name} line={line} tiers={tiers} holders={holders} />

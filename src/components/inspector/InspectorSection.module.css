@@ -34,4 +34,7 @@
 }
 .sec {
   padding: 0 14px 10px;
+  /* a Stats row inside a section is already inset by the section */
+  --stats-inset: 0;
+  --stats-after: 0;
 }

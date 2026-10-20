@@ -62,7 +62,7 @@ export interface LedgerEvent {
 export const GENESIS = '0'.repeat(64);
 
 /** Sorted keys, JSON values. A key whose value is undefined is skipped, as JSON.stringify drops it from the stored line. */
-function canonical(value: unknown): string {
+export function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
   if (value && typeof value === 'object') {
     const entries = Object.entries(value as Record<string, unknown>).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b));

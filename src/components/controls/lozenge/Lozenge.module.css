@@ -39,7 +39,8 @@
   height: 14px;
   background: var(--sep);
 }
-@media (max-width: 1100px) {
+/* A narrow toolbar keeps the counts; the words stay readable to assistive tech and in the tooltip. */
+@container toolbar (max-width: 84em) {
   /* visually hidden, not display:none: the word is part of the button's accessible name */
   .wd {
     position: absolute;
@@ -50,7 +51,7 @@
     white-space: nowrap;
   }
 }
-@media (max-width: 900px) {
+@container toolbar (max-width: 44em) {
   .lozenge {
     display: none;
   }

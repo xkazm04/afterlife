@@ -29,4 +29,6 @@ export const demoSource: DataSource = {
   getPollHealth: () => null,
   setupReads: () => null,
   humanKey: () => Promise.resolve(DEMO_HUMAN_KEY),
+  getCycles: demo.getCycles,
+  getEstateCycles: demo.getEstateCycles,
 };

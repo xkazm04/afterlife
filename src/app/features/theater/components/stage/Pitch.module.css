@@ -19,10 +19,13 @@
   z-index: 5;
 }
 .beat {
+  min-width: 0;
   margin-left: auto;
   font-size: var(--fB);
   color: var(--text-3);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .beat b {
   color: var(--text-1);

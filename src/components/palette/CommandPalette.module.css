@@ -1,0 +1,101 @@
+/* The command palette: a centred box over a veil, above every window. */
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  justify-items: center;
+  align-items: start;
+  padding-top: 14vh;
+  background: var(--veil);
+}
+.box {
+  width: min(calc(560px * var(--ui-scale)), calc(100vw - 32px));
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--win-content) 96%, var(--white));
+  box-shadow: inset 0 0 0 1px var(--border-3), 0 24px 64px var(--shade-60), var(--glow);
+  overflow: hidden;
+  animation: rise var(--t-med) var(--ease);
+}
+@keyframes rise {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .box {
+    animation: none;
+  }
+}
+.input {
+  width: 100%;
+  height: calc(48px * var(--ui-scale));
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 1px solid var(--sep);
+  background: none;
+  font: 400 var(--t-title) var(--sys);
+  color: var(--text-1);
+  outline: none;
+}
+.input::placeholder {
+  color: var(--text-4);
+}
+.list {
+  max-height: calc(360px * var(--ui-scale));
+  overflow: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+}
+.item {
+  display: grid;
+  grid-template-columns: calc(62px * var(--ui-scale)) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: calc(32px * var(--ui-scale));
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  cursor: default;
+}
+.item[aria-selected="true"] {
+  background: var(--sel-dim);
+  color: var(--text-1);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.kind {
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.item[data-kind="action"] .kind {
+  color: var(--accent);
+}
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hint {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.none {
+  padding: 12px 10px;
+  font-size: var(--t-body);
+  color: var(--text-3);
+}
+.foot {
+  display: flex;
+  gap: 14px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--sep);
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.push {
+  margin-left: auto;
+}

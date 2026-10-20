@@ -40,6 +40,19 @@ export const GLYPHS = {
       <path d="M10 2h3v3" />
     </>,
   ),
+  onboard: nav(
+    <>
+      <path d="M1.5 7.5h8M6.5 4l3.5 3.5L6.5 11" />
+      <path d="M9.5 1.5h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3" />
+    </>,
+  ),
+  cycles: nav(
+    <>
+      <path d="M13 7.5a5.5 5.5 0 1 1-1.7-4" />
+      <path d="M11.6 1v2.7H8.9" />
+      <path d="M5.3 7.8l1.6 1.6 3-3.2" />
+    </>,
+  ),
   task: nav(
     <>
       <rect x="2" y="1.5" width="11" height="12" rx="1.5" />

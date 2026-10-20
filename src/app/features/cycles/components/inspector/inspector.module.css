@@ -1,0 +1,66 @@
+/* The Cycles inspector. */
+.sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rules,
+.notes {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-body);
+  color: var(--text-3);
+  line-height: 1.35;
+}
+.rules li {
+  display: grid;
+  grid-template-columns: calc(14px * var(--ui-scale)) 1fr;
+  gap: 6px;
+}
+.rules li > span:first-child {
+  color: var(--text-4);
+}
+.rules li[data-met] > span:first-child {
+  color: var(--ok);
+}
+.rules li[data-failed] > span:first-child,
+.stopped {
+  color: var(--accent-2);
+}
+.stopped {
+  font-style: normal;
+  font-weight: 600;
+}
+.rules b,
+.notes b {
+  color: var(--text-1);
+  font-weight: 600;
+}
+.notes {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sep);
+  font-size: var(--t-small);
+}
+.notes li[data-drift] b {
+  color: var(--accent-2);
+}
+.next {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+.next p {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

@@ -35,7 +35,7 @@ describe('cli/belay.mjs', () => {
     expect(belay('run', '--repo', 'ghost', '--fleet', fleet, '--dry-run').status).toBe(2);
   }, 240_000);
 
-  it.each(['pair', 'scan', 'replay'])('%s is not implemented and exits 2', (verb) => {
+  it.each(['replay'])('%s is not implemented and exits 2', (verb) => {
     const r = belay(verb);
     expect(r.status).toBe(2);
     expect(r.stdout).toContain(`belay ${verb}: not implemented yet`);

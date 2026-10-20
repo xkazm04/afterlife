@@ -108,7 +108,7 @@ describe('copy that counts: one is singular', () => {
   });
   const answer = (over: Partial<ReturnType<typeof fleetTotals>>) => {
     const totals = { ...fleetTotals([]), ...over };
-    const props = { totals, tiers: [], staleTop: null, intro: false, tabbable: true, locked: null, onMark: () => undefined, onLock: () => undefined, onOpen: () => undefined };
+    const props = { totals, tiers: [], staleTop: null, cycles: { projects: 0, gained: 0 }, intro: false, tabbable: true, locked: null, onMark: () => undefined, onLock: () => undefined, onOpen: () => undefined };
     return renderToString(createElement(Answer, props)).replace(/<[^>]*>/g, '');
   };
   it('says "1 class quarantined" and "1 proof passed" in the answer block', () => {

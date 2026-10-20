@@ -1,9 +1,10 @@
 // A snapshot is everything the live source serves, read from the index in one go after each poll cycle. Pages read it
 // synchronously. What the index cannot yet serve (tracks, the loop, setup phases, the cockpit text) is the demo's
 // catalogue, unchanged: see data/README.md for the list.
+import type { CycleHistory } from '@/lib/demo/cycleTypes';
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
 import type { LedgerEvent } from '@/schemas/ledger';
-import { clock, getActionClasses, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
+import { clock, getActionClasses, getEstateCycles, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
 import { getProjectRow, listProjects } from '@/server/index/repositories/fleet/project';
 import { readLedger } from '@/server/index/repositories/ledger/ledger';
 import { getPairing, type PairingRow } from '@/server/index/repositories/pairing';
@@ -34,6 +35,8 @@ export interface LiveData {
   ledger: readonly LedgerEvent[];
   /** The poller's health (the group's poll row and the polled projects'), aged by the snapshot's read clock. */
   poll: PollHealth;
+  /** Every project with a recorded cycle, by project id (the deep project included). */
+  estate: Record<string, CycleHistory>;
 }
 
 export interface LiveSnapshot {
@@ -43,9 +46,10 @@ export interface LiveSnapshot {
 }
 
 export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData, policy: PolicyRules | null = null): Promise<LiveSnapshot> {
-  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyReads, ledger, poll] = await Promise.all([
+  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyReads, ledger, poll, estate] = await Promise.all([
     getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getEvents(db, deep), getNeedsYou(db, deep, at),
     getPairing(db, 'default'), listPollStates(db, 'policy:'), deepLedger(db, deep), pollRows(db).then((rows) => pollHealthOf(rows, at)),
+    getEstateCycles(db, at),
   ]);
   const failedRead = policyReads.find((s) => s.lastError !== null);
   const tiersStale = failedRead ? { reason: failedRead.lastError ?? '', lastOk: failedRead.lastOk?.toISOString() ?? null } : null;
@@ -71,6 +75,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       pairing,
       ledger,
       poll,
+      estate,
     },
   };
 }

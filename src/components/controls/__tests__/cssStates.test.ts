@@ -16,8 +16,9 @@ const body = (sheet: string, selector: string): string => {
   for (let m = re.exec(sheet); m; m = re.exec(sheet)) if (m[1]!.trim() === selector) out.push(m[2]!);
   return out.join(';');
 };
-const mediaBlock = (sheet: string, query: string): string => {
-  const at = sheet.indexOf(`@media ${query}`);
+/** The body of the first at-rule that starts with `rule` (e.g. `@container toolbar (max-width: 84em)`). */
+const atBlock = (sheet: string, rule: string): string => {
+  const at = sheet.indexOf(rule);
   if (at < 0) return '';
   let depth = 0;
   for (let i = sheet.indexOf('{', at); i < sheet.length; i++) {
@@ -41,7 +42,8 @@ describe('ToolbarButton / PopupButton disabled state', () => {
 });
 
 describe('LozengeButton word at narrow widths', () => {
-  const narrow = mediaBlock(css('lozenge/Lozenge.module.css'), '(max-width: 1100px)');
+  // The lozenge folds its words on a narrow toolbar (a size container), not on a narrow viewport.
+  const narrow = atBlock(css('lozenge/Lozenge.module.css'), '@container toolbar (max-width: 84em)');
   it('hides the word from the eye, not from the accessibility tree', () => {
     expect(body(narrow, '.wd')).not.toMatch(/display:\s*none/);
     expect(body(narrow, '.wd')).toMatch(/clip-path|clip:/);

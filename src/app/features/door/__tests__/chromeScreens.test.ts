@@ -7,7 +7,7 @@ describe('Screens menu', () => {
   it('lists every navigation entry, Settings included, in the sidebar order', () => {
     expect(SCREENS.map(([, href]) => href)).toEqual([...APP_NAV, SETTINGS_NAV].map((e) => e.href));
     expect(SCREENS.map(([name]) => name)).toEqual([...APP_NAV, SETTINGS_NAV].map((e) => e.label));
-    expect(SCREENS).toHaveLength(10);
+    expect(SCREENS).toHaveLength(12);
   });
 });
 

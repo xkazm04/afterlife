@@ -7,6 +7,7 @@ import { FleetLegend } from '../legend/FleetLegend';
 import { ClassesSection } from '../inspector/sections/ClassesSection';
 import { EventsSection } from '../inspector/sections/EventsSection';
 import { FeedSection } from '../inspector/sections/FeedSection';
+import { ImprovementSection } from '../inspector/sections/ImprovementSection';
 import { NeedsYouSection } from '../inspector/sections/NeedsYouSection';
 import { ProofsSection } from '../inspector/sections/ProofsSection';
 import { StagesSection } from '../inspector/sections/StagesSection';
@@ -14,8 +15,8 @@ import { TasksSection } from '../inspector/sections/TasksSection';
 import { TracksSection } from '../inspector/sections/TracksSection';
 
 /**
- * /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, feed, events, tracks). How
- * deep the project is read and what its buttons do were decided on the server (`view`); each section draws its slice.
+ * /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, improvement, feed, events, tracks).
+ * How deep the project is read and what its buttons do were decided on the server (`view`); each section draws its slice.
  */
 export function ProjectDetail({ project: p, data, view }: FleetProjectView) {
   const { depth } = view;
@@ -40,6 +41,7 @@ export function ProjectDetail({ project: p, data, view }: FleetProjectView) {
       <ProofsSection p={p} />
       <TasksSection tasks={depth.tasks} />
       <StagesSection p={p} stages={data.stages} />
+      <ImprovementSection p={p} cycle={depth.kind === 'deep' ? depth.tracks.deep.cycle : null} />
       <FeedSection {...depth.feed} />
       <EventsSection events={depth.events} live={view.mode === 'live'} />
       {depth.kind === 'deep' ? <TracksSection {...depth.tracks} /> : null}

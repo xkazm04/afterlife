@@ -2,10 +2,11 @@
 
 Every screen's server loader reads through one interface, `DataSource` (`types.ts`). It has the surface `@/lib/demo` always
 had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActionClasses`, `getMaturity`, `getLoop`, `getTasks`,
-`getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`) plus `mode`, `deepProjectId()` and
-`illustrative` (the demo narrative it serves beside live data, for the screens to label) and `getPolicy()` (trust-policy.yml's
-rules: the promotion thresholds, the demotion triggers, the envelope) and `getLedger()` (the deep project's hash-chained
-`LedgerEvent`s, `@/schemas/ledger`, in seq order; see "The ledger" below). Reads are
+`getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`), `getCycles()` and `getEstateCycles()` (the deep
+project's closed cycles, and every project's: `src/lib/demo/cycles.ts` and `estate.ts` in demo, `cycle_record` in live) plus
+`mode`, `deepProjectId()` and `illustrative` (the demo narrative it serves beside live data, for the screens to label) and
+`getPolicy()` (trust-policy.yml's rules: the promotion thresholds, the demotion triggers, the envelope) and `getLedger()` (the
+deep project's hash-chained `LedgerEvent`s, `@/schemas/ledger`, in seq order; see "The ledger" below). Reads are
 **synchronous**: the live source serves a snapshot that is rebuilt after every poll, so a page never waits on GitLab or the index.
 One exception, Setup: `setupReads()` is a synchronous getter (null in demo mode) for read-only port calls the Setup loader
 awaits per load (see `setup/` below). And the human key: `humanKey()` reads belay-policy's protection of its default branch and

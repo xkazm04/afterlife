@@ -6,6 +6,18 @@ import { ActionRefused, lastCommitOf, locate, type Plan, type PlanContext } from
 import { applyHunk } from './hunk';
 import { branchMr, type BranchMrInput } from './mr/branchMr';
 
+/**
+ * Does `next` keep every line of `current`, in order? A gap only adds: a screen that sends a partial hunk for an
+ * existing file (or anything that would delete a line) is refused instead of overwriting the file with a fragment.
+ */
+export function keepsEveryLine(current: string, next: string): boolean {
+  const want = current.split('\n').filter((l) => l.trim() !== '');
+  const have = next.split('\n');
+  let i = 0;
+  for (const line of have) if (i < want.length && line === want[i]) i++;
+  return i === want.length;
+}
+
 export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<Plan> {
   const { project } = await locate(ctx, intent.project);
   const base = project.defaultBranch ?? 'main';

@@ -20,6 +20,7 @@ const EXITS: readonly [string, string][] = [
   ['Needs you', '/needs-you'],
   ['Ladder', '/ladder'],
   ['Maturity', '/maturity'],
+  ['Cycles', '/cycles'],
   ['Theater', '/theater'],
 ];
 

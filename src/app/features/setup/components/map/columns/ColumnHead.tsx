@@ -5,7 +5,7 @@ import styles from './columns.module.css';
 export function ColumnHead({ name, sub, aux, demo }: { name: string; sub: string; aux: string; demo?: string }) {
   return (
     <div className={styles.ch}>
-      <b>{name}</b> {sub}
+      <b>{name}</b> <span className={styles.sub}>{sub}</span>
       {demo ? (
         <>
           {' '}

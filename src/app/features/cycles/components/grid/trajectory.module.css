@@ -1,0 +1,56 @@
+/* The trajectory band over the grid: it spans every cycle column. */
+.traj {
+  grid-column: 2 / -1;
+  position: relative;
+  height: calc(48px * var(--ui-scale));
+}
+.traj svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.cap {
+  stroke: var(--sep);
+  stroke-dasharray: 2 3;
+}
+.capLabel {
+  position: absolute;
+  right: 0;
+  top: -2px;
+  font: 500 var(--t-small) var(--mono);
+  color: var(--text-4);
+}
+.area {
+  fill: color-mix(in oklab, var(--accent) 10%, transparent);
+}
+.rec,
+.ahead {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5px;
+}
+.ahead {
+  stroke-dasharray: 4 4;
+  opacity: 0.7;
+}
+.pt {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+.pt[data-open] {
+  background: var(--win-content);
+  border: 1.5px solid var(--accent);
+  box-shadow: none;
+}
+.pt[data-sel] {
+  outline: 2px solid color-mix(in oklab, var(--accent) 45%, transparent);
+  outline-offset: 2px;
+}
+

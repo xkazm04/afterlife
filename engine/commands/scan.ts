@@ -1,13 +1,19 @@
-// belay scan --facts facts.json
-// Scores the facts collect-facts.mjs wrote into nine cells (belay.maturity/0), by the rubric table in rubric.ts. No network,
-// no model, no clock: scanned_at is the facts' `at`, and "the last 14 days" are counted back from it. Exit 0 when every cell
-// is determined, 2 when any is unknown (the document is printed either way) or the facts file cannot be read.
+// belay scan --facts facts.json   |   belay scan --dir <checkout> [--propose]
+// --facts: scores the facts collect-facts.mjs wrote into nine cells (belay.maturity/0), by the rubric table in rubric.ts. No
+// network, no model, no clock: scanned_at is the facts' `at`, and "the last 14 days" are counted back from it. Exit 0 when
+// every cell is determined, 2 when any is unknown (the document is printed either way) or the facts file cannot be read.
+// --dir: the Day-0 read of a local checkout (engine/scan: its files and CI config, nothing read from GitLab); --propose
+// adds the next change per stage. Read-only either way; exit 2 only when every stage is unknown.
+import fs from 'node:fs';
+import path from 'node:path';
 import { MATURITY_SCHEMA, type MaturityScan, type ScanCell, type ScanEvidence } from '../../src/schemas/maturity';
 import { RUNGS } from '../../src/schemas/stages';
 import { parseArgs } from '../core/args';
 import { readJson } from '../core/files';
-import type { CommandResult, Ctx } from '../core/types';
-import { ENGINE_VERSION } from '../core/version';
+import { EngineError, type CommandResult, type Ctx } from '../core/types';
+import { ENGINE_VERSION, engineInfo } from '../core/version';
+import { checkoutFacts } from '../scan/local';
+import { propose, scan as scanCheckout, summary } from '../scan/scan';
 import { ciJobs, flag, names, parseFacts, project, runs, strings, type Facts, type Project, type Read, type RunJob, type Runs } from './facts';
 import { NOT_AN_ARTIFACT, RAN_WITHIN_DAYS, RUBRIC, type StageRule } from './rubric';
 
@@ -115,8 +121,13 @@ export function scoreFacts(f: Facts): MaturityScan {
 }
 
 export function scanCommand(argv: readonly string[], ctx: Ctx): CommandResult {
-  const args = parseArgs(argv, { values: ['facts'] });
-  const f = parseFacts(readJson(ctx, args.need('facts')));
+  const args = parseArgs(argv, { values: ['dir', 'facts'], switches: ['propose'] });
+  const facts = args.get('facts');
+  const dir = args.get('dir');
+  if ((facts === undefined) === (dir === undefined)) throw new EngineError('give exactly one of --dir <checkout> or --facts <facts.json>');
+  if (dir !== undefined) return dirScan(dir, args.has('propose'), ctx);
+  if (args.has('propose')) throw new EngineError('--propose reads a checkout (--dir); with --facts each cell already names its next_rung');
+  const f = parseFacts(readJson(ctx, facts as string));
   const scan = scoreFacts(f);
   const unknown = scan.cells.filter((c) => c.rung === null);
   const lines = [
@@ -124,4 +135,15 @@ export function scanCommand(argv: readonly string[], ctx: Ctx): CommandResult {
     ...scan.cells.map((c) => `  ${c.stage.padEnd(9)} ${c.rung === null ? 'R?' : `R${c.rung}`}  ${c.note}`),
   ];
   return { json: scan, summary: lines.join('\n'), code: unknown.length ? 2 : 0 };
+}
+
+/** The Day-0 read of a local checkout: its files and CI config, nothing from GitLab. */
+function dirScan(dir: string, withProposals: boolean, ctx: Ctx): CommandResult {
+  const root = path.resolve(ctx.cwd, dir);
+  if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) throw new EngineError(`${dir} is not a directory`);
+  const s = scanCheckout(checkoutFacts(root), ctx.now());
+  const proposals = withProposals ? propose(s) : undefined;
+  const json = { ...s, engine: engineInfo(), ...(proposals ? { proposals } : {}) };
+  const lines = [summary(s), ...(proposals ? ['', 'next, read only (nothing was written):', ...proposals.map((p) => `  ${p.stage}: R${p.from ?? '?'} -> R${p.to}  ${p.change}`)] : [])];
+  return { json, summary: lines.join('\n'), code: s.counts.unknown === s.cells.length ? 2 : 0 };
 }

@@ -1,0 +1,33 @@
+/* The Onboard pane: the funnel, two cards (groups, baseline), the next batch; the pane scrolls. */
+.content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(16px * var(--ui-scale));
+  padding: calc(16px * var(--ui-scale)) calc(18px * var(--ui-scale)) calc(22px * var(--ui-scale));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(12px * var(--ui-scale));
+}
+@container pane (max-width: 56em) {
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.h {
+  margin: 0 0 8px;
+  font-size: var(--t-title);
+  font-weight: 650;
+  color: var(--text-1);
+}
+.h span {
+  margin-left: 8px;
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--text-3);
+}

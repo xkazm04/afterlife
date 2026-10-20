@@ -29,7 +29,7 @@ export function Pitch({ snap, snaps, store, film, demo }: { snap: Snapshot; snap
     <section className={styles.pitch} aria-label="The loop as a pitch: one change climbs from finding to summary" title={title}>
       <div className={styles.head}>
         <ReplayChip source={film.source} from={take?.a ?? range.a} to={take?.b ?? range.b} mr={take?.mr} />
-        <span className={styles.beat}>
+        <span className={styles.beat} title={hold ? `beat ${snap.beat} of 9 · ${hold.label}` : 'on the ground · before beat 1 of 9'}>
           {hold ? (
             <>
               beat <b>{snap.beat}</b> of 9 · {hold.label}

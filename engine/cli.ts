@@ -41,7 +41,7 @@ const USAGE = `usage: engine/cli.ts <command> [options]
   tripwire --policy <p> --state <tier-state.yml> --event <event.json>
   ledger append --event <event.json> --chain <events.jsonl> [--write]
   ledger trial --chain <events.jsonl> --agent <a> --class <id> --since <iso> [--through <seq>] [--head <sha256>]
-  scan --facts <facts.json>
+  scan --facts <facts.json> | --dir <checkout> [--propose]
   pin
 exit: 0 pass, 1 fail, 2 inconclusive or error`;
 

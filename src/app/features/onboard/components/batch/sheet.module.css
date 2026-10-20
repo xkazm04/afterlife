@@ -1,0 +1,42 @@
+/* The batch preview sheet. */
+.count {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.empty {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--text-3);
+}
+.part + .part {
+  margin-top: 14px;
+}
+.part h3 {
+  margin: 0 0 8px;
+  font-size: var(--t-head);
+  font-weight: 650;
+  color: var(--text-1);
+}
+.part h3 span {
+  margin-left: 6px;
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--text-4);
+}
+.item + .item {
+  margin-top: 10px;
+}
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: var(--t-body);
+}
+.head b {
+  color: var(--text-1);
+}
+.head span {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}

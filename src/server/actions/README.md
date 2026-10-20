@@ -176,7 +176,8 @@ screen holds (`{kind: preview}` or `{kind: refused, reason}`).
   section is in view, `confirmAction` on its button; "I merged it · verify" calls `verifyArmAction`.
 
 Not wired yet: the CRA sign-off (`mark-cra-ready`): no screen sends it, and `needs-you/data/cra.ts` still shows its own
-illustrative commands. The gap MRs (`stage-gap-mr`) are sent by the Maturity sheet (`app/features/maturity/write/gap.ts`).
+illustrative commands. The gap MRs (`stage-gap-mr`) are sent by the Maturity sheet (`app/features/maturity/write/gap.ts`). Onboard's
+batch (`app/features/onboard`) still shows commands from its own fixture and calls none of these actions.
 Not verified live: `start_branch` on the repository-files API, `PUT /projects/:id/issues/:iid` for a work item, and the
 policy branch being pushable by the operator (spike S8). The fake does not model branches, issues or protections; it
 models `last_commit_id` (a file write makes a new one, a stale one is refused with GitLab's 400).
