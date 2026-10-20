@@ -10,6 +10,8 @@ export interface FleetRepo {
   gates: string[];
   /** Commands run in every fresh worktree before the lane and before the wave gate (dependency installs). */
   setup?: string[];
+  /** Extra Bash prefixes a lane may run besides those derived from gates and setup (e.g. `npx vitest run`). */
+  laneTools?: string[];
   laneCapUsd?: number;
   waveCapUsd?: number;
 }

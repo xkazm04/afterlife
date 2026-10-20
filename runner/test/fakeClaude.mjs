@@ -5,11 +5,21 @@
 //              (the test gate fails on it); cfg-* also writes .claude/settings.json; exp-* is DONE at $9;
 //              park-* PARKs; hang-* never answers
 //   reflect -> a one-line "nothing to change"
+// FAKE_CALLS names a file each call appends its argv and --settings content to (permission tests).
 import fs from 'node:fs';
 
 const prompt = fs.readFileSync(0, 'utf8');
 const step = /belay:step=(\w+)/.exec(prompt)?.[1] ?? 'unknown';
 const lane = /belay:step=lane lane=([\w-]+)/.exec(prompt)?.[1] ?? '';
+
+// FAKE_CALLS=<file>: append {step, lane, argv, settings} per call, the settings file read while it exists.
+if (process.env.FAKE_CALLS) {
+  const argv = process.argv.slice(2);
+  const at = argv.indexOf('--settings');
+  const settings = at >= 0 ? JSON.parse(fs.readFileSync(argv[at + 1], 'utf8')) : null;
+  fs.appendFileSync(process.env.FAKE_CALLS, `${JSON.stringify({ step, lane, argv, settings })}
+`);
+}
 
 function finish(text, cost) {
   const usage = { input_tokens: 100, output_tokens: 20, cache_read_input_tokens: 5, cache_creation_input_tokens: 7 };

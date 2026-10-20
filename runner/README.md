@@ -13,6 +13,20 @@ belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [
 
 `run` prints repo, base, caps and model before spending; `--dry-run` stops there. Copy `fleet.example.yml` to
 `.belay/fleet.yml` (gitignored) and fix the paths. A repo's own `laneCapUsd`/`waveCapUsd` are ceilings on the flags.
+`laneTools` (optional) lists extra command prefixes a lane may run, e.g. `npx vitest run`, `cargo check`.
+
+## What each call may do
+
+Headless `-p` denies every tool call that would prompt, so each call gets a permission profile
+(`agent/permissions.ts`): `--permission-mode`, `--tools`, `--strict-mcp-config` (no MCP server) and `--settings <file>`,
+a JSON file written to a fresh temp dir per call and removed after it. Rules live in that file, not argv, because on
+Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a plain token (set TMP/TEMP to one).
+- plan: tools Read, Grep, Glob only; everything else denied.
+- lane: acceptEdits; Bash allowed for `Bash(<prefix>:*)` per sub-command (split on `&&` `;` `||` `|`) of `setup` and
+  `gates`: the first two words, three after a launcher (`uv run ruff`, `npm run lint`), quoted args and flags cut, a
+  bare launcher (`npm`, `npx`, `node`, ...) never alone; plus `laneTools`. Denied: WebFetch, WebSearch and the
+  programs `git`, `curl`, `wget`, `gh`, `glab`. Read-only commands claude itself treats as safe (`ls`, `whoami`) still run.
+- reflect: no tool at all (`--tools=`).
 
 ## A wave
 
@@ -49,7 +63,9 @@ and run files. If `prompts/<name>.md` is absent the runner uses a minimal inline
 `runner/` is the only directory that may hand a model key to a process, and it never reads or logs it. claude gets
 `agentEnv()` (`proc/proc.ts`): the runner's environment minus every secret-shaped variable (`*_TOKEN`, `*_SECRET`,
 `*_PASSWORD`, `*_API_KEY`, ...) except its own `ANTHROPIC_*` / `CLAUDE_CODE_*` (plus `AWS_*` on Bedrock, Google
-credentials on Vertex). Every other child - setup, gates, git and its hooks - gets `childEnv()`, with no secret at all:
+credentials on Vertex). The Bash commands a lane is allowed run as claude's
+children, so they too get `agentEnv()`: claude's own credentials and no other secret. Every other child - setup,
+gates, git and its hooks - gets `childEnv()`, with no secret at all:
 a lane agent edits the files those children run, so anything they inherit is the agent's. `BELAY_PASS_ENV=NPM_TOKEN,...`
 hands named variables through anyway (a private registry for `setup`). Env scrubbing does not stop a gate reading the
 user's credential files (`~/.claude`, `~/.npmrc`): run the runner as a user that holds only what it needs. Nothing in

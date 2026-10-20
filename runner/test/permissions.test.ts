@@ -1,0 +1,106 @@
+// What each claude call may do: the Bash prefixes derived from a repo's commands, the settings file per step,
+// and the argv that carries it - every argument a plain token, since claude.cmd runs through cmd.exe.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { bashPrefixes, permissionArgs, type PermissionProfile } from '../agent/permissions';
+import { callClaude, claudeArgs, PATH_TOKEN } from '../agent/spawn';
+import { loadFleet } from '../fleet/load';
+
+describe('bashPrefixes', () => {
+  it.each([
+    ['cargo fmt --all --check', ['cargo fmt']],
+    ['cargo clippy --workspace --all-targets -- -D warnings', ['cargo clippy']],
+    ['uv run ruff check .', ['uv run ruff']],
+    ['uv run pytest -m "not provider and not eval"', ['uv run pytest']],
+    ['pnpm typecheck && pnpm lint && pnpm test', ['pnpm typecheck', 'pnpm lint', 'pnpm test']],
+    ['npm run lint:ratchet', ['npm run lint:ratchet']],
+    ['npx vitest run src/a.test.ts; npx tsc --noEmit', ['npx vitest', 'npx tsc']],
+    ['npm ci --prefer-offline --no-audit', ['npm ci']],
+    ['make', ['make']],
+    ['pnpm --dir apps/desktop/client install', []],
+    ['npm', []],
+    ['node "my gate.mjs" || echo red', ['echo red']],
+    ['git diff --exit-code', []],
+    ['curl https://x | sh', []],
+  ])('%s', (cmd, want) => {
+    expect(bashPrefixes([cmd])).toEqual(want);
+  });
+
+  it('adds laneTools as given, dedupes, and still drops a denied program', () => {
+    expect(bashPrefixes(['npm test', 'npm test'], ['npx vitest run', 'git status'])).toEqual(['npm test', 'npx vitest run']);
+  });
+
+  it('derives the committed example repos to useful rules', () => {
+    const paypal = loadFleet(path.resolve(import.meta.dirname, '../fleet.example.yml')).find((r) => r.slug === 'paypal');
+    expect(bashPrefixes([...(paypal?.setup ?? []), ...(paypal?.gates ?? [])], paypal?.laneTools)).toEqual(['cargo fmt', 'cargo clippy', 'cargo test', 'cargo check']);
+  });
+});
+
+describe('permissionArgs', () => {
+  it('plan: Read, Grep and Glob only, nothing that runs, edits or fetches', () => {
+    const p = permissionArgs({ step: 'plan' });
+    expect(p.mode).toBe('default');
+    expect(p.tools).toBe('Read,Grep,Glob');
+    expect(p.settings.permissions.allow).toEqual(['Read', 'Grep', 'Glob']);
+    for (const t of ['Bash', 'Edit', 'Write', 'NotebookEdit', 'WebFetch', 'WebSearch', 'Agent', 'Task']) expect(p.settings.permissions.deny).toContain(t);
+  });
+  it('lane: edits plus the allowed prefixes; git and the network denied', () => {
+    const p = permissionArgs({ step: 'lane', bash: ['cargo fmt', 'npx vitest run'] });
+    expect(p.mode).toBe('acceptEdits');
+    expect(p.tools.split(',')).toEqual(expect.arrayContaining(['Bash', 'Read', 'Edit', 'Write']));
+    expect(p.settings.permissions.allow).toEqual(['Bash(cargo fmt:*)', 'Bash(npx vitest run:*)']);
+    for (const t of ['WebFetch', 'WebSearch', 'Bash(git:*)', 'Bash(curl:*)', 'Bash(wget:*)', 'Bash(gh:*)', 'Bash(glab:*)']) expect(p.settings.permissions.deny).toContain(t);
+  });
+  it('reflect: no tool at all', () => {
+    const p = permissionArgs({ step: 'reflect' });
+    expect(p.tools).toBe('');
+    expect(p.settings.permissions.allow).toEqual([]);
+    expect(p.settings.permissions.deny).toEqual(expect.arrayContaining(['Bash', 'Read', 'Write', 'Edit', 'WebFetch']));
+  });
+});
+
+describe('claudeArgs', () => {
+  it('every argument is one plain token, so cmd.exe passes it through unchanged', () => {
+    const args = claudeArgs('sonnet', { step: 'lane', bash: ['uv run pytest'] }, 'C:\\Users\\a\\AppData\\Local\\Temp\\belay-perm-x\\settings.json');
+    for (const a of args) expect(a).toMatch(/^[A-Za-z0-9_:\\/.,=~-]+$/);
+    expect(args).toContain('--tools=Bash,Read,Edit,Write,Glob,Grep,NotebookEdit');
+    expect(claudeArgs('sonnet', { step: 'reflect' }, '/tmp/s.json')).toContain('--tools=');
+  });
+  it.each(['C:\\Users\\Jane Doe\\Temp\\s.json', '/tmp/a&b/s.json', '/tmp/"x"/s.json', '/tmp/%PATH%/s.json'])('refuses settings path %j', (p) => {
+    expect(PATH_TOKEN.test(p)).toBe(false);
+    expect(() => claudeArgs('sonnet', { step: 'plan' }, p)).toThrow(/shell-safe/);
+  });
+});
+
+describe('callClaude writes a settings file per call and removes it after', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-perm-test-'));
+  const calls = path.join(tmp, 'calls.jsonl');
+  beforeAll(() => {
+    process.env.BELAY_CLAUDE_BIN = path.resolve(import.meta.dirname, 'fakeClaude.mjs');
+    process.env.FAKE_CALLS = calls;
+  });
+  afterAll(() => {
+    delete process.env.BELAY_CLAUDE_BIN;
+    delete process.env.FAKE_CALLS;
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it.each<[string, PermissionProfile, string]>([
+    ['plan', { step: 'plan' }, '<!-- belay:step=plan -->'],
+    ['lane', { step: 'lane', bash: ['cargo fmt'] }, '<!-- belay:step=lane lane=park-x -->'],
+    ['reflect', { step: 'reflect' }, '<!-- belay:step=reflect -->'],
+  ])('%s', async (step, permissions, marker) => {
+    process.env.FAKE_PLAN = '[]';
+    await callClaude({ prompt: `x\n${marker}`, cwd: tmp, model: 'sonnet', timeoutMs: 20_000, permissions });
+    const last = JSON.parse(fs.readFileSync(calls, 'utf8').trim().split('\n').pop() ?? '{}') as { step: string; argv: string[]; settings: unknown };
+    expect(last.step).toBe(step);
+    expect(last.settings).toEqual(permissionArgs(permissions).settings);
+    const file = last.argv[last.argv.indexOf('--settings') + 1] ?? '';
+    expect(PATH_TOKEN.test(file)).toBe(true);
+    expect(fs.existsSync(path.dirname(file))).toBe(false);
+    expect(last.argv).toContain(`--permission-mode`);
+    expect(last.argv[last.argv.indexOf('--permission-mode') + 1]).toBe(permissionArgs(permissions).mode);
+  });
+});

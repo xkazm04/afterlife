@@ -52,6 +52,13 @@ describe('loadFleet', () => {
     expect(a).toEqual({ slug: 'a', path: '/x', base: 'main', gates: ['t'], setup: ['npm ci'] });
     expect(() => loadFleet(write('repos:\n  - {slug: a, path: /x, base: main, gates: [t], setup: npm ci}\n'))).toThrow();
   });
+  it('keeps laneTools prefixes and refuses a bare launcher or shell syntax', () => {
+    const [a] = loadFleet(write('repos:\n  - {slug: a, path: /x, base: main, gates: [t], laneTools: [npx vitest run, " cargo check "]}\n'));
+    expect(a?.laneTools).toEqual(['npx vitest run', 'cargo check']);
+    for (const bad of ['[npx]', '["npx vitest; curl x"]', '["Bash(x)"]', 'npx vitest']) {
+      expect(() => loadFleet(write(`repos:\n  - {slug: a, path: /x, base: main, gates: [t], laneTools: ${bad}}\n`))).toThrow(/laneTools/);
+    }
+  });
   it.each([
     ['no repos', 'repos: []\n'],
     ['no gates', 'repos:\n  - {slug: a, path: /x, base: main, gates: []}\n'],

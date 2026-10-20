@@ -1,6 +1,7 @@
 // One wave: wave.start, the plan step (read-only, in a detached worktree of base), the lanes one after
 // another under the caps, then wave.end - mergeable only when something landed AND the gates are green on
 // the wave branch itself. Nothing here pushes or merges: belay/wave-<n> is left for a person.
+import { bashPrefixes } from '../agent/permissions';
 import { callClaude } from '../agent/spawn';
 import { addWorktree, removeWorktree, resolveRef, worktreeDir } from '../git/worktree';
 import { runLane } from '../lane/run';
@@ -40,7 +41,7 @@ async function plan(c: WaveCtx, baseSha: string): Promise<{ items: PlanItem[]; c
   const dir = worktreeDir(c.repo.path, `belay-wave-${c.wave}-plan`);
   await addWorktree(c.repo.path, dir, baseSha);
   try {
-    const a = await callClaude({ prompt: planPrompt(c.prompts.text.plan, c.repo, c.opts.lanes, c.history, c.baseRef), cwd: dir, model: c.opts.model, timeoutMs: c.timeoutMs });
+    const a = await callClaude({ prompt: planPrompt(c.prompts.text.plan, c.repo, c.opts.lanes, c.history, c.baseRef), cwd: dir, model: c.opts.model, timeoutMs: c.timeoutMs, permissions: { step: 'plan' } });
     const costUsd = a.costUsd ?? 0;
     if (a.usage) c.log({ kind: 'lane.usage', lane: 'plan', model: a.model ?? c.opts.model, ...a.usage, costUsd });
     const dirty = (await git(dir, ['status', '--porcelain'])) !== '';
@@ -62,12 +63,13 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
   let cost = 0;
   let landed = 0;
   const notes: string[] = [];
+  const bash = bashPrefixes([...(repo.setup ?? []), ...repo.gates], repo.laneTools);
   try {
     const p = await plan(c, baseSha);
     cost += p.costUsd;
     for (const item of p.items) {
       if (cost >= c.waveCapUsd) break;
-      const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], baseSha, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log }, item);
+      const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, baseSha, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log }, item);
       cost += r.costUsd;
       if (r.outcome === 'landed') landed++;
       notes.push(`### ${item.lane} (${r.outcome})
