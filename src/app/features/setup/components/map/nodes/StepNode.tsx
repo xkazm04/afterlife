@@ -5,7 +5,8 @@ import { isHumanGate, isSaid } from '../../../model/flow/state';
 import { stepTip } from '../../../model/flow/wording';
 import { MapNode } from './MapNode';
 import type { NodeEvents } from './nodeTypes';
-import styles from './nodes.module.css';
+import nodes from './nodes.module.css';
+import styles from './steps.module.css';
 
 const CLS = { todo: '', human: styles.human, done: styles.sdone, probing: styles.probing, failed: styles.sfailed, unknown: styles.sunknown } as const;
 
@@ -14,7 +15,7 @@ export function StepNode({ step, lit, events }: { step: StepState; lit: Lit; eve
   return (
     <MapNode focus={{ k: 'step', id: step.n }} lit={lit} tip={`${stepTip(step.n, step.st, step.said)} · ${step.title}`} events={events} className={`${styles.sn} ${CLS[step.st]}`}>
       <span className={styles.m}>{mark}</span>
-      <span className={styles.lb}>{step.title}</span>
+      <span className={nodes.lb}>{step.title}</span>
       {isHumanGate(step) ? <span className={styles.x}>you</span> : isSaid(step) ? <span className={styles.said}>said</span> : null}
     </MapNode>
   );

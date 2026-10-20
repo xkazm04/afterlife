@@ -1,4 +1,4 @@
-/* Nodes of the unlock map. --nh (node height) is set by the map. Sizes scale with --ui-scale (D10). */
+/* Nodes of the unlock map. --nh (node height) is set by the map. Sizes scale with --ui-scale (D10). Step nodes: steps.module.css. */
 .nd {
   position: relative;
   display: flex;
@@ -49,68 +49,6 @@
 }
 .hot {
   opacity: 1;
-}
-
-/* steps */
-.m {
-  flex: none;
-  width: calc(17px * var(--ui-scale));
-  height: calc(17px * var(--ui-scale));
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font: 650 var(--t-small) / 1 var(--sys);
-  border: 1px solid var(--border-3);
-  color: var(--text-3);
-}
-.sdone {
-  color: var(--text-3);
-}
-.sdone .m {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.human {
-  border-color: color-mix(in oklab, var(--needs-you) 38%, transparent);
-}
-.human .m {
-  background: var(--needs-you);
-  border-color: var(--needs-you);
-  color: var(--needs-you-ink);
-  animation: halo 2.2s var(--ease) infinite;
-}
-.x {
-  font-size: var(--t-small);
-  font-weight: 650;
-  color: var(--needs-you);
-}
-/* live: the operator said they did a step no read can observe; dashed like unknown, never the done mark */
-.said {
-  font-size: var(--t-small);
-  font-weight: 650;
-  color: var(--unknown);
-}
-.sn.probing .m {
-  border-color: var(--accent);
-}
-/* live: a probe that looked and the step is not done; a step nobody probed (dashed, never rounded up) */
-.sfailed .m {
-  border-color: var(--fail);
-  color: var(--fail);
-}
-.sunknown .m {
-  border-style: dashed;
-  border-color: var(--unknown);
-  color: var(--unknown);
-}
-@keyframes halo {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--needs-you) 45%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 5px transparent;
-  }
 }
 
 /* tracks */
@@ -194,10 +132,4 @@
 }
 .cn.unavailable {
   color: var(--text-3);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .human .m {
-    animation: none;
-  }
 }
