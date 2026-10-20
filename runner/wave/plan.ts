@@ -20,8 +20,16 @@ export function planPrompt(base: string, repo: FleetRepo, lanes: number, history
   return `${base}\n\n## This wave\n- repo: ${repo.slug}\n- base: ${baseRef ?? repo.base}\n- plan at most ${lanes} lane(s)\n- gates every lane must pass:\n${repo.gates.map((g) => `  - ${g}`).join('\n')}\n${done}${stepMarker('plan')}`;
 }
 
-export function lanePrompt(base: string, item: PlanItem, capUsd: number): string {
-  return `${base}\n\n## Your item\n- lane: ${item.lane}\n- title: ${item.title}\n- files: ${item.files.join(', ') || '(none named)'}\n- why: ${item.why}\n- challenge: ${item.challenge}\n- dollar cap for this session: $${capUsd}\n${stepMarker('lane', item.lane)}`;
+/** What a lane is checked by: the repo's gates (run by the runner after it) and the Bash prefixes it may run itself. */
+export interface LaneChecks {
+  gates: readonly string[];
+  commands: readonly string[];
+}
+
+export function lanePrompt(base: string, item: PlanItem, capUsd: number, checks: LaneChecks): string {
+  const gates = checks.gates.map((g) => `  - ${g}`).join('\n');
+  const commands = checks.commands.length ? checks.commands.map((c) => `  - ${c} ...`).join('\n') : '  - (none: you cannot run a shell check; say so and end with DONE)';
+  return `${base}\n\n## Your item\n- lane: ${item.lane}\n- title: ${item.title}\n- files: ${item.files.join(', ') || '(none named)'}\n- why: ${item.why}\n- challenge: ${item.challenge}\n- dollar cap for this session: $${capUsd}\n\n## Checks\n- gates the runner runs after you; every one must be green or nothing commits:\n${gates}\n- shell commands you may run (each line is a prefix; any other command is denied):\n${commands}\n- before DONE, run the cheap ones: the formatter, the tests of the files you touched, the typecheck. Never a full suite that takes minutes.\n${stepMarker('lane', item.lane)}`;
 }
 
 const slug = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);

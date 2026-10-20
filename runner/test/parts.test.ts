@@ -5,7 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseStream } from '../agent/stream';
 import { loadFleet } from '../fleet/load';
-import { parsePlan } from '../wave/plan';
+import { lanePrompt, parsePlan } from '../wave/plan';
 import { loadPrompts } from '../wave/prompts';
 import { readClaim } from '../lane/run';
 
@@ -77,6 +77,15 @@ describe('parsePlan and prompts', () => {
   it('keeps well-formed lines, drops the rest, dedupes lanes, caps the count', () => {
     const text = ['not json', '{"lane":"Fix A","title":"Fix a","files":["a.ts"],"why":"a.ts:1","challenge":"c"}', '{"lane":"fix-a","title":"dup"}', '{"lane":"b"}', '{"lane":"c","title":"C"}', '{"lane":"d","title":"D"}'].join('\n');
     expect(parsePlan(text, 2).map((i) => i.lane)).toEqual(['fix-a', 'c']);
+  });
+  it('the lane prompt lists the gates and the commands the lane may run', () => {
+    const item = { lane: 'a', title: 'A', files: ['a.rs'], why: 'a.rs:1', challenge: 'c' };
+    const p = lanePrompt('BASE', item, 3, { gates: ['cargo fmt --all --check', 'cargo test --workspace'], commands: ['cargo fmt', 'cargo check'] });
+    expect(p).toContain('  - cargo fmt --all --check\n  - cargo test --workspace');
+    expect(p).toContain('  - cargo fmt ...\n  - cargo check ...');
+    expect(p).toMatch(/run the cheap ones: the formatter/);
+    expect(p.trimEnd().endsWith('<!-- belay:step=lane lane=a -->')).toBe(true);
+    expect(lanePrompt('BASE', item, 3, { gates: ['make'], commands: [] })).toContain('you cannot run a shell check');
   });
   it('promptVersion is 12 hex, stable, and a missing dir falls back on all three', () => {
     const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-prompts-'));
