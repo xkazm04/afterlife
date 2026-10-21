@@ -35,7 +35,8 @@ export function lanePrompt(base: string, item: PlanItem, capUsd: number, checks:
 const slug = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
 
 /** Lines of the planner's answer that look like a JSON object: what it tried to plan, parsed or not. */
-export const jsonLines = (text: string): number => text.split(/\r?\n/).filter((l) => l.trim().startsWith('{')).length;
+/** The plan's JSON lines that could be lanes: the `{"empty":[...]}` note is not one, so it is not counted. */
+export const jsonLines = (text: string): number => text.split(/\r?\n/).filter((l) => l.trim().startsWith('{') && !/^\{\s*"empty"\s*:/.test(l.trim())).length;
 
 /** The planner's `{"empty":[...]}` line: the axes it searched and found nothing on (plan.md's output contract). */
 export function parseEmptyAxes(text: string): string[] {
@@ -44,7 +45,7 @@ export function parseEmptyAxes(text: string): string[] {
     if (!t.startsWith('{') || !t.includes('"empty"')) continue;
     try {
       const o = JSON.parse(t) as { empty?: unknown };
-      if (Array.isArray(o.empty)) return o.empty.filter((s): s is string => typeof s === 'string').map((s) => s.slice(0, 300)).slice(0, 12);
+      if (Array.isArray(o.empty)) return o.empty.filter((s): s is string => typeof s === 'string').map((s) => s.slice(0, 600)).slice(0, 12);
     } catch {
       /* not the note */
     }
@@ -67,14 +68,24 @@ export function parsePlan(text: string, max: number): PlanItem[] {
     const lane = typeof o.lane === 'string' ? slug(o.lane) : '';
     if (!lane || seen.has(lane) || typeof o.title !== 'string' || !o.title.trim()) continue;
     seen.add(lane);
+    const why = typeof o.why === 'string' ? o.why : '';
+    // plan.md's cap, enforced: at most AXIS_CAP lanes per `[axis]` a why starts with (an untagged why is not capped).
+    const axis = axisOf(why);
+    if (axis && items.filter((i) => axisOf(i.why) === axis).length >= AXIS_CAP) continue;
     items.push({
       lane,
       title: o.title.trim(),
       files: Array.isArray(o.files) ? o.files.filter((f): f is string => typeof f === 'string').slice(0, 40) : [],
-      why: typeof o.why === 'string' ? o.why : '',
+      why,
       challenge: typeof o.challenge === 'string' ? o.challenge : '',
     });
     if (items.length >= max) break;
   }
   return items;
 }
+
+/** Lanes of one wave on one craft axis (plan.md says the same). */
+export const AXIS_CAP = 2;
+
+/** The `[axis]` a plan item's why starts with, lower-cased, or '' when it has none. */
+export const axisOf = (why: string): string => /^\s*\[([a-z][a-z-]*)\]/i.exec(why)?.[1]?.toLowerCase() ?? '';

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseStream } from '../agent/stream';
 import { loadFleet } from '../fleet/load';
-import { lanePrompt, parseEmptyAxes, parsePlan } from '../wave/plan';
+import { jsonLines, lanePrompt, parseEmptyAxes, parsePlan } from '../wave/plan';
 import { loadPrompts } from '../wave/prompts';
 import { readClaim } from '../lane/run';
 import { gateTail } from '../lane/verify';
@@ -125,5 +125,14 @@ describe('parseEmptyAxes', () => {
     expect(parseEmptyAxes(text)).toEqual(['dx: searched scripts/, nothing']);
     expect(parsePlan(text, 6).map((i) => i.lane)).toEqual(['a']);
     expect(parseEmptyAxes('{"lane":"a","title":"T"}')).toEqual([]);
+  });
+});
+
+describe('the plan axis cap', () => {
+  it('drops a third lane on one axis, keeps untagged ones, and does not count the empty note as a lane line', () => {
+    const item = (lane: string, why: string) => JSON.stringify({ lane, title: `T ${lane}`, files: [], why, challenge: 'c' });
+    const text = [item('a', '[code-health] x:1'), item('b', '[Code-Health] y:2'), item('c', '[code-health] z:3'), item('d', '[robustness] w:4'), item('e', 'no tag'), '{"empty":["dx: searched a, nothing"]}'].join('\n');
+    expect(parsePlan(text, 6).map((i) => i.lane)).toEqual(['a', 'b', 'd', 'e']);
+    expect(jsonLines(text)).toBe(5);
   });
 });
