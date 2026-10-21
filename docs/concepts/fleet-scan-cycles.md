@@ -63,6 +63,58 @@ GitLab mirrors (private pull mirrors, pipelines off): `kazdanm-group/athena-port
 `kazdanm-group/gravitone-gcloud`. The hackathon workspace is
 `gitlab-ai-hackathon/transcend-october-2026/35338952`, which already holds `afterlife` and `showcase`.
 
+## Local hardening run, 2026-10-21 00:30 to 08:30
+
+The plan was diverged from: before any cloud or API-key run, waves ran locally through `belay run` on the Claude
+Code CLI login (no `ANTHROPIC_API_KEY`), one reviewing agent per repo, all three repos at once, for 8 hours. Each
+agent reviewed every landed lane and fast-forwarded or cherry-picked only the good ones onto its repo's **local**
+main. Nothing in the three fleet repos is pushed.
+
+| Repo | Waves | Lanes landed / run | Model cost | Local main | Ahead of origin |
+|---|---|---|---|---|---|
+| athena-portable | 8 | 19 / 27 | $7.19 | `0ec566b7` | 26 |
+| paypal | 13 | 50 / 56 | $15.77 | `f08421b` | 55 |
+| gravitone-gcloud | 16 | 30 / 37 | $10.04 | `c261c488` | 48 |
+
+Reviewers rejected 7 landed lanes that passed every gate: a clock moved into a crate documented as pure, a token
+change whose premise did not hold, a filter widened past its item onto a money path, a shortcut breaking
+`extract_json`'s longest-span guarantee, a split that made an import cycle, an owner-call lockout policy, and an
+untested timeout. Each repo's verdicts are in `.belay/runs/<repo>/<wave>.review.md`, which the planner reads.
+
+Each repo's own full verify also turned up a red that the fleet gates never ran, now fixed on main and gated:
+gravitone's vitest suite (red since wave 7), paypal's `cargo deny` (RUSTSEC-2026-0381/0382) and athena's desktop
+`test:e2e` (red since 10-07), plus athena's journey e2e (red since 10-14).
+
+Runner and prompt hardening landed on afterlife main (pushed) along the way:
+- **Permissions:** each claude call gets a profile. The planner has only Read, Grep and Glob. A lane may run Bash
+  only for its repo's gates, setup and `laneTools`; git and the network are denied. User-scope settings (hooks) are
+  not loaded.
+- **Gates:**
+  - A red gate is rerun once, and one green on the rerun is recorded as `flaky`.
+  - A red or flaky gate's whole output goes to `<wave>.<lane>.gate.log`.
+  - A red base ends the wave before any spend.
+  - Children never inherit the runner's own `TSX_*`, `NODE_OPTIONS` or `npm_*` (that leak made gravitone red).
+- **Lanes:**
+  - Each lane starts from the wave tip, in one fixed worktree path, deleted without following junctions.
+  - A lane that does not land saves its `.patch`.
+  - A commit carries `Why` / `Done` / `Lane`, and `lane.usage` carries the claude `sessionId`.
+- **Plan:**
+  - At most two lanes per craft axis, enforced in the parser.
+  - Empty axes go in an `{"empty":[...]}` line, and `wave.plan` names the `uncovered` axes.
+  - History marks landed lanes not taken into base, and shows each lane's DONE line and the review files.
+  - The planner lists open findings first and puts a fix of about ten lines before any move. It never plans an
+    owner call.
+
+Open, for the operator:
+- **paypal D-3:** `636449e` makes a LISTING's qty required at the buyer (follows J-3). It is taken but veto-pending;
+  one revert undoes the code, the test and both doc notes.
+- **paypal clock:** three identical system clocks have no documented crate to share.
+- **athena lockout:** the judge-token lockout trade-off (backlog Lane C).
+- **Format gates:** gravitone and athena have no format gate, so whitespace slips land.
+- **gravitone stash:** `pre-sync-1019` was already absent when this run started.
+- **paypal client install:** the main checkout's client `node_modules` has no `.bin`.
+- **Push:** each repo's local main, via its own hooks (gravitone's pre-push takes about 3 hours).
+
 ## Pending steps, in order
 
 1. **Gravitone push.**
