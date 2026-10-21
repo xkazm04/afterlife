@@ -25,7 +25,7 @@ if (process.env.FAKE_CALLS) {
 function finish(text, cost) {
   const usage = { input_tokens: 100, output_tokens: 20, cache_read_input_tokens: 5, cache_creation_input_tokens: 7 };
   const out = [
-    { type: 'system', subtype: 'init', model: 'fake-model-1' },
+    { type: 'system', subtype: 'init', model: 'fake-model-1', session_id: `fake-${step}-${lane}` },
     { type: 'assistant', message: { model: 'fake-model-1', content: [{ type: 'text', text }] } },
     { type: 'result', subtype: 'success', is_error: false, result: text, total_cost_usd: cost, usage, modelUsage: { 'fake-model-1': {} } },
   ];

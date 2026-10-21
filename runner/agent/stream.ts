@@ -17,6 +17,8 @@ export interface StreamResult {
   costUsd: number | null;
   model: string | null;
   usage: StreamUsage | null;
+  /** claude's session id: its transcript is ~/.claude/projects/<cwd as a dir name>/<sessionId>.jsonl. */
+  sessionId: string | null;
 }
 
 type Json = Record<string, unknown>;
@@ -32,7 +34,7 @@ function assistantText(msg: unknown): string {
 }
 
 export function parseStream(stdout: string): StreamResult {
-  const out: StreamResult = { text: '', isError: false, costUsd: null, model: null, usage: null };
+  const out: StreamResult = { text: '', isError: false, costUsd: null, model: null, usage: null, sessionId: null };
   let lastAssistant = '';
   for (const line of stdout.split(/\r?\n/)) {
     if (!line.startsWith('{')) continue;
@@ -44,6 +46,7 @@ export function parseStream(stdout: string): StreamResult {
     }
     if (!isObj(o)) continue;
     if (o.type === 'system' && typeof o.model === 'string') out.model = o.model;
+    if (!out.sessionId && typeof o.session_id === 'string') out.sessionId = o.session_id;
     if (o.type === 'assistant') {
       const t = assistantText(o.message);
       if (t) lastAssistant = t;

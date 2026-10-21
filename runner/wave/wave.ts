@@ -56,7 +56,7 @@ async function plan(c: WaveCtx, baseSha: string): Promise<{ items: PlanItem[]; c
   try {
     const a = await callClaude({ prompt: planPrompt(c.prompts.text.plan, c.repo, c.opts.lanes, c.history, c.baseRef), cwd: dir, model: c.opts.model, timeoutMs: c.timeoutMs, permissions: { step: 'plan' } });
     const costUsd = a.costUsd ?? 0;
-    if (a.usage) c.log({ kind: 'lane.usage', lane: 'plan', model: a.model ?? c.opts.model, ...a.usage, costUsd });
+    if (a.usage) c.log({ kind: 'lane.usage', lane: 'plan', model: a.model ?? c.opts.model, ...a.usage, costUsd, ...(a.sessionId ? { sessionId: a.sessionId } : {}) });
     const dirty = (await git(dir, ['status', '--porcelain'])) !== '';
     const voided = a.timedOut ? 'timeout' : a.isError ? 'error' : dirty ? 'dirty' : undefined;
     const items = voided ? [] : parsePlan(a.text, c.opts.lanes);

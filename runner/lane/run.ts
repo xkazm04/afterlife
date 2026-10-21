@@ -78,7 +78,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
     costUsd = a.costUsd ?? 0;
     text = a.text.slice(-1500);
     if (a.usage) {
-      log({ kind: 'lane.usage', lane: item.lane, model: a.model ?? ctx.model, ...a.usage, costUsd });
+      log({ kind: 'lane.usage', lane: item.lane, model: a.model ?? ctx.model, ...a.usage, costUsd, ...(a.sessionId ? { sessionId: a.sessionId } : {}) });
     }
     const claim = readClaim(a.text);
     if (a.timedOut) {

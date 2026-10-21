@@ -62,7 +62,8 @@ describe('runWaves with a fake claude', () => {
     const planAt = r.lines.findIndex((e) => e.kind === 'wave.plan');
     expect(r.lines[planAt]).toMatchObject({ raw: 3, parsed: 3, items: ['ok-a', 'red-b', 'park-c'] });
     expect(r.lines[planAt]).not.toHaveProperty('voided');
-    expect(r.lines[planAt - 1]).toMatchObject({ kind: 'lane.usage', lane: 'plan' });
+    expect(r.lines[planAt - 1]).toMatchObject({ kind: 'lane.usage', lane: 'plan', sessionId: 'fake-plan-' });
+    expect(r.lines.find((e) => e.kind === 'lane.usage' && e.lane === 'ok-a')).toMatchObject({ sessionId: 'fake-lane-ok-a' });
     for (const e of r.lines) {
       expect(e.v).toBe(RUN_SCHEMA);
       expect(e.repo).toBe('temp');

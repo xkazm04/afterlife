@@ -57,6 +57,8 @@ export interface LaneUsage extends RunEventBase {
   outputTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  /** claude's session id, so a lane's transcript can be found although every lane shares one worktree path. */
+  sessionId?: string;
   costUsd: number;
 }
 
