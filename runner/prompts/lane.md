@@ -17,6 +17,7 @@ You are a headless lane in a worktree of a fleet repo. You are given ONE item: a
 - Run each test file with the runner it is written for: a file importing `@playwright/test` runs with `npx playwright test <file>`, never vitest; a `node --test` file with `node --test <file>`.
 - Code inside `page.evaluate`, `addInitScript`, a worker or any other serialized context cannot see module imports: leave such occurrences as they are when you swap an expression for an imported helper.
 - Before DONE, grep the repo's tests (end-to-end specs included) for the module you changed and run the ones you can. Grep the test folders with no file-name filter: an `--include=*.test.ts` hides every `*.spec.ts` end-to-end spec.
+- If the item's `challenge`, or your own reading, names an assumption your change relies on (e.g. "a value starting inside a decoded one is always shorter"), write a test that tries to break it with crafted input before DONE. A shortcut the gates pass only because no test covers its edge is not done.
 - A change that adds a behaviour or a failure path (a timeout, a retry, a new error branch, a refusal) comes with a new test file that exercises it, run before DONE. If the item's `why` names a test and you did not write it, you are not done. If a targeted test fails even once, rerun it alone, read its output, and fix the cause before DONE; do not hand a red you saw to the gates.
 
 ## What voids the lane
