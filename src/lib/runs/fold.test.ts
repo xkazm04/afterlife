@@ -39,6 +39,24 @@ describe('wave.plan', () => {
   });
 });
 
+describe('fields and kinds added later (review, repair, frontier, wave.tech)', () => {
+  const base = { v: 'belay.run/0', repo: 'alpha', promptVersion: 'abc123def456', ts: '2026-10-17T10:04:00Z', wave: 1 };
+  const tech = { ...base, kind: 'wave.tech', from: 'aaa', to: 'bbb', metrics: [{ name: 'build', unit: 's', before: 40, after: 30, gain: 0.25, threshold: 0.1, breakthrough: true, noisy: false }] };
+  it('parses wave.tech and rejects one without metrics names', () => {
+    expect(parseRunLine(JSON.stringify(tech))).toMatchObject({ kind: 'wave.tech', metrics: [{ name: 'build', breakthrough: true }] });
+    expect(parseRunLine(JSON.stringify({ ...tech, metrics: [{ before: 1 }] }))).toBeNull();
+    expect(parseRunLine(JSON.stringify({ ...tech, to: undefined }))).toBeNull();
+  });
+  it("a review or repair call's usage is the lane's cost, and wave.tech changes no row", () => {
+    const usage = (call: string) => JSON.stringify({ ...base, kind: 'lane.usage', lane: 'a', model: 'haiku', inputTokens: 1, outputTokens: 1, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd: 0.05, call });
+    const plain = foldWave(events(WAVE_1), false)!;
+    const w = foldWave(events([...WAVE_1.slice(0, -1), usage('review'), usage('repair'), JSON.stringify(tech), WAVE_1[WAVE_1.length - 1]!]), false)!;
+    expect(w.lanes.map((l) => l.lane)).toEqual(plain.lanes.map((l) => l.lane));
+    expect(w.lanes[0]?.costUsd).toBeCloseTo(0.35);
+    expect(w.lanes[0]?.model).toBe('sonnet');
+  });
+});
+
 describe('foldWave', () => {
   const w = foldWave(events(WAVE_1), true)!;
   it('folds lanes from their events', () => {

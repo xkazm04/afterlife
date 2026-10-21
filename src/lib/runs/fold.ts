@@ -23,7 +23,8 @@ export function foldLanes(events: readonly RunEvent[], promptVersion: string): R
       const l = of(e.lane);
       l.tokens = add(l.tokens, e.inputTokens + e.outputTokens + e.cacheReadTokens + e.cacheWriteTokens);
       l.costUsd = add(l.costUsd, e.costUsd);
-      l.model = e.model;
+      // A review or repair call may run on another model: the lane's own session names the lane's model.
+      if (!e.call || l.model === undefined) l.model = e.model;
     } else if (e.kind === 'lane.end') {
       const l = of(e.lane);
       l.outcome = e.outcome;
