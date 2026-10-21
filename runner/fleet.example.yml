@@ -23,6 +23,10 @@ repos:
       - uv run mypy
       - uv run pytest -m "not provider and not eval"
       - pnpm typecheck && pnpm lint && pnpm test
+      # CI-adjacent suites the three above skip: the desktop panel against a real daemon (was red 5/33 unseen),
+      # and hirelane design:check. The src-tauri cargo trio needs a desktop build first and is left out.
+      - pnpm --filter athena-desktop test:e2e
+      - pnpm --filter hirelane design:check
   - slug: paypal
     path: /path/to/paypal
     base: main
