@@ -58,7 +58,12 @@ export interface LaneResult {
 /** A stop whose message is a complete park reason (a red setup with its output): kept whole, not cut to 300. */
 class LaneStop extends Error {}
 
-export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult> {
+/** A frontier lane: its brief replaces the plan item's prompt, and lane.start says it is one. */
+export interface FrontierBrief {
+  prompt: string;
+}
+
+export async function runLane(ctx: LaneCtx, item: PlanItem, frontier?: FrontierBrief): Promise<LaneResult> {
   const { log, wave } = ctx;
   const t0 = Date.now();
   const branch = `belay/wave-${wave}-${item.lane}`;
@@ -78,12 +83,12 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   let failures: string[] = [];
   let text = '';
   const commits: string[] = [];
-  log({ kind: 'lane.start', lane: item.lane, title: item.title });
+  log({ kind: 'lane.start', lane: item.lane, title: item.title, ...(frontier ? { frontier: true as const } : {}) });
   try {
     await addWorktree(ctx.repoPath, dir, ctx.baseSha, branch);
     const ready = await runGates(ctx.setup, dir, ctx.timeoutMs);
     if (!ready.ok) throw new LaneStop(redReason('setup', ready));
-    const prompt = lanePrompt(ctx.lanePromptText, item, ctx.laneCapUsd, { gates: ctx.gates, commands: ctx.bash });
+    const prompt = frontier?.prompt ?? lanePrompt(ctx.lanePromptText, item, ctx.laneCapUsd, { gates: ctx.gates, commands: ctx.bash });
     const a = await callClaude({ prompt, cwd: dir, model: ctx.model, timeoutMs: ctx.timeoutMs, permissions: { step: 'lane', bash: ctx.bash } });
     costUsd = a.costUsd ?? 0;
     text = a.text.slice(-1500);

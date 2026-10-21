@@ -5,6 +5,38 @@
 # A lane may run (Bash) the command prefixes of its repo's setup and gates - `uv run ruff`, `cargo fmt`, `npm run
 # typecheck` - plus any `laneTools` prefixes listed here (cheap targeted checks); never git or the network.
 # Gates below come from each repo's .claude/scan-sweep/config.md / AGENTS.md / .ai/manifest.yaml.
+#
+# `frontier` (optional, per repo; none is set below - the operator picks objectives and metrics): when the plan
+# fills fewer lanes than asked, the wave runs ONE frontier lane on the objective (prompts/frontier.md), through the
+# same review, repair and gates. When the wave lands anything, each metric is measured on the wave base (twice) and
+# on its tip (once or twice) in a throwaway worktree with `setup` run in it, and recorded as `wave.tech`. A metric:
+# name, command (null = read what the previous command left), parse ({kind: wall, unit?} = the command's wall time,
+# {kind: json-sum, file, field, scale?, unit?} = sum of `field` over a JSON file's values, {kind: regex, pattern,
+# unit?} = the first capture group of stdout+stderr), direction (up|down), threshold (a fraction: the gain that is a
+# breakthrough, and the spread at which a metric is noisy), timeoutMin (default 20). Measure a wall time only with a
+# threshold above its noise; a deterministic metric (bytes, counts) is the dependable one. For example:
+#
+#   frontier:
+#     objective: |
+#       Cut the client bundle: first-load JS of the app routes, today ~410 kB (lower is better). Past the edge:
+#       code splitting, lazy routes, dropping duplicated dependencies.
+#     metrics:
+#       - name: build
+#         command: npm run build
+#         parse: {kind: wall, unit: s}
+#         direction: down
+#         threshold: 0.25
+#         timeoutMin: 15
+#       - name: first-load js
+#         command: null
+#         parse: {kind: json-sum, file: .next/analyze/client.json, field: parsedSize, scale: 0.001, unit: kB}
+#         direction: down
+#         threshold: 0.05
+#       - name: unit tests
+#         command: npx vitest run
+#         parse: {kind: regex, pattern: "Tests\\s+(\\d+) passed", unit: tests}
+#         direction: up
+#         threshold: 0.05
 repos:
   - slug: athena-portable
     path: /path/to/athena-portable

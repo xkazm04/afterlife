@@ -110,13 +110,13 @@ describe('parsePlan and prompts', () => {
     const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-prompts-'));
     const p = loadPrompts(empty);
     expect(p.version).toMatch(/^[0-9a-f]{12}$/);
-    expect(p.fallback).toEqual(['plan', 'lane', 'reflect', 'review', 'repair']);
+    expect(p.fallback).toEqual(['plan', 'lane', 'reflect', 'review', 'repair', 'frontier']);
     expect(loadPrompts(empty).version).toBe(p.version);
     fs.writeFileSync(path.join(empty, 'plan.md'), 'hello');
     const q = loadPrompts(empty);
     expect(q.version).not.toBe(p.version);
-    expect(q.fallback).toEqual(['lane', 'reflect', 'review', 'repair']);
-    // The review and repair prompts are in the version too: editing one is a new promptVersion.
+    expect(q.fallback).toEqual(['lane', 'reflect', 'review', 'repair', 'frontier']);
+    // The review, repair and frontier prompts are in the version too: editing one is a new promptVersion.
     fs.writeFileSync(path.join(empty, 'review.md'), 'hello');
     expect(loadPrompts(empty).version).not.toBe(q.version);
     expect(loadPrompts().fallback).toEqual([]);

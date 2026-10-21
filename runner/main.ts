@@ -71,7 +71,7 @@ async function main(argv: string[]): Promise<number> {
   }
   const laneCap = Math.min(opts.laneCapUsd, fleetRepo.laneCapUsd ?? Infinity);
   const waveCap = Math.min(opts.waveCapUsd, fleetRepo.waveCapUsd ?? Infinity);
-  console.log(`repo   ${repo} (${fleetRepo.path})\nbase   ${fleetRepo.base}\ncaps   lane $${laneCap}, wave $${waveCap}; ${opts.waves} wave(s) x ${opts.lanes} lane(s)\nmodel  ${opts.model}\ngates  ${fleetRepo.gates.length}`);
+  console.log(`repo   ${repo} (${fleetRepo.path})\nbase   ${fleetRepo.base}\ncaps   lane $${laneCap}, wave $${waveCap}; ${opts.waves} wave(s) x ${opts.lanes} lane(s)\nmodel  ${opts.model}\ngates  ${fleetRepo.gates.length}${fleetRepo.frontier ? `\nfrontier  ${fleetRepo.frontier.metrics.length} metric(s): ${fleetRepo.frontier.metrics.map((m) => m.name).join(', ')}` : ''}`);
   if (f.has('--dry-run')) {
     console.log('dry run: nothing was spawned.');
     return 0;
