@@ -73,7 +73,9 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
   const base = c.baseRef ?? repo.base;
   const baseSha = await resolveRef(repo.path, base);
   const branch = waveBranch(wave);
-  const waveDir = worktreeDir(repo.path, `belay-wave-${wave}`);
+  // One fixed path for every wave's own worktree (waves of a repo run one at a time, and it is removed at wave end):
+  // cargo hashes a workspace crate's path into its build, so a path per wave grew a shared target dir every wave.
+  const waveDir = worktreeDir(repo.path, 'belay-wave-head');
   log({ kind: 'wave.start', base, lanes: c.opts.lanes, laneCapUsd: c.laneCapUsd, waveCapUsd: c.waveCapUsd, model: c.opts.model });
   // Dirs an interrupted run or a half-failed removal left behind (unregistered, so no live wave's).
   await sweepStaleWorktrees(repo.path);

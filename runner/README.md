@@ -30,7 +30,7 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
 
 ## A wave
 
-1. `wave.start`. Branch `belay/wave-<n>` is created from `base` in its own worktree (`<repo>/.claude/worktrees/belay-wave-<n>`).
+1. `wave.start`. Branch `belay/wave-<n>` is created from `base` in its own worktree (`<repo>/.claude/worktrees/belay-wave-head`, one fixed path so a shared build cache is reused; lanes use `belay-wave-lane`).
    Setup and the gates run there once, on base: if any is red, every lane would fail for a reason not its own, so the
    wave ends at once (`wave.end` with `baseRed` = the reason and output tail, nothing spent, no reflect) and the run
    exits 1. `--skip-base-gates` skips this check when a person knows base is red.
