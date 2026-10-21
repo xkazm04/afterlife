@@ -105,15 +105,18 @@ Runner and prompt hardening landed on afterlife main (pushed) along the way:
   - The planner lists open findings first and puts a fix of about ten lines before any move. It never plans an
     owner call.
 
-Open, for the operator:
-- **paypal D-3:** `636449e` makes a LISTING's qty required at the buyer (follows J-3). It is taken but veto-pending;
-  one revert undoes the code, the test and both doc notes.
-- **paypal clock:** three identical system clocks have no documented crate to share.
-- **athena lockout:** the judge-token lockout trade-off (backlog Lane C).
-- **Format gates:** gravitone and athena have no format gate, so whitespace slips land.
-- **gravitone stash:** `pre-sync-1019` was already absent when this run started.
-- **paypal client install:** the main checkout's client `node_modules` has no `.bin`.
-- **Push:** each repo's local main, via its own hooks (gravitone's pre-push takes about 3 hours).
+Decided by the operator on 2026-10-21, after the run:
+- **paypal D-3:** kept (`636449e`, DECISIONS 53).
+- **paypal clock:** the three system clocks stay local impls (DECISIONS 54).
+- **athena lockout:** no judge-token lockout for now (backlog Lane C note).
+- **Lane rules:** both loosened rules stay. Lanes may mechanically update call sites in existing tests, and may
+  append one registry entry for their own new test.
+- **User settings:** runner sessions stay isolated from `~/.claude` user settings.
+- **Format check:** whitespace is checked on the files a lane changed (`diffCheck`, on for athena and gravitone).
+- **Shipping:** all three repos ship to GitHub main. Gravitone goes through its own pre-push hook.
+
+Still open: paypal's main checkout has a broken client `node_modules` (no `.bin`). Gravitone's stash
+`pre-sync-1019` was already gone when the run started.
 
 ## Pending steps, in order
 
