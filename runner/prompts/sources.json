@@ -1,5 +1,5 @@
 {
-  "ascent": "3c304182d51e0f6dd54e51e784fbf3458b49c033",
+  "ascent": "d90aed8598fd87547e3e093d96b8f6a7857ab000",
   "sources": [
     {
       "file": "plan.md",
@@ -22,7 +22,7 @@
         },
         {
           "path": ".claude/skills/infinite/references/ladder.md",
-          "sha256": "62eecf0576aaaa8495cde4d52067f6074b58fe963214230a34aae3eb05bc1cb7"
+          "sha256": "77acc3a7e8b173d9b593cac6ae88f3d84df81af24887e3997571564ff8da289c"
         }
       ]
     },
@@ -52,13 +52,54 @@
       "from": [
         {
           "path": ".claude/skills/infinite/references/reflect.md",
-          "sha256": "6c23c51110660daae660916ced83670bdd10b13ab1751cf35eeca0af35d7806b"
+          "sha256": "5e1289e122eac10131ac87534fe6db5e5c77f6df538a46ffd74877268c7e863f"
         },
         {
           "path": ".claude/skills/infinite/SKILL.md",
-          "sha256": "9a71cd64e774ecfcaccb198cad96dede231ce71899ff4db6960a2da059d01925"
+          "sha256": "80246b7e56bf561cbfad63ba16ff9d5d2721c5d2954aa5989b406a8f30645e7c"
+        }
+      ]
+    },
+    {
+      "file": "review.md",
+      "from": [
+        {
+          "path": "src/lib/local/lane-review.ts",
+          "ref": "archive",
+          "commit": "332c702fe28ba5a59519f84f61c2c09a16a482f7",
+          "sha256": "a73409c512b4ffdee603cf49e302a103ab1daa36f9a77c10a5cfc602169d947d"
+        }
+      ]
+    },
+    {
+      "file": "repair.md",
+      "from": [
+        {
+          "path": "src/lib/local/lane-review.ts",
+          "ref": "archive",
+          "commit": "332c702fe28ba5a59519f84f61c2c09a16a482f7",
+          "sha256": "a73409c512b4ffdee603cf49e302a103ab1daa36f9a77c10a5cfc602169d947d"
+        }
+      ]
+    },
+    {
+      "file": "frontier.md",
+      "from": [
+        {
+          "path": "src/lib/local/lane-frontier.ts",
+          "ref": "archive",
+          "commit": "424b6d38aa7ea7f994ee13e67fae15c9922759a0",
+          "sha256": "68ed16f7a4e090c93d3805a5202b19fff183d0b513340920e9e514e22ffd91f5"
         }
       ]
     }
+  ],
+  "archive": {
+    "ref": "refs/hygiene-archive/2026-10-20/experiment/infinite-cycles",
+    "tip": "424b6d38aa7ea7f994ee13e67fae15c9922759a0"
+  },
+  "notes": [
+    "Sources with \"ref\": \"archive\" are read from the archive ref's blob, not the working tree: that experiment branch was never merged to Ascent master.",
+    "2026-10-21: ladder.md, reflect.md and SKILL.md re-pinned at ascent@d90aed85. What moved in them (40ec3038, e3aceaac) is T3 measurement and the frontier lane; it was ported as Belay's P4 (prompts/frontier.md, runner/tech/, wave.tech) and reflect.md's 'read tech first' section, not into plan.md."
   ]
 }

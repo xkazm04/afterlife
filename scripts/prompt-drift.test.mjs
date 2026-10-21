@@ -44,6 +44,31 @@ describe('scripts/prompt-drift.mjs', () => {
     expect(r.stdout).toContain('src/a.ts');
     expect(r.stdout).toContain('plan.md');
   });
+  it('reads an archived source from its ref, not the working tree, and says when the ref is missing', () => {
+    const git = (...a) => spawnSync('git', ['-C', ascent, ...a], { encoding: 'utf8' });
+    git('init', '-q', '-b', 'master');
+    git('config', 'user.email', 't@example.com');
+    git('config', 'user.name', 'T');
+    fs.writeFileSync(path.join(ascent, 'src/r.ts'), 'export const review = 1;\n');
+    git('add', '-A');
+    git('commit', '-q', '-m', 'review');
+    const commit = git('rev-parse', 'HEAD').stdout.trim();
+    const ref = 'refs/hygiene-archive/x/experiment';
+    git('update-ref', ref, commit);
+    const manifest = (pin) => ({ ascent: commit, archive: { ref, tip: commit }, sources: [{ file: 'review.md', from: [{ path: 'src/r.ts', ref: 'archive', commit, sha256: pin }] }] });
+    fs.writeFileSync(sources, JSON.stringify(manifest(hash('export const review = 1;\n'))));
+    // The working tree moved on; the archived blob did not.
+    fs.writeFileSync(path.join(ascent, 'src/r.ts'), 'export const review = 2;\n');
+    expect(run(ascent).status).toBe(0);
+    fs.writeFileSync(sources, JSON.stringify(manifest(hash('other'))));
+    const r = run(ascent);
+    expect(r.status).toBe(1);
+    expect(r.stdout).toContain(`DRIFT review.md <- ${ref}:src/r.ts`);
+    git('update-ref', '-d', ref);
+    const gone = run(ascent);
+    expect(gone.status).toBe(0);
+    expect(gone.stdout).toContain('UNCHECKED review.md');
+  });
   it('exits 2 with a hint when the checkout is missing', () => {
     const r = run(path.join(tmp, 'nope'));
     expect(r.status).toBe(2);
