@@ -104,7 +104,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
       parkReason = landed.parkReason;
       flaky = landed.flaky;
       gateLog = saveGateLog(ctx.runsDir, { repo: ctx.repo, wave, what: item.lane }, landed.output);
-      failures = failureLines(landed.output);
+      if (outcome !== 'landed') failures = failureLines(landed.output);
       if (landed.commit) commits.push(landed.commit);
     }
   } catch (e) {
@@ -139,8 +139,9 @@ async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem, done: st
   const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
   if (armed.length) return { outcome: 'parked', parkReason: `edits agent or hook config: ${armed.slice(0, 5).join(', ')}` };
   const gates = await runGates(ctx.gates, dir, ctx.timeoutMs, GATE_RETRIES);
-  const flaky = gates.flaky?.length ? { flaky: gates.flaky } : {};
-  if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates), ...flaky, ...(gates.output ? { output: gates.output } : {}) };
+  // A red gate's output, or a flaky one's (red, then green on rerun): both go to the lane's gate log.
+  const flaky = { ...(gates.flaky?.length ? { flaky: gates.flaky } : {}), ...(gates.output ? { output: gates.output } : {}) };
+  if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates), ...flaky };
   await git(dir, ['reset', '--soft', ctx.baseSha]);
   await git(dir, ['add', '-A']);
   await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`, '-m', commitBody(item, done)]);

@@ -21,14 +21,19 @@ describe('runGates retries', () => {
   });
 
   it('a gate green on its rerun passes and is named flaky', async () => {
-    expect(await runGates(['node flake.mjs'], tmp, 20_000, 1)).toEqual({ ok: true, flaky: ['node flake.mjs'] });
+    const v = await runGates(['node flake.mjs'], tmp, 20_000, 1);
+    expect(v).toMatchObject({ ok: true, flaky: ['node flake.mjs'] });
+    // The flake's failing first run is kept for its log.
+    expect(v.output).toContain('=== run 1: node flake.mjs (exit 1) ===\nsocket aborted');
   });
 
   it('a gate red on every run stays red and says how many runs', async () => {
     const v = await runGates(['node flake.mjs', 'node red.mjs'], tmp, 20_000, 1);
     expect(v).toMatchObject({ ok: false, failed: 'node red.mjs (exit 1, 2 runs)', tail: '1 failed', flaky: ['node flake.mjs'] });
     // The log keeps every run, so a rerun cannot hide the first failure.
-    expect(v.output).toBe('=== run 1: node red.mjs (exit 1) ===\n1 failed\n\n=== run 2: node red.mjs (exit 1) ===\n1 failed');
+    expect(v.output?.endsWith('=== run 1: node red.mjs (exit 1) ===\n1 failed\n\n=== run 2: node red.mjs (exit 1) ===\n1 failed')).toBe(true);
+    // The earlier flaky gate's runs come first in the same log.
+    expect(v.output?.startsWith('=== run 1: node flake.mjs (exit 1) ===\nsocket aborted')).toBe(true);
   });
 });
 

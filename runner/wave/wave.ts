@@ -115,12 +115,15 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
       notes.push(`### ${item.lane} (${r.outcome})\n${asked}${why}${r.text.trim() || '(no final text)'}`);
     }
     let green = false;
+    let waveLog: string | undefined;
     if (landed > 0 && (await runGates(repo.setup ?? [], waveDir, c.timeoutMs)).ok) {
       const wg = await runGates(repo.gates, waveDir, c.timeoutMs, GATE_RETRIES);
       green = wg.ok;
       flaky.push(...(wg.flaky ?? []));
+      // The wave gate's output when it was red or needed a rerun, so a flake at the wave gate leaves its first failure.
+      waveLog = saveGateLog(c.runsDir, { repo: repo.slug, wave, what: 'wave' }, wg.output);
     }
-    log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost, branchKept: landed > 0, ...(flaky.length ? { flaky } : {}) });
+    log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost, branchKept: landed > 0, ...(flaky.length ? { flaky } : {}), ...(waveLog ? { gateLog: waveLog } : {}) });
   } finally {
     await removeWorktree(repo.path, waveDir, landed > 0 ? undefined : branch);
   }

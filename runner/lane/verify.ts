@@ -52,6 +52,8 @@ export const redReason = (what: string, v: GateVerdict): string => `${what} red:
  */
 export async function runGates(gates: string[], cwd: string, timeoutMs: number, retries = 0): Promise<GateVerdict> {
   const flaky: string[] = [];
+  // The runs of a gate that went red and then green: kept, so a flake's first failure can still be read.
+  const flakyRuns: string[] = [];
   for (const gate of gates) {
     const runs: string[] = [];
     for (let attempt = 0; ; attempt++) {
@@ -60,16 +62,19 @@ export async function runGates(gates: string[], cwd: string, timeoutMs: number, 
       const whole = gateTail(r.stdout, '', GATE_LOG_CHARS) + (r.stderr.trim() ? `\n--- stderr ---\n${gateTail('', r.stderr, GATE_LOG_CHARS)}` : '');
       runs.push(retries ? `=== run ${attempt + 1}: ${gate} (exit ${r.code ?? 'none'}${r.timedOut ? ', timed out' : ''}) ===\n${whole}` : whole);
       if (r.code === 0) {
-        if (attempt > 0) flaky.push(gate);
+        if (attempt > 0) {
+          flaky.push(gate);
+          flakyRuns.push(runs.join('\n\n'));
+        }
         break;
       }
       if (attempt < retries) continue;
       const tail = gateTail(r.stdout, r.stderr);
-      const output = runs.join('\n\n').trim();
+      const output = [...flakyRuns, ...runs].join('\n\n').trim();
       return { ok: false, failed: `${gate} (${r.timedOut ? 'timed out' : `exit ${r.code}`}${attempt ? `, ${attempt + 1} runs` : ''})`, ...(tail ? { tail } : {}), ...(flaky.length ? { flaky } : {}), ...(output ? { output } : {}) };
     }
   }
-  return flaky.length ? { ok: true, flaky } : { ok: true };
+  return flaky.length ? { ok: true, flaky, output: flakyRuns.join('\n\n').trim() } : { ok: true };
 }
 
 /** Lines in a gate's output that look like the failure itself (a test runner's FAIL/Received/assert lines, a compiler error). */
