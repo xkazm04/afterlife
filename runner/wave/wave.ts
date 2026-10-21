@@ -5,7 +5,7 @@ import { bashPrefixes } from '../agent/permissions';
 import { callClaude } from '../agent/spawn';
 import { addWorktree, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
 import { runLane } from '../lane/run';
-import { redReason, runGates } from '../lane/verify';
+import { GATE_RETRIES, redReason, runGates } from '../lane/verify';
 import { git } from '../proc/proc';
 import { waveBranch } from '../../src/schemas/run';
 import type { FleetRepo, RunOptions } from '../index';
@@ -41,11 +41,11 @@ export interface WaveResult {
 }
 
 /** Setup then the gates in the fresh wave worktree, on base: why base is red, or null when it is green. */
-async function baseRedReason(repo: FleetRepo, waveDir: string, timeoutMs: number): Promise<string | null> {
+async function baseCheck(repo: FleetRepo, waveDir: string, timeoutMs: number): Promise<{ red: string | null; flaky: string[] }> {
   const setup = await runGates(repo.setup ?? [], waveDir, timeoutMs);
-  if (!setup.ok) return redReason('base setup', setup);
-  const gates = await runGates(repo.gates, waveDir, timeoutMs);
-  return gates.ok ? null : redReason('base gate', gates);
+  if (!setup.ok) return { red: redReason('base setup', setup), flaky: [] };
+  const gates = await runGates(repo.gates, waveDir, timeoutMs, GATE_RETRIES);
+  return { red: gates.ok ? null : redReason('base gate', gates), flaky: gates.flaky ?? [] };
 }
 
 /** The plan step: one read-only call. A plan session that changed the worktree voids the plan. */
@@ -83,9 +83,11 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
   const bash = bashPrefixes([...(repo.setup ?? []), ...repo.gates], repo.laneTools);
   try {
     // A gate red on base fails every lane for a reason that is not its own: stop before any model spend.
-    const red = c.opts.skipBaseGates ? null : await baseRedReason(repo, waveDir, c.timeoutMs);
+    const base = c.opts.skipBaseGates ? { red: null, flaky: [] } : await baseCheck(repo, waveDir, c.timeoutMs);
+    const flaky = [...base.flaky];
+    const red = base.red;
     if (red) {
-      log({ kind: 'wave.end', branch, mergeable: false, costUsd: 0, branchKept: false, baseRed: red });
+      log({ kind: 'wave.end', branch, mergeable: false, costUsd: 0, branchKept: false, baseRed: red, ...(flaky.length ? { flaky } : {}) });
       return { costUsd: 0, landed: 0, branch, notes: [], baseRed: red };
     }
     const p = await plan(c, baseSha);
@@ -98,8 +100,13 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
       const why = r.parkReason ? `Runner's reason: ${r.parkReason}\n` : '';
       notes.push(`### ${item.lane} (${r.outcome})\n${why}${r.text.trim() || '(no final text)'}`);
     }
-    const green = landed > 0 && (await runGates(repo.setup ?? [], waveDir, c.timeoutMs)).ok && (await runGates(repo.gates, waveDir, c.timeoutMs)).ok;
-    log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost, branchKept: landed > 0 });
+    let green = false;
+    if (landed > 0 && (await runGates(repo.setup ?? [], waveDir, c.timeoutMs)).ok) {
+      const wg = await runGates(repo.gates, waveDir, c.timeoutMs, GATE_RETRIES);
+      green = wg.ok;
+      flaky.push(...(wg.flaky ?? []));
+    }
+    log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost, branchKept: landed > 0, ...(flaky.length ? { flaky } : {}) });
   } finally {
     await removeWorktree(repo.path, waveDir, landed > 0 ? undefined : branch);
   }

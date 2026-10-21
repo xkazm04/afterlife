@@ -12,6 +12,8 @@ export interface GateVerdict {
   failed?: string;
   /** The red gate's stdout tail then its stderr tail, ANSI stripped, at most GATE_TAIL_CHARS in all; absent when ok or silent. */
   tail?: string;
+  /** Gates that went red, then green when rerun once: load flakes, recorded so they are seen and not hidden. */
+  flaky?: string[];
 }
 
 const ANSI = /\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-Z\\-_]/g;
@@ -38,13 +40,27 @@ export function gateTail(stdout: string, stderr: string, max = GATE_TAIL_CHARS):
 /** `<what> red: <gate> (exit N)` then the red gate's output tail on the following lines. */
 export const redReason = (what: string, v: GateVerdict): string => `${what} red: ${v.failed ?? '?'}${v.tail ? `\n${v.tail}` : ''}`;
 
-export async function runGates(gates: string[], cwd: string, timeoutMs: number): Promise<GateVerdict> {
+/**
+ * Each gate in order; the first red one ends the run. With `retries`, a red gate is rerun (alone) up to that many
+ * times before it counts: under fleet load a test timeout or an aborted socket is not a red (the operator's rule),
+ * and a lane must not be failed by one. A gate green on a rerun is named in `flaky`; a gate red on every run is red.
+ */
+export async function runGates(gates: string[], cwd: string, timeoutMs: number, retries = 0): Promise<GateVerdict> {
+  const flaky: string[] = [];
   for (const gate of gates) {
-    const r = await runProc(gate, [], { cwd, shell: true, timeoutMs });
-    if (r.code !== 0) {
+    for (let attempt = 0; ; attempt++) {
+      const r = await runProc(gate, [], { cwd, shell: true, timeoutMs });
+      if (r.code === 0) {
+        if (attempt > 0) flaky.push(gate);
+        break;
+      }
+      if (attempt < retries) continue;
       const tail = gateTail(r.stdout, r.stderr);
-      return { ok: false, failed: `${gate} (${r.timedOut ? 'timed out' : `exit ${r.code}`})`, ...(tail ? { tail } : {}) };
+      return { ok: false, failed: `${gate} (${r.timedOut ? 'timed out' : `exit ${r.code}`}${attempt ? `, ${attempt + 1} runs` : ''})`, ...(tail ? { tail } : {}), ...(flaky.length ? { flaky } : {}) };
     }
   }
-  return { ok: true };
+  return flaky.length ? { ok: true, flaky } : { ok: true };
 }
+
+/** Gate reruns allowed before a gate counts as red (setup is never rerun: an install that fails is not load). */
+export const GATE_RETRIES = 1;

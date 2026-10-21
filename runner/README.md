@@ -64,6 +64,10 @@ that git no longer lists as a worktree. Only paths under `<repo>/.claude/worktre
 
 ## Outcomes and caps
 
+A red gate (on base, in a lane, or on the wave branch) is rerun once before it counts: under fleet load a test
+timeout is not a red. A gate green on its rerun is listed in the event's `flaky`, so a flake is seen, not hidden;
+setup is never rerun.
+
 A lane ends `landed`, `parked` (it said `PARK:`, changed nothing, or its commit conflicted on the wave branch),
 `failed` (red gate, an error, or no final `DONE:`/`PARK:` line), `budget` or `timeout`. A lane whose reported cost passes
 `--lane-cap` is `budget` and is not committed. Once the wave's running cost (plan included) reaches `--wave-cap`, no

@@ -71,7 +71,7 @@ describe('runWaves with a fake claude', () => {
     }
     expect(r.ends['ok-a']).toMatchObject({ outcome: 'landed' });
     expect(r.ends['ok-a']?.kind === 'lane.end' && r.ends['ok-a'].commits).toHaveLength(1);
-    expect(r.ends['red-b']).toMatchObject({ outcome: 'failed', parkReason: 'gate red: node gate.mjs (exit 1)\nchecking\nFAIL red.flag is present' });
+    expect(r.ends['red-b']).toMatchObject({ outcome: 'failed', parkReason: 'gate red: node gate.mjs (exit 1, 2 runs)\nchecking\nFAIL red.flag is present' });
     expect(r.ends['red-b']?.kind === 'lane.end' && r.ends['red-b'].commits).toEqual([]);
     expect(r.ends['park-c']).toMatchObject({ outcome: 'parked', parkReason: expect.stringContaining('gate-surface') });
     // The red lane's work survives its worktree as a patch that applies to base; a lane that changed nothing has none.
@@ -100,7 +100,7 @@ describe('runWaves with a fake claude', () => {
     const r = await run(['ok-a'], { repo: 'temp-red' });
     expect(r.code).toBe(1);
     expect(r.lines.map((e) => e.kind)).toEqual(['wave.start', 'wave.end']);
-    expect(r.lines[1]).toMatchObject({ mergeable: false, costUsd: 0, branchKept: false, baseRed: 'base gate red: node gate.mjs (exit 1)\nchecking\nFAIL red.flag is present' });
+    expect(r.lines[1]).toMatchObject({ mergeable: false, costUsd: 0, branchKept: false, baseRed: 'base gate red: node gate.mjs (exit 1, 2 runs)\nchecking\nFAIL red.flag is present' });
     expect(fs.existsSync(r.file.replace('.jsonl', '.proposals.md'))).toBe(false);
     expect(sh(redDir, 'branch', '--list', 'belay/*')).toBe('');
     const s = await run(['park-a'], { repo: 'temp-red', skipBaseGates: true });

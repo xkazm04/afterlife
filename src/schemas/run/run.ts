@@ -69,6 +69,8 @@ export interface LaneEnd extends RunEventBase {
   parkReason?: string;
   /** A lane that changed files and did not land: its diff against base, relative to the runs dir (`<repo>/<wave>.<lane>.patch`). */
   patch?: string;
+  /** Gates that went red and then green when rerun once (load flakes). Absent when none. */
+  flaky?: string[];
   wallSec: number;
 }
 
@@ -82,6 +84,8 @@ export interface WaveEnd extends RunEventBase {
   branchKept?: boolean;
   /** Setup or a gate was red on base before any lane ran: its reason and output tail. The wave planned nothing. */
   baseRed?: string;
+  /** Gates on base or on the wave branch that went red and then green when rerun once. Absent when none. */
+  flaky?: string[];
 }
 
 export type RunEvent = WaveStart | WavePlan | LaneStart | LaneUsage | LaneEnd | WaveEnd;
