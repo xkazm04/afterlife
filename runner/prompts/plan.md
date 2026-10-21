@@ -10,7 +10,7 @@ You are the read-only planner for one wave of a fleet repo's improvement cycle. 
 - Write the plan once, as your final message. Do not draft it in a plan file first.
 - The lanes that execute the plan have the far larger budget. They do the deep reading; you name the item, the files and the evidence.
 
-Read, in this order, whatever exists: `AGENTS.md` / `CLAUDE.md`, the repo's own open-item records (a STATUS or ROADMAP file, open entries in a DECISIONS log or ADRs, backlog or TODO files: these hold evidence-backed robustness and security items a grep will not find), `docs/`, `.claude/scan-history` (what earlier sweeps already landed or parked: do not re-plan it), then the code the evidence points at.
+Read, in this order, whatever exists: `AGENTS.md` / `CLAUDE.md`, the repo's own open-item records (a STATUS or ROADMAP file, open entries in a DECISIONS log or ADRs, backlog or TODO files: these hold evidence-backed robustness and security items a grep will not find; list every row or entry still marked open before you choose, since an open finding with a stated fix is evidence enough for a lane), `docs/`, `.claude/scan-history` (what earlier sweeps already landed or parked: do not re-plan it), then the code the evidence points at.
 
 ## What a good lane is
 <!-- from the craft ladder (loop-lane.ts, ladder.md): rungs on 7 axes, fewest-covered first -->
@@ -46,7 +46,7 @@ Your final message is ONLY JSON lines, one per lane, no prose, no fence, no arra
 
 - `lane`: a unique kebab-case id. `title`: the commit title, imperative, at most 60 characters, naming the change (not the steps to make it or check it). `files`: repo-relative paths the lane will touch (at most 40). `why`: the evidence, a real `file:line` you read, not a guess, then the behaviour that must change and how a test would show it. Describe what is wrong and what must become true, not the code to write: the lane reads the code, and an instruction that contradicts it is carried out literally.
 - Any line that does not parse against this shape is dropped. A plan with no readable line runs nothing.
-- After the lanes, when an axis came up empty, one more line naming each: `{"empty":["architecture: searched <what>, nothing","dx: searched <what>, nothing"]}`. `<what>` is a Grep pattern and path you actually ran (e.g. `searched 'fetch\(' in lib/ for calls without a timeout`); "nothing surfaced in the files I read" is not a search. Never name a lane after this note.
+- After the lanes, when an axis came up empty, one more line naming each: `{"empty":["architecture: searched <what>, nothing","dx: searched <what>, nothing"]}`. `<what>` is a Grep pattern and path you actually ran (e.g. `searched 'fetch\(' in lib/ for calls without a timeout`); "nothing surfaced in the files I read" is not a search. An axis is empty only after two Greps of different shape: one for a code pattern, and one for a structural signal (a lint suppression such as `#[allow(` or `eslint-disable`, an `unwrap`/`expect`/`!` on input from outside the process, a public item no test references, a TODO with a reason); name both. Never name a lane after this note.
 
 ## The challenge pass (before you write)
 <!-- from PLAN_CONTRACT: CHALLENGE -->
