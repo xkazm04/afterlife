@@ -71,6 +71,8 @@ export interface LaneEnd extends RunEventBase {
   commits: string[];
   /** Why it did not land; a red gate's reason is its summary line, then the tail of that gate's output. */
   parkReason?: string;
+  /** The lane's own DONE line (what changed, follow-ups it saw), at most 400 characters. */
+  done?: string;
   /** A lane that changed files and did not land: its diff against base, relative to the runs dir (`<repo>/<wave>.<lane>.patch`). */
   patch?: string;
   /** Gates that went red and then green when rerun once (load flakes). Absent when none. */

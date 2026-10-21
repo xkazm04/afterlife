@@ -48,7 +48,7 @@ Name the capability or file in the reason, e.g. `PARK: needs a gate-surface edit
 ## Your last line
 <!-- from laneReportContract: the claim is the final plain line -->
 End your final message with exactly ONE plain line, no bold, no bullets, no heading around it:
-- `DONE: <one sentence: what changed and the evidence it works>`
+- `DONE: <one sentence: what changed and the evidence it works; if you saw the same gap elsewhere, add "follow-up: <file:line>">`
 - `PARK: <reason>`
 
 The runner reads only this line. A final message without one is recorded as a failed lane.

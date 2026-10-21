@@ -66,6 +66,8 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   let costUsd = 0;
   let outcome: LaneOutcome = 'failed';
   let parkReason: string | undefined;
+  /** The lane's DONE line: what it changed and the follow-ups it saw, read back by the next wave's planner. */
+  let done: string | undefined;
   let patch: string | undefined;
   let flaky: string[] | undefined;
   let gateLog: string | undefined;
@@ -96,6 +98,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
       outcome = 'parked';
       parkReason = claim.rest || 'parked without a reason';
     } else {
+      done = claim.rest.slice(0, 400);
       const landed = await verifyAndLand(ctx, dir, item, claim.rest);
       outcome = landed.outcome;
       parkReason = landed.parkReason;
@@ -110,7 +113,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
     if (outcome !== 'landed') patch = await savePatch(dir, ctx.baseSha, { runsDir: ctx.runsDir, repo: ctx.repo, wave, lane: item.lane });
     await removeWorktree(ctx.repoPath, dir, branch);
   }
-  log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), ...(patch ? { patch } : {}), ...(flaky?.length ? { flaky } : {}), ...(gateLog ? { gateLog } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
+  log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), ...(done ? { done } : {}), ...(patch ? { patch } : {}), ...(flaky?.length ? { flaky } : {}), ...(gateLog ? { gateLog } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
   return { outcome, costUsd, text, ...(parkReason ? { parkReason } : {}), ...(failures.length ? { failures } : {}) };
 }
 

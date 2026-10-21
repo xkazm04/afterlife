@@ -17,6 +17,9 @@ describe('earlier waves reach the planner', () => {
     fs.writeFileSync(path.join(dir, 'alpha', '2.proposals.md'), 'ignored');
     expect(waveHistory(dir, 'alpha')).toEqual(['wave 2: Fix B -> parked (needs a gate edit)', 'wave 10: Fix C -> landed']);
     expect(waveHistory(dir, 'beta')).toEqual([]);
+    // A finished lane's DONE line, follow-ups included, reaches the next planner.
+    fs.writeFileSync(path.join(dir, 'alpha', '3.jsonl'), [line({ wave: 3, kind: 'lane.start', lane: 'd', title: 'Fix D' }), line({ wave: 3, kind: 'lane.end', lane: 'd', outcome: 'landed', commits: ['s'], done: 'one JOIN; follow-up: relay.rs:88', wallSec: 1 })].join('\n'));
+    expect(waveHistory(dir, 'alpha')).toContain('wave 3: Fix D -> landed (done: one JOIN; follow-up: relay.rs:88)');
     // A reviewer's verdicts beside the run file reach the planner too.
     fs.writeFileSync(path.join(dir, 'alpha', '2.review.md'), '# wave 2 review\n- rejected b: the premise does not hold\n\n');
     expect(waveHistory(dir, 'alpha')).toContain('wave 2 review: rejected b: the premise does not hold');

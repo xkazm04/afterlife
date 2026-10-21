@@ -22,7 +22,8 @@ export function waveHistory(runsDir: string, repo: string, baseSubjects?: Readon
       }
       if (e.kind === 'lane.start' && typeof e.lane === 'string') titles.set(e.lane, String(e.title ?? e.lane));
       if (e.kind === 'lane.end' && typeof e.lane === 'string') {
-        const why = typeof e.parkReason === 'string' ? ` (${e.parkReason.slice(0, 120)})` : '';
+        // A park says why it stopped; a lane that finished says what it did and what it saw next to it (a follow-up).
+        const why = typeof e.parkReason === 'string' ? ` (${e.parkReason.slice(0, 120)})` : typeof e.done === 'string' ? ` (done: ${e.done.slice(0, 240)})` : '';
         const n = parseInt(f, 10);
         const title = titles.get(e.lane) ?? e.lane;
         const dropped = e.outcome === 'landed' && baseSubjects !== undefined && !baseSubjects.has(`belay(wave-${n}): ${title}`);
