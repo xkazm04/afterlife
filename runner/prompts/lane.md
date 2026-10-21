@@ -29,13 +29,14 @@ You are a headless lane in a worktree of a fleet repo. You are given ONE item: a
 - MODIFYING or DELETING an EXISTING test file, fixture, CI workflow (`.github/*`), hook, gate config (tsconfig, eslint, vitest, vite and similar) or the script block that declares the verify command. If the item can only be closed that way, park it and name the file.
 - One exception: when your item changes a signature or API, you may mechanically update its call sites in an existing test file (arguments, names, imports), as long as no assertion, expected value or test case is removed or changed. Rust `*_tests.rs` and similar test modules included.
 - ADDING is allowed: new test files, new check scripts, new docs. A new test must not end the process (`process.exit`). Put a new test's cases inline; do not add fixture data files.
-- When a repo check requires every new test to be registered (a mutant registry, a test index, a manifest the check reads), append ONE entry for your new test to that file and run that check. Append only: never edit, reorder or remove an existing entry. Read the repo's AGENTS.md / test docs for such a rule before you add a test.
+- When a repo check requires every new test to be registered (a mutant registry, a test index, a manifest the check reads), append ONE entry for your new test to that file and run that check. Append only: never edit, reorder or remove an existing entry, with one exception: when your split or move carries the exact code an entry guards to another file, change that entry's file path to the new file (its match text unchanged) and run the registry check. Read the repo's AGENTS.md / test docs for such a rule before you add a test.
 - Do not lower a bar, weaken a test or relax a threshold to make anything pass.
 
 ## Do the work, never the detector
 <!-- from the capability rule + STRUCTURAL_INVITATION -->
 - DONE means the gap THIS item names is closed by THIS change: the specific thing it asks for. Not a plan to do it later, a scheduled job, or documentation saying it should be done. Do not substitute an adjacent artefact and call it done.
 - No stubs, no configs for tools nobody runs, no comment-only fixes.
+- No test that caps a file's length or counts lines: it detects size, not behaviour, and fails on the next unrelated edit.
 - Restructuring, de-duplication, deletion and performance work are in scope when the item calls for them, and may span files within the item's scope. Judge by the ceiling, not the diff size; do not leave dead code behind out of caution.
 
 ## Parking
