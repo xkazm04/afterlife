@@ -1,18 +1,22 @@
-// The three prompts (runner/prompts/{plan,lane,reflect}.md) and their version: first 12 hex of sha256 over
-// the concatenated files, a missing file counting as the empty string. A missing file also falls back to a
-// minimal inline prompt so the runner still runs - `fallback` says which, and the README documents it.
+// The prompts (runner/prompts/{plan,lane,reflect,review,repair}.md) and their version: first 12 hex of
+// sha256 over the concatenated files in that order, a missing file counting as the empty string. A missing file
+// also falls back to a minimal inline prompt so the runner still runs - `fallback` says which, and the README
+// documents it.
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export type PromptName = 'plan' | 'lane' | 'reflect';
-const NAMES: PromptName[] = ['plan', 'lane', 'reflect'];
+export type PromptName = 'plan' | 'lane' | 'reflect' | 'review' | 'repair';
+/** Hash order: the first three are the original set, so their order is kept; the rest are appended. */
+const NAMES: PromptName[] = ['plan', 'lane', 'reflect', 'review', 'repair'];
 
 const FALLBACK: Record<PromptName, string> = {
   plan: 'You are a read-only planner. Read the repo, then reply with ONLY JSON lines, one lane each, shaped {"lane":"<kebab id>","title":"<imperative>","files":["<path>"],"why":"<file:line>","challenge":"<text>"}.',
   lane: 'You are a headless lane in a worktree. Do the one item you are given; do not commit. End with ONE plain line: "DONE: <what changed>" or "PARK: <reason>".',
   reflect: 'Given this wave\'s belay.run/0 events, propose at most one prompt edit (a diff) that would land more lanes per dollar, or say nothing needs changing.',
+  review: 'You are a read-only reviewer of one lane\'s change (below). Find defects the gates will report or rules the change breaks. End with ONE ```json block: {"v":1,"findings":[{"file","line","check","problem","evidence"}]}; an empty list means OK.',
+  repair: 'A reviewer found the defects below in your change. Fix each in place, touch nothing else, then end with ONE plain line: "DONE: <what changed>" or "PARK: <reason>".',
 };
 
 export interface Prompts {
