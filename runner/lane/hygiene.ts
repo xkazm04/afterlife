@@ -1,7 +1,8 @@
 // The diff check: whitespace a lane added that no gate of the repo catches (fleet `diffCheck: true`). It reads only
 // what the lane changed against base, so the repo's own formatting config is never needed or touched: trailing
 // whitespace and blank lines at the end of a file (`git diff --check`), and a run of two blank lines the base
-// version of that file did not have (a removed block whose blank lines both stayed).
+// version of that file did not have (a removed block whose blank lines both stayed). Python files skip that last
+// check: PEP 8 puts two blank lines around every top-level def, so a new test file has a run of two per function.
 import fs from 'node:fs';
 import path from 'node:path';
 import { git, runProc } from '../proc/proc';
@@ -13,6 +14,9 @@ const WHITESPACE = 'core.whitespace=blank-at-eol,space-before-tab,blank-at-eof,c
 const DOUBLE_BLANK = /\n[ \t]*\r?\n[ \t]*\r?\n/g;
 
 const doubleBlanks = (text: string): number => (text.match(DOUBLE_BLANK) ?? []).length;
+
+/** Languages whose style asks for two blank lines (PEP 8: around top-level defs), so a run of two is not a slip. */
+const TWO_BLANKS_IS_STYLE = /\.pyi?$/i;
 
 /** Files over this size, and binary files, are not read. */
 const MAX_BYTES = 1024 * 1024;
@@ -30,6 +34,7 @@ export async function diffSlips(dir: string, baseSha: string): Promise<string[]>
   }
   const changed = (await git(dir, ['diff', '--cached', '--name-only', '-z', '--diff-filter=AM', baseSha])).split('\0').filter(Boolean);
   for (const file of changed) {
+    if (TWO_BLANKS_IS_STYLE.test(file)) continue;
     const abs = path.join(dir, file);
     let now: Buffer;
     try {

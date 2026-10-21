@@ -39,4 +39,12 @@ describe('diffSlips', () => {
     expect(slips.some((s) => /^b\.ts:\d+: trailing whitespace/.test(s))).toBe(true);
     expect(slips).toContain('b.ts: 1 new run(s) of two blank lines');
   });
+
+  it('passes a new Python file with PEP 8 spacing, but still names its trailing whitespace', async () => {
+    write('test_x.py', 'import os\n\n\ndef test_a() -> None:\n    assert os\n\n\ndef test_b() -> None:  \n    assert os\n');
+    sh('add', '-A');
+    const slips = await diffSlips(repo, base);
+    expect(slips.some((s) => /^test_x\.py:8: trailing whitespace/.test(s))).toBe(true);
+    expect(slips.some((s) => /two blank lines/.test(s))).toBe(false);
+  });
 });
