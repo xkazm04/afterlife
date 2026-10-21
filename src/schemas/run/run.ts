@@ -5,7 +5,7 @@
 
 export const RUN_SCHEMA = 'belay.run/0' as const;
 
-export type RunEventKind = 'wave.start' | 'wave.plan' | 'lane.start' | 'lane.usage' | 'lane.end' | 'wave.end';
+export type RunEventKind = 'wave.start' | 'wave.plan' | 'lane.start' | 'lane.usage' | 'lane.end' | 'wave.tech' | 'wave.end';
 
 /** How a lane ended. `budget` = halted at laneCapUsd or waveCapUsd; `timeout` = its process tree was killed. */
 export type LaneOutcome = 'landed' | 'parked' | 'failed' | 'budget' | 'timeout';
@@ -16,7 +16,7 @@ interface RunEventBase {
   /** The fleet slug from .belay/fleet.yml. */
   repo: string;
   wave: number;
-  /** First 12 hex of sha256 over runner/prompts/{plan,lane,reflect}.md. */
+  /** First 12 hex of sha256 over runner/prompts/{plan,lane,reflect,review,repair,frontier}.md (older files: the first three). */
   promptVersion: string;
 }
 
@@ -51,6 +51,8 @@ export interface LaneStart extends RunEventBase {
   lane: string;
   /** The item the lane works, in the plan's words. */
   title: string;
+  /** A frontier lane: no plan item, it works the repo's fleet `frontier.objective` (added later; absent otherwise). */
+  frontier?: true;
 }
 
 export interface LaneUsage extends RunEventBase {
@@ -63,6 +65,11 @@ export interface LaneUsage extends RunEventBase {
   cacheWriteTokens: number;
   /** claude's session id, so a lane's transcript can be found although every lane shares one worktree path. */
   sessionId?: string;
+  /**
+   * Which of the lane's calls this is when it is not the lane's own session (added later; absent = the lane call):
+   * `review` = the fresh read-only review of its change, `repair` = its one repair turn. Both count against the lane cap.
+   */
+  call?: 'review' | 'repair';
   costUsd: number;
 }
 
@@ -81,7 +88,39 @@ export interface LaneEnd extends RunEventBase {
   flaky?: string[];
   /** A red or flaky gate's whole output, every run, relative to the runs dir (`<repo>/<wave>.<lane>.gate.log`). */
   gateLog?: string;
+  /** The read-only review of a DONE lane (added later): `clean`, `defects` (a repair turn ran) or `unread` (no verdict). */
+  review?: 'clean' | 'defects' | 'unread';
+  /** Existing test files or fixtures the lane changed beyond a mechanical edit, put back to base before the review. */
+  restored?: string[];
   wallSec: number;
+}
+
+/** One technology metric of a fleet repo's `frontier`, measured on the wave base and on the wave tip. */
+export interface TechMetricDelta {
+  name: string;
+  /** The metric's unit (`s`, `bytes`, ...), as the fleet file states it. */
+  unit: string;
+  /** Mean over the runs that gave a value; absent when none did (a red command, a missing file). */
+  before?: number;
+  after?: number;
+  /** (after - before) / before, signed so that positive is always better (the metric's direction). */
+  gain?: number;
+  threshold: number;
+  /** gain >= threshold. */
+  breakthrough: boolean;
+  /** Either side's spread over its runs ((max - min) / mean) is at or above the threshold: not evidence either way. */
+  noisy: boolean;
+}
+
+/**
+ * T3 measurement (added later in belay.run/0): a repo with a fleet `frontier` whose wave landed something has its
+ * metrics measured in a throwaway worktree on the wave base (`from`) and on the wave tip (`to`), before wave.end.
+ */
+export interface WaveTech extends RunEventBase {
+  kind: 'wave.tech';
+  from: string;
+  to: string;
+  metrics: TechMetricDelta[];
 }
 
 export interface WaveEnd extends RunEventBase {
@@ -100,7 +139,7 @@ export interface WaveEnd extends RunEventBase {
   flaky?: string[];
 }
 
-export type RunEvent = WaveStart | WavePlan | LaneStart | LaneUsage | LaneEnd | WaveEnd;
+export type RunEvent = WaveStart | WavePlan | LaneStart | LaneUsage | LaneEnd | WaveTech | WaveEnd;
 
 export function waveBranch(wave: number): string {
   return `belay/wave-${wave}`;

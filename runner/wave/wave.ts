@@ -1,10 +1,13 @@
 // One wave: wave.start, the plan step (read-only, in a detached worktree of base), the lanes one after
-// another under the caps, then wave.end - mergeable only when something landed AND the gates are green on
-// the wave branch itself. Nothing here pushes or merges: belay/wave-<n> is left for a person.
+// another under the caps (plus one frontier lane when the plan under-filled and the repo has a frontier), the
+// T3 measurement of a frontier repo (wave.tech), then wave.end - mergeable only when something landed AND the gates
+// are green on the wave branch itself. Nothing here pushes or merges: belay/wave-<n> is left for a person.
 import { bashPrefixes } from '../agent/permissions';
 import { callClaude } from '../agent/spawn';
 import { addWorktree, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
-import { runLane } from '../lane/run';
+import { runLane, type FrontierBrief } from '../lane/run';
+import { measureWave } from '../tech/measure';
+import { frontierItem, frontierPrompt, wantsFrontier } from './frontier';
 import { saveGateLog } from '../lane/patch';
 import { GATE_RETRIES, redReason, runGates } from '../lane/verify';
 import { git } from '../proc/proc';
@@ -99,12 +102,17 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
     }
     const p = await plan(c, baseSha);
     cost += p.costUsd;
-    for (const item of p.items) {
+    // A frontier lane runs after the planned ones when the plan under-filled (wave/frontier.ts).
+    const items: { item: PlanItem; frontier?: FrontierBrief }[] = p.items.map((item) => ({ item }));
+    if (wantsFrontier(repo, p.items.length, c.opts.lanes)) items.push({ item: frontierItem(repo), frontier: { prompt: frontierPrompt(c.prompts.text.lane, c.prompts.text.frontier, repo, c.laneCapUsd, { gates: repo.gates, commands: bash }) } });
+    const text = c.prompts.text;
+    for (const { item, frontier } of items) {
       if (cost >= c.waveCapUsd) break;
       // Each lane starts from the wave branch's tip, so it sees the lanes that landed before it: two lanes cutting the
       // same file (a split and its wiring in lib.rs) stack instead of conflicting on the cherry-pick.
       const tip = await git(waveDir, ['rev-parse', 'HEAD']);
-      const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, ...(repo.diffCheck ? { diffCheck: true } : {}), baseSha: tip, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log, runsDir: c.runsDir, repo: repo.slug }, item);
+      const ctx = { repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, ...(repo.diffCheck ? { diffCheck: true } : {}), baseSha: tip, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs };
+      const r = await runLane({ ...ctx, lanePromptText: text.lane, reviewPromptText: text.review, repairPromptText: text.repair, log, runsDir: c.runsDir, repo: repo.slug }, item, frontier);
       cost += r.costUsd;
       if (r.outcome === 'landed') landed++;
       // The failure lines of a red gate's whole output: a log's tail is often a runner's boilerplate, not the failure.
@@ -123,6 +131,8 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
       // The wave gate's output when it was red or needed a rerun, so a flake at the wave gate leaves its first failure.
       waveLog = saveGateLog(c.runsDir, { repo: repo.slug, wave, what: 'wave' }, wg.output);
     }
+    // T3: a frontier repo's metrics on the wave base and on the tip, when the tip holds anything to measure.
+    if (repo.frontier && landed > 0) await measureWave({ repo, baseSha, tipSha: await git(waveDir, ['rev-parse', 'HEAD']), timeoutMs: c.timeoutMs, log });
     log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost, branchKept: landed > 0, ...(flaky.length ? { flaky } : {}), ...(waveLog ? { gateLog: waveLog } : {}) });
   } finally {
     await removeWorktree(repo.path, waveDir, landed > 0 ? undefined : branch);

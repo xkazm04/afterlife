@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import { parse } from 'yaml';
 import type { FleetRepo } from '../index';
+import { parseFrontier } from './frontier';
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -46,7 +47,8 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     }
     const laneCapUsd = cap(r.laneCapUsd, where, 'laneCapUsd');
     const waveCapUsd = cap(r.waveCapUsd, where, 'waveCapUsd');
-    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(diffCheck ? { diffCheck: true } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}) };
+    const frontier = parseFrontier(r.frontier, where);
+    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(diffCheck ? { diffCheck: true } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}), ...(frontier ? { frontier } : {}) };
   });
 }
 

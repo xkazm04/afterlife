@@ -3,10 +3,12 @@
 // file (passed as `--settings <path>`) rather than argv because on Windows claude.cmd runs through cmd.exe
 // with unescaped argv, and a rule like `Bash(cargo fmt:*)` holds spaces and parens. Deny always wins.
 //   plan    - Read, Grep and Glob only: the tool list itself is cut to those three.
+//   review  - the same three: a fresh session that reads a lane's change and edits nothing.
 //   lane    - edits, plus Bash for the prefixes of the repo's gates, setup and laneTools; never git or network.
+//             The lane's one repair turn runs under this profile too.
 //   reflect - no tool at all.
 
-export type PermissionProfile = { step: 'plan' } | { step: 'reflect' } | { step: 'lane'; bash: string[] };
+export type PermissionProfile = { step: 'plan' } | { step: 'review' } | { step: 'reflect' } | { step: 'lane'; bash: string[] };
 
 export interface PermissionArgs {
   mode: 'default' | 'acceptEdits';
@@ -57,7 +59,7 @@ export function bashPrefixes(commands: readonly string[], extra: readonly string
 }
 
 export function permissionArgs(p: PermissionProfile): PermissionArgs {
-  if (p.step === 'plan') {
+  if (p.step === 'plan' || p.step === 'review') {
     const deny = ALL_TOOLS.filter((t) => !PLAN_TOOLS.includes(t));
     return { mode: 'default', tools: PLAN_TOOLS.join(','), settings: { permissions: { defaultMode: 'default', allow: PLAN_TOOLS, deny } } };
   }

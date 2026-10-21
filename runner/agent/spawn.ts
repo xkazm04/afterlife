@@ -19,6 +19,8 @@ import { parseStream, type StreamResult } from './stream';
 const MODEL_TOKEN = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
 export const PATH_TOKEN = /^[A-Za-z0-9_:\\/.~-]+$/;
 const TOOLS_TOKEN = /^[A-Za-z,]*$/;
+/** A claude session id (a uuid; the test fake's are `fake-<step>-<lane>`). */
+const SESSION_TOKEN = /^[A-Za-z0-9][A-Za-z0-9-]{0,127}$/;
 
 export interface AgentCall {
   prompt: string;
@@ -26,6 +28,8 @@ export interface AgentCall {
   model: string;
   timeoutMs: number;
   permissions: PermissionProfile;
+  /** Resume this claude session (`--resume <id>`): the lane's repair turn continues the session that did the work. */
+  resume?: string;
 }
 
 export interface AgentOutcome extends StreamResult {
@@ -35,13 +39,14 @@ export interface AgentOutcome extends StreamResult {
 }
 
 /** The argv after the binary, given the settings file's path. Pure, so a test pins it. */
-export function claudeArgs(model: string, permissions: PermissionProfile, settingsFile: string): string[] {
+export function claudeArgs(model: string, permissions: PermissionProfile, settingsFile: string, resume?: string): string[] {
   if (!MODEL_TOKEN.test(model)) throw new Error(`runner: invalid model "${model}"`);
+  if (resume !== undefined && !SESSION_TOKEN.test(resume)) throw new Error(`runner: invalid session id "${resume}"`);
   if (!PATH_TOKEN.test(settingsFile)) throw new Error(`runner: settings path is not shell-safe: ${settingsFile} (set TMP/TEMP to a plain path)`);
   const p = permissionArgs(permissions);
   if (!TOOLS_TOKEN.test(p.tools)) throw new Error(`runner: invalid tool list "${p.tools}"`);
   // `--tools=` (one token) is the empty list: a bare "" would vanish on its way through cmd.exe.
-  return ['-p', '--output-format', 'stream-json', '--verbose', '--model', model, '--permission-mode', p.mode, `--tools=${p.tools}`, '--strict-mcp-config', '--setting-sources', 'project,local', '--settings', settingsFile];
+  return ['-p', '--output-format', 'stream-json', '--verbose', '--model', model, '--permission-mode', p.mode, `--tools=${p.tools}`, '--strict-mcp-config', '--setting-sources', 'project,local', '--settings', settingsFile, ...(resume ? ['--resume', resume] : [])];
 }
 
 /**
@@ -61,7 +66,7 @@ export async function callClaude(call: AgentCall): Promise<AgentOutcome> {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-perm-'));
   try {
     const settingsFile = path.join(dir, 'settings.json');
-    const args = claudeArgs(call.model, call.permissions, settingsFile);
+    const args = claudeArgs(call.model, call.permissions, settingsFile, call.resume);
     fs.writeFileSync(settingsFile, `${JSON.stringify(permissionArgs(call.permissions).settings, null, 2)}\n`);
     // A script bin (the test fake) runs under this node; a real claude needs a shell on Windows (claude.cmd).
     const script = /\.(c|m)?js$/.test(bin);

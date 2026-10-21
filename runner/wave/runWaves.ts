@@ -50,7 +50,7 @@ export async function runWaves(opts: RunOptions, emit: (e: RunEvent) => void): P
         return 1;
       }
       if (r.landed > 0) baseRef = r.branch;
-      const current = { plan: prompts.text.plan, lane: prompts.text.lane };
+      const current = { plan: prompts.text.plan, lane: prompts.text.lane, frontier: prompts.text.frontier };
       await reflect({ prompt: prompts.text.reflect, runFile: runFile(runsDir, repo.slug, wave), model: opts.model, timeoutMs, log, notes: r.notes, current });
     }
     return 0;

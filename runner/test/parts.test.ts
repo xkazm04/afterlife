@@ -106,16 +106,20 @@ describe('parsePlan and prompts', () => {
     expect(p.trimEnd().endsWith('<!-- belay:step=lane lane=a -->')).toBe(true);
     expect(lanePrompt('BASE', item, 3, { gates: ['make'], commands: [] })).toContain('you cannot run a shell check');
   });
-  it('promptVersion is 12 hex, stable, and a missing dir falls back on all three', () => {
+  it('promptVersion is 12 hex, stable, and a missing dir falls back on every prompt', () => {
     const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-prompts-'));
     const p = loadPrompts(empty);
     expect(p.version).toMatch(/^[0-9a-f]{12}$/);
-    expect(p.fallback).toEqual(['plan', 'lane', 'reflect']);
+    expect(p.fallback).toEqual(['plan', 'lane', 'reflect', 'review', 'repair', 'frontier']);
     expect(loadPrompts(empty).version).toBe(p.version);
     fs.writeFileSync(path.join(empty, 'plan.md'), 'hello');
     const q = loadPrompts(empty);
     expect(q.version).not.toBe(p.version);
-    expect(q.fallback).toEqual(['lane', 'reflect']);
+    expect(q.fallback).toEqual(['lane', 'reflect', 'review', 'repair', 'frontier']);
+    // The review, repair and frontier prompts are in the version too: editing one is a new promptVersion.
+    fs.writeFileSync(path.join(empty, 'review.md'), 'hello');
+    expect(loadPrompts(empty).version).not.toBe(q.version);
+    expect(loadPrompts().fallback).toEqual([]);
   });
 });
 
