@@ -49,6 +49,13 @@ describe('child environment', () => {
     expect(childEnv().GITLAB_TOKEN).toBeUndefined();
   });
 
+  it("no child inherits the runner's own tsx and npm state (a fleet repo's npx tsx would load this tsconfig)", () => {
+    plant({ TSX_TSCONFIG_PATH: 'C:/afterlife/tsconfig.json', NODE_OPTIONS: '--import tsx', npm_lifecycle_event: 'runner', INIT_CWD: 'C:/afterlife' });
+    for (const env of [childEnv(), agentEnv()]) {
+      for (const k of ['TSX_TSCONFIG_PATH', 'NODE_OPTIONS', 'npm_lifecycle_event', 'INIT_CWD']) expect(env[k]).toBeUndefined();
+    }
+  });
+
   it('a gate the lane agent rewrote cannot read the tokens', async () => {
     plant(planted);
     fs.writeFileSync(path.join(tmp, 'probe.mjs'), "process.exit(process.env.GITLAB_TOKEN || process.env.ANTHROPIC_API_KEY ? 1 : 0);\n");

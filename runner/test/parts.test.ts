@@ -38,6 +38,11 @@ describe('gateTail', () => {
     expect(t.startsWith('...')).toBe(true);
     expect(t.endsWith('END')).toBe(true);
   });
+  it('keeps the end of stdout when stderr is long warning noise', () => {
+    const t = gateTail(`${'.'.repeat(3000)}\nFAIL spend-ledger.probe.spec.ts\n6 failed`, 'ExperimentalWarning: SQLite\n'.repeat(200), 1200);
+    expect(t).toContain('FAIL spend-ledger.probe.spec.ts\n6 failed');
+    expect(t.length).toBeLessThanOrEqual(1210);
+  });
 });
 
 describe('readClaim', () => {

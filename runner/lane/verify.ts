@@ -10,7 +10,7 @@ export interface GateVerdict {
   ok: boolean;
   /** The first red gate's command and how it went red; absent when ok. */
   failed?: string;
-  /** The red gate's stdout then stderr, ANSI stripped, at most GATE_TAIL_CHARS from the end; absent when ok or silent. */
+  /** The red gate's stdout tail then its stderr tail, ANSI stripped, at most GATE_TAIL_CHARS in all; absent when ok or silent. */
   tail?: string;
 }
 
@@ -25,8 +25,14 @@ export function gateTail(stdout: string, stderr: string, max = GATE_TAIL_CHARS):
       .map((l) => l.split('\r').filter(Boolean).pop() ?? '')
       .join('\n')
       .trim();
-  const text = [clean(stdout), clean(stderr)].filter(Boolean).join('\n');
-  return text.length > max ? `...${text.slice(-max)}` : text;
+  // Each stream keeps its own tail: a test runner reports its failures on stdout, and warning noise on stderr
+  // (a runtime's ExperimentalWarning, a deprecation) must not push them out. stderr gets a third when both speak.
+  const out = clean(stdout);
+  const err = clean(stderr);
+  const cut = (s: string, n: number) => (s.length > n ? `...${s.slice(-n)}` : s);
+  if (!out || !err) return cut(out || err, max);
+  const errMax = Math.max(Math.floor(max / 3), max - out.length);
+  return `${cut(out, max - Math.min(err.length, errMax))}\n${cut(err, errMax)}`;
 }
 
 /** `<what> red: <gate> (exit N)` then the red gate's output tail on the following lines. */

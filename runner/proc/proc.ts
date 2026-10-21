@@ -53,12 +53,17 @@ export function killTree(pid: number | undefined): Promise<void> {
 const SECRET_NAME = /(^|_)(TOKEN|SECRET|PASSWORD|PASSWD|PAT|API_?KEY|PRIVATE_KEY|ACCESS_KEY|CREDENTIALS?)(_|$)/i;
 /** What claude itself needs to authenticate (API key, OAuth token, Bedrock or Vertex). */
 const AGENT_AUTH = /^(ANTHROPIC_|CLAUDE_CODE_)/i;
+/**
+ * The runner's own process state, never the child's: tsx's tsconfig and loader hooks (a fleet repo's own `npx tsx`
+ * would load this repo's tsconfig and fail to resolve its paths), and npm's script context when started by `npm run`.
+ */
+const RUNNER_OWN = /^(TSX_|npm_|NODE_OPTIONS$|INIT_CWD$)/i;
 
 function scrubbed(keep: (name: string) => boolean): NodeJS.ProcessEnv {
   const pass = new Set((process.env.BELAY_PASS_ENV ?? '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean));
   const out: Record<string, string | undefined> = {};
   for (const [k, v] of Object.entries(process.env)) {
-    if (!SECRET_NAME.test(k) || pass.has(k.toUpperCase()) || keep(k)) out[k] = v;
+    if (pass.has(k.toUpperCase()) || keep(k) || (!SECRET_NAME.test(k) && !RUNNER_OWN.test(k))) out[k] = v;
   }
   return out as NodeJS.ProcessEnv;
 }
