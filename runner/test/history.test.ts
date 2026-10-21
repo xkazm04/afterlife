@@ -17,6 +17,9 @@ describe('earlier waves reach the planner', () => {
     fs.writeFileSync(path.join(dir, 'alpha', '2.proposals.md'), 'ignored');
     expect(waveHistory(dir, 'alpha')).toEqual(['wave 2: Fix B -> parked (needs a gate edit)', 'wave 10: Fix C -> landed']);
     expect(waveHistory(dir, 'beta')).toEqual([]);
+    // A reviewer's verdicts beside the run file reach the planner too.
+    fs.writeFileSync(path.join(dir, 'alpha', '2.review.md'), '# wave 2 review\n- rejected b: the premise does not hold\n\n');
+    expect(waveHistory(dir, 'alpha')).toContain('wave 2 review: rejected b: the premise does not hold');
     // A landed lane whose commit is not in base was dropped by its reviewer (or is not merged yet), and says so.
     expect(waveHistory(dir, 'alpha', new Set(['belay(wave-9): Fix C'])).at(-1)).toBe('wave 10: Fix C -> landed on its wave branch but NOT taken into base (rejected, or not merged yet)');
     expect(waveHistory(dir, 'alpha', new Set(['belay(wave-10): Fix C'])).at(-1)).toBe('wave 10: Fix C -> landed');

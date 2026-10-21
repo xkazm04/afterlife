@@ -11,7 +11,7 @@ import { git } from '../proc/proc';
 import { waveBranch } from '../../src/schemas/run';
 import type { FleetRepo, RunOptions } from '../index';
 import type { Log } from './events';
-import { jsonLines, parsePlan, planPrompt, type PlanItem } from './plan';
+import { jsonLines, parseEmptyAxes, parsePlan, planPrompt, type PlanItem } from './plan';
 import type { Prompts } from './prompts';
 
 export interface WaveCtx {
@@ -60,7 +60,8 @@ async function plan(c: WaveCtx, baseSha: string): Promise<{ items: PlanItem[]; c
     const dirty = (await git(dir, ['status', '--porcelain'])) !== '';
     const voided = a.timedOut ? 'timeout' : a.isError ? 'error' : dirty ? 'dirty' : undefined;
     const items = voided ? [] : parsePlan(a.text, c.opts.lanes);
-    c.log({ kind: 'wave.plan', raw: jsonLines(a.text), parsed: items.length, items: items.map((i) => i.lane), ...(voided ? { voided } : {}) });
+    const empty = voided ? [] : parseEmptyAxes(a.text);
+    c.log({ kind: 'wave.plan', raw: jsonLines(a.text), parsed: items.length, items: items.map((i) => i.lane), ...(empty.length ? { empty } : {}), ...(voided ? { voided } : {}) });
     return { items, costUsd };
   } finally {
     await removeWorktree(c.repo.path, dir);

@@ -29,6 +29,27 @@ export function waveHistory(runsDir: string, repo: string, baseSubjects?: Readon
         out.push(`wave ${n}: ${title} -> ${dropped ? 'landed on its wave branch but NOT taken into base (rejected, or not merged yet)' : String(e.outcome)}${why}`);
       }
     }
+    out.push(...reviewNotes(dir, parseInt(f, 10)));
   }
   return out;
+}
+
+/**
+ * A reviewer's verdicts on a wave, `<repo>/<wave>.review.md` beside its run file: one non-empty line per verdict, e.g.
+ * `rejected resolve-prune-error-keeps-result: the prune error still wins; the gain is cosmetic`. The run file only says
+ * a lane landed; this is why its reviewer took it or not, so the next planner does not re-plan a rejected premise.
+ */
+function reviewNotes(dir: string, wave: number): string[] {
+  let text = '';
+  try {
+    text = fs.readFileSync(path.join(dir, `${wave}.review.md`), 'utf8');
+  } catch {
+    return [];
+  }
+  return text
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^\s*[-*]\s*/, '').trim())
+    .filter((l) => l && !l.startsWith('#'))
+    .slice(0, 12)
+    .map((l) => `wave ${wave} review: ${l.slice(0, 240)}`);
 }

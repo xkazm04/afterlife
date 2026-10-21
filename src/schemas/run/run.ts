@@ -39,6 +39,8 @@ export interface WavePlan extends RunEventBase {
   raw: number;
   parsed: number;
   items: string[];
+  /** The axes the planner searched and found nothing on, from its `{"empty":[...]}` line. */
+  empty?: string[];
   voided?: 'timeout' | 'error' | 'dirty';
 }
 

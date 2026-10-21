@@ -5,7 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseStream } from '../agent/stream';
 import { loadFleet } from '../fleet/load';
-import { lanePrompt, parsePlan } from '../wave/plan';
+import { lanePrompt, parseEmptyAxes, parsePlan } from '../wave/plan';
 import { loadPrompts } from '../wave/prompts';
 import { readClaim } from '../lane/run';
 import { gateTail } from '../lane/verify';
@@ -116,5 +116,14 @@ describe('parsePlan and prompts', () => {
     const q = loadPrompts(empty);
     expect(q.version).not.toBe(p.version);
     expect(q.fallback).toEqual(['lane', 'reflect']);
+  });
+});
+
+describe('parseEmptyAxes', () => {
+  it("reads the planner's empty-axis line and never takes it for a lane", () => {
+    const text = '{"lane":"a","title":"T","files":[],"why":"w","challenge":"c"}\n{"empty":["dx: searched scripts/, nothing",3]}';
+    expect(parseEmptyAxes(text)).toEqual(['dx: searched scripts/, nothing']);
+    expect(parsePlan(text, 6).map((i) => i.lane)).toEqual(['a']);
+    expect(parseEmptyAxes('{"lane":"a","title":"T"}')).toEqual([]);
   });
 });

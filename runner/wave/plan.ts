@@ -37,6 +37,21 @@ const slug = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').
 /** Lines of the planner's answer that look like a JSON object: what it tried to plan, parsed or not. */
 export const jsonLines = (text: string): number => text.split(/\r?\n/).filter((l) => l.trim().startsWith('{')).length;
 
+/** The planner's `{"empty":[...]}` line: the axes it searched and found nothing on (plan.md's output contract). */
+export function parseEmptyAxes(text: string): string[] {
+  for (const line of text.split(/\r?\n/).reverse()) {
+    const t = line.trim();
+    if (!t.startsWith('{') || !t.includes('"empty"')) continue;
+    try {
+      const o = JSON.parse(t) as { empty?: unknown };
+      if (Array.isArray(o.empty)) return o.empty.filter((s): s is string => typeof s === 'string').map((s) => s.slice(0, 300)).slice(0, 12);
+    } catch {
+      /* not the note */
+    }
+  }
+  return [];
+}
+
 export function parsePlan(text: string, max: number): PlanItem[] {
   const items: PlanItem[] = [];
   const seen = new Set<string>();

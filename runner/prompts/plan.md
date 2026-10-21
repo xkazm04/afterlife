@@ -23,7 +23,7 @@ One lane is ONE thing the repo's next reader would call finished, small enough f
 - dx: setup time, feedback latency, how fast a wrong change is caught.
 - code-health: duplication, dead code, a dumping-ground file. These rungs leave SMALLER code behind, never another gate about it.
 
-At most two lanes of a wave on one axis; a file split or a pure move counts as code-health. Start each lane's `why` with its axis in brackets, e.g. `[robustness] relay/src/read.rs:88 ...`. Look at the earlier waves listed below: an axis they already covered goes last. If you cannot find a real item on an axis, leave it out rather than filling the wave with a third move, and say so: end the `challenge` of your last lane with one `axis <name>: searched <what>, nothing` note per axis that came up empty, so an empty axis is visible in the run file and the next wave can look elsewhere.
+At most two lanes of a wave on one axis; a file split or a pure move counts as code-health. Start each lane's `why` with its axis in brackets, e.g. `[robustness] relay/src/read.rs:88 ...`. Look at the earlier waves listed below: an axis they already covered goes last. If you cannot find a real item on an axis, leave it out rather than filling the wave with a third move, and say so in one extra line after the lanes (see the output contract), so an empty axis is visible in the run file and the next wave can look elsewhere.
 
 Before you write an item, check it holds:
 - A split or a move: at most ONE per source file per wave, and put the wiring file it also edits (`lib.rs`, `mod.rs`, an `index.ts`) in that lane's `files`.
@@ -40,8 +40,9 @@ Your final message is ONLY JSON lines, one per lane, no prose, no fence, no arra
 
 {"lane":"<kebab id>","title":"<imperative>","files":["<path>"],"why":"<evidence file:line>","challenge":"<text or challenge ran: nothing surfaced>"}
 
-- `lane`: a unique kebab-case id. `title`: the commit title, imperative, at most 60 characters, naming the change (not the steps to make it or check it). `files`: repo-relative paths the lane will touch (at most 40). `why`: the evidence, a real `file:line` you read, not a guess.
+- `lane`: a unique kebab-case id. `title`: the commit title, imperative, at most 60 characters, naming the change (not the steps to make it or check it). `files`: repo-relative paths the lane will touch (at most 40). `why`: the evidence, a real `file:line` you read, not a guess, then the behaviour that must change and how a test would show it. Describe what is wrong and what must become true, not the code to write: the lane reads the code, and an instruction that contradicts it is carried out literally.
 - Any line that does not parse against this shape is dropped. A plan with no readable line runs nothing.
+- After the lanes, when an axis came up empty, one more line naming each: `{"empty":["architecture: searched <what>, nothing","dx: searched <what>, nothing"]}`. Never name a lane after this note.
 
 ## The challenge pass (before you write)
 <!-- from PLAN_CONTRACT: CHALLENGE -->
