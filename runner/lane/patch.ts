@@ -32,3 +32,17 @@ export async function savePatch(dir: string, baseSha: string, t: PatchTarget): P
     return undefined;
   }
 }
+
+/** Writes a red gate's whole output beside the run file (`<repo>/<wave>.<what>.gate.log`); returns that name, or undefined. */
+export function saveGateLog(runsDir: string, t: { repo: string; wave: number; what: string }, output: string | undefined): string | undefined {
+  if (!output) return undefined;
+  try {
+    const name = `${t.repo}/${t.wave}.${t.what}.gate.log`;
+    const file = path.join(runsDir, name);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, output);
+    return name;
+  } catch {
+    return undefined;
+  }
+}

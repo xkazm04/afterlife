@@ -26,6 +26,6 @@ describe('runGates retries', () => {
 
   it('a gate red on every run stays red and says how many runs', async () => {
     const v = await runGates(['node flake.mjs', 'node red.mjs'], tmp, 20_000, 1);
-    expect(v).toMatchObject({ ok: false, failed: 'node red.mjs (exit 1, 2 runs)', tail: '1 failed', flaky: ['node flake.mjs'] });
+    expect(v).toMatchObject({ ok: false, failed: 'node red.mjs (exit 1, 2 runs)', tail: '1 failed', flaky: ['node flake.mjs'], output: '1 failed' });
   });
 });

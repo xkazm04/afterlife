@@ -9,7 +9,7 @@ import { git, runProc } from '../proc/proc';
 import type { LaneOutcome } from '../../src/schemas/run';
 import type { Log } from '../wave/events';
 import { lanePrompt, type PlanItem } from '../wave/plan';
-import { savePatch } from './patch';
+import { saveGateLog, savePatch } from './patch';
 import { GATE_RETRIES, redReason, runGates } from './verify';
 
 export interface LaneCtx {
@@ -66,6 +66,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   let parkReason: string | undefined;
   let patch: string | undefined;
   let flaky: string[] | undefined;
+  let gateLog: string | undefined;
   let text = '';
   const commits: string[] = [];
   log({ kind: 'lane.start', lane: item.lane, title: item.title });
@@ -96,6 +97,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
       outcome = landed.outcome;
       parkReason = landed.parkReason;
       flaky = landed.flaky;
+      gateLog = saveGateLog(ctx.runsDir, { repo: ctx.repo, wave, what: item.lane }, landed.output);
       if (landed.commit) commits.push(landed.commit);
     }
   } catch (e) {
@@ -104,7 +106,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
     if (outcome !== 'landed') patch = await savePatch(dir, ctx.baseSha, { runsDir: ctx.runsDir, repo: ctx.repo, wave, lane: item.lane });
     await removeWorktree(ctx.repoPath, dir, branch);
   }
-  log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), ...(patch ? { patch } : {}), ...(flaky?.length ? { flaky } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
+  log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), ...(patch ? { patch } : {}), ...(flaky?.length ? { flaky } : {}), ...(gateLog ? { gateLog } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
   return { outcome, costUsd, text, ...(parkReason ? { parkReason } : {}) };
 }
 
@@ -124,14 +126,14 @@ async function changedFiles(dir: string, baseSha: string): Promise<string[]> {
 /** The commit body: the item's evidence and the lane's own DONE claim, so the commit says why without the run file. */
 export const commitBody = (item: PlanItem, done: string): string => [item.why && `Why: ${item.why}`, done && `Done: ${done}`, `Lane: ${item.lane}`].filter(Boolean).join('\n\n');
 
-async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem, done: string): Promise<{ outcome: LaneOutcome; parkReason?: string; commit?: string; flaky?: string[] }> {
+async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem, done: string): Promise<{ outcome: LaneOutcome; parkReason?: string; commit?: string; flaky?: string[]; output?: string }> {
   const changed = (await git(dir, ['status', '--porcelain'])) !== '' || (await git(dir, ['rev-parse', 'HEAD'])) !== ctx.baseSha;
   if (!changed) return { outcome: 'parked', parkReason: 'DONE claimed but nothing changed' };
   const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
   if (armed.length) return { outcome: 'parked', parkReason: `edits agent or hook config: ${armed.slice(0, 5).join(', ')}` };
   const gates = await runGates(ctx.gates, dir, ctx.timeoutMs, GATE_RETRIES);
   const flaky = gates.flaky?.length ? { flaky: gates.flaky } : {};
-  if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates), ...flaky };
+  if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates), ...flaky, ...(gates.output ? { output: gates.output } : {}) };
   await git(dir, ['reset', '--soft', ctx.baseSha]);
   await git(dir, ['add', '-A']);
   await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`, '-m', commitBody(item, done)]);

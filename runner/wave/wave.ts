@@ -5,6 +5,7 @@ import { bashPrefixes } from '../agent/permissions';
 import { callClaude } from '../agent/spawn';
 import { addWorktree, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
 import { runLane } from '../lane/run';
+import { saveGateLog } from '../lane/patch';
 import { GATE_RETRIES, redReason, runGates } from '../lane/verify';
 import { git } from '../proc/proc';
 import { waveBranch } from '../../src/schemas/run';
@@ -41,11 +42,11 @@ export interface WaveResult {
 }
 
 /** Setup then the gates in the fresh wave worktree, on base: why base is red, or null when it is green. */
-async function baseCheck(repo: FleetRepo, waveDir: string, timeoutMs: number): Promise<{ red: string | null; flaky: string[] }> {
+async function baseCheck(repo: FleetRepo, waveDir: string, timeoutMs: number): Promise<{ red: string | null; flaky: string[]; output?: string }> {
   const setup = await runGates(repo.setup ?? [], waveDir, timeoutMs);
-  if (!setup.ok) return { red: redReason('base setup', setup), flaky: [] };
+  if (!setup.ok) return { red: redReason('base setup', setup), flaky: [], output: setup.output };
   const gates = await runGates(repo.gates, waveDir, timeoutMs, GATE_RETRIES);
-  return { red: gates.ok ? null : redReason('base gate', gates), flaky: gates.flaky ?? [] };
+  return { red: gates.ok ? null : redReason('base gate', gates), flaky: gates.flaky ?? [], output: gates.output };
 }
 
 /** The plan step: one read-only call. A plan session that changed the worktree voids the plan. */
@@ -83,11 +84,12 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
   const bash = bashPrefixes([...(repo.setup ?? []), ...repo.gates], repo.laneTools);
   try {
     // A gate red on base fails every lane for a reason that is not its own: stop before any model spend.
-    const base = c.opts.skipBaseGates ? { red: null, flaky: [] } : await baseCheck(repo, waveDir, c.timeoutMs);
+    const base: { red: string | null; flaky: string[]; output?: string } = c.opts.skipBaseGates ? { red: null, flaky: [] } : await baseCheck(repo, waveDir, c.timeoutMs);
     const flaky = [...base.flaky];
     const red = base.red;
     if (red) {
-      log({ kind: 'wave.end', branch, mergeable: false, costUsd: 0, branchKept: false, baseRed: red, ...(flaky.length ? { flaky } : {}) });
+      const gateLog = saveGateLog(c.runsDir, { repo: repo.slug, wave, what: 'base' }, base.output);
+      log({ kind: 'wave.end', branch, mergeable: false, costUsd: 0, branchKept: false, baseRed: red, ...(flaky.length ? { flaky } : {}), ...(gateLog ? { gateLog } : {}) });
       return { costUsd: 0, landed: 0, branch, notes: [], baseRed: red };
     }
     const p = await plan(c, baseSha);

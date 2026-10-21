@@ -14,7 +14,12 @@ export interface GateVerdict {
   tail?: string;
   /** Gates that went red, then green when rerun once: load flakes, recorded so they are seen and not hidden. */
   flaky?: string[];
+  /** The red gate's whole output (stdout then stderr, ANSI stripped, at most GATE_LOG_CHARS from the end), for its log file. */
+  output?: string;
 }
+
+/** Characters of a red gate's output kept for its log file: the tail alone can miss the line that names the failure. */
+export const GATE_LOG_CHARS = 2 * 1024 * 1024;
 
 const ANSI = /\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-Z\\-_]/g;
 
@@ -56,7 +61,8 @@ export async function runGates(gates: string[], cwd: string, timeoutMs: number, 
       }
       if (attempt < retries) continue;
       const tail = gateTail(r.stdout, r.stderr);
-      return { ok: false, failed: `${gate} (${r.timedOut ? 'timed out' : `exit ${r.code}`}${attempt ? `, ${attempt + 1} runs` : ''})`, ...(tail ? { tail } : {}), ...(flaky.length ? { flaky } : {}) };
+      const output = gateTail(r.stdout, '', GATE_LOG_CHARS) + (r.stderr.trim() ? `\n--- stderr ---\n${gateTail('', r.stderr, GATE_LOG_CHARS)}` : '');
+      return { ok: false, failed: `${gate} (${r.timedOut ? 'timed out' : `exit ${r.code}`}${attempt ? `, ${attempt + 1} runs` : ''})`, ...(tail ? { tail } : {}), ...(flaky.length ? { flaky } : {}), ...(output ? { output } : {}) };
     }
   }
   return flaky.length ? { ok: true, flaky } : { ok: true };

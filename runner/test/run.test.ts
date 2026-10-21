@@ -74,6 +74,10 @@ describe('runWaves with a fake claude', () => {
     expect(r.ends['red-b']).toMatchObject({ outcome: 'failed', parkReason: 'gate red: node gate.mjs (exit 1, 2 runs)\nchecking\nFAIL red.flag is present' });
     expect(r.ends['red-b']?.kind === 'lane.end' && r.ends['red-b'].commits).toEqual([]);
     expect(r.ends['park-c']).toMatchObject({ outcome: 'parked', parkReason: expect.stringContaining('gate-surface') });
+    // The red gate's whole output is kept beside the run file, not only the tail in parkReason.
+    const gateLog = `temp/${r.wave}.red-b.gate.log`;
+    expect(r.ends['red-b']).toMatchObject({ gateLog });
+    expect(fs.readFileSync(path.join(runsDir, gateLog), 'utf8')).toContain('FAIL red.flag is present');
     // The red lane's work survives its worktree as a patch that applies to base; a lane that changed nothing has none.
     const patch = `temp/${r.wave}.red-b.patch`;
     expect(r.ends['red-b']).toMatchObject({ patch });
