@@ -47,3 +47,5 @@ repos:
       - npm run typecheck
       - npm run lint:ratchet
       - npm test
+      # npm test is Playwright only; the repo verify also runs vitest (about 70s).
+      - npx vitest run
