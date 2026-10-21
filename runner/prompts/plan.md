@@ -27,6 +27,7 @@ At most two lanes of a wave on one axis; a file split or a pure move counts as c
 
 Before you write an item, check it holds:
 - A split or a move: at most ONE per source file per wave, and put the wiring file it also edits (`lib.rs`, `mod.rs`, an `index.ts`) in that lane's `files`.
+- A sweep (one helper replacing a repeated pattern): plan it once, covering every remaining site in one lane, or not at all; an earlier wave's partial sweep is finished, not continued a few files at a time.
 - A de-duplication: Read both bodies and confirm they produce the same output for the same input; quote both `file:line` in `why`. Two helpers with one name are not duplicates until you have read them.
 - Code moving into a module, crate or package: read its top-of-file doc (`lib.rs`, `mod.rs`, `index.ts`, `__init__.py`, its README) and respect any purity or layering rule it states, e.g. "no IO here" or "time is supplied by callers".
 
