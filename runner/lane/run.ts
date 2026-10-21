@@ -58,7 +58,9 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   const { log, wave } = ctx;
   const t0 = Date.now();
   const branch = `belay/wave-${wave}-${item.lane}`;
-  const dir = worktreeDir(ctx.repoPath, `belay-wave-${wave}-${item.lane}`);
+  // One fixed path for every lane (they run one at a time): cargo hashes a workspace crate's path into its build,
+  // so a path per lane made a shared CARGO_TARGET_DIR grow by a whole workspace build per lane.
+  const dir = worktreeDir(ctx.repoPath, 'belay-wave-lane');
   let costUsd = 0;
   let outcome: LaneOutcome = 'failed';
   let parkReason: string | undefined;
@@ -90,7 +92,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
       outcome = 'parked';
       parkReason = claim.rest || 'parked without a reason';
     } else {
-      const landed = await verifyAndLand(ctx, dir, item);
+      const landed = await verifyAndLand(ctx, dir, item, claim.rest);
       outcome = landed.outcome;
       parkReason = landed.parkReason;
       flaky = landed.flaky;
@@ -119,7 +121,10 @@ async function changedFiles(dir: string, baseSha: string): Promise<string[]> {
   return (await git(dir, ['diff', '--cached', '--name-only', '-z', baseSha])).split('\0').filter(Boolean);
 }
 
-async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem): Promise<{ outcome: LaneOutcome; parkReason?: string; commit?: string; flaky?: string[] }> {
+/** The commit body: the item's evidence and the lane's own DONE claim, so the commit says why without the run file. */
+export const commitBody = (item: PlanItem, done: string): string => [item.why && `Why: ${item.why}`, done && `Done: ${done}`, `Lane: ${item.lane}`].filter(Boolean).join('\n\n');
+
+async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem, done: string): Promise<{ outcome: LaneOutcome; parkReason?: string; commit?: string; flaky?: string[] }> {
   const changed = (await git(dir, ['status', '--porcelain'])) !== '' || (await git(dir, ['rev-parse', 'HEAD'])) !== ctx.baseSha;
   if (!changed) return { outcome: 'parked', parkReason: 'DONE claimed but nothing changed' };
   const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
@@ -129,7 +134,7 @@ async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem): Promise
   if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates), ...flaky };
   await git(dir, ['reset', '--soft', ctx.baseSha]);
   await git(dir, ['add', '-A']);
-  await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`]);
+  await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`, '-m', commitBody(item, done)]);
   const sha = await git(dir, ['rev-parse', 'HEAD']);
   const pick = await runProc('git', ['-C', ctx.waveDir, 'cherry-pick', sha]);
   if (pick.code !== 0) {

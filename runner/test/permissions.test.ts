@@ -68,6 +68,10 @@ describe('claudeArgs', () => {
     expect(args).toContain('--tools=Bash,Read,Edit,Write,Glob,Grep,NotebookEdit');
     expect(claudeArgs('sonnet', { step: 'reflect' }, '/tmp/s.json')).toContain('--tools=');
   });
+  it("never loads the operator's user-scope settings (their hooks would see every lane's tool calls)", () => {
+    const args = claudeArgs('sonnet', { step: 'plan' }, '/tmp/s.json');
+    expect(args[args.indexOf('--setting-sources') + 1]).toBe('project,local');
+  });
   it.each(['C:\\Users\\Jane Doe\\Temp\\s.json', '/tmp/a&b/s.json', '/tmp/"x"/s.json', '/tmp/%PATH%/s.json'])('refuses settings path %j', (p) => {
     expect(PATH_TOKEN.test(p)).toBe(false);
     expect(() => claudeArgs('sonnet', { step: 'plan' }, p)).toThrow(/shell-safe/);

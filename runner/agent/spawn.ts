@@ -4,7 +4,9 @@
 // dir that is removed after the call. This file and its siblings under runner/ are the ONLY code in the repo that
 // touches the Anthropic key: claude gets agentEnv() (its own credentials, no other secret), every other child the
 // scrubbed childEnv(), so the key reaches claude and nothing else - not the gates or git hooks a lane agent can
-// rewrite. Bash commands a lane is allowed run as claude's children, so with agentEnv(). BELAY_CLAUDE_BIN swaps
+// rewrite. Bash commands a lane is allowed run as claude's children, so with agentEnv(). The operator's user-scope
+// settings (~/.claude/settings.json: its hooks, plugins, allow rules) are not loaded: a lane's tool calls must not
+// reach the operator's own hooks, and the operator's allow list must not widen the profile. BELAY_CLAUDE_BIN swaps
 // the binary (tests).
 import fs from 'node:fs';
 import os from 'node:os';
@@ -39,7 +41,7 @@ export function claudeArgs(model: string, permissions: PermissionProfile, settin
   const p = permissionArgs(permissions);
   if (!TOOLS_TOKEN.test(p.tools)) throw new Error(`runner: invalid tool list "${p.tools}"`);
   // `--tools=` (one token) is the empty list: a bare "" would vanish on its way through cmd.exe.
-  return ['-p', '--output-format', 'stream-json', '--verbose', '--model', model, '--permission-mode', p.mode, `--tools=${p.tools}`, '--strict-mcp-config', '--settings', settingsFile];
+  return ['-p', '--output-format', 'stream-json', '--verbose', '--model', model, '--permission-mode', p.mode, `--tools=${p.tools}`, '--strict-mcp-config', '--setting-sources', 'project,local', '--settings', settingsFile];
 }
 
 /**

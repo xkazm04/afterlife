@@ -33,7 +33,7 @@ Your final message is ONLY JSON lines, one per lane, no prose, no fence, no arra
 
 {"lane":"<kebab id>","title":"<imperative>","files":["<path>"],"why":"<evidence file:line>","challenge":"<text or challenge ran: nothing surfaced>"}
 
-- `lane`: a unique kebab-case id. `title`: one imperative sentence naming the item. `files`: repo-relative paths the lane will touch (at most 40). `why`: the evidence, a real `file:line` you read, not a guess.
+- `lane`: a unique kebab-case id. `title`: the commit title, imperative, at most 60 characters, naming the change (not the steps to make it or check it). `files`: repo-relative paths the lane will touch (at most 40). `why`: the evidence, a real `file:line` you read, not a guess.
 - Any line that does not parse against this shape is dropped. A plan with no readable line runs nothing.
 
 ## The challenge pass (before you write)
