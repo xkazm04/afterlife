@@ -30,10 +30,15 @@ repos:
       - pnpm --dir apps/desktop/client install --frozen-lockfile --prefer-offline
     laneTools:
       - cargo check
+      - pnpm --dir
     gates:
       - cargo fmt --all --check
       - cargo clippy --workspace --all-targets -- -D warnings
       - cargo test --workspace
+      # CI also runs these; cargo deny was red on main (RUSTSEC-2026-0381/0382) while only the cargo gates ran.
+      - cargo deny check
+      - pnpm --dir apps/desktop/client typecheck
+      - pnpm --dir apps/desktop/client test
   - slug: gravitone-gcloud
     path: /path/to/gravitone-gcloud
     base: main
