@@ -1,7 +1,8 @@
 // A stand-in for `claude -p --output-format stream-json`: reads the prompt from stdin, prints canned
 // stream-json. Behaviour is chosen by the step marker the runner appends to every prompt:
 //   plan    -> JSON lines from FAKE_PLAN (an array of {lane,title}); costs $0.25
-//   lane    -> by lane id prefix: ok-* edits <lane>.txt and says DONE ($0.50); red-* also drops red.flag
+//   lane    -> by lane id prefix: ok-* edits <lane>.txt and says DONE ($0.50); red-* also drops red.flag;
+//              wire-* also appends its id to wiring.txt
 //              (the test gate fails on it); cfg-* also writes .claude/settings.json; exp-* is DONE at $9;
 //              park-* PARKs; hang-* never answers
 //   reflect -> a one-line "nothing to change"
@@ -40,6 +41,8 @@ if (step === 'plan') {
   else {
     fs.writeFileSync(`${lane}.txt`, `${lane}\n`);
     if (lane.startsWith('red-')) fs.writeFileSync('red.flag', 'x');
+    // wire-* also appends to one shared file, as a module split also edits lib.rs: two of them conflict from one base.
+    if (lane.startsWith('wire-')) fs.appendFileSync('wiring.txt', `${lane}\n`);
     if (lane.startsWith('cfg-')) {
       fs.mkdirSync('.claude', { recursive: true });
       fs.writeFileSync('.claude/settings.json', '{"hooks":{}}\n');

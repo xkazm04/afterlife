@@ -40,7 +40,7 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
    answer: `raw` (lines that looked like JSON), `parsed` (items that will run), `items` (their lane ids) and, when
    the plan ran nothing regardless, `voided` (`timeout`, `error` or `dirty`). Fewer items than `wave.start.lanes`
    is a planner that under-filled.
-3. Per lane, sequentially: `lane.start`; a worktree on `belay/wave-<n>-<lane>` from `base`; one claude call
+3. Per lane, sequentially: `lane.start`; a worktree on `belay/wave-<n>-<lane>` from the wave branch tip (so it sees the lanes that landed before it, and a saved `.patch` applies to that tip); one claude call
    (`prompts/lane.md` + the item); `lane.usage`; then the fleet gates, each its own spawn, exit code asserted.
    All green: one commit `belay(wave-<n>): <title>`, cherry-picked onto the wave branch. Any red gate: nothing is
    committed, and `parkReason` is `gate red: <gate> (exit N)` followed by the last 1200 characters of that gate's

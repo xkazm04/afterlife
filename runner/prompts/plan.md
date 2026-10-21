@@ -25,6 +25,11 @@ One lane is ONE thing the repo's next reader would call finished, small enough f
 
 At most two lanes of a wave on one axis; a file split or a pure move counts as code-health. Start each lane's `why` with its axis in brackets, e.g. `[robustness] relay/src/read.rs:88 ...`. Look at the earlier waves listed below: an axis they already covered goes last. If you cannot find a real item on an axis, leave it out rather than filling the wave with a third move.
 
+Before you write an item, check it holds:
+- A split or a move: at most ONE per source file per wave, and put the wiring file it also edits (`lib.rs`, `mod.rs`, an `index.ts`) in that lane's `files`.
+- A de-duplication: Read both bodies and confirm they produce the same output for the same input; quote both `file:line` in `why`. Two helpers with one name are not duplicates until you have read them.
+- Code moving into a module, crate or package: read its top-of-file doc (`lib.rs`, `mod.rs`, `index.ts`, `__init__.py`, its README) and respect any purity or layering rule it states, e.g. "no IO here" or "time is supplied by callers".
+
 Do not plan: anything that needs a network, or a command beyond the repo's gates and setup (a lane may run only those prefixes); edits to existing tests, fixtures, CI workflows or gate configs (the repo's gates would flag them); lanes whose files overlap another lane in this wave; anything the evidence does not show.
 
 Before proposing a signature or API change, Grep its call sites in test files (including `*_test*`, `*_tests.rs`, `tests/`, `__tests__/`). A lane may mechanically update those call sites, but may not remove or change any assertion, expected value or test case: if the change would need that, do not plan it.

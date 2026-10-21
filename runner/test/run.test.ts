@@ -113,6 +113,13 @@ describe('runWaves with a fake claude', () => {
     expect(s.lines.find((e) => e.kind === 'wave.end')).not.toHaveProperty('baseRed');
   }, 90_000);
 
+  it('stacks each lane on the wave tip, so two lanes editing one shared file both land', async () => {
+    const r = await run(['wire-a', 'wire-b']);
+    expect(r.ends['wire-a']).toMatchObject({ outcome: 'landed' });
+    expect(r.ends['wire-b']).toMatchObject({ outcome: 'landed' });
+    expect(sh(repoDir, 'show', `belay/wave-${r.wave}:wiring.txt`).split(/\r?\n/)).toEqual(['wire-a', 'wire-b']);
+  }, 90_000);
+
   it('records a plan that wrote more lines than run, and runs only the asked-for count', async () => {
     const r = await run(['park-x', 'park-y'], { lanes: 1 });
     expect(r.lines.find((e) => e.kind === 'wave.plan')).toMatchObject({ raw: 2, parsed: 1, items: ['park-x'] });
