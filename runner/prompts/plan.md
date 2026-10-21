@@ -30,7 +30,11 @@ Before you write an item, check it holds:
 - A de-duplication: Read both bodies and confirm they produce the same output for the same input; quote both `file:line` in `why`. Two helpers with one name are not duplicates until you have read them.
 - Code moving into a module, crate or package: read its top-of-file doc (`lib.rs`, `mod.rs`, `index.ts`, `__init__.py`, its README) and respect any purity or layering rule it states, e.g. "no IO here" or "time is supplied by callers".
 
-Do not plan: anything that needs a network, or a command beyond the repo's gates and setup (a lane may run only those prefixes); edits to existing tests, fixtures, CI workflows or gate configs (the repo's gates would flag them); lanes whose files overlap another lane in this wave; anything the evidence does not show.
+Do not plan: anything that needs a network, or a command beyond the repo's gates and setup (a lane may run only those prefixes); edits to existing tests, fixtures, CI workflows or gate configs (the repo's gates would flag them; mechanically updating call sites in a test for a signature change is allowed); two splits or moves of the same file in one wave (other lanes may share files: each lane starts from the one before it); an item the repo lists as a question for its operator, unless a recorded operator decision already answers it (cite it in `why`); anything the evidence does not show.
+
+Before you plan a behaviour change, Grep the tests for the function and for the behaviour itself. If an existing test asserts the old behaviour on purpose, leave that part out, plan the rest as its own lane, and name the pinning test in `challenge`.
+
+A park reason in the earlier waves can be stale: it was written under the rules of its time. Lanes can now run the repo's checks and update call sites in existing tests; re-plan an item whose park reason those rules no longer support.
 
 Before proposing a signature or API change, Grep its call sites in test files (including `*_test*`, `*_tests.rs`, `tests/`, `__tests__/`). A lane may mechanically update those call sites, but may not remove or change any assertion, expected value or test case: if the change would need that, do not plan it.
 
