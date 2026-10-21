@@ -116,7 +116,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
         outcome = 'budget';
         parkReason = `lane cost $${costUsd.toFixed(2)} passed its $${ctx.laneCapUsd} cap after its review and repair`;
       } else {
-        const landed = await verifyAndLand(ctx, dir, item, rv.done ?? claim.rest);
+        const landed = await verifyAndLand(ctx, dir, item, rv.done ?? claim.rest, a.model ?? ctx.model);
         outcome = landed.outcome;
         parkReason = landed.parkReason;
         flaky = landed.flaky;

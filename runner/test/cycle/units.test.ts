@@ -1,6 +1,7 @@
-// The pure parts of the review: tables and small cases.
+// The pure parts of the review and the trailer: tables and small cases.
 import { describe, expect, it } from 'vitest';
 import { claudeArgs } from '../../agent/spawn';
+import { coAuthorTrailer, commitBody } from '../../lane/land';
 import { FIXTURE, TEST_FILE, beyondMechanical } from '../../lane/integrity';
 import { capDiff, parseReview } from '../../lane/reviewPrompt';
 
@@ -47,5 +48,14 @@ describe('the review contract', () => {
     expect(args.slice(-2)).toEqual(['--resume', '894b4269-fc4e-4b1b-ac36-e5a1fe9c0462']);
     expect(() => claudeArgs('sonnet', { step: 'lane', bash: [] }, 'C:\\tmp\\s.json', 'x & calc')).toThrow(/session id/);
     expect(claudeArgs('sonnet', { step: 'review' }, 'C:\\tmp\\s.json')).toContain('--tools=Read,Grep,Glob');
+  });
+});
+
+describe('the co-author trailer', () => {
+  it('names the model the lane reported, last in the body, and nothing for an odd id', () => {
+    expect(coAuthorTrailer('claude-sonnet-5-5')).toBe('Co-Authored-By: Claude (claude-sonnet-5-5) <noreply@anthropic.com>');
+    for (const odd of [null, undefined, '', 'a b', 'x>y']) expect(coAuthorTrailer(odd)).toBeNull();
+    const body = commitBody({ lane: 'a', title: 'T', files: [], why: 'w:1', challenge: '' }, 'did it', 'claude-sonnet-5-5');
+    expect(body.split('\n\n')).toEqual(['Why: w:1', 'Done: did it', 'Lane: a', 'Co-Authored-By: Claude (claude-sonnet-5-5) <noreply@anthropic.com>']);
   });
 });

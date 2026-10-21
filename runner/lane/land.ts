@@ -1,6 +1,8 @@
 // A DONE lane's last steps, after its review: refuse agent or hook config, the diff check, the gates, and - only
 // on green - one commit `belay(wave-<n>): <title>` cherry-picked onto the wave branch. A red gate can never reach
-// the commit line. The commit says why (the item's evidence), what (the lane's DONE line) and which lane.
+// the commit line. The commit says why (the item's evidence), what (the lane's DONE line), which lane, and which
+// model wrote it: a Co-Authored-By trailer (Ascent LESSONS 1.1: lane commits without an AI trailer lower the
+// target's D7, the share of recent commits that credit their AI author).
 import { git, runProc } from '../proc/proc';
 import type { LaneOutcome } from '../../src/schemas/run';
 import type { PlanItem } from '../wave/plan';
@@ -37,10 +39,16 @@ async function changedFiles(dir: string, baseSha: string): Promise<string[]> {
   return (await git(dir, ['diff', '--cached', '--name-only', '-z', baseSha])).split('\0').filter(Boolean);
 }
 
-/** The commit body: the item's evidence and the lane's own DONE claim, so the commit says why without the run file. */
-export const commitBody = (item: PlanItem, done: string): string => [item.why && `Why: ${item.why}`, done && `Done: ${done}`, `Lane: ${item.lane}`].filter(Boolean).join('\n\n');
+/** A model id as the lane's usage reported it (`claude-sonnet-5-5`), or null when it is not a plain token. */
+const MODEL_ID = /^[A-Za-z0-9][A-Za-z0-9._:[\]-]{0,79}$/;
 
-export async function verifyAndLand(ctx: LandCtx, dir: string, item: PlanItem, done: string): Promise<Landing> {
+/** `Co-Authored-By: Claude (<model id>) <noreply@anthropic.com>`, or null for a missing or odd model id. */
+export const coAuthorTrailer = (model: string | null | undefined): string | null => (model && MODEL_ID.test(model) ? `Co-Authored-By: Claude (${model}) <noreply@anthropic.com>` : null);
+
+/** The commit body: the item's evidence, the lane's DONE claim, the lane id, and last the AI co-author trailer. */
+export const commitBody = (item: PlanItem, done: string, model?: string | null): string => [item.why && `Why: ${item.why}`, done && `Done: ${done}`, `Lane: ${item.lane}`, coAuthorTrailer(model)].filter(Boolean).join('\n\n');
+
+export async function verifyAndLand(ctx: LandCtx, dir: string, item: PlanItem, done: string, model: string | null): Promise<Landing> {
   const changed = (await git(dir, ['status', '--porcelain'])) !== '' || (await git(dir, ['rev-parse', 'HEAD'])) !== ctx.baseSha;
   if (!changed) return { outcome: 'parked', parkReason: 'DONE claimed but nothing changed' };
   const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
@@ -55,7 +63,7 @@ export async function verifyAndLand(ctx: LandCtx, dir: string, item: PlanItem, d
   if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates), ...flaky };
   await git(dir, ['reset', '--soft', ctx.baseSha]);
   await git(dir, ['add', '-A']);
-  await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`, '-m', commitBody(item, done)]);
+  await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`, '-m', commitBody(item, done, model)]);
   const sha = await git(dir, ['rev-parse', 'HEAD']);
   const pick = await runProc('git', ['-C', ctx.waveDir, 'cherry-pick', sha]);
   if (pick.code !== 0) {

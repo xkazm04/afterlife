@@ -1,7 +1,7 @@
 // The review and repair turns end to end (Ascent P2, cycles personas-web-006 and -007) against the fake claude:
 // an OK review goes straight to the gates; a cited defect gets ONE repair turn (the lane's own session resumed)
 // before the gates; an existing test changed beyond a mechanical edit is put back before the review and sent to
-// the repair turn.
+// the repair turn; a landed commit carries the AI co-author trailer.
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -18,7 +18,7 @@ afterAll(() => {
 });
 
 describe('review, then at most one repair turn, then the gates', () => {
-  it('an OK review sends the change to the gates as the lane left it', async () => {
+  it('an OK review sends the change to the gates as the lane left it, and the commit names its AI co-author', async () => {
     const r = await runOne(f, ['ok-a']);
     expect(r.ends['ok-a']).toMatchObject({ outcome: 'landed', review: 'clean' });
     expect(r.ends['ok-a']).not.toHaveProperty('restored');
@@ -33,6 +33,9 @@ describe('review, then at most one repair turn, then the gates', () => {
     // Its usage is the lane's, marked as the review call, and the wave total counts it.
     const usage = r.lines.filter((e) => e.kind === 'lane.usage' && e.lane === 'ok-a');
     expect(usage.map((e) => (e.kind === 'lane.usage' ? e.call ?? 'lane' : ''))).toEqual(['lane', 'review']);
+    const body = sh(f.repoDir, 'log', '-1', '--format=%B', `belay/wave-${r.wave}`);
+    expect(body.trimEnd().split('\n').pop()).toBe('Co-Authored-By: Claude (fake-model-1) <noreply@anthropic.com>');
+    expect(sh(f.repoDir, 'log', '-1', '--format=%(trailers:key=Co-Authored-By,valueonly)', `belay/wave-${r.wave}`)).toBe('Claude (fake-model-1) <noreply@anthropic.com>');
   }, 90_000);
 
   it('a cited defect gets one repair turn in the resumed lane session, and the repaired tree passes the gates', async () => {
