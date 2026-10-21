@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { branchExists } from '../git/worktree';
+import { git } from '../proc/proc';
 import { loadFleet } from '../fleet/load';
 import type { RunEvent } from '../../src/schemas/run';
 import { waveBranch } from '../../src/schemas/run';
@@ -40,7 +41,8 @@ export async function runWaves(opts: RunOptions, emit: (e: RunEvent) => void): P
       wave = 1;
       while ((await branchExists(repo.path, waveBranch(wave))) || fs.existsSync(runFile(runsDir, repo.slug, wave))) wave++;
       const log = makeLog({ runsDir, repo: repo.slug, wave, promptVersion: prompts.version, emit });
-      const history = waveHistory(runsDir, repo.slug);
+      const subjects = new Set((await git(repo.path, ['log', '--format=%s', '-n', '5000', repo.base])).split(/\r?\n/));
+      const history = waveHistory(runsDir, repo.slug, subjects);
       const r = await runWave({ repo, opts, wave, prompts, log, laneCapUsd, waveCapUsd, timeoutMs, history, runsDir, ...(baseRef ? { baseRef } : {}) });
       if (r.baseRed) {
         // Every later wave would start from the same red base: stop, and spend nothing on reflecting.
