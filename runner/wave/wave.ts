@@ -11,7 +11,7 @@ import { git } from '../proc/proc';
 import { waveBranch } from '../../src/schemas/run';
 import type { FleetRepo, RunOptions } from '../index';
 import type { Log } from './events';
-import { jsonLines, parseEmptyAxes, parsePlan, planPrompt, type PlanItem } from './plan';
+import { jsonLines, parseEmptyAxes, parsePlan, planPrompt, uncoveredAxes, type PlanItem } from './plan';
 import type { Prompts } from './prompts';
 
 export interface WaveCtx {
@@ -61,7 +61,9 @@ async function plan(c: WaveCtx, baseSha: string): Promise<{ items: PlanItem[]; c
     const voided = a.timedOut ? 'timeout' : a.isError ? 'error' : dirty ? 'dirty' : undefined;
     const items = voided ? [] : parsePlan(a.text, c.opts.lanes);
     const empty = voided ? [] : parseEmptyAxes(a.text);
-    c.log({ kind: 'wave.plan', raw: jsonLines(a.text), parsed: items.length, items: items.map((i) => i.lane), ...(empty.length ? { empty } : {}), ...(voided ? { voided } : {}) });
+    // An axis with neither a lane nor an empty entry was never searched: recorded so reflect and the run file show it.
+    const uncovered = voided ? [] : uncoveredAxes(items, empty);
+    c.log({ kind: 'wave.plan', raw: jsonLines(a.text), parsed: items.length, items: items.map((i) => i.lane), ...(empty.length ? { empty } : {}), ...(uncovered.length ? { uncovered } : {}), ...(voided ? { voided } : {}) });
     return { items, costUsd };
   } finally {
     await removeWorktree(c.repo.path, dir);

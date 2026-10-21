@@ -41,6 +41,8 @@ export interface WavePlan extends RunEventBase {
   items: string[];
   /** The axes the planner searched and found nothing on, from its `{"empty":[...]}` line. */
   empty?: string[];
+  /** Craft axes with neither a lane nor an empty entry: never searched. Absent when the plan covered all seven. */
+  uncovered?: string[];
   voided?: 'timeout' | 'error' | 'dirty';
 }
 

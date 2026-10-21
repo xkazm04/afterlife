@@ -5,7 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseStream } from '../agent/stream';
 import { loadFleet } from '../fleet/load';
-import { jsonLines, lanePrompt, parseEmptyAxes, parsePlan } from '../wave/plan';
+import { jsonLines, lanePrompt, parseEmptyAxes, parsePlan, uncoveredAxes } from '../wave/plan';
 import { loadPrompts } from '../wave/prompts';
 import { readClaim } from '../lane/run';
 import { gateTail } from '../lane/verify';
@@ -134,5 +134,12 @@ describe('the plan axis cap', () => {
     const text = [item('a', '[code-health] x:1'), item('b', '[Code-Health] y:2'), item('c', '[code-health] z:3'), item('d', '[robustness] w:4'), item('e', 'no tag'), '{"empty":["dx: searched a, nothing"]}'].join('\n');
     expect(parsePlan(text, 6).map((i) => i.lane)).toEqual(['a', 'b', 'd', 'e']);
     expect(jsonLines(text)).toBe(5);
+  });
+});
+
+describe('uncoveredAxes', () => {
+  it('names the axes with neither a lane nor an empty entry', () => {
+    const items = parsePlan([JSON.stringify({ lane: 'a', title: 'T', files: [], why: '[robustness] x:1', challenge: 'c' })].join('\n'), 6);
+    expect(uncoveredAxes(items, ['dx: searched a, nothing', 'Design: searched b, nothing'])).toEqual(['architecture', 'performance', 'security-depth', 'code-health']);
   });
 });

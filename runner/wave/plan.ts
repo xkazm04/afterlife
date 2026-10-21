@@ -89,3 +89,12 @@ export const AXIS_CAP = 2;
 
 /** The `[axis]` a plan item's why starts with, lower-cased, or '' when it has none. */
 export const axisOf = (why: string): string => /^\s*\[([a-z][a-z-]*)\]/i.exec(why)?.[1]?.toLowerCase() ?? '';
+
+/** plan.md's craft ladder: every axis a plan must account for, as a lane or an empty entry. */
+export const AXES = ['architecture', 'performance', 'robustness', 'design', 'security-depth', 'dx', 'code-health'] as const;
+
+/** The axes a plan left with neither a lane (`[axis]` why) nor an empty entry (`<axis>: searched ...`). */
+export function uncoveredAxes(items: readonly PlanItem[], empty: readonly string[]): string[] {
+  const covered = new Set([...items.map((i) => axisOf(i.why)), ...empty.map((e) => /^\s*([a-z][a-z-]*)\s*:/i.exec(e)?.[1]?.toLowerCase() ?? '')]);
+  return AXES.filter((a) => !covered.has(a));
+}

@@ -34,7 +34,7 @@ describe('bashPrefixes', () => {
 
   it('derives the committed example repos to useful rules', () => {
     const paypal = loadFleet(path.resolve(import.meta.dirname, '../fleet.example.yml')).find((r) => r.slug === 'paypal');
-    expect(bashPrefixes([...(paypal?.setup ?? []), ...(paypal?.gates ?? [])], paypal?.laneTools)).toEqual(['cargo fmt', 'cargo clippy', 'cargo test', 'cargo check']);
+    expect(bashPrefixes([...(paypal?.setup ?? []), ...(paypal?.gates ?? [])], paypal?.laneTools)).toEqual(['cargo fmt', 'cargo clippy', 'cargo test', 'cargo deny', 'cargo check', 'pnpm --dir']);
   });
 });
 
