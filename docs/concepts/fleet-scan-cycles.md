@@ -123,6 +123,17 @@ already gone when the run started.
 Done since the first list: the gravitone push, the paypal pull, `.belay/fleet.yml` on this machine, wave 1 and the
 reflect loop (on the CLI login, 8-16 waves a repo, prompts revised about 25 times).
 
+**Done on 2026-10-21: the Ascent experiment-branch port** (branch `worktree-agent-aa9bc00f8c1ca5ca7`, not merged yet).
+Three mechanisms from Ascent's never-merged `experiment/infinite-cycles` (archived at
+`refs/hygiene-archive/2026-10-20/experiment/infinite-cycles`) are in the runner. P2: after a lane's DONE, an
+existing test it rewrote is put back, a fresh read-only session reviews the change, and the lane gets one repair
+turn, resumed with `claude --resume <sessionId>`, before the gates. Lane commits carry a
+`Co-Authored-By: Claude (<model>)` trailer. P4: a repo with a fleet `frontier` runs one frontier lane when the plan
+under-fills, and its metrics are measured on the wave base and tip (`wave.tech`), which reflect reads first. Step 1
+below is done with it: the three skill docs are re-pinned at ascent@`d90aed85` and their T3 parts were ported as P4,
+so `npm run runner:prompt-drift` is clean. `promptVersion` moved from `ac99794b83b2` to `6c7e35286f47`. No fleet
+repo has a `frontier` yet: the operator picks objectives and metrics (`runner/fleet.example.yml` has an example).
+
 1. **Re-port Ascent's prompt drift.** `npm run runner:prompt-drift` fails: Ascent's `infinite` skill moved (`40ec3038`
    and `e3aceaac`), changing `ladder.md`, `reflect.md` and `SKILL.md`, the sources of `plan.md` and `reflect.md`.
    - Port what is new into `runner/prompts/` without dropping tonight's hardening, then update `sources.json`.
@@ -153,8 +164,8 @@ Repo items the waves can pick up, or that need the owner:
 - **paypal:**
   - Scan C-16's `freezePrototype` half is open.
   - J-4 is accepted, and J-7 is a product call.
-- **runner:** a lane edit to an existing test is checked as mechanical only in review. A check that runs a normalised
-  diff could park the rest.
+- **runner:** a lane edit to an existing test was checked as mechanical only in review. Since the 10-21 port a
+  normalised-diff check (`runner/lane/integrity.ts`) puts back the rest before the runner's own review.
 
 ## Gotchas
 
