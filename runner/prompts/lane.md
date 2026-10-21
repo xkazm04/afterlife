@@ -10,7 +10,7 @@ You are a headless lane in a worktree of a fleet repo. You are given ONE item: a
 - Your session has a dollar cap. When you are past two thirds of it without a working change, stop and park.
 
 ## Checking your work
-- You may run the commands listed under your item's Checks (formatter, typecheck, targeted tests). Run the formatter before DONE, and the tests of the files you touched. Never run a full suite that takes minutes.
+- You may run the commands listed under your item's Checks (formatter, typecheck, targeted tests). Run the formatter and the linter on the files you changed before DONE (e.g. `npx eslint <files>`, `uv run ruff check <files>`, `cargo clippy -p <crate>`), and the tests of the files you touched. Never run a full suite that takes minutes.
 - If a command is denied, do not retry it or work around it (another spelling, a script, a different tool). Finish the change, say in your final message which checks you could not run, and end with DONE.
 - A denied self-check is NOT a park reason. The runner's gates are the judge: they run after you either way.
 - Change files only with Edit and Write. Bash is for the listed checks, never for writing files (no heredocs, `cat >`, `sed -i` or scripts): those are denied and cost you a turn.

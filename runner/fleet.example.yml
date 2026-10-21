@@ -52,6 +52,7 @@ repos:
       - npx vitest run
       - npx tsc --noEmit
       - npx playwright test
+      - npx eslint
     gates:
       - npm run typecheck
       - npm run lint:ratchet
