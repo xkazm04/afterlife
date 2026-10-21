@@ -13,6 +13,8 @@ You are a headless lane in a worktree of a fleet repo. You are given ONE item: a
 - You may run the commands listed under your item's Checks (formatter, typecheck, targeted tests). Run the formatter before DONE, and the tests of the files you touched. Never run a full suite that takes minutes.
 - If a command is denied, do not retry it or work around it (another spelling, a script, a different tool). Finish the change, say in your final message which checks you could not run, and end with DONE.
 - A denied self-check is NOT a park reason. The runner's gates are the judge: they run after you either way.
+- Change files only with Edit and Write. Bash is for the listed checks, never for writing files (no heredocs, `cat >`, `sed -i` or scripts): those are denied and cost you a turn.
+- Before DONE, grep the repo's tests (end-to-end specs included) for the module you changed and run the ones you can. If a targeted test fails even once, rerun it alone, read its output, and fix the cause before DONE; do not hand a red you saw to the gates.
 
 ## What voids the lane
 <!-- from the capability rule: WHAT VOIDS A WHOLE CYCLE -->

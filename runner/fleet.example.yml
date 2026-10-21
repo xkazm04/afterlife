@@ -42,6 +42,7 @@ repos:
     laneTools:
       - npx vitest run
       - npx tsc --noEmit
+      - npx playwright test
     gates:
       - npm run typecheck
       - npm run lint:ratchet
