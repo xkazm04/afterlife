@@ -15,8 +15,8 @@ repos:
       - uv sync --extra dev
       - pnpm install --frozen-lockfile --prefer-offline
     laneTools:
-      - pnpm exec vitest
-      - pnpm exec tsc
+      # vitest and tsc are not root dependencies: a lane checks one package (`pnpm --filter <pkg> test`).
+      - pnpm --filter
     gates:
       - uv run ruff check .
       - uv run ruff format --check .

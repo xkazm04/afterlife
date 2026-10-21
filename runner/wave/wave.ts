@@ -104,7 +104,9 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
       const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, baseSha: tip, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log, runsDir: c.runsDir, repo: repo.slug }, item);
       cost += r.costUsd;
       if (r.outcome === 'landed') landed++;
-      const why = r.parkReason ? `Runner's reason: ${r.parkReason}\n` : '';
+      // The failure lines of a red gate's whole output: a log's tail is often a runner's boilerplate, not the failure.
+      const fails = r.failures?.length ? `Failure lines from the red gate's whole output:\n${r.failures.map((l) => `    ${l}`).join('\n')}\n` : '';
+      const why = r.parkReason ? `Runner's reason: ${r.parkReason}\n${fails}` : fails;
       notes.push(`### ${item.lane} (${r.outcome})\n${why}${r.text.trim() || '(no final text)'}`);
     }
     let green = false;

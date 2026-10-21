@@ -10,7 +10,7 @@ import type { LaneOutcome } from '../../src/schemas/run';
 import type { Log } from '../wave/events';
 import { lanePrompt, type PlanItem } from '../wave/plan';
 import { saveGateLog, savePatch } from './patch';
-import { GATE_RETRIES, redReason, runGates } from './verify';
+import { GATE_RETRIES, failureLines, redReason, runGates } from './verify';
 
 export interface LaneCtx {
   repoPath: string;
@@ -41,6 +41,8 @@ export interface LaneResult {
   text: string;
   /** Why it did not land (lane.end's parkReason), red gate output included. */
   parkReason?: string;
+  /** A red gate's failure lines (failureLines over its whole output), for the reflect step. */
+  failures?: string[];
 }
 
 /** A stop whose message is a complete park reason (a red setup with its output): kept whole, not cut to 300. */
@@ -67,6 +69,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
   let patch: string | undefined;
   let flaky: string[] | undefined;
   let gateLog: string | undefined;
+  let failures: string[] = [];
   let text = '';
   const commits: string[] = [];
   log({ kind: 'lane.start', lane: item.lane, title: item.title });
@@ -98,6 +101,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
       parkReason = landed.parkReason;
       flaky = landed.flaky;
       gateLog = saveGateLog(ctx.runsDir, { repo: ctx.repo, wave, what: item.lane }, landed.output);
+      failures = failureLines(landed.output);
       if (landed.commit) commits.push(landed.commit);
     }
   } catch (e) {
@@ -107,7 +111,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem): Promise<LaneResult>
     await removeWorktree(ctx.repoPath, dir, branch);
   }
   log({ kind: 'lane.end', lane: item.lane, outcome, commits, ...(parkReason ? { parkReason } : {}), ...(patch ? { patch } : {}), ...(flaky?.length ? { flaky } : {}), ...(gateLog ? { gateLog } : {}), wallSec: Math.round((Date.now() - t0) / 1000) });
-  return { outcome, costUsd, text, ...(parkReason ? { parkReason } : {}) };
+  return { outcome, costUsd, text, ...(parkReason ? { parkReason } : {}), ...(failures.length ? { failures } : {}) };
 }
 
 /**

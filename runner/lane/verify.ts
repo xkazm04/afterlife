@@ -53,19 +53,33 @@ export const redReason = (what: string, v: GateVerdict): string => `${what} red:
 export async function runGates(gates: string[], cwd: string, timeoutMs: number, retries = 0): Promise<GateVerdict> {
   const flaky: string[] = [];
   for (const gate of gates) {
+    const runs: string[] = [];
     for (let attempt = 0; ; attempt++) {
       const r = await runProc(gate, [], { cwd, shell: true, timeoutMs });
+      // Every run's output goes to the log, so a rerun that fails differently does not hide the first failure.
+      const whole = gateTail(r.stdout, '', GATE_LOG_CHARS) + (r.stderr.trim() ? `\n--- stderr ---\n${gateTail('', r.stderr, GATE_LOG_CHARS)}` : '');
+      runs.push(retries ? `=== run ${attempt + 1}: ${gate} (exit ${r.code ?? 'none'}${r.timedOut ? ', timed out' : ''}) ===\n${whole}` : whole);
       if (r.code === 0) {
         if (attempt > 0) flaky.push(gate);
         break;
       }
       if (attempt < retries) continue;
       const tail = gateTail(r.stdout, r.stderr);
-      const output = gateTail(r.stdout, '', GATE_LOG_CHARS) + (r.stderr.trim() ? `\n--- stderr ---\n${gateTail('', r.stderr, GATE_LOG_CHARS)}` : '');
+      const output = runs.join('\n\n').trim();
       return { ok: false, failed: `${gate} (${r.timedOut ? 'timed out' : `exit ${r.code}`}${attempt ? `, ${attempt + 1} runs` : ''})`, ...(tail ? { tail } : {}), ...(flaky.length ? { flaky } : {}), ...(output ? { output } : {}) };
     }
   }
   return flaky.length ? { ok: true, flaky } : { ok: true };
+}
+
+/** Lines in a gate's output that look like the failure itself (a test runner's FAIL/Received/assert lines, a compiler error). */
+const FAIL_LINE = /\b(FAIL|FAILED|Error|error\[|Received|Expected|AssertionError|assert|panicked|failed|Timeout|timed out|not found|within \d+ ?ms)\b|[✗×✖]/;
+
+/** The failure lines of a red gate's output, at most `max`, for the reflect step: what failed, not only how the log ended. */
+export function failureLines(output: string | undefined, max = 40): string[] {
+  if (!output) return [];
+  const hits = output.split('\n').map((l) => l.trim()).filter((l) => l && FAIL_LINE.test(l));
+  return [...new Set(hits)].slice(0, max);
 }
 
 /** Gate reruns allowed before a gate counts as red (setup is never rerun: an install that fails is not load). */

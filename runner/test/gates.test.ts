@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { runGates } from '../lane/verify';
+import { failureLines, runGates } from '../lane/verify';
 
 describe('runGates retries', () => {
   let tmp: string;
@@ -26,6 +26,16 @@ describe('runGates retries', () => {
 
   it('a gate red on every run stays red and says how many runs', async () => {
     const v = await runGates(['node flake.mjs', 'node red.mjs'], tmp, 20_000, 1);
-    expect(v).toMatchObject({ ok: false, failed: 'node red.mjs (exit 1, 2 runs)', tail: '1 failed', flaky: ['node flake.mjs'], output: '1 failed' });
+    expect(v).toMatchObject({ ok: false, failed: 'node red.mjs (exit 1, 2 runs)', tail: '1 failed', flaky: ['node flake.mjs'] });
+    // The log keeps every run, so a rerun cannot hide the first failure.
+    expect(v.output).toBe('=== run 1: node red.mjs (exit 1) ===\n1 failed\n\n=== run 2: node red.mjs (exit 1) ===\n1 failed');
+  });
+});
+
+describe('failureLines', () => {
+  it('picks the lines that say what failed, once each, out of a noisy log', () => {
+    const log = ['> pnpm -r test', 'progress 10%', 'hirelane: no tools on http://localhost:3002/ within 30000 ms', '  Expected: 3', '  Received: 2', 'FAIL test/a.test.ts', 'FAIL test/a.test.ts', 'Done in 3s'].join('\n');
+    expect(failureLines(log)).toEqual(['hirelane: no tools on http://localhost:3002/ within 30000 ms', 'Expected: 3', 'Received: 2', 'FAIL test/a.test.ts']);
+    expect(failureLines(undefined)).toEqual([]);
   });
 });
