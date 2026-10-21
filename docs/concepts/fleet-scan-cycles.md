@@ -50,14 +50,14 @@ that matters is copied here.
 - **Smoke run**: one real wave on a scratch repo landed one lane for $0.21. It appears as the `smoke` row, "not in the
   fleet file".
 
-## Repo state on 2026-10-21
+## Repo state on 2026-10-21, after the local run
 
 | Repo | State |
 |---|---|
-| afterlife | Even with origin/main; all of the above is pushed. |
-| athena-portable | Even with origin/main. The day-0 sweep, the ADR renumbering and the sync are pushed. |
-| paypal | Pushed the day-0 sweep; 28 new remote commits since, so pull before wave 1. |
-| gravitone-gcloud | **Not pushed.** The rebase onto the 10-19 remote finished, and the fixes for the pre-push reds are committed (`0081d6b` drives the Medium route, `5f45006` restores the mutant ratchet budget). It is 38 ahead and 39 behind origin/main (moved 10-20). Stash `pre-sync-1019` holds the working-tree edits from before the sync. |
+| afterlife | Even with GitHub main and the GitLab hackathon `showcase` (`edb6137` and later). |
+| athena-portable | Even with GitHub main at `9a10b388`. The GitLab mirror is in sync. |
+| paypal | Even with GitHub main at `5958463`. The GitLab mirror still shows `dc161dda`: a pull was triggered and has not moved yet. The client `node_modules` was reinstalled and green (1705 tests). |
+| gravitone-gcloud | Even with GitHub main at `ae5d62f7`, pushed through its own pre-push with all 21 gates green (the 10-18 CRLF mutant red is gone). The GitLab mirror is in sync. A stale `.next-inspect` was moved to `.next-inspect.bak-20261021` in the main checkout. Stash `pre-sync-1019` is gone. |
 
 GitLab mirrors (private pull mirrors, pipelines off): `kazdanm-group/athena-portable`, `kazdanm-group/paypal` and
 `kazdanm-group/gravitone-gcloud`. The hackathon workspace is
@@ -118,27 +118,43 @@ Decided by the operator on 2026-10-21, after the run:
 Still open: paypal's main checkout has a broken client `node_modules` (no `.bin`). Gravitone's stash
 `pre-sync-1019` was already gone when the run started.
 
-## Pending steps, in order
+## Next steps, in order (from 2026-10-21)
 
-1. **Gravitone push.**
-   - `git fetch`, then rebase the 38 local commits onto origin/main and resolve conflicts on their merits.
-   - Run `npm run typecheck`, `npm run lint:ratchet` and `npm test`.
-   - Push through `.githooks/pre-push`. It takes up to about 3 hours, and it must not be bypassed: no `--no-verify`, no
-     skip variables.
-   - Check that the third red from 10-18, the stale mutant `session-cross-origin-sets-cookie` (CRLF), is gone.
-   - Then decide what happens to stash `pre-sync-1019`.
-2. **PayPal**: `git pull --ff-only`.
-3. **Model key**: export `ANTHROPIC_API_KEY` in the shell that runs the runner.
-4. **Wave 1, one repo at a time**: Athena, then PayPal, then Gravitone. Fleet runs in parallel turned gate failures
-   into load timeouts on 10-18.
-   - Copy `runner/fleet.example.yml` to `.belay/fleet.yml` and set this machine's paths.
-   - `node cli/belay.mjs run --repo athena-portable --dry-run`, then the same without `--dry-run`.
-   - Watch it in `/theater?live=1` and `/runs`. Take a mergeable wave from Needs you with the commands shown there.
-5. **Reflect**: read `.belay/runs/<repo>/1.proposals.md`, apply the prompt edits worth keeping to
-   `runner/prompts/*.md` (this gives prompts v2), and compare `promptVersion` across waves on `/runs`.
-6. **Waves 2-10**: by Fri 10-23, Athena weighted first. Freeze the prompts and record the Theater film by Sat 10-24,
-   which leaves buffer to 10-27.
-7. **Later**: recreate the mirrors in the hackathon group, and run the GitLab agents there.
+Done since the first list: the gravitone push, the paypal pull, `.belay/fleet.yml` on this machine, wave 1 and the
+reflect loop (on the CLI login, 8-16 waves a repo, prompts revised about 25 times).
+
+1. **Re-port Ascent's prompt drift.** `npm run runner:prompt-drift` fails: Ascent's `infinite` skill moved (`40ec3038`
+   and `e3aceaac`), changing `ladder.md`, `reflect.md` and `SKILL.md`, the sources of `plan.md` and `reflect.md`.
+   - Port what is new into `runner/prompts/` without dropping tonight's hardening, then update `sources.json`.
+   - This bumps `promptVersion` once, before the cloud waves.
+2. **Model key.** Export `ANTHROPIC_API_KEY` in the shell that runs the runner. Only `runner/` reads it.
+   - Then one `--dry-run`, and one small wave (`--lanes 2`) on athena, to confirm the API-key path end to end: costs,
+     `sessionId`, and that no other secret reaches a gate.
+3. **Show tonight's run data in the app.** These are needed for the film and for taking waves by hand. `readRuns`
+   ignores them today:
+   - `<wave>.review.md` verdicts per lane: taken or rejected. A mergeable wave can carry a rejected lane, so the
+     merge command must not offer a whole-wave fast-forward over it.
+   - `flaky`, `gateLog` and `patch` on `lane.end`, and `empty` / `uncovered` on `wave.plan`.
+4. **Cloud waves, one repo at a time** (load turns gates flaky): athena first (its own deadline is 10-30), then
+   paypal, then gravitone.
+   - Watch `/theater?live=1` and `/runs`, and keep a `<wave>.review.md` per wave, so the planner reads the verdicts.
+5. **Freeze the prompts and record the Theater film by Sat 10-24.** That leaves a buffer to the 10-27 submission.
+6. **GitLab.**
+   - Check that the paypal mirror catches up to `5958463`.
+   - Recreate the three mirrors in the hackathon group `gitlab-ai-hackathon/transcend-october-2026/35338952`, and run
+     the GitLab agents there.
+
+Repo items the waves can pick up, or that need the owner:
+- **athena:**
+  - The CI matrix runs Python 3.11 and 3.12; the fleet gates run one.
+  - The `src-tauri` cargo checks are not gated (they need a desktop build first).
+  - The planner's cost is climbing ($0.30 to $0.67 a wave) while it fills 1 to 4 of 6 lanes.
+- **gravitone:** `tests/next-server/parts-real.test.ts` sometimes ends vitest with an EnvironmentTeardownError.
+- **paypal:**
+  - Scan C-16's `freezePrototype` half is open.
+  - J-4 is accepted, and J-7 is a product call.
+- **runner:** a lane edit to an existing test is checked as mechanical only in review. A check that runs a normalised
+  diff could park the rest.
 
 ## Gotchas
 
