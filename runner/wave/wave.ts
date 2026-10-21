@@ -104,7 +104,7 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
       // Each lane starts from the wave branch's tip, so it sees the lanes that landed before it: two lanes cutting the
       // same file (a split and its wiring in lib.rs) stack instead of conflicting on the cherry-pick.
       const tip = await git(waveDir, ['rev-parse', 'HEAD']);
-      const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, baseSha: tip, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log, runsDir: c.runsDir, repo: repo.slug }, item);
+      const r = await runLane({ repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, ...(repo.diffCheck ? { diffCheck: true } : {}), baseSha: tip, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs, lanePromptText: c.prompts.text.lane, log, runsDir: c.runsDir, repo: repo.slug }, item);
       cost += r.costUsd;
       if (r.outcome === 'landed') landed++;
       // The failure lines of a red gate's whole output: a log's tail is often a runner's boilerplate, not the failure.

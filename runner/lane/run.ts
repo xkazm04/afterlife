@@ -9,6 +9,7 @@ import { git, runProc } from '../proc/proc';
 import type { LaneOutcome } from '../../src/schemas/run';
 import type { Log } from '../wave/events';
 import { lanePrompt, type PlanItem } from '../wave/plan';
+import { diffSlips } from './hygiene';
 import { saveGateLog, savePatch } from './patch';
 import { GATE_RETRIES, failureLines, redReason, runGates } from './verify';
 
@@ -19,6 +20,8 @@ export interface LaneCtx {
   setup: string[];
   /** Bash prefixes the lane's claude may run (permissions.ts bashPrefixes over setup, gates and laneTools). */
   bash: string[];
+  /** FleetRepo.diffCheck: whitespace slips in the lane's change fail it before the gates run. */
+  diffCheck?: boolean;
   baseSha: string;
   wave: number;
   /** The wave branch's own worktree: landed commits are cherry-picked here. */
@@ -138,6 +141,10 @@ async function verifyAndLand(ctx: LaneCtx, dir: string, item: PlanItem, done: st
   if (!changed) return { outcome: 'parked', parkReason: 'DONE claimed but nothing changed' };
   const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
   if (armed.length) return { outcome: 'parked', parkReason: `edits agent or hook config: ${armed.slice(0, 5).join(', ')}` };
+  if (ctx.diffCheck) {
+    const slips = await diffSlips(dir, ctx.baseSha);
+    if (slips.length) return { outcome: 'failed', parkReason: `diff check: whitespace the lane added\n${slips.join('\n')}` };
+  }
   const gates = await runGates(ctx.gates, dir, ctx.timeoutMs, GATE_RETRIES);
   // A red gate's output, or a flaky one's (red, then green on rerun): both go to the lane's gate log.
   const flaky = { ...(gates.flaky?.length ? { flaky: gates.flaky } : {}), ...(gates.output ? { output: gates.output } : {}) };

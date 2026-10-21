@@ -12,6 +12,8 @@ export interface FleetRepo {
   setup?: string[];
   /** Extra Bash prefixes a lane may run besides those derived from gates and setup (e.g. `npx vitest run`). */
   laneTools?: string[];
+  /** Refuse a lane whose change adds trailing whitespace or a new run of two blank lines (lane/hygiene.ts). */
+  diffCheck?: boolean;
   laneCapUsd?: number;
   waveCapUsd?: number;
 }

@@ -9,6 +9,7 @@ repos:
   - slug: athena-portable
     path: /path/to/athena-portable
     base: main
+    diffCheck: true
     laneCapUsd: 3
     waveCapUsd: 25
     setup:
@@ -46,6 +47,7 @@ repos:
   - slug: gravitone-gcloud
     path: /path/to/gravitone-gcloud
     base: main
+    diffCheck: true
     setup:
       - npm ci --prefer-offline --no-audit --no-fund
     laneTools:

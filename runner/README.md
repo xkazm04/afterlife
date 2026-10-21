@@ -64,6 +64,10 @@ that git no longer lists as a worktree. Only paths under `<repo>/.claude/worktre
 
 ## Outcomes and caps
 
+With `diffCheck: true` on a repo, a lane whose change adds trailing whitespace, blank lines at the end of a file
+or a new run of two blank lines fails before its gates run (`lane/hygiene.ts`); it reads only the lane's diff
+against base, so the repo needs no formatter config.
+
 A red gate (on base, in a lane, or on the wave branch) is rerun once before it counts: under fleet load a test
 timeout is not a red. A gate green on its rerun is listed in the event's `flaky`, so a flake is seen, not hidden;
 setup is never rerun.

@@ -37,6 +37,8 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     if (setup !== undefined && (!Array.isArray(setup) || !setup.every((g) => typeof g === 'string' && g.trim()))) {
       throw new Error(`${where}: setup must be a list of commands`);
     }
+    const { diffCheck } = r;
+    if (diffCheck !== undefined && typeof diffCheck !== 'boolean') throw new Error(`${where}: diffCheck must be true or false`);
     const { laneTools } = r;
     // Each becomes an allow rule `Bash(<prefix>:*)` in the lane's settings: plain words only, never a bare launcher.
     if (laneTools !== undefined && (!Array.isArray(laneTools) || !laneTools.every((t) => typeof t === 'string' && LANE_TOOL.test(t.trim())))) {
@@ -44,7 +46,7 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     }
     const laneCapUsd = cap(r.laneCapUsd, where, 'laneCapUsd');
     const waveCapUsd = cap(r.waveCapUsd, where, 'waveCapUsd');
-    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}) };
+    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(diffCheck ? { diffCheck: true } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}) };
   });
 }
 
