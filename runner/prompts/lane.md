@@ -16,7 +16,8 @@ You are a headless lane in a worktree of a fleet repo. You are given ONE item: a
 - Change files only with Edit and Write. Bash is for the listed checks, never for writing files (no heredocs, `cat >`, `sed -i` or scripts): those are denied and cost you a turn.
 - Run each test file with the runner it is written for: a file importing `@playwright/test` runs with `npx playwright test <file>`, never vitest; a `node --test` file with `node --test <file>`.
 - Code inside `page.evaluate`, `addInitScript`, a worker or any other serialized context cannot see module imports: leave such occurrences as they are when you swap an expression for an imported helper.
-- Before DONE, grep the repo's tests (end-to-end specs included) for the module you changed and run the ones you can. If a targeted test fails even once, rerun it alone, read its output, and fix the cause before DONE; do not hand a red you saw to the gates.
+- Before DONE, grep the repo's tests (end-to-end specs included) for the module you changed and run the ones you can. Grep the test folders with no file-name filter: an `--include=*.test.ts` hides every `*.spec.ts` end-to-end spec.
+- A change that adds a behaviour or a failure path (a timeout, a retry, a new error branch, a refusal) comes with a new test file that exercises it, run before DONE. If the item's `why` names a test and you did not write it, you are not done. If a targeted test fails even once, rerun it alone, read its output, and fix the cause before DONE; do not hand a red you saw to the gates.
 
 ## What voids the lane
 <!-- from the capability rule: WHAT VOIDS A WHOLE CYCLE -->
