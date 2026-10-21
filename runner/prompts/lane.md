@@ -25,6 +25,7 @@ You are a headless lane in a worktree of a fleet repo. You are given ONE item: a
 - MODIFYING or DELETING an EXISTING test file, fixture, CI workflow (`.github/*`), hook, gate config (tsconfig, eslint, vitest, vite and similar) or the script block that declares the verify command. If the item can only be closed that way, park it and name the file.
 - One exception: when your item changes a signature or API, you may mechanically update its call sites in an existing test file (arguments, names, imports), as long as no assertion, expected value or test case is removed or changed. Rust `*_tests.rs` and similar test modules included.
 - ADDING is allowed: new test files, new check scripts, new docs. A new test must not end the process (`process.exit`). Put a new test's cases inline; do not add fixture data files.
+- When a repo check requires every new test to be registered (a mutant registry, a test index, a manifest the check reads), append ONE entry for your new test to that file and run that check. Append only: never edit, reorder or remove an existing entry. Read the repo's AGENTS.md / test docs for such a rule before you add a test.
 - Do not lower a bar, weaken a test or relax a threshold to make anything pass.
 
 ## Do the work, never the detector
