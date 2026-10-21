@@ -68,7 +68,7 @@ GitLab mirrors (private pull mirrors, pipelines off): `kazdanm-group/athena-port
 The plan was diverged from: before any cloud or API-key run, waves ran locally through `belay run` on the Claude
 Code CLI login (no `ANTHROPIC_API_KEY`), one reviewing agent per repo, all three repos at once, for 8 hours. Each
 agent reviewed every landed lane and fast-forwarded or cherry-picked only the good ones onto its repo's **local**
-main. Nothing in the three fleet repos is pushed.
+main. All three were pushed to GitHub main afterwards, with the operator's approval.
 
 | Repo | Waves | Lanes landed / run | Model cost | Local main | Ahead of origin |
 |---|---|---|---|---|---|
@@ -115,8 +115,8 @@ Decided by the operator on 2026-10-21, after the run:
 - **Format check:** whitespace is checked on the files a lane changed (`diffCheck`, on for athena and gravitone).
 - **Shipping:** all three repos ship to GitHub main. Gravitone goes through its own pre-push hook.
 
-Still open: paypal's main checkout has a broken client `node_modules` (no `.bin`). Gravitone's stash
-`pre-sync-1019` was already gone when the run started.
+Paypal's broken client `node_modules` was moved aside and reinstalled. Gravitone's stash `pre-sync-1019` was
+already gone when the run started.
 
 ## Next steps, in order (from 2026-10-21)
 
