@@ -63,9 +63,15 @@
 .evt {
   font-size: var(--fA);
   color: var(--text-3);
-  white-space: nowrap;
+  /* two lines: the tile has the room, and one line cut the note mid-word on the closing shot. Every note holds two
+     lines' height, so a one-line note does not drop its tile's rung bar below its neighbours'. */
+  line-height: 1.35;
+  min-height: 2.7em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 .line {
   font-size: var(--fD);
