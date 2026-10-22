@@ -14,21 +14,26 @@ spec:
       default: '.post'
     engine_ref:
       type: string
+      regex: '^[A-Za-z0-9][A-Za-z0-9._/-]*$'
       description: Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned.
     engine_commit:
       default: ''
+      regex: '^([0-9a-f]{40})?$'
       description: Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch.
     engine_project:
       default: '$CI_PROJECT_NAMESPACE/belay-engine'
+      regex: '^[A-Za-z0-9$_./-]+$'
       description: Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token.
     policy_project:
       default: '$CI_PROJECT_NAMESPACE/belay-policy'
     policy_ref:
       default: main
+      regex: '^[A-Za-z0-9][A-Za-z0-9._/-]*$'
     node_image:
       default: 'node:22-bookworm'
     glab_version:
       default: '1.120.0'
+      regex: '^[0-9]+\.[0-9]+\.[0-9]+$'
     glab_sha256:
       default: '4e6c59de9f7ed2f304bf93aad01ea8f8a69584f0450ce90ad696ef81f69c69aa'
       regex: '^[0-9a-f]{64}$'
@@ -61,19 +66,19 @@ spec:
   tags: $[[ inputs.runner_tags ]]
   variables:
     GIT_DEPTH: "0"
-    BELAY_ENGINE_PROJECT: "$[[ inputs.engine_project ]]"
-    BELAY_ENGINE_REF: "$[[ inputs.engine_ref ]]"
-    BELAY_ENGINE_COMMIT: "$[[ inputs.engine_commit ]]"
     BELAY_POLICY_PROJECT: "$[[ inputs.policy_project ]]"
-    BELAY_POLICY_REF: "$[[ inputs.policy_ref ]]"
-    BELAY_GLAB_VERSION: "$[[ inputs.glab_version ]]"
-    BELAY_GLAB_SHA256: "$[[ inputs.glab_sha256 ]]"
   cache:
     key: belay-engine-$[[ inputs.engine_ref ]]
     paths: [.belay-engine/node_modules/]
   before_script:
     - |
       set -eu
+      # M6/F100: what picks the code run beside CI_JOB_TOKEN comes from the inputs, fixed at include time, never a job
+      # variable: a pipeline variable (trigger, API, manual run) outranks the job's variables and would choose it instead.
+      BELAY_ENGINE_PROJECT="$[[ inputs.engine_project ]]"; BELAY_ENGINE_REF='$[[ inputs.engine_ref ]]'
+      BELAY_ENGINE_COMMIT='$[[ inputs.engine_commit ]]'; BELAY_GLAB_VERSION='$[[ inputs.glab_version ]]'
+      BELAY_GLAB_SHA256='$[[ inputs.glab_sha256 ]]'; BELAY_POLICY_REF='$[[ inputs.policy_ref ]]'
+      export BELAY_POLICY_REF
       HOSTURL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}"
       export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
       export BELAY_GLUE="$BELAY_DIR/gitlab/components/scripts"
