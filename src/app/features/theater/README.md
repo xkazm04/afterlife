@@ -14,6 +14,7 @@ Pitch" prototype. Three films. Which one is `live/model/mode.ts` (`theaterMode`)
   verifies from genesis, so `readLedger` stays whole and the cut is made here.
 - **The illustrative film**: with no MR in the ledger, and always in demo mode (the demo source's ledger is empty):
   the invented slice seq 480-520 (`data/ledger.ts`), always marked REPLAY.
+- **The submission film** (operator, 2026-10-22): the never-cut 'one scripted run of the whole loop' is filmed from `BELAY_MODE=demo` (this illustrative film), so the film never waits on the live ledgerline loop.
 
 ## Parts
 - `TheaterScreen.tsx` composes the Window: toolbar transport, sidebar takes and marks, stage, inspector,
