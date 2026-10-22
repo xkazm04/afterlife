@@ -107,4 +107,26 @@ describe('frameClock', () => {
     run(d, 10);
     expect(d.callbacks).toBe(10);
   });
+
+  it('calls the host unbound, as the browser requestAnimationFrame and cancelAnimationFrame demand', () => {
+    // The DOM's rAF/cAF throw "Illegal invocation" when called as a method of another object (`host.caf(id)`).
+    const d = display();
+    const strict: FrameHost = {
+      raf(cb) {
+        if (this !== undefined) throw new TypeError('Illegal invocation');
+        return d.host.raf(cb);
+      },
+      caf(id) {
+        if (this !== undefined) throw new TypeError('Illegal invocation');
+        d.host.caf(id);
+      },
+      now: d.host.now,
+    };
+    const store = createReplayStore(initialState());
+    const clock = frameClock(store, strict);
+    expect(() => clock.start()).not.toThrow();
+    store.dispatch({ type: 'play', on: true });
+    expect(() => run(d, 3)).not.toThrow();
+    expect(() => clock.stop()).not.toThrow();
+  });
 });

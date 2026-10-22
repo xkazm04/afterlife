@@ -21,6 +21,8 @@ export interface FrameClock {
  * the wake, not from the idle gap.
  */
 export function frameClock(store: Pick<ReplayStore, 'get' | 'dispatch' | 'subscribe'>, host: FrameHost): FrameClock {
+  // Called unbound: the DOM's requestAnimationFrame and cancelAnimationFrame throw "Illegal invocation" as host methods.
+  const { raf, caf, now: clockNow } = host;
   let id = 0;
   let armed = false;
   let on = false;
@@ -33,19 +35,19 @@ export function frameClock(store: Pick<ReplayStore, 'get' | 'dispatch' | 'subscr
     const dt = Math.min(MAX_FRAME_MS, now - last);
     last = now;
     if (running()) store.dispatch({ type: 'tick', dt });
-    if (on && running()) id = host.raf(frame);
+    if (on && running()) id = raf(frame);
     else armed = false;
   };
   const wake = () => {
     if (!on || armed || !running()) return;
     armed = true;
-    last = host.now();
-    id = host.raf(frame);
+    last = clockNow();
+    id = raf(frame);
   };
   const stop = () => {
     on = false;
     armed = false;
-    host.caf(id);
+    caf(id);
   };
   let unsub = () => {};
   return {
