@@ -16,6 +16,9 @@ const dir = workdir('collect-facts');
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
 
 const WEB = 'https://gitlab.example.com/acme/app';
+// Relative to now: the engine counts a job as exercised only within a 14-day ran-within window of the facts' `at`.
+const FINISHED = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+const CREATED = new Date(Date.now() - 70 * 60 * 1000).toISOString();
 const routes = {
   'projects/1': { path_with_namespace: 'acme/app', default_branch: 'main', visibility: 'private', web_url: WEB, only_allow_merge_if_pipeline_succeeds: true },
   'projects/1/ci/lint': { valid: true, jobs: [{ name: 'test', stage: 'test', allow_failure: false }] },
@@ -24,9 +27,9 @@ const routes = {
   'projects/1/approval_rules': [],
   'projects/1/pipeline_schedules': [],
   'projects/1/repository/tree': [{ name: 'maturity-gap.md', type: 'blob' }, { name: 'nested', type: 'tree' }],
-  'projects/1/pipelines': [{ id: 77, web_url: `${WEB}/-/pipelines/77`, created_at: '2026-10-07T10:00:00.000Z', status: 'success' }],
+  'projects/1/pipelines': [{ id: 77, web_url: `${WEB}/-/pipelines/77`, created_at: CREATED, status: 'success' }],
   'projects/1/pipelines/77/jobs': [
-    { id: 9, name: 'test', stage: 'test', status: 'success', web_url: `${WEB}/-/jobs/9`, finished_at: '2026-10-07T10:09:00.000Z', artifacts: [{ file_type: 'trace' }, { file_type: 'junit' }], token: 'never kept' },
+    { id: 9, name: 'test', stage: 'test', status: 'success', web_url: `${WEB}/-/jobs/9`, finished_at: FINISHED, artifacts: [{ file_type: 'trace' }, { file_type: 'junit' }], token: 'never kept' },
   ],
 };
 const NONE = { __http: 404, message: '404 File Not Found' };
@@ -45,8 +48,8 @@ describe('collect-facts for the maturity scan', () => {
 
   it('keeps the pipeline\'s URL and time, and each job\'s id, URL, finish time and artifact types, nothing else', () => {
     expect(collect().json.facts.latest_pipeline_jobs).toEqual({
-      pipeline: { id: 77, web_url: `${WEB}/-/pipelines/77`, created_at: '2026-10-07T10:00:00.000Z' },
-      jobs: [{ id: 9, name: 'test', stage: 'test', status: 'success', web_url: `${WEB}/-/jobs/9`, finished_at: '2026-10-07T10:09:00.000Z', artifacts: ['trace', 'junit'] }],
+      pipeline: { id: 77, web_url: `${WEB}/-/pipelines/77`, created_at: CREATED },
+      jobs: [{ id: 9, name: 'test', stage: 'test', status: 'success', web_url: `${WEB}/-/jobs/9`, finished_at: FINISHED, artifacts: ['trace', 'junit'] }],
     });
   });
 
