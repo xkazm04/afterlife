@@ -25,7 +25,7 @@ export function Board({ snap, demo, last }: { snap: Snapshot; demo: TheaterDemo;
               <RungSteps rung={r} evidence={r >= EVIDENCE_RUNG} />
               <div className={styles.evt}>
                 {demo.rungNames[r]} · {m?.evidence}
-                {m && m.day0 == null ? ' · day 0 ?' : ''}
+                {m && m.day0 == null ? ' · no day-0 reading' : ''}
               </div>
             </Card>
           );
