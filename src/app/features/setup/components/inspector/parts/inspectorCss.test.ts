@@ -41,7 +41,10 @@ export const rawPx = (css: string): string[] =>
   );
 
 describe('Sizes follow --ui-scale (D10)', () => {
-  const files = ['../inspector.module.css', '../../shared/DepRow.module.css', '../../shared/GateRow.module.css'];
+  // derived from the folders, not listed: a new shared stylesheet is gated the day it lands
+  const shared = readdirSync(join(__dirname, '../../shared')).filter((n) => n.endsWith('.module.css'));
+  const files = ['../inspector.module.css', ...shared.map((n) => `../../shared/${n}`)];
+  it('the shared folder holds every row and glyph stylesheet the panels use', () => expect(shared.length).toBeGreaterThanOrEqual(4));
   it.each(files)('%s states no raw px length', (f) => {
     expect(rawPx(readFileSync(join(__dirname, f), 'utf8'))).toEqual([]);
   });
