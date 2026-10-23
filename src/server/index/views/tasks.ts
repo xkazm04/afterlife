@@ -31,7 +31,8 @@ function toTask(row: TaskRow, proof: ProofRow | undefined, now: Date): TaskView 
           proof: {
             cls: proof.class,
             verdict: proof.verdict ? proof.verdict.toUpperCase() : 'UNKNOWN',
-            engine: proof.engineVersion ? `proof-engine ${proof.engineVersion}` : 'unknown',
+            // 'no engine' is the word the Task screen reads as not held (task/components/engineHeld.ts); 'unknown' it shows as one
+            engine: proof.engineVersion ? `proof-engine ${proof.engineVersion}` : 'no engine',
             digest: proof.engineSha256 ? `sha256:${proof.engineSha256}` : '',
             checks: proof.checks,
             claims: proof.claims,
