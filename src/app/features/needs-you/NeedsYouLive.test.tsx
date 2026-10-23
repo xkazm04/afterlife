@@ -30,4 +30,12 @@ describe('live Needs you keeps what was sent', () => {
     expect(failed).not.toContain('Sent this session');
     expect(failed).toContain('Promote T7 qa · qa.file-bug');
   });
+
+  it('reads a passed deadline as overdue, not as "due in overdue"', () => {
+    const late = renderToStaticMarkup(<NeedsYouLiveView items={[{ ...other, dueIn: 'overdue' }]} seeded={0} acts={acts({}, {})} />);
+    expect(late).not.toContain('due in overdue');
+    expect(late).toContain('>overdue<');
+    const soon = renderToStaticMarkup(<NeedsYouLiveView items={[{ ...other, dueIn: '3 h 4 m' }]} seeded={0} acts={acts({}, {})} />);
+    expect(soon).toContain('due in 3 h 4 m');
+  });
 });

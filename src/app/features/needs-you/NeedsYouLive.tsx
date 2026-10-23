@@ -79,7 +79,7 @@ export function NeedsYouLiveView({ items, seeded, acts, evidence = {}, runner = 
               <button type="button" className={styles.head} aria-expanded={open} onClick={() => acts.select(open ? null : n.id)}>
                 <Chip compact>{KIND[n.kind]}</Chip>
                 <b className={styles.title} title={n.title}>{n.title}</b>
-                {n.dueIn ? <span className={styles.due}>due in {n.dueIn}</span> : null}
+                {n.dueIn ? <span className={styles.due}>{n.dueIn === 'overdue' ? 'overdue' : `due in ${n.dueIn}`}</span> : null}
               </button>
               {n.reason ? <div>{n.reason}</div> : null}
               <div className={empty.note}>{n.does}</div>
