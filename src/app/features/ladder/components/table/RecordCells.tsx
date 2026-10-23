@@ -64,7 +64,11 @@ export function RecordCells({ cls, policy, className }: { cls: ClassRow; policy:
         {r ? r.reverts === null ? unknown : <span className={r.reverts ? styles.bad : styles.z}>{r.reverts}</span> : none}
       </Cell>
       <Cell className={className}>
-        {r || cls.tier !== 'human_only' ? <DayStrip clean={r ? r.cleanDays : null} revertedToday={!!r && (r.reverts ?? 0) > 0} /> : null}
+        {r ? (
+          r.cleanDays === null ? unknown : <DayStrip clean={r.cleanDays} revertedToday={(r.reverts ?? 0) > 0} />
+        ) : cls.tier !== 'human_only' ? (
+          <DayStrip clean={null} />
+        ) : null}
         {r && r.cleanDays !== null ? <span className={styles.cn}>{r.cleanDays}</span> : null}
       </Cell>
     </>

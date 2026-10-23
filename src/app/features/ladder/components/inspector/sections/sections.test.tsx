@@ -48,6 +48,11 @@ describe('the lease and the no-edit bar come from the policy', () => {
     const lower = { ...lapsed, tier: 'supervised' as const };
     expect(renderToStaticMarkup(<RecordCells cls={lower} policy={seven} />).split('role="gridcell"')[1]).not.toContain('lapsed');
   });
+  it('a record whose clean days are not recorded says not recorded on the strip, not "no record"', () => {
+    const strip = renderToStaticMarkup(<RecordCells cls={{ ...cls, record: { ...cls.record!, cleanDays: null } }} policy={seven} />).split('role="gridcell"')[5];
+    expect(strip).toContain('Not recorded · no task or ledger event states it');
+    expect(strip).not.toContain('No record');
+  });
   it('No-edit dims below the policy no_edit_ratio, not below a constant', () => {
     expect(cells(seven)[3]).toContain('85 %');
     const dim = (ratio: string) => cells(policyWith((y) => y.replace(/no_edit_ratio: [\d.]+/, `no_edit_ratio: ${ratio}`)))[3];
