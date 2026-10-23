@@ -16,11 +16,11 @@ const depsAfter = (src: string, needle: string): string | null => {
 
 describe('Sheet focus handling', () => {
   it('registers its Escape listener once: callers pass an inline onClose, and a re-run would re-focus the sheet and lose the opener', () => {
-    expect(depsAfter(tsx, "addEventListener('keydown'")).toBe('');
+    expect(depsAfter(tsx, 'onEscape(')).toBe('');
   });
   it('the matcher bites: a seeded effect that depends on onClose is read as such', () => {
     const seeded = tsx.replace(/\},\s*\[\s*\]\s*\);/, '}, [onClose]);');
-    expect(depsAfter(seeded, "addEventListener('keydown'")).toBe('onClose');
+    expect(depsAfter(seeded, 'onEscape(')).toBe('onClose');
   });
 });
 

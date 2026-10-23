@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { onEscape } from '../escapeLayers';
 import { placeNear, type Box } from '../position';
 import styles from './Popover.module.css';
 
@@ -36,19 +37,13 @@ export function Popover({
 
   useEffect(() => {
     if (!onClose) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      e.preventDefault();
-      e.stopPropagation();
-      onClose('escape');
-    };
     const onDown = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose('press', e.target);
     };
-    document.addEventListener('keydown', onKey, true);
+    const off = onEscape(() => onClose('escape'));
     document.addEventListener('mousedown', onDown, true);
     return () => {
-      document.removeEventListener('keydown', onKey, true);
+      off();
       document.removeEventListener('mousedown', onDown, true);
     };
   }, [onClose]);

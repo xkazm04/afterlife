@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { onEscape } from './escapeLayers';
 import styles from './Sheet.module.css';
 
 /**
@@ -31,15 +32,9 @@ export function Sheet({
   useEffect(() => {
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     ref.current?.focus({ preventScroll: true });
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      e.preventDefault();
-      e.stopPropagation();
-      closeRef.current();
-    };
-    document.addEventListener('keydown', onKey, true);
+    const off = onEscape(() => closeRef.current());
     return () => {
-      document.removeEventListener('keydown', onKey, true);
+      off();
       if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
   }, []);

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { onEscape } from '../escapeLayers';
 import { clampToViewport } from '../position';
 import { enabledIndexes, isAction, moveActive, type MenuAction, type MenuEntry, type MenuMove } from './menuModel';
 import styles from './Menu.module.css';
@@ -12,7 +13,7 @@ const VIM_MOVES: Record<string, MenuMove | undefined> = { ...MOVES, j: 'next', k
 /**
  * The context / popup menu surface. Normally used through useMenu(); it is exported for custom cases.
  * It takes focus on mount; ArrowUp/Down/Home/End move (plus j / k with `vimKeys`), Enter and Space run, Escape and
- * Tab close. `onHighlight` hears the highlighted action (or null when none, or on close).
+ * Tab close (Escape through the overlay layers, so a menu over a sheet closes first). `onHighlight` hears the highlighted action (or null when none, or on close).
  */
 export function Menu<D = unknown>({
   items,
@@ -42,9 +43,10 @@ export function Menu<D = unknown>({
   // A requested start that cannot run (a head, a separator, a disabled item) moves on to the first one that can.
   const [active, setActive] = useState(() => (initialActive < 0 || enabledIndexes(items).includes(initialActive) ? initialActive : moveActive(items, -1, 'first')));
   const [pos, setPos] = useState({ x, y });
-  const latest = useRef({ items, onHighlight });
+  // Callers pass a fresh onClose every render; the layer below registers once, so it keeps its place in the stack.
+  const latest = useRef({ items, onHighlight, onClose });
   useEffect(() => {
-    latest.current = { items, onHighlight };
+    latest.current = { items, onHighlight, onClose };
   });
 
   useLayoutEffect(() => {
@@ -56,11 +58,15 @@ export function Menu<D = unknown>({
 
   useEffect(() => {
     const away = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose(false, e.target);
+      if (ref.current && !ref.current.contains(e.target as Node)) latest.current.onClose(false, e.target);
     };
     document.addEventListener('mousedown', away, true);
-    return () => document.removeEventListener('mousedown', away, true);
-  }, [onClose]);
+    const off = onEscape(() => latest.current.onClose(true));
+    return () => {
+      document.removeEventListener('mousedown', away, true);
+      off();
+    };
+  }, []);
 
   useEffect(() => {
     const { items: list, onHighlight: hear } = latest.current;
@@ -78,7 +84,7 @@ export function Menu<D = unknown>({
     if (move) setActive(moveActive(items, active, move));
     else if (e.key === 'Enter' || e.key === ' ') {
       if (active >= 0) run(active);
-    } else if (e.key === 'Escape' || e.key === 'Tab') onClose(true);
+    } else if (e.key === 'Tab') onClose(true);
     else return;
     e.preventDefault();
     e.stopPropagation();
