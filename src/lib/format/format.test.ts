@@ -12,6 +12,10 @@ describe('formatAge', () => {
     expect(formatAge(2400)).toBe('40 m');
     expect(formatAge(5400)).toBe('1.5 h');
   });
+  it('a figure that rounds up to the next unit reads in that unit, never as 60 s, 60 m or 24 h', () => {
+    expect([formatAge(59.6), formatAge(3599), formatAge(3570), formatAge(86399), formatAge(86220)]).toEqual(['1 m', '1 h', '1 h', '1 d', '1 d']);
+    expect([formatAge(59.4), formatAge(3569), formatAge(86219)]).toEqual(['59 s', '59 m', '23.9 h']);
+  });
   it('switches to days after 24 hours', () => {
     expect(formatAge(86400)).toBe('1 d');
     expect(formatAge(2 * 86400 + 4320)).toBe('2.1 d');

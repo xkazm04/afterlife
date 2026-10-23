@@ -1,11 +1,17 @@
 // Pure time formatting for feed ages, countdowns and clocks. No Date.now() in here: callers pass seconds.
 
-/** Feed age as the Fleet shows it: "12 s", "40 m", "1.5 h", "2.1 d"; null (never polled) is an em dash. */
+/**
+ * Feed age as the Fleet shows it: "12 s", "40 m", "1.5 h", "2.1 d"; null (never polled) is an em dash. A unit is picked
+ * by the rounded figure, so 59.6 s reads "1 m" and 23.97 h reads "1 d", never "60 s" or "24 h".
+ */
 export function formatAge(sec: number | null | undefined): string {
   if (sec == null) return '—';
-  if (sec < 60) return `${Math.max(0, Math.round(sec))} s`;
-  if (sec < 3600) return `${Math.round(sec / 60)} m`;
-  if (sec < 86400) return `${Math.round(sec / 360) / 10} h`;
+  const s = Math.max(0, Math.round(sec));
+  if (s < 60) return `${s} s`;
+  const m = Math.round(sec / 60);
+  if (m < 60) return `${m} m`;
+  const h = Math.round(sec / 360) / 10;
+  if (h < 24) return `${h} h`;
   return `${Math.round(sec / 8640) / 10} d`;
 }
 
