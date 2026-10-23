@@ -1,4 +1,4 @@
-// Every decision kind has a view; an unknown id says so, a gap id gets the gap view.
+// Every decision kind has a view; an unknown id (a gap id the demo does not hold among them) says so, a gap id gets the gap view.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../../data/pick';
@@ -13,7 +13,7 @@ describe('NeedsInspector', () => {
     for (const id of ['n1', 'n2', 'n4', 'n5']) expect(html(id)).not.toContain('No such decision');
   });
 
-  it('keeps the fallback for ids that are not decisions, including inherited object keys', () => {
-    for (const id of ['n9', 'toString', 'h1']) expect(html(id)).toContain('No such decision');
+  it('keeps the fallback for ids that are not decisions, including inherited object keys and a gap the demo does not hold', () => {
+    for (const id of ['n9', 'toString', 'h1', 'g99']) expect(html(id)).toContain('No such decision');
   });
 });
