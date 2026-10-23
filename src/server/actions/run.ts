@@ -123,19 +123,22 @@ async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promi
   let body: unknown = null;
   for (const cmd of b.plan.commands) {
     const id = await recordCommand(db, { at: deps.now(), operator: b.operator, projectId: b.intent.project, proposalId: b.intent.proposal, display: cmd.display, argv: cmd.argv, risk: cmd.risk });
+    let out: Awaited<ReturnType<GitLabPort['execute']>>;
     try {
-      const out = await deps.port.execute(cmd);
-      await finishCommand(db, id, 0, deps.now());
-      const m = await madeBy(deps, cmd, out.body);
-      if (m.commit) commit = m.commit;
-      body = out.body;
-      results.push({ display: cmd.display, exit: 0, ok: true, simulated: false, ...m.named });
+      out = await deps.port.execute(cmd);
     } catch (e) {
       const exit = e instanceof GitLabError && e.status ? e.status : 1;
       await finishCommand(db, id, exit, deps.now());
       results.push({ display: cmd.display, exit, ok: false, simulated: false, error: e instanceof Error ? e.message : String(e) });
       break; // later commands depend on earlier ones (a branch, then its MR)
     }
+    // It ran. Only GitLab's refusal is a failed command: if the record cannot be finished now, the confirm throws (no
+    // answer, "may or may not have run"), never "failed", which would read as safe to send again.
+    await finishCommand(db, id, 0, deps.now());
+    const m = await madeBy(deps, cmd, out.body);
+    if (m.commit) commit = m.commit;
+    body = out.body;
+    results.push({ display: cmd.display, exit: 0, ok: true, simulated: false, ...m.named });
   }
   await checkHead(deps, b, results, commit, body);
   const ok = results.length === b.plan.commands.length && results.every((r) => r.ok);
