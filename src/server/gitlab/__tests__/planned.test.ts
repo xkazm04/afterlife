@@ -43,6 +43,13 @@ describe('PlannedCommand builders: exact argv', () => {
     expect(plan.setLabels({ project: 7, iid: 3, add: ['belay::tier::hands_off'] }).risk).toBe('policy');
   });
 
+  it('a tier label is policy risk however it is spelt in the list GitLab splits on commas and trims', () => {
+    for (const add of [['proof::pass,belay::tier::hands_off'], [' belay::tier::hands_off'], ['Belay::Tier::hands_off']]) {
+      expect(plan.setLabels({ project: 7, iid: 3, add }).risk, add[0]).toBe('policy');
+    }
+    expect(plan.setLabels({ project: 7, iid: 3, remove: ['x, belay::tier::supervised'] }).risk).toBe('policy');
+  });
+
   it('commitFile with startBranch creates the branch in the same call', () => {
     const c = plan.commitFile({ project: 7, path: 'tier-state.yml', branch: 'belay/promote-x', startBranch: 'main', content: 'a', message: 'm', action: 'update' });
     expect(c.argv.slice(-2)).toEqual(['-f', 'start_branch=main']);

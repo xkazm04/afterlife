@@ -21,6 +21,9 @@ function build(hostname: string | undefined, method: 'POST' | 'PUT', path: strin
 }
 
 const optional = (k: string, v: string | undefined): Array<[string, string]> => (v === undefined ? [] : [[k, v]]);
+/** GitLab reads add_labels/remove_labels as a comma list and trims each name, so the risk is judged on those names. */
+const tierLabel = (labels: readonly string[]): boolean =>
+  labels.join(',').split(',').some((l) => l.trim().toLowerCase().startsWith('belay::tier::'));
 const POLICY_FILE = /(^|\/)(tier-state|trust-policy)\.ya?ml$|^belay-policy\//;
 
 export function planBuilders(hostname?: string): PlanBuilders {
@@ -38,7 +41,7 @@ export function planBuilders(hostname?: string): PlanBuilders {
       build(hostname, 'PUT', `projects/${proj(i.project)}/merge_requests/${i.iid}`, [
         ...optional('add_labels', i.add?.length ? i.add.join(',') : undefined),
         ...optional('remove_labels', i.remove?.length ? i.remove.join(',') : undefined),
-      ], [...(i.add ?? []), ...(i.remove ?? [])].some((l) => l.startsWith('belay::tier::')) ? 'policy' : 'low'),
+      ], tierLabel([...(i.add ?? []), ...(i.remove ?? [])]) ? 'policy' : 'low'),
     setIssueLabels: (i: SetIssueLabelsInput) =>
       build(hostname, 'PUT', `projects/${proj(i.project)}/issues/${i.iid}`, [
         ...optional('add_labels', i.add?.length ? i.add.join(',') : undefined),
