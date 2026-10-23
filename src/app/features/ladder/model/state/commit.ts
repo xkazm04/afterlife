@@ -54,7 +54,11 @@ export function commitChanges(classes: readonly ClassRow[], ledger: readonly Led
   return {
     classes: classes.map((c) => {
       const down = to.get(c.id);
-      return down ? { ...lowered(c, down), lease_days: null, lastMove: `revoked by you · ${t}`, pending, simRead: undefined } : c;
+      if (!down) return c;
+      // the receipt was of the record this commit replaced: kept, a revoke with no commit id read back would show it as its own
+      const { receipt: _replaced, ...rest } = lowered(c, down);
+      void _replaced;
+      return { ...rest, lease_days: null, lastMove: `revoked by you · ${t}`, pending, simRead: undefined };
     }),
     ledger: [
       ...ledger,
