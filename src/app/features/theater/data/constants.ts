@@ -1,5 +1,6 @@
 // The prototype's invented constants for the Theater, as typed data (no logic).
 import type { Ceiling } from '@/schemas';
+import { MAX_TAKES } from '../model/film/fromLedger';
 import type { Actor, CheckId, NeedItem, Take } from '../model/types';
 
 /** Who is speaking, as the caption and inspector name them. */
@@ -91,8 +92,11 @@ export const PREROLL_MS = 2000;
 export const PREROLL_REDUCED_MS = 1000;
 
 /** Keys, behind the "?" in the status bar. The legend does not know the motion setting, so Roll names both pre-rolls. */
-export const KEYS: readonly (readonly [string, string])[] = [
-  ['1–8', 'Cue a take'],
+export const cueKeys = (takes: number): string => (takes > 1 ? `1–${Math.min(MAX_TAKES, takes)}` : '1');
+
+/** The legend for a film of `takes` takes: only the cue keys it binds (useTheaterKeys binds min(MAX_TAKES, takes)). */
+export const keysFor = (takes: number): readonly (readonly [string, string])[] => [
+  [cueKeys(takes), 'Cue a take'],
   ['R', `Roll: ${PREROLL_MS / 1000} s pre-roll (${PREROLL_REDUCED_MS / 1000} s with reduced motion), play to out`],
   ['L', 'Loop the take'],
   ['I / O', 'Mark in / out at this seq'],
@@ -102,3 +106,5 @@ export const KEYS: readonly (readonly [string, string])[] = [
   ['F', 'Present · Esc returns'],
   ['⌘I', 'Inspector'],
 ];
+
+export const KEYS = keysFor(MAX_TAKES);

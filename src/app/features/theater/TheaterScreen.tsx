@@ -67,7 +67,7 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
         <Window
           title="Theater"
           subtitle={subtitle}
-          toolbar={<Transport playing={v.playing} loop={v.loop} readout={readout} actions={actions} onPresent={() => present.set(true)} reduced={reduced} />}
+          toolbar={<Transport playing={v.playing} loop={v.loop} readout={readout} actions={actions} onPresent={() => present.set(true)} reduced={reduced} takes={film.takes.length} />}
           sidebar={<TakesSidebar takes={film.takes} take={v.take} counts={v.counts} range={range} marked={v.mark !== null} actions={actions} />}
           inspector={<BeatInspector snap={snap} film={film} demo={demo} onSeek={actions.seek} />}
           status={
