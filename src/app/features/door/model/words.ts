@@ -23,10 +23,11 @@ export function lastGoodPoll(p: FleetProject): string | null {
   return a ? `last good poll ${a}` : null;
 }
 
+/** Why and how old, after a "stale · " the caller already wrote: so no "feed stale" again when the feed gave no error. */
 export function staleText(p: FleetProject): string {
-  const e = p.feed.error || 'feed stale';
+  const e = p.feed.error;
   const last = lastGoodPoll(p);
-  return last ? `${e} · ${last}` : e;
+  return e && last ? `${e} · ${last}` : (e || last || 'no error recorded');
 }
 
 const waits = (n: number): string => `${n} ${plural(n, 'decision')} wait${n === 1 ? 's' : ''}`;

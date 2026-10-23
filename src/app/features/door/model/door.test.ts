@@ -133,11 +133,15 @@ describe('the stale feed says the same thing in the readout and on the tower', (
   const cases: [string | undefined, string, string[]][] = [
     ['project token expired', 'project token expired · last good poll 47 min ago', ['feed stale', 'project token expired', 'last good poll 47 min ago']],
     ['rate limited · 3 min ago', 'rate limited · 3 min ago', ['feed stale', 'rate limited', '3 min ago']],
-    [undefined, 'feed stale · last good poll 47 min ago', ['feed stale', 'last good poll 47 min ago']],
+    [undefined, 'last good poll 47 min ago', ['feed stale', 'last good poll 47 min ago']],
   ];
   it.each(cases)('error %j', (error, text, lines) => {
     expect(staleText(withFeed(error))).toBe(text);
     expect(cutawayOf(withFeed(error), fleet.classes, []).tag.lines).toEqual(lines);
+  });
+  it('never says stale twice: "stale · last good poll", not "stale · feed stale · ..."', () => {
+    expect(projectLine(withFeed(undefined))[0]![0]).toBe('stale · last good poll 47 min ago');
+    expect(staleText({ ...withFeed(undefined), feed: { ageSec: null, ok: false } })).toBe('no error recorded');
   });
 });
 
