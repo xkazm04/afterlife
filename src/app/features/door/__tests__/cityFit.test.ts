@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { demoSource } from '@/server/data/demoSource';
-import { HOME, type Cam } from './camera';
-import { districtsOf } from './city';
+import { HOME, homeOf, type Cam } from '../model/camera';
+import { districtsOf } from '../model/city';
 
 const fleet = demoSource.getFleet();
 const seed = fleet.projects.find((p) => p.state === 'watching')!;
@@ -20,8 +20,11 @@ describe('the whole city fits the stage at L0', () => {
   it('keeps the demo where it is', () => {
     const ds = districtsOf(fleet.groups, fleet.projects);
     expect(leftOnStage(ds, HOME)).toBeGreaterThanOrEqual(278);
+    expect(homeOf(ds)).toBe(HOME);
   });
-  it.fails.each([[7, 50], [7, 100], [10, 26]])('a %i x %i fleet clears the answer column', (g, per) => {
-    expect(leftOnStage(synth(g, per), HOME)).toBeGreaterThanOrEqual(278);
+  it.each([[7, 50], [7, 100], [10, 26]])('a %i x %i fleet clears the answer column', (g, per) => {
+    const ds = synth(g, per);
+    expect(homeOf(ds).k).toBeLessThan(1);
+    expect(leftOnStage(ds, homeOf(ds))).toBeGreaterThanOrEqual(278);
   });
 });

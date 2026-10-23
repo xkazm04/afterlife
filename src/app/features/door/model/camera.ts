@@ -12,6 +12,17 @@ export interface Cam {
 
 export const HOME: Cam = { cx: 800, cy: 500, X: 800, Y: 500, k: 1 };
 
+/** The city's right edge (districtsOf right-aligns the front row here) and the least room its left edge keeps for the answer column. */
+const CITY_RIGHT = 1562;
+export const CITY_LEFT_MIN = 278;
+
+/** The L0 camera: HOME while the city fits, else zoomed out about the right edge until its left plate corner clears the answer column. */
+export function homeOf(ds: readonly District[]): Cam {
+  const left = Math.min(Infinity, ...ds.map((d) => d.L[0]));
+  if (!(left < CITY_LEFT_MIN)) return HOME;
+  return { cx: CITY_RIGHT, cy: 500, X: CITY_RIGHT, Y: 500, k: (CITY_RIGHT - CITY_LEFT_MIN) / (CITY_RIGHT - left) };
+}
+
 /** Frame one district on the left two-thirds, leaving the rail its room on the right. */
 export function frameDistrict(d: District): Cam {
   let minY = Infinity;
