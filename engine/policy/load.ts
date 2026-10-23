@@ -58,7 +58,8 @@ export function parsePolicy(raw: unknown): EnginePolicy {
   strList(handsOff.environments, 'envelope.hands_off.environments');
   const req = (p.envelope as Record<string, unknown>).production_requires_proof;
   if (req !== undefined) strList(req, 'envelope.production_requires_proof');
-  num(p.cooldown_days, 'trust-policy.cooldown_days');
+  // a negative cooldown stamps cooldown_until before the demotion's own day: the hold on re-promotion is off
+  if (num(p.cooldown_days, 'trust-policy.cooldown_days') < 0) throw new EngineError('trust-policy.cooldown_days must be 0 or more');
   if (p.rerun_stats !== undefined) rerunThresholds(p.rerun_stats);
   return p as unknown as EnginePolicy;
 }

@@ -48,3 +48,10 @@ describe('parsePolicy: rerun_stats thresholds', () => {
     expect(() => parsePolicy(base({ rerun_stats: 5 }))).toThrow(/rerun_stats must be an object/);
   });
 });
+
+describe('parsePolicy: cooldown_days', () => {
+  it('refuses a negative cooldown: the tripwire would stamp a cooldown_until that ended before the demotion', () => {
+    expect(() => parsePolicy(base({ cooldown_days: -7 }))).toThrow(/cooldown_days must be 0 or more/);
+    for (const d of [0, 7, 0.5]) expect(() => parsePolicy(base({ cooldown_days: d })), String(d)).not.toThrow();
+  });
+});
