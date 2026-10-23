@@ -16,6 +16,8 @@ export function ClassMenuButton({ tasks, value, onChange }: { tasks: readonly Ta
     ...PROOF_CLASSES.map((c) => ({ label: c, checked: value === c, sc: String(classCount(tasks, c)), run: () => onChange(c) })),
   ];
   const menu = useMenu();
+  // useMenu's reopen guard covers a mouse press on the trigger; a click with no press before it (assistive tech,
+  // voice control) reaches this onClick with the menu still open, and only the isOpen branch closes it there.
   return (
     <>
       <PopupButton
