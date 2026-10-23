@@ -10,7 +10,7 @@ export interface RepollResult {
 
 /** What a re-poll says: "Re-polled <name>" only when the poll succeeded, else that it failed and why. */
 export const repollMessage = (name: string, r: { ok: true } | { ok: false; reason: string }): string =>
-  r.ok ? `Re-polled ${name}` : `Re-poll failed · ${name} · ${r.reason}`;
+  r.ok ? `Re-polled ${name}` : `Re-poll failed · ${name} · ${r.reason || 'no answer'}`;
 
 /**
  * Demo mode's re-poll, simulated in the browser: it only succeeds on a watched project whose feed is healthy, which then
@@ -18,7 +18,7 @@ export const repollMessage = (name: string, r: { ok: true } | { ok: false; reaso
  */
 export function repoll(p: FleetProject): RepollResult {
   if (p.state === 'not-set-up') return { ok: false, message: `${p.name}: not watched, nothing to poll`, project: p };
-  if (!p.feed.ok) return { ok: false, message: repollMessage(p.name, { ok: false, reason: p.feed.error ?? 'no answer' }), project: p };
+  if (!p.feed.ok) return { ok: false, message: repollMessage(p.name, { ok: false, reason: p.feed.error ?? '' }), project: p };
   return { ok: true, message: repollMessage(p.name, { ok: true }), project: { ...p, feed: { ...p.feed, ageSec: 0 } } };
 }
 

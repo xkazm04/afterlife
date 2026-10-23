@@ -15,6 +15,10 @@ describe('repoll', () => {
     expect(r.project.feed.ageSec).toBe(2400);
     expect(r.message).toBe('Re-poll failed · a · 401');
   });
+  it('never ends the failure line on an empty reason (a stored error of "")', () => {
+    expect(repoll(makeProject({ id: 'a', state: 'stale', feed: { ageSec: 60, ok: false, error: '' } })).message).toBe('Re-poll failed · a · no answer');
+    expect(repollMessage('a', { ok: false, reason: '' })).toBe('Re-poll failed · a · no answer'); // live: an Error('') from the action
+  });
   it('has nothing to poll on an unwatched project', () => {
     expect(repoll(makeProject({ id: 'a', state: 'not-set-up' })).message).toBe('a: not watched, nothing to poll');
   });
