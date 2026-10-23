@@ -11,8 +11,11 @@ export function ConnectionSection() {
   const gl = readConfig(process.env);
   const live = data.mode === 'live';
   const fake = live && data.gitlab === 'fake';
+  // Any value but `live` serves the demo (the hosted replay sets `replay`); only an unset variable is "the default".
+  const set = process.env.BELAY_MODE;
+  const mode = live ? 'live (BELAY_MODE=live)' : set ? `demo (BELAY_MODE=${set} is not live)` : 'demo (the default)';
   const rows: [string, ReactNode][] = [
-    ['Mode', live ? 'live (BELAY_MODE=live)' : 'demo (the default)'],
+    ['Mode', mode],
     ['GitLab', !live ? 'not used in demo' : fake ? 'seeded fake, not a real group' : 'real, through the glab login'],
     ['Host', !live || fake ? 'none' : (gl.host ?? 'gitlab.com')],
     ['Group id', !live || fake ? 'none' : gl.groupId],
