@@ -56,4 +56,13 @@ describe('the arm round trip', () => {
     verify.verifyArmAction.mockRejectedValueOnce(new Error('fetch failed'));
     expect(await checkArm('ledgerline', 'T4', true)).toEqual({ status: 'refused', reason: 'fetch failed' });
   });
+
+  it('words a server action that threw one way: its message, or that the server did not answer', async () => {
+    verify.verifyArmAction.mockRejectedValueOnce(new Error('glab is gone'));
+    expect(await checkArm('ledgerline', 'T4', false)).toEqual({ status: 'refused', reason: 'glab is gone' });
+    verify.verifyArmAction.mockRejectedValueOnce('boom');
+    expect(await checkArm('ledgerline', 'T4', false)).toEqual({ status: 'refused', reason: 'the server did not answer' });
+    actions.previewAction.mockRejectedValueOnce(undefined);
+    expect(await askArm('ledgerline', 'T4', false)).toEqual({ kind: 'refused', reason: 'the server did not answer' });
+  });
 });

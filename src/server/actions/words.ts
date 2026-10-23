@@ -15,8 +15,11 @@ export function viewOf(r: ActionResponse): WriteView {
   return { kind: 'refused', reason: r.status === 'refused' ? r.reason : `the server answered ${r.status} to a preview` };
 }
 
+/** Why a server action that threw has no answer: its message, or that the server did not answer. The one wording of it. */
+export const reasonOf = (e: unknown): string => (e instanceof Error ? e.message : 'the server did not answer');
+
 /** The answer when the server could not be reached at all for a preview. */
-export const unreachable = (e: unknown): WriteView => ({ kind: 'refused', reason: e instanceof Error ? e.message : 'the server did not answer' });
+export const unreachable = (e: unknown): WriteView => ({ kind: 'refused', reason: reasonOf(e) });
 
 /** A confirm that got no answer: nobody knows whether the write ran. */
 export const NO_ANSWER = 'No answer from the server: the write may or may not have run. Check GitLab before sending it again.';

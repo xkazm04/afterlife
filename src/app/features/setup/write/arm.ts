@@ -6,7 +6,7 @@ import { confirmAction, previewAction } from '@/server/actions/actions';
 import type { ArmCheck } from '@/server/actions/arm/read';
 import { verifyArmAction } from '@/server/actions/arm/verifyAction';
 import type { ActionResponse, ArmTrack, DisarmTrack } from '@/server/actions/types';
-import { unreachable, viewOf, type WriteView } from '@/server/actions/words';
+import { reasonOf, unreachable, viewOf, type WriteView } from '@/server/actions/words';
 
 export type { WriteView } from '@/server/actions/words';
 
@@ -29,5 +29,5 @@ export async function sendArm(project: string, id: string, revert: boolean, view
 
 /** Verify: what the default branch holds now. A server that does not answer is a refusal, never an armed track. */
 export function checkArm(project: string, id: string, revert: boolean): Promise<ArmCheck> {
-  return verifyArmAction(armIntent(project, id, revert)).catch((e: unknown) => ({ status: 'refused' as const, reason: e instanceof Error ? e.message : 'the server did not answer' }));
+  return verifyArmAction(armIntent(project, id, revert)).catch((e: unknown) => ({ status: 'refused' as const, reason: reasonOf(e) }));
 }
