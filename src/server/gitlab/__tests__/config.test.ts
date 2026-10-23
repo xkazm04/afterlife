@@ -13,6 +13,14 @@ describe('config', () => {
       glab: 'C:\\x\\glab.exe', host: 'git.example.com', groupId: '7',
     });
   });
+
+  it('BELAY_GITLAB_HOST pasted as a URL is read as the hostname glab --hostname and https://<host>/ expect', () => {
+    for (const raw of ['https://git.example.com', 'https://git.example.com/', ' git.example.com ', 'http://git.example.com/']) {
+      expect(readConfig({ BELAY_GITLAB_HOST: raw }).host, raw).toBe('git.example.com');
+    }
+    expect(readConfig({ BELAY_GITLAB_HOST: 'https://git.example.com:8443/' }).host).toBe('git.example.com:8443');
+    expect(readConfig({ BELAY_GITLAB_HOST: ' / ' }).host).toBeUndefined();
+  });
 });
 
 describe('resolveGlabBin', () => {

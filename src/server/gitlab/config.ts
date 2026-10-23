@@ -15,10 +15,14 @@ export interface GitLabConfig {
 
 export const DEFAULT_GROUP_ID = '144060371';
 
+/** A host pasted as a URL ("https://git.example.com/") is its hostname: glab --hostname and every https://<host>/ want that. */
+const hostOf = (raw: string | undefined): string | undefined =>
+  (raw ?? '').trim().replace(/^[a-z][a-z0-9+.-]*:\/\//i, '').replace(/\/+$/, '') || undefined;
+
 export function readConfig(env: Record<string, string | undefined> = process.env): GitLabConfig {
   return {
     glab: env.BELAY_GLAB || undefined,
-    host: env.BELAY_GITLAB_HOST || undefined,
+    host: hostOf(env.BELAY_GITLAB_HOST),
     groupId: env.BELAY_GROUP_ID || DEFAULT_GROUP_ID,
   };
 }
