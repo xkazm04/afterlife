@@ -1,6 +1,6 @@
 'use client';
 
-import type { KeyboardEventHandler, MouseEvent, Ref } from 'react';
+import { Fragment, type KeyboardEventHandler, type MouseEvent, type ReactNode, type Ref } from 'react';
 import { Kbd } from '@/components/controls/Kbd';
 import { Cell } from '@/components/table/Cell';
 import { GroupRow } from '@/components/table/GroupRow';
@@ -11,6 +11,7 @@ import { minWidth, px } from '@/components/table/model/columns';
 import { rowDomId } from '@/components/table/model/rowNavigation';
 import { GateSeenLine } from '@/components/status/GateSeenLine';
 import { DEMO_NOW } from '@/lib/demo/clock';
+import { ALL_SOURCE, type Criteria } from '../../model/view/filters';
 import type { GroupView } from '../../model/view/rows';
 import type { ClassRow, LadderSort, SortKey, TrackMap } from '../../model/types';
 import type { Promotion } from '@/lib/promotion';
@@ -36,6 +37,15 @@ const HEADERS: readonly { key: SortKey | null; label: string; align?: 'end' | 'c
   { key: 'move', label: 'Last move' },
 ];
 
+/** The way out of each criterion that is set: Esc for the search, 0 for the tier filter, the sidebar for a source. */
+function waysOut(c: Criteria): ReactNode[] {
+  const out: ReactNode[] = [];
+  if (c.q.trim()) out.push(<Fragment key="q"><Kbd>Esc</Kbd> clears the search</Fragment>);
+  if (c.filt) out.push(<Fragment key="filt"><Kbd>0</Kbd> clears the tier filter</Fragment>);
+  if (c.src !== ALL_SOURCE) out.push('pick All classes in the sidebar');
+  return out;
+}
+
 // A group row has its label in the Class column, then one cell under each other column (the headers after Class, and the
 // action column's): both counts follow HEADERS. The freshest gate of its track sits under Last move.
 const EMPTY_AFTER_NAME = HEADERS.length;
@@ -52,7 +62,8 @@ export interface ClassTableProps extends Omit<LineHandlers, 'onMenu'> {
   promotionOf: (c: ClassRow) => Promotion;
   /** trust-policy.yml as the server read it: the lease and the no-edit bar the record cells are read against. */
   policy: PolicyRules | null;
-  empty: boolean;
+  /** The criteria that left no class on screen, or null while one shows: the empty note names only their ways out. */
+  empty: Criteria | null;
   /** Live mode (demo: the gate last seen is the demo's, read against its own clock and marked demo). */
   live: boolean;
   menuing: boolean;
@@ -93,7 +104,10 @@ export function ClassTable(p: ClassTableProps) {
     >
       {p.empty ? (
         <div className={styles.empty}>
-          No class matches the current filters · <Kbd>0</Kbd> clears the tier filter · pick All classes in the sidebar
+          No class matches the current filters
+          {waysOut(p.empty).map((w, i) => (
+            <Fragment key={i}> · {w}</Fragment>
+          ))}
         </div>
       ) : (
         p.groups.map((g) => (

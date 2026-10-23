@@ -14,7 +14,7 @@ const none = () => undefined;
 const html = renderToStaticMarkup(
   <ClassTable
     groups={[group]} grouped tracks={{ T1: { name: 'Dependencies', key: 'deps' } } as never} sort={{ key: 'name', dir: 1 }} onSort={none} sel={null} just={null}
-    promotionOf={() => ({ kind: 'never' })} policy={null} empty={false} live={false} menuing={false} onSelect={none} onActivate={none} onRevoke={none}
+    promotionOf={() => ({ kind: 'never' })} policy={null} empty={null} live={false} menuing={false} onSelect={none} onActivate={none} onRevoke={none}
     onTargets={none} onPromote={none} onToggleGroup={none} onRowMenu={none} onGroupMenu={none} onKeyDown={none} tableRef={null}
   />,
 );
@@ -31,5 +31,26 @@ describe('the group row under the header', () => {
   it('shows the freshest gate under "Last move"', () => {
     const at = cells.findIndex((c) => c.includes('Gate last seen !41'));
     expect(headers[at]).toBe('Last move');
+  });
+});
+
+describe('the empty table names only the filters that emptied it', () => {
+  const empty = (crit: { src: string; filt: 'supervised' | null; q: string }) =>
+    renderToStaticMarkup(
+      <ClassTable
+        groups={[]} grouped tracks={{} as never} sort={{ key: 'name', dir: 1 }} onSort={none} sel={null} just={null}
+        promotionOf={() => ({ kind: 'never' })} policy={null} empty={crit} live={false} menuing={false} onSelect={none} onActivate={none} onRevoke={none}
+        onTargets={none} onPromote={none} onToggleGroup={none} onRowMenu={none} onGroupMenu={none} onKeyDown={none} tableRef={null}
+      />,
+    ).replace(/<[^>]*>/g, '');
+  it('a search with no match says Esc clears it, not the tier filter or the sidebar', () => {
+    const out = empty({ src: 'all', filt: null, q: 'zzz' });
+    expect(out).toContain('Esc clears the search');
+    expect(out).not.toContain('tier filter');
+    expect(out).not.toContain('sidebar');
+  });
+  it('a tier filter and a sidebar source each name their own way out', () => {
+    expect(empty({ src: 'quar', filt: 'supervised', q: '' })).toContain('0 clears the tier filter · pick All classes in the sidebar');
+    expect(empty({ src: 'all', filt: 'supervised', q: '' })).not.toContain('sidebar');
   });
 });

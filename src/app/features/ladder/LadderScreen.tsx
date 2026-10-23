@@ -164,7 +164,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           just={state.just}
           promotionOf={data.promotionOf}
           policy={policy}
-          empty={shown === 0}
+          empty={shown === 0 ? { src: state.src, filt: state.filt, q: state.q } : null}
           live={live}
           menuing={menus.isOpen}
           onSelect={actions.select}
