@@ -15,7 +15,8 @@ const id = (p: ProjectRef): string => encodeURIComponent(String(p));
 
 /**
  * Why argv is not the builders' grammar (`api [--hostname <host>] --method M <path> [-f k=v]...`), or null. Anything else
- * (-F reads @files, --input, a second path, another host that glab would hand GITLAB_TOKEN to) is never run.
+ * (-F reads @files, --input, a second path, a ../ that walks out of the resource, another host that glab would hand
+ * GITLAB_TOKEN to) is never run.
  */
 export function offGrammar(argv: readonly string[], host: string | undefined): string | null {
   if (argv[0] !== 'api') return 'only `glab api` commands may be executed';
@@ -26,6 +27,7 @@ export function offGrammar(argv: readonly string[], host: string | undefined): s
     else if (a === '--method' || a === '-f') { if (++i >= argv.length) return `${a} needs a value`; }
     else if (a.startsWith('-')) return `flag ${a} is not one the write builders use`;
     else if (++path > 1) return 'a write names one endpoint';
+    else if (/(^|\/)\.\.?(\/|$)|[?#]/.test(a)) return 'a write endpoint has no dot segment, query or fragment';
   }
   return path === 1 ? null : 'a write names one endpoint';
 }
