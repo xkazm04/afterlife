@@ -3,6 +3,7 @@
 // each write that is on screen by its preview id (sendGapMr). The answer is only what the response says. Pure apart from
 // those two calls, so it is tested with the actions mocked.
 import { NO_ANSWER, outcomeOf, type WriteView } from '@/server/actions/words';
+import type { ProposalExtra } from '../data/types';
 import type { MaturityCtx } from '../model/ctx';
 import { sheetIds, type GapAnswer, type SendPhase } from '../model/flow/send';
 import type { MaturityState } from '../model/state';
@@ -13,6 +14,8 @@ export type { GapAnswer };
 export interface SheetRow {
   id: string;
   title: string;
+  /** The proposal's own tier (null for the read-only probe). */
+  tier: ProposalExtra['tier'];
   send: GapSend;
   /** The server's preview of the write, or why there is none; absent while it is asked for. */
   view?: WriteView;
@@ -27,7 +30,7 @@ export function sheetRows(s: MaturityState, ctx: MaturityCtx, project: string, m
     const g = ctx.gap(id);
     const slot = s.send[id];
     if (!g) return [];
-    return [{ id, title: g.title, send: gapSend(project, g, mode), ...(slot?.view ? { view: slot.view } : {}), ...(slot?.answer ? { answer: slot.answer } : {}), ...(slot ? { phase: slot.phase } : {}) }];
+    return [{ id, title: g.title, tier: g.x.tier, send: gapSend(project, g, mode), ...(slot?.view ? { view: slot.view } : {}), ...(slot?.answer ? { answer: slot.answer } : {}), ...(slot ? { phase: slot.phase } : {}) }];
   });
 }
 

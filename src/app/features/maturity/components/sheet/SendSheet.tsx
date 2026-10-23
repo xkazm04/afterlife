@@ -67,7 +67,7 @@ export function SendSheet({ api, onClose }: { api: GapSheetApi; onClose: () => v
           <div className={styles.head}>
             <span className={styles.id}>{row.id}</span>
             <span className={styles.title}>{row.title}</span>
-            {row.send.ok ? <TierChip tier="assisted" /> : <span className={styles.ro}>not sent</span>}
+            {row.send.ok && row.tier ? <TierChip tier={row.tier} /> : <span className={styles.ro}>not sent</span>}
           </div>
           {row.answer?.status === 'done' ? null : <Write row={row} onRetry={retry} />}
           {row.answer ? (

@@ -9,6 +9,7 @@ import { SendSheet } from './SendSheet';
 const row = (id: string, done: boolean): SheetRow => ({
   id,
   title: `gap ${id}`,
+  tier: 'assisted',
   send: { ok: false, reason: 'not sent in this test' },
   ...(done ? { answer: { status: 'done' as const, text: `opened ${id}` } } : {}),
 });
@@ -32,5 +33,15 @@ describe('SendSheet title', () => {
   });
   it('says there is nothing to send when nothing is ready or done', () => {
     expect(titleOf([row('g1', false)], 0)).toBe('Nothing to send yet');
+  });
+});
+
+describe('SendSheet tier chip', () => {
+  it('reads the row tier, not a literal', () => {
+    const r: SheetRow = { id: 'g1', title: 'gap g1', tier: 'supervised' as 'assisted', send: { ok: true, intent: {} as never } };
+    const api: GapSheetApi = { rows: [r], ready: 0, sending: false, send: () => {}, retry: () => {} };
+    const html = renderToStaticMarkup(createElement(SendSheet, { api, onClose: () => {} }));
+    expect(html).toContain('Supervised');
+    expect(html).not.toContain('Assisted');
   });
 });

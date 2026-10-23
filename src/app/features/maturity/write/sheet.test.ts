@@ -24,7 +24,7 @@ const preview = (id: string): ActionPreview => ({
 const row = (id: string): SheetRow => {
   const p = DEMO.maturity.proposals.find((x) => x.id === id);
   if (!p) throw new Error(id);
-  return { id, title: p.title, send: gapSend('ledgerline', p, 'demo') };
+  return { id, title: p.title, tier: ctx.gap(id)?.x.tier ?? null, send: gapSend('ledgerline', p, 'demo') };
 };
 const withView = (r: SheetRow): SheetRow => ({ ...r, view: { kind: 'preview', preview: preview(r.id) } });
 

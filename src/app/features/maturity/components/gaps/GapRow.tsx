@@ -66,7 +66,7 @@ export function GapRow({
         <DemoChip on={live} what="This gap's invitation and files" />
       </div>
       <div className={styles.cell} role="cell">
-        {mr ? <TierChip tier="assisted" /> : <span className={styles.ro}>probe · read only</span>}
+        {!mr ? <span className={styles.ro}>probe · read only</span> : gap.x.tier ? <TierChip tier={gap.x.tier} /> : <span className={styles.none}>—</span>}
       </div>
       <div className={cx(styles.cell, styles.ln)} role="cell">
         {mr ? `+${gap.diffLines}` : <span className={styles.none}>—</span>}
