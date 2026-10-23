@@ -27,7 +27,7 @@ export function cappedCell(cell: ClassCell, ceiling: Ceiling, now: Date): ClassC
 function projectRow(p: FleetProject, ord: number, now: Date): ProjectRow {
   return {
     id: p.id, gitlabId: null, name: p.name, what: p.what, groupPath: p.group, state: p.state,
-    setupStep: p.setupStep ?? null, ord, armed: p.armed, proofs7d: p.proofs7d, demotions7d: p.demotions7d,
+    setupStep: p.setupStep ?? null, ord, armed: p.armed, webUrl: p.webUrl ?? null, proofs7d: p.proofs7d, demotions7d: p.demotions7d,
     needsYou: p.needsYou, craOpen: p.craOpen, envStaging: p.env?.staging ?? null, envProduction: p.env?.production ?? null,
     last: p.last ? { at: onDayAt(now, p.last.at), track: p.last.track, text: p.last.text } : null,
   };

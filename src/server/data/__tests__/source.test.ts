@@ -73,7 +73,7 @@ describe('a live snapshot of an index that knows little', () => {
   it('what the index cannot give is shown as the most restrictive reading, and an unclassified task is not listed', async () => {
     const db = await memoryIndex();
     await upsertGroups(db, ['g']);
-    await upsertProjects(db, [{ id: 'ledgerline', gitlabId: 1, name: 'ledgerline', what: '', groupPath: 'g', state: 'watching', setupStep: null, ord: 0, armed: 0, proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null }]);
+    await upsertProjects(db, [{ id: 'ledgerline', gitlabId: 1, name: 'ledgerline', what: '', groupPath: 'g', state: 'watching', setupStep: null, ord: 0, armed: 0, webUrl: null, proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null }]);
     await upsertTrustClasses(db, [{ id: 'a', ord: 0, track: 1, agent: 'patcher', ceiling: 'hands_off' }]);
     await upsertClassTiers(db, [{ projectId: 'ledgerline', classId: 'a', tier: null, since: null, setBy: null, leaseExpires: null, record: null, move: null }]);
     const task = (id: string, cls: string | null, tier: 'hands_off' | null) => ({

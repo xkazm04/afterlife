@@ -11,7 +11,10 @@ export interface ProjectRow {
   setupStep: string | null;
   /** Listing order from the importer; null sorts last. */
   ord: number | null;
-  armed: number;
+  /** Distinct tracks armed in the default branch's .gitlab-ci.yml. null: not read (never zero). */
+  armed: number | null;
+  /** The project's GitLab page. null: not read (a seeded project, a project no poll reached yet). */
+  webUrl: string | null;
   /** null: unknown, never zero. */
   proofs7d: ProofCounts | null;
   demotions7d: number | null;
@@ -29,14 +32,14 @@ const SPEC: TableSpec = {
     id: 'text', gitlab_id: 'int', name: 'text', what: 'text', group_path: 'text', state: 'text', setup_step: 'text',
     ord: 'int', armed: 'int', proofs_pass_7d: 'int', proofs_fail_7d: 'int', proofs_inconclusive_7d: 'int',
     demotions_7d: 'int', needs_you: 'int', cra_open: 'int', env_staging: 'text', env_production: 'text',
-    last_at: 'timestamptz', last_track: 'text', last_text: 'text',
+    last_at: 'timestamptz', last_track: 'text', last_text: 'text', web_url: 'text',
   },
 };
 registerSpec(SPEC);
 
 interface Db {
   id: string; gitlab_id: number | null; name: string; what: string; group_path: string; state: ProjectState;
-  setup_step: string | null; ord: number | null; armed: number;
+  setup_step: string | null; ord: number | null; armed: number | null; web_url: string | null;
   proofs_pass_7d: number | null; proofs_fail_7d: number | null; proofs_inconclusive_7d: number | null;
   demotions_7d: number | null; needs_you: number; cra_open: number;
   env_staging: string | null; env_production: string | null;
@@ -45,7 +48,7 @@ interface Db {
 
 const toDb = (p: ProjectRow): Record<string, unknown> => ({
   id: p.id, gitlab_id: p.gitlabId, name: p.name, what: p.what, group_path: p.groupPath, state: p.state,
-  setup_step: p.setupStep, ord: p.ord, armed: p.armed,
+  setup_step: p.setupStep, ord: p.ord, armed: p.armed, web_url: p.webUrl,
   proofs_pass_7d: p.proofs7d?.pass ?? null, proofs_fail_7d: p.proofs7d?.fail ?? null,
   proofs_inconclusive_7d: p.proofs7d?.inconclusive ?? null,
   demotions_7d: p.demotions7d, needs_you: p.needsYou, cra_open: p.craOpen,
@@ -55,7 +58,7 @@ const toDb = (p: ProjectRow): Record<string, unknown> => ({
 
 const fromDb = (r: Db): ProjectRow => ({
   id: r.id, gitlabId: r.gitlab_id, name: r.name, what: r.what, groupPath: r.group_path, state: r.state,
-  setupStep: r.setup_step, ord: r.ord, armed: r.armed,
+  setupStep: r.setup_step, ord: r.ord, armed: r.armed, webUrl: r.web_url,
   proofs7d:
     r.proofs_pass_7d === null || r.proofs_fail_7d === null || r.proofs_inconclusive_7d === null
       ? null

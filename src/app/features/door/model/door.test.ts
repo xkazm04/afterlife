@@ -8,7 +8,7 @@ import { COUNT_END } from '../hooks/useCountUp';
 import { INTRO_MS } from '../hooks/useDoor';
 import { HOME, cityTransform, frameDistrict, groundTransform } from './camera';
 import { groundOf } from './ground';
-import { districtsOf, paintOrder } from './city';
+import { districtsOf, paintOrder, towerH, UNKNOWN_H } from './city';
 import { beamsOf, districtGlows, towerShape } from './shapes';
 import { activeMark, dimSet, escapeStep, redSet, toggleLock } from './filter';
 import { cutawayOf } from './cutaway';
@@ -43,6 +43,13 @@ describe('the city', () => {
     expect(s.faces).toBeDefined();
     const ghost = ds.flatMap((d) => d.placed).find((x) => x.p.state === 'not-set-up')!;
     expect(towerShape(ghost, fleet.classes).kind).toBe('nsu');
+  });
+  it('a tower whose armed tracks were not read stands at the unknown height, dashed, never the bare zero tower', () => {
+    const t = ds[0]!.placed.find((x) => x.p.state === 'watching')!;
+    const unread = { ...t, p: { ...t.p, armed: null }, h: towerH({ ...t.p, armed: null }) };
+    expect([unread.h, towerH({ ...t.p, armed: 0 })]).toEqual([UNKNOWN_H, 11]);
+    expect(towerShape(unread, fleet.classes).heightUnknown).toBe(true);
+    expect(towerShape(t, fleet.classes).heightUnknown).toBeUndefined();
   });
   it('builds the ground as a handful of paths, the same every time', () => {
     const a = groundOf();

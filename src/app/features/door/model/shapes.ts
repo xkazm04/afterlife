@@ -44,6 +44,8 @@ export interface TowerShape {
   ghost?: string;
   /** Quarantined lamps on the right face: tripwire quarantines only, none while the tiers are unknown. */
   lamps: Pt[];
+  /** Its armed tracks were not read: the height is UNKNOWN_H, not a count, and the outline is drawn dashed. */
+  heightUnknown?: boolean;
 }
 
 /** One tower, drawn around its own footprint centre (0, 0); the caller translates it. */
@@ -96,6 +98,7 @@ export function towerShape(t: Placed, classes: readonly string[]): TowerShape {
     halo: stale ? undefined : pathD([L, Lh, Th, Rh, R, B], true),
     edge: `${pathD([L, Lh, Th, Rh, R, B], true)} ${pathD([B, Bh])} ${pathD([Lh, Bh, Rh])}`,
     lamps,
+    ...(p.armed === null ? { heightUnknown: true } : {}),
   };
 }
 

@@ -53,6 +53,7 @@ export async function getFleet(db: Queryable, now: Date = new Date()): Promise<F
       group: p.groupPath, classTiers,
       ...(Object.keys(holders).length ? { holders } : {}),
       ...(p.setupStep !== null ? { setupStep: p.setupStep } : {}),
+      ...(p.webUrl !== null ? { webUrl: p.webUrl } : {}), // absent as in the demo fixture: no address read
     };
   };
   return { classes: classIds, groups, projects: projects.map(toProject) };

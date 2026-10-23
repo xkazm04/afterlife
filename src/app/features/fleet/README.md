@@ -49,12 +49,14 @@ of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
 - Live mode: Re-poll calls the `repollAction` server action (`src/server/actions/repollAction.ts`), which runs one poll
   cycle of the live runtime (a read) and renders the route again from the fresh snapshot; the status bar says
   "Re-polled" only after that resolved, and says it failed otherwise. A decision's button opens Needs you instead of
-  resolving it here. The "polled N s ago" counter starts from the snapshot's age and never wraps. Demo text still shown
+  resolving it here. Open in GitLab is a link to the project's GitLab page (new tab, no opener) once a poll stored its
+  address (`webUrl`), and disabled with "the index stores no GitLab address yet" before. The "polled N s ago" counter starts from the snapshot's age and never wraps. Demo text still shown
   beside live rows (the deep project's tracks, its webhooks and unattributed count) carries a "demo" chip
   (`components/inspector/DemoChip.tsx`), as the data source's `illustrative` says.
 - Tiers: a class's tier is recorded in tier-state.yml, capped by the policy (group-wide, the gate's own rule; not
   a per-project score and not computed from proofs). A project's tiers are known when it has class cells
-  (`tiersKnown` in `src/lib/tiers.ts`), never from `armed`, which counts armed tracks; unknown tiers show an empty
+  (`tiersKnown` in `src/lib/tiers.ts`), never from `armed`, which counts armed tracks (null: the poll could not read
+  the CI file, said as unknown, never 0; `src/server/poller/ci/armed.ts`); unknown tiers show an empty
   cell, never 0. A class with no record yet ("–", No record yet) or split (several agents hold it: its most
   restrictive holder's letter then "÷", each holder at its own tier in the title, popover and project page, as CI gates
   each MR at its author's record) sits beside the Quarantined count, never in it, nor in the Has quarantine filter.

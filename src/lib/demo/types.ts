@@ -37,7 +37,8 @@ export interface Project {
   name: string;
   what: string;
   state: ProjectState;
-  armed: number;
+  /** Tracks armed, 0..8. null: not read, never zero. */
+  armed: number | null;
   tiers: TierCounts;
   /** null: unknown, never zero. */
   proofs7d: ProofCounts | null;
@@ -56,6 +57,8 @@ export interface FleetProject extends Project {
   /** Each class: its tier, 'no_record' / 'refused' when the gate grants none, null when unknown. */
   classTiers: Record<string, ClassCell>;
   setupStep?: string;
+  /** The project's GitLab page. Absent or null: no address read (the demo states none). */
+  webUrl?: string | null;
 }
 
 export interface TierInfo {

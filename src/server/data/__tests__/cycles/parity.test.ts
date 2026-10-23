@@ -24,10 +24,15 @@ const asProps = (v: unknown): unknown => JSON.parse(JSON.stringify(v)) as unknow
 /** The fixture spells "no last event" as null on six projects; the index view leaves the key out. Both draw nothing. */
 const noLast = (v: unknown): unknown => JSON.parse(JSON.stringify(v), (k: string, x: unknown) => (k === 'last' && x === null ? undefined : x)) as unknown;
 
-/** The deep project's needsYou excludes the seeded items live (../parity.test.ts lists it where live differs). */
+/**
+ * The deep project's needsYou excludes the seeded items live (../parity.test.ts lists it where live differs); its armed,
+ * last and webUrl are what the poll read (../live/projectFields.test.ts).
+ */
+const POLLED = new Set(['needsYou', 'armed', 'last', 'webUrl']);
 const noDeepNeeds = (v: unknown): unknown =>
   JSON.parse(JSON.stringify(v), function (this: Record<string, unknown>, k: string, x: unknown) {
-    return k === 'needsYou' && (this.id === 'ledgerline' || this.name === 'ledgerline') ? null : x;
+    if (!POLLED.has(k) || (this.id !== 'ledgerline' && this.name !== 'ledgerline')) return x;
+    return k === 'webUrl' ? undefined : null;
   }) as unknown;
 
 function both<T>(read: () => T): [T, T] {

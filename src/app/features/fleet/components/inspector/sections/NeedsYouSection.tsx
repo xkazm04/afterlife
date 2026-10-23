@@ -50,9 +50,10 @@ function Decision({
   );
 }
 
-/** One button the server decided: a link, disabled with its reason as the tooltip, or (demo only) a simulated flash. */
+/** One button the server decided: a link (out to GitLab in a new tab), disabled with its reason as the tooltip, or (demo only) a simulated flash. */
 function Action({ a, onFlash }: { a: ProjectAction; onFlash: (m: string) => void }) {
   if (a.kind === 'link') return <Button variant={a.variant} href={a.href}>{a.label}</Button>;
+  if (a.kind === 'external') return <Button variant={a.variant} href={a.href} target="_blank" rel="noopener noreferrer">{a.label}</Button>;
   if (a.kind === 'disabled') return <Button variant={a.variant} disabled title={a.reason}>{a.label}</Button>;
   return <Button variant={a.variant} onClick={() => onFlash(a.text)}>{a.label}</Button>;
 }

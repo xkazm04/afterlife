@@ -80,6 +80,17 @@ describe('beat grammar', () => {
     expect(p.unknown).toContain('M303.0');
     expect(p.qdips).not.toBe('');
   });
+  it('armed tracks not read: the unknown break for a watched beat, no ghost for a stale one, never a flat or guessed beat', () => {
+    const slots = slotsAlong(2, 200, 50, 30);
+    expect(amplitude(mk({ armed: null }), 30)).toBeNull();
+    const p = leadPaths([mk({ armed: null }), mk({ state: 'stale', armed: null })], slots);
+    expect([p.live, p.staleGhost]).toEqual(['', '']);
+    expect(p.unknown).toBe('M3.0 50.0 H97.0');
+    expect(p.ticks).not.toBe('');
+    expect(p.flat).toBe('M100.0 50.0 H200.0'); // stale stays flat: the feed, not the count, says so
+    expect(leadPaths([mk({ state: 'setting-up', armed: null })], slots).forming).not.toBe(''); // its height never read armed
+    expect(stateLine(mk({ state: 'setting-up', armed: null, setupStep: 'arm T4' }))).toBe('setting up · armed tracks not read · arm T4');
+  });
   it('caps the pips at six and draws none for an unwatched project', () => {
     expect(pipCount(mk({ needsYou: 9 }))).toBe(6);
     expect(pipCount(fleet[3]!)).toBe(0);

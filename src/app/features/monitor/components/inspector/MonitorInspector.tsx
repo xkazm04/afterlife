@@ -73,7 +73,7 @@ export function MonitorInspector(props: {
   const watched = p.state !== 'not-set-up';
   const cells = [
     { n: liveNeeds(p), label: pluralWord(liveNeeds(p), 'decision'), tone: 'you' as const },
-    { n: p.armed, label: 'of 8 tracks armed' },
+    ...(p.armed === null ? [] : [{ n: p.armed, label: 'of 8 tracks armed' }]), // not read: said in words below, never a 0
     ...(p.proofs7d ? [{ n: p.proofs7d.pass, label: 'proofs pass · 7 d', tone: 'ok' as const }, { n: p.proofs7d.fail, label: 'fail' }] : []),
   ];
   return (
@@ -84,6 +84,7 @@ export function MonitorInspector(props: {
         </div>
       </InspectorHeader>
       {watched ? <Stats cells={cells} /> : <div className={styles.muted}>Not watched: proofs, tiers and stages are unknown.</div>}
+      {watched && p.armed === null ? <div className={styles.muted}>Armed tracks not read: unknown, not zero.</div> : null}
       <Decisions p={p} isDeep={p.id === props.deepId} needs={props.needs} live={props.live} done={props.done} onResolve={props.onResolve} onFlash={props.onFlash} onRepoll={props.onRepoll} />
       {watched ? (
         <InspectorSection title="Signal" aux={<FeedAge ageSec={p.feed.ageSec} ok={p.feed.ok} error={p.feed.error} />}>

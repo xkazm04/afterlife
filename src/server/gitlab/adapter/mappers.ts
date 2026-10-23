@@ -28,7 +28,7 @@ export const mapInstance = (r: Rec): GlInstance => ({ version: str(r, 'version')
 export const mapProject = (r: Rec): GlProject => ({
   id: num(r, 'id'), name: str(r, 'name'), path: str(r, 'path'), pathWithNamespace: str(r, 'path_with_namespace'),
   defaultBranch: strN(r, 'default_branch'), webUrl: strOr(r, 'web_url', ''), visibility: strOr(r, 'visibility', ''),
-  archived: bool(r, 'archived'),
+  archived: bool(r, 'archived'), description: strN(r, 'description')?.trim() || null,
 });
 
 export const mapPipeline = (r: Rec): GlPipeline => ({

@@ -105,7 +105,7 @@ describe('views never invent what the index cannot know', () => {
     await empty.query(`insert into fleet_group (path, ord) values ('g', 0)`);
     await upsertProjects(empty, [{
       id: 'bare', gitlabId: null, name: 'bare', what: '', groupPath: 'g', state: 'not-set-up', setupStep: null, ord: 0,
-      armed: 0, proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null,
+      armed: 0, webUrl: null, proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null,
     }]);
     const [p] = (await getFleet(empty, SEED_NOW)).projects;
     expect(p).toMatchObject({ proofs7d: null, demotions7d: null, feed: { ageSec: null, ok: null }, stages: Array(9).fill(null) });

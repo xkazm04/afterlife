@@ -1,6 +1,6 @@
 // ledgerline's .gitlab-ci.yml in the demo group: the target pipeline of gitlab/examples/target-project, shortened, with T4
-// (guardrail) armed the way Setup's arm MR adds it (src/server/actions/arm), because the demo has T4 armed. Nothing in the
-// poller reads it; Setup's arm, disarm and verify plan against it.
+// (guardrail) armed the way Setup's arm MR adds it (src/server/actions/arm), because the demo has T4 armed. Setup's arm,
+// disarm and verify plan against it; the poller counts its markers (poller/ci/armed.ts: 1 armed, where the demo fixture states 8).
 import { GROUP_PATH } from './ids';
 
 export const LEDGERLINE_CI = `stages: [build, test, review, deploy]

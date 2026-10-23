@@ -62,10 +62,10 @@ function both<T>(read: () => T): [T, T] {
 
 describe('every screen loader gets the same data from the live source as from the demo source', () => {
   it('Fleet: 184 projects, groups, classes, tier counts, rungs, feed ages, the deep project’s page and the status-bar facts', () => {
-    // Listed below where live differs: the deep project's needsYou and needs (no seeded items) and its events. Its accepted
-    // counts for the tier card are class records (normalised as `record` is); its demo labels follow the mode. Nothing else.
+    // Where live differs (below, and ../live/projectFields.test.ts): the deep project's needsYou, needs, events, armed, last,
+    // webUrl. Its tier card's accepted counts are class records (normalised as `record` is); demo labels follow the mode.
     const page = (v = loadFleetProject('ledgerline')!.view, d = v.depth) => d.kind === 'deep' && { ...d, needs: null, events: null, feed: d.feed.rows, tracks: { ...d.tracks.deep, needs: null } };
-    const read = (f = loadFleetData()) => ({ ...f, projects: f.projects.map((x) => (x.id === 'ledgerline' ? { ...x, needsYou: 0 } : x)), records: null, page: page() });
+    const read = (f = loadFleetData()) => ({ ...f, projects: f.projects.map((x) => (x.id === 'ledgerline' ? { ...x, needsYou: 0, armed: null, last: null, webUrl: undefined } : x)), records: null, page: page() });
     const [d, l] = both(() => noRecords(read()));
     expect(noLast(l)).toEqual(noLast(d));
   });

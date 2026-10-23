@@ -18,8 +18,9 @@ export type EventView = DemoData['events'][number];
 /** As many as the demo's feed shows. */
 export const MAX_EVENTS = 10;
 
-export async function getEvents(db: Queryable, projectId: string): Promise<EventView[]> {
-  const [tasks, poll] = await Promise.all([listTasks(db, projectId), getPollState(db, projectSource(projectId))]);
+/** Every dated row of the project's tasks, unsorted. */
+async function taskEvents(db: Queryable, projectId: string): Promise<{ at: Date; row: EventView }[]> {
+  const tasks = await listTasks(db, projectId);
   const proofs = await listProofsFor(db, tasks.map((t) => t.id));
   const dated: { at: Date; row: EventView }[] = [];
   for (const t of tasks) {
@@ -31,6 +32,20 @@ export async function getEvents(db: Queryable, projectId: string): Promise<Event
     if (t.startedAt) dated.push({ at: t.startedAt, row: [clock(t.startedAt), track, `${mr} opened · ${t.title}${t.finishedAt ? '' : ` · ${standing}`}`] });
     if (t.finishedAt) dated.push({ at: t.finishedAt, row: [clock(t.finishedAt), track, `${mr} ${standing}`] });
   }
+  return dated;
+}
+
+/**
+ * The project's last event, as the Fleet row's `last` holds it: the newest task row (a task's finished_at, else its
+ * started_at), with its track and standing. null when no task is dated: the poll's own rows are not an event of the project.
+ */
+export async function getLastTaskEvent(db: Queryable, projectId: string): Promise<{ at: Date; track: string; text: string } | null> {
+  const newest = (await taskEvents(db, projectId)).reduce<{ at: Date; row: EventView } | null>((a, b) => (a && a.at > b.at ? a : b), null);
+  return newest ? { at: newest.at, track: newest.row[1], text: newest.row[2] } : null;
+}
+
+export async function getEvents(db: Queryable, projectId: string): Promise<EventView[]> {
+  const [dated, poll] = await Promise.all([taskEvents(db, projectId), getPollState(db, projectSource(projectId))]);
   if (poll?.lastOk) dated.push({ at: poll.lastOk, row: [clock(poll.lastOk), '—', 'polled · ok'] });
   dated.sort((a, b) => b.at.getTime() - a.at.getTime());
   const failed: EventView[] = poll?.lastError != null ? [['—', '—', `poll failed · ${poll.lastError}`]] : [];

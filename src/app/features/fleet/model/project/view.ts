@@ -1,6 +1,7 @@
 // One project's page, decided once on the server: how deep the data source reads it (the deep project: its decisions,
 // records, tasks, events and tracks; any other: what its fleet row says) and what its buttons do in this mode. The
-// sections only draw their slice. A button is a link, disabled with the reason, or (demo mode only) a simulated flash.
+// sections only draw their slice. A button is a link (in the app, or out to GitLab), disabled with the reason, or (demo
+// mode only) a simulated flash.
 import type { ActionClass, FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { feedRows, gitlabUrl, type FeedRow } from '../inspector';
 import type { DeepProject, FleetSource, FleetTask } from '../types';
@@ -9,6 +10,8 @@ export type FleetMode = FleetSource['mode'];
 
 export type ProjectAction = { label: string; variant?: 'primary' | 'accent' } & (
   | { kind: 'link'; href: string }
+  /** Out of the app (the project's GitLab page): opened in a new tab, without an opener. */
+  | { kind: 'external'; href: string }
   | { kind: 'disabled'; reason: string }
   | { kind: 'flash'; text: string }
 );
@@ -39,6 +42,8 @@ export interface ProjectView {
   /** portfolio/group/id */
   path: string;
   deepId: string;
+  /** The project's GitLab page, when the source read one (live, a polled project). */
+  webUrl: string | null;
   mode: FleetMode;
   depth: ProjectDepth;
   actions: ProjectAction[];
@@ -69,12 +74,12 @@ export function projectView(p: FleetProject, deep: DeepProject | null, ctx: Proj
         kind: 'summary', ...common, records: {}, tasks: { kind: 'elsewhere', deepId: ctx.deepId },
         events: { kind: 'last', row: p.last ? [p.last.at, p.last.track, p.last.text] : null },
       };
-  const core = { id: p.id, name: p.name, path: `${ctx.portfolio}/${p.group}/${p.id}`, deepId: ctx.deepId, mode: source.mode, depth };
+  const core = { id: p.id, name: p.name, path: `${ctx.portfolio}/${p.group}/${p.id}`, deepId: ctx.deepId, webUrl: p.webUrl ?? null, mode: source.mode, depth };
   return { ...core, actions: projectActions(core, source.mode) };
 }
 
 /** The page's buttons for this mode. Demo keeps its simulation; live never flashes a demo text. */
-export function projectActions(v: Pick<ProjectView, 'name' | 'path' | 'deepId' | 'depth'>, mode: FleetMode): ProjectAction[] {
+export function projectActions(v: Pick<ProjectView, 'name' | 'path' | 'deepId' | 'depth' | 'webUrl'>, mode: FleetMode): ProjectAction[] {
   const demo = mode === 'demo';
   if (v.depth.needs.kind === 'unwatched') {
     return [
@@ -91,6 +96,6 @@ export function projectActions(v: Pick<ProjectView, 'name' | 'path' | 'deepId' |
       ]
     : [
         { label: 'Review queue', variant: 'primary', kind: 'disabled', reason: `Needs you lists ${v.deepId}’s decisions only` },
-        { label: 'Open in GitLab', kind: 'disabled', reason: 'the index stores no GitLab address yet' },
+        v.webUrl ? { label: 'Open in GitLab', kind: 'external', href: v.webUrl } : { label: 'Open in GitLab', kind: 'disabled', reason: 'the index stores no GitLab address yet' },
       ];
 }

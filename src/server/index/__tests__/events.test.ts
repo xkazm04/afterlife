@@ -8,7 +8,7 @@ import { getEvents, MAX_EVENTS } from '../views/events';
 import { memoryIndex } from './memoryIndex';
 
 const project: ProjectRow = {
-  id: 'ledgerline', gitlabId: 1, name: 'ledgerline', what: '', groupPath: 'core', state: 'watching', setupStep: null, ord: 0, armed: 0,
+  id: 'ledgerline', gitlabId: 1, name: 'ledgerline', what: '', groupPath: 'core', state: 'watching', setupStep: null, ord: 0, armed: 0, webUrl: null,
   proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null,
 };
 const at = (hhmm: string): Date => new Date(`2026-10-06T${hhmm}:00Z`);

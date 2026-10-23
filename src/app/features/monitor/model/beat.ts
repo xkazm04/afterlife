@@ -1,5 +1,6 @@
 // The beat grammar, as geometry: one stylised complex per project. The R wave's height follows armed tracks, a
-// quarantined class dips the Q wave, setting-up beats are lower (and drawn dashed). Pure; components only draw it.
+// quarantined class dips the Q wave, setting-up beats are lower (and drawn dashed). Armed tracks not read have no height
+// to draw: the beat is the unknown break, never a flat or a guessed one. Pure; components only draw it.
 import type { FleetProject } from '@/lib/demo/types';
 import { isLive, isQuarantined, liveNeeds } from './totals';
 
@@ -28,9 +29,9 @@ export interface Slot {
   ins: number;
 }
 
-/** R height: setting up is a low beat; a watched beat grows with its armed tracks (0..8). */
-export const amplitude = (p: FleetProject, amax: number): number =>
-  p.state === 'setting-up' ? amax * 0.42 : amax * (0.38 + 0.62 * (Math.max(0, p.armed) / 8));
+/** R height: setting up is a low beat; a watched beat grows with its armed tracks (0..8); null when they were not read. */
+export const amplitude = (p: FleetProject, amax: number): number | null =>
+  p.state === 'setting-up' ? amax * 0.42 : p.armed === null ? null : amax * (0.38 + 0.62 * (Math.max(0, p.armed) / 8));
 
 const f1 = (n: number) => n.toFixed(1);
 
@@ -74,18 +75,18 @@ export function leadPaths(projects: readonly FleetProject[], slots: readonly Slo
     const s = slots[i];
     if (!s) return;
     const a = amplitude(p, s.amax);
-    if (p.state === 'watching') out.live += beatPath(s, a, isQuarantined(p));
-    else if (p.state === 'setting-up') out.forming += beatPath(s, a, isQuarantined(p));
-    else if (p.state === 'stale') {
-      out.staleGhost += beatPath(s, a * 0.9, false);
+    if (p.state === 'stale') {
+      if (a !== null) out.staleGhost += beatPath(s, a * 0.9, false); // no ghost of a height never read
       out.flat += `M${f1(s.x)} ${f1(s.base)} H${f1(s.x + s.w)}`;
-    } else {
+    } else if (a !== null && p.state === 'watching') out.live += beatPath(s, a, isQuarantined(p));
+    else if (a !== null && p.state === 'setting-up') out.forming += beatPath(s, a, isQuarantined(p));
+    else {
       // a dashed break with end ticks: no lead at all, never a flat zero
       const tk = Math.max(3, s.amax * 0.16);
       out.unknown += `M${f1(s.x + 3)} ${f1(s.base)} H${f1(s.x + s.w - 3)}`;
       out.ticks += `M${f1(s.x + 0.8)} ${f1(s.base - tk)} V${f1(s.base + tk)} M${f1(s.x + s.w - 0.8)} ${f1(s.base - tk)} V${f1(s.base + tk)}`;
     }
-    if (isLive(p) && isQuarantined(p)) out.qdips += qDipPath(s, a);
+    if (a !== null && isLive(p) && isQuarantined(p)) out.qdips += qDipPath(s, a);
   });
   return out;
 }

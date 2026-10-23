@@ -22,9 +22,16 @@ Tests never start a timer.
    - MRs updated in the last 24 h (`BELAY_TASK_HOURS`) are read as tasks: description trailers, notes (cached by `updated_at`),
      deployments (for "merged · in production");
    - `importLedger` (see `../ledger`); a rejected ledger still lets the rest land, then fails the feed;
+   - armed tracks (`ci/armed.ts`): the newest commit touching the default branch's `.gitlab-ci.yml` (`listCommits`, limit 1)
+     and, only when that commit changed since the last poll (`PollMemory.ciFiles`), the file itself. Each track's
+     `# belay:arm T<n> <key> begin <digest>` marker counts once; a track whose arm content `actions/arm/content` defines
+     counts only while `findBlock` finds its block unedited, any other track while its end marker follows. No default
+     branch or no CI file is 0 armed (read); a failed read is `armed` null, never 0, and the poll's issue (the poll still succeeds);
    - writes: project row, tasks, proofs, then (`classes.ts`, after the tasks so this poll's merges count) `class_tier`
      (tier, since, set_by, lease, move, and the counted record of a class one agent holds), re-admit and promotion asks, roll-ups (`proofs_*_7d`, `demotions_7d`, `needs_you`,
-     `cra_open`).
+     `cra_open`), and on the project row `armed`, `web_url` and `what` (the project's GitLab address and description, '' when
+     it states none) and `last`: the newest task row of the project as `getEvents` dates it (`getLastTaskEvent` in
+     `src/server/index/views/events.ts`: a task's merge, else its opening, with its track and standing), null when no task is dated.
    - the maturity scan (`maturityScan.ts`, after that transaction, since `stage_cell` references the project row): the
      default branch's last 20 pipelines, of those the 3 newest scheduled or API ones (the `maturity-scan` component's
      rules) have their jobs read, and the newest finished `belay-maturity-scan` job's `.belay/maturity.json` artifact is read
@@ -74,9 +81,9 @@ head is **stale**: not indexed, any earlier proof of the task is deleted, and th
 | record counters of a class one agent holds (see "Record counters"), stored on its `class_tier` row each on its own (migration 0006: null is a counter nothing states, never 0; a row with every counter null reads as no record) and read by its promotion ask |
 | promotion ask for a class whose counters meet the rule Ladder's Promote reads (`promotion()` in `src/lib/promotion`), `promote:<project>:<class>`, closed when it stops being eligible |
 | class tiers: recorded in tier-state.yml, capped by the policy, by the gate's own rule (`engine/decide/standing.ts`: holder, lower of record and ceiling, lapsed lease = supervised). Group-wide, never from proof history. No record: stored quarantined with move `no_record` (the gate blocks it); several holders, named for the role or not: stored at the most restrictive holder with move `refused`, its note listing every holder at the tier the gate grants a merge request that holder authored (CI passes the author as `--agent`) | CRA sign-off asks (the port has no work-item reads); gap picks and setup steps (probes) |
-| moves "promoted" and "tripwire" (with its trigger as the note) from the record's `by`; a record rewritten after the kept move by any other writer (a revoke, a hand edit) moves "demoted" or "promoted" at its `since`, by the tier's direction | project `last`, `env_*`, `armed`, `what` |
+| moves "promoted" and "tripwire" (with its trigger as the note) from the record's `by`; a record rewritten after the kept move by any other writer (a revoke, a hand edit) moves "demoted" or "promoted" at its `since`, by the tier's direction | project `env_*` |
 | re-admit ask for a class the tripwire quarantined (deduplicated by kind and title, so a seeded one is respected) | track `armed`/`latest`, the event feed, cockpit text |
-| 7-day proof counts, demotion count, inbox counts, feed age | task `chain`, `countsToward`, `stats`, `clock`, `grade` |
+| 7-day proof counts, demotion count, inbox counts, feed age; project `armed` (CI file markers), `last` (newest task), `what`, `web_url` | task `chain`, `countsToward`, `stats`, `clock`, `grade` |
 | stage rungs, evidence and day 0 from the newest `belay-maturity-scan` artifact; a gap proposal per stage it names | gap picks (only the seed writes them) |
 
 A project indexed earlier from another namespace stays shown and counted, and only stops being polled: it is marked stale

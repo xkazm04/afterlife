@@ -5,7 +5,7 @@ table is rebuilt from the source in the last column, except the two marked **not
 
 | Table | Holds | Rebuilt from |
 |---|---|---|
-| `fleet_group`, `project`, `project_stage` | groups, projects, nine rungs per project | GitLab group/project API + maturity scan |
+| `fleet_group`, `project`, `project_stage` | groups, projects, nine rungs per project | GitLab group/project API, the default branch's .gitlab-ci.yml arm markers + maturity scan |
 | `trust_class`, `class_tier` | classes; per project and class the tier recorded in tier-state.yml, capped by the policy, its lease, record and last move (`no_record` when no agent holds the class, `refused` when several do, with each holder's tier: read by `views/standing.ts`) | `belay-policy` trust-policy.yml, tier-state.yml + ledger |
 | `ledger_event` | hash chain, unique `(project_id, seq)`, append-only trigger | `belay-ledger/events/<id>.jsonl` (`resetLedger` then re-append) |
 | `cycle_record` | closed improvement cycles per project (the index's project id; each record keeps the GitLab id it names), hash-chained | `belay-ledger/cycles/<id>.jsonl` |
@@ -56,6 +56,7 @@ tables above. NULL means unknown, never zero.
 | 0015 | index `stage_cell (project_id, scanned_at)`: the latest-scan reads stop walking a project's history |
 | 0016 `action_runs` | `action_runs`: the run journal, one row per previewId a live confirm claimed (`server/actions/runs/journal.ts`) |
 | 0017 `cycles` | `cycle_record`: a project's closed improvement cycles, a cache of belay-ledger/cycles/<gitlab-id>.jsonl (`server/ledger/importCycles.ts`) |
+| 0018 `project_live` | `project.armed` nullable with no default (null: not read, never zero armed), `project.web_url`: the project's GitLab page (`server/poller/ci/armed.ts`, `server/poller/project.ts`) |
 
 ## Ledger
 

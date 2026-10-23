@@ -2,6 +2,7 @@
 // belay-policy (trust-policy.yml, tier-state.yml) and belay-ledger (a verifying hash chain of events, and the closed cycles). Polling it reproduces what
 // the demo shows for the deep project, which is how live mode is demoable without a real group.
 // Not recorded from GitLab: every shape is [R] from the docs, like fake/__fixtures__/docs.
+import { DEMO } from '@/lib/demo';
 import { SEED_NOW } from '@/server/index/seed/parse';
 import type { Rec } from '../../adapter/fields';
 import { createFakeGitLab, type FakeGitLab, type FakeOptions } from '../fakeGitLab';
@@ -22,6 +23,7 @@ export { cycleRecords } from './cycles';
 const raw = (id: number, name: string, namespace: string): Rec => ({
   id, name, path: name, path_with_namespace: `${namespace}/${name}`, default_branch: 'main',
   web_url: `https://gitlab.com/${namespace}/${name}`, visibility: 'private', archived: false,
+  description: DEMO.fleet.projects.find((p) => p.id === name)?.what ?? null, // the demo's "what": the poll reads it back
 });
 
 export interface DemoOptions extends Omit<FakeOptions, 'custom'> {

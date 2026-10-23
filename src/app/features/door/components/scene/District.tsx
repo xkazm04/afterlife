@@ -48,7 +48,7 @@ function Tower({ s }: { s: TowerShape }) {
         ))}
       </g>
       {s.halo ? <path className={styles.tHalo} d={s.halo} /> : null}
-      <path className={styles.tEdge} d={s.edge} />
+      <path className={s.heightUnknown ? `${styles.tEdge} ${styles.dashed}` : styles.tEdge} d={s.edge} />
       {s.lamps.map(([x, y], i) => (
         <g key={i} className={styles.qLamp}>
           <circle cx={x} cy={y} r={4.2} className={styles.qBloom} />

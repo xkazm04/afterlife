@@ -15,6 +15,8 @@ export interface GlInstance { version: string; enterprise: boolean }
 export interface GlProject {
   id: number; name: string; path: string; pathWithNamespace: string;
   defaultBranch: string | null; webUrl: string; visibility: string; archived: boolean;
+  /** The project's own one-line description; null when GitLab states none (or an empty one). */
+  description: string | null;
 }
 
 export interface GlPipeline {

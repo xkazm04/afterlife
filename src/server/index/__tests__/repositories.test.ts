@@ -11,7 +11,7 @@ import {
 import { memoryIndex } from './memoryIndex';
 
 const project = (id: string, over: Partial<ProjectRow> = {}): ProjectRow => ({
-  id, gitlabId: null, name: id, what: '', groupPath: 'core', state: 'watching', setupStep: null, ord: null, armed: 0,
+  id, gitlabId: null, name: id, what: '', groupPath: 'core', state: 'watching', setupStep: null, ord: null, armed: 0, webUrl: null,
   proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null, ...over,
 });
 
@@ -24,7 +24,7 @@ beforeAll(async () => {
 
 describe('fleet repositories', () => {
   it('upsert projects: insert, then update in place; unknown stays null', async () => {
-    await upsertProjects(db, [project('a', { ord: 1 }), project('b', { ord: 0, proofs7d: { pass: 3, fail: 0, inconclusive: 1 } })]);
+    await upsertProjects(db, [project('a', { ord: 1 }), project('b', { ord: 0, armed: null, webUrl: 'https://gitlab.example/g/b', proofs7d: { pass: 3, fail: 0, inconclusive: 1 } })]);
     await upsertProjects(db, [project('a', { ord: 1, armed: 7, last: { at: NOW, track: 'T4', text: 'blocked !44' } })]);
     const rows = await listProjects(db);
     expect(rows.map((r) => r.id)).toEqual(['b', 'a']);
@@ -34,6 +34,8 @@ describe('fleet repositories', () => {
     expect(a?.demotions7d).toBeNull();
     expect(a?.last).toEqual({ at: NOW, track: 'T4', text: 'blocked !44' });
     expect((await getProjectRow(db, 'b'))?.proofs7d).toEqual({ pass: 3, fail: 0, inconclusive: 1 });
+    expect(await getProjectRow(db, 'b')).toMatchObject({ armed: null, webUrl: 'https://gitlab.example/g/b' }); // not read stays null
+    expect(a?.webUrl).toBeNull();
     expect(await getProjectRow(db, 'nope')).toBeNull();
   });
 

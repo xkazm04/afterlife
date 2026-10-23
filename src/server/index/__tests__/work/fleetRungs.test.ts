@@ -18,7 +18,7 @@ describe('a Fleet row with no stored rungs', () => {
     const db = await memoryIndex();
     await upsertGroups(db, ['core']);
     await upsertProjects(db, [{
-      id: 'p', gitlabId: null, name: 'p', what: '', groupPath: 'core', state: 'watching', setupStep: null, ord: null, armed: 0,
+      id: 'p', gitlabId: null, name: 'p', what: '', groupPath: 'core', state: 'watching', setupStep: null, ord: null, armed: 0, webUrl: null,
       proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null,
     }]);
     expect((await getFleet(db)).projects[0]?.stages).toEqual(Array.from({ length: 10 }, () => null));

@@ -141,6 +141,7 @@ const FROZEN: Record<number, string> = {
   15: '684764e531f619c1567aad46288cda13dac0b7ae2a14a07b0f3c53e12f3bccb2',
   16: '9dc4aa0739559de9f714178e93162df20fa857b16b450d6ff1d41c7aff1e3f1f',
   17: '9e45259b7e40e4c2999b0366d6a7f17a2a7fa73058027aac44340b3b58865cc8',
+  18: '5ee0063bc30e9ef191c619799a561d396acb129305978d9654a8de19339b6cf3',
 };
 const sha = (sql: string): string => createHash('sha256').update(sql).digest('hex');
 const quoted = (xs: readonly string[]): string => `(${xs.map((x) => `'${x}'`).join(', ')})`;

@@ -1,4 +1,4 @@
-// One poll of one project: read GitLab (MRs, notes, deployments, the ledger), then write every derived row in one
+// One poll of one project: read GitLab (MRs, notes, deployments, the CI file's arm markers, the ledger), then write every derived row in one
 // transaction. Reads come first, so a failed read writes nothing and the project keeps its last good rows.
 import type { PGlite } from '@electric-sql/pglite';
 import type { GitLabPort } from '@/server/gitlab/port';
@@ -11,12 +11,14 @@ import { countOpenInbox } from '@/server/index/repositories/work/proposal';
 import { getTaskRow, upsertTasks, type TaskDetail, type TaskRow } from '@/server/index/repositories/work/task';
 import { recordPollError, recordPollOk, projectSource } from '@/server/index/repositories/pollState';
 import { setProjectState } from '@/server/index/repositories/fleet/project';
+import { getLastTaskEvent } from '@/server/index/views/events';
 import type { Queryable } from '@/server/index/repositories/sql';
 import type { PollerConfig } from './config';
 import { deriveTask, type TaskDerivation } from './derive/task';
 import { pollClasses } from './classes';
 import { pollMaturityScan } from './maturityScan';
 import { countProofs } from './derive/rollup';
+import { readArmed } from './ci/armed';
 import type { PolicyRead } from './derive/policy';
 import type { PollMemory } from './state';
 import type { StateHistory } from './stateHistory';
@@ -142,11 +144,12 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
         ledgerError ??= e instanceof Error ? e.message : String(e);
       }
     }
+    const armed = await readArmed(port, env.mem, gl, out.issues); // null (and an issue) when it could not be read
 
     await db.transaction(async (tx) => {
       const base: ProjectRow = existing ?? {
         id, gitlabId: gl.id, name: gl.name, what: '', groupPath: groupPathOf(gl, env.group), state: 'watching', setupStep: null,
-        ord: null, armed: 0, proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null,
+        ord: null, armed: null, webUrl: null, proofs7d: null, demotions7d: null, needsYou: 0, craOpen: 0, envStaging: null, envProduction: null, last: null,
       };
       await upsertProjects(tx, [{ ...base, gitlabId: gl.id, state: 'watching' }]);
 
@@ -172,6 +175,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
 
       const row: ProjectRow = {
         ...base, gitlabId: gl.id, state: 'watching', proofs7d: countProofs(mrs, now, cfg.rollupWindowMs), demotions7d: demotions,
+        armed, webUrl: gl.webUrl || null, what: gl.description ?? '', last: await getLastTaskEvent(tx, id), // after the tasks
         needsYou: await countOpenInbox(tx, id),
         craOpen: await count(tx, "select count(*)::int as n from proposal where project_id = $1 and state = 'open' and kind = 'cra_signoff'", id),
       };
