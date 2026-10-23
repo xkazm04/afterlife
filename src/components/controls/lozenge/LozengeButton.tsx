@@ -3,7 +3,8 @@ import styles from './Lozenge.module.css';
 
 /**
  * One lozenge cell: an optional lead glyph (any node: a StateGlyph, a TierMark, a NeedsYouBadge), a bold count and a
- * word. The word hides on narrow windows. `pressed` toggles it as a filter.
+ * word. The word folds away on a toolbar under 84em (visually only: it stays in the accessible name). `pressed`
+ * toggles it as a filter.
  */
 export function LozengeButton({
   lead,
