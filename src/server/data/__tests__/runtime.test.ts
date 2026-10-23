@@ -50,6 +50,22 @@ describe('a failed live start', () => {
   });
 });
 
+describe('a first poll cycle that throws', () => {
+  it('fails the start, so the pages name it, not an empty fleet as if it were real', async () => {
+    mocked.mockReset();
+    mocked.mockImplementation(real);
+    const onError = vi.fn();
+    vi.stubEnv('BELAY_MODE', 'live'); // the poller reads a real group's config, and none is set: runPollCycle throws
+    try {
+      await expect(startRuntime(cfg, onError)).rejects.toThrow(/BELAY_GROUP_ID is not set/);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    expect([readyRuntime(), onError.mock.calls.length]).toEqual([null, 0]);
+    expect(lastStartFailure()?.message).toMatch(/BELAY_GROUP_ID is not set/);
+  });
+});
+
 describe('the pages after a failed start', () => {
   const read = (): unknown => getDataSource(ENV).getFleet();
 

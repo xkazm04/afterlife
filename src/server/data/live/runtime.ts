@@ -54,12 +54,16 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<L
     refresh: () => Promise.resolve(),
   };
   let inFlight: Promise<void> | null = null;
+  let started = false;
   rt.refresh = () => {
     inFlight ??= (async () => {
       try {
         rt.last = await runPollCycle(port, db, clock.poll(), { mem: rt.mem });
       } catch (e) {
-        onError(e); // a cycle that throws (not one that reports a failed project) still leaves the index readable
+        // The first cycle's throw (a live config the poller refuses) fails the start, which the pages name and retry: an
+        // index no cycle read must not serve as if it were real. Later, a cycle that throws still leaves the index readable.
+        if (!started) throw e;
+        onError(e);
       }
       // The policy the cycle read; a cycle that could not read one keeps the last good one, as the class tiers do.
       const policy = rt.last?.policy ? rulesOf(rt.last.policy) : (rt.snapshot?.data.policy ?? null);
@@ -71,6 +75,7 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<L
   };
   try {
     await rt.refresh();
+    started = true;
   } catch (e) {
     // The seeded index is this start's own and the retry opens another; the real one is a singleton and stays open.
     if (seeded) await db.close().catch(() => undefined);
