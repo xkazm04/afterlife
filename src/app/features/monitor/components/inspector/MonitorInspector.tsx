@@ -26,6 +26,7 @@ const exitsFor = (id: string): readonly [string, string][] => [
 ];
 
 function Overview({ org, totals, projects, onPick }: { org: string; totals: Totals; projects: readonly FleetProject[]; onPick: (id: string) => void }) {
+  const top = topWaiting(projects, 8);
   return (
     <>
       <InspectorHeader title={org} sub={`${totals.n} projects · pick a beat to act on it`} />
@@ -37,7 +38,8 @@ function Overview({ org, totals, projects, onPick }: { org: string; totals: Tota
         ]}
       />
       <InspectorSection title="Most waiting">
-        {topWaiting(projects, 8).map((p) => (
+        {top.length ? null : <div className={styles.muted}>Nothing waits for you</div>}
+        {top.map((p) => (
           <button key={p.id} type="button" className={styles.pick} onClick={() => onPick(p.id)}>
             <span className={styles.n}>{p.needsYou}</span>
             <span>{p.name}</span>

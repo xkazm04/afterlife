@@ -20,3 +20,12 @@ describe('MonitorInspector on a picked project', () => {
     expect(out).not.toContain('href="/fleet"');
   });
 });
+
+describe('MonitorInspector with nothing picked', () => {
+  it('says nothing waits instead of drawing an empty Most waiting section', () => {
+    const out = html(null, [proj({ needsYou: 0 })]);
+    expect(out).toContain('Most waiting');
+    expect(out).toContain('Nothing waits for you');
+  });
+  it('lists who waits most when someone does', () => expect(html(null, [proj({ needsYou: 3 })], totals({ needs: 3, needsP: 1 }))).not.toContain('Nothing waits'));
+});
