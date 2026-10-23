@@ -73,7 +73,7 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   2: { who: 'agent', does: 'Writes package.yml: group, target, tier ceiling, model route, cloud project, credit cap.', cmd: ['$EDITOR package.yml'], probe: 'package.yml · 8 of 8 answers · ceiling SUPERVISED' },
   3: {
     who: 'human', short: 'Start the Ultimate trial', does: 'Belay cannot accept terms or start a trial for you.', action: 'Start the Ultimate trial',
-    where: `GitLab → ${n.group} → Settings → Billing`, url: `https://${n.host}/groups/${n.group}/-/billings`, note: 'Trial credits last 30 days: start no earlier than needed.',
+    where: `GitLab → ${n.group} → Settings → Billing`, url: own(n) ? `https://gitlab.com/groups/${n.group}/-/billings` : undefined, // a self-managed host has no group billing page note: 'Trial credits last 30 days: start no earlier than needed.',
     before: `trial not detected on ${n.group}`, probe: `Ultimate trial detected on ${n.group}`,
   },
   4: {

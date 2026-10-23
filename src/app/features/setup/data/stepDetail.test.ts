@@ -153,11 +153,14 @@ describe('"Open in GitLab ↗" on a human step has a page to open', () => {
     const d = stepDetailsFor(live);
     const shown = Object.entries(d).filter(([, x]) => x.who === 'human' && !x.secret);
     expect(shown.map(([n]) => Number(n))).toEqual([3, 6, 7, 10]);
-    for (const [, x] of shown) expect(x.url).toMatch(/^https:\/\/gitlab\.example\.com\/\S+$/);
+    for (const [n, x] of shown) if (n !== '3') expect(x.url).toMatch(/^https:\/\/gitlab\.example\.com\/\S+$/);
   });
-  it('a project page is the target’s full path, a billing page the group’s', () => {
+  it('the trial (step 3) opens a group billing page on gitlab.com only: a self-managed host has none, and says so', () => {
+    expect(stepDetailsFor(live)[3]?.url).toBeUndefined();
+    expect(stepDetailsFor({ ...live, host: 'gitlab.com' })[3]?.url).toBe('https://gitlab.com/groups/kazdanm/-/billings');
+  });
+  it('a project page is the target’s full path', () => {
     const d = stepDetailsFor(live);
-    expect(d[3]?.url).toBe('https://gitlab.example.com/groups/kazdanm/-/billings');
     expect(d[6]?.url).toBe('https://gitlab.example.com/kazdanm/apps/afterlife/-/settings/ci_cd#js-runners-settings');
     expect(d[10]?.url).toBe('https://gitlab.example.com/kazdanm/apps/afterlife/-/merge_requests?source_branch=belay%2Fbootstrap');
   });
