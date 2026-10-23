@@ -50,6 +50,10 @@ describe('totals', () => {
   it('says a lead of one project in the singular', () => {
     expect(leadLine(leadsOf(['g1'], [mk({ needsYou: 1 })])[0]!)).toBe('1 project · 1 decision waits');
   });
+  it('says a feed that never had a good poll in words, as the status line does, never "polled — ago"', () => {
+    expect(stateLine(mk({ feed: { ageSec: null, ok: null } }))).toBe('watching · no good poll yet');
+    expect(stateLine(mk({ state: 'stale', feed: { ageSec: null, ok: false } }))).toBe('stale · no good poll yet');
+  });
   it('says stale and unknown in words', () => {
     expect(stateLine(fleet[1]!)).toBe('stale · project token expired · 1 decision waits (last known)');
     expect(stateLine(fleet[3]!)).toBe('not watched · unknown, not zero');

@@ -2,6 +2,7 @@
 import { plural } from '@/lib/format/plural';
 import { formatAge } from '@/lib/format/time';
 import type { FleetProject } from '@/lib/demo/types';
+import { NO_GOOD_POLL, ageLine } from './mode';
 import type { Lead, MarkKind, Totals } from './types';
 
 export const isQuarantined = (p: FleetProject): boolean => (p.tiers?.quarantined ?? 0) > 0;
@@ -64,9 +65,9 @@ export function topWaiting(projects: readonly FleetProject[], k = 4): FleetProje
 /** The readout's line for one project: its state in words, then what waits. Unknown stays unknown. */
 export function stateLine(p: FleetProject): string {
   const parts: string[] = [];
-  if (p.state === 'watching') parts.push(`watching · polled ${formatAge(p.feed.ageSec)} ago`);
+  if (p.state === 'watching') parts.push(`watching · ${ageLine(p.feed.ageSec)}`);
   else if (p.state === 'setting-up') parts.push(`setting up · ${p.armed} of 8 tracks armed${p.setupStep ? ` · ${p.setupStep}` : ' · step unknown'}`);
-  else if (p.state === 'stale') parts.push(`stale · ${p.feed.error ?? `no good poll for ${formatAge(p.feed.ageSec)}`}`);
+  else if (p.state === 'stale') parts.push(`stale · ${p.feed.error ?? (p.feed.ageSec === null ? NO_GOOD_POLL : `no good poll for ${formatAge(p.feed.ageSec)}`)}`);
   else parts.push('not watched · unknown, not zero');
   const n = liveNeeds(p);
   if (n) parts.push(p.state === 'stale' ? `${decisionsWord(n)} (last known)` : decisionsWord(n));
