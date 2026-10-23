@@ -20,6 +20,15 @@ import { shallowEqual } from './model/replay/store';
 import type { TheaterData } from './model/types';
 import styles from './TheaterScreen.module.css';
 
+/** What the status bar says of the address: every part the film cannot honour (both can miss at once), else null. */
+export function addressNotice(missingMr: number | undefined, missingSeq: number | null): string | null {
+  const said = [
+    missingMr !== undefined ? `!${missingMr} has no events in the ledger: the newest runs play instead.` : null,
+    missingSeq !== null ? `seq ${missingSeq} is not on this film: take 1 plays instead.` : null,
+  ].filter((x) => x !== null);
+  return said.length ? said.join(' ') : null;
+}
+
 /**
  * Theater: a film replayed as one change climbing the loop. Route /theater. The film is the deep project's own
  * belay-ledger, one take per MR, when it names an MR; else the illustrative slice (seq 480-520), always labelled so.
@@ -50,12 +59,7 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
   }
   const range = rangeLabel(v);
   const readout = readoutFrom(v);
-  const notice =
-    film.missing !== undefined
-      ? `!${film.missing} has no events in the ledger: the newest runs play instead.`
-      : missingSeq !== null
-        ? `seq ${missingSeq} is not on this film: take 1 plays instead.`
-        : null;
+  const notice = addressNotice(film.missing, missingSeq);
 
   return (
     <>

@@ -72,7 +72,8 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
     `model/film/takeCap.test.ts`, `model/film/takeOrder.test.ts`, `model/film/who.test.ts`, `model/derive/derive.test.ts`
     (the fold, the answers, motion), `model/replay/reducer.test.ts`, `model/replay/store.test.ts`,
     `model/replay/cue.test.ts` (the `#seq=` address a screen opens on).
-  - data and screen: `data/film.test.tsx` (the screen on each film), `data/labels.test.tsx` (the REPLAY chip and
+  - data and screen: `data/film.test.tsx` (the screen on each film), `TheaterScreen.test.tsx` (every address miss
+    is said), `data/labels.test.tsx` (the REPLAY chip and
     legend), `data/loader.test.tsx` (the loader live against a bare index and the fake group; the quote box),
     `data/constants.test.ts` (the invented constants against the ledger slice), `data/readme.test.ts` (this list).
   - live: `live/model/select.test.ts` (header facts, stale freeze with an injected clock, the precedence), `live/LiveScreen.test.tsx` (the live stage rendered), `live/server/livePayload.test.ts` (the payload off disk).
