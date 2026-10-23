@@ -154,3 +154,13 @@ describe('the intro outlasts the count-ups', () => {
     expect(src).not.toMatch(/delay=\{\d/);
   });
 });
+
+describe('the cutaway draws a floor per stage, as the L2 panel counts rungs', () => {
+  const p = fleet.projects.find((x) => x.state === 'watching')!;
+  it.each([9, 10])('%i stages, a floor each', (n) => {
+    const stages = Array.from({ length: n }, (_, i) => `s${i}`);
+    const c = cutawayOf({ ...p, stages: Array(n).fill(1) }, fleet.classes, stages);
+    expect(c.floors.map((f) => f.label.name)).toEqual(stages.map((s) => s.replace(/^./, (x) => x.toUpperCase())));
+    expect(c.floors.every((f) => f.rung === 1)).toBe(true);
+  });
+});

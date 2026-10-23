@@ -1,4 +1,4 @@
-// L2: one project as a cutaway tower. Nine floors, one per stage, lit by its rung (dashed when unknown); the class
+// L2: one project as a cutaway tower. A floor per stage (nine), lit by its rung (dashed when unknown); the class
 // windows on the right wall carry tier letters; the antenna is the feed; a beacon on the roof is its decisions. Pure.
 import type { FleetProject } from '@/lib/demo/types';
 import { needsOf, type Pt } from './city';
@@ -10,8 +10,6 @@ export const CY = 822;
 const A = 118;
 const B = 59;
 const FH = 50;
-const N = 9;
-const H = N * FH + 5;
 
 const V = (dx: number, dy: number, z: number): Pt => [CX + dx, CY + dy - z];
 const Lz = (z: number) => V(-A, 0, z);
@@ -26,7 +24,9 @@ export function cutawayOf(p: FleetProject, classes: readonly string[], stages: r
   const scaf = p.state === 'setting-up';
   const stale = p.state === 'stale';
   const mode: Mode = ghost ? 'ghost' : scaf ? 'scaf' : stale ? 'st' : '';
-  const floors = Array.from({ length: N }, (_, i) => {
+  // a floor per stage the source lists (as the L2 panel counts its rungs), the roof 5 px over the top one
+  const H = stages.length * FH + 5;
+  const floors = stages.map((name, i) => {
     const z = i * FH;
     const r = ghost ? null : (p.stages?.[i] ?? null);
     const m = V(-A * 0.45, B * 0.45, z + 5 + FH * 0.5);
@@ -37,7 +37,7 @@ export function cutawayOf(p: FleetProject, classes: readonly string[], stages: r
       lip: r == null ? pathD([Lz(z + 4), Bz(z + 4), Rz(z + 4)]) : points([Lz(z + 5), Bz(z + 5), Bz(z), Lz(z)]),
       top: points([Tz(z + 5), Rz(z + 5), Bz(z + 5), Lz(z + 5)]),
       q: r == null ? m : null,
-      label: { x: CX - A - 18, y: ly, name: (stages[i] ?? '').replace(/^./, (c) => c.toUpperCase()) },
+      label: { x: CX - A - 18, y: ly, name: name.replace(/^./, (c) => c.toUpperCase()) },
       tick: pathD([
         [CX - A - 12, ly - 7],
         [CX - A - 3, ly - 7],
