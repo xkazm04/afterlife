@@ -2,6 +2,7 @@ import { createElement, type ReactNode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
+import { BottomDrawer } from './BottomDrawer';
 import { DetailPage, DetailSection } from './detail/DetailPage';
 import { SidebarItem } from './sidebar/SidebarItem';
 import { Window, type WindowProps } from './Window';
@@ -110,5 +111,16 @@ describe('DetailPage', () => {
     expect(out).toContain('the answer');
     expect(out).toContain('>Card</h2>');
     expect(out).not.toContain('id="inspector"');
+  });
+});
+
+describe('BottomDrawer', () => {
+  // ARIA prohibits naming a generic span, so an aria-label on the count is dropped by assistive tech: the count is read
+  // as its own text right after the title, inside the region the title names.
+  it('names the region by its title and leaves the count as plain text', () => {
+    const out = renderToString(<BottomDrawer title="Outbox" count={2} closeLabel="Hide outbox" onClose={() => {}}>x</BottomDrawer>);
+    expect(out).toMatch(/^<section[^>]*aria-label="Outbox"/);
+    expect(out).toContain('<b>Outbox</b>');
+    expect(tag(out, /<span[^>]*>2<\/span>/)).not.toContain('aria-label');
   });
 });
