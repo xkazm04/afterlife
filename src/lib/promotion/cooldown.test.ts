@@ -1,6 +1,6 @@
 // cooldown_until in tier-state.yml (stamped by the tripwire and by a revoke from trust-policy.yml's cooldown_days): while
 // it is ahead, the promotion rule carries a cooldown row that is not met until that date, so no class is eligible.
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
 import { promotion, type Counters } from '.';
@@ -30,5 +30,19 @@ describe('the promotion cooldown', () => {
     const p = promotion({ tier: 'supervised', ceiling: 'hands_off', record: handsOffReady, cooldownUntil: '2026-10-28' }, 'exploit-test', RULES, NOW);
     expect(p.kind).toBe('notyet');
     if (p.kind === 'notyet') expect(p.rules.find((r) => r.name === 'cooldown')).toEqual({ name: 'cooldown', value: 'until 2026-10-28', met: false });
+  });
+});
+
+describe('a cooldown_until with a time and no zone', () => {
+  const tz = process.env.TZ;
+  afterEach(() => {
+    if (tz === undefined) delete process.env.TZ;
+    else process.env.TZ = tz;
+  });
+  it.each(['UTC', 'Europe/Prague', 'America/Los_Angeles'])('ends at 10:00 UTC on a %s host, as the file says', (zone) => {
+    process.env.TZ = zone;
+    const p = toSupervised('2026-10-28T10:00', new Date('2026-10-28T09:00:00Z'));
+    expect(p.kind).toBe('notyet');
+    if (p.kind === 'notyet') expect(p.rules.at(-1)).toEqual({ name: 'cooldown', value: 'until 2026-10-28 10:00 UTC', met: false });
   });
 });

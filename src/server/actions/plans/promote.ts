@@ -11,6 +11,7 @@ import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, typ
 import { branchMr } from './mr/branchMr';
 import { editRecords, lineDiff } from './tierEdit';
 import { trialParagraph } from './trial';
+import { readInstant } from '@/schemas/instant/readInstant';
 
 export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promise<Plan> {
   const { policy: repo } = await locate(ctx, intent.project);
@@ -32,7 +33,7 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
   // The cooldown the tripwire or a revoke stamped: no promotion before it. Re-admitting a quarantined class to Assisted
   // is not one, and the new record keeps the cooldown, so the class climbs no further before that date.
   const cooldown = held.record.cooldown_until;
-  const cooling = !!cooldown && ctx.now.getTime() < Date.parse(cooldown);
+  const cooling = !!cooldown && ctx.now.getTime() < readInstant(cooldown);
   const readmit = held.record.tier === 'quarantined' && intent.to === 'assisted';
   if (cooling && !readmit) throw new ActionRefused(`${intent.class} is in its cooldown until ${cooldown}: no promotion before that date`);
 

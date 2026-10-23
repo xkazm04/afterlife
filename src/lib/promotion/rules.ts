@@ -2,6 +2,7 @@
 // ledger event states. A counter nothing states reads "not recorded" and is never met. The human key is not a row: it is
 // the precondition of the promote write (HUMAN_KEY), stated beside the rows.
 import type { ProofClass } from '@/schemas/proof';
+import { readInstant } from '@/schemas/instant/readInstant';
 import type { Counters, Gated, PromotionRules, TrialThreshold } from './types';
 
 /**
@@ -99,7 +100,7 @@ export function toSupervisedRules(r: Counters, t: PromotionRules['toSupervised']
  * ahead of `now`; none once it has passed (or when the record states none). A date with no time starts at 00:00 UTC.
  */
 export function cooldownRule(until: string | null | undefined, now: Date): PromotionRule | null {
-  const t = until ? Date.parse(until) : Number.NaN;
+  const t = until ? readInstant(until) : Number.NaN;
   if (Number.isNaN(t) || now.getTime() >= t) return null;
   const iso = new Date(t).toISOString();
   return { name: 'cooldown', value: `until ${iso.endsWith('T00:00:00.000Z') ? iso.slice(0, 10) : `${iso.slice(0, 16).replace('T', ' ')} UTC`}`, met: false };
