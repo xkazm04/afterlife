@@ -122,6 +122,15 @@ describe('motion', () => {
     expect(m(508, 1).caught).toBe(false);
     expect(m(513, 1).y44).toBe(3.7);
   });
+  it('shows !44 from the ledger\'s first !44 entry and catches it at the !44 entry that fails, not at typed seqs', () => {
+    const scene = REPLAY_LEDGER.filter((e) => e.sc === 'm44');
+    const open = scene[0]?.seq ?? 0;
+    const fall = scene.find((e) => e.fail)?.seq ?? 0;
+    expect(m(open - 1, 1).show44).toBe(false);
+    expect(m(open, 1).show44).toBe(true);
+    expect(m(fall - 1, 1).caught).toBe(false);
+    expect(m(fall, 1).caught).toBe(true);
+  });
   it('rides the caption beside the climber of the scene and keeps it on the wall', () => {
     expect(m(480, 0).cap).toBeCloseTo(pct(0.4));
     expect(m(508, 1).cap).toBeCloseTo(pct(4.2));
