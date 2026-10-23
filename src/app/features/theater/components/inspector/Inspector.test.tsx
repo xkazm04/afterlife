@@ -35,3 +35,12 @@ describe('LedgerSection', () => {
     expect(ledger(REPLAY_LEDGER)).not.toContain('UTC');
   });
 });
+
+describe('LedgerSection rows', () => {
+  it('name the whole agent in the row tooltip, since the narrow by column cuts a real agent ("ai-patcher-…")', () => {
+    const film = ledgerFilm(ledgerEvents(SEED_NOW))!;
+    const e = film.entries[0]!;
+    expect(e.by.length).toBeGreaterThan(8);
+    expect(ledger(film.entries)).toContain(`title="seq ${e.seq} · ${e.by} · ${e.x}"`);
+  });
+});

@@ -104,7 +104,11 @@
   font: 400 var(--t-small) var(--mono);
   color: var(--text-3);
 }
+/* a real agent ("ai-patcher-<group>") is wider than the column: cut it, the row tooltip names it whole */
 .by {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--t-small);
   font-weight: 600;
   color: var(--accent);

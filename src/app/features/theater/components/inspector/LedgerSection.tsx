@@ -1,5 +1,5 @@
 import { InspectorSection } from '@/components/inspector/InspectorSection';
-import { shortOf } from '../../model/film/who';
+import { shortOf, whoOf } from '../../model/film/who';
 import type { LedgerEntry, Marks } from '../../model/types';
 import styles from './Inspector.module.css';
 
@@ -24,7 +24,7 @@ export function LedgerSection({ i, entries, range, onSeek }: { i: number; entrie
           type="button"
           className={`${styles.lg} ${k === i ? styles.cur : ''} ${k > i ? styles.fut : ''}`}
           aria-current={k === i ? 'true' : undefined}
-          title={`seq ${r.seq} · ${r.x}`}
+          title={`seq ${r.seq} · ${whoOf(r)} · ${r.x}`}
           onClick={() => onSeek(k)}
         >
           <span className={styles.tm}>{r.t}</span>
