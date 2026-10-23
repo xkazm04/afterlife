@@ -1,10 +1,12 @@
 // Live Needs you: what each item the poll found can do from this list. A promotion or a re-admit is one policy MR through
 // the server actions (write/promote.ts), the door the desk uses: the exact write is the server's preview, and Run confirms
-// that preview by its id. Every other kind is read-only here and says where to act today. Pure.
+// that preview by its id. A live gap that carries its fixed template is one draft MR the same way (apply-gap-template).
+// Every other kind is read-only here and says where to act today. Pure.
 import type { NeedsKind, NeedsYouItem } from '@/lib/demo';
 import { TIER_META } from '@/lib/tiers';
+import { STAGES } from '@/schemas/stages';
 import { TIER_ORDER } from '@/schemas/tier';
-import type { PromoteClass } from '@/server/actions/types';
+import type { ApplyGapTemplate, GapTemplateId, PromoteClass } from '@/server/actions/types';
 import type { Outcome } from '@/server/actions/words';
 
 /** The action class an inbox title names after its last " · " ("Promote T7 qa · qa.file-bug"). */
@@ -18,6 +20,20 @@ export function liveIntent(item: Pick<NeedsYouItem, 'id' | 'kind' | 'title' | 't
   const to = TIER_ORDER.find((t) => t === item.to);
   return to ? { kind: 'promote-class', project, class: cls, to, proposal: item.id } : null;
 }
+
+// A Record so a template the server adds and this list does not know fails the type check, not the click.
+const TEMPLATES: Readonly<Record<GapTemplateId, true>> = { 'secure-includes': true, 'package-build': true, 'plan-issue-templates': true };
+const isTemplate = (t: string | null | undefined): t is GapTemplateId => !!t && Object.hasOwn(TEMPLATES, t);
+
+/** The draft MR a live gap sends from its fixed template, or null when it carries none (or its stage or rung is unreadable). */
+export function gapIntent(item: Pick<NeedsYouItem, 'id' | 'kind' | 'stage' | 'rungFrom' | 'rungTo' | 'template'>, project: string): ApplyGapTemplate | null {
+  const stage = STAGES.find((s) => s === item.stage);
+  if (item.kind !== 'gaps' || !stage || typeof item.rungTo !== 'number' || !isTemplate(item.template)) return null;
+  return { kind: 'apply-gap-template', project, proposal: item.id, stage, from: item.rungFrom ?? null, to: item.rungTo, template: item.template };
+}
+
+/** Why a live gap with no template is read-only: the scan's next change, which is not mechanical; else where to act. */
+export const gapReadOnly = (item: Pick<NeedsYouItem, 'change'>): string => (item.change ? `Read-only here: ${item.change}` : elsewhere('gaps'));
 
 /** The button: "Open the promotion MR" / "Open the re-admit MR". */
 export const runLabel = (kind: NeedsKind): string => (kind === 'readmit' ? 'Run · open the re-admit MR' : 'Run · open the promotion MR');

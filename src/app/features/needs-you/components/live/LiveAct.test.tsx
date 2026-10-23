@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NeedsYouItem } from '@/lib/demo';
 import type { ActionPreview, ActionResponse } from '@/server/actions/types';
 import { outcomeOf, type WriteView } from '@/server/actions/words';
-import { liveIntent, writeName, type LiveAnswer } from '../../model/live';
+import { gapIntent, liveIntent, writeName, type LiveAnswer } from '../../model/live';
 import type { LiveEvidence } from '../../model/evidence/evidence';
 
 const actions = vi.hoisted(() => ({ previewAction: vi.fn(), confirmAction: vi.fn() }));
@@ -81,12 +81,19 @@ describe('live Needs you: the write behind an item', () => {
     expect(out).not.toContain('Run ·');
   });
 
-  it('a sign-off, a gap or a setup step sends nothing and says where to act', () => {
+  it('a sign-off, a setup step or a gap without its template sends nothing and says where to act', () => {
     for (const kind of ['signoff', 'gaps', 'setup'] as const) {
       const item: NeedsYouItem = { id: `x-${kind}`, kind, title: 'Something · x', does: 'd' };
       expect(liveIntent(item, 'ledgerline')).toBeNull();
+      expect(gapIntent(item, 'ledgerline')).toBeNull();
       expect(html(item, undefined)).toContain('Read-only here');
     }
+  });
+
+  it('a live gap that carries its template has a write: the draft MR from that template, never a policy MR', () => {
+    const gap: NeedsYouItem = { id: 'gap:ledgerline:secure', kind: 'gaps', title: 'Secure', does: 'd', stage: 'secure', rungFrom: 1, rungTo: 2, change: 'c', template: 'secure-includes' };
+    expect(liveIntent(gap, 'ledgerline')).toBeNull();
+    expect(gapIntent(gap, 'ledgerline')).toEqual({ kind: 'apply-gap-template', project: 'ledgerline', proposal: gap.id, stage: 'secure', from: 1, to: 2, template: 'secure-includes' });
   });
 
   it('Run is closed on a class that moved since the proposal, and says so; on one that did not, Run is open', () => {

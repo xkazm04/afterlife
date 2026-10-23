@@ -4,7 +4,8 @@ import type { DecidedItem } from '@/server/data/types';
 import type { NeedsYouItem } from '@/lib/demo/types';
 
 export type DeskIntent = PromoteClass | ApplyGapTemplate;
-export type DeskKind = 'promote' | 'readmit' | 'gap' | 'decided';
+/** 'other': an inbox kind this desk only reads (a sign-off, a setup step); its source's kind says which. */
+export type DeskKind = 'promote' | 'readmit' | 'gap' | 'other' | 'decided';
 export type Deadline = 'none' | 'overdue' | 'today' | 'later';
 export type Grouping = 'kind' | 'project' | 'deadline';
 
