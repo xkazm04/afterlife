@@ -67,7 +67,7 @@ export function KitScreen() {
             <LozengeButton lead={<TierMark tier="quarantined" />} count={25} word="quarantined" />
           </Lozenge>
           <Spacer />
-          <PopupButton icon="sort" onClick={(e) => sortMenu.openFrom(e.currentTarget)}>
+          <PopupButton icon="sort" expanded={sortMenu.isOpen} onClick={(e) => sortMenu.openFrom(e.currentTarget)}>
             Attention
           </PopupButton>
           <SearchField value={q} onChange={setQ} label="Search the gallery" placeholder="Demo search" />

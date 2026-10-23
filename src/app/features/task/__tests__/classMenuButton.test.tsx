@@ -19,7 +19,7 @@ vi.mock('react', async (orig) => ({
 vi.stubGlobal('document', { activeElement: null, addEventListener: () => {} });
 
 const { ClassMenuButton } = await import('../components/toolbar/ClassMenuButton');
-type ButtonProps = { 'aria-expanded': boolean; onClick: (e: { currentTarget: HTMLElement }) => void };
+type ButtonProps = { expanded: boolean; onClick: (e: { currentTarget: HTMLElement }) => void };
 
 const trigger = { getBoundingClientRect: () => ({ left: 0, bottom: 0 }), contains: (n: unknown) => n === trigger, focus: () => {} } as unknown as HTMLElement;
 const button = () => {
@@ -35,11 +35,11 @@ beforeEach(() => {
 describe('ClassMenuButton trigger', () => {
   it('a click opens the menu', () => {
     button().onClick({ currentTarget: trigger });
-    expect(button()['aria-expanded']).toBe(true);
+    expect(button().expanded).toBe(true);
   });
   it('a click with no press before it closes the open menu instead of reopening it', () => {
     button().onClick({ currentTarget: trigger });
     button().onClick({ currentTarget: trigger });
-    expect(button()['aria-expanded']).toBe(false);
+    expect(button().expanded).toBe(false);
   });
 });

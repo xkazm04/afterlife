@@ -118,6 +118,76 @@ export const GLYPHS = {
       </>
     ),
   },
+  // toolbar and sidebar marks that used to be drawn inline where they sit
+  play: { w: 11, h: 12, sw: 0, node: <path d="M2 1.3v9.4L9.6 6z" fill="currentColor" /> },
+  outbox: {
+    w: 14,
+    h: 12,
+    sw: 1.25,
+    node: (
+      <g strokeLinejoin="round">
+        <path d="M1 7h3.2l1 1.8h3.6l1-1.8H13" />
+        <path d="M1 7l1.8-5.6h8.4L13 7v4H1z" />
+      </g>
+    ),
+  },
+  ring: { w: 10, h: 10, sw: 1.2, node: <circle cx="5" cy="5" r="3.9" /> },
+  probe: {
+    w: 12,
+    h: 12,
+    sw: 1.3,
+    node: (
+      <g strokeLinecap="round">
+        <path d="M10.5 6A4.5 4.5 0 1 1 9.2 2.8" />
+        <path d="M10.2 1v2.4H7.8" />
+      </g>
+    ),
+  },
+  branch: {
+    w: 12,
+    h: 12,
+    sw: 1.3,
+    node: (
+      <>
+        <circle cx="6" cy="6" r="2.2" />
+        <path d="M0 6h3.8M8.2 6H12" />
+      </>
+    ),
+  },
+  promote: { w: 13, h: 13, sw: 1.3, node: <path d="M6.5 11V2M2.5 6l4-4 4 4" strokeLinecap="round" strokeLinejoin="round" /> },
+  below: {
+    w: 13,
+    h: 13,
+    sw: 1.3,
+    node: (
+      <g strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 2.5h9" strokeDasharray="2 1.5" />
+        <rect x="4" y="7" width="5" height="4" rx="1" />
+      </g>
+    ),
+  },
+  leased: {
+    w: 13,
+    h: 13,
+    sw: 1.3,
+    node: (
+      <g strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="6.5" cy="6.5" r="5" />
+        <path d="M6.5 3.5v3l2 1.5" />
+      </g>
+    ),
+  },
+  pending: {
+    w: 13,
+    h: 13,
+    sw: 1.3,
+    node: (
+      <g strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="6.5" cy="6.5" r="2.2" />
+        <path d="M0 6.5h4.3M8.7 6.5H13" />
+      </g>
+    ),
+  },
   diamond: { w: 12, h: 12, sw: 0, node: <path d="M6 1l5 5-5 5-5-5z" fill="currentColor" /> },
   check: { w: 11, h: 11, sw: 1.7, node: <path d="M2 6l2.6 2.6L9.4 3" strokeLinecap="round" strokeLinejoin="round" /> },
   close: { w: 10, h: 10, sw: 1.4, node: <path d="M2 2l6 6M8 2L2 8" strokeLinecap="round" /> },

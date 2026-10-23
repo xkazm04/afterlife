@@ -18,6 +18,7 @@ export function LadderToolbar(p: {
   lozenge: ReactNode;
   sort: LadderSort;
   onSortMenu: (el: HTMLElement) => void;
+  sortOpen?: boolean;
   q: string;
   onQuery: (q: string) => void;
   searchRef: Ref<HTMLInputElement>;
@@ -29,7 +30,7 @@ export function LadderToolbar(p: {
       <Spacer />
       {p.lozenge}
       <Spacer />
-      <PopupButton icon="sort" title="Sort" onClick={(e) => p.onSortMenu(e.currentTarget)}>
+      <PopupButton icon="sort" title="Sort" expanded={p.sortOpen} onClick={(e) => p.onSortMenu(e.currentTarget)}>
         {SORT_NAMES[p.sort.key]}
       </PopupButton>
       <div className={styles.search} onKeyDown={p.onSearchKey}>

@@ -12,6 +12,7 @@ import { useSetup } from '../../hooks/SetupContext';
 import { doctorCounts } from '../../model/flow/state';
 import type { CapStatus, SetupState } from '../../model/types';
 import { Spinner } from '../shared/Spinner';
+import { Icon } from '@/components/icons/Icon';
 import styles from './SetupToolbar.module.css';
 
 const CELLS: readonly { st: CapStatus; glyph: string; word: string }[] = [
@@ -39,6 +40,7 @@ export function SetupToolbar() {
       <PopupButton
         icon="folder"
         title="GitLab group"
+        expanded={menu.isOpen}
         onClick={(e) => {
           if (menu.isOpen) menu.close();
           else {
@@ -83,10 +85,7 @@ export function SetupToolbar() {
         {state.doctorBusy ? (
           <Spinner />
         ) : (
-          <svg className={styles.ico} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" aria-hidden="true">
-            <path d="M10.5 6A4.5 4.5 0 1 1 9.2 2.8" />
-            <path d="M10.2 1v2.4H7.8" />
-          </svg>
+          <Icon name="probe" />
         )}
         <span>{state.doctorBusy ? 'Probing…' : 'Re-probe'}</span>
       </ToolbarButton>

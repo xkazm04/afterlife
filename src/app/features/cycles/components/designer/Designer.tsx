@@ -52,14 +52,14 @@ export function Designer({
             .filter((c) => c.source === g.source)
             .map((c) => (
               <div key={c.id} className={styles.row} data-blocked={c.blocked ? true : undefined} data-on={ids.has(c.id) || undefined}>
-                <Checkbox checked={ids.has(c.id)} disabled={!!c.blocked && !ids.has(c.id)} label={c.title} onChange={() => onToggle(c.id)} />
+                <Checkbox checked={ids.has(c.id)} disabled={!!c.blocked && !ids.has(c.id)} label={c.title} describedBy={`${cycleId}-why-${c.id}`} onChange={() => onToggle(c.id)} />
                 <span className={styles.stage}>{c.stage}</span>
                 <span className={styles.mv}>
                   {rungLabel(c.from)} → R{c.to}
                 </span>
                 <span className={styles.what}>
                   <span className={styles.ttl}>{c.title}</span>
-                  <span className={styles.why}>{c.blocked ?? c.why}</span>
+                  <span id={`${cycleId}-why-${c.id}`} className={styles.why}>{c.blocked ?? c.why}</span>
                 </span>
                 <span className={styles.kind}>{c.kind === 'probe' ? 'probe · read only' : c.lines ? `+${c.lines}` : 'MR'}</span>
               </div>

@@ -11,6 +11,13 @@
   cursor: default;
   color: var(--needs-you-ink);
   flex: none;
+  position: relative;
+}
+/* The drawn box stays 14px; this invisible ring takes the hit area to 24px (WCAG 2.5.8) without taking layout space. */
+.cb::before {
+  content: "";
+  position: absolute;
+  inset: calc(-5px * var(--ui-scale));
 }
 .cb[aria-checked="true"] {
   background: var(--needs-you);

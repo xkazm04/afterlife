@@ -45,7 +45,7 @@ export function Stepper<K extends string | number>({
           >
             <i className={styles.n} aria-hidden="true">{s.past ? '✓' : s.k}</i>
             <span className={styles.nm}>{s.name}</span>
-            {s.past ? <span className={styles.done}> (done)</span> : null}
+            {s.past ? <span className="sr-only"> (done)</span> : null}
             {s.count != null && s.loud ? (
               <NeedsYouBadge small count={s.count} title={`${s.count} picked, waits for you`} />
             ) : s.loud ? null : (

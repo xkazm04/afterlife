@@ -163,6 +163,8 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
             pop.close();
             menus.openSort(el);
           }}
+          sortOpen={menus.sortOpen}
+          filterOpen={menus.filterOpen}
           filterCount={menuFilterCount(list.filters)}
           onFilterMenu={(el) => {
             pop.close();

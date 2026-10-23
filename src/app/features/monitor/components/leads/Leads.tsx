@@ -48,7 +48,7 @@ const LeadRow = memo(function LeadRow({ lead, open, thin, selected, match, onPic
       <div className={styles.counts}>
         {lead.needs ? <span className={styles.amber} title={decisionsWord(lead.needs)}>
             {lead.needs}
-            <span className={styles.sr}> {pluralWord(lead.needs, 'decision')}</span>
+            <span className="sr-only"> {pluralWord(lead.needs, 'decision')}</span>
           </span> : null}
         {lead.stale ? <span className={styles.staleChip}>{lead.stale} stale</span> : null}
       </div>

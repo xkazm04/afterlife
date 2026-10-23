@@ -11,7 +11,7 @@ export function GradeChip({ state = 'idle', title, children }: { state?: GradeCh
   return (
     <span className={cls} title={title}>
       {children}
-      <span className={styles.sr}> ({SAYS[state]})</span>
+      <span className="sr-only"> ({SAYS[state]})</span>
     </span>
   );
 }

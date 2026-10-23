@@ -23,7 +23,7 @@ export function ClassMenuButton({ tasks, value, onChange }: { tasks: readonly Ta
         icon="filter"
         active={value !== 'all'}
         title="Filter by proof class"
-        aria-expanded={menu.isOpen}
+        expanded={menu.isOpen}
         onClick={(e) => menu.openFrom(e.currentTarget, { items: items(), highlightFirst: false })}
       >
         {value === 'all' ? 'All classes' : value}

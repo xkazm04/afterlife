@@ -75,3 +75,38 @@ describe('state fills win over hover fills', () => {
     expect(outranks(sheet, '.step[aria-current="step"]', hover)).toBe(true);
   });
 });
+
+describe('Checkbox hit target', () => {
+  const sheet = css('Checkbox.module.css');
+  const px = (re: RegExp, decl: string): number => Number(re.exec(decl)?.[1] ?? NaN);
+  it('reaches 24px (WCAG 2.5.8) through an out-of-flow extension, the drawn box staying 14px', () => {
+    const box = px(/width:\s*calc\((\d+)px/, body(sheet, '.cb'));
+    const reach = px(/inset:\s*calc\(-(\d+)px/, body(sheet, '.cb::before'));
+    expect(box).toBe(14);
+    expect(box + 2 * reach).toBeGreaterThanOrEqual(24);
+    expect(body(sheet, '.cb')).toMatch(/position:\s*relative/);
+    expect(body(sheet, '.cb::before')).toMatch(/position:\s*absolute/);
+  });
+});
+
+describe('visually hidden recipe', () => {
+  const decls = (b: string): string[] => b.split(';').map((d) => d.replace(/\s+/g, ' ').trim()).filter(Boolean).sort();
+  const recipe = decls(body(css('../../styles/base.css'), '.sr-only'));
+  // Rules inside @container cannot take a class toggle, so they repeat the recipe; each must equal the shared one.
+  const COPIES: readonly [string, string, string][] = [
+    ['lozenge/Lozenge.module.css', '@container toolbar (max-width: 84em)', '.wd'],
+    ['toolbar/Stepper.module.css', '@container toolbar (max-width: 76em)', '.step:not([aria-current="step"]) .nm'],
+    ['toolbar/ToolbarButton.module.css', '@container toolbar (max-width: 72em)', '.lbl'],
+  ];
+  it('has one shared definition of six declarations', () => {
+    expect(recipe).toHaveLength(6);
+    expect(recipe.join(';')).toMatch(/clip-path: inset\(50%\)/);
+  });
+  it.each(COPIES)('%s keeps its in-container copy identical to it', (file, rule, selector) => {
+    expect(decls(body(atBlock(css(file), rule), selector))).toEqual(recipe);
+  });
+  it.each(['../../app/features/monitor/components/leads/leads.module.css', '../../app/features/needs-you/components/shared/GradeChip.module.css'])(
+    '%s no longer hand-copies it',
+    (file) => expect(css(file)).not.toContain('clip-path: inset(50%)'),
+  );
+});
