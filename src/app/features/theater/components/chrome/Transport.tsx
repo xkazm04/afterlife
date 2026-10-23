@@ -5,7 +5,7 @@ import { LozengeDivider } from '@/components/controls/lozenge/LozengeDivider';
 import { Spacer } from '@/components/controls/Spacer';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { MAX_TAKES } from '../../model/film/fromLedger';
-import type { Readout } from '../../model/replay/state';
+import { PREROLL_MS, PREROLL_REDUCED_MS, type Readout } from '../../model/replay/state';
 import type { TheaterActions } from '../../hooks/useTheaterActions';
 import styles from './Transport.module.css';
 
@@ -16,8 +16,12 @@ function TransportButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
 
 const sz = (n: number) => ({ width: `calc(${n}px * var(--ui-scale))`, height: `calc(${n}px * var(--ui-scale))` });
 
-/** Toolbar content: the transport (Play / Pause, Roll, Loop, state readout), then Present at the far end. */
-export function Transport({ playing, loop, readout, actions, onPresent }: { playing: boolean; loop: boolean; readout: Readout; actions: TheaterActions; onPresent: () => void }) {
+/**
+ * Toolbar content: the transport (Play / Pause, Roll, Loop, state readout), then Present at the far end. `reduced`: the
+ * viewer asked for reduced motion, so a roll pre-rolls PREROLL_REDUCED_MS, and the Roll tooltip says so.
+ */
+export function Transport({ playing, loop, readout, actions, onPresent, reduced = false }: { playing: boolean; loop: boolean; readout: Readout; actions: TheaterActions; onPresent: () => void; reduced?: boolean }) {
+  const preroll = (reduced ? PREROLL_REDUCED_MS : PREROLL_MS) / 1000;
   return (
     <>
       <Lozenge label="Transport">
@@ -28,7 +32,7 @@ export function Transport({ playing, loop, readout, actions, onPresent }: { play
           {playing ? 'Pause' : 'Play'}
         </TransportButton>
         <LozengeDivider />
-        <TransportButton title="Roll the take: cue to its in-point, 2 s pre-roll, play to its out-point (R)" onClick={actions.roll}>
+        <TransportButton title={`Roll the take: cue to its in-point, ${preroll} s pre-roll, play to its out-point (R)`} onClick={actions.roll}>
           <i className={styles.rec} />
           Roll <Kbd>R</Kbd>
         </TransportButton>

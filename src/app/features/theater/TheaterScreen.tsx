@@ -9,6 +9,7 @@ import { TheaterHelp } from './components/chrome/TheaterHelp';
 import { Transport } from './components/chrome/Transport';
 import { BeatInspector } from './components/inspector/BeatInspector';
 import { usePresent } from './hooks/usePresent';
+import { useReducedMotion } from './hooks/useReducedMotion';
 import { useReplaySlice } from './hooks/useReplaySlice';
 import { useReplayStore } from './hooks/useReplayStore';
 import { useTheaterActions } from './hooks/useTheaterActions';
@@ -30,6 +31,7 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
   const [missingSeq, setMissingSeq] = useState<number | null>(null);
   const store = useReplayStore(film, setMissingSeq);
   const present = usePresent();
+  const reduced = useReducedMotion();
   const actions = useTheaterActions(store);
   useTheaterKeys(actions, present, { takes: film.takes.length, entries: film.entries.length });
 
@@ -61,7 +63,7 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
         <Window
           title="Theater"
           subtitle={subtitle}
-          toolbar={<Transport playing={v.playing} loop={v.loop} readout={readout} actions={actions} onPresent={() => present.set(true)} />}
+          toolbar={<Transport playing={v.playing} loop={v.loop} readout={readout} actions={actions} onPresent={() => present.set(true)} reduced={reduced} />}
           sidebar={<TakesSidebar takes={film.takes} take={v.take} counts={v.counts} range={range} marked={v.mark !== null} actions={actions} />}
           inspector={<BeatInspector snap={snap} film={film} demo={demo} onSeek={actions.seek} />}
           status={
