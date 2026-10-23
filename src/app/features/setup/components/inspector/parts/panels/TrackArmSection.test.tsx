@@ -76,4 +76,8 @@ describe('TrackArmSection: the states with nothing to click', () => {
     expect(html).toContain('Stays locked until a probe sees');
     expect(html).not.toContain('<button');
   });
+  it('locked says what the read of main saw, as ready does (live: both come from one absent read)', () => {
+    expect(panel({ st: 'locked', found: 'no T1 block on main' }).html).toContain('Read: no T1 block on main');
+    expect(panel({ st: 'locked', found: null }).html).not.toContain('Read:');
+  });
 });

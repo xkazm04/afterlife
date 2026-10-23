@@ -92,6 +92,7 @@ export function TrackArmSection({ id }: { id: string }) {
   }
   return (
     <DetailSection title="Locked">
+      {a.found ? <div className={styles.muted}>Read: {a.found}</div> : null}
       <div className={styles.muted}>Stays locked until a probe sees {unmet(state, id).map(needLabel).join(', ')}</div>
     </DetailSection>
   );
