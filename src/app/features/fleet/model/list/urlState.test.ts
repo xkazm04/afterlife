@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { SMART_FILTERS } from './smartFilters';
-import { DEFAULT_LIST_STATE, decodeListState, encodeListState, fitGroups, type FleetListState } from './urlState';
+import { STATE_LABEL } from '@/lib/demo/labels';
+import { DEFAULT_LIST_STATE, PROJECT_STATES, decodeListState, encodeListState, fitGroups, type FleetListState } from './urlState';
 
 const back = (s: FleetListState) => decodeListState(new URLSearchParams(encodeListState(s)));
 
@@ -76,5 +78,18 @@ describe('a URL naming a group the fleet does not have', () => {
     expect(fitGroups(known, ['core'])).toEqual(known);
     const smart = decodeListState({ src: 'stale' });
     expect(fitGroups(smart, [])).toBe(smart);
+  });
+});
+
+describe('the project states list', () => {
+  it('is every state of STATE_LABEL, once, in display order', () => {
+    expect(PROJECT_STATES).toEqual(['watching', 'setting-up', 'stale', 'not-set-up']);
+    expect([...PROJECT_STATES].sort()).toEqual(Object.keys(STATE_LABEL).sort());
+  });
+  it('is typed once: the legend, the URL decoder and the Filter menu declare no copy of their own', () => {
+    const copy = /'watching',\s*'setting-up',\s*'stale',\s*'not-set-up'/;
+    const files = ['./urlState.ts', '../menus/toolbarMenus.ts', '../../components/legend/FleetLegend.tsx'];
+    const copies = files.filter((f) => copy.test(readFileSync(new URL(f, import.meta.url), 'utf8')));
+    expect(copies).toEqual([]);
   });
 });

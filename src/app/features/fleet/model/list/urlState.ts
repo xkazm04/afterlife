@@ -1,5 +1,6 @@
 // The list's view state as URL search params, so Back and a reload restore it. Pure: decode never throws and falls back to
 // the defaults for anything it does not know; the default state encodes to the empty string (a clean URL).
+import { STATE_LABEL } from '@/lib/demo/labels';
 import type { ProjectState, TierKey } from '@/lib/demo/types';
 import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import type { SortDir, SortState } from '@/components/table/model/sort';
@@ -28,7 +29,8 @@ export const DEFAULT_LIST_STATE: FleetListState = {
 export type RawParams = Record<string, string | string[] | undefined>;
 
 const VIEWS: readonly FleetView[] = ['tiers', 'classes', 'stages'];
-const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
+/** Every project state, in display order: the keys of STATE_LABEL, so a new state cannot be missed by the legend, the URL decoder or the Filter menu. */
+export const PROJECT_STATES = Object.keys(STATE_LABEL) as readonly ProjectState[];
 const SMART: readonly SmartId[] = SMART_FILTERS.map((s) => s.id);
 const PLAIN_SORTS = ['attention', 'name', 'state', 'needs', 'proofs', 'stages', 'feed'];
 
@@ -68,7 +70,7 @@ export function decodeListState(raw: RawParams | URLSearchParams | null | undefi
       filters: {
         source: src && isSource(src) ? src : 'all',
         q: first(p, 'q') ?? '',
-        states: new Set(STATES.filter((s) => all(p, 'state').includes(s))),
+        states: new Set(PROJECT_STATES.filter((s) => all(p, 'state').includes(s))),
         tiers: new Set<TierKey>(TIER_DISPLAY_ORDER.filter((t) => all(p, 'tier').includes(t))),
       },
     };
