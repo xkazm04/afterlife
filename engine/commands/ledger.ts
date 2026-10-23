@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { append, parseChainText, parseEventBody, verifyChain, type EventBody, type LedgerEvent } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
-import { readJson } from '../core/files';
+import { readJson, readText } from '../core/files';
 import { EngineError, isoMs, isRecord, type CommandResult, type Ctx } from '../core/types';
 import { TRIAL_USAGE, trialCommand } from './audit/trial';
 
@@ -41,7 +41,7 @@ export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult 
   const args = parseArgs(argv, { values: ['event', 'chain'], switches: ['write'], positional: 1 });
   if (args.positional[0] !== 'append') throw new EngineError(`usage: ledger append --event <file> --chain <events.jsonl> [--write] | ${TRIAL_USAGE}`);
   const chainFile = path.resolve(ctx.cwd, args.need('chain'));
-  const text = fs.existsSync(chainFile) ? fs.readFileSync(chainFile, 'utf8') : '';
+  const text = fs.existsSync(chainFile) ? readText(ctx, chainFile) : ''; // no chain yet is genesis; a directory is an error
   const chain = readChain(text);
   const broken = verifyChain(chain);
   if (broken !== null) throw new EngineError(`the chain is broken at seq ${broken}; it is not extended`);

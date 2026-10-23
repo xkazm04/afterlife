@@ -125,6 +125,10 @@ describe('ledger append through the CLI: the shared parser guards the writer', (
     return { code, json: c.json() as Record<string, unknown> };
   };
 
+  it('a --chain that is a directory is a read error naming EISDIR, as every other read is', () => {
+    expect(cli(event(), tmp).json.error).toBe(`cannot read ${tmp} (EISDIR)`);
+  });
+
   it('refuses a project_id that is not an integer >= 0, naming it', () => {
     for (const project_id of [1.5, -1]) {
       const r = cli(event({ subject: { project_id, type: 'mr', iid: 44 } }), path.join(tmp, `p${project_id}.jsonl`));
