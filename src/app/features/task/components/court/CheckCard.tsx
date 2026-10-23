@@ -1,5 +1,6 @@
 import { ObjectLink } from '@/components/controls/ObjectLink';
 import { Chip } from '@/components/status/chip/Chip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { CheckKind, TaskCheck, TaskView } from '../../model/types';
 import { linkLabel, type Emphasis } from '../../model/court/selection';
 import { checkGlyph } from '../../model/verdict/verdict';
@@ -45,6 +46,8 @@ export function CheckCard({
             invariant
           </Chip>
         )}
+        {/* It names a claim this proof does not hold, so no tie can be drawn to it. */}
+        {check.claims.some((cid) => !task.claims.some((c) => c.id === cid)) ? <HonestyChip kind="unknown">claim not held</HonestyChip> : null}
       </div>
       <div className={styles.txt}>{check.text}</div>
       <div className={styles.meta}>

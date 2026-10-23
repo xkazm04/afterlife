@@ -4,6 +4,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
+import { Court } from '../components/court/Court';
 import { SelectionRuling } from '../components/inspector/SelectionRuling';
 import { loadTasks } from '../model/build/loadTasks';
 
@@ -22,5 +23,16 @@ describe('the ruling on a check whose claim is not held', () => {
   it('a held claim is still quoted', () => {
     const claim = held.claims.find((c) => c.id === check.claims[0])!;
     expect(ruling(held)).toContain(`“${claim.text}”`);
+  });
+});
+
+describe('the court card of a check whose claim is not held', () => {
+  const card = (task: typeof held) => {
+    const html = renderToStaticMarkup(createElement(ToastProvider, null, createElement(Court, { task, sel: null, rv: null, onPick: () => undefined })));
+    return html.slice(html.indexOf(`data-check-card="${check.id}"`)).split('data-check-card=')[1] ?? '';
+  };
+  it('says its claim is not held, where a held tie draws a line', () => {
+    expect(card(dangling)).toContain('claim not held');
+    expect(card(held)).not.toContain('claim not held');
   });
 });
