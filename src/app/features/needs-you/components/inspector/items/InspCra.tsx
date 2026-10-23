@@ -81,7 +81,9 @@ export function InspCra(p: InspProps) {
       <Sec k="n2-ev" title="Evidence" aux={`${p.demo.signoff.linksResolved} resolve`} p={p}>
         {EVIDENCE.map((e) => (
           <div key={e.what} className={styles.lk}>
-            <span className={styles.y}>✓</span>
+            <span className={styles.y} role="img" aria-label="resolves">
+              ✓
+            </span>
             <span className={styles.t} title={e.detail}>
               {e.what}
             </span>

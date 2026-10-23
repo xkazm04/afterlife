@@ -18,3 +18,11 @@ describe('InspCra', () => {
     expect(read).not.toContain('Read the draft first');
   });
 });
+
+describe('InspCra evidence ticks', () => {
+  it('each tick says it resolves, as the band strip\'s ticks do', () => {
+    const ticks = [...html(false).matchAll(/<span[^>]*>✓<\/span>/g)].map((m) => m[0]);
+    expect(ticks.length).toBeGreaterThan(0);
+    for (const t of ticks) expect(t).toMatch(/role="img"[^>]*aria-label="resolves"/);
+  });
+});
