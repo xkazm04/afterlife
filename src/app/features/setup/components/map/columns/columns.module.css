@@ -1,7 +1,7 @@
 .col {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: calc(3px * var(--ui-scale));
   min-width: 0;
 }
 .tracks {
@@ -14,9 +14,9 @@
 .ch {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   height: calc(18px * var(--ui-scale));
-  margin: 0 0 4px;
+  margin: 0 0 calc(4px * var(--ui-scale));
   font-size: var(--t-small);
   font-weight: 600;
   color: var(--text-4);
@@ -38,7 +38,7 @@
   color: var(--text-3);
 }
 .ph {
-  margin: calc(7px * var(--ui-scale)) 0 1px 2px;
+  margin: calc(7px * var(--ui-scale)) 0 1px calc(2px * var(--ui-scale));
   font-size: var(--t-small);
   font-weight: 600;
   color: var(--text-4);

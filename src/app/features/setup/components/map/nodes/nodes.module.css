@@ -34,7 +34,7 @@
 /* a narrow pane wraps a label onto a second line rather than cutting it (edges are measured from the DOM) */
 @container pane (max-width: 66em) {
   .nd {
-    padding-block: 2px;
+    padding-block: calc(2px * var(--ui-scale));
   }
   .lb {
     display: -webkit-box;
@@ -72,7 +72,7 @@
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: calc(4px * var(--ui-scale));
 }
 .ny {
   color: var(--needs-you);
