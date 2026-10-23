@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 import { Button } from '@/components/controls/Button';
 import type { ActionId, Action } from '../../model/types';
 import styles from './inspector.module.css';
 
-/** The inspector's button bar under the header. */
+/** The inspector's button bar under the header; nothing at all when no button is left (an empty bar would take a grid row). */
 export function Acts({ children }: { children: ReactNode }) {
+  if (!Children.toArray(children).length) return null;
   return <div className={styles.acts}>{children}</div>;
 }
 

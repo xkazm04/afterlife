@@ -15,3 +15,13 @@ describe('InspPromote', () => {
     expect(out).not.toContain('code-fix.patch');
   });
 });
+
+describe('InspPromote button bar', () => {
+  it('merged: no button is left, so no empty bar takes a row of the page grid', () => {
+    const demo = pickNeedsYouDemo();
+    const base = initialState(demo);
+    const at = (n1: 'open' | 'merged') => renderToStaticMarkup(<InspPromote s={{ ...base, status: { ...base.status, n1 } }} demo={demo} leftSec={0} dispatch={() => {}} />);
+    expect(at('open')).toMatch(/class="[^"]*acts/);
+    expect(at('merged')).not.toMatch(/class="[^"]*acts/);
+  });
+});
