@@ -35,6 +35,11 @@ describe('visibleClasses', () => {
     expect(ids({ src: 'pending' })).toEqual(['c']);
     expect(ids({ src: 'below' })).toEqual(['a', 'c']);
   });
+  it('Leased keeps a lapsed Hands-off lease (the gate acts at Supervised) but not a lease-less class', () => {
+    const leased = SMART_FILTERS.find((s) => s.id === 'leased');
+    expect(leased?.test(row('x', { tier: 'hands_off', lease_days: 0 }), '', null)).toBe(true);
+    expect(leased?.test(row('y', { tier: 'supervised', lease_days: 0 }), '', null)).toBe(false);
+  });
   it('Below ceiling ignores Quarantined and Human only', () => {
     const below = SMART_FILTERS.find((s) => s.id === 'below');
     expect(below?.test(classes[1] as ClassRow, '', null)).toBe(false);

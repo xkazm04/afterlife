@@ -2,6 +2,7 @@
 import { TIER_RANK } from '@/lib/tiers';
 import type { PolicyRules } from '@/server/data/types';
 import { promotion } from '@/lib/promotion';
+import { leaseLapsed } from '../grant/lease';
 import { actsFrom, cellOf, isQuarantine } from '../rules/tiers';
 import type { Ceiling, ClassRow, TrackMap } from '../types';
 
@@ -22,7 +23,7 @@ export const SMART_FILTERS: readonly SmartFilter[] = [
       return t !== null && t !== 'human_only' && t !== 'quarantined' && TIER_RANK[t] < TIER_RANK[c.ceiling];
     },
   },
-  { id: 'leased', label: 'Leased', test: (c) => !!c.lease_days },
+  { id: 'leased', label: 'Leased', test: (c) => !!c.lease_days || leaseLapsed(c) },
   { id: 'quar', label: 'Quarantined', test: isQuarantine },
   { id: 'pending', label: 'Pending read', test: (c) => !!c.pending },
 ];
