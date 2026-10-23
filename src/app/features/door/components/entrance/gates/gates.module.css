@@ -17,6 +17,20 @@
   z-index: 50;
   overflow: hidden;
   font-family: var(--sys);
+  animation: failsafe 6000ms linear both; /* no script, no gates: GatesEntrance cancels this with [data-live] once it runs */
+}
+.root[data-live] {
+  animation: none;
+}
+@keyframes failsafe {
+  0%,
+  99% {
+    visibility: visible;
+  }
+  100% {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 /* the clock: a dot nobody sees, whose animation the script reads (an opacity no-op on the root itself would make the
    whole overlay one offscreen surface every frame) */
