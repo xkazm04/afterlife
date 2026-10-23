@@ -3,8 +3,8 @@ import styles from './dock.module.css';
 
 /**
  * A command strip docked at the bottom of a (`position: relative`) pane: the exact line the next key will run, in mono,
- * and on the right the keys. It is a live region. Put `<b>` around the subject, `DockPrompt` around the key and
- * `DockNote` around the aside; `DockKey` for each hint on the right. Keep it to one line; it truncates.
+ * and on the right the keys. It is a live region. Put `<b>` around the subject, `<DockText tone="prompt">` around the key and
+ * `<DockText tone="note">` around the aside; `DockKey` for each hint on the right. Keep it to one line; it truncates.
  */
 export function CommandDock({ line, title, children }: { line: ReactNode; title?: string; children?: ReactNode }) {
   return (
