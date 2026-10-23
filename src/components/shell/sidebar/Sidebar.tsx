@@ -14,11 +14,11 @@ import styles from './Sidebar.module.css';
  * The source-list sidebar: lights, the Afterlife home link and the hide button on top, the app navigation, then the screen's own sections
  * (`children`), and Settings pinned at the bottom.
  */
-export function Sidebar({ active, onToggle, children }: { active: boolean; onToggle: () => void; children?: ReactNode }) {
+export function Sidebar({ onToggle, children }: { onToggle: () => void; children?: ReactNode }) {
   return (
     <aside className={styles.side} aria-label="Sources">
       <div className={styles.top}>
-        <TrafficLights active={active} />
+        <TrafficLights />
         <Link href="/" className={styles.brand} aria-label="Afterlife, back to the landing page">
           <Image src="/brand/belay-b-knot.svg" alt="" width={18} height={18} unoptimized />
           <span>Afterlife</span>

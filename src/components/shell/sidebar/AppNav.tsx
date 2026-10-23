@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useModCap } from '@/lib/keyboard/modKey';
 import { openPalette } from '@/components/palette/CommandPalette';
 import { useShellInfo } from '../ShellContext';
 import { APP_NAV, activeNavKey } from './navItems';
@@ -8,17 +9,18 @@ import { NavLink } from './NavLink';
 import { SidebarSection } from './SidebarSection';
 import styles from './Sidebar.module.css';
 
-/** The app screens; the current one comes from the route (usePathname). The ⌘K chip opens the command palette. */
+/** The app screens; the current one comes from the route (usePathname). The ⌘K (Ctrl+K off Apple platforms) chip opens the command palette. */
 export function AppNav() {
   const active = activeNavKey(usePathname());
   const { needsYouCount } = useShellInfo();
+  const mod = useModCap();
   return (
     <nav className={styles.appnav} aria-label="Afterlife">
       <SidebarSection
         title="Afterlife"
         aux={
-          <button type="button" className={styles.goto} title="Go to anything (⌘K)" aria-label="Go to anything (⌘K)" onClick={openPalette}>
-            ⌘K
+          <button type="button" className={styles.goto} title={`Go to anything (${mod}K)`} aria-label={`Go to anything (${mod}K)`} onClick={openPalette}>
+            {`${mod}K`}
           </button>
         }
       >
