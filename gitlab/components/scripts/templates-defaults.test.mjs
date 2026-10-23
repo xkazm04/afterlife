@@ -24,9 +24,11 @@ for (const name of fs.readdirSync(dir)) {
 // engine, its pin, glab, the policy (project and ref) or the shell run beside CI_JOB_TOKEN may be a job variable: it is read
 // from `$[[ inputs.x ]]`. Nor may the accounts whose Proof Block, guardrail or medic note a job trusts.
 const PINNED = ['BELAY_ENGINE_PROJECT', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT', 'BELAY_POLICY_PROJECT', 'BELAY_POLICY_REF', 'BELAY_GLAB_VERSION', 'BELAY_GLAB_SHA256', 'BELAY_BUILD_ARGS', 'BELAY_PREPARE',
-  'BELAY_PROOF_AUTHORS', 'BELAY_GUARDRAIL_AUTHORS', 'BELAY_BLOCK_AUTHORS'];
+  'BELAY_PROOF_AUTHORS', 'BELAY_GUARDRAIL_AUTHORS', 'BELAY_BLOCK_AUTHORS',
+  'BELAY_AGENT_PREFIX', 'BELAY_CLASS', 'BELAY_CLASS_INPUT', 'BELAY_EVIDENCE_MODE', 'BELAY_EVIDENCE_FILE', 'BELAY_POST_MERGE', 'BELAY_EMIT'];
 const GUARDED = ['engine_project', 'engine_ref', 'engine_commit', 'policy_project', 'policy_ref', 'glab_version', 'glab_sha256', 'build_args',
-  'proof_authors', 'guardrail_authors', 'block_authors'];
+  'proof_authors', 'guardrail_authors', 'block_authors', 'agent_prefix', 'evidence_file'];
+const READ = ['class', 'evidence_mode', 'post_merge', 'emit_events']; // options- or type-guarded: read in the shell, no regex needed
 
 for (const name of fs.readdirSync(dir)) {
   const file = path.join(dir, name, 'template.yml');
@@ -41,7 +43,7 @@ for (const name of fs.readdirSync(dir)) {
       for (const k of PINNED) expect(def.variables ?? {}, `${job} ${k}`).not.toHaveProperty(k);
     }
     const shell = Object.values(jobs).flatMap((j) => [...(j.before_script ?? []), ...(j.script ?? [])]).join('\n');
-    for (const k of GUARDED.filter((g) => g in spec && g !== 'build_args')) expect(shell, k).toContain(`$[[ inputs.${k} ]]`);
+    for (const k of [...GUARDED, ...READ].filter((g) => g in spec && g !== 'build_args')) expect(shell, k).toContain(`$[[ inputs.${k} ]]`);
     if ('prepare_script' in spec) expect(shell).toContain('$[[ inputs.prepare_script ]]');
   });
 

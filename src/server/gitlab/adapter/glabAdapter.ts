@@ -34,8 +34,13 @@ export function offGrammar(argv: readonly string[], host: string | undefined): s
 
 export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
   const c = new GlabClient(cfg);
-  const list = async <T>(path: string, map: (r: Record<string, unknown>) => T, q = {}, limit?: number): Promise<T[]> =>
-    recs(await c.getPages(path, q, limit), path).map(map);
+  // Offset pages of a newest-first list shift when a row arrives mid-walk: a row seen twice is kept once, by id.
+  // Tree entries opt out: their id is a blob sha that two paths legitimately share.
+  const list = async <T>(path: string, map: (r: Record<string, unknown>) => T, q = {}, limit?: number, byId = true): Promise<T[]> => {
+    const seen = new Set<unknown>();
+    const rows = recs(await c.getPages(path, q, limit), path);
+    return rows.filter((r) => !byId || typeof r.id === 'undefined' || (!seen.has(r.id) && !!seen.add(r.id))).map(map);
+  };
   const mrQuery = (f: { state?: string; labels?: string[]; updatedAfter?: string } = {}) => ({
     state: f.state, labels: f.labels?.join(','), updated_after: f.updatedAfter,
   });
@@ -77,11 +82,12 @@ export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
       try {
         return mapFile(rec(await c.getJson(`projects/${id(p)}/repository/files/${encodeURIComponent(path)}`, { ref }), 'file'));
       } catch (e) {
-        if (isKind(e, 'not-found')) return null;
+        // Only GitLab's "404 File Not Found" is an absent file; Project/Commit Not Found is a wrong id or ref and surfaces.
+        if (isKind(e, 'not-found') && /file not found/i.test(e.message)) return null;
         throw e;
       }
     },
-    listTree: (p, o = {}) => list(`projects/${id(p)}/repository/tree`, mapTreeEntry, { path: o.path, ref: o.ref, recursive: o.recursive }),
+    listTree: (p, o = {}) => list(`projects/${id(p)}/repository/tree`, mapTreeEntry, { path: o.path, ref: o.ref, recursive: o.recursive }, undefined, false),
     listCommits: (p, f = {}) => list(`projects/${id(p)}/repository/commits`, mapCommit, { path: f.path, ref_name: f.ref }, f.limit),
 
     listVulnerabilities: async (p, o = {}) => {

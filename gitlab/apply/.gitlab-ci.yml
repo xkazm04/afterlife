@@ -28,6 +28,13 @@ stages: [sweep]
       case "$ENGINE_COMMIT" in *[!0-9a-f]*|"") echo "apply.json engine.commit must be the 40-char commit of engine.ref" >&2; exit 2 ;; esac
       [ "${#ENGINE_COMMIT}" -eq 40 ] || { echo "apply.json engine.commit must be 40 hex digits" >&2; exit 2; }
       [ -n "$GLAB_SHA256" ] || { echo "apply.json glab.sha256 is empty: this job holds the write tokens, so glab is checked" >&2; exit 2; }
+      # The shapes the templates' spec:inputs regexes enforce (stricter: no leading '-', so git never reads a ref as an option).
+      case "$ENGINE_PROJECT" in ""|[!A-Za-z0-9]*|*[!A-Za-z0-9._/-]*) echo "apply.json engine.project is not a project path" >&2; exit 2 ;; esac
+      case "$ENGINE_REF" in ""|[!A-Za-z0-9]*|*[!A-Za-z0-9._/-]*) echo "apply.json engine.ref is not a plain ref name" >&2; exit 2 ;; esac
+      case "$GLAB_VERSION" in ""|*[!0-9.]*|.*|*.|*..*) echo "apply.json glab.version must be N.N.N" >&2; exit 2 ;; esac
+      [ "$(printf %s "$GLAB_VERSION" | tr -d '0-9')" = ".." ] || { echo "apply.json glab.version must be N.N.N" >&2; exit 2; }
+      case "$GLAB_SHA256" in *[!0-9a-f]*) echo "apply.json glab.sha256 must be 64 lowercase hex digits" >&2; exit 2 ;; esac
+      [ "${#GLAB_SHA256}" -eq 64 ] || { echo "apply.json glab.sha256 must be 64 lowercase hex digits" >&2; exit 2; }
       export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
       rm -rf "$BELAY_DIR" && git init -q "$BELAY_DIR"
       BASIC="$(printf 'gitlab-ci-token:%s' "$CI_JOB_TOKEN" | base64 -w0)"

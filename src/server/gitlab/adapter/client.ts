@@ -8,7 +8,7 @@ export interface ClientConfig {
   host?: string; // GitLab hostname; glab's own default when omitted
   exec: ExecFn;
   sleep?: (ms: number) => Promise<void>;
-  maxRetries?: number; // on 429 only
+  maxRetries?: number; // on 429 and 502/503/504, reads only
   backoffMs?: number; // first wait; doubles each retry
   pageSize?: number;
   maxPages?: number;
@@ -32,7 +32,7 @@ export class GlabClient {
     return ['api', ...(this.cfg.host ? ['--hostname', this.cfg.host] : []), url];
   }
 
-  /** One GET. Retries 429 with exponential backoff, then throws 'rate-limited'. */
+  /** One GET (idempotent). Retries 429 and 502/503/504 with exponential backoff, then throws the last error's kind. */
   private async getRaw(url: string): Promise<string> {
     const retries = this.cfg.maxRetries ?? 3;
     const sleep = this.cfg.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
@@ -40,7 +40,8 @@ export class GlabClient {
       const r = await this.cfg.exec(this.cfg.bin, this.args(url));
       if (r.code === 0) return r.stdout;
       const err = failureToError(r, url);
-      if (err.kind !== 'rate-limited' || attempt >= retries) throw err;
+      const transient = err.kind === 'rate-limited' || err.status === 502 || err.status === 503 || err.status === 504;
+      if (!transient || attempt >= retries) throw err;
       await sleep((this.cfg.backoffMs ?? 1000) * 2 ** attempt);
     }
   }

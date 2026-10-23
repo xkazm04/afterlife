@@ -52,8 +52,10 @@ spec:
       description: Comma-separated usernames of the guardrail flow service account. [R?] the exact ai-<flow>-<group> form.
     agent_prefix:
       default: 'ai-'
+      regex: '^[A-Za-z0-9._-]*$'
     class:
       default: ''
+      regex: '^[A-Za-z0-9._-]*$'
       description: Action class id (trust-policy.yml classes). Empty reads the Belay-Class trailer from the MR description.
     wait_minutes:
       type: number
@@ -109,13 +111,11 @@ belay-tier-gate:
   interruptible: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  variables:
-    BELAY_AGENT_PREFIX: "$[[ inputs.agent_prefix ]]"
-    BELAY_CLASS_INPUT: "$[[ inputs.class ]]"
-    BELAY_EMIT: "$[[ inputs.emit_events ]]"
   script:
     - |
       set -eu
+      # The agent prefix, the class override and the emit switch are inputs, never job variables a pipeline one outranks.
+      BELAY_AGENT_PREFIX='$[[ inputs.agent_prefix ]]'; BELAY_CLASS_INPUT='$[[ inputs.class ]]'; BELAY_EMIT='$[[ inputs.emit_events ]]'
       # M6: whose notes count, and the wait (a number: $(( )) below would evaluate a variable's text, $(...) and all), are fixed
       # at include time, never a job variable a pipeline one outranks.
       BELAY_PROOF_AUTHORS="$[[ inputs.proof_authors ]]"; BELAY_GUARDRAIL_AUTHORS="$[[ inputs.guardrail_authors ]]"
