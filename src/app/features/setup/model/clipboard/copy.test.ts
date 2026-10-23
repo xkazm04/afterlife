@@ -16,4 +16,9 @@ describe('Copy', () => {
     expect((await copyText('x', { writeText: () => { throw new Error('boom'); } })).ok).toBe(false);
     expect(await copyText('x', undefined)).toMatchObject({ ok: false, text: expect.stringMatching(/^Copy failed/) });
   });
+  it('a step with no command (step 11) copies nothing and leaves the clipboard as it was, never "Copied"', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    expect(await copyText('', { writeText })).toEqual({ ok: false, text: 'Nothing to copy · this has no command · nothing sent' });
+    expect(writeText).not.toHaveBeenCalled();
+  });
 });

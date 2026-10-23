@@ -3,8 +3,12 @@ export interface Clip {
   writeText(text: string): Promise<void>;
 }
 
-/** Copy, and say what happened: "Copied" only when the clipboard took the text. Nothing is ever sent. */
+/**
+ * Copy, and say what happened: "Copied" only when the clipboard took the text. Nothing is ever sent. No text (a step
+ * with no command) copies nothing: the clipboard keeps what the person had there.
+ */
 export async function copyText(text: string, clip: Clip | undefined): Promise<{ ok: boolean; text: string }> {
+  if (!text.trim()) return { ok: false, text: 'Nothing to copy · this has no command · nothing sent' };
   if (!clip) return { ok: false, text: 'Copy failed · this browser gives no clipboard here · nothing sent' };
   try {
     await clip.writeText(text);
