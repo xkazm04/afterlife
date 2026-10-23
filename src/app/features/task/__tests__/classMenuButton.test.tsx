@@ -1,6 +1,6 @@
 // The class filter's trigger toggles: a click that arrives with no press before it (assistive tech or voice control
 // activating the button, element.click()) closes the open menu. useMenu's reopen guard only covers a mouse press,
-// so the `isOpen ? close()` branch in ClassMenuButton is the only thing that closes it on that path.
+// so useMenu's own openFrom rule (a second openFrom on the open trigger closes it) is what closes it on that path.
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

@@ -46,6 +46,20 @@ describe('useMenu trigger', () => {
     render().openFrom(trigger, { items }); // the click of that same press
     expect(render().isOpen).toBe(false);
   });
+  it('a click with no press before it (assistive tech) on the trigger of an open menu closes it instead of reopening it', () => {
+    render().openFrom(trigger, { items });
+    expect(render().isOpen).toBe(true);
+    render().openFrom(trigger, { items });
+    expect(render().isOpen).toBe(false);
+    render().openFrom(trigger, { items });
+    expect(render().isOpen).toBe(true);
+  });
+  it('openFrom a different trigger moves the menu instead of closing it', () => {
+    const other = { ...trigger } as unknown as HTMLElement;
+    render().openFrom(trigger, { items });
+    render().openFrom(other, { items });
+    expect(render().isOpen).toBe(true);
+  });
   it('the next click on the trigger opens it again', () => {
     render().openFrom(trigger, { items });
     pressOn(trigger);
