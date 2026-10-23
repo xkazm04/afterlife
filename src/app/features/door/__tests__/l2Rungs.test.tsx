@@ -30,3 +30,12 @@ describe('L2 panel rung count', () => {
     expect(t).toContain('5 unknown');
   });
 });
+
+describe('L2 panel cockpit count', () => {
+  it('says "1 decision" for the deep project with one waiting, not "1 decisions"', () => {
+    const one: Deep = { ...deep, id: 'p1', needs: [{ id: 'n1', title: 'T', does: 'd', kind: 'merge' } as unknown as Deep['needs'][number]] };
+    const t = renderToStaticMarkup(createElement(L2Panel, { p: project(4, 9), group: 'g', classes: [], deep: one, rungs: 9 })).replace(/<[^>]+>/g, '');
+    expect(t).toContain('Needs me1 decision');
+    expect(t).not.toContain('1 decisions');
+  });
+});

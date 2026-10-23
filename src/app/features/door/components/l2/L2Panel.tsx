@@ -104,7 +104,7 @@ export function L2Panel({ p, group, classes, deep, rungs }: { p: FleetProject; g
               </dd>
               <dt>Needs me</dt>
               <dd>
-                <span className={styles.a}>{deep.needs.length} decisions</span>
+                <span className={styles.a}>{deep.needs.length} {plural(deep.needs.length, 'decision')}</span>
               </dd>
             </dl>
             <div className={styles.block}>
