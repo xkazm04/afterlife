@@ -35,6 +35,17 @@ describe('cli/belay.mjs', () => {
     expect(belay('run', '--repo', 'ghost', '--fleet', fleet, '--dry-run').status).toBe(2);
   }, 240_000);
 
+  it('scan reads a checkout given as a positional or as --dir, the form engine/commands/scan.ts documents', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
+    const positional = belay('scan', dir);
+    expect(positional.status, positional.stderr).toBe(0);
+    for (const args of [['--dir', dir], ['--dir', dir, '--propose'], [dir, '--propose']]) {
+      const r = belay('scan', ...args);
+      expect(r.stderr).not.toContain('needs a value');
+      expect(r.status, `${args.join(' ')}: ${r.stderr}`).toBe(0);
+    }
+  }, 120_000);
+
   it.each(['replay'])('%s is not implemented and exits 2', (verb) => {
     const r = belay(verb);
     expect(r.status).toBe(2);

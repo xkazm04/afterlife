@@ -34,9 +34,12 @@ switch (cmd) {
     process.exitCode = viaTsx('run', '../runner/main.ts', rest);
     break;
   case 'scan': {
-    // belay scan [<checkout>] [--propose] | belay scan --facts <facts.json>: the checkout defaults to the current directory.
-    const dir = rest.find((a, i) => !a.startsWith('--') && rest[i - 1] !== '--facts');
-    const args = rest.includes('--facts') ? rest.filter((a) => a !== dir) : ['--dir', dir ?? '.', ...rest.filter((a) => a !== dir)];
+    // belay scan [<checkout>] [--propose] | belay scan --dir <checkout> | belay scan --facts <facts.json>: the checkout
+    // defaults to the current directory. An explicit --dir or --facts passes through; only a bare positional is wrapped.
+    const valued = ['--facts', '--dir'];
+    const at = rest.findIndex((a, i) => !a.startsWith('--') && !valued.includes(rest[i - 1]));
+    const others = rest.filter((_, i) => i !== at);
+    const args = rest.some((a) => valued.includes(a)) ? others : ['--dir', at < 0 ? '.' : rest[at], ...others];
     process.exitCode = viaTsx('scan', '../engine/cli.ts', ['scan', ...args], process.cwd());
     break;
   }
