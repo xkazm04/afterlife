@@ -30,6 +30,10 @@ describe('status line', () => {
     expect(statusLine(1, 1, 0, 0)).toBe('1 project · 0 filters · polled 0 s ago');
     expect(statusLine(9, 184, 1, 3)).toBe('9 of 184 projects · 1 filter · polled 3 s ago');
   });
+  it('writes a live snapshot age past a minute in the feed units, never "polled 7200 s ago"', () => {
+    expect(statusLine(184, 184, 0, 90)).toBe('184 projects · 0 filters · polled 2 m ago');
+    expect(statusLine(184, 184, 0, 7200)).toBe('184 projects · 0 filters · polled 2 h ago');
+  });
   it('wraps the poll counter after 59', () => {
     expect(nextPolled(12)).toBe(13);
     expect(nextPolled(59)).toBe(0);

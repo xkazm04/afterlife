@@ -1,5 +1,6 @@
 // Re-polling a feed and the status line.
 import type { FleetProject } from '@/lib/demo/types';
+import { formatAge } from '@/lib/format/time';
 
 export interface RepollResult {
   ok: boolean;
@@ -21,10 +22,10 @@ export function repoll(p: FleetProject): RepollResult {
   return { ok: true, message: repollMessage(p.name, { ok: true }), project: { ...p, feed: { ...p.feed, ageSec: 0 } } };
 }
 
-/** "184 projects · 0 filters · polled 12 s ago" (or "9 of 184 projects"). */
+/** "184 projects · 0 filters · polled 12 s ago" (or "9 of 184 projects"); a live age past a minute in the feed's units, "2 h". */
 export function statusLine(shown: number, total: number, filters: number, polledSec: number): string {
   const count = shown === total ? `${total}` : `${shown} of ${total}`;
-  return `${count} ${total === 1 ? 'project' : 'projects'} · ${filters} ${filters === 1 ? 'filter' : 'filters'} · polled ${polledSec} s ago`;
+  return `${count} ${total === 1 ? 'project' : 'projects'} · ${filters} ${filters === 1 ? 'filter' : 'filters'} · polled ${formatAge(polledSec)} ago`;
 }
 
 /**
