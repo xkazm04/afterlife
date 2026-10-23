@@ -29,7 +29,7 @@ describe('tier-state revisions in memory', () => {
 });
 
 describe('a project that left the group', () => {
-  it('leaves nothing of its notes or its scan in memory', async () => {
+  it('leaves nothing of its notes, its scan or its belay-ledger files in memory', async () => {
     const x = await rig();
     await x.poll();
     const gone = Number(x.gl.state.projects.find((p) => p.raw.name === 'ledgerline')!.raw.id);
@@ -39,5 +39,7 @@ describe('a project that left the group', () => {
     await x.poll(new Date(SEED_NOW.getTime() + 60_000));
     expect([...x.mem.notes.keys()].filter((k) => k.startsWith(`${gone}!`))).toEqual([]);
     expect([...x.mem.scans.keys()]).not.toContain(gone);
+    // and none of the blob ids imported from belay-ledger for it: its ledger file and its cycle file
+    expect([...x.mem.ledger.keys(), ...x.mem.cycles.keys()]).not.toContain(gone);
   }, 60_000);
 });
