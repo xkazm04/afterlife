@@ -16,6 +16,13 @@ export const inProject = (fn: ProjectHandler): Handler => (st, m, req) => {
   return p ? fn(p, m, req, st) : fail(404, 'Project Not Found');
 };
 
+/** Wraps a handler that needs the group named in the path: the recorded group by id or full path, like GitLab, else 404. */
+const inGroup = (fn: Handler): Handler => (st, m, req) => {
+  const k = decodeURIComponent(req.path.split('/')[1] ?? '');
+  const known = [st.group.id, st.group.full_path, st.group.path, st.namespace.id, st.namespace.full_path].map(String);
+  return known.includes(k) ? fn(st, m, req) : fail(404, 'Group Not Found');
+};
+
 const list = (items: unknown[], q: URLSearchParams): Res => ok(paged(items, q));
 const byId = (items: Record<string, unknown>[]) => [...items].sort((a, b) => Number(b.id) - Number(a.id));
 
@@ -75,13 +82,13 @@ const allMrs = (st: FakeState, q: URLSearchParams, only?: ProjectData): Record<s
 export const readRoutes: Route[] = [
   ['GET', /^user$/, (st) => ok(st.user)],
   ['GET', /^metadata$/, (st) => ok(st.instance)],
-  ['GET', /^groups\/[^/]+$/, (st) => ok(st.group)],
-  ['GET', /^namespaces\/[^/]+$/, (st) => ok(st.namespace)],
-  ['GET', /^groups\/[^/]+\/projects$/, (st, _m, r) => list(st.projects.map((p) => p.raw), r.query)],
-  ['GET', /^groups\/[^/]+\/merge_requests$/, (st, _m, r) => list(allMrs(st, r.query), r.query)],
-  ['GET', /^groups\/[^/]+\/releases$/, (st, _m, r) => list(st.projects.flatMap((p) => p.releases), r.query)],
-  ['GET', /^groups\/[^/]+\/service_accounts$/, () => ok([])],
-  ['GET', /^groups\/[^/]+\/audit_events$/, (st) => (atLeast(st, 'premium') ? ok([]) : fail(403, 'Forbidden'))],
+  ['GET', /^groups\/[^/]+$/, inGroup((st) => ok(st.group))],
+  ['GET', /^namespaces\/[^/]+$/, inGroup((st) => ok(st.namespace))],
+  ['GET', /^groups\/[^/]+\/projects$/, inGroup((st, _m, r) => list(st.projects.map((p) => p.raw), r.query))],
+  ['GET', /^groups\/[^/]+\/merge_requests$/, inGroup((st, _m, r) => list(allMrs(st, r.query), r.query))],
+  ['GET', /^groups\/[^/]+\/releases$/, inGroup((st, _m, r) => list(st.projects.flatMap((p) => p.releases), r.query))],
+  ['GET', /^groups\/[^/]+\/service_accounts$/, inGroup(() => ok([]))],
+  ['GET', /^groups\/[^/]+\/audit_events$/, inGroup((st) => (atLeast(st, 'premium') ? ok([]) : fail(403, 'Forbidden')))],
   ['GET', /^ai\/duo_workflows\/workflows$/, (st) => (atLeast(st, 'premium') ? ok([]) : fail(404, 'Not Found'))],
 
   ['GET', new RegExp(`^${P}/pipelines$`), inProject((p, _m, { query: q }) => {
