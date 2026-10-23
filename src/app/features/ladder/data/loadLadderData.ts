@@ -7,22 +7,18 @@ import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { getDataSource } from '@/server/data';
 import type { IllustrativePart } from '@/server/data';
 import type { NeedsYouItem } from '@/lib/demo';
-import { cellOf, displayLastMove, promotionId } from '@/lib/promotion';
-import { TIER_ORDER } from '@/schemas/tier';
-import type { PromotionAsk, Tier } from '../model/types';
+import { cellOf, displayLastMove, isTier, promotionId } from '@/lib/promotion';
+import type { PromotionAsk } from '../model/types';
 import type { LadderScreenProps } from '../LadderScreen';
 import { LEDGER_SEED } from './ledgerSeed';
 import { liveLedgerEntries } from './live/ledgerEntries';
 import { INITIAL_HEAD } from './policy';
 
-const TIERS: readonly string[] = TIER_DISPLAY_ORDER;
-const isTier = (t: string | undefined): t is Tier => t !== 'human_only' && TIERS.includes(t ?? '');
-
 /**
  * Live: the poll counts the record of a class one agent holds, whose cell is its tier (poller/derive/tiers.ts). A class
  * several agents hold, none, or Human only keeps the record the index held: not the poll's.
  */
-const counted = (c: Parameters<typeof cellOf>[0]): boolean => (TIER_ORDER as readonly string[]).includes(cellOf(c) ?? '');
+const counted = (c: Parameters<typeof cellOf>[0]): boolean => isTier(cellOf(c));
 
 /**
  * Live: the promotion asks the poll opened for this project's classes (server/poller/derive/promotion.ts), by class. The
