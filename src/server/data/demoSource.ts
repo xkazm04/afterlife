@@ -20,6 +20,7 @@ export const demoSource: DataSource = {
   getTasks: demo.getTasks,
   getNeedsYou: demo.getNeedsYou,
   getNeedsYouCount: demo.getNeedsYouCount,
+  getDecided: () => [],
   getSetup: demo.getSetup,
   getEvents: demo.getEvents,
   getCockpit: demo.getCockpit,

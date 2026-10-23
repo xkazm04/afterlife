@@ -64,6 +64,13 @@ export interface NeedsYouItem {
   linksResolved?: string;
   count?: number;
   reason?: string;
+  /** A live maturity gap (one stage): the stage, its rung now (null: unknown) and next, the scan's next change, and the
+   * fixed template that sends it (GapTemplateId), null when the change is not mechanical. */
+  stage?: string;
+  rungFrom?: number | null;
+  rungTo?: number;
+  change?: string;
+  template?: string | null;
 }
 
 export interface SetupPhase {

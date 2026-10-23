@@ -2,7 +2,7 @@
 // loader changes one import and nothing else. Reads are synchronous: the live source serves a snapshot that the poller
 // refreshes after every cycle, so a page never waits on GitLab or on the index.
 import type { CycleHistory } from '@/lib/demo/cycles/types';
-import type { DemoData, Task } from '@/lib/demo/types';
+import type { DemoData, NeedsKind, Task } from '@/lib/demo/types';
 import type { HumanKeyRead, PromotionRules } from '@/lib/promotion/types';
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { Tier } from '@/schemas/tier';
@@ -59,6 +59,18 @@ export interface PollHealth {
   of: number;
 }
 
+/** A decision the operator acted on in the last 7 days (Needs you's "Decided this week"). */
+export interface DecidedItem {
+  id: string;
+  kind: NeedsKind;
+  project: string;
+  title: string;
+  /** ISO time of the act. */
+  actedAt: string;
+  /** The operator's GitLab user; null when not recorded. */
+  actedAs: string | null;
+}
+
 export interface DataSource {
   readonly mode: DataMode;
   /**
@@ -78,6 +90,8 @@ export interface DataSource {
   getLoop(): DemoData['loop'];
   getTasks(): readonly Task[];
   getNeedsYou(): DemoData['needsYou'];
+  /** Live: the deep project's proposals acted on in the last 7 days, newest first. Demo: [] (the desk keeps its own week). */
+  getDecided(): readonly DecidedItem[];
   /** The number on the Needs you badge. */
   getNeedsYouCount(): number;
   getSetup(): DemoData['setup'];

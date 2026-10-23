@@ -58,6 +58,15 @@ export async function listOpenProposals(db: Queryable, projectId: string, childr
   return rows.map(fromDb);
 }
 
+/** Proposals the operator acted on since `since`, newest first; `projectId` null reads every project. */
+export async function listActedProposals(db: Queryable, projectId: string | null, since: Date): Promise<ProposalRow[]> {
+  const { rows } = await db.query<Db>(
+    `select * from proposal where state = 'acted' and acted_at >= $1::timestamptz and ($2::text is null or project_id = $2) order by acted_at desc, ord desc`,
+    [since.toISOString(), projectId],
+  );
+  return rows.map(fromDb);
+}
+
 /** Records that the operator acted on (or dismissed) a proposal. Returns false if it was not open. */
 export async function closeProposal(
   db: Queryable, id: string, state: Exclude<ProposalState, 'open'>, at: Date, actedAs: string | null,

@@ -51,6 +51,19 @@ export interface StageGapMr extends Base {
   workItem?: number;
 }
 
+/** The fixed change a live maturity gap can send: the scan's next change, where it is mechanical. */
+export type GapTemplateId = 'secure-includes' | 'package-build' | 'plan-issue-templates';
+export const GAP_TEMPLATES: readonly GapTemplateId[] = ['secure-includes', 'package-build', 'plan-issue-templates'];
+
+/** Open the draft MR for one live maturity gap from a fixed template: the server writes the files, never the client. */
+export interface ApplyGapTemplate extends Base {
+  kind: 'apply-gap-template';
+  stage: Stage;
+  from: number | null;
+  to: number;
+  template: GapTemplateId;
+}
+
 /** Arm a Setup track: one MR, as the operator, that adds the track's include lines to the target's .gitlab-ci.yml. */
 export interface ArmTrack extends Base {
   kind: 'arm-track';
@@ -73,7 +86,7 @@ export interface EnrollTrack extends Base {
   track: string;
 }
 
-export type ActionIntent = RevokeClass | PromoteClass | MarkCraReady | StageGapMr | ArmTrack | DisarmTrack | EnrollTrack;
+export type ActionIntent = RevokeClass | PromoteClass | MarkCraReady | StageGapMr | ApplyGapTemplate | ArmTrack | DisarmTrack | EnrollTrack;
 export type ActionKind = ActionIntent['kind'];
 
 export interface PreviewCommand {

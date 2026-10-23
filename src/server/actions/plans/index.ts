@@ -3,6 +3,7 @@ import type { ActionIntent } from '../types';
 import type { Plan, PlanContext } from './context';
 import { planCraReady } from './cra';
 import { planEnroll } from './enroll/plan';
+import { planGapTemplate } from '../gap/plan';
 import { planGapMr } from './gap';
 import { planPromote } from './promote';
 import { planRevoke } from './revoke';
@@ -16,6 +17,7 @@ export function planIntent(ctx: PlanContext, intent: ActionIntent): Promise<Plan
     case 'promote-class': return planPromote(ctx, intent);
     case 'mark-cra-ready': return planCraReady(ctx, intent);
     case 'stage-gap-mr': return planGapMr(ctx, intent);
+    case 'apply-gap-template': return planGapTemplate(ctx, intent);
     case 'arm-track': return planArm(ctx, intent);
     case 'disarm-track': return planDisarm(ctx, intent);
     case 'enroll-track': return planEnroll(ctx, intent);
