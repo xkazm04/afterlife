@@ -45,5 +45,5 @@ export function nodeHead(state: SetupState, tracks: Readonly<Record<string, Trac
   }
   const row = state.doctor.find((r) => r.name === f.id);
   const note = state.live ? row?.reason : CAP_NOTE[f.id];
-  return { title: CAP_SHORT[f.id] ?? f.id, lede: `${capSt(state, f.id)} in ${state.group}`, tip: note ? `${f.id}. ${note}` : f.id };
+  return { title: CAP_SHORT[f.id] ?? f.id, lede: `${state.doctorError && !state.doctorNever ? 'last seen ' : ''}${capSt(state, f.id)} in ${state.group}`, tip: note ? `${f.id}. ${note}` : f.id };
 }

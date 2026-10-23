@@ -34,11 +34,13 @@ describe('Setup, a capability page: the probe section', () => {
     const html = page(null);
     expect(html).toContain('11:30');
     expect(html).not.toContain('probe failed');
+    expect(html).not.toContain('last good read');
   });
 
   it('a doctor read that failed says "probe failed" with the reason, never the bare time of a fresh probe', () => {
     const html = page('glab: 401 Unauthorized');
     expect(html).toContain('probe failed 11:30');
     expect(html).toContain('belay doctor: glab: 401 Unauthorized');
+    expect(html).toContain('available · last good read');
   });
 });
