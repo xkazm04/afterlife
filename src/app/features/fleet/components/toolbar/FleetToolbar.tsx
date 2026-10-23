@@ -6,6 +6,7 @@ import { PopupButton } from '@/components/controls/toolbar/PopupButton';
 import { SearchField } from '@/components/controls/toolbar/SearchField';
 import { SegmentedControl, type SegmentOption } from '@/components/controls/toolbar/SegmentedControl';
 import type { FleetProject } from '@/lib/demo/types';
+import { STAGES } from '@/schemas/stages';
 import type { FleetView, Source } from '../../model/types';
 import { CountDot } from './CountDot';
 import { StatusLozenge } from './StatusLozenge';
@@ -13,7 +14,7 @@ import { StatusLozenge } from './StatusLozenge';
 const VIEWS: readonly SegmentOption<FleetView>[] = [
   { value: 'tiers', label: 'Tiers', title: 'Tier counts per project' },
   { value: 'classes', label: 'Classes', title: 'Tier of each action class' },
-  { value: 'stages', label: 'Stages', title: 'Rung on each of the nine stages' },
+  { value: 'stages', label: 'Stages', title: `Rung on each of the ${STAGES.length} stages` },
 ];
 
 /** The controls of the Fleet toolbar: the three views, the status lozenge, Sort, Filter and Search. */

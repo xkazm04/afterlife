@@ -3,7 +3,7 @@ import { StageMeter } from '@/components/viz/StageMeter';
 import type { FleetProject } from '@/lib/demo/types';
 import styles from './sections.module.css';
 
-/** The rung (0..4) on each of the nine stages; an unknown rung is a dashed "?", never a zero. */
+/** The rung (0..4) on each of the fleet's stages (`stages`); an unknown rung is a dashed "?", never a zero. */
 export function StagesSection({ p, stages, }: { p: FleetProject; stages: readonly string[] }) {
   return (
     <DetailSection title="Stages">
