@@ -9,8 +9,6 @@ export const PROPOSAL_G1: ProposalExtra = {
     'Worth exploring: every scanner finding could be checked against the SBOM you actually shipped, so a finding in a package you do not ship stops costing a person time.',
   workItem: '#131',
   branch: 'belay/gap-g1-sbom-rederive',
-  repo: LEDGERLINE_REPO,
-  mrId: '!45',
   kind: 'mr',
   cls: 'ci-config.change',
   tier: 'assisted',

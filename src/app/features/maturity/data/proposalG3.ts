@@ -1,4 +1,3 @@
-import { LEDGERLINE_REPO } from './proposalG1';
 import type { ProposalExtra } from './types';
 
 // g3: an OpenVEX statement on every release tag (release R2 -> R3). Needs a tag pipeline to run. The .gitlab-ci.yml hunk is
@@ -8,8 +7,6 @@ export const PROPOSAL_G3: ProposalExtra = {
   invite: 'Worth exploring: every release tag could carry an OpenVEX statement on its findings, and a tag could not deploy without one.',
   workItem: '#133',
   branch: 'belay/gap-g3-openvex',
-  repo: LEDGERLINE_REPO,
-  mrId: '!46',
   kind: 'mr',
   cls: 'ci-config.change',
   tier: 'assisted',

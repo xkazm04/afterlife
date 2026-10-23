@@ -1,4 +1,4 @@
-import { LEDGERLINE_REPO, PROPOSAL_G1 } from './proposalG1';
+import { PROPOSAL_G1 } from './proposalG1';
 import { PROPOSAL_G3 } from './proposalG3';
 import type { ProposalExtra } from './types';
 
@@ -10,8 +10,6 @@ const PROPOSAL_G2: ProposalExtra = {
   invite: 'Worth exploring: agent-authored MRs could wait for the guardrail’s approval before they merge, so a quoted objection becomes a block, not a comment.',
   workItem: '#132',
   branch: 'belay/gap-g2-guardrail-required',
-  repo: LEDGERLINE_REPO,
-  mrId: '!47',
   kind: 'mr',
   cls: 'ci-config.change',
   tier: 'assisted',
@@ -44,8 +42,6 @@ const PROPOSAL_G4: ProposalExtra = {
   invite: 'Worth exploring first: Belay could probe the alert integration before proposing anything, because nothing here can tell a quiet service from a broken pipe.',
   workItem: '#134',
   branch: null,
-  repo: LEDGERLINE_REPO,
-  mrId: null,
   kind: 'probe',
   cls: 'read only',
   tier: null,
