@@ -53,7 +53,7 @@ export function shouldSync(s: SyncState, t: SyncTrigger): boolean {
 
 const isShellInfo = (v: unknown): v is ShellInfo => {
   const o = v as ShellInfo | null;
-  return typeof o?.needsYouCount === 'number' && typeof o.data?.mode === 'string' && typeof o.data.group === 'string';
+  return typeof o?.needsYouCount === 'number' && typeof o.data?.mode === 'string' && typeof o.data.group === 'string' && Array.isArray(o.projects);
 };
 
 /** One read of /api/shell: the shell info, or null for a refused fetch, a non-200 (503 before the first poll) or a bad body. */

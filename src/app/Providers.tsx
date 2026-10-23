@@ -1,38 +1,31 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { CommandPalette } from '@/components/palette/CommandPalette';
-import type { ProjectRef } from '@/components/palette/model/items';
-import { ShellProvider, type ShellData } from '@/components/shell/ShellContext';
+import { ShellProvider, useShellInfo, type ShellInfo } from '@/components/shell/ShellContext';
 import { DevInspectorMount } from '@/lib/dev/inspector/DevInspectorMount';
 import { TextSizeShortcuts } from '@/lib/settings/TextSizeShortcuts';
 
 /**
  * Client providers for the whole app: toasts and status messages, the shell's numbers (kept live), the text-size keys,
- * and the ⌘K command palette over every project (read once by the layout; the palette is its only reader).
+ * and the ⌘K command palette over every project (read with the shell, so it re-reads on navigation and focus like the badge).
  */
-export function Providers({
-  needsYouCount,
-  data,
-  projects,
-  children,
-}: {
-  needsYouCount: number;
-  data: ShellData;
-  projects: readonly ProjectRef[];
-  children: ReactNode;
-}) {
-  // A new value is a new server read (the layout re-rendered): the sync adopts it and drops older answers, so keep it stable.
-  const value = useMemo(() => ({ needsYouCount, data }), [needsYouCount, data]);
+export function Providers({ info, children }: { info: ShellInfo; children: ReactNode }) {
+  // A new value is a new server read (the layout re-rendered): the sync adopts it and drops older answers.
   return (
     <ToastProvider>
-      <ShellProvider value={value} sync>
+      <ShellProvider value={info} sync>
         <TextSizeShortcuts />
         <DevInspectorMount />
-        <CommandPalette projects={projects} />
+        <ShellPalette />
         {children}
       </ShellProvider>
     </ToastProvider>
   );
+}
+
+/** The palette over the shell's current projects (inside the provider, so it follows the sync). */
+function ShellPalette() {
+  return <CommandPalette projects={useShellInfo().projects} />;
 }

@@ -1,4 +1,4 @@
-// The shell's one read: the Needs-you badge and what the status bar says about the data and the poll. The root layout
+// The shell's one read: the Needs-you badge, the palette's projects and what the status bar says about the data and the poll. The root layout
 // renders it and GET /api/shell answers it, so the chrome's first paint and every re-read on navigation come from the
 // same function.
 import type { ShellInfo } from '@/components/shell/ShellContext';
@@ -18,5 +18,6 @@ export function readShellInfo(ds: DataSource, env: Record<string, string | undef
       illustrative: ds.illustrative.length > 0,
       poll: health && { ...health, intervalSec: pollIntervalMs(env) / 1000 },
     },
+    projects: ds.getFleet().projects.map((p) => ({ id: p.id, name: p.name, group: p.group, state: p.state })),
   };
 }
