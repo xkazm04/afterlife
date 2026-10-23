@@ -10,8 +10,11 @@ import { KEY_ROWS } from '../../data/policy';
 import type { Ceiling } from '../../model/types';
 import styles from './help.module.css';
 
-/** Behind "?": the keys, the legend of every mark in the table, and Reset demo. */
-export function HelpContent({ means, onReset, rows = KEY_ROWS }: { means: Readonly<Record<Ceiling, string>>; onReset: () => void; rows?: typeof KEY_ROWS }) {
+/**
+ * Behind "?": the keys, the legend of every mark in the table, and Reset demo. `onReset` only in demo mode: live, a reset
+ * re-seeds the page-load read, so a revoke already pushed would read as never made.
+ */
+export function HelpContent({ means, onReset, rows = KEY_ROWS }: { means: Readonly<Record<Ceiling, string>>; onReset?: () => void; rows?: typeof KEY_ROWS }) {
   return (
     <>
       <h4>Keys</h4>
@@ -45,10 +48,14 @@ export function HelpContent({ means, onReset, rows = KEY_ROWS }: { means: Readon
           [<span key="unk" className={`${styles.mini} ${styles.unk}`} />, 'Dashed · no record'],
         ]}
       />
-      <hr />
-      <div className={styles.reset}>
-        <Button onClick={onReset}>Reset demo</Button>
-      </div>
+      {onReset ? (
+        <>
+          <hr />
+          <div className={styles.reset}>
+            <Button onClick={onReset}>Reset demo</Button>
+          </div>
+        </>
+      ) : null}
     </>
   );
 }

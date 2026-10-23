@@ -80,7 +80,7 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
         </>
       }
       subtitle={subtitle}
-      help={<HelpContent means={means} onReset={actions.reset} rows={keyRowsFor(Object.keys(keys))} />}
+      help={<HelpContent means={means} onReset={live ? undefined : actions.reset} rows={keyRowsFor(Object.keys(keys))} />}
       helpTitle="Keys and legend"
       status={
         <>

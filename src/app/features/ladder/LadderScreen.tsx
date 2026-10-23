@@ -95,7 +95,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
 
   const toggleHelp = () => {
     const anchor = helpRef.current;
-    if (anchor) pop.toggle('help', anchor, <HelpContent means={means} onReset={actions.reset} />, 'above');
+    if (anchor) pop.toggle('help', anchor, <HelpContent means={means} onReset={live ? undefined : actions.reset} />, 'above');
   };
   const togglePolicy = () => {
     const anchor = policyRef.current;

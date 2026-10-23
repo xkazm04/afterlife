@@ -26,3 +26,11 @@ describe('the rows of "?" for a screen that binds some keys', () => {
     for (const what of whats(KEY_ROWS)) expect(list).toContain(what);
   });
 });
+
+describe('Reset demo is a demo act', () => {
+  // live, the reset re-seeds the page-load read: a revoke already pushed would read as never made
+  it('is offered with an onReset (demo) and absent without one (live)', () => {
+    expect(renderToStaticMarkup(<HelpContent means={means} onReset={() => undefined} />)).toContain('Reset demo');
+    expect(renderToStaticMarkup(<HelpContent means={means} />)).not.toContain('Reset demo');
+  });
+});
