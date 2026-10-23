@@ -1,4 +1,5 @@
 // The door's tier cells come from lib/tiers: a tier added there must not leave the legend, the L2 list or the windows out.
+import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
@@ -22,5 +23,18 @@ describe('door tier cells', () => {
   });
   it('the L2 autonomy list keeps its wording for every cell', () => {
     expect(cells.map((t) => tierLabel(t))).toEqual(['hands-off', 'supervised', 'assisted', 'quarantined', 'human only', 'no record yet', 'split, each holder at its own tier']);
+  });
+});
+
+// vitest serves CSS modules as a proxy (any key resolves), so the stylesheet itself is the ground truth here
+describe('the L2 cutaway windows', () => {
+  it('have a window and a letter rule for every cell, and a window rule for the unknown one', () => {
+    const css = readFileSync(new URL('../components/l2/l2tower.module.css', import.meta.url), 'utf8');
+    const rule = (sel: string) => new RegExp(`^${sel.replace(/\./g, '\\.')} \\{`, 'm');
+    for (const t of cells) {
+      expect(css, `.w_${t}`).toMatch(rule(`.w_${t}`));
+      expect(css, `.wl.w_${t}`).toMatch(rule(`.wl.w_${t}`));
+    }
+    expect(css).toMatch(rule('.w_null'));
   });
 });
