@@ -13,13 +13,21 @@ import styles from './inspector.module.css';
 import { ArmPreview } from './parts/ArmPreview';
 import { ProbeLine } from './parts/ProbeLine';
 
+/** Skip a ready track: said in the toast and the status bar, as a skipped step is (useSetupFlow's skip), then home. */
+export function skipTrack(id: string, d: { toast: (m: string) => void; status: (m: string) => void; home: () => void }): void {
+  const m = `Skipped ${id} · nothing sent`;
+  d.status(m);
+  d.toast(m);
+  d.home();
+}
+
 /**
  * The one section that changes with the track's state: Arm (ready), Merge (open), Disarm (armed), Verify
  * (probing), or why it is Locked. Arm and Disarm show the server's planned MR first and send it only on a click.
  */
 export function TrackArmSection({ id }: { id: string }) {
   const { state, tracks, actions, view, writes } = useSetup();
-  const { toast } = useToast();
+  const { toast, status } = useToast();
   const a = state.arm[id];
   const t = tracks[id];
   const plan = a?.st === 'ready' ? false : a?.st === 'armed' ? true : null;
@@ -44,14 +52,7 @@ export function TrackArmSection({ id }: { id: string }) {
             Copy
           </Button>
           {plan ? null : (
-            <Button
-              onClick={() => {
-                toast(`Skipped ${id} · nothing sent`);
-                view.home();
-              }}
-            >
-              Skip
-            </Button>
+            <Button onClick={() => skipTrack(id, { toast, status, home: view.home })}>Skip</Button>
           )}
         </div>
       </DetailSection>

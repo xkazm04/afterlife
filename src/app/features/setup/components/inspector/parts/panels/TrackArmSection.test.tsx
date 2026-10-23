@@ -1,7 +1,7 @@
 // The section that decides what a person may click on a track: Arm, Disarm, Merge, Verify, or why it is Locked.
 import { describe, expect, it, vi } from 'vitest';
 import type { WriteView } from '@/server/actions/words';
-import { TrackArmSection } from '../../TrackArmSection';
+import { skipTrack, TrackArmSection } from '../../TrackArmSection';
 import { base, buttonTag, isDisabled, PREVIEW, renderPanel, withArm } from './panelHarness';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/setup/track-T1', useRouter: () => ({ push: () => {} }) }));
@@ -79,5 +79,15 @@ describe('TrackArmSection: the states with nothing to click', () => {
   it('locked says what the read of main saw, as ready does (live: both come from one absent read)', () => {
     expect(panel({ st: 'locked', found: 'no T1 block on main' }).html).toContain('Read: no T1 block on main');
     expect(panel({ st: 'locked', found: null }).html).not.toContain('Read:');
+  });
+});
+
+describe('TrackArmSection: Skip is said where a skipped step is said', () => {
+  it('the toast and the status bar both carry it, then the page goes home', () => {
+    const d = { toast: vi.fn(), status: vi.fn(), home: vi.fn() };
+    skipTrack('T1', d);
+    expect(d.status).toHaveBeenCalledWith('Skipped T1 · nothing sent');
+    expect(d.toast).toHaveBeenCalledWith('Skipped T1 · nothing sent');
+    expect(d.home).toHaveBeenCalledOnce();
   });
 });
