@@ -6,7 +6,10 @@ import styles from './Inspector.module.css';
 const BEFORE = 9;
 const AFTER = 2;
 
-/** The ledger around the playhead, newest first: nine behind, two ahead (dimmed). A row cues that entry. */
+/**
+ * The ledger around the playhead, newest first: nine behind, two ahead (dimmed). A row cues that entry. A real film's
+ * clock column is UTC (model/film/fromLedger.ts), so the header says so once; the illustrative clock is simulated, bare.
+ */
 export function LedgerSection({ i, entries, range, onSeek }: { i: number; entries: readonly LedgerEntry[]; range: Marks; onSeek: (i: number) => void }) {
   const rows = [];
   for (let k = Math.min(entries.length - 1, i + AFTER); k >= Math.max(0, i - BEFORE); k--) {
@@ -14,7 +17,7 @@ export function LedgerSection({ i, entries, range, onSeek }: { i: number; entrie
     if (r) rows.push({ k, r });
   }
   return (
-    <InspectorSection title="Ledger" aux={`seq ${range.a}–${range.b}`}>
+    <InspectorSection title="Ledger" aux={`seq ${range.a}–${range.b}${entries[0]?.ev ? ' · UTC' : ''}`}>
       {rows.map(({ k, r }) => (
         <button
           key={r.seq}
