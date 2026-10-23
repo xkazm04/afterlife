@@ -1,10 +1,10 @@
-# Settings (`/settings`)
+# Settings (`/settings/display`, `/keyboard`, `/data`, `/about`)
 
 > How large should the interface be on this device, and which keys change it?
 
 ## What it does
-- One window with one scrolling pane and a sidebar (Text size, Keyboard, About) that scrolls to each section and marks
-  the current one.
+- Four routed sub-pages (Display, Keyboard, Data & connection, About) in one window; the sidebar lists them and marks
+  the current one from the route. `/settings` redirects to `/settings/display`.
 - Text size: a 3-way segmented control (Smaller / Standard / Larger), a table of what each size sets, and a live
   preview built from real shared parts (`StateGlyph`, `TierChip`, `FeedAge`, `KeyValue`) so it restyles as you choose.
 - Keyboard: lists the shortcuts with Mac and Windows/Linux key caps: Cmd/Ctrl `=` larger, `-` smaller, `0` standard,
@@ -14,9 +14,10 @@
 - The subtitle reads "This device"; the status bar reads "Settings are saved in this browser".
 
 ## How it works
-- `app/settings/page.tsx` renders `SettingsScreen`; it reads no server data.
-- `SettingsScreen.tsx` holds `SECTIONS` (`{id, label, node}`); adding a setting is one section component and one line
-  there.
+- `app/settings/page.tsx` only redirects to `/settings/display`; each `app/settings/<name>/page.tsx` renders
+  `SettingsWindow` (heading, lede, content). Only Data & connection reads server data.
+- `SettingsWindow.tsx` takes its sidebar from `SETTINGS_PAGES` (`model/settingsNav.ts`); adding a sub-page is one line
+  there plus a `src/app/settings/<name>/page.tsx`, and adding a setting is a `SettingsSection` on its page.
 - The current size is the `data-text-size` attribute on `<html>`. `src/styles/text-size.css` defines one block of
   variables per size (`--t-body`, `--t-head`, `--t-small`, `--row-h`, `--hdr-h`, `--tb-h`, `--sb-h`, `--sbw`, `--iw`,
   `--ui-scale`) and derives control metrics from `--ui-scale` (`--ctl-h`, `--seg-h`, `--lozenge-h`, `--mini-h`,
@@ -54,8 +55,10 @@ Smaller is the original prototype size.
 ## Code map
 | Path | Role |
 |---|---|
-| `src/app/settings/page.tsx` | Route |
-| `src/app/features/settings/SettingsScreen.tsx` | `Window` + sidebar + `SECTIONS` |
+| `src/app/settings/page.tsx` | Redirect to `/settings/display` |
+| `src/app/settings/<name>/page.tsx` | One sub-page route each |
+| `src/app/features/settings/SettingsWindow.tsx` | `Window` + sidebar from `SETTINGS_PAGES` |
+| `.../settings/model/settingsNav.ts` | Sub-page list and current-page match |
 | `.../settings/components/TextSizeSection.tsx` | Segmented control, scale table, preview |
 | `.../settings/components/SizePreview.tsx` | Sample table row, tier chip and inspector line |
 | `.../settings/components/KeyboardSection.tsx`, `data/shortcuts.ts` | Shortcut list |
