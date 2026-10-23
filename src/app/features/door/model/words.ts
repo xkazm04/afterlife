@@ -40,7 +40,7 @@ export function projectLine(p: FleetProject): Part[] {
   const wait: Part = n ? [waits(n), 'amber'] : ['nothing waits', 'plain'];
   if (p.state === 'setting-up') return [[`setting up · ${p.setupStep ? p.setupStep.split(' · ')[0] : 'step unknown'} · `, 'plain'], wait];
   const proofs: Part[] = p.proofs7d
-    ? [[` · ${p.proofs7d.pass} pass / `, 'plain'], [`${p.proofs7d.fail} fail`, p.proofs7d.fail ? 'fail' : 'plain']]
+    ? [[` · ${p.proofs7d.pass} pass / `, 'plain'], [`${p.proofs7d.fail} fail`, p.proofs7d.fail ? 'fail' : 'plain'], ...(p.proofs7d.inconclusive ? ([[` · ${p.proofs7d.inconclusive} inconclusive`, 'plain']] as Part[]) : [])]
     : [[' · proofs unknown', 'unknown']];
   return [['watching · ', 'plain'], wait, ...proofs];
 }
@@ -76,7 +76,7 @@ const knownTiers = (p: FleetProject): boolean => p.state !== 'not-set-up' && tie
  * holder gated at its own tier) are counted apart, never as quarantined.
  */
 export function fleetTotals(projects: readonly FleetProject[]) {
-  const t = { n: projects.length, needs: 0, stale: 0, setup: 0, nsu: 0, watch: 0, quar: 0, norec: 0, split: 0, pass: 0, fail: 0 };
+  const t = { n: projects.length, needs: 0, stale: 0, setup: 0, nsu: 0, watch: 0, quar: 0, norec: 0, split: 0, pass: 0, fail: 0, inc: 0 };
   for (const p of projects) {
     t.needs += needsOf(p);
     if (p.state === 'stale') t.stale++;
@@ -91,6 +91,7 @@ export function fleetTotals(projects: readonly FleetProject[]) {
     if (p.proofs7d) {
       t.pass += p.proofs7d.pass;
       t.fail += p.proofs7d.fail;
+      t.inc += p.proofs7d.inconclusive;
     }
   }
   return t;

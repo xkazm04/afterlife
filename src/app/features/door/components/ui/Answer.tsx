@@ -101,6 +101,12 @@ export const Answer = memo(function Answer({
                 <Count n={totals.fail} {...COUNT_MARK} intro={intro} />
               </span>{' '}
               failed
+              {totals.inc ? (
+                <>
+                  {' '}
+                  · <Count n={totals.inc} {...COUNT_MARK} intro={intro} /> inconclusive
+                </>
+              ) : null}
             </span>
           </span>
         </li>
