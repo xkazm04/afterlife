@@ -5,7 +5,7 @@ import { isTypingTarget } from '@/lib/keyboard/hotkeys';
 import { actionFor, type TaskAction } from '../model/docket/keys';
 
 /**
- * The Task screen's keys: ↑↓ ←→ [ ] f r w Esc. Plain keys only (⌘ chords belong to the shell). Typing fields, an open menu
+ * The Task screen's keys: ↑↓ ←→ [ ] f r w n Esc. Plain keys only (⌘ chords belong to the shell). Typing fields, an open menu
  * and anything already handled (a popover taking Escape) are left alone. ↑↓ in the docket step tasks; elsewhere the arrows
  * walk the court, except in the toolbar and inspector, which keep their own.
  */

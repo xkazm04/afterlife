@@ -31,7 +31,7 @@ export function actionFor(key: string, ctx: KeyContext): TaskAction | null {
   if (letter === 'w') return { type: 'words' };
   if (letter === 'f') return { type: 'failOnly' };
   if (key === 'Escape') return { type: 'escape' };
-  if (key === 'n') return ctx.replaying ? null : { type: 'reason' };
+  if (letter === 'n') return ctx.replaying ? null : { type: 'reason' };
   if (!ARROWS.includes(key)) return null;
   if ((key === 'ArrowUp' || key === 'ArrowDown') && ctx.inDocket) return { type: 'step', delta: key === 'ArrowDown' ? 1 : -1 };
   if (ctx.replaying || ctx.inChrome) return null;
