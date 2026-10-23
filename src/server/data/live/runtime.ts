@@ -11,6 +11,7 @@ import type { Clock } from './clock';
 import { createLivePort } from './ports';
 import { rulesOf } from '../policy';
 import { buildSnapshot, type LiveSnapshot } from './snapshot';
+import { recordFleetDay } from './day';
 
 export interface LiveRuntime {
   cfg: DataConfig;
@@ -67,7 +68,10 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<L
       }
       // The policy the cycle read; a cycle that could not read one keeps the last good one, as the class tiers do.
       const policy = rt.last?.policy ? rulesOf(rt.last.policy) : (rt.snapshot?.data.policy ?? null);
-      rt.snapshot = await buildSnapshot(db, clock.read(), cfg.deepProject, DEMO, policy);
+      const snap = await buildSnapshot(db, clock.read(), cfg.deepProject, DEMO, policy);
+      // The day's trend row is written after the snapshot, not after the cycle: it records what the Fleet shows, and the
+      // snapshot is where that is settled (the deep project's needs leave the seed's items out only there).
+      rt.snapshot = await recordFleetDay(db, snap, onError);
     })().finally(() => {
       inFlight = null;
     });

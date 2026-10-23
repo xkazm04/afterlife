@@ -1,7 +1,7 @@
 # Local index (PGlite)
 Belay's cache of GitLab plus the ledger, in embedded Postgres (`@electric-sql/pglite`). Data lives in
 `$BELAY_DATA_DIR/index` (default `.belay/index`, gitignored); tests use `memoryIndex()`. Delete the folder and every
-table is rebuilt from the source in the last column, except the two marked **not rebuildable** (Belay's own records).
+table is rebuilt from the source in the last column, except the three marked **not rebuildable** (Belay's own records).
 
 | Table | Holds | Rebuilt from |
 |---|---|---|
@@ -16,6 +16,7 @@ table is rebuilt from the source in the last column, except the two marked **not
 | `poll_state` | last good poll and last error per source (`project:<id>`, `group:<group>`, and `policy:<group>` for belay-policy's files) | the poller |
 | `commands_run` | every write the operator confirmed, recorded before it runs | **not rebuildable**: Belay's own audit |
 | `action_runs` | per previewId a live confirm claimed: running, done, failed or cut, with the response sent (`server/actions/runs/journal.ts`) | **not rebuildable**: lost, a confirm with no answer recalls as never run |
+| `fleet_day` | one row per project per UTC day, written after the day's first poll from the numbers the Fleet showed (needs, stale, hands-off, proofs, red rate, cost; `server/data/live/day.ts`), append-only trigger | **not rebuildable**: Belay's own record, lost, the week-over-week trend starts again |
 
 Project columns `proofs_*_7d`, `demotions_7d`, `needs_you`, `cra_open` are roll-ups the poller recomputes from the
 tables above. NULL means unknown, never zero.
@@ -59,6 +60,7 @@ tables above. NULL means unknown, never zero.
 | 0016 `action_runs` | `action_runs`: the run journal, one row per previewId a live confirm claimed (`server/actions/runs/journal.ts`) |
 | 0017 `cycles` | `cycle_record`: a project's closed improvement cycles, a cache of belay-ledger/cycles/<gitlab-id>.jsonl (`server/ledger/importCycles.ts`) |
 | 0018 `project_live` | `project.armed` nullable with no default (null: not read, never zero armed), `project.web_url`: the project's GitLab page (`server/poller/ci/armed.ts`, `server/poller/project.ts`) |
+| 0019 `fleet_day` | `fleet_day`: one row per project per UTC day, append-only (update and delete raise, as `ledger_event`); the trend's history (`repositories/fleet/day.ts`, `src/lib/trend`) |
 
 ## Ledger
 

@@ -14,7 +14,7 @@ vi.mock('server-only', () => ({}));
 
 const TABLES = [
   'pairing', 'setup_step', 'ledger_event', 'task', 'proof', 'proposal', 'stage_cell', 'poll_state', 'commands_run',
-  'fleet_group', 'trust_class', 'project', 'project_stage', 'class_tier', 'action_runs', 'cycle_record', 'belay_migration',
+  'fleet_group', 'trust_class', 'project', 'project_stage', 'class_tier', 'action_runs', 'cycle_record', 'fleet_day', 'belay_migration',
 ];
 
 describe('migrations', () => {
@@ -142,6 +142,7 @@ const FROZEN: Record<number, string> = {
   16: '9dc4aa0739559de9f714178e93162df20fa857b16b450d6ff1d41c7aff1e3f1f',
   17: '9e45259b7e40e4c2999b0366d6a7f17a2a7fa73058027aac44340b3b58865cc8',
   18: '5ee0063bc30e9ef191c619799a561d396acb129305978d9654a8de19339b6cf3',
+  19: '4d6b98423a1bd30cad1ec9a381ab022dfcc97702e1922872cca51dbd0aa88608',
 };
 const sha = (sql: string): string => createHash('sha256').update(sql).digest('hex');
 const quoted = (xs: readonly string[]): string => `(${xs.map((x) => `'${x}'`).join(', ')})`;

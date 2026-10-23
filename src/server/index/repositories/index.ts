@@ -6,6 +6,7 @@ export * from './fleet/project';
 export * from './fleet/taxonomy';
 export * from './fleet/classTier';
 export * from './fleet/stages';
+export * from './fleet/day';
 export * from './work/task';
 export * from './work/proof';
 export * from './work/proposal';

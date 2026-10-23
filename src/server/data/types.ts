@@ -4,6 +4,7 @@
 import type { CycleHistory } from '@/lib/demo/cycles/types';
 import type { DemoData, NeedsKind, Task } from '@/lib/demo/types';
 import type { Stability } from '@/lib/stability/stability';
+import type { FleetDayRow } from '@/lib/trend/trend';
 import type { HumanKeyRead, PromotionRules } from '@/lib/promotion/types';
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { Tier } from '@/schemas/tier';
@@ -140,4 +141,10 @@ export interface DataSource {
    * the fixture states no sizes, pipelines or dates, so those are null. An absent project: not read.
    */
   getStability(): Readonly<Record<string, Stability>>;
+  /**
+   * The fleet's last 28 UTC days, one row per project per day (src/lib/trend), oldest first. Live: the index's append-only
+   * fleet_day, one day written after its first poll (live/day.ts); fewer than 28 while the history builds. Demo: 28 days
+   * seeded from the demo fleet (src/lib/trend/seed.ts), which every screen labels seeded.
+   */
+  getFleetTrend(): readonly FleetDayRow[];
 }

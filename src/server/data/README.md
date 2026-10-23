@@ -6,7 +6,10 @@ had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActio
 project's closed cycles, and every project's: `src/lib/demo/cycles.ts` and `estate.ts` in demo, `cycle_record` in live),
 `getStability()` (each project's agent-MR stability over 7 days, `src/lib/stability`: live from `index/views/stability`,
 every polled project; demo the deep project only, counted from the demo's tasks that name an MR, sizes and pipelines null
-because the fixture states none; the screens take it beside the fleet, never in `FleetProject`) plus
+because the fixture states none; the screens take it beside the fleet, never in `FleetProject`), `getFleetTrend()` (the
+fleet's last 28 UTC days, one `FleetDayRow` per project a day, `src/lib/trend`: live from the index's append-only
+`fleet_day`, which `live/day.ts` writes once a UTC day after the runtime's snapshot, from the numbers that snapshot serves the
+Fleet; demo 28 days seeded from the demo fleet, `src/lib/trend/seed.ts`, which every screen labels seeded) plus
 `mode`, `deepProjectId()` and `illustrative` (the demo narrative it serves beside live data, for the screens to label) and
 `getPolicy()` (trust-policy.yml's rules: the promotion thresholds, the demotion triggers, the envelope) and `getLedger()` (the
 deep project's hash-chained `LedgerEvent`s, `@/schemas/ledger`, in seq order; see "The ledger" below). Reads are
