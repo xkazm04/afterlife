@@ -17,6 +17,7 @@ import { getDataSource, setDataSource } from '../select';
 import type { PolicyRules } from '../types';
 import { GitLabError } from '@/server/gitlab/errors';
 import type { PairingRow } from '@/server/index/repositories/pairing';
+import { recordPollError, recordPollOk } from '@/server/index/repositories/pollState';
 import { setupReads, type SetupPort } from '../setup/read';
 
 afterEach(() => setDataSource(null));
@@ -126,5 +127,20 @@ describe("the policy's window_last", () => {
   it('is shown for a positive integer only; anything else is no window', () => {
     const cases: [unknown, number | null][] = [[5, 5], [1, 1], [2.5, null], [0.5, null], [0, null], [-3, null], ['5', null], [null, null]];
     expect(cases.map(([n]) => withWindow(n)?.toSupervised.windowLast)).toEqual(cases.map(([, shown]) => shown));
+  });
+});
+
+describe('the poll health and the tier mark read the group the poller watches', () => {
+  it('a group polled before (a mistyped BELAY_GROUP_ID) does not keep the bar failed and the tiers stale', async () => {
+    const db = await memoryIndex();
+    const at = new Date('2026-10-06T14:22:00Z');
+    await recordPollError(db, 'group:typo', 'glab: 404 Not Found');
+    await recordPollError(db, 'policy:typo', 'the group could not be read: glab: 404 Not Found');
+    await recordPollOk(db, 'group:144060371', at);
+    await recordPollOk(db, 'policy:144060371', at);
+    const d = (await buildSnapshot(db, at, 'ledgerline', DEMO, null, '144060371')).data;
+    expect([d.poll.error, d.tiersStale]).toEqual([null, null]);
+    await recordPollError(db, 'policy:144060371', 'tier-state.yml is not valid YAML');
+    expect((await buildSnapshot(db, at, 'ledgerline', DEMO, null, 144060371)).data.tiersStale).toEqual({ reason: 'tier-state.yml is not valid YAML', lastOk: at.toISOString() });
   });
 });

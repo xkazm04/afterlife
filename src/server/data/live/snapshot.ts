@@ -8,7 +8,8 @@ import { clock, getActionClasses, getEstateCycles, getEvents, getFleet, getMatur
 import { getProjectRow, listProjects } from '@/server/index/repositories/fleet/project';
 import { readLedger } from '@/server/index/repositories/ledger/ledger';
 import { getPairing, type PairingRow } from '@/server/index/repositories/pairing';
-import { feedStatusOf, listPollStates, projectSource, type PollStateRow } from '@/server/index/repositories/pollState';
+import { readConfig } from '@/server/gitlab/config';
+import { feedStatusOf, getPollState, listPollStates, policySource, projectSource, type PollStateRow } from '@/server/index/repositories/pollState';
 import type { Queryable } from '@/server/index/repositories/sql';
 import type { PolicyRules, PollHealth, TiersStale } from '../types';
 import { isSeeded } from './seeded';
@@ -45,15 +46,19 @@ export interface LiveSnapshot {
   data: LiveData;
 }
 
-export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData, policy: PolicyRules | null = null): Promise<LiveSnapshot> {
-  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyReads, ledger, poll, estate] = await Promise.all([
+/**
+ * `group` is the group the poller watches (runPollCycle's own default, BELAY_GROUP_ID): only its `group:` and `policy:`
+ * rows speak for the poll and the class tiers. A group polled before (a mistyped id, a re-pair) keeps its rows in
+ * poll_state, and its last failure must not mark today's group failed and its tiers stale forever.
+ */
+export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData, policy: PolicyRules | null = null, group: string | number = readConfig().groupId): Promise<LiveSnapshot> {
+  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyRead, ledger, poll, estate] = await Promise.all([
     getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getEvents(db, deep), getNeedsYou(db, deep, at),
-    getPairing(db, 'default'), listPollStates(db, 'policy:'), deepLedger(db, deep), pollRows(db).then((rows) => pollHealthOf(rows, at)),
+    getPairing(db, 'default'), getPollState(db, policySource(group)), deepLedger(db, deep), pollRows(db, group).then((rows) => pollHealthOf(rows, at)),
     getEstateCycles(db, at),
   ]);
-  const failedRead = policyReads.find((s) => s.lastError !== null);
-  const tiersStale = failedRead ? { reason: failedRead.lastError ?? '', lastOk: failedRead.lastOk?.toISOString() ?? null } : null;
-  const group = pairing?.groupPath ?? 'not paired';
+  const tiersStale = policyRead && policyRead.lastError !== null ? { reason: policyRead.lastError, lastOk: policyRead.lastOk?.toISOString() ?? null } : null;
+  const paired = pairing?.groupPath ?? 'not paired';
   // Live counts only what /needs-you shows: the index keeps the demo's seeded items, the data source does not count them.
   const unseeded = needsYou.filter((n) => !isSeeded(n.id)).length;
   const shown = { ...fleet, projects: fleet.projects.map((p) => (p.id === deep ? { ...p, needsYou: unseeded } : p)) };
@@ -62,14 +67,14 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
     at, deep,
     data: {
       fleet: shown,
-      portfolio: { group, projectsWatched: shown.projects.filter((p) => p.state === 'watching').length, asOf: clock(at), projects: [] },
+      portfolio: { group: paired, projectsWatched: shown.projects.filter((p) => p.state === 'watching').length, asOf: clock(at), projects: [] },
       actionClasses: classes.map(actionClass),
       maturity: maturity(mat),
       tasks: tasks.flatMap((t) => task(t) ?? []),
       events,
       needsYou,
       cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? 0 } },
-      setup: { ...catalogue.setup, group, project: deep },
+      setup: { ...catalogue.setup, group: paired, project: deep },
       policy,
       tiersStale,
       pairing,
@@ -98,11 +103,11 @@ export function pollHealthOf(rows: readonly PollStateRow[], at: Date): PollHealt
   };
 }
 
-/** The group rows, and the project rows of the projects linked to GitLab (the seed's unlinked ones are never polled). */
-async function pollRows(db: Queryable): Promise<PollStateRow[]> {
-  const [groups, projects, linked] = await Promise.all([listPollStates(db, 'group:'), listPollStates(db, 'project:'), listProjects(db)]);
+/** The watched group's row (the poller's `group:<g>`), and the project rows of the projects linked to GitLab (the seed's unlinked ones are never polled). */
+async function pollRows(db: Queryable, group: string | number): Promise<PollStateRow[]> {
+  const [watched, projects, linked] = await Promise.all([getPollState(db, `group:${group}`), listPollStates(db, 'project:'), listProjects(db)]);
   const polled = new Set(linked.filter((p) => p.gitlabId !== null).map((p) => projectSource(p.id)));
-  return [...groups, ...projects.filter((r) => polled.has(r.source))];
+  return [...(watched ? [watched] : []), ...projects.filter((r) => polled.has(r.source))];
 }
 
 /** The deep project's ledger, which the index keys by its GitLab id: a project with none (not linked) has no ledger. */

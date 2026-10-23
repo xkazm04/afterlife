@@ -84,7 +84,7 @@ ledger names an MR it plays it; otherwise it plays the illustrative film, whose 
 `getPolicy()`: demo, this checkout's `policy/trust-policy.yml` (`policy.ts`, checked by the engine's parser); live, the
 trust-policy.yml the last poll read from belay-policy (`CycleResult.policy`, kept on the snapshot; a cycle that could
 not read one keeps the last good one). Null until one was read: the Ladder then draws no counts and says why.
-`getTiersStale()`: live, set while the last poll could not read belay-policy (its `policy:<group>` poll_state source
+`getTiersStale()`: live, set while the last poll could not read belay-policy (the watched group's `policy:<group>` poll_state source
 failed, with the reason and the last good read's time), so the class tiers are stale and the Ladder marks them so; null
 once a read succeeds, and always null in demo mode. The footer chip "illustrative demo
 data" is a client component and still says so.
@@ -94,7 +94,7 @@ poll, and each task's standing (state, proof verdict) on its newest row. They ar
 them through `loadFleetSource`, beside `loadFleetData`, and `parity.test.ts` lists them where live differs from demo.
 
 `getPollHealth()`: live, the poll's health on the snapshot (`pollHealthOf` in `live/snapshot.ts`): the age of the last
-cycle that read the group (`group:<g>` poll_state, by the source's read clock), that cycle's error if the last one failed,
+cycle that read the group (the watched group's `group:<g>` poll_state, by the source's read clock; a group polled before is not read), that cycle's error if the last one failed,
 and how many of the polled (GitLab-linked) projects' last polls failed; null in demo mode. `shell/read.ts` adds the poll
 interval, and the status bar says it on every screen (`components/shell/bars/poll/`), with a Re-poll of the whole group
 on a failure (`repollGroupAction`, the same 10 s gap as a project re-poll).
