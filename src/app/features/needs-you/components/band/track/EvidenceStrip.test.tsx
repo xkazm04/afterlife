@@ -10,7 +10,7 @@ const out = renderToStaticMarkup(<EvidenceStrip resolved="6 / 6" />);
 
 describe('the evidence strip', () => {
   it('names every tick after its link', () => {
-    const named = [...out.matchAll(/<i [^>]*aria-label="([^"]+)"/g)].map((m) => m[1]);
+    const named = [...out.matchAll(/<i [^>]*aria-label="([^"]+)"/g)].map((m) => m[1] ?? '');
     expect(named).toEqual(EVIDENCE.map((e) => `${e.what} · ${e.ref} · resolves`));
   });
 
@@ -23,5 +23,19 @@ describe('the evidence strip', () => {
     const css = readFileSync(new URL('./track.module.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     expect(css).toMatch(/repeat\(\s*var\(--evd-n\)/);
     expect(css).not.toMatch(/repeat\(\s*\d/);
+  });
+
+  it('draws as many ticks resolved as the count says, the rest open', () => {
+    const part = renderToStaticMarkup(<EvidenceStrip resolved="4 / 6" />);
+    const labels = [...part.matchAll(/<i [^>]*aria-label="([^"]+)"/g)].map((m) => m[1] ?? '');
+    expect(labels.filter((l) => l.endsWith('· resolves'))).toHaveLength(4);
+    expect(labels.filter((l) => l.endsWith('· not resolved'))).toHaveLength(EVIDENCE.length - 4);
+    expect(part.match(/✓/g)).toHaveLength(4);
+  });
+
+  it('draws no tick resolved when the count is not held', () => {
+    const none = renderToStaticMarkup(<EvidenceStrip resolved="" />);
+    expect(none).not.toContain('✓');
+    expect(none).toContain('Evidence not held');
   });
 });

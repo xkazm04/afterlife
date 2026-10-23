@@ -48,6 +48,12 @@
   background: color-mix(in oklab, var(--ok) 9%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ok) 40%, transparent);
 }
+/* A link the count does not cover: drawn open, not as a pass. */
+.evd i.evdOpen {
+  color: var(--text-3);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
 .sub {
   margin-left: auto;
 }
