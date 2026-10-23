@@ -13,6 +13,6 @@ describe('node keys', () => {
     expect(capSlug(CAPS[1])).toBe('flow-created-by-api-not-only-ui');
   });
   it('names nothing outside the universe', () => {
-    for (const k of ['step-99', 'step-x', 'step-', 'track-T9', 'track-t1', 'cap-nope', 'step', '', 'foo-1']) expect(parseNodeKey(k, U)).toBeNull();
+    for (const k of ['step-99', 'step-x', 'step-', 'step-014', 'step-01', 'step-+1', 'track-T9', 'track-t1', 'cap-nope', 'step', '', 'foo-1']) expect(parseNodeKey(k, U)).toBeNull();
   });
 });

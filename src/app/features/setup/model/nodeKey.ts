@@ -23,7 +23,8 @@ export function parseNodeKey(key: string, u: NodeUniverse): Focus | null {
   if (!m) return null;
   const [, k, rest = ''] = m;
   if (k === 'step') {
-    const n = /^\d+$/.test(rest) ? Number(rest) : -1;
+    // Only the segment nodeKey writes: step-014 is not a second address for step 14.
+    const n = /^(0|[1-9]\d*)$/.test(rest) ? Number(rest) : -1;
     return u.steps.includes(n) ? { k: 'step', id: n } : null;
   }
   if (k === 'track') return u.tracks.includes(rest) ? { k: 'track', id: rest } : null;
