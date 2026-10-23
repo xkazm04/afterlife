@@ -25,6 +25,7 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
   const cmds = commandsFor(id, demo, s.writes);
   const fromName = demo.rungNames[g.from] ?? '';
   const toName = demo.rungNames[g.to] ?? '';
+  const extra = PROPOSAL_EXTRAS[id];
   return (
     <>
       <ItemHead
@@ -40,7 +41,7 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
             </span>
           </span>
         }
-        path={PROPOSAL_EXTRAS[id]?.branch ?? 'no branch · nothing is sent'}
+        path={extra?.branch ?? 'no branch · nothing is sent'}
       />
       {!gs ? (
         <Acts>
@@ -74,9 +75,11 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
             ['Diff', g.diffLines ? `${g.diffLines} lines` : <HonestyChip key="d" kind="unknown">unknown until the probe runs</HonestyChip>],
             [
               'Class',
-              <span key="c">
-                ci-config.change <TierMark tier="assisted" />
-              </span>,
+              extra ? (
+                <span key="c">
+                  {extra.cls} {extra.tier ? <TierMark tier={extra.tier} /> : null}
+                </span>
+              ) : null,
             ],
           ]}
         />
