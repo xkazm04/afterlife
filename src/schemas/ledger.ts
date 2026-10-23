@@ -61,11 +61,11 @@ export interface LedgerEvent {
 
 export const GENESIS = '0'.repeat(64);
 
-/** Keys sorted by UTF-16 code unit (RFC 8785), never by the host locale, so a hash is the same on every host. JSON values. A key whose value is undefined is skipped, as JSON.stringify drops it from the stored line. */
+/** Sorted keys, JSON values. A key whose value is undefined is skipped, as JSON.stringify drops it from the stored line. */
 export function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
   if (value && typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>).filter(([, v]) => v !== undefined).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    const entries = Object.entries(value as Record<string, unknown>).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b));
     return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(',')}}`;
   }
   return JSON.stringify(value);
