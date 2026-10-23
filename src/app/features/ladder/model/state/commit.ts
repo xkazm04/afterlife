@@ -68,8 +68,14 @@ export function commitChanges(classes: readonly ClassRow[], ledger: readonly Led
 export const commitRevoke = (classes: readonly ClassRow[], ledger: readonly LedgerEntry[], id: string, to: Tier, sent: Sent, sha: string | null, at: number, tz: string): Committed =>
   commitChanges(classes, ledger, [{ id, to }], sent, sha, at, tz);
 
-/** "45 s", "3 min", "2 h": how long after the commit a gate read it. */
-export const delayText = (sec: number): string => (sec < 120 ? `${sec} s` : sec < 7200 ? `${Math.round(sec / 60)} min` : `${Math.round(sec / 3600)} h`);
+/** "45 s", "3 min", "2 h", "3 d": how long after the commit a gate read it. A value that rounds up to the next unit is said in it. */
+export function delayText(sec: number): string {
+  if (sec < 120) return `${sec} s`;
+  const min = Math.round(sec / 60);
+  if (min < 120) return `${min} min`;
+  const h = Math.round(sec / 3600);
+  return h < 48 ? `${h} h` : `${Math.round(sec / 86_400)} d`;
+}
 
 /**
  * The tier-gate job read tier-state.yml at `sha`: the pending chip goes and the ledger says so. Without `read` it is the
