@@ -4,6 +4,11 @@
 // Exit codes: 0 the probes answered, 2 every capability unknown with no blocker named, 3 blocked (see doctor/blocker.ts).
 import type { Capability, DoctorReport } from '../capabilities';
 
+/** The local preflight: name, binary, args. The login check names the host the probes use (Setup's step 0 does too). */
+export const localChecks = (bin: string, host: string | undefined): Array<[name: string, bin: string, args: string[]]> => [
+  ['git', 'git', ['--version']], ['glab', bin, ['--version']], ['glab auth', bin, ['auth', 'status', ...(host ? ['--hostname', host] : [])]],
+];
+
 export const row = (status: string, name: string, detail: string): string => `${status.padEnd(11)}  ${name.padEnd(36)} ${detail}`;
 const show = (c: Capability): string => row(c.status, c.label, `[${c.basis}] ${c.reason}`);
 

@@ -5,7 +5,7 @@ import { setupReads } from '@/server/data/setup/read';
 import type { ExecFn } from '../../adapter/exec';
 import { createGlabAdapter } from '../../adapter/glabAdapter';
 import { probeCapabilities } from '../../capabilities';
-import { doctorExitCode, renderDoctor } from '../../doctor/render';
+import { doctorExitCode, localChecks, renderDoctor } from '../../doctor/render';
 import { GitLabError } from '../../errors';
 import { createFakeGitLab } from '../../fake/fakeGitLab';
 
@@ -102,5 +102,10 @@ describe('the CLI and Setup print the blocker, not the cascade', () => {
   it("Setup's doctor read puts the blocker and its fix in the error slot", async () => {
     const reads = setupReads({ port: failing(UNAUTHORIZED), groupId: GROUP, gitlabId: () => Promise.resolve(null) }, null, 'ledgerline');
     expect(await reads.doctor()).toMatchObject({ rows: [], error: 'glab is not logged in to gitlab.com: run glab auth login' });
+  });
+
+  it('the local login check asks about the host the probes use, as Setup prints it', () => {
+    expect(localChecks('glab', undefined).find(([n]) => n === 'glab auth')?.[2]).toEqual(['auth', 'status']);
+    expect(localChecks('glab', 'git.example.com').find(([n]) => n === 'glab auth')?.[2]).toEqual(['auth', 'status', '--hostname', 'git.example.com']);
   });
 });

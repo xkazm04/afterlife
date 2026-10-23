@@ -4,7 +4,7 @@ import { defaultExec, type ExecFn } from './adapter/exec';
 import { createGlabAdapter } from './adapter/glabAdapter';
 import { probeCapabilities } from './capabilities';
 import { readConfig, resolveGlabBin } from './config';
-import { doctorExitCode, renderDoctor, row } from './doctor/render';
+import { doctorExitCode, localChecks, renderDoctor, row } from './doctor/render';
 
 async function local(exec: ExecFn, bin: string, args: string[]): Promise<{ ok: boolean; out: string }> {
   try {
@@ -21,8 +21,8 @@ async function main(): Promise<number> {
   const cfg = readConfig();
   const bin = await resolveGlabBin(cfg, defaultExec);
   const out: string[] = [];
-  for (const [name, b, args] of [['git', 'git', ['--version']], ['glab', bin, ['--version']], ['glab auth', bin, ['auth', 'status']]] as const) {
-    const r = await local(defaultExec, b, [...args]);
+  for (const [name, b, args] of localChecks(bin, cfg.host)) {
+    const r = await local(defaultExec, b, args);
     out.push(row(r.ok ? 'available' : 'unavailable', name, r.out));
   }
   out.push(row('available', 'node', process.version));
