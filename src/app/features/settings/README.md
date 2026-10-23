@@ -24,4 +24,7 @@ Routes `/settings/display`, `/keyboard`, `/data`, `/about`. `/settings` redirect
 ## Tests
 `model/specRows.test.ts`, `model/settingsNav.test.ts`; the pure size logic is tested in `lib/settings/textSize.test.ts`.
 `data/screenKeys.test.ts` holds the derived rows, the Task keymap to `actionFor`, and the server-safety of the import
-closure (no `'use client'` module).
+closure (no `'use client'` module). `sections/ScreenKeysSection.test.tsx` pins one rowgroup header per screen (no empty
+`<th>`); `sections/ConnectionSection.test.tsx` the Mode row ("the default" only when `BELAY_MODE` is unset).
+`app/settings/settingsRoutes.test.ts` checks the route folders against `SETTINGS_PAGES`, the `/settings` redirect, and
+each page's tab title ("Belay Settings <label>").
