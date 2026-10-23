@@ -139,6 +139,9 @@ const FROZEN: Record<number, string> = {
   12: 'd7bec144b53b4282ab69a5c490cbb673b8eba32d0f3c55900901cb96f5fea2fa',
   13: '50530e13c25aa95596d866f38c82769f22f9fb572c14aa0dc8543afff2ab555d',
   14: '9114147ecbf6cc85c6b6112a891735e510e6ad38616c0dfb51dc3faa5d30071c',
+  15: '684764e531f619c1567aad46288cda13dac0b7ae2a14a07b0f3c53e12f3bccb2',
+  16: '9dc4aa0739559de9f714178e93162df20fa857b16b450d6ff1d41c7aff1e3f1f',
+  17: '9e45259b7e40e4c2999b0366d6a7f17a2a7fa73058027aac44340b3b58865cc8',
 };
 const sha = (sql: string): string => createHash('sha256').update(sql).digest('hex');
 const quoted = (xs: readonly string[]): string => `(${xs.map((x) => `'${x}'`).join(', ')})`;
@@ -146,7 +149,8 @@ const quoted = (xs: readonly string[]): string => `(${xs.map((x) => `'${x}'`).jo
 describe('applied migrations stay frozen', () => {
   it('keep the sql each shipped index was migrated with', () => {
     for (const m of MIGRATIONS) if (FROZEN[m.version]) expect([m.version, sha(m.sql)]).toEqual([m.version, FROZEN[m.version]]);
-    expect(MIGRATIONS.filter((m) => !FROZEN[m.version]).map((m) => m.version).sort()).toEqual(MIGRATIONS.filter((m) => m.version > 14).map((m) => m.version).sort());
+    // every migration on main has shipped: a new one adds its hash here in the commit that adds it
+    expect(MIGRATIONS.filter((m) => !FROZEN[m.version]).map((m) => m.version)).toEqual([]);
   });
 
   it('do not read a live schema constant: adding a stage must not change migrations 1 and 2', async () => {
