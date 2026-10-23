@@ -64,6 +64,11 @@ describe('arrow keys', () => {
     expect(arrowSelection(q4, { side: 'claim', id: 'c2' }, 'ArrowRight')).toEqual({ side: 'check', id: 'base-red' });
   });
 
+  it('from an id the column no longer holds: down is the first, up is the last (as stepTask does)', () => {
+    expect(arrowSelection(q4, { side: 'check', id: 'gone' }, 'ArrowDown')).toEqual({ side: 'check', id: 'base-red' });
+    expect(arrowSelection(q4, { side: 'check', id: 'gone' }, 'ArrowUp')).toEqual({ side: 'check', id: 'rescan' });
+  });
+
   it('stay put when already on that side', () => {
     const sel = { side: 'check', id: 'rescan' } as const;
     expect(arrowSelection(q4, sel, 'ArrowRight')).toBe(sel);

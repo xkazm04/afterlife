@@ -52,6 +52,8 @@ export function arrowSelection(task: TaskView, sel: Selection, key: ArrowKey): S
   }
   const ids = sel.side === 'check' ? task.proof.checks.map((c) => c.id) : task.claims.map((c) => c.id);
   const at = ids.indexOf(sel.id);
-  const next = ids[(at + (key === 'ArrowDown' ? 1 : -1) + ids.length) % ids.length];
+  const delta = key === 'ArrowDown' ? 1 : -1;
+  // An id the column no longer holds: down starts at the first, up at the last (stepTask's rule).
+  const next = ids[at < 0 ? (delta === 1 ? 0 : ids.length - 1) : (at + delta + ids.length) % ids.length];
   return next ? { side: sel.side, id: next } : sel;
 }
