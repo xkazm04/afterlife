@@ -2,6 +2,8 @@
 // capped list said to be capped, and the facts a null counter is missing.
 import { describe, expect, it } from 'vitest';
 import type { CountedOutput, RecordSources } from '@/lib/demo/sources';
+import { cooldownRule, toHandsOffRules, toSupervisedRules } from '../rules';
+import type { Counters, PromotionRules } from '../types';
 import { countKeyOf, explain, mrHref } from './explain';
 
 const out = (iid: number, outcome: CountedOutput['outcome'], inWindow = true, over: Partial<CountedOutput> = {}): CountedOutput =>
@@ -13,7 +15,21 @@ const s: RecordSources = {
   missing: [{ iid: null, fact: 'revert_policy' }, { iid: 7, fact: 'tier_decision' }],
 };
 
+// Every row the rule can emit, with every optional row the policy can switch on: the names come from rules.ts itself.
+const ALL: PromotionRules = {
+  toSupervised: { accepted: 5, reverts: 0, guardrailBlocks: 0, windowLast: 5, gated: 'all', trial: { min: 3, catches: 0 } },
+  toHandsOff: { accepted: 15, noEditRatio: 0.9, cleanDays: 14, humanKey: true, gated: 'all', trial: { min: 3, catches: 0 } },
+};
+const NONE = { accepted: null, needed: null, noEdit: null, cleanDays: null, reverts: null } as Counters;
+const emitted = [...toSupervisedRules(NONE, ALL.toSupervised), ...toHandsOffRules(NONE, ALL.toHandsOff, 'repro'), cooldownRule('2999-01-01', new Date(0))].map((r) => r?.name);
+
 describe('explain', () => {
+  it('every count row rules.ts emits has its counter; only the proof class and the cooldown have none', () => {
+    const unbacked = [...new Set(emitted)].filter((n) => n !== undefined && countKeyOf(n) === null);
+    expect(unbacked).toEqual(['mechanical proof class', 'cooldown']);
+    expect(emitted.length).toBeGreaterThanOrEqual(12);
+  });
+
   it('maps the rule rows to the counter behind them, and no other row', () => {
     expect(['accepted outputs', 'merged without edits ≥ 90 %', 'clean days', 'reverts', 'guardrail blocks', 'counted over the last 5 outputs', 'gated outputs', 'mechanical proof class', 'cooldown'].map(countKeyOf))
       .toEqual(['accepted', 'noEdit', 'cleanDays', 'reverts', 'guardrailBlocks', 'window', 'gated', null, null]);
