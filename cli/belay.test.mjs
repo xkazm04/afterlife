@@ -50,6 +50,10 @@ describe('cli/belay.mjs', () => {
     expect(r.stdout).toContain('model  opus');
     expect(r.stdout).toContain('dry run: nothing was spawned');
     expect(belay('run', '--repo', 'ghost', '--fleet', fleet, '--dry-run').status).toBe(2);
+    // A relative --fleet is the caller's file, although run executes from the app root.
+    const rel = spawnSync(process.execPath, [bin, 'run', '--repo', 'demo', '--fleet', 'fleet.yml', '--dry-run'], { cwd: dir, encoding: 'utf8' });
+    expect(rel.status, rel.stderr).toBe(0);
+    expect(rel.stdout).toContain('repo   demo');
   }, 240_000);
 
   it('scan reads a checkout given as a positional or as --dir, the form engine/commands/scan.ts documents', () => {

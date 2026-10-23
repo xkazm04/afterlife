@@ -7,6 +7,7 @@
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 const [, , cmd = 'help', ...rest] = process.argv;
 const USAGE = 'usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--pack-version v] [--engine-ref ref] [--write] | replay <ledger-slice>';
@@ -31,9 +32,13 @@ switch (cmd) {
   case 'doctor':
     process.exitCode = viaTsx('doctor', '../src/server/gitlab/doctorCli.ts');
     break;
-  case 'run':
-    process.exitCode = viaTsx('run', '../runner/main.ts', rest);
+  case 'run': {
+    // run executes from the app root, so a relative --fleet is resolved against the caller's directory first.
+    const i = rest.indexOf('--fleet');
+    const v = i >= 0 ? rest[i + 1] : undefined;
+    process.exitCode = viaTsx('run', '../runner/main.ts', v && !v.startsWith('--') ? rest.with(i + 1, path.resolve(v)) : rest);
     break;
+  }
   case 'scan': {
     // belay scan [<checkout>] [--propose] | belay scan --dir <checkout> | belay scan --facts <facts.json>: the checkout
     // defaults to the current directory. An explicit --dir or --facts passes through; only a bare positional is wrapped.
