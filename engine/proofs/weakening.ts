@@ -26,7 +26,8 @@ const ASSERTION =
 const TRIVIAL = /\bassert(True|That)?\s*\(\s*true\s*\)|expect\(\s*true\s*\)\.toBe\(\s*true\s*\)|^\s*assert\s+True\s*$/;
 
 // `.only` / `fit` / `fdescribe` focus one test so the rest never run; `xfail` / `fixme` / `expectedFailure` turn a red test into a pass.
-const SKIP = /@Disabled\b|@Ignore\b|\bx(it|describe|test)\(|\b(it|test|describe)\.(skip\w*|todo|only|fixme)\b|(?:^|[\s;{(])(?:fit|fdescribe)\(|@pytest\.mark\.(?:skip|xfail)|\bpytest\.(?:skip|xfail)\(|@unittest\.(?:skip\w*|expectedFailure)\b|\bt\.Skip(f|Now)?\(|\bassume(True|That)?\(\s*false\s*\)/;
+// JUnit 5's @DisabledOnOs / @EnabledIf... and TestNG's enabled = false switch a test off on the runner; this.skip() and runIf(false) from inside it.
+const SKIP = /@(?:Disabled|Enabled(?:If|On))\w*\b|@Ignore\b|@Test\s*\([^)]{0,200}\benabled\s*=\s*false\b|\bthis\.skip\(\)|\b(?:it|test|describe)\.runIf\(\s*false\s*\)|\bx(it|describe|test)\(|\b(it|test|describe)\.(skip\w*|todo|only|fixme)\b|(?:^|[\s;{(])(?:fit|fdescribe)\(|@pytest\.mark\.(?:skip|xfail)|\bpytest\.(?:skip|xfail)\(|@unittest\.(?:skip\w*|expectedFailure)\b|\bt\.Skip(f|Now)?\(|\bassume(True|That)?\(\s*false\s*\)/;
 
 const DECLARATION = /@Test\b|\b(it|test)\(\s*['"`]|\bdef test_|\bfunc Test\w+\(/;
 

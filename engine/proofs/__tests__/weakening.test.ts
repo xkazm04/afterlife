@@ -54,6 +54,12 @@ describe('findWeakening', () => {
       expect(kinds(edit(T, [' fun a() {', line, ' }'])), line).toEqual(['skip-added']);
     }
   });
+  it('flags the conditional disables of JUnit 5 and TestNG, and a skip from inside the test (Mocha this.skip, vitest runIf)', () => {
+    for (const line of ['+    @DisabledOnOs(OS.LINUX)', '+    @DisabledIf("isCi")', '+    @DisabledIfEnvironmentVariable(named = "CI", matches = "true")', '+    @EnabledOnOs(OS.WINDOWS)', '+    @EnabledIf("never")', '+    @Test(enabled = false)', '+    this.skip();', '+  it.runIf(false)("x", () => {})']) {
+      expect(kinds(edit(T, [' fun a() {', line, ' }'])), line).toEqual(['skip-added']);
+    }
+    for (const line of ['+    @Test(timeout = 100)', '+    val enabled = false', '+    @Test']) expect(kinds(edit(T, [' fun a() {', line, ' }'])), line).not.toContain('skip-added');
+  });
   it('flags a deleted test file and a removed test case', () => {
     expect(kinds('diff --git a/src/test/kotlin/FooTest.kt b/src/test/kotlin/FooTest.kt\ndeleted file mode 100644\n--- a/src/test/kotlin/FooTest.kt\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-class FooTest\n-fun a() {}\n')).toEqual(['file-deleted']);
     expect(kinds(edit(T, [' class FooTest {', '-    @Test', '-    fun b() {}', ' }']))).toEqual(['test-removed']);
