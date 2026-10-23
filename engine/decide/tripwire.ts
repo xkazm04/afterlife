@@ -3,7 +3,7 @@
 // promotion is a person's policy MR. The YAML is edited in place so comments and layout survive.
 import { parseDocument, Scalar, YAMLMap } from 'yaml';
 import { demote, TIER_ORDER, type DemotionTrigger, type Tier } from '../../src/schemas/tier';
-import { EngineError, optStr, rec, str } from '../core/types';
+import { EngineError, isoMs, optStr, rec, str } from '../core/types';
 import { DEMOTION_TRIGGERS, parseState, type EnginePolicy } from '../policy/load';
 
 export interface TripwireEvent {
@@ -43,8 +43,8 @@ export function tripwire(policy: EnginePolicy, stateText: string, statePath: str
     return { demote: null, commit: null, note: `no change: ${why}` };
   }
 
-  const at = event.at ? new Date(event.at) : now;
-  if (Number.isNaN(+at)) throw new EngineError('event.at is not a valid time');
+  // an instant with its zone (isoMs): `new Date('10')` is 2001, a cooldown already over, and a zone-less time reads in the runner's zone
+  const at = event.at ? new Date(isoMs(event.at, 'event.at')) : now;
   const since = day(at);
   const cooldown = day(new Date(+at + policy.cooldown_days * 86_400_000));
   const record: Record<string, string> = { tier: to, since, by: 'tripwire', reason: event.trigger, ...(event.evidence ? { evidence: event.evidence } : {}), cooldown_until: cooldown };

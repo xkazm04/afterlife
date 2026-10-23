@@ -95,7 +95,13 @@ describe('tripwire input', () => {
   it('rejects an agent or class that tier-state does not know, and a bad time', () => {
     expect(() => tripwire(P, STATE, 's.yml', ev('revert', { agent: 'ghost' }), NOW)).toThrow(/no record/);
     expect(() => tripwire(P, STATE, 's.yml', ev('revert', { class: 'ghost.class' }), NOW)).toThrow(/no record/);
-    expect(() => tripwire(P, STATE, 's.yml', ev('revert', { at: 'yesterday' }), NOW)).toThrow(/valid time/);
+    expect(() => tripwire(P, STATE, 's.yml', ev('revert', { at: 'yesterday' }), NOW)).toThrow(/event.at must be an ISO time/);
     expect(() => tripwire(P, 'version: 1\nagents: [', 's.yml', ev('revert'), NOW)).toThrow(/valid YAML/);
+  });
+  it('takes event.at only as an ISO instant with its zone: "10" would set the cooldown in 2001, already over', () => {
+    for (const at of ['10', '3/4/2026', '2026-10-21', '2026-10-21T14:20:05']) {
+      expect(() => tripwire(P, STATE, 's.yml', ev('revert', { at }), NOW), at).toThrow(/event.at must be an ISO time with a zone/);
+    }
+    expect(tripwire(P, STATE, 's.yml', ev('revert', { at: '2026-10-21T16:20:05+02:00' }), NOW).commit?.message).toContain('Cooldown until: 2026-10-28');
   });
 });
