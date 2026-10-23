@@ -2,15 +2,15 @@
 import type { FleetProject, ProjectState, TierKey } from '@/lib/demo/types';
 import { STAGE_SHORT } from '@/lib/demo/labels';
 import { cellRank, TIER_META, tiersKnown } from '@/lib/tiers';
-import { sortItems, type SortDir, type SortState, type SortValue } from '@/components/table/model/sort';
+import { compareText, sortItems, type SortDir, type SortState, type SortValue } from '@/components/table/model/sort';
 import type { FleetView, SortKey } from '../types';
 
 export const INITIAL_SORT: SortState<SortKey> = { key: 'attention', dir: -1 };
 
 export const STATE_RANK: Record<ProjectState, number> = { stale: 3, 'setting-up': 2, 'not-set-up': 1, watching: 0 };
 
-// Names in one collation, number-aware ("svc-2" before "svc-10"): the list is server-rendered and hydrated in the browser's locale.
-const byName = (a: FleetProject, b: FleetProject): number => a.name.localeCompare(b.name, 'en', { numeric: true });
+// Names in the shared text order (number-aware, one collation): the list is server-rendered and hydrated in the browser's locale.
+const byName = (a: FleetProject, b: FleetProject): number => compareText(a.name, b.name);
 
 /** Needs-you first, then the sickest state, then by name. */
 export function byAttention(a: FleetProject, b: FleetProject): number {
