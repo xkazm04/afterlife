@@ -76,6 +76,10 @@ describe('ProjectRow unwatched', () => {
     expect(row(makeProject({ id: 'a' }))).toContain('Last 7 days');
   });
 
+  it('titles no class cell unknown in the Classes view: not watched is not unknown', () => {
+    expect(row(unwatched, { view: 'classes' })).not.toContain(': unknown"');
+  });
+
   it('shows no stage rung in the Stages view', () => {
     expect(row(unwatched, { view: 'stages' })).not.toContain('>1<');
     expect(row(makeProject({ id: 'a' }), { view: 'stages' })).toContain('>1<');
