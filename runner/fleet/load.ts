@@ -1,6 +1,7 @@
 // .belay/fleet.yml -> FleetRepo[]: the repos the runner may work, each with the gates that must be green
 // before anything is committed. Strict on purpose - a typo in a gate list must stop the run, not skip a gate.
 import fs from 'node:fs';
+import nodePath from 'node:path';
 import { parse } from 'yaml';
 import type { FleetRepo } from '../index';
 import { parseFrontier } from './frontier';
@@ -54,7 +55,9 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     const { gitlab } = r;
     // The repo's GitLab path_with_namespace, for the screens' cost join (src/lib/runs/desk/join.ts); the runner never reads it.
     if (gitlab !== undefined && (typeof gitlab !== 'string' || !GITLAB_PATH.test(gitlab))) throw new Error(`${where}: gitlab must be a project path like group/sub/project`);
-    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(diffCheck ? { diffCheck: true } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}), ...(frontier ? { frontier } : {}), ...(gitlab ? { gitlab: gitlab as string } : {}) };
+    // A relative path means relative to the fleet file's own folder, not to wherever the runner happens to run from.
+    const repoPath = nodePath.isAbsolute(path) ? path : nodePath.resolve(nodePath.dirname(file), path);
+    return { slug, path: repoPath, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(diffCheck ? { diffCheck: true } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}), ...(frontier ? { frontier } : {}), ...(gitlab ? { gitlab: gitlab as string } : {}) };
   });
 }
 
