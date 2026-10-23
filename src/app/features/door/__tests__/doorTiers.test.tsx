@@ -37,4 +37,12 @@ describe('the L2 cutaway windows', () => {
     }
     expect(css).toMatch(rule('.w_null'));
   });
+  it('the city windows each have their rule in city.module.css', () => {
+    const css = readFileSync(new URL('../components/scene/city.module.css', import.meta.url), 'utf8');
+    for (const [t, cls] of Object.entries(TIER_CLASS)) {
+      const name = /^_(\w+?)_[0-9a-z]+$/.exec(cls)?.[1]; // the proxy's "_<name>_<hash>": fails loudly if that ever changes
+      expect(name, t).toBeTruthy();
+      expect(css, `${t} -> .${name}`).toMatch(new RegExp(`^\\.${name} \\{`, 'm'));
+    }
+  });
 });
