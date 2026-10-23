@@ -91,7 +91,8 @@ function buildTask(id: string, input: BuildInput): TaskView | null {
   if (!proofIn || !chainIn || !claimTexts) return null;
 
   const checks: TaskCheck[] = proofIn.checks.map((c) => {
-    const [mapped, link] = detail.checkMap[c.id] ?? [[], 0];
+    // A check the fixture's map does not name has no known evidence link (-1, "link unknown"), as a source task's would.
+    const [mapped, link] = detail.checkMap[c.id] ?? [[], -1];
     // A check from a Proof Block carries its own claim tie (null: it answers none); only a fixture check lacks one.
     const claims = c.claim === undefined ? mapped : c.claim === null ? [] : [c.claim];
     return { id: c.id, text: c.text, ok: c.ok, decidedBy: c.decidedBy ?? 'engine', ref: c.ref, claims: [...claims], link };

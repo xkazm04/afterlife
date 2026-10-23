@@ -45,6 +45,15 @@ describe('loadTasks', () => {
     }
   });
 
+  it('ties every built check to its fixture checkMap entry, and a check the map lacks to no link (never link 1)', () => {
+    for (const t of tasks) for (const c of t.proof.checks) expect([t.id, c.id, c.id in (TASK_DETAIL[t.id]?.checkMap ?? {})]).toEqual([t.id, c.id, true]);
+    const q4 = TASK_DETAIL['01J8Q4'];
+    if (!q4) throw new Error('no fixture 01J8Q4');
+    const rest = Object.fromEntries(Object.entries(q4.checkMap).filter(([id]) => id !== 'base-red'));
+    const [built] = buildTasks({ tasks: getTasks(), tracks: [], actionClasses: [], details: { '01J8Q4': { ...q4, checkMap: rest } }, order: ['01J8Q4'] });
+    expect(built?.proof.checks.find((c) => c.id === 'base-red')).toMatchObject({ link: -1, claims: [] });
+  });
+
   it('lets the dataset win and fills what it lacks from the fixture', () => {
     expect(byId('01J8Q4').title).toBe('Fix path traversal in statement export');
     expect(byId('01J8Q4').chain[0]?.obj).toBe('pipeline #9812 · finding V-204');
