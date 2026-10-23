@@ -27,10 +27,10 @@ export function classTip(c: ActionClass | undefined): string {
   return `${displayLastMove(c.lastMove)}${c.ceiling !== c.tier ? ` · ceiling ${TIER_META[c.ceiling].name}` : ''}`;
 }
 
-/** The dim line under a decision: due time, the tier move (S → H), the reason, the number of gaps. */
+/** The dim line under a decision: due time (countdown() says "overdue" once past), the tier move (S → H), the reason, the number of gaps. */
 export function needsMeta(n: NeedsYouItem): string {
   const move = n.from && n.to ? `${TIER_META[n.from].letter} → ${TIER_META[n.to].letter}` : '';
-  return [n.dueIn ? `due in ${n.dueIn}` : '', move, n.reason ?? '', n.count ? `${n.count} gaps` : ''].filter(Boolean).join(' · ');
+  return [n.dueIn === 'overdue' ? 'overdue' : n.dueIn ? `due in ${n.dueIn}` : '', move, n.reason ?? '', n.count ? `${n.count} gaps` : ''].filter(Boolean).join(' · ');
 }
 
 export interface FeedRow {

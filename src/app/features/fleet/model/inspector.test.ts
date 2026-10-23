@@ -43,6 +43,9 @@ describe('needsMeta', () => {
     expect(needsMeta(byId('n4'))).toBe('guardrail high severity on !44');
     expect(needsMeta(byId('n5'))).toBe('');
   });
+  it('a passed deadline reads overdue, never "due in overdue"', () => {
+    expect(needsMeta({ ...byId('n2'), dueIn: 'overdue' })).toBe('overdue');
+  });
 });
 
 describe('feedRows', () => {
