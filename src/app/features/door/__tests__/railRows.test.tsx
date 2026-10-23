@@ -29,3 +29,15 @@ describe('the rail orders names as the city does', () => {
     expect(html.indexOf('>charts<')).toBeLessThan(html.indexOf('>hub<'));
   });
 });
+
+describe('the rail says why a project is stale as the readout does', () => {
+  it('a stale feed with no error gives its last good poll, not "feed stale"', () => {
+    const html = rail([P('old', { state: 'stale', feed: { ageSec: 2820 } } as Partial<FleetProject>)]);
+    expect(html).not.toContain('feed stale');
+    expect(html).toContain('last good poll 47 min ago');
+  });
+  it('a feed error keeps its own words and gains the age', () => {
+    const html = rail([P('old', { state: 'stale', feed: { ageSec: 2820, error: 'HTTP 503' } } as Partial<FleetProject>)]);
+    expect(html).toContain('HTTP 503 · last good poll 47 min ago');
+  });
+});

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
 import type { Ceiling } from '@/schemas/tier';
 import { byName, needsOf, type District } from '../../model/city';
-import { plural } from '../../model/words';
+import { plural, staleText } from '../../model/words';
 import { LegendHint } from './LegendHint';
 import { TierLetter } from '../ui/TierLetter';
 import styles from './rail.module.css';
@@ -79,7 +79,7 @@ export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string
       </div>
       <div className={styles.body}>
         {sec('Needs you', d.needs, true, need.map((p) => row(p.id, <><span className={styles.cnt}>{needsOf(p)}</span><span className={styles.nm}>{p.name}</span>{p.state === 'stale' ? <span className={styles.tag}>last known</span> : null}</>)))}
-        {sec('Stale', stale.length, false, stale.map((p) => row(p.id, <><Ico kind="stale" /><span className={styles.nm}>{p.name}<span className={`${styles.sub} ${styles.st}`}>{p.feed.error ?? 'feed stale'}</span></span></>)))}
+        {sec('Stale', stale.length, false, stale.map((p) => row(p.id, <><Ico kind="stale" /><span className={styles.nm}>{p.name}<span className={`${styles.sub} ${styles.st}`}>{staleText(p)}</span></span></>)))}
         {sec('Setting up', setup.length, false, setup.map((p) => row(p.id, <><Ico kind="setup" /><span className={styles.nm}>{p.name}<span className={styles.sub}>{p.setupStep ?? 'step unknown'}</span></span></>)))}
         {sec('Not watched', nsu.length, false, nsu.map((p) => row(p.id, <><Ico kind="nsu" /><span className={styles.nm}>{p.name}<span className={styles.sub}>unknown, not zero</span></span></>)))}
         <p className={styles.calm}>
