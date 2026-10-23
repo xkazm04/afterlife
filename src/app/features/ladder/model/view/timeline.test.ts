@@ -63,6 +63,11 @@ describe('layoutAxis across midnight: placed by the instant, not the time of day
     const a = layoutAxis([ev('2026-10-16T00:02:00Z', 'you', 'you'), ev('2026-10-15T23:58:00Z', 'guardrail job', 'gitlab')]);
     expect(a.points.map((p) => [p.x, p.label])).toEqual([[4, '58:00 guardrail'], [96, '02:00 you']]);
   });
+  it('labels with the hour and words the lag by its size when the rail spans hours', () => {
+    const a = layoutAxis([ev(day('09:20:03'), 'guardrail job', 'gitlab'), ev(day('17:20:03'), 'tripwire job', 'gitlab'), ev(day('18:20:03'), 'Belay', 'belay')]);
+    expect(a.points.map((p) => p.label)).toEqual(['09:20 guardrail', '17:20 tripwire', '18:20 Belay']);
+    expect(a.gap?.label).toBe('Belay 1 h late');
+  });
 });
 
 describe('timedEntries', () => {

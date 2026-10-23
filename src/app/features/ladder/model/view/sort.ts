@@ -1,6 +1,7 @@
 // Sorting of the class table. The order is FROZEN when the sort changes, so a revoke never moves rows under the cursor.
 import { sortItems, type SortDir, type SortValue } from '@/components/table/model/sort';
 import { cellRank, TIER_RANK } from '@/lib/tiers';
+import { leaseLapsed } from '../grant/lease';
 import { cellOf, holdersOf } from '../rules/tiers';
 import type { ClassRow, LadderSort, LedgerEntry, SortKey } from '../types';
 import { lastMoveIndex } from './moves';
@@ -38,7 +39,7 @@ export function sortValue(c: ClassRow, key: SortKey, ledger: readonly LedgerEntr
     case 'track': return c.track;
     case 'tier': return cellRank(cellOf(c), holdersOf(c));
     case 'ceiling': return TIER_RANK[c.ceiling];
-    case 'lease': return c.lease_days || null;
+    case 'lease': return leaseLapsed(c) ? 0 : c.lease_days || null;
     case 'acc': return r ? r.accepted : null;
     case 'noedit': return r ? r.noEdit : null;
     case 'rv': return r ? r.reverts : null;

@@ -8,7 +8,7 @@ import { HeaderCell } from '@/components/table/HeaderCell';
 import { OutlineTable } from '@/components/table/OutlineTable';
 import { RowGroup } from '@/components/table/RowGroup';
 import { minWidth, px } from '@/components/table/model/columns';
-import { rowDomId } from '@/components/table/model/rowNavigation';
+import { groupNavId, rowDomId } from '@/components/table/model/rowNavigation';
 import { GateSeenLine } from '@/components/status/GateSeenLine';
 import { DEMO_NOW } from '@/lib/demo/clock';
 import { ALL_SOURCE, type Criteria } from '../../model/view/filters';
@@ -122,7 +122,7 @@ export function ClassTable(p: ClassTableProps) {
                 }
                 count={g.items.length}
                 expanded={g.open}
-                selected={p.sel === `g:${g.id}`}
+                selected={p.sel === groupNavId(g.id)}
                 onSelect={p.onSelect}
                 onToggle={p.onToggleGroup}
                 onContextMenu={p.onGroupMenu}

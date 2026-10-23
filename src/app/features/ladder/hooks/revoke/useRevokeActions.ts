@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, type RefObject } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
-import { isGroupNavId } from '@/components/table/model/rowNavigation';
+import { groupNavId, groupOfNavId } from '@/components/table/model/rowNavigation';
 import { TIER_META } from '@/lib/tiers';
 import type { ActionResponse } from '@/server/actions/types';
 import { NO_ANSWER, commitOf, outcomeOf, type WriteView } from '@/server/actions/words';
@@ -135,7 +135,7 @@ export function useRevokeActions({
       const view = writes.trackViewOf(track, want);
       const send = () => sendRevokeTrack(project, track, changes, want, view);
       const what = `${want === 'quarantine' ? 'quarantine' : 'one step down'} · track ${track} · ${changes.length} classes`;
-      const shown = latest.current.sel === `g:${track}` && writes.trackWant === want;
+      const shown = latest.current.sel === groupNavId(track) && writes.trackWant === want;
       sendShown({ key: trackKey(track, want), what, view, shown, show: () => writes.showTrack(track, want), send, put: (v) => writes.putTrack(track, want, v), land: { type: 'revokeTrack', track, changes } });
     },
     [latest, writes, project, status, sendShown],
@@ -145,7 +145,10 @@ export function useRevokeActions({
   const revokeKey = useCallback(
     (want: TrackWant) => {
       const { selected: c, sel } = latest.current;
-      if (!c) return sel && isGroupNavId(sel) ? revokeTrack(sel.slice(2), want) : status(selectHint(want));
+      if (!c) {
+        const tid = sel ? groupOfNavId(sel) : null;
+        return tid ? revokeTrack(tid, want) : status(selectHint(want));
+      }
       const to = revokeTarget(actsFrom(c), want);
       if (to) revoke(c.id, to);
       else status(want === 'quarantine' ? `Nothing to quarantine on ${c.id}` : `Nothing to revoke on ${c.id}`);

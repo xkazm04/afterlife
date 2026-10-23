@@ -25,6 +25,8 @@ const STEPS: Record<string, number | undefined> = { ArrowDown: 1, ArrowUp: -1, H
 
 export const groupNavId = (group: string): string => `g:${group}`;
 export const isGroupNavId = (id: string): boolean => id.startsWith('g:');
+/** The group id inside a group nav id, null for a row id: the inverse of groupNavId. */
+export const groupOfNavId = (id: string): string | null => (isGroupNavId(id) ? id.slice(2) : null);
 
 /**
  * The DOM id of a row element (used by aria-activedescendant and scrolling). Injective: "_" is only ever

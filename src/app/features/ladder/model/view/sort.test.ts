@@ -33,6 +33,10 @@ describe('computeOrder', () => {
     expect(computeOrder(classes, [], { key: 'lease', dir: 1 })).toEqual(['b', 'a', 'c']);
     expect(computeOrder(classes, [], { key: 'lease', dir: -1 })).toEqual(['b', 'a', 'c']);
   });
+  it('puts a lapsed Hands-off lease first ascending, not with the lease-less', () => {
+    const l = [row('n'), row('z', { tier: 'hands_off', lease_days: 0 }), row('m', { lease_days: 4 })];
+    expect(computeOrder(l, [], { key: 'lease', dir: 1 })).toEqual(['z', 'm', 'n']);
+  });
 });
 
 describe('toggleSort', () => {

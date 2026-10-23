@@ -1,7 +1,7 @@
 // What the docked command strip says: the write that `r` (or the highlighted menu item) would run, or the promotion `p`
 // would open, exactly as the server planned it (`view`), or that it is still being asked for, or why the server refuses
 // it, or the MR a sent promotion opened. One write at a time, named, so a key never confirms one the strip does not show.
-import { isGroupNavId } from '@/components/table/model/rowNavigation';
+import { groupOfNavId } from '@/components/table/model/rowNavigation';
 import type { PromoteView } from '../../write/promote';
 import type { WriteView } from '../../write/revoke';
 import { nothingInTrack, trackChanges, type Skipped, type TrackWant } from './batch/batch';
@@ -51,8 +51,8 @@ export function dockModel(
   want: TrackWant = 'quarantine',
 ): DockModel {
   if (!sel) return { kind: 'none' };
-  if (isGroupNavId(sel)) {
-    const id = sel.slice(2);
+  const id = groupOfNavId(sel);
+  if (id !== null) {
     if (!batchViewOf) return { kind: 'group', id, key: tracks[id]?.key ?? '' };
     const batch = trackChanges(Object.values(byId), id, want);
     if (!batch.changes.length) return { kind: 'idle', id, reason: nothingInTrack(batch) };

@@ -1,9 +1,13 @@
 // A grant's lease and the no-edit bar, worded from trust-policy.yml as the server read it (PolicyRules), never a
 // constant here: the lease is grant_ttl_days, the bar supervised_to_hands_off's no_edit_ratio.
 import type { PolicyRules } from '@/server/data/types';
+import type { ClassRow } from '../types';
 
 /** The policy grants no lease (no grant_ttl_days): no lease line at all. A policy not read is not that. */
 export const noLease = (policy: PolicyRules | null): boolean => policy !== null && policy.leaseDays === null;
+
+/** A Hands-off grant whose lease ran out: the index clamps it to 0 days, and the gate decides at Supervised until re-confirmed. */
+export const leaseLapsed = (c: Pick<ClassRow, 'tier' | 'lease_days'>): boolean => c.tier === 'hands_off' && c.lease_days === 0;
 
 /** "9 d left of 14" (of the policy's lease), "9 d left" when the policy was not read, null when there is no lease. */
 export function leaseLeft(left: number | null, policy: PolicyRules | null): string | null {

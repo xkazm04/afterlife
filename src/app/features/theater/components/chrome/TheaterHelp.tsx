@@ -1,6 +1,6 @@
 import { Kbd } from '@/components/controls/Kbd';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
-import { KEYS } from '../../data/constants';
+import { keysFor } from '../../data/constants';
 import { seqRange } from '../../model/replay/state';
 import type { Film } from '../../model/types';
 import { ReplayChip } from '../parts/ReplayChip';
@@ -17,7 +17,7 @@ export function TheaterHelp({ film }: { film: Film }) {
   return (
     <>
       <div className={styles.keys}>
-        {KEYS.map(([k, v]) => [<Kbd key={`k-${k}`}>{k}</Kbd>, <span key={`v-${k}`}>{v}</span>])}
+        {keysFor(film.takes.length).map(([k, v]) => [<Kbd key={`k-${k}`}>{k}</Kbd>, <span key={`v-${k}`}>{v}</span>])}
       </div>
       <hr className={styles.hr} />
       <div className={styles.marks}>

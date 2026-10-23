@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { copyCommand } from './copy';
+import { copyCommand } from './copyCommand';
 
 const settle = () => new Promise((r) => setTimeout(r, 0));
 
