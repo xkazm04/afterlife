@@ -1,5 +1,6 @@
-// The Fleet screen: every watched project, its class tiers, proofs, nine rungs and feed age.
+// The Fleet screen: every watched project, its class tiers, proofs, rungs (one per stage) and feed age.
 import type { TierCounts } from '@/lib/demo/types';
+import { STAGES } from '@/schemas/stages';
 import { isStanding, type ClassCell, type Holder } from '@/lib/tiers';
 import { listClassTiers } from '../repositories/fleet/classTier';
 import { listProjects, type ProjectRow } from '../repositories/fleet/project';
@@ -12,7 +13,7 @@ import { shownOf, type ShownClass } from './standing';
 import type { FleetProject, FleetView } from './types';
 
 const NO_TIERS = (): TierCounts => ({ hands_off: 0, supervised: 0, assisted: 0, quarantined: 0, human_only: 0 });
-const NO_RUNGS = (): null[] => Array.from({ length: 9 }, () => null);
+const NO_RUNGS = (): null[] => STAGES.map(() => null); // one per stage, as listProjectStages fills them
 
 
 /** The same value as DEMO.fleet, built from the index. `now` fixes the clock the feed ages are measured against. */
