@@ -13,7 +13,8 @@ Routes `/settings/display`, `/keyboard`, `/data`, `/about`. `/settings` redirect
   in its screen's keymap, never in this list; a new screen adds its keymap to `SCREEN_KEYS`.
 - `sections/ConnectionSection.tsx` (Data & connection) a server component: mode, fake or real GitLab, host and group id
   from `readDataConfig` / `readConfig`, and the status bar's own label (`StatusLine`). Never reads or shows a token.
-- `components/AboutSection.tsx` (About) version (`lib/version.ts`) and the storage key.
+- `components/AboutSection.tsx` (About) version (`lib/version.ts`) and every localStorage key from `data/browserKeys.ts`
+  (`data/browserKeys.test.ts` fails when a module stores under a key the list does not show).
 
 ## How the size works
 - `html[data-text-size]` switches the variables in `src/styles/text-size.css`.
