@@ -1,5 +1,5 @@
-import { GENESIS, fnv } from '../build/ledger';
-import type { LedgerCheck, LedgerRow, TaskView } from '../types';
+import { firstBrokenSeq } from '../build/ledger';
+import type { LedgerCheck, TaskView } from '../types';
 import { derivedVerdict } from './verdict';
 
 /**
@@ -27,16 +27,6 @@ export function nextReplay(rv: number, checkCount: number): number | null {
 export function ledgerRowAt(rv: number, checkCount: number, rowCount: number): number {
   if (rowCount <= 0 || checkCount <= 0) return 0;
   return Math.min(rowCount - 1, Math.round((Math.max(rv, 0) / checkCount) * (rowCount - 1)));
-}
-
-/** The seq of the first illustrative (FNV) row whose hash is not the one its predecessor and its own fields give, or null. */
-export function firstBrokenSeq(rows: readonly LedgerRow[]): number | null {
-  let prev = GENESIS;
-  for (const r of rows) {
-    if (r.prev !== prev || r.hash !== fnv(prev + r.seq + r.at + r.kind + r.text)) return r.seq;
-    prev = r.hash;
-  }
-  return null;
 }
 
 /**

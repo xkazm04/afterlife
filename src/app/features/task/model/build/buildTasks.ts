@@ -1,7 +1,6 @@
 import type { ActionClass, Task, Track } from '@/lib/demo';
 import type { ChainLink, ChainSeed, Hunk, LedgerSeed, TaskCheck, TaskClaim, TaskDetail, TaskLedger, TaskView, Verdict } from '../types';
-import { firstBrokenSeq } from '../verdict/replay';
-import { chainLedger } from './ledger';
+import { chainLedger, firstBrokenSeq } from './ledger';
 
 export interface BuildInput {
   /** The data source's tasks; they win over the fixture where they have a value. */

@@ -23,12 +23,15 @@ export function chainLedger(seeds: readonly LedgerSeed[]): LedgerRow[] {
   });
 }
 
-/** True when every row's hash is the one its predecessor and its own fields give (the replay's "hashes match"). */
-export function ledgerIntact(rows: readonly LedgerRow[]): boolean {
+/** The seq of the first illustrative (FNV) row whose hash is not the one its predecessor and its own fields give, or null. */
+export function firstBrokenSeq(rows: readonly LedgerRow[]): number | null {
   let prev = GENESIS;
-  return rows.every((r) => {
-    const ok = r.prev === prev && r.hash === fnv(prev + r.seq + r.at + r.kind + r.text);
+  for (const r of rows) {
+    if (r.prev !== prev || r.hash !== fnv(prev + r.seq + r.at + r.kind + r.text)) return r.seq;
     prev = r.hash;
-    return ok;
-  });
+  }
+  return null;
 }
+
+/** True when every row's hash is the one its predecessor and its own fields give (the replay's "hashes match"). */
+export const ledgerIntact = (rows: readonly LedgerRow[]): boolean => firstBrokenSeq(rows) === null;
