@@ -8,6 +8,7 @@ import { appendLedgerEvents, readLedger } from '@/server/index/repositories/ledg
 import { getProjectRow } from '@/server/index/repositories/fleet/project';
 import { SEED_NOW } from '@/server/index/seed';
 import { previewIntent } from '../../run';
+import { trialParagraph } from '../trial';
 import { liveRig } from '../../__tests__/rig';
 
 const QA = `ai-qa-${GROUP_PATH}`;
@@ -51,5 +52,22 @@ describe('planPromote: the trial in the MR description', () => {
     // the write is unchanged: the same commit, the same diff
     expect(after.commands[0]?.argv).toEqual(before.commands[0]?.argv);
     expect(after.diff).toEqual(before.diff);
+  });
+});
+
+describe('trialParagraph: the auditor\'s command is pasted into a shell', () => {
+  it('quotes a value tier-state.yml gave it that a shell would split or run, and leaves a plain one bare', () => {
+    const agent = 'qa bot; touch pwned';
+    const at = new Date(SEED_NOW.getTime() - 3_600_000).toISOString();
+    const events: LedgerEvent[] = [];
+    for (const iid of [71, 72]) {
+      events.push(append(events, {
+        at, agent, action_class: 'qa.file-bug', kind: 'tier_decision', tier_at_time: 'supervised',
+        subject: { project_id: 7, type: 'mr', iid }, payload_ref: `x/${iid}`, observed_by: 'ci_job', would: { tier: 'hands_off', decision: 'merge' },
+      }));
+    }
+    const text = trialParagraph({ projectId: 7, events }, { agent, classId: 'qa.file-bug', since: '2026-10-01T00:00:00.000Z' }) ?? '';
+    const line = text.split('\n').find((l) => l.startsWith('npx ')) ?? '';
+    expect(line).toContain(`--agent 'qa bot; touch pwned' --class qa.file-bug --since 2026-10-01T00:00:00.000Z`);
   });
 });

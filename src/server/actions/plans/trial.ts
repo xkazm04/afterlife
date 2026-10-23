@@ -16,6 +16,9 @@ export const ledgerReader = (db: Queryable, gitlabId: PlanContext['gitlabId']) =
   return id === null ? null : { projectId: id, events: await readLedger(db, id) };
 };
 
+/** One shell word: bare when it is plain, else single-quoted. The agent and since come from tier-state.yml, any string. */
+const sh = (v: string): string => (/^[\w.:@%+=,/-]+$/.test(v) ? v : `'${v.replace(/'/g, `'\\''`)}'`);
+
 /** The description's trial paragraph for a holder's class since its record; null when the chain holds no trial MR for it. */
 export function trialParagraph(ledger: ProjectLedger | null, h: { agent: string; classId: string; since: string }): string | null {
   const from = Date.parse(h.since);
@@ -26,6 +29,6 @@ export function trialParagraph(ledger: ProjectLedger | null, h: { agent: string;
   return [
     `Next-rung trial: ${seqs.length} trial MR(s), tier_decision seq ${Math.min(...seqs)}-${Math.max(...seqs)} in belay-ledger events/${ledger.projectId}.jsonl; chain head seq ${head.seq}, hash ${head.hash}.`,
     'Recompute it from the chain alone (the file cut at that seq, anchored to that hash):',
-    `npx tsx engine/cli.ts ledger trial --chain events/${ledger.projectId}.jsonl --through ${head.seq} --head ${head.hash} --agent ${h.agent} --class ${h.classId} --since ${h.since}`,
+    `npx tsx engine/cli.ts ledger trial --chain events/${ledger.projectId}.jsonl --through ${head.seq} --head ${head.hash} --agent ${sh(h.agent)} --class ${sh(h.classId)} --since ${sh(h.since)}`,
   ].join('\n');
 }
