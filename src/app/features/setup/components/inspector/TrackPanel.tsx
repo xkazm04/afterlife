@@ -52,6 +52,7 @@ export function TrackPanel({ id }: { id: string }) {
   const frees = downstream(GRAPH, id);
   const mine = classes.filter((c) => c.track === id);
   const chip = CHIP[a.st];
+  const waiting = unmet(state, id).length;
   return (
     <>
       <DetailSection title="State" aux={`${id} · ${t.verb}`}>
@@ -91,7 +92,7 @@ export function TrackPanel({ id }: { id: string }) {
           </div>
         </DetailSection>
       ) : null}
-      <DetailSection title="Needs" aux={needs.length ? `${unmet(state, id).length} unmet` : undefined}>
+      <DetailSection title="Needs" aux={needs.length ? (waiting ? `${waiting} unmet` : 'all met') : undefined}>
         {needs.length ? needs.map((k) => (isStepKey(k) ? <StepDep key={k} n={stepOf(k)} /> : <TrackDep key={k} id={k} />)) : <div className={styles.muted}>No prerequisite</div>}
       </DetailSection>
       <DetailSection title="Relies on in GitLab">

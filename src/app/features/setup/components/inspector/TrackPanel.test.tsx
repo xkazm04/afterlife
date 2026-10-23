@@ -85,4 +85,10 @@ describe('Setup, a track page: its classes where they stand now', () => {
     expect(html).toContain('Already enrolled: guard.block holds a record. Promotion takes it from here, on the Ladder.');
     expect(html).not.toContain('The enrollment MR would write');
   });
+
+  it('Needs says "all met" when nothing is unmet, never "0 unmet" (the other sections drop an empty count)', () => {
+    const needs = page(getActionClasses(), null, 'T4').split('Needs')[1]!;
+    expect(needs).toContain('all met');
+    expect(needs).not.toContain('0 unmet');
+  });
 });
