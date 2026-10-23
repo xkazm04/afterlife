@@ -17,6 +17,7 @@ const PROOF_BEAT = 4;
  */
 export function Pitch({ snap, snaps, store, film, demo }: { snap: Snapshot; snaps: readonly Snapshot[]; store: ReplayStore; film: Film; demo: TheaterDemo | null }) {
   const hold = snap.beat ? film.holds[snap.beat - 1] : undefined;
+  const of = film.holds.length;
   const m44 = snap.e.sc === 'm44';
   const range = seqRange(film);
   const take = film.source === 'belay-ledger' ? film.takes[takeOfIndex(snap.i, film)] : undefined;
@@ -29,13 +30,13 @@ export function Pitch({ snap, snaps, store, film, demo }: { snap: Snapshot; snap
     <section className={styles.pitch} aria-label="The loop as a pitch: one change climbs from finding to summary" title={title}>
       <div className={styles.head}>
         <ReplayChip source={film.source} from={take?.a ?? range.a} to={take?.b ?? range.b} mr={take?.mr} />
-        <span className={styles.beat} title={hold ? `beat ${snap.beat} of 9 · ${hold.label}` : 'on the ground · before beat 1 of 9'}>
+        <span className={styles.beat} title={hold ? `beat ${snap.beat} of ${of} · ${hold.label}` : `on the ground · before beat 1 of ${of}`}>
           {hold ? (
             <>
-              beat <b>{snap.beat}</b> of 9 · {hold.label}
+              beat <b>{snap.beat}</b> of {of} · {hold.label}
             </>
           ) : (
-            'on the ground · before beat 1 of 9'
+            `on the ground · before beat 1 of ${of}`
           )}
         </span>
       </div>

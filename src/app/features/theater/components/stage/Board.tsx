@@ -4,13 +4,13 @@ import { Card } from '@/components/surface/Card';
 import { RungSteps } from '../parts/RungSteps';
 import styles from './Board.module.css';
 
-/** The closing wall: nine stages as nine tiles, each with its rung steps and the evidence the last scan saw. */
+/** The closing wall: the catalogue's stages (nine) as tiles, each with its rung steps and the evidence the last scan saw. */
 export function Board({ snap, demo, last }: { snap: Snapshot; demo: TheaterDemo; last: boolean }) {
   return (
     <div className={styles.board}>
       <div className={styles.big}>
         {snap.stagesN}
-        <small>/ 9 stages with evidence</small>
+        <small>/ {demo.stages.length} stages with evidence</small>
       </div>
       <div className={styles.tiles}>
         {demo.stages.map((st) => {

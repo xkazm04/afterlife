@@ -4,7 +4,7 @@ import { Card } from '@/components/surface/Card';
 import { RungSteps } from '../parts/RungSteps';
 import styles from './Rail.module.css';
 
-/** Stages with evidence: nine rows of four rung steps, "n / 9" on top. A stage that just crossed into evidence lifts. */
+/** Stages with evidence: one row of four rung steps per catalogue stage, "n / stages" on top. A stage that just crossed into evidence lifts. */
 export function StageRows({ snap, prev, demo }: { snap: Snapshot; prev?: Snapshot; demo: TheaterDemo }) {
   return (
     <Card className={`${styles.blk} ${styles.stgb}`}>
@@ -12,7 +12,7 @@ export function StageRows({ snap, prev, demo }: { snap: Snapshot; prev?: Snapsho
         Stages with evidence
         <span className={styles.aux}>
           {snap.stagesN}
-          <small> / 9</small>
+          <small> / {demo.stages.length}</small>
         </span>
       </div>
       <div className={styles.srows}>
