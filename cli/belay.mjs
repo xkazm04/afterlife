@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { childExit } from './childExit.mjs';
 
 const [, , cmd = 'help', ...rest] = process.argv;
 const USAGE = 'usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--pack-version v] [--engine-ref ref] [--write] | replay <ledger-slice>';
@@ -25,7 +26,9 @@ function viaTsx(verb, entryUrl, args = [], cwd = root) {
   }
   const entry = fileURLToPath(new URL(entryUrl, import.meta.url));
   const r = spawnSync(process.execPath, [tsx, '--tsconfig', `${root}/tsconfig.json`, entry, ...args], { cwd, stdio: 'inherit', env: process.env });
-  return r.status ?? 2;
+  const { code, message } = childExit(verb, r);
+  if (message) console.error(message);
+  return code;
 }
 
 switch (cmd) {
