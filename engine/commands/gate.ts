@@ -14,13 +14,13 @@ import { DEFAULT_POLICY, DEFAULT_STATE } from './prove';
 
 const EXIT: Record<Decision, ExitCode> = { merge: 0, approve: 0, block: 1, wait: 2 };
 
-/** A missing file means "not produced yet" (wait), a file that exists but is malformed is an error. */
+/** A missing file (ENOENT) means "not produced yet" (wait); one that is there and unreadable (EISDIR, EACCES) or malformed is an error. */
 function optionalJson(ctx: Ctx, file: string | undefined): unknown {
   if (!file) return undefined;
   try {
     return readJson(ctx, file);
   } catch (e) {
-    if (e instanceof EngineError && e.message.startsWith('cannot read')) return undefined;
+    if (e instanceof EngineError && e.message.startsWith('cannot read') && e.message.endsWith('(ENOENT)')) return undefined;
     throw e;
   }
 }

@@ -44,6 +44,16 @@ describe('parseArgs', () => {
   });
 });
 
+describe('gate reads a proof that is not there as wait, and one it cannot read as an error', () => {
+  it('a --proof or --guardrail that is a directory is exit 2 with a JSON error naming EISDIR, not a wait', () => {
+    for (const opt of ['--proof', '--guardrail']) {
+      const c = capture();
+      expect(main(['gate', '--class', 'dep-bump.patch', opt, tmp], c.io), opt).toBe(2);
+      expect(c.json(), opt).toEqual({ error: expect.stringMatching(/\(EISDIR\)$/) });
+    }
+  });
+});
+
 describe('engine pin', () => {
   it('reports a version and a stable sha256 of its own source', () => {
     const info = engineInfo();
