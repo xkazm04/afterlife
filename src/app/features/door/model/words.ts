@@ -2,7 +2,7 @@
 // Lines come back as tone-tagged parts so the components colour them without parsing strings. Pure.
 import type { FleetProject } from '@/lib/demo/types';
 import { standingCount, tiersKnown } from '@/lib/tiers';
-import { needsOf, type District } from './city';
+import { byName, needsOf, type District } from './city';
 
 export type Tone = 'plain' | 'amber' | 'stale' | 'unknown' | 'fail' | 'ok';
 export type Part = readonly [string, Tone];
@@ -56,7 +56,7 @@ export function districtLine(d: District): Part[] {
 
 /** The answer's second lines: "6 each at gateway-service, gateway-web" and the next count down. */
 export function topTiers(projects: readonly FleetProject[]): { n: number; names: string[] }[] {
-  const top = projects.filter((p) => needsOf(p) > 0).sort((a, b) => needsOf(b) - needsOf(a) || a.name.localeCompare(b.name));
+  const top = projects.filter((p) => needsOf(p) > 0).sort((a, b) => needsOf(b) - needsOf(a) || byName(a, b));
   const out: { n: number; names: string[] }[] = [];
   for (const p of top) {
     const n = needsOf(p);

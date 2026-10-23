@@ -22,6 +22,8 @@ export const proj = (u: number, v: number): Pt => [(u - v) * HW, (u + v) * HH];
 export const towerH = (p: FleetProject): number => 11 + (p.armed || 0) * 5.6;
 /** Decisions that count: an unwatched project has no live count. */
 export const needsOf = (p: FleetProject): number => (p.state === 'not-set-up' ? 0 : p.needsYou);
+/** Name order in one collation, not the runtime's: the city is server-rendered and hydrated in whatever locale the browser has. */
+export const byName = (a: { name: string }, b: { name: string }): number => a.name.localeCompare(b.name, 'en');
 
 function snap(x: number, y: number): Pt {
   const u = Math.round((x / HW + y / HH) / 2);
@@ -82,7 +84,7 @@ export function districtsOf(groups: readonly string[], projects: readonly FleetP
   const ds: District[] = groups.map((name, gi) => {
     const ps = projects
       .filter((p) => p.group === name)
-      .sort((a, b) => needsOf(b) - needsOf(a) || STATE_ORDER[a.state] - STATE_ORDER[b.state] || a.name.localeCompare(b.name));
+      .sort((a, b) => needsOf(b) - needsOf(a) || STATE_ORDER[a.state] - STATE_ORDER[b.state] || byName(a, b));
     const cols = Math.ceil(Math.sqrt(ps.length)) || 1;
     const rows = Math.ceil(ps.length / cols) || 1;
     const sum = (f: (p: FleetProject) => number) => ps.reduce((a, p) => a + f(p), 0);

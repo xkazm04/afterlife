@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import type { FleetProject } from '@/lib/demo/types';
 import { towerShape } from './shapes';
-import { fleetTotals, MARK_TEST } from './words';
+import { districtsOf } from './city';
+import { fleetTotals, MARK_TEST, topTiers } from './words';
 
 const P = (id: string, classTiers: FleetProject['classTiers'], quarantined: number): FleetProject => ({
   id, name: id, what: '', state: 'watching', armed: 0, group: 'g', needsYou: 0, craOpen: 0, stages: Array(9).fill(null),
@@ -26,5 +27,20 @@ describe('the door: no record yet is not a quarantine, unknown is not a count', 
     expect(t(tripwire).lamps).toHaveLength(1);
     expect(t(unknown).lamps).toHaveLength(0);
     expect(Object.keys(t(unknown).windows)).toEqual(['null']);
+  });
+});
+
+// The city is server-rendered and hydrated: a name order that follows the runtime's locale places towers differently on a
+// Czech browser ("ch" sorts after "h") than on the en-US server, and React keeps the server's attributes on a mismatch.
+describe('the door orders names the same on the server and in any browser locale', () => {
+  const own = String.prototype.localeCompare;
+  afterEach(() => void (String.prototype.localeCompare = own));
+  it('places and lists "charts" before "hub" under a cs default locale', () => {
+    String.prototype.localeCompare = function (this: string, that: string, loc?: string | string[], o?: Intl.CollatorOptions) {
+      return own.call(this, that, loc ?? 'cs', o);
+    };
+    const ps = ['hub', 'charts'].map((id) => ({ ...P(id, {}, 0), needsYou: 2 }));
+    expect(districtsOf(['g'], ps)[0]!.placed.map((t) => t.p.id)).toEqual(['charts', 'hub']);
+    expect(topTiers(ps)[0]!.names).toEqual(['charts', 'hub']);
   });
 });
