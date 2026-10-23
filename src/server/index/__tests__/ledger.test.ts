@@ -2,7 +2,7 @@ import type { PGlite } from '@electric-sql/pglite';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { append, GENESIS, type LedgerEvent } from '@/schemas/ledger';
 import {
-  appendLedgerEvents, ledgerTail, LedgerChainError, readClassEvents, readLedger, resetLedger, verifyStoredChain,
+  appendLedgerEvents, ledgerTail, LedgerChainError, readLedger, resetLedger, verifyStoredChain,
 } from '../repositories';
 import { memoryIndex } from './memoryIndex';
 
@@ -87,15 +87,6 @@ describe('appendLedgerEvents', () => {
 
   it('does nothing for an empty batch', async () => {
     expect(await appendLedgerEvents(db, [])).toEqual({ appended: 0, skipped: 0 });
-  });
-
-  it('selects the events of one class', async () => {
-    const events: LedgerEvent[] = [];
-    events.push(append(events, draft(1, PROJECT, 'dep-bump.patch')));
-    events.push(append(events, draft(2, PROJECT, 'guard.block')));
-    events.push(append(events, draft(3, PROJECT, 'dep-bump.patch')));
-    await appendLedgerEvents(db, events);
-    expect((await readClassEvents(db, PROJECT, 'dep-bump.patch')).map((e) => e.seq)).toEqual([1, 3]);
   });
 
   it('stores a guardrail verdict and reads it back; an event without one reads back with no verdict key', async () => {

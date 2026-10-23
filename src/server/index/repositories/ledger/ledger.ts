@@ -106,12 +106,3 @@ export async function resetLedger(db: PGlite, projectId: number): Promise<void> 
     await tx.exec('alter table ledger_event enable trigger ledger_event_no_change');
   });
 }
-
-/** Events of one action class, newest last (what a class record is recomputed from). */
-export async function readClassEvents(db: Queryable, projectId: number, actionClass: string): Promise<LedgerEvent[]> {
-  const { rows } = await db.query<Db>(
-    `select ${LEDGER_COLS} from ledger_event where project_id = $1 and action_class = $2 order by seq`,
-    [projectId, actionClass],
-  );
-  return rows.map(fromDb);
-}
