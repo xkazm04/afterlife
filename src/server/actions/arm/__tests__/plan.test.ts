@@ -99,7 +99,8 @@ describe('arm-track T4', () => {
 
   it('refuses while an MR from the arm branch is open', async () => {
     const { gl, deps } = await rig();
-    ledgerline(gl).mrs.push({ ...ledgerline(gl).mrs[0]!, iid: 77, state: 'opened', source_branch: 'belay/arm-guardrail' });
+    // A new MR has its own global id: the list walk de-duplicates by id (bacce56), so a copy that kept mrs[0]'s id would vanish.
+    ledgerline(gl).mrs.push({ ...ledgerline(gl).mrs[0]!, id: 990077, iid: 77, state: 'opened', source_branch: 'belay/arm-guardrail' });
     expect(reason(await previewIntent(deps, arm))).toBe('!77 from belay/arm-guardrail is already open: merge or close it first');
   });
 
