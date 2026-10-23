@@ -30,7 +30,7 @@ export interface DoorData {
   stages: readonly string[];
   projects: readonly FleetProject[];
   deep: Deep;
-  /** Projects in improvement cycles and the rungs they have earned since day 0 (the deep project, in the demo). */
+  /** Projects in improvement cycles and the net rungs they have earned since day 0: the estate, as /cycles counts it. */
   cycles: { projects: number; gained: number };
 }
 
