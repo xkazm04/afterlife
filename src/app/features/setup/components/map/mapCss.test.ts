@@ -27,3 +27,21 @@ describe('Sizes follow --ui-scale (D10) on the unlock map', () => {
     expect(rawSpacing(css)).toEqual(['gap: 3px', 'margin: 4px']);
   });
 });
+
+/** Attributes a stylesheet's selectors test ([data-dim="true"], [aria-pressed]), declaration bodies and comments removed. */
+export const selectedAttrs = (css: string): string[] => [...new Set([...stripCss(css).replace(/\{[^}]*\}/g, ' ').matchAll(/\[\s*([\w-]+)/g)].map((m) => m[1]!))];
+/** The attributes of `css` that no source renders as a JSX prop (`name=`). */
+export const unrendered = (css: string, sources: string[]): string[] => {
+  const code = sources.map((s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')).join('\n');
+  return selectedAttrs(css).filter((a) => !new RegExp(`\\s${a}=`).test(code));
+};
+
+describe('the map sheets select only attributes the map renders', () => {
+  const sources = under(__dirname, /\.tsx$/).filter((f) => !/\.test\./.test(f)).map((f) => readFileSync(f, 'utf8'));
+  it.each(SHEETS.map((f) => relative(__dirname, f)))('%s', (f) => {
+    expect(unrendered(readFileSync(join(__dirname, f), 'utf8'), sources)).toEqual([]);
+  });
+  it('control: an attribute no source renders is reported, one in a comment does not count', () => {
+    expect(unrendered('.a[data-x="1"] { color: red } .b[data-y] { }', ['<b data-y={1} /> // data-x={1}'])).toEqual(['data-x']);
+  });
+});

@@ -21,10 +21,6 @@
 .nd:hover {
   border-color: var(--border-3);
 }
-.nd[aria-pressed="true"] {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
-}
 .lb {
   flex: 1;
   min-width: 0;
