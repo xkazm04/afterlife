@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { whoOf } from '../../model/film/who';
+import { clockText } from '../../model/replay/state';
 import type { LedgerEntry } from '../../model/types';
 import styles from './Cap.module.css';
 
@@ -16,7 +17,7 @@ export function Cap({ e, y, cut, quote }: { e: LedgerEntry; y: number; cut: bool
         <span>{whoOf(e)}</span>
         {e.seeded ? <HonestyChip kind="seeded" /> : null}
         <span className={styles.sq}>
-          seq {e.seq} · {e.t}
+          seq {e.seq} · {clockText(e)}
           {e.ev ? ` · ${e.ev.hash}` : null}
         </span>
       </div>

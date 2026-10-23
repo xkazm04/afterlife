@@ -80,12 +80,13 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
   - keys and parts: `hooks/useTheaterKeys.test.ts` (the "?" legend against the key map),
     `hooks/frameClock.test.ts` (the frame clock asks for no frames while the film is held),
     `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/chrome/Transport.test.tsx` (its
-    tooltips follow the key map), `components/rail/Autonomy.test.tsx` (why a
+    tooltips follow the key map; the live readout speaks no glyph), `components/rail/Autonomy.test.tsx` (why a
     class sits at its tier), `components/rail/StageRows.test.tsx` (the stage and beat denominators count their lists), `components/styles.test.ts` (every `styles.x` exists in its CSS module),
     `components/inspector/Inspector.test.tsx` (the inspector counts the film's holds),
     `components/parts/PrerollCue.test.tsx`, `components/parts/RungSteps.test.tsx` (the one rung bar),
     `components/parts/Board.test.tsx` (a missing day-0 reading in words),
-    `components/parts/ProofChecks.test.tsx`, `components/wall/wallFrame.test.ts` (the wall redraws only when it moves).
+    `components/parts/ProofChecks.test.tsx`, `components/wall/wallFrame.test.ts` (the wall redraws only when it moves),
+    `components/wall/Cap.test.tsx` (a real event's caption clock says UTC).
 
 ## Behaviour notes
 - The REPLAY chip reads the same in the window and in present. The illustrative film's: "Replay · seq 480–520 ·
