@@ -16,6 +16,11 @@ describe('class records', () => {
     expect(recordLabel(cls('report.draft'))).toBe('4/3');
     expect(acceptedLabel(cls('dep-bump.patch'))).toBe('16/15 accepted');
   });
+  it('says lapsed for a Hands-off lease already past (lease_days 0), never drops it as no lease', () => {
+    const c = cls('dep-bump.patch')!;
+    expect(recordLabel({ ...c, tier: 'hands_off', lease_days: 0 })).toBe('16/15 · lapsed');
+    expect(recordLabel({ ...c, tier: 'supervised', lease_days: 0 })).toBe('16/15');
+  });
   it('is empty without a record', () => {
     expect(recordLabel(cls('report.submit'))).toBe('');
     expect(recordLabel(undefined)).toBe('');

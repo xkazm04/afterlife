@@ -6,11 +6,12 @@ import { STATE_LABEL } from '@/lib/demo/labels';
 import { TIER_DISPLAY_ORDER, TIER_META, tiersKnown } from '@/lib/tiers';
 import type { DeepProject, FleetTask, TaskVerdict } from './types';
 
-/** "16/15 · 9 d": accepted outputs / needed, and the days left on the lease. Empty when the demo has no record. */
+/** "16/15 · 9 d": accepted outputs / needed, and the days left on the lease ("lapsed" once past). Empty when the demo has no record. */
 export function recordLabel(c: ActionClass | undefined): string {
   if (!c?.record) return '';
   const needed = c.record.needed ? `/${c.record.needed}` : '';
-  const lease = c.lease_days ? ` · ${c.lease_days} d` : '';
+  // lease_days 0 is a Hands-off lease already past (the index clamps it): the engine gates it at Supervised
+  const lease = c.lease_days ? ` · ${c.lease_days} d` : c.tier === 'hands_off' && c.lease_days === 0 ? ' · lapsed' : '';
   return `${c.record.accepted}${needed}${lease}`;
 }
 
