@@ -5,7 +5,7 @@ import { useNow } from '@/lib/clock/useNow';
 import { gateSeenText } from '@/lib/promotion/gate/gateSeen';
 import { Chip } from './chip/Chip';
 
-const WHAT = "The latest tier_decision belay-apply's gate wrote for the class's holder since its record's since (belay-ledger)";
+const WHAT = "The latest tier_decision the belay-apply gate wrote for this class's holder since the record's counts began (read from belay-ledger)";
 
 /**
  * "Gate last seen !41 at Hands-off, 4.9 h ago" or "Gate not seen since 2026-09-20". The age is read against `now` when
