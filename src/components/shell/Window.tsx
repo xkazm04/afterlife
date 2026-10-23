@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { Icon } from '@/components/icons/Icon';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { HelpButton } from '@/components/overlays/HelpButton';
+import { useModCap } from '@/lib/keyboard/modKey';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { Backdrop } from './Backdrop';
 import { Inspector } from './bars/Inspector';
@@ -46,6 +47,7 @@ export interface WindowProps {
 export function Window(p: WindowProps) {
   const [sideOpen, setSideOpen] = useState(true);
   const [localInsp, setLocalInsp] = useState(p.defaultInspectorOpen ?? true);
+  const mod = useModCap();
   const hasInsp = p.inspector !== undefined;
   const inspOpen = hasInsp && (p.inspectorOpen ?? localInsp);
 
@@ -57,7 +59,7 @@ export function Window(p: WindowProps) {
 
   const cls = [styles.win, sideOpen ? '' : styles.noSide, inspOpen ? '' : styles.noInsp].filter(Boolean).join(' ');
   const inspToggle = hasInsp ? (
-    <ToolbarButton pressed={inspOpen} title="Inspector (⌘I)" aria-label="Toggle inspector" aria-controls="inspector" onClick={() => setInsp(!inspOpen)}>
+    <ToolbarButton pressed={inspOpen} title={`Inspector (${mod}I)`} aria-label="Toggle inspector" aria-controls="inspector" onClick={() => setInsp(!inspOpen)}>
       <Icon name="inspectorToggle" />
     </ToolbarButton>
   ) : null;
