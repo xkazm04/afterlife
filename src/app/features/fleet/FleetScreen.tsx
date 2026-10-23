@@ -24,11 +24,19 @@ import { useRepoll } from './hooks/useRepoll';
 import { useRowHandlers } from './hooks/useRowHandlers';
 import { useToolbarCompact } from './hooks/useToolbarCompact';
 import type { Baseline } from './model/changes/baseline';
+import { fleetColumns } from './model/columns';
 import { menuFilterCount, sourceLabel } from './model/list/filtering';
-import { sortLabel } from './model/list/sorting';
-import type { FleetListState } from './model/list/urlState';
+import { INITIAL_SORT, sortLabel } from './model/list/sorting';
+import { DEFAULT_LIST_STATE, type FleetListState } from './model/list/urlState';
 import type { FleetData, FleetMeta, FleetSource, Source } from './model/types';
 import type { RunnerDesk } from '@/lib/runs/desk/types';
+
+/** A bookmarked sort on a class or stage this fleet does not draw (renamed, dropped) would rank by no column: the default instead. */
+function fitColumns(s: FleetListState, meta: FleetMeta): FleetListState {
+  const k = s.sort.key;
+  if (!/^(class|stage):/.test(k) || fleetColumns(s.view, meta).some((c) => c.key === k)) return s;
+  return { ...s, sort: INITIAL_SORT };
+}
 
 /**
  * Fleet: every project as one row, by tier counts, by action class or by stage. Open a row (click its name, Enter) for the project's page,
@@ -40,9 +48,10 @@ export function FleetScreen({ data, source, start, baseline, runner }: { data: F
   const { status } = useToast();
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const meta = useMemo<FleetMeta>(() => ({ classes: data.classes, stages: data.stages, tiers: data.tiers }), [data]);
   const proj = useFleetProjects(data.projects);
   const changes = useFleetChanges(proj.projects, baseline);
-  const list = useFleetList(proj.projects, data.groups, start, changes.ids);
+  const list = useFleetList(proj.projects, data.groups, fitColumns(start ?? DEFAULT_LIST_STATE, meta), changes.ids);
   const pop = usePopover(380);
   const narrow = useNarrow(tableRef);
   const compact = useToolbarCompact(searchRef);
@@ -51,7 +60,6 @@ export function FleetScreen({ data, source, start, baseline, runner }: { data: F
   // A fresh snapshot (live mode, after a re-poll) restarts the poll counter from its age.
   const [snap, setSnap] = useState({ data, n: 0 });
   if (snap.data !== data) setSnap({ data, n: snap.n + 1 });
-  const meta = useMemo<FleetMeta>(() => ({ classes: data.classes, stages: data.stages, tiers: data.tiers }), [data]);
 
   useEffect(() => tableRef.current?.focus({ preventScroll: true }), []);
 
