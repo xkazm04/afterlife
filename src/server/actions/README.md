@@ -38,7 +38,7 @@ only: promotion takes it from there), when trust-policy.yml has no `start_tier`,
 - `planPromote` refuses (`ActionRefused`, naming the date) while the class's record has a `cooldown_until` still ahead (`planPromote`'s `cooling` check, 565e23f). A date-only cooldown lifts at 00:00 UTC on that date (`rules.ts:51-53`).
 - Re-admitting a quarantined class to Assisted is not refused during the cooldown (`planPromote`'s `readmit`, 565e23f). The new record keeps `cooldown_until` (the `record` it builds), so the class climbs no further before that date. This is the App Master's decision of 2026-10-09 (wake 1c7f329f), confirming the builder's choice; it matches the re-admit card's "does not lift the promotion cooldown".
 - The preview's summary states the precondition "a person merges this MR; Belay never merges it" (`HUMAN_KEY`, `rules.ts:66`; the `summary` of `planPromote`, 28d308a). It is no longer counted as a met rule row, and no GitLab approval setting is read (28d308a).
-- When the index's belay-ledger for the project holds the next rung's trial for the holder since its record (`plans/trial.ts`, live only: the context's `ledgerOf` reads the index, demo has none), the MR description names it: the trial MRs' `tier_decision` seq range, the file (`events/<gitlab id>.jsonl`) and its head seq and hash, and the engine command that recomputes it (`prove --class ledger-record`). The commit and its diff are the same with or without it.
+- When the index's belay-ledger for the project holds the next rung's trial for the holder since its record (`plans/trial.ts`, live only: the context's `ledgerOf` reads the index, demo has none), the MR description names it: the trial MRs' `tier_decision` seq range, the file (`events/<gitlab id>.jsonl`) and its head seq and hash, and the engine command that recomputes it (`npx tsx engine/cli.ts ledger trial --chain events/<gitlab id>.jsonl --through <seq> --head <hash> --agent <a> --class <id> --since <iso>`, every value filled in; a value that is not plain is single-quoted, 7f8e84f). The commit and its diff are the same with or without it.
 
 Arm and disarm (`arm/`): the content is the repo's own, not Belay's idea. `content/` holds a track's include lines as
 `gitlab/examples/target-project/.gitlab-ci.yml` writes them (its test checks them against the example and the templates'
@@ -132,7 +132,7 @@ tripwire demotion; the answer is `failed`. Without a `last_commit_id` from GitLa
 A server action is an endpoint: validated, and it acts as whoever is logged in to `glab`. `previewId` is a digest of the
 commands, not a secret: any caller that can reach the port can preview and then confirm. Next's own check (the Origin's
 host must equal the Host) lets a request with no Origin through, and a page reached through DNS rebinding sends its own
-name as both. So in live mode `previewAction`, `confirmAction` and `repollAction` answer only a request whose Host,
+name as both. So in live mode `previewAction`, `confirmAction`, `verifyArmAction`, `repollAction`, `repollGroupAction` and `recallAction` answer only a request whose Host,
 X-Forwarded-Host and Origin name `localhost`, `127.0.0.1` or `[::1]` (`local.ts`); anything else is refused before anything
 is planned or read. A process that reaches the port can forge those headers, and `next dev` / `next start` listen on
 0.0.0.0 by default, so `npm run dev` and `npm start` now pass `-H 127.0.0.1` (`package.json`, `__tests__/listen.test.ts`).
