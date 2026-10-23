@@ -35,7 +35,7 @@ flowchart LR
 | [Onboard](onboard.md) | `/onboard` | How far is the estate onboarded, and what runs in the next batch? |
 | [Setup](setup.md) | `/setup` | What blocks each track on one project, and what can only I do? |
 | [Theater](theater.md) | `/theater` | A deterministic replay for recording |
-| [Settings](settings.md) | `/settings` | Text size |
+| [Settings](settings.md) | `/settings` | How large is the interface, which keys work, and where does the data come from? |
 
 ## Foundations
 | Module | Path | Job |

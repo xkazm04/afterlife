@@ -8,10 +8,12 @@
 - Text size: a 3-way segmented control (Smaller / Standard / Larger), a table of what each size sets, and a live
   preview built from real shared parts (`StateGlyph`, `TierChip`, `FeedAge`, `KeyValue`) so it restyles as you choose.
 - Keyboard: lists the shortcuts with Mac and Windows/Linux key caps: Cmd/Ctrl `=` larger, `-` smaller, `0` standard,
-  `I` toggle the inspector.
-- About: the app version (`lib/version.ts`), an "illustrative demo data" honesty chip, and the storage key
-  `belay.textSize`.
-- The subtitle reads "This device"; the status bar reads "Settings are saved in this browser".
+  `I` toggle the inspector (on a screen that has one), then the keys each screen adds.
+- Data & connection: the data mode, fake or real GitLab, host and group id, read from the server's environment.
+- About: the app version (`lib/version.ts`), an "illustrative demo data" honesty chip, and every key Belay keeps in
+  this browser's localStorage (`data/browserKeys.ts`).
+- The subtitle is the sub-page's name; the status bar says where that page's values live (`status` in
+  `SETTINGS_PAGES`: saved in this browser, read only, or read from the server's environment).
 
 ## How it works
 - `app/settings/page.tsx` only redirects to `/settings/display`; each `app/settings/<name>/page.tsx` renders

@@ -33,7 +33,7 @@ project, `ledgerline`. The GitLab flows, the proof engine and the tripwire come 
 | `/setup` | Setup | What blocks each track, and what only I can do. |
 | `/runs` | Runs | What did the cycle runner do in each repo, what did it cost, and which wave can I take? |
 | `/theater` | Theater | Deterministic replay for recording, with present mode (`F`); `?live=1` films the running wave. |
-| `/settings` | Settings | Text size: Smaller, Standard or Larger. ⌘= / ⌘- / ⌘0 change it. |
+| `/settings` | Settings | Display (text size: Smaller, Standard or Larger; Cmd/Ctrl `=` `-` `0` change it), Keyboard, Data & connection, About. |
 
 ## Run
 
