@@ -20,3 +20,14 @@ describe('MaturityLegend key line', () => {
     expect(caps.filter((c) => !line.includes(c.toLowerCase()))).toEqual([]);
   });
 });
+
+describe('MaturityLegend credit rules', () => {
+  it('draws a tick only for the rules the inspector checks; the other two read not checked yet', () => {
+    const html = renderToStaticMarkup(createElement(MaturityLegend));
+    const rules = html.slice(html.indexOf('Credit rules'));
+    expect(rules.match(/class="[^"]*tick[^"]*"/g)).toHaveLength(2);
+    expect(rules.match(/not checked yet/g)).toHaveLength(2);
+    expect(rules).toMatch(/Same engine before and after · not checked yet/);
+    expect(rules).toMatch(/Not detector-only · not checked yet/);
+  });
+});
