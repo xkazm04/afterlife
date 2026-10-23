@@ -72,7 +72,8 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
           inspector={<BeatInspector snap={snap} film={film} demo={demo} onSeek={actions.seek} />}
           status={
             <>
-              {notice ? <span role="status">{notice} · </span> : null}
+              {/* drawn on every film, so a notice that arrives after mount (a #seq= miss) is announced */}
+              <span role="status">{notice ? `${notice} · ` : ''}</span>
               <StatusLine state={v} />
             </>
           }
