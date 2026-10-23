@@ -31,6 +31,12 @@ describe('Window props', () => {
     expect(html).toContain('<p>pane body</p>');
   });
 
+  it('puts the pane in the one main landmark, so a screen reader can jump past the chrome to the screen', () => {
+    const html = page({ children: <p>pane body</p> });
+    expect(html.match(/<main[\s>]/g)).toHaveLength(1);
+    expect(html).toMatch(/<main[^>]*><p>pane body<\/p><\/main>/);
+  });
+
   it('has no inspector and no toggle when none is passed', () => {
     const html = page();
     expect(html).not.toContain('id="inspector"');

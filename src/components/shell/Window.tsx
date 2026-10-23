@@ -33,7 +33,7 @@ export interface WindowProps {
   /** Legend content: shows the "?" in the status bar, opening it in a popover. */
   help?: ReactNode;
   helpTitle?: string;
-  /** The content pane. It is `position: relative` and clips: fill it with OutlineTable or a `.scroll`-style div. */
+  /** The content pane, the page's one <main>. It is `position: relative` and clips: fill it with OutlineTable or a `.scroll`-style div. */
   children?: ReactNode;
 }
 
@@ -92,7 +92,7 @@ export function Window(p: WindowProps) {
             {p.toolbar}
           </Toolbar>
           <div className={styles.main}>
-            <div className={styles.pane}>{p.children}</div>
+            <main className={styles.pane}>{p.children}</main>
             {hasInsp ? <Inspector open={inspOpen}>{p.inspector}</Inspector> : null}
           </div>
           <StatusBar help={p.help ? <HelpButton title={p.helpTitle}>{p.help}</HelpButton> : null}>{p.status}</StatusBar>
