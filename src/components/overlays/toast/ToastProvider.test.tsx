@@ -57,7 +57,7 @@ beforeEach(() => {
 });
 
 describe('ToastProvider live region', () => {
-  it.fails('replaces the announced node on every toast, even for the same words', () => {
+  it('replaces the announced node on every toast, even for the same words', () => {
     expect(mutations(['Copied x', 'Copied x'])).toBe(2);
   });
   it('announces two different toasts as two changes', () => {
