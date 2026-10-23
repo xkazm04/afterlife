@@ -33,4 +33,25 @@ describe('scripts/build-demo.mjs', () => {
     const copies = src.match(/\[\s*'quarantined'\s*,\s*'assisted'\s*,\s*'supervised'\s*,\s*'hands_off'\s*\]/g) ?? [];
     expect(copies).toHaveLength(1);
   });
+
+  // The fleet reads which classes are never an agent's from actionClasses' ceilings, not from a second hand list:
+  // a class added with ceiling human_only is seeded into a scratch copy and must never get an agent tier.
+  it('keeps a newly added human-only class human-only across the fleet', () => {
+    const src = fs.readFileSync(path.join(root, 'scripts/build-demo.mjs'), 'utf8');
+    const seeded = src.replace(/(\n  \{ id: 'tier\.promote'[^\n]*\n)/, "$1  { id: 'zz.human', track: 'T3', ceiling: 'human_only', tier: 'human_only', lease_days: null, record: null },\n");
+    expect(seeded).not.toBe(src);
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-demo-'));
+    try {
+      fs.mkdirSync(path.join(tmp, 'scripts'));
+      fs.mkdirSync(path.join(tmp, 'src/lib/demo/data'), { recursive: true });
+      fs.writeFileSync(path.join(tmp, 'scripts/build-demo.mjs'), seeded);
+      const r = spawnSync(process.execPath, ['scripts/build-demo.mjs'], { cwd: tmp, encoding: 'utf8' });
+      expect(r.status, r.stderr).toBe(0);
+      const { fleet } = JSON.parse(fs.readFileSync(path.join(tmp, 'src/lib/demo/data/belay-demo.json'), 'utf8'));
+      const agentTier = fleet.projects.filter((p) => ![null, 'human_only'].includes(p.classTiers['zz.human'])).map((p) => p.id);
+      expect(agentTier).toEqual([]);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
 });

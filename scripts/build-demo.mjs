@@ -305,6 +305,7 @@ const portfolio = {
 // The six named portfolio projects come first; the rest are generated. Per project: the tier of
 // each of the 12 action classes (null = class not armed), so a project x class matrix is possible.
 const CLASS_IDS = actionClasses.map((a) => a.id);
+const HUMAN_ONLY = new Set(actionClasses.filter((a) => a.ceiling === 'human_only').map((a) => a.id)); // never an agent's
 function seeded(seed) {
   let s = seed >>> 0;
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
@@ -327,7 +328,7 @@ const fleet = (() => {
     const state = r < 0.04 ? 'not-set-up' : r < 0.09 ? 'stale' : r < 0.17 ? 'setting-up' : 'watching';
     const armed = state === 'not-set-up' ? 0 : state === 'setting-up' ? 1 + Math.floor(rnd() * 5) : 5 + Math.floor(rnd() * 4);
     const classTiers = Object.fromEntries(CLASS_IDS.map((c) => {
-      if (c === 'report.submit' || c === 'tier.promote') return [c, state === 'not-set-up' ? null : 'human_only'];
+      if (HUMAN_ONLY.has(c)) return [c, state === 'not-set-up' ? null : 'human_only'];
       if (state === 'not-set-up' || rnd() > armed / 8) return [c, null];
       const maturity = state === 'setting-up' ? 0.25 : 0.7;
       let t = RANK[1 + Math.min(2, Math.floor(rnd() * 3 * maturity + rnd() * 1.2))];
@@ -353,7 +354,7 @@ const fleet = (() => {
   for (const p of projects.slice(0, 6)) {
     if (p.id === 'ledgerline') { p.classTiers = Object.fromEntries(actionClasses.map((a) => [a.id, a.tier])); continue; }
     const pool = Object.entries(p.tiers).flatMap(([t, n]) => Array(n).fill(t));
-    p.classTiers = Object.fromEntries(CLASS_IDS.map((c) => [c, c === 'report.submit' || c === 'tier.promote' ? (p.armed ? 'human_only' : null) : null]));
+    p.classTiers = Object.fromEntries(CLASS_IDS.map((c) => [c, HUMAN_ONLY.has(c) ? (p.armed ? 'human_only' : null) : null]));
     const free = CLASS_IDS.filter((c) => p.classTiers[c] === null);
     pool.filter((t) => t !== 'human_only').forEach((t, i) => { if (free[i]) p.classTiers[free[i]] = t; });
   }
