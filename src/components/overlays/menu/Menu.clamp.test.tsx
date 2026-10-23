@@ -69,7 +69,7 @@ beforeEach(() => {
 });
 
 describe('Menu keep-open re-clamp', () => {
-  it.fails('keeps the menu inside the viewport when its items grow in place', () => {
+  it('keeps the menu inside the viewport when its items grow in place', () => {
     settle(1); // 20px tall at y 60 fits a 100px viewport
     const { top } = settle(3); // 60px tall: the same y would run past the bottom edge
     expect(top + 3 * ROW).toBeLessThanOrEqual(100);
