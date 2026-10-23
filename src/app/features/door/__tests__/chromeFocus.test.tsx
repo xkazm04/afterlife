@@ -45,3 +45,22 @@ describe('Screens menu focus', () => {
     expect(focus).not.toHaveBeenCalled();
   });
 });
+
+describe('Screens menu, focus leaving it', () => {
+  type Blur = (e: { currentTarget: { contains: (n: unknown) => boolean }; relatedTarget: unknown }) => void;
+  const corner = () => {
+    const tree = (TopChrome as unknown as { type: (p: object) => { props: { children: { props: { onBlur?: Blur } }[] } } }).type({ org: 'o', asOf: 'now' });
+    return tree.props.children[1]!.props.onBlur;
+  };
+  const inside = {};
+  const box = { contains: (n: unknown) => n === inside };
+  it('Tab past the last screen closes the menu', () => {
+    corner()!({ currentTarget: box, relatedTarget: {} });
+    expect(setOpen).toHaveBeenCalledWith(false);
+  });
+  it('moving within the menu, or out of the window, keeps it open', () => {
+    corner()!({ currentTarget: box, relatedTarget: inside });
+    corner()!({ currentTarget: box, relatedTarget: null });
+    expect(setOpen).not.toHaveBeenCalled();
+  });
+});

@@ -50,7 +50,14 @@ export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; a
           </small>
         </div>
       </header>
-      <div ref={ref} className={`${styles.chrome} ${styles.tr}`}>
+      <div
+        ref={ref}
+        className={`${styles.chrome} ${styles.tr}`}
+        // Tab past the last screen closes the menu; focus leaving the window (no relatedTarget) does not
+        onBlur={(e) => {
+          if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
+        }}
+      >
         <div className={styles.row}>
           <Link className={styles.enter} href="/fleet" data-role="door-enter">
             Enter Afterlife
