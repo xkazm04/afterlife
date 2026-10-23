@@ -39,7 +39,8 @@ export function getTextSizeServerSnapshot(): TextSize {
   return DEFAULT_TEXT_SIZE;
 }
 
-export function applyTextSize(size: TextSize): void {
+/** Applies the size for this visit and tries to save it; returns whether the browser kept it (false: blocked or full). */
+export function applyTextSize(size: TextSize): boolean {
   document.documentElement.setAttribute(TEXT_SIZE_ATTRIBUTE, size);
   let storage: Storage | null = null;
   try {
@@ -47,6 +48,7 @@ export function applyTextSize(size: TextSize): void {
   } catch {
     storage = null;
   }
-  writeStoredTextSize(storage, size);
+  const saved = writeStoredTextSize(storage, size);
   notify();
+  return saved;
 }

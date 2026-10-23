@@ -1,7 +1,7 @@
 // The store follows the attribute, and another tab's storage changes reach it (the storage event).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TEXT_SIZE_ATTRIBUTE, TEXT_SIZE_STORAGE_KEY } from './textSize';
-import { getTextSizeSnapshot, subscribeTextSize } from './textSizeStore';
+import { applyTextSize, getTextSizeSnapshot, subscribeTextSize } from './textSizeStore';
 
 let attrs: Record<string, string>;
 let onStorage: ((e: Partial<StorageEvent>) => void) | null;
@@ -40,5 +40,23 @@ describe("another tab's storage", () => {
     onStorage?.({ key: 'something.else', newValue: 'x' });
     expect([getTextSizeSnapshot(), seen.mock.calls.length]).toEqual(['larger', 0]);
     off();
+  });
+});
+
+describe('applyTextSize reports whether the browser kept the size', () => {
+  const withStorage = (storage: unknown) => {
+    vi.stubGlobal('window', { localStorage: storage });
+  };
+  it('true when setItem works', () => {
+    withStorage({ setItem: () => undefined });
+    expect([applyTextSize('larger'), attrs[TEXT_SIZE_ATTRIBUTE]]).toEqual([true, 'larger']);
+  });
+  it('false, but still applied for this visit, when setItem throws', () => {
+    withStorage({ setItem: () => { throw new Error('quota'); } });
+    expect([applyTextSize('larger'), attrs[TEXT_SIZE_ATTRIBUTE]]).toEqual([false, 'larger']);
+  });
+  it('false when reading localStorage itself throws', () => {
+    vi.stubGlobal('window', { get localStorage(): never { throw new Error('blocked'); } });
+    expect(applyTextSize('smaller')).toBe(false);
   });
 });
