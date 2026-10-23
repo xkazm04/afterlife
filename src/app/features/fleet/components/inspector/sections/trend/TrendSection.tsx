@@ -26,7 +26,7 @@ export function TrendSection({ id, feed }: { id: string; feed: TrendFeed | null 
     { label: 'hands-off', values: t.series.map((p) => p.handsOff), delta: t.delta.handsOff },
   ];
   return (
-    <DetailSection title="Trend" aux={feed.seeded ? <HonestyChip kind="seeded" /> : '4 weeks'}>
+    <DetailSection title="Trend" aux={feed.seeded ? <HonestyChip kind="seeded" meaning="Seeded: an illustrative history for the demo, not polled" /> : '4 weeks'}>
       {lines.map((l) => (
         <div key={l.label} className={trend.line}>
           <span className={trend.name}>{l.label}</span>

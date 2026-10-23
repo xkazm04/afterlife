@@ -13,7 +13,7 @@ export function TrendNote({ feed }: { feed: TrendFeed }) {
       {feed.seeded ? (
         <>
           {' '}
-          <HonestyChip kind="seeded" />
+          <HonestyChip kind="seeded" meaning="Seeded: an illustrative history for the demo, not polled" />
         </>
       ) : null}
     </>

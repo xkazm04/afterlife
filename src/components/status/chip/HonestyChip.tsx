@@ -13,11 +13,11 @@ const MEANING: Record<HonestyKind, string> = {
 
 /**
  * The honesty marks as chips. seeded and simulated and unknown are dashed; stale is hatched and shows its age.
- * `age` is already formatted ("40 m"). `children` replace the default word.
+ * `age` is already formatted ("40 m"). `children` replace the default word; `meaning` replaces the default hover text.
  */
-export function HonestyChip({ kind, age, children }: { kind: HonestyKind; age?: string; children?: ReactNode }) {
+export function HonestyChip({ kind, age, children, meaning }: { kind: HonestyKind; age?: string; children?: ReactNode; meaning?: string }) {
   return (
-    <span className={`${styles.chip} ${styles[kind]}`} title={MEANING[kind]}>
+    <span className={`${styles.chip} ${styles[kind]}`} title={meaning ?? MEANING[kind]}>
       {children ?? DEFAULT_LABEL[kind]}
       {kind === 'stale' && age ? <span className={styles.age}> · {age}</span> : null}
     </span>
