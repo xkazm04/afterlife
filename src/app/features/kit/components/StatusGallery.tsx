@@ -2,21 +2,27 @@ import { FeedAge } from '@/components/status/FeedAge';
 import { GateSeenLine } from '@/components/status/GateSeenLine';
 import { DEMO_NOW } from '@/lib/demo/clock';
 import { Chip, type ChipTone } from '@/components/status/chip/Chip';
-import { HonestyChip } from '@/components/status/chip/HonestyChip';
+import { HonestyChip, type HonestyKind } from '@/components/status/chip/HonestyChip';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierChip } from '@/components/status/TierChip';
 import { TierMark } from '@/components/status/TierMark';
+import type { ProjectState } from '@/lib/demo/types';
 import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { GallerySection } from './GallerySection';
 import { Specimen } from './Specimen';
 
-const TONES: readonly ChipTone[] = ['plain', 'invariant', 'neutral', 'ok', 'bad', 'accent', 'pending', 'lag', 'you', 'unknown'];
+/** Every member of a union, as a list: the record must name each one, so a new member fails tsc until it has a specimen. */
+const every = <K extends string>(r: Record<K, true>): K[] => Object.keys(r) as K[];
+const TONES = every<ChipTone>({ plain: true, invariant: true, neutral: true, ok: true, bad: true, accent: true, pending: true, lag: true, you: true, unknown: true });
+const STATES = every<ProjectState>({ watching: true, 'setting-up': true, stale: true, 'not-set-up': true });
+const HONESTY = every<HonestyKind>({ seeded: true, simulated: true, unknown: true, stale: true });
+const TIERS = `${TIER_DISPLAY_ORDER.length} tiers`;
 
 export function StatusGallery() {
   return (
     <GallerySection title="status/">
-      <Specimen label="TierMark, five tiers">
+      <Specimen label={`TierMark, ${TIERS}`}>
         {TIER_DISPLAY_ORDER.map((t) => (
           <TierMark key={t} tier={t} />
         ))}
@@ -26,7 +32,7 @@ export function StatusGallery() {
           <TierMark key={t} tier={t} stale />
         ))}
       </Specimen>
-      <Specimen label="TierChip, five tiers">
+      <Specimen label={`TierChip, ${TIERS}`}>
         {TIER_DISPLAY_ORDER.map((t) => (
           <TierChip key={t} tier={t} />
         ))}
@@ -56,17 +62,15 @@ export function StatusGallery() {
           </Chip>
         ))}
       </Specimen>
-      <Specimen label="StateGlyph watching / setting-up / stale / not-set-up">
-        <StateGlyph state="watching" />
-        <StateGlyph state="setting-up" />
-        <StateGlyph state="stale" />
-        <StateGlyph state="not-set-up" />
+      <Specimen label={`StateGlyph ${STATES.join(' / ')}`}>
+        {STATES.map((s) => (
+          <StateGlyph key={s} state={s} />
+        ))}
       </Specimen>
-      <Specimen label="HonestyChip seeded / simulated / unknown / stale">
-        <HonestyChip kind="seeded" />
-        <HonestyChip kind="simulated" />
-        <HonestyChip kind="unknown" />
-        <HonestyChip kind="stale" age="40 m" />
+      <Specimen label={`HonestyChip ${HONESTY.join(' / ')}`}>
+        {HONESTY.map((k) => (
+          <HonestyChip key={k} kind={k} age={k === 'stale' ? '40 m' : undefined} />
+        ))}
       </Specimen>
       <Specimen label="FeedAge ok / failing / never polled">
         <FeedAge ageSec={12} ok />
