@@ -58,7 +58,7 @@ src/styles/                   palette tokens, text-size scales, base styles
 src/schemas/                  domain types: Proof Block, tiers and trust policy, ledger, CRA clock, stages
 policy/                       trust-policy.yml and tier-state.yml templates
 gitlab/  infra/  skills/      GitLab flows and components, Cloud Run deployment, the adopt-belay skill
-cli/belay.mjs                 belay doctor | pair | scan | replay
+cli/belay.mjs                 belay doctor | run | scan | pair | replay (not built)
 ```
 
 The shared components are documented in `src/components/README.md`, and each screen has a
