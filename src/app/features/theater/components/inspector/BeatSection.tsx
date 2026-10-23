@@ -3,11 +3,11 @@ import { KeyValue } from '@/components/inspector/KeyValue';
 import type { Hold } from '../../model/types';
 import styles from './Inspector.module.css';
 
-/** Which of the nine holds the climber is on: hold, stage, and (illustrative film only) who and what the beat is. */
+/** Which of the film's holds (nine on both films) the climber is on: hold, stage, and (illustrative film only) who and what the beat is. */
 export function BeatSection({ beat, holds }: { beat: number; holds: readonly Hold[] }) {
   const b = beat ? holds[beat - 1] : undefined;
   return (
-    <InspectorSection title="Beat" aux={`${beat} / 9`}>
+    <InspectorSection title="Beat" aux={`${beat} / ${holds.length}`}>
       {b ? (
         <>
           <KeyValue

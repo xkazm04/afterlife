@@ -82,6 +82,7 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
     `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/chrome/Transport.test.tsx` (its
     tooltips follow the key map), `components/rail/Autonomy.test.tsx` (why a
     class sits at its tier), `components/rail/StageRows.test.tsx` (the stage and beat denominators count their lists), `components/styles.test.ts` (every `styles.x` exists in its CSS module),
+    `components/inspector/Inspector.test.tsx` (the inspector counts the film's holds),
     `components/parts/PrerollCue.test.tsx`, `components/parts/RungSteps.test.tsx` (the one rung bar),
     `components/parts/Board.test.tsx` (a missing day-0 reading in words),
     `components/parts/ProofChecks.test.tsx`, `components/wall/wallFrame.test.ts` (the wall redraws only when it moves).
