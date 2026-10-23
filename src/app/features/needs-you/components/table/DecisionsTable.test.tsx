@@ -50,6 +50,11 @@ describe('the Stage button on the group row', () => {
   it('is absent while no gap is picked', () => {
     expect(html(picking())).not.toMatch(/aria-label="Stage \d/);
   });
+
+  it('counts only the picked gaps Belay has a door for: the probe alone offers no Stage', () => {
+    expect(html(picking('g4'))).not.toMatch(/aria-label="Stage \d/);
+    expect(html(picking('g1', 'g4'))).toContain('aria-label="Stage 1 picked gap"');
+  });
 });
 
 describe('the clock cells read the shared tick', () => {

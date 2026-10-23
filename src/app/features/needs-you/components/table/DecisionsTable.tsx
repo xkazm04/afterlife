@@ -11,6 +11,7 @@ import { OutlineTable } from '@/components/table/OutlineTable';
 import { RowGroup } from '@/components/table/RowGroup';
 import type { NeedsYouDemo } from '../../data/types';
 import { pickedGaps } from '../../model/act';
+import { gapBlock } from '../../write/desk';
 import { isGapId, isWaiting } from '../../model/rows/rowState';
 import type { VisibleGroup } from '../../model/rows/grouping';
 import type { Action, NeedsState } from '../../model/types';
@@ -39,7 +40,8 @@ export interface DecisionsTableProps {
 /** The decisions, grouped By kind / By project / By deadline, with "Decided this week" last. */
 export function DecisionsTable(p: DecisionsTableProps) {
   const { s, groups, dispatch } = p;
-  const picked = pickedGaps(s, p.demo).length;
+  // only the picked gaps with a door: stage-gaps sends nothing for the rest (the probe has none)
+  const picked = pickedGaps(s, p.demo).filter((g) => !gapBlock(g.id, p.demo)).length;
   return (
     <OutlineTable
       label="Decisions"
