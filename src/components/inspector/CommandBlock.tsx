@@ -1,3 +1,4 @@
+import { revealControls } from './blocks/reveal';
 import styles from './CommandBlock.module.css';
 
 /** One line as parts: `code`, a trailing `note` after it, or a `note` alone (a dim comment line, no prompt). */
@@ -31,10 +32,10 @@ export function CommandBlock({
             {code ? (
               <>
                 {prompt ? <span className={styles.prompt} aria-hidden="true">$ </span> : null}
-                {code}
+                {revealControls(code)}
               </>
             ) : null}
-            {note ? <span className={styles.note}>{code ? `   ${note}` : note}</span> : null}
+            {note ? <span className={styles.note}>{revealControls(code ? `   ${note}` : note)}</span> : null}
             {'\n'}
           </span>
         );

@@ -1,4 +1,5 @@
 import type { DiffLine } from './diff';
+import { revealControls } from './reveal';
 import styles from './DiffBlock.module.css';
 
 /**
@@ -11,7 +12,7 @@ export function DiffBlock({ file, lines, label = 'Proposed change' }: { file?: s
       {file ? <div className={styles.file}>{file}</div> : null}
       {lines.map(([mark, text], i) => (
         <div key={i} className={mark === '+' ? styles.add : mark === '-' ? styles.del : undefined}>
-          {mark} {text}
+          {mark} {revealControls(text)}
         </div>
       ))}
     </div>
