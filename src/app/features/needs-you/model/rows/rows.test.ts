@@ -89,6 +89,7 @@ describe('the one action on each row', () => {
 
 describe('row cells', () => {
   it('shows the live clock on the sign-off row and an opened-at time on the rest', () => {
+    expect(rowView(fresh(), 'n2', { ...demo, signoff: { ...demo.signoff, linksResolved: '5 / 6' } })).toMatchObject({ move: { kind: 'grade', label: 'draft', done: false } });
     expect(rowView(fresh(), 'n2', demo)).toMatchObject({ due: true, seeded: true, track: 'T2', move: { kind: 'grade', label: 'reviewable', done: false } });
     expect(rowView(fresh(), 'n1', demo)).toMatchObject({ when: '13:40', move: { kind: 'tiers', from: 'supervised', to: 'hands_off' } });
   });

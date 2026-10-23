@@ -49,7 +49,7 @@ export function rowView(s: NeedsState, id: string, demo: NeedsYouDemo): RowView 
     };
   }
   if (id === 'n2') {
-    const gi = gradeIndex(s.status.n2);
+    const gi = gradeIndex(s.status.n2, demo.signoff.linksResolved);
     return {
       title: `CRA early warning · ${CRA.vuln}`,
       seeded: true,

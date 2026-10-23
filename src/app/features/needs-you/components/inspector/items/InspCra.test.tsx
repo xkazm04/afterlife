@@ -35,3 +35,12 @@ describe('InspCra deadlines', () => {
     expect(at(18 * 3600 + 12 * 60)).not.toContain('in 2 d 19 h 12 m');
   });
 });
+
+describe('InspCra grade', () => {
+  const grade = (linksResolved: string) =>
+    renderToStaticMarkup(<InspCra s={base} demo={{ ...demo, signoff: { ...demo.signoff, linksResolved } }} leftSec={0} dispatch={() => {}} />).match(/Grade<span class="[^"]*">([^<]*)</)?.[1];
+  it('reads reviewable when every link resolves and draft when one does not', () => {
+    expect(grade('6 / 6')).toBe('reviewable');
+    expect(grade('5 / 6')).toBe('draft');
+  });
+});

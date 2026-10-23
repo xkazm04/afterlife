@@ -17,7 +17,7 @@ import styles from './items.module.css';
 export function InspCra(p: InspProps) {
   const { s, dispatch } = p;
   const st = s.status.n2;
-  const gi = gradeIndex(st);
+  const gi = gradeIndex(st, p.demo.signoff.linksResolved);
   return (
     <>
       <ItemHead
