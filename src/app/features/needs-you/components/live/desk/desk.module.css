@@ -1,0 +1,80 @@
+/* The live desk: the summary band on top, the grouped table filling the middle, the outbox docked below. Tokens only. */
+.content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.band {
+  flex: none;
+  margin: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale)) 0;
+  padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(4px * var(--ui-scale)) calc(14px * var(--ui-scale));
+}
+.sum {
+  color: var(--text-1);
+  font-size: var(--t-head);
+  font-weight: 650;
+}
+.note {
+  color: var(--text-3);
+  font-size: var(--t-small);
+}
+.tw {
+  position: relative;
+  flex: 1;
+  min-height: calc(110px * var(--ui-scale));
+  margin-top: calc(10px * var(--ui-scale));
+  border-top: 1px solid var(--shade-50);
+  box-shadow: inset 0 1px 0 var(--sep);
+}
+.lead {
+  gap: calc(6px * var(--ui-scale));
+}
+.nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dim {
+  color: var(--text-3);
+}
+.mono {
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-3);
+}
+.act {
+  padding-right: calc(8px * var(--ui-scale));
+}
+.empty {
+  padding: calc(8px * var(--ui-scale)) calc(8px * var(--ui-scale)) calc(8px * var(--ui-scale)) calc(24px * var(--ui-scale));
+  color: var(--text-3);
+  font-size: var(--t-head);
+}
+.insp {
+  display: grid;
+  gap: calc(8px * var(--ui-scale));
+  min-width: 0;
+  outline: none;
+}
+.insp:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(6px * var(--ui-scale));
+}
+.runall {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+}

@@ -5,7 +5,7 @@ import type { NeedsYouItem } from '@/lib/demo';
 import type { ActionPreview, ActionResponse } from '@/server/actions/types';
 import { NO_ANSWER } from '@/server/actions/words';
 import { canAsk, canRun } from './slot';
-import { LIVE_EMPTY, liveAnswers, liveReduce, liveViews, type LiveAction, type LiveState } from './liveActs';
+import { LIVE_EMPTY, liveAnswers, liveReduce, liveViews, outResult, type LiveAction, type LiveState } from './liveActs';
 
 const item: NeedsYouItem = { id: 'promote:p:qa.file-bug', kind: 'promote', title: 'Promote T7 qa · qa.file-bug', to: 'hands_off', does: 'Opens a policy MR.' };
 const other = 'readmit:p:patch-bump';
@@ -39,5 +39,15 @@ describe('the live list on the slot', () => {
     expect(liveAnswers(s)[item.id]?.text).toBe(NO_ANSWER);
     expect(canAsk(s.slots[item.id])).toBe(true);
     expect(canRun(liveReduce(liveReduce(s, { type: 'retry', id: item.id }), shown(item.id)).slots[item.id])).toBe(true);
+  });
+});
+
+describe('outResult: a confirm as the outbox records it', () => {
+  it('only a done ran; refused and changed ran nothing; no answer is failed with the no-answer words', () => {
+    expect(outResult(done, 'w')).toEqual({ state: 'done', text: expect.stringContaining('!22') });
+    expect(outResult({ status: 'refused', reason: 'no' }, 'w')).toEqual({ state: 'refused', text: 'Refused · w · no. Nothing ran.' });
+    expect(outResult({ status: 'changed', preview }, 'w').state).toBe('refused');
+    expect(outResult({ status: 'failed', preview, results: [{ display: 'd', exit: 1, ok: false, simulated: false, error: 'boom' }] }, 'w').state).toBe('failed');
+    expect(outResult(null, 'w')).toEqual({ state: 'failed', text: NO_ANSWER });
   });
 });

@@ -1,23 +1,13 @@
 'use client';
 
-import type { NeedsKind, NeedsYouItem } from '@/lib/demo';
-import { plural } from '@/lib/format/plural';
-import { Chip } from '@/components/status/chip/Chip';
-import { LiveAct } from './components/live/LiveAct';
-import { RunnerNeeds } from './components/runner/RunnerNeeds';
+import { useMemo } from 'react';
+import type { NeedsYouItem } from '@/lib/demo';
 import type { RunnerNeed } from '@/lib/runs/desk/types';
+import type { DecidedItem } from '@/server/data/types';
+import { LiveDesk } from './components/live/desk/LiveDesk';
+import { useLiveDesk } from './hooks/useLiveDesk';
+import { deskItems } from './model/desk';
 import type { LiveEvidence } from './model/evidence/evidence';
-import { useLiveActs, type LiveActs } from './hooks/useLiveActs';
-import empty from './NeedsYouEmpty.module.css';
-import styles from './NeedsYouLive.module.css';
-
-const KIND: Readonly<Record<NeedsKind, string>> = {
-  promote: 'Extend trust',
-  signoff: 'CRA sign-off',
-  gaps: 'Maturity gaps',
-  readmit: 'Re-admit',
-  setup: 'Setup',
-};
 
 export interface NeedsYouLiveProps {
   items: readonly NeedsYouItem[];
@@ -26,84 +16,25 @@ export interface NeedsYouLiveProps {
   project: string;
   /** Each promotion's and re-admit's class as the snapshot holds it now, by item id. */
   evidence: Readonly<Record<string, LiveEvidence>>;
+  /** What was acted on this week (the data source's decided list), drawn last. */
+  decided?: readonly DecidedItem[];
+  /** When the server read the page (ISO): ages are counted from it, so the hydrated page agrees with the HTML. */
+  now: string;
   /** The cycle runner's decisions (real local data), drawn above the group's. */
   runner?: readonly RunnerNeed[];
 }
 
-/**
- * Live mode: the open inbox items the poller found in your group, as the index holds them. The desk (the demo's five
- * items, the !44 incident, the patch-bump record) is never drawn here, nor any item the demo seeded. A promotion or a
- * re-admit has one action, a policy MR through the server actions, beside its class as it is now (closed when the class
- * moved since the proposal); the rest are read-only and say where to act.
- */
-export function NeedsYouLive({ items, seeded, project, evidence, runner }: NeedsYouLiveProps) {
-  return <NeedsYouLiveView items={items} seeded={seeded} evidence={evidence} runner={runner} acts={useLiveActs(items, project, evidence)} />;
-}
+const NO_DECIDED: readonly DecidedItem[] = [];
 
-/** The list for a given state of the acts (split from the hook so the screen can be rendered in a test). */
-export function NeedsYouLiveView({ items, seeded, acts, evidence = {}, runner = [] }: {
-  items: readonly NeedsYouItem[];
-  seeded: number;
-  acts: LiveActs;
-  evidence?: Readonly<Record<string, LiveEvidence>>;
-  runner?: readonly RunnerNeed[];
-}) {
-  // a done write's item leaves `items` on the refresh; it stays here, with the response's answer, outside the rows
-  const sentGone = Object.values(acts.sent).filter((n) => !items.some((i) => i.id === n.id));
-  return (
-    <main className={empty.page}>
-      <h1 className={empty.title}>Needs you</h1>
-      <p>
-        {items.length} {items.length === 1 ? 'decision waits' : 'decisions wait'} for a person, read from your GitLab group by the last poll.
-      </p>
-      <RunnerNeeds needs={runner} />
-      {sentGone.length ? (
-        <section aria-label="Sent this session">
-          <h2 className={styles.sentTitle}>Sent this session</h2>
-          <ul className={styles.list}>
-            {sentGone.map((n) => (
-              <li key={n.id} className={styles.item}>
-                <b className={styles.title}>{n.title}</b>
-                <div role="status" className={styles.sent}>{acts.answers[n.id]?.text}</div>
-                <div className={empty.note}>A person merges the MR in GitLab; the proposal leaves the list when the poll sees it closed.</div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-      <ul className={styles.list}>
-        {items.map((n) => {
-          const open = acts.sel === n.id;
-          return (
-            <li key={n.id} className={`${styles.item} ${open ? styles.open : ''}`}>
-              <button type="button" className={styles.head} aria-expanded={open} onClick={() => acts.select(open ? null : n.id)}>
-                <Chip compact>{KIND[n.kind]}</Chip>
-                <b className={styles.title} title={n.title}>{n.title}</b>
-                {n.dueIn ? <span className={styles.due}>{n.dueIn === 'overdue' ? 'overdue' : `due in ${n.dueIn}`}</span> : null}
-              </button>
-              {n.reason ? <div>{n.reason}</div> : null}
-              <div className={empty.note}>{n.does}</div>
-              {open ? (
-                <LiveAct
-                  item={n}
-                  intent={acts.intentOf(n.id)}
-                  view={acts.views[n.id]}
-                  answer={acts.answers[n.id]}
-                  evidence={evidence[n.id]}
-                  sending={acts.sending === n.id}
-                  onRun={() => acts.run(n.id)}
-                  onRetry={() => acts.retry(n.id)}
-                />
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-      <p className={empty.note}>
-        A promotion or a re-admit sends one thing, on Run: a policy MR in belay-policy, as your glab login, exactly as shown. A person
-        merges it in GitLab. Sign-offs, gaps and setup steps are read-only here.
-        {seeded ? ` ${plural(seeded, 'demo item')} seeded into this index, not shown: not your group's.` : ''}
-      </p>
-    </main>
-  );
+/**
+ * Live mode: the open inbox items the poller found in your group, as the index holds them, on the demo desk's skeleton
+ * (model/desk builds the rows; components/live/desk draws them). The demo's desk (its five items, the !44 incident, the
+ * patch-bump record) is never drawn here, nor any item the demo seeded. A promotion, a re-admit or a templated gap has one
+ * write through the server actions; the rest are read-only and say where to act.
+ */
+export function NeedsYouLive({ items, seeded, project, evidence, decided = NO_DECIDED, now, runner = [] }: NeedsYouLiveProps) {
+  const at = useMemo(() => new Date(now), [now]);
+  const rows = useMemo(() => deskItems(items, decided, project, at), [items, decided, project, at]);
+  const desk = useLiveDesk(rows, evidence);
+  return <LiveDesk rows={rows} seeded={seeded} project={project} evidence={evidence} runner={runner} now={at} desk={desk} />;
 }

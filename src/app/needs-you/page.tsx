@@ -16,6 +16,8 @@ export default function NeedsYouPage() {
   const view = loadNeedsYouView();
   const runner = readDesk().needs;
   if (view.kind === 'desk') return <NeedsYouScreen demo={view.demo} runner={runner} />;
-  if (view.kind === 'live') return <NeedsYouLive items={view.items} seeded={view.seeded} project={view.project} evidence={view.evidence} runner={runner} />;
+  if (view.kind === 'live') {
+    return <NeedsYouLive items={view.items} seeded={view.seeded} project={view.project} evidence={view.evidence} decided={view.decided} now={view.now} runner={runner} />;
+  }
   return <NeedsYouEmpty seeded={view.seeded} runner={runner} />;
 }

@@ -3,7 +3,7 @@
 import type { NeedsYouItem } from '@/lib/demo';
 import type { Recall } from '@/server/actions/runs/journal';
 import type { ActionResponse } from '@/server/actions/types';
-import type { WriteView } from '@/server/actions/words';
+import { NO_ANSWER, outcomeOf, type WriteView } from '@/server/actions/words';
 import type { LiveAnswer } from '../live';
 import { beginSend, recalled, retry, settle, shown, viewed, type WriteSlot } from './slot';
 
@@ -64,3 +64,17 @@ export const liveViews = (s: LiveState): Readonly<Record<string, WriteView>> => 
 /** Each item's last answer, only what the response said (or that there was none). */
 export const liveAnswers = (s: LiveState): Readonly<Record<string, LiveAnswer>> =>
   each(s, (slot) => slot.answer && { status: slot.answer.status === 'unsure' ? 'failed' : slot.answer.status, text: slot.answer.text });
+
+/** One write's answer as the outbox records it (model/desk DeskOut): only a done ran; refused and changed ran nothing. */
+export interface OutAnswer {
+  state: 'done' | 'refused' | 'failed';
+  text: string;
+}
+
+/** A confirm's response (null: it got none) as the outbox records it, in the response's own words. */
+export function outResult(r: ActionResponse | null, what: string): OutAnswer {
+  if (!r) return { state: 'failed', text: NO_ANSWER };
+  const o = outcomeOf(r, what);
+  if (!o) return { state: 'refused', text: `Refused · ${what} · the server answered a confirm with a preview. Nothing ran.` };
+  return { state: o.status === 'changed' ? 'refused' : o.status, text: o.text };
+}

@@ -5,6 +5,7 @@
 import type { ClassRecord, NeedsYouItem, RecordCounters } from '@/lib/demo';
 import { TIER_ORDER, type Tier } from '@/schemas/tier';
 import { getDataSource } from '@/server/data';
+import type { DecidedItem } from '@/server/data/types';
 import { ownDecisions, SEEDED_ITEMS } from '@/server/data/live/seeded';
 import { liveEvidence, type LiveEvidence } from '../model/evidence/evidence';
 import { classOfTitle } from '../model/live';
@@ -73,7 +74,17 @@ export function pickNeedsYouDemo(): NeedsYouDemo {
 /** What the route draws: the desk (demo), the group's own open items (live), or the honest empty state. */
 export type NeedsYouView =
   | { kind: 'desk'; demo: NeedsYouDemo }
-  | { kind: 'live'; items: readonly NeedsYouItem[]; seeded: number; project: string; evidence: Readonly<Record<string, LiveEvidence>> }
+  | {
+      kind: 'live';
+      items: readonly NeedsYouItem[];
+      seeded: number;
+      project: string;
+      evidence: Readonly<Record<string, LiveEvidence>>;
+      /** What was acted on this week: drawn last, beside the open items. It alone does not make the desk non-empty. */
+      decided: readonly DecidedItem[];
+      /** When this view was read (ISO): the desk counts every age from it. */
+      now: string;
+    }
   | { kind: 'empty'; seeded: number };
 
 /** The inbox items the demo seeds: the data source owns the predicate; re-exported for this screen's importers. */
@@ -97,7 +108,7 @@ export function loadNeedsYouView(): NeedsYouView {
     const evidence = Object.fromEntries(items.filter((n) => n.kind === 'promote' || n.kind === 'readmit').map((n) => [
       n.id, liveEvidence(n, classes.find((c) => c.id === classOfTitle(n.title)), stale),
     ]));
-    return { kind: 'live', items, seeded, project: ds.deepProjectId(), evidence };
+    return { kind: 'live', items, seeded, project: ds.deepProjectId(), evidence, decided: ds.getDecided(), now: new Date().toISOString() };
   }
   try {
     return { kind: 'desk', demo: pickNeedsYouDemo() };

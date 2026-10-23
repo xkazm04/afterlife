@@ -35,8 +35,10 @@ export function gapIntent(item: Pick<NeedsYouItem, 'id' | 'kind' | 'stage' | 'ru
 /** Why a live gap with no template is read-only: the scan's next change, which is not mechanical; else where to act. */
 export const gapReadOnly = (item: Pick<NeedsYouItem, 'change'>): string => (item.change ? `Read-only here: ${item.change}` : elsewhere('gaps'));
 
-/** The button: "Open the promotion MR" / "Open the re-admit MR". */
-export const runLabel = (kind: NeedsKind): string => (kind === 'readmit' ? 'Run · open the re-admit MR' : 'Run · open the promotion MR');
+const RUN: Readonly<Partial<Record<NeedsKind, string>>> = { readmit: 'Run · open the re-admit MR', gaps: 'Run · open the gap MR' };
+
+/** The button: "Run · open the promotion MR" / "… the re-admit MR" / "… the gap MR". */
+export const runLabel = (kind: NeedsKind): string => RUN[kind] ?? 'Run · open the promotion MR';
 
 /** The write, as an answer names it: "code-fix.patch → Supervised". */
 export const writeName = (intent: PromoteClass): string => `${intent.class} → ${TIER_META[intent.to].name}`;

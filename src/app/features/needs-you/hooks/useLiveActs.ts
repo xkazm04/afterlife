@@ -1,50 +1,55 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from 'react';
-import type { NeedsYouItem } from '@/lib/demo';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { recallAction } from '@/server/actions/runs/recallAction';
+import type { WriteView } from '@/server/actions/words';
+import type { DeskItem } from '../model/desk';
 import type { LiveEvidence } from '../model/evidence/evidence';
-import { liveIntent, writeName } from '../model/live';
-import { LIVE_EMPTY, liveAnswers, liveReduce, liveViews } from '../model/slot/liveActs';
-import { beginSend, needsAsk, needsRecall } from '../model/slot/slot';
-import { askPolicyMr, sendPolicyMr } from '../write/promote';
+import { LIVE_EMPTY, liveAnswers, liveReduce, liveViews, outResult, type OutAnswer } from '../model/slot/liveActs';
+import { beginSend, canRun, needsAsk, needsRecall } from '../model/slot/slot';
+import { askLive, liveWriteName, sendLive } from '../write/live';
 
 /**
- * The live list's writes. Selecting a promotion or a re-admit asks the server for its exact write (previewAction, nothing
- * runs); Run confirms the preview on screen by its id (confirmAction), never anything else. Each item is one write slot
+ * The live desk's writes. A row in view (selected or staged) with a write asks the server for it (previewAction, nothing
+ * runs); Run confirms the preview on screen by its id (confirmAction), never anything else. Each row is one write slot
  * (model/slot, the desk's rule) in a pure reducer (model/slot/liveActs.ts): this hook only asks and confirms. Changed puts
  * the new write on screen, refused and failed say so, done names the MR, and no answer closes Run until it is asked again:
  * Ask again then first asks the server what that preview did (recallAction), and only asks afresh when it cannot say.
- * An item whose class moved since the proposal (its evidence's canRun is false) is never sent, from a click or a key.
+ * A row whose class moved since the proposal (its evidence's canRun is false) is never sent, from a click, a key or Run all.
  */
-const still = () => () => {};
 const NONE: Readonly<Record<string, LiveEvidence>> = {};
-const itemParam = () => new URLSearchParams(window.location.search).get('item');
+const CLOSED = 'Closed: the class moved since this was proposed. Nothing ran.';
 
-export function useLiveActs(items: readonly NeedsYouItem[], project: string, evidence: Readonly<Record<string, LiveEvidence>> = NONE) {
-  // `?item=<id>` opens that item selected (Ladder's p on an eligible class), when it is listed, until a click picks another
-  const wanted = useSyncExternalStore(still, itemParam, () => null);
-  const [picked, select] = useState<string | null | undefined>(undefined);
-  const sel = picked !== undefined ? picked : wanted && items.some((n) => n.id === wanted) ? wanted : null;
+export function useLiveActs(rows: readonly DeskItem[], inView: readonly string[], evidence: Readonly<Record<string, LiveEvidence>> = NONE) {
   const [state, dispatch] = useReducer(liveReduce, LIVE_EMPTY);
+  const latest = useRef(state);
+  useEffect(() => {
+    latest.current = state;
+  }, [state]);
   const asking = useRef(new Set<string>()); // in flight only: whether to ask is the slot's (needsAsk)
   const sendingNow = useRef(new Set<string>()); // in flight, before the 'sending' render lands
 
-  const intentOf = useCallback((id: string) => {
-    const item = items.find((n) => n.id === id);
-    return item ? liveIntent(item, project) : null;
-  }, [items, project]);
+  const rowOf = useCallback((id: string) => rows.find((n) => n.id === id), [rows]);
+  const closed = useCallback((id: string) => {
+    const ev = evidence[id];
+    return ev?.kind === 'class' && !ev.canRun;
+  }, [evidence]);
 
-  const toAsk = sel && needsAsk(state.slots[sel]) ? sel : null;
-  useEffect(() => {
-    const intent = toAsk ? intentOf(toAsk) : null;
-    if (!toAsk || !intent || asking.current.has(toAsk)) return;
-    asking.current.add(toAsk);
-    void askPolicyMr(intent).then((view) => {
-      asking.current.delete(toAsk);
-      dispatch({ type: 'viewed', id: toAsk, view });
+  const ask = useCallback((id: string): Promise<WriteView> | null => {
+    const intent = rowOf(id)?.intent;
+    if (!intent || asking.current.has(id)) return null;
+    asking.current.add(id);
+    return askLive(intent).then((view) => {
+      asking.current.delete(id);
+      dispatch({ type: 'viewed', id, view });
+      return view;
     });
-  }, [toAsk, intentOf]);
+  }, [rowOf]);
+
+  const toAsk = inView.filter((id) => rowOf(id)?.intent && needsAsk(state.slots[id])).join('\n');
+  useEffect(() => {
+    for (const id of toAsk ? toAsk.split('\n') : []) void ask(id);
+  }, [toAsk, ask]);
 
   /** A preview that failed, or a confirm that got no answer: ask again (an unsure one asks what its preview did first). */
   const recalling = useRef(new Set<string>());
@@ -53,34 +58,64 @@ export function useLiveActs(items: readonly NeedsYouItem[], project: string, evi
     if (!needsRecall(slot) || slot?.view?.kind !== 'preview') return dispatch({ type: 'retry', id });
     if (recalling.current.has(id)) return;
     recalling.current.add(id);
-    const intent = intentOf(id);
-    const item = items.find((n) => n.id === id);
-    const what = intent ? writeName(intent) : undefined;
+    const row = rowOf(id);
+    const what = row?.intent ? liveWriteName(row.intent) : undefined;
     recallAction(slot.view.preview.previewId)
       .catch(() => ({ kind: 'unknown' as const }))
-      .then((recall) => dispatch({ type: 'recalled', id, item, recall, ...(what ? { what } : {}) }))
+      .then((recall) => dispatch({ type: 'recalled', id, item: row?.source ?? undefined, recall, ...(what ? { what } : {}) }))
       .finally(() => recalling.current.delete(id));
-  }, [state.slots, intentOf, items]);
+  }, [state.slots, rowOf]);
 
-  const run = useCallback((id: string) => {
-    const intent = intentOf(id);
-    const slot = state.slots[id];
-    const ev = evidence[id];
-    if (!intent || !beginSend(slot) || sendingNow.current.has(id) || (ev?.kind === 'class' && !ev.canRun)) return;
-    const item = items.find((n) => n.id === id);
+  /** One confirm of `view`, the preview on screen; its answer as the outbox records it. */
+  const send = useCallback(async (id: string, view: WriteView): Promise<OutAnswer> => {
+    const row = rowOf(id);
+    const what = row?.intent ? liveWriteName(row.intent) : id;
     sendingNow.current.add(id);
     dispatch({ type: 'sending', id });
-    const what = writeName(intent);
-    sendPolicyMr(intent, slot?.view)
-      .then((response) => dispatch({ type: 'ran', id, item, response, what }), () => dispatch({ type: 'ran', id, item, response: null, what }))
-      .finally(() => sendingNow.current.delete(id));
-  }, [intentOf, items, state.slots, evidence]);
+    const response = row?.intent ? await sendLive(row.intent, view).catch(() => null) : null;
+    sendingNow.current.delete(id);
+    dispatch({ type: 'ran', id, item: row?.source ?? undefined, response, what });
+    return outResult(response, what);
+  }, [rowOf]);
+
+  /** Run on one row: confirms its preview on screen; null when Run is not open (nothing is sent). */
+  const run = useCallback((id: string): Promise<OutAnswer> | null => {
+    const slot = state.slots[id];
+    if (!rowOf(id)?.intent || !beginSend(slot) || sendingNow.current.has(id) || closed(id) || slot?.view?.kind !== 'preview') return null;
+    return send(id, slot.view);
+  }, [state.slots, rowOf, closed, send]);
+
+  /**
+   * Run all, one row: confirm its current preview, asking for one first when there is none (or it was refused). An unsure
+   * or sending row is never sent again from here, and a done one is not sent twice.
+   */
+  const confirmNow = useCallback(async (id: string): Promise<OutAnswer> => {
+    const row = rowOf(id);
+    const what = row?.intent ? liveWriteName(row.intent) : id;
+    if (!row?.intent) return { state: 'refused', text: `Refused · ${what} · this row has no write here. Nothing ran.` };
+    if (closed(id)) return { state: 'refused', text: CLOSED };
+    const slot = latest.current.slots[id];
+    if (slot?.phase === 'answered') return { state: 'done', text: slot.answer?.text ?? what };
+    if (slot?.phase === 'sending' || slot?.phase === 'unsure' || sendingNow.current.has(id)) {
+      return { state: 'failed', text: slot?.answer?.text ?? `Not sent · ${what} · a send of it is already out.` };
+    }
+    let view = canRun(slot) ? slot?.view : undefined;
+    if (!view) {
+      if (slot?.phase === 'refused') dispatch({ type: 'retry', id });
+      // an ask already in flight for this row: ask once more for this run (a preview runs nothing)
+      view = await (ask(id) ?? askLive(row.intent).then((v) => {
+        dispatch({ type: 'viewed', id, view: v });
+        return v;
+      }));
+    }
+    if (view?.kind !== 'preview') return { state: 'refused', text: `Refused · ${what} · ${view?.reason ?? 'no write'}. Nothing ran.` };
+    return send(id, view);
+  }, [rowOf, closed, ask, send]);
 
   const views = useMemo(() => liveViews(state), [state]);
   const answers = useMemo(() => liveAnswers(state), [state]);
-  // the open item's send, the one the list draws Run for; each item sends on its own
-  const sending = sel && state.slots[sel]?.phase === 'sending' ? sel : null;
-  return { sel, select, intentOf, views, answers, sent: state.sent, sending, run, retry };
+  const sending = useMemo(() => Object.keys(state.slots).filter((id) => state.slots[id]?.phase === 'sending'), [state]);
+  return { views, answers, sent: state.sent, sending, run, retry, confirmNow };
 }
 
 export type LiveActs = ReturnType<typeof useLiveActs>;
