@@ -1,5 +1,6 @@
 'use client';
 
+import { CAP_NOTE } from '../../../data/capabilities';
 import { useSetup } from '../../../hooks/SetupContext';
 import { doctorCounts } from '../../../model/flow/state';
 import { litOf } from '../../../model/map/hot';
@@ -15,7 +16,7 @@ export function CapColumn({ events }: { events: NodeEvents }) {
     <div className={`${styles.col} ${styles.caps}`}>
       <ColumnHead name="GitLab" sub="belay doctor" aux={`${doctorCounts(state).unknown} unknown`} />
       {state.doctor.map((r) => (
-        <CapNode key={r.name} row={r} lit={litOf(view.hot, { k: 'cap', id: r.name })} events={events} />
+        <CapNode key={r.name} row={r} note={state.live ? r.reason : CAP_NOTE[r.name]} lit={litOf(view.hot, { k: 'cap', id: r.name })} events={events} />
       ))}
     </div>
   );
