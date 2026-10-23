@@ -11,7 +11,7 @@ import styles from './gaps.module.css';
  * gap also carries its next move (the stage page's own, simulated); the click stays off the row, so it does not select it.
  */
 export function GapState({ gap, picked, phase, mr, onAct }: { gap?: Gap; picked: boolean; phase: Phase | undefined; mr: string; onAct?: (a: MoveAction) => void }) {
-  const state = <PhaseText picked={picked} phase={phase} mr={mr} />;
+  const state = <PhaseText picked={picked} phase={phase} mr={mr} tag={gap?.x.runsOn === 'tag'} />;
   const move = gap && phase && onAct ? nextMove(phase, gap) : null;
   if (!move || !onAct) return state;
   const act = (e: { stopPropagation: () => void }) => {
@@ -29,7 +29,8 @@ export function GapState({ gap, picked, phase, mr, onAct }: { gap?: Gap; picked:
   );
 }
 
-function PhaseText({ picked, phase, mr }: { picked: boolean; phase: Phase | undefined; mr: string }) {
+/** `tag`: the job runs in the tagged release pipeline, not on main (the stage lede and the ran notice word it so too). */
+function PhaseText({ picked, phase, mr, tag }: { picked: boolean; phase: Phase | undefined; mr: string; tag: boolean }) {
   if (!phase) return picked ? <span className={cx(styles.st, styles.picked)}>● picked</span> : <span className={styles.none}>—</span>;
   switch (phase) {
     case 'probed':
@@ -39,7 +40,7 @@ function PhaseText({ picked, phase, mr }: { picked: boolean; phase: Phase | unde
     case 'merged':
       return <span className={cx(styles.st, styles.merged)}>{mr} merged</span>;
     case 'ran':
-      return <span className={cx(styles.st, styles.merged)}>{mr} ran on main</span>;
+      return <span className={cx(styles.st, styles.merged)}>{mr} {tag ? 'ran in the tagged release' : 'ran on main'}</span>;
     case 'nolift':
       return (
         <span className={cx(styles.st, styles.nolift)} title="configured, not exercised">

@@ -66,3 +66,13 @@ describe('AfterMerge: the stage page reads the same move', () => {
     expect(html).toContain(`>${nextMove('nolift', g1)!.label}</button>`);
   });
 });
+
+describe('GapState: where a ran job ran', () => {
+  it('a tag-run job that ran says the tagged release, not main', () => {
+    const g3 = ctx.gap('g3')!;
+    expect(g3.x.runsOn).toBe('tag');
+    const html = renderToStaticMarkup(<GapState gap={g3} picked={false} phase="ran" mr="!46" />);
+    expect(html).toContain('!46 ran in the tagged release');
+    expect(renderToStaticMarkup(<GapState gap={g1} picked={false} phase="ran" mr="!22" />)).toContain('!22 ran on main');
+  });
+});
