@@ -49,3 +49,29 @@ describe('LozengeButton word at narrow widths', () => {
     expect(body(narrow, '.wd')).toMatch(/clip-path|clip:/);
   });
 });
+
+// 3. A state fill (pressed, active, current) must survive hover: the hover rule may not out-rank it in the cascade.
+/** Class/attribute/pseudo-class count of a selector; `:where(...)` adds nothing. */
+const spec = (sel: string): number => (sel.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, '').match(/[.[]|:(?!:)/g) ?? []).length;
+/** True when the rule `state` beats the rule `hover` for a property both set: higher specificity, or equal and later. */
+const outranks = (sheet: string, state: string, hover: string): boolean => {
+  const at = (s: string) => sheet.indexOf(`\n${s} {`);
+  expect(at(state), state).toBeGreaterThanOrEqual(0);
+  expect(at(hover), hover).toBeGreaterThanOrEqual(0);
+  return spec(state) > spec(hover) || (spec(state) === spec(hover) && at(state) > at(hover));
+};
+
+describe('state fills win over hover fills', () => {
+  it('keeps an active PopupButton tinted on hover', () => {
+    const sheet = css('toolbar/ToolbarButton.module.css');
+    const active = body(sheet, '.pu.on:where(:not(:disabled))');
+    expect(active).toMatch(/background/);
+    expect(outranks(sheet, '.pu.on:where(:not(:disabled))', '.pu:hover:where(:not(:disabled))')).toBe(true);
+  });
+  it('keeps the current Stepper step raised on hover', () => {
+    const sheet = css('toolbar/Stepper.module.css');
+    const hover = '.step:hover:where(:not(:disabled))';
+    expect(body(sheet, hover)).toMatch(/background/);
+    expect(outranks(sheet, '.step[aria-current="step"]', hover)).toBe(true);
+  });
+});

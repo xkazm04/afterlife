@@ -29,7 +29,8 @@
   cursor: default;
   white-space: nowrap;
 }
-.step:hover:not(:disabled) {
+/* :where keeps this at the specificity of the current-step rule below, so the raised step stays raised on hover */
+.step:hover:where(:not(:disabled)) {
   background: var(--ctl);
 }
 .step[aria-current="step"] {

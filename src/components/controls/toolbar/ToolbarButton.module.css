@@ -36,7 +36,9 @@
 .pu:hover:where(:not(:disabled)) {
   background: var(--ctl-hi);
 }
-.on {
+/* .pu.on, not .on: it must out-rank .pu:hover above, or an active filter loses its tint under the pointer;
+   a disabled one keeps no tint (as Button.module.css: a fill with grey ink reads as live) */
+.pu.on:where(:not(:disabled)) {
   color: var(--accent);
   background: color-mix(in oklab, var(--accent) 16%, transparent);
 }
