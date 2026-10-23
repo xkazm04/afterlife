@@ -61,7 +61,8 @@ function ran(r: Runs, f: Facts, what: string, want: (name: string) => boolean, a
   const good = fresh.filter(counts).sort((a, b) => b.finishedMs - a.finishedMs)[0];
   if (good) return { ok: true, v: good };
   if (fresh.length) return { ok: true, v: `${fresh[0]?.name} ran with no artifact${artifacts === 'any' ? '' : ` (wanted ${artifacts.join(', ')})`}` };
-  const last = done.sort((a, b) => b.finishedMs - a.finishedMs)[0];
+  const last = done.filter((j) => j.finishedMs <= f.atMs).sort((a, b) => b.finishedMs - a.finishedMs)[0];
+  if (!last && done[0]) return { ok: true, v: `${done[0].name} finished after the facts were collected (${f.at})` };
   if (last) return { ok: true, v: `${last.name} last ran ${Math.floor((f.atMs - last.finishedMs) / DAY)} d before the scan` };
   return { ok: true, v: `${mine[0]?.name} did not finish on pipeline #${r.pipeline.id}` };
 }

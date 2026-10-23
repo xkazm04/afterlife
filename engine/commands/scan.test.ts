@@ -75,6 +75,14 @@ describe('scan: the rubric', () => {
     expect(of('stale').cell('verify')).toMatchObject({ rung: 1, next_rung: 2, note: expect.stringMatching(/test last ran 17 d before the scan/) });
   });
 
+  it('a job that finished after the facts were collected is not "-1 d before the scan"', () => {
+    const facts = JSON.parse(fs.readFileSync(fx('maturity', 'configured.facts.json'), 'utf8')) as { facts: { latest_pipeline_jobs: { jobs: Record<string, unknown>[] } } };
+    for (const j of facts.facts.latest_pipeline_jobs.jobs) if (j.name === 'test') j.finished_at = '2026-10-08T07:00:00Z'; // an hour after at
+    const file = path.join(tmp, 'future.facts.json');
+    fs.writeFileSync(file, JSON.stringify(facts));
+    expect(scan(file).cell('verify')).toMatchObject({ rung: 1, note: 'configured, not exercised: test finished after the facts were collected (2026-10-08T06:00:00.000Z)' });
+  });
+
   it('a job that ran with no artifact (only its log) is not R2', () => {
     expect(of('stale').cell('secure')).toMatchObject({ rung: 1, note: expect.stringMatching(/no artifact/) });
   });
