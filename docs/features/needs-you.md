@@ -22,11 +22,20 @@
 - The sidebar filters All / Waiting / Outbox / Sent; the toolbar has the grouping and search.
 
 ## How it works
-- `src/app/needs-you/page.tsx` (server) calls `loadNeedsYou()` from `data/pick.ts`. It renders `NeedsYouScreen` with
-  the slice, or `NeedsYouEmpty` when the source lacks the items the screen is built around.
+- `src/app/needs-you/page.tsx` (server) calls `loadNeedsYouView()` from `data/pick.ts`. Demo: it renders
+  `NeedsYouScreen` with the slice, or `NeedsYouEmpty` when the source lacks the items the screen is built around. Live:
+  `NeedsYouLive` with the group's own open items (never the demo's seeded ones), the week's decided list and the time
+  the view was read, or `NeedsYouEmpty` when no item is open (decided items alone do not fill the desk).
+- Live (`NeedsYouLive`, `components/live/desk/`, `hooks/useLiveDesk.ts`, `model/desk/`): the desk's skeleton with live
+  data: a summary band ("N decisions · M projects · oldest Xd", the oldest left out when unknown), the table grouped By
+  kind / By project / By deadline with "Decided this week" last, the inspector's "The click" (the server's commands and
+  diff from `previewAction`, Stage, Run) and the outbox with Run all, which confirms each staged row's current preview in
+  order and goes on past a refused or failed one; "Sent this session" lists what a done confirm sent. A promotion or a
+  re-admit is a policy MR (`write/promote.ts`), a templated live gap an apply-gap-template MR (`write/gapTemplate.ts`);
+  sign-offs and setup steps are read-only and say where to act.
 - `data/pick.ts`: `pickNeedsYouDemo()` reads the DataSource for needs-you items `n1`, `n2`, `n4`, `n5`, the maturity
   proposals and rung names, the `!44` incident task, the `patch-bump` class record and the tier meanings, and throws
-  `MissingNeedsYouData` if any is missing; `loadNeedsYou()` turns that into `null`.
+  `MissingNeedsYouData` if any is missing; `loadNeedsYouView()` turns that into the empty view.
 - `data/*.ts` hold the screen's own fixtures: `cra.ts` (deadline, draft, evidence, grades, commands), `promote.ts`,
   `readmit.ts`, `gaps.ts`, `runner.ts`, `week.ts` (the ledger's earlier decisions), `constants.ts` (operator,
   repos, demo time).
@@ -62,7 +71,8 @@
 |---|---|
 | `NeedsYouScreen.tsx` | Composes the Window: band, table, outbox drawer, inspector, status line |
 | `NeedsYouEmpty.tsx` | Server component shown when the source lacks the inbox items |
-| `data/pick.ts` | Server slice of the DataSource (`pickNeedsYouDemo`, `loadNeedsYou`) |
+| `NeedsYouLive.tsx` | Live mode's composer: desk rows from the live items and the decided list, into `LiveDesk` |
+| `data/pick.ts` | Server slice of the DataSource (`pickNeedsYouDemo`, `loadNeedsYouView`, `loadNeedsItem`) |
 | `data/cra.ts`, `promote.ts`, `readmit.ts`, `gaps.ts`, `runner.ts`, `week.ts`, `constants.ts` | Screen fixtures and copy |
 | `model/reducer.ts`, `act.ts`, `run.ts`, `state.ts`, `types.ts` | State, actions, the Run path |
 | `model/outbox/` | Outbox list rules and exact commands |
@@ -71,6 +81,7 @@
 | `model/menu.ts` | Right-click menu entries |
 | `components/band/` | `CraBand`, `Countdown`, `BandSide`, `track/` (`Rail24`, `GradeLadder`, `EvidenceStrip`) |
 | `components/table/` | `DecisionsTable`, `DecisionRow`, `HistoryRow`, `MoveCell` |
+| `components/live/` | `LiveAct`, `LiveEvidence`; `desk/` (`LiveDesk`, `LiveBand`, `LiveTable`, `LiveInspector`, `LiveOutbox`) |
 | `components/outbox/` | `OutboxDrawer` (content of the shared `BottomDrawer`), `OutboxItem` |
 | `components/inspector/` | `NeedsInspector`, `Sec`, `Acts`, `items/` (one view per selection) |
 | `components/chrome/`, `components/shared/` | Toolbar, sidebar, legend, outbox icon; glyphs, chips, "does not" list |
@@ -92,8 +103,9 @@
 ## Status and limits
 - The slice is read through `getDataSource()` (`src/server/data`), but the screen is built around five specific
   inbox items and the `!44` incident. In live mode without them, `NeedsYouEmpty` is shown.
-- Run goes through the server for the promotions (n1, n4), the CRA mark (n2) and the gap MRs: the outbox shows the
-  server's planned commands, Run confirms them, and a refusal disables Run with the reason. In the demo data
+- Run goes through the server for the promotions (n1, n4) and the gap MRs: the outbox shows the server's planned
+  commands, Run confirms them, and a refusal disables Run with the reason. The CRA mark (n2) is not sent to the server
+  on the demo desk: its Run is simulated on the client (`model/run.ts` `runItem`) and says so. In the demo data
   `dep-bump.patch` is already Hands-off, so the server refuses n1's promotion ("a promotion goes up"); the fixture
   and the ledger disagree, and the refusal is the honest answer until the fixture is fixed.
 - In demo mode the server plans but never executes: no `glab` command runs; screen state lives in the reducer and is

@@ -6,24 +6,43 @@ never the desk (it is built around the demo's seeded n1/n2/n4/n5, the !44 incide
 group's own open items (`NeedsYouLive`, minus any the demo seeded into the index), or `NeedsYouEmpty`, which says how many
 seeded ones it does not show.
 
-Live acts (`NeedsYouLive`, `components/live/LiveAct`, `hooks/useLiveActs`, `model/live.ts`): a promotion or a re-admit has
-one action, a promote-class policy MR through `write/promote.ts` (the desk's door). Selecting it asks `previewAction`; the
-server's commands and diff are shown; Run is `confirmAction(intent, previewId)` for that preview only. The answer is only
-what the response says (done names the MR GitLab opened; refused, changed and failed say so); a failed preview shows why
-and can be asked again. `?item=<id>` opens an item selected (Ladder's p). After a done confirm the refresh drops the item (only open proposals are listed), so the list keeps it in a "Sent this
-session" strip above the rows, with the response's answer and the MR it named; a failed confirm leaves the proposal open in
-its row with its answer. Sign-offs, gaps and setup steps stay read-only
-and say where to act. A gap item is read-only here until it carries its files from the live source (none does yet); its line points to Maturity.
+Live desk (`NeedsYouLive`, `components/live/desk/`, `hooks/useLiveDesk`, `hooks/useLiveActs`, `model/desk/`): the demo
+desk's skeleton over the group's own items. `NeedsYouLive` is the composer: `model/desk` `deskItems` turns the open items
+and the week's decided list (`getDecided`, passed by `loadNeedsYouView` with `now`, the time the view was read, so every
+age agrees between the server HTML and the hydrated page) into rows; `LiveDesk` draws them in the Window:
+- `LiveBand`: "N decisions · M projects · oldest Xd" (`summarize`); the oldest part is left out when no open row has a
+  known start, never "0d" (`model/clock/age.ts`).
+- `LiveTable`: `groupDesk` By kind / By project / By deadline, "Decided this week" last; each row its glyph, title,
+  project, move (tiers, or rungs with an unknown rung now as "R?"), when (deadline, or age; unknown is a "?" chip) and
+  Stage. Amber is only on rows that wait for a person: a staged, sent or decided row is not.
+- `LiveInspector`: "The click": the row's reason and what it does, Stage, then `components/live/LiveAct` (rule counts,
+  the class as it is now, the server's commands and diff, Run, the answer). A read-only row shows its `readOnly` text; a
+  decided row shows when (UTC) and by whom (unknown when the act did not record it).
+- `LiveOutbox`: staged rows as the demo's `OutboxItem` cards (adapted from the desk's rows) with Run all, then "Sent
+  this session": a done confirm's row leaves the rows on the refresh (only open proposals are listed), so it stays here
+  with the response's answer and the MR it named. A failed confirm leaves the proposal open in its row with its answer.
+
+Writes (`write/live.ts`): a promotion or a re-admit is a promote-class policy MR (`write/promote.ts`, the desk's door);
+a live gap with its template is an apply-gap-template MR (`write/gapTemplate.ts`); both go through `previewAction` and
+`confirmAction(intent, previewId)`, never anything else. The selected and the staged rows ask for their exact write
+(`useLiveActs`, one slot per row in `model/slot/liveActs.ts`); Run confirms that preview only; an unsure confirm asks
+`recallAction` first. Run all (`useLiveDesk.runAll`) confirms each staged row's current preview in staging order (asking
+for one first when there is none), records each answer with the server's words (`outResult`: only a done ran; refused
+and changed ran nothing; no answer is failed) and goes on past a refused or failed one. Keys: arrows move, Left/Right
+shut and open a group, Space stages or unstages the selected row, Enter focuses the inspector. `?item=<id>` opens a row
+selected (Ladder's p). Sign-offs and setup steps stay read-only and say where to act.
 
 Live evidence (`model/evidence/evidence.ts`, `components/live/LiveEvidence`): `loadNeedsYouView` joins each promotion and
 re-admit to its class as the same snapshot holds it (nothing new is read) and passes `evidence` by item id. Beside Run:
 the tier now, the record, the five newest counted outputs linked to GitLab, guardrail blocks, the gate and a re-admit's
 trigger, in the Ladder's words. When the class moved since the proposal (a promotion's `from`, a re-admit's quarantine),
-Run is disabled and `useLiveActs.run` refuses it; a class the index does not hold says so and invents no record.
+Run is disabled and `useLiveActs` refuses it (Run and Run all); a class the index does not hold says so and invents no record.
 
 Known gap: the repo has no DOM test environment. `package.json` has no jsdom or happy-dom, and `vitest.config.ts:13` sets
-`environment: 'node'`. So `NeedsYouLive.test.tsx` renders the view with a given acts state; the recording of a done confirm
-into the "Sent this session" strip is the pure `model/slot/liveActs.ts` reducer that `useLiveActs` wraps, tested there.
+`environment: 'node'`. So `NeedsYouLive.test.tsx` renders `LiveDesk` with a hand-built desk state and `components/live/desk/LiveDesk.test.tsx`
+its parts over hand-built rows; the recording of a done confirm into "Sent this session" is the pure
+`model/slot/liveActs.ts` reducer that `useLiveActs` wraps, and the outbox's order the pure `model/desk` `outReduce`, tested
+there. The hooks' effects (ask, Run all's loop, the keys' focus) have no test without a DOM.
 Adding a DOM environment is a dependency decision that has not been taken.
 
 ## Parts
