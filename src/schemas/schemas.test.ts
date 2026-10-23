@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { append, LEDGER_KINDS, OBSERVERS, SUBJECT_TYPES, verifyChain, type LedgerEvent } from './ledger';
+import { describe, expect, it, vi } from 'vitest';
+import { append, canonical, LEDGER_KINDS, OBSERVERS, SUBJECT_TYPES, verifyChain, type LedgerEvent } from './ledger';
 import { verdictOf, type Check } from './proof';
 import { demote, type TrustPolicy } from './tier';
 import { due } from './cra';
@@ -86,5 +86,22 @@ describe('stage grid', () => {
       tracks: [1], engine_version: 'v1', scanned_at: '',
     });
     expect(stagesWithEvidence([cell('running', 1), cell(null, 1), cell('configured', 0), cell('absent', 1)])).toBe(1);
+  });
+});
+
+describe('canonical', () => {
+  it('orders keys by UTF-16 code unit: upper case before lower case, as RFC 8785 does', () => {
+    expect(canonical({ a: 1, B: 2, _c: 3, b1: 4 })).toBe('{"B":2,"_c":3,"a":1,"b1":4}');
+  });
+  it('never asks the host locale: a hostile localeCompare leaves the form (and so every hash) unchanged', () => {
+    const v = { would: { decision: 'x', b: 1 }, observed_by: 'o', decision: 'd', action_class: 'a' };
+    const want = canonical(v);
+    const spy = vi.spyOn(String.prototype, 'localeCompare').mockImplementation(() => 1);
+    try {
+      expect(canonical(v)).toBe(want);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(want).toBe('{"action_class":"a","decision":"d","observed_by":"o","would":{"b":1,"decision":"x"}}');
   });
 });
