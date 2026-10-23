@@ -48,6 +48,9 @@ function RerunExhibit({ stats }: { stats: NonNullable<TaskView['stats']> }) {
   );
 }
 
+// A data-source task holds no fixture's aware time, and its grade and resolved links are optional.
+const notHeld = <HonestyChip kind="unknown">not held</HonestyChip>;
+
 function ClockExhibit({ task, clock }: { task: TaskView; clock: NonNullable<TaskView['clock']> }) {
   return (
     <>
@@ -55,13 +58,14 @@ function ClockExhibit({ task, clock }: { task: TaskView; clock: NonNullable<Task
         <span className={styles.due}>
           {clock.dueIn} left of {clock.total}
         </span>{' '}
-        · {clock.kind} · aware {task.awareAt}
+        · {clock.kind} · aware {task.awareAt ?? notHeld}
       </div>
       <div className={styles.cbar} aria-hidden="true">
         <b style={{ width: `${100 * clockElapsed(clock.dueIn, clock.total)}%` }} />
       </div>
       <div className={`${styles.paths} ${styles.wrap}`}>
-        grade <b className={styles.strong}>{task.grade}</b> · links {task.linksResolved?.[0]}/{task.linksResolved?.[1]} · submit <TierChip tier="human_only" />
+        grade {task.grade ? <b className={styles.strong}>{task.grade}</b> : notHeld} · links {task.linksResolved ? `${task.linksResolved[0]}/${task.linksResolved[1]}` : notHeld} · submit{' '}
+        <TierChip tier="human_only" />
       </div>
     </>
   );
