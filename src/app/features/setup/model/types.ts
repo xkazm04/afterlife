@@ -71,6 +71,8 @@ export interface SetupState {
   /** The group the screen opened on: switching back restores its probed rows. */
   homeGroup: string;
   homeDoctor: readonly DoctorRow[];
+  /** The home group's last probe (its time and failure), kept while another group is on screen and restored on the way back. */
+  homeProbe?: { at: number; label: string; error: string | null };
   steps: Readonly<Record<number, StepState>>;
   arm: Readonly<Record<string, ArmState>>;
   /** The doctor probe failed as a whole (live): why there are no rows. */

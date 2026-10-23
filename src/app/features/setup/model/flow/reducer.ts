@@ -68,11 +68,18 @@ function verifyEnd(s: SetupState, id: string, v: Verdict): SetupState {
   return recomputeLocks(setArm(s, id, { st: 'ready', mr: null, url: null, revert: false, simulated: false, found: null }));
 }
 
-function pickGroup(s: SetupState, group: string, now: number, at: string): SetupState {
+/**
+ * Only the demo switches groups. The home group's probe (its time, its failure) is kept on the way out and restored on
+ * the way back, never stamped probed now; another group starts never probed, with no failure of its own.
+ */
+function pickGroup(s: SetupState, group: string): SetupState {
   if (group === s.group) return s;
-  // A failed re-probe's reason is the group's it was asked on: a switch leaves it behind (only the demo switches groups).
-  if (group === s.homeGroup) return { ...s, group, doctor: s.homeDoctor, doctorNever: false, doctorAt: now, doctorProbedAt: at, doctorError: null };
-  return { ...s, group, doctor: s.homeDoctor.map((r) => ({ name: r.name, st: 'unknown' })), doctorNever: true, doctorError: null };
+  if (group === s.homeGroup) {
+    const p = s.homeProbe ?? { at: s.doctorAt, label: s.doctorProbedAt, error: null };
+    return { ...s, group, doctor: s.homeDoctor, doctorNever: false, doctorAt: p.at, doctorProbedAt: p.label, doctorError: p.error };
+  }
+  const homeProbe = s.group === s.homeGroup ? { at: s.doctorAt, label: s.doctorProbedAt, error: s.doctorError } : s.homeProbe;
+  return { ...s, group, homeProbe, doctor: s.homeDoctor.map((r) => ({ name: r.name, st: 'unknown' })), doctorNever: true, doctorError: null };
 }
 
 /** Live: each step as the read saw it; a step in flight or with no read keeps its state. */
@@ -144,7 +151,7 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
     case 'unsay':
       return unsay(s, a.n);
     case 'pick-group':
-      return pickGroup(s, a.group, a.now, a.at);
+      return pickGroup(s, a.group);
   }
 }
 

@@ -159,6 +159,11 @@ describe('the doctor and groups', () => {
     expect(run(failed, { t: 'doctor-start' }, { t: 'doctor-end', now: 9, at: '14:07' }).doctorError).toBeNull();
     expect(run(failed, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' }).doctorError).toBeNull();
   });
+  it('switching back to the home group restores its own probe time and failure, never stamps it probed now', () => {
+    const failedHome = { ...fresh(), doctorAt: 1000, doctorProbedAt: '14:02', doctorError: 'the server did not answer' };
+    const back = run(failedHome, { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }, { t: 'pick-group', group: 'acme-lab', now: 7_000, at: '14:08' });
+    expect(back).toMatchObject({ doctorAt: 1000, doctorProbedAt: '14:02', doctorError: 'the server did not answer', doctorNever: false });
+  });
   it("a finished step 11 settles the home group's Flow API row: it survives a switch away and back, and no other group's", () => {
     const s = fresh();
     expect(capSt(s, CAP_FLOW_API)).not.toBe('available');
