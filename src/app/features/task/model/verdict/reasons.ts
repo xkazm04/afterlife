@@ -81,14 +81,18 @@ export function nextReason(visible: readonly Task[], currentId: string, sel: Sel
   return null;
 }
 
-/** "FAIL because envelope · envelope breached", "… · stored PASS" when the stored word disagrees; null for no reason. */
+/**
+ * "FAIL because envelope · envelope breached", "… · stored PASS" when the stored word disagrees; null for a PASS or UNKNOWN.
+ * An INCONCLUSIVE with no reason has no engine check left (none held, or every one struck): it says so.
+ */
 export function becauseLine(task: Task): string | null {
   const reasons = verdictReasons(task);
-  if (!reasons.length) return null;
   const d = derivedVerdict(task);
+  if (!reasons.length && d.verdict !== 'INCONCLUSIVE') return null;
   const checks = reasons.flatMap((r) => ('check' in r ? [r.check] : []));
   const breach = reasons.some((r) => 'envelope' in r);
   const parts = [
+    !reasons.length ? 'no engine check' : '',
     checks.length ? `${checks.join(', ')}${d.verdict === 'INCONCLUSIVE' ? ' undetermined' : ''}` : '',
     breach ? 'envelope breached' : '',
     d.mismatch ? `stored ${d.stored}` : '',

@@ -62,6 +62,13 @@ describe('verdictReasons', () => {
     expect(verdictReasons(get('01J8QC'))).toEqual([]);
   });
 
+  it('says why an INCONCLUSIVE with no engine check left is open, though no check is there to select', () => {
+    const qa = get('01J8QA');
+    const signed = { ...qa, proof: { ...qa.proof, checks: qa.proof.checks.map((c) => ({ ...c, decidedBy: 'human' as const })) } };
+    expect([verdictReasons(signed), openingSelection(signed)]).toEqual([[], null]);
+    expect(becauseLine(signed)).toBe('INCONCLUSIVE because no engine check · stored PASS');
+  });
+
   it('GUARD: a PASS opens with nothing selected and has no because-line', () => {
     expect(openingSelection(q4)).toBeNull();
     expect(becauseLine(q4)).toBeNull();
