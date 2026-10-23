@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { RUNGS } from '@/schemas/stages';
-import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, rungText, shortMr, TOP_RUNG } from './rungs';
+import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, rungText, TOP_RUNG } from './rungs';
 import { ctx } from './testCtx';
 
 describe('rung helpers', () => {
@@ -10,12 +10,6 @@ describe('rung helpers', () => {
     expect(rungText(null)).toBe('?');
     expect(rungText(0)).toBe('R0');
     expect(rungText(3)).toBe('R3');
-  });
-
-  it('shortens the policies project in MR ids', () => {
-    expect(shortMr('ledgerline-policies!6')).toBe('pol!6');
-    expect(shortMr('!45')).toBe('!45');
-    expect(shortMr(null)).toBe('');
   });
 
   it('next is the scan next until reached, then one above, capped at R4', () => {
@@ -50,10 +44,9 @@ describe('rung helpers', () => {
     expect(countLevels(levels).deep).toBe(levels.filter(isDeep).length);
   });
 
-  it('each export carries one doc block: shortMr keeps its own, not mrName', () => {
+  it('each export carries one doc block', () => {
     const raw = readFileSync(fileURLToPath(new URL('./rungs.ts', import.meta.url)), 'utf8');
     expect(raw.match(/\*\/\s*\n\s*\/\*\*/g) ?? []).toHaveLength(0);
-    expect(raw).toMatch(/\/\*\*[^\n]*policies project is long[^\n]*\*\/\s*\nexport const shortMr/);
   });
 
   it('counts the nine stages as the status bar does', () => {

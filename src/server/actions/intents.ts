@@ -23,6 +23,8 @@ const MAX_FILE = 64 * 1024;
 /** A new file's preview shows every line (F84), so its cost follows its lines: bounded apart from its characters (F92). */
 export const MAX_FILE_LINES = 2000;
 const MAX_HUNK_LINES = 400;
+/** A gap MR carries at most this many files. The screen (maturity write/gap.ts) imports it, so the bound has one home. */
+export const MAX_GAP_FILES = 8;
 const TRACK = /^T[1-8]$/;
 /** The branches Belay's other MRs plan (promote, enroll, arm, disarm): a gap never takes one (intents/paths.test.ts derives them). */
 const OTHER_WRITES = /^belay\/(?:promote|enroll|arm|disarm)-/;
@@ -33,7 +35,7 @@ const pathOk = (p: string): boolean => p.split('/').every((s) => s !== '' && s !
 const refOk = (b: string): boolean => !b.includes('..') && !b.endsWith('.') && b.split('/').every((c) => c !== '' && !c.startsWith('.') && !c.endsWith('.lock'));
 
 /** Context (' ') and added ('+') lines, one line each, with at least one of each: context is how the hunk finds its place. */
-function hunkOf(v: unknown): string[] | null {
+export function hunkOf(v: unknown): string[] | null {
   if (!Array.isArray(v) || v.length < 2 || v.length > MAX_HUNK_LINES) return null;
   const ok = v.every((l) => typeof l === 'string' && l.length <= 500 && /^[ +][^\r\n]*$/.test(l));
   if (!ok || !v.some((l: string) => l.startsWith(' ')) || !v.some((l: string) => l.startsWith('+'))) return null;
@@ -42,7 +44,7 @@ function hunkOf(v: unknown): string[] | null {
 
 /** The files, a reason that names the bound they pass, or null when they are not files at all. */
 function files(v: unknown): GapFile[] | string | null {
-  if (!Array.isArray(v) || v.length < 1 || v.length > 8) return null;
+  if (!Array.isArray(v) || v.length < 1 || v.length > MAX_GAP_FILES) return null;
   const out: GapFile[] = [];
   for (const f of v) {
     if (!isRec(f) || (f.content === undefined) === (f.hunk === undefined)) return null; // content or a hunk, never both

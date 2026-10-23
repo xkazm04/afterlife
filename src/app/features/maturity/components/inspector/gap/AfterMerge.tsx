@@ -49,7 +49,7 @@ export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: Maturi
       {decided ? (
         <>
           <div className={styles.chk}>
-            {creditChecks(x.needsRun, phase).map((c) => (
+            {creditChecks(x.needsRun, phase, x.runsOn).map((c) => (
               <ChecksRow key={c.text} mark={c.mark} text={c.text} />
             ))}
           </div>

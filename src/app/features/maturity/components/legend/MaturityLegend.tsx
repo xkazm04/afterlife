@@ -1,5 +1,6 @@
 import { Legend } from '@/components/overlays/popover/Legend';
 import { capsOf, type Keymap } from '@/lib/keyboard/keymap';
+import { creditChecks } from '../../model/flow/credit';
 import { MATURITY_KEYMAP } from '../../model/keys/keymap';
 import styles from './MaturityLegend.module.css';
 
@@ -26,12 +27,18 @@ const GLYPHS = {
   picked: <span className={styles.tag}>g1</span>,
   unknown: <span className={styles.qbox}>?</span>,
   tick: <span className={styles.tick}>✓</span>,
+  unchecked: <span className={styles.qbox}>·</span>,
 } as const;
 
 type KeyId = typeof MATURITY_KEYMAP extends Keymap<infer I> ? I : never;
 /** The legend's short word per keymap entry; the keys themselves come from the keymap, so a bound key is a named key. */
 const WORD: Record<KeyId, string> = { move: 'stage', go: 'steps', pick: 'pick', mode: 'crag', rescan: 'rescan' };
 const KEYS_LINE = MATURITY_KEYMAP.entries.map((e) => `${capsOf(e.keys).map((c) => (c.length === 1 ? c.toUpperCase() : c)).join(' ')} ${WORD[e.id]}`).join(' · ');
+
+/** The four credit rules, in creditChecks' order; a rule the inspector marks 'not checked' is not drawn as passing here either. */
+const RULES = ['Same engine before and after', 'Not detector-only', 'Exercised, not just configured', 'Outside the noise band'] as const;
+const CREDIT_ROWS: [React.ReactNode, string][] = creditChecks(true, 'credited').map((c, i) =>
+  c.mark === 'q' ? [GLYPHS.unchecked, `${RULES[i]} · not checked yet`] : [GLYPHS.tick, RULES[i] ?? '']);
 
 /** The "?" popover: what the crag's marks mean, and the four credit rules. */
 export function MaturityLegend() {
@@ -51,12 +58,7 @@ export function MaturityLegend() {
       <hr />
       <h4>Credit rules</h4>
       <Legend
-        rows={[
-          [GLYPHS.tick, 'Same engine before and after'],
-          [GLYPHS.tick, 'Not detector-only'],
-          [GLYPHS.tick, 'Exercised, not just configured'],
-          [GLYPHS.tick, 'Outside the noise band'],
-        ]}
+        rows={CREDIT_ROWS}
       />
       <hr />
       <div className={styles.keys}>{KEYS_LINE}</div>

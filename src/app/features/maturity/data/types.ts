@@ -30,8 +30,6 @@ export interface ProposalExtra {
   invite: string;
   workItem: string;
   branch: string | null;
-  repo: string;
-  mrId: string | null;
   kind: 'mr' | 'probe';
   cls: string;
   tier: 'assisted' | null;

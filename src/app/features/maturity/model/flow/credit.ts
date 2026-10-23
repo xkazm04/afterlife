@@ -19,7 +19,8 @@ export interface Check {
 }
 
 /** The four credit checks as the inspector lists them after a rescan. */
-export function creditChecks(needsRun: boolean, outcome: Outcome): Check[] {
+export function creditChecks(needsRun: boolean, outcome: Outcome, runsOn: 'main' | 'tag' = 'main'): Check[] {
+  const where = runsOn === 'tag' ? 'the tagged release' : 'main';
   const exercised = outcome === 'credited' || !needsRun;
   return [
     { mark: 'q', text: 'same engine · not checked' },
@@ -28,9 +29,9 @@ export function creditChecks(needsRun: boolean, outcome: Outcome): Check[] {
       mark: exercised ? 'ok' : 'no',
       text: exercised
         ? needsRun
-          ? 'exercised · ran on main, Proof Block passed'
+          ? `exercised · ran ${runsOn === 'tag' ? 'in' : 'on'} ${where}, Proof Block passed`
           : 'enforced · the policy blocks a merge'
-        : 'exercised · not yet: configured, has not run on main',
+        : `exercised · not yet: configured, has not run ${runsOn === 'tag' ? 'in' : 'on'} ${where}`,
     },
     {
       mark: exercised ? 'ok' : 'q',

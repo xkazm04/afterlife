@@ -42,6 +42,26 @@ describe('what is not sent', () => {
     const none = { ...PROPOSAL_EXTRAS.g1, files: [] } as NonNullable<(typeof PROPOSAL_EXTRAS)['g1']>;
     expect(gapSend('ledgerline', proposal('g1'), 'demo', { g1: none })).toEqual({ ok: false, reason: NO_FILES });
   });
+  it('the screen refuses what the server refuses: nine files, a hunk with no context line', async () => {
+    const { parseIntent } = await import('@/server/actions/intents');
+    const base = PROPOSAL_EXTRAS.g1 as NonNullable<(typeof PROPOSAL_EXTRAS)['g1']>;
+    const file = (i: number, lines: string[], isNew = false) => ({ path: `f${i}.yml`, isNew, lines });
+    const variants = {
+      nine: Array.from({ length: 9 }, (_, i) => file(i, [' ctx', '+add'])),
+      eight: Array.from({ length: 8 }, (_, i) => file(i, [' ctx', '+add'])),
+      noContext: [file(0, ['+add', '+add2'])],
+    };
+    for (const [name, files] of Object.entries(variants)) {
+      const r = gapSend('ledgerline', proposal('g1'), 'demo', { g1: { ...base, files } });
+      const server = r.ok ? parseIntent(JSON.parse(JSON.stringify(r.intent))).ok : false;
+      expect(r.ok, name).toBe(name === 'eight');
+      if (r.ok) expect(server, name).toBe(true);
+      else expect(r).toEqual({ ok: false, reason: NO_FILES });
+    }
+    const hunkless = { ...base, files: [file(0, ['+add', '+add2'])] };
+    const raw = { kind: 'stage-gap-mr', project: 'ledgerline', gap: 'g1', stage: 'secure', from: 3, to: 4, title: 't', branch: 'belay/gap-g1-x', files: [{ path: 'f0.yml', hunk: hunkless.files[0]?.lines }] };
+    expect(parseIntent(raw).ok).toBe(false);
+  });
   it('LIVE SAFETY: in live mode a gap whose files are the demo fixture is never sent to a real project', () => {
     for (const id of ['g1', 'g2', 'g3']) {
       expect(gapSend('ledgerline', proposal(id), 'live'), id).toEqual({ ok: false, reason: DEMO_CONTENT });

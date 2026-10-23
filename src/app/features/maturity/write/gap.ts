@@ -2,6 +2,7 @@
 // confirmAction(intent, previewId) on send. The files are this screen's proposal data, once: a new file sends its '+' lines
 // as its content, a hunk of an existing file sends the hunk, for the server to apply to the file as the project holds it.
 // Needs you's gap Run imports this, so there is one way to send a gap.
+import { hunkOf, MAX_GAP_FILES } from '@/server/actions/intents';
 import { confirmAction, previewAction } from '@/server/actions/actions';
 import type { ActionResponse, GapFile, StageGapMr } from '@/server/actions/types';
 import { unreachable, viewOf, type WriteView } from '@/server/actions/words';
@@ -41,7 +42,9 @@ export function gapSend(
 ): GapSend {
   const x = extras[p.id];
   if (!x || x.kind === 'probe') return { ok: false, reason: NOT_BUILT };
-  if (!x.branch || !x.files.length || x.files.length > 8 || !x.files.every((f) => f.lines.some((l) => l.startsWith('+')))) return { ok: false, reason: NO_FILES };
+  // The server's own bounds: at most MAX_GAP_FILES files, a hunk it accepts (hunkOf), a new file with at least one '+' line.
+  const sendable = (f: DiffFile) => (f.isNew ? f.lines.some((l) => l.startsWith('+')) : hunkOf(f.lines) !== null);
+  if (!x.branch || !x.files.length || x.files.length > MAX_GAP_FILES || !x.files.every(sendable)) return { ok: false, reason: NO_FILES };
   if (mode === 'live') return { ok: false, reason: DEMO_CONTENT };
   const workItem = workItemOf(x);
   return {

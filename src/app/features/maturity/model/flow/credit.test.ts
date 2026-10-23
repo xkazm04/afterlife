@@ -28,6 +28,11 @@ describe('creditChecks', () => {
     expect(c[1]?.text).toBe('not detector-only · not checked');
     expect(c[2]?.text).toBe('exercised · ran on main, Proof Block passed');
   });
+  it('words a tag-run job as the tagged release, not main', () => {
+    expect(creditChecks(true, 'credited', 'tag')[2]?.text).toBe('exercised · ran in the tagged release, Proof Block passed');
+    expect(creditChecks(true, 'nolift', 'tag')[2]?.text).toBe('exercised · not yet: configured, has not run in the tagged release');
+    expect(creditChecks(true, 'nolift', 'main')[2]?.text).toBe('exercised · not yet: configured, has not run on main');
+  });
   it('words an enforced policy differently from a job that ran', () => {
     const c = creditChecks(false, 'credited');
     expect(c[2]?.text).toBe('enforced · the policy blocks a merge');

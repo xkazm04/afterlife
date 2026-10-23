@@ -21,8 +21,6 @@ export const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.s
 
 /** The MR GitLab named for a gap the server opened one for, else the gap's id: never an MR number the screen made up. */
 export const mrName = (mrs: Readonly<Record<string, string>>, id: string): string => mrs[id] ?? id;
-/** The MR id as the table and the crag tags show it (the policies project is long). */
-export const shortMr = (mr: string | null | undefined): string => (mr ?? '').replace('ledgerline-policies', 'pol');
 
 /**
  * The next bolt on a route: one above the current rung once the scan's own next has been reached (a credited gap),
