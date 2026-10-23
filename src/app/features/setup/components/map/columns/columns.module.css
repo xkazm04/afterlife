@@ -43,3 +43,9 @@
   font-weight: 600;
   color: var(--text-4);
 }
+/* a capability column with no row: why it is empty (the strip above carries the probe's error) */
+.empty {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  white-space: normal;
+}

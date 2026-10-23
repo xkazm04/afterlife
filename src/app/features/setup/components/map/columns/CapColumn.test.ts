@@ -36,3 +36,14 @@ describe('a capability node says why, as its page does', () => {
     expect(t.some((x) => x.startsWith(`${name} · `) && x.endsWith(` · ${note}`))).toBe(true);
   });
 });
+
+describe('a column with no capability row says why it is empty', () => {
+  it('a failed probe: the column says no capability was read', () => {
+    const html = column({ error: 'belay doctor failed: glab not found', rows: [] });
+    expect(html).not.toContain('data-node="cap:');
+    expect(html).toContain('No capability read · the probe failed');
+  });
+  it('a probe that answered no rows says so', () => {
+    expect(column({ error: null, rows: [] })).toContain('belay doctor reported no capability');
+  });
+});

@@ -18,6 +18,9 @@ export function CapColumn({ events }: { events: NodeEvents }) {
       {state.doctor.map((r) => (
         <CapNode key={r.name} row={r} note={state.live ? r.reason : CAP_NOTE[r.name]} lit={litOf(view.hot, { k: 'cap', id: r.name })} events={events} />
       ))}
+      {state.doctor.length ? null : (
+        <div className={styles.empty}>{state.doctorError ? 'No capability read · the probe failed' : 'belay doctor reported no capability'}</div>
+      )}
     </div>
   );
 }
