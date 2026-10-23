@@ -41,6 +41,13 @@ describe('ProjectDetail Needs you card', () => {
     expect(html).toContain('Review queue');
   });
 
+  it('draws a stale project\'s heading badge as last known, as its fleet row does', () => {
+    const html = page({ id: 'x', state: 'stale', needsYou: 2 });
+    expect(html).toContain('aria-label="2 waiting, last known"');
+    expect(html).not.toContain('aria-label="2 waiting for you"');
+    expect(page({ id: 'x', needsYou: 2 })).toContain('aria-label="2 waiting for you"');
+  });
+
   it('says nothing waits on a project with a zero count', () => {
     expect(page({ id: 'x', needsYou: 0 })).toContain('Nothing waiting');
   });

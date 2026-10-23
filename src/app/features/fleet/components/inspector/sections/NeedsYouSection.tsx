@@ -89,7 +89,7 @@ export function NeedsYouSection({ p, needs, actions, live }: { p: FleetProject; 
     body = <div className={styles.muted}>Nothing waiting</div>;
   }
   return (
-    <DetailSection title="Needs you" aux={p.needsYou && !unwatched ? <NeedsYouBadge count={p.needsYou} /> : null}>
+    <DetailSection title="Needs you" aux={p.needsYou && !unwatched ? <NeedsYouBadge count={p.needsYou} variant={p.state === 'stale' ? 'last-known' : 'live'} /> : null}>
       {body}
     </DetailSection>
   );
