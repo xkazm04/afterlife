@@ -88,7 +88,7 @@ describe('what T1 and T3 refuse', () => {
     expect((await previewIntent(deps, intent('arm-track', 'T1'))).status).toBe('preview');
     const byHand = '  - component: $CI_SERVER_FQDN/acme-lab/belay-pack/proof-engine@1.0.0\n    inputs: { class: exploit-test, engine_ref: v0.1.0 }\n';
     files(gl)['.gitlab-ci.yml'] = LEDGERLINE_CI.replace('  - template: Jobs/SAST', `${byHand}  - template: Jobs/SAST`);
-    expect(reason(await previewIntent(deps, intent('arm-track', 'T1')))).toBe("main's .gitlab-ci.yml already includes proof-engine (exploit-test) by hand: Belay will not add it twice");
+    expect(reason(await previewIntent(deps, intent('arm-track', 'T1')))).toBe("the default branch's .gitlab-ci.yml already includes proof-engine (exploit-test) by hand: Belay will not add it twice");
   });
 
   it('T1 needs a review stage (exploit-test reads what test kept); T3 and T6 run in .post, which every pipeline has', async () => {
