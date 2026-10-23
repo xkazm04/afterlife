@@ -14,7 +14,7 @@ export function StepColumn({ events }: { events: NodeEvents }) {
   const { state, view, illustrative } = useSetup();
   const steps = stepList(state);
   return (
-    <div className={styles.col}>
+    <div className={styles.col} role="group" aria-label="Path · steps 0–14">
       <ColumnHead
         name="Path"
         sub="steps 0–14"

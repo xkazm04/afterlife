@@ -13,7 +13,7 @@ import styles from './columns.module.css';
 export function CapColumn({ events }: { events: NodeEvents }) {
   const { state, view } = useSetup();
   return (
-    <div className={`${styles.col} ${styles.caps}`}>
+    <div className={`${styles.col} ${styles.caps}`} role="group" aria-label="GitLab · belay doctor">
       <ColumnHead name="GitLab" sub="belay doctor" aux={`${doctorCounts(state).unknown} unknown`} />
       {state.doctor.map((r) => (
         <CapNode key={r.name} row={r} note={state.live ? r.reason : CAP_NOTE[r.name]} lit={litOf(view.hot, { k: 'cap', id: r.name })} events={events} />

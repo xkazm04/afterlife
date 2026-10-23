@@ -13,7 +13,7 @@ export function TrackColumn({ events }: { events: NodeEvents }) {
   const { state, view, tracks, illustrative } = useSetup();
   const arms = armList(state);
   return (
-    <div className={`${styles.col} ${styles.tracks}`}>
+    <div className={`${styles.col} ${styles.tracks}`} role="group" aria-label="Tracks · arm order">
       <ColumnHead
         name="Tracks"
         sub="arm order"
