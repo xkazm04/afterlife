@@ -6,6 +6,6 @@ const FROM_FIELD = { allowInInput: true, preventDefault: false } as const;
 
 export const NEEDS_KEYMAP = defineKeymap('Needs you', [
   { id: 'search', keys: [{ key: '/' }], does: 'Search' },
-  { id: 'escape', keys: [{ key: 'Escape', allowInInput: true }], does: 'Clear search, then close the inspector' },
+  { id: 'escape', keys: [{ key: 'Escape', allowInInput: true }], does: 'Clear search, back to the table' },
   { id: 'toTable', keys: [{ key: 'ArrowDown', ...FROM_FIELD }, { key: 'Enter', ...FROM_FIELD }], does: 'From the search field, back to the table' },
 ]);
