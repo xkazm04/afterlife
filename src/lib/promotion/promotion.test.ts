@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
-import { HUMAN_KEY, isEligible, pct, promotion, whyNot, type Counters, type PromotionSubject } from '.';
+import { HUMAN_KEY, isEligible, pct, promoteTitle, promotion, WHY_NOT, whyNot, type Counters, type Promotion, type PromotionSubject } from '.';
 import { ungated } from './gate/ungated';
 
 // The thresholds are policy/trust-policy.yml's, read the way the server reads them for the screen, without its `gated` key:
@@ -95,5 +95,22 @@ describe('counters a live record does not know', () => {
     const p = promotion(subject({ tier: 'assisted', ceiling: 'supervised', record: null, ask }), 'repro', RULES);
     expect(p).toEqual({ kind: 'eligible', next: 'supervised', rules: [{ name: 'accepted outputs', value: '5 / 5', met: true }, { name: 'reverts', value: '0', met: true }], precondition: HUMAN_KEY });
     expect(promotion(subject({ tier: 'supervised', record: null, ask }), 'repro', RULES).kind).toBe('unknown');
+  });
+});
+
+// The Promote button's tooltip says why it is greyed in that case's words, never "does not qualify" with nothing counted.
+describe('promoteTitle', () => {
+  it('names the case when there are no counts to fall short', () => {
+    const cases: Promotion[] = [{ kind: 'split' }, { kind: 'nopolicy', next: 'hands_off' }, { kind: 'unknown', next: 'supervised' }, { kind: 'untiered' }, { kind: 'readmit' }, { kind: 'never' }, { kind: 'norecord' }];
+    for (const p of cases) {
+      const t = promoteTitle(p);
+      expect(t).not.toMatch(/does not qualify/);
+      expect(t).toContain(WHY_NOT[p.kind as Exclude<Promotion['kind'], 'eligible'>]);
+    }
+  });
+  it('keeps the three worded cases', () => {
+    expect(promoteTitle({ kind: 'eligible', next: 'hands_off', rules: [], precondition: '' })).toBe('Promote via a policy MR (p)');
+    expect(promoteTitle({ kind: 'ceiling' })).toBe('At its ceiling');
+    expect(promoteTitle({ kind: 'notyet', next: 'hands_off', rules: [{ name: 'reverts', value: '1', met: false }], precondition: '' })).toBe('Record does not qualify yet: reverts is not met (1)');
   });
 });

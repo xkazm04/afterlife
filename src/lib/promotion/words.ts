@@ -24,11 +24,14 @@ export const WHY_NOT: Record<Exclude<Promotion['kind'], 'eligible'>, string> = {
   untiered: 'its tier is unknown',
 };
 
-/** Tooltip of the row's Promote button: a class with counts that does not qualify names the first unmet rule. */
+/**
+ * Tooltip of the row's Promote button: a class with counts that does not qualify names the first unmet rule; any other
+ * case (split, no thresholds read, no record) says its own reason, never "does not qualify" with nothing counted.
+ */
 export function promoteTitle(p: Promotion): string {
   if (p.kind === 'eligible') return 'Promote via a policy MR (p)';
   if (p.kind === 'ceiling') return 'At its ceiling';
-  return p.kind === 'notyet' ? `Record does not qualify yet: ${whyNot(p)}` : 'Record does not qualify yet';
+  return p.kind === 'notyet' ? `Record does not qualify yet: ${whyNot(p)}` : `Cannot promote: ${WHY_NOT[p.kind]}`;
 }
 
 /** The muted line shown instead of rule counts. */
