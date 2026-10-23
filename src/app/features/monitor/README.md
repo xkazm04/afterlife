@@ -23,7 +23,9 @@ DataSource, so it works in demo and live mode) and renders the client `MonitorSc
 - `components/answer/` holds the amber headline and the HUD readout. The readout names whatever
   the pointer or the keyboard is on. With nothing under it, a line says what the cycle runner's agents spent across the
   metered projects (all recorded runs; `data/loadMonitorEstate.ts`, the route's own `estate` prop, never in
-  `FleetProject`); no project metered or no runs read: no line, never $0.
+  `FleetProject`); no project metered or no runs read: no line, never $0. Beside the big number, `WeekNote` says how many
+  more or fewer decisions wait than the same day last week (the same `estate`'s 28-day trend, `src/lib/trend`); live
+  before a week is recorded, "trend starts after 7 days of polling (n so far)"; the demo's is seeded and says so.
 - The inspector's picked project carries one stability line (its agent MRs over 7 days, red pipelines with their n,
   from the same `estate`); not read: no line.
 - `components/leads/`:

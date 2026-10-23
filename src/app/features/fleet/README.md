@@ -32,6 +32,12 @@ client `FleetScreen`.
   (k of f) · reverts r", "no agent MRs in 7 d" when n is 0, "Not read" for a project no poll linked, and in demo mode
   that it counted the demo's tasks (no sizes or pipelines). In the Tiers view the group row's Stages column carries the
   group's red pipelines (failed of the final head pipelines, summed, with that n); a dash when none is final.
+- Trend (the DataSource's `getFleetTrend`, `src/lib/trend`): the same `estate` carries the fleet's last 28 UTC days
+  (`trendOf` folds a project, a group or the fleet; the delta is against the row 7 days before, null when that day has
+  none). The status bar adds "since last week: +2 waiting · +1 stale" (`components/trend/TrendNote`), each group row's
+  needs cell its change (`components/trend/GroupTrend`, `TrendDelta`), and the project page a Trend card
+  (`sections/trend/TrendSection`: 4-week `TrendStrip`s of waiting, stale and hands-off). Live before a week is recorded:
+  "trend starts after 7 days of polling (n so far)", a dash in the group cell, never 0. Demo: seeded, and labelled so.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
   handlers, narrow / compact measuring, and `useRepoll` (simulated in demo, the server in live).

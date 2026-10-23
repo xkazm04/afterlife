@@ -175,7 +175,7 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
       }
       sidebar={<FleetSidebar projects={proj.projects} groups={data.groups} source={list.filters.source} onSource={pickSource} changed={changes.count} onMarkSeen={markSeen} />}
       status={
-        <FleetStatus key={snap.n} shown={list.visible.length} total={proj.projects.length} filters={list.filterTotal} startSec={data.lastPollSec} live={source.mode === 'live'} />
+        <FleetStatus key={snap.n} shown={list.visible.length} total={proj.projects.length} filters={list.filterTotal} startSec={data.lastPollSec} live={source.mode === 'live'} trend={estate?.trend} />
       }
       help={<FleetLegend tiers={data.tiers} />}
       helpTitle="Legend"

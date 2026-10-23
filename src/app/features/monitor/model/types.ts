@@ -2,6 +2,7 @@
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import type { CostSum } from '@/lib/runs/desk/join';
 import type { Stability } from '@/lib/stability/stability';
+import type { TrendFeed } from '@/lib/trend/trend';
 
 export interface MonitorData {
   /** Whether the data is the demo fixture or the live index: what Resolve, Re-poll and the poll age may claim. */
@@ -44,9 +45,11 @@ export interface Totals extends Omit<Lead, 'group' | 'projects'> {
 /**
  * Read beside the fleet, never in FleetProject (the route's own prop): `cost`, what the cycle runner's agents spent over
  * the projects it meters (src/lib/runs/desk/join.ts, all recorded runs; null: not read); `stability`, each project's
- * agent MRs over the last 7 days by project id (an absent project: not read).
+ * agent MRs over the last 7 days by project id (an absent project: not read); `trend`, the fleet's last 28 UTC days (the
+ * DataSource's getFleetTrend; seeded in the demo; absent or null: not read).
  */
 export interface MonitorEstate {
   cost: CostSum | null;
   stability: Readonly<Record<string, Stability>> | null;
+  trend?: TrendFeed | null;
 }

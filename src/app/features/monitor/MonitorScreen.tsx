@@ -81,7 +81,7 @@ export function MonitorScreen({ data, estate }: { data: MonitorData; estate?: Mo
       helpTitle="Beat grammar"
     >
       <div className={styles.pane}>
-        <AnswerBand org={data.org} totals={m.totals} projects={m.projects} leads={m.leads} hover={m.hover} byId={m.byId} cost={estate?.cost ?? null} />
+        <AnswerBand org={data.org} totals={m.totals} projects={m.projects} leads={m.leads} hover={m.hover} byId={m.byId} cost={estate?.cost ?? null} trend={estate?.trend ?? null} />
         <Leads
           leads={m.leads}
           projects={m.projects}

@@ -15,6 +15,7 @@ import { CostTotalCell } from './cells/CostTotalCell';
 import { RedRateCell } from './cells/RedRateCell';
 import { ProofsCell } from './cells/ProofsCell';
 import { TierTotalCell } from './cells/TierTotalCell';
+import { GroupTrend } from '../trend/GroupTrend';
 import cells from './cells/cells.module.css';
 import type { RowHandlers } from './types';
 
@@ -27,7 +28,10 @@ export interface GroupTotalsRowProps {
   expanded: boolean;
   selected: boolean;
   h: RowHandlers;
-  /** Read beside the fleet: the group's agent spend and red pipelines sum its projects' (absent or not read: an empty cell). */
+  /**
+   * Read beside the fleet: the group's agent spend and red pipelines sum its projects' (absent or not read: an empty cell),
+   * and its needs carry their change since last week.
+   */
   estate?: FleetEstate;
 }
 
@@ -52,6 +56,7 @@ export const GroupTotalsRow = memo(function GroupTotalsRow({ group, list, view, 
       <Cell />
       <Cell align="center">
         <NeedsYouBadge count={waiting} variant="group" title={`${waiting} waiting in ${group}`} />
+        {estate?.trend ? <GroupTrend feed={estate.trend} group={group} /> : null}
       </Cell>
       <TotalCells list={list} view={view} ranked={ranked} meta={meta} />
       <Cell className={cells.pc}>

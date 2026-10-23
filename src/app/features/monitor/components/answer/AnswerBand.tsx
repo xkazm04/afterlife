@@ -2,11 +2,13 @@
 
 import type { FleetProject } from '@/lib/demo/types';
 import type { CostSum } from '@/lib/runs/desk/join';
+import type { TrendFeed } from '@/lib/trend/trend';
 import { plural } from '@/lib/format/plural';
 import { leadLine, stateLine, topWaiting } from '../../model/totals';
 import type { Lead, Totals } from '../../model/types';
 import type { Hover } from '../../hooks/useMonitor';
 import styles from './answer.module.css';
+import { WeekNote } from './WeekNote';
 
 /** The fleet's agent spend in one line; null (not read, or no project metered): no line at all, never $0. */
 export function spendLine(cost: CostSum | null): string | null {
@@ -17,7 +19,8 @@ export function spendLine(cost: CostSum | null): string | null {
 /**
  * The band above the leads: the one loud number on the left, and the readout on the right. The readout names
  * whatever the pointer or the keyboard is on (a beat or a lead), so the leads themselves carry almost no text. With
- * nothing under the pointer, it also says what the agents spent (`cost`, read beside the fleet).
+ * nothing under the pointer, it also says what the agents spent (`cost`, read beside the fleet). `trend`, when read, puts
+ * the week's change beside the big number.
  */
 export function AnswerBand({
   org,
@@ -27,6 +30,7 @@ export function AnswerBand({
   hover,
   byId,
   cost = null,
+  trend = null,
 }: {
   org: string;
   totals: Totals;
@@ -35,6 +39,7 @@ export function AnswerBand({
   hover: Hover;
   byId: ReadonlyMap<string, FleetProject>;
   cost?: CostSum | null;
+  trend?: TrendFeed | null;
 }) {
   const top = topWaiting(projects, 4);
   let name = org;
@@ -61,6 +66,7 @@ export function AnswerBand({
     <div className={styles.band}>
       <div className={styles.answer}>
         <span className={styles.big}>{totals.needs}</span>
+        {trend ? <WeekNote feed={trend} /> : null}
         <span className={styles.words}>
           <span className={styles.head}>{totals.needs === 1 ? 'decision waits for you' : 'decisions wait for you'}</span>
           <span className={styles.who}>

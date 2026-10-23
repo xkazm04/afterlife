@@ -1,0 +1,33 @@
+/* The trend glyphs: neutral ink, never amber (that is what waits) nor alarm red. */
+.delta {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: calc(11px * var(--ui-scale));
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.flat,
+.none {
+  color: var(--text-4);
+}
+.strip {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1px;
+  width: calc(112px * var(--ui-scale));
+  height: calc(20px * var(--ui-scale));
+  flex: none;
+}
+.strip i {
+  flex: 1;
+  border-radius: 1px;
+}
+.bar {
+  height: max(1px, var(--h));
+  background: color-mix(in oklab, var(--text-2) 55%, transparent);
+}
+.gap {
+  height: 100%;
+  border: 1px dashed color-mix(in oklab, var(--unknown) 45%, transparent);
+  border-radius: 1px;
+}

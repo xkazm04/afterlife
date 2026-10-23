@@ -1,0 +1,12 @@
+/* The Trend card: a name, its 28-day strip and its change, one line each. */
+.line {
+  display: grid;
+  grid-template-columns: calc(64px * var(--ui-scale)) auto minmax(0, 1fr);
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+  height: calc(24px * var(--ui-scale));
+  font-size: var(--t-head);
+}
+.name {
+  color: var(--text-3);
+}
