@@ -37,6 +37,11 @@ export function ariaSort<K extends string>(sort: SortState<K>, key: K): 'ascendi
 const isNull = (v: SortValue): v is null | undefined => v === null || v === undefined;
 const toComparable = (v: string | number | boolean): string | number => (typeof v === 'boolean' ? Number(v) : v);
 
+const TEXT = new Intl.Collator('en', { numeric: true });
+
+/** Text order every table shares: number-aware ("svc-2" before "svc-10") and in one collation, whatever the browser locale. */
+export const compareText = (a: string, b: string): number => TEXT.compare(a, b);
+
 /** Compare two column values in `dir`; unknowns (null/undefined) are always greater, i.e. last. Returns 0 on a tie. */
 export function compareValues(a: SortValue, b: SortValue, dir: SortDir): number {
   if (isNull(a) && isNull(b)) return 0;
@@ -44,7 +49,7 @@ export function compareValues(a: SortValue, b: SortValue, dir: SortDir): number 
   if (isNull(b)) return -1;
   const x = toComparable(a);
   const y = toComparable(b);
-  const r = typeof x === 'string' || typeof y === 'string' ? String(x).localeCompare(String(y)) : x - y;
+  const r = typeof x === 'string' || typeof y === 'string' ? compareText(String(x), String(y)) : x - y;
   return r * dir;
 }
 

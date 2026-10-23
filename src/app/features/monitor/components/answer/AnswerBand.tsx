@@ -46,6 +46,8 @@ export function AnswerBand({
   let line = `${plural(leads.length, 'lead')} · ${plural(totals.n, 'project')}`;
   let tone: string | undefined;
   let spend = spendLine(cost);
+  // a beat or a lead in focus already says this as its own aria-label / text: the readout is then a sighted echo, not a second announcement
+  let echo = false;
   if (hover?.kind === 'project') {
     const p = byId.get(hover.id);
     if (p) {
@@ -53,6 +55,7 @@ export function AnswerBand({
       line = `${p.group} · ${stateLine(p)}`;
       tone = p.state;
       spend = null;
+      echo = true;
     }
   } else if (hover?.kind === 'lead') {
     const l = leads.find((x) => x.group === hover.group);
@@ -60,6 +63,7 @@ export function AnswerBand({
       name = l.group;
       line = leadLine(l);
       spend = null;
+      echo = true;
     }
   }
   return (
@@ -81,7 +85,7 @@ export function AnswerBand({
           </span>
         </span>
       </div>
-      <div className={styles.readout} aria-live="polite" data-tone={tone}>
+      <div className={styles.readout} aria-hidden={echo || undefined} data-tone={tone}>
         <span className={styles.roName}>{name}</span>
         <span className={styles.roLine}>{line}</span>
         {spend ? <span className={styles.roLine}>{spend}</span> : null}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ariaSort, compareValues, nextSort, sortItems, type SortState } from './sort';
+import { ariaSort, compareText, compareValues, nextSort, sortItems, type SortState } from './sort';
 
 type Key = 'attention' | 'name' | 'needs';
 const initial: SortState<Key> = { key: 'attention', dir: -1 };
@@ -76,5 +76,17 @@ describe('sortItems', () => {
     const copy = [...rows];
     sortItems<Row, Key>(rows, { key: 'name', dir: 1 }, opts);
     expect(rows).toEqual(copy);
+  });
+});
+
+describe('number-aware text order', () => {
+  it('sorts svc-2 before svc-10 in a text column, ascending and descending', () => {
+    const rows = [{ n: 'svc-10' }, { n: 'svc-2' }, { n: 'svc-1' }];
+    const opts = { getValue: (r: { n: string }) => r.n };
+    expect(sortItems(rows, { key: 'name' as const, dir: 1 }, opts).map((r) => r.n)).toEqual(['svc-1', 'svc-2', 'svc-10']);
+    expect(sortItems(rows, { key: 'name' as const, dir: -1 }, opts).map((r) => r.n)).toEqual(['svc-10', 'svc-2', 'svc-1']);
+  });
+  it('exports the same order as compareText', () => {
+    expect(compareText('svc-2', 'svc-10')).toBeLessThan(0);
   });
 });

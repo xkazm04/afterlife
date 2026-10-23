@@ -4,12 +4,11 @@ import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierMark } from '@/components/status/TierMark';
 import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
-import type { ProjectState, TierInfo, TierKey } from '@/lib/demo/types';
+import type { TierInfo, TierKey } from '@/lib/demo/types';
 import { STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
+import { PROJECT_STATES } from '../../model/list/urlState';
 import { ChangeMark } from '../table/cells/ChangeMark';
 import styles from './legend.module.css';
-
-const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
 
 /** The "?" legend: tiers, the needs-you badges, the four states, proofs, stage rungs, hatching, change marks and the keys.
  * The change mark and the keys are the Fleet table's: the project page, which has no table, passes `keys={false}`. */
@@ -27,7 +26,7 @@ export function FleetLegend({ tiers, keys = true }: { tiers: Record<TierKey, Tie
         rows={[
           [<NeedsYouBadge key="live" count={3} />, 'Decisions waiting for you'],
           [<NeedsYouBadge key="lk" count={1} variant="last-known" />, 'Waiting, last known (stale)'],
-          ...STATES.map((s) => [<StateGlyph key={s} state={s} />, STATE_LABEL[s]] as const),
+          ...PROJECT_STATES.map((s) => [<StateGlyph key={s} state={s} />, STATE_LABEL[s]] as const),
           [
             <span key="pf" className={styles.proofs}>
               <i className={styles.ok} />

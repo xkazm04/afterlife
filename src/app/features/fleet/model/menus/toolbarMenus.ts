@@ -5,6 +5,7 @@ import type { SortDir, SortState } from '@/components/table/model/sort';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { ProjectState, TierKey } from '@/lib/demo/types';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
+import { PROJECT_STATES } from '../list/urlState';
 import { filterCount } from '../list/filtering';
 import { SORT_MENU_KEYS, defaultDir, sortLabel } from '../list/sorting';
 import type { FleetFilters, SortKey } from '../types';
@@ -42,13 +43,11 @@ export interface FilterMenuArgs {
   onClear: () => void;
 }
 
-const STATES: readonly ProjectState[] = ['watching', 'setting-up', 'stale', 'not-set-up'];
-
 export function filterMenu(a: FilterMenuArgs): MenuEntry[] {
   const f = a.filters;
   return [
     { head: 'State' },
-    ...STATES.map((s) => ({ label: STATE_LABEL[s], checked: f.states.has(s), run: () => a.onState(s) })),
+    ...PROJECT_STATES.map((s) => ({ label: STATE_LABEL[s], checked: f.states.has(s), run: () => a.onState(s) })),
     { sep: true },
     { head: 'Has a class at' },
     ...TIER_DISPLAY_ORDER.map((t) => ({ label: TIER_META[t].name, checked: f.tiers.has(t), run: () => a.onTier(t) })),

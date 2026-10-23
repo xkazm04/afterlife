@@ -9,8 +9,9 @@ export interface SmartFilter {
   test: (p: FleetProject) => boolean;
 }
 
+// 'needs' follows needsSum: an unwatched project's waiting count is shown nowhere, so it is not listed under Needs you either
 export const SMART_FILTERS: readonly SmartFilter[] = [
-  { id: 'needs', label: 'Needs you', test: (p) => p.needsYou > 0 },
+  { id: 'needs', label: 'Needs you', test: (p) => p.state !== 'not-set-up' && p.needsYou > 0 },
   { id: 'stale', label: 'Stale', test: (p) => p.state === 'stale' },
   { id: 'setup', label: 'Setting up', test: (p) => p.state === 'setting-up' },
   { id: 'unwatched', label: 'Not watched', test: (p) => p.state === 'not-set-up' },

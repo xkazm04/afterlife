@@ -7,7 +7,8 @@ import styles from './table.module.css';
 /**
  * A column header. With `sortKey` + `onSort` it is a button that shows the sort arrow when it is the active column.
  * `tier` + `ranked` tint the header of the tier column the table is ranked by. `tip` is the tooltip (and the name of
- * an icon-only header).
+ * an icon-only header). `iconOnly` says the header shows no text and is named by `tip`; left out, only a header with no
+ * string child is taken for icon-only (a header whose text sits in a wrapper must say `iconOnly={false}`).
  */
 export function HeaderCell<K extends string>({
   sortKey,
@@ -15,6 +16,7 @@ export function HeaderCell<K extends string>({
   onSort,
   align = 'start',
   tip,
+  iconOnly: iconOnlyProp,
   tier,
   ranked,
   children,
@@ -24,6 +26,7 @@ export function HeaderCell<K extends string>({
   onSort?: (key: K) => void;
   align?: 'start' | 'center' | 'end';
   tip?: string;
+  iconOnly?: boolean;
   tier?: Ceiling;
   ranked?: boolean;
   children?: ReactNode;
@@ -31,7 +34,7 @@ export function HeaderCell<K extends string>({
   const cls = [styles.c, styles.th, align === 'center' ? styles.ctr : align === 'end' ? styles.rt : '', ranked ? styles.ranked : '']
     .filter(Boolean)
     .join(' ');
-  const iconOnly = typeof children !== 'string';
+  const iconOnly = iconOnlyProp ?? typeof children !== 'string';
   const active = sortKey !== undefined && sort?.key === sortKey;
   const inner = (
     <>

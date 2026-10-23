@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeProject } from '../testProject';
 import { EMPTY_FILTERS, filterCount, filterProjects, matchesSource, menuFilterCount, sourceLabel, toggleIn } from './filtering';
+import { needsSum } from '../groups';
 import { countSmart, smartFilter } from './smartFilters';
 
 const P = [
@@ -80,5 +81,15 @@ describe('the Changed source', () => {
     expect(filterProjects(fleet, { ...EMPTY_FILTERS, source: 'changed' })).toEqual([]);
     expect(sourceLabel('changed')).toBe('Changed since last look');
     expect(filterCount({ ...EMPTY_FILTERS, source: 'changed' })).toBe(1);
+  });
+});
+
+describe('the Needs you filter and the waiting sum', () => {
+  it('agree: an unwatched project with decisions counted is neither listed nor summed', () => {
+    const unwatched = makeProject({ id: 'u', state: 'not-set-up', needsYou: 3, armed: 0, classTiers: {} });
+    const list = [...P, unwatched];
+    expect(needsSum([unwatched])).toBe(0);
+    expect(smartFilter('needs').test(unwatched)).toBe(false);
+    expect(countSmart(list, 'needs')).toBe(list.filter((p) => needsSum([p]) > 0).length);
   });
 });

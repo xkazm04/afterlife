@@ -33,6 +33,9 @@ function headContent(c: ColumnSpec, narrow: boolean) {
   return c.label;
 }
 
+/** True when the header shows no text (a ring, a diamond, a tier's letter mark): its tip names it. */
+const iconOnly = (c: ColumnSpec, narrow: boolean): boolean => c.kind === 'state' || c.kind === 'needs' || (c.kind === 'tier' && narrow);
+
 /** Every column header of the table, sortable; the header of the tier the list is ranked by is tinted. */
 export function FleetHeader({
   columns,
@@ -49,7 +52,7 @@ export function FleetHeader({
   return (
     <>
       {columns.map((c) => (
-        <HeaderCell<SortKey> key={c.key} sortKey={c.key} sort={sort} onSort={onSort} align={c.align} tip={c.tip} tier={c.tier} ranked={c.tier !== undefined && c.tier === ranked}>
+        <HeaderCell<SortKey> key={c.key} sortKey={c.key} sort={sort} onSort={onSort} align={c.align} tip={c.tip} iconOnly={iconOnly(c, narrow)} tier={c.tier} ranked={c.tier !== undefined && c.tier === ranked}>
           {headContent(c, narrow)}
         </HeaderCell>
       ))}
