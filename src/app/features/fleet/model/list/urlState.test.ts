@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SMART_FILTERS } from './smartFilters';
-import { DEFAULT_LIST_STATE, decodeListState, encodeListState, type FleetListState } from './urlState';
+import { DEFAULT_LIST_STATE, decodeListState, encodeListState, fitGroups, type FleetListState } from './urlState';
 
 const back = (s: FleetListState) => decodeListState(new URLSearchParams(encodeListState(s)));
 
@@ -60,5 +60,21 @@ describe('the Changed source in the URL', () => {
 describe('smart-filter ids in the URL', () => {
   it.each(SMART_FILTERS.map((f) => f.id))('keeps the %s smart filter through a round trip', (id) => {
     expect(back({ ...DEFAULT_LIST_STATE, filters: { ...DEFAULT_LIST_STATE.filters, source: id } }).filters.source).toBe(id);
+  });
+});
+
+describe('a URL naming a group the fleet does not have', () => {
+  it('falls back to all projects and forgets folds of gone groups (a bookmark from before a rename)', () => {
+    const s = decodeListState({ src: 'g:old-name', fold: ['old-name', 'payments'], q: 'led' });
+    const fit = fitGroups(s, ['payments', 'core']);
+    expect(fit.filters.source).toBe('all');
+    expect([...fit.collapsed]).toEqual(['payments']);
+    expect(fit.filters.q).toBe('led');
+  });
+  it('keeps a known group and every non-group source as it is', () => {
+    const known = decodeListState({ src: 'g:core' });
+    expect(fitGroups(known, ['core'])).toEqual(known);
+    const smart = decodeListState({ src: 'stale' });
+    expect(fitGroups(smart, [])).toBe(smart);
   });
 });

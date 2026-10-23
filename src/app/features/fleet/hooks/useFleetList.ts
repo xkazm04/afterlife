@@ -5,7 +5,7 @@ import { nextSort, type SortState } from '@/components/table/model/sort';
 import type { FleetProject, ProjectState, TierKey } from '@/lib/demo/types';
 import { EMPTY_FILTERS, filterCount, filterProjects, toggleIn } from '../model/list/filtering';
 import { INITIAL_SORT, defaultDir, sortAfterViewChange, sortProjects } from '../model/list/sorting';
-import { DEFAULT_LIST_STATE, encodeListState, type FleetListState } from '../model/list/urlState';
+import { DEFAULT_LIST_STATE, encodeListState, fitGroups, type FleetListState } from '../model/list/urlState';
 import { groupBlocks, navItems } from '../model/groups';
 import type { FleetFilters, FleetView, SortKey, Source } from '../model/types';
 
@@ -14,7 +14,8 @@ import type { FleetFilters, FleetView, SortKey, Source } from '../model/types';
  * visible projects (filtered, then sorted), their group blocks and the rows the keyboard walks. `changed` is what the
  * Changed source lists (the ids that moved since the last look).
  */
-export function useFleetList(projects: readonly FleetProject[], groups: readonly string[], start: FleetListState = DEFAULT_LIST_STATE, changed?: ReadonlySet<string>) {
+export function useFleetList(projects: readonly FleetProject[], groups: readonly string[], from: FleetListState = DEFAULT_LIST_STATE, changed?: ReadonlySet<string>) {
+  const [start] = useState(() => fitGroups(from, groups));
   const [view, setViewState] = useState<FleetView>(start.view);
   const [sort, setSort] = useState<SortState<SortKey>>(start.sort);
   const toggleSort = useCallback((key: SortKey) => setSort((s) => nextSort(s, key, { initial: INITIAL_SORT, defaultDir })), []);

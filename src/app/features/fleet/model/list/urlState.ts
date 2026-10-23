@@ -77,6 +77,18 @@ export function decodeListState(raw: RawParams | URLSearchParams | null | undefi
   }
 }
 
+/**
+ * The decoded state against the fleet's groups: a `src=g:<group>` or `fold` naming a group the fleet does not have (a
+ * bookmark from before a rename) would show an empty list under that name. Such a source falls back to all projects.
+ */
+export function fitGroups(s: FleetListState, groups: readonly string[]): FleetListState {
+  const src = s.filters.source;
+  const goneSource = src.startsWith('g:') && !groups.includes(src.slice(2));
+  const collapsed = [...s.collapsed].filter((g) => groups.includes(g));
+  if (!goneSource && collapsed.length === s.collapsed.size) return s;
+  return { ...s, collapsed: new Set(collapsed), filters: goneSource ? { ...s.filters, source: 'all' } : s.filters };
+}
+
 /** List state to a query string without the "?". Only what differs from the default is written. */
 export function encodeListState(s: FleetListState): string {
   const p = new URLSearchParams();
