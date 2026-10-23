@@ -30,6 +30,9 @@ export interface TaskDerivation {
   issues: string[];
 }
 
+/** GitLab's draft markers at the start of a title ([Draft], (Draft), Draft:; the retired WIP:): not the title's words. */
+const DRAFT = /^(\[draft\]|\(draft\)|draft:|wip:)\s*/i;
+
 const byNewest = (a: GlNote, b: GlNote): number => Date.parse(b.createdAt) - Date.parse(a.createdAt);
 
 /** The label the screen shows, and the coarse state behind it. */
@@ -110,7 +113,7 @@ export function deriveTask(f: TaskFacts, projectId: string, cfg: PollerConfig, t
   return {
     task: {
       id: t.task, projectId, track: cls ? trackOf(cls) : null, agent: mr.author, actionClass: cls, mrIid: mr.iid,
-      title: mr.title.replace(/^(draft|wip):\s*/i, ''), tierAtTime: labels.tier, state, stateLabel: label,
+      title: mr.title.replace(DRAFT, ''), tierAtTime: labels.tier, state, stateLabel: label,
       startedAt: new Date(mr.createdAt), finishedAt: mr.mergedAt ? new Date(mr.mergedAt) : null, detail,
     },
     proof, staleProof: stale, issues,

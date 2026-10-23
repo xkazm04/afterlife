@@ -119,6 +119,8 @@ describe('state labels', () => {
     const d = derive();
     expect(d?.task).toMatchObject({ title: 'Fix it', tierAtTime: 'supervised', track: 1, actionClass: 'dep-bump.patch', mrIid: 41 });
     expect(derive(mr({ labels: [] }))?.task.tierAtTime).toBeNull(); // unknown, not today's tier
+    // GitLab reads [Draft], (Draft) and Draft: at the start of a title as the draft marker; none is the title's words
+    expect(['[Draft] Fix it', '(Draft) Fix it', 'draft: Fix it'].map((title) => derive(mr({ title }))?.task.title)).toEqual(['Fix it', 'Fix it', 'Fix it']);
   });
 });
 
