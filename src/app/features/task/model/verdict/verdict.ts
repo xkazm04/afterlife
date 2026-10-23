@@ -43,6 +43,8 @@ export function derivedVerdict(task: Pick<TaskView, 'proof' | 'envelope'>): Deri
 
 /** Whether a check is a struck term: a person decides it, so it does not weigh on the verdict (reasons.ts reads it). */
 export const isStruck = (c: { decidedBy?: 'engine' | 'human' }): boolean => c.decidedBy === 'human';
+/** How a term draws and counts: a struck term is open ('?') whatever its ok, never a hold and never a fail. */
+export const termKind = (c: { ok: CheckResult; decidedBy?: 'engine' | 'human' }): CheckKind => (isStruck(c) ? 'unk' : checkKind(c.ok));
 
 export interface Tally {
   ok: number;
@@ -54,7 +56,7 @@ export interface Tally {
 export function tally(task: TaskView, shown: (i: number) => boolean = () => true): Tally {
   const t: Tally = { ok: 0, bad: 0, unk: 0 };
   task.proof.checks.forEach((c, i) => {
-    if (shown(i)) t[checkKind(c.ok)] += 1;
+    if (shown(i)) t[termKind(c)] += 1;
   });
   return t;
 }

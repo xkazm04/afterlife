@@ -35,6 +35,12 @@ describe('tally', () => {
     expect(tally(get('01J8Q8'))).toEqual({ ok: 3, bad: 1, unk: 0 });
     expect(tally(get('01J8Q8'), (i) => i < 2)).toEqual({ ok: 2, bad: 0, unk: 0 });
   });
+  it('counts a struck term (a person decides it) as open whatever its ok, as the equation draws it: never a hold or a fail', () => {
+    const q8 = get('01J8Q8');
+    const signed = { ...q8, proof: { ...q8.proof, checks: q8.proof.checks.map((c) => ({ ...c, decidedBy: 'human' as const })) } };
+    expect(tally(signed)).toEqual({ ok: 0, bad: 0, unk: 4 });
+    expect(equationTerms(signed, null, null).map((t) => [t.kind, t.glyph])).toEqual(Array(4).fill(['unk', '?']));
+  });
 });
 
 describe('claimStatus', () => {
@@ -98,10 +104,10 @@ describe('derivedVerdict', () => {
     expect(derivedVerdict({ ...get('01J8Q4'), envelope: { files: 1, lines: 1, paths: [], within: false } }).verdict).toBe('FAIL');
     expect(derivedVerdict({ envelope: null, proof: { cls: 'x', verdict: 'UNKNOWN', engine: '', digest: '', checks: [] } })).toEqual({ verdict: 'UNKNOWN', stored: 'UNKNOWN', mismatch: false });
   });
-});
 
   it('fails a known breached envelope even with no checks and no stored word, as verdictOf does', () => {
     const empty = { cls: 'x', verdict: 'UNKNOWN' as const, engine: '', digest: '', checks: [] };
     expect(derivedVerdict({ envelope: { files: 1, lines: 1, paths: [], within: false }, proof: empty }).verdict).toBe('FAIL');
     expect(derivedVerdict({ envelope: { files: 1, lines: 1, paths: [], within: true }, proof: empty }).verdict).toBe('UNKNOWN');
   });
+});
