@@ -143,3 +143,24 @@ describe("step 9's and step 5's target commands on a target in a subgroup (craft
     expect(bare[0]?.code).not.toBe(0);
   });
 });
+
+describe('the job token allowlist check reads every page', () => {
+  it('finds belay-apply at entry 110 of 120 on both allowlists (one page of 100 read it as missing)', async () => {
+    const gl = group();
+    await run(gl, COMMANDS);
+    settleTheRest(gl);
+    const apply = Number(projectNamed(gl, 'belay-apply').raw.id);
+    const entries = Array.from({ length: 120 }, (_, i) => ({ id: i === 109 ? apply : 900_000 + i }));
+    const port = new Proxy(gl.port, {
+      get: (t, k, r) => (k === 'get'
+        ? (path: string, q: Record<string, string | number | boolean | undefined> = {}) => {
+          if (!path.endsWith('/job_token_scope/allowlist')) return t.get(path, q);
+          const per = Number(q.per_page ?? 20);
+          const page = Number(q.page ?? 1);
+          return Promise.resolve(entries.slice((page - 1) * per, page * per));
+        }
+        : Reflect.get(t, k, r)),
+    });
+    expect(await protectionsRead({ ...(await ctx(gl)), port })).toMatchObject({ state: 'done' });
+  });
+});
