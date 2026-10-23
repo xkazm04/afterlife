@@ -4,12 +4,24 @@ import { TierMark } from '@/components/status/TierMark';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import type { TierKey } from '@/lib/demo/types';
 import { GRADES, GRADE_NEVER } from '../../data/cra';
+import type { GlyphKind } from '../../model/rows/rowState';
 import { DecisionGlyph } from '../shared/DecisionGlyph';
 import { GradeChip } from '../shared/GradeChip';
 import styles from './chrome.module.css';
 
 /** The grade ladder sentence, built from GRADES so a renamed or reworded grade reaches the legend. */
 const GRADE_LINE = `Grade: ${GRADES.map((g) => `${g.name} (${g.why})`).join(' → ')}. Never "${GRADE_NEVER.name}".`;
+
+/** What each row glyph means: keyed by GlyphKind, so a glyph a row can draw cannot go unexplained. */
+export const GLYPH_MEANS: Readonly<Record<GlyphKind, string>> = {
+  wait: 'Waiting for you',
+  stg: 'Staged in the outbox, not sent',
+  ok: 'Sent or decided',
+  unk: 'Unknown, drawn dashed',
+  dash: 'Set aside: not yet, nothing sent',
+  open: 'A gap you can pick, not picked yet',
+};
+const GLYPHS = Object.keys(GLYPH_MEANS) as GlyphKind[];
 
 /** The legend behind "?": tiers, row states, the seeded mark, the grade ladder and the keyboard. */
 export function NeedsLegend({ tierMeans }: { tierMeans: Record<TierKey, string> }) {
@@ -19,10 +31,7 @@ export function NeedsLegend({ tierMeans }: { tierMeans: Record<TierKey, string> 
       <hr />
       <Legend
         rows={[
-          [<DecisionGlyph key="w" kind="wait" />, 'Waiting for you'],
-          [<DecisionGlyph key="s" kind="stg" />, 'Staged in the outbox, not sent'],
-          [<DecisionGlyph key="o" kind="ok" />, 'Sent or decided'],
-          [<DecisionGlyph key="u" kind="unk" />, 'Unknown, drawn dashed'],
+          ...GLYPHS.map((k) => [<DecisionGlyph key={k} kind={k} />, GLYPH_MEANS[k]] as const),
           [<HonestyChip key="h" kind="seeded">s</HonestyChip>, 'Seeded fault for the demo'],
         ]}
       />
