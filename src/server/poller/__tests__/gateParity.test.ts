@@ -95,3 +95,18 @@ describe('a class several agents hold: each holder as CI gates its MRs (--agent,
     expect(named?.tier).toBe(gate({ policy: P, state, classId: 'dep-bump.patch', now: NOW }).tier);
   });
 });
+
+describe('a record rewritten since the row\'s last move', () => {
+  const at = (s: string) => st({ 'ai-patcher-acme': { 'dep-bump.patch': rec(s === 'promoted' ? 'supervised' : 'assisted', s === 'promoted'
+    ? { by: 'operator op via promotion MR', since: '2026-10-01T10:00:00Z' } : { by: 'operator op via Belay', since: '2026-10-09T10:00:00Z' }) } });
+  const row = (state: TierState, prev?: ClassTierRow) =>
+    deriveTiers(P, state, 'p', NOW, new Map(prev ? [['dep-bump.patch', prev]] : []), 7 * 86_400_000).rows.find((r) => r.classId === 'dep-bump.patch')!;
+
+  it('a revoke reads demoted at the record\'s since, not as the promotion before it; an unchanged record keeps its move', () => {
+    const promoted = row(at('promoted'));
+    expect(promoted.move?.kind).toBe('promoted');
+    const revoked = row(at('revoked'), promoted);
+    expect(revoked.move).toEqual({ kind: 'demoted', at: new Date('2026-10-09T10:00:00Z'), note: null });
+    expect(row(at('revoked'), revoked).move).toEqual(revoked.move);
+  });
+});

@@ -10,7 +10,7 @@
 // unheld class's stored counters, a moves note) is kept from the row already in the index. With tier-state.yml's history
 // (../stateHistory.ts), a class one agent holds also gets the receipt of its record (./receipt.ts): where it was enforced.
 // Without one, or for any other class, the receipt is null.
-import type { Ceiling, DemotionTrigger, TierState } from '@/schemas/tier';
+import { TIER_ORDER, type Ceiling, type DemotionTrigger, type Tier, type TierState } from '@/schemas/tier';
 import type { ClassTierRow } from '@/server/index/repositories/fleet/classTier';
 import type { TrustClassRow } from '@/server/index/repositories/fleet/taxonomy';
 import { noRecordRow, splitRow } from '@/server/index/views/standing';
@@ -61,6 +61,13 @@ const keptMove = (prev: ClassTierRow | undefined): ClassTierRow['move'] => {
   return m;
 };
 
+/** A record rewritten after the kept move by no writer named above: the move is the tier's own change, at its since. */
+const movedOf = (was: Ceiling | null, now: Ceiling, at: Date): ClassTierRow['move'] => {
+  const [a, b] = [TIER_ORDER.indexOf(was as Tier), TIER_ORDER.indexOf(now as Tier)];
+  const d = a < 0 || b < 0 ? 0 : b - a; // no tier before (none, human_only): no direction to name
+  return d < 0 ? { kind: 'demoted', at, note: null } : d > 0 ? { kind: 'promoted', at, note: null } : null;
+};
+
 const when = (s: string | undefined): Date | null => {
   const t = s ? Date.parse(s) : Number.NaN;
   return Number.isNaN(t) ? null : new Date(t);
@@ -101,6 +108,7 @@ export function deriveTiers(
       if (st.leaseLapsed) move = { kind: 'note', at: lease, note: 'lease lapsed: supervised' };
       else if (byOf(st.record)?.startsWith('tripwire')) move = { kind: 'tripwire', at: since, note: st.record.reason ?? null }; // the trigger
       else if (/promotion/i.test(byOf(st.record) ?? '')) move = { kind: 'promoted', at: since, note: null };
+      else if (since && move?.at && move.at < since) move = movedOf(prev?.tier ?? null, tier, since); // a revoke, a hand edit
       if (byOf(st.record)?.startsWith('tripwire') && tier === 'quarantined') {
         quarantines.push({ classId: id, role: c.agent, track, reason: st.record.reason ?? null, evidence: st.record.evidence ?? null, since });
       }
