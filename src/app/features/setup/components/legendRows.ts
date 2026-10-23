@@ -1,4 +1,5 @@
 import type { ArmStatus, StepStatus } from '../model/types';
+import type { DepTone } from './shared/DepRow';
 
 /** One legend row: the swatch class (SetupLegend.module.css), the words, and the states of the model it explains. */
 export interface LegendRow<S extends string> {
@@ -25,4 +26,14 @@ export const STEP_ROWS: readonly LegendRow<StepStatus>[] = [
   { cls: 'sdone', text: 'Step probed · a read saw it done', covers: ['done'] },
   { cls: 'sfail', text: 'Step probed · not yet', covers: ['failed'] },
   { cls: 'sunk', text: 'Step unknown · nobody probed it', covers: ['unknown'] },
+];
+
+/** The dependency lines of a node page (shared/DepRow.tsx): every tone, with the glyph it is drawn with. */
+export const DEP_ROWS: readonly { tone: DepTone; glyph: string; text: string }[] = [
+  { tone: 'met', glyph: '✓', text: 'Met · a read saw it done or armed' },
+  { tone: 'none', glyph: '3', text: 'To do · not started' },
+  { tone: 'you', glyph: '3', text: 'Needs you · only a person can' },
+  { tone: 'ready', glyph: '·', text: 'Ready · one MR arms it' },
+  { tone: 'no', glyph: '3', text: 'Probed · not yet' },
+  { tone: 'unknown', glyph: '?', text: 'Unknown · never rounded up' },
 ];

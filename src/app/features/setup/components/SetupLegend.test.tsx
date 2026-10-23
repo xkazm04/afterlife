@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { ArmStatus, StepStatus } from '../model/types';
-import { STEP_ROWS, TRACK_ROWS } from './legendRows';
+import type { DepTone } from './shared/DepRow';
+import { DEP_ROWS, STEP_ROWS, TRACK_ROWS } from './legendRows';
 import { SetupLegend } from './SetupLegend';
 
 // Records, so adding a state to a union is a type error here until the legend is told.
@@ -22,5 +23,15 @@ describe('SetupLegend rows', () => {
   it('renders each row text', () => {
     const html = renderToStaticMarkup(<SetupLegend />);
     for (const r of [...TRACK_ROWS, ...STEP_ROWS]) expect(html).toContain(r.text.replace(/·/g, '·'));
+  });
+
+  const TONES: Record<DepTone, true> = { none: true, met: true, you: true, unknown: true, no: true, ready: true };
+
+  it('page legend explains every dep-row tone and none of the map-only elements', () => {
+    expect(owners(TONES as Record<string, true>, DEP_ROWS.map((r) => ({ covers: [r.tone] as string[] }))).filter(([, n]) => n !== 1)).toEqual([]);
+    const page = renderToStaticMarkup(<SetupLegend where="page" />);
+    for (const r of DEP_ROWS) expect(page).toContain(r.text);
+    for (const gone of ['Waits on a gate', 'Track needs track', 'Unknown capability', 'Tab walks the map', 'Locked']) expect(page).not.toContain(gone);
+    expect(renderToStaticMarkup(<SetupLegend />)).toContain('Tab walks the map');
   });
 });

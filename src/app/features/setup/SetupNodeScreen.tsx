@@ -21,7 +21,7 @@ export function SetupNodeScreen({ focus }: { focus: Focus }) {
       lede={<span title={head.tip}>{head.lede}</span>}
       subtitle={`${state.group} / ${state.project}`}
       status={<SetupStatus />}
-      help={<SetupLegend />}
+      help={<SetupLegend where="page" />}
       helpTitle="Legend"
     >
       <NodeBody focus={focus} />
