@@ -103,7 +103,7 @@ export function StepPanel({ n }: { n: number }) {
           </div>
         </DetailSection>
       )}
-      <DetailSection title="Last probe" aux={s.probe && !busy ? s.probe.at : undefined}>
+      <DetailSection title="Last probe">
         <ProbeLine probe={s.probe} busy={busy} what="GitLab" />
       </DetailSection>
       <DetailSection title="Frees" aux={freed ? plural(freed, 'track') : undefined}>

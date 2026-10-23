@@ -76,3 +76,11 @@ describe('StepPanel: an agent step', () => {
     expect(isDisabled(buttonTag(html(live(withStep(demo, agent, { st: 'probing' })), agent), 'Read again'))).toBe(true);
   });
 });
+
+describe('StepPanel: Last probe', () => {
+  it('says the clock of the probe once, on its line, not again in the section header', () => {
+    const out = html(withStep(demo, agent, { st: 'failed', probe: { at: '13:57', ok: false, text: 'no runner online' } }), agent);
+    expect(out.split('13:57').length - 1).toBe(1);
+    expect(out).toContain('no runner online');
+  });
+});
