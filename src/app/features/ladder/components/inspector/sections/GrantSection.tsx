@@ -28,6 +28,8 @@ const trialText = (r: NonNullable<ClassRow['record']>): string => (r.trial ? `${
  */
 export function GrantSection({ cls, policy, proofClass, proofDemo, live }: { cls: ClassRow; policy: PolicyRules | null; proofClass: string; proofDemo: boolean; live: boolean }) {
   const lease = leaseLeft(cls.lease_days, policy);
+  // lease_days 0 is a Hands-off lease already past (the index clamps it): the engine gates it at Supervised, policy or not
+  const lapsed = cls.tier === 'hands_off' && cls.lease_days === 0;
   const held = (RUNGS as readonly string[]).includes(cellOf(cls) ?? '');
   // the rung above, under the ceiling, where its decision acts alone (supervised approves, hands_off merges): its trial
   const at = rungIndex(cellOf(cls) as Ceiling);
@@ -39,7 +41,9 @@ export function GrantSection({ cls, policy, proofClass, proofDemo, live }: { cls
         rows={[
           ['Tier', shownName(cls)],
           ['Ceiling', TIER_META[cls.ceiling].name],
-          ...(noLease(policy) ? [] : [['Lease', lease ? `${lease}, then Supervised` : '—'] as [string, string]]),
+          ...(lapsed
+            ? [['Lease', 'lapsed · gated at Supervised until a person re-confirms'] as [string, string]]
+            : noLease(policy) ? [] : [['Lease', lease ? `${lease}, then Supervised` : '—'] as [string, string]]),
           [
             'Proof class',
             <span key="proof">

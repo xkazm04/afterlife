@@ -37,6 +37,17 @@ describe('the lease and the no-edit bar come from the policy', () => {
     expect(grant(none)).not.toContain('Lease');
     expect(cells(none)[1]).not.toContain('d left');
   });
+  it('lease_days 0 on a Hands-off grant is a lapsed lease, gated at Supervised, not "—"; on a lower tier it is no line', () => {
+    const lapsed = { ...cls, lease_days: 0 };
+    for (const policy of [seven, none]) {
+      expect(renderToStaticMarkup(<GrantSection cls={lapsed} policy={policy} proofClass="exploit-test" proofDemo={false} live />)).toContain('lapsed · gated at Supervised until a person re-confirms');
+      const cell = renderToStaticMarkup(<RecordCells cls={lapsed} policy={policy} />).split('role="gridcell"')[1];
+      expect(cell).toContain('>lapsed<');
+      expect(cell).toContain('title="Lease lapsed: the gate decides at Supervised until a person re-confirms"');
+    }
+    const lower = { ...lapsed, tier: 'supervised' as const };
+    expect(renderToStaticMarkup(<RecordCells cls={lower} policy={seven} />).split('role="gridcell"')[1]).not.toContain('lapsed');
+  });
   it('No-edit dims below the policy no_edit_ratio, not below a constant', () => {
     expect(cells(seven)[3]).toContain('85 %');
     const dim = (ratio: string) => cells(policyWith((y) => y.replace(/no_edit_ratio: [\d.]+/, `no_edit_ratio: ${ratio}`)))[3];
