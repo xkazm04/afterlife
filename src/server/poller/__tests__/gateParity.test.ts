@@ -108,5 +108,7 @@ describe('a record rewritten since the row\'s last move', () => {
     const revoked = row(at('revoked'), promoted);
     expect(revoked.move).toEqual({ kind: 'demoted', at: new Date('2026-10-09T10:00:00Z'), note: null });
     expect(row(at('revoked'), revoked).move).toEqual(revoked.move);
+    // a row with no move yet ("no change") reads the revoke too
+    expect(row(at('revoked'), { ...promoted, move: null }).move).toEqual(revoked.move);
   });
 });

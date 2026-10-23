@@ -108,7 +108,8 @@ export function deriveTiers(
       if (st.leaseLapsed) move = { kind: 'note', at: lease, note: 'lease lapsed: supervised' };
       else if (byOf(st.record)?.startsWith('tripwire')) move = { kind: 'tripwire', at: since, note: st.record.reason ?? null }; // the trigger
       else if (/promotion/i.test(byOf(st.record) ?? '')) move = { kind: 'promoted', at: since, note: null };
-      else if (since && move?.at && move.at < since) move = movedOf(prev?.tier ?? null, tier, since); // a revoke, a hand edit
+      // a revoke, a hand edit: the record was rewritten after the kept move, or after the row's own since when it has none
+      else if (since && ((move?.at && move.at < since) || (!move && prev?.since && prev.since < since))) move = movedOf(prev?.tier ?? null, tier, since);
       if (byOf(st.record)?.startsWith('tripwire') && tier === 'quarantined') {
         quarantines.push({ classId: id, role: c.agent, track, reason: st.record.reason ?? null, evidence: st.record.evidence ?? null, since });
       }
