@@ -97,7 +97,7 @@ export const Answer = memo(function Answer({
                 <Count n={totals.pass} {...COUNT_MARK} intro={intro} />
               </b>{' '}
               {plural(totals.pass, 'proof')} passed this week ·{' '}
-              <span className={styles.fl}>
+              <span className={totals.fail ? styles.fl : undefined}>
                 <Count n={totals.fail} {...COUNT_MARK} intro={intro} />
               </span>{' '}
               failed

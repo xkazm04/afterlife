@@ -106,16 +106,24 @@ describe('copy that counts: one is singular', () => {
     expect(lineOf(2)).toBe('1 project · 2 decisions wait');
     expect(lineOf(0)).toBe('1 project · 0 decisions wait');
   });
-  const answer = (over: Partial<ReturnType<typeof fleetTotals>>) => {
+  const html = (over: Partial<ReturnType<typeof fleetTotals>>) => {
     const totals = { ...fleetTotals([]), ...over };
     const props = { totals, tiers: [], staleTop: null, cycles: { projects: 0, gained: 0 }, intro: false, tabbable: true, locked: null, onMark: () => undefined, onLock: () => undefined, onOpen: () => undefined };
-    return renderToString(createElement(Answer, props)).replace(/<[^>]*>/g, '');
+    return renderToString(createElement(Answer, props));
+  };
+  const answer = (over: Partial<ReturnType<typeof fleetTotals>>) => {
+    return html(over).replace(/<[^>]*>/g, '');
   };
   it('says "1 class quarantined" and "1 proof passed" in the answer block', () => {
     expect(answer({ quar: 1, pass: 1 })).toContain('1 class quarantined');
     expect(answer({ quar: 1, pass: 1 })).toContain('1 proof passed this week');
     expect(answer({ quar: 25, pass: 40 })).toContain('25 classes quarantined');
     expect(answer({ quar: 25, pass: 40 })).toContain('40 proofs passed this week');
+  });
+  it('paints the failed count in the failure colour only when something failed, as the readout does', () => {
+    const failed = (fail: number) => /<span class="[^"]+">\d+<\/span> (<!-- -->)?failed/.test(html({ fail }));
+    expect([failed(0), failed(3)]).toEqual([false, true]);
+    expect(projectLine({ ...watching, proofs7d: { pass: 2, fail: 0, inconclusive: 0 } }).at(-1)).toEqual(['0 fail', 'plain']);
   });
 });
 
