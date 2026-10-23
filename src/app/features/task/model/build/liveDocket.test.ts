@@ -28,7 +28,7 @@ describe('the docket in live mode', () => {
     setDataSource(live());
     const tasks = loadTasks();
     expect(tasks.map((t) => t.id)).toEqual(['01J8Q4']);
-    expect(verdictCounts(tasks)).toEqual({ all: 1, pass: 1, fail: 0 });
+    expect(verdictCounts(tasks)).toEqual({ all: 1, pass: 1, fail: 0, open: 0 });
     for (const id of FIXTURE_ONLY) expect(tasks.find((t) => t.id === id)).toBeUndefined();
     expect(firstTaskId()).toBe('01J8Q4');
   });
