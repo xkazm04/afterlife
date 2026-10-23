@@ -43,6 +43,14 @@ describe('ProjectRow tier cells', () => {
   });
 });
 
+describe('ProjectRow class cells', () => {
+  it('names a class with no tier unknown, as the project page does, instead of an untitled blank', () => {
+    const out = row(makeProject({ id: 'a', classTiers: { a: 'hands_off' } }), { view: 'classes' });
+    expect(out).toContain('title="a: Hands-off"');
+    expect(out).toContain('title="b: unknown"');
+  });
+});
+
 describe('ProjectRow stage cells', () => {
   const cells = (html: string) => (html.match(/role="gridcell"/g) ?? []).length;
 
