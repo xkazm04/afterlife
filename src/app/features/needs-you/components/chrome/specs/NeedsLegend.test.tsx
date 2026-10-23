@@ -1,6 +1,8 @@
 // The legend's grade sentence follows GRADES (the band and the inspector's source), and its wording is pinned.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { capsOf } from '@/lib/keyboard/keymap';
+import { NEEDS_KEYMAP } from '../../../model/keys/keymap';
 import { GRADES, GRADE_NEVER } from '../../../data/cra';
 import { pickNeedsYouDemo } from '../../../data/pick';
 import { GLYPH_MEANS, NeedsLegend } from '../NeedsLegend';
@@ -25,5 +27,14 @@ describe('NeedsLegend row states', () => {
     expect(html.match(/viewBox="0 0 10 10"/g)).toHaveLength(Object.keys(GLYPH_MEANS).length);
     expect(text()).toContain('Set aside');
     expect(text()).toContain('A gap you can pick');
+  });
+});
+
+describe('NeedsLegend key line', () => {
+  it('names every key the Needs you keymap binds (Esc included)', () => {
+    const line = /<div class="[^"]*keys[^"]*">(.*?)<\/div>/.exec(renderToStaticMarkup(<NeedsLegend tierMeans={pickNeedsYouDemo().tierMeans} />))?.[1]?.toLowerCase() ?? '';
+    const caps = NEEDS_KEYMAP.entries.flatMap((e) => capsOf(e.keys));
+    expect(caps).toContain('Esc');
+    expect(caps.filter((c) => !line.includes(c.toLowerCase()))).toEqual([]);
   });
 });
