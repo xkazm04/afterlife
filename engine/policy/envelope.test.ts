@@ -25,6 +25,15 @@ describe('globs', () => {
     expect(matchesPath('.gitlab-ci.yml', 'services/x/.gitlab-ci.yml')).toBe(true);
     expect(matchesPath('CODEOWNERS', 'docs/CODEOWNERS.md')).toBe(false);
   });
+  it('reads a leading / as the repository root and a trailing / as everything under the folder, as .gitignore does', () => {
+    // a diff path never starts with "/" nor ends with one: these patterns used to match nothing, so a deny rule was off
+    expect(matchesPath('/.gitlab-ci.yml', '.gitlab-ci.yml')).toBe(true);
+    expect(matchesPath('/.gitlab-ci.yml', 'services/x/.gitlab-ci.yml')).toBe(false); // anchored: the root file only
+    expect(matchesPath('/.gitlab/**', '.gitlab/ci/build.yml')).toBe(true);
+    expect(matchesPath('secrets/', 'secrets/prod/key.pem')).toBe(true);
+    expect(matchesPath('/infra/', 'infra/main.tf')).toBe(true);
+    expect(matchesPath('secrets/', 'secrets.yml')).toBe(false);
+  });
   it('matches environments as whole names', () => {
     expect(matchesEnvironment('review/*', 'review/mr-41')).toBe(true);
     expect(matchesEnvironment('review/*', 'review/a/b')).toBe(false);
