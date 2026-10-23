@@ -29,6 +29,10 @@ vi.mock('react', async (orig) => ({
     return cells[i];
   },
   useEffect: (fn: Fn) => void effects.push(fn),
+  useSyncExternalStore: (subscribe: (n: () => void) => () => void, get: () => unknown) => {
+    effects.push(() => subscribe(() => void (dirty = true)));
+    return get();
+  },
 }));
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/ladder' }));
@@ -62,7 +66,7 @@ beforeEach(() => {
 
 describe('window focus and the traffic lights', () => {
   // The lights' class carries `inactive` only when unfocused; CSS modules give different strings for the two states.
-  it.fails('draws the lights inactive on mount when the document has no focus', () => {
+  it('draws the lights inactive on mount when the document has no focus', () => {
     hasFocus = false;
     pass(TrafficLights, {});
     effects.forEach((e) => e());
@@ -74,18 +78,21 @@ describe('window focus and the traffic lights', () => {
     expect(mounted.props.className).not.toBe(focused.props.className);
   });
 
-  it.fails('greys and relights the lights on blur and focus', () => {
+  it('greys and relights the lights on blur and focus', () => {
     const cls = () => pass(TrafficLights, {}).props.className;
     pass(TrafficLights, {});
     effects.forEach((e) => e());
     const lit = cls();
+    hasFocus = false;
     fire('blur');
+    expect(dirty).toBe(true);
     expect(cls()).not.toBe(lit);
+    hasFocus = true;
     fire('focus');
     expect(cls()).toBe(lit);
   });
 
-  it.fails('keeps the focus state out of Window, so a blur does not re-render the chrome', () => {
+  it('keeps the focus state out of Window, so a blur does not re-render the chrome', () => {
     pass(Window, { title: 'x' });
     effects.forEach((e) => e());
     dirty = false;
