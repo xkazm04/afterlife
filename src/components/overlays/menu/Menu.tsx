@@ -3,7 +3,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { clampToViewport } from '../position';
-import { isAction, moveActive, type MenuAction, type MenuEntry, type MenuMove } from './menuModel';
+import { enabledIndexes, isAction, moveActive, type MenuAction, type MenuEntry, type MenuMove } from './menuModel';
 import styles from './Menu.module.css';
 
 const MOVES: Record<string, MenuMove | undefined> = { ArrowDown: 'next', ArrowUp: 'prev', Home: 'first', End: 'last' };
@@ -39,7 +39,8 @@ export function Menu<D = unknown>({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const uid = useId();
-  const [active, setActive] = useState(initialActive);
+  // A requested start that cannot run (a head, a separator, a disabled item) moves on to the first one that can.
+  const [active, setActive] = useState(() => (initialActive < 0 || enabledIndexes(items).includes(initialActive) ? initialActive : moveActive(items, -1, 'first')));
   const [pos, setPos] = useState({ x, y });
   const latest = useRef({ items, onHighlight });
   useEffect(() => {

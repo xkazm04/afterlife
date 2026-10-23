@@ -18,3 +18,23 @@ describe('Menu accessible name', () => {
     expect(render()).not.toContain('aria-label');
   });
 });
+
+describe('Menu first highlight', () => {
+  // useMenu's highlightFirst passes index 0, which a caller's menu often spends on a head ("Take it to ·", "Proof class").
+  const lit = (list: Parameters<typeof Menu>[0]['items'], initialActive: number): string | null => {
+    const html = renderToStaticMarkup(<Menu items={list} x={0} y={0} onRun={() => {}} onClose={() => {}} initialActive={initialActive} />);
+    const id = /aria-activedescendant="([^"]+)"/.exec(html)?.[1];
+    if (!id) return null;
+    return new RegExp(`id="${id}"[^>]*>(?:<span[^>]*>[^<]*</span>)?<span>([^<]*)</span>`).exec(html)?.[1] ?? 'MISSING';
+  };
+  it('skips a head, a separator and a disabled entry to the first item that can run', () => {
+    expect(lit([{ head: 'Take it to' }, { sep: true }, { label: 'Off', disabled: true, run: () => {} }, { label: 'Supervised', run: () => {} }], 0)).toBe('Supervised');
+  });
+  it('keeps an enabled initial item as given', () => {
+    expect(lit([{ label: 'A', run: () => {} }, { label: 'B', run: () => {} }], 1)).toBe('B');
+  });
+  it('highlights nothing when nothing was asked for, or when no entry can run', () => {
+    expect(lit([{ head: 'H' }, { label: 'A', run: () => {} }], -1)).toBeNull();
+    expect(lit([{ head: 'H' }, { label: 'A', disabled: true, run: () => {} }], 0)).toBeNull();
+  });
+});
