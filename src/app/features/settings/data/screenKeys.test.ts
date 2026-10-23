@@ -101,3 +101,12 @@ describe('screenKeys.ts stays server-safe', () => {
     for (const f of files) expect(firstStatement(readFileSync(f, 'utf8')), f).not.toMatch(/^['"]use client['"]$/);
   });
 });
+
+// The About page is a server component too, and browserKeys.ts reaches into the fleet and door models for their keys.
+describe('browserKeys.ts stays server-safe', () => {
+  const files = closure(join(SRC, 'app/features/settings/data/browserKeys.ts'));
+  it("imports no 'use client' module", () => {
+    expect(files.length).toBeGreaterThan(3);
+    for (const f of files) expect(firstStatement(readFileSync(f, 'utf8')), f).not.toMatch(/^['"]use client['"]$/);
+  });
+});
