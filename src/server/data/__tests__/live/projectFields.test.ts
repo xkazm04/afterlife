@@ -43,3 +43,13 @@ describe('the polled project’s own fields', () => {
     expect(open(v.webUrl)).toMatchObject({ kind: 'disabled', reason: 'the index stores no GitLab address yet' });
   });
 });
+
+describe('stability, read beside the fleet (never in FleetProject)', () => {
+  it('live: every polled project has one (a seeded one never polled has none); demo: the deep project from its tasks, facts unknown', () => {
+    const l = live.getStability();
+    expect(l.ledgerline?.n).toBeGreaterThan(0);
+    expect('fx-rates' in l).toBe(false);
+    expect(demoSource.getStability()).toEqual({ ledgerline: { n: 2, medianSize: null, redRate: null, failed: 0, finals: 0, reverts: 0 } });
+    expect(row(live)).not.toHaveProperty('stability');
+  });
+});

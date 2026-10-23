@@ -99,6 +99,10 @@ export const readRoutes: Route[] = [
     );
     return list(rows, q);
   })],
+  ['GET', new RegExp(`^${P}/pipelines/(\\d+)$`), inProject((p, m) => {
+    const r = p.pipelines.find((x) => String(x.id) === m[2]);
+    return r ? ok(r) : fail(404, '404 Not found');
+  })],
   ['GET', new RegExp(`^${P}/pipelines/(\\d+)/jobs$`), inProject((p, m, { query: q }) => list(p.jobs[m[2] ?? ''] ?? [], q))],
   ['GET', new RegExp(`^${P}/pipelines/(\\d+)/test_report_summary$`), inProject((p, m) => {
     const r = p.testReports[m[2] ?? ''];

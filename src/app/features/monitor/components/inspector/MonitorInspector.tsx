@@ -10,6 +10,7 @@ import { TierMark } from '@/components/status/TierMark';
 import { StageTicks } from '@/components/viz/StageTicks';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { plural, pluralWord } from '@/lib/format/plural';
+import { stabilityLine, type Stability } from '@/lib/stability/stability';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import { liveNeeds, stateLine, topWaiting } from '../../model/totals';
 import type { Totals } from '../../model/types';
@@ -52,7 +53,7 @@ function Overview({ org, totals, projects, onPick }: { org: string; totals: Tota
   );
 }
 
-/** The inspector: the fleet overview with nothing picked, else the picked project's vitals and its items to act on. */
+/** The inspector: the fleet overview with nothing picked, else the picked project's vitals (its agent MRs' stability too) and its items to act on. */
 export function MonitorInspector(props: {
   p: FleetProject | null;
   org: string;
@@ -67,6 +68,8 @@ export function MonitorInspector(props: {
   onResolve: (needId: string, does: string) => void;
   onFlash: (message: string) => void;
   onRepoll: (id: string) => void;
+  /** The picked project's agent-MR stability (read beside the fleet); absent: not read, no line. */
+  stability?: Stability;
 }) {
   const { p } = props;
   if (!p) return <Overview org={props.org} totals={props.totals} projects={props.projects} onPick={props.onPick} />;
@@ -85,6 +88,7 @@ export function MonitorInspector(props: {
       </InspectorHeader>
       {watched ? <Stats cells={cells} /> : <div className={styles.muted}>Not watched: proofs, tiers and stages are unknown.</div>}
       {watched && p.armed === null ? <div className={styles.muted}>Armed tracks not read: unknown, not zero.</div> : null}
+      {props.stability ? <div className={styles.muted}>Agent MRs: {stabilityLine(props.stability)}</div> : null}
       <Decisions p={p} isDeep={p.id === props.deepId} needs={props.needs} live={props.live} done={props.done} onResolve={props.onResolve} onFlash={props.onFlash} onRepoll={props.onRepoll} />
       {watched ? (
         <InspectorSection title="Signal" aux={<FeedAge ageSec={p.feed.ageSec} ok={p.feed.ok} error={p.feed.error} />}>

@@ -27,6 +27,11 @@ client `FleetScreen`.
   `sections/cost/CostSection` says spent and waves, a dash for a cost no repo reported, "Not metered" (and the repos
   not in Fleet) when no repo works it; the group row's last (feed) column sums the group's known costs, titled
   "n of m projects metered", a dash when none is, never $0. Per project and per group only, never per person.
+- Stability (the DataSource's `getStability`, `src/lib/stability`): the same `estate` carries each project's agent MRs
+  over the last 7 days. `sections/stability/StabilitySection` says "n agent MRs in 7 d · median size · red pipelines x%
+  (k of f) · reverts r", "no agent MRs in 7 d" when n is 0, "Not read" for a project no poll linked, and in demo mode
+  that it counted the demo's tasks (no sizes or pipelines). In the Tiers view the group row's Stages column carries the
+  group's red pipelines (failed of the final head pipelines, summed, with that n); a dash when none is final.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
   handlers, narrow / compact measuring, and `useRepoll` (simulated in demo, the server in live).

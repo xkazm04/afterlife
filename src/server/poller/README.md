@@ -21,6 +21,15 @@ Tests never start a timer.
    - MRs updated in the last 7 days (`state=all`): the proof roll-up counts `proof::*` labels (`updated_at` stands in for the proof time);
    - MRs updated in the last 24 h (`BELAY_TASK_HOURS`) are read as tasks: description trailers, notes (cached by `updated_at`),
      deployments (for "merged · in production");
+   - each such agent MR's facts (`mrFacts/facts.ts`), for the stability view: its size (lines added + removed over
+     `listDiffs`, counted from the hunk lines GitLab returns, so a diff GitLab collapses as too large counts short), cached
+     by head sha in `PollMemory.mrSizes` (a sha's diff never changes), and its head pipeline's status (one
+     `get('projects/:id/pipelines/:pid')`: the port has no single-pipeline read and `listPipelines` cannot filter by id),
+     mapped to success / failed / canceled / running / null and cached in `PollMemory.mrPipelines` only once final, so a
+     running one is read again. At most `FACT_READS` (20) calls per project per poll, the rest null and left for the next
+     poll with an issue; a failed read is null with an issue, never 0. Both land in the task's `detail` (`size`,
+     `pipeline`) through `mergeTask`; facts are read only for the MRs this poll derives tasks from (the task window), so
+     a pipeline that finishes after its MR left the window keeps its last read;
    - `importLedger` (see `../ledger`); a rejected ledger still lets the rest land, then fails the feed;
    - armed tracks (`ci/armed.ts`): the newest commit touching the default branch's `.gitlab-ci.yml` (`listCommits`, limit 1)
      and, only when that commit changed since the last poll (`PollMemory.ciFiles`), the file itself. Each track's

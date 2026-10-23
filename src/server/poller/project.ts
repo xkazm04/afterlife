@@ -1,16 +1,16 @@
-// One poll of one project: read GitLab (MRs, notes, deployments, the CI file's arm markers, the ledger), then write every derived row in one
+// One poll of one project: read GitLab (MRs, notes, deployments, agent MRs' sizes and pipelines, the CI file's arm markers, the ledger), then write every derived row in one
 // transaction. Reads come first, so a failed read writes nothing and the project keeps its last good rows.
 import type { PGlite } from '@electric-sql/pglite';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { GlDeployment, GlGroup, GlMergeRequest, GlNote, GlProject } from '@/server/gitlab/types';
 import { importLedger, type LedgerSource } from '@/server/ledger/importLedger';
 import { importCycles } from '@/server/ledger/importCycles';
-import { upsertProjects, type ProjectRow } from '@/server/index/repositories/fleet/project';
+import { setProjectState, upsertProjects, type ProjectRow } from '@/server/index/repositories/fleet/project';
 import { deleteProofs, upsertProofs } from '@/server/index/repositories/work/proof';
 import { countOpenInbox } from '@/server/index/repositories/work/proposal';
 import { getTaskRow, upsertTasks, type TaskDetail, type TaskRow } from '@/server/index/repositories/work/task';
 import { recordPollError, recordPollOk, projectSource } from '@/server/index/repositories/pollState';
-import { setProjectState } from '@/server/index/repositories/fleet/project';
+import { addMrFacts } from './mrFacts/facts';
 import { getLastTaskEvent } from '@/server/index/views/events';
 import type { Queryable } from '@/server/index/repositories/sql';
 import type { PollerConfig } from './config';
@@ -128,6 +128,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
         out.issues.push(...d.issues);
       }
     }
+    await addMrFacts(port, env.mem, gl, recent, derived, out.issues); // each agent MR's size and head pipeline, onto its task's detail
 
     let ledgerError: string | null = null;
     if (env.ledger) {

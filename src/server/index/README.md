@@ -31,7 +31,9 @@ tables above. NULL means unknown, never zero.
   `migrate(db)` applies exactly `[9]` broke when 0010 arrived, and updating every older test per new migration ties each
   test to every later one (c4fd9d2). `repositories/` typed, parameterised functions per table (no ORM).
 - `views/` return the shapes in `src/lib/demo` (`getFleet`, `getNeedsYou`, `getActionClasses`, `getMaturity`,
-  `getTasks`, and `getEvents`: the deep project's recent events, dated only by what the index holds with a time). Countdowns and ages are computed from stored instants with a `now` argument. Where the index cannot
+  `getTasks`, and `getEvents`: the deep project's recent events, dated only by what the index holds with a time;
+  `stability/` `getStability`, each polled project's agent MRs started in the last 7 days, folded from the `size` and
+  `pipeline` the poller stores on the task detail). Countdowns and ages are computed from stored instants with a `now` argument. Where the index cannot
   know a value the field is `null` (types widened in `views/types.ts`).
 - `seed/` loads `belay-demo.json` anchored at `SEED_NOW` (14:22 UTC) so tests can prove the views match the demo.
 

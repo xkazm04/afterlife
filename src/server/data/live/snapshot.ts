@@ -3,8 +3,9 @@
 // catalogue, unchanged: see data/README.md for the list.
 import type { CycleHistory } from '@/lib/demo/cycles/types';
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
+import type { Stability } from '@/lib/stability/stability';
 import type { LedgerEvent } from '@/schemas/ledger';
-import { clock, getActionClasses, getDecided, getEstateCycles, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
+import { clock, getActionClasses, getDecided, getEstateCycles, getEvents, getFleet, getMaturity, getNeedsYou, getStability, getTasks } from '@/server/index/views';
 import { getProjectRow, listProjects } from '@/server/index/repositories/fleet/project';
 import { readLedger } from '@/server/index/repositories/ledger/ledger';
 import { getPairing, type PairingRow } from '@/server/index/repositories/pairing';
@@ -40,6 +41,8 @@ export interface LiveData {
   poll: PollHealth;
   /** Every project with a recorded cycle, by project id (the deep project included). */
   estate: Record<string, CycleHistory>;
+  /** Each polled project's agent-MR stability over the last 7 days (index/views/stability). */
+  stability: Record<string, Stability>;
 }
 
 export interface LiveSnapshot {
@@ -54,10 +57,10 @@ export interface LiveSnapshot {
  * poll_state, and its last failure must not mark today's group failed and its tiers stale forever.
  */
 export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData, policy: PolicyRules | null = null, group: string | number = readConfig().groupId): Promise<LiveSnapshot> {
-  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyRead, ledger, poll, estate, decided] = await Promise.all([
+  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyRead, ledger, poll, estate, decided, stability] = await Promise.all([
     getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getEvents(db, deep), getNeedsYou(db, deep, at),
     getPairing(db, 'default'), getPollState(db, policySource(group)), deepLedger(db, deep), pollRows(db, group).then((rows) => pollHealthOf(rows, at)),
-    getEstateCycles(db, at), getDecided(db, deep, at),
+    getEstateCycles(db, at), getDecided(db, deep, at), getStability(db, at),
   ]);
   const tiersStale = policyRead && policyRead.lastError !== null ? { reason: policyRead.lastError, lastOk: policyRead.lastOk?.toISOString() ?? null } : null;
   const paired = pairing?.groupPath ?? 'not paired';
@@ -84,6 +87,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       ledger,
       poll,
       estate,
+      stability,
     },
   };
 }

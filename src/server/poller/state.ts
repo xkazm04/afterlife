@@ -20,13 +20,24 @@ export interface PollMemory {
   states: Map<string, StateRevision>;
   /** GitLab project id -> the default branch's .gitlab-ci.yml as last read: the newest commit touching it, and its armed tracks. */
   ciFiles: Map<number, { key: string; armed: number }>;
+  /** An agent MR's size at a head sha (a sha's diff never changes): key `<project id>!<iid>` (mrFacts/facts.ts). */
+  mrSizes: Map<string, { sha: string; size: number }>;
+  /** An agent MR's head pipeline once final (success, failed, canceled): key `<project id>!<iid>`. Running is re-read. */
+  mrPipelines: Map<string, { id: number; status: 'success' | 'failed' | 'canceled' }>;
 }
 
-export const createMemory = (): PollMemory => ({ notes: new Map(), ledger: new Map(), cycles: new Map(), scans: new Map(), states: new Map(), ciFiles: new Map() });
+export const createMemory = (): PollMemory => ({
+  notes: new Map(), ledger: new Map(), cycles: new Map(), scans: new Map(), states: new Map(), ciFiles: new Map(), mrSizes: new Map(), mrPipelines: new Map(),
+});
 
-/** Forget what is held for a GitLab project that is no longer polled (left the group, archived): its notes, its scan, its ledger, its cycle file and its CI file. */
+const projectOf = (key: string): number => Number(key.slice(0, key.indexOf('!')));
+
+/**
+ * Forget what is held for a GitLab project that is no longer polled (left the group, archived): its notes, its scan, its
+ * ledger, its cycle file, its CI file and its MRs' sizes and pipelines.
+ */
 export function forgetProjects(mem: PollMemory, polled: ReadonlySet<number>): void {
-  for (const key of mem.notes.keys()) if (!polled.has(Number(key.slice(0, key.indexOf('!'))))) mem.notes.delete(key);
+  for (const map of [mem.notes, mem.mrSizes, mem.mrPipelines]) for (const key of map.keys()) if (!polled.has(projectOf(key))) map.delete(key);
   for (const id of mem.scans.keys()) if (!polled.has(id)) mem.scans.delete(id);
   for (const id of mem.ledger.keys()) if (!polled.has(id)) mem.ledger.delete(id);
   for (const id of mem.cycles.keys()) if (!polled.has(id)) mem.cycles.delete(id);

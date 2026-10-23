@@ -1,6 +1,7 @@
 // The demo data source: exactly what the screens read from src/lib/demo before B6. No index, no GitLab. The policy's
 // rules are this checkout's policy/trust-policy.yml.
 import * as demo from '@/lib/demo';
+import { foldStability } from '@/lib/stability/stability';
 import { repoPolicy } from './policy';
 import { DEMO_HUMAN_KEY } from './setup/humanKey';
 import type { DataSource } from './types';
@@ -32,4 +33,8 @@ export const demoSource: DataSource = {
   humanKey: () => Promise.resolve(DEMO_HUMAN_KEY),
   getCycles: demo.getCycles,
   getEstateCycles: demo.getEstateCycles,
+  // the demo's tasks are the deep project's; they name MRs but no sizes, pipelines or dates: those stay unknown
+  getStability: () => ({
+    [demo.LEDGERLINE_ID]: foldStability(demo.getTasks().filter((t) => t.mr !== null).map((t) => ({ size: null, pipeline: null, reverted: t.state === 'reverted' }))),
+  }),
 };

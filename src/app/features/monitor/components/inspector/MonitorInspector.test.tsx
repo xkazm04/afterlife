@@ -38,3 +38,15 @@ describe('MonitorInspector with nothing picked', () => {
   });
   it('lists who waits most when someone does', () => expect(html(null, [proj({ needsYou: 3 })], totals({ needs: 3, needsP: 1 }))).not.toContain('Nothing waits'));
 });
+
+describe('MonitorInspector stability line', () => {
+  const s = { n: 4, medianSize: 25, redRate: 0.5, failed: 1, finals: 2, reverts: 1 };
+  const picked = (stability?: typeof s) =>
+    renderToStaticMarkup(
+      <MonitorInspector p={proj({})} org="acme" totals={totals({})} projects={[proj({})]} stages={[]} deepId="deep" needs={[]} live={false} done={new Set()} onPick={() => undefined} onResolve={() => undefined} onFlash={() => undefined} onRepoll={() => undefined} stability={stability} />,
+    );
+  it("says the picked project's agent MRs with the red rate's n", () => {
+    expect(picked(s)).toContain('Agent MRs: 4 agent MRs in 7 d · median size 25 lines · red pipelines 50% (1 of 2) · reverts 1');
+  });
+  it('not read: no line, never a zero', () => expect(picked()).not.toContain('Agent MRs:'));
+});

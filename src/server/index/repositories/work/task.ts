@@ -1,4 +1,5 @@
 import type { Task } from '@/lib/demo/types';
+import type { PipelineState } from '@/lib/stability/stability';
 import type { Ceiling } from '@/schemas/tier';
 import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from '../sql';
 
@@ -17,6 +18,10 @@ export type TaskDetail = Partial<Pick<Task, 'chain' | 'agentWords' | 'countsTowa
    * account (config.agents). An agent closing its own MR is no person turning it down (src/schemas/trial.ts). Absent: not stated.
    */
   closedBy?: { username: string; agent: boolean };
+  /** Lines added + removed over the MR's diffs at its head (poller/mrFacts). null: not read; absent: a row from before. */
+  size?: number | null;
+  /** The MR's head pipeline: a final status or running (poller/mrFacts). null: none, or not read. */
+  pipeline?: PipelineState | null;
 };
 
 export interface TaskRow {

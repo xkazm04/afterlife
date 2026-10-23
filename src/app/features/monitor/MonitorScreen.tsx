@@ -18,7 +18,8 @@ import styles from './monitor.module.css';
 /**
  * Monitor: the whole fleet as phosphor leads, one per group, every project a beat. Amber pips are what waits
  * for you; pick a beat and act on it in the inspector. Demo: nothing leaves the browser. Live: Resolve opens Needs you and Re-poll runs a real poll.
- * `estate` is what the route reads beside the fleet (the agents' spend); absent, the readout says nothing of it.
+ * `estate` is what the route reads beside the fleet (the agents' spend, each project's agent-MR stability); absent, the
+ * readout and the inspector say nothing of it.
  */
 export function MonitorScreen({ data, estate }: { data: MonitorData; estate?: MonitorEstate }) {
   const { status } = useToast();
@@ -63,6 +64,7 @@ export function MonitorScreen({ data, estate }: { data: MonitorData; estate?: Mo
           }}
           onFlash={status}
           onRepoll={(id) => m.repoll(id, status)}
+          stability={m.selected ? estate?.stability?.[m.selected] : undefined}
         />
       }
       status={

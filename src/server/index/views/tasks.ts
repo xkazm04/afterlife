@@ -5,11 +5,16 @@ import type { Queryable } from '../repositories/sql';
 import { countdown } from './format';
 import type { TaskView } from './types';
 
-/** The stored facts a screen draws: not the clock (drawn as a countdown below), nor `edited`, which only the counters read. */
-function factsOf(detail: TaskDetail): Omit<TaskDetail, 'clock' | 'edited'> {
+/**
+ * The stored facts a screen draws: not the clock (drawn as a countdown below), nor `edited`, which only the counters read,
+ * nor `size` and `pipeline`, which only the stability view reads (views/stability).
+ */
+function factsOf(detail: TaskDetail): Omit<TaskDetail, 'clock' | 'edited' | 'size' | 'pipeline'> {
   const facts = { ...detail };
   delete facts.clock;
   delete facts.edited;
+  delete facts.size;
+  delete facts.pipeline;
   return facts;
 }
 

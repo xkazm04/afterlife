@@ -3,7 +3,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { makeProject } from '../../model/testProject';
-import type { FleetMeta } from '../../model/types';
+import type { FleetEstate, FleetMeta } from '../../model/types';
 import { GroupTotalsRow, type GroupTotalsRowProps } from './GroupTotalsRow';
 
 const meta: FleetMeta = { classes: ['a'], stages: ['s'], tiers: {} as FleetMeta['tiers'] };
@@ -38,14 +38,31 @@ describe('GroupTotalsRow agent spend', () => {
   const spend = (estate: GroupTotalsRowProps['estate']) =>
     renderToStaticMarkup(createElement(GroupTotalsRow, { group: 'core', list, view: 'tiers', ranked: null, meta, expanded: true, selected: false, h, estate })).slice(-400);
   it('sums the metered projects and says how many of the group are metered', () => {
-    const out = spend({ cost: { byProject: { a: { costUsd: 2, waves: 1, repos: ['a'] }, b: { costUsd: 0.5, waves: 1, repos: ['b'] } }, unmatched: [] } });
+    const out = spend({ cost: { byProject: { a: { costUsd: 2, waves: 1, repos: ['a'] }, b: { costUsd: 0.5, waves: 1, repos: ['b'] } }, unmatched: [] }, stability: null });
     expect(out).toContain('>$2.50<');
     expect(out).toContain('2 of 3 projects metered');
   });
   it('none metered is a dash, never $0; not read is an empty cell', () => {
-    const none = spend({ cost: { byProject: { a: { costUsd: null, waves: 0, repos: ['a'] } }, unmatched: [] } });
+    const none = spend({ cost: { byProject: { a: { costUsd: null, waves: 0, repos: ['a'] } }, unmatched: [] }, stability: null });
     expect(none).toContain('>-<');
     expect(none).not.toContain('$0');
-    expect(spend({ cost: null })).not.toContain('metered');
+    expect(spend({ cost: null, stability: null })).not.toContain('metered');
+  });
+});
+
+describe('GroupTotalsRow red pipelines', () => {
+  const list = [makeProject({ id: 'a' }), makeProject({ id: 'b' }), makeProject({ id: 'c' })];
+  const s = (failed: number, finals: number) => ({ n: finals, medianSize: null, redRate: finals ? failed / finals : null, failed, finals, reverts: 0 });
+  const row = (stability: FleetEstate['stability']) =>
+    renderToStaticMarkup(createElement(GroupTotalsRow, { group: 'core', list, view: 'tiers', ranked: null, meta, expanded: true, selected: false, h, estate: { cost: null, stability } }));
+  it('sums failed over the final pipelines of the projects read, with its n', () => {
+    const out = row({ a: s(1, 3), b: s(1, 1) });
+    expect(out).toContain('>50% red · 4<');
+    expect(out).toContain('2 of 4 final head pipelines');
+  });
+  it('no final pipeline is a dash, never 0%; nothing read is an empty cell', () => {
+    expect(row({ a: s(0, 0) })).toContain('no agent MR in core has a final head pipeline');
+    expect(row({})).not.toContain('Red pipelines');
+    expect(row(null)).not.toContain('Red pipelines');
   });
 });

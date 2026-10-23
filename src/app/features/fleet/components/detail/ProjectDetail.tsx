@@ -7,6 +7,7 @@ import { FleetLegend } from '../legend/FleetLegend';
 import type { FleetEstate } from '../../model/types';
 import { ClassesSection } from '../inspector/sections/ClassesSection';
 import { CostSection } from '../inspector/sections/cost/CostSection';
+import { StabilitySection } from '../inspector/sections/stability/StabilitySection';
 import { EventsSection } from '../inspector/sections/EventsSection';
 import { FeedSection } from '../inspector/sections/FeedSection';
 import { ImprovementSection } from '../inspector/sections/ImprovementSection';
@@ -17,10 +18,10 @@ import { TasksSection } from '../inspector/sections/tasks/TasksSection';
 import { TracksSection } from '../inspector/sections/TracksSection';
 
 /**
- * /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, improvement, agent cost, feed, events,
- * tracks).
+ * /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, improvement, agent cost, stability,
+ * feed, events, tracks).
  * How deep the project is read and what its buttons do were decided on the server (`view`); each section draws its slice.
- * `estate` is what the route reads beside the fleet (the agent cost); absent, its cards say not read.
+ * `estate` is what the route reads beside the fleet (agent cost, stability); absent, its cards say not read.
  */
 export function ProjectDetail({ project: p, data, view, estate }: FleetProjectView & { estate?: FleetEstate }) {
   const { depth } = view;
@@ -47,6 +48,7 @@ export function ProjectDetail({ project: p, data, view, estate }: FleetProjectVi
       <StagesSection p={p} stages={data.stages} />
       <ImprovementSection p={p} cycle={depth.kind === 'deep' ? depth.tracks.deep.cycle : null} />
       <CostSection id={p.id} cost={estate?.cost} />
+      <StabilitySection s={estate?.stability?.[p.id]} demo={view.mode === 'demo'} />
       <FeedSection {...depth.feed} />
       <EventsSection events={depth.events} live={view.mode === 'live'} />
       {depth.kind === 'deep' ? <TracksSection {...depth.tracks} /> : null}

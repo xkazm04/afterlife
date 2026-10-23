@@ -12,6 +12,7 @@ import { columnRole } from '../../model/list/sorting';
 import { sumCost } from '@/lib/runs/desk/join';
 import type { FleetEstate, FleetMeta, FleetView } from '../../model/types';
 import { CostTotalCell } from './cells/CostTotalCell';
+import { RedRateCell } from './cells/RedRateCell';
 import { ProofsCell } from './cells/ProofsCell';
 import { TierTotalCell } from './cells/TierTotalCell';
 import cells from './cells/cells.module.css';
@@ -26,7 +27,7 @@ export interface GroupTotalsRowProps {
   expanded: boolean;
   selected: boolean;
   h: RowHandlers;
-  /** Read beside the fleet: the group's agent spend sums its projects' (absent or not read: an empty cell). */
+  /** Read beside the fleet: the group's agent spend and red pipelines sum its projects' (absent or not read: an empty cell). */
   estate?: FleetEstate;
 }
 
@@ -39,7 +40,10 @@ function TotalCells({ list, view, ranked, meta }: Pick<GroupTotalsRowProps, 'lis
   });
 }
 
-/** A collapsible group header with the group's totals in the same columns as its projects; the feed column carries its agent spend. */
+/**
+ * A collapsible group header with the group's totals in the same columns as its projects; in the Tiers view the stages
+ * column carries its agent MRs' red pipelines, and the feed column its agent spend.
+ */
 export const GroupTotalsRow = memo(function GroupTotalsRow({ group, list, view, ranked, meta, expanded, selected, h, estate }: GroupTotalsRowProps) {
   const waiting = needsSum(list);
   const cost = estate?.cost ? sumCost(estate.cost.byProject, list.map((p) => p.id)) : null;
@@ -53,7 +57,7 @@ export const GroupTotalsRow = memo(function GroupTotalsRow({ group, list, view, 
       <Cell className={cells.pc}>
         <ProofsCell proofs={list.some((p) => p.proofs7d) ? proofsSum(list) : null} />
       </Cell>
-      {view === 'tiers' ? <Cell /> : null}
+      {view === 'tiers' ? <RedRateCell list={estate?.stability ? list.map((p) => estate.stability?.[p.id]) : []} group={group} /> : null}
       <CostTotalCell sum={cost} group={group} />
     </GroupRow>
   );

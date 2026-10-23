@@ -53,5 +53,6 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     },
     getCycles: () => data().estate[snapshot().deep] ?? historyOf([], snapshot().at), // the view's own empty history
     getEstateCycles: () => data().estate,
+    getStability: () => data().stability,
   };
 }

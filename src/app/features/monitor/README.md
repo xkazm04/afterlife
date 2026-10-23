@@ -24,6 +24,8 @@ DataSource, so it works in demo and live mode) and renders the client `MonitorSc
   the pointer or the keyboard is on. With nothing under it, a line says what the cycle runner's agents spent across the
   metered projects (all recorded runs; `data/loadMonitorEstate.ts`, the route's own `estate` prop, never in
   `FleetProject`); no project metered or no runs read: no line, never $0.
+- The inspector's picked project carries one stability line (its agent MRs over 7 days, red pipelines with their n,
+  from the same `estate`); not read: no line.
 - `components/leads/`:
   - `Leads` holds the rows and the arrow keys;
   - `LeadStrip` draws one lead as SVG;

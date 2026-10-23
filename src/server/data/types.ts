@@ -3,6 +3,7 @@
 // refreshes after every cycle, so a page never waits on GitLab or on the index.
 import type { CycleHistory } from '@/lib/demo/cycles/types';
 import type { DemoData, NeedsKind, Task } from '@/lib/demo/types';
+import type { Stability } from '@/lib/stability/stability';
 import type { HumanKeyRead, PromotionRules } from '@/lib/promotion/types';
 import type { LedgerEvent } from '@/schemas/ledger';
 import type { Tier } from '@/schemas/tier';
@@ -133,4 +134,10 @@ export interface DataSource {
   getCycles(): CycleHistory;
   /** Every project with a recorded cycle, by project id (the deep project included). */
   getEstateCycles(): Readonly<Record<string, CycleHistory>>;
+  /**
+   * Each project's agent-MR stability over the last 7 days, by project id (index/views/stability). Live: every project the
+   * poller links to GitLab (n 0 when none). Demo: the deep project only, counted from the demo's tasks that name an MR;
+   * the fixture states no sizes, pipelines or dates, so those are null. An absent project: not read.
+   */
+  getStability(): Readonly<Record<string, Stability>>;
 }
