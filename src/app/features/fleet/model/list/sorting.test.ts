@@ -12,6 +12,19 @@ describe('attention rank', () => {
   it('puts needs-you first, then the sickest state, then the name', () => {
     expect([a, b, c, d].sort(byAttention).map((p) => p.id)).toEqual(['d', 'c', 'b', 'a']);
   });
+  it('breaks ties by name number-aware and in one collation, whatever the browser locale', () => {
+    const own = String.prototype.localeCompare;
+    try {
+      // a cs default locale sorts "ch" after "h"; the list is server-rendered and hydrated, so the order must not follow it
+      String.prototype.localeCompare = function (this: string, that: string, loc?: string | string[], o?: Intl.CollatorOptions) {
+        return own.call(this, that, loc ?? 'cs', o);
+      };
+      const ps = ['svc-10', 'hub', 'svc-2', 'charts'].map((n) => makeProject({ id: n, name: n, needsYou: 1 }));
+      expect(ps.sort(byAttention).map((p) => p.id)).toEqual(['charts', 'hub', 'svc-2', 'svc-10']);
+    } finally {
+      String.prototype.localeCompare = own;
+    }
+  });
   it('is the default sort', () => {
     expect(sortProjects([a, b, c], INITIAL_SORT).map((p) => p.id)).toEqual(['c', 'b', 'a']);
   });

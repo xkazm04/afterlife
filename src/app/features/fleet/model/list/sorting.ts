@@ -9,9 +9,12 @@ export const INITIAL_SORT: SortState<SortKey> = { key: 'attention', dir: -1 };
 
 export const STATE_RANK: Record<ProjectState, number> = { stale: 3, 'setting-up': 2, 'not-set-up': 1, watching: 0 };
 
+// Names in one collation, number-aware ("svc-2" before "svc-10"): the list is server-rendered and hydrated in the browser's locale.
+const byName = (a: FleetProject, b: FleetProject): number => a.name.localeCompare(b.name, 'en', { numeric: true });
+
 /** Needs-you first, then the sickest state, then by name. */
 export function byAttention(a: FleetProject, b: FleetProject): number {
-  return b.needsYou - a.needsYou || STATE_RANK[b.state] - STATE_RANK[a.state] || a.name.localeCompare(b.name);
+  return b.needsYou - a.needsYou || STATE_RANK[b.state] - STATE_RANK[a.state] || byName(a, b);
 }
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
