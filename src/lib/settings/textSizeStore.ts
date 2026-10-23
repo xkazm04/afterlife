@@ -15,8 +15,9 @@ function notify(): void {
   listeners.forEach((l) => l());
 }
 
+/** Another tab saved a size, or cleared the store (key null: localStorage.clear()), which reads as the default. */
 function onStorage(e: StorageEvent): void {
-  if (e.key !== TEXT_SIZE_STORAGE_KEY) return;
+  if (e.key !== null && e.key !== TEXT_SIZE_STORAGE_KEY) return;
   document.documentElement.setAttribute(TEXT_SIZE_ATTRIBUTE, parseTextSize(e.newValue));
   notify();
 }
