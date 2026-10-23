@@ -29,4 +29,14 @@ describe('placeNear', () => {
   it('clamps horizontally', () => {
     expect(placeNear({ left: 0, top: 100, right: 20, bottom: 120 }, { w: 300, h: 50 }, vp).x).toBe(6);
   });
+  it('when neither side fits, keeps the side with more room instead of flipping onto the anchor', () => {
+    // The status bar's "?" legend (placement above) in a short window: flipping below clamps it back over the button.
+    const help = { left: 900, top: 478, right: 922, bottom: 500 };
+    const short = { w: 1000, h: 500 };
+    const y = placeNear(help, { w: 200, h: 470 }, short, 'above').y;
+    expect(y + 470).toBeLessThanOrEqual(help.top);
+    // and the mirror: a row near the top, preferring below, whose popover cannot fit either way
+    const top = { left: 400, top: 20, right: 440, bottom: 40 };
+    expect(placeNear(top, { w: 100, h: 450 }, short, 'below').y).toBeGreaterThanOrEqual(top.bottom);
+  });
 });

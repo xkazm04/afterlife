@@ -25,14 +25,18 @@ export function clampToViewport(at: Point, size: Size, viewport: Size, pad = 4):
 
 /**
  * Place a popover next to an anchor, centred on it. `below` flips above when it would overflow the bottom;
- * `above` flips below when it would overflow the top. The result is clamped horizontally and vertically.
+ * `above` flips below when it would overflow the top. When neither side fits it keeps the side with more room, since
+ * the clamp would pull it over the anchor either way. The result is clamped horizontally and vertically.
  */
 export function placeNear(anchor: Box, size: Size, viewport: Size, prefer: 'below' | 'above' = 'below', gap = 6): Point {
   const x = anchor.left + (anchor.right - anchor.left) / 2 - size.w / 2;
   const below = anchor.bottom + gap;
   const above = anchor.top - size.h - gap;
+  const fitsBelow = below + size.h <= viewport.h - gap;
+  const fitsAbove = above >= gap;
   let y: number;
-  if (prefer === 'below') y = below + size.h > viewport.h - gap ? above : below;
-  else y = above < gap ? below : above;
+  if (prefer === 'below' ? fitsBelow : fitsAbove) y = prefer === 'below' ? below : above;
+  else if (prefer === 'below' ? fitsAbove : fitsBelow) y = prefer === 'below' ? above : below;
+  else y = viewport.h - anchor.bottom >= anchor.top ? below : above;
   return clampToViewport({ x, y }, size, viewport, gap);
 }
