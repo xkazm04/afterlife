@@ -107,6 +107,15 @@ describe('linked-evidence', () => {
     expect(checkOf(run('input.json', { clock }), 'clock-arithmetic').ok).toBe(true);
     expect(checkOf(run('input.json', { clock: { ...clock, due: { ...clock.due, final: '2026-10-26T09:00:00Z' } } }), 'clock-arithmetic').ok).toBe(false);
   });
+
+  it('reads the clock\'s times only as ISO instants with a zone: "10" is 2001, and "soon" was a RangeError', () => {
+    const clock = { kind: 'vulnerability', aware_at: '2026-10-09T09:00:00Z', fix_available_at: '2026-10-11T09:00:00Z', due: { early_warning: '2026-10-10T09:00:00Z', notification: '2026-10-12T09:00:00Z', final: '2026-10-25T09:00:00Z' } };
+    for (const [k, v] of [['aware_at', '10'], ['aware_at', '2026-10-09T09:00:00'], ['fix_available_at', 'soon'], ['notified_at', '3/4/2026']]) {
+      expect(() => run('input.json', { clock: { ...clock, [k as string]: v } }), `${k} ${v}`).toThrow(new RegExp(`clock.${k} must be an ISO time with a zone`));
+    }
+    const zoneless = run('input.json', { clock: { ...clock, due: { ...clock.due, early_warning: '2026-10-10T09:00:00' } } });
+    expect(checkOf(zoneless, 'clock-arithmetic')).toMatchObject({ ok: false, detail: expect.stringContaining('early_warning 2026-10-10T09:00:00.000Z') });
+  });
 });
 
 describe('stubs and dispatch', () => {

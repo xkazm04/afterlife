@@ -3,7 +3,7 @@
 // recomputed from schemas/cra.ts. Legal wording is a struck term: a person decides it, never the engine.
 import type { Check } from '../../src/schemas/proof';
 import { due } from '../../src/schemas/cra';
-import { EngineError, isRecord, rec, str, strList } from '../core/types';
+import { EngineError, isoInstantMs, isoMs, isRecord, rec, str, strList } from '../core/types';
 import { type Draft } from './common';
 
 type Status = 'resolved' | 'not_found' | 'forbidden' | 'error';
@@ -46,12 +46,12 @@ function clockCheck(raw: unknown): Check {
   const c = rec(raw, 'clock');
   const kind = c.kind === 'incident' ? 'incident' : c.kind === 'vulnerability' ? 'vulnerability' : null;
   if (!kind) throw new EngineError('clock.kind must be vulnerability or incident');
-  const when = (v: unknown): Date | undefined => (typeof v === 'string' ? new Date(v) : undefined);
-  const aware = when(c.aware_at);
-  if (!aware || Number.isNaN(+aware)) throw new EngineError('clock.aware_at must be an ISO time');
-  const expected = due(kind, aware, when(c.fix_available_at), when(c.notified_at));
+  // instants with a zone (isoMs): new Date('10') is 2001, a zone-less time reads in the runner's zone, and 'soon' was a RangeError
+  const when = (k: string): Date | undefined => (c[k] === undefined || c[k] === null ? undefined : new Date(isoMs(c[k], `clock.${k}`)));
+  const aware = new Date(isoMs(c.aware_at, 'clock.aware_at'));
+  const expected = due(kind, aware, when('fix_available_at'), when('notified_at'));
   const given = rec(c.due, 'clock.due');
-  const same = (a: unknown, b: Date | null): boolean => (b === null ? a === null || a === undefined : typeof a === 'string' && +new Date(a) === +b);
+  const same = (a: unknown, b: Date | null): boolean => (b === null ? a === null || a === undefined : isoInstantMs(a) === +b);
   const wrong = (['early_warning', 'notification', 'final'] as const).filter((k) => !same(given[k], expected[k]));
   return wrong.length === 0
     ? { claim_id: null, name, ok: true, detail: 'early warning (24 h), notification (72 h) and final report recomputed and equal' }
