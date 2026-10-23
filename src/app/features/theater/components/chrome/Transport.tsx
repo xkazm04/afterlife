@@ -44,7 +44,14 @@ export function Transport({ playing, loop, readout, actions, onPresent, reduced 
         </TransportButton>
         <LozengeDivider />
         <span className={`${styles.state} ${readout.live ? styles.live : ''}`} aria-live="polite">
-          {readout.text}
+          {readout.words === undefined ? (
+            readout.text
+          ) : (
+            <>
+              {readout.glyph ? <span aria-hidden="true">{readout.glyph} </span> : null}
+              {readout.words}
+            </>
+          )}
         </span>
       </Lozenge>
       <Spacer />

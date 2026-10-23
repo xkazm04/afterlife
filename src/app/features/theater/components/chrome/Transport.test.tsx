@@ -23,3 +23,16 @@ describe('Transport tooltips follow the key map and the reducer', () => {
     expect(html(true)).not.toContain('2 s pre-roll');
   });
 });
+
+describe('the readout live region', () => {
+  it('speaks the words only: the glyph is drawn aria-hidden', () => {
+    const out = renderToStaticMarkup(
+      createElement(Transport, { playing: true, loop: false, readout: { text: '● Rolling', glyph: '●', words: 'Rolling', live: true }, actions, onPresent: () => undefined, reduced: false }),
+    );
+    const live = out.match(/<span[^>]*aria-live="polite"[^>]*>(.*?)<\/span><\/div>|<span[^>]*aria-live="polite"[^>]*>(.*)$/s)?.[0] ?? '';
+    const spoken = live.replace(/<span aria-hidden="true">[^<]*<\/span>/g, '').replace(/<[^>]+>/g, '');
+    expect(live).toContain('●');
+    expect(spoken).not.toContain('●');
+    expect(spoken).toContain('Rolling');
+  });
+});
