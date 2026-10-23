@@ -48,9 +48,13 @@ function probeEnd(s: SetupState, n: number, at: string): SetupState {
     return setStep(attempted, n, { st: step.who === 'human' ? 'human' : 'todo', probe: { at, ok: false, text: d.failFirst ?? '' } });
   }
   let next = setStep(attempted, n, { st: 'done', probe: { at, ok: true, text: d.probe } });
-  // A finished step settles two doctor rows, as the scan and the flows exist from then on.
-  if (n === 11) next = { ...next, doctor: setDoctor(next.doctor, CAP_FLOW_API, 'available') };
-  if (n === 12) next = { ...next, doctor: setDoctor(next.doctor, CAP_VULN, 'available') };
+  // A finished step settles two doctor rows of the home group (the step's), as the scan and the flows exist from then on:
+  // its kept rows too, so a switch away and back keeps them; another group's rows on screen are not its.
+  const cap = n === 11 ? CAP_FLOW_API : n === 12 ? CAP_VULN : null;
+  if (cap) {
+    const home = next.group === next.homeGroup;
+    next = { ...next, homeDoctor: setDoctor(next.homeDoctor, cap, 'available'), ...(home ? { doctor: setDoctor(next.doctor, cap, 'available') } : {}) };
+  }
   return recomputeLocks(next);
 }
 

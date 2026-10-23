@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { getSetup } from '@/lib/demo';
 import type { StepRead } from '@/server/data/setup/types';
 import type { SetupState } from '../types';
+import { CAP_FLOW_API } from '../../data/capabilities';
 import { probeWillPass, setupReducer, type SetupAction } from './reducer';
-import { armList, armedCount, createSetupState, doctorCounts, doneCount, needYouCount, stepList, unmet } from './state';
+import { armList, armedCount, capSt, createSetupState, doctorCounts, doneCount, needYouCount, stepList, unmet } from './state';
 
 const fresh = () => createSetupState(getSetup(), 1000);
 const run = (s: SetupState, ...actions: SetupAction[]) => actions.reduce(setupReducer, s);
@@ -157,5 +158,16 @@ describe('the doctor and groups', () => {
     // the reason stays with that group: a good probe or a switch back clears it
     expect(run(failed, { t: 'doctor-start' }, { t: 'doctor-end', now: 9, at: '14:07' }).doctorError).toBeNull();
     expect(run(failed, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' }).doctorError).toBeNull();
+  });
+  it("a finished step 11 settles the home group's Flow API row: it survives a switch away and back, and no other group's", () => {
+    const s = fresh();
+    expect(capSt(s, CAP_FLOW_API)).not.toBe('available');
+    const home = probe(s, 11);
+    expect(capSt(home, CAP_FLOW_API)).toBe('available');
+    const away = run(home, { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' });
+    expect(capSt(away, CAP_FLOW_API)).toBe('available');
+    const onSandbox = probe(run(s, { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }), 11);
+    expect(capSt(onSandbox, CAP_FLOW_API)).toBe('unknown');
+    expect(capSt(run(onSandbox, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' }), CAP_FLOW_API)).toBe('available');
   });
 });
