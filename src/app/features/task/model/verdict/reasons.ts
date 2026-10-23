@@ -55,9 +55,9 @@ export function selectionFromQuery(task: Task, q: SelectionQuery): Selection {
   return openingSelection(task);
 }
 
-/** The address of a selection on a task: /task/<id>?check=<id>, ?claim=<id>, or the bare task. */
+/** The address of a selection on a task: /task/<id>?check=<id>, ?claim=<id>, or the bare task. The id is one encoded segment. */
 export const selectionHref = (taskId: string, sel: Selection): string =>
-  `/task/${taskId}${sel ? `?${sel.side}=${encodeURIComponent(sel.id)}` : ''}`;
+  `/task/${encodeURIComponent(taskId)}${sel ? `?${sel.side}=${encodeURIComponent(sel.id)}` : ''}`;
 
 /**
  * The next deciding check after the current one: the next in this task, then the first of the next visible task that has

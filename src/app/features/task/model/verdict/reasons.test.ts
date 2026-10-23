@@ -82,6 +82,11 @@ describe('selectionFromQuery', () => {
     expect(selectionHref('01J8Q8', { side: 'claim', id: 'c 3' })).toBe('/task/01J8Q8?claim=c%203');
     expect(selectionHref('01J8Q4', null)).toBe('/task/01J8Q4');
   });
+
+  it('encodes the task id as one path segment, as the docket and /task do', () => {
+    expect(selectionHref('a/b?c#d e', null)).toBe('/task/a%2Fb%3Fc%23d%20e');
+    expect(selectionHref('a/b', { side: 'check', id: 'x' })).toBe('/task/a%2Fb?check=x');
+  });
 });
 
 describe('nextReason', () => {
