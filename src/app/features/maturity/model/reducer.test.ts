@@ -115,7 +115,11 @@ describe('credit', () => {
   });
   it('the tagged release gap says so when it runs', () => {
     const s = run(start(), { type: 'togglePick', id: 'g3' }, { type: 'go', step: 3 }, { type: 'sent', opened: { g3: null }, text: 'x' }, { type: 'merge', id: 'g3' }, { type: 'rescanGap', id: 'g3' }, { type: 'ran', id: 'g3' });
-    expect(s.notice?.text).toBe('tagged release pipeline ran · new job passed (simulated)');
+    expect(s.notice?.text).toBe('gap g3 · tagged release pipeline ran · new job passed (simulated)');
+  });
+  it('the ran notice names its gap\'s MR, as the merge notice does, so two no-lift gaps are told apart', () => {
+    const s = run(sent(), { type: 'merge', id: 'g1' }, { type: 'rescanGap', id: 'g1' }, { type: 'ran', id: 'g1' });
+    expect(s.notice?.text).toBe(`${s.mrs.g1} · pipeline on main ran · new job passed (simulated)`);
   });
   it('After merge falls back to Pick when nothing is in flight', () => {
     expect(run({ ...start(), step: 4 }, { type: 'select', stage: 'plan' }).step).toBe(1);

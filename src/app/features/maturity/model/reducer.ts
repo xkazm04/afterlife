@@ -79,6 +79,9 @@ function move(s: MaturityState, ctx: MaturityCtx, dir: 1 | -1): MaturityState {
   return { ...s, sel: nextStage(ctx, s.sel, dir) };
 }
 
+/** A sent gap as its notices name it: the MR GitLab named, else "gap g2" (never an MR number the screen made up). */
+const named = (s: MaturityState, id: string): string => s.mrs[id] ?? `gap ${id}`;
+
 function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
   switch (a.type) {
     case 'mode':
@@ -104,13 +107,13 @@ function step(s: MaturityState, ctx: MaturityCtx, a: Action): MaturityState {
     case 'merge': {
       const g = ctx.gap(a.id);
       if (!g || s.flow[a.id] !== 'opened') return s;
-      return say({ ...s, flow: { ...s.flow, [a.id]: 'merged' } }, `${s.mrs[a.id] ?? `gap ${a.id}`} merged by you in GitLab (simulated)`);
+      return say({ ...s, flow: { ...s.flow, [a.id]: 'merged' } }, `${named(s, a.id)} merged by you in GitLab (simulated)`);
     }
     case 'ran': {
       const g = ctx.gap(a.id);
       if (!g || s.flow[a.id] !== 'nolift') return s;
       const what = g.x.runsOn === 'tag' ? 'tagged release pipeline' : 'pipeline on main';
-      return say({ ...s, flow: { ...s.flow, [a.id]: 'ran' } }, `${what} ran · new job passed (simulated)`);
+      return say({ ...s, flow: { ...s.flow, [a.id]: 'ran' } }, `${named(s, a.id)} · ${what} ran · new job passed (simulated)`);
     }
     case 'rescanGap':
       return rescanGap(s, ctx, a.id);
