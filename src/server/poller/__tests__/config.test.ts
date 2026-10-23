@@ -26,6 +26,9 @@ describe('readPollerConfig in live mode', () => {
     expect(() => readPollerConfig('987654', { ...LIVE, BELAY_GROUP_ID: 'https://gitlab.com/acme' })).toThrow(/BELAY_GROUP_ID is not a group id or path/);
     expect(() => readPollerConfig('987654', { ...LIVE, BELAY_PROJECT: 'acme/ledgerline' })).toThrow(/BELAY_PROJECT is not a project path/);
     expect(() => readPollerConfig('987654', { ...LIVE, BELAY_PROOF_AUTHORS: '@op-hand' })).toThrow(/BELAY_PROOF_AUTHORS is not a comma-separated list of usernames/);
+    // optional, but a list nobody's username can match is refused as the proof authors are, not believed of no one
+    expect(() => readPollerConfig('987654', { ...LIVE, BELAY_GUARDRAIL_AUTHORS: 'guard-one guard-two' })).toThrow(/BELAY_GUARDRAIL_AUTHORS is not a comma-separated list of usernames/);
+    expect(readPollerConfig('987654', { ...LIVE, BELAY_GUARDRAIL_AUTHORS: 'guard-one, guard.two' }).guardrail.names).toEqual(['guard-one', 'guard.two']);
   });
 
   it('names every problem at once', () => {

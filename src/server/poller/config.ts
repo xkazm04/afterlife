@@ -52,6 +52,8 @@ export function liveConfigProblems(env: Record<string, string | undefined>): str
   const authors = list(env.BELAY_PROOF_AUTHORS);
   if (!authors.length) problems.push('BELAY_PROOF_AUTHORS is not set (the usernames whose belay-proof notes count, the operator\'s in M1)');
   else if (!authors.every((a) => NAME.test(a))) problems.push(`BELAY_PROOF_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(env.BELAY_PROOF_AUTHORS)}`);
+  // optional; when set, read by the same rule (a name with a space or an @ is nobody's username, so it would believe no one)
+  if (!list(env.BELAY_GUARDRAIL_AUTHORS).every((a) => NAME.test(a))) problems.push(`BELAY_GUARDRAIL_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(env.BELAY_GUARDRAIL_AUTHORS)}`);
   return problems;
 }
 
