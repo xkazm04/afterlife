@@ -12,14 +12,15 @@ export const INITIAL_HEAD = { sha: 'c3d4', by: 'tripwire' } as const;
 /** The policy's revision and when it merged: the demo's history (the poller reads belay-policy's files, not its log). */
 export const POLICY_HISTORY = { version: 'v7', mergedAgo: '3 d ago' } as const;
 
-const words = (ids: readonly string[]): string => ids.map((t) => TRIGGER_WORDS[t] ?? t).join(' · ');
+/** An empty trigger list is a rule too: nothing demotes that way, and the line says so. */
+const words = (ids: readonly string[]): string => (ids.length ? ids.map((t) => TRIGGER_WORDS[t] ?? t).join(' · ') : 'no trigger');
 
 /** The policy popover's lines, from the rules the server read. */
 export function policyLines(r: PolicyRules): { oneStepDown: string; toQuarantined: string; envelope: string } {
   return {
     oneStepDown: `${words(r.oneStepOn)} · ${r.cooldownDays} d cooldown`,
     toQuarantined: words(r.quarantineOn),
-    envelope: `≤ ${r.envelope.maxFiles} files · ≤ ${r.envelope.maxLines} lines · ${r.envelope.environments.join(', ')}`,
+    envelope: `≤ ${r.envelope.maxFiles} files · ≤ ${r.envelope.maxLines} lines · ${r.envelope.environments.length ? r.envelope.environments.join(', ') : 'no environment'}`,
   };
 }
 
