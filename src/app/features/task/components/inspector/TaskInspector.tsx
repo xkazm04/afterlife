@@ -98,7 +98,7 @@ export function TaskInspector({
             ['Tier now', task.tierNow ? <TierChip key="t" tier={task.tierNow} /> : <HonestyChip key="t" kind="unknown">? unknown</HonestyChip>],
           ]}
         />
-        <div className={styles.counts}>{task.countsToward}</div>
+        <div className={styles.counts}>{task.countsToward || <span className={styles.muted}>No record line is held for this task</span>}</div>
       </InspectorSection>
       <InspectorSection title="Exhibits" aux={task.proof.cls}>
         <Exhibits task={task} />
