@@ -37,7 +37,7 @@ function openRow(item: NeedsYouItem, project: string, now: Date): DeskItem {
   const intent = kind === 'gap' ? gapIntent(item, project) : liveIntent(item, project);
   const readOnly = intent ? null : kind === 'gap' && item.stage ? gapReadOnly(item) : elsewhere(item.kind);
   return {
-    id: item.id, kind, project, title: item.title, openedAt: null, actedAt: null, actedAs: null,
+    id: item.id, kind, project, title: item.title, openedAt: item.openedAt ?? null, actedAt: null, actedAs: null,
     group: { kind, project, deadline: deadlineOf(item.dueIn, now) },
     intent, readOnly, source: item, decided: null,
   };

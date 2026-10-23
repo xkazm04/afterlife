@@ -30,8 +30,10 @@ describe('deskItems', () => {
     expect(row(promote.id)).toMatchObject({ actedAt: null, actedAs: null, decided: null, source: promote, project: 'p' });
   });
 
-  it('no opened time is invented: every open row starts unknown', () => {
+  it('no opened time is invented: a row without one starts unknown, one the server sent is kept', () => {
     expect(rows.every((n) => n.openedAt === null)).toBe(true);
+    const at = '2026-10-21T08:00:00.000Z';
+    expect(deskItems([{ ...promote, openedAt: at }], [], 'p', NOW)[0]?.openedAt).toBe(at);
   });
 
   it('a promotion and a re-admit carry exactly the write liveIntent builds', () => {
