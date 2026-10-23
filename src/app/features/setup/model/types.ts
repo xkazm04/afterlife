@@ -75,7 +75,7 @@ export interface SetupState {
   homeProbe?: { at: number; label: string; error: string | null };
   steps: Readonly<Record<number, StepState>>;
   arm: Readonly<Record<string, ArmState>>;
-  /** The doctor probe failed as a whole (live): why there are no rows. */
+  /** Why the last doctor probe failed (live): the probe failed as a whole (no rows), or a re-probe got no answer (the rows kept are the older probe's). */
   doctorError: string | null;
   /** Probe attempts per step: the demo's first runner probe fails. */
   attempts: Readonly<Record<number, number>>;
