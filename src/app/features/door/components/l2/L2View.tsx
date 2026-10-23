@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
 import { CX, CY, cutawayOf } from '../../model/cutaway';
 import { TierLetter } from '../ui/TierLetter';
@@ -13,6 +13,15 @@ import view from './l2view.module.css';
  * L2: the project lifted out of the city. The cutaway grows from where its tower stood (one CSS transform transition),
  * the class list sits beside it, the panel on the right. Pings on the antenna are two composited rings.
  */
+/** Arrow keys walk the class rows (one tab stop, roving): focus lights the row's window as the pointer does. */
+function walk(e: KeyboardEvent<HTMLElement>): void {
+  const d = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
+  if (!d) return;
+  const rows = [...(e.currentTarget.parentElement?.querySelectorAll<HTMLElement>('[data-cls]') ?? [])];
+  rows[rows.indexOf(e.currentTarget) + d]?.focus();
+  e.preventDefault();
+}
+
 export function L2View({
   p,
   group,
@@ -32,6 +41,7 @@ export function L2View({
   const c = useMemo(() => cutawayOf(p, classes, stages), [p, classes, stages]);
   const [lifted, setLifted] = useState(false);
   const [hotClass, setHotClass] = useState<number | null>(null);
+  const [stop, setStop] = useState(0);
   useEffect(() => {
     const id = requestAnimationFrame(() => requestAnimationFrame(() => setLifted(true)));
     return () => cancelAnimationFrame(id);
@@ -53,7 +63,7 @@ export function L2View({
         {classes.map((k, i) => {
           const t = p.state === 'not-set-up' ? null : (p.classTiers?.[k] ?? null);
           return (
-            <div key={k} className={`${styles.cl} ${t ? '' : styles.unk} ${hotClass === i ? styles.on : ''}`} onPointerEnter={() => setHotClass(i)} onPointerLeave={() => setHotClass(null)}>
+            <div key={k} className={`${styles.cl} ${t ? '' : styles.unk} ${hotClass === i ? styles.on : ''}`} data-cls tabIndex={stop === i ? 0 : -1} onPointerEnter={() => setHotClass(i)} onPointerLeave={() => setHotClass(null)} onFocus={() => { setHotClass(i); setStop(i); }} onBlur={() => setHotClass(null)} onKeyDown={walk}>
               <TierLetter tier={t} holders={p.state === 'not-set-up' ? undefined : p.holders?.[k]} />
               {k}
             </div>

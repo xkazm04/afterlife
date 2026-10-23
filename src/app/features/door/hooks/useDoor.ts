@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
-import { HOME, frameDistrict, frameTower, onStage, type Cam } from '../model/camera';
+import { frameDistrict, frameTower, homeOf, onStage, type Cam } from '../model/camera';
 import { districtsOf, type District, type Placed } from '../model/city';
 import { activeMark, dimSet, escapeStep, redSet, toggleLock } from '../model/filter';
 import type { MarkKind } from '../model/words';
@@ -17,6 +17,7 @@ export const INTRO_MS = 3400;
  */
 export function useDoor(groups: readonly string[], projects: readonly FleetProject[], held = false) {
   const ds = useMemo(() => districtsOf(groups, projects), [groups, projects]);
+  const home = useMemo(() => homeOf(ds), [ds]);
   const byId = useMemo(() => new Map<string, { d: District; t: Placed }>(ds.flatMap((d) => d.placed.map((t) => [t.p.id, { d, t }] as const))), [ds]);
   const [level, setLevel] = useState<Level>(0);
   const [curG, setCurG] = useState<number | null>(null);
@@ -25,7 +26,9 @@ export function useDoor(groups: readonly string[], projects: readonly FleetProje
   const [hotId, setHotId] = useState<string | null>(null);
   const [hoverMark, setMark] = useState<MarkKind | null>(null);
   const [locked, setLocked] = useState<MarkKind | null>(null);
-  const [cam, setCam] = useState<Cam>(HOME);
+  // null = the L0 home camera, derived from the city so a fleet that grows re-fits
+  const [camTo, setCam] = useState<Cam | null>(null);
+  const cam = camTo ?? home;
   const [camMs, setCamMs] = useState(850);
   const [liftFrom, setLiftFrom] = useState<{ x: number; y: number; k0: number } | null>(null);
   // held: an entrance covers the city, so its intro waits for startIntro (the door opening) instead of starting now
@@ -79,7 +82,7 @@ export function useDoor(groups: readonly string[], projects: readonly FleetProje
     setCurG(null);
     setCurP(null);
     setHotId(null);
-    setCam(HOME);
+    setCam(null);
   }, []);
 
   const lock = useCallback((k: MarkKind) => setLocked((l) => toggleLock(l, k)), []);

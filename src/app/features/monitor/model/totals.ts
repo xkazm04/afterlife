@@ -2,10 +2,13 @@
 import { plural } from '@/lib/format/plural';
 import { formatAge } from '@/lib/format/time';
 import type { FleetProject } from '@/lib/demo/types';
+import { tiersKnown } from '@/lib/tiers';
 import { NO_GOOD_POLL, ageLine } from './mode';
 import type { Lead, MarkKind, Totals } from './types';
 
-export const isQuarantined = (p: FleetProject): boolean => (p.tiers?.quarantined ?? 0) > 0;
+/** Quarantined classes where tiers are known (the door's rule, door/model/words): a stale project keeps its last known count, an unknown tier is never a quarantine. */
+export const quarOf = (p: FleetProject): number => (p.state !== 'not-set-up' && tiersKnown({ classTiers: p.classTiers ?? {} }) ? (p.tiers?.quarantined ?? 0) : 0);
+export const isQuarantined = (p: FleetProject): boolean => quarOf(p) > 0;
 /** A live project draws a beat; stale and unwatched ones do not. */
 export const isLive = (p: FleetProject): boolean => p.state === 'watching' || p.state === 'setting-up';
 /** An unwatched project has no live count: its decisions are not drawn and not added. */
@@ -14,7 +17,7 @@ export const liveNeeds = (p: FleetProject): number => (p.state === 'not-set-up' 
 export const MARKS: readonly { kind: MarkKind; label: string; test: (p: FleetProject) => boolean }[] = [
   { kind: 'needs', label: 'Needs you', test: (p) => liveNeeds(p) > 0 },
   { kind: 'stale', label: 'Stale', test: (p) => p.state === 'stale' },
-  { kind: 'quar', label: 'Quarantined', test: (p) => isLive(p) && isQuarantined(p) },
+  { kind: 'quar', label: 'Quarantined', test: isQuarantined },
   { kind: 'setup', label: 'Setting up', test: (p) => p.state === 'setting-up' },
   { kind: 'unwatched', label: 'Not watched', test: (p) => p.state === 'not-set-up' },
   { kind: 'watching', label: 'Watching', test: (p) => p.state === 'watching' },
@@ -30,7 +33,7 @@ function count(projects: readonly FleetProject[]): Omit<Lead, 'group' | 'project
     else if (p.state === 'setting-up') c.setup++;
     else if (p.state === 'not-set-up') c.unwatched++;
     else c.watching++;
-    if (isLive(p)) c.quar += p.tiers?.quarantined ?? 0;
+    c.quar += quarOf(p);
   }
   return c;
 }
@@ -71,7 +74,7 @@ export function stateLine(p: FleetProject): string {
   else parts.push('not watched · unknown, not zero');
   const n = liveNeeds(p);
   if (n) parts.push(p.state === 'stale' ? `${decisionsWord(n)} (last known)` : decisionsWord(n));
-  if (isLive(p) && isQuarantined(p)) parts.push('quarantined class');
+  if (isQuarantined(p)) parts.push('quarantined class');
   return parts.join(' · ');
 }
 

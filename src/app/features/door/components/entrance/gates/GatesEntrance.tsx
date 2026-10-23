@@ -13,6 +13,8 @@ const T_OPEN = 2200;
 const SWING = 1300;
 const SWING_LITE = 900;
 const SWING_FAST = 560;
+/** The CSS fail-safe (gates.module.css `failsafe`) drops the overlay at this clock time unless the script has marked it live by then. */
+const FAILSAFE = 6000;
 
 type Phase = 'run' | 'open' | 'fast';
 
@@ -31,6 +33,7 @@ function elapsed(el: Element | null): number {
  */
 export function GatesEntrance({ onOpen, onDone }: EntranceProps) {
   const clock = useRef<HTMLElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>('run');
   const cb = useRef({ onOpen, onDone });
   const opened = useRef(false);
@@ -38,6 +41,11 @@ export function GatesEntrance({ onOpen, onDone }: EntranceProps) {
   useEffect(() => {
     cb.current = { onOpen, onDone };
   }, [onOpen, onDone]);
+
+  // hydrated in time: the script runs the gates now, so the CSS fail-safe stands down (a late hydration leaves the gates dropped)
+  useEffect(() => {
+    if (elapsed(clock.current) < FAILSAFE && root.current) root.current.dataset.live = '';
+  }, []);
 
   const open = useCallback((fast: boolean) => {
     if (opened.current) return;
@@ -74,7 +82,7 @@ export function GatesEntrance({ onOpen, onDone }: EntranceProps) {
   }, [phase]);
 
   return (
-    <div className={styles.root} data-gp={phase} data-gopen={phase === 'run' ? undefined : ''}>
+    <div ref={root} className={styles.root} data-gp={phase} data-gopen={phase === 'run' ? undefined : ''}>
       <i ref={clock} className={styles.clock} aria-hidden />
       <GatesDefs />
       <div className={styles.dark} aria-hidden />
