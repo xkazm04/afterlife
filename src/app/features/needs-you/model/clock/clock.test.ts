@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clockParts, clockText, elapsedPercent, railTicks, secondsLeft } from './clock';
+import { clockParts, clockText, elapsedPercent, notifyLine, railTicks, secondsLeft } from './clock';
 
 describe('legal clock arithmetic', () => {
   it('counts down from the remaining seconds and never goes below zero', () => {
@@ -32,5 +32,13 @@ describe('legal clock arithmetic', () => {
   });
   it('drops ticks that fall past a shorter window', () => {
     expect(railTicks(10 * 3600, 'a', 'b').map((t) => t.label)).toEqual(['aware a', '+6 h', 'due b']);
+  });
+});
+
+describe('72 h notification line', () => {
+  it('is the 24 h clock plus 48 h', () => {
+    expect(notifyLine(19 * 3600 + 12 * 60)).toBe('in 2 d 19 h 12 m');
+    expect(notifyLine(18 * 3600 + 12 * 60)).toBe('in 2 d 18 h 12 m');
+    expect(notifyLine(0)).toBe('in 2 d 0 h 0 m');
   });
 });

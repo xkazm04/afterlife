@@ -68,7 +68,6 @@ export const CRA: ClickCopy & {
   remainingSec: 19 * 3600 + 12 * 60,
   totalSec: 24 * 3600,
   next: [
-    ['72 h notification', 'in 2 d 19 h 12 m'],
     ['Final report', '14 d after a fix exists'],
   ],
   draft: DRAFT,
