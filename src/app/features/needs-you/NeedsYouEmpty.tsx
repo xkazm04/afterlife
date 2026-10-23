@@ -9,8 +9,17 @@ import styles from './NeedsYouEmpty.module.css';
  * is missing rather than drawing an empty inbox as if nothing waited for anyone. The cycle runner's decisions (`runner`,
  * real local data) are drawn when there are any, and then the page does not say that nothing waits.
  */
-export function NeedsYouEmpty({ seeded = 0, runner = [] }: { seeded?: number; runner?: readonly RunnerNeed[] }) {
-  return (
+export function NeedsYouEmpty({ seeded = 0, demo = false, runner = [] }: { seeded?: number; demo?: boolean; runner?: readonly RunnerNeed[] }) {
+  return demo ? (
+    <main className={styles.page}>
+      <h1 className={styles.title}>Needs you</h1>
+      <p>
+        This demo source lacks the desk&apos;s items (the promotion, CRA sign-off, gap picks and re-admit), so there is nothing to
+        show. No group is being read and no poller runs in demo.
+      </p>
+      <RunnerNeeds needs={runner} />
+    </main>
+  ) : (
     <main className={styles.page}>
       <h1 className={styles.title}>Needs you</h1>
       <p>
