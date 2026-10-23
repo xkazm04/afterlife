@@ -18,6 +18,8 @@ export const OWNED = ['.gitlab-ci.yml', '.gitlab/'] as const;
 
 const DEVELOPER = 30;
 const MAINTAINER = 40;
+const PAGE = 100;
+const MAX_PAGES = 50;
 
 /** A protected branch or tag rule as GitLab answers it; null when the name is not protected (404). Also read by humanKey.ts. */
 export async function protection(c: Pick<StepCtx, 'port'>, p: GlProject, kind: 'protected_branches' | 'protected_tags', name: string): Promise<Rec | null> {
@@ -65,8 +67,13 @@ function checks(c: StepCtx): Check[] {
   const allowlisted = (on: string): Check => ({
     label: `belay-apply on ${on}'s job token allowlist`,
     run: async () => {
-      const list = rows(await c.port.get(`projects/${belayOf(c, on).id}/job_token_scope/allowlist`, { per_page: 100 }), 'allowlist');
-      return list.some((x) => x.id === apply().id) ? null : `belay-apply is not on ${on}'s job token allowlist`;
+      // port.get is one GET: walk the pages until belay-apply shows or a short page ends the list (a group can list > 100).
+      for (let page = 1; page <= MAX_PAGES; page++) {
+        const list = rows(await c.port.get(`projects/${belayOf(c, on).id}/job_token_scope/allowlist`, { per_page: PAGE, page }), 'allowlist');
+        if (list.some((x) => x.id === apply().id)) return null;
+        if (list.length < PAGE) break;
+      }
+      return `belay-apply is not on ${on}'s job token allowlist`;
     },
   });
   return [

@@ -52,4 +52,19 @@ describe('repository column lists against the migrated schema', () => {
     const listed = LEDGER_COLS.split(',').map((c) => c.trim());
     expect(await columnsOf('ledger_event')).toEqual([...listed, ...NOT_UPSERTED.ledger_event!].sort());
   });
+
+  // Inserts that name their columns by hand, outside any TableSpec. `left` are the columns the insert leaves to a default
+  // or to a later statement (finishCommand writes outcome, exit_code and finished_at).
+  const HAND_INSERTS: { table: string; file: string; left: string[] }[] = [
+    { table: 'commands_run', file: 'commandsRun.ts', left: ['id', 'outcome', 'exit_code', 'finished_at'] },
+    { table: 'cycle_record', file: 'ledger/cycles.ts', left: [] },
+  ];
+
+  it.each(HAND_INSERTS)('give the $table insert every column of the table (a column a migration adds must reach it)', async ({ table, file, left }) => {
+    const src = fs.readFileSync(path.join(__dirname, '../../repositories', file), 'utf8');
+    const m = new RegExp(String.raw`insert into ${table}\s*\(([^)]*)\)`).exec(src);
+    expect(m, `no "insert into ${table} (...)" in ${file}`).not.toBeNull();
+    const listed = (m as RegExpExecArray)[1]!.split(',').map((c) => c.trim());
+    expect(await columnsOf(table)).toEqual([...listed, ...left].sort());
+  });
 });
