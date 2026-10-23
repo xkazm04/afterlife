@@ -43,6 +43,20 @@ describe('ProjectRow tier cells', () => {
   });
 });
 
+describe('ProjectRow stage cells', () => {
+  const cells = (html: string) => (html.match(/role="gridcell"/g) ?? []).length;
+
+  it('draws one cell per stage the header draws, whatever the length of the rung list', () => {
+    const base = cells(row(makeProject({ id: 'a', stages: [1, 1] }), { view: 'stages' }));
+    expect(cells(row(makeProject({ id: 'a', stages: [1, 1, 1, 1, 1, 1, 1, 1, 1] }), { view: 'stages' }))).toBe(base);
+    expect(cells(row(makeProject({ id: 'a', stages: [1] }), { view: 'stages' }))).toBe(base);
+  });
+
+  it('a stage the rung list does not reach is unknown, not missing', () => {
+    expect(row(makeProject({ id: 'a', stages: [] }), { view: 'stages' })).not.toContain('>1<');
+  });
+});
+
 describe('ProjectRow unwatched', () => {
   const unwatched = makeProject({ id: 'a', state: 'not-set-up', needsYou: 3, classTiers: {} });
 

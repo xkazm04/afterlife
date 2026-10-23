@@ -70,9 +70,10 @@ function MiddleCells({ p, view, ranked, narrow, meta, h }: Pick<ProjectRowProps,
       );
     });
   }
-  return p.stages.map((r, i) => (
-    <Cell key={i} data>
-      {unwatched ? null : <StageMeter rung={r} showNumber />}
+  // One cell per stage the header draws (meta.stages, as GroupTotalsRow and StagesSection), so a short or long rung list never shifts the columns.
+  return meta.stages.map((s, i) => (
+    <Cell key={s} data>
+      {unwatched ? null : <StageMeter rung={p.stages[i] ?? null} showNumber />}
     </Cell>
   ));
 }
