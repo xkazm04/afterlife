@@ -1,4 +1,5 @@
 // Reads the data source (demo fixture or live index) once, on the server, into the shape the front door needs.
+import { loadEstateData } from '@/app/features/cycles/data/loadEstateData';
 import { getDataSource } from '@/server/data';
 import { ownDecisions } from '@/server/data/live/seeded';
 import type { DoorData } from '../DoorScreen';
@@ -9,9 +10,8 @@ export function loadDoorData(): DoorData {
   const portfolio = ds.getPortfolio();
   const cockpit = ds.getCockpit();
   const shown = (part: (typeof ds.illustrative)[number]) => ds.illustrative.includes(part);
-  const maturity = ds.getMaturity();
-  // unknown rungs add nothing on either side: never counted as zero evidence gained
-  const gained = maturity.rungs.reduce((n, r) => n + (r.now ?? 0) - (r.day0 ?? 0), 0);
+  // the line is the way into /cycles, so it counts what /cycles counts: every project with a closed cycle, and their net rungs
+  const estate = loadEstateData();
   return {
     org: portfolio.group,
     asOf: portfolio.asOf,
@@ -27,6 +27,6 @@ export function loadDoorData(): DoorData {
       tracks: ds.getTracks(),
       illustrative: { cockpit: shown('cockpit'), tracks: shown('tracks') },
     },
-    cycles: { projects: 1, gained },
+    cycles: { projects: estate.inCycles, gained: estate.sum.net },
   };
 }

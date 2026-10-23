@@ -140,4 +140,5 @@ Two departures are on purpose, both for rendering cost:
 
 ## Ways in to the loop
 Under the week's proofs, a loop mark says how many projects are in improvement cycles and the rungs those cycles have
-earned since day 0 (from the Maturity scan); it links to Cycles.
+earned since day 0, net (the same figures the Cycles estate shows: data/loadDoorData.ts reads loadEstateData); it
+links to Cycles. With no project in cycles the mark is left out.

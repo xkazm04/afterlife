@@ -41,7 +41,7 @@ export const Answer = memo(function Answer({
   onOpen,
 }: {
   totals: FleetTotals;
-  /** Projects in improvement cycles, and the rungs those cycles have earned since day 0. */
+  /** Projects in improvement cycles, and the net rungs those cycles have earned since day 0 (as /cycles counts them). */
   cycles: { projects: number; gained: number };
   tiers: { n: number; names: string[] }[];
   staleTop: District | null;
@@ -109,7 +109,7 @@ export const Answer = memo(function Answer({
             <Link className={`${styles.mk} ${styles.proof} ${styles.link}`} href="/cycles" tabIndex={tab} data-role="door-cycles">
               <MarkIcon kind="cycle" />
               <span>
-                <b>{cycles.projects}</b> in improvement cycles · <b>+{cycles.gained}</b> rungs since day 0
+                <b>{cycles.projects}</b> in improvement cycles · <b>{cycles.gained >= 0 ? '+' : ''}{cycles.gained}</b> rungs since day 0
               </span>
             </Link>
           </li>

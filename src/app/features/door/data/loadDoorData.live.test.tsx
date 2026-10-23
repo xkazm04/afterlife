@@ -5,6 +5,7 @@ import { renderToString } from 'react-dom/server';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { DEMO } from '@/lib/demo';
+import { loadEstateData } from '@/app/features/cycles/data/loadEstateData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadFleetProject } from '@/app/features/fleet/data/loadFleetProject';
 import { loadMonitorData } from '@/app/features/monitor/data/loadMonitorData';
@@ -65,6 +66,15 @@ describe('Door, live over the seed', () => {
     expect(html()).not.toContain('stylised city');
     setDataSource(demoSource);
     expect(html()).not.toContain('illustrative demo data');
+  });
+
+  it("the door's cycles line counts what /cycles counts, live and demo", () => {
+    const both = () => [loadDoorData().cycles, { projects: loadEstateData().inCycles, gained: loadEstateData().sum.net }];
+    const [live, cycles] = both();
+    expect(live).toEqual(cycles);
+    setDataSource(demoSource);
+    const [demo, demoCycles] = both();
+    expect(demo).toEqual(demoCycles);
   });
 
   it('demo mode keeps all five decisions', () => {
