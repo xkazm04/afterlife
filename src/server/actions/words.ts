@@ -15,8 +15,15 @@ export function viewOf(r: ActionResponse): WriteView {
   return { kind: 'refused', reason: r.status === 'refused' ? r.reason : `the server answered ${r.status} to a preview` };
 }
 
-/** Why a server action that threw has no answer: its message, or that the server did not answer. The one wording of it. */
-export const reasonOf = (e: unknown): string => (e instanceof Error ? e.message : 'the server did not answer');
+/**
+ * Why a server action that threw has no answer: its message (a production client gets Next's masked sentence) plus the
+ * digest that ties it to the server log, or that the server did not answer. The one wording of it.
+ */
+export const reasonOf = (e: unknown): string => {
+  if (!(e instanceof Error)) return 'the server did not answer';
+  const digest = (e as { digest?: unknown }).digest;
+  return typeof digest === 'string' && digest ? `${e.message} (digest ${digest})` : e.message;
+};
 
 /** The answer when the server could not be reached at all for a preview. */
 export const unreachable = (e: unknown): WriteView => ({ kind: 'refused', reason: reasonOf(e) });

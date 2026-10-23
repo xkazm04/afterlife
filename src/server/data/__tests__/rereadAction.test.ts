@@ -52,4 +52,13 @@ describe('rereadSetupAction', () => {
     setDataSource({ ...live, setupReads: () => { throw new Error(failed); } });
     expect(await rereadSetupAction('doctor')).toEqual({ status: 'refused', reason: failed });
   });
+
+  it('a read that throws is answered as a refusal that names what failed, and is logged on the server', async () => {
+    setDataSource(live);
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(reads.steps).mockRejectedValueOnce(new Error('glab: exit 1'));
+    expect(await rereadSetupAction('steps')).toEqual({ status: 'refused', reason: 'the steps could not be read: glab: exit 1' });
+    expect(log).toHaveBeenCalledOnce();
+    log.mockRestore();
+  });
 });

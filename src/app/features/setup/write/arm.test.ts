@@ -62,6 +62,8 @@ describe('the arm round trip', () => {
     expect(await checkArm('ledgerline', 'T4', false)).toEqual({ status: 'refused', reason: 'glab is gone' });
     verify.verifyArmAction.mockRejectedValueOnce('boom');
     expect(await checkArm('ledgerline', 'T4', false)).toEqual({ status: 'refused', reason: 'the server did not answer' });
+    verify.verifyArmAction.mockRejectedValueOnce(Object.assign(new Error('An error occurred in the Server Components render.'), { digest: '4021' }));
+    expect(await checkArm('ledgerline', 'T4', false)).toEqual({ status: 'refused', reason: 'An error occurred in the Server Components render. (digest 4021)' });
     actions.previewAction.mockRejectedValueOnce(undefined);
     expect(await askArm('ledgerline', 'T4', false)).toEqual({ kind: 'refused', reason: 'the server did not answer' });
   });
