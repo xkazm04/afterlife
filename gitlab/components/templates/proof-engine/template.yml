@@ -38,6 +38,7 @@ spec:
       regex: '^[A-Za-z0-9][A-Za-z0-9._/-]*$'
     agent_prefix:
       default: 'ai-'
+      regex: '^[A-Za-z0-9._-]*$'
       description: Only MRs from accounts with this prefix and a Belay-Task trailer are proven; others are skipped.
     evidence_mode:
       default: auto
@@ -45,6 +46,7 @@ spec:
       description: auto builds the prove input with scripts/proof/build-evidence.mjs (exploit-test, cited-diff, rerun-stats). provided uses evidence_file as an earlier job or prepare_script wrote it.
     evidence_file:
       default: belay-evidence.json
+      regex: '^[A-Za-z0-9][A-Za-z0-9._/-]*$'
       description: Only for evidence_mode provided. The `prove --input` file, relative to the project root.
     build_args:
       default: ''
@@ -122,16 +124,14 @@ spec:
       variables: { BELAY_PHASE: pre-merge }
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"
       variables: { BELAY_PHASE: post-merge }
-  variables:
-    BELAY_CLASS: "$[[ inputs.class ]]"
-    BELAY_AGENT_PREFIX: "$[[ inputs.agent_prefix ]]"
-    BELAY_EVIDENCE_MODE: "$[[ inputs.evidence_mode ]]"
-    BELAY_EVIDENCE_FILE: "$[[ inputs.evidence_file ]]"
-    BELAY_POST_MERGE: "$[[ inputs.post_merge ]]"
   script:
     - |
       set -eu
       mkdir -p .belay
+      # The class, agent prefix, evidence mode and file and the post-merge switch are inputs, never job variables: a pipeline
+      # variable outranks a job's and would steer what the report-only artifact says. Each is options- or regex-guarded.
+      BELAY_CLASS='$[[ inputs.class ]]'; BELAY_AGENT_PREFIX='$[[ inputs.agent_prefix ]]'; BELAY_EVIDENCE_MODE='$[[ inputs.evidence_mode ]]'
+      BELAY_EVIDENCE_FILE='$[[ inputs.evidence_file ]]'; BELAY_POST_MERGE='$[[ inputs.post_merge ]]'
       # M6: build_args, prepare_script and the trusted block authors are inputs, fixed at include time; a pipeline variable
       # cannot reach them. build_args is regex-guarded (no quote, $, ; | & or backtick), so the single quotes hold.
       BELAY_BUILD_ARGS='$[[ inputs.build_args ]]'; BELAY_BLOCK_AUTHORS="$[[ inputs.block_authors ]]"
