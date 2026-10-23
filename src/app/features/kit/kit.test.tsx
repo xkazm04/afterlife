@@ -36,10 +36,18 @@ describe('the kit galleries', () => {
     expect(html).toContain(`>${title.replace('&', '&amp;')}`);
     if (title !== 'table/') expect(labels(html).length).toBeGreaterThan(0);
   });
-  it('gives every specimen across the specimen galleries its own label (the pane galleries use Specimen; the inspector column does not)', () => {
-    const all = GALLERIES.flatMap(([, make]) => labels(render(make())));
-    expect(all.length).toBeGreaterThan(30);
+  // Read from the whole /kit screen, not from the GALLERIES list above: a gallery or toolbar specimen added to KitScreen
+  // alone is still checked, and the status line's section count is the screen's own.
+  const screen = render(createElement(KitScreen));
+  it('gives every group on the /kit screen its own label (pane galleries, inspector column and toolbar)', () => {
+    const all = labels(screen);
+    expect(all.length).toBeGreaterThan(GALLERIES.flatMap(([, make]) => labels(render(make()))).length);
     expect(all.filter((l, i) => all.indexOf(l) !== i)).toEqual([]);
+  });
+  it('counts its sections in the status line as the screen draws them', () => {
+    const sections = [...screen.matchAll(/<h2[^>]*>([^<]*\/)</g)].length;
+    expect(sections).toBe(GALLERIES.length);
+    expect(screen).toContain(`kit gallery · ${sections} sections`);
   });
   it('gives each CommandBlock in the inspector column its own group name', () => {
     const names = labels(render(createElement(InspectorGallery))).filter((l) => l.startsWith('Command'));
