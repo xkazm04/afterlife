@@ -21,7 +21,7 @@ export function describeProof(b: ProofBlock): string {
 const EXIT: Record<ProofBlock['verdict'], ExitCode> = { pass: 0, fail: 1, inconclusive: 2 };
 
 export function proveCommand(argv: readonly string[], ctx: Ctx): CommandResult {
-  const args = parseArgs(argv, { values: ['class', 'input', 'policy', 'files-root'] });
+  const args = parseArgs(argv, { values: ['class', 'input', 'policy', 'files-root'], positional: 0 });
   const cls = args.need('class');
   if (!isProofClass(cls)) throw new EngineError(`unknown proof class "${cls}" (one of ${PROOF_CLASSES.join(', ')})`);
   const policy = loadPolicy(ctx, args.get('policy') ?? DEFAULT_POLICY);

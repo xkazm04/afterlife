@@ -9,7 +9,9 @@ export interface Args {
   need(key: string): string;
 }
 
-export function parseArgs(argv: readonly string[], opts: { values: readonly string[]; switches?: readonly string[] }): Args {
+/** `positional`: how many bare arguments the command takes; past that one is refused (`--write false` would leave `false`
+ * lying there and write). Omitted: any number, for a caller that reads them itself. */
+export function parseArgs(argv: readonly string[], opts: { values: readonly string[]; switches?: readonly string[]; positional?: number }): Args {
   const flags = new Map<string, string[]>();
   const positional: string[] = [];
   const switches = new Set(opts.switches ?? []);
@@ -17,6 +19,7 @@ export function parseArgs(argv: readonly string[], opts: { values: readonly stri
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i] ?? '';
     if (!a.startsWith('--')) {
+      if (opts.positional !== undefined && positional.length >= opts.positional) throw new EngineError(`unexpected argument "${a}"`);
       positional.push(a);
       continue;
     }

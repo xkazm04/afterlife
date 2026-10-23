@@ -7,7 +7,7 @@ import { loadPolicy } from '../policy/load';
 import { DEFAULT_POLICY } from './prove';
 
 export function envelopeCommand(argv: readonly string[], ctx: Ctx): CommandResult {
-  const args = parseArgs(argv, { values: ['policy', 'class', 'diff', 'env'] });
+  const args = parseArgs(argv, { values: ['policy', 'class', 'diff', 'env'], positional: 0 });
   const policy = loadPolicy(ctx, args.get('policy') ?? DEFAULT_POLICY);
   const r = checkEnvelope(policy, args.need('class'), readText(ctx, args.need('diff')), args.all('env'));
   const head = `envelope ${r.class}: ${r.within ? 'WITHIN' : 'OUTSIDE'} (${r.files} files, ${r.lines} lines${r.environments.length ? `, to ${r.environments.join(', ')}` : ''})`;

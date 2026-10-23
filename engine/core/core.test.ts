@@ -7,7 +7,8 @@ import { inlineFiles } from './files';
 import { EngineError, isoMs } from './types';
 import { ulid } from './ulid';
 import { ENGINE_VERSION, engineInfo, engineSha256 } from './version';
-import { ctx } from '../__tests__/helpers';
+import { capture, ctx } from '../__tests__/helpers';
+import { main } from '../cli';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-core-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
@@ -31,6 +32,15 @@ describe('parseArgs', () => {
   it('refuses a value on a switch: --write=false must not read as --write', () => {
     for (const a of ['--write=false', '--write=0', '--write=']) expect(() => parseArgs([a], spec), a).toThrow(/takes no value/);
     expect(parseArgs(['--write'], spec).has('write')).toBe(true);
+  });
+  it('refuses a stray argument where the command takes none: `--write false` must not write', () => {
+    expect(() => parseArgs(['append', '--write', 'false'], { ...spec, positional: 1 })).toThrow(/unexpected argument "false"/);
+    expect(parseArgs(['append', '--write'], { ...spec, positional: 1 }).positional).toEqual(['append']);
+    for (const argv of [['gate', '--class', 'x', 'proof.json'], ['scan', 'dir'], ['pin', 'extra'], ['ledger', 'append', 'extra', '--chain', 'c.jsonl']]) {
+      const c = capture();
+      expect(main(argv, c.io), argv.join(' ')).toBe(2);
+      expect((c.json() as { error?: string }).error, argv.join(' ')).toMatch(/unexpected argument/);
+    }
   });
 });
 

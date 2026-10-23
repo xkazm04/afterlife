@@ -121,7 +121,7 @@ export function scoreFacts(f: Facts): MaturityScan {
 }
 
 export function scanCommand(argv: readonly string[], ctx: Ctx): CommandResult {
-  const args = parseArgs(argv, { values: ['dir', 'facts'], switches: ['propose'] });
+  const args = parseArgs(argv, { values: ['dir', 'facts'], switches: ['propose'], positional: 0 });
   const facts = args.get('facts');
   const dir = args.get('dir');
   if ((facts === undefined) === (dir === undefined)) throw new EngineError('give exactly one of --dir <checkout> or --facts <facts.json>');

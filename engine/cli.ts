@@ -27,7 +27,8 @@ const COMMANDS: Record<string, (argv: readonly string[], ctx: Ctx) => CommandRes
   ledger: ledgerCommand,
   scan: scanCommand,
   // The pin every Proof Block carries, with the files it covers: the import closure of this file.
-  pin: () => {
+  pin: (argv) => {
+    if (argv.length) throw new EngineError(`unexpected argument "${argv[0] ?? ''}"`);
     const files = engineFiles();
     return { json: { version: ENGINE_VERSION, sha256: engineSha256(), files }, summary: `engine ${ENGINE_VERSION} pinned over ${files.length} files`, code: 0 };
   },
