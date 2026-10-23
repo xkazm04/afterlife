@@ -21,6 +21,9 @@ describe('tier metadata', () => {
     expect(isCeiling('god_mode')).toBe(false);
     expect(isCeiling(null)).toBe(false);
   });
+  it('is not fooled by a name every object inherits', () => {
+    for (const k of ['toString', 'constructor', '__proto__', 'hasOwnProperty']) expect(isCeiling(k)).toBe(false);
+  });
 });
 
 describe('standings', () => {

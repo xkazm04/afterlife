@@ -17,7 +17,7 @@ export const TIER_META: Record<Ceiling, { letter: string; name: string }> = {
 export const TIER_RANK: Record<Ceiling, number> = { hands_off: 5, supervised: 4, assisted: 3, quarantined: 2, human_only: 1 };
 
 export function isCeiling(value: unknown): value is Ceiling {
-  return typeof value === 'string' && value in TIER_META;
+  return typeof value === 'string' && Object.hasOwn(TIER_META, value);
 }
 
 /**
