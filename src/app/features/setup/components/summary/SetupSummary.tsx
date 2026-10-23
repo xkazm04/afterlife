@@ -51,6 +51,7 @@ export function SetupSummary() {
             onGo={() => view.go({ k: 'step', id: s.n })}
           />
         ))}
+        {need ? null : <span className={styles.note}>Nothing waits for you</span>}
       </div>
     </section>
   );

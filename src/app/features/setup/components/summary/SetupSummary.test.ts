@@ -41,3 +41,15 @@ describe('the summary strip and the status bar count in words', () => {
     expect(status(HUMAN.slice(0, 2))).toContain('2 need you');
   });
 });
+
+// README: "Nothing waits for you" only when every human step reads done and no arm MR is open (humanGates).
+describe('the gates the strip lists', () => {
+  it('says nothing waits for you when every human step reads done and no MR is open', () => {
+    expect(strip([])).toContain('Nothing waits for you');
+  });
+  it('lists an open human step instead, and never says nothing waits', () => {
+    const html = strip(HUMAN.slice(0, 1));
+    expect(html).toContain('unread · frees');
+    expect(html).not.toContain('Nothing waits for you');
+  });
+});
