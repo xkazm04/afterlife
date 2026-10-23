@@ -19,6 +19,7 @@ vi.mock('./features/fleet/components/detail/ProjectDetail', () => ({ ProjectDeta
 vi.mock('./features/fleet/data/loadFleetProject', () => ({ loadFleetProject: loaders.fleetProject }));
 vi.mock('./features/fleet/data/loadFleetData', () => ({ loadFleetData: loaders.fleetData }));
 vi.mock('./features/fleet/data/loadFleetSource', () => ({ loadFleetSource: () => ({}) }));
+vi.mock('./features/fleet/data/loadFleetEstate', () => ({ loadFleetEstate: () => ({}) }));
 vi.mock('./features/fleet/FleetScreen', () => ({ FleetScreen: () => null }));
 vi.mock('@/server/runs/readDesk', () => ({ readDesk: () => ({}) }));
 vi.mock('./features/ladder/ClassScreen', () => ({ ClassScreen: () => null }));
