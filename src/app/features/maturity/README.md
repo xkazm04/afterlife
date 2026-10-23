@@ -15,7 +15,7 @@ mode" below.
   `LegendButton`. Drawn 1:1 in CSS px; strokes and labels use `--ui-scale`, geometry uses the same scale in JS.
 - `components/chrome/` ScanMeta, StageList, StatusCounts, DemoChip (the Stepper, the rung meter and the gap badge are shared);
   `components/legend/` the "?" legend, used by the crag popover and the stage page.
-- `components/gaps/` the picked-gaps table. `components/sheet/` Send as you: the server's preview of each gap (commands and diff) first.
+- `components/gaps/` the gaps table: one row per proposal, picked or not, with its tier, state and next move. `components/sheet/` Send as you: the server's preview of each gap (commands and diff) first.
 - `write/` the gap door: `gap.ts` builds the stage-gap-mr intent from the proposal data (a new file as its + lines, a change to an
   existing file as a hunk the server applies to the file or refuses), asks (`previewAction`) and sends (`confirmAction(intent,
   previewId)`); `sheet.ts` is what the sheet does with those. Needs you's gap Run uses the same door.
@@ -27,6 +27,8 @@ mode" below.
 - `model/reducer.ts` the whole screen as one reducer; `state.ts`, `steps.ts` (stepper view), `rungs.ts`, `ctx.ts`.
 - `model/flow/credit.ts` credit rules ("no lift: configured, not exercised" comes first), `commands.ts` the send label, `lede.ts` the line a stage page opens with.
 - `model/crag/` geometry and the per-route view model.
+- `model/keys/keymap.ts` the screen's keys, declared once: `useMaturityKeys` binds them, the legend's key line and
+  Settings > Keyboard read them.
 - `model/flow/send.ts` a gap's send, held by the layout's reducer (`state.send`): asking → viewed → sending → done. A done
   answer opens the gap the moment it arrives (also after the sheet closed or the screen remounted); nothing takes the sheet
   down while a send is in flight; closing forgets the previews, never a send. `useGapSheet` only makes the two server calls.

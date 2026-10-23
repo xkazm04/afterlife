@@ -1,4 +1,4 @@
-// The README names every hook, flow logic file and loader in the folders it describes.
+// The README names every hook, flow logic file, keymap and loader in the folders it describes.
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
@@ -11,6 +11,7 @@ describe('README', () => {
     ['hooks', 'hooks'],
     ['model/flow', 'model/flow'],
     ['data loaders', 'data'],
+    ['keymap', 'model/keys'],
   ])('names every file in %s', (_n, dir) => {
     const missing = files(dir)
       .map((f) => f.replace(/\.tsx?$/, ''))
