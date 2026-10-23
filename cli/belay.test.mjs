@@ -18,6 +18,15 @@ describe('cli/belay.mjs', () => {
     }
   });
 
+  it('names every flag that run and pair print in their own usage (the verbs are the ground truth, not this list)', () => {
+    const help = belay('help').stdout;
+    for (const verb of ['run', 'pair']) {
+      const own = belay(verb).stderr.match(/usage: belay (.+)/)?.[1]?.trim();
+      expect(own, `belay ${verb} printed no usage`).toBeTruthy();
+      for (const flag of own.match(/--[a-z-]+/g)) expect(help, `${verb} ${flag}`).toContain(flag);
+    }
+  }, 120_000);
+
   it('refuses an unknown verb with exit 2 on stderr, as engine/cli.ts does, so a typo in a script is not a pass', () => {
     const r = belay('doctr');
     expect(r.status).toBe(2);
