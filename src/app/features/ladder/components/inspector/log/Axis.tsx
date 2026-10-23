@@ -1,3 +1,4 @@
+import { formatAge } from '@/lib/format/time';
 import { layoutAxis } from '../../../model/view/timeline';
 import type { LedgerEntry } from '../../../model/types';
 import styles from './log.module.css';
@@ -6,7 +7,7 @@ import styles from './log.module.css';
 export function Axis({ events }: { events: readonly LedgerEntry[] }) {
   const { points, gap, span } = layoutAxis(events);
   return (
-    <div className={styles.axis} title={`to scale: ${span} s from first to last`}>
+    <div className={styles.axis} title={`to scale: ${formatAge(span)} from first to last`}>
       {gap ? (
         <>
           <span className={styles.gap} style={{ left: `${gap.left}%`, width: `${gap.width}%` }} />
