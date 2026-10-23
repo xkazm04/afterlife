@@ -4,6 +4,7 @@ import { getActionClasses, getFleet, getNeedsYou, getTask, getTasks } from '@/se
 import { getPairing } from '@/server/index/repositories/pairing';
 import { getPollState } from '@/server/index/repositories/pollState';
 import { readLedger } from '@/server/index/repositories/ledger/ledger';
+import { readPollerConfig } from '../../config';
 import { runPollCycle } from '../../cycle';
 import { cfg, failing, NOW, rig, type Rig } from '../helpers';
 
@@ -131,6 +132,11 @@ describe('a failed poll looks stale, and keeps the last good time', () => {
     const day = 86_400_000;
     await runPollCycle(spy, x.db, NOW, { cfg: { ...cfg(), taskWindowMs: 10 * day }, mem: x.mem }); // BELAY_TASK_HOURS=240
     expect(asked.map((f) => Date.parse(f.updatedAfter ?? ''))).toEqual([NOW.getTime() - 10 * day]);
+    // a window reaching back past 1970 reads every MR, instead of a date that is no date failing every project
+    asked.length = 0;
+    const res = await runPollCycle(spy, x.db, NOW, { cfg: readPollerConfig(144060371, { BELAY_TASK_HOURS: '1e10' }), mem: x.mem });
+    expect(res.projects.map((p) => p.error)).toEqual([undefined]);
+    expect(asked.map((f) => f.updatedAfter)).toEqual([new Date(0).toISOString()]);
   }, 60_000);
 
   it('an MR list that fills mrLimit is said to be cut, and one that does not is not', async () => {

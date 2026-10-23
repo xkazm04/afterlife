@@ -108,9 +108,10 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
   const out: ProjectPoll = { id, gitlabId: gl.id, ok: true, tasks: 0, proofs: 0, ledger: 'skipped', issues: [] };
   const written: ProjectRow[] = [];
   try {
-    // the tasks come out of this list, so it reaches back over the longer of the two windows (a BELAY_TASK_HOURS past 7 days)
+    // the tasks come out of this list, so it reaches back over the longer of the two windows (a BELAY_TASK_HOURS past 7
+    // days); one reaching past 1970 reads from 1970, never from a date toISOString throws on
     const readBack = Math.max(cfg.rollupWindowMs, cfg.taskWindowMs);
-    const mrs = await port.listMergeRequests(gl.id, { state: 'all', updatedAfter: new Date(now.getTime() - readBack).toISOString(), limit: cfg.mrLimit });
+    const mrs = await port.listMergeRequests(gl.id, { state: 'all', updatedAfter: new Date(Math.max(0, now.getTime() - readBack)).toISOString(), limit: cfg.mrLimit });
     // the port cuts the list at the limit without saying so: a full one may be missing MRs, tasks and roll-up counts included
     if (mrs.length >= cfg.mrLimit) out.issues.push(`${mrs.length} merge requests read, which is the mrLimit: any more updated in the window are not read`);
     const recent = mrs.filter((m) => Date.parse(m.updatedAt) >= now.getTime() - cfg.taskWindowMs);
