@@ -14,8 +14,3 @@ export function gradeState(index: number, current: number): GradeState {
   if (index !== current) return 'idle';
   return current === GRADES.length - 1 ? 'done' : 'cur';
 }
-
-/** The grade a person can reach by clicking: it only ever moves up by one, and never past the last rung. */
-export function nextGrade(current: number): number {
-  return Math.min(GRADES.length - 1, current + 1);
-}

@@ -36,7 +36,7 @@
   - `outbox/outbox.ts`: `stageItem` (replace by key, keep the clock item first), `unstageItem`, `buildOutItem`.
     `outbox/commands.ts`: `gapCommand` (draft MR on the gap branch, or an issue for a probe), `commandsFor`.
   - `clock/clock.ts`: `secondsLeft`, `clockParts`, `clockText`, `elapsedPercent`, `railTicks`.
-    `clock/grades.ts`: `gradeIndex`, `gradeState`, `nextGrade`.
+    `clock/grades.ts`: `gradeIndex`, `gradeState`.
   - `rows/`: `rowState` (state column, waiting / in outbox / decided), `rowAction` / `spaceAction`, `grouping`
     (`groupsFor`, `isVisible`, `visibleGroups`, `navItems`), `rowData` (cells), `history` ("Decided this week").
   - `menu.ts`: right-click entries as data.
