@@ -16,7 +16,7 @@
 import { parseChainText, verifyChain, wouldOf, type LedgerEvent } from '../../../src/schemas/ledger';
 import type { Check } from '../../../src/schemas/proof';
 import { resolveTrial, trialCount, trialDecisions, type TrialCount, type TrialResolution } from '../../../src/schemas/trial';
-import { isRecord } from '../../core/types';
+import { isoInstantMs, isRecord } from '../../core/types';
 import type { Draft } from '../common';
 import { checksFor, type At, type Read } from './evidence';
 
@@ -80,10 +80,10 @@ export function ledgerRecord(input: Record<string, unknown>): Draft {
         : at('chain-verifies', true, `${chain.value.length} event(s) verify from genesis; head seq ${chain.value.at(-1)?.seq ?? 0} ${chain.value.at(-1)?.hash ?? 'none'}`),
   ];
   const r = isRecord(input.record) ? input.record : {};
-  const from = typeof r.since === 'string' ? Date.parse(r.since) : Number.NaN;
+  const from = isoInstantMs(r.since); // Date.parse('10') is 2001: a window that takes in the whole chain
   const limits = thresholdsOf(input.trial);
   if (!verifies) checks.push(at('trial-recomputed', null, 'a chain that does not verify states nothing'));
-  else if (typeof r.agent !== 'string' || typeof r.class !== 'string' || Number.isNaN(from)) checks.push(at('trial-recomputed', null, 'record needs agent, class and since (an ISO time)'));
+  else if (typeof r.agent !== 'string' || typeof r.class !== 'string' || Number.isNaN(from)) checks.push(at('trial-recomputed', null, 'record needs agent, class and since (an ISO time with its zone)'));
   else if (limits === 'bad') checks.push(at('trial-recomputed', null, 'trial must be {min: a positive integer, catches: 0 or more}'));
   else checks.push(trialCheck(at, trialFromChain(chain.value, { agent: r.agent, classId: r.class, from }), limits));
   return { checks, evidence: [] };

@@ -7,7 +7,7 @@
 import { parseChainText, verifyChain } from '../../../src/schemas/ledger';
 import { parseArgs } from '../../core/args';
 import { readText } from '../../core/files';
-import { EngineError, type CommandResult, type Ctx } from '../../core/types';
+import { EngineError, isoMs, type CommandResult, type Ctx } from '../../core/types';
 import { chainBreaks, trialFromChain } from '../../proofs/checkers/ledgerRecord';
 
 export const TRIAL_USAGE = 'ledger trial --chain <events.jsonl> --agent <a> --class <id> --since <iso> [--through <seq>] [--head <sha256>]';
@@ -25,8 +25,7 @@ export function trialCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   const args = parseArgs(argv, { values: ['chain', 'agent', 'class', 'since', 'through', 'head'] });
   if (args.positional.length > 0) throw new EngineError(`usage: ${TRIAL_USAGE}`);
   const [file, agent, classId, since] = [args.need('chain'), args.need('agent'), args.need('class'), args.need('since')];
-  const from = Date.parse(since);
-  if (Number.isNaN(from)) throw new EngineError(`--since must be an ISO time, not ${since}`);
+  const from = isoMs(since, '--since'); // as ledger-record reads record.since: Date.parse('10') is 2001
   const through = throughOf(args.get('through'));
   const stated = args.get('head');
   if (stated !== undefined && !HASH.test(stated)) throw new EngineError('--head must be a sha256 (64 lowercase hex)');

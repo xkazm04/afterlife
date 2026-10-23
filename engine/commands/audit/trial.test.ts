@@ -98,4 +98,12 @@ describe('ledger trial: the chain alone, read as the MR states it', () => {
     expect(trial('--head', 'abc').code).toBe(2);
     expect(cli('ledger', 'prepend').code).toBe(2);
   });
+
+  it('--since is an ISO instant with its zone, as ledger-record reads record.since: "10" would open the window in 2001', () => {
+    for (const since of ['10', '3/4/2026', '2026-09-20', '2026-09-20T08:00:00']) {
+      const r = trial('--since', since);
+      expect([r.code, r.json.error], since).toEqual([2, '--since must be an ISO time with a zone, like 2026-10-21T14:20:05Z']);
+    }
+    expect(trial('--since', '2026-09-20T10:00:00+02:00').code).toBe(0);
+  });
 });

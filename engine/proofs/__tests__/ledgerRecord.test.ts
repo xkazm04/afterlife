@@ -59,6 +59,14 @@ describe('ledger-record', () => {
     for (const trial of [{ min: 0, catches: 0 }, { min: 15 }, 'all']) expect(run({ trial }).verdict).toBe('inconclusive');
   });
 
+  it('reads record.since only as an ISO instant with its zone: "10" is 2001, a window that takes in the whole chain', () => {
+    for (const since of ['10', '3/4/2026', '2026-09-20', '2026-09-20T08:00:00']) {
+      const b = run({ record: { agent: 'ai-qa-acme-lab', class: 'qa.file-bug', since } });
+      expect(checkOf(b, 'trial-recomputed'), since).toMatchObject({ ok: null, detail: 'record needs agent, class and since (an ISO time with its zone)' });
+    }
+    expect(run({ record: { agent: 'ai-qa-acme-lab', class: 'qa.file-bug', since: '2026-09-20T10:00:00+02:00' } }).verdict).toBe('pass');
+  });
+
   it('a would the importer refuses (not the rung above), hashed into a chain, fails the chain as the importer does; it is no trial', () => {
     const es = events();
     const body = { ...es[2]!, subject: { ...es[2]!.subject, iid: 250 }, tier_at_time: 'assisted' as const };
