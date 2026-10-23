@@ -7,10 +7,12 @@ const proj = (id: string) => ({ id }) as FleetProject;
 const lead = (group: string, ids: string[]) => ({ group, projects: ids.map(proj) }) as unknown as Lead;
 const leads = [lead('web', ['a', 'b']), lead('api', ['c'])];
 
-function press(key: string, selected: string | null, role: string | null = 'button') {
+/** `on`: the data-id of the focused beat or cell (null: the focus is off a beat, e.g. on the lead plate). */
+function press(key: string, selected: string | null, on: string | null = selected) {
   const d = { leads, selected, onPick: vi.fn(), onToggle: vi.fn(), focusId: vi.fn() };
   const preventDefault = vi.fn();
-  handleLeadsKey({ key, target: { getAttribute: () => role } as unknown as EventTarget, preventDefault }, d);
+  const target = { getAttribute: (a: string) => (a === 'data-id' ? on : null) } as unknown as EventTarget;
+  handleLeadsKey({ key, target, preventDefault }, d);
   return { d, preventDefault };
 }
 
@@ -28,6 +30,16 @@ describe('handleLeadsKey', () => {
   it('Enter refocuses the selected beat, because the toggle swaps strip for cells (or back) and unmounts the focused node', () => {
     const { d } = press('Enter', 'c');
     expect(d.focusId).toHaveBeenCalledWith('c');
+  });
+  it('Enter acts on the focused beat, not on the selection: Tab lands on a beat of another lead without picking it', () => {
+    const { d } = press('Enter', 'a', 'c');
+    expect(d.onPick).toHaveBeenCalledWith('c');
+    expect(d.onToggle).toHaveBeenCalledWith('api');
+    expect(d.focusId).toHaveBeenCalledWith('c');
+  });
+  it('Enter on a cell of the open lead (a native button, no role attribute) closes it', () => {
+    const { d } = press('Enter', 'b', 'b');
+    expect(d.onToggle).toHaveBeenCalledWith('web');
   });
   it('Enter off a beat (the lead plate button handles its own click) does nothing here', () => {
     const { d } = press('Enter', 'a', null);

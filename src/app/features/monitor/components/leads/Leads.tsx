@@ -64,7 +64,11 @@ export interface LeadsKeyDeps {
   focusId: (id: string) => void;
 }
 
-/** Arrows move the pick; Enter opens or closes the lead. Either way the focused node may be replaced, so focus goes back to the selected beat. */
+/**
+ * Arrows move the pick; Enter on a beat or a cell (the node carrying `data-id`) picks it and opens or closes its lead.
+ * Tab can land on a beat that is not the pick, so Enter reads the focused node, not the selection. Either way the
+ * focused node may be replaced, so focus goes back to that beat. The lead plate has no data-id: its own click toggles.
+ */
 export function handleLeadsKey(e: Pick<KeyboardEvent, 'key' | 'target' | 'preventDefault'>, d: LeadsKeyDeps): void {
   if (e.key.startsWith('Arrow')) {
     e.preventDefault();
@@ -72,11 +76,13 @@ export function handleLeadsKey(e: Pick<KeyboardEvent, 'key' | 'target' | 'preven
     if (!next) return;
     d.onPick(next);
     d.focusId(next);
-  } else if (e.key === 'Enter' && (e.target as Element).getAttribute('role') === 'button') {
-    const lead = d.leads.find((l) => l.projects.some((p) => p.id === d.selected));
-    if (lead && d.selected) {
+  } else if (e.key === 'Enter') {
+    const id = (e.target as Element).getAttribute('data-id');
+    const lead = id ? d.leads.find((l) => l.projects.some((p) => p.id === id)) : undefined;
+    if (lead && id) {
+      d.onPick(id);
       d.onToggle(lead.group);
-      d.focusId(d.selected);
+      d.focusId(id);
     }
   }
 }
