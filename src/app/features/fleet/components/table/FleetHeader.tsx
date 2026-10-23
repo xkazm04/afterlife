@@ -8,17 +8,8 @@ import { rankedTier } from '../../model/list/sorting';
 import type { SortKey } from '../../model/types';
 import styles from './fleetTable.module.css';
 
-/** The state column's header: an open ring (the row glyphs are filled or dashed versions of it). */
-function StateRing() {
-  return (
-    <svg width="10" height="10" viewBox="0 0 10 10" style={{ width: 'calc(10px * var(--ui-scale))', height: 'calc(10px * var(--ui-scale))' }} aria-hidden="true">
-      <circle cx="5" cy="5" r="3.9" fill="none" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-}
-
 function headContent(c: ColumnSpec, narrow: boolean) {
-  if (c.kind === 'state') return <StateRing />;
+  if (c.kind === 'state') return <Icon name="ring" />; // an open ring: the row glyphs are filled or dashed versions of it
   if (c.kind === 'needs') {
     return (
       <span className={styles.needsHead}>

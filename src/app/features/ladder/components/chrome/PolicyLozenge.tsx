@@ -8,6 +8,7 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { POLICY_HISTORY, THRESHOLD_NOTE } from '../../data/policy';
 import type { Head } from '../../model/types';
 import { DemoChip } from './DemoChip';
+import { Icon } from '@/components/icons/Icon';
 import styles from './chrome.module.css';
 
 /**
@@ -31,10 +32,7 @@ export function PolicyLozenge({ head, history, onOpen, anchorRef }: { head: Head
         <LozengeDivider />
         <LozengeButton
           lead={
-            <svg className={styles.branch} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true">
-              <circle cx="6" cy="6" r="2.2" />
-              <path d="M0 6h3.8M8.2 6H12" />
-            </svg>
+<Icon name="branch" />
           }
           count={
             <>

@@ -12,7 +12,3 @@
 .replay:hover {
   background: var(--ctl-hi);
 }
-.play {
-  width: calc(11px * var(--ui-scale));
-  height: calc(12px * var(--ui-scale));
-}

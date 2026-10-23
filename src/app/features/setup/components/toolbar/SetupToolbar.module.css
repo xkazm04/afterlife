@@ -34,8 +34,3 @@ button.probe:hover:not(:disabled) {
 button.probe:disabled {
   color: var(--text-4);
 }
-.ico {
-  width: calc(12px * var(--ui-scale));
-  height: calc(12px * var(--ui-scale));
-  flex: none;
-}
