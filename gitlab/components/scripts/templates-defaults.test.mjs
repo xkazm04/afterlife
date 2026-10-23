@@ -21,9 +21,10 @@ for (const name of fs.readdirSync(dir)) {
 }
 
 // M6 / F100: a pipeline variable (trigger, API, manual run) outranks a job's own `variables:`, so nothing that picks the
-// engine, its pin, glab or the shell run beside CI_JOB_TOKEN may be a job variable: it is read from `$[[ inputs.x ]]`.
-const PINNED = ['BELAY_ENGINE_PROJECT', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT', 'BELAY_POLICY_REF', 'BELAY_GLAB_VERSION', 'BELAY_GLAB_SHA256', 'BELAY_BUILD_ARGS', 'BELAY_PREPARE'];
-const GUARDED = ['engine_project', 'engine_ref', 'engine_commit', 'policy_ref', 'glab_version', 'glab_sha256', 'build_args'];
+// engine, its pin, glab, the policy (project and ref) or the shell run beside CI_JOB_TOKEN may be a job variable: it is read
+// from `$[[ inputs.x ]]`.
+const PINNED = ['BELAY_ENGINE_PROJECT', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT', 'BELAY_POLICY_PROJECT', 'BELAY_POLICY_REF', 'BELAY_GLAB_VERSION', 'BELAY_GLAB_SHA256', 'BELAY_BUILD_ARGS', 'BELAY_PREPARE'];
+const GUARDED = ['engine_project', 'engine_ref', 'engine_commit', 'policy_project', 'policy_ref', 'glab_version', 'glab_sha256', 'build_args'];
 
 for (const name of fs.readdirSync(dir)) {
   const file = path.join(dir, name, 'template.yml');
@@ -32,7 +33,7 @@ for (const name of fs.readdirSync(dir)) {
   const spec = docs[0].toJS().spec.inputs;
   const jobs = docs[1].toJS();
 
-  it(`${name}: parses, and no job variable picks the engine, its pin, glab, the policy ref or the shell`, () => {
+  it(`${name}: parses, and no job variable picks the engine, its pin, glab, the policy or the shell`, () => {
     for (const d of docs) expect(d.errors, 'yaml errors').toEqual([]);
     for (const [job, def] of Object.entries(jobs)) {
       for (const k of PINNED) expect(def.variables ?? {}, `${job} ${k}`).not.toHaveProperty(k);

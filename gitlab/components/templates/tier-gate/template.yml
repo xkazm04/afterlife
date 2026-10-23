@@ -26,6 +26,7 @@ spec:
       description: Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token.
     policy_project:
       default: '$CI_PROJECT_NAMESPACE/belay-policy'
+      regex: '^[A-Za-z0-9$_./-]+$'
     policy_ref:
       default: main
       regex: '^[A-Za-z0-9][A-Za-z0-9._/-]*$'
@@ -66,7 +67,6 @@ spec:
   tags: $[[ inputs.runner_tags ]]
   variables:
     GIT_DEPTH: "0"
-    BELAY_POLICY_PROJECT: "$[[ inputs.policy_project ]]"
   cache:
     key: belay-engine-$[[ inputs.engine_ref ]]
     paths: [.belay-engine/node_modules/]
@@ -78,7 +78,7 @@ spec:
       BELAY_ENGINE_PROJECT="$[[ inputs.engine_project ]]"; BELAY_ENGINE_REF='$[[ inputs.engine_ref ]]'
       BELAY_ENGINE_COMMIT='$[[ inputs.engine_commit ]]'; BELAY_GLAB_VERSION='$[[ inputs.glab_version ]]'
       BELAY_GLAB_SHA256='$[[ inputs.glab_sha256 ]]'; BELAY_POLICY_REF='$[[ inputs.policy_ref ]]'
-      export BELAY_POLICY_REF
+      BELAY_POLICY_PROJECT="$[[ inputs.policy_project ]]"; export BELAY_POLICY_PROJECT BELAY_POLICY_REF
       HOSTURL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}"
       export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
       export BELAY_GLUE="$BELAY_DIR/gitlab/components/scripts"

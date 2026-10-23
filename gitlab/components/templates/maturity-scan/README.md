@@ -33,9 +33,9 @@ Schedule it daily on the default branch with `BELAY_SCAN=maturity`.
 | `runner_tags` | array | `[]` |  |
 | `scan_command` | string | `"scan"` | The engine command that scores facts.json (`engine/cli.ts scan --facts`, writes `belay.maturity/0`). |
 
-The inputs that reach the shell (`engine_ref`, `engine_commit`, `engine_project`, `glab_version`, `glab_sha256`,
-`scan_command`) each carry a `regex`; the job reads them from the inputs, never from a variable a pipeline could override
-(F100).
+The inputs that reach the shell (`engine_ref`, `engine_commit`, `engine_project`, `policy_project`, `policy_ref`,
+`glab_version`, `glab_sha256`, `scan_command`) each carry a `regex`; the job reads them from the inputs, never from a variable
+a pipeline could override (F100).
 
 ## Status
 
