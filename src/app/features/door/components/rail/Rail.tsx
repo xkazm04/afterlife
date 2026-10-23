@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
 import type { Ceiling } from '@/schemas/tier';
-import { needsOf, type District } from '../../model/city';
+import { byName, needsOf, type District } from '../../model/city';
 import { plural } from '../../model/words';
 import { LegendHint } from './LegendHint';
 import { TierLetter } from '../ui/TierLetter';
@@ -41,7 +41,7 @@ function Ico({ kind }: { kind: 'stale' | 'setup' | 'nsu' }) {
  */
 export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string | null; onHover: (id: string | null) => void; onOpen: (id: string) => void }) {
   const ps = d.placed.map((t) => t.p);
-  const need = ps.filter((p) => needsOf(p) > 0).sort((a, b) => needsOf(b) - needsOf(a) || a.name.localeCompare(b.name));
+  const need = ps.filter((p) => needsOf(p) > 0).sort((a, b) => needsOf(b) - needsOf(a) || byName(a, b));
   const stale = ps.filter((p) => p.state === 'stale');
   const setup = ps.filter((p) => p.state === 'setting-up');
   const nsu = ps.filter((p) => p.state === 'not-set-up');
