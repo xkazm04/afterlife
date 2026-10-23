@@ -26,10 +26,15 @@ export const APP_NAV: readonly NavEntry[] = [
 
 export const SETTINGS_NAV: NavEntry = { key: 'settings', href: '/settings', label: 'Settings', icon: 'settings' };
 
-/** Which nav item is current for a pathname: every entry owns its sub-paths; "/" (the front door) is none of them. */
+/** Every screen, the pinned footer entry last: the one list the palette, the door menu and the loading title read. */
+export const ALL_NAV: readonly NavEntry[] = [...APP_NAV, SETTINGS_NAV];
+
+/** The nav entry a pathname is in: every entry owns its sub-paths; "/" (the front door) is none of them. */
+export function navEntryFor(pathname: string): NavEntry | null {
+  return ALL_NAV.find((e) => pathname === e.href || pathname.startsWith(`${e.href}/`)) ?? null;
+}
+
+/** Which nav item is current for a pathname. */
 export function activeNavKey(pathname: string): string | null {
-  for (const e of [...APP_NAV, SETTINGS_NAV]) {
-    if (pathname === e.href || pathname.startsWith(`${e.href}/`)) return e.key;
-  }
-  return null;
+  return navEntryFor(pathname)?.key ?? null;
 }

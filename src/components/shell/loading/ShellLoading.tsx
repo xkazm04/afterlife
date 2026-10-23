@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { Window } from '../Window';
-import { APP_NAV, SETTINGS_NAV, activeNavKey } from '../sidebar/navItems';
+import { navEntryFor } from '../sidebar/navItems';
 import styles from './ShellLoading.module.css';
 
 /**
@@ -10,8 +10,7 @@ import styles from './ShellLoading.module.css';
  * real ones, titled from the route, so the frame appears at once and the screen fills it in place.
  */
 export function ShellLoading() {
-  const key = activeNavKey(usePathname());
-  const title = [...APP_NAV, SETTINGS_NAV].find((e) => e.key === key)?.label ?? 'Afterlife';
+  const title = navEntryFor(usePathname())?.label ?? 'Afterlife';
   return (
     <Window title={title} subtitle="loading" status="Loading…">
       <div className={styles.pane} role="status" aria-busy="true" aria-label={`Loading ${title}`}>

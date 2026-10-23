@@ -1,5 +1,5 @@
 // What the command palette can go to: every screen, the loop's key actions, and every project. Pure data.
-import { APP_NAV, SETTINGS_NAV } from '@/components/shell/sidebar/navItems';
+import { ALL_NAV } from '@/components/shell/sidebar/navItems';
 
 export interface PaletteItem {
   id: string;
@@ -32,7 +32,7 @@ const ACTIONS: readonly PaletteItem[] = [
 
 /** Every item, screens first, then actions, then projects (the ranker reorders them by the query). */
 export function paletteItems(projects: readonly ProjectRef[]): PaletteItem[] {
-  const screens = [...APP_NAV, SETTINGS_NAV].map<PaletteItem>((e) => ({ id: `s:${e.key}`, kind: 'screen', label: e.label, hint: 'screen', href: e.href }));
+  const screens = ALL_NAV.map<PaletteItem>((e) => ({ id: `s:${e.key}`, kind: 'screen', label: e.label, hint: 'screen', href: e.href }));
   const projs = projects.map<PaletteItem>((p) => ({
     id: `p:${p.id}`,
     kind: 'project',

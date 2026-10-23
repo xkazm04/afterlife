@@ -1,7 +1,7 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { APP_NAV, SETTINGS_NAV, activeNavKey } from './navItems';
+import { ALL_NAV, APP_NAV, SETTINGS_NAV, activeNavKey, navEntryFor } from './navItems';
 
 // The routes are the ground truth: a top-level folder of src/app that holds a page.tsx is a screen. The one screen the
 // nav leaves out on purpose is the kit gallery; the front door is the "(door)" group and has no folder name.
@@ -48,5 +48,22 @@ describe('nav data', () => {
     expect(APP_NAV.map((e) => e.label)).toEqual(['Fleet', 'Monitor', 'Needs you', 'Ladder', 'Maturity', 'Cycles', 'Task', 'Onboard', 'Setup', 'Theater', 'Runs']);
     expect(SETTINGS_NAV.href).toBe('/settings');
     expect(APP_NAV.filter((e) => e.needsYouBadge).map((e) => e.key)).toEqual(['needs-you']);
+  });
+});
+
+describe('the one screen list', () => {
+  it('ALL_NAV is the app screens then Settings, and navEntryFor finds the entry', () => {
+    expect(ALL_NAV).toEqual([...APP_NAV, SETTINGS_NAV]);
+    expect(navEntryFor('/settings/keys')?.label).toBe('Settings');
+    expect(navEntryFor('/')).toBeNull();
+  });
+  // A new pinned entry reaches every consumer only if nobody re-assembles the list: the spread lives in navItems.ts alone.
+  it('no production site re-assembles [...APP_NAV, SETTINGS_NAV]', () => {
+    const walk = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
+        d.isDirectory() ? walk(join(dir, d.name)) : /\.tsx?$/.test(d.name) && !/\.test\.tsx?$/.test(d.name) ? [join(dir, d.name)] : [],
+      );
+    const spreads = walk(join(process.cwd(), 'src')).filter((f) => /\.\.\.APP_NAV, SETTINGS_NAV/.test(readFileSync(f, 'utf8')));
+    expect(spreads.map((f) => f.replaceAll('\\', '/').split('/src/')[1])).toEqual(['components/shell/sidebar/navItems.ts']);
   });
 });
