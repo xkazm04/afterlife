@@ -59,9 +59,13 @@ export class GlabClient {
     }
   }
 
-  /** Walks page=1.. until a short page, `limit` items, or maxPages. Concatenates the arrays. */
+  /**
+   * Walks page=1.. until a short page, `limit` items, or maxPages. Concatenates the arrays. per_page stays within GitLab's
+   * 1..100: above 100 GitLab answers 100 and a full page would read as the last one; a limit of 0 or less asks nothing.
+   */
   async getPages(path: string, query: Query = {}, limit?: number): Promise<unknown[]> {
-    const perPage = Math.min(this.cfg.pageSize ?? 100, limit ?? Infinity);
+    if (limit !== undefined && !(limit >= 1)) return [];
+    const perPage = Math.max(1, Math.floor(Math.min(this.cfg.pageSize ?? 100, 100, limit ?? Infinity)));
     const maxPages = this.cfg.maxPages ?? 50;
     const all: unknown[] = [];
     for (let page = 1; page <= maxPages; page++) {

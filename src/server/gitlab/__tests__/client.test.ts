@@ -68,6 +68,14 @@ describe('glab adapter: pagination', () => {
     expect((await port.listPipelines(1, { limit: 2 })).map((p) => p.id)).toEqual([3, 2]);
     expect(calls[0]?.[1]).toBe('projects/1/pipelines?per_page=2&page=1');
   });
+
+  it('never asks for more than GitLab\'s 100 per page, and a limit of 0 or less asks nothing', async () => {
+    const full = okJson(Array.from({ length: 100 }, (_, i) => pipeline(i + 1)));
+    const { port, calls } = adapter([full, okJson([])], { pageSize: 250 });
+    expect(await port.listPipelines(1)).toHaveLength(100);
+    expect(calls.map((c) => c[1])).toEqual(['projects/1/pipelines?per_page=100&page=1', 'projects/1/pipelines?per_page=100&page=2']);
+    for (const limit of [0, -1]) expect(await adapter([]).port.listPipelines(1, { limit })).toEqual([]);
+  });
 });
 
 describe('glab adapter: listCommits', () => {
