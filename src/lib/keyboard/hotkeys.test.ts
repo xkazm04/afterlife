@@ -33,6 +33,14 @@ describe('matchHotkey', () => {
   });
 });
 
+describe('a keydown with no key', () => {
+  it('matches nothing and does not throw (Chrome fires one when it autofills a field)', () => {
+    const autofill = { ...ev('j'), key: undefined } as unknown as KeyEventLike;
+    expect(() => matchHotkey(autofill, { key: 'j' })).not.toThrow();
+    expect(matchHotkey(autofill, { key: 'j' })).toBe(false);
+  });
+});
+
 describe('isTypingTarget', () => {
   it('detects inputs and ignores others', () => {
     expect(isTypingTarget({ tagName: 'INPUT' } as unknown as EventTarget)).toBe(true);

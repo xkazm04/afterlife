@@ -18,7 +18,9 @@ export interface KeyEventLike {
   altKey: boolean;
 }
 
+/** A keydown with no `key` (Chrome fires one when it autofills a field) matches nothing, rather than throwing. */
 export function matchHotkey(e: KeyEventLike, spec: HotkeySpec): boolean {
+  if (typeof e.key !== 'string') return false;
   if (e.key.toLowerCase() !== spec.key.toLowerCase()) return false;
   if ((e.metaKey || e.ctrlKey) !== !!spec.mod) return false;
   if (e.altKey !== !!spec.alt) return false;
