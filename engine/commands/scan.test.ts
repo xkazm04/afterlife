@@ -120,6 +120,14 @@ describe('scan: the rubric', () => {
     }
   });
 
+  it('a job finished_at with no zone is not collected, not read in the machine zone (R3 in UTC, R1 in Tokyo before)', () => {
+    const facts = JSON.parse(fs.readFileSync(fx('maturity', 'configured.facts.json'), 'utf8')) as { facts: { latest_pipeline_jobs: { jobs: Record<string, unknown>[] } } };
+    for (const j of facts.facts.latest_pipeline_jobs.jobs) if (j.name === 'test') j.finished_at = '2026-09-24T09:00:00';
+    const file = path.join(tmp, 'zoneless.facts.json');
+    fs.writeFileSync(file, JSON.stringify(facts));
+    expect(scan(file).cell('verify')).toMatchObject({ rung: null, note: expect.stringMatching(/finished_at was not collected/) });
+  });
+
   it('a job or pipeline whose web_url is null or not http(s) never becomes evidence the server would refuse', () => {
     const facts = JSON.parse(fs.readFileSync(fx('maturity', 'full.facts.json'), 'utf8')) as { facts: { latest_pipeline_jobs: { pipeline: Record<string, unknown>; jobs: Record<string, unknown>[] } } };
     facts.facts.latest_pipeline_jobs.pipeline.web_url = 'ftp://x/1';

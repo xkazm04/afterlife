@@ -1,7 +1,7 @@
 // Reads the facts file collect-facts.mjs writes (belay.facts/0). A fact is its data or { error }; one that is missing was
 // not collected. Either way it is unknown, never absent: each reader returns why, naming the fact, and the scan leaves the
 // cell it decides null.
-import { EngineError, isoMs, isRecord, rec } from '../core/types';
+import { EngineError, isoInstantMs, isoMs, isRecord, rec } from '../core/types';
 
 export type Read<T> = { ok: true; v: T } | { ok: false; why: string };
 
@@ -89,9 +89,11 @@ export function runs(f: Facts): Read<Runs> {
   const pipeline = isRecord(p) && Number.isInteger(p.id) ? { id: p.id as number, webUrl: typeof p.web_url === 'string' && HTTP.test(p.web_url) ? p.web_url : null } : null;
   const jobs = r.v.jobs.flatMap((j): RunJob[] => {
     if (!isRecord(j) || typeof j.name !== 'string') return [];
-    // a web_url that is not http(s) is no URL: the server refuses a cell citing it (src/schemas/maturity.ts), so it is not collected
-    const gone = (['id', 'status', 'web_url', 'finished_at', 'artifacts'] as const).find((k) => !(k in j) || (k === 'web_url' && !(typeof j.web_url === 'string' && HTTP.test(j.web_url))));
-    const finishedMs = typeof j.finished_at === 'string' ? Date.parse(j.finished_at) : Number.NaN;
+    // a web_url that is not http(s) is no URL: the server refuses a cell citing it (src/schemas/maturity.ts), so it is not
+    // collected; a finished_at with no zone would be read in the machine's zone, so it is null (not finished) or an instant
+    const finishedMs = isoInstantMs(j.finished_at);
+    const bad = { web_url: !(typeof j.web_url === 'string' && HTTP.test(j.web_url)), finished_at: j.finished_at !== null && Number.isNaN(finishedMs) };
+    const gone = (['id', 'status', 'web_url', 'finished_at', 'artifacts'] as const).find((k) => !(k in j) || (k in bad && bad[k as keyof typeof bad]));
     return [{
       id: Number(j.id), name: j.name, status: String(j.status), webUrl: typeof j.web_url === 'string' ? j.web_url : '', finishedMs,
       artifacts: Array.isArray(j.artifacts) ? j.artifacts.filter((a): a is string => typeof a === 'string') : [],
