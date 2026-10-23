@@ -4,7 +4,7 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { PROJECT_REPO } from '../../../data/constants';
 import { CRA, EVIDENCE, GRADES, GRADE_NEVER } from '../../../data/cra';
-import { clockText } from '../../../model/clock/clock';
+import { clockText, notifyLine } from '../../../model/clock/clock';
 import { gradeIndex, gradeState } from '../../../model/clock/grades';
 import { GradeChip } from '../../shared/GradeChip';
 import { ActBtn, Acts } from '../Acts';
@@ -17,7 +17,7 @@ import styles from './items.module.css';
 export function InspCra(p: InspProps) {
   const { s, dispatch } = p;
   const st = s.status.n2;
-  const gi = gradeIndex(st);
+  const gi = gradeIndex(st, p.demo.signoff.linksResolved);
   return (
     <>
       <ItemHead
@@ -62,6 +62,7 @@ export function InspCra(p: InspProps) {
           rows={[
             ['Aware', `${CRA.awareAt} · a person confirms`],
             ['Early warning due', CRA.dueAt],
+            ['72 h notification', notifyLine(p.leftSec)],
             ...CRA.next,
             [
               'Submit',

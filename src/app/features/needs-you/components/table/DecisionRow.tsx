@@ -28,7 +28,7 @@ export function DecisionRow({ id, index, s, demo, dispatch, onActivate, onContex
   const v = rowView(s, id, demo);
   if (!v) return null;
   const state = rowState(s, id);
-  const action = rowAction(s, id);
+  const action = rowAction(s, id, demo);
   const picked = !!s.gaps[id] || !!s.gapStatus[id];
   return (
     <Row id={id} alt={index % 2 === 1} selected={s.sel === id} onSelect={(x) => dispatch({ type: 'select', id: x })} onActivate={onActivate} onContextMenu={onContextMenu}>

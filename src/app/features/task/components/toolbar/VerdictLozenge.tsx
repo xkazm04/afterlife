@@ -4,13 +4,13 @@ import { LozengeDivider } from '@/components/controls/lozenge/LozengeDivider';
 import type { VerdictFilter } from '../../model/docket/filters';
 import styles from './toolbar.module.css';
 
-/** The toolbar lozenge as a filter: all, pass only, fail only (also the f key). Filters only hide, they never change a task. */
+/** The toolbar lozenge as a filter: all, pass only, fail only (also the f key), or open (neither). Filters only hide, they never change a task. */
 export function VerdictLozenge({
   counts,
   value,
   onChange,
 }: {
-  counts: { all: number; pass: number; fail: number };
+  counts: { all: number; pass: number; fail: number; open: number };
   value: VerdictFilter;
   onChange: (v: VerdictFilter) => void;
 }) {
@@ -33,6 +33,8 @@ export function VerdictLozenge({
         title="Fail only (f)"
         onClick={() => onChange('FAIL')}
       />
+      <LozengeDivider />
+      <LozengeButton count={counts.open} word="open" pressed={value === 'open'} title="Open only: inconclusive or unknown, waiting on a person" onClick={() => onChange('open')} />
     </Lozenge>
   );
 }

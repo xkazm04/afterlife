@@ -89,7 +89,7 @@ describe('derivedVerdict', () => {
     expect(derivedVerdict(t)).toEqual({ verdict: 'FAIL', stored: 'PASS', mismatch: true });
     expect(verdictWord(t, null)).toMatchObject({ word: 'FAIL', fail: true, mismatch: true, stored: 'PASS' });
     expect(verdictWord(t, 0)).toMatchObject({ word: 'checking…', mismatch: false });
-    expect(verdictCounts([t])).toEqual({ all: 1, pass: 0, fail: 1 });
+    expect(verdictCounts([t])).toEqual({ all: 1, pass: 0, fail: 1, open: 0 });
     expect(visibleTasks([t], { ...NO_FILTERS, verdict: 'FAIL' })).toHaveLength(1);
   });
 

@@ -37,7 +37,8 @@ export interface MenuApi<D = unknown> {
  * - `label` names the menu for assistive tech.
  * - `onHighlight` hears the highlighted action (its `data` says which); `vimKeys` adds j / k.
  * Focus returns to the opener (or `returnTo`) when the menu closes by key or by running an item.
- * A press on the trigger of an open menu closes it, and the click that follows that press does not reopen it.
+ * A press on the trigger of an open menu closes it, and the click that follows that press does not reopen it; a click with
+ * no press before it (assistive tech) on that trigger closes it too.
  */
 export function useMenu<D = unknown>(
   build?: () => readonly MenuEntry<D>[],
@@ -49,7 +50,9 @@ export function useMenu<D = unknown>(
   const place = useCallback((x: number, y: number, opts: Parameters<MenuApi<D>['openAt']>[2] & { trigger?: HTMLElement } = {}) => {
     const active = document.activeElement;
     const returnTo = opts.returnTo ?? (active instanceof HTMLElement ? active : null);
-    setOpen((prev) => ({
+    // A click on the trigger the menu is already open from (no press before it: assistive tech, voice control, element.click())
+    // closes it; a mouse press is covered by the reopen guard.
+    setOpen((prev) => prev && opts.trigger && prev.trigger === opts.trigger ? null : {
       x,
       y,
       fixed: opts.items,
@@ -57,7 +60,7 @@ export function useMenu<D = unknown>(
       trigger: opts.trigger,
       initialActive: opts.highlightFirst ? 0 : -1,
       version: (prev?.version ?? 0) + 1,
-    }));
+    });
   }, []);
   const openAt: MenuApi<D>['openAt'] = place;
 

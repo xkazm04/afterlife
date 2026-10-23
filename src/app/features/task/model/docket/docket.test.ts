@@ -18,7 +18,7 @@ const idle = { inDocket: false, inChrome: false, replaying: false };
 
 describe('filters', () => {
   it('counts verdicts and classes', () => {
-    expect(verdictCounts(tasks)).toEqual({ all: 7, pass: 6, fail: 1 });
+    expect(verdictCounts(tasks)).toEqual({ all: 7, pass: 6, fail: 1, open: 0 });
     expect(classCount(tasks, 'bench-delta')).toBe(1);
     expect(classCount(tasks, 'nope')).toBe(0);
   });
@@ -28,6 +28,7 @@ describe('filters', () => {
     expect(visibleTasks(tasks, { verdict: 'FAIL', cls: 'all' }).map((t) => t.id)).toEqual(['01J8Q8']);
     expect(visibleTasks(tasks, { verdict: 'PASS', cls: 'repro' }).map((t) => t.id)).toEqual(['01J8QA']);
     expect(visibleTasks(tasks, { verdict: 'FAIL', cls: 'repro' })).toEqual([]);
+    expect(visibleTasks(tasks, { verdict: 'open', cls: 'all' })).toEqual([]);
   });
 
   it('toggles fail-only with the f key', () => {

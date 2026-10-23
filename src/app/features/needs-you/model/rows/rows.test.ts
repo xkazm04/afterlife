@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../data/pick';
+import { gapBlock } from '../../write/desk';
 import { initialState } from '../state';
 import type { NeedsState } from '../types';
 import { rowAction, spaceAction } from './rowAction';
@@ -54,34 +55,41 @@ describe('filters', () => {
 
 describe('the one action on each row', () => {
   it('forces reading before acting: Read draft, then Ready to sign', () => {
-    expect(rowAction(fresh(), 'n2')).toMatchObject({ label: 'Read draft', action: 'read-draft' });
-    expect(rowAction(with_({ read: { draft: true, note: false } }), 'n2')).toMatchObject({ label: 'Ready to sign', action: 'stage-n2' });
+    expect(rowAction(fresh(), 'n2', demo)).toMatchObject({ label: 'Read draft', action: 'read-draft' });
+    expect(rowAction(with_({ read: { draft: true, note: false } }), 'n2', demo)).toMatchObject({ label: 'Ready to sign', action: 'stage-n2' });
   });
   it('offers Read note before Re-admit', () => {
-    expect(rowAction(fresh(), 'n4')?.label).toBe('Read note');
-    expect(rowAction(with_({ read: { draft: false, note: true } }), 'n4')?.label).toBe('Re-admit');
+    expect(rowAction(fresh(), 'n4', demo)?.label).toBe('Read note');
+    expect(rowAction(with_({ read: { draft: false, note: true } }), 'n4', demo)?.label).toBe('Re-admit');
   });
   it('lets a staged row be taken back, and a sent promotion be simulated as merged', () => {
-    expect(rowAction(with_({ status: { ...fresh().status, n1: 'staged' } }), 'n1')).toMatchObject({ label: 'Take back', action: 'unstage:n1' });
-    expect(rowAction(with_({ status: { ...fresh().status, n1: 'sent' } }), 'n1')?.label).toBe('Simulate merge');
-    expect(rowAction(with_({ status: { ...fresh().status, n1: 'merged' } }), 'n1')).toBeNull();
+    expect(rowAction(with_({ status: { ...fresh().status, n1: 'staged' } }), 'n1', demo)).toMatchObject({ label: 'Take back', action: 'unstage:n1' });
+    expect(rowAction(with_({ status: { ...fresh().status, n1: 'sent' } }), 'n1', demo)?.label).toBe('Simulate merge');
+    expect(rowAction(with_({ status: { ...fresh().status, n1: 'merged' } }), 'n1', demo)).toBeNull();
   });
   it('stops offering an action once the sign-off was submitted', () => {
     const sent = with_({ status: { ...fresh().status, n2: 'sent' } });
-    expect(rowAction(sent, 'n2')?.label).toBe('I submitted it');
-    expect(rowAction({ ...sent, submitted: true }, 'n2')).toBeNull();
+    expect(rowAction(sent, 'n2', demo)?.label).toBe('I submitted it');
+    expect(rowAction({ ...sent, submitted: true }, 'n2', demo)).toBeNull();
+  });
+  it('offers Stage on a gap with a door and none on the probe (g4), the same rule as the inspector', () => {
+    expect(rowAction(fresh(), 'g3', demo)).toMatchObject({ label: 'Stage', action: 'stage-gap:g3' });
+    expect(gapBlock('g4', demo)).not.toBeNull();
+    expect(rowAction(fresh(), 'g4', demo)).toBeNull();
+    expect(rowAction(with_({ gapStatus: { g4: 'staged' } }), 'g4', demo)?.label).toBe('Take back');
   });
   it('Space ticks an unstaged gap and otherwise runs the row action', () => {
-    expect(spaceAction(fresh(), 'g3')).toBe('tick:g3');
-    expect(spaceAction(with_({ gapStatus: { g3: 'staged' } }), 'g3')).toBe('unstage:g3');
-    expect(spaceAction(fresh(), 'n1')).toBe('stage-n1');
-    expect(spaceAction(fresh(), 'g:improve')).toBeNull();
-    expect(spaceAction(fresh(), 'h0')).toBeNull();
+    expect(spaceAction(fresh(), 'g3', demo)).toBe('tick:g3');
+    expect(spaceAction(with_({ gapStatus: { g3: 'staged' } }), 'g3', demo)).toBe('unstage:g3');
+    expect(spaceAction(fresh(), 'n1', demo)).toBe('stage-n1');
+    expect(spaceAction(fresh(), 'g:improve', demo)).toBeNull();
+    expect(spaceAction(fresh(), 'h0', demo)).toBeNull();
   });
 });
 
 describe('row cells', () => {
   it('shows the live clock on the sign-off row and an opened-at time on the rest', () => {
+    expect(rowView(fresh(), 'n2', { ...demo, signoff: { ...demo.signoff, linksResolved: '5 / 6' } })).toMatchObject({ move: { kind: 'grade', label: 'draft', done: false } });
     expect(rowView(fresh(), 'n2', demo)).toMatchObject({ due: true, seeded: true, track: 'T2', move: { kind: 'grade', label: 'reviewable', done: false } });
     expect(rowView(fresh(), 'n1', demo)).toMatchObject({ when: '13:40', move: { kind: 'tiers', from: 'supervised', to: 'hands_off' } });
   });

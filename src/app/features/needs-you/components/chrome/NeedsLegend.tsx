@@ -3,7 +3,9 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import type { TierKey } from '@/lib/demo/types';
+import { capsOf, type Keymap } from '@/lib/keyboard/keymap';
 import { GRADES, GRADE_NEVER } from '../../data/cra';
+import { NEEDS_KEYMAP } from '../../model/keys/keymap';
 import type { GlyphKind } from '../../model/rows/rowState';
 import { DecisionGlyph } from '../shared/DecisionGlyph';
 import { GradeChip } from '../shared/GradeChip';
@@ -23,6 +25,11 @@ export const GLYPH_MEANS: Readonly<Record<GlyphKind, string>> = {
 };
 const GLYPHS = Object.keys(GLYPH_MEANS) as GlyphKind[];
 
+type KeyId = typeof NEEDS_KEYMAP extends Keymap<infer I> ? I : never;
+/** The legend's short phrase per keymap entry; the keys come from the keymap, so a bound key is a named key. */
+const WORD: Record<KeyId, string> = { search: 'search', escape: 'clear search', toTable: 'leave the search field' };
+const DOC_KEYS = NEEDS_KEYMAP.entries.map((e) => `${capsOf(e.keys).join(' ')} ${WORD[e.id]}`).join(' · ');
+
 /** The legend behind "?": tiers, row states, the seeded mark, the grade ladder and the keyboard. */
 export function NeedsLegend({ tierMeans }: { tierMeans: Record<TierKey, string> }) {
   return (
@@ -38,7 +45,7 @@ export function NeedsLegend({ tierMeans }: { tierMeans: Record<TierKey, string> 
       <hr />
       <Legend rows={[[<GradeChip key="g" state="cur">r</GradeChip>, GRADE_LINE]]} />
       <hr />
-      <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open the decision page · Space pick / act · / search · right-click for actions</div>
+      <div className={styles.keys}>↑↓ move · ←→ collapse · ↩ open the decision page · Space pick / act · {DOC_KEYS} · right-click for actions</div>
     </>
   );
 }

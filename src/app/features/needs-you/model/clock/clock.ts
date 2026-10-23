@@ -44,3 +44,9 @@ export function railTicks(totalSec: number, awareAt: string, dueClock: string): 
   ticks.push({ pct: 100, label: `due ${dueClock}`, kind: 'end' });
   return ticks;
 }
+
+/** The 72 h notification runs 48 h past the 24 h early warning, so its countdown moves with the same clock. */
+export function notifyLine(leftSec: number): string {
+  const { d, h, m } = splitDuration(leftSec + 48 * 3600);
+  return `in ${d} d ${h} h ${m} m`;
+}

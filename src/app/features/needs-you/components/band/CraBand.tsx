@@ -32,7 +32,7 @@ export function CraBand({ s, linksResolved, dispatch }: { s: NeedsState; linksRe
       </div>
       <div className={styles.trk}>
         <Rail24 totalSec={CRA.totalSec} awareAt={CRA.awareAt} dueClock={CRA.dueClock} signed={signed} />
-        <GradeLadder current={gradeIndex(s.status.n2)} />
+        <GradeLadder current={gradeIndex(s.status.n2, linksResolved)} />
         <EvidenceStrip resolved={linksResolved} />
       </div>
       <BandSide s={s} dispatch={dispatch} />

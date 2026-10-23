@@ -58,8 +58,9 @@ describe('an engine Proof Block on the live path', () => {
     expect(t.proof.verdict).toBe('INCONCLUSIVE');
     expect(verdictWord(t, null).word).toBe('INCONCLUSIVE');
     expect(t.proof.checks[5]?.ok).toBeNull();
-    expect(verdictCounts([t])).toEqual({ all: 1, pass: 0, fail: 0 });
+    expect(verdictCounts([t])).toEqual({ all: 1, pass: 0, fail: 0, open: 1 });
     expect(visibleTasks([t], { ...NO_FILTERS, verdict: 'PASS' })).toEqual([]);
+    expect(visibleTasks([t], { ...NO_FILTERS, verdict: 'open' })).toEqual([t]);
     expect(statusLine([t], 1, 'now')).toContain('1 undetermined');
   });
 });

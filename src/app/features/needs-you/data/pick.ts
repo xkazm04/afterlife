@@ -85,7 +85,8 @@ export type NeedsYouView =
       /** When this view was read (ISO): the desk counts every age from it. */
       now: string;
     }
-  | { kind: 'empty'; seeded: number };
+  /** `demo`: the demo fixture lacks the desk's items (there is no group and no poller to wait for). */
+  | { kind: 'empty'; seeded: number; demo?: true };
 
 /** The inbox items the demo seeds: the data source owns the predicate; re-exported for this screen's importers. */
 export { SEEDED_ITEMS };
@@ -113,7 +114,7 @@ export function loadNeedsYouView(): NeedsYouView {
   try {
     return { kind: 'desk', demo: pickNeedsYouDemo() };
   } catch (e) {
-    if (e instanceof MissingNeedsYouData) return { kind: 'empty', seeded: 0 };
+    if (e instanceof MissingNeedsYouData) return { kind: 'empty', seeded: 0, demo: true };
     throw e;
   }
 }

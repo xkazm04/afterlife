@@ -1,12 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { GRADES } from '../../data/cra';
-import { gradeIndex, gradeState } from './grades';
+import { gradeIndex, gradeState, linksUnresolved } from './grades';
 
 describe('packet grade ladder', () => {
   it('is reviewable until the sign-off is sent, then ready to sign', () => {
-    expect(GRADES[gradeIndex('open')]?.name).toBe('reviewable');
-    expect(GRADES[gradeIndex('staged')]?.name).toBe('reviewable');
-    expect(GRADES[gradeIndex('sent')]?.name).toBe('ready to sign');
+    expect(GRADES[gradeIndex('open', '6 / 6')]?.name).toBe('reviewable');
+    expect(GRADES[gradeIndex('staged', '6 / 6')]?.name).toBe('reviewable');
+    expect(GRADES[gradeIndex('sent', '6 / 6')]?.name).toBe('ready to sign');
+  });
+  it('is draft while a link is unresolved, whatever the status', () => {
+    expect(GRADES[gradeIndex('open', '5 / 6')]?.name).toBe('draft');
+    expect(GRADES[gradeIndex('sent', '5/6')]?.name).toBe('draft');
+  });
+  it('reads an unreadable count as no claim, not as draft', () => {
+    expect(linksUnresolved('')).toBe(false);
+    expect(linksUnresolved('all')).toBe(false);
+    expect(linksUnresolved('6 / 6')).toBe(false);
+    expect(GRADES[gradeIndex('open', '')]?.name).toBe('reviewable');
   });
   it('never offers "attested": the ladder stops at ready to sign', () => {
     expect(GRADES.map((g) => g.name)).toEqual(['draft', 'reviewable', 'ready to sign']);

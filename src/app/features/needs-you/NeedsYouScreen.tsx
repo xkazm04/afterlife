@@ -44,7 +44,7 @@ export function NeedsYouScreen({ demo, runner = [] }: { demo: NeedsYouDemo; runn
   };
   const groups = visibleGroups(s, demo);
   const menus = useNeedsMenus(s, demo, dispatch, open);
-  const onKeyDown = useNeedsKeys({ s, groups, dispatch, tableRef, searchRef, onActivate: open, onMenuKey: menus.onMenuKey });
+  const onKeyDown = useNeedsKeys({ s, demo, groups, dispatch, tableRef, searchRef, onActivate: open, onMenuKey: menus.onMenuKey });
   const counts = decisionCounts(s);
 
   useEffect(() => tableRef.current?.focus({ preventScroll: true }), []);
