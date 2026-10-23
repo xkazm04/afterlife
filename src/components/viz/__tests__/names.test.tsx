@@ -15,6 +15,8 @@ describe('viz glyph accessible names', () => {
   it.each([
     ['DayStrip clean', createElement(DayStrip, { clean: 6 }), '6 of the last 14 days clean'],
     ['DayStrip window', createElement(DayStrip, { clean: 3, days: 7 }), '3 of the last 7 days clean'],
+    // the poller's cleanDays counts every day since the record's window began, so it can exceed the strip's 14 cells
+    ['DayStrip longer run', createElement(DayStrip, { clean: 30 }), '14 of the last 14 days clean (30 in a row)'],
     ['DayStrip unknown', createElement(DayStrip, { clean: null }), 'No record, not scored'],
     ['ProofBar mixed', createElement(ProofBar, { proofs: { pass: 5, fail: 1, inconclusive: 2 } }), '5 pass · 1 fail · 2 inconclusive'],
     ['ProofBar empty', createElement(ProofBar, { proofs: { pass: 0, fail: 0, inconclusive: 0 } }), 'No proofs yet'],
