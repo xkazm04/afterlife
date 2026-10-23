@@ -35,3 +35,11 @@ describe('viz glyph accessible names', () => {
     expect(name(renderToStaticMarkup(el))).toBe(spoken);
   });
 });
+
+// RungGlyph's "≤ S" caption repeats the ceiling its image already names ("ceiling Supervised"): hidden, not spoken twice.
+describe('RungGlyph caption', () => {
+  it('is aria-hidden beside the named glyph', () => {
+    const html = renderToStaticMarkup(createElement(RungGlyph, { tier: 'assisted', ceiling: 'supervised' }));
+    expect(html).toMatch(/<span[^>]*aria-hidden="true"[^>]*>≤ S<\/span>/);
+  });
+});

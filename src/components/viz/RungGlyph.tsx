@@ -3,7 +3,7 @@ import { TIER_META } from '@/lib/tiers';
 import { rungCells } from './model/cells';
 import styles from './RungGlyph.module.css';
 
-/** The rung-in-ceiling glyph from the Ladder, with the "≤ H" caption (hidden with `compact`). */
+/** The rung-in-ceiling glyph from the Ladder, with the "≤ H" caption (hidden with `compact`; never spoken: the glyph names the ceiling). */
 export function RungGlyph({ tier, ceiling, compact }: { tier: Ceiling; ceiling: Ceiling; compact?: boolean }) {
   const cells = rungCells(tier, ceiling);
   const title =
@@ -17,7 +17,7 @@ export function RungGlyph({ tier, ceiling, compact }: { tier: Ceiling; ceiling: 
           <i key={i} className={c === 'at' ? styles.at : c === 'out' ? styles.out : undefined} />
         ))}
       </span>
-      {compact ? null : <span className={styles.le}>≤ {TIER_META[ceiling].letter}</span>}
+      {compact ? null : <span className={styles.le} aria-hidden="true">≤ {TIER_META[ceiling].letter}</span>}
     </>
   );
 }

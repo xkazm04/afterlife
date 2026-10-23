@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { FeedAge } from '../FeedAge';
 import { NeedsYouBadge } from '../NeedsYouBadge';
 import { StateGlyph } from '../StateGlyph';
+import { TierChip } from '../TierChip';
 import { TierMark } from '../TierMark';
 
 /** Every opening tag that carries an aria-label. */
@@ -32,5 +33,20 @@ describe('status components: a named element has a role', () => {
   it('keeps the spoken text, not just the digit', () => {
     expect(renderToStaticMarkup(createElement(NeedsYouBadge, { count: 3 }))).toContain('aria-label="3 waiting for you"');
     expect(renderToStaticMarkup(createElement(FeedAge, { ageSec: 5400, ok: false, error: 'token expired' }))).toContain('feed failing: token expired');
+  });
+});
+
+// TierChip draws its letter beside the tier's name: read aloud it is "S Supervised". The letter is decoration there.
+describe('a letter mark beside its own name is hidden from assistive tech', () => {
+  it('TierChip', () => {
+    const html = renderToStaticMarkup(createElement(TierChip, { tier: 'supervised' }));
+    expect(html).toMatch(/<span[^>]*aria-hidden="true"[^>]*>S<\/span>Supervised/);
+  });
+});
+
+describe('TierChip with its own words', () => {
+  it('names the tier through the letter, since the words do not', () => {
+    const html = renderToStaticMarkup(createElement(TierChip, { tier: 'human_only' }, 'submit'));
+    expect(html).toMatch(/<span[^>]*role="img"[^>]*aria-label="Human only"[^>]*>[^<]+<\/span>submit/);
   });
 });
