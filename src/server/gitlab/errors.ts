@@ -34,10 +34,23 @@ export function statusOf(f: RawFailure): number | null {
   return code ? Number(code) : null;
 }
 
+/** GitLab's reason in the body: glab prints only "glab: HTTP 400" when it is under `error` or is a field map. */
+function bodyReason(stdout: string): string | null {
+  try {
+    const b = JSON.parse(stdout) as { message?: unknown; error?: unknown } | null;
+    const v = b?.message ?? b?.error;
+    return typeof v === 'string' ? v : v ? JSON.stringify(v) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Maps a non-zero glab exit to a typed error. Status wins over text; text only when no status. */
 export function failureToError(f: RawFailure, endpoint: string): GitLabError {
   const status = statusOf(f);
-  const detail = (f.stderr.trim() || f.stdout.trim()).split('\n')[0]?.slice(0, 200) ?? 'glab failed';
+  const first = (f.stderr.trim() || f.stdout.trim()).split('\n')[0] ?? 'glab failed';
+  const why = /^glab: HTTP \d{3}$/.test(first) ? bodyReason(f.stdout) : null;
+  const detail = (why ? `${first}: ${why}` : first).slice(0, 200);
   if (status === 401) return new GitLabError('auth', detail, endpoint, status);
   if (status === 403) return new GitLabError('forbidden', detail, endpoint, status);
   if (status === 404) return new GitLabError('not-found', detail, endpoint, status);

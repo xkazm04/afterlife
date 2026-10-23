@@ -140,6 +140,14 @@ describe('glab adapter: error mapping', () => {
     expect(statusOf({ code: 1, stdout: '{"message":"404 Project Not Found"}', stderr: '' })).toBe(404);
     expect(failureToError({ code: 1, stdout: '', stderr: 'boom' }, 'x').kind).toBe('api');
   });
+
+  it('a bare "glab: HTTP 400" keeps the reason GitLab put in the body ("error" key or a field map)', () => {
+    const bare = (stdout: string) => failureToError({ code: 1, stdout, stderr: 'glab: HTTP 400\n' }, 'x').message;
+    expect(bare('{"error":"branch is missing"}')).toBe('glab: HTTP 400: branch is missing');
+    expect(bare('{"message":{"title":["can\'t be blank"]}}')).toBe('glab: HTTP 400: {"title":["can\'t be blank"]}');
+    expect(bare('not json')).toBe('glab: HTTP 400');
+    expect(failureToError(httpFail(403, 'Forbidden'), 'x').message).toBe('glab: 403 Forbidden (HTTP 403)');
+  });
 });
 
 describe('execute', () => {
