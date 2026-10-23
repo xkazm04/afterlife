@@ -34,7 +34,12 @@ export interface FleetTableProps {
   marks?: Readonly<Record<string, string>>;
   /** The fleet itself has no projects (not a filter hiding them): the empty line must not ask to clear one. */
   fleetEmpty?: boolean;
+  /** The Changed source is picked and nothing moved since the last look: no filter to clear, nothing to show. */
+  nothingChanged?: boolean;
 }
+
+const emptyLine = (p: FleetTableProps) =>
+  p.fleetEmpty ? 'No projects in the fleet yet.' : p.nothingChanged ? 'Nothing moved since your last look.' : 'No projects match. Clear the search or the filters to see the fleet.';
 
 /** The treegrid: header, then group rows with their projects (or the flat list), for the chosen view. */
 export function FleetTable(props: FleetTableProps) {
@@ -49,7 +54,7 @@ export function FleetTable(props: FleetTableProps) {
     body = (
       <div role="row">
         <div role="gridcell" className={styles.empty}>
-          {props.fleetEmpty ? 'No projects in the fleet yet.' : 'No projects match. Clear the search or the filters to see the fleet.'}
+          {emptyLine(props)}
         </div>
       </div>
     );

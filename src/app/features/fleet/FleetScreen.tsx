@@ -139,6 +139,7 @@ export function FleetScreen({ data, source, start, baseline, runner }: { data: F
       handlers={handlers}
       marks={changes.marks}
       fleetEmpty={proj.projects.length === 0}
+      nothingChanged={list.filters.source === 'changed' && changes.count === 0}
     />
   );
 

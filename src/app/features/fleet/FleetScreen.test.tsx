@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { loadFleetData } from './data/loadFleetData';
 import { loadFleetSource } from './data/loadFleetSource';
 import { FleetScreen } from './FleetScreen';
+import { seen } from './model/changes/baseline';
 import { decodeListState } from './model/list/urlState';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/fleet', useRouter: () => ({ push: () => undefined, refresh: () => undefined }) }));
@@ -28,5 +29,15 @@ describe('FleetScreen: a bookmarked sort on a column this fleet does not draw', 
   it('a class the fleet lists keeps its sort', () => {
     const c = loadFleetData().classes[0]!;
     expect(sortTitle(render({ view: 'classes', sort: `class:${c}` }))).toBe(c);
+  });
+});
+
+describe('FleetScreen: the Changed source with nothing changed', () => {
+  it('says nothing moved, not that a filter hides the fleet', () => {
+    const html = renderToString(
+      createElement(ToastProvider, null, createElement(FleetScreen, { data: loadFleetData(), source: loadFleetSource(), start: decodeListState({ src: 'changed' }), baseline: seen(loadFleetData().projects, Date.UTC(2026, 9, 16)) })),
+    );
+    expect(html).toContain('Nothing moved since your last look.');
+    expect(html).not.toContain('Clear the search or the filters');
   });
 });
