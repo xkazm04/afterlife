@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { reduce } from './reducer';
-import { initialState } from './state';
+import { initialState, pendingIds } from './state';
 import { nextStage, stepTarget, stepsView } from './steps';
 import { ctx } from './testCtx';
 
@@ -26,7 +26,14 @@ describe('stepsView', () => {
     s = reduce(reduce(s, { type: 'go', step: 3 }, ctx), { type: 'sent', opened: { g1: null, g2: null }, text: 'x' }, ctx);
     const v = stepsView(s, ctx);
     expect(v[3]).toMatchObject({ enabled: true, current: true, count: 2 });
-    expect(v[2]?.count).toBe(1); // the probe stays picked: nothing sends it
+    expect(v[2]?.count).toBeNull(); // the probe stays picked, but nothing sends it: Send has nothing waiting
+  });
+  it('Send\'s loud "waits for you" badge counts the MRs the sheet would open, never a probe it cannot send', () => {
+    const probeOnly = reduce(reduce(reduce(initialState(ctx), { type: 'togglePick', id: 'g1' }, ctx), { type: 'togglePick', id: 'g2' }, ctx), { type: 'togglePick', id: 'g4' }, ctx);
+    expect(pendingIds(probeOnly, ctx)).toEqual(['g4']);
+    expect(stepsView(probeOnly, ctx)[2]).toMatchObject({ loud: true, count: null });
+    const withProbe = reduce(initialState(ctx), { type: 'togglePick', id: 'g4' }, ctx);
+    expect(stepsView(withProbe, ctx)[2]?.count).toBe(2);
   });
 });
 

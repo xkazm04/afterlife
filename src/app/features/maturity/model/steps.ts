@@ -27,7 +27,8 @@ export function stepsView(s: MaturityState, ctx: MaturityCtx): StepView[] {
   const mrs = pend.filter((id) => ctx.gap(id)?.x.kind === 'mr').length;
   const fly = inFlightIds(s).length;
   const enabled = [true, pend.length > 0, pend.length > 0, fly > 0];
-  const counts = [pend.length, mrs, pend.length || null, fly];
+  // Send's loud badge says "waits for you": it counts the MRs the sheet would open, as Preview does, never a probe it cannot send.
+  const counts = [pend.length, mrs, mrs || null, fly];
   return STEPS.map((st, i) => ({
     ...st,
     enabled: enabled[i] ?? false,
