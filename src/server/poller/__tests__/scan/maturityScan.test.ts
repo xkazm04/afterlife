@@ -132,6 +132,9 @@ describe('the poller stores a maturity scan', () => {
     // F104: every lit cell cites a GitLab object under the project; a link elsewhere is not evidence
     ['citing another site', citing('https://gitlab.com.evil.example/x'), /maturity scan: .*cell verify cites https:\/\/gitlab\.com\.evil\.example\/x, not under https:\/\/gitlab\.com\/acme-lab\/core-banking\/ledgerline\//],
     ['citing a sibling path', citing(`${WEB}-evil/-/jobs/7`), /maturity scan: .*cell verify cites .*ledgerline-evil\/-\/jobs\/7, not under/],
+    // the prefix is compared where the link resolves: a dot segment, plain or encoded, climbs out of the project
+    ['citing a dot segment out of the project', citing(`${WEB}/../ledgerline-evil/-/jobs/7`), /maturity scan: .*cell verify cites .*ledgerline\/\.\.\/ledgerline-evil\/-\/jobs\/7, not under/],
+    ['citing an encoded dot segment', citing(`${WEB}/%2e%2e/%2E%2E/other/-/jobs/7`), /maturity scan: .*cell verify cites .*%2e%2e\/%2E%2E\/other\/-\/jobs\/7, not under/],
   ])('(iii) an %s artifact writes no row and is the poll\'s issue', async (_what, artifact, issue) => {
     const r = await rig();
     const res = await r.poll(NOW, withScans(r.gl.port, [{ pipelineId: PIPE, jobId: JOB, minAgo: 2, artifact }], []));

@@ -25,6 +25,15 @@ export type ScanRead = 'none' | 'stored' | 'unchanged' | 'refused';
 
 const message = (e: unknown): string => (e instanceof Error ? e.message : String(e)).split('\n')[0] ?? '';
 
+/** A link where it resolves (dot segments, plain or encoded, and backslashes applied), or null when it is no absolute URL. */
+const resolved = (url: string): string | null => {
+  try {
+    return new URL(url).href;
+  } catch {
+    return null;
+  }
+};
+
 /** The newest finished scan job on the newest scheduled or API pipelines of the default branch, or null. `ref` alone also matches a tag of that name (F106). */
 async function newestScanJob(port: GitLabPort, gl: GlProject): Promise<GlJob | null> {
   const pipelines = (await port.listPipelines(gl.id, { ref: gl.defaultBranch ?? undefined, scope: 'branches', limit: PIPELINES }))
@@ -88,9 +97,10 @@ async function read(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject
     return refuse(`has scanned_at ${parsed.scan.scanned_at}, outside job ${job.id}'s run`, true);
   }
   // F104: the engine cites only GitLab objects under the project's web_url; a link anywhere else is not evidence
-  const under = `${gl.webUrl.replace(/\/+$/, '')}/`;
+  // compared where each link resolves: `<web>/../other` starts with the project's path and leads out of it
+  const under = `${(resolved(gl.webUrl) ?? gl.webUrl).replace(/\/+$/, '')}/`;
   for (const c of parsed.scan.cells) {
-    const off = c.evidence.find((e) => !e.url.startsWith(under));
+    const off = c.evidence.find((e) => !(resolved(e.url) ?? '').startsWith(under));
     if (off) return refuse(`cell ${c.stage} cites ${off.url}, not under ${under}`, true);
   }
   await db.transaction((tx) => store(tx, projectId, parsed.scan));
