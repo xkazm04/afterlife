@@ -15,7 +15,18 @@ export interface SegmentOption<V extends string> {
 }
 
 /**
- * A radio group drawn as a segmented control. Arrow keys move and select (wrapping). Generic over the value type.
+ * The index an arrow key moves a radio group to, wrapping (APG: Right/Down next, Left/Up previous); null for any
+ * other key. With no option selected (current < 0) forward starts at the first segment and back at the last.
+ */
+export function nextSegment(key: string, current: number, count: number): number | null {
+  const forward = key === 'ArrowRight' || key === 'ArrowDown';
+  if (!forward && key !== 'ArrowLeft' && key !== 'ArrowUp') return null;
+  if (count < 1) return null;
+  return current < 0 ? (forward ? 0 : count - 1) : (current + (forward ? 1 : -1) + count) % count;
+}
+
+/**
+ * A radio group drawn as a segmented control. Arrow keys (all four) move and select (wrapping). Generic over the value type.
  * Give `label` for the group's accessible name. Option labels may be nodes, and an option may carry a `count`.
  */
 export function SegmentedControl<V extends string>({
@@ -32,10 +43,8 @@ export function SegmentedControl<V extends string>({
   const group = useRef<HTMLDivElement>(null);
   const current = options.findIndex((o) => o.value === value);
   const onKey = (e: KeyboardEvent) => {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    const forward = e.key === 'ArrowRight';
-    // no option is selected: Right starts at the first segment and Left at the last
-    const next = options[current < 0 ? (forward ? 0 : options.length - 1) : (current + (forward ? 1 : -1) + options.length) % options.length];
+    const to = nextSegment(e.key, current, options.length);
+    const next = to === null ? undefined : options[to];
     if (!next) return;
     onChange(next.value);
     e.preventDefault();
