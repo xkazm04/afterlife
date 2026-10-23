@@ -8,6 +8,7 @@
 import { DEMO } from '@/lib/demo';
 import type { DemoData } from '@/lib/demo/types';
 import { STAGES } from '@/schemas/stages';
+import { historyOf } from '@/server/index/views/cycles/cycles';
 import { readHumanKey } from '../setup/humanKey';
 import { NO_PORT, setupReads, type SetupPort } from '../setup/read';
 import type { DataSource, IllustrativePart } from '../types';
@@ -49,7 +50,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
       const p = port();
       return p ? readHumanKey(p.port, p.groupId, p.cfg?.policyProject ?? 'belay-policy') : Promise.resolve({ state: 'unknown', missing: [], why: NO_PORT });
     },
-    getCycles: () => data().estate[snapshot().deep] ?? { cycles: [], today: 0, cadence: 7 },
+    getCycles: () => data().estate[snapshot().deep] ?? historyOf([], snapshot().at), // the view's own empty history
     getEstateCycles: () => data().estate,
   };
 }

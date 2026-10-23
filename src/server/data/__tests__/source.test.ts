@@ -18,6 +18,7 @@ import type { PolicyRules } from '../types';
 import { GitLabError } from '@/server/gitlab/errors';
 import type { PairingRow } from '@/server/index/repositories/pairing';
 import { recordPollError, recordPollOk } from '@/server/index/repositories/pollState';
+import { CYCLE_DAYS } from '@/server/index/views/cycles/cycles';
 import { setupReads, type SetupPort } from '../setup/read';
 
 afterEach(() => setDataSource(null));
@@ -142,5 +143,12 @@ describe('the poll health and the tier mark read the group the poller watches', 
     expect([d.poll.error, d.tiersStale]).toEqual([null, null]);
     await recordPollError(db, 'policy:144060371', 'tier-state.yml is not valid YAML');
     expect((await buildSnapshot(db, at, 'ledgerline', DEMO, null, 144060371)).data.tiersStale).toEqual({ reason: 'tier-state.yml is not valid YAML', lastOk: at.toISOString() });
+  });
+});
+
+describe('a deep project with no recorded cycle', () => {
+  it("has the index view's empty history, its cadence included, not a copy of it", async () => {
+    const snap = await buildSnapshot(await memoryIndex(), new Date('2026-10-06T14:22:00Z'), 'ledgerline', DEMO);
+    expect(liveSource(() => snap, DEMO).getCycles()).toEqual({ cycles: [], today: 0, cadence: CYCLE_DAYS });
   });
 });
