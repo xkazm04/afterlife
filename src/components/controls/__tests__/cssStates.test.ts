@@ -88,3 +88,25 @@ describe('Checkbox hit target', () => {
     expect(body(sheet, '.cb::before')).toMatch(/position:\s*absolute/);
   });
 });
+
+describe('visually hidden recipe', () => {
+  const decls = (b: string): string[] => b.split(';').map((d) => d.replace(/\s+/g, ' ').trim()).filter(Boolean).sort();
+  const recipe = decls(body(css('../../styles/base.css'), '.sr-only'));
+  // Rules inside @container cannot take a class toggle, so they repeat the recipe; each must equal the shared one.
+  const COPIES: readonly [string, string, string][] = [
+    ['lozenge/Lozenge.module.css', '@container toolbar (max-width: 84em)', '.wd'],
+    ['toolbar/Stepper.module.css', '@container toolbar (max-width: 76em)', '.step:not([aria-current="step"]) .nm'],
+    ['toolbar/ToolbarButton.module.css', '@container toolbar (max-width: 72em)', '.lbl'],
+  ];
+  it('has one shared definition of six declarations', () => {
+    expect(recipe).toHaveLength(6);
+    expect(recipe.join(';')).toMatch(/clip-path: inset\(50%\)/);
+  });
+  it.each(COPIES)('%s keeps its in-container copy identical to it', (file, rule, selector) => {
+    expect(decls(body(atBlock(css(file), rule), selector))).toEqual(recipe);
+  });
+  it.each(['../../app/features/monitor/components/leads/leads.module.css', '../../app/features/needs-you/components/shared/GradeChip.module.css'])(
+    '%s no longer hand-copies it',
+    (file) => expect(css(file)).not.toContain('clip-path: inset(50%)'),
+  );
+});
