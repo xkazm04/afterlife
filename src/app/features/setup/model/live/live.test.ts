@@ -123,9 +123,9 @@ describe('live re-reads', () => {
   it("a step's verify shows what the read saw: done, or still unknown", () => {
     const s = setupReducer(createSetupState(getSetup(), 0, read()), { t: 'probe-start', n: 1 });
     expect(s.steps[1]?.st).toBe('probing');
-    const done = setupReducer(s, { t: 'steps-read', steps: { ...AT, steps: { 1: { state: 'done', text: 'paired with kazdanm · checkout C:/afterlife' } } } });
+    const done = setupReducer(s, { t: 'steps-read', asked: 1, steps: { ...AT, steps: { 1: { state: 'done', text: 'paired with kazdanm · checkout C:/afterlife' } } } });
     expect(done.steps[1]).toMatchObject({ st: 'done', probe: { ok: true, text: 'paired with kazdanm · checkout C:/afterlife' } });
-    const refused = setupReducer(s, { t: 'steps-read', steps: { ...AT, steps: { 1: { state: 'unknown', reason: 'this request names "evil.test", not localhost' } } } });
+    const refused = setupReducer(s, { t: 'steps-read', asked: 1, steps: { ...AT, steps: { 1: { state: 'unknown', reason: 'this request names "evil.test", not localhost' } } } });
     expect(refused.steps[1]).toMatchObject({ st: 'unknown', probe: { ok: false, text: expect.stringMatching(/evil\.test/) } });
   });
 });

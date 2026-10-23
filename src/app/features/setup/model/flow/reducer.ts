@@ -19,8 +19,8 @@ export type SetupAction =
   | { t: 'doctor-end'; now: number; at: string }
   /** Live: what the belay doctor's probe read (or, `doctor: null`, that the re-probe was refused or unanswered, and why). */
   | { t: 'doctor-read'; doctor: DoctorRead | null; reason?: string; at?: ReadStamp }
-  /** Live: what the step reads saw. */
-  | { t: 'steps-read'; steps: StepsRead }
+  /** Live: what the step reads saw; `asked`, the step whose verify asked for this read. */
+  | { t: 'steps-read'; steps: StepsRead; asked?: number }
   /** Live: the operator says they did a human step no read can observe (at `at`), or takes it back. Writes nothing. */
   | { t: 'say-done'; n: number; at: string }
   | { t: 'unsay'; n: number }
@@ -82,12 +82,15 @@ function pickGroup(s: SetupState, group: string): SetupState {
   return { ...s, group, homeProbe, doctor: s.homeDoctor.map((r) => ({ name: r.name, st: 'unknown' })), doctorNever: true, doctorError: null };
 }
 
-/** Live: each step as the read saw it; a step in flight or with no read keeps its state. */
-function stepsRead(s: SetupState, r: StepsRead): SetupState {
+/**
+ * Live: each step as the read saw it; a step with no read keeps its state, and so does a step in flight, unless this is
+ * the read its own verify asked for: another step's read may have started before the person did it.
+ */
+function stepsRead(s: SetupState, r: StepsRead, asked?: number): SetupState {
   const steps = { ...s.steps };
   for (const [k, read] of Object.entries(r.steps)) {
     const cur = steps[Number(k)];
-    if (cur) steps[Number(k)] = { ...cur, ...stepFromRead(read, r.label) };
+    if (cur && (cur.st !== 'probing' || Number(k) === asked)) steps[Number(k)] = { ...cur, ...stepFromRead(read, r.label) };
   }
   return recomputeLocks({ ...s, steps });
 }
@@ -145,7 +148,7 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
     case 'doctor-read':
       return doctorRead(s, a.doctor, a.reason, a.at);
     case 'steps-read':
-      return stepsRead(s, a.steps);
+      return stepsRead(s, a.steps, a.asked);
     case 'say-done':
       return sayDone(s, a.n, a.at);
     case 'unsay':

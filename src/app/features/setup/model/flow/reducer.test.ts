@@ -128,6 +128,17 @@ describe('a read that takes a step back', () => {
   });
 });
 
+describe('a read that lands while another step is probing', () => {
+  const at = { at: '2026-10-15T09:00:00.000Z', label: '09:00' };
+  it("leaves that step in flight for its own answer: an older read never says 'not yet' over it", () => {
+    const s = run(fresh(), { t: 'probe-start', n: 6 }, { t: 'probe-start', n: 5 });
+    const one = run(s, { t: 'steps-read', asked: 5, steps: { ...at, steps: { 5: { state: 'done', text: 'pushed' }, 6: { state: 'failed', text: '0 runners' } } } });
+    expect([one.steps[5]?.st, one.steps[6]?.st]).toEqual(['done', 'probing']);
+    const own = run(one, { t: 'steps-read', asked: 6, steps: { ...at, steps: { 6: { state: 'done', text: '1 runner' } } } });
+    expect(own.steps[6]?.st).toBe('done');
+  });
+});
+
 describe('the doctor and groups', () => {
   it('Re-probe on the home group keeps the rows and refreshes the age', () => {
     const s = run(fresh(), { t: 'doctor-start' }, { t: 'doctor-end', now: 99_000, at: '14:09' });
