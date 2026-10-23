@@ -6,6 +6,7 @@ import { PROMOTE } from '../../data/promote';
 import { READMIT } from '../../data/readmit';
 import { RUNNER } from '../../data/runner';
 import type { NeedsYouDemo } from '../../data/types';
+import { gapBlock } from '../../write/desk';
 import { gradeIndex } from '../clock/grades';
 import { GRADES } from '../../data/cra';
 import type { NeedsState } from '../types';
@@ -40,7 +41,8 @@ export function rowView(s: NeedsState, id: string, demo: NeedsYouDemo): RowView 
     return {
       title: `${g.stage} · ${g.title}`,
       move: { kind: 'rungs', from: g.from, to: g.to },
-      writes: g.diffLines ? { kind: 'text', text: `draft MR · ${g.diffLines} l` } : { kind: 'issue' },
+      // a gap Belay has no door for (the probe, a gap with no files) sends nothing: write/desk.ts gapBlock
+      writes: gapBlock(id, demo) ? { kind: 'none' } : g.diffLines ? { kind: 'text', text: `draft MR · ${g.diffLines} l` } : { kind: 'issue' },
       track: 'T6',
       when: GAP_DETAIL.openedAt,
       pick: true,

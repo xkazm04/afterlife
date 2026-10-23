@@ -3,6 +3,7 @@ import { pickNeedsYouDemo } from '../../data/pick';
 import { initialState } from '../state';
 import type { NeedsState } from '../types';
 import { rowAction, spaceAction } from './rowAction';
+import { itemLede } from './lede';
 import { rowView } from './rowData';
 import { decisionCounts, isDecided, isGapId, isWaiting, rowState } from './rowState';
 
@@ -84,8 +85,9 @@ describe('row cells', () => {
     expect(rowView(fresh(), 'n2', demo)).toMatchObject({ due: true, seeded: true, track: 'T2', move: { kind: 'grade', label: 'reviewable', done: false } });
     expect(rowView(fresh(), 'n1', demo)).toMatchObject({ when: '13:40', move: { kind: 'tiers', from: 'supervised', to: 'hands_off' } });
   });
-  it('writes "issue" with an unknown diff for a probe gap, a diff size otherwise', () => {
-    expect(rowView(fresh(), 'g4', demo)?.writes).toEqual({ kind: 'issue' });
+  it('writes nothing for a gap Belay has no door for (the probe sends nothing yet), a diff size otherwise', () => {
+    expect(rowView(fresh(), 'g4', demo)?.writes).toEqual({ kind: 'none' });
+    expect(itemLede(fresh(), 'g4', demo, '19:12:00')).toContain('writes nothing');
     expect(rowView(fresh(), 'g1', demo)?.writes).toEqual({ kind: 'text', text: 'draft MR · 34 l' });
   });
   it('turns the runner chip from unknown to online after a check', () => {
