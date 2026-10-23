@@ -53,3 +53,15 @@ describe('glab adapter: transient 5xx on reads', () => {
     }
   });
 });
+
+describe('glab adapter: getFile 404 reasons', () => {
+  const nf = (why: string): ExecResult => ({ code: 1, stdout: `{"message":"404 ${why}"}`, stderr: `glab: 404 ${why} (HTTP 404)
+` });
+
+  it('reads File Not Found as an absent file, and Project or Commit Not Found as an error', async () => {
+    expect(await adapter([nf('File Not Found')]).getFile(1, 'x', 'main')).toBeNull();
+    for (const why of ['Project Not Found', 'Commit Not Found']) {
+      await expect(adapter([nf(why)]).getFile(1, 'x', 'main')).rejects.toSatisfy((e) => isKind(e, 'not-found'));
+    }
+  });
+});

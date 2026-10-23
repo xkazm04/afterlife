@@ -82,7 +82,8 @@ export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
       try {
         return mapFile(rec(await c.getJson(`projects/${id(p)}/repository/files/${encodeURIComponent(path)}`, { ref }), 'file'));
       } catch (e) {
-        if (isKind(e, 'not-found')) return null;
+        // Only GitLab's "404 File Not Found" is an absent file; Project/Commit Not Found is a wrong id or ref and surfaces.
+        if (isKind(e, 'not-found') && /file not found/i.test(e.message)) return null;
         throw e;
       }
     },
