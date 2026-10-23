@@ -14,17 +14,16 @@ vi.mock('server-only', () => ({}));
 
 const TABLES = [
   'pairing', 'setup_step', 'ledger_event', 'task', 'proof', 'proposal', 'stage_cell', 'poll_state', 'commands_run',
-  'fleet_group', 'trust_class', 'project', 'project_stage', 'class_tier',
+  'fleet_group', 'trust_class', 'project', 'project_stage', 'class_tier', 'action_runs', 'cycle_record', 'belay_migration',
 ];
 
 describe('migrations', () => {
-  it('create every table of the plan, plus the fleet tables', async () => {
+  it('create exactly the listed tables (a table a migration adds must be listed here)', async () => {
     const db = await memoryIndex();
     const { rows } = await db.query<{ table_name: string }>(
       `select table_name from information_schema.tables where table_schema = 'public'`,
     );
-    const names = rows.map((r) => r.table_name);
-    for (const t of TABLES) expect(names).toContain(t);
+    expect(rows.map((r) => r.table_name).sort()).toEqual([...TABLES].sort());
   });
 
   it('are idempotent: a second run applies nothing and changes nothing', async () => {
