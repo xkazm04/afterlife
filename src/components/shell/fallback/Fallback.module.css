@@ -1,4 +1,4 @@
-/* Self-contained: global-error replaces the root layout and gets its tokens only from its own globals.css import. Colours come from tokens only (palette literals live in tokens.css); the size fallbacks stay because --t-body is set by html[data-text-size], which that bare html does not carry. */
+/* Self-contained: global-error replaces the root layout and gets its tokens only from its own globals.css import, which brings text-size.css too (its sizes sit on :root, so a bare html has them). Colours, sizes and font stacks come from tokens only. */
 .page {
   min-height: 100vh;
   display: grid;
@@ -6,7 +6,7 @@
   padding: 24px;
   background: var(--bg);
   color: var(--text-1);
-  font: var(--t-body, 14px) / 1.5 system-ui, sans-serif;
+  font: var(--t-body) / 1.5 var(--sys);
 }
 .card {
   max-width: 560px;
@@ -17,7 +17,7 @@
 }
 .title {
   margin: 0;
-  font-size: calc(var(--t-body, 14px) * 1.3);
+  font-size: calc(var(--t-body) * 1.3);
 }
 .note {
   margin: 0;
@@ -28,8 +28,8 @@
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 4px 12px;
-  font-family: ui-monospace, monospace;
-  font-size: var(--t-small, 12px);
+  font-family: var(--mono);
+  font-size: var(--t-small);
 }
 .detail dt {
   color: var(--text-3);

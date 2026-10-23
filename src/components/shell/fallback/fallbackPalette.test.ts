@@ -16,3 +16,14 @@ describe('Fallback.module.css', () => {
     expect(css).toContain('var(--text-1)');
   });
 });
+
+// text-size.css sets the sizes on :root as well as on html[data-text-size], and global-error imports globals.css, so a
+// bare <html> has them: a var() fallback here is a second type scale (14/12 against 15/13) that can never show.
+describe('Fallback.module.css type', () => {
+  it('reads its sizes and font stacks from the tokens, with no fallback scale of its own', () => {
+    expect(css.match(/var\(--t-[\w-]+\s*,/g) ?? []).toEqual([]);
+    expect(css).not.toMatch(/system-ui|ui-monospace/);
+    expect(css).toContain('var(--sys)');
+    expect(css).toContain('var(--mono)');
+  });
+});
