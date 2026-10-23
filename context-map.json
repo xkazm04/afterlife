@@ -16,7 +16,6 @@
       ],
       "file_paths": [
         "src/app/Providers.tsx",
-        "src/app/cycles/page.tsx",
         "src/app/error.tsx",
         "src/app/features/settings/README.md",
         "src/app/features/settings/SettingsWindow.module.css",
@@ -46,8 +45,6 @@
         "src/app/needs-you/layout.tsx",
         "src/app/needs-you/page.tsx",
         "src/app/not-found.tsx",
-        "src/app/onboard/page.tsx",
-        "src/app/runs/page.tsx",
         "src/app/settings/about/page.tsx",
         "src/app/settings/data/page.tsx",
         "src/app/settings/display/page.tsx",
