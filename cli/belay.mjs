@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const [, , cmd = 'help', ...rest] = process.argv;
+const USAGE = 'usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--write] | replay <ledger-slice>';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 /** Runs a TypeScript entry through tsx. `cwd` is where it runs (scan and pair read the caller's checkout); the app's
@@ -50,6 +51,13 @@ switch (cmd) {
     console.log(`belay ${cmd}: not implemented yet`);
     process.exitCode = 2;
     break;
+  case 'help':
+  case '--help':
+  case '-h':
+    console.log(USAGE);
+    break;
   default:
-    console.log('usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--write] | replay <ledger-slice>');
+    // A typo is a failure, as in engine/cli.ts: a script that calls `belay doctr` must not read a pass.
+    console.error(`belay: unknown command "${cmd}"\n${USAGE}`);
+    process.exitCode = 2;
 }

@@ -10,12 +10,20 @@ const bin = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'belay.mj
 const belay = (...args) => spawnSync(process.execPath, [bin, ...args], { encoding: 'utf8' });
 
 describe('cli/belay.mjs', () => {
-  it('prints usage and exits 0 for no verb and for an unknown one', () => {
-    for (const args of [[], ['nonsense']]) {
+  it('prints usage and exits 0 for no verb and for help', () => {
+    for (const args of [[], ['help'], ['--help']]) {
       const r = belay(...args);
       expect(r.status).toBe(0);
       expect(r.stdout).toContain('usage: belay doctor');
     }
+  });
+
+  it('refuses an unknown verb with exit 2 on stderr, as engine/cli.ts does, so a typo in a script is not a pass', () => {
+    const r = belay('doctr');
+    expect(r.status).toBe(2);
+    expect(r.stdout).toBe('');
+    expect(r.stderr).toContain('belay: unknown command "doctr"');
+    expect(r.stderr).toContain('usage: belay doctor');
   });
 
   it('run needs --repo, and --dry-run prints repo, base, caps and model without spawning anything', () => {
