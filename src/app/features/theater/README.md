@@ -91,7 +91,12 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
 - The REPLAY chip reads the same in the window and in present. The illustrative film's: "Replay · seq 480–520 ·
   illustrative" (tooltip and "?" legend: invented for the demo, never "recorded"). A real film's names its source:
   "Replay · belay-ledger · !41 · seq 1–5", the playing MR and its seq range.
-- Reduced motion: no easing (climbs snap), no CSS animation, 1 s pre-roll. Hidden tab: the frame clock stops.
+- Reduced motion: no easing (climbs snap), no CSS animation, 1 s pre-roll (the "?" legend's Roll line names both
+  pre-rolls, from `PREROLL_MS` / `PREROLL_REDUCED_MS` in `data/constants.ts`). Hidden tab: the frame clock stops.
+- A real film's clock is hh:mm:ss in UTC (`fromLedger.ts`); `clockText` (`model/replay/state.ts`) is the one rule that
+  says "UTC" after it (the status line), and the inspector's Ledger header says "· UTC" once for its column. The
+  illustrative slice's clock is simulated and drawn bare.
+- The transport readout carries its glyph (`●`, `▶`) apart from its words, so a live region can speak words only.
 - The climber chip at beat 0 sits one bolt below hold 1 and the wall keeps room for it (prototype clipped it).
 - Home/End and a looped take: any operator action cancels a pending roll or loop restart.
 - Keys 1-8 cue the eight takes; a real film has at most eight (the 8 newest MRs).
