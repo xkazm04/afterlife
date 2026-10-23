@@ -13,7 +13,7 @@ import { SORT_KEYS, SORT_NAMES, defaultDir } from '../model/view/sort';
 import type { LadderActions } from './useLadderActions';
 import type { LadderData } from './useLadderData';
 import type { RevokeWrites } from './useRevokeWrite';
-import { copyCommand } from '../write/copy';
+import { copyCommand } from '@/lib/clipboard/copyCommand';
 
 /**
  * The menus of the table: the sort menu (checks stay open), the row and group context menus and the "take it to"

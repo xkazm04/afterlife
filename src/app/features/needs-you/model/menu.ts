@@ -31,15 +31,6 @@ export function rowMenuPlan(s: NeedsState, id: string, demo: NeedsYouDemo): read
   return items;
 }
 
-/**
- * Copy Command. `navigator.clipboard` is undefined on an insecure origin, so a missing or refusing clipboard shows the
- * command in the status bar instead of throwing.
- */
-export function copyCommand(text: string, clip: Pick<Clipboard, 'writeText'> | undefined, say: (text: string) => void): void {
-  if (!clip) return say(text);
-  clip.writeText(text).then(() => say('Copied command'), () => say(text));
-}
-
 export function groupMenuPlan(s: NeedsState, groupId: string): readonly MenuPlanItem[] {
   return [
     { label: s.collapsed.includes(groupId) ? 'Expand' : 'Collapse', intent: { kind: 'toggle', group: groupId } },
