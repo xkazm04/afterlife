@@ -1,6 +1,7 @@
 'use client';
 
 import { Stats } from '@/components/inspector/blocks/Stats';
+import { pluralWord } from '@/lib/format/plural';
 import { GATE_FREES } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
 import { armList, doneCount, humanGates, needYouCount, openArms, stepDetail, stepList } from '../../model/flow/state';
@@ -32,7 +33,7 @@ export function SetupSummary() {
         />
         <span className={styles.note} title={unknown.length ? unknown.map((r) => r.name).join(' · ') : undefined}>
           {`${state.group} / ${state.project} · ${doneCount(state)} of ${stepList(state).length} steps probed`}
-          {unknown.length ? ` · ${unknown.length} capabilities unknown, never rounded up` : ''}
+          {unknown.length ? ` · ${unknown.length} ${pluralWord(unknown.length, 'capability', 'capabilities')} unknown, never rounded up` : ''}
         </span>
         {state.doctorError ? <span className={styles.err}>{`belay doctor: ${state.doctorError}`}</span> : null}
       </div>
