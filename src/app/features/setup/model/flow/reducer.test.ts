@@ -147,32 +147,32 @@ describe('the doctor and groups', () => {
     expect(doctorCounts(s)).toEqual({ available: 6, unavailable: 1, unknown: 2 });
   });
   it('switching to a never-probed group shows every capability unknown, never rounded up', () => {
-    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' });
+    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox' });
     expect(s.doctorNever).toBe(true);
     expect(doctorCounts(s)).toEqual({ available: 0, unavailable: 0, unknown: 9 });
   });
   it('Re-probe on that group reads its capabilities', () => {
-    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }, { t: 'doctor-start' }, { t: 'doctor-end', now: 9, at: '14:07' });
+    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox' }, { t: 'doctor-start' }, { t: 'doctor-end', now: 9, at: '14:07' });
     expect(s.doctorNever).toBe(false);
     expect(doctorCounts(s)).toEqual({ available: 3, unavailable: 4, unknown: 2 });
   });
   it('switching back restores the probed rows of the home group', () => {
-    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' });
+    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox' }, { t: 'pick-group', group: 'acme-lab' });
     expect(s.doctorNever).toBe(false);
     expect(doctorCounts(s).available).toBe(6);
   });
   it('a re-probe that fails on a never-probed group keeps the reason, and still says never probed', () => {
-    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }, { t: 'doctor-start' });
+    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox' }, { t: 'doctor-start' });
     const failed = run(s, { t: 'doctor-read', doctor: null, reason: 'the server did not answer' });
     expect(failed).toMatchObject({ doctorBusy: false, doctorNever: true, doctorError: 'the server did not answer' });
     expect(doctorCounts(failed).unknown).toBe(9);
     // the reason stays with that group: a good probe or a switch back clears it
     expect(run(failed, { t: 'doctor-start' }, { t: 'doctor-end', now: 9, at: '14:07' }).doctorError).toBeNull();
-    expect(run(failed, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' }).doctorError).toBeNull();
+    expect(run(failed, { t: 'pick-group', group: 'acme-lab' }).doctorError).toBeNull();
   });
   it('switching back to the home group restores its own probe time and failure, never stamps it probed now', () => {
     const failedHome = { ...fresh(), doctorAt: 1000, doctorProbedAt: '14:02', doctorError: 'the server did not answer' };
-    const back = run(failedHome, { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }, { t: 'pick-group', group: 'acme-lab', now: 7_000, at: '14:08' });
+    const back = run(failedHome, { t: 'pick-group', group: 'acme-sandbox' }, { t: 'pick-group', group: 'acme-lab' });
     expect(back).toMatchObject({ doctorAt: 1000, doctorProbedAt: '14:02', doctorError: 'the server did not answer', doctorNever: false });
   });
   it("a finished step 11 settles the home group's Flow API row: it survives a switch away and back, and no other group's", () => {
@@ -180,10 +180,10 @@ describe('the doctor and groups', () => {
     expect(capSt(s, CAP_FLOW_API)).not.toBe('available');
     const home = probe(s, 11);
     expect(capSt(home, CAP_FLOW_API)).toBe('available');
-    const away = run(home, { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' });
+    const away = run(home, { t: 'pick-group', group: 'acme-sandbox' }, { t: 'pick-group', group: 'acme-lab' });
     expect(capSt(away, CAP_FLOW_API)).toBe('available');
-    const onSandbox = probe(run(s, { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }), 11);
+    const onSandbox = probe(run(s, { t: 'pick-group', group: 'acme-sandbox' }), 11);
     expect(capSt(onSandbox, CAP_FLOW_API)).toBe('unknown');
-    expect(capSt(run(onSandbox, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' }), CAP_FLOW_API)).toBe('available');
+    expect(capSt(run(onSandbox, { t: 'pick-group', group: 'acme-lab' }), CAP_FLOW_API)).toBe('available');
   });
 });

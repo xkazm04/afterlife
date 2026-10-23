@@ -33,7 +33,7 @@ describe('probe age', () => {
     expect(probeAgeText(failed, 5000).text).not.toMatch(/probed 11:30/);
   });
   it('a never-probed group has no age and is not "stale"', () => {
-    const s = setupReducer(s0, { t: 'pick-group', group: 'acme-sandbox', now: 1, at: '14:06' });
+    const s = setupReducer(s0, { t: 'pick-group', group: 'acme-sandbox' });
     expect(probeAgeText(s, 999_999)).toEqual({ text: 'belay doctor · acme-sandbox · never probed', stale: false });
   });
 });

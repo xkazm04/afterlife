@@ -156,7 +156,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
       unsay: (n) => live().unsay(n),
       pickGroup: (group) => {
         if (group === ref.current.group) return;
-        dispatch({ t: 'pick-group', group, now: Date.now(), at: clock() });
+        dispatch({ t: 'pick-group', group });
         say(`group → ${group}`);
       },
     };
