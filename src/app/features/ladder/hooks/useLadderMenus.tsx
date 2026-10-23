@@ -121,5 +121,5 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
       {ctx.menu}
     </>
   );
-  return { menus, isOpen: sortMenu.isOpen || ctx.isOpen, openSort: (el: HTMLElement) => sortMenu.openFrom(el), openRowMenu, openGroupMenu, openForSelection, openTargets };
+  return { menus, isOpen: sortMenu.isOpen || ctx.isOpen, sortOpen: sortMenu.isOpen, openSort: (el: HTMLElement) => sortMenu.openFrom(el), openRowMenu, openGroupMenu, openForSelection, openTargets };
 }

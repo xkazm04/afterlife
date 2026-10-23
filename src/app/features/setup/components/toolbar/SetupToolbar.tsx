@@ -39,6 +39,7 @@ export function SetupToolbar() {
       <PopupButton
         icon="folder"
         title="GitLab group"
+        expanded={menu.isOpen}
         onClick={(e) => {
           if (menu.isOpen) menu.close();
           else {

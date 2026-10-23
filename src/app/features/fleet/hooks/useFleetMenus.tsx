@@ -98,6 +98,8 @@ export function useFleetMenus(a: FleetMenusArgs) {
   return {
     node,
     isOpen: sortM.isOpen || filterM.isOpen || ctx.isOpen,
+    sortOpen: sortM.isOpen,
+    filterOpen: filterM.isOpen,
     openSort: (el: HTMLElement) => {
       ctx.close();
       filterM.close();

@@ -28,8 +28,10 @@ export function FleetToolbar({
   onSource,
   sortLabel,
   onSortMenu,
+  sortOpen,
   filterCount,
   onFilterMenu,
+  filterOpen,
   query,
   onQuery,
   searchRef,
@@ -44,6 +46,8 @@ export function FleetToolbar({
   onSource: (s: Source) => void;
   sortLabel: string;
   onSortMenu: (button: HTMLElement) => void;
+  sortOpen?: boolean;
+  filterOpen?: boolean;
   /** Ticks in the Filter menu; the button is tinted when there are any. */
   filterCount: number;
   onFilterMenu: (button: HTMLElement) => void;
@@ -57,10 +61,10 @@ export function FleetToolbar({
       <Spacer />
       <StatusLozenge projects={projects} waiting={waiting} compact={compact} source={source} onSource={onSource} />
       <Spacer />
-      <PopupButton icon="sort" title={`Sort by ${sortLabel}`} onClick={(e) => onSortMenu(e.currentTarget)}>
+      <PopupButton icon="sort" title={`Sort by ${sortLabel}`} expanded={sortOpen} onClick={(e) => onSortMenu(e.currentTarget)}>
         {sortLabel}
       </PopupButton>
-      <PopupButton icon="filter" title={filterCount ? `Filter, ${filterCount} on` : 'Filter'} active={filterCount > 0} onClick={(e) => onFilterMenu(e.currentTarget)}>
+      <PopupButton icon="filter" title={filterCount ? `Filter, ${filterCount} on` : 'Filter'} active={filterCount > 0} expanded={filterOpen} onClick={(e) => onFilterMenu(e.currentTarget)}>
         Filter
         {filterCount ? <CountDot count={filterCount} /> : null}
       </PopupButton>

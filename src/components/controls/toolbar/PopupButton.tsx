@@ -12,6 +12,7 @@ export function PopupButton({
   icon,
   children,
   active,
+  expanded,
   ref,
   type = 'button',
   className,
@@ -20,11 +21,13 @@ export function PopupButton({
   icon?: IconName;
   children: ReactNode;
   active?: boolean;
+  /** Whether the menu this button opens is showing: always emitted as aria-expanded. */
+  expanded?: boolean;
   ref?: Ref<HTMLButtonElement>;
 }) {
   const cls = [styles.tbtn, styles.pu, active ? styles.on : '', className ?? ''].filter(Boolean).join(' ');
   return (
-    <button ref={ref} type={type} aria-haspopup="menu" className={cls} {...rest}>
+    <button ref={ref} type={type} aria-haspopup="menu" aria-expanded={!!expanded} className={cls} {...rest}>
       {icon ? <Icon name={icon} /> : null}
       <span className={icon ? styles.lbl : undefined}>{children}</span>
       <Icon name="chevDown" className={styles.chev} />

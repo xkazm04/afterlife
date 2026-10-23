@@ -139,6 +139,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           lozenge={<PolicyLozenge head={state.head} history={illustrative.history} onOpen={togglePolicy} anchorRef={policyRef} />}
           sort={state.sort}
           onSortMenu={menus.openSort}
+          sortOpen={menus.sortOpen}
           q={state.q}
           onQuery={(q) => dispatch({ type: 'query', q })}
           searchRef={searchRef}
