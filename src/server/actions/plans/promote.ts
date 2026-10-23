@@ -36,11 +36,15 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
   const readmit = held.record.tier === 'quarantined' && intent.to === 'assisted';
   if (cooling && !readmit) throw new ActionRefused(`${intent.class} is in its cooldown until ${cooldown}: no promotion before that date`);
 
-  const ttl = read.policy.grant_ttl_days;
+  // The engine's parser does not check grant_ttl_days: a number of days, read as Ladder's lease line reads it (data/policy.ts).
+  const ttl: unknown = read.policy.grant_ttl_days;
+  if (intent.to === 'hands_off' && ttl !== undefined && !(typeof ttl === 'number' && Number.isFinite(ttl) && ttl >= 0)) {
+    throw new ActionRefused(`trust-policy.yml's grant_ttl_days is ${JSON.stringify(ttl)}, not a number of days: a Hands-off grant's lease cannot be written from it`);
+  }
   const at = minuteOf(ctx.now);
   const record: Record<string, string> = {
     tier: intent.to, since: at.toISOString(), by: `operator ${ctx.operator} via promotion MR`,
-    ...(intent.to === 'hands_off' && ttl ? { lease_expires: new Date(at.getTime() + ttl * 86_400_000).toISOString() } : {}),
+    ...(intent.to === 'hands_off' && typeof ttl === 'number' && ttl > 0 ? { lease_expires: new Date(at.getTime() + ttl * 86_400_000).toISOString() } : {}),
     ...(cooling && cooldown ? { cooldown_until: cooldown } : {}),
   };
   const branch = `belay/promote-${intent.class}-${dateOnly(ctx.now)}`;
