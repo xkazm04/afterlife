@@ -7,6 +7,7 @@ import { HelpButton } from '@/components/overlays/HelpButton';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { Backdrop } from './Backdrop';
 import { Inspector } from './bars/Inspector';
+import { INSPECTOR_HOTKEY } from './bars/inspectorHotkey';
 import { Sidebar } from './sidebar/Sidebar';
 import { StatusBar } from './bars/StatusBar';
 import { Toolbar } from './bars/Toolbar';
@@ -53,7 +54,7 @@ export function Window(p: WindowProps) {
     if (p.inspectorOpen === undefined) setLocalInsp(open);
     p.onInspectorOpenChange?.(open);
   };
-  useHotkeys([{ key: 'i', mod: true, handler: () => setInsp(!inspOpen) }], hasInsp);
+  useHotkeys([{ ...INSPECTOR_HOTKEY, handler: () => setInsp(!inspOpen) }], hasInsp);
 
   useEffect(() => {
     const on = () => setActive(true);

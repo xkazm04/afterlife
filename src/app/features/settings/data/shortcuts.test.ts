@@ -4,6 +4,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { textSizeIntent, type TextSizeIntent } from '@/lib/settings/textSize';
+import { INSPECTOR_HOTKEY } from '@/components/shell/bars/inspectorHotkey';
+import { matchHotkey } from '@/lib/keyboard/hotkeys';
 import { SHORTCUTS } from './shortcuts';
 
 const INTENT: Record<string, TextSizeIntent> = { 'Larger text': 'bigger', 'Smaller text': 'smaller', 'Standard size': 'reset' };
@@ -38,5 +40,19 @@ describe('the inspector row', () => {
     expect(screens.length).toBeGreaterThan(5);
     expect(screens.filter((s) => !/\binspector=/.test(s)).length).toBeGreaterThan(0);
     expect(SHORTCUTS.find((s) => s.mac[1] === 'I')?.label).toBe(INSPECTOR);
+  });
+});
+
+// The row is a copy of the binding Window owns (components/shell/bars/inspectorHotkey): press the row's caps through the
+// real matcher against that spec, so a rebind in the shell fails here instead of leaving the page wrong.
+describe('the inspector row against the binding', () => {
+  const row = SHORTCUTS.find((s) => s.label === INSPECTOR);
+  it.each([
+    ['mac', true, false],
+    ['other', false, true],
+  ] as const)('%s caps press the Window inspector hotkey', (side, metaKey, ctrlKey) => {
+    const key = row?.[side][1] ?? '';
+    expect(row?.[side][0]).toBe(metaKey ? '⌘' : 'Ctrl');
+    expect(matchHotkey({ key: key.toLowerCase(), metaKey, ctrlKey, shiftKey: false, altKey: false }, INSPECTOR_HOTKEY)).toBe(true);
   });
 });
