@@ -17,13 +17,19 @@ const bare = (s: string): string => s.replace(/\(\)$/, '');
 const inClass = (cls: string, id: string): boolean => cls === id || cls.endsWith(`.${id}`) || cls.endsWith(`/${id}`);
 
 /**
- * An id names a whole class (`StatementExportTraversalTest`), or one case: `name`, `Class.name` or `Class#name`.
+ * An id names a whole class (`StatementExportTraversalTest`), or one case: `name`, `Class.name`, `Class#name` or a
+ * pytest node id (`tests/test_x.py::test_bad`, `tests/test_x.py::TestA::test_bad`).
  * Class names may be short or fully qualified; a trailing `()` is ignored.
  */
 export function matchesTestId(c: TestCase, rawId: string): boolean {
   const id = bare(rawId);
   const name = bare(c.name);
   if (name === id || inClass(c.classname, id)) return true;
+  const [file = '', ...rest] = id.split('::'); // a pytest node id: the trace names the file, pytest's JUnit the dotted module
+  if (rest.length > 0) {
+    const mod = [file.replace(/\.py$/, '').replaceAll('/', '.'), ...rest.slice(0, -1)].join('.');
+    return (inClass(c.classname, file) && name === rest.join('::')) || (inClass(c.classname, mod) && name === rest.at(-1));
+  }
   const hash = id.lastIndexOf('#');
   if (hash > 0) return name === id.slice(hash + 1) && inClass(c.classname, id.slice(0, hash));
   const dot = id.lastIndexOf('.');

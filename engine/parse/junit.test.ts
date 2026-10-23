@@ -57,6 +57,17 @@ describe('test id matching', () => {
     expect(matchesTestId({ classname: 'x.MyStatementExportTraversalTest', name: 'a', status: 'passed', message: '', output: '' }, 'StatementExportTraversalTest')).toBe(false);
     expect(findCases(cases, 'Other#rejectsDotDotSegments')).toHaveLength(0);
   });
+  it('matches a pytest node id (file::name, file::Class::name) in a trace and in the JUnit pytest writes, which names the module', () => {
+    const tc = (classname: string, name: string) => ({ classname, name, status: 'failed' as const, message: '', output: '' });
+    for (const [c, id] of [
+      [tc('tests/test_x.py', 'test_bad'), 'tests/test_x.py::test_bad'],
+      [tc('tests/test_x.py', 'TestA::test_bad'), 'tests/test_x.py::TestA::test_bad'],
+      [tc('tests.test_x', 'test_bad'), 'tests/test_x.py::test_bad'],
+      [tc('tests.test_x.TestA', 'test_bad'), 'tests/test_x.py::TestA::test_bad'],
+    ] as const) expect(matchesTestId(c, id), `${c.classname} ${c.name} ${id}`).toBe(true);
+    expect(matchesTestId(tc('tests/test_y.py', 'test_bad'), 'tests/test_x.py::test_bad')).toBe(false);
+    expect(matchesTestId(tc('tests.test_x', 'test_ok'), 'tests/test_x.py::test_bad')).toBe(false);
+  });
   it('knows red from green', () => {
     expect(cases.filter(isRed)).toHaveLength(2);
   });
