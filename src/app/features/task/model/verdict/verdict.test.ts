@@ -99,3 +99,9 @@ describe('derivedVerdict', () => {
     expect(derivedVerdict({ envelope: null, proof: { cls: 'x', verdict: 'UNKNOWN', engine: '', digest: '', checks: [] } })).toEqual({ verdict: 'UNKNOWN', stored: 'UNKNOWN', mismatch: false });
   });
 });
+
+  it('fails a known breached envelope even with no checks and no stored word, as verdictOf does', () => {
+    const empty = { cls: 'x', verdict: 'UNKNOWN' as const, engine: '', digest: '', checks: [] };
+    expect(derivedVerdict({ envelope: { files: 1, lines: 1, paths: [], within: false }, proof: empty }).verdict).toBe('FAIL');
+    expect(derivedVerdict({ envelope: { files: 1, lines: 1, paths: [], within: true }, proof: empty }).verdict).toBe('UNKNOWN');
+  });

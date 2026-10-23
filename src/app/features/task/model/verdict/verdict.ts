@@ -29,14 +29,15 @@ export interface DerivedVerdict {
 
 /**
  * The verdict the screen shows: derived by `verdictOf` from the engine's checks, never read from the stored word. A task
- * holding no checks and no stored verdict stays UNKNOWN. An unknown envelope (a source task with no fixture) is no evidence
- * of a breach, so the checks alone decide there; a known one that is breached fails.
+ * holding no checks and no stored verdict stays UNKNOWN, unless its known envelope is breached: that fails, checks or none,
+ * as in `verdictOf`. An unknown envelope (a source task with no fixture) is no evidence of a breach, so the checks alone
+ * decide there.
  */
 export function derivedVerdict(task: Pick<TaskView, 'proof' | 'envelope'>): DerivedVerdict {
   const stored = task.proof.verdict;
   const checks = task.proof.checks;
   const verdict: Verdict =
-    !checks.length && stored === 'UNKNOWN' ? 'UNKNOWN' : (verdictLabel(verdictOf(proofChecks(checks), task.envelope?.within ?? true)) as Verdict);
+    !checks.length && stored === 'UNKNOWN' && task.envelope?.within !== false ? 'UNKNOWN' : (verdictLabel(verdictOf(proofChecks(checks), task.envelope?.within ?? true)) as Verdict);
   return { verdict, stored, mismatch: stored !== 'UNKNOWN' && stored !== verdict };
 }
 
