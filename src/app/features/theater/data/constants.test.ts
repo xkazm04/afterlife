@@ -1,7 +1,8 @@
 // constants.ts keeps facts about the invented slice in prose and clock strings ("Fell 14:20:05", "Earned at seq 503",
 // the CRA anchor, which take is the seeded one). The ledger beside it is the ground truth; these read it, not the copy.
 import { describe, expect, it } from 'vitest';
-import { CRA_END, INITIAL, SHOW_CLASSES, TAKES, TIER_WHY } from './constants';
+import { PREROLL_MS, PREROLL_REDUCED_MS } from '../model/replay/state';
+import { CRA_END, INITIAL, KEYS, SHOW_CLASSES, TAKES, TIER_WHY } from './constants';
 import { REPLAY_LEDGER } from './ledger';
 
 const tierEntry = (to: string) => REPLAY_LEDGER.find((e) => e.tier?.to === to);
@@ -42,5 +43,11 @@ describe('constants.ts against the ledger it narrates', () => {
     expect(REPLAY_LEDGER.filter((e) => e.sc === 'm44').length).toBe(
       TAKES.filter((t) => t.seeded).reduce((n, t) => n + (t.b - t.a + 1), 0),
     );
+  });
+
+  it('the "?" legend\'s Roll line names the pre-roll the reducer arms, with and without reduced motion', () => {
+    const roll = KEYS.find(([k]) => k === 'R')?.[1] ?? '';
+    expect(roll).toContain(`${PREROLL_MS / 1000} s pre-roll`);
+    expect(roll).toContain(`${PREROLL_REDUCED_MS / 1000} s with reduced motion`);
   });
 });

@@ -4,6 +4,9 @@ import { REPLAY_LEDGER } from '../../data/ledger';
 import { TAKES } from '../../data/constants';
 import type { Marks, Take } from '../types';
 
+// The pre-roll lives beside the "?" legend that names it (data/constants.ts imports nothing from here: no cycle).
+export { PREROLL_MS, PREROLL_REDUCED_MS } from '../../data/constants';
+
 /** What the player needs of a film: the entries' seq, clock and dwell, and the takes. */
 export interface Reel {
   entries: readonly { seq: number; t: string; d?: number }[];
@@ -14,8 +17,6 @@ const ILLUSTRATIVE_REEL: Reel = { entries: REPLAY_LEDGER, takes: TAKES };
 
 export const N = REPLAY_LEDGER.length;
 const DEFAULT_DWELL_MS = 2600;
-export const PREROLL_MS = 2000;
-export const PREROLL_REDUCED_MS = 1000;
 /** Pause between the end of a looped take and its next roll. */
 export const LOOP_GAP_MS = 800;
 

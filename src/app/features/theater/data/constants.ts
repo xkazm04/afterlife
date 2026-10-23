@@ -86,10 +86,14 @@ export const TIER_WHY = {
   other: 'A person approves the outcome',
 };
 
-/** Keys, behind the "?" in the status bar. */
+/** A roll's pre-roll, ms: PREROLL_REDUCED_MS when the viewer asked for reduced motion (model/replay/reducer.ts arms it). */
+export const PREROLL_MS = 2000;
+export const PREROLL_REDUCED_MS = 1000;
+
+/** Keys, behind the "?" in the status bar. The legend does not know the motion setting, so Roll names both pre-rolls. */
 export const KEYS: readonly (readonly [string, string])[] = [
   ['1–8', 'Cue a take'],
-  ['R', 'Roll: 2 s pre-roll, play to out'],
+  ['R', `Roll: ${PREROLL_MS / 1000} s pre-roll (${PREROLL_REDUCED_MS / 1000} s with reduced motion), play to out`],
   ['L', 'Loop the take'],
   ['I / O', 'Mark in / out at this seq'],
   ['Space', 'Play / pause'],
