@@ -29,6 +29,15 @@ function measure(cv: HTMLElement): Measured {
   return { geom, scale: parseFloat(getComputedStyle(cv).getPropertyValue('--ui-scale')) || 1 };
 }
 
+/** A mutation matters when a [data-node] element came or went; a tooltip mounting in the canvas does not move any node. */
+const moves = (records: readonly Pick<MutationRecord, 'addedNodes' | 'removedNodes'>[]) =>
+  records.some((r) =>
+    [...r.addedNodes, ...r.removedNodes].some((n) => {
+      const el = n as Partial<Element>;
+      return !!el.matches?.('[data-node]') || !!el.querySelector?.('[data-node]');
+    }),
+  );
+
 /**
  * Measures every `[data-node]` inside the canvas (their left and right middle points, relative to it) so the edge
  * layer can draw between them. It measures when the canvas or any node changes size (which covers the window, the
@@ -56,7 +65,13 @@ export function useEdgeGeometry(canvas: RefObject<HTMLElement | null>): Measured
       });
     watch();
     // A node that mounts later (a re-probe returning more doctor rows) is observed and measured too.
-    const mo = typeof MutationObserver === 'undefined' ? null : new MutationObserver(() => { watch(); run(); });
+    const mo = typeof MutationObserver === 'undefined'
+        ? null
+        : new MutationObserver((records) => {
+          if (!moves(records)) return;
+          watch();
+          run();
+        });
     mo?.observe(cv, { childList: true, subtree: true });
     window.addEventListener('resize', run);
     return () => {
