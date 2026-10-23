@@ -1,6 +1,7 @@
 import { Kbd } from '@/components/controls/Kbd';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
 import { Chip } from '@/components/status/chip/Chip';
+import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { ObjectLink } from '@/components/controls/ObjectLink';
 import { StatusTag } from '../StatusTag';
 import type { TaskView } from '../../model/types';
@@ -41,11 +42,15 @@ function CheckRuling({ task, id }: { task: TaskView; id: string }) {
         <dt>Tests</dt>
         <dd>
           {c.claims.length ? (
-            c.claims.map((cid) => (
-              <div key={cid}>
-                <b>{cid}</b> <span className={styles.quote}>“{task.claims.find((x) => x.id === cid)?.text}”</span>
-              </div>
-            ))
+            c.claims.map((cid) => {
+              // The check names its claim by id and nothing upstream holds it to the block's claims.
+              const claim = task.claims.find((x) => x.id === cid);
+              return (
+                <div key={cid}>
+                  <b>{cid}</b> {claim ? <span className={styles.quote}>“{claim.text}”</span> : <HonestyChip kind="unknown">not in this proof&apos;s claims</HonestyChip>}
+                </div>
+              );
+            })
           ) : (
             <Chip tone="invariant">engine invariant</Chip>
           )}
