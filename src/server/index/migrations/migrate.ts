@@ -49,10 +49,15 @@ export async function migrate(db: PGlite, list: readonly Migration[] = MIGRATION
       if (prev !== checksum(m)) throw new Error(`migration ${m.version} (${m.name}) changed after it was applied`);
       continue;
     }
-    await db.transaction(async (tx) => {
-      await tx.exec(m.sql);
-      await tx.query('insert into belay_migration (version, name, checksum) values ($1, $2, $3)', [m.version, m.name, checksum(m)]);
-    });
+    try {
+      await db.transaction(async (tx) => {
+        await tx.exec(m.sql);
+        await tx.query('insert into belay_migration (version, name, checksum) values ($1, $2, $3)', [m.version, m.name, checksum(m)]);
+      });
+    } catch (err) {
+      // Postgres names the relation or constraint, never the step: the start failure the pages show must say which one.
+      throw new Error(`migration ${m.version} (${m.name}) failed: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
+    }
     ran.push(m.version);
   }
   return ran;
