@@ -16,7 +16,7 @@ const EXIT: Record<Decision, ExitCode> = { merge: 0, approve: 0, block: 1, wait:
 
 /** A missing file (ENOENT) means "not produced yet" (wait); one that is there and unreadable (EISDIR, EACCES) or malformed is an error. */
 function optionalJson(ctx: Ctx, file: string | undefined): unknown {
-  if (!file) return undefined;
+  if (file === undefined) return undefined;
   try {
     return readJson(ctx, file);
   } catch (e) {
@@ -46,15 +46,15 @@ export function gateCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   const state = loadState(ctx, args.get('state') ?? DEFAULT_STATE);
   const classId = str(args.need('class'), 'class');
   const now = args.has('now') ? new Date(isoMs(args.need('now'), '--now')) : ctx.now();
-  const diff = args.get('diff');
+  const diff = args.opt('diff');
   const input = {
     policy,
     state,
     classId,
     agent: args.get('agent'),
-    proof: toProof(optionalJson(ctx, args.get('proof'))),
-    guardrail: toGuardrail(optionalJson(ctx, args.get('guardrail'))),
-    envelope: diff ? checkEnvelope(policy, classId, readText(ctx, diff), args.all('env')) : undefined,
+    proof: toProof(optionalJson(ctx, args.opt('proof'))),
+    guardrail: toGuardrail(optionalJson(ctx, args.opt('guardrail'))),
+    envelope: diff !== undefined ? checkEnvelope(policy, classId, readText(ctx, diff), args.all('env')) : undefined,
     engineSha: args.get('engine-sha'),
     now,
   };

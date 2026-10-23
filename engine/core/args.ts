@@ -7,6 +7,8 @@ export interface Args {
   all(key: string): string[];
   has(key: string): boolean;
   need(key: string): string;
+  /** An optional value that, once given, may not be empty: `--dir "$UNSET"` is not the working directory. */
+  opt(key: string): string | undefined;
 }
 
 /** `positional`: how many bare arguments the command takes; past that one is refused (`--write false` would leave `false`
@@ -48,6 +50,11 @@ export function parseArgs(argv: readonly string[], opts: { values: readonly stri
     need(k) {
       const v = flags.get(k)?.at(-1);
       if (v === undefined || v === '') throw new EngineError(`missing --${k}`);
+      return v;
+    },
+    opt(k) {
+      const v = flags.get(k)?.at(-1);
+      if (v === '') throw new EngineError(`option --${k} needs a value`);
       return v;
     },
   };

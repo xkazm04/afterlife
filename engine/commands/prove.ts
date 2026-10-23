@@ -25,6 +25,6 @@ export function proveCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   const cls = args.need('class');
   if (!isProofClass(cls)) throw new EngineError(`unknown proof class "${cls}" (one of ${PROOF_CLASSES.join(', ')})`);
   const policy = loadPolicy(ctx, args.get('policy') ?? DEFAULT_POLICY);
-  const block = prove(cls, readInput(ctx, args.need('input'), args.get('files-root')), { policy, now: ctx.now() });
+  const block = prove(cls, readInput(ctx, args.need('input'), args.opt('files-root')), { policy, now: ctx.now() });
   return { json: block, summary: describeProof(block), code: EXIT[block.verdict] };
 }

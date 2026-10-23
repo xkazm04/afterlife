@@ -54,6 +54,24 @@ describe('gate reads a proof that is not there as wait, and one it cannot read a
   });
 });
 
+describe('an optional path given empty is refused, not read as the working directory or as absent', () => {
+  it('scan --dir "", gate --diff "" / --proof "", prove --files-root "" exit 2 naming the option', () => {
+    const cases: [string, string[]][] = [
+      ['dir', ['scan', '--dir', '']],
+      ['facts', ['scan', '--facts', '']],
+      ['diff', ['gate', '--class', 'dep-bump.patch', '--diff', '']],
+      ['proof', ['gate', '--class', 'dep-bump.patch', '--proof', '']],
+      ['guardrail', ['gate', '--class', 'dep-bump.patch', '--guardrail', '']],
+      ['files-root', ['prove', '--class', 'rerun-stats', '--input', 'engine/__fixtures__/rerun/flake.json', '--files-root', '']],
+    ];
+    for (const [opt, argv] of cases) {
+      const c = capture();
+      expect(main(argv, c.io), opt).toBe(2);
+      expect(c.json(), opt).toEqual({ error: `option --${opt} needs a value` });
+    }
+  });
+});
+
 describe('engine pin', () => {
   it('reports a version and a stable sha256 of its own source', () => {
     const info = engineInfo();

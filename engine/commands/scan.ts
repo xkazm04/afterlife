@@ -122,8 +122,8 @@ export function scoreFacts(f: Facts): MaturityScan {
 
 export function scanCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   const args = parseArgs(argv, { values: ['dir', 'facts'], switches: ['propose'], positional: 0 });
-  const facts = args.get('facts');
-  const dir = args.get('dir');
+  const facts = args.opt('facts');
+  const dir = args.opt('dir');
   if ((facts === undefined) === (dir === undefined)) throw new EngineError('give exactly one of --dir <checkout> or --facts <facts.json>');
   if (dir !== undefined) return dirScan(dir, args.has('propose'), ctx);
   if (args.has('propose')) throw new EngineError('--propose reads a checkout (--dir); with --facts each cell already names its next_rung');
