@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState, type ReactNode } from 'react';
+import { createReopenGuard } from '../popover/reopenGuard';
 import { Menu } from './Menu';
 import type { MenuAction, MenuEntry } from './menuModel';
 
@@ -10,6 +11,8 @@ interface OpenState<D> {
   /** Items fixed at open time; undefined means "ask `build` on every render". */
   fixed?: readonly MenuEntry<D>[];
   returnTo: HTMLElement | null;
+  /** The button it was opened from (openFrom only): a press on it closes the menu, and its click must not reopen it. */
+  trigger?: HTMLElement;
   initialActive: number;
   /** Bumps to re-render after a keep-open toggle. */
   version: number;
@@ -34,14 +37,16 @@ export interface MenuApi<D = unknown> {
  * - `label` names the menu for assistive tech.
  * - `onHighlight` hears the highlighted action (its `data` says which); `vimKeys` adds j / k.
  * Focus returns to the opener (or `returnTo`) when the menu closes by key or by running an item.
+ * A press on the trigger of an open menu closes it, and the click that follows that press does not reopen it.
  */
 export function useMenu<D = unknown>(
   build?: () => readonly MenuEntry<D>[],
   cfg: { onHighlight?: (item: MenuAction<D> | null) => void; vimKeys?: boolean; label?: string } = {},
 ): MenuApi<D> {
   const [open, setOpen] = useState<OpenState<D> | null>(null);
+  const [guard] = useState(() => createReopenGuard<HTMLElement>());
 
-  const openAt = useCallback<MenuApi<D>['openAt']>((x, y, opts = {}) => {
+  const place = useCallback((x: number, y: number, opts: Parameters<MenuApi<D>['openAt']>[2] & { trigger?: HTMLElement } = {}) => {
     const active = document.activeElement;
     const returnTo = opts.returnTo ?? (active instanceof HTMLElement ? active : null);
     setOpen((prev) => ({
@@ -49,17 +54,20 @@ export function useMenu<D = unknown>(
       y,
       fixed: opts.items,
       returnTo,
+      trigger: opts.trigger,
       initialActive: opts.highlightFirst ? 0 : -1,
       version: (prev?.version ?? 0) + 1,
     }));
   }, []);
+  const openAt: MenuApi<D>['openAt'] = place;
 
   const openFrom = useCallback<MenuApi<D>['openFrom']>(
     (el, opts = {}) => {
+      if (guard.swallows(el)) return;
       const r = el.getBoundingClientRect();
-      openAt(r.left, r.bottom + 4, { ...opts, returnTo: el });
+      place(r.left, r.bottom + 4, { ...opts, returnTo: el, trigger: el });
     },
-    [openAt],
+    [place, guard],
   );
 
   const close = useCallback(() => setOpen(null), []);
@@ -68,7 +76,12 @@ export function useMenu<D = unknown>(
   if (open) {
     const items = open.fixed ?? build?.() ?? [];
     const keepOpen = open.fixed === undefined;
-    const shut = (refocus: boolean) => {
+    const shut = (refocus: boolean, target?: EventTarget | null) => {
+      if (!refocus && open.trigger) {
+        guard.pressClosed(open.trigger, target != null && open.trigger.contains(target as Node));
+        // No click follows a press that was dragged away: forget it when the next press begins.
+        setTimeout(() => document.addEventListener('mousedown', guard.reset, { capture: true, once: true }), 0);
+      }
       setOpen(null);
       if (refocus) open.returnTo?.focus();
     };

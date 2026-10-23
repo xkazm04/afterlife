@@ -29,8 +29,8 @@ export function Menu<D = unknown>({
   x: number;
   y: number;
   onRun: (item: MenuAction<D>) => void;
-  /** `refocus` is false when the menu closed because the pointer went elsewhere. */
-  onClose: (refocus: boolean) => void;
+  /** `refocus` is false when the menu closed because the pointer went elsewhere; `target` is what was pressed. */
+  onClose: (refocus: boolean, target?: EventTarget | null) => void;
   onHighlight?: (item: MenuAction<D> | null) => void;
   vimKeys?: boolean;
   initialActive?: number;
@@ -56,7 +56,7 @@ export function Menu<D = unknown>({
 
   useEffect(() => {
     const away = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose(false, e.target);
     };
     document.addEventListener('mousedown', away, true);
     return () => document.removeEventListener('mousedown', away, true);
