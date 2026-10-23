@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isGroupNavId } from '@/components/table/model/rowNavigation';
+import { groupOfNavId } from '@/components/table/model/rowNavigation';
 import { trackChanges, type TrackWant } from '../model/rules/batch/batch';
 import { actsFrom, revokeTarget } from '../model/rules/tiers';
 import type { Change, ClassRow, Tier } from '../model/types';
@@ -78,7 +78,7 @@ export function useRevokeWrite(project: string, selected: ClassRow | undefined, 
     if (id && to) want(id, to);
   }, [id, to, want, round]);
 
-  const tid = track?.sel && isGroupNavId(track.sel) ? track.sel.slice(2) : null;
+  const tid = track?.sel ? groupOfNavId(track.sel) : null;
   const trackWant: TrackWant = tid && shownTrack?.track === tid ? shownTrack.want : 'quarantine';
   const classes = track?.state.classes;
   useEffect(() => {

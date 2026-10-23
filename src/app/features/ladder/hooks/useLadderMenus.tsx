@@ -4,7 +4,7 @@ import { useCallback, type MouseEvent } from 'react';
 import { useMenu } from '@/components/overlays/menu/useMenu';
 import type { MenuAction, MenuEntry } from '@/components/overlays/menu/menuModel';
 import { TierMark } from '@/components/status/TierMark';
-import { rowDomId } from '@/components/table/model/rowNavigation';
+import { groupNavId, groupOfNavId, rowDomId } from '@/components/table/model/rowNavigation';
 import { TIER_META } from '@/lib/tiers';
 import { commandLines } from '@/server/actions/words';
 import { actsFrom, isQuarantine, revokeTargets } from '../model/rules/tiers';
@@ -101,7 +101,7 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
 
   /** Right-click: select what was hit, then open its menu at the pointer. */
   const openRowMenu = useCallback((id: string, e: MouseEvent) => { actions.select(id); ctx.openAt(e.clientX, e.clientY, { items: rowEntries(id) }); }, [actions, ctx, rowEntries]);
-  const openGroupMenu = useCallback((tid: string, e: MouseEvent) => { actions.select(`g:${tid}`); ctx.openAt(e.clientX, e.clientY, { items: groupEntries(tid) }); }, [actions, ctx, groupEntries]);
+  const openGroupMenu = useCallback((tid: string, e: MouseEvent) => { actions.select(groupNavId(tid)); ctx.openAt(e.clientX, e.clientY, { items: groupEntries(tid) }); }, [actions, ctx, groupEntries]);
 
   /** The ContextMenu key: the menu of the selected row, under it, first item lit. */
   const openForSelection = useCallback(() => {
@@ -109,7 +109,8 @@ export function useLadderMenus({ data, actions, writes, onHover }: { data: Ladde
     const el = sel ? document.getElementById(rowDomId(sel)) : null;
     if (!sel || !el) return;
     const r = el.getBoundingClientRect();
-    const items = sel.startsWith('g:') ? groupEntries(sel.slice(2)) : rowEntries(sel);
+    const gid = groupOfNavId(sel);
+    const items = gid !== null ? groupEntries(gid) : rowEntries(sel);
     ctx.openAt(r.left + 40, r.bottom, { items, highlightFirst: true });
   }, [data.sel, ctx, groupEntries, rowEntries]);
 

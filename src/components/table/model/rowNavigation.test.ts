@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupNavId, isTypeAhead, moveBy, navigate, revealDelta, rowDomId, type NavItem } from './rowNavigation';
+import { groupNavId, groupOfNavId, isTypeAhead, moveBy, navigate, revealDelta, rowDomId, type NavItem } from './rowNavigation';
 
 const g1 = groupNavId('core');
 const g2 = groupNavId('pay');
@@ -94,5 +94,12 @@ describe('revealDelta', () => {
   });
   it('with no scrollbar the band ends at the pane edge', () => {
     expect(revealDelta({ top: 270, bottom: 292 }, { ...box, clientHeight: 300 }, 24)).toBe(0);
+  });
+});
+
+describe('groupOfNavId', () => {
+  it('inverts groupNavId and is null for a row id', () => {
+    expect(groupOfNavId(groupNavId('core'))).toBe('core');
+    expect(groupOfNavId('row-id')).toBeNull();
   });
 });
