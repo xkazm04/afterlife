@@ -5,6 +5,7 @@ import type { ActionResponse } from '@/server/actions/types';
 import { mrOf, NO_ANSWER, outcomeOf } from '@/server/actions/words';
 import { askEnroll, sendEnroll } from '../write/enroll';
 import type { WriteView } from '../write/arm';
+import { oneAtATime } from './armFlow';
 
 /** What a sent enrollment opened: the MR GitLab named (null when it named none, or demo mode simulated it). */
 export interface EnrollSent {
@@ -38,7 +39,9 @@ export function useEnrollWrite(project: string): EnrollWrites {
     },
     [project],
   );
-  const send = useCallback(
+  // The tracks with a confirm out: a second click in that window would confirm the same preview again (as armClick).
+  const out = useRef(new Set<string>());
+  const confirm = useCallback(
     async (id: string) => {
       const what = `enroll ${id}`;
       let r: ActionResponse | null;
@@ -60,6 +63,7 @@ export function useEnrollWrite(project: string): EnrollWrites {
     },
     [project, views],
   );
+  const send = useCallback((id: string) => oneAtATime(out.current, id, `Nothing sent · enroll ${id}: its confirm is still out`, () => confirm(id)), [confirm]);
   const viewOf = useCallback((id: string) => views[id], [views]);
   const sentOf = useCallback((id: string) => sent[id], [sent]);
   return useMemo(() => ({ viewOf, sentOf, want, send }), [viewOf, sentOf, want, send]);

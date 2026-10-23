@@ -23,13 +23,18 @@ export interface ArmSendDeps {
  * stays `ready` (or `armed`) until the answer lands, so a track is sent once at a time: a second click in that window
  * would confirm the same preview again and run the git push and the MR twice.
  */
-export async function armClick(d: ArmSendDeps, id: string, revert: boolean): Promise<void> {
-  if (d.out.has(id)) return;
-  d.out.add(id);
+export function armClick(d: ArmSendDeps, id: string, revert: boolean): Promise<void> {
+  return oneAtATime(d.out, id, undefined, () => send(d, id, revert));
+}
+
+/** Runs `run` for `id` unless one is still out in `out`; a second call in that window runs nothing and answers `busy`. */
+export async function oneAtATime<T>(out: Set<string>, id: string, busy: T, run: () => Promise<T>): Promise<T> {
+  if (out.has(id)) return busy;
+  out.add(id);
   try {
-    await send(d, id, revert);
+    return await run();
   } finally {
-    d.out.delete(id);
+    out.delete(id);
   }
 }
 

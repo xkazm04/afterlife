@@ -11,7 +11,7 @@ import type { ArmWrites } from './useArmWrite';
 
 const sent: { calls: number; next: () => Promise<ActionResponse | null> } = { calls: 0, next: () => Promise.resolve(null) };
 vi.mock('../write/arm', () => ({ sendArm: () => (sent.calls++, sent.next()) }));
-const { armClick } = await import('./armFlow');
+const { armClick, oneAtATime } = await import('./armFlow');
 
 const preview: ActionPreview = { kind: 'arm-track', title: 't', summary: 's', commands: [], risk: 'low', diff: [], previewId: 'p1', mode: 'demo' };
 const done = (): ActionResponse => ({ status: 'done', preview, results: [{ display: 'glab mr create', exit: 0, ok: true, simulated: false, made: '!22', url: 'https://gitlab.example/mr/22' }] });
@@ -74,5 +74,24 @@ describe('the arm click', () => {
     await r.send('T3', false);
     await r.send('T3', false);
     expect(sent.calls).toBe(2);
+  });
+});
+
+describe('one confirm out per id (the arm and the enroll click share it)', () => {
+  it('a second call while the first is out runs nothing and answers busy; once settled the id runs again', async () => {
+    const out = new Set<string>();
+    let runs = 0;
+    let settle: (v: string) => void = () => {};
+    const run = () => (runs++, new Promise<string>((res) => (settle = res)));
+    const first = oneAtATime(out, 'T3', 'busy', run);
+    expect(await oneAtATime(out, 'T3', 'busy', run)).toBe('busy');
+    settle('done');
+    expect([await first, runs]).toEqual(['done', 1]);
+    expect(await oneAtATime(out, 'T3', 'busy', () => Promise.resolve('again'))).toBe('again');
+  });
+  it('a run that throws frees the id', async () => {
+    const out = new Set<string>();
+    await expect(oneAtATime(out, 'T3', 'busy', () => Promise.reject(new Error('x')))).rejects.toThrow('x');
+    expect(out.has('T3')).toBe(false);
   });
 });
