@@ -78,7 +78,8 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
   - live: `live/model/select.test.ts` (header facts, stale freeze with an injected clock, the precedence), `live/LiveScreen.test.tsx` (the live stage rendered), `live/server/livePayload.test.ts` (the payload off disk).
   - keys and parts: `hooks/useTheaterKeys.test.ts` (the "?" legend against the key map),
     `hooks/frameClock.test.ts` (the frame clock asks for no frames while the film is held),
-    `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/rail/Autonomy.test.tsx` (why a
+    `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/chrome/Transport.test.tsx` (its
+    tooltips follow the key map), `components/rail/Autonomy.test.tsx` (why a
     class sits at its tier), `components/styles.test.ts` (every `styles.x` exists in its CSS module),
     `components/parts/PrerollCue.test.tsx`, `components/parts/RungSteps.test.tsx` (the one rung bar),
     `components/parts/Board.test.tsx` (a missing day-0 reading in words),

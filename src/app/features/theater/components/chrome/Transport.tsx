@@ -4,6 +4,7 @@ import { Lozenge } from '@/components/controls/lozenge/Lozenge';
 import { LozengeDivider } from '@/components/controls/lozenge/LozengeDivider';
 import { Spacer } from '@/components/controls/Spacer';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
+import { MAX_TAKES } from '../../model/film/fromLedger';
 import type { Readout } from '../../model/replay/state';
 import type { TheaterActions } from '../../hooks/useTheaterActions';
 import styles from './Transport.module.css';
@@ -43,7 +44,7 @@ export function Transport({ playing, loop, readout, actions, onPresent }: { play
         </span>
       </Lozenge>
       <Spacer />
-      <ToolbarButton className={styles.present} title="Present: hides all chrome; 1–8, R, L, space, ←/→ still work (F; Esc returns)" onClick={onPresent}>
+      <ToolbarButton className={styles.present} title={`Present: hides all chrome; 1–${MAX_TAKES}, R, L, space, ←/→ still work (F; Esc returns)`} onClick={onPresent}>
         <svg className={styles.ico} style={sz(13)} viewBox="0 0 14 12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" aria-hidden="true">
           <rect x=".6" y=".6" width="12.8" height="8.4" rx="1.4" />
           <path d="M4.5 11.2h5" />
