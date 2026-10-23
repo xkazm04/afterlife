@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import type { LedgerEvent, LedgerKind } from '@/schemas/ledger';
 import { reduce, type Action } from '../replay/reducer';
-import { initialState, rangeLabel, seqLabel, seqRange, slateText, takeSpan, type ReplayState } from '../replay/state';
+import { clockText, initialState, rangeLabel, seqLabel, seqRange, slateText, takeSpan, type ReplayState } from '../replay/state';
 import { ledgerFilm } from './fromLedger';
 
 const ev = (seq: number, iid: number, kind: LedgerKind): LedgerEvent => ({
@@ -62,5 +62,13 @@ describe('the span of a take in the reel', () => {
   it('is its first and last seq as reel indexes, the one rule the roll, the take under the playhead and the fold share', () => {
     expect(film.takes.map((t) => takeSpan(t, reel))).toEqual([{ a: 0, b: 1 }, { a: 2, b: 4 }, { a: 5, b: 7 }]);
     expect(takeSpan({ name: 'gone', a: 99, b: 100 }, reel)).toEqual({ a: -1, b: -1 });
+  });
+});
+
+describe('the status line\'s clock', () => {
+  it('names its zone on a real film (the clock is UTC) and leaves the illustrative slice\'s simulated clock bare', () => {
+    expect(slateText(initialState(reel))).toContain('seq 4 · 10:00:04 UTC · take 1.1');
+    expect(slateText(initialState())).toContain('seq 480 · 14:00:06 · take 1.1');
+    expect(clockText(film.entries[0]!)).toBe('10:00:04 UTC');
   });
 });

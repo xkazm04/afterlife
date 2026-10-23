@@ -2,14 +2,23 @@
 // (the film's entries and takes), so one reducer plays the illustrative slice or a film read from belay-ledger.
 import { REPLAY_LEDGER } from '../../data/ledger';
 import { TAKES } from '../../data/constants';
-import type { Marks, Take } from '../types';
+import type { LedgerEntry, Marks, Take } from '../types';
 
 // The pre-roll lives beside the "?" legend that names it (data/constants.ts imports nothing from here: no cycle).
 export { PREROLL_MS, PREROLL_REDUCED_MS } from '../../data/constants';
 
+/** An entry as the player reads it: seq, clock, dwell, and (a real film's) the event it is. */
+type ClockedEntry = { seq: number; t: string; d?: number } & Partial<Pick<LedgerEntry, 'ev'>>;
+
+/**
+ * An entry's clock as drawn: a real film's (it carries `ev`) is hh:mm:ss in UTC (model/film/fromLedger.ts), so it says
+ * so; the illustrative slice's is a simulated clock with no zone, drawn bare. The one rule for the caption and the status line.
+ */
+export const clockText = (e: ClockedEntry): string => (e.ev ? `${e.t} UTC` : e.t);
+
 /** What the player needs of a film: the entries' seq, clock and dwell, and the takes. */
 export interface Reel {
-  entries: readonly { seq: number; t: string; d?: number }[];
+  entries: readonly ClockedEntry[];
   takes: readonly Take[];
 }
 
@@ -136,5 +145,5 @@ export function slateText(s: Pick<ReplayState, 'reel' | 'i' | 'take' | 'mark' | 
   const e = s.reel.entries[s.i];
   const r = rangeLabel(s);
   const roll = Math.max(1, s.counts[s.take] ?? 0);
-  return `seq ${e?.seq ?? 0} · ${e?.t ?? ''} · take ${s.take + 1}.${roll} · in ${r.a} → out ${r.b}${s.mark ? ' (marked)' : ''}`;
+  return `seq ${e?.seq ?? 0} · ${e ? clockText(e) : ''} · take ${s.take + 1}.${roll} · in ${r.a} → out ${r.b}${s.mark ? ' (marked)' : ''}`;
 }
