@@ -34,11 +34,15 @@ export function rowDomId(id: string): string {
   return `row-${id.replace(/[^A-Za-z0-9-]/gu, (ch) => `_${ch.codePointAt(0)?.toString(16)}_`)}`;
 }
 
-/** Move by `delta` rows, clamped. With nothing selected, the first row is selected. */
+/**
+ * Move by `delta` rows, clamped. With nothing selected the move starts just above the first row: Down selects the
+ * first, End the last, PageDown a page in; Up and Home select the first.
+ */
 export function moveBy(items: readonly NavItem[], selected: string | null, delta: number): NavAction {
   if (!items.length) return NONE;
   const i = items.findIndex((it) => it.id === selected);
-  const next = i < 0 ? 0 : Math.max(0, Math.min(items.length - 1, i + delta));
+  const from = i < 0 ? (delta > 0 ? -1 : 0) : i;
+  const next = Math.max(0, Math.min(items.length - 1, from + delta));
   const target = items[next];
   return target ? { type: 'select', id: target.id } : NONE;
 }

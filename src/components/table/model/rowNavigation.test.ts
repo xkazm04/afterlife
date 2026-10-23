@@ -20,6 +20,13 @@ describe('moveBy', () => {
     expect(moveBy(items, null, 1)).toEqual({ type: 'select', id: g1 });
     expect(moveBy(items, 'gone', -1)).toEqual({ type: 'select', id: g1 });
   });
+  it('End and PageDown with nothing selected go down from above the first row, not to it', () => {
+    expect(moveBy(items, null, 1e6)).toEqual({ type: 'select', id: g2 });
+    expect(navigate(items, null, 'End')).toEqual({ type: 'select', id: g2 });
+    expect(navigate(items, 'gone', 'PageDown')).toEqual({ type: 'select', id: g2 });
+    expect(navigate(items, null, 'Home')).toEqual({ type: 'select', id: g1 });
+    expect(navigate(items, null, 'ArrowDown')).toEqual({ type: 'select', id: g1 });
+  });
   it('does nothing on an empty table', () => {
     expect(moveBy([], null, 1)).toEqual({ type: 'none' });
   });
