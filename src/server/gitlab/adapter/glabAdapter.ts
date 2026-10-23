@@ -13,6 +13,23 @@ import { mapDiff, mapMergeRequest, mapNote } from './mappersMr';
 
 const id = (p: ProjectRef): string => encodeURIComponent(String(p));
 
+/**
+ * Why argv is not the builders' grammar (`api [--hostname <host>] --method M <path> [-f k=v]...`), or null. Anything else
+ * (-F reads @files, --input, a second path, another host that glab would hand GITLAB_TOKEN to) is never run.
+ */
+export function offGrammar(argv: readonly string[], host: string | undefined): string | null {
+  if (argv[0] !== 'api') return 'only `glab api` commands may be executed';
+  let path = 0;
+  for (let i = 1; i < argv.length; i++) {
+    const a = argv[i] ?? '';
+    if (a === '--hostname') { if (argv[++i] !== host || host === undefined) return 'a write goes only to the configured host'; }
+    else if (a === '--method' || a === '-f') { if (++i >= argv.length) return `${a} needs a value`; }
+    else if (a.startsWith('-')) return `flag ${a} is not one the write builders use`;
+    else if (++path > 1) return 'a write names one endpoint';
+  }
+  return path === 1 ? null : 'a write names one endpoint';
+}
+
 export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
   const c = new GlabClient(cfg);
   const list = async <T>(path: string, map: (r: Record<string, unknown>) => T, q = {}, limit?: number): Promise<T[]> =>
@@ -77,7 +94,8 @@ export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
     get: (path, query) => c.getJson(path, query),
 
     execute: async (planned) => {
-      if (planned.argv[0] !== 'api') throw new GitLabError('api', 'only `glab api` commands may be executed', planned.display);
+      const off = offGrammar(planned.argv, cfg.host);
+      if (off) throw new GitLabError('api', off, planned.display);
       const r = await c.run(planned.argv);
       let body: unknown = null;
       try { body = r.stdout.trim() ? JSON.parse(r.stdout) : null; } catch { body = null; }

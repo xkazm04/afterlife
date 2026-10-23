@@ -169,4 +169,12 @@ describe('execute', () => {
     await expect(port.execute({ argv: ['mr', 'create'], display: 'glab mr create', risk: 'low' })).rejects.toBeInstanceOf(GitLabError);
     expect(calls).toHaveLength(0);
   });
+
+  it('runs only the builders\' grammar: no other flag, no host but the configured one', async () => {
+    const { port, calls } = adapter([], { host: 'git.example.com' });
+    const bad = [['api', '-F', 'content=@/etc/passwd', 'projects/1/notes'], ['api', '--input', 'x', 'projects/1/notes'],
+      ['api', '--hostname', 'evil.example', '--method', 'POST', 'projects/1/notes'], ['api', '--method', 'POST'], ['api', '--method', 'POST', 'a', 'b']];
+    for (const argv of bad) await expect(port.execute({ argv, display: '', risk: 'low' }), argv.join(' ')).rejects.toBeInstanceOf(GitLabError);
+    expect(calls).toHaveLength(0);
+  });
 });
