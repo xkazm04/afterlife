@@ -2,7 +2,7 @@
 // things it does with the server: ask for each gap's exact write when the sheet opens (askGapMr), and on the button confirm
 // each write that is on screen by its preview id (sendGapMr). The answer is only what the response says. Pure apart from
 // those two calls, so it is tested with the actions mocked.
-import { NO_ANSWER, outcomeOf, type WriteView } from '@/server/actions/words';
+import { mrOf, NO_ANSWER, outcomeOf, type WriteView } from '@/server/actions/words';
 import type { ProposalExtra } from '../data/types';
 import type { MaturityCtx } from '../model/ctx';
 import { sheetIds, type GapAnswer, type SendPhase } from '../model/flow/send';
@@ -60,7 +60,7 @@ export async function sendRow(row: SheetRow): Promise<Sent> {
     const r = await sendGapMr(row.send.intent, row.view);
     const o = r && outcomeOf(r, `gap ${row.id} · ${row.title}`);
     if (!o) return { id: row.id, answer: { status: 'failed', text: 'Nothing sent · the exact write is not on screen' } };
-    const mr = r?.status === 'done' ? r.results.flatMap((x) => (x.made?.startsWith('!') ? [x.made] : []))[0] : undefined;
+    const mr = r?.status === 'done' ? (mrOf(r.results) ?? undefined) : undefined;
     const view: WriteView | undefined = o.status === 'changed' ? { kind: 'preview', preview: o.preview } : o.status === 'refused' ? { kind: 'refused', reason: o.reason } : undefined;
     return { id: row.id, answer: { status: o.status, text: o.text, ...(mr ? { mr } : {}) }, ...(view ? { view } : {}) };
   } catch {
