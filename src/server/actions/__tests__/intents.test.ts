@@ -101,3 +101,28 @@ describe('the server actions (demo mode, the default)', () => {
     }
   });
 });
+
+describe('live mode after a failed start', () => {
+  // runtime.ts keeps the failure on globalThis under this symbol until a start succeeds; select.ts names it on every page.
+  const FAILED = Symbol.for('belay.liveRuntime.failed');
+  const holder = globalThis as { [FAILED]?: { message: string; at: number } };
+
+  it('names the start failure, as the pages do, not a first poll still running', async () => {
+    const before = process.env.BELAY_MODE;
+    process.env.BELAY_MODE = 'live';
+    holder[FAILED] = { message: 'glab is not logged in', at: Date.now() };
+    try {
+      const { verifyArmAction } = await import('../arm/verifyAction');
+      const arm = { kind: 'arm-track', project: 'ledgerline', track: 'T4' };
+      const revoke = { kind: 'revoke-class', project: 'ledgerline', changes: [{ class: 'dep-bump.patch', to: 'supervised' }] };
+      for (const r of [await previewAction(revoke), await confirmAction(revoke, 'f'.repeat(64)), await verifyArmAction(arm)]) {
+        expect(r).toMatchObject({ status: 'refused', reason: expect.stringContaining('glab is not logged in') });
+        expect('reason' in r && r.reason).not.toMatch(/first poll/);
+      }
+    } finally {
+      delete holder[FAILED];
+      if (before === undefined) delete process.env.BELAY_MODE;
+      else process.env.BELAY_MODE = before;
+    }
+  });
+});

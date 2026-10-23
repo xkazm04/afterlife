@@ -70,8 +70,19 @@ describe('re-poll on the live runtime', () => {
     for (const bad of [42, '', '../etc', 'a b', 'x'.repeat(300), null]) {
       expect(await repollProject(rt, bad)).toEqual({ result: { ok: false, reason: 'not a project id' }, polled: false });
     }
-    expect(await repollProject(null, 'ledgerline')).toEqual({ result: { ok: false, reason: 'live mode has not finished its first poll' }, polled: false });
+    expect(await repollProject(null, 'ledgerline')).toEqual({ result: { ok: false, reason: 'live mode has not finished its first poll; try again in a moment' }, polled: false });
     expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('after a failed live start, names the failure, not a first poll still running', async () => {
+    const FAILED = Symbol.for('belay.liveRuntime.failed'); // runtime.ts keeps it here until a start succeeds
+    const holder = globalThis as { [FAILED]?: { message: string; at: number } };
+    holder[FAILED] = { message: 'glab is not logged in', at: Date.now() };
+    try {
+      expect(await repollGroup(null)).toEqual({ result: { ok: false, reason: 'the live start failed: glab is not logged in' }, polled: false });
+    } finally {
+      delete holder[FAILED];
+    }
   });
 });
 
@@ -144,6 +155,6 @@ describe('re-poll the whole group, from any screen', () => {
     expect(refresh).toHaveBeenCalledTimes(1);
     fail.call = 'getGroup';
     expect(await repollGroup(rt, () => 7_000_000 + REPOLL_GAP_MS)).toEqual({ result: { ok: false, reason: expect.stringContaining('401') }, polled: true });
-    expect(await repollGroup(null)).toEqual({ result: { ok: false, reason: 'live mode has not finished its first poll' }, polled: false });
+    expect(await repollGroup(null)).toEqual({ result: { ok: false, reason: 'live mode has not finished its first poll; try again in a moment' }, polled: false });
   });
 });

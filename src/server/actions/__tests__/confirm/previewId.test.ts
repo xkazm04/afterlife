@@ -8,7 +8,7 @@ import { liveRig } from '../rig';
 const at = vi.hoisted(() => ({ deps: null as ActionDeps | null }));
 vi.mock('next/headers', () => ({ headers: async () => new Headers({ host: 'localhost:3000', origin: 'http://localhost:3000' }) }));
 vi.mock('next/cache', () => ({ refresh: () => undefined }));
-vi.mock('../../deps', () => ({ actionDeps: () => at.deps }));
+vi.mock('../../deps', async (real) => ({ ...(await real<object>()), actionDeps: () => at.deps }));
 
 const { confirmAction } = await import('../../actions');
 

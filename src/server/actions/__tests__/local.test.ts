@@ -11,7 +11,7 @@ import { liveRig, type ActionRig } from './rig';
 const at = vi.hoisted(() => ({ headers: new Headers(), deps: null as ActionDeps | null, rt: null as unknown }));
 vi.mock('next/headers', () => ({ headers: async () => at.headers }));
 vi.mock('next/cache', () => ({ refresh: () => undefined }));
-vi.mock('../deps', () => ({ actionDeps: () => at.deps }));
+vi.mock('../deps', async (real) => ({ ...(await real<object>()), actionDeps: () => at.deps }));
 vi.mock('@/server/data/live/runtime', () => ({ readyRuntime: () => at.rt }));
 
 const { confirmAction, previewAction } = await import('../actions');

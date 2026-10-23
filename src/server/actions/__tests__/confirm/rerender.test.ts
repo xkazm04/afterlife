@@ -9,7 +9,7 @@ import { liveRig, policyFiles, type ActionRig } from '../rig';
 const at = vi.hoisted(() => ({ deps: null as ActionDeps | null, refresh: null as unknown as ReturnType<typeof vi.fn<() => void>> }));
 vi.mock('next/headers', () => ({ headers: async () => new Headers({ host: 'localhost:3000', origin: 'http://localhost:3000' }) }));
 vi.mock('next/cache', () => ({ refresh: () => at.refresh() }));
-vi.mock('../../deps', () => ({ actionDeps: () => at.deps }));
+vi.mock('../../deps', async (real) => ({ ...(await real<object>()), actionDeps: () => at.deps }));
 
 const { confirmAction, previewAction } = await import('../../actions');
 

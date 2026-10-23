@@ -6,6 +6,7 @@
 // not in the polled group. A cycle reads the whole group as the operator, so re-polls are at least REPOLL_GAP_MS apart:
 // a page or a script calling in a loop cannot flood GitLab (and the operator's rate limit) or the index.
 import type { LiveRuntime } from '@/server/data/live/runtime';
+import { notReadyReason } from './deps';
 
 export type RepollResult =
   /** `ageSec`: the project's feed age in the fresh snapshot (null: the snapshot does not list it). */
@@ -29,7 +30,7 @@ const fail = (reason: string): { ok: false; reason: string } => ({ ok: false, re
 
 /** One cycle, unless the last re-poll (of any project or of the group: one gap) was too recent. `polled`: a cycle ran. */
 async function cycleOnce(rt: RepollRuntime | null, now: () => number): Promise<{ failed: { ok: false; reason: string } | null; polled: boolean }> {
-  if (!rt) return { failed: fail('live mode has not finished its first poll'), polled: false };
+  if (!rt) return { failed: fail(notReadyReason()), polled: false };
   const at = now();
   const since = at - (lastAsked.get(rt) ?? -Infinity);
   if (since < REPOLL_GAP_MS) {

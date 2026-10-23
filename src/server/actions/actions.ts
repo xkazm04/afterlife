@@ -11,12 +11,12 @@
 // round trip (`refresh` from next/cache, as repollAction does), so the acted item does not stay listed.
 import { headers } from 'next/headers';
 import { refresh } from 'next/cache';
-import { actionDeps } from './deps';
+import { actionDeps, notReadyReason } from './deps';
 import { notLocal } from './local';
 import { confirmIntent, previewIntent, type ActionDeps } from './run';
 import type { ActionResponse } from './types';
 
-const NOT_READY: ActionResponse = { status: 'refused', reason: 'live mode has not finished its first poll; try again in a moment' };
+const notReady = (): ActionResponse => ({ status: 'refused', reason: notReadyReason() });
 
 /** Live mode only: demo never runs anything, and the hosted replay is served under its own name. */
 async function fromElsewhere(deps: ActionDeps): Promise<ActionResponse | null> {
@@ -27,13 +27,13 @@ async function fromElsewhere(deps: ActionDeps): Promise<ActionResponse | null> {
 
 export async function previewAction(intent: unknown): Promise<ActionResponse> {
   const deps = actionDeps();
-  if (!deps) return NOT_READY;
+  if (!deps) return notReady();
   return (await fromElsewhere(deps)) ?? previewIntent(deps, intent);
 }
 
 export async function confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> {
   const deps = actionDeps();
-  if (!deps) return NOT_READY;
+  if (!deps) return notReady();
   const away = await fromElsewhere(deps);
   if (away) return away;
   if (typeof previewId !== 'string') return { status: 'refused', reason: 'a confirm names the preview id of the preview it confirms: preview first' };

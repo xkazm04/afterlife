@@ -4,7 +4,7 @@
 import { readConfig } from '@/server/gitlab/config';
 import { createDemoGitLab, GROUP_ID } from '@/server/gitlab/fake/demo';
 import { readDataConfig } from '@/server/data/config';
-import { readyRuntime } from '@/server/data/live/runtime';
+import { lastStartFailure, readyRuntime } from '@/server/data/live/runtime';
 import { getProjectRow } from '@/server/index/repositories/fleet/project';
 import { SEED_NOW } from '@/server/index/seed/parse';
 import { readPollerConfig } from '@/server/poller/config';
@@ -29,4 +29,10 @@ export function actionDeps(env: Record<string, string | undefined> = process.env
     mode: 'demo', port: planner.port, db: null, groupId: GROUP_ID, cfg: readPollerConfig(GROUP_ID, {}), now: () => SEED_NOW,
     refresh: () => Promise.resolve(), gitlabId: () => Promise.resolve(null), arm: { ok: true, pin: DEMO_PIN },
   };
+}
+
+/** Why live mode has no deps yet, as the pages tell the two apart (select.ts): a first poll still running, or a failed start. */
+export function notReadyReason(): string {
+  const failed = lastStartFailure();
+  return failed ? `the live start failed: ${failed.message}` : 'live mode has not finished its first poll; try again in a moment';
 }
