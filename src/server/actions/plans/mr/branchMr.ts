@@ -7,13 +7,9 @@
 import { isKind } from '@/server/gitlab/errors';
 import type { CommitFileInput, CreateMrInput, PlannedCommand } from '@/server/gitlab/plan/types';
 import type { GlProject } from '@/server/gitlab/types';
-import type { ActionIntent } from '../../types';
 import { ActionRefused, COMMIT_ID, type PlanContext } from '../context';
 
 type Where = Pick<GlProject, 'id' | 'pathWithNamespace'>;
-
-/** The intents whose plans are built here: the ones a confirm head-checks (arm/head.ts). */
-export const BRANCH_MR_KINDS = ['promote-class', 'enroll-track', 'stage-gap-mr', 'arm-track', 'disarm-track'] as const satisfies readonly ActionIntent['kind'][];
 
 /**
  * The branch must not exist yet. A 404 is the only "absent": any other failure refuses, because a branch left by an earlier

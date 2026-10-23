@@ -4,10 +4,6 @@
 // "Prepared by Belay") would carry a commit nobody previewed. A write that opens no MR (revoke, a CRA label) is not checked.
 import type { GitLabPort, ProjectRef } from '@/server/gitlab/port';
 import { COMMIT_ID } from '../plans/context';
-import { BRANCH_MR_KINDS } from '../plans/mr/branchMr';
-import type { ActionIntent } from '../types';
-
-export const headChecked = (kind: ActionIntent['kind']): boolean => (BRANCH_MR_KINDS as readonly string[]).includes(kind);
 
 const asRec = (v: unknown): Record<string, unknown> => (typeof v === 'object' && v !== null ? (v as Record<string, unknown>) : {});
 

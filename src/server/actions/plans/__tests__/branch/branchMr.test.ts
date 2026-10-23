@@ -108,21 +108,24 @@ describe("arm's target is found by locate's rule", () => {
   });
 });
 
-describe('a promote confirm is done only when its own commit heads the MR (F38)', () => {
-  it('someone pushing to the branch between the commit and the MR fails the confirm', async () => {
+describe('a branch MR confirm is done only when its own commit heads the MR (F38)', () => {
+  // the gap too: its head check was pinned by no test (dropping it from the check left every test green)
+  it.each([
+    ['promote', PROMOTE, 'belay-policy', `belay/promote-qa.file-bug-${DAY}`],
+    ['gap', GAP, 'ledgerline', GAP.branch],
+  ] as const)('%s: someone pushing to the branch between the commit and the MR fails the confirm', async (_, intent, project, branch) => {
     let fake: FakeGitLab | null = null;
-    const branch = `belay/promote-qa.file-bug-${DAY}`;
     const pushedBetween = (port: GitLabPort): GitLabPort => new Proxy(port, {
       get: (t, k, r) => (k === 'execute'
         ? async (c: PlannedCommand) => {
-          if (c.argv.includes('POST') && c.argv.some((a) => a.endsWith('/merge_requests'))) (named(fake!, 'belay-policy').branches ??= {})[branch] = LEFT;
+          if (c.argv.includes('POST') && c.argv.some((a) => a.endsWith('/merge_requests'))) (named(fake!, project).branches ??= {})[branch] = LEFT;
           return t.execute(c);
         }
         : Reflect.get(t, k, r)),
     });
     const r0 = await rig(pushedBetween);
     fake = r0.gl;
-    const r = await confirmIntent(r0.deps, PROMOTE, preview(await previewIntent(r0.deps, PROMOTE)).previewId);
+    const r = await confirmIntent(r0.deps, intent, preview(await previewIntent(r0.deps, intent)).previewId);
     expect(r.status).toBe('failed');
     expect(r.status === 'failed' && r.results.at(-1)?.error).toMatch(/is headed by .* not .*the commit this confirm made/);
   });

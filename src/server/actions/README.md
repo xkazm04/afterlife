@@ -60,13 +60,13 @@ Arm and disarm decisions (F38, be208a0, b7682ed, b56de42, 9ceefad):
 - Every branch MR (`promote-class`, `enroll-track`, `stage-gap-mr`, `arm-track`, `disarm-track`) is built by one primitive,
   `plans/mr/branchMr.ts` (0a2fd39): `newBranch(ctx, project, branch)` is the preflight, `branchMr(ctx, {project, base,
   branch, commits, mr})` runs it, then plans the commits (`start_branch` on the first) and the MR. A plan for a new MR
-  write goes through it; `BRANCH_MR_KINDS` names the intents that do.
+  write goes through it, and its plan names the branch (`Plan.branch`).
 - A commit goes only to a new branch. If the branch exists (`belay/arm-<key>`, `belay/disarm-<key>`,
   `belay/promote-<class>-<date>`, `belay/enroll-<track>-<date>`, the gap's `belay/...`), the preview refuses and names the
   branch, its head and what to do (`newBranch`, `plans/mr/branchMr.ts`). Force is never set.
 - A 404 on the branch read means the branch is absent. Any other failure refuses (`newBranch`).
 - A confirm is done only when the MR GitLab opened is headed by the commit this confirm made (`headMismatch`, `arm/head.ts`).
-  Every intent in `BRANCH_MR_KINDS` is checked (`headChecked`); revoke and the CRA label open no MR and are not.
+  Every plan that names its branch is checked (`checkHead` in `run.ts` reads `Plan.branch`, not a list of kinds, so a new branch MR cannot miss it); revoke and the CRA label open no MR and are not.
 - Every branch MR sets `remove_source_branch` (`branchMr`), so a merged or closed MR does not leave a branch that
   `newBranch` would refuse on a same-day retry (`plans/__tests__/branch/removeBranch.test.ts`).
 - `belay/*` is a protected branch pattern (Setup step 9).

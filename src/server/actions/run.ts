@@ -12,7 +12,7 @@ import type { PlannedCommand, Risk } from '@/server/gitlab/plan/types';
 import { finishCommand, recordCommand } from '@/server/index/repositories/commandsRun';
 import { closeProposal } from '@/server/index/repositories/work/proposal';
 import type { PollerConfig } from '@/server/poller/config';
-import { headChecked, headMismatch } from './arm/head';
+import { headMismatch } from './arm/head';
 import { parseIntent } from './intents';
 import { answered, claim, finish } from './runs/journal';
 import { ActionRefused, planIntent, type Plan, type PlanContext } from './plans';
@@ -106,11 +106,11 @@ async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Pro
   return f?.lastCommitId && COMMIT_ID.test(f.lastCommitId) ? { named: { made: `commit ${f.lastCommitId.slice(0, 8)}` }, commit: f.lastCommitId } : { named: {} };
 }
 
-/** Every branch MR (headChecked, F38): the MR this confirm opened must be headed by the commit it made, or it failed. */
+/** Every branch MR (a plan that names its branch: plans/mr/branchMr.ts, F38): the MR it opened must be headed by its commit. */
 async function checkHead(deps: ActionDeps, b: Extract<Built, { ok: true }>, results: CommandOutcome[], commit: string | null, mrBody: unknown): Promise<void> {
   const last = results.at(-1);
   const file = b.plan.commands.find((c) => c.file)?.file;
-  if (!headChecked(b.intent.kind) || !last?.ok || results.length !== b.plan.commands.length || !file) return;
+  if (!b.plan.branch || !last?.ok || results.length !== b.plan.commands.length || !file) return;
   const wrong = await headMismatch(deps.port, file.project, b.plan.branch ?? file.branch, commit, mrBody);
   if (wrong) results[results.length - 1] = { ...last, ok: false, error: wrong };
 }
