@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { FleetProject } from '@/lib/demo/types';
 import { amplitude, beatPath, leadPaths, pipCount, slotsAlong } from './beat';
-import { MARKS, leadsOf, stateLine, topWaiting, totalsOf } from './totals';
+import { MARKS, leadLine, leadsOf, stateLine, topWaiting, totalsOf } from './totals';
 
 const base: FleetProject = {
   id: 'p',
@@ -46,6 +46,9 @@ describe('totals', () => {
     const match = (k: string) => fleet.filter(MARKS.find((m) => m.kind === k)!.test).map((p) => p.id);
     expect(match('quar')).toEqual(['a']);
     expect(match('unwatched')).toEqual(['d']);
+  });
+  it('says a lead of one project in the singular', () => {
+    expect(leadLine(leadsOf(['g1'], [mk({ needsYou: 1 })])[0]!)).toBe('1 project · 1 decision waits');
   });
   it('says stale and unknown in words', () => {
     expect(stateLine(fleet[1]!)).toBe('stale · project token expired · 1 decision waits (last known)');

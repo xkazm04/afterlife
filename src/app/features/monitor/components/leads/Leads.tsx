@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useCallback, useMemo, useRef, type KeyboardEvent } from 'react';
+import { pluralWord } from '@/lib/format/plural';
 import { step } from '../../model/nav';
 import { decisionsWord, markTest } from '../../model/totals';
 import type { FleetProject } from '@/lib/demo/types';
@@ -47,7 +48,7 @@ const LeadRow = memo(function LeadRow({ lead, open, thin, selected, match, onPic
       <div className={styles.counts}>
         {lead.needs ? <span className={styles.amber} title={decisionsWord(lead.needs)}>
             {lead.needs}
-            <span className={styles.sr}> decisions</span>
+            <span className={styles.sr}> {pluralWord(lead.needs, 'decision')}</span>
           </span> : null}
         {lead.stale ? <span className={styles.staleChip}>{lead.stale} stale</span> : null}
       </div>

@@ -12,5 +12,7 @@ describe('MonitorStatus', () => {
       expect(out).not.toContain('polled');
     }
   });
+  it('says a fleet of one project on one lead in the singular', () =>
+    expect(renderToStaticMarkup(<MonitorStatus n={1} leads={1} waiting={1} mode="live" ageSec={12} />)).toContain('1 project on 1 lead · 1 decision waits'));
   it('says the project row age when it has one', () => expect(html('live', 12)).toContain('polled 12 s ago'));
 });

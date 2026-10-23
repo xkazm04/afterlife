@@ -21,6 +21,15 @@ describe('MonitorInspector on a picked project', () => {
   });
 });
 
+describe('MonitorInspector counts in the singular', () => {
+  it('says one decision and one project, never "1 decisions" or "1 projects"', () => {
+    const picked = html(proj({ needsYou: 1 }));
+    expect(picked).toMatch(/>1<[^]*?>decision</);
+    expect(picked).not.toContain('>decisions<');
+    expect(html(null, [proj({ needsYou: 1 })], totals({ needs: 1, needsP: 1 }))).toContain('1 project · pick a beat');
+  });
+});
+
 describe('MonitorInspector with nothing picked', () => {
   it('says nothing waits instead of drawing an empty Most waiting section', () => {
     const out = html(null, [proj({ needsYou: 0 })]);

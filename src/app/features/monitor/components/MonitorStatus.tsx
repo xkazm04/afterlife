@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { plural } from '@/lib/format/plural';
 import { decisionsWord } from '../model/totals';
 import { ageLine, polledAge, type Mode } from '../model/mode';
 
@@ -19,7 +20,7 @@ export function MonitorStatus({ n, leads, waiting, mode, ageSec }: { n: number; 
   }, [ageSec]);
   return (
     <>
-      {n} projects on {leads} leads · {decisionsWord(waiting)} · {ageLine(polledAge(mode, ageSec, elapsed))}
+      {plural(n, 'project')} on {plural(leads, 'lead')} · {decisionsWord(waiting)} · {ageLine(polledAge(mode, ageSec, elapsed))}
     </>
   );
 }

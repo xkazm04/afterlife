@@ -1,6 +1,7 @@
 'use client';
 
 import type { FleetProject } from '@/lib/demo/types';
+import { plural } from '@/lib/format/plural';
 import { leadLine, stateLine, topWaiting } from '../../model/totals';
 import type { Lead, Totals } from '../../model/types';
 import type { Hover } from '../../hooks/useMonitor';
@@ -27,7 +28,7 @@ export function AnswerBand({
 }) {
   const top = topWaiting(projects, 4);
   let name = org;
-  let line = `${leads.length} leads · ${totals.n} projects`;
+  let line = `${plural(leads.length, 'lead')} · ${plural(totals.n, 'project')}`;
   let tone: string | undefined;
   if (hover?.kind === 'project') {
     const p = byId.get(hover.id);
@@ -50,7 +51,7 @@ export function AnswerBand({
         <span className={styles.words}>
           <span className={styles.head}>{totals.needs === 1 ? 'decision waits for you' : 'decisions wait for you'}</span>
           <span className={styles.who}>
-            {totals.needs ? `in ${totals.needsP} ${totals.needsP === 1 ? 'project' : 'projects'}` : `all clear across ${totals.n} projects`}
+            {totals.needs ? `in ${plural(totals.needsP, 'project')}` : `all clear across ${plural(totals.n, 'project')}`}
             {top.length ? ' · most at ' : ''}
             {top.map((p, i) => (
               <span key={p.id}>

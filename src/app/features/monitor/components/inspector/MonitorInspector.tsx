@@ -9,6 +9,7 @@ import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierMark } from '@/components/status/TierMark';
 import { StageTicks } from '@/components/viz/StageTicks';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
+import { plural, pluralWord } from '@/lib/format/plural';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import { liveNeeds, stateLine, topWaiting } from '../../model/totals';
 import type { Totals } from '../../model/types';
@@ -29,7 +30,7 @@ function Overview({ org, totals, projects, onPick }: { org: string; totals: Tota
   const top = topWaiting(projects, 8);
   return (
     <>
-      <InspectorHeader title={org} sub={`${totals.n} projects · pick a beat to act on it`} />
+      <InspectorHeader title={org} sub={`${plural(totals.n, 'project')} · pick a beat to act on it`} />
       <Stats
         cells={[
           { n: totals.needs, label: totals.needs === 1 ? 'decision waits' : 'decisions wait', tone: 'you' },
@@ -71,7 +72,7 @@ export function MonitorInspector(props: {
   if (!p) return <Overview org={props.org} totals={props.totals} projects={props.projects} onPick={props.onPick} />;
   const watched = p.state !== 'not-set-up';
   const cells = [
-    { n: liveNeeds(p), label: 'decisions', tone: 'you' as const },
+    { n: liveNeeds(p), label: pluralWord(liveNeeds(p), 'decision'), tone: 'you' as const },
     { n: p.armed, label: 'of 8 tracks armed' },
     ...(p.proofs7d ? [{ n: p.proofs7d.pass, label: 'proofs pass · 7 d', tone: 'ok' as const }, { n: p.proofs7d.fail, label: 'fail' }] : []),
   ];

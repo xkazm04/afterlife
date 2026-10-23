@@ -1,4 +1,5 @@
 // Counts and words of the Monitor: per lead, fleet-wide, the six marks, and the readout lines. Pure.
+import { plural } from '@/lib/format/plural';
 import { formatAge } from '@/lib/format/time';
 import type { FleetProject } from '@/lib/demo/types';
 import type { Lead, MarkKind, Totals } from './types';
@@ -75,7 +76,7 @@ export function stateLine(p: FleetProject): string {
 
 /** The readout's line for a lead. */
 export function leadLine(l: Lead): string {
-  const parts = [`${l.projects.length} projects`, decisionsWord(l.needs)];
+  const parts = [plural(l.projects.length, 'project'), decisionsWord(l.needs)];
   if (l.stale) parts.push(`${l.stale} stale`);
   if (l.setup) parts.push(`${l.setup} setting up`);
   if (l.unwatched) parts.push(`${l.unwatched} not watched`);
