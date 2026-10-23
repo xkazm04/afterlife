@@ -56,7 +56,8 @@ function ClockExhibit({ task, clock }: { task: TaskView; clock: NonNullable<Task
     <>
       <div className={styles.paths}>
         <span className={styles.due}>
-          {clock.dueIn} left of {clock.total}
+          {/* countdown() says "overdue" once the deadline has passed (src/server/index/views/format.ts). */}
+          {clock.dueIn === 'overdue' ? `overdue · ${clock.total} clock` : `${clock.dueIn} left of ${clock.total}`}
         </span>{' '}
         · {clock.kind} · aware {task.awareAt ?? notHeld}
       </div>

@@ -23,4 +23,9 @@ describe('the clock exhibit', () => {
     expect(t).toContain('grade not held');
     expect(t).toContain('links not held');
   });
+  it('a passed deadline reads overdue, never "overdue left of"', () => {
+    const t = text({ ...withClock, clock: { ...withClock.clock!, dueIn: 'overdue' } });
+    expect(t).not.toContain('overdue left of');
+    expect(t).toContain(`overdue · ${withClock.clock!.total} clock`);
+  });
 });
