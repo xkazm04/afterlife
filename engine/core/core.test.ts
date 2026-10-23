@@ -103,6 +103,9 @@ describe('isoMs', () => {
   it('takes an ISO instant with a zone and nothing Date.parse would merely tolerate', () => {
     expect(isoMs('2026-10-21T14:20:05Z', 't')).toBe(Date.UTC(2026, 9, 21, 14, 20, 5));
     expect(isoMs('2026-10-21T16:20:05.500+02:00', 't')).toBe(Date.UTC(2026, 9, 21, 14, 20, 5, 500));
+    expect(isoMs('2028-02-29T00:00Z', 't')).toBe(Date.UTC(2028, 1, 29)); // a leap day is a day
+    // Date.parse rolls a day the month does not have into the next month: 2026-02-31 would read as 2026-03-03
+    for (const v of ['2026-02-29T00:00Z', '2026-02-31T10:00:00Z', '2026-04-31T00:00:00+02:00']) expect(() => isoMs(v, 't'), v).toThrow(/t must be an ISO time/);
     for (const v of ['10', '2026', '3/4/2026', 'Oct 5 2026', '2026-10-05', '2026-10-05T10:00:00', '2026-13-45T99:00:00Z', '', null, 7]) expect(() => isoMs(v, 't'), String(v)).toThrow(/t must be an ISO time/);
   });
 });

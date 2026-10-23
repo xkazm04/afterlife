@@ -48,7 +48,12 @@ export function rec(v: unknown, what: string): Record<string, unknown> {
 
 /** An ISO-8601 instant WITH its zone, as epoch ms. Date.parse alone also takes '10' and '3/4/2026', and reads a zone-less time in the machine's zone. */
 const ISO_INSTANT = /^\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d(\.\d+)?)?(Z|[+-]\d\d:\d\d)$/;
-export const isoInstantMs = (v: unknown): number => (typeof v === 'string' && ISO_INSTANT.test(v) ? Date.parse(v) : Number.NaN);
+/** Date.parse also rolls a day the month lacks into the next one (2026-02-31 reads as 2026-03-03): that day is refused. */
+const dayExists = (v: string): boolean => {
+  const [y, m, d] = v.slice(0, 10).split('-').map(Number) as [number, number, number];
+  return d <= new Date(Date.UTC(y, m, 0)).getUTCDate();
+};
+export const isoInstantMs = (v: unknown): number => (typeof v === 'string' && ISO_INSTANT.test(v) && dayExists(v) ? Date.parse(v) : Number.NaN);
 export function isoMs(v: unknown, what: string): number {
   const ms = isoInstantMs(v);
   if (Number.isNaN(ms)) throw new EngineError(`${what} must be an ISO time with a zone, like 2026-10-21T14:20:05Z`);
