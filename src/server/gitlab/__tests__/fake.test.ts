@@ -127,6 +127,14 @@ describe('fake GitLab: planned writes change state only through execute', () => 
     expect((await createFakeGitLab().port.listSchedules(LEDGERLINE))[0]?.active).toBe(true);
   });
 
+  it('a protected branch gets the same ids in every fresh instance, whatever ran before', async () => {
+    const protect = async () => {
+      const gl = createFakeGitLab();
+      return JSON.parse((await gl.exec('glab', ['api', '--method', 'POST', `projects/${LEDGERLINE}/protected_branches`, '-f', 'name=main'])).stdout) as unknown;
+    };
+    expect(await protect()).toEqual(await protect());
+  });
+
   it('unknown project is not-found', async () => {
     await expect(createFakeGitLab().port.listPipelines(123)).rejects.toMatchObject({ kind: 'not-found' });
   });

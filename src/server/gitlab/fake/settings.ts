@@ -5,30 +5,30 @@
 // (/api/project_job_token_scopes); the project's approval settings, Premium and up (/api/merge_request_approvals).
 // Like reads.ts, a project the fake does not hold answers 404.
 import type { Rec } from '../adapter/fields';
-import type { ProjectData } from './dataset';
+import type { FakeState, ProjectData } from './dataset';
 import { atLeast, inProject } from './reads';
 import { created, fail, ok, paged, type Req, type Route } from './server';
 
 const P = 'projects/([^/]+)';
 const ROLE: Record<number, string> = { 0: 'No one', 30: 'Developers + Maintainers', 40: 'Maintainers', 60: 'Admins' };
 
-let nextLevel = 1;
-const level = (raw: string | undefined): Rec => {
+// Ids come from the instance (st.nextId), not the module: two fakes answer the same, whatever ran before.
+const level = (st: FakeState, raw: string | undefined): Rec => {
   const access = Number(raw ?? 40);
-  return { id: nextLevel++, access_level: access, access_level_description: ROLE[access] ?? String(access), user_id: null, group_id: null };
+  return { id: st.nextId++, access_level: access, access_level_description: ROLE[access] ?? String(access), user_id: null, group_id: null };
 };
 
-const branchOf = (name: string, f: Req['fields']): Rec => ({
-  id: nextLevel++, name, push_access_levels: [level(f.push_access_level)], merge_access_levels: [level(f.merge_access_level)], unprotect_access_levels: [],
+const branchOf = (name: string, f: Req['fields'], st: FakeState): Rec => ({
+  id: st.nextId++, name, push_access_levels: [level(st, f.push_access_level)], merge_access_levels: [level(st, f.merge_access_level)], unprotect_access_levels: [],
   allow_force_push: f.allow_force_push === 'true', code_owner_approval_required: f.code_owner_approval_required === 'true',
 });
-const tagOf = (name: string, f: Req['fields']): Rec => ({ name, create_access_levels: [level(f.create_access_level)] });
+const tagOf = (name: string, f: Req['fields'], st: FakeState): Rec => ({ name, create_access_levels: [level(st, f.create_access_level)] });
 
 type Kind = 'protectedBranches' | 'protectedTags';
 const PATH: Record<Kind, string> = { protectedBranches: 'protected_branches', protectedTags: 'protected_tags' };
 const WHAT: Record<Kind, string> = { protectedBranches: 'Protected branch', protectedTags: 'Protected tag' };
 
-function protectedRoutes(kind: Kind, make: (name: string, f: Req['fields']) => Rec): Route[] {
+function protectedRoutes(kind: Kind, make: (name: string, f: Req['fields'], st: FakeState) => Rec): Route[] {
   const table = (p: ProjectData): Record<string, Rec> => (p[kind] ??= {});
   return [
     ['GET', new RegExp(`^${P}/${PATH[kind]}$`), inProject((p, _m, { query: q }) => ok(paged(Object.values(table(p)), q)))],
@@ -36,10 +36,10 @@ function protectedRoutes(kind: Kind, make: (name: string, f: Req['fields']) => R
       const r = table(p)[decodeURIComponent(m[2] ?? '')];
       return r ? ok(r) : fail(404, 'Not Found');
     })],
-    ['POST', new RegExp(`^${P}/${PATH[kind]}$`), inProject((p, _m, req) => {
+    ['POST', new RegExp(`^${P}/${PATH[kind]}$`), inProject((p, _m, req, st) => {
       const name = req.fields.name ?? '';
       if (table(p)[name]) return fail(409, `${WHAT[kind]} '${name}' already exists`);
-      return created((table(p)[name] = make(name, req.fields)));
+      return created((table(p)[name] = make(name, req.fields, st)));
     })],
     ['DELETE', new RegExp(`^${P}/${PATH[kind]}/([^/]+)$`), inProject((p, m) => {
       const name = decodeURIComponent(m[2] ?? '');
