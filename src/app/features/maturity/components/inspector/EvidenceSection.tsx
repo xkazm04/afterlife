@@ -8,12 +8,13 @@ import type { Stage } from '@/schemas';
 import { gitlabUrl } from '../../data/meta';
 import type { EvidenceRung } from '../../data/types';
 import type { MaturityCtx } from '../../model/ctx';
-import { isDeep, nextOf, type Level } from '../../model/rungs';
+import { isDeep, nextOf, TOP_RUNG, type Level } from '../../model/rungs';
 import { cx } from '../cx';
 import { BoltGlyph } from './BoltGlyph';
 import styles from './inspector.module.css';
 
-const RUNGS: readonly EvidenceRung[] = [4, 3, 2, 1];
+/** Top rung first, down to R1, as the crag stacks them; TOP_RUNG decides the top. */
+const LADDER = Array.from({ length: TOP_RUNG }, (_, i) => (TOP_RUNG - i) as EvidenceRung);
 
 /**
  * Evidence per rung, top rung first like the crag: what each rung's detector read, as links into GitLab. The next
@@ -44,8 +45,8 @@ export function EvidenceSection({
   };
 
   return (
-    <DetailSection title="Evidence" aux={`${now ?? '?'} of 4 rungs`}>
-      {RUNGS.map((r) => {
+    <DetailSection title="Evidence" aux={`${now ?? '?'} of ${TOP_RUNG} rungs`}>
+      {LADDER.map((r) => {
         const on = now != null && r <= now;
         const isNext = r === nx && nx > (now ?? -1);
         const objs = ev?.objs[r] ?? [];

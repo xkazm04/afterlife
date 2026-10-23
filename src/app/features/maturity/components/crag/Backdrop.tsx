@@ -1,9 +1,13 @@
 import { MAT_META } from '../../data/meta';
 import { wavyPath, type CragGeom } from '../../model/crag/geometry';
+import { TOP_RUNG } from '../../model/rungs';
 import styles from './crag.module.css';
 import { cx } from '../cx';
 
-/** The cliff behind the routes: hatched ground, contour lines between the rungs, and the R0-R4 labels. */
+/** R0 up to the top rung: the model's TOP_RUNG decides, so a fifth rung reaches the contours and labels too. */
+const LEVELS = Array.from({ length: TOP_RUNG + 1 }, (_, r) => r);
+
+/** The cliff behind the routes: hatched ground, contour lines between the rungs, and a label per rung. */
 export function Backdrop({ g, hatchId, rungNames }: { g: CragGeom; hatchId: string; rungNames: readonly string[] }) {
   const s = g.scale;
   const gap = g.yOf(0) - g.yOf(1);
@@ -15,7 +19,7 @@ export function Backdrop({ g, hatchId, rungNames }: { g: CragGeom; hatchId: stri
         </pattern>
       </defs>
       <rect fill={`url(#${hatchId})`} x={g.L - 6 * s} y={g.Y0 - 14 * s} width={g.W - g.L - g.RGT + 12 * s} height={30 * s} rx={6 * s} />
-      {[1, 2, 3, 4].map((r) => (
+      {LEVELS.slice(1).map((r) => (
         <g key={r}>
           <path className={styles.contour} d={wavyPath(g, g.yOf(r) + gap * 0.33, 3, r * 1.7)} />
           <path className={styles.contour} d={wavyPath(g, g.yOf(r) + gap * 0.66, 2, r * 2.3)} />
@@ -25,7 +29,7 @@ export function Backdrop({ g, hatchId, rungNames }: { g: CragGeom; hatchId: stri
     </g>
   );
   // Outside the inert group: a <title> tooltip needs the pointer, and the group sets pointer-events: none.
-  const labels = [0, 1, 2, 3, 4].map((r) => {
+  const labels = LEVELS.map((r) => {
     const y = r === 0 ? g.Y0 + 4 * s : g.yOf(r);
     const name = rungNames[r] ?? '';
     return (

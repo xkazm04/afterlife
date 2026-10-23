@@ -17,4 +17,7 @@ describe('components do not re-spell the model\'s rules', () => {
   it('a stage page link is stagePath(), not a second /maturity/ template', () => {
     expect(hits(/[`'"]\/maturity\//)).toEqual([]);
   });
+  it('the rung ladder is TOP_RUNG / RUNGS, not a hand-typed 0..4 list or a literal top of 4', () => {
+    expect(hits(/\[0, 1, 2, 3, 4\]|\[1, 2, 3, 4\]|\[4, 3, 2, 1\]|of 4 rungs|ropePath\([^)]*,\s*4\)/)).toEqual([]);
+  });
 });

@@ -1,12 +1,15 @@
 import type { Stage } from '@/schemas';
 import { markY, ropePath, type CragGeom } from '../../model/crag/geometry';
 import type { RouteView } from '../../model/crag/routes';
-import { isDeep, rungText, type Mode } from '../../model/rungs';
+import { isDeep, rungText, TOP_RUNG, type Mode } from '../../model/rungs';
 import { cx, onActivate } from '../cx';
 import { Clip } from './Clip';
 import { labelFit, stageLabel } from './labelFit';
 import styles from './crag.module.css';
 import ropes from './ropes.module.css';
+
+/** The bolts R1 up to the top rung (R0 is the ground, no bolt). */
+const BOLTS = Array.from({ length: TOP_RUNG }, (_, i) => i + 1);
 
 /**
  * One stage's route: the column that selects it, then the rope, bolts (rungs), d0 chalk tick, climber and next ring,
@@ -59,11 +62,11 @@ export function Route({
         onKeyDown={onActivate(select)}
       />
       <g className={styles.inert}>
-        <path className={styles.lineup} d={ropePath(g, i, 0, 4)} />
+        <path className={styles.lineup} d={ropePath(g, i, 0, TOP_RUNG)} />
         <g key={animKey}>
           {lv == null ? (
             <>
-              <path className={cx(ropes.rope, ropes.unk)} d={ropePath(g, i, 0, 4)} />
+              <path className={cx(ropes.rope, ropes.unk)} d={ropePath(g, i, 0, TOP_RUNG)} />
               <circle className={ropes.qmark} cx={x} cy={g.Y0 - 26 * s} r={9 * s} />
               <text className={ropes.qtext} x={x} y={g.Y0 - 22 * s} textAnchor="middle">
                 ?
@@ -78,7 +81,7 @@ export function Route({
             <path className={cx(ropes.rope, ropes.draw, v.deep && ropes.deep)} pathLength={1} d={ropePath(g, i, 0, lv)} />
           ) : null}
         </g>
-        {[1, 2, 3, 4].map((r) => {
+        {BOLTS.map((r) => {
           const on = lv != null && r <= lv && !(target && r > (v.now ?? 0));
           return (
             <circle
