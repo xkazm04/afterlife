@@ -1,5 +1,6 @@
 // Types of the Fleet screen model. Everything here is plain data; the logic lives beside it in model/.
 import type { ActionClass, FleetProject, NeedsYouItem, ProjectState, TierInfo, TierKey, Track } from '@/lib/demo/types';
+import type { CostJoin } from '@/lib/runs/desk/join';
 
 export type FleetView = 'tiers' | 'classes' | 'stages';
 
@@ -100,4 +101,13 @@ export interface FleetMeta {
   classes: readonly string[];
   stages: readonly string[];
   tiers: Record<TierKey, TierInfo>;
+}
+
+/**
+ * What Fleet draws beside its projects, never in FleetProject (the demo/live parity holds without it), read on the server
+ * per project and summed per group, never per person. `cost`: the cycle runner's spend joined onto the projects
+ * (src/lib/runs/desk/join.ts; real local runs in both modes); null: not read.
+ */
+export interface FleetEstate {
+  cost: CostJoin | null;
 }

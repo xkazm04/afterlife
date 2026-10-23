@@ -4,7 +4,9 @@ import { plural } from '@/lib/format/plural';
 import type { FleetProjectView } from '../../data/loadFleetProject';
 import { projectLede, waitingTitle } from '../../model/inspector';
 import { FleetLegend } from '../legend/FleetLegend';
+import type { FleetEstate } from '../../model/types';
 import { ClassesSection } from '../inspector/sections/ClassesSection';
+import { CostSection } from '../inspector/sections/cost/CostSection';
 import { EventsSection } from '../inspector/sections/EventsSection';
 import { FeedSection } from '../inspector/sections/FeedSection';
 import { ImprovementSection } from '../inspector/sections/ImprovementSection';
@@ -15,10 +17,12 @@ import { TasksSection } from '../inspector/sections/tasks/TasksSection';
 import { TracksSection } from '../inspector/sections/TracksSection';
 
 /**
- * /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, improvement, feed, events, tracks).
+ * /fleet/[project]: one project as short cards (what waits, classes, proofs, tasks, stages, improvement, agent cost, feed, events,
+ * tracks).
  * How deep the project is read and what its buttons do were decided on the server (`view`); each section draws its slice.
+ * `estate` is what the route reads beside the fleet (the agent cost); absent, its cards say not read.
  */
-export function ProjectDetail({ project: p, data, view }: FleetProjectView) {
+export function ProjectDetail({ project: p, data, view, estate }: FleetProjectView & { estate?: FleetEstate }) {
   const { depth } = view;
   // An unwatched project's count is shown nowhere (the row, the group sum), so the status bar counts none either.
   const waiting = p.state === 'not-set-up' ? 0 : p.needsYou;
@@ -42,6 +46,7 @@ export function ProjectDetail({ project: p, data, view }: FleetProjectView) {
       <TasksSection tasks={depth.tasks} />
       <StagesSection p={p} stages={data.stages} />
       <ImprovementSection p={p} cycle={depth.kind === 'deep' ? depth.tracks.deep.cycle : null} />
+      <CostSection id={p.id} cost={estate?.cost} />
       <FeedSection {...depth.feed} />
       <EventsSection events={depth.events} live={view.mode === 'live'} />
       {depth.kind === 'deep' ? <TracksSection {...depth.tracks} /> : null}

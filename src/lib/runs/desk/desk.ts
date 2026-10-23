@@ -74,7 +74,7 @@ export function buildDesk({ runs, fleet, branches }: DeskInput): RunnerDesk {
     const state = w?.branch ? branches.get(branchKey(slug, w.branch)) : undefined;
     return {
       slug,
-      ...(ref ? { path: ref.path, base: ref.base } : {}),
+      ...(ref ? { path: ref.path, base: ref.base, ...(ref.gitlab ? { gitlab: ref.gitlab } : {}) } : {}),
       inFleet: ref !== undefined,
       waves: waves.length,
       ...(w

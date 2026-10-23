@@ -28,7 +28,7 @@ import { fleetColumns } from './model/columns';
 import { menuFilterCount, sourceLabel } from './model/list/filtering';
 import { INITIAL_SORT, sortLabel } from './model/list/sorting';
 import { DEFAULT_LIST_STATE, type FleetListState } from './model/list/urlState';
-import type { FleetData, FleetMeta, FleetSource, Source } from './model/types';
+import type { FleetData, FleetEstate, FleetMeta, FleetSource, Source } from './model/types';
 import type { RunnerDesk } from '@/lib/runs/desk/types';
 
 /** A bookmarked sort on a class or stage this fleet does not draw (renamed, dropped) would rank by no column: the default instead. */
@@ -42,9 +42,10 @@ function fitColumns(s: FleetListState, meta: FleetMeta): FleetListState {
  * Fleet: every project as one row, by tier counts, by action class or by stage. Open a row (click its name, Enter) for the project's page,
  * right-click for actions, press a tier header to rank by it. `source` says which data source drew it and carries the
  * deep project's recent events. Nothing here writes, but the viewer's last look (model/changes; `baseline` replaces the
- * stored one, for tests). `runner`, when given, is the cycle runner's strip above the table (real local repos and runs).
+ * stored one, for tests). `runner`, when given, is the cycle runner's strip above the table (real local repos and runs);
+ * `estate`, what is read beside the projects (their agent spend), is one object the table's group rows sum.
  */
-export function FleetScreen({ data, source, start, baseline, runner }: { data: FleetData; source: FleetSource; start?: FleetListState; baseline?: Baseline | null; runner?: RunnerDesk }) {
+export function FleetScreen({ data, source, start, baseline, runner, estate }: { data: FleetData; source: FleetSource; start?: FleetListState; baseline?: Baseline | null; runner?: RunnerDesk; estate?: FleetEstate }) {
   const { status } = useToast();
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -140,6 +141,7 @@ export function FleetScreen({ data, source, start, baseline, runner }: { data: F
       marks={changes.marks}
       fleetEmpty={proj.projects.length === 0}
       nothingChanged={list.filters.source === 'changed' && changes.count === 0}
+      estate={estate}
     />
   );
 
@@ -180,7 +182,7 @@ export function FleetScreen({ data, source, start, baseline, runner }: { data: F
     >
       {runner ? (
         <div className={runnerStyles.stack}>
-          <RunnerFleet desk={runner} />
+          <RunnerFleet desk={runner} unmatched={estate?.cost?.unmatched} />
           <div className={runnerStyles.tableBox}>{table}</div>
         </div>
       ) : (

@@ -40,6 +40,10 @@ describe('buildDesk', () => {
     expect(d.rows[1]!.last).toMatchObject({ wave: 2, running: true, open: 1 });
     expect('merged' in d.rows[1]!.last!).toBe(false);
   });
+  it("carries the fleet file's gitlab key onto the row, for the cost join", () => {
+    const d = buildDesk({ runs: runs(), fleet: { file: 'ok', refs: [{ ...BETA, gitlab: 'acme/beta' }] }, branches: git() });
+    expect(d.rows[0]).toMatchObject({ slug: 'beta', gitlab: 'acme/beta' });
+  });
   it('carries why the fleet file did not read', () => {
     expect(buildDesk({ runs: runs(), fleet: { file: 'invalid', refs: [], error: 'bad yaml' }, branches: git() })).toMatchObject({ fleet: 'invalid', fleetError: 'bad yaml' });
   });

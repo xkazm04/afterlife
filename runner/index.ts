@@ -18,6 +18,8 @@ export interface FleetRepo {
   waveCapUsd?: number;
   /** P4 frontier lanes and T3 measurement (fleet/frontier.ts): absent = neither. */
   frontier?: Frontier;
+  /** The repo's GitLab path_with_namespace: only Fleet's cost join reads it (src/lib/runs/desk/join.ts). */
+  gitlab?: string;
 }
 
 /** How a technology metric reads its value off a run (Ascent's /infinite SKILL.md, T3 measurement). */

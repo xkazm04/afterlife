@@ -32,6 +32,12 @@ describe('RunnerFleet', () => {
     expect(out).toContain('12.0k');
     expect(renderToStaticMarkup(<RunnerFleet desk={desk} />)).toContain('nothing to decide');
   });
+  it('lists the repos whose spend matched no Fleet project as not in Fleet', () => {
+    const out = renderToStaticMarkup(<RunnerFleet desk={{ fleet: 'ok', rows: [alpha], needs: [] }} unmatched={['alpha']} />);
+    expect(out).toContain('1 not in Fleet');
+    expect(out).toContain('Not in Fleet: alpha.');
+    expect(renderToStaticMarkup(<RunnerFleet desk={{ fleet: 'ok', rows: [alpha], needs: [] }} />)).not.toContain('not in Fleet');
+  });
   it('no fleet file says how to make one, and spends a dash, not $0', () => {
     const out = renderToStaticMarkup(<RunnerFleet desk={{ fleet: 'missing', rows: [], needs: [] }} />);
     expect(out).toContain('copy runner/fleet.example.yml');

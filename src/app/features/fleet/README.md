@@ -18,7 +18,15 @@ client `FleetScreen`.
   `.belay/fleet.yml` and any repo that still has runs, with its checkout and base, its newest wave in words (running, to
   merge, merged, not mergeable), its lanes' outcomes, tokens, spend, and the decisions it left (a link to `/needs-you`).
   `app/fleet/page.tsx` reads it with `readDesk()` (`src/server/runs/`), real local data in demo and live alike; the trust
-  table below is the data source's, untouched. Read-only.
+  table below is the data source's, untouched. Read-only. The repos whose spend matched no Fleet project are counted
+  "not in Fleet" in its summary and named under it.
+- Agent cost (`data/loadFleetEstate.ts`, `src/lib/runs/desk/join.ts`): the routes join the runner desk's rows onto the
+  fleet's projects, by the fleet file's optional `gitlab:` path (the project's own path off its stored `webUrl`, else
+  portfolio/group/id; the most specific match, ambiguous matches none) else by slug === project id. It travels as one
+  `estate` prop (`FleetEstate`), never in `FleetProject`, so the demo/live parity is untouched. The project page's
+  `sections/cost/CostSection` says spent and waves, a dash for a cost no repo reported, "Not metered" (and the repos
+  not in Fleet) when no repo works it; the group row's last (feed) column sums the group's known costs, titled
+  "n of m projects metered", a dash when none is, never $0. Per project and per group only, never per person.
 - `components/popover/` the tier-cell hover card; `components/FleetStatus.tsx` the poll counter.
 - `hooks/` list state (`useFleetList`), demo mutations (`useFleetProjects`), menus, keys, row
   handlers, narrow / compact measuring, and `useRepoll` (simulated in demo, the server in live).

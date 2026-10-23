@@ -10,6 +10,9 @@ const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object
 /** Two or more plain argv words: `npx vitest run`, `cargo check`. */
 const LANE_TOOL = /^[A-Za-z0-9][A-Za-z0-9@%+=:,./_-]*( [A-Za-z0-9@%+=:,./_-]+)+$/;
 
+/** A GitLab path_with_namespace: slash-separated path segments, no leading or trailing slash. */
+const GITLAB_PATH = /^[A-Za-z0-9_.][A-Za-z0-9_.-]*(\/[A-Za-z0-9_.][A-Za-z0-9_.-]*)*$/;
+
 function cap(v: unknown, where: string, key: string): number | undefined {
   if (v === undefined) return undefined;
   if (typeof v !== 'number' || !(v > 0)) throw new Error(`${where}: ${key} must be a positive number`);
@@ -48,7 +51,10 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     const laneCapUsd = cap(r.laneCapUsd, where, 'laneCapUsd');
     const waveCapUsd = cap(r.waveCapUsd, where, 'waveCapUsd');
     const frontier = parseFrontier(r.frontier, where);
-    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(diffCheck ? { diffCheck: true } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}), ...(frontier ? { frontier } : {}) };
+    const { gitlab } = r;
+    // The repo's GitLab path_with_namespace, for the screens' cost join (src/lib/runs/desk/join.ts); the runner never reads it.
+    if (gitlab !== undefined && (typeof gitlab !== 'string' || !GITLAB_PATH.test(gitlab))) throw new Error(`${where}: gitlab must be a project path like group/sub/project`);
+    return { slug, path, base, gates: gates as string[], ...(setup?.length ? { setup: setup as string[] } : {}), ...(laneTools?.length ? { laneTools: (laneTools as string[]).map((t) => t.trim()) } : {}), ...(diffCheck ? { diffCheck: true } : {}), ...(laneCapUsd ? { laneCapUsd } : {}), ...(waveCapUsd ? { waveCapUsd } : {}), ...(frontier ? { frontier } : {}), ...(gitlab ? { gitlab: gitlab as string } : {}) };
   });
 }
 

@@ -6,6 +6,10 @@
 # typecheck` - plus any `laneTools` prefixes listed here (cheap targeted checks); never git or the network.
 # Gates below come from each repo's .claude/scan-sweep/config.md / AGENTS.md / .ai/manifest.yaml.
 #
+# `gitlab` (optional, per repo): the repo's GitLab path_with_namespace (group/sub/project). The runner ignores it;
+# Fleet and Monitor read it to put the repo's agent spend on its Fleet project. Without it the slug must equal the
+# project's Fleet id; a repo matched by neither is listed "not in Fleet" on the runner strip, never dropped.
+#
 # `frontier` (optional, per repo; none is set below - the operator picks objectives and metrics): when the plan
 # fills fewer lanes than asked, the wave runs ONE frontier lane on the objective (prompts/frontier.md), through the
 # same review, repair and gates. When the wave lands anything, each metric is measured on the wave base (twice) and
@@ -40,6 +44,7 @@
 repos:
   - slug: athena-portable
     path: /path/to/athena-portable
+    gitlab: your-group/athena-portable
     base: main
     diffCheck: true
     laneCapUsd: 3

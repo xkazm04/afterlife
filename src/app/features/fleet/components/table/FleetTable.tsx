@@ -8,7 +8,7 @@ import { groupNavId, rowDomId } from '@/components/table/model/rowNavigation';
 import type { FleetProject } from '@/lib/demo/types';
 import { fleetColumns, gridFor } from '../../model/columns';
 import { rankedTier } from '../../model/list/sorting';
-import type { FleetMeta, FleetView, GroupBlock, SortKey } from '../../model/types';
+import type { FleetEstate, FleetMeta, FleetView, GroupBlock, SortKey } from '../../model/types';
 import { FleetHeader } from './FleetHeader';
 import { GroupTotalsRow } from './GroupTotalsRow';
 import { ProjectRow } from './ProjectRow';
@@ -36,6 +36,8 @@ export interface FleetTableProps {
   fleetEmpty?: boolean;
   /** The Changed source is picked and nothing moved since the last look: no filter to clear, nothing to show. */
   nothingChanged?: boolean;
+  /** Read beside the fleet (cost, stability): the group rows sum it. */
+  estate?: FleetEstate;
 }
 
 const emptyLine = (p: FleetTableProps) =>
@@ -63,7 +65,7 @@ export function FleetTable(props: FleetTableProps) {
       const open = !collapsed.has(b.group);
       return (
         <RowGroup key={b.group}>
-          <GroupTotalsRow group={b.group} list={b.projects} view={view} ranked={ranked} meta={meta} expanded={open} selected={selected === groupNavId(b.group)} h={h} />
+          <GroupTotalsRow group={b.group} list={b.projects} view={view} ranked={ranked} meta={meta} expanded={open} selected={selected === groupNavId(b.group)} h={h} estate={props.estate} />
           {open ? b.projects.map(row) : null}
         </RowGroup>
       );

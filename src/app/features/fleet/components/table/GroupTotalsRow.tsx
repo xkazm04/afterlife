@@ -9,7 +9,9 @@ import type { FleetProject, TierKey } from '@/lib/demo/types';
 import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { needsSum, proofsSum, stageAverage, tierTotal } from '../../model/groups';
 import { columnRole } from '../../model/list/sorting';
-import type { FleetMeta, FleetView } from '../../model/types';
+import { sumCost } from '@/lib/runs/desk/join';
+import type { FleetEstate, FleetMeta, FleetView } from '../../model/types';
+import { CostTotalCell } from './cells/CostTotalCell';
 import { ProofsCell } from './cells/ProofsCell';
 import { TierTotalCell } from './cells/TierTotalCell';
 import cells from './cells/cells.module.css';
@@ -24,6 +26,8 @@ export interface GroupTotalsRowProps {
   expanded: boolean;
   selected: boolean;
   h: RowHandlers;
+  /** Read beside the fleet: the group's agent spend sums its projects' (absent or not read: an empty cell). */
+  estate?: FleetEstate;
 }
 
 function TotalCells({ list, view, ranked, meta }: Pick<GroupTotalsRowProps, 'list' | 'view' | 'ranked' | 'meta'>) {
@@ -35,9 +39,10 @@ function TotalCells({ list, view, ranked, meta }: Pick<GroupTotalsRowProps, 'lis
   });
 }
 
-/** A collapsible group header with the group's totals in the same columns as its projects. */
-export const GroupTotalsRow = memo(function GroupTotalsRow({ group, list, view, ranked, meta, expanded, selected, h }: GroupTotalsRowProps) {
+/** A collapsible group header with the group's totals in the same columns as its projects; the feed column carries its agent spend. */
+export const GroupTotalsRow = memo(function GroupTotalsRow({ group, list, view, ranked, meta, expanded, selected, h, estate }: GroupTotalsRowProps) {
   const waiting = needsSum(list);
+  const cost = estate?.cost ? sumCost(estate.cost.byProject, list.map((p) => p.id)) : null;
   return (
     <GroupRow id={group} label={group} count={list.length} expanded={expanded} selected={selected} onSelect={h.onSelect} onToggle={h.onToggleGroup} onContextMenu={h.onGroupContextMenu}>
       <Cell />
@@ -49,7 +54,7 @@ export const GroupTotalsRow = memo(function GroupTotalsRow({ group, list, view, 
         <ProofsCell proofs={list.some((p) => p.proofs7d) ? proofsSum(list) : null} />
       </Cell>
       {view === 'tiers' ? <Cell /> : null}
-      <Cell />
+      <CostTotalCell sum={cost} group={group} />
     </GroupRow>
   );
 });

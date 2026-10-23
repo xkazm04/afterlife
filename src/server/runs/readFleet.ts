@@ -1,5 +1,6 @@
-// .belay/fleet.yml as the screens read it: each repo's slug, path and base. The runner's own loader (runner/fleet) is
-// the strict one and owns the gates and caps; this reader only names the repos, and says why when it cannot.
+// .belay/fleet.yml as the screens read it: each repo's slug, path, base and (optional) GitLab path. The runner's own
+// loader (runner/fleet) is the strict one and owns the gates and caps; this reader only names the repos, and says why
+// when it cannot.
 import 'server-only';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -23,9 +24,9 @@ export function readFleet(root: string): FleetRead {
     if (!Array.isArray(repos)) return { file: 'invalid', refs: [], error: 'no "repos" list' };
     const refs: FleetRef[] = [];
     for (const [i, r] of repos.entries()) {
-      const { slug, path, base } = (r ?? {}) as Record<string, unknown>;
+      const { slug, path, base, gitlab } = (r ?? {}) as Record<string, unknown>;
       if (!str(slug) || !str(path) || !str(base)) return { file: 'invalid', refs: [], error: `repos[${i}] needs slug, path and base` };
-      refs.push({ slug, path, base });
+      refs.push({ slug, path, base, ...(str(gitlab) ? { gitlab } : {}) }); // gitlab: optional, the cost join's key
     }
     return { file: 'ok', refs };
   } catch (e) {

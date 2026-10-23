@@ -8,6 +8,8 @@ export interface FleetRef {
   slug: string;
   path: string;
   base: string;
+  /** The repo's GitLab path_with_namespace (fleet.yml `gitlab`), for the Fleet cost join; absent: not stated. */
+  gitlab?: string;
 }
 
 /** What git says of a wave branch in its repo. Unknown (no path, git failed) is an absent entry, not a guess. */
@@ -52,6 +54,8 @@ export interface RunnerRow {
   /** From the fleet file; absent for a repo that has runs but is no longer listed. */
   path?: string;
   base?: string;
+  /** The fleet file's `gitlab` key for this repo; absent: not stated (join.ts then matches by slug). */
+  gitlab?: string;
   inFleet: boolean;
   waves: number;
   last?: { wave: number; running: boolean; mergeable?: boolean; merged?: boolean; counts: OutcomeCounts; open: number; endedAt?: string };

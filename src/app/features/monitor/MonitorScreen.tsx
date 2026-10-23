@@ -12,14 +12,15 @@ import { MonitorLegend } from './components/MonitorLegend';
 import { MonitorSidebar } from './components/MonitorSidebar';
 import { MonitorStatus } from './components/MonitorStatus';
 import { useMonitor } from './hooks/useMonitor';
-import type { MonitorData } from './model/types';
+import type { MonitorData, MonitorEstate } from './model/types';
 import styles from './monitor.module.css';
 
 /**
  * Monitor: the whole fleet as phosphor leads, one per group, every project a beat. Amber pips are what waits
  * for you; pick a beat and act on it in the inspector. Demo: nothing leaves the browser. Live: Resolve opens Needs you and Re-poll runs a real poll.
+ * `estate` is what the route reads beside the fleet (the agents' spend); absent, the readout says nothing of it.
  */
-export function MonitorScreen({ data }: { data: MonitorData }) {
+export function MonitorScreen({ data, estate }: { data: MonitorData; estate?: MonitorEstate }) {
   const { status } = useToast();
   const m = useMonitor(data);
   const [paused, setPaused] = useState(false);
@@ -78,7 +79,7 @@ export function MonitorScreen({ data }: { data: MonitorData }) {
       helpTitle="Beat grammar"
     >
       <div className={styles.pane}>
-        <AnswerBand org={data.org} totals={m.totals} projects={m.projects} leads={m.leads} hover={m.hover} byId={m.byId} />
+        <AnswerBand org={data.org} totals={m.totals} projects={m.projects} leads={m.leads} hover={m.hover} byId={m.byId} cost={estate?.cost ?? null} />
         <Leads
           leads={m.leads}
           projects={m.projects}

@@ -1,5 +1,6 @@
 // The Monitor's shapes: what the server loader hands the screen, and the per-lead summary the model derives.
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
+import type { CostSum } from '@/lib/runs/desk/join';
 
 export interface MonitorData {
   /** Whether the data is the demo fixture or the live index: what Resolve, Re-poll and the poll age may claim. */
@@ -37,4 +38,12 @@ export interface Totals extends Omit<Lead, 'group' | 'projects'> {
   needsP: number;
   pass: number;
   fail: number;
+}
+
+/**
+ * Read beside the fleet, never in FleetProject (the route's own prop): `cost`, what the cycle runner's agents spent over
+ * the projects it meters (src/lib/runs/desk/join.ts, all recorded runs; null: not read).
+ */
+export interface MonitorEstate {
+  cost: CostSum | null;
 }

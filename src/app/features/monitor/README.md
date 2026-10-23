@@ -21,7 +21,9 @@ DataSource, so it works in demo and live mode) and renders the client `MonitorSc
 - `MonitorScreen.tsx` composes the Window: the sidebar marks and leads, the toolbar's Sweep toggle,
   the answer band and leads in the pane, the inspector, the status bar and the "?" legend.
 - `components/answer/` holds the amber headline and the HUD readout. The readout names whatever
-  the pointer or the keyboard is on.
+  the pointer or the keyboard is on. With nothing under it, a line says what the cycle runner's agents spent across the
+  metered projects (all recorded runs; `data/loadMonitorEstate.ts`, the route's own `estate` prop, never in
+  `FleetProject`); no project metered or no runs read: no line, never $0.
 - `components/leads/`:
   - `Leads` holds the rows and the arrow keys;
   - `LeadStrip` draws one lead as SVG;

@@ -32,3 +32,20 @@ describe('GroupTotalsRow proofs', () => {
     expect(out).not.toContain('No proofs yet');
   });
 });
+
+describe('GroupTotalsRow agent spend', () => {
+  const list = [makeProject({ id: 'a' }), makeProject({ id: 'b' }), makeProject({ id: 'c' })];
+  const spend = (estate: GroupTotalsRowProps['estate']) =>
+    renderToStaticMarkup(createElement(GroupTotalsRow, { group: 'core', list, view: 'tiers', ranked: null, meta, expanded: true, selected: false, h, estate })).slice(-400);
+  it('sums the metered projects and says how many of the group are metered', () => {
+    const out = spend({ cost: { byProject: { a: { costUsd: 2, waves: 1, repos: ['a'] }, b: { costUsd: 0.5, waves: 1, repos: ['b'] } }, unmatched: [] } });
+    expect(out).toContain('>$2.50<');
+    expect(out).toContain('2 of 3 projects metered');
+  });
+  it('none metered is a dash, never $0; not read is an empty cell', () => {
+    const none = spend({ cost: { byProject: { a: { costUsd: null, waves: 0, repos: ['a'] } }, unmatched: [] } });
+    expect(none).toContain('>-<');
+    expect(none).not.toContain('$0');
+    expect(spend({ cost: null })).not.toContain('metered');
+  });
+});

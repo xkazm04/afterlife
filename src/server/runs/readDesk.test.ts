@@ -40,6 +40,8 @@ describe('readFleet', () => {
     expect(readFleet(root)).toEqual({ file: 'invalid', refs: [], error: 'repos[0] needs slug, path and base' });
     writeFileSync(join(root, 'fleet.yml'), 'repos:\n  - {slug: a, path: /x, base: main, gates: [t]}\n');
     expect(readFleet(root)).toEqual({ file: 'ok', refs: [{ slug: 'a', path: '/x', base: 'main' }] });
+    writeFileSync(join(root, 'fleet.yml'), 'repos:\n  - {slug: a, path: /x, base: main, gitlab: acme/core/a}\n');
+    expect(readFleet(root).refs).toEqual([{ slug: 'a', path: '/x', base: 'main', gitlab: 'acme/core/a' }]);
   });
 });
 
