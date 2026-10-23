@@ -85,7 +85,7 @@ describe('takes, marks, roll, loop', () => {
     expect(s.stopAt).toBe(indexOfSeq(487));
     expect(s.counts[1]).toBe(1);
     expect(prerollLeft(s)).toBe(2);
-    expect(readoutOf(s)).toEqual({ text: 'Pre-roll 2…', live: true });
+    expect(readoutOf(s)).toMatchObject({ text: 'Pre-roll 2…', live: true });
     s = run(s, tick(1100));
     expect(prerollLeft(s)).toBe(1);
     expect(s.playing).toBe(false);

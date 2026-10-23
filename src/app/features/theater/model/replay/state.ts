@@ -88,10 +88,20 @@ export function rangeLabel(s: Pick<ReplayState, 'reel' | 'take' | 'mark'>): Mark
 export const prerollLeft = (s: Pick<ReplayState, 'preroll'>): number => (s.preroll > 0 ? Math.max(1, Math.ceil(s.preroll / 1000)) : 0);
 
 export interface Readout {
+  /** The readout as drawn: the glyph, then the words. */
   text: string;
+  /**
+   * The decoration alone ('●', '▶', or '' for none): draw it aria-hidden, so a live region speaks `words` only.
+   * readoutFrom always sets both; they are optional so a hand-built readout (a view test's `{ text, live }`) still types.
+   */
+  glyph?: string;
+  /** The state in words, with no glyph: what a screen reader should announce. */
+  words?: string;
   /** Rolling or pre-rolling: the readout is drawn live (red). */
   live: boolean;
 }
+
+const readout = (glyph: string, words: string, live: boolean): Readout => ({ text: glyph ? `${glyph} ${words}` : words, glyph, words, live });
 
 /** What the screen (everything but the film position) reads: it changes on entry, take, marks and transport only. */
 interface View {
@@ -114,9 +124,9 @@ export const viewOf = (s: ReplayState): View => ({
 
 /** The transport readout: Held, Pre-roll n…, Rolling to out, Free play. */
 export function readoutFrom(v: Pick<View, 'playing' | 'left' | 'rolling'>): Readout {
-  if (v.left) return { text: `Pre-roll ${v.left}…`, live: true };
-  if (v.playing) return v.rolling ? { text: '● Rolling to out', live: true } : { text: '▶ Free play', live: false };
-  return { text: 'Held', live: false };
+  if (v.left) return readout('', `Pre-roll ${v.left}…`, true);
+  if (v.playing) return v.rolling ? readout('●', 'Rolling to out', true) : readout('▶', 'Free play', false);
+  return readout('', 'Held', false);
 }
 
 export const readoutOf = (s: ReplayState): Readout => readoutFrom(viewOf(s));
