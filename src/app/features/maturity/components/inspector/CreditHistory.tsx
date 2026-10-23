@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { CreditEntry } from '../../data/types';
-import { shortMr } from '../../model/rungs';
 import { cx } from '../cx';
 import styles from './inspector.module.css';
 
@@ -27,7 +26,7 @@ export function CreditHistory({
       {rows.length ? (
         rows.map((c, i) => (
           <div key={`${c.mr}-${c.move}-${i}`} className={styles.hr} title={c.why}>
-            <span className={styles.mono}>{shortMr(c.mr)}</span>
+            <span className={styles.mono}>{c.mr}</span>
             <span className={styles.mono}>{c.move.replace(' → ', '→')}</span>
             <span className={cx(c.verdict === 'rejected' ? styles.rej : styles.cre)}>
               {c.verdict}
