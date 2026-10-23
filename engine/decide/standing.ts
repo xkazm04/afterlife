@@ -4,6 +4,7 @@
 // It fails closed: several holders with none named for the role is a refusal, never a guess. CI names the agent (the MR
 // author, --agent), so a class several agents hold stands per holder: holderStandings reads each one as CI would.
 import { TIER_ORDER, type Ceiling, type Tier, type TierRecord, type TierState } from '../../src/schemas/tier';
+import { readInstant } from '../../src/schemas/instant/readInstant';
 
 export type Standing =
   | { kind: 'unknown_class'; why: string }
@@ -36,7 +37,7 @@ const lower = (a: Tier, b: Tier): Tier => (TIER_ORDER.indexOf(a) <= TIER_ORDER.i
 /** A lease that is set has lapsed when it is past, and also when it is not a readable time: tier-state.yml checks tiers only. */
 const lapsed = (lease: unknown, now: Date): boolean => {
   if (lease === undefined) return false;
-  const t = typeof lease === 'string' ? Date.parse(lease) : Number.NaN;
+  const t = typeof lease === 'string' ? readInstant(lease) : Number.NaN;
   return Number.isNaN(t) || t < +now;
 };
 

@@ -20,6 +20,7 @@ import type { ClassCounters, CounterSource } from './counters';
 import { receiptOf, type Enforcement } from './receipt';
 import { gateSeenOf } from './gate';
 import { recordOf } from './sources';
+import { readInstant } from '@/schemas/instant/readInstant';
 
 /** The eight tracks, by the agent role trust-policy.yml names. */
 export const ROLE_TRACK: Readonly<Record<string, number>> = {
@@ -69,7 +70,7 @@ const movedOf = (was: Ceiling | null, now: Ceiling, at: Date): ClassTierRow['mov
 };
 
 const when = (s: string | undefined): Date | null => {
-  const t = s ? Date.parse(s) : Number.NaN;
+  const t = s ? readInstant(s) : Number.NaN;
   return Number.isNaN(t) ? null : new Date(t);
 };
 
