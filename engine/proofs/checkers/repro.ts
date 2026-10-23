@@ -104,11 +104,13 @@ export function repro(input: Record<string, unknown>, base: ProofBase): Draft {
   if (!expect) checks.push(at('reproduces', null, 'the input names no claimed failure (expect.status or expect.assertion)'));
   else if (!runs.ok) checks.push(at('reproduces', null, runs.reason));
   else {
-    const usable = runs.value.filter((r) => r.sha === head && r.environment === env && !r.error);
+    const ids = new Set<string>();
+    const usable = runs.value.filter((r) => r.sha === head && r.environment === env && !r.error && !ids.has(r.id) && ids.add(r.id)); // one run is one run, however many records repeat it
     const broke = runs.value.filter((r) => r.error).length;
+    const repeated = runs.value.filter((r) => r.sha === head && r.environment === env && !r.error).length - usable.length;
     const hit = usable.filter((r) => matches(r, expect));
     const what = describeExpect(expect);
-    const left = broke ? ` (${broke} run(s) whose probe broke left out)` : '';
+    const left = (broke ? ` (${broke} run(s) whose probe broke left out)` : '') + (repeated ? ` (${repeated} repeated run record(s) counted once)` : '');
     if (hit.length >= MIN_REPRO_RUNS) checks.push(at('reproduces', true, `${what} reproduced in ${hit.length} of ${usable.length} run(s), needs ${MIN_REPRO_RUNS}${left}`));
     else if (usable.length < MIN_REPRO_RUNS) checks.push(at('reproduces', null, `${usable.length} usable run(s) on the head and target, needs ${MIN_REPRO_RUNS}${left}`));
     else checks.push(at('reproduces', false, `${what} reproduced in ${hit.length} of ${usable.length} run(s), needs ${MIN_REPRO_RUNS}; observed ${observed(usable)}${left}`));

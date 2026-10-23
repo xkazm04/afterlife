@@ -61,4 +61,10 @@ describe('repro', () => {
     const b = run({ task: { ...(input.task as object), head_sha: undefined }, sha: HEAD, runs });
     expect(b.verdict).toBe('pass');
   });
+
+  it('counts one probe run once, as rerun-stats counts one job once: a run listed twice is not two reproductions', () => {
+    const twice = checkOf(run({ runs: [hit('probe-1'), hit('probe-1')] }), 'reproduces');
+    expect(twice).toMatchObject({ ok: null, detail: '1 usable run(s) on the head and target, needs 2 (1 repeated run record(s) counted once)' });
+    expect(checkOf(run({ runs: [hit('probe-1'), hit('probe-1'), hit('probe-2')] }), 'reproduces').ok).toBe(true);
+  });
 });
