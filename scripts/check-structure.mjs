@@ -25,6 +25,11 @@ function walk(dir) {
   for (const d of entries.filter((e) => e.isDirectory())) walk(path.join(dir, d.name));
 }
 
+// A mistyped root (package.json names three) is a broken gate, not a size problem: say so and exit 2.
+if (!fs.statSync(root, { throwIfNoEntry: false })?.isDirectory()) {
+  console.error(`structure: ${path.relative(process.cwd(), root) || '.'} is not a directory`);
+  process.exit(2);
+}
 walk(root);
 if (problems.length) {
   console.error(`structure: ${problems.length} problem(s)\n  ${problems.join('\n  ')}`);

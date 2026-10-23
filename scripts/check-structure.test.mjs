@@ -51,4 +51,11 @@ describe('scripts/check-structure.mjs', () => {
   it('ignores files that are not source (a long .json passes)', () => {
     expect(run(tree({ 'data.json': lines(500) })).status).toBe(0);
   });
+
+  it('refuses a root that is not a directory with one line and exit 2, not a stack trace', () => {
+    const r = run(path.join(os.tmpdir(), 'belay-structure-missing-root'));
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain('is not a directory');
+    expect(r.stderr).not.toContain('node:fs');
+  });
 });
