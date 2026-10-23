@@ -94,6 +94,9 @@ describe('gaps', () => {
   it('Stage picked counts one gap in the singular', () => {
     expect(run(start(), act('tick:g2'), act('stage-gaps')).notice?.text).toBe('1 gap staged · 1 write each');
   });
+  it('Stage picked with only the probe picked stages nothing and says so', () => {
+    expect(run(start(), act('tick:g1'), act('tick:g2'), act('tick:g4'), act('stage-gaps')).notice?.text).toBe('Nothing staged · 1 picked gap has no door for it');
+  });
   it('staging one gap ticks it, and taking it back clears its status', () => {
     const s = run(start(), act('stage-gap:g3'));
     expect(s.gaps.g3).toBe(true);

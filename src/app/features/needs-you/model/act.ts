@@ -59,8 +59,10 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
     case 'stage-gaps': {
       const all = pickedGaps(s, demo);
       const picked = all.filter((g) => !gapBlock(g.id, demo));
+      const left = all.length - picked.length;
+      if (!picked.length) return notify(s, 'status', left ? `Nothing staged · ${plural(left, 'picked gap')} ${left === 1 ? 'has' : 'have'} no door for it` : 'Nothing staged · no gap is picked');
       const next = picked.reduce((acc, g) => stage({ ...acc, gapStatus: { ...acc.gapStatus, [g.id]: 'staged' as const } }, g.id, demo), s);
-      return notify(next, 'status', `${plural(picked.length, 'gap')} staged · 1 write each${all.length > picked.length ? ` · ${all.length - picked.length} not sent (no door for it)` : ''}`);
+      return notify(next, 'status', `${plural(picked.length, 'gap')} staged · 1 write each${left ? ` · ${left} not sent (no door for it)` : ''}`);
     }
     case 'tick':
       return { ...s, gaps: { ...s.gaps, [arg]: !s.gaps[arg] } };
