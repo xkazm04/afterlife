@@ -34,9 +34,13 @@ export interface CycleOptions {
   mem?: PollMemory;
 }
 
-/** A group-level failure: every project polled before keeps its last good time and shows as stale. */
-async function failGroup(db: PGlite, source: string, error: string): Promise<void> {
+/**
+ * A group-level failure: every project polled before keeps its last good time and shows as stale, and so does belay-policy,
+ * which was not read either (Ladder marks the class tiers stale from its source).
+ */
+async function failGroup(db: PGlite, source: string, policy: string, error: string): Promise<void> {
   await recordPollError(db, source, error);
+  await recordPollError(db, policy, `the group could not be read: ${error}`);
   for (const p of (await listProjects(db)).filter((x) => x.gitlabId !== null)) {
     await recordPollError(db, projectSource(p.id), `the group could not be read: ${error}`);
     await setProjectState(db, p.id, 'stale');
@@ -67,7 +71,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   } catch (e) {
     result.ok = false;
     result.error = e instanceof Error ? e.message : String(e);
-    await failGroup(db, source, result.error);
+    await failGroup(db, source, policySource(cfg.group), result.error);
     return result;
   }
 

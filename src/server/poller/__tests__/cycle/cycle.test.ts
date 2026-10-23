@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { getActionClasses, getFleet, getNeedsYou, getTask, getTasks } from '@/server/index/views';
 import { getPairing } from '@/server/index/repositories/pairing';
-import { getPollState } from '@/server/index/repositories/pollState';
+import { getPollState, policySource } from '@/server/index/repositories/pollState';
 import { readLedger } from '@/server/index/repositories/ledger/ledger';
 import { readPollerConfig } from '../../config';
 import { runPollCycle } from '../../cycle';
@@ -161,5 +161,7 @@ describe('a failed poll looks stale, and keeps the last good time', () => {
     const res = await x.poll(later, failing(x.gl.port, 'getGroup', 'glab: 401 Unauthorized (HTTP 401)'));
     expect(res).toMatchObject({ ok: false, error: expect.stringContaining('401'), projects: [] });
     expect((await getFleet(x.db, later)).projects[0]?.feed).toMatchObject({ ageSec: 120, ok: false, error: expect.stringContaining('group could not be read') });
+    // belay-policy was not read either: its source fails too, so Ladder marks the class tiers stale (live/snapshot.ts)
+    expect((await getPollState(x.db, policySource(cfg().group)))?.lastError).toContain('group could not be read');
   }, 60_000);
 });

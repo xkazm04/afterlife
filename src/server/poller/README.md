@@ -8,7 +8,8 @@ Tests never start a timer.
 ## One cycle
 
 1. `getGroup` + `listProjects`. If either fails: every project already polled gets a `project:<id>` error (it keeps its last
-   good time, so its age grows and it shows stale) and the cycle stops.
+   good time, so its age grows and it shows stale), the `policy:<group>` source gets one too (belay-policy was not read,
+   so Ladder marks the class tiers stale), and the cycle stops.
 2. Targets are the group's non-archived projects except `belay-policy`, `belay-ledger`, `belay-pack`, `belay-engine`.
    A project polled before that is gone from the group goes stale.
 3. `belay-policy`: `trust-policy.yml` + `tier-state.yml`, parsed with the engine's own `parsePolicy`/`parseState`.
