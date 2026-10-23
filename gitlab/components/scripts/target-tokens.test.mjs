@@ -83,3 +83,17 @@ describe('the target pipeline (F4)', () => {
     }
   });
 });
+
+// M6 / F100 in the example's own jobs: a job that clones belay-engine names the project, ref and commit in its script, not in
+// `variables:` (a pipeline variable outranks those), and checks the checkout resolves to that commit, as every component does.
+describe('the example jobs that clone belay-engine (M6/F100)', () => {
+  const example = parse(fs.readFileSync(EXAMPLE, 'utf8'));
+  const cloners = Object.entries(example).filter(([, j]) => JSON.stringify(j?.script ?? '').includes('belay-engine'));
+
+  it('there is one, so the check is not empty', () => expect(cloners.length).toBeGreaterThan(0));
+
+  it.each(cloners.map(([n, j]) => [n, j]))('%s: no job variable picks the engine, and the commit is checked', (_, job) => {
+    for (const k of Object.keys(job.variables ?? {})) expect(k, 'job variable').not.toMatch(/^BELAY_ENGINE_/);
+    expect(job.script.join('\n')).toMatch(/rev-parse HEAD\)" != "?[0-9a-f]{40}|rev-parse HEAD\)" != "\$\{?[A-Z_]*COMMIT/);
+  });
+});

@@ -70,10 +70,15 @@ belay-replay-vars:
   image: node:22-bookworm
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^belay\//
-  variables: { BELAY_ENGINE_PROJECT: acme/belay-engine, BELAY_ENGINE_REF: v0.1.0 }
   script:
-    - git clone -q --depth 1 --branch "$BELAY_ENGINE_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${BELAY_ENGINE_PROJECT}.git" .belay-engine
-    - mkdir -p .belay && node .belay-engine/gitlab/components/scripts/proof/replay-vars.mjs --mr "$CI_MERGE_REQUEST_IID" > .belay/replay.env
+    # The engine project, ref and commit are the includes' own, written here, not job variables (a pipeline variable outranks
+    # those, M6/F100), and the checkout must resolve to the commit, as in every component.
+    - |
+      set -eu
+      ENGINE_PROJECT=acme/belay-engine; ENGINE_REF=v0.1.0; ENGINE_COMMIT=0000000000000000000000000000000000000000
+      git clone -q --depth 1 --branch "$ENGINE_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${ENGINE_PROJECT}.git" .belay-engine
+      if [ "$(git -C .belay-engine rev-parse HEAD)" != "$ENGINE_COMMIT" ]; then echo "belay engine is not at the pinned $ENGINE_COMMIT" >&2; exit 2; fi
+      mkdir -p .belay && node .belay-engine/gitlab/components/scripts/proof/replay-vars.mjs --mr "$CI_MERGE_REQUEST_IID" > .belay/replay.env
   artifacts: { paths: [.belay/replay.env] }
 
 belay-replay:
