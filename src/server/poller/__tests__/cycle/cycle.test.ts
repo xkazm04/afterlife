@@ -106,6 +106,13 @@ describe('a failed poll looks stale, and keeps the last good time', () => {
     expect((await getFleet(x.db, later)).projects[0]).toMatchObject({ state: 'watching', feed: { ok: true } });
   }, 60_000);
 
+  it('a ledger the first poll cannot read leaves the new project stale, as a later poll does', async () => {
+    const x = await rig();
+    const res = await x.poll(NOW, failing(x.gl.port, 'listTree'));
+    expect(res.projects[0]).toMatchObject({ ok: false, ledger: 'rejected' });
+    expect((await getFleet(x.db, NOW)).projects[0]).toMatchObject({ state: 'stale', feed: { ok: false } });
+  }, 60_000);
+
   it('a failed poll writes nothing: the last good rows stay', async () => {
     const x = await rig();
     await x.poll();

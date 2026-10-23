@@ -188,7 +188,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
     out.ok = false;
     out.error = e instanceof Error ? e.message : String(e);
     await recordPollError(db, projectSource(id), out.error);
-    if (existing) await setProjectState(db, id, 'stale');
+    if (existing || written.length > 0) await setProjectState(db, id, 'stale'); // a row this poll wrote too
   }
   return out;
 }
