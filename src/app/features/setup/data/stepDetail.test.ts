@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { BOOTSTRAP_BRANCH } from '@/server/data/setup/humanSteps';
 import { BELAY_PROJECTS } from '@/server/data/setup/read';
 import { DEMO_NAMES, STDIN, STEP_DETAIL, stepDetailsFor } from './stepDetail';
 
@@ -158,6 +159,12 @@ describe('"Open in GitLab ↗" on a human step has a page to open', () => {
     const d = stepDetailsFor(live);
     expect(d[3]?.url).toBe('https://gitlab.example.com/groups/kazdanm/-/billings');
     expect(d[6]?.url).toBe('https://gitlab.example.com/kazdanm/apps/afterlife/-/settings/ci_cd#js-runners-settings');
-    expect(d[10]?.url).toBe('https://gitlab.example.com/kazdanm/apps/afterlife/-/merge_requests/2');
+    expect(d[10]?.url).toBe('https://gitlab.example.com/kazdanm/apps/afterlife/-/merge_requests?source_branch=belay%2Fbootstrap');
+  });
+  it('live step 10 names the bootstrap MR by the branch the read finds it by, never the demo’s !2', () => {
+    const d = stepDetailsFor(live)[10]!;
+    for (const t of [d.short, d.action, d.where]) expect(t).not.toMatch(/!2/);
+    expect(d.action).toContain(BOOTSTRAP_BRANCH);
+    expect(STEP_DETAIL[10]?.short).toBe('Merge the bootstrap MR !2');
   });
 });

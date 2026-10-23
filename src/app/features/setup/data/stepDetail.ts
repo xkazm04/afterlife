@@ -116,8 +116,10 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
     ],
   },
   10: {
-    who: 'human', short: 'Merge the bootstrap MR !2', does: 'Config applies only from the default branch, so a person merges it.', action: 'Review and merge !2 belay/bootstrap',
-    where: `GitLab → ${n.project} → Merge requests → !2`, url: page(n, 'merge_requests/2'), note: 'Belay never holds a merge token.',
+    // The demo's MR is !2; live, the read finds it by its branch (server/data/setup/humanSteps.ts), so it names no number.
+    who: 'human', short: n === DEMO_NAMES ? 'Merge the bootstrap MR !2' : 'Merge the bootstrap MR', does: 'Config applies only from the default branch, so a person merges it.',
+    action: `Review and merge ${n === DEMO_NAMES ? '!2 ' : 'the MR from '}belay/bootstrap`, where: `GitLab → ${n.project} → Merge requests → ${n === DEMO_NAMES ? '!2' : 'belay/bootstrap'}`,
+    url: page(n, 'merge_requests?source_branch=belay%2Fbootstrap'), note: 'Belay never holds a merge token.',
     before: '!2 open · agent-config.yml absent on main', probe: '!2 merged by @you · agent-config.yml on main',
   },
   11: {
