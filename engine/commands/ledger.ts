@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { append, parseChainText, parseEventBody, verifyChain, type EventBody, type LedgerEvent } from '../../src/schemas/ledger';
 import { parseArgs } from '../core/args';
-import { readJson, readText } from '../core/files';
+import { errno, readJson, readText } from '../core/files';
 import { EngineError, isoMs, isRecord, type CommandResult, type Ctx } from '../core/types';
 import { TRIAL_USAGE, trialCommand } from './audit/trial';
 
@@ -36,6 +36,15 @@ export function readChain(text: string): LedgerEvent[] {
   return r.events;
 }
 
+/** The write, as the reads are: a chain it cannot write names its file and errno (EACCES, EROFS, ENOSPC), not `unexpected`. */
+function appendLine(file: string, data: string): void {
+  try {
+    fs.appendFileSync(file, data);
+  } catch (e) {
+    throw new EngineError(`cannot write ${file} (${errno(e)})`);
+  }
+}
+
 export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   if (argv[0] === 'trial') return trialCommand(argv.slice(1), ctx);
   const args = parseArgs(argv, { values: ['event', 'chain'], switches: ['write'], positional: 1 });
@@ -48,6 +57,6 @@ export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult 
   const line = append(chain, parseLedgerEvent(readJson(ctx, args.need('event'))));
   // a chain fetched from the API may lack its final newline: start a new line rather than glue two events together
   const lead = text === '' || text.endsWith('\n') ? '' : '\n';
-  if (args.has('write')) fs.appendFileSync(chainFile, `${lead}${JSON.stringify(line)}\n`);
+  if (args.has('write')) appendLine(chainFile, `${lead}${JSON.stringify(line)}\n`);
   return { json: line, summary: `ledger: appended seq ${line.seq} ${line.kind} ${line.hash.slice(0, 12)} (chain of ${chain.length + 1} verifies)`, code: 0, compact: true };
 }

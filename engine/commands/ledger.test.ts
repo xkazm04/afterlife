@@ -129,6 +129,12 @@ describe('ledger append through the CLI: the shared parser guards the writer', (
     expect(cli(event(), tmp).json.error).toBe(`cannot read ${tmp} (EISDIR)`);
   });
 
+  it('a chain it cannot write is a write error naming the chain and the errno, exit 2, not an unexpected one', () => {
+    const chain = path.join(tmp, 'no-such-dir', 'e.jsonl'); // the folder is not there, so the append fails on any OS
+    const r = cli(event(), chain);
+    expect([r.code, r.json.error]).toEqual([2, `cannot write ${chain} (ENOENT)`]);
+  });
+
   it('refuses a project_id that is not an integer >= 0, naming it', () => {
     for (const project_id of [1.5, -1]) {
       const r = cli(event({ subject: { project_id, type: 'mr', iid: 44 } }), path.join(tmp, `p${project_id}.jsonl`));
