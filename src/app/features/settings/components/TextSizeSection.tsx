@@ -1,7 +1,7 @@
 'use client';
 
 import { SegmentedControl, type SegmentOption } from '@/components/controls/toolbar/SegmentedControl';
-import { TEXT_SIZES, TEXT_SIZE_LABEL, type TextSize } from '@/lib/settings/textSize';
+import { DEFAULT_TEXT_SIZE, TEXT_SIZES, TEXT_SIZE_LABEL, TEXT_SIZE_SPEC, type TextSize } from '@/lib/settings/textSize';
 import { useTextSize } from '@/lib/settings/useTextSize';
 import { specRows } from '../model/specRows';
 import { SettingsSection } from './SettingsSection';
@@ -11,7 +11,7 @@ import styles from './TextSizeSection.module.css';
 const OPTIONS: readonly SegmentOption<TextSize>[] = TEXT_SIZES.map((t) => ({
   value: t,
   label: TEXT_SIZE_LABEL[t],
-  title: t === 'standard' ? 'Standard (default)' : t === 'smaller' ? 'Smaller (13 px body)' : 'Larger',
+  title: `${TEXT_SIZE_LABEL[t]} (${TEXT_SIZE_SPEC[t].body} px body${t === DEFAULT_TEXT_SIZE ? ', the default' : ''})`,
 }));
 
 /** D10: the 3-way text-size control, the scale table and a live preview that restyles as you choose. */
@@ -22,7 +22,7 @@ export function TextSizeSection() {
     <SettingsSection id="text-size" title="Text size">
       <div className={styles.line}>
         <SegmentedControl label="Text size" options={OPTIONS} value={size} onChange={setSize} />
-        <span className={styles.note}>Saved in this browser. Standard is the default.</span>
+        <span className={styles.note}>Saved in this browser. {TEXT_SIZE_LABEL[DEFAULT_TEXT_SIZE]} is the default.</span>
       </div>
       <table className={styles.spec} aria-label="What each text size changes">
         <thead>
