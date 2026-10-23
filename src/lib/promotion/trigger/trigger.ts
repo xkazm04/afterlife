@@ -2,7 +2,12 @@
 // trust-policy.yml); the index keeps it as the move's note, and the Last move text carries it after "tripwire". Only the
 // six defined triggers are worded; anything else, or nothing, reads "trigger not recorded" and never a guess.
 
-/** trust-policy.yml's demotion triggers, in words. */
+import type { DemotionTrigger } from '@/schemas/tier';
+
+/**
+ * trust-policy.yml's demotion triggers, in words. Checked against the schema's list (DEMOTION_TRIGGERS): a trigger added
+ * there fails the typecheck here, rather than reading "trigger not recorded" the first time it fires.
+ */
 export const TRIGGER_WORDS: Readonly<Record<string, string>> = {
   revert: 'revert',
   reopened_finding: 'reopened finding',
@@ -10,7 +15,7 @@ export const TRIGGER_WORDS: Readonly<Record<string, string>> = {
   default_branch_red_1h: 'red main ≤ 1 h',
   guardrail_high: 'guardrail high-severity block',
   budget_breach_x2: 'budget breach twice',
-};
+} satisfies Record<DemotionTrigger, string>;
 
 export const TRIGGER_NOT_RECORDED = 'trigger not recorded';
 

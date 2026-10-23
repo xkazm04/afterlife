@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { DEMOTION_TRIGGERS } from '@/schemas/tier';
 import { displayLastMove, isTrigger, TRIGGER_NOT_RECORDED, TRIGGER_WORDS, triggerWords } from './trigger';
 
 describe('which trigger fired, in words', () => {
-  it('words exactly the six defined triggers', () => {
-    expect(Object.keys(TRIGGER_WORDS)).toEqual(['revert', 'reopened_finding', 'post_merge_proof_fail', 'default_branch_red_1h', 'guardrail_high', 'budget_breach_x2']);
+  it("words exactly the schema's demotion triggers", () => {
+    expect(Object.keys(TRIGGER_WORDS)).toEqual([...DEMOTION_TRIGGERS]);
     expect(triggerWords('guardrail_high')).toBe('guardrail high-severity block');
     expect(isTrigger('toString')).toBe(false);
   });
