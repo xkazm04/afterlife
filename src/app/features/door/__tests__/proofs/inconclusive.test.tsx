@@ -2,8 +2,8 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { demoSource } from '@/server/data/demoSource';
-import { Answer } from '../components/ui/Answer';
-import { fleetTotals, projectLine } from '../model/words';
+import { Answer } from '../../components/ui/Answer';
+import { fleetTotals, projectLine } from '../../model/words';
 
 const fleet = demoSource.getFleet();
 const text = (parts: readonly (readonly [string, string])[]) => parts.map((p) => p[0]).join('');

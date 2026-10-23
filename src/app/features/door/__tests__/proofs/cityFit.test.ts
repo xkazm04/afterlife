@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { demoSource } from '@/server/data/demoSource';
-import { HOME, homeOf, type Cam } from '../model/camera';
-import { districtsOf } from '../model/city';
+import { HOME, homeOf, type Cam } from '../../model/camera';
+import { districtsOf } from '../../model/city';
 
 const fleet = demoSource.getFleet();
 const seed = fleet.projects.find((p) => p.state === 'watching')!;
