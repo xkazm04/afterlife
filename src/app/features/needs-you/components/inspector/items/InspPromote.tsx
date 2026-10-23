@@ -64,7 +64,7 @@ export function InspPromote(p: InspProps) {
           <div key={rule} className={styles.rl}>
             <span>{rule}</span>
             <span className={styles.v}>{value}</span>
-            <span className={ok ? styles.yes : styles.no} aria-label={ok ? 'met' : 'not met'}>
+            <span className={ok ? styles.yes : styles.no} role="img" aria-label={ok ? 'met' : 'not met'}>
               {ok ? '✓' : '✕'}
             </span>
           </div>

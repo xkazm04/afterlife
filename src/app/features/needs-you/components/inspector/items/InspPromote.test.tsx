@@ -25,3 +25,13 @@ describe('InspPromote button bar', () => {
     expect(at('merged')).not.toMatch(/class="[^"]*acts/);
   });
 });
+
+describe('InspPromote rule marks', () => {
+  it('each ✓/✕ is an image named met / not met (aria-label on a bare span is not announced)', () => {
+    const demo = pickNeedsYouDemo();
+    const out = renderToStaticMarkup(<InspPromote s={initialState(demo)} demo={demo} leftSec={0} dispatch={() => {}} />);
+    const marks = [...out.matchAll(/<span[^>]*aria-label="(met|not met)"[^>]*>/g)].map((m) => m[0]);
+    expect(marks).toHaveLength(demo.promote.rules.length);
+    for (const m of marks) expect(m).toContain('role="img"');
+  });
+});
