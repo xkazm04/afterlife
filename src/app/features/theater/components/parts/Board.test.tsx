@@ -7,7 +7,7 @@ import { DEMO } from '@/lib/demo';
 import { REPLAY_LEDGER } from '../../data/ledger';
 import { buildSnapshots } from '../../model/derive/snapshots';
 import type { TheaterDemo } from '../../model/types';
-import { Board } from './Board';
+import { Board } from '../stage/Board';
 
 const demo: TheaterDemo = {
   stages: DEMO.stages,
