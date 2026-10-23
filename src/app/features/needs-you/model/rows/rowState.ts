@@ -1,5 +1,5 @@
 // What a row says in its State column, and the three questions the filters ask of it.
-import type { NeedsState } from '../types';
+import { isDecisionKey, type NeedsState } from '../types';
 
 export type GlyphKind = 'wait' | 'stg' | 'ok' | 'unk' | 'dash' | 'open';
 /** '' waiting (amber), 'stg' staged, 'ok' done, 'dim' set aside, 'unk' unknown (drawn dashed). */
@@ -27,7 +27,7 @@ function gapState(s: NeedsState, id: string): RowState {
 
 export function rowState(s: NeedsState, id: string): RowState {
   if (isGapId(id)) return gapState(s, id);
-  if (id !== 'n1' && id !== 'n2' && id !== 'n4' && id !== 'n5') return { tone: '', glyph: 'wait', label: '' };
+  if (!isDecisionKey(id)) return { tone: '', glyph: 'wait', label: '' };
   const st = s.status[id];
   if (st === 'staged') return staged;
   if (id === 'n2') return st === 'sent' ? ok(s.submitted ? 'submitted' : 'ready to sign') : wait(s.read.draft ? 'draft read' : 'waiting');

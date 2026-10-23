@@ -3,7 +3,8 @@ import { pickNeedsYouDemo } from '../../data/pick';
 import type { NeedsYouDemo } from '../../data/types';
 import { initialState } from '../state';
 import { groupsFor } from './grouping';
-import { decisionCounts, decisionIds } from './rowState';
+import { DECISION_KEYS, isDecisionKey } from '../types';
+import { decisionCounts, decisionIds, rowState } from './rowState';
 
 const FIXED = ['n1', 'n2', 'n4', 'n5'];
 const demo = pickNeedsYouDemo();
@@ -25,5 +26,18 @@ describe.each([
   });
   it('the sidebar counts every one of them', () => {
     expect(decisionCounts(s).all).toBe(expectedIds(d).length);
+  });
+});
+
+describe('the fixed decision ids are one list (DECISION_KEYS), not restated per file', () => {
+  const s = initialState(demo);
+  it('isDecisionKey admits exactly DECISION_KEYS', () => {
+    expect([...DECISION_KEYS].sort()).toEqual(FIXED);
+    for (const id of ['n0', 'n3', 'n6', 'g1', 'h0', 'g:trust']) expect(isDecisionKey(id)).toBe(false);
+  });
+  it('the state, the State column and the table all hold each key', () => {
+    expect(Object.keys(s.status).sort()).toEqual([...DECISION_KEYS].sort());
+    for (const id of DECISION_KEYS) expect(rowState(s, id).label).not.toBe('');
+    expect(decisionIds(s)).toEqual(expect.arrayContaining([...DECISION_KEYS]));
   });
 });

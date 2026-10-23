@@ -8,6 +8,7 @@ import { getDataSource } from '@/server/data';
 import { ownDecisions, SEEDED_ITEMS } from '@/server/data/live/seeded';
 import { liveEvidence, type LiveEvidence } from '../model/evidence/evidence';
 import { classOfTitle } from '../model/live';
+import { DECISION_KEYS } from '../model/types';
 import type { NeedsYouDemo } from './types';
 
 export class MissingNeedsYouData extends Error {}
@@ -116,6 +117,6 @@ export type NeedsItemView = { kind: 'desk'; demo: NeedsYouDemo; id: string };
 export function loadNeedsItem(id: string): NeedsItemView | null {
   const view = loadNeedsYouView();
   if (view.kind !== 'desk') return null;
-  const known = ['n1', 'n2', 'n4', 'n5', ...view.demo.gaps.map((g) => g.id)];
+  const known: readonly string[] = [...DECISION_KEYS, ...view.demo.gaps.map((g) => g.id)];
   return known.includes(id) ? { kind: 'desk', demo: view.demo, id } : null;
 }

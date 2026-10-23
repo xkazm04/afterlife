@@ -6,8 +6,10 @@ import type { WriteSlot } from './slot/slot';
 
 export type GroupMode = 'kind' | 'project' | 'deadline';
 export type ShowFilter = 'all' | 'waiting' | 'outbox' | 'sent';
-/** The four decisions that are not gaps. n3 ("pick the gaps") is shown as one row per gap, g1..g4. */
-export type DecisionKey = 'n1' | 'n2' | 'n4' | 'n5';
+/** The four decisions that are not gaps, declared once. n3 ("pick the gaps") is shown as one row per gap, g1..g4. */
+export const DECISION_KEYS = ['n1', 'n2', 'n4', 'n5'] as const;
+export type DecisionKey = (typeof DECISION_KEYS)[number];
+export const isDecisionKey = (id: string): id is DecisionKey => (DECISION_KEYS as readonly string[]).includes(id);
 export type DecisionStatus = 'open' | 'staged' | 'sent' | 'snoozed' | 'merged' | 'retired' | 'done';
 export type GapStatus = 'staged' | 'sent';
 /** The decisions whose write is a policy MR, planned and run by the server (previewAction, then confirmAction). */
