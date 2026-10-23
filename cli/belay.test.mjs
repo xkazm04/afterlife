@@ -66,6 +66,7 @@ describe('cli/belay.mjs', () => {
   it.each(['replay'])('%s is not implemented and exits 2', (verb) => {
     const r = belay(verb);
     expect(r.status).toBe(2);
-    expect(r.stdout).toContain(`belay ${verb}: not implemented yet`);
+    expect(r.stdout).toBe('');
+    expect(r.stderr).toContain(`belay ${verb}: not implemented yet`);
   });
 });

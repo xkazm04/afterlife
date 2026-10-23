@@ -48,7 +48,7 @@ switch (cmd) {
     process.exitCode = viaTsx('pair', '../src/server/pair/pairCli.ts', rest, process.cwd());
     break;
   case 'replay':
-    console.log(`belay ${cmd}: not implemented yet`);
+    console.error(`belay ${cmd}: not implemented yet`);
     process.exitCode = 2;
     break;
   case 'help':
