@@ -94,4 +94,9 @@ describe('row cells', () => {
     expect(rowView(fresh(), 'n5', demo)?.move).toMatchObject({ tone: 'unknown' });
     expect(rowView(with_({ runner: { opened: true, check: 'ok' } }), 'n5', demo)?.move).toMatchObject({ tone: 'ok', label: 'online' });
   });
+  it('dates the unknown runner chip by the check the viewer just ran, not the seeded one', () => {
+    expect(rowView(fresh(), 'n5', demo)?.move).toMatchObject({ title: 'Unknown · checked 2 h ago' });
+    const checked = rowView(with_({ runner: { opened: false, check: 'none' } }), 'n5', demo)?.move;
+    expect(checked).toMatchObject({ tone: 'unknown', title: 'Not seen · checked just now (simulated)' });
+  });
 });

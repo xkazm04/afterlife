@@ -81,7 +81,7 @@ export function rowView(s: NeedsState, id: string, demo: NeedsYouDemo): RowView 
   if (id === 'n5') {
     return {
       title: demo.runner.title,
-      move: s.runner.check === 'ok' ? { kind: 'chip', label: 'online', tone: 'ok' } : { kind: 'chip', label: '? runner', tone: 'unknown', title: 'Unknown · checked 2 h ago' },
+      move: s.runner.check === 'ok' ? { kind: 'chip', label: 'online', tone: 'ok' } : { kind: 'chip', label: '? runner', tone: 'unknown', title: s.runner.check === 'none' ? 'Not seen · checked just now (simulated)' : 'Unknown · checked 2 h ago' },
       writes: { kind: 'none' },
       track: '—',
       when: RUNNER.openedAt,
