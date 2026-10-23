@@ -108,8 +108,12 @@ describe('the maturity-scan template', () => {
 });
 
 // F101: the glab tarball runs holding CI_JOB_TOKEN, so it is never installed on HTTPS alone. The default is glab 1.120.0's
-// published checksum and an empty value fails the job before the download.
-describe.each(['maturity-scan', 'tier-gate'])('the %s template verifies glab', (name) => {
+// published checksum and an empty value fails the job before the download. Every template that installs glab, read from the
+// folder, so a new one (proof-engine took the same boot in 06b10ab) is held too.
+const GLAB_TEMPLATES = fs.readdirSync(path.resolve(import.meta.dirname, '../../templates'))
+  .filter((n) => /glab_sha256/.test(fs.readFileSync(path.resolve(import.meta.dirname, `../../templates/${n}/template.yml`), 'utf8')));
+it('every glab-installing template is checked', () => expect(GLAB_TEMPLATES).toEqual(['maturity-scan', 'proof-engine', 'tier-gate']));
+describe.each(GLAB_TEMPLATES)('the %s template verifies glab', (name) => {
   const doc = parseAllDocuments(fs.readFileSync(path.resolve(import.meta.dirname, `../../templates/${name}/template.yml`), 'utf8'));
   const spec = doc[0].toJS().spec.inputs;
   const shell = Object.values(doc[1].toJS()).flatMap((j) => j?.before_script ?? []).join('\n');
