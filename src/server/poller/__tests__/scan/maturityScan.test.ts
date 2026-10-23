@@ -168,4 +168,16 @@ describe('the poller stores a maturity scan', () => {
     const m = await getMaturity(r.db, 'ledgerline');
     expect(m?.rungs.find((x) => x.stage === 'verify')?.now).toBe(RUNG.verify);
   });
+
+  it('(vi) a stored scan opens a top-level gap per stage the engine proposes, at the poll clock', async () => {
+    const r = await rig();
+    await r.poll(NOW, withScans(r.gl.port, [{ pipelineId: PIPE, jobId: JOB, minAgo: 2, artifact: scanDoc() }], []));
+    const gaps = await r.db.query<{ id: string; state: string; parent_id: string | null; opened_at: Date; subject: { template: string | null } }>(
+      "select id, state, parent_id, opened_at, subject from proposal where id like 'gap:%' order by id",
+    );
+    expect(gaps.rows.map((g) => [g.id, g.state, g.parent_id, g.subject.template])).toEqual(
+      ['configure', 'monitor', 'package', 'plan', 'release'].map((s) => [`gap:ledgerline:${s}:1`, 'open', null, s === 'plan' ? 'plan-issue-templates' : null]),
+    );
+    expect(new Date(gaps.rows[0]?.opened_at ?? 0).getTime()).toBe(NOW.getTime());
+  });
 });

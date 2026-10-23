@@ -58,6 +58,12 @@ export async function listOpenProposals(db: Queryable, projectId: string, childr
   return rows.map(fromDb);
 }
 
+/** Every proposal of one kind in one project, in any state, oldest first (a deriver's own ids, settled ones included). */
+export async function listProposalsOfKind(db: Queryable, projectId: string, kind: ProposalKind): Promise<ProposalRow[]> {
+  const { rows } = await db.query<Db>(`select * from proposal where project_id = $1 and kind = $2 order by opened_at, ord`, [projectId, kind]);
+  return rows.map(fromDb);
+}
+
 /** Proposals the operator acted on since `since`, newest first; `projectId` null reads every project. */
 export async function listActedProposals(db: Queryable, projectId: string | null, since: Date): Promise<ProposalRow[]> {
   const { rows } = await db.query<Db>(

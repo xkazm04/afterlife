@@ -181,7 +181,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
     // the targets after this one resolve their ids against what this one wrote
     env.known.splice(0, env.known.length, ...env.known.filter((k) => k.id !== id), ...written);
 
-    await pollMaturityScan(port, db, env.mem, gl, id, out.issues); // after the project row: stage_cell references it
+    await pollMaturityScan(port, db, env.mem, gl, id, out.issues, now); // after the project row: stage_cell references it
     if (ledgerError) throw new Error(ledgerError);
     await recordPollOk(db, projectSource(id), now);
   } catch (e) {

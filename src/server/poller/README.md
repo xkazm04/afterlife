@@ -37,6 +37,12 @@ Tests never start a timer.
      so `/maturity` stays "not scanned". A job already settled (`PollMemory.scans`), or one that started before the newest
      stored scan, is not read again; a refused one repeats its issue without a read. A failed read (network, rate limit) is
      tried again next poll. On the demo GitLab no pipeline is scheduled, so the seed's cells stay as they are.
+   - gap proposals (`gaps/`), in the same transaction as a newly stored scan's cells: one top-level `gap` proposal per stage
+     the engine's own `propose()` (`engine/scan/scan.ts`) names, `gap:<project>:<stage>:<to>`, its subject the stage, `rungFrom`
+     (null: unknown), `rungTo`, the change, and the fixed template that closes it (`gaps/templates.ts`: secure, package and plan
+     0 -> 1; else null). An open one is refreshed with its `openedAt` kept; one acted on, dismissed or expired is never opened
+     again; an open one expires when its stage's rung reaches `rungTo`. Only `gap:` ids are touched: the seed's 'gaps' parent
+     and its picks stay. No scan stored, no gap written (so the demo GitLab writes none).
 6. `poll_state`: `recordPollOk` at `now`, or `recordPollError` (keeps `last_ok`); a failed project is also set `stale`.
 
 ## Whom it believes (`config.ts`)
@@ -71,7 +77,7 @@ head is **stale**: not indexed, any earlier proof of the task is deleted, and th
 | moves "promoted" and "tripwire" (with its trigger as the note) from the record's `by`; a record rewritten after the kept move by any other writer (a revoke, a hand edit) moves "demoted" or "promoted" at its `since`, by the tier's direction | project `last`, `env_*`, `armed`, `what` |
 | re-admit ask for a class the tripwire quarantined (deduplicated by kind and title, so a seeded one is respected) | track `armed`/`latest`, the event feed, cockpit text |
 | 7-day proof counts, demotion count, inbox counts, feed age | task `chain`, `countsToward`, `stats`, `clock`, `grade` |
-| stage rungs, evidence and day 0 from the newest `belay-maturity-scan` artifact | gap proposals (only the seed writes them) |
+| stage rungs, evidence and day 0 from the newest `belay-maturity-scan` artifact; a gap proposal per stage it names | gap picks (only the seed writes them) |
 
 A project indexed earlier from another namespace stays shown and counted, and only stops being polled: it is marked stale
 (the "no longer in the group" loop in `runPollCycle`), and the fleet view still lists it (`getFleet` in `src/server/index/views/fleet.ts`). F57's "gone" state is

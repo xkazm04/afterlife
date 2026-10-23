@@ -5,7 +5,8 @@ import { DEMO } from '@/lib/demo';
 
 export const SEEDED_ITEMS: ReadonlySet<string> = new Set([...DEMO.needsYou.map((n) => n.id), ...DEMO.maturity.proposals.map((g) => g.id)]);
 
-export const isSeeded = (id: string): boolean => SEEDED_ITEMS.has(id);
+/** The poller's own gap proposals (`gap:<project>:<stage>:<to>`, poller/gaps) are the group's, whatever the seed holds. */
+export const isSeeded = (id: string): boolean => !id.startsWith('gap:') && SEEDED_ITEMS.has(id);
 
 /** The decisions a screen lists: live lists the group's own only (as /needs-you does); demo keeps them all, as given. */
 export const ownDecisions = <T extends { id: string }>(mode: 'demo' | 'live', items: readonly T[]): T[] =>

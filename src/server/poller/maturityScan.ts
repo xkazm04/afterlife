@@ -1,6 +1,6 @@
 // The maturity scan's result, into the index: the newest finished `belay-maturity-scan` job's `.belay/maturity.json`
 // (belay.maturity/0, written by `engine/cli.ts scan`), checked with the engine's own type, stored as the project's nine
-// stage_cell rows. Read only. The job is allow_failure and keeps its artifacts on failure (it exits 2 whenever a cell is
+// stage_cell rows, with the gap proposals they name (gaps/). Read only. The job is allow_failure and keeps its artifacts on failure (it exits 2 whenever a cell is
 // unknown), so its status does not matter. Nothing is written for a project with no scan job; an artifact that is missing,
 // unparsable or invalid writes nothing and is the poll's issue. A scan already stored, or already refused, is not read again.
 import type { PGlite } from '@electric-sql/pglite';
@@ -9,6 +9,7 @@ import { isKind } from '@/server/gitlab/errors';
 import type { GitLabPort, GlJob, GlProject } from '@/server/gitlab/port';
 import { firstStageCells, latestScanAt, upsertStageCells } from '@/server/index/repositories/work/stageCell';
 import type { Queryable } from '@/server/index/repositories/sql';
+import { writeGaps } from './gaps/write';
 import type { PollMemory } from './state';
 
 export const SCAN_JOB = 'belay-maturity-scan';
@@ -60,7 +61,7 @@ async function store(db: Queryable, projectId: string, scan: MaturityScan): Prom
   }));
 }
 
-async function read(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject, projectId: string, issues: string[]): Promise<ScanRead> {
+async function read(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject, projectId: string, issues: string[], now: Date): Promise<ScanRead> {
   const job = await newestScanJob(port, gl);
   if (!job) return 'none';
   const seen = mem.scans.get(gl.id);
@@ -103,15 +104,20 @@ async function read(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject
     const off = c.evidence.find((e) => !(resolved(e.url) ?? '').startsWith(under));
     if (off) return refuse(`cell ${c.stage} cites ${off.url}, not under ${under}`, true);
   }
-  await db.transaction((tx) => store(tx, projectId, parsed.scan));
+  await db.transaction(async (tx) => {
+    await store(tx, projectId, parsed.scan);
+    await writeGaps(tx, projectId, parsed.scan.cells, now); // the stages it names, as gap proposals (gaps/derive.ts)
+  });
   mem.scans.set(gl.id, { jobId: job.id, issue: null });
   return 'stored';
 }
 
-/** One project's scan read. Never fails the poll: a failure is the poll's issue, and the cells stored before stay. */
-export async function pollMaturityScan(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject, projectId: string, issues: string[]): Promise<ScanRead> {
+/** One project's scan read. Never fails the poll: a failure is the poll's issue, and the cells stored before stay. `now`: the poll's clock, a gap's openedAt. */
+export async function pollMaturityScan(
+  port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject, projectId: string, issues: string[], now: Date = new Date(),
+): Promise<ScanRead> {
   try {
-    return await read(port, db, mem, gl, projectId, issues);
+    return await read(port, db, mem, gl, projectId, issues, now);
   } catch (e) {
     issues.push(`maturity scan: not read (${message(e)}); nothing stored`);
     return 'refused';
