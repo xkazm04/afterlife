@@ -6,8 +6,8 @@ export type StatTone = 'ok' | 'accent' | 'you' | 'plain';
 export function Stats({ cells }: { cells: readonly { n: number; label: string; tone?: StatTone }[] }) {
   return (
     <div className={styles.prf}>
-      {cells.map((c) => (
-        <div key={c.label} className={`${styles.cell} ${styles[c.tone ?? 'plain'] ?? ''}`}>
+      {cells.map((c, i) => (
+        <div key={`${i}:${c.label}`} className={`${styles.cell} ${styles[c.tone ?? 'plain'] ?? ''}`}>
           <b>{c.n}</b>
           <span>{c.label}</span>
         </div>

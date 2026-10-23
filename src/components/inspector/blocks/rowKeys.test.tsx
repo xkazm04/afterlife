@@ -10,11 +10,11 @@ const keysOf = (root: ReactElement<{ children: ReactNode }>): string[] =>
 const duplicates = (keys: string[]) => keys.length - new Set(keys).size;
 
 describe('inspector row keys', () => {
-  it.fails('KeyValue gives two rows with the same label two different keys', () => {
+  it('KeyValue gives two rows with the same label two different keys', () => {
     const rows = [['Job', 'a'], ['Job', 'b'], ['Ref', 'c']] as const;
     expect(duplicates(keysOf(KeyValue({ rows }) as never))).toBe(0);
   });
-  it.fails('Stats gives two cells with the same label two different keys', () => {
+  it('Stats gives two cells with the same label two different keys', () => {
     const cells = [{ n: 1, label: 'armed' }, { n: 2, label: 'armed' }, { n: 3, label: 'need you' }];
     expect(duplicates(keysOf(Stats({ cells }) as never))).toBe(0);
   });
