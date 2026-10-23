@@ -30,7 +30,7 @@ export function CommandBlock({
           <span key={i} className={styles.line}>
             {code ? (
               <>
-                {prompt ? <span className={styles.prompt}>$ </span> : null}
+                {prompt ? <span className={styles.prompt} aria-hidden="true">$ </span> : null}
                 {code}
               </>
             ) : null}

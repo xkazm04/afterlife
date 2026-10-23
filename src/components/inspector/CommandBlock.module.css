@@ -11,6 +11,8 @@
 }
 .prompt {
   color: var(--text-4);
+  /* decoration: a selected command copies without its "$ " and pastes into a shell as is */
+  user-select: none;
 }
 .note {
   color: var(--text-4);
