@@ -1,4 +1,6 @@
 import { Legend } from '@/components/overlays/popover/Legend';
+import { capsOf, type Keymap } from '@/lib/keyboard/keymap';
+import { MATURITY_KEYMAP } from '../../model/keys/keymap';
 import styles from './MaturityLegend.module.css';
 
 const line = (cls: string, dashed?: boolean) => (
@@ -26,6 +28,11 @@ const GLYPHS = {
   tick: <span className={styles.tick}>✓</span>,
 } as const;
 
+type KeyId = typeof MATURITY_KEYMAP extends Keymap<infer I> ? I : never;
+/** The legend's short word per keymap entry; the keys themselves come from the keymap, so a bound key is a named key. */
+const WORD: Record<KeyId, string> = { move: 'stage', go: 'steps', pick: 'pick', mode: 'crag', rescan: 'rescan' };
+const KEYS_LINE = MATURITY_KEYMAP.entries.map((e) => `${capsOf(e.keys).map((c) => (c.length === 1 ? c.toUpperCase() : c)).join(' ')} ${WORD[e.id]}`).join(' · ');
+
 /** The "?" popover: what the crag's marks mean, and the four credit rules. */
 export function MaturityLegend() {
   return (
@@ -52,7 +59,7 @@ export function MaturityLegend() {
         ]}
       />
       <hr />
-      <div className={styles.keys}>←→ stage · P pick · 1–4 steps · D N T crag · R rescan</div>
+      <div className={styles.keys}>{KEYS_LINE}</div>
     </>
   );
 }
