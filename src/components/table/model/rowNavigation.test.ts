@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupNavId, isTypeAhead, moveBy, navigate, rowDomId, type NavItem } from './rowNavigation';
+import { groupNavId, isTypeAhead, moveBy, navigate, revealDelta, rowDomId, type NavItem } from './rowNavigation';
 
 const g1 = groupNavId('core');
 const g2 = groupNavId('pay');
@@ -79,5 +79,20 @@ describe('helpers', () => {
     expect(isTypeAhead({ key: ' ', ...base })).toBe(false);
     expect(isTypeAhead({ key: 'Enter', ...base })).toBe(false);
     expect(isTypeAhead({ key: 'a', ...base, metaKey: true })).toBe(false);
+  });
+});
+
+describe('revealDelta', () => {
+  // a 300px pane whose horizontal scrollbar (11px, base.css) leaves 289px of rows; 24px of sticky header on top
+  const box = { rect: { top: 0, bottom: 300 }, clientTop: 0, clientHeight: 289 };
+  it('scrolls up under the sticky header and leaves a visible row alone', () => {
+    expect(revealDelta({ top: 10, bottom: 32 }, box, 24)).toBe(-14);
+    expect(revealDelta({ top: 100, bottom: 122 }, box, 24)).toBe(0);
+  });
+  it('treats a row under the horizontal scrollbar as hidden', () => {
+    expect(revealDelta({ top: 270, bottom: 292 }, box, 24)).toBe(5);
+  });
+  it('with no scrollbar the band ends at the pane edge', () => {
+    expect(revealDelta({ top: 270, bottom: 292 }, { ...box, clientHeight: 300 }, 24)).toBe(0);
   });
 });

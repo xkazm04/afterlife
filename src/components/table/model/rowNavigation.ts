@@ -68,3 +68,22 @@ export function navigate(items: readonly NavItem[], selected: string | null, key
 export function isTypeAhead(e: { key: string; ctrlKey: boolean; metaKey: boolean; altKey: boolean }): boolean {
   return e.key.length === 1 && e.key !== '/' && !e.ctrlKey && !e.metaKey && !e.altKey && /\S/.test(e.key);
 }
+
+/** The measures of the scrolling table that revealDelta reads (a DOMRect plus the element's client box). */
+export interface ScrollBox {
+  rect: { top: number; bottom: number };
+  clientTop: number;
+  clientHeight: number;
+}
+
+/**
+ * How far to scroll (scrollTop delta) so a row of `row` (client rect) shows below `cover` px of sticky header and group
+ * row and above a horizontal scrollbar. 0 when it already shows; 2px of air at the bottom.
+ */
+export function revealDelta(row: { top: number; bottom: number }, box: ScrollBox, cover: number): number {
+  const top = box.rect.top + box.clientTop + cover;
+  const bottom = box.rect.top + box.clientTop + box.clientHeight; // not rect.bottom: that includes a horizontal scrollbar
+  if (row.top < top) return row.top - top;
+  if (row.bottom > bottom - 2) return row.bottom - bottom + 2;
+  return 0;
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, type KeyboardEvent, type RefObject } from 'react';
-import { isTypeAhead, navigate, rowDomId, type NavItem } from './model/rowNavigation';
+import { isTypeAhead, navigate, revealDelta, rowDomId, type NavItem } from './model/rowNavigation';
 
 export interface RowNavigationOptions {
   /** The visible rows in order: groups ("g:" ids) and rows. Collapsed groups contribute no children. */
@@ -36,11 +36,8 @@ export function useRowNavigation(o: RowNavigationOptions) {
     const head = tbl.querySelector<HTMLElement>('[data-part="thead"]')?.offsetHeight ?? 0;
     const isGroup = selected.startsWith('g:');
     const groupH = grouped && !isGroup ? (tbl.querySelector<HTMLElement>('[data-part="group-row"]')?.offsetHeight ?? 0) : 0;
-    const tr = tbl.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    const top = tr.top + head + groupH;
-    if (r.top < top) tbl.scrollTop -= top - r.top;
-    else if (r.bottom > tr.bottom - 2) tbl.scrollTop += r.bottom - tr.bottom + 2;
+    const delta = revealDelta(el.getBoundingClientRect(), { rect: tbl.getBoundingClientRect(), clientTop: tbl.clientTop, clientHeight: tbl.clientHeight }, head + groupH);
+    if (delta) tbl.scrollTop += delta;
   }, [selected, grouped, tableRef]);
 
   return useCallback(
