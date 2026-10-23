@@ -12,11 +12,12 @@ import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import { liveNeeds, stateLine, topWaiting } from '../../model/totals';
 import type { Totals } from '../../model/types';
-import { Decisions } from './Decisions';
+import { Decisions, fleetHref } from './Decisions';
 import styles from './inspector.module.css';
 
-const EXITS: readonly [string, string][] = [
-  ['Fleet', '/fleet'],
+/** Where the picked project goes next. Fleet opens that project's own page (as the Fleet table's rows do); the rest are screens. */
+const exitsFor = (id: string): readonly [string, string][] => [
+  ['Fleet', fleetHref(id)],
   ['Needs you', '/needs-you'],
   ['Ladder', '/ladder'],
   ['Maturity', '/maturity'],
@@ -96,7 +97,7 @@ export function MonitorInspector(props: {
       ) : null}
       <InspectorSection title="Open">
         <div className={styles.acts}>
-          {EXITS.map(([label, href]) => (
+          {exitsFor(p.id).map(([label, href]) => (
             <Button key={href} href={href}>
               {label}
             </Button>

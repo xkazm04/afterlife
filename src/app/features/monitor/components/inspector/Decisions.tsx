@@ -8,6 +8,9 @@ import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { decisionsWord, liveNeeds } from '../../model/totals';
 import styles from './inspector.module.css';
 
+/** A project's own Fleet page (/fleet/[project]), not the whole table. */
+export const fleetHref = (id: string): string => `/fleet/${encodeURIComponent(id)}`;
+
 /**
  * The items to act on, for the selected beat. The deep project lists its real decisions (none listed: it reads like any other project). Demo resolves one on a click
  * (the button's tooltip says what it does); live claims nothing: the button opens Needs you, where it is decided; another project says how many wait and where to take them.
@@ -80,7 +83,7 @@ export function Decisions({
           <Button variant="primary" href="/needs-you">
             Review in Needs you
           </Button>
-          <Button href="/fleet">Show in Fleet</Button>
+          <Button href={fleetHref(p.id)}>Show in Fleet</Button>
         </div>
       </div>
     );
