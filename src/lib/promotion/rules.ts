@@ -23,6 +23,20 @@ export interface PromotionRule {
 
 export const pct = (x: number): string => `${Math.round(x * 100)} %`;
 
+/**
+ * A ratio shown beside the threshold `pct(need)` names. A met one is `pct` (rounding never takes it below the shown
+ * threshold); a short one gets the decimals it needs, up to two and then cut down, never to read as reaching it.
+ */
+export function pctAgainst(x: number, need: number): string {
+  if (x >= need) return pct(x);
+  const shownNeed = Math.round(need * 100);
+  for (const f of [1, 10, 100]) {
+    const v = Math.round(x * 100 * f) / f;
+    if (v < shownNeed) return `${v} %`;
+  }
+  return `${Math.floor(x * 10000) / 100} %`;
+}
+
 /** A counter no row or event states: its rule is never met. */
 export const NOT_RECORDED = 'not recorded';
 
@@ -106,7 +120,7 @@ export const HUMAN_KEY = 'a person merges this MR; Belay never merges it';
 export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], proofClass: string): PromotionRule[] {
   const rows: PromotionRule[] = [
     countRule('accepted outputs', r.accepted, t.accepted),
-    { name: `merged without edits ≥ ${pct(t.noEditRatio)}`, ...counted(r.noEdit, pct, (n) => n >= t.noEditRatio) },
+    { name: `merged without edits ≥ ${pct(t.noEditRatio)}`, ...counted(r.noEdit, (n) => pctAgainst(n, t.noEditRatio), (n) => n >= t.noEditRatio) },
     countRule('clean days', r.cleanDays, t.cleanDays),
     { name: 'reverts', ...counted(r.reverts, String, (n) => n === 0) },
     { name: 'mechanical proof class', value: proofClass, met: isMechanical(proofClass) },

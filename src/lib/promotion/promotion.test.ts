@@ -65,6 +65,17 @@ describe('promotion', () => {
     expect(pct(0.94)).toBe('94 %');
     expect(pct(1)).toBe('100 %');
   });
+  it('a short no-edit ratio never reads as reaching the threshold its row names', () => {
+    const value = (noEdit: number) => {
+      const p = promotion(subject({ record: rec({ noEdit }) }), 'exploit-test', RULES);
+      return p.kind === 'notyet' || p.kind === 'eligible' ? p.rules[1] : undefined;
+    };
+    expect(value(26 / 29)).toMatchObject({ name: 'merged without edits ≥ 90 %', value: '89.7 %', met: false });
+    expect(value(0.89999)).toMatchObject({ value: '89.99 %', met: false });
+    expect(value(0.9)).toMatchObject({ value: '90 %', met: true });
+    expect(value(0.904)).toMatchObject({ value: '90 %', met: true });
+    expect(value(0.5)).toMatchObject({ value: '50 %', met: false });
+  });
 });
 
 describe('counters a live record does not know', () => {
