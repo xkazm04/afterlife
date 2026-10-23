@@ -63,6 +63,11 @@ export function findWeakening(files: readonly DiffFile[]): Weakening[] {
       out.push({ file: f.path, kind: 'file-deleted', detail: 'test file deleted' });
       continue;
     }
+    if (f.oldPath && isTestPath(f.oldPath) && !isTestPath(f.path)) {
+      // a move out of the test tree deletes the test from the run, even at 100 % similarity with no hunk to read
+      out.push({ file: f.path, kind: 'file-deleted', detail: `test file ${f.oldPath} renamed to ${f.path}, outside the test paths` });
+      continue;
+    }
     let declRemoved = 0;
     let declAdded = 0;
     for (const h of f.hunks) {

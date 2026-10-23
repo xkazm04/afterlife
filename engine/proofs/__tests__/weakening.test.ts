@@ -64,6 +64,15 @@ describe('findWeakening', () => {
     expect(kinds('diff --git a/src/test/kotlin/FooTest.kt b/src/test/kotlin/FooTest.kt\ndeleted file mode 100644\n--- a/src/test/kotlin/FooTest.kt\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-class FooTest\n-fun a() {}\n')).toEqual(['file-deleted']);
     expect(kinds(edit(T, [' class FooTest {', '-    @Test', '-    fun b() {}', ' }']))).toEqual(['test-removed']);
   });
+  it('flags a test file renamed out of the test paths: nothing runs it, though no line changed', () => {
+    const mv = (to: string) => `diff --git a/${T} b/${to}
+similarity index 100%
+rename from ${T}
+rename to ${to}
+`;
+    expect(findWeakening(parseDiff(mv('attic/Foo.kt.txt')))).toEqual([{ file: 'attic/Foo.kt.txt', kind: 'file-deleted', detail: `test file ${T} renamed to attic/Foo.kt.txt, outside the test paths` }]);
+    expect(kinds(mv('src/test/kotlin/export/FooTest.kt'))).toEqual([]);
+  });
   it('flags an expected value edited to match the output, but not a changed actual', () => {
     expect(kinds(edit('web/a.test.ts', ['-  expect(f(2)).toBe(4);', '+  expect(f(2)).toBe(5);']))).toEqual(['changed-assertion']);
     expect(kinds(edit('web/a.test.ts', ['-  expect(f(2)).toBe(4);', '+  expect(f(2, opts)).toBe(4);']))).toEqual([]);
