@@ -3,7 +3,7 @@ import { SHORTCUTS } from '../data/shortcuts';
 import { SettingsSection } from './SettingsSection';
 import styles from './KeyboardSection.module.css';
 
-/** The shortcuts that work on every screen: text size (Cmd on a Mac, Ctrl on Windows) and the inspector toggle. */
+/** The global shortcuts: text size on every screen (Cmd on a Mac, Ctrl on Windows), the inspector toggle where one is drawn. */
 export function KeyboardSection() {
   return (
     <SettingsSection id="keyboard" title="Everywhere">
