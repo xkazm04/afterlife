@@ -22,8 +22,7 @@ function throughOf(v: string | undefined): number | null {
 }
 
 export function trialCommand(argv: readonly string[], ctx: Ctx): CommandResult {
-  const args = parseArgs(argv, { values: ['chain', 'agent', 'class', 'since', 'through', 'head'] });
-  if (args.positional.length > 0) throw new EngineError(`usage: ${TRIAL_USAGE}`);
+  const args = parseArgs(argv, { values: ['chain', 'agent', 'class', 'since', 'through', 'head'], positional: 0 });
   const [file, agent, classId, since] = [args.need('chain'), args.need('agent'), args.need('class'), args.need('since')];
   const from = isoMs(since, '--since'); // as ledger-record reads record.since: Date.parse('10') is 2001
   const through = throughOf(args.get('through'));

@@ -106,4 +106,9 @@ describe('ledger trial: the chain alone, read as the MR states it', () => {
     }
     expect(trial('--since', '2026-09-20T10:00:00+02:00').code).toBe(0);
   });
+
+  it('a stray argument is refused by name, as every other command refuses one (parseArgs positional: 0)', () => {
+    const r = trial('extra');
+    expect([r.code, r.json.error]).toEqual([2, 'unexpected argument "extra"']);
+  });
 });
