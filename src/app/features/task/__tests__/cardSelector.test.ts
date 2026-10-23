@@ -17,6 +17,11 @@ describe('cardSelector', () => {
     expect(cardSelector('claim', 'a\\b')).toBe('[data-claim-card="a\\\\b"]');
     expect(cardSelector('check', 'a\nb')).toBe('[data-check-card="a\\a b"]');
   });
+  it('escapes every CSS newline (CR and FF are newlines too), so none reaches the string raw', () => {
+    expect(cardSelector('check', 'a\rb')).toBe('[data-check-card="a\\d b"]');
+    expect(cardSelector('check', 'a\fb')).toBe('[data-check-card="a\\c b"]');
+    expect(cardSelector('check', 'a\r\nb\f')).not.toMatch(/[\n\r\f]/);
+  });
 });
 
 describe('no raw id reaches a card selector', () => {

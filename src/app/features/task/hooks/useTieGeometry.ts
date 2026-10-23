@@ -15,9 +15,13 @@ export interface Geometry {
   scale: number;
 }
 
-/** Attribute selector for a card by id. Ids come from the data source, so `"`, `\` and newlines are escaped: an odd id then misses instead of throwing a SyntaxError from a layout effect. */
+/**
+ * Attribute selector for a card by id. Ids come from the data source, so `"`, `\` and the CSS newlines (LF, CR, FF: a raw
+ * one ends the string) are escaped, the newlines as their hex code: an odd id then matches instead of throwing a SyntaxError
+ * from a layout effect.
+ */
 export function cardSelector(side: 'claim' | 'check', id: string): string {
-  const escaped = id.replace(/[\\"]/g, '\\$&').replace(/\n/g, '\\a ');
+  const escaped = id.replace(/[\\"]/g, '\\$&').replace(/[\n\r\f]/g, (c) => `\\${c.charCodeAt(0).toString(16)} `);
   return `[data-${side}-card="${escaped}"]`;
 }
 
