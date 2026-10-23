@@ -66,8 +66,9 @@ function verifyEnd(s: SetupState, id: string, v: Verdict): SetupState {
 
 function pickGroup(s: SetupState, group: string, now: number, at: string): SetupState {
   if (group === s.group) return s;
-  if (group === s.homeGroup) return { ...s, group, doctor: s.homeDoctor, doctorNever: false, doctorAt: now, doctorProbedAt: at };
-  return { ...s, group, doctor: s.homeDoctor.map((r) => ({ name: r.name, st: 'unknown' })), doctorNever: true };
+  // A failed re-probe's reason is the group's it was asked on: a switch leaves it behind (only the demo switches groups).
+  if (group === s.homeGroup) return { ...s, group, doctor: s.homeDoctor, doctorNever: false, doctorAt: now, doctorProbedAt: at, doctorError: null };
+  return { ...s, group, doctor: s.homeDoctor.map((r) => ({ name: r.name, st: 'unknown' })), doctorNever: true, doctorError: null };
 }
 
 /** Live: each step as the read saw it; a step in flight or with no read keeps its state. */
@@ -98,8 +99,9 @@ function unsay(s: SetupState, n: number): SetupState {
 
 function doctorRead(s: SetupState, d: DoctorRead | null, reason = 'the re-probe got no answer', at?: ReadStamp): SetupState {
   // No read came back: the rows stay, but the bar reads "probe failed" (at `at`, the attempt), never the old probe as fresh.
+  // A group never probed stays never probed (there is no old probe to date), and still says why this one failed.
   if (!d) {
-    if (s.doctorNever) return { ...s, doctorBusy: false };
+    if (s.doctorNever) return { ...s, doctorBusy: false, doctorError: reason };
     return { ...s, doctorBusy: false, doctorError: reason, ...(at ? { doctorAt: Date.parse(at.at), doctorProbedAt: at.label } : {}) };
   }
   const rows = doctorRowsOf(d);
@@ -127,7 +129,7 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
       return s.doctorBusy ? s : { ...s, doctorBusy: true };
     case 'doctor-end': {
       const rows = s.group === s.homeGroup ? s.doctor : s.homeDoctor.map((r, i) => ({ name: r.name, st: toCapStatus(OTHER_GROUP.rows[i] ?? 'unknown') }));
-      return { ...s, doctor: rows, doctorBusy: false, doctorAt: a.now, doctorProbedAt: a.at, doctorNever: false };
+      return { ...s, doctor: rows, doctorBusy: false, doctorAt: a.now, doctorProbedAt: a.at, doctorNever: false, doctorError: null };
     }
     case 'doctor-read':
       return doctorRead(s, a.doctor, a.reason, a.at);

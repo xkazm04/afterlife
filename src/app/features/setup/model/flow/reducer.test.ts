@@ -149,4 +149,13 @@ describe('the doctor and groups', () => {
     expect(s.doctorNever).toBe(false);
     expect(doctorCounts(s).available).toBe(6);
   });
+  it('a re-probe that fails on a never-probed group keeps the reason, and still says never probed', () => {
+    const s = run(fresh(), { t: 'pick-group', group: 'acme-sandbox', now: 5, at: '14:06' }, { t: 'doctor-start' });
+    const failed = run(s, { t: 'doctor-read', doctor: null, reason: 'the server did not answer' });
+    expect(failed).toMatchObject({ doctorBusy: false, doctorNever: true, doctorError: 'the server did not answer' });
+    expect(doctorCounts(failed).unknown).toBe(9);
+    // the reason stays with that group: a good probe or a switch back clears it
+    expect(run(failed, { t: 'doctor-start' }, { t: 'doctor-end', now: 9, at: '14:07' }).doctorError).toBeNull();
+    expect(run(failed, { t: 'pick-group', group: 'acme-lab', now: 7, at: '14:08' }).doctorError).toBeNull();
+  });
 });
