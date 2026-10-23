@@ -48,7 +48,7 @@ exit: 0 pass, 1 fail, 2 inconclusive or error`;
 
 export function main(argv: readonly string[], io: Io = { stdout: (s) => process.stdout.write(s), stderr: (s) => process.stderr.write(s) }): ExitCode {
   const [cmd, ...rest] = argv;
-  const run = cmd ? COMMANDS[cmd] : undefined;
+  const run = cmd && Object.hasOwn(COMMANDS, cmd) ? COMMANDS[cmd] : undefined; // `toString` is no command, and exited 0
   if (!run) {
     io.stderr(`${cmd ? `unknown command "${cmd}"\n` : ''}${USAGE}\n`);
     io.stdout(`${JSON.stringify({ error: cmd ? `unknown command ${cmd}` : 'no command' })}\n`);

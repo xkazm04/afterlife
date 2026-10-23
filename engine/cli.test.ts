@@ -61,7 +61,7 @@ describe('exit codes: 0 pass, 1 fail, 2 inconclusive or error', () => {
       ['prove', '--class', 'rerun-stats', '--input', bad],
       ['prove', '--class', 'rerun-stats'],
       ['prove', '--class', 'rerun-stats', '--input', bad, '--bogus', '1'],
-      ['frobnicate'],
+      ['frobnicate'], ['toString'], ['constructor'], ['__proto__'],
       [],
     ];
     for (const argv of cases) {
