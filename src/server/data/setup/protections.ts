@@ -46,11 +46,15 @@ function guardedAgainstDevelopers(c: StepCtx, p: () => GlProject, kind: 'protect
   };
 }
 
-/** A CODEOWNERS rule covers `path` when its pattern is the path, rooted or not, or the folder with a trailing glob. */
+/**
+ * A CODEOWNERS rule covers `path` when its pattern is the path, rooted or not, or the folder with a trailing glob, or a
+ * catch-all (`*`, `**`, `/**`: every file); `/*` is the root's own files only, so it covers a root file, not a folder.
+ */
 export function covers(codeowners: string, path: string): boolean {
   return codeowners.split('\n').some((line) => {
     const pattern = line.trim().split(/\s+/)[0] ?? '';
     if (!pattern || pattern.startsWith('#') || pattern.startsWith('[') || pattern.startsWith('^[')) return false;
+    if (/^\/?\*+$/.test(pattern)) return pattern !== '/*' || !path.endsWith('/');
     return pattern.replace(/^\//, '').replace(/\*+$/, '') === path;
   });
 }

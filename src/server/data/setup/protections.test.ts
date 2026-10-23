@@ -103,6 +103,11 @@ describe("step 9's commands run as written where GitLab already protects main (c
     for (const f of ['/.gitlab/ @a', '.gitlab/** @a', '/.gitlab/* @a']) expect(covers(f, '.gitlab/')).toBe(true);
     for (const f of ['# /.gitlab-ci.yml @a', '[CI] @a', '/src/ @a']) expect(covers(f, '.gitlab-ci.yml')).toBe(false);
   });
+
+  it('a catch-all owner rule (* or /**) covers both; /* covers a file in the root, not the .gitlab/ folder', () => {
+    for (const f of ['* @a', '** @a', '/** @a']) expect([covers(f, '.gitlab-ci.yml'), covers(f, '.gitlab/')]).toEqual([true, true]);
+    expect([covers('/* @a', '.gitlab-ci.yml'), covers('/* @a', '.gitlab/')]).toEqual([true, false]);
+  });
 });
 
 describe("step 9's and step 5's target commands on a target in a subgroup (craft-1)", () => {
