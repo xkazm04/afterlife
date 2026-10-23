@@ -17,9 +17,8 @@
   border-style: dashed;
   background: repeating-linear-gradient(135deg, transparent 0 3px, var(--border-2) 3px 4px);
 }
-.you {
-  background: var(--needs-you);
-  border-color: var(--needs-you);
+.open {
+  border-color: color-mix(in oklab, var(--needs-you) 70%, transparent);
 }
 .unk {
   border: 1px dashed var(--unknown);
@@ -60,4 +59,11 @@ path.unk {
 }
 .sunk {
   border: 1px dashed var(--unknown);
+}
+.shuman {
+  background: var(--needs-you);
+  border-color: var(--needs-you);
+}
+.sprobe {
+  border-color: var(--accent);
 }

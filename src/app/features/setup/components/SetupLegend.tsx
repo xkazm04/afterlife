@@ -1,4 +1,5 @@
 import { Legend } from '@/components/overlays/popover/Legend';
+import { STEP_ROWS, TRACK_ROWS } from './legendRows';
 import styles from './SetupLegend.module.css';
 
 const node = (cls: string) => <span className={`${styles.n} ${styles[cls] ?? ''}`} />;
@@ -13,23 +14,9 @@ const edge = (cls: string) => (
 export function SetupLegend() {
   return (
     <>
-      <Legend
-        rows={[
-          [node('arm'), 'Armed · revert disarms'],
-          [node('rdy'), 'Ready to arm · one MR'],
-          [node('lck'), 'Locked · hover says why'],
-          [node('you'), 'Needs you · only a person can'],
-          [node('unk'), 'Unknown · never rounded up'],
-        ]}
-      />
+      <Legend rows={TRACK_ROWS.map((r) => [node(r.cls), r.text])} />
       <hr />
-      <Legend
-        rows={[
-          [step('sdone'), 'Step probed · a read saw it done'],
-          [step('sfail'), 'Step probed · not yet'],
-          [step('sunk'), 'Step unknown · nobody probed it'],
-        ]}
-      />
+      <Legend rows={STEP_ROWS.map((r) => [step(r.cls), r.text])} />
       <hr />
       <Legend
         rows={[
