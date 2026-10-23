@@ -12,6 +12,6 @@ export const GAP_DETAIL: ClickCopy & {
     g3: 'Releases already carry an SBOM. A VEX statement would say which findings do not affect you, and why.',
     g4: 'Monitor was unknown on day 0. A probe could find out what the alert integration really does before anything is proposed.',
   },
-  does: ['Opens one draft MR per picked gap, as you (the probe has no door yet and opens nothing)', 'Each MR waits for your review: ci-config.change is Assisted'],
+  does: ['Opens one draft MR per picked gap, as you (the probe has no door yet and opens nothing)', 'Each MR waits for your review: ci-config.change is Assisted (the probe is read only and opens no MR)'],
   doesNot: ['merge anything', 'open anything for a gap you leave unticked', 'move a rung before the next scan proves it'],
 };
