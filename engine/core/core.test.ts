@@ -72,6 +72,20 @@ describe('an optional path given empty is refused, not read as the working direc
   });
 });
 
+describe('gate: a guardrail whose verdict and label disagree is not a pass', () => {
+  it('{verdict: pass, label: guardrail::block} waits, naming both; agreeing ones pass as before', () => {
+    const run = (argv: string[]) => { const c = capture(); return { code: main(argv, c.io), json: c.json() as Record<string, unknown> }; };
+    const proof = path.join(tmp, 'gproof.json');
+    fs.writeFileSync(proof, JSON.stringify(run(['prove', '--class', 'exploit-test', '--input', 'engine/__fixtures__/exploit/input.pass.json']).json));
+    const gate = (g: object) => { fs.writeFileSync(path.join(tmp, 'g.json'), JSON.stringify(g)); return run(['gate', '--class', 'dep-bump.patch', '--proof', proof, '--guardrail', path.join(tmp, 'g.json')]).json; };
+    expect(gate({ verdict: 'pass', label: 'guardrail::pass' }).decision).toBe('approve');
+    expect(gate({ label: 'guardrail::pass' }).decision).toBe('approve');
+    const split = gate({ verdict: 'pass', label: 'guardrail::block' });
+    expect(split.decision).toBe('wait');
+    expect(split.reasons).toContainEqual(expect.stringMatching(/verdict pass, label block/));
+  });
+});
+
 describe('engine pin', () => {
   it('reports a version and a stable sha256 of its own source', () => {
     const info = engineInfo();

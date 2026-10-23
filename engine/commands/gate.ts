@@ -37,7 +37,10 @@ function toGuardrail(raw: unknown): GuardrailVerdict | undefined {
   if (raw === undefined) return undefined;
   if (!isRecord(raw)) throw new EngineError('--guardrail must be a JSON object');
   const label = optStr(raw.label, 'guardrail.label')?.replace(/^guardrail::/, '');
-  return { verdict: optStr(raw.verdict, 'guardrail.verdict') ?? label ?? 'unknown', severity: optStr(raw.severity, 'guardrail.severity') };
+  const verdict = optStr(raw.verdict, 'guardrail.verdict');
+  // fail closed: a verdict and a label that disagree are neither, so the gate waits rather than take the kinder one
+  const said = verdict !== undefined && label !== undefined && verdict !== label ? `verdict ${verdict}, label ${label}` : (verdict ?? label ?? 'unknown');
+  return { verdict: said, severity: optStr(raw.severity, 'guardrail.severity') };
 }
 
 export function gateCommand(argv: readonly string[], ctx: Ctx): CommandResult {
