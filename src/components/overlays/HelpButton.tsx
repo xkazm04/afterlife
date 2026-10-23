@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { usePopover } from './popover/usePopover';
 import styles from './HelpButton.module.css';
 
@@ -10,11 +10,12 @@ import styles from './HelpButton.module.css';
  */
 export function HelpButton({ title = 'Legend', children }: { title?: string; children: ReactNode }) {
   const pop = usePopover();
+  const legendId = useId();
   const body = (
-    <>
+    <div id={legendId}>
       <h4>{title}</h4>
       {children}
-    </>
+    </div>
   );
   const peek = (el: Element) => pop.show(el, body, { delay: true, placement: 'above' });
   return (
@@ -26,6 +27,7 @@ export function HelpButton({ title = 'Legend', children }: { title?: string; chi
         aria-label={title}
         aria-haspopup="dialog"
         aria-expanded={pop.isSticky}
+        aria-describedby={pop.isOpen && !pop.isSticky ? legendId : undefined}
         onMouseEnter={(e) => peek(e.currentTarget)}
         onMouseLeave={pop.hide}
         onFocus={(e) => peek(e.currentTarget)}

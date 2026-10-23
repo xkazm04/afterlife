@@ -5,8 +5,8 @@ import styles from './KeyValue.module.css';
 export function KeyValue({ rows }: { rows: readonly (readonly [string, ReactNode])[] }) {
   return (
     <dl className={styles.kv}>
-      {rows.map(([k, v]) => (
-        <div key={k} className={styles.row}>
+      {rows.map(([k, v], i) => (
+        <div key={`${i}:${k}`} className={styles.row}>
           <dt>{k}</dt>
           <dd>{v ?? <span className={styles.unknown}>unknown</span>}</dd>
         </div>

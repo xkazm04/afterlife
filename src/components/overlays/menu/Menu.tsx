@@ -49,11 +49,15 @@ export function Menu<D = unknown>({
     latest.current = { items, onHighlight, onClose };
   });
 
+  // Re-clamped whenever the items change too: a keep-open menu grows or shrinks in place. An unchanged spot is not a new state.
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    setPos(clampToViewport({ x, y }, { w: el.offsetWidth, h: el.offsetHeight }, { w: innerWidth, h: innerHeight }));
-    el.focus({ preventScroll: true });
+    const next = clampToViewport({ x, y }, { w: el.offsetWidth, h: el.offsetHeight }, { w: innerWidth, h: innerHeight });
+    setPos((p) => (p.x === next.x && p.y === next.y ? p : next));
+  }, [x, y, items]);
+  useLayoutEffect(() => {
+    ref.current?.focus({ preventScroll: true });
   }, [x, y]);
 
   useEffect(() => {

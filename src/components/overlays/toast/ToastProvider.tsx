@@ -9,7 +9,8 @@ const STATUS_MS = 4000;
 
 /** Provides useToast(): the floating toast and the status-bar message. Mount once near the root. */
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [message, setMessage] = useState('');
+  // `id` bumps on every toast() so the text lands in a fresh node: an identical string would otherwise change nothing in the live region.
+  const [shown, setShown] = useState({ message: '', id: 0 });
   const [statusMessage, setStatusMessage] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const statusTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -23,9 +24,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 
   const toast = useCallback((m: string) => {
-    setMessage(m);
+    setShown((s) => ({ message: m, id: s.id + 1 }));
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setMessage(''), TOAST_MS);
+    toastTimer.current = setTimeout(() => setShown((s) => ({ message: '', id: s.id })), TOAST_MS);
   }, []);
   const status = useCallback((m: string) => {
     setStatusMessage(m);
@@ -39,8 +40,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={api}>
       {children}
       {/* the live region stays mounted: one inserted together with its text is often not announced */}
-      <div className={message ? styles.toast : undefined} role="status" aria-live="polite">
-        {message}
+      <div className={shown.message ? styles.toast : undefined} role="status" aria-live="polite">
+        <span key={shown.id}>{shown.message}</span>
       </div>
     </ToastContext.Provider>
   );
