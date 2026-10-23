@@ -24,6 +24,7 @@ export const Labels = memo(function Labels({ ds, hotG, tabbable, onHover, onOpen
           onPointerEnter={() => onHover(d.gi)}
           onPointerLeave={() => onHover(null)}
           onFocus={() => onHover(d.gi)}
+          onBlur={() => onHover(null)}
           onClick={() => onOpen(d.gi)}
         >
           <span className={styles.dl1} data-role="door-label-name">
