@@ -25,4 +25,8 @@ describe('RungSteps', () => {
     }
     for (const f of ['stage/Board.module.css', 'rail/Rail.module.css']) expect(read(f)).not.toMatch(/\bi\.on\b/);
   });
+  it('names the rung it draws, so a screen reader hears "R2 of 4 (running)" where a sighted viewer sees two filled steps', () => {
+    expect(html(2)).toContain('role="img" aria-label="R2 of 4 (running)"');
+    expect(html(0)).toContain('aria-label="R0 of 4 (absent)"');
+  });
 });
