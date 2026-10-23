@@ -1,20 +1,21 @@
 # Local index (PGlite)
 Belay's cache of GitLab plus the ledger, in embedded Postgres (`@electric-sql/pglite`). Data lives in
-`$BELAY_DATA_DIR/index` (default `.belay/index`, gitignored); tests use `memoryIndex()`. Delete the folder and
-nothing is lost: every table is rebuilt from the source in the last column.
+`$BELAY_DATA_DIR/index` (default `.belay/index`, gitignored); tests use `memoryIndex()`. Delete the folder and every
+table is rebuilt from the source in the last column, except the two marked **not rebuildable** (Belay's own records).
 
 | Table | Holds | Rebuilt from |
 |---|---|---|
 | `fleet_group`, `project`, `project_stage` | groups, projects, nine rungs per project | GitLab group/project API + maturity scan |
 | `trust_class`, `class_tier` | classes; per project and class the tier recorded in tier-state.yml, capped by the policy, its lease, record and last move (`no_record` when no agent holds the class, `refused` when several do, with each holder's tier: read by `views/standing.ts`) | `belay-policy` trust-policy.yml, tier-state.yml + ledger |
 | `ledger_event` | hash chain, unique `(project_id, seq)`, append-only trigger | `belay-ledger/events/<id>.jsonl` (`resetLedger` then re-append) |
-| `cycle_record` | closed improvement cycles per GitLab project id, hash-chained | `belay-ledger/cycles/<id>.jsonl` |
+| `cycle_record` | closed improvement cycles per project (the index's project id; each record keeps the GitLab id it names), hash-chained | `belay-ledger/cycles/<id>.jsonl` |
 | `task`, `proof` | tasks and Proof Blocks | MR notes (`belay-proof`, `Belay-Task:` trailer) + ledger |
 | `proposal` | Needs-you inbox; gap picks are children of one `gap` item | GitLab state, CRA clocks, maturity scan |
 | `stage_cell` | every maturity scan, latest read | repository scan (`engine_version` pinned) |
 | `pairing`, `setup_step` | where Belay is paired, what each step measured | `belay doctor` probes |
 | `poll_state` | last good poll and last error per source (`project:<id>`, `group:<group>`, and `policy:<group>` for belay-policy's files) | the poller |
 | `commands_run` | every write the operator confirmed, recorded before it runs | **not rebuildable**: Belay's own audit |
+| `action_runs` | per previewId a live confirm claimed: running, done, failed or cut, with the response sent (`server/actions/runs/journal.ts`) | **not rebuildable**: lost, a confirm with no answer recalls as never run |
 
 Project columns `proofs_*_7d`, `demotions_7d`, `needs_you`, `cra_open` are roll-ups the poller recomputes from the
 tables above. NULL means unknown, never zero.

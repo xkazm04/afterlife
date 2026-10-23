@@ -180,4 +180,10 @@ describe('README', () => {
     const missing = MIGRATIONS.map((m) => String(m.version).padStart(4, '0')).filter((v) => !readme.includes(v));
     expect(missing).toEqual([]);
   });
+
+  it('names every table in its table of what each holds and is rebuilt from', () => {
+    const rows = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8').split('\n').filter((l) => /^\| `/.test(l));
+    const named = new Set(rows.flatMap((l) => [...(l.split('|')[1] ?? '').matchAll(/`(\w+)`/g)].map((m) => m[1])));
+    expect(TABLES.filter((t) => t !== 'belay_migration' && !named.has(t))).toEqual([]);
+  });
 });
