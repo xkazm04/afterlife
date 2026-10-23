@@ -21,5 +21,11 @@ export async function rereadSetupAction(part: unknown): Promise<SetupReread> {
   if (!reads) return { status: 'refused', reason: 'demo mode: Belay reads nothing from GitLab' };
   const away = notLocal(await headers());
   if (away) return { status: 'refused', reason: away };
-  return part === 'doctor' ? { status: 'doctor', doctor: await reads.doctor() } : { status: 'steps', steps: await reads.steps() };
+  try {
+    return part === 'doctor' ? { status: 'doctor', doctor: await reads.doctor() } : { status: 'steps', steps: await reads.steps() };
+  } catch (e) {
+    // Answered here, not thrown: a thrown action reaches a production client as Next's masked sentence and a digest.
+    console.error(`belay: setup re-read of the ${part} failed`, e);
+    return { status: 'refused', reason: `the ${part} could not be read: ${e instanceof Error ? e.message : 'unknown error'}` };
+  }
 }

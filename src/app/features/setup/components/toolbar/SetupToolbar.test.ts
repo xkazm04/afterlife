@@ -10,7 +10,7 @@ import { groupNote } from './SetupToolbar';
 describe('the group menu note', () => {
   const home = createSetupState(getSetup(), 0);
   const other = OTHER_GROUP.name;
-  const picked = setupReducer(home, { t: 'pick-group', group: other, now: 1, at: '14:06' });
+  const picked = setupReducer(home, { t: 'pick-group', group: other });
   const reprobed = setupReducer(picked, { t: 'doctor-end', now: 2, at: '14:07' });
 
   it('opens on the home group, probed; the other group has not been probed', () => {
@@ -28,7 +28,7 @@ describe('the group menu note', () => {
     expect(groupNote(reprobed, home.homeGroup)).toBe('probed');
   });
   it('a probed group left for home is never probed again when picked back', () => {
-    const away = setupReducer(reprobed, { t: 'pick-group', group: home.homeGroup, now: 4, at: '14:08' });
+    const away = setupReducer(reprobed, { t: 'pick-group', group: home.homeGroup });
     expect(groupNote(away, other)).toBe('never probed');
   });
 });

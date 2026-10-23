@@ -24,7 +24,7 @@ export type SetupAction =
   /** Live: the operator says they did a human step no read can observe (at `at`), or takes it back. Writes nothing. */
   | { t: 'say-done'; n: number; at: string }
   | { t: 'unsay'; n: number }
-  | { t: 'pick-group'; group: string; now: number; at: string };
+  | { t: 'pick-group'; group: string };
 
 /** The demo's honest "not yet": a step with a failFirst text fails its first probe. */
 export const probeWillPass = (s: SetupState, n: number): boolean => !(STEP_DETAIL[n]?.failFirst && (s.attempts[n] ?? 0) === 0);

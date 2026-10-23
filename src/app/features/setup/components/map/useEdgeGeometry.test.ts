@@ -14,22 +14,26 @@ import { useEdgeGeometry, type Measured } from './useEdgeGeometry';
 
 interface Rect { top: number; left: number; right: number; height: number }
 const rect = (top: number): Rect => ({ top, left: 0, right: 100, height: 10 });
-const node = (key: string, top: number) => ({ dataset: { node: key }, getBoundingClientRect: () => rect(top) });
+let rects = 0;
+const node = (key: string, top: number) => ({ dataset: { node: key }, matches: () => true, querySelector: () => null, getBoundingClientRect: () => { rects++; return rect(top); } });
+const popover = { matches: () => false, querySelector: () => null };
 
 let observed: unknown[];
 let roCallback: (() => void) | null;
-let moCallback: (() => void) | null;
+type Recs = { addedNodes: unknown[]; removedNodes: unknown[] }[];
+let moCallback: ((r: Recs) => void) | null;
 
 beforeEach(() => {
   h.effect = null;
   h.state = null;
   observed = [];
+  rects = 0;
   roCallback = null;
   moCallback = null;
   vi.stubGlobal('window', { addEventListener: () => {}, removeEventListener: () => {} });
   vi.stubGlobal('getComputedStyle', () => ({ getPropertyValue: () => '1' }));
   vi.stubGlobal('ResizeObserver', class { constructor(cb: () => void) { roCallback = cb; } observe(el: unknown) { observed.push(el); } disconnect() {} });
-  vi.stubGlobal('MutationObserver', class { constructor(cb: () => void) { moCallback = cb; } observe() {} disconnect() {} });
+  vi.stubGlobal('MutationObserver', class { constructor(cb: (r: Recs) => void) { moCallback = cb; } observe() {} disconnect() {} });
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -51,10 +55,18 @@ describe('useEdgeGeometry', () => {
   it('observes and measures a node added after mount (a re-probe that returns more doctor rows)', () => {
     const { nodes } = useMount([node('cap:a', 0)]);
     for (let i = 0; i < 8; i++) nodes.push(node(`cap:n${i}`, 20 * i));
-    moCallback?.();
+    moCallback?.([{ addedNodes: nodes.slice(1), removedNodes: [] }]);
     roCallback?.();
     expect(nodes.every((n) => observed.includes(n))).toBe(true);
     expect(caps()).toBe(9);
+  });
+
+  it('does not re-measure when a tooltip mounts and unmounts in the canvas (a hover moves no node)', () => {
+    useMount(Array.from({ length: 32 }, (_, i) => node(`cap:n${i}`, 20 * i)));
+    const before = rects;
+    moCallback?.([{ addedNodes: [popover], removedNodes: [] }]);
+    moCallback?.([{ addedNodes: [], removedNodes: [popover] }]);
+    expect(rects - before).toBe(0);
   });
 
   it('does nothing, and does not throw, where ResizeObserver is missing', () => {
