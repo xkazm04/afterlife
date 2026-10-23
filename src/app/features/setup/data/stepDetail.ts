@@ -34,6 +34,8 @@ const own = (n: StepNames): boolean => n.host === 'gitlab.com';
 const api = (n: StepNames): string => (own(n) ? 'glab api' : `glab api --hostname ${n.host}`);
 const onHost = (n: StepNames, cmd: string): string => (own(n) ? cmd : `GITLAB_HOST=${n.host} ${cmd}`);
 const repoOf = (n: StepNames, path: string): string => (own(n) ? path : `https://${n.host}/${path}`);
+/** A page of the target project on the paired host (its full path: it can sit in a subgroup). */
+const page = (n: StepNames, rest: string): string => `https://${n.host}/${pathOf(n, n.project)}/-/${rest}`;
 /** A shell word: single-quoted when it holds a glob. */
 const word = (s: string): string => (s.includes('*') ? `'${s}'` : s);
 const MAINTAINERS = ['push_access_level=40', 'merge_access_level=40', 'allow_force_push=false'];
@@ -71,7 +73,7 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   2: { who: 'agent', does: 'Writes package.yml: group, target, tier ceiling, model route, cloud project, credit cap.', cmd: ['$EDITOR package.yml'], probe: 'package.yml · 8 of 8 answers · ceiling SUPERVISED' },
   3: {
     who: 'human', short: 'Start the Ultimate trial', does: 'Belay cannot accept terms or start a trial for you.', action: 'Start the Ultimate trial',
-    where: `GitLab → ${n.group} → Settings → Billing`, note: 'Trial credits last 30 days: start no earlier than needed.',
+    where: `GitLab → ${n.group} → Settings → Billing`, url: `https://${n.host}/groups/${n.group}/-/billings`, note: 'Trial credits last 30 days: start no earlier than needed.',
     before: `trial not detected on ${n.group}`, probe: `Ultimate trial detected on ${n.group}`,
   },
   4: {
@@ -84,12 +86,12 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   },
   6: {
     who: 'human', short: 'Provision runner and billing', does: "A card and a cloud identity are yours, not an agent's.", action: 'Provision the runner and run the generated script',
-    where: `GitLab → ${n.project} → Settings → CI/CD → Runners`, note: 'Tag gitlab--duo, Docker executor.', before: '0 runners with tag gitlab--duo online',
+    where: `GitLab → ${n.project} → Settings → CI/CD → Runners`, url: page(n, 'settings/ci_cd#js-runners-settings'), note: 'Tag gitlab--duo, Docker executor.', before: '0 runners with tag gitlab--duo online',
     probe: '1 runner with tag gitlab--duo online · smoke job queued', failFirst: 'still 0 runners with tag gitlab--duo online',
   },
   7: {
     who: 'human', short: 'Run the Cloud Shell IAM script', does: 'Connect Google Cloud without a key, as you.', action: 'Run the IAM integration script in Cloud Shell',
-    where: `GitLab → ${n.project} → Settings → Integrations → Google Cloud IAM`, note: 'Review apps for T7 run there.',
+    where: `GitLab → ${n.project} → Settings → Integrations → Google Cloud IAM`, url: page(n, 'settings/integrations'), note: 'Review apps for T7 run there.',
     before: 'OIDC test job: no token exchange yet', probe: 'OIDC test job reached Google Cloud without a key',
     unread: 'no GitLab read shows the Cloud Shell script ran. The integrations API gives this GET two paths (integration/ and integrations/), and a saved integration is not a working token exchange (docs.gitlab.com/api/project_integrations).',
   },
@@ -115,7 +117,7 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   },
   10: {
     who: 'human', short: 'Merge the bootstrap MR !2', does: 'Config applies only from the default branch, so a person merges it.', action: 'Review and merge !2 belay/bootstrap',
-    where: `GitLab → ${n.project} → Merge requests → !2`, note: 'Belay never holds a merge token.',
+    where: `GitLab → ${n.project} → Merge requests → !2`, url: page(n, 'merge_requests/2'), note: 'Belay never holds a merge token.',
     before: '!2 open · agent-config.yml absent on main', probe: '!2 merged by @you · agent-config.yml on main',
   },
   11: {

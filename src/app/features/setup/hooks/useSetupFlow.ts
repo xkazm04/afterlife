@@ -110,7 +110,12 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
         const cmd = stepDetail(ref.current, n)?.cmd ?? [];
         copy((i === undefined ? cmd : cmd.slice(i, i + 1)).join('\n'));
       },
-      openWhere: (n) => toast(`Would open: ${stepDetail(ref.current, n)?.where ?? 'GitLab'}`),
+      openWhere: (n) => {
+        // Live: the page on the paired host. The demo's group is a fixture, so it opens nothing and says where.
+        const d = stepDetail(ref.current, n);
+        if (ref.current.live && d?.url) window.open(d.url, '_blank', 'noopener,noreferrer');
+        else toast(`Would open: ${d?.where ?? 'GitLab'}`);
+      },
       armSend: (id) => send(id, false),
       armCopy: (id, revert) => {
         const view = writes.viewOf(id, revert);

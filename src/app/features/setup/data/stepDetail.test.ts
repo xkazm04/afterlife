@@ -145,3 +145,19 @@ describe('step 1 names the settings an arm MR refuses without (value-4)', () => 
     expect(skillStep(1)).toMatch(/refuses/);
   });
 });
+
+describe('"Open in GitLab ↗" on a human step has a page to open', () => {
+  const live = { host: 'gitlab.example.com', group: 'kazdanm', project: 'afterlife', path: 'kazdanm/apps/afterlife', projects: ['afterlife'] };
+  it('every human step that shows the button names a URL on the paired host', () => {
+    const d = stepDetailsFor(live);
+    const shown = Object.entries(d).filter(([, x]) => x.who === 'human' && !x.secret);
+    expect(shown.map(([n]) => Number(n))).toEqual([3, 6, 7, 10]);
+    for (const [, x] of shown) expect(x.url).toMatch(/^https:\/\/gitlab\.example\.com\/\S+$/);
+  });
+  it('a project page is the target’s full path, a billing page the group’s', () => {
+    const d = stepDetailsFor(live);
+    expect(d[3]?.url).toBe('https://gitlab.example.com/groups/kazdanm/-/billings');
+    expect(d[6]?.url).toBe('https://gitlab.example.com/kazdanm/apps/afterlife/-/settings/ci_cd#js-runners-settings');
+    expect(d[10]?.url).toBe('https://gitlab.example.com/kazdanm/apps/afterlife/-/merge_requests/2');
+  });
+});

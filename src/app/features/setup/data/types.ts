@@ -15,6 +15,8 @@ export interface StepDetail {
   write?: boolean;
   action?: string;
   where?: string;
+  /** The GitLab page `where` names, on the paired host: what "Open in GitLab ↗" opens (live only). */
+  url?: string;
   note?: string;
   /** Last-probe text shown before the step is done. */
   before?: string;
