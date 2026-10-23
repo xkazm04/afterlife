@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
   // Public origin headers (F94): the replay does not name its framework, and no page is framed by another site (a framed
   // localhost page is one click from a live write). No script-src CSP: it could not be verified (infra/cloudrun).
   poweredByHeader: false,
+  // The submission film is recorded from the running app (npm run dev), so no Next badge may sit on screen.
+  devIndicators: false,
   async headers() {
     return [
       {
