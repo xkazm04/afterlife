@@ -22,9 +22,11 @@ for (const name of fs.readdirSync(dir)) {
 
 // M6 / F100: a pipeline variable (trigger, API, manual run) outranks a job's own `variables:`, so nothing that picks the
 // engine, its pin, glab, the policy (project and ref) or the shell run beside CI_JOB_TOKEN may be a job variable: it is read
-// from `$[[ inputs.x ]]`.
-const PINNED = ['BELAY_ENGINE_PROJECT', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT', 'BELAY_POLICY_PROJECT', 'BELAY_POLICY_REF', 'BELAY_GLAB_VERSION', 'BELAY_GLAB_SHA256', 'BELAY_BUILD_ARGS', 'BELAY_PREPARE'];
-const GUARDED = ['engine_project', 'engine_ref', 'engine_commit', 'policy_project', 'policy_ref', 'glab_version', 'glab_sha256', 'build_args'];
+// from `$[[ inputs.x ]]`. Nor may the accounts whose Proof Block, guardrail or medic note a job trusts.
+const PINNED = ['BELAY_ENGINE_PROJECT', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT', 'BELAY_POLICY_PROJECT', 'BELAY_POLICY_REF', 'BELAY_GLAB_VERSION', 'BELAY_GLAB_SHA256', 'BELAY_BUILD_ARGS', 'BELAY_PREPARE',
+  'BELAY_PROOF_AUTHORS', 'BELAY_GUARDRAIL_AUTHORS', 'BELAY_BLOCK_AUTHORS'];
+const GUARDED = ['engine_project', 'engine_ref', 'engine_commit', 'policy_project', 'policy_ref', 'glab_version', 'glab_sha256', 'build_args',
+  'proof_authors', 'guardrail_authors', 'block_authors'];
 
 for (const name of fs.readdirSync(dir)) {
   const file = path.join(dir, name, 'template.yml');

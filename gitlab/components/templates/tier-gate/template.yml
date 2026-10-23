@@ -44,9 +44,11 @@ spec:
       default: []
     proof_authors:
       type: string
+      regex: '^[A-Za-z0-9$_., -]*$'
       description: Comma-separated usernames allowed to post the Proof Block note (belay-apply's bot account). A note by anyone else is ignored.
     guardrail_authors:
       default: 'ai-guardrail-$CI_PROJECT_ROOT_NAMESPACE'
+      regex: '^[A-Za-z0-9$_., -]*$'
       description: Comma-separated usernames of the guardrail flow service account. [R?] the exact ai-<flow>-<group> form.
     agent_prefix:
       default: 'ai-'
@@ -108,8 +110,6 @@ belay-tier-gate:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   variables:
-    BELAY_PROOF_AUTHORS: "$[[ inputs.proof_authors ]]"
-    BELAY_GUARDRAIL_AUTHORS: "$[[ inputs.guardrail_authors ]]"
     BELAY_AGENT_PREFIX: "$[[ inputs.agent_prefix ]]"
     BELAY_CLASS_INPUT: "$[[ inputs.class ]]"
     BELAY_WAIT_MINUTES: "$[[ inputs.wait_minutes ]]"
@@ -117,6 +117,8 @@ belay-tier-gate:
   script:
     - |
       set -eu
+      # M6: whose Proof Block and guardrail notes count is fixed at include time, never a job variable a pipeline one outranks.
+      BELAY_PROOF_AUTHORS="$[[ inputs.proof_authors ]]"; BELAY_GUARDRAIL_AUTHORS="$[[ inputs.guardrail_authors ]]"
       mkdir -p .belay/events
       rc=0
       node "$BELAY_GLUE/proof/mr-context.mjs" --mr "$CI_MERGE_REQUEST_IID" --agent-prefix "$BELAY_AGENT_PREFIX" || rc=$?

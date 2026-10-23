@@ -52,6 +52,7 @@ spec:
       description: Extra arguments for build-evidence.mjs, e.g. for exploit-test "--base-junit base/junit.xml --head-junit head/junit.xml --base-ref URL --head-ref URL --rescan-base base/scan.json --rescan-head head/scan.json".
     block_authors:
       default: ''
+      regex: '^[A-Za-z0-9$_., -]*$'
       description: Accounts whose belay-guardrail / belay-medic block counts. Empty means ai-guardrail-<group> or ai-medic-<group>. [R?] the exact ai-<flow>-<group> username form.
     prepare_script:
       default: ''
@@ -126,15 +127,14 @@ spec:
     BELAY_AGENT_PREFIX: "$[[ inputs.agent_prefix ]]"
     BELAY_EVIDENCE_MODE: "$[[ inputs.evidence_mode ]]"
     BELAY_EVIDENCE_FILE: "$[[ inputs.evidence_file ]]"
-    BELAY_BLOCK_AUTHORS: "$[[ inputs.block_authors ]]"
     BELAY_POST_MERGE: "$[[ inputs.post_merge ]]"
   script:
     - |
       set -eu
       mkdir -p .belay
-      # M6: build_args and prepare_script are inputs, fixed at include time; a pipeline variable cannot reach them. build_args
-      # is regex-guarded (no quote, $, ; | & or backtick), so the single quotes hold.
-      BELAY_BUILD_ARGS='$[[ inputs.build_args ]]'
+      # M6: build_args, prepare_script and the trusted block authors are inputs, fixed at include time; a pipeline variable
+      # cannot reach them. build_args is regex-guarded (no quote, $, ; | & or backtick), so the single quotes hold.
+      BELAY_BUILD_ARGS='$[[ inputs.build_args ]]'; BELAY_BLOCK_AUTHORS="$[[ inputs.block_authors ]]"
       if [ "$BELAY_PHASE" = "post-merge" ] && [ "$BELAY_POST_MERGE" != "true" ]; then echo "post-merge proof is off"; exit 0; fi
       rc=0
       if [ "$BELAY_PHASE" = "pre-merge" ]; then
