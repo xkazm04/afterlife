@@ -17,7 +17,7 @@ export function AppNav() {
       <SidebarSection
         title="Afterlife"
         aux={
-          <button type="button" className={styles.goto} title="Go to anything (⌘K)" onClick={openPalette}>
+          <button type="button" className={styles.goto} title="Go to anything (⌘K)" aria-label="Go to anything (⌘K)" onClick={openPalette}>
             ⌘K
           </button>
         }

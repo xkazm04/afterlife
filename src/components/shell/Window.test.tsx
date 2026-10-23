@@ -67,6 +67,11 @@ describe('Window sidebar', () => {
     expect(tag(html, /<a[^>]*href="\/ladder"[^>]*>/)).toContain('aria-current="page"');
   });
 
+  it('names the ⌘K chip by what it opens, keeping its visible caps in the name', () => {
+    const chip = tag(page(), /<button[^>]*>⌘K<\/button>/);
+    expect(chip).toContain('aria-label="Go to anything (⌘K)"');
+  });
+
   it('offers the hide button while the sidebar is shown', () => {
     expect(page()).toContain('aria-label="Hide sidebar"');
     expect(page()).not.toContain('aria-label="Show sidebar"');
