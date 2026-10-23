@@ -4,7 +4,7 @@ import styles from './SearchField.module.css';
 
 /**
  * The toolbar search box with a "/" hint that disappears once there is text. Controlled. Pass `inputRef` so the
- * screen can focus it on "/" and clear it on Escape.
+ * screen can focus it on "/" and clear it on Escape; without one there is no "/" hint.
  */
 export function SearchField({
   value,
@@ -33,7 +33,8 @@ export function SearchField({
         spellCheck={false}
         onChange={(e) => onChange(e.target.value)}
       />
-      {value ? null : <kbd>/</kbd>}
+      {/* the keycap promises "/" focuses this field; only a screen holding inputRef can keep that promise */}
+      {value || !inputRef ? null : <kbd>/</kbd>}
     </label>
   );
 }
