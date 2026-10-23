@@ -5,7 +5,7 @@ import { parse as parseYaml } from 'yaml';
 import { EngineError, isRecord, type Ctx } from './types';
 
 /** The errno behind a failed read: ENOENT (not there) is not EISDIR or EACCES (there, and wrong). */
-const errno = (e: unknown): string => (e as NodeJS.ErrnoException).code ?? 'unreadable';
+export const errno = (e: unknown): string => (e as NodeJS.ErrnoException).code ?? 'unreadable';
 
 export function readText(ctx: Ctx, file: string): string {
   const p = path.resolve(ctx.cwd, file);

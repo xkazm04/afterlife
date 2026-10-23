@@ -35,6 +35,8 @@ export interface GateResult {
   reasons: string[];
 }
 
+const samePaths = (a: readonly string[], b: readonly string[]): boolean => new Set(a).size === new Set(b).size && a.every((x) => b.includes(x));
+
 export function gate(g: GateInput): GateResult {
   const blocks: string[] = [];
   const waits: string[] = [];
@@ -70,6 +72,11 @@ export function gate(g: GateInput): GateResult {
     if (!p.envelope.within) blocks.push('the change is outside the envelope');
   }
   if (g.envelope && !g.envelope.within) blocks.push(`envelope: ${g.envelope.violations.join('; ')}`);
+  // The proof was made from a diff (files > 0) and the gate measured its own: they must be the same change, or the
+  // proof's test-not-weakened / cited-diff read a diff that leaves a file out.
+  if (p && g.envelope && p.envelope.files > 0 && !samePaths(p.envelope.paths_touched, g.envelope.paths_touched)) {
+    blocks.push('the proof was made from a different diff than the one measured (paths touched differ)');
+  }
 
   const reasons = [...notes, ...blocks, ...waits];
   if (blocks.length) return out('block', tier, record.tier, agent, reasons);

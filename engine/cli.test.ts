@@ -140,8 +140,12 @@ describe('gate, tripwire and ledger through the CLI', () => {
   it('gate: measures the diff itself when given one, and takes a production target', () => {
     const bump = path.join(tmp, 'bump.diff');
     fs.writeFileSync(bump, 'diff --git a/package.json b/package.json\n--- a/package.json\n+++ b/package.json\n@@ -1 +1 @@\n-a\n+b\n');
-    expect(gate(handsOff, 'guardrail-pass.json', '--diff', bump, '--env', 'production').code).toBe(0);
-    expect(gate(handsOff, 'guardrail-pass.json', '--diff', bump, '--env', 'eu-prod').code).toBe(1);
+    const bumpProof = path.join(tmp, 'bump-proof.json'); // made from the same diff the gate measures
+    fs.writeFileSync(bumpProof, JSON.stringify({ ...proof, envelope: { ...proof.envelope, paths_touched: ['package.json'] } }));
+    const gateBump = (...extra: string[]) => cli('gate', '--state', handsOff, '--class', 'dep-bump.patch', '--proof', bumpProof, '--guardrail', fx('events', 'guardrail-pass.json'), '--diff', bump, ...extra);
+    expect(gateBump('--env', 'production').code).toBe(0);
+    expect(gateBump('--env', 'eu-prod').code).toBe(1);
+    expect(gate(handsOff, 'guardrail-pass.json', '--diff', bump).code).toBe(1); // the proof read a different diff
     expect(gate(handsOff, 'guardrail-pass.json', '--diff', fx('exploit', 'fix.diff')).code).toBe(1); // a source fix is not a dep-bump
   });
 
