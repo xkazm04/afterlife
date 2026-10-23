@@ -14,8 +14,9 @@ export async function rereadSetupAction(part: unknown): Promise<SetupReread> {
   let reads;
   try {
     reads = getDataSource().setupReads();
-  } catch {
-    return { status: 'refused', reason: 'live mode has not finished its first poll; try again in a moment' };
+  } catch (e) {
+    // The source says which: a first poll still running, or a start that failed and is being retried (select.ts).
+    return { status: 'refused', reason: e instanceof Error ? e.message : 'live mode has not finished its first poll; try again in a moment' };
   }
   if (!reads) return { status: 'refused', reason: 'demo mode: Belay reads nothing from GitLab' };
   const away = notLocal(await headers());
