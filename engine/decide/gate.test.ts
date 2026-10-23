@@ -68,14 +68,30 @@ describe('gate: what hands-off merging needs', () => {
     const r = decide({ envelope: checkEnvelope(P, 'dep-bump.patch', diff) });
     expect(r.decision).toBe('block');
     expect(r.reasons.join(' ')).toMatch(/denied path/);
-    expect(decide({ envelope: checkEnvelope(P, 'dep-bump.patch', diff.replace(/CODEOWNERS/g, 'package.json')) }).decision).toBe('merge');
+    expect(decide({ proof: proof('exploit-test', true, { envelope: { files: 1, lines: 2, paths_touched: ['package.json'], within: true } }), envelope: checkEnvelope(P, 'dep-bump.patch', diff.replace(/CODEOWNERS/g, 'package.json')) }).decision).toBe('merge');
+  });
+
+  it('blocks a proof made from a different diff than the one the gate measured (a file left out), and merges when they agree', () => {
+    const d = (f: string) => `diff --git a/${f} b/${f}
+--- a/${f}
++++ b/${f}
+@@ -1 +1 @@
+-a
++b
+`;
+    const mr = d('package.json') + d('src/test/ExploitIT.java');
+    const smaller = proof('exploit-test', true, { envelope: { files: 1, lines: 2, paths_touched: ['package.json'], within: true } });
+    const r = decide({ proof: smaller, envelope: checkEnvelope(P, 'dep-bump.patch', mr) });
+    expect([r.decision, r.reasons.join(' ')]).toEqual(['block', expect.stringMatching(/different diff/)]);
+    const same = proof('exploit-test', true, { envelope: { files: 2, lines: 4, paths_touched: ['src/test/ExploitIT.java', 'package.json'], within: true } });
+    expect(decide({ proof: same, envelope: checkEnvelope(P, 'dep-bump.patch', mr) }).decision).toBe('merge');
   });
 
   it('blocks production for a class without a mechanical proof, through the envelope result', () => {
     const d = 'diff --git a/a.kt b/a.kt\n--- a/a.kt\n+++ b/a.kt\n@@ -1 +1 @@\n-a\n+b\n';
     const r = decide({ classId: 'guard.block', proof: proof('cited-diff', true), envelope: checkEnvelope(P, 'guard.block', d, ['production']) });
     expect(r.decision).toBe('block');
-    expect(decide({ envelope: checkEnvelope(P, 'dep-bump.patch', d.replace(/a.kt/g, 'package.json'), ['production']) }).decision).toBe('merge');
+    expect(decide({ proof: proof('exploit-test', true, { envelope: { files: 1, lines: 2, paths_touched: ['package.json'], within: true } }), envelope: checkEnvelope(P, 'dep-bump.patch', d.replace(/a.kt/g, 'package.json'), ['production']) }).decision).toBe('merge');
   });
 });
 
