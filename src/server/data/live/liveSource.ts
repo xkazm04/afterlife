@@ -37,7 +37,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getLoop: () => catalogue.loop,
     getTasks: () => data().tasks,
     getNeedsYou: () => data().needsYou,
-    getDecided: () => [],
+    getDecided: () => data().decided,
     getNeedsYouCount: () => data().needsYou.filter((n) => !isSeeded(n.id)).length,
     getSetup: () => data().setup,
     getEvents: () => data().events,

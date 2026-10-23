@@ -72,6 +72,7 @@ describe('poll cycle against the demo GitLab, from an empty index', () => {
     expect(await getNeedsYou(r.db, LEDGERLINE, NOW)).toEqual([{
       id: 'readmit:ledgerline:patch-bump', kind: 'readmit', title: 'Re-admit T8 gardener · patch-bump',
       reason: 'guardrail high severity on !44', does: 'Re-admits at Assisted at most, never at its old tier.',
+      openedAt: new Date(NOW.getTime() - 4 * 60_000).toISOString(), // the quarantine's own time, four minutes before the poll
     }]);
   });
 

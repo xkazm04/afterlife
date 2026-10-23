@@ -71,6 +71,8 @@ export interface NeedsYouItem {
   rungTo?: number;
   change?: string;
   template?: string | null;
+  /** Live: when the proposal opened (ISO), for the desk's oldest-first order and its "oldest Xd"; the demo's items carry none. */
+  openedAt?: string;
 }
 
 export interface SetupPhase {

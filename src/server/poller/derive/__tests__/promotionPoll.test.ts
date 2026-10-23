@@ -26,7 +26,7 @@ describe('poll cycle: a promotion ask for an eligible class', () => {
     expect(await promotions(NOW)).toEqual([{
       id: ID, kind: 'promote', title: 'Promote T1 patcher · code-fix.patch', from: 'assisted', to: 'supervised',
       rules: [['accepted outputs', '5 / 5', true], ['reverts', '0', true], ['guardrail blocks', '0', true], ['counted over the last 5 outputs', 'last 5', true]],
-      does: expect.stringContaining('policy MR'),
+      does: expect.stringContaining('policy MR'), openedAt: NOW.toISOString(),
     }]);
     const all = await getNeedsYou(r.db, 'ledgerline', NOW);
     expect(all.map((n) => n.id).sort()).toEqual([ID, 'readmit:ledgerline:patch-bump']);

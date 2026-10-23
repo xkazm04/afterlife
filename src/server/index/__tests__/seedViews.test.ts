@@ -9,6 +9,13 @@ import { getTaskRow, upsertTasks } from '../repositories/work/task';
 import { SEED_NOW, seedDemo } from '../seed';
 import { memoryIndex } from './memoryIndex';
 
+/** The view also sends each item's opened time (ISO), which the demo's items do not carry: compared without it. */
+const unopened = <T extends { openedAt?: string }>(items: T[]): T[] => items.map((n) => {
+  const c = { ...n };
+  delete c.openedAt;
+  return c;
+});
+
 let db: PGlite;
 beforeAll(async () => {
   db = await memoryIndex();
@@ -45,7 +52,9 @@ describe('seed -> views reproduces the demo shapes', () => {
   });
 
   it('needs-you: five items in order, with a live countdown and the picked-gap count', async () => {
-    expect(await getNeedsYou(db, LEDGERLINE_ID, SEED_NOW)).toEqual(DEMO.needsYou);
+    const items = await getNeedsYou(db, LEDGERLINE_ID, SEED_NOW);
+    expect(unopened(items)).toEqual(DEMO.needsYou);
+    for (const n of items) expect(new Date(n.openedAt ?? '').toISOString()).toBe(n.openedAt);
     expect(await getNeedsYouCount(db, LEDGERLINE_ID)).toBe(DEMO.needsYou.length);
     const later = new Date(SEED_NOW.getTime() + 12 * 60_000);
     expect((await getNeedsYou(db, LEDGERLINE_ID, later)).find((i) => i.kind === 'signoff')?.dueIn).toBe('19 h 0 m');
@@ -85,7 +94,7 @@ describe('seed -> views reproduces the demo shapes', () => {
   it('seeding again changes nothing', async () => {
     await seedDemo(db);
     expect((await getFleet(db, SEED_NOW)).projects).toHaveLength(184);
-    expect(await getNeedsYou(db, LEDGERLINE_ID, SEED_NOW)).toEqual(DEMO.needsYou);
+    expect(unopened(await getNeedsYou(db, LEDGERLINE_ID, SEED_NOW))).toEqual(DEMO.needsYou);
     expect(await getTasks(db, LEDGERLINE_ID, SEED_NOW)).toEqual(DEMO.tasks);
   });
 });

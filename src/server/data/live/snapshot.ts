@@ -4,14 +4,14 @@
 import type { CycleHistory } from '@/lib/demo/cycles/types';
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
 import type { LedgerEvent } from '@/schemas/ledger';
-import { clock, getActionClasses, getEstateCycles, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
+import { clock, getActionClasses, getDecided, getEstateCycles, getEvents, getFleet, getMaturity, getNeedsYou, getTasks } from '@/server/index/views';
 import { getProjectRow, listProjects } from '@/server/index/repositories/fleet/project';
 import { readLedger } from '@/server/index/repositories/ledger/ledger';
 import { getPairing, type PairingRow } from '@/server/index/repositories/pairing';
 import { readConfig } from '@/server/gitlab/config';
 import { feedStatusOf, getPollState, listPollStates, policySource, projectSource, type PollStateRow } from '@/server/index/repositories/pollState';
 import type { Queryable } from '@/server/index/repositories/sql';
-import type { PolicyRules, PollHealth, TiersStale } from '../types';
+import type { DecidedItem, PolicyRules, PollHealth, TiersStale } from '../types';
 import { isSeeded } from './seeded';
 import { actionClass, maturity, task } from './narrow';
 
@@ -24,6 +24,8 @@ export interface LiveData {
   /** The deep project's recent events, from its tasks, proofs and poll state (never the catalogue's). */
   events: DemoData['events'];
   needsYou: NeedsYouItem[];
+  /** The deep project's proposals acted on in the 7 days before the snapshot, newest first; the seed's own are left out. */
+  decided: DecidedItem[];
   cockpit: DemoData['cockpit'];
   setup: DemoData['setup'];
   /** trust-policy.yml's rules as the last poll read them from belay-policy; null until one was read. */
@@ -52,10 +54,10 @@ export interface LiveSnapshot {
  * poll_state, and its last failure must not mark today's group failed and its tiers stale forever.
  */
 export async function buildSnapshot(db: Queryable, at: Date, deep: string, catalogue: DemoData, policy: PolicyRules | null = null, group: string | number = readConfig().groupId): Promise<LiveSnapshot> {
-  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyRead, ledger, poll, estate] = await Promise.all([
+  const [fleet, classes, mat, tasks, events, needsYou, pairing, policyRead, ledger, poll, estate, decided] = await Promise.all([
     getFleet(db, at), getActionClasses(db, deep, at), getMaturity(db, deep), getTasks(db, deep, at), getEvents(db, deep), getNeedsYou(db, deep, at),
     getPairing(db, 'default'), getPollState(db, policySource(group)), deepLedger(db, deep), pollRows(db, group).then((rows) => pollHealthOf(rows, at)),
-    getEstateCycles(db, at),
+    getEstateCycles(db, at), getDecided(db, deep, at),
   ]);
   const tiersStale = policyRead && policyRead.lastError !== null ? { reason: policyRead.lastError, lastOk: policyRead.lastOk?.toISOString() ?? null } : null;
   const paired = pairing?.groupPath ?? 'not paired';
@@ -73,6 +75,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       tasks: tasks.flatMap((t) => task(t) ?? []),
       events,
       needsYou,
+      decided: decided.filter((d) => !isSeeded(d.id)),
       cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? 0 } },
       setup: { ...catalogue.setup, group: paired, project: deep },
       policy,
