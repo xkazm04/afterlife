@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { SettingsWindow } from '../../features/settings/SettingsWindow';
 import { TextSizeSection } from '../../features/settings/components/TextSizeSection';
+
+export const metadata: Metadata = { title: 'Belay Settings Display' };
 
 export default function DisplaySettings() {
   return (

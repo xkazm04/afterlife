@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { SettingsWindow } from '../../features/settings/SettingsWindow';
 import { AboutSection } from '../../features/settings/components/AboutSection';
+
+export const metadata: Metadata = { title: 'Belay Settings About' };
 
 export default function AboutSettings() {
   return (
