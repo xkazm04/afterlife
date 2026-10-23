@@ -75,3 +75,16 @@ describe('state fills win over hover fills', () => {
     expect(outranks(sheet, '.step[aria-current="step"]', hover)).toBe(true);
   });
 });
+
+describe('Checkbox hit target', () => {
+  const sheet = css('Checkbox.module.css');
+  const px = (re: RegExp, decl: string): number => Number(re.exec(decl)?.[1] ?? NaN);
+  it('reaches 24px (WCAG 2.5.8) through an out-of-flow extension, the drawn box staying 14px', () => {
+    const box = px(/width:\s*calc\((\d+)px/, body(sheet, '.cb'));
+    const reach = px(/inset:\s*calc\(-(\d+)px/, body(sheet, '.cb::before'));
+    expect(box).toBe(14);
+    expect(box + 2 * reach).toBeGreaterThanOrEqual(24);
+    expect(body(sheet, '.cb')).toMatch(/position:\s*relative/);
+    expect(body(sheet, '.cb::before')).toMatch(/position:\s*absolute/);
+  });
+});
