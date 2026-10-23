@@ -36,10 +36,22 @@ function listed(snap: LiveSnapshot): number {
 }
 
 describe('readShellInfo', () => {
+  it('carries the projects the palette lists from the same read, so a state change reaches the palette on the next shell read', () => {
+    const changed = (state: 'watching' | 'stale'): LiveSnapshot => ({
+      ...S,
+      data: { ...S.data, fleet: { ...S.data.fleet, projects: S.data.fleet.projects.map((p, i) => (i === 0 ? { ...p, state } : p)) } },
+    });
+    const first = (snap: LiveSnapshot) => readShellInfo(liveSource(() => snap), { BELAY_MODE: 'live' }).projects[0]!;
+    expect(first(changed('stale')).state).toBe('stale');
+    expect(first(changed('watching')).state).toBe('watching');
+    expect(first(changed('watching'))).toEqual({ id: S.data.fleet.projects[0]!.id, name: S.data.fleet.projects[0]!.name, group: S.data.fleet.projects[0]!.group, state: 'watching' });
+  });
+
   it('demo: the values the root layout built inline (the five seeded decisions, the demo group, nothing illustrative)', () => {
     expect(readShellInfo(demoSource, {})).toEqual({
       needsYouCount: 5,
       data: { mode: 'demo', fakeGitlab: false, group: demoSource.getPortfolio().group, illustrative: false, poll: null },
+      projects: demoSource.getFleet().projects.map((p) => ({ id: p.id, name: p.name, group: p.group, state: p.state })),
     });
   });
 

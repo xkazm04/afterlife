@@ -5,3 +5,9 @@ export async function register(): Promise<void> {
   const { bootLive } = await import('./server/data/boot');
   await bootLive();
 }
+
+/** Next calls this for every server render/route/action failure: one `belay:` line that carries the digest the error page shows, so an operator can join the two. */
+export function onRequestError(err: unknown, _request: { path: string; method: string }, context: { routePath: string }): void {
+  const digest = typeof err === 'object' && err !== null && 'digest' in err ? String(err.digest) : 'none';
+  console.error(`belay: ${context.routePath} failed (digest ${digest}): ${err instanceof Error ? err.message : String(err)}`);
+}

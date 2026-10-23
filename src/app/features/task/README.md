@@ -1,6 +1,6 @@
 # Task (F5)
 
-Route `/task/[id]` (`/task` redirects to the data source's first task). Ported from the approved "Cross-examination" prototype. Reads only: nothing on this screen writes.
+Route `/task/[id]` (`/task` redirects to the data source's first task, or draws `TaskEmpty` in the window when it holds none). Ported from the approved "Cross-examination" prototype. Reads only: nothing on this screen writes.
 
 ## Parts
 - `TaskScreen.tsx` composes the Window: toolbar (verdict lozenge, proof-class menu, Replay), docket in

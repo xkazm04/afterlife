@@ -6,7 +6,7 @@ import { StatusBar } from './StatusBar';
 
 const render = (data?: ShellData) => {
   const bar = <StatusBar>left</StatusBar>;
-  return renderToString(<ToastProvider>{data ? <ShellProvider value={{ needsYouCount: 0, data }}>{bar}</ShellProvider> : bar}</ToastProvider>);
+  return renderToString(<ToastProvider>{data ? <ShellProvider value={{ needsYouCount: 0, data, projects: [] }}>{bar}</ShellProvider> : bar}</ToastProvider>);
 };
 const live: ShellData = { mode: 'live', fakeGitlab: false, group: 'kazdanm', illustrative: false, poll: null };
 const health = { ageSec: 12, error: null, failing: 0, of: 7, intervalSec: 30 };

@@ -32,16 +32,27 @@ export interface ShellData {
   poll: ShellPoll | null;
 }
 
+/** A project as the command palette needs it; read with the rest of the shell so a state change reaches the palette on the next navigation. */
+export interface ShellProject {
+  id: string;
+  name: string;
+  group: string;
+  state: string;
+}
+
 export interface ShellInfo {
   /** Decisions waiting for the operator: the badge on the "Needs you" nav item. */
   needsYouCount: number;
   data: ShellData;
+  /** Every project, as small as the palette needs. */
+  projects: readonly ShellProject[];
 }
 
 /** Without a provider the shell is the demo: tests and the kit render that way. */
 export const DEMO_SHELL: ShellInfo = {
   needsYouCount: 0,
   data: { mode: 'demo', fakeGitlab: false, group: 'not paired', illustrative: false, poll: null },
+  projects: [],
 };
 
 const ShellContext = createContext<ShellInfo>(DEMO_SHELL);
