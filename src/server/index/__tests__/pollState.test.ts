@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  feedStatusOf, getPollState, projectSource, recordPollError, recordPollOk, staleSources,
+  feedStatusOf, getPollState, listPollStates, projectSource, recordPollError, recordPollOk,
 } from '../repositories';
 import { memoryIndex } from './memoryIndex';
 
@@ -40,16 +40,13 @@ describe('poll_state', () => {
     expect(await getPollState(db, 'project:none')).toBeNull();
   });
 
-  it('lists the sources that are stale, failing or never succeeded', async () => {
+  it('lists only the sources under a prefix, in source order', async () => {
     const db = await memoryIndex();
-    await recordPollOk(db, 'project:fresh', ago(10));
     await recordPollOk(db, 'project:old', ago(7200));
-    await recordPollOk(db, 'project:broken', ago(5));
     await recordPollError(db, 'project:broken', 'token expired');
-    await recordPollError(db, 'project:never', 'no route');
     await recordPollOk(db, 'group:other', ago(99999));
 
-    expect(await staleSources(db, NOW, 120, 'project:')).toEqual(['project:broken', 'project:never', 'project:old']);
-    expect(await staleSources(db, NOW, 120)).toContain('group:other');
+    expect((await listPollStates(db, 'project:')).map((s) => s.source)).toEqual(['project:broken', 'project:old']);
+    expect((await listPollStates(db)).map((s) => s.source)).toEqual(['group:other', 'project:broken', 'project:old']);
   });
 });

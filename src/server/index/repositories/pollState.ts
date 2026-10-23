@@ -77,14 +77,3 @@ export function feedStatusOf(state: PollStateRow | null, now: Date): FeedStatus 
   if (state.lastError !== null) return { ageSec, ok: false, error: state.lastError };
   return { ageSec, ok: state.lastOk ? true : null };
 }
-
-/** Sources whose last good poll is older than `maxAgeSec`, or that never had one, or whose last poll failed. */
-export async function staleSources(db: Queryable, now: Date, maxAgeSec: number, prefix = ''): Promise<string[]> {
-  const states = await listPollStates(db, prefix);
-  return states
-    .filter((s) => {
-      const f = feedStatusOf(s, now);
-      return f.ok === false || f.ageSec === null || f.ageSec > maxAgeSec;
-    })
-    .map((s) => s.source);
-}
