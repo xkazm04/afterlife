@@ -90,9 +90,9 @@ export function runs(f: Facts): Read<Runs> {
   const jobs = r.v.jobs.flatMap((j): RunJob[] => {
     if (!isRecord(j) || typeof j.name !== 'string') return [];
     // a web_url that is not http(s) is no URL: the server refuses a cell citing it (src/schemas/maturity.ts), so it is not
-    // collected; a finished_at with no zone would be read in the machine's zone, so it is null (not finished) or an instant
+    // collected; nor is an id that is no integer (cited as job #NaN); a finished_at with no zone would be read in the machine's zone, so it is null (not finished) or an instant
     const finishedMs = isoInstantMs(j.finished_at);
-    const bad = { web_url: !(typeof j.web_url === 'string' && HTTP.test(j.web_url)), finished_at: j.finished_at !== null && Number.isNaN(finishedMs) };
+    const bad = { id: !Number.isSafeInteger(j.id), web_url: !(typeof j.web_url === 'string' && HTTP.test(j.web_url)), finished_at: j.finished_at !== null && Number.isNaN(finishedMs) };
     const gone = (['id', 'status', 'web_url', 'finished_at', 'artifacts'] as const).find((k) => !(k in j) || (k in bad && bad[k as keyof typeof bad]));
     return [{
       id: Number(j.id), name: j.name, status: String(j.status), webUrl: typeof j.web_url === 'string' ? j.web_url : '', finishedMs,

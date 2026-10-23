@@ -128,6 +128,16 @@ describe('scan: the rubric', () => {
     expect(scan(file).cell('verify')).toMatchObject({ rung: null, note: expect.stringMatching(/finished_at was not collected/) });
   });
 
+  it('a job id that is not an integer is not collected, never cited as job #NaN or #0', () => {
+    for (const id of ['abc', null, 1.5]) {
+      const facts = JSON.parse(fs.readFileSync(fx('maturity', 'configured.facts.json'), 'utf8')) as { facts: { latest_pipeline_jobs: { jobs: Record<string, unknown>[] } } };
+      for (const j of facts.facts.latest_pipeline_jobs.jobs) if (j.name === 'test') j.id = id;
+      const file = path.join(tmp, 'id.facts.json');
+      fs.writeFileSync(file, JSON.stringify(facts));
+      expect(scan(file).cell('verify'), String(id)).toMatchObject({ rung: null, note: expect.stringMatching(/jobs\[\]\.id was not collected/) });
+    }
+  });
+
   it('a job or pipeline whose web_url is null or not http(s) never becomes evidence the server would refuse', () => {
     const facts = JSON.parse(fs.readFileSync(fx('maturity', 'full.facts.json'), 'utf8')) as { facts: { latest_pipeline_jobs: { pipeline: Record<string, unknown>; jobs: Record<string, unknown>[] } } };
     facts.facts.latest_pipeline_jobs.pipeline.web_url = 'ftp://x/1';
