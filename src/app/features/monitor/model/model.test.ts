@@ -24,7 +24,7 @@ const base: FleetProject = {
 const mk = (o: Partial<FleetProject>): FleetProject => ({ ...base, ...o }) as FleetProject;
 
 const fleet = [
-  mk({ id: 'a', name: 'a', needsYou: 5, tiers: { ...base.tiers, quarantined: 1 } }),
+  mk({ id: 'a', name: 'a', needsYou: 5, tiers: { ...base.tiers, quarantined: 1 }, classTiers: { 'dep-bump': 'quarantined' } }),
   mk({ id: 'b', name: 'b', state: 'stale', needsYou: 1, feed: { ageSec: 2820, ok: false, error: 'project token expired' } }),
   mk({ id: 'c', name: 'c', state: 'setting-up', armed: 2, group: 'g2' }),
   mk({ id: 'd', name: 'd', state: 'not-set-up', needsYou: 3, armed: 0, proofs7d: null, group: 'g2' }),
