@@ -1,6 +1,7 @@
 // n1's evidence is qa.file-bug's own: the proofs and the section's aux follow the demo fixture's class record, so a
 // fixture change that leaves them behind breaks this.
 import { describe, expect, it } from 'vitest';
+import { LEDGER_READ_AT } from './constants';
 import { PROMOTE, PROOFS, proofsAux } from './promote';
 import { pickNeedsYouDemo } from './pick';
 
@@ -19,5 +20,9 @@ describe('n1 proofs', () => {
     for (const p of PROOFS) expect(p.ref).toMatch(/^#\d+$/);
     expect(PROOFS.map((p) => p.title).join('\n')).not.toMatch(/bump|patch/i);
     expect(PROMOTE.doesNot.join('\n')).not.toContain('code-fix.patch');
+  });
+
+  it('dates the ledger with the status bar\'s one constant', () => {
+    expect(PROMOTE.sourceAt).toBe(LEDGER_READ_AT);
   });
 });

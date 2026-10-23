@@ -1,3 +1,4 @@
+import { LEDGER_READ_AT } from './constants';
 import type { ClickCopy } from './types';
 
 export interface Proof {
@@ -38,7 +39,8 @@ export const proofsAux = (record: { accepted: number; noEdit: number }): string 
  */
 export const PROMOTE: ClickCopy & { openedAt: string; sourceAt: string; track: string; policy: string } = {
   openedAt: '13:40',
-  sourceAt: '14:21',
+  /** When the ledger was read: the status bar's "ledger read" time, one constant. */
+  sourceAt: LEDGER_READ_AT,
   track: 'T7',
   policy: 'trust-policy.yml · promotion.supervised_to_hands_off · a1b2c3',
   does: ['Opens a policy MR in belay-policy, as you', 'You merge it in GitLab', 'The next MR pipeline reads the new tier'],
