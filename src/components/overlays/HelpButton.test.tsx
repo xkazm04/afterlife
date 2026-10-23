@@ -21,6 +21,9 @@ vi.mock('./popover/usePopover', () => ({
   usePopover: () => ({ ...pop, popover: pop.isOpen ? <div role={pop.isSticky ? 'dialog' : 'tooltip'}>{pop.content}</div> : null }),
 }));
 
+// HelpButton is called as a function here, outside a render, so the one hook it uses directly is stood in too.
+vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), useId: () => ':legend:' }));
+
 const { HelpButton } = await import('./HelpButton');
 
 type Btn = { onMouseEnter: (e: unknown) => void; 'aria-describedby'?: string };
@@ -41,7 +44,7 @@ beforeEach(() => {
 });
 
 describe('HelpButton hover legend', () => {
-  it.fails('points the button at the tooltip while the hover legend shows', () => {
+  it('points the button at the tooltip while the hover legend shows', () => {
     draw()[0]!.props.onMouseEnter({ currentTarget: {} });
     expect(referenced(html())).toBe(1);
   });
