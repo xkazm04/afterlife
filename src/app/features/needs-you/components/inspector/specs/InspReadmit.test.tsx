@@ -26,3 +26,14 @@ describe('InspReadmit tripwire', () => {
     expect(sites).toEqual([0, 1]);
   });
 });
+
+describe('InspReadmit record at the trip', () => {
+  it('counts reverts in words that agree with the number', () => {
+    const demo = pickNeedsYouDemo();
+    const at = (reverts: number) =>
+      renderToStaticMarkup(<InspReadmit s={{ ...initialState(demo), sel: 'n4', read: { draft: false, note: true } }} demo={{ ...demo, record: { ...demo.record, reverts } }} leftSec={0} dispatch={() => {}} />);
+    expect(at(1)).toContain('· 1 revert<');
+    expect(at(2)).toContain('· 2 reverts<');
+    expect(at(0)).toContain('· 0 reverts<');
+  });
+});

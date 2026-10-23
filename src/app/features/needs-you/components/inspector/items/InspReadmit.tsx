@@ -4,6 +4,7 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { READMIT, readmitCooldown } from '../../../data/readmit';
 import { Chip } from '@/components/status/chip/Chip';
+import { plural } from '@/lib/format/plural';
 import { ActBtn, Acts } from '../Acts';
 import { ItemHead } from '../Head';
 import type { InspProps } from '../props';
@@ -68,7 +69,7 @@ export function InspReadmit(p: InspProps) {
         </div>
         <KeyValue
           rows={[
-            ['Record at the trip', `${record.accepted} acc · ${Math.round(record.noEdit * 100)} % · ${record.reverts} revert`],
+            ['Record at the trip', `${record.accepted} acc · ${Math.round(record.noEdit * 100)} % · ${plural(record.reverts, 'revert')}`],
             [
               'Old tier',
               <span key="old">
