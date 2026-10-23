@@ -17,7 +17,7 @@
   lozenge (available / unavailable / unknown counts; a click lights that status on the map) and Re-probe.
 - The inspector shows the default panel (progress, "Only you can do these", unknown capabilities), or the picked step,
   track or capability. The status bar reads
-  `3/15 steps probed · 1/8 armed · 5 need you · belay doctor · probed 14:02 · <age>`.
+  `3/15 steps read done · 1/8 armed · 5 need you · belay doctor · probed 14:02 · <age>`.
 
 ## How it works
 - `app/setup/page.tsx` calls `loadSetupData()`, which reads `getSetup()`, `getTracks()` and `getActionClasses()`

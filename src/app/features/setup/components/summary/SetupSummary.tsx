@@ -32,7 +32,7 @@ export function SetupSummary() {
           ]}
         />
         <span className={styles.note} title={unknown.length ? unknown.map((r) => r.name).join(' · ') : undefined}>
-          {`${state.group} / ${state.project} · ${doneCount(state)} of ${stepList(state).length} steps probed`}
+          {`${state.group} / ${state.project} · ${doneCount(state)} of ${stepList(state).length} steps read done`}
           {unknown.length ? ` · ${unknown.length} ${pluralWord(unknown.length, 'capability', 'capabilities')} unknown, never rounded up` : ''}
         </span>
         {state.doctorError ? <span className={styles.err}>{`belay doctor: ${state.doctorError}`}</span> : null}

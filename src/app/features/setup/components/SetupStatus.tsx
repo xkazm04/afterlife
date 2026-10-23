@@ -13,7 +13,7 @@ export function SetupStatus() {
   const now = useNow();
   const age = probeAgeText(state, now ?? state.doctorAt);
   const need = needYouCount(state);
-  const progress = `${doneCount(state)}/${stepList(state).length} steps probed · ${armedCount(state)}/${armList(state).length} armed · ${need} ${pluralWord(need, 'needs', 'need')} you · `;
+  const progress = `${doneCount(state)}/${stepList(state).length} steps read done · ${armedCount(state)}/${armList(state).length} armed · ${need} ${pluralWord(need, 'needs', 'need')} you · `;
   return (
     <>
       {progress}
