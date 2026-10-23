@@ -129,10 +129,10 @@ Two departures are on purpose, both for rendering cost:
 ## Parts
 
 - `DoorScreen.tsx` composes the page.
-- `hooks/useDoor` holds the state machine. `useStageFit`, `useStill` and `useCountUp` are the
-  smaller hooks.
+- `hooks/useDoor` holds the state machine. `useStageFit`, `useQuality`, `useStill` and `useCountUp`
+  are the smaller hooks.
 - `model/` holds the geometry, ground, words, camera and cutaway. It is pure and tested
-  (`door.test.ts`).
+  (`door.test.ts`, `standing.test.ts`); the components' tests sit in `__tests__/`.
 - `components/scene/` draws the city layers.
 - `components/ui/` holds the answer, labels, readout, parts, tier letters and marks.
 - `components/rail/` is L1; `components/l2/` is L2; `components/chrome/` is the corners and the
