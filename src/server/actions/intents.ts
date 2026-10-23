@@ -24,6 +24,8 @@ const MAX_FILE = 64 * 1024;
 export const MAX_FILE_LINES = 2000;
 const MAX_HUNK_LINES = 400;
 const TRACK = /^T[1-8]$/;
+/** The branches Belay's other MRs plan (promote, enroll, arm, disarm): a gap never takes one (intents/paths.test.ts derives them). */
+const OTHER_WRITES = /^belay\/(?:promote|enroll|arm|disarm)-/;
 
 /** A repository path as the preview spells it: no empty, dot or .git segment, so one file has one spelling and none is inside .git. */
 const pathOk = (p: string): boolean => p.split('/').every((s) => s !== '' && s !== '.' && s !== '..' && s.toLowerCase() !== '.git');
@@ -100,6 +102,7 @@ export function parseIntent(raw: unknown): IntentParse {
       if (!stage || !gap || !title || !branch || from === null || to === null || !fs || workItem === null || !refOk(branch)) {
         return no('gap, stage, title, branch (belay/...), from/to (0-4) and 1 to 8 files are required');
       }
+      if (OTHER_WRITES.test(branch)) return no(`${branch} is a branch Belay's promote, enroll, arm or disarm MRs use: a gap names its own (belay/gap-...)`);
       return { ok: true, intent: { kind: 'stage-gap-mr', ...base, gap, stage, from, to, title, branch, files: fs, ...(workItem ? { workItem } : {}) } };
     }
     case 'arm-track':
