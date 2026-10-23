@@ -23,6 +23,12 @@ describe('row menu', () => {
     expect(labels(rowMenuPlan(s, 'g1', demo))).toContain('Untick');
     expect(labels(rowMenuPlan({ ...s, gapStatus: { g1: 'staged' } }, 'g1', demo))).not.toContain('Untick');
   });
+  it('a gap with no door (the probe, g4) is not offered Stage in the menu, but can still be picked', () => {
+    const l = labels(rowMenuPlan(initialState(demo), 'g4', demo));
+    expect(l).not.toContain('Stage');
+    expect(l).toContain('Pick');
+    expect(labels(rowMenuPlan(initialState(demo), 'g3', demo))).toContain('Stage');
+  });
   it('the runner row has a read-only command to copy and no staged write', () => {
     const plan = rowMenuPlan(initialState(demo), 'n5', demo);
     expect(plan).toContainEqual({ label: 'Copy Command', intent: { kind: 'copy', text: 'npx belay doctor' } });

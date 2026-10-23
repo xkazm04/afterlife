@@ -7,10 +7,12 @@ import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { NEEDS_KEYMAP } from '../model/keys/keymap';
 import { navItems, type VisibleGroup } from '../model/rows/grouping';
 import { spaceAction } from '../model/rows/rowAction';
+import type { NeedsYouDemo } from '../data/types';
 import type { Action, NeedsState } from '../model/types';
 
 export interface KeyOptions {
   s: NeedsState;
+  demo: NeedsYouDemo;
   groups: readonly VisibleGroup[];
   dispatch: (a: Action) => void;
   tableRef: RefObject<HTMLDivElement | null>;
@@ -25,7 +27,7 @@ export interface KeyOptions {
  * acts, ContextMenu opens the menu. Anywhere (model/keys/keymap.ts): "/" searches, Escape clears the search.
  */
 export function useNeedsKeys(o: KeyOptions): (e: KeyboardEvent<HTMLElement>) => void {
-  const { s, groups, dispatch, tableRef, searchRef, onActivate, onMenuKey } = o;
+  const { s, demo, groups, dispatch, tableRef, searchRef, onActivate, onMenuKey } = o;
   const nav = useRowNavigation({
     items: navItems(groups),
     selected: s.sel,
@@ -58,7 +60,7 @@ export function useNeedsKeys(o: KeyOptions): (e: KeyboardEvent<HTMLElement>) => 
 
   return (e) => {
     if (e.key === ' ' && e.target === e.currentTarget) {
-      const action = spaceAction(s, s.sel);
+      const action = spaceAction(s, s.sel, demo);
       if (action) dispatch({ type: 'act', action });
       e.preventDefault();
       return;
