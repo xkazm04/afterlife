@@ -29,8 +29,9 @@ const api = (state: MaturityState): MaturityApi => ({
 const sent = run(initialState(ctx), { type: 'go', step: 3 }, { type: 'sent', opened: { g1: '!22', g2: null }, text: 'x' });
 const merged = run(sent, { type: 'merge', id: 'g1' }, { type: 'merge', id: 'g2' });
 const nolift = run(merged, { type: 'rescanGap', id: 'g1' });
-const credited = run(nolift, { type: 'rescanGap', id: 'g2' }, { type: 'ran', id: 'g1' }, { type: 'rescanGap', id: 'g1' });
-const states = { initial: initialState(ctx), preview: run(initialState(ctx), { type: 'go', step: 2 }), sent, merged, nolift, credited };
+const ran = run(nolift, { type: 'ran', id: 'g1' });
+const credited = run(ran, { type: 'rescanGap', id: 'g2' }, { type: 'rescanGap', id: 'g1' });
+const states = { initial: initialState(ctx), preview: run(initialState(ctx), { type: 'go', step: 2 }), sent, merged, nolift, ran, credited };
 
 describe('screen parts render in every state', () => {
   for (const [name, state] of Object.entries(states)) {
@@ -66,6 +67,11 @@ describe('screen parts render in every state', () => {
     expect(draw('target')).toContain('>d0<');
     expect(draw('target')).toContain('ghost');
     expect(draw('day0')).not.toContain('>d0<');
+  });
+
+  it('the rendered states reach every phase a sent gap can be in (probed has no producer)', () => {
+    const seen = new Set(Object.values(states).flatMap((s) => Object.values(s.flow)));
+    expect([...seen].sort()).toEqual(['credited', 'merged', 'nolift', 'opened', 'ran']);
   });
 
   it('the shared dataset has the four proposals', () => {
