@@ -15,7 +15,7 @@ export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise
   const { policy: repo } = await locate(ctx, intent.project);
   const branch = repo.defaultBranch ?? 'main';
   const file = await ctx.port.getFile(repo.id, 'tier-state.yml', branch);
-  const read = await readPolicy(ctx.port, repo.id, branch);
+  const read = await readPolicy(ctx.port, repo.id, branch, file);
   if (!file || !read.ok) throw new ActionRefused(read.ok ? 'tier-state.yml is not in belay-policy' : read.reason);
   const lastCommitId = lastCommitOf(file);
 

@@ -16,7 +16,7 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
   const { policy: repo } = await locate(ctx, intent.project);
   const base = repo.defaultBranch ?? 'main';
   const file = await ctx.port.getFile(repo.id, 'tier-state.yml', base);
-  const read = await readPolicy(ctx.port, repo.id, base);
+  const read = await readPolicy(ctx.port, repo.id, base, file);
   if (!file || !read.ok) throw new ActionRefused(read.ok ? 'tier-state.yml is not in belay-policy' : read.reason);
   const lastCommitId = lastCommitOf(file);
 
