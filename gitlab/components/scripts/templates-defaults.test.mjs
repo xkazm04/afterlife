@@ -72,3 +72,13 @@ it('every ref and checksum input refuses shell metacharacters', () => {
     expect(new RegExp(spec.engine_commit.regex).test('main')).toBe(false);
   }
 });
+
+// M6: tier-gate's `$(( ... BELAY_WAIT_MINUTES * 60 ))` evaluates the variable's text as an expression, and bash runs a
+// `$(...)` inside an array subscript there, so the wait is a number input read in the shell, never a job variable.
+it('tier-gate: wait_minutes is a number input, read in the shell, not a job variable the arithmetic would evaluate', () => {
+  const docs = parseAllDocuments(fs.readFileSync(path.join(dir, 'tier-gate', 'template.yml'), 'utf8'));
+  expect(docs[0].toJS().spec.inputs.wait_minutes.type).toBe('number');
+  const job = docs[1].toJS()['belay-tier-gate'];
+  expect(job.variables ?? {}).not.toHaveProperty('BELAY_WAIT_MINUTES');
+  expect(job.script.join('\n')).toMatch(/BELAY_WAIT_MINUTES=\$\[\[ inputs\.wait_minutes \]\]/);
+});

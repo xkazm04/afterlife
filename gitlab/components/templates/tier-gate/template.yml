@@ -112,13 +112,14 @@ belay-tier-gate:
   variables:
     BELAY_AGENT_PREFIX: "$[[ inputs.agent_prefix ]]"
     BELAY_CLASS_INPUT: "$[[ inputs.class ]]"
-    BELAY_WAIT_MINUTES: "$[[ inputs.wait_minutes ]]"
     BELAY_EMIT: "$[[ inputs.emit_events ]]"
   script:
     - |
       set -eu
-      # M6: whose Proof Block and guardrail notes count is fixed at include time, never a job variable a pipeline one outranks.
+      # M6: whose notes count, and the wait (a number: $(( )) below would evaluate a variable's text, $(...) and all), are fixed
+      # at include time, never a job variable a pipeline one outranks.
       BELAY_PROOF_AUTHORS="$[[ inputs.proof_authors ]]"; BELAY_GUARDRAIL_AUTHORS="$[[ inputs.guardrail_authors ]]"
+      BELAY_WAIT_MINUTES=$[[ inputs.wait_minutes ]]
       mkdir -p .belay/events
       rc=0
       node "$BELAY_GLUE/proof/mr-context.mjs" --mr "$CI_MERGE_REQUEST_IID" --agent-prefix "$BELAY_AGENT_PREFIX" || rc=$?
