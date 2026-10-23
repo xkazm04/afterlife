@@ -4,7 +4,7 @@
 import { STAGES } from '@/schemas/stages';
 import { TIER_ORDER } from '@/schemas/tier';
 import { CLASS_ID } from '@/server/poller/parse/trailers';
-import type { ActionIntent, GapFile } from './types';
+import { GAP_TEMPLATES, type ActionIntent, type GapFile } from './types';
 
 export type IntentParse = { ok: true; intent: ActionIntent } | { ok: false; reason: string };
 const no = (reason: string): IntentParse => ({ ok: false, reason });
@@ -104,6 +104,16 @@ export function parseIntent(raw: unknown): IntentParse {
       }
       if (OTHER_WRITES.test(branch)) return no(`${branch} is a branch Belay's promote, enroll, arm or disarm MRs use: a gap names its own (belay/gap-...)`);
       return { ok: true, intent: { kind: 'stage-gap-mr', ...base, gap, stage, from, to, title, branch, files: fs, ...(workItem ? { workItem } : {}) } };
+    }
+    case 'apply-gap-template': {
+      const stage = STAGES.find((s) => s === raw.stage);
+      const from = raw.from === null ? null : int(raw.from, 0, 4);
+      const to = int(raw.to, 1, 4);
+      const template = GAP_TEMPLATES.find((t) => t === raw.template);
+      if (!stage || (from === null && raw.from !== null) || to === null) return no('stage, from (0-4, or null when the rung is unknown) and to (1-4) are required');
+      if (to <= (from ?? 0)) return no(`${stage} R${from ?? '?'} -> R${to} raises nothing: to must be above from (an unknown from counts as 0)`);
+      if (!template) return no(`template must be one of ${GAP_TEMPLATES.join(', ')}`);
+      return { ok: true, intent: { kind: 'apply-gap-template', ...base, stage, from, to, template } };
     }
     case 'arm-track':
     case 'disarm-track':
