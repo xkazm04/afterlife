@@ -2,10 +2,10 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { ActionResponse } from '@/server/actions/types';
-import { mrOf, NO_ANSWER, outcomeOf } from '@/server/actions/words';
+import { mrOf, outcomeOf, reasonOf } from '@/server/actions/words';
 import { askEnroll, sendEnroll } from '../write/enroll';
 import type { WriteView } from '../write/arm';
-import { oneAtATime } from './armFlow';
+import { noAnswer, oneAtATime } from './armFlow';
 
 /** What a sent enrollment opened: the MR GitLab named (null when it named none, or demo mode simulated it). */
 export interface EnrollSent {
@@ -47,8 +47,8 @@ export function useEnrollWrite(project: string): EnrollWrites {
       let r: ActionResponse | null;
       try {
         r = await sendEnroll(project, id, views[id]);
-      } catch {
-        return `${what}: ${NO_ANSWER}`;
+      } catch (e) {
+        return noAnswer(what, reasonOf(e));
       }
       const o = r ? outcomeOf(r, what) : null;
       if (!r || !o) return `Nothing sent · ${what}: the exact MR is not on screen yet`;

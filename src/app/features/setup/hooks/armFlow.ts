@@ -1,7 +1,7 @@
 // The click that sends an arm or disarm MR: confirm exactly the preview on screen, move the track only on a done.
 import type { Dispatch } from 'react';
 import type { ActionResponse } from '@/server/actions/types';
-import { mrOf, NO_ANSWER, outcomeOf } from '@/server/actions/words';
+import { mrOf, NO_ANSWER, outcomeOf, reasonOf } from '@/server/actions/words';
 import type { SetupAction } from '../model/flow/reducer';
 import type { SetupState } from '../model/types';
 import { sendArm } from '../write/arm';
@@ -38,15 +38,18 @@ export async function oneAtATime<T>(out: Set<string>, id: string, busy: T, run: 
   }
 }
 
+/** A confirm that threw: nobody knows whether the write ran. Says why it threw (and the digest), for the server log. */
+export const noAnswer = (what: string, why: string): string => `${what}: ${NO_ANSWER} (${why})`;
+
 async function send({ now, dispatch, writes, say, toast }: ArmSendDeps, id: string, revert: boolean): Promise<void> {
   if (now().arm[id]?.st !== (revert ? 'armed' : 'ready')) return;
   const what = `${revert ? 'disarm' : 'arm'} ${id}`;
   let r: ActionResponse | null;
   try {
     r = await sendArm(now().project, id, revert, writes.viewOf(id, revert));
-  } catch {
+  } catch (e) {
     writes.clear();
-    say(`${what}: ${NO_ANSWER}`);
+    say(noAnswer(what, reasonOf(e)));
     toast(NO_ANSWER);
     return;
   }

@@ -11,7 +11,7 @@ import type { ArmWrites } from './useArmWrite';
 
 const sent: { calls: number; next: () => Promise<ActionResponse | null> } = { calls: 0, next: () => Promise.resolve(null) };
 vi.mock('../write/arm', () => ({ sendArm: () => (sent.calls++, sent.next()) }));
-const { armClick, oneAtATime } = await import('./armFlow');
+const { armClick, noAnswer, oneAtATime } = await import('./armFlow');
 
 const preview: ActionPreview = { kind: 'arm-track', title: 't', summary: 's', commands: [], risk: 'low', diff: [], previewId: 'p1', mode: 'demo' };
 const done = (): ActionResponse => ({ status: 'done', preview, results: [{ display: 'glab mr create', exit: 0, ok: true, simulated: false, made: '!22', url: 'https://gitlab.example/mr/22' }] });
@@ -52,6 +52,13 @@ describe('the arm click', () => {
     sent.next = () => Promise.reject(new Error('socket hang up'));
     await r.send('T3', false);
     expect([r.ref.current.arm.T3?.st, r.calls.clear, r.toasts]).toEqual(['ready', 1, [NO_ANSWER]]);
+  });
+  it('the status line keeps why it threw, with the digest that ties it to the server log', async () => {
+    const r = rig();
+    sent.next = () => Promise.reject(Object.assign(new Error('An error occurred in the Server Components render.'), { digest: '4242' }));
+    await r.send('T3', false);
+    expect(r.said).toEqual([`arm T3: ${NO_ANSWER} (An error occurred in the Server Components render. (digest 4242))`]);
+    expect(noAnswer('enroll T3', 'boom')).toBe(`enroll T3: ${NO_ANSWER} (boom)`);
   });
   it('a second click while the first is still out sends nothing, and the track can be sent again once it settles', async () => {
     const r = rig();
