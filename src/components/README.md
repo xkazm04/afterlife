@@ -21,7 +21,7 @@ in every state at **`/kit`**.
 The rest of the shell works without props:
 
 - The active navigation item comes from the route.
-- ⌘I (Ctrl+I on Windows) toggles the inspector.
+- ⌘I (Ctrl+I on Windows and Linux; the tooltip names the key the platform uses) toggles the inspector.
 - Settings is pinned at the bottom of the sidebar.
 - The status bar's right-hand label follows the data (`ShellInfo.data`, set by the root layout; `bars/dataLabel`). Demo, and any render without a `ShellProvider`: "illustrative demo data". Live: "live data · <group>", plus "some parts still demo, marked" while the source declares illustrative parts. Live on the seeded fake GitLab: "live mode · seeded fake GitLab, not a real group". Live never says "illustrative demo data".
 - Live, the status bar also draws the poll line, `bars/poll/PollStatus({poll})`: the last good poll's age, a failed poll's reason and its Re-poll (one cycle of the whole group). It reads and re-polls through the server; `bars/poll/PollStatusView({poll, repoll, recheck})` is the same line with those two reads injected, which is how `/kit` draws its ok, late and failed tones without polling.
