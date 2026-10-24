@@ -138,6 +138,13 @@ describe('runWaves with a fake claude', () => {
     expect(sh(repoDir, 'branch', '--list', `belay/wave-${r.wave}`)).toBe('');
   }, 90_000);
 
+  it('caps a lane at what the wave has left, so the last lane cannot carry the wave past its cap', async () => {
+    // plan $0.25 leaves $0.35 of a $0.60 wave; ok-a then spends $0.50: over what was left, so budget, not landed.
+    const r = await run(['ok-a'], { laneCapUsd: 3, waveCapUsd: 0.6 });
+    expect(r.ends['ok-a']).toMatchObject({ outcome: 'budget', parkReason: expect.stringContaining('$0.35 cap') });
+    expect(r.ends['ok-a']?.kind === 'lane.end' && r.ends['ok-a'].commits).toEqual([]);
+  }, 90_000);
+
   it('kills a hung lane at the timeout', async () => {
     const r = await run(['hang-a'], { laneTimeoutMs: 4000 });
     expect(r.ends['hang-a']).toMatchObject({ outcome: 'timeout' });

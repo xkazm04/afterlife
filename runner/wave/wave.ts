@@ -103,16 +103,20 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
     const p = await plan(c, baseSha);
     cost += p.costUsd;
     // A frontier lane runs after the planned ones when the plan under-filled (wave/frontier.ts).
-    const items: { item: PlanItem; frontier?: FrontierBrief }[] = p.items.map((item) => ({ item }));
-    if (wantsFrontier(repo, p.items.length, c.opts.lanes)) items.push({ item: frontierItem(repo), frontier: { prompt: frontierPrompt(c.prompts.text.lane, c.prompts.text.frontier, repo, c.laneCapUsd, { gates: repo.gates, commands: bash }) } });
+    const items: { item: PlanItem; frontier?: true }[] = p.items.map((item) => ({ item }));
+    if (wantsFrontier(repo, p.items.length, c.opts.lanes)) items.push({ item: frontierItem(repo), frontier: true });
     const text = c.prompts.text;
     for (const { item, frontier } of items) {
-      if (cost >= c.waveCapUsd) break;
+      // A lane may spend only what the wave has left (whole cents, rounded down), so its cap is the wave's too.
+      const room = Math.floor((c.waveCapUsd - cost) * 100) / 100;
+      if (room <= 0) break;
       // Each lane starts from the wave branch's tip, so it sees the lanes that landed before it: two lanes cutting the
       // same file (a split and its wiring in lib.rs) stack instead of conflicting on the cherry-pick.
       const tip = await git(waveDir, ['rev-parse', 'HEAD']);
-      const ctx = { repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, ...(repo.diffCheck ? { diffCheck: true } : {}), baseSha: tip, wave, waveDir, model: c.opts.model, laneCapUsd: c.laneCapUsd, timeoutMs: c.timeoutMs };
-      const r = await runLane({ ...ctx, lanePromptText: text.lane, reviewPromptText: text.review, repairPromptText: text.repair, log, runsDir: c.runsDir, repo: repo.slug }, item, frontier);
+      const laneCapUsd = Math.min(c.laneCapUsd, room);
+      const ctx = { repoPath: repo.path, gates: repo.gates, setup: repo.setup ?? [], bash, ...(repo.diffCheck ? { diffCheck: true } : {}), baseSha: tip, wave, waveDir, model: c.opts.model, laneCapUsd, timeoutMs: c.timeoutMs };
+      const brief: FrontierBrief | undefined = frontier ? { prompt: frontierPrompt(text.lane, text.frontier, repo, laneCapUsd, { gates: repo.gates, commands: bash }) } : undefined;
+      const r = await runLane({ ...ctx, lanePromptText: text.lane, reviewPromptText: text.review, repairPromptText: text.repair, log, runsDir: c.runsDir, repo: repo.slug }, item, brief);
       cost += r.costUsd;
       if (r.outcome === 'landed') landed++;
       // The failure lines of a red gate's whole output: a log's tail is often a runner's boilerplate, not the failure.

@@ -136,8 +136,9 @@ setup is never rerun.
 
 A lane ends `landed`, `parked` (it said `PARK:`, changed nothing, or its commit conflicted on the wave branch),
 `failed` (red gate, an error, or no final `DONE:`/`PARK:` line), `budget` or `timeout`. A lane whose reported cost passes
-`--lane-cap` is `budget` and is not committed. Once the wave's running cost (plan included) reaches `--wave-cap`, no
-further lane starts and the wave ends. Each lane is killed after 20 minutes (the whole process tree: `taskkill /T /F`
+`--lane-cap` is `budget` and is not committed. A lane's cap is also never more than what the wave has left (whole
+cents, rounded down; its prompt names that figure), and once the wave's running cost (plan included) reaches
+`--wave-cap`, no further lane starts and the wave ends. Each lane is killed after 20 minutes (the whole process tree: `taskkill /T /F`
 on Windows, the process group elsewhere) and ends `timeout`. Cost is what claude reports at the end of a call, so a cap
 is enforced after the call that crossed it, not mid-stream.
 
