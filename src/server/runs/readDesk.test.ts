@@ -44,6 +44,11 @@ describe('readFleet', () => {
     expect(readFleet(root).refs).toEqual([{ slug: 'a', path: '/x', base: 'main', gitlab: 'acme/core/a' }]);
     writeFileSync(join(root, 'fleet.yml'), 'repos:\n  - {slug: a, path: /x, base: main}\n  - {slug: a, path: /y, base: main}\n');
     expect(readFleet(root)).toEqual({ file: 'invalid', refs: [], error: 'repos[1]: duplicate slug "a"' });
+    // the runner's slug and base rule (runner/fleet/names.ts): a file it refuses is not ok on the screens either
+    writeFileSync(join(root, 'fleet.yml'), 'repos:\n  - {slug: Core API, path: /x, base: main}\n');
+    expect(readFleet(root)).toEqual({ file: 'invalid', refs: [], error: 'repos[0]: slug must be a lowercase token' });
+    writeFileSync(join(root, 'fleet.yml'), "repos:\n  - {slug: a, path: /x, base: '--upload-pack=x'}\n");
+    expect(readFleet(root)).toEqual({ file: 'invalid', refs: [], error: 'repos[0]: base must be a git ref or sha' });
     writeFileSync(join(root, 'fleet.yml'), 'repos: [\n');
     expect(readFleet(root)).toMatchObject({ file: 'invalid', refs: [] });
     writeFileSync(join(root, 'fleet.yml'), 'other: 1\n');

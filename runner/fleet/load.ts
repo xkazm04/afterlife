@@ -5,6 +5,7 @@ import nodePath from 'node:path';
 import { parse } from 'yaml';
 import type { FleetRepo } from '../index';
 import { parseFrontier } from './frontier';
+import { FLEET_BASE, FLEET_SLUG } from './names';
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -29,12 +30,11 @@ export function parseFleet(text: string, file: string): FleetRepo[] {
     const where = `${file}: repos[${i}]`;
     if (!isObj(r)) throw new Error(`${where} must be a mapping`);
     const { slug, path, base, gates } = r;
-    if (typeof slug !== 'string' || !/^[a-z0-9][a-z0-9._-]*$/.test(slug)) throw new Error(`${where}: slug must be a lowercase token`);
+    if (typeof slug !== 'string' || !FLEET_SLUG.test(slug)) throw new Error(`${where}: slug must be a lowercase token`);
     if (seen.has(slug)) throw new Error(`${where}: duplicate slug "${slug}"`);
     seen.add(slug);
     if (typeof path !== 'string' || !path) throw new Error(`${where}: path is required`);
-    // base reaches git argv (rev-parse, worktree add): a leading '-' would be read as an option.
-    if (typeof base !== 'string' || !/^[A-Za-z0-9_][A-Za-z0-9._/~^@{}-]*$/.test(base)) throw new Error(`${where}: base must be a git ref or sha`);
+    if (typeof base !== 'string' || !FLEET_BASE.test(base)) throw new Error(`${where}: base must be a git ref or sha`);
     if (!Array.isArray(gates) || gates.length === 0 || !gates.every((g) => typeof g === 'string' && g.trim())) {
       throw new Error(`${where}: gates must be a non-empty list of commands`);
     }

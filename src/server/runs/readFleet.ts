@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import type { FleetFile, FleetRef } from '@/lib/runs/desk/types';
+import { fleetRefProblem } from '../../../runner/fleet/names';
 
 export interface FleetRead {
   file: FleetFile;
@@ -26,6 +27,8 @@ export function readFleet(root: string): FleetRead {
     for (const [i, r] of repos.entries()) {
       const { slug, path, base, gitlab } = (r ?? {}) as Record<string, unknown>;
       if (!str(slug) || !str(path) || !str(base)) return { file: 'invalid', refs: [], error: `repos[${i}] needs slug, path and base` };
+      const problem = fleetRefProblem(slug, base); // the runner's own rule: a file it refuses is not ok here
+      if (problem) return { file: 'invalid', refs: [], error: `repos[${i}]: ${problem}` };
       // the runner refuses a repeated slug (runner/fleet/load.ts), so the screens do not call that file ok
       if (refs.some((x) => x.slug === slug)) return { file: 'invalid', refs: [], error: `repos[${i}]: duplicate slug "${slug}"` };
       refs.push({ slug, path, base, ...(str(gitlab) ? { gitlab } : {}) }); // gitlab: optional, the cost join's key
