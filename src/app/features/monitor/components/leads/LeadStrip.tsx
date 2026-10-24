@@ -2,7 +2,7 @@
 
 import { memo, useId, useMemo, useRef } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
-import { leadPaths, peakX, pipCount, slotsAlong, type Slot } from '../../model/beat';
+import { leadPaths, peakX, pipCount, pipFoot, slotsAlong, type Slot } from '../../model/beat';
 import { beatLabel } from '../../model/totals';
 import { useSize } from '../../hooks/useSize';
 import styles from './strip.module.css';
@@ -28,7 +28,7 @@ function Pips({ p, s, thin }: { p: FleetProject; s: Slot; thin?: boolean }) {
   const pw = Math.max(5, Math.min(12, s.w * 0.55));
   const top = 4;
   const bot = top + (n - 1) * 5.7 + 3.6;
-  const peak = p.state === 'watching' || p.state === 'setting-up' ? s.base - s.amax * 0.4 : s.base - 3;
+  const peak = pipFoot(p, s);
   return (
     <g>
       <path d={`M${x} ${bot} V${Math.max(bot, peak)}`} />

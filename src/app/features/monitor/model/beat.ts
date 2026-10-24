@@ -91,5 +91,8 @@ export function leadPaths(projects: readonly FleetProject[], slots: readonly Slo
   return out;
 }
 
+/** Where a pip stem ends: on a drawn beat (watching or setting up, height read), else just above the flat or broken line. */
+export const pipFoot = (p: FleetProject, s: Slot): number => (isLive(p) && amplitude(p, s.amax) !== null ? s.base - s.amax * 0.4 : s.base - 3);
+
 /** Decision pips stacked above a beat: at most six are drawn, the count says the rest. */
 export const pipCount = (p: FleetProject): number => Math.min(6, liveNeeds(p));

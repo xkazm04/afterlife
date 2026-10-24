@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FleetProject } from '@/lib/demo/types';
-import { amplitude, beatPath, leadPaths, pipCount, slotsAlong } from './beat';
+import { amplitude, beatPath, leadPaths, pipCount, pipFoot, slotsAlong } from './beat';
 import { MARKS, leadLine, leadsOf, stateLine, topWaiting, totalsOf } from './totals';
 
 const base: FleetProject = {
@@ -93,6 +93,13 @@ describe('beat grammar', () => {
     expect(p.flat).toBe('M100.0 50.0 H200.0'); // stale stays flat: the feed, not the count, says so
     expect(leadPaths([mk({ state: 'setting-up', armed: null })], slots).forming).not.toBe(''); // its height never read armed
     expect(stateLine(mk({ state: 'setting-up', armed: null, setupStep: 'arm T4' }))).toBe('setting up · armed tracks not read · arm T4');
+  });
+  it('the pip stem stands on a drawn beat, and on the line where none is drawn', () => {
+    const s = { x: 0, w: 40, base: 50, amax: 30, ins: 0 };
+    expect(pipFoot(mk({}), s)).toBe(38);
+    expect(pipFoot(mk({ state: 'setting-up' }), s)).toBe(38);
+    expect(pipFoot(mk({ armed: null }), s)).toBe(47); // the unknown break: no R peak to stand on
+    expect(pipFoot(mk({ state: 'stale' }), s)).toBe(47);
   });
   it('caps the pips at six and draws none for an unwatched project', () => {
     expect(pipCount(mk({ needsYou: 9 }))).toBe(6);
