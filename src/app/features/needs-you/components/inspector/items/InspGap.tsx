@@ -11,6 +11,7 @@ import { policyNote } from '../../../model/outbox/policy';
 import { canAsk } from '../../../model/slot/slot';
 import { gapBlock } from '../../../write/desk';
 import { PROPOSAL_EXTRAS } from '@/app/features/maturity/data/proposals';
+import { rungLabel } from '@/app/features/maturity/model/rungs';
 import { ActBtn, Acts } from '../Acts';
 import { ItemHead } from '../Head';
 import type { InspProps } from '../props';
@@ -26,8 +27,6 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
   const block = gapBlock(id, demo);
   const view = s.writes[id];
   const cmds = commandsFor(id, demo, s.writes);
-  const fromName = demo.rungNames[g.from] ?? '';
-  const toName = demo.rungNames[g.to] ?? '';
   const extra = PROPOSAL_EXTRAS[id];
   return (
     <>
@@ -35,13 +34,9 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
         sub={
           <span className={styles.subrow}>
             <span>{g.stage}</span>
-            <span>
-              R{g.from} {fromName}
-            </span>
+            <span>{rungLabel(g.from, demo.rungNames)}</span>
             <span>→</span>
-            <span>
-              R{g.to} {toName}
-            </span>
+            <span>{rungLabel(g.to, demo.rungNames)}</span>
           </span>
         }
         path={extra?.branch ?? 'no branch · nothing is sent'}

@@ -3,6 +3,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { PROPOSAL_EXTRAS } from '@/app/features/maturity/data/proposals';
+import { rungLabel } from '@/app/features/maturity/model/rungs';
 import { pickNeedsYouDemo } from '../../../data/pick';
 import { initialState } from '../../../model/state';
 import { InspGap } from '../items/InspGap';
@@ -41,5 +42,15 @@ describe('InspGap Command card on an unsure write', () => {
     expect(out).toContain(UNSURE_NOTE);
     expect(out).not.toContain('Belay refuses this write');
     expect(out).toContain('Ask again');
+  });
+});
+
+// The head's move spells each rung as Maturity does (rungLabel), not a hand-built "R{n} {name}".
+describe('InspGap head move', () => {
+  it.each(demo.gaps.map((g) => g.id))('%s: from and to read as rungLabel', (id) => {
+    const g = demo.gaps.find((x) => x.id === id);
+    if (!g) throw new Error(id);
+    const out = renderToStaticMarkup(<InspGap id={id} s={{ ...initialState(demo), sel: id }} demo={demo} leftSec={0} dispatch={() => {}} />);
+    expect(out).toContain(`<span>${rungLabel(g.from, demo.rungNames)}</span><span>→</span><span>${rungLabel(g.to, demo.rungNames)}</span>`);
   });
 });
