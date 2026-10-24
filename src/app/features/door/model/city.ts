@@ -22,7 +22,7 @@ export const proj = (u: number, v: number): Pt => [(u - v) * HW, (u + v) * HH];
 export const GHOST_H = 30;
 /** A tower whose armed tracks were not read stands at the not-set-up ghost's height, its outline dashed (shapes.ts). */
 export const UNKNOWN_H = GHOST_H;
-/** A tower grows with its armed tracks: 11 px bare, 55.8 px with all eight; unread, UNKNOWN_H (never the bare 0). */
+/** A tower grows with its armed tracks: 11 px bare, 55.8 px with all TRACK_COUNT (8, lib/tiers); unread, UNKNOWN_H (never the bare 0). */
 export const towerH = (p: FleetProject): number => (p.armed === null ? UNKNOWN_H : 11 + p.armed * 5.6);
 /** Decisions that count: an unwatched project has no live count. */
 export const needsOf = (p: FleetProject): number => (p.state === 'not-set-up' ? 0 : p.needsYou);

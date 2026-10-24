@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { describe, expect, it } from 'vitest';
 import { parsePolicy } from '../../../../../../engine/policy/load';
+import { TRACK_COUNT } from '@/lib/tiers';
 import { ROLE_TRACK, trackOfRole, trustClassesOf } from '../../tiers';
 
 describe('the agent role -> track table', () => {
@@ -13,8 +14,9 @@ describe('the agent role -> track table', () => {
     expect(classes.filter((c) => c.track === null).map((c) => `${c.id} (${c.agent})`)).toEqual([]);
   });
 
-  it('names each of the eight tracks once', () => {
-    expect(Object.values(ROLE_TRACK).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  it('names each of the TRACK_COUNT tracks once', () => {
+    expect(Object.keys(ROLE_TRACK)).toHaveLength(TRACK_COUNT);
+    expect(Object.values(ROLE_TRACK).sort((a, b) => a - b)).toEqual(Array.from({ length: TRACK_COUNT }, (_, i) => i + 1));
   });
 
   it('reads a role named like an Object property as no track', () => {

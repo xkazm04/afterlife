@@ -2,7 +2,7 @@
 import { plural } from '@/lib/format/plural';
 import { formatAge } from '@/lib/format/time';
 import type { FleetProject } from '@/lib/demo/types';
-import { tiersKnown } from '@/lib/tiers';
+import { TRACK_COUNT, tiersKnown } from '@/lib/tiers';
 import { NO_GOOD_POLL, ageLine } from './mode';
 import type { Lead, MarkKind, Totals } from './types';
 
@@ -12,7 +12,7 @@ export const tiersRead = (p: FleetProject): boolean => p.state !== 'not-set-up' 
 export const quarOf = (p: FleetProject): number => (tiersRead(p) ? (p.tiers?.quarantined ?? 0) : 0);
 export const isQuarantined = (p: FleetProject): boolean => quarOf(p) > 0;
 /** The tracks a project can arm (T1..T8): the R height, the readout and the inspector all count against this. */
-export const TRACKS = 8;
+export const TRACKS = TRACK_COUNT;
 /** A live project draws a beat; stale and unwatched ones do not. */
 export const isLive = (p: FleetProject): boolean => p.state === 'watching' || p.state === 'setting-up';
 /** An unwatched project has no live count: its decisions are not drawn and not added. */

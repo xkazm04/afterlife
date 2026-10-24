@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import type { FleetProject, NeedsYouItem, Track } from '@/lib/demo/types';
+import { TRACK_COUNT } from '@/lib/tiers';
 import { needsOf } from '../../model/city';
 import { ageStr, plural, staleText, waitWords } from '../../model/words';
 import { DOOR_TIERS, tierLabel } from '../rail/Rail';
@@ -77,7 +78,7 @@ export function L2Panel({ p, group, classes, deep, rungs }: { p: FleetProject; g
           ) : (
             <>
               <Num v={n} k={`${waitWords(n)}${stale ? ' · last known' : ''}`} tone={n ? (stale ? 'st' : 'a') : undefined} />
-              {p.armed === null ? <Num v="unknown" k="tracks armed · not read" tone="u" /> : <Num v={<>{p.armed}<small> / 8</small></>} k="tracks armed" />}
+              {p.armed === null ? <Num v="unknown" k="tracks armed · not read" tone="u" /> : <Num v={<>{p.armed}<small> / {TRACK_COUNT}</small></>} k="tracks armed" />}
               {p.proofs7d ? <Num v={<>{p.proofs7d.pass}<small> / </small><span className={p.proofs7d.fail ? styles.f : undefined}>{p.proofs7d.fail}</span></>} k={`pass / fail${p.proofs7d.inconclusive ? ` · ${p.proofs7d.inconclusive} inconclusive` : ''} · 7 days`} /> : <Num v="unknown" k="proofs, 7 days" tone="u" />}
               {p.demotions7d == null ? <Num v="unknown" k="demotions, 7 days" tone="u" /> : <Num v={p.demotions7d} k={`${plural(p.demotions7d, 'demotion')} · 7 days`} />}
               {p.craOpen > 0 ? <Num v={p.craOpen} k={`CRA ${plural(p.craOpen, 'clock')}${isDeep ? ' · seeded drill' : ' open'}`} /> : null}

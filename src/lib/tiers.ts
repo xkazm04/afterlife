@@ -13,6 +13,9 @@ export const TIER_META: Record<Ceiling, { letter: string; name: string }> = {
   human_only: { letter: 'P', name: 'Human only' },
 };
 
+/** The tracks a project can arm (T1..T8), one per agent role; the server's ROLE_TRACK table is held to it by its test. */
+export const TRACK_COUNT = 8;
+
 /** Sort rank: higher means more autonomy. */
 export const TIER_RANK: Record<Ceiling, number> = { hands_off: 5, supervised: 4, assisted: 3, quarantined: 2, human_only: 1 };
 
