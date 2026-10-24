@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseIntent } from '@/server/actions/intents';
+import { MAX_REVOKE_CHANGES as MAX_CHANGES, parseIntent } from '@/server/actions/intents';
 import type { ClassRow } from '../../types';
-import { MAX_CHANGES, trackChanges } from './batch';
+import { trackChanges } from './batch';
 
 const row = (id: string, track: string, o: Partial<ClassRow> = {}): ClassRow => ({
   id, track, ceiling: 'hands_off', tier: 'hands_off', lease_days: null, record: null, lastMove: '', pending: null, ...o,

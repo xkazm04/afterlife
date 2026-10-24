@@ -2,14 +2,12 @@
 // commit, but refuses the WHOLE write if any one change is not a lowering, human only or without a record
 // (server/actions/plans/revoke.ts), so the list is computed here from the rows: each class goes to its own revoke
 // target, the rest are named as skipped with why, and a track larger than one write is refused before anything is asked.
+import { MAX_REVOKE_CHANGES } from '@/server/actions/intents';
 import { actsFrom, nothingToRevoke, revokeTarget } from '../tiers';
 import type { Change, ClassRow } from '../../types';
 
 /** `q` quarantines every class of the track, `r` takes each one rung down from its own tier. */
 export type TrackWant = 'step' | 'quarantine';
-
-/** One revoke-class intent takes 1 to 12 changes (server/actions/intents.ts). */
-export const MAX_CHANGES = 12;
 
 export interface Skipped {
   id: string;
@@ -33,8 +31,8 @@ export function trackChanges(classes: readonly ClassRow[], track: string, want: 
     if (to) changes.push({ id: c.id, to });
     else skipped.push({ id: c.id, why: nothingToRevoke(c) });
   }
-  if (changes.length <= MAX_CHANGES) return { changes, skipped };
-  return { changes: [], skipped, refused: `${changes.length} classes to lower: one write takes at most ${MAX_CHANGES} changes, lower them a class at a time` };
+  if (changes.length <= MAX_REVOKE_CHANGES) return { changes, skipped };
+  return { changes: [], skipped, refused: `${changes.length} classes to lower: one write takes at most ${MAX_REVOKE_CHANGES} changes, lower them a class at a time` };
 }
 
 /** The dock's line when nothing in the track moves: the refusal, or each class and why it stays. */

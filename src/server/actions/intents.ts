@@ -25,6 +25,8 @@ export const MAX_FILE_LINES = 2000;
 const MAX_HUNK_LINES = 400;
 /** A gap MR carries at most this many files. The screen (maturity write/gap.ts) imports it, so the bound has one home. */
 export const MAX_GAP_FILES = 8;
+/** A revoke-class intent lowers at most this many classes. Ladder's track write (ladder model/rules/batch) imports it. */
+export const MAX_REVOKE_CHANGES = 12;
 const TRACK = /^T[1-8]$/;
 /** The branches Belay's other MRs plan (promote, enroll, arm, disarm): a gap never takes one (intents/paths.test.ts derives them). */
 const OTHER_WRITES = /^belay\/(?:promote|enroll|arm|disarm)-/;
@@ -76,7 +78,7 @@ export function parseIntent(raw: unknown): IntentParse {
     case 'revoke-class': {
       const list = Array.isArray(raw.changes) ? raw.changes : [];
       const changes = list.flatMap((c: unknown) => (isRec(c) && str(c.class, CLASS_ID, 80) && tier(c.to) ? [{ class: c.class as string, to: tier(c.to)! }] : []));
-      if (list.length < 1 || list.length > 12 || changes.length !== list.length) return no('changes must be 1 to 12 {class, to} entries with a known class and tier');
+      if (list.length < 1 || list.length > MAX_REVOKE_CHANGES || changes.length !== list.length) return no(`changes must be 1 to ${MAX_REVOKE_CHANGES} {class, to} entries with a known class and tier`);
       if (new Set(changes.map((c) => c.class)).size !== changes.length) return no('a class appears twice in changes');
       const why = raw.why === undefined ? undefined : str(raw.why, ONE_LINE, 200);
       if (why === null) return no('why must be one line of at most 200 characters');
