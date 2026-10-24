@@ -55,6 +55,10 @@ describe('the kit galleries', () => {
     expect(names.length).toBe(3);
     expect(names.filter((l, i) => names.indexOf(l) !== i)).toEqual([]);
   });
+  it('draws the documented states a pane gallery cannot: a sidebar item that is a link, an active PopupButton', () => {
+    expect(screen).toMatch(/<a href="\/fleet"[^>]*>[\s\S]*?With href: a link/);
+    expect(render(createElement(FallbackGallery))).toMatch(/aria-label="PopupButton: plain, active[^"]*"/);
+  });
   it('names the toolbar segmented control as a specimen, not as a gallery filter it is not', () => {
     const html = render(createElement(KitScreen));
     expect(html).toContain('aria-label="Segmented control specimen"');

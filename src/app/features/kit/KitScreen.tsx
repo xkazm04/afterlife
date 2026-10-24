@@ -82,6 +82,7 @@ export function KitScreen() {
             <SidebarItem icon={<StateGlyph state="stale" />} label="Stale" count={11} />
             <SidebarItem icon={<TierMark tier="quarantined" />} label="Has quarantine" count={25} />
             <SidebarItem icon={<Icon name="folder" />} label="An item with no count gives the label the whole row" />
+            <SidebarItem icon={<Icon name="fleet" />} label="With href: a link, not a filter" href="/fleet" />
           </SidebarSection>
         </>
       }

@@ -1,5 +1,6 @@
 'use client';
 
+import { PopupButton } from '@/components/controls/toolbar/PopupButton';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { HelpButton } from '@/components/overlays/HelpButton';
 import { Legend } from '@/components/overlays/popover/Legend';
@@ -56,6 +57,15 @@ export function FallbackGallery() {
           <ToolbarButton aria-label="Disabled toolbar button" disabled>
             ?
           </ToolbarButton>
+        </div>
+      </Specimen>
+      <Specimen label="PopupButton: plain, active (a filter is applied, tinted), no icon">
+        <div className={styles.bar}>
+          <PopupButton icon="sort">Attention</PopupButton>
+          <PopupButton icon="filter" active>
+            Tier: Hands-off
+          </PopupButton>
+          <PopupButton>Group</PopupButton>
         </div>
       </Specimen>
       <Specimen label="HelpButton: hover or focus peeks the legend, click pins it (toasts come from ToastProvider, shown under overlays/)">
