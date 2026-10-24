@@ -89,7 +89,7 @@
 | `components/table/` | `DecisionsTable`, `DecisionRow`, `HistoryRow`, `MoveCell` |
 | `components/live/` | `LiveAct`, `LiveEvidence`; `desk/` (`LiveDesk`, `LiveBand`, `LiveTable`, `LiveInspector`, `LiveOutbox`) |
 | `components/outbox/` | `OutboxDrawer` (content of the shared `BottomDrawer`), `OutboxItem` |
-| `components/inspector/` | `NeedsInspector`, `Sec`, `Acts`, `items/` (one view per selection) |
+| `components/inspector/` | `NeedsInspector`, `Sec`, `Acts`, `items/` (one view per decision, on its page) |
 | `components/chrome/`, `components/shared/` | Toolbar, sidebar, legend, outbox icon; glyphs, chips, "does not" list |
 | `hooks/` | Reducer + notices, elapsed clock, keys, menus |
 
@@ -117,5 +117,7 @@ Vitest, in the node environment (no DOM: components are rendered with `renderToS
   on the demo desk: its Run is simulated on the client (`model/run.ts` `runItem`) and says so. n1 promotes
   `qa.file-bug` (Supervised in the demo data) to Hands-off, and the demo planner previews it.
 - In demo mode the server plans but never executes: no `glab` command runs; screen state lives in the reducer and is
-  lost on reload. The CRA clock counts down from a fixed `remainingSec` (19 h 12 m) from page load.
+  lost on reload. The CRA clock counts down from a fixed `remainingSec` (19 h 12 m) from the first load under
+  `/needs-you`: `NeedsStore` (the layout's) holds its one `ClockProvider`, so moving between the list and a decision's
+  page does not restart it.
 - The CRA case, its draft, evidence, diffs, MR numbers and the week's ledger are invented fixtures in `data/`.
