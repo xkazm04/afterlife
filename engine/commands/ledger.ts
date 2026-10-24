@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { append, parseChainText, parseEventBody, verifyChain, type EventBody, type LedgerEvent } from '../../src/schemas/ledger';
+import { strictChainLine } from '../../src/schemas/chain/strict';
 import { parseArgs } from '../core/args';
 import { errno, readJson, readText } from '../core/files';
 import { EngineError, isoMs, isRecord, type CommandResult, type Ctx } from '../core/types';
@@ -29,9 +30,12 @@ export function parseLedgerEvent(raw: unknown): EventBody {
   return r.event;
 }
 
-/** A stored chain, every line parsed as the importer parses it: a chain with a bad line is never extended. */
+/**
+ * A stored chain, every line parsed as the importer parses it (the shared parser and the stored chain's stricter rules,
+ * strictChainLine): a chain the importer would refuse is never extended.
+ */
 export function readChain(text: string): LedgerEvent[] {
-  const r = parseChainText(text);
+  const r = parseChainText(text, strictChainLine);
   if (!r.ok) throw new EngineError(`chain line ${r.line}: ${r.reason}; it is not extended`);
   return r.events;
 }
