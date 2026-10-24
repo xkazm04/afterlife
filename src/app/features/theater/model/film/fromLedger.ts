@@ -45,7 +45,7 @@ export function entriesOf(events: readonly LedgerEvent[]): LedgerEntry[] {
 }
 
 /** What the address asks of the film: `mr`, the MR to film first (`/theater?mr=N`). */
-export interface FilmFocus {
+interface FilmFocus {
   mr?: number;
 }
 
