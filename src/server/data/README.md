@@ -72,7 +72,7 @@ ages to the demo's moment, so the screens are identical to demo mode, and visibl
 
 ## Live, what is still the demo catalogue
 
-Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live), the setup phases: the live source declares these in
+Tracks, the loop, the cockpit text (only `feed.lastPollSec` is live, null until the deep project has a feed), the setup phases: the live source declares these in
 `illustrative` (`tracks`, `loop`, `cockpit`, `setup`), and the Door and Fleet mark what they show of them "demo" (the demo source declares nothing: all of it is the
 demo). It also declares what the Ladder still shows of the demo: `policy-history` (its opening ledger, the tier-state.yml
 head, the policy's revision and merge age, and the commit ids they name: the poller reads belay-policy's files, never its

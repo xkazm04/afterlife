@@ -85,7 +85,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       events,
       needsYou,
       decided: decided.filter((d) => !isSeeded(d.id)),
-      cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? 0 } },
+      cockpit: { ...catalogue.cockpit, feed: { ...catalogue.cockpit.feed, lastPollSec: feed?.ageSec ?? null } },
       setup: { ...catalogue.setup, group: paired, project: deep },
       policy,
       tiersStale,

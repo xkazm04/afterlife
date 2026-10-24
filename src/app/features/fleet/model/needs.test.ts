@@ -45,4 +45,7 @@ describe('status line', () => {
   it('in live mode only counts up: no poll is simulated in the browser', () => {
     expect(nextPolled(59, true)).toBe(60);
   });
+  it('an unknown poll age is not a fresh poll', () => {
+    expect(statusLine(1, 1, 0, null)).toBe('1 project · 0 filters · not polled yet');
+  });
 });

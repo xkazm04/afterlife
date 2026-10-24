@@ -67,7 +67,7 @@ describe('a live snapshot of an index that knows little', () => {
     expect(d.maturity.engine).toBe('not scanned');
     expect(d.maturity.rungs).toHaveLength(9);
     expect(d.maturity.rungs.every((r) => r.now === null && r.day0 === null)).toBe(true); // unknown, never absent
-    expect(d.cockpit.feed.lastPollSec).toBe(0);
+    expect(d.cockpit.feed.lastPollSec).toBeNull(); // no feed is no poll, never 'polled 0 s ago'
   });
 
   it('what the index cannot give is shown as the most restrictive reading, and an unclassified task is not listed', async () => {

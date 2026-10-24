@@ -70,7 +70,7 @@ of the decisions are shared, by the item's kind, in `@/lib/demo/needsActions` (l
   "Re-polled" only after that resolved, and says it failed otherwise. A decision's button opens Needs you instead of
   resolving it here. Open in GitLab is a link to the project's GitLab page (new tab, no opener) once a poll stored its
   address (`webUrl`), and disabled with "the index stores no GitLab address yet" before; a row's Reveal in GitLab
-  (its context menu, `model/menus/contextMenus.ts` revealTarget) opens the same address, disabled without one. The "polled N s ago" counter starts from the snapshot's age and never wraps. Demo text still shown
+  (its context menu, `model/menus/contextMenus.ts` revealTarget) opens the same address, disabled without one. The "polled N s ago" counter starts from the snapshot's age and never wraps; with no feed read yet it reads "not polled yet", never "polled 0 s ago". Demo text still shown
   beside live rows (the deep project's tracks, its webhooks and unattributed count) carries a "demo" chip
   (`components/inspector/DemoChip.tsx`), as the data source's `illustrative` says.
 - Tiers: a class's tier is recorded in tier-state.yml, capped by the policy (group-wide, the gate's own rule; not

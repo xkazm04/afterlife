@@ -22,10 +22,13 @@ export function repoll(p: FleetProject): RepollResult {
   return { ok: true, message: repollMessage(p.name, { ok: true }), project: { ...p, feed: { ...p.feed, ageSec: 0 } } };
 }
 
-/** "184 projects · 0 filters · polled 12 s ago" (or "9 of 184 projects"); a live age past a minute in the feed's units, "2 h". */
-export function statusLine(shown: number, total: number, filters: number, polledSec: number): string {
+/**
+ * "184 projects · 0 filters · polled 12 s ago" (or "9 of 184 projects"); a live age past a minute in the feed's units, "2 h".
+ * No poll read yet (null) says so, never "polled 0 s ago".
+ */
+export function statusLine(shown: number, total: number, filters: number, polledSec: number | null): string {
   const count = shown === total ? `${total}` : `${shown} of ${total}`;
-  return `${count} ${total === 1 ? 'project' : 'projects'} · ${filters} ${filters === 1 ? 'filter' : 'filters'} · polled ${formatAge(polledSec)} ago`;
+  return `${count} ${total === 1 ? 'project' : 'projects'} · ${filters} ${filters === 1 ? 'filter' : 'filters'} · ${polledSec === null ? 'not polled yet' : `polled ${formatAge(polledSec)} ago`}`;
 }
 
 /**

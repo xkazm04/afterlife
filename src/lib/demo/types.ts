@@ -185,7 +185,7 @@ export interface DemoData {
     doingNow: string;
     goingWell: string;
     needsMe: string;
-    feed: { lastPollSec: number; webhooks: string; errors: number };
+    feed: { /** null: no poll read yet (unknown, never 0). */ lastPollSec: number | null; webhooks: string; errors: number };
     unattributed: number;
   };
 }

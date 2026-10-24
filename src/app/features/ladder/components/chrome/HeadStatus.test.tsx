@@ -16,4 +16,7 @@ describe('the status tail', () => {
     const html = renderToStaticMarkup(<HeadStatus head={{ ...head, demo: true }} stale={{ reason: 'HTTP 403', lastOk: null }} live elapsed={0} feedAgeSec={0} />);
     expect(text(html)).toMatch(/^tier-state\.yml @ c3d4 demo · class tiers stale belay-policy: HTTP 403 \(never read\) · polled 0 s ago$/);
   });
+  it('says no poll was read rather than a fresh one', () => {
+    expect(text(renderToStaticMarkup(<HeadStatus head={head} stale={null} live elapsed={3} feedAgeSec={null} />))).toBe('tier-state.yml @ c3d4 · not polled yet');
+  });
 });

@@ -21,8 +21,8 @@ export interface LadderScreenProps {
   illustrative: { history: boolean; tracks: boolean };
   /** Live mode: the wall clock and a poll age that counts up (demo: the simulated clock). */
   live: boolean;
-  /** How old the last poll was when the screen opened, in seconds. */
-  feedAgeSec: number;
+  /** How old the last poll was when the screen opened, in seconds; null when no poll was read yet. */
+  feedAgeSec: number | null;
   /** "acme-lab / ledgerline". */
   subtitle: string;
 }

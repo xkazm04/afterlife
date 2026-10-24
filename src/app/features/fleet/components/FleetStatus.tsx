@@ -11,12 +11,13 @@ import { TrendNote } from './trend/TrendNote';
  * would claim a poll the page never saw). The screen remounts it when a fresher snapshot arrives. `trend`, when read,
  * adds the fleet's week ("since last week: +2 waiting · +1 stale").
  */
-export function FleetStatus({ shown, total, filters, startSec, live, trend }: { shown: number; total: number; filters: number; startSec: number; live: boolean; trend?: TrendFeed | null }) {
+export function FleetStatus({ shown, total, filters, startSec, live, trend }: { shown: number; total: number; filters: number; startSec: number | null; live: boolean; trend?: TrendFeed | null }) {
   const [polled, setPolled] = useState(startSec);
   useEffect(() => {
-    const id = setInterval(() => setPolled((n) => nextPolled(n, live)), 1000);
+    if (startSec === null) return; // no poll read yet: nothing to count up from
+    const id = setInterval(() => setPolled((n) => (n === null ? n : nextPolled(n, live))), 1000);
     return () => clearInterval(id);
-  }, [live]);
+  }, [live, startSec]);
   return (
     <>
       {statusLine(shown, total, filters, polled)}

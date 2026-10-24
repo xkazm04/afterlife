@@ -11,7 +11,7 @@ export interface PageFacts {
 }
 
 /** The poll age a page can state: a real, non-negative number of seconds, else null (never a made-up one). */
-export const pollAgeOf = (sec: number | undefined): number | null => (typeof sec === 'number' && Number.isFinite(sec) && sec >= 0 ? sec : null);
+export const pollAgeOf = (sec: number | null | undefined): number | null => (typeof sec === 'number' && Number.isFinite(sec) && sec >= 0 ? sec : null);
 
 export function loadPageFacts(): PageFacts {
   const ds = getDataSource();

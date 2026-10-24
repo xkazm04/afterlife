@@ -83,7 +83,8 @@ export interface FleetData {
   deepId: string;
   /** The deep project's class records for the tier popover, by class id: "16/15 accepted". Classes with no record are absent. */
   records: Record<string, string>;
-  lastPollSec: number;
+  /** null: no poll read yet. */
+  lastPollSec: number | null;
 }
 
 /**
