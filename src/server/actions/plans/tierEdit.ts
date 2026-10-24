@@ -1,6 +1,29 @@
-// Editing tier-state.yml in place, the way the tripwire does: the document is parsed with comments kept, one record is
-// replaced as a flow mapping, and the file is written back. Only the records named change.
+// Reading and editing tier-state.yml for a policy write (revoke, promote, enroll). The read: belay-policy's default branch,
+// once, so the decision and the edit share it, with the last_commit_id the write carries. The edit, the way the tripwire
+// does it: the document is parsed with comments kept, one record is replaced as a flow mapping, and the file is written
+// back. Only the records named change.
 import { parseDocument, Scalar, type YAMLMap } from 'yaml';
+import type { GlFile, GlProject } from '@/server/gitlab/types';
+import { readPolicy, type PolicyRead } from '@/server/poller/derive/policy';
+import { ActionRefused, lastCommitOf, type PlanContext } from './context';
+
+export interface TierStateRead {
+  /** belay-policy's default branch: the branch read, and the base a policy MR starts from. */
+  base: string;
+  file: GlFile;
+  read: Extract<PolicyRead, { ok: true }>;
+  lastCommitId: string;
+}
+
+/** tier-state.yml and trust-policy.yml on belay-policy's default branch, read once; refused in one wording when they cannot be. */
+export async function readTierState(ctx: Pick<PlanContext, 'port'>, repo: GlProject): Promise<TierStateRead> {
+  const base = repo.defaultBranch ?? 'main';
+  const file = await ctx.port.getFile(repo.id, 'tier-state.yml', base);
+  const read = await readPolicy(ctx.port, repo.id, base, file);
+  if (!read.ok) throw new ActionRefused(`Belay could not read belay-policy: ${read.reason}`);
+  if (!file) throw new ActionRefused('Belay could not read belay-policy: tier-state.yml is not in it'); // readPolicy refuses a missing file first
+  return { base, file, read, lastCommitId: lastCommitOf(file) };
+}
 
 export interface RecordEdit {
   agent: string;

@@ -6,18 +6,13 @@
 // left alone. Each holder is read as the gate reads it when CI names that holder (engine/decide/standing.ts).
 import { TIER_ORDER } from '@/schemas/tier';
 import { holderStandings, standingOf } from '../../../../engine/decide/standing';
-import { readPolicy } from '@/server/poller/derive/policy';
 import type { RevokeClass } from '../types';
-import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, type PlanContext } from './context';
-import { editRecords, lineDiff, type RecordEdit } from './tierEdit';
+import { ActionRefused, dateOnly, locate, minuteOf, type Plan, type PlanContext } from './context';
+import { editRecords, lineDiff, readTierState, type RecordEdit } from './tierEdit';
 
 export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise<Plan> {
   const { policy: repo } = await locate(ctx, intent.project);
-  const branch = repo.defaultBranch ?? 'main';
-  const file = await ctx.port.getFile(repo.id, 'tier-state.yml', branch);
-  const read = await readPolicy(ctx.port, repo.id, branch, file);
-  if (!file || !read.ok) throw new ActionRefused(read.ok ? 'tier-state.yml is not in belay-policy' : read.reason);
-  const lastCommitId = lastCommitOf(file);
+  const { base: branch, file, read, lastCommitId } = await readTierState(ctx, repo); // revoke commits to the default branch itself
 
   const why = intent.why ?? 'manual revoke';
   const edits: RecordEdit[] = [];

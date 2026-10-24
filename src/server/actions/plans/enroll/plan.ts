@@ -6,22 +6,16 @@
 // is refused here (promotion takes it from there), and a human_only class is never given one.
 import { enrollTier, isTier } from '@/lib/promotion/enroll/enroll';
 import type { Tier } from '@/schemas/tier';
-import { readPolicy } from '@/server/poller/derive/policy';
 import { ROLE_TRACK } from '@/server/poller/derive/tiers';
 import type { EnrollTrack } from '../../types';
-import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, type PlanContext } from '../context';
+import { ActionRefused, dateOnly, locate, minuteOf, type Plan, type PlanContext } from '../context';
 import { branchMr } from '../mr/branchMr';
-import { editRecords, lineDiff, type RecordEdit } from '../tierEdit';
+import { editRecords, lineDiff, readTierState, type RecordEdit } from '../tierEdit';
 import { accountFor } from './account';
 
 export async function planEnroll(ctx: PlanContext, intent: EnrollTrack): Promise<Plan> {
   const { project, policy: repo } = await locate(ctx, intent.project);
-  const base = repo.defaultBranch ?? 'main';
-  const file = await ctx.port.getFile(repo.id, 'tier-state.yml', base);
-  const read = await readPolicy(ctx.port, repo.id, base, file);
-  if (!read.ok) throw new ActionRefused(`Belay could not read belay-policy: ${read.reason}`);
-  if (!file) throw new ActionRefused('tier-state.yml is not in belay-policy');
-  const lastCommitId = lastCommitOf(file);
+  const { base, file, read, lastCommitId } = await readTierState(ctx, repo);
   const start: unknown = read.policy.start_tier;
   if (!isTier(start)) throw new ActionRefused('trust-policy.yml has no start_tier (or it is not a tier): an enrollment writes that tier, so nothing is planned');
 

@@ -2,7 +2,7 @@
 // the diff is made from) come from the same read, and a click costs GitLab one call fewer.
 import { describe, expect, it } from 'vitest';
 import type { GitLabPort } from '@/server/gitlab/port';
-import { liveRig } from '../../__tests__/rig';
+import { liveRig, policyFiles } from '../../__tests__/rig';
 import { previewIntent } from '../../run';
 
 const INTENTS = {
@@ -28,5 +28,14 @@ describe('a policy plan reads each policy file once', () => {
     const read = await filesRead(INTENTS[k]);
     expect(read.filter((p) => p === 'tier-state.yml')).toHaveLength(1);
     expect(read.filter((p) => p === 'trust-policy.yml')).toHaveLength(1);
+  });
+});
+
+describe('a policy plan that cannot read belay-policy refuses in one wording', () => {
+  it.each(Object.keys(INTENTS) as (keyof typeof INTENTS)[])('%s', async (k) => {
+    const { deps, gl } = await liveRig();
+    delete policyFiles(gl)['tier-state.yml'];
+    const r = await previewIntent(deps, INTENTS[k]);
+    expect(r.status === 'refused' ? r.reason : r.status).toMatch(/^Belay could not read belay-policy: tier-state\.yml is not in belay-policy at main$/);
   });
 });

@@ -5,21 +5,16 @@
 import { HUMAN_KEY } from '@/lib/promotion/rules';
 import { TIER_ORDER } from '@/schemas/tier';
 import { standingOf } from '../../../../engine/decide/standing';
-import { readPolicy } from '@/server/poller/derive/policy';
 import type { PromoteClass } from '../types';
-import { ActionRefused, dateOnly, lastCommitOf, locate, minuteOf, type Plan, type PlanContext } from './context';
+import { ActionRefused, dateOnly, locate, minuteOf, type Plan, type PlanContext } from './context';
 import { branchMr } from './mr/branchMr';
-import { editRecords, lineDiff } from './tierEdit';
+import { editRecords, lineDiff, readTierState } from './tierEdit';
 import { trialParagraph } from './trial';
 import { readInstant } from '@/schemas/instant/readInstant';
 
 export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promise<Plan> {
   const { policy: repo } = await locate(ctx, intent.project);
-  const base = repo.defaultBranch ?? 'main';
-  const file = await ctx.port.getFile(repo.id, 'tier-state.yml', base);
-  const read = await readPolicy(ctx.port, repo.id, base, file);
-  if (!file || !read.ok) throw new ActionRefused(read.ok ? 'tier-state.yml is not in belay-policy' : read.reason);
-  const lastCommitId = lastCommitOf(file);
+  const { base, file, read, lastCommitId } = await readTierState(ctx, repo);
 
   const st = standingOf(read.policy.classes, read.state, intent.class, ctx.now); // the gate's own class and holder rule
   if (st.kind === 'unknown_class') throw new ActionRefused(`${intent.class} is not an action class in trust-policy.yml`);
