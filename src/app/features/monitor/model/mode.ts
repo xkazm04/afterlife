@@ -14,15 +14,15 @@ export const repollPlan = (mode: Mode, p: Pick<FleetProject, 'state'>): 'none' |
 export const notWatchedMessage = (name: string): string => `${name}: not watched, nothing to poll`;
 export const repollingMessage = (name: string): string => `Re-polling ${name}…`;
 
-/** What a finished re-poll says: "Re-polled <name>" only when the poll succeeded, else that it failed and why. */
-export const repollMessage = (name: string, r: RepollResult): string => (r.ok ? `Re-polled ${name}` : `Re-poll failed · ${name} · ${r.reason}`);
+/** What a finished re-poll says: "Re-polled <name>" only when the poll succeeded, else that it failed and why (empty: "no answer", Fleet's rule). */
+export const repollMessage = (name: string, r: RepollResult): string => (r.ok ? `Re-polled ${name}` : `Re-poll failed · ${name} · ${r.reason || 'no answer'}`);
 
 /** What a rejected server action says: the same failure sentence, with the error's message or "no answer". */
 export const rejectedMessage = (name: string, e: unknown): string => repollMessage(name, { ok: false, reason: e instanceof Error ? e.message : 'no answer' });
 
 /** Demo's simulated re-poll: only a healthy feed answers. Returns the sentence, and whether the feed age resets to 0. */
 export function simulateRepoll(p: FleetProject): { message: string; reset: boolean } {
-  if (!p.feed.ok) return { message: `Re-poll failed · ${p.name} · ${p.feed.error ?? 'no answer'} · last good ${formatAge(p.feed.ageSec)} ago`, reset: false };
+  if (!p.feed.ok) return { message: `Re-poll failed · ${p.name} · ${p.feed.error || 'no answer'} · last good ${formatAge(p.feed.ageSec)} ago`, reset: false };
   return { message: repollMessage(p.name, { ok: true }), reset: true };
 }
 

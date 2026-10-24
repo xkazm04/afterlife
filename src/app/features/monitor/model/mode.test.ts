@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FleetProject } from '@/lib/demo/types';
+import { repollMessage as fleetRepollMessage } from '@/app/features/fleet/model/needs';
 import { ageLine, NO_GOOD_POLL, notWatchedMessage, polledAge, rejectedMessage, repollMessage, repollPlan, repollingMessage, simulateRepoll } from './mode';
 
 const proj = (o: Partial<FleetProject>): FleetProject => ({ id: 'p', name: 'ledgerline', state: 'watching', feed: { ageSec: 12, ok: true }, ...o }) as FleetProject;
@@ -19,6 +20,12 @@ describe('repoll', () => {
   it('a rejected action fails with its message, or "no answer"', () => {
     expect(rejectedMessage('ledgerline', new Error('boom'))).toBe('Re-poll failed · ledgerline · boom');
     expect(rejectedMessage('ledgerline', 'x')).toBe('Re-poll failed · ledgerline · no answer');
+  });
+  it('an empty reason says "no answer", as Fleet does, never a bare trailing dot', () => {
+    expect(repollMessage('ledgerline', { ok: false, reason: '' })).toBe(fleetRepollMessage('ledgerline', { ok: false, reason: '' }));
+    expect(repollMessage('ledgerline', { ok: false, reason: '' })).toBe('Re-poll failed · ledgerline · no answer');
+    expect(rejectedMessage('ledgerline', new Error(''))).toBe('Re-poll failed · ledgerline · no answer');
+    expect(simulateRepoll(proj({ feed: { ageSec: 60, ok: false, error: '' } })).message).toContain('Re-poll failed · ledgerline · no answer ·');
   });
   it('demo simulates: a healthy feed resets, a broken one says why', () => {
     expect(simulateRepoll(proj({}))).toEqual({ message: 'Re-polled ledgerline', reset: true });
