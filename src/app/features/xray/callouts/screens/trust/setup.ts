@@ -1,7 +1,20 @@
-// STUB - content package fills this
-// Setup: what blocks each track on one project, and what can only you do.
-import type { Callout } from '../../../model/types';
-import { NAV, helpCallout } from '../../shared';
+// Setup: what stands between one project and each armed track, and which of those steps only you can do. Introduces the
+// module, the unlock map's three lanes (one legend) and what to do; it does not explain the group menu or the doctor
+// lozenge's highlight.
+import type { Callout, LegendEntry } from '../../../model/types';
+import { dataLabelCallout, helpCallout, statusCallout } from '../../shared';
+
+const GATES = '[aria-label="Only you can do these"]';
+const MAP = 'section[aria-label="Unlock map"]';
+
+/** The map's three lanes, named as their headings render, and the marks their nodes carry. */
+const LANES: readonly LegendEntry[] = [
+  { name: 'Path (steps 0–14)', means: 'Fifteen steps in four phases: Prepare, Connect, Install, Prove. ✓ is read done; a number is still to do.' },
+  { name: 'you', means: 'A step only you can do (a licence, a token, a merge), in amber: it waits for a person.' },
+  { name: 'Tracks (arm order)', means: 'The eight agents, in the order they arm: locked (a need is missing), ready, merge !N (an arm MR open), ✓ armed.' },
+  { name: 'GitLab (belay doctor)', means: 'What your GitLab offers, one capability per row: ✓ available, ✕ unavailable, ? unknown (never counted as available).' },
+  { name: 'Lines', means: 'Which steps and capabilities a track hangs on. Hover a node to light what it frees and what it needs.' },
+];
 
 export const SETUP: readonly Callout[] = [
   {
@@ -9,51 +22,57 @@ export const SETUP: readonly Callout[] = [
     kind: 'module',
     sel: 'main',
     title: 'Setup',
-    body: () => 'What blocks each track on one project, and what can only I do?',
+    body: (r) => {
+      const need = r.count(`${GATES} button`);
+      return `What stands between this one project and each armed track, and which steps only I can do? The strip on top counts where you stand${need ? ` and lists the ${need} gates waiting for you` : ''}; the map below shows what each step frees.`;
+    },
   },
   {
-    id: 'doctor',
-    kind: 'activity',
-    sel: '[role="group"][aria-label="belay doctor"]',
-    title: 'What GitLab offers',
-    body: (r) => `belay doctor’s probes: ${r.text('[role="group"][aria-label="belay doctor"]')}. On demo data they are simulated; live, they read your group.`,
+    id: 'columns',
+    kind: 'columns',
+    sel: MAP,
+    title: 'How to read the map',
+    body: () => 'Three lanes, left to right: the steps you take, the agents they unlock, and what GitLab offers them. A dashed node or line is unknown, never rounded up.',
+    legend: LANES,
   },
   {
-    id: 'stand',
+    id: 'gates',
     kind: 'activity',
-    sel: 'section[aria-label="Where you stand"]',
-    title: 'Where you stand',
-    body: () => 'Tracks armed, ready and locked, then the steps only you can do, in amber, each with its step number.',
+    sel: `${GATES} button`,
+    title: 'What only you can do',
+    body: (r) => {
+      const first = r.text(`${GATES} button`);
+      return `${first ? `"${first}". ` : ''}Each gate opens its step’s page: the exact command to copy and what clears it. Afterlife does not run it for you.`;
+    },
+    try: 'Click a gate',
   },
   {
-    id: 'path',
+    id: 'step',
     kind: 'activity',
-    sel: '[aria-label="Path · steps 0–14"]',
-    title: 'The 15-step path',
-    body: () => 'Prepare, Connect, Install, Prove. Click a step for its own page: its command and what clears it.',
-    try: 'Click a step',
+    sel: `${MAP} [data-node^="step:"]`,
+    title: 'Open a step',
+    body: () => 'A step’s page holds its commands (Copy only), what it frees and how it is checked; ✓ means a read saw it done.',
+    try: 'Click a step, or Enter',
   },
   {
-    id: 'tracks',
+    id: 'track',
     kind: 'activity',
-    sel: '[aria-label="Tracks · arm order"]',
-    title: 'Eight agents, in arm order',
-    body: () => 'A track arms when the steps and capabilities it hangs on are there; the lines show which.',
+    sel: `${MAP} [data-node^="track:"]`,
+    title: 'Arm a track',
+    body: () => 'A ready track’s page shows its arm MR as the server planned it. It opens in GitLab only on your confirmed click; a person merges it, then "I merged it · verify" reads main.',
+    try: 'Click a track',
   },
   {
-    id: 'caps',
+    id: 'reprobe',
     kind: 'activity',
-    sel: '[aria-label="GitLab · belay doctor"]',
-    title: 'One capability per row',
-    body: () => 'Dashed rows are unknown, never counted as available.',
+    sel: 'button[title^="Re-probe the group"]',
+    title: 'Read GitLab again',
+    body: (r) =>
+      r.text('[data-xray="data-label"]') === 'illustrative demo data'
+        ? 'Re-probe runs belay doctor against the group again. Here it is simulated on the demo’s acme-lab; it only ever reads.'
+        : 'Re-probe runs belay doctor against your group again and re-reads the steps. It only reads; it writes nothing.',
   },
-  {
-    id: 'own',
-    kind: 'activity',
-    sel: `${NAV} a[href="/trace"]`,
-    title: 'Your own group',
-    body: () => 'This map is the demo’s. Trace walks your machine, your GitLab login and your group, one real probe at a time.',
-    try: 'Click Trace',
-  },
+  statusCallout('The project in one line', 'Steps read done, tracks armed, what needs you, and how old the doctor’s probe is.'),
+  dataLabelCallout,
   helpCallout,
 ];

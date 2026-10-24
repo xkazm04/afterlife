@@ -42,7 +42,7 @@ export function TraceScreen({ facts }: { facts: TraceFacts }) {
         <div className={styles.tools}>
           {facts.rehearsal ? <HonestyChip kind="simulated" meaning="the not-ready state, shown on purpose">rehearsal</HonestyChip> : null}
           {sourceChip(facts)}
-          <Button variant="accent" onClick={t.recheck} aria-busy={t.checking}>
+          <Button variant="accent" onClick={t.recheck} aria-busy={t.checking} data-xray="recheck">
             {t.checking ? 'Probing…' : 'Re-check all'}
           </Button>
         </div>
