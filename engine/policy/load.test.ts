@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { policy } from '../__tests__/helpers';
+import { PROOF_CLASSES } from '../../src/schemas/proof';
 import { DEMOTION_TRIGGERS as SCHEMA_TRIGGERS } from '../../src/schemas/tier';
 import { DEMOTION_TRIGGERS, parsePolicy } from './load';
 
@@ -53,5 +54,20 @@ describe('parsePolicy: cooldown_days', () => {
   it('refuses a negative cooldown: the tripwire would stamp a cooldown_until that ended before the demotion', () => {
     expect(() => parsePolicy(base({ cooldown_days: -7 }))).toThrow(/cooldown_days must be 0 or more/);
     for (const d of [0, 7, 0.5]) expect(() => parsePolicy(base({ cooldown_days: d })), String(d)).not.toThrow();
+  });
+});
+
+describe('parsePolicy: proof classes', () => {
+  it('refuses a class proof or a production proof the engine has no class for: a typo blocks every proof of that class', () => {
+    const classes = (proof: unknown) => ({ ...(base().classes as Record<string, unknown>), 'x.y': { agent: 'patcher', ceiling: 'supervised', proof } });
+    expect(() => parsePolicy(base({ classes: classes('exploit_test') }))).toThrow(/classes.x.y.proof "exploit_test" is not a proof class/);
+    expect(() => parsePolicy(base({ classes: classes(3) }))).toThrow(/classes.x.y.proof "3" is not a proof class/);
+    const envelope = (req: unknown) => ({ ...(base().envelope as Record<string, unknown>), production_requires_proof: req });
+    expect(() => parsePolicy(base({ envelope: envelope(['exploit-test', 'rerun_stats']) }))).toThrow(/production_requires_proof names "rerun_stats"/);
+  });
+
+  it('accepts every proof class, and a class that declares none (the gate blocks it)', () => {
+    for (const proof of PROOF_CLASSES) expect(() => parsePolicy(base({ classes: { a: { agent: 'x', ceiling: 'assisted', proof } } })), proof).not.toThrow();
+    expect(() => parsePolicy(base({ classes: { a: { agent: 'x', ceiling: 'assisted' } } }))).not.toThrow();
   });
 });

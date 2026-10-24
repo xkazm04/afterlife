@@ -1,5 +1,6 @@
 // Loads and validates policy/trust-policy.yml and policy/tier-state.yml. The files are structured data
 // a person reviews; the engine refuses a malformed one instead of guessing what it meant.
+import { PROOF_CLASSES } from '../../src/schemas/proof';
 import { DEMOTION_TRIGGERS, TIER_ORDER, type DemotionTrigger, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
 import { readYaml } from '../core/files';
 import { EngineError, isRecord, num, rec, strList, type Ctx } from '../core/types';
@@ -26,6 +27,9 @@ function triggerList(v: unknown, what: string): void {
   if (unknown.length) throw new EngineError(`${what} names ${unknown.map((t) => `"${t}"`).join(', ')}, which is not a demotion trigger (${DEMOTION_TRIGGERS.join(', ')})`);
 }
 
+/** A proof name the engine has no class for: the gate would block every proof of that class, and production would stay shut. */
+const isProof = (v: unknown): boolean => (PROOF_CLASSES as readonly unknown[]).includes(v);
+
 /** A threshold that is not a number makes every comparison false: a NaN rate calls a job that failed 5 of 6 times a flake. */
 function rerunThresholds(raw: unknown): void {
   const r = rec(raw, 'trust-policy.rerun_stats');
@@ -48,6 +52,7 @@ export function parsePolicy(raw: unknown): EnginePolicy {
     if (typeof cls.ceiling !== 'string' || !CEILINGS.includes(cls.ceiling)) throw new EngineError(`classes.${id}.ceiling is not a tier`);
     if (cls.deny_paths !== undefined) strList(cls.deny_paths, `classes.${id}.deny_paths`);
     if (cls.allow_paths !== undefined) strList(cls.allow_paths, `classes.${id}.allow_paths`);
+    if (cls.proof !== undefined && !isProof(cls.proof)) throw new EngineError(`classes.${id}.proof "${String(cls.proof)}" is not a proof class (${PROOF_CLASSES.join(', ')})`);
   }
   const demotion = rec(p.demotion, 'trust-policy.demotion');
   triggerList(demotion.one_step_on, 'demotion.one_step_on');
@@ -57,7 +62,8 @@ export function parsePolicy(raw: unknown): EnginePolicy {
   num(handsOff.max_lines, 'envelope.hands_off.max_lines');
   strList(handsOff.environments, 'envelope.hands_off.environments');
   const req = (p.envelope as Record<string, unknown>).production_requires_proof;
-  if (req !== undefined) strList(req, 'envelope.production_requires_proof');
+  const stray = req === undefined ? [] : strList(req, 'envelope.production_requires_proof').filter((c) => !isProof(c));
+  if (stray.length) throw new EngineError(`envelope.production_requires_proof names ${stray.map((c) => `"${c}"`).join(', ')}, which is not a proof class (${PROOF_CLASSES.join(', ')})`);
   // a negative cooldown stamps cooldown_until before the demotion's own day: the hold on re-promotion is off
   if (num(p.cooldown_days, 'trust-policy.cooldown_days') < 0) throw new EngineError('trust-policy.cooldown_days must be 0 or more');
   if (p.rerun_stats !== undefined) rerunThresholds(p.rerun_stats);
