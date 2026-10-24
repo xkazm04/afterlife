@@ -100,13 +100,25 @@ describe("step 9's commands run as written where GitLab already protects main (c
 
   it('CODEOWNERS covers a path by the path, rooted or not, or its folder with a trailing glob; comments and sections do not', () => {
     for (const f of ['/.gitlab-ci.yml @a', '.gitlab-ci.yml @a']) expect(covers(f, '.gitlab-ci.yml')).toBe(true);
-    for (const f of ['/.gitlab/ @a', '.gitlab/** @a', '/.gitlab/* @a']) expect(covers(f, '.gitlab/')).toBe(true);
+    for (const f of ['/.gitlab/ @a', '.gitlab/** @a']) expect(covers(f, '.gitlab/')).toBe(true);
     for (const f of ['# /.gitlab-ci.yml @a', '[CI] @a', '/src/ @a']) expect(covers(f, '.gitlab-ci.yml')).toBe(false);
   });
 
   it('a catch-all owner rule (* or /**) covers both; /* covers a file in the root, not the .gitlab/ folder', () => {
     for (const f of ['* @a', '** @a', '/** @a']) expect([covers(f, '.gitlab-ci.yml'), covers(f, '.gitlab/')]).toEqual([true, true]);
     expect([covers('/* @a', '.gitlab-ci.yml'), covers('/* @a', '.gitlab/')]).toEqual([true, false]);
+  });
+
+  it('a folder named without its slash covers it; dir/* (its direct files only) does not cover the nested agent config', () => {
+    for (const f of ['.gitlab @a', '/.gitlab @a', '/.gitlab/**/* @a']) expect(covers(f, '.gitlab/')).toBe(true);
+    expect(covers('/.gitlab/* @a', '.gitlab/')).toBe(false);
+  });
+
+  it('a rule with no owner, or an exclusion, owns nothing; the last rule that matches in a section wins', () => {
+    for (const f of ['.gitlab-ci.yml', '* @a\n.gitlab-ci.yml', '* @a\n!.gitlab-ci.yml', '.gitlab-ci.yml # @a']) expect(covers(f, '.gitlab-ci.yml')).toBe(false);
+    expect(covers('[CI] @team\n.gitlab-ci.yml', '.gitlab-ci.yml')).toBe(true); // the section's default owners
+    expect(covers('.gitlab-ci.yml @a\n[Docs]\n.gitlab-ci.yml', '.gitlab-ci.yml')).toBe(true); // another section's owner stands
+    expect(covers('.gitlab-ci.yml\n.gitlab-ci.yml @a', '.gitlab-ci.yml')).toBe(true);
   });
 });
 

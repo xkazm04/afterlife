@@ -49,16 +49,40 @@ function guardedAgainstDevelopers(c: StepCtx, p: () => GlProject, kind: 'protect
 }
 
 /**
- * A CODEOWNERS rule covers `path` when its pattern is the path, rooted or not, or the folder with a trailing glob, or a
- * catch-all (`*`, `**`, `/**`: every file); `/*` is the root's own files only, so it covers a root file, not a folder.
+ * A pattern matches `path` when it is the path, rooted or not; a folder (`x/`) also by its bare name or `x/**`, never by
+ * `x/*` (its direct files only: the agent config is nested); a catch-all (`*`, `**`, `/**`) matches every file, `/*` the
+ * root's own files only.
+ */
+function matches(pattern: string, path: string): boolean {
+  if (/^\/?\*+$/.test(pattern)) return pattern !== '/*' || !path.endsWith('/');
+  const p = pattern.replace(/^\//, '');
+  if (!path.endsWith('/')) return p === path;
+  return [path, path.slice(0, -1), `${path}**`, `${path}**/*`].includes(p);
+}
+const isOwner = (t: string): boolean => t.includes('@');
+
+/**
+ * Whether GitLab names a code owner for `path`: in each section the last rule that matches decides, and it owns the path
+ * when it names an owner (or its section has default owners) and is no `!` exclusion. One section's owner is enough.
  */
 export function covers(codeowners: string, path: string): boolean {
-  return codeowners.split('\n').some((line) => {
-    const pattern = line.trim().split(/\s+/)[0] ?? '';
-    if (!pattern || pattern.startsWith('#') || pattern.startsWith('[') || pattern.startsWith('^[')) return false;
-    if (/^\/?\*+$/.test(pattern)) return pattern !== '/*' || !path.endsWith('/');
-    return pattern.replace(/^\//, '').replace(/\*+$/, '') === path;
-  });
+  const owned: (boolean | null)[] = [null];
+  let defaults = false;
+  for (const raw of codeowners.split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const header = /^\^?\[[^\]]*\](?:\[\d+\])?(.*)$/.exec(line);
+    if (header) {
+      defaults = (header[1] ?? '').replace(/#.*/, '').trim().split(/\s+/).some(isOwner);
+      owned.push(null);
+      continue;
+    }
+    const [pattern = '', ...rest] = line.replace(/#.*/, '').trim().split(/\s+/);
+    const excluded = pattern.startsWith('!');
+    if (!matches(excluded ? pattern.slice(1) : pattern, path)) continue;
+    owned[owned.length - 1] = !excluded && (rest.some(isOwner) || defaults);
+  }
+  return owned.includes(true);
 }
 
 function checks(c: StepCtx): Check[] {
