@@ -2,6 +2,7 @@
 // repository): a bad line fails the whole file, like the event ledger.
 import type { ClosedVerdict, CycleChangeRecord, CycleRecord } from '@/schemas/cycle';
 import { STAGES } from '@/schemas/stages';
+import { isoInstantMs } from '../../../engine/core/types';
 import { LedgerParseError } from './parse';
 
 const VERDICTS: readonly ClosedVerdict[] = ['credited', 'nolift', 'rejected', 'resolved', 'regressed'];
@@ -13,7 +14,8 @@ const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !
 const isInt = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 const isRung = (v: unknown): v is number => isInt(v) && v <= 4;
 const str = (v: unknown): v is string => typeof v === 'string' && v !== '';
-const time = (v: unknown): v is string => str(v) && !Number.isNaN(Date.parse(v));
+/** An instant with a zone, as parse.ts reads an event's `at`: Date.parse alone takes '10' and reads a zone-less time in this machine's zone. */
+const time = (v: unknown): v is string => str(v) && !Number.isNaN(isoInstantMs(v));
 
 function toChange(v: unknown, bad: (what: string) => never): CycleChangeRecord {
   if (!isRec(v)) return bad('a change is not an object');
@@ -38,7 +40,7 @@ function toRecord(v: unknown, line: number): CycleRecord {
   if (!isRec(v)) return bad('not a JSON object');
   if (!isInt(v.seq) || v.seq < 1 || !isInt(v.project_id)) bad('seq and project_id must be positive integers');
   if (!str(v.theme) || !str(v.engine)) bad('theme and engine must be strings');
-  if (!time(v.opened_at) || !time(v.closed_at)) bad('opened_at and closed_at must be ISO times');
+  if (!time(v.opened_at) || !time(v.closed_at)) bad('opened_at and closed_at must be ISO times with a zone, like 2026-10-21T14:20:05Z');
   if (!str(v.prev_hash) || !HASH.test(v.prev_hash) || !str(v.hash) || !HASH.test(v.hash)) bad('prev_hash and hash must be sha256 hex');
   if (!Array.isArray(v.changes)) return bad('changes must be a list');
   return {

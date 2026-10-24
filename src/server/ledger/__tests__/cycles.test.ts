@@ -54,6 +54,13 @@ describe('the cycle record chain', () => {
     expect(() => parseCyclesJsonl(line({ to: 5 }))).toThrow(/rungs 0..4/);
     expect(() => parseCyclesJsonl(`\n${line({ stage: 'deploy' })}`)).toThrow(/ledger line 2/);
   });
+  it('the parser refuses an opened_at or closed_at with no zone, as the event reader refuses an at with none', () => {
+    const at = (over: Record<string, unknown>) => JSON.stringify({ ...chain[0], ...over });
+    // Date.parse reads '2026-08-25T14:02:00' in this machine's zone and takes '10' as 2001: the order check would vary by machine
+    expect(() => parseCyclesJsonl(at({ opened_at: '2026-08-25T14:02:00' }))).toThrow(/opened_at and closed_at must be ISO times with a zone/);
+    expect(() => parseCyclesJsonl(at({ closed_at: '10' }))).toThrow(/opened_at and closed_at must be ISO times with a zone/);
+    expect(parseCyclesJsonl(at({ opened_at: '2026-08-25T16:02:00+02:00' }))[0]?.opened_at).toBe('2026-08-25T16:02:00+02:00');
+  });
 });
 
 describe('cycles import', () => {
