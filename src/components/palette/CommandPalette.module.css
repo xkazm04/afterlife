@@ -13,7 +13,7 @@
   width: min(calc(560px * var(--ui-scale)), calc(100vw - 32px));
   border-radius: 12px;
   background: color-mix(in oklab, var(--win-content) 96%, var(--white));
-  box-shadow: inset 0 0 0 1px var(--border-3), 0 24px 64px var(--shade-60), var(--glow);
+  box-shadow: inset 0 0 0 1px var(--border-3), 0 24px 64px var(--shade-60);
   overflow: hidden;
   animation: rise var(--t-med) var(--ease);
 }
