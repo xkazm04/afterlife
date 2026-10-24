@@ -63,7 +63,8 @@ export const TASK: readonly Callout[] = [
     kind: 'columns',
     sel: CHAIN,
     title: 'The receipt chain',
-    body: () => 'Seven links from the event to the ledger, each a GitLab object you can open. The link the selected check read is lit.',
+    // The chain is the second tab under the verdict, so with the Court open it is "not on screen now": the card says where it is.
+    body: () => 'The Receipt chain tab, under the verdict: seven links from the event to the ledger, each a GitLab object you can open. The link the selected check read is lit.',
     legend: CHAIN_LEGEND,
   },
   {

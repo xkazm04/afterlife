@@ -10,25 +10,23 @@ import { Chip } from '@/components/status/chip/Chip';
 import { hasMarkup } from '../../model/exhibits';
 import type { Selection } from '../../model/court/selection';
 import type { TaskView } from '../../model/types';
-import { ledgerCheckLabel } from '../../model/verdict/replay';
 import { derivedVerdict, verdictGlyph, verdictKind } from '../../model/verdict/verdict';
 import { Exhibits } from './Exhibits';
-import { LedgerRows } from './LedgerRows';
 import { ProofBlock } from './ProofBlock';
 import { SelectionRuling } from './SelectionRuling';
 import styles from './inspector.module.css';
 
-export type Panel = 'words' | 'trace' | 'ledger';
+export type Panel = 'words';
 
 /**
  * Layer 2 of the Task screen: the ruling on the selection, the agent's words (untrusted, collapsed), what this counts
- * toward, the exhibits, the ledger rows, the trace; the Proof Block card holds the proof's own pins.
+ * toward, the exhibits; the Proof Block card holds the proof's own pins, its "Ledger read" among them. The ledger rows and
+ * the trace are the pane's Ledger tab, at full width.
  */
 export function TaskInspector({
   task,
   clock,
   sel,
-  row,
   open,
   onOpen,
 }: {
@@ -36,8 +34,6 @@ export function TaskInspector({
   /** The page's poll age and wall time; the age is null when no poll has happened. */
   clock: { ageSec: number | null; now: string | null };
   sel: Selection;
-  /** The ledger row lit by a running replay. */
-  row: number | null;
   open: Record<Panel, boolean>;
   onOpen: (panel: Panel, open: boolean) => void;
 }) {
@@ -103,12 +99,6 @@ export function TaskInspector({
       </InspectorSection>
       <InspectorSection title="Exhibits" aux={task.proof.cls}>
         <Exhibits task={task} />
-      </InspectorSection>
-      <InspectorSection title="Ledger" aux={`${task.ledger.length} rows · ${ledgerCheckLabel(task.ledgerCheck)} · reads only`} open={open.ledger} onOpenChange={(o) => onOpen('ledger', o)}>
-        {task.ledger.length ? <LedgerRows rows={task.ledger} active={row} /> : <div className={styles.muted}>No ledger rows are held for this task</div>}
-      </InspectorSection>
-      <InspectorSection title="trace.jsonl" aux={task.flowRun} open={open.trace} onOpenChange={(o) => onOpen('trace', o)}>
-        {task.trace.length ? <pre className={styles.trace}>{task.trace.join('\n')}</pre> : <div className={styles.muted}>No trace is held for this task</div>}
       </InspectorSection>
     </>
   );

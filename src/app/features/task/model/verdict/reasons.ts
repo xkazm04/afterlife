@@ -3,6 +3,7 @@
 import type { TaskView } from '../types';
 import type { Selection } from '../court/selection';
 import { firstParam } from '@/lib/url/searchParams';
+import { TAB_KEY } from '../tab';
 import { derivedVerdict, isStruck } from './verdict';
 
 /**
@@ -58,11 +59,14 @@ export function selectionFromQuery(task: Task, q: SelectionQuery): Selection {
 export const selectionHref = (taskId: string, sel: Selection): string =>
   `/task/${encodeURIComponent(taskId)}${sel ? `?${sel.side}=${encodeURIComponent(sel.id)}` : ''}`;
 
-/** A selection's address plus every query key of `search` the task does not own (check and claim are its own). */
+/** The query keys the task owns: the selection's and the open tab's. A stale one in `search` is dropped, never carried. */
+const OWN_KEYS: ReadonlySet<string> = new Set(['check', 'claim', TAB_KEY]);
+
+/** A task address (selection and tab) plus every query key of `search` the task does not own. */
 export function keepForeignKeys(href: string, search: string): string {
   const [path = '', own = ''] = href.split('?');
   const q = new URLSearchParams(own);
-  for (const [k, v] of new URLSearchParams(search)) if (k !== 'check' && k !== 'claim' && !q.has(k)) q.append(k, v);
+  for (const [k, v] of new URLSearchParams(search)) if (!OWN_KEYS.has(k) && !q.has(k)) q.append(k, v);
   const s = q.toString();
   return s ? `${path}?${s}` : path;
 }

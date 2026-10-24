@@ -112,4 +112,8 @@ describe('keepForeignKeys', () => {
     expect(keepForeignKeys('/task/a', '')).toBe('/task/a');
     expect(keepForeignKeys('/task/a', '?xray=1')).toBe('/task/a?xray=1');
   });
+  it('owns the tab: a stale one is dropped, the address’s own is kept', () => {
+    expect(keepForeignKeys('/task/a?check=c1', '?tab=ledger&xray=1')).toBe('/task/a?check=c1&xray=1');
+    expect(keepForeignKeys('/task/a?check=c1&tab=chain', '?tab=ledger&xray=1')).toBe('/task/a?check=c1&tab=chain&xray=1');
+  });
 });

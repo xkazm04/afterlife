@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { startTransition, useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Spacer } from '@/components/controls/Spacer';
 import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
@@ -13,6 +14,9 @@ import { VerdictEquation } from './components/equation/VerdictEquation';
 import { TaskHeader } from './components/header/TaskHeader';
 import { TaskLegend } from './components/help/TaskLegend';
 import { TaskInspector, type Panel } from './components/inspector/TaskInspector';
+import { LedgerPanel } from './components/tabs/LedgerPanel';
+import { TaskTabs } from './components/tabs/TaskTabs';
+import { useTaskTab } from './components/tabs/useTaskTab';
 import { ClassMenuButton } from './components/toolbar/ClassMenuButton';
 import { ReplayButton } from './components/toolbar/ReplayButton';
 import { VerdictLozenge } from './components/toolbar/VerdictLozenge';
@@ -25,36 +29,34 @@ import { arrowSelection, litLink, type Selection, type Side } from './model/cour
 import { NO_FILTERS, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdictCounts, visibleTasks, type Filters } from './model/docket/filters';
 import type { TaskAction } from './model/docket/keys';
 import type { PageFacts } from './model/build/loadPage';
+import { withTab, type TaskTab } from './model/tab';
 import type { TaskView } from './model/types';
 import { keepForeignKeys, nextReason, selectionHref } from './model/verdict/reasons';
 import styles from './TaskScreen.module.css';
 
 /**
- * /task/[id]: one task's proof, cross-examined. The verdict equation, the receipt chain and the claims-against-checks
- * court sit in the pane; everything about the selection lives in the inspector; the docket is in the sidebar.
- * This screen reads only: nothing on it writes. It opens on `initial` (the URL's ?check= / ?claim=, else the verdict's first
- * deciding check) and keeps the selection in the URL, so a reason has an address.
+ * /task/[id]: one task's proof, cross-examined. The header and the verdict equation stay on top of the pane; under them one
+ * tab at a time: the claims-against-checks Court, the Receipt chain, the Ledger (rows and trace). Everything about the
+ * selection lives in the inspector; the docket is in the sidebar. This screen reads only: nothing on it writes. It opens
+ * on `initial` (the URL's ?check= / ?claim=, else the verdict's first deciding check) and `initialTab` (?tab=, else the
+ * Court), and keeps both in the URL, so a reason has an address.
  */
-export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly TaskView[]; task: TaskView; page: PageFacts; initial: Selection }) {
+export function TaskScreen({ tasks, task, page, initial, initialTab = 'court' }: { tasks: readonly TaskView[]; task: TaskView; page: PageFacts; initial: Selection; initialTab?: TaskTab }) {
   const router = useRouter();
   const clock = usePageClock(page);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [inspOpen, setInspOpen] = useState(true);
-  const [panels, setPanels] = useState<Record<Panel, boolean>>({ words: false, trace: false, ledger: true });
+  const [panels, setPanels] = useState<Record<Panel, boolean>>({ words: false });
   const { sel, pick, set, clear } = useSelection(task.id, initial);
-  const replay = useReplay(task, {
-    onStart: () => {
-      clear();
-      setPanels((p) => ({ ...p, ledger: true }));
-    },
-  });
+  const { tab, setTab } = useTaskTab(task.id, initialTab);
+  const replay = useReplay(task, { onStart: clear });
   const visible = visibleTasks(tasks, filters);
   // The selection is the address: replaceState keeps useSearchParams in step without a server render.
-  // Keys it does not own (the X-ray's ?xray=1, read behind Suspense after this runs) are kept.
+  // The open tab rides along; keys it does not own (the X-ray's ?xray=1, read behind Suspense after this runs) are kept.
   useEffect(() => {
-    const href = keepForeignKeys(selectionHref(task.id, sel), location.search);
+    const href = keepForeignKeys(withTab(selectionHref(task.id, sel), tab), location.search);
     if (`${location.pathname}${location.search}` !== href) window.history.replaceState(null, '', href);
-  }, [task.id, sel]);
+  }, [task.id, sel, tab]);
 
   const applyFilters = (next: Filters) => {
     setFilters(next);
@@ -68,6 +70,10 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
   const focus = (selector: string) => {
     const el = document.querySelector<HTMLElement>(selector);
     (el?.querySelector<HTMLElement>('button[aria-pressed]') ?? el)?.focus();
+  };
+  /** The cards live on the Court: a key that selects one opens it first, flushed so the card is mounted to be focused. */
+  const toCourt = () => {
+    if (tab !== 'court') flushSync(() => setTab('court'));
   };
 
   const run = (a: TaskAction) => {
@@ -87,10 +93,12 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
       const next = nextReason(visible, task.id, sel);
       if (!next) return;
       if (next.id !== task.id) return startTransition(() => router.replace(selectionHref(next.id, next.sel)));
+      if (next.sel) toCourt();
       set(next.sel);
       if (next.sel) focus(cardSelector(next.sel.side, next.sel.id));
     } else {
       const next = arrowSelection(task, sel, a.key);
+      if (next) toCourt();
       set(next);
       if (next) focus(cardSelector(next.side, next.id));
     }
@@ -110,7 +118,7 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
         </>
       }
       sidebar={<Docket tasks={tasks} visible={visible} currentId={task.id} onClear={() => applyFilters(NO_FILTERS)} />}
-      inspector={<TaskInspector task={task} clock={clock} sel={sel} row={replay.row} open={panels} onOpen={(panel, open) => setPanels((p) => ({ ...p, [panel]: open }))} />}
+      inspector={<TaskInspector task={task} clock={clock} sel={sel} open={panels} onOpen={(panel, open) => setPanels((p) => ({ ...p, [panel]: open }))} />}
       inspectorOpen={inspOpen}
       onInspectorOpenChange={setInspOpen}
       status={statusLine(visible, clock.ageSec, clock.now)}
@@ -121,8 +129,15 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
         <div className={styles.tk}>
           <TaskHeader task={task} />
           <VerdictEquation task={task} sel={sel} rv={replay.rv} onSelect={(id) => onPick('check', id)} />
-          <ReceiptChain task={task} lit={litLink(task, sel)} />
-          <Court task={task} sel={sel} rv={replay.rv} onPick={onPick} />
+          <TaskTabs tab={tab} onTab={setTab} aux={{ ledger: replay.row !== null ? `#${task.ledger[replay.row]?.seq ?? ''}` : task.ledger.length }}>
+            {tab === 'chain' ? (
+              <ReceiptChain task={task} lit={litLink(task, sel)} />
+            ) : tab === 'ledger' ? (
+              <LedgerPanel task={task} row={replay.row} />
+            ) : (
+              <Court task={task} sel={sel} rv={replay.rv} onPick={onPick} />
+            )}
+          </TaskTabs>
         </div>
       </PaneScroll>
     </Window>

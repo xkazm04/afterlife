@@ -1,0 +1,143 @@
+/* The tabs under the verdict read as part of the content: a row of names on the section hairline, the open one underlined
+   in the accent. Not a toolbar: no control fill, no pill. */
+.views {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ui-scale));
+  min-width: 0;
+}
+.tabs {
+  display: flex;
+  gap: calc(18px * var(--ui-scale));
+  box-shadow: inset 0 -1px 0 var(--sep);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6px * var(--ui-scale));
+  height: var(--row-h);
+  padding: 0 calc(2px * var(--ui-scale));
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: var(--t-head);
+  font-weight: 600;
+  color: var(--text-3);
+  cursor: default;
+  transition: color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.tab:hover {
+  color: var(--text-2);
+}
+.tab[aria-selected="true"] {
+  color: var(--text-1);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.tab:focus-visible {
+  border-radius: 4px;
+  box-shadow: var(--ring);
+}
+.ct {
+  font-weight: 400;
+  font-size: var(--t-small);
+  color: var(--text-4);
+}
+.tab[aria-selected="true"] .ct {
+  color: var(--text-3);
+}
+.panel {
+  min-width: 0;
+}
+
+/* Ledger tab: the rows, then the trace, each under its own heading */
+.ledger {
+  display: flex;
+  flex-direction: column;
+  gap: calc(16px * var(--ui-scale));
+}
+.h {
+  display: flex;
+  align-items: baseline;
+  gap: calc(8px * var(--ui-scale));
+  margin: 0 0 calc(6px * var(--ui-scale));
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--text-2);
+}
+.aux {
+  font-weight: 400;
+  color: var(--text-4);
+}
+.muted {
+  margin: 0;
+  font-size: var(--t-head);
+  color: var(--text-3);
+}
+.rows {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font: 400 var(--t-small) var(--mono);
+  color: var(--text-3);
+}
+/* seq, at, kind, the row (takes the rest), the chain link */
+.rows th:nth-child(1) {
+  width: calc(52px * var(--ui-scale));
+}
+.rows th:nth-child(2) {
+  width: calc(64px * var(--ui-scale));
+}
+.rows th:nth-child(3) {
+  width: calc(130px * var(--ui-scale));
+}
+.rows th:nth-child(5) {
+  width: calc(140px * var(--ui-scale));
+  text-align: right;
+}
+.rows th {
+  height: var(--mini-h);
+  padding: 0 calc(6px * var(--ui-scale));
+  text-align: left;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--text-4);
+  box-shadow: inset 0 -1px 0 var(--sep);
+}
+.rows td {
+  height: var(--row-h);
+  padding: 0 calc(6px * var(--ui-scale));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: inset 0 -1px 0 var(--sep-body);
+}
+.rows td:nth-child(3),
+.rows .text {
+  color: var(--text-2);
+}
+.rows .hash {
+  text-align: right;
+  color: var(--text-4);
+}
+.rows tr.on td {
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  color: var(--text-1);
+}
+.trace {
+  margin: 0;
+  padding: calc(6px * var(--ui-scale)) calc(10px * var(--ui-scale));
+  font: 400 var(--t-small) / 1.5 var(--mono);
+  color: var(--text-3);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--surface-sunk);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+
+/* agent text exactly as typed: after every `font` shorthand, which would reset these */
+.rows .text,
+.trace {
+  font-variant-ligatures: none;
+  font-feature-settings: "calt" 0, "liga" 0;
+}
