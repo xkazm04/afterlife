@@ -5,16 +5,18 @@ export const usd = (n: number | undefined): string => (n === undefined ? DASH : 
 
 export function tokens(n: number | undefined): string {
   if (n === undefined) return DASH;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  // the k figure is rounded to a tenth, so 999 950 would read "1000.0k": from there it is a million
+  if (n >= 999_950) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
   return String(n);
 }
 
 export function wall(sec: number | undefined): string {
   if (sec === undefined) return DASH;
-  if (sec < 60) return `${Math.round(sec)}s`;
-  const m = Math.floor(sec / 60);
-  return m < 60 ? `${m}m ${Math.round(sec % 60)}s` : `${Math.floor(m / 60)}h ${m % 60}m`;
+  const s = Math.round(sec); // round once, first: 59.6 is a minute, never "60s" (nor 119.7 "1m 60s")
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  return m < 60 ? `${m}m ${s % 60}s` : `${Math.floor(m / 60)}h ${m % 60}m`;
 }
 
 export const pct = (n: number | undefined): string => (n === undefined ? DASH : `${Math.round(n * 100)}%`);
