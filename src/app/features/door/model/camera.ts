@@ -1,6 +1,6 @@
 // The camera over the 1600 x 1000 stage: where it looks (cx, cy), where that point lands (X, Y), and the zoom k. The
 // screen turns it into CSS transforms the compositor animates, instead of rewriting SVG attributes every frame. Pure.
-import { FA, FB, PT, type District, type Placed } from './city';
+import { FA, FB, GHOST_H, PT, type District, type Placed } from './city';
 
 export interface Cam {
   cx: number;
@@ -26,7 +26,7 @@ export function homeOf(ds: readonly District[]): Cam {
 /** Frame one district on the left two-thirds, leaving the rail its room on the right. */
 export function frameDistrict(d: District): Cam {
   let minY = Infinity;
-  for (const t of d.placed) minY = Math.min(minY, t.y - FB - (t.p.state === 'not-set-up' ? 30 : t.h + 12));
+  for (const t of d.placed) minY = Math.min(minY, t.y - FB - (t.p.state === 'not-set-up' ? GHOST_H : t.h + 12));
   const [x0, x1] = [d.L[0], d.R[0]];
   const [y0, y1] = [Math.min(minY, d.Tp[1]), d.B[1] + PT];
   const k = Math.min(940 / (x1 - x0), 560 / (y1 - y0), 3);

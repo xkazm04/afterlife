@@ -1,6 +1,6 @@
 // Path strings for a tower, a plate and a beam, in Night Shift's geometry. Windows of one tier on one tower share a
 // single path, so a tower is about ten SVG nodes rather than twenty. Pure.
-import { FA, FB, PT, at, BEAM, needsOf, quarOf, type District, type Placed, type Pt } from './city';
+import { FA, FB, GHOST_H, PT, at, BEAM, needsOf, quarOf, type District, type Placed, type Pt } from './city';
 
 const f1 = (n: number) => n.toFixed(1);
 export const pathD = (ps: readonly Pt[], close = false): string => 'M' + ps.map((q) => `${f1(q[0])} ${f1(q[1])}`).join(' L') + (close ? ' Z' : '');
@@ -55,7 +55,7 @@ export function towerShape(t: Placed, classes: readonly string[]): TowerShape {
   const R: Pt = [FA, 0];
   const T: Pt = [0, -FB];
   if (p.state === 'not-set-up') {
-    const gh = 30;
+    const gh = GHOST_H;
     return {
       kind: 'nsu',
       hit: points([up(L, gh), up(T, gh), up(R, gh), R, B, L]),
@@ -102,7 +102,7 @@ export function towerShape(t: Placed, classes: readonly string[]): TowerShape {
 }
 
 /** The top of a tower above its footprint (for brackets and the beam's base). */
-export const towerTop = (t: Placed): number => (t.p.state === 'not-set-up' ? 30 : t.h + (t.p.state === 'setting-up' ? 12 : 0));
+export const towerTop = (t: Placed): number => (t.p.state === 'not-set-up' ? GHOST_H : t.h + (t.p.state === 'setting-up' ? 12 : 0));
 
 export interface PlateShape {
   c: Pt;

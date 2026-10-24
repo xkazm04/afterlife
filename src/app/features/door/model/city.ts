@@ -18,8 +18,10 @@ const GAP = 26;
 
 export type Pt = readonly [number, number];
 export const proj = (u: number, v: number): Pt => [(u - v) * HW, (u + v) * HH];
+/** The not-set-up ghost's height: the dashed box an unwatched project stands as (shapes.ts), and what the camera frames. */
+export const GHOST_H = 30;
 /** A tower whose armed tracks were not read stands at the not-set-up ghost's height, its outline dashed (shapes.ts). */
-export const UNKNOWN_H = 30;
+export const UNKNOWN_H = GHOST_H;
 /** A tower grows with its armed tracks: 11 px bare, 55.8 px with all eight; unread, UNKNOWN_H (never the bare 0). */
 export const towerH = (p: FleetProject): number => (p.armed === null ? UNKNOWN_H : 11 + p.armed * 5.6);
 /** Decisions that count: an unwatched project has no live count. */

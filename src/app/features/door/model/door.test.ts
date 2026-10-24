@@ -8,8 +8,8 @@ import { COUNT_END } from '../hooks/useCountUp';
 import { INTRO_MS } from '../hooks/useDoor';
 import { HOME, cityTransform, frameDistrict, groundTransform } from './camera';
 import { groundOf } from './ground';
-import { districtsOf, paintOrder, towerH, UNKNOWN_H } from './city';
-import { beamsOf, districtGlows, towerShape } from './shapes';
+import { districtsOf, FB, GHOST_H, paintOrder, towerH, UNKNOWN_H } from './city';
+import { beamsOf, districtGlows, towerShape, towerTop } from './shapes';
 import { activeMark, dimSet, escapeStep, redSet, toggleLock } from './filter';
 import { cutawayOf } from './cutaway';
 import { stageFit, stageFitSource } from './fit';
@@ -35,6 +35,11 @@ describe('the city', () => {
     const waiting = fleet.projects.filter((p) => p.state !== 'not-set-up' && p.needsYou > 0);
     expect(beamsOf(ds)).toHaveLength(waiting.length);
     expect(districtGlows(ds).length).toBe(ds.filter((d) => d.needs > 0).length);
+  });
+  it('stands an unwatched tower, and an unread one, at the one ghost height', () => {
+    const t = ds.flatMap((d) => d.placed).find((x) => x.p.state === 'not-set-up')!;
+    const top = -Math.min(...towerShape(t, fleet.classes).hit.split(' ').map((q) => Number(q.split(',')[1]))) - FB;
+    expect([towerTop(t), top, UNKNOWN_H]).toEqual([GHOST_H, GHOST_H, GHOST_H]);
   });
   it('draws a tower in about ten nodes: windows of a tier share a path', () => {
     const t = ds[0]!.placed.find((x) => x.p.state === 'watching')!;
