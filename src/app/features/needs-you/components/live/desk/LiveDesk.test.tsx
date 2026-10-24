@@ -132,3 +132,14 @@ describe('a templated gap\'s diff file', () => {
     expect(inspect(tpl, v)).toContain('ledgerline · secure-includes');
   });
 });
+
+describe('a read-only row\'s Move chip', () => {
+  it('names its kind as its group does', async () => {
+    const { groupDesk } = await import('../../../model/desk');
+    for (const k of ['signoff', 'setup'] as const) {
+      const n: DeskItem = { ...gap, id: `o-${k}`, kind: 'other', group: { kind: 'other', project: 'ledgerline', deadline: 'none' }, source: { id: `o-${k}`, kind: k, title: k, does: 'd' } };
+      const name = groupDesk([n], 'kind')[0]?.name;
+      expect(moveOf(n)).toMatchObject({ kind: 'chip', label: name });
+    }
+  });
+});

@@ -4,5 +4,5 @@
 export type * from './types';
 
 export { deadlineOf, deskItems } from './items';
-export { DECIDED_GROUP, groupDesk, summarize } from './group';
+export { DECIDED_GROUP, groupDesk, readOnlyName, summarize } from './group';
 export { OUT_EMPTY, canStage, outReduce } from './out';

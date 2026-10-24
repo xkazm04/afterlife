@@ -6,6 +6,8 @@ import type { Deadline, DeskGroup, DeskItem, DeskSummary, Grouping } from './typ
 /** The read-only kinds with a group of their own, declared once: 'Elsewhere' takes every other one. */
 const READ_ONLY_GROUPS = [['signoff', 'CRA sign-off'], ['setup', 'Setup']] as const satisfies readonly (readonly [NeedsKind, string])[];
 const named = (k: NeedsKind | undefined): boolean => READ_ONLY_GROUPS.some(([g]) => g === k);
+/** A read-only kind's name, as its group and its row's Move chip say it; null for a kind with no group of its own. */
+export const readOnlyName = (k: NeedsKind | undefined): string | null => READ_ONLY_GROUPS.find(([g]) => g === k)?.[1] ?? null;
 
 /** The kind groups, in the desk's order: what extends trust first, what this desk only reads last. */
 const KIND_GROUPS: readonly { id: string; name: string; has: (n: DeskItem) => boolean }[] = [

@@ -10,7 +10,7 @@ import { groupNavId, rowDomId } from '@/components/table/model/rowNavigation';
 import { OutlineTable } from '@/components/table/OutlineTable';
 import { Row } from '@/components/table/Row';
 import { RowGroup } from '@/components/table/RowGroup';
-import { canStage, type DeskGroup, type DeskItem, type DeskOut } from '../../../model/desk';
+import { canStage, readOnlyName, type DeskGroup, type DeskItem, type DeskOut } from '../../../model/desk';
 import { shortAge } from '../../../model/clock/age';
 import type { MoveView } from '../../../model/rows/rowData';
 import type { GlyphKind } from '../../../model/rows/rowState';
@@ -20,7 +20,6 @@ import table from '../../table/table.module.css';
 import styles from './desk.module.css';
 
 const COLUMNS = [range(220, 4000), range(110, 130), range(100, 110), range(52, 60), range(76, 84)].join(' ');
-const OTHER: Readonly<Record<string, string>> = { signoff: 'CRA sign-off', setup: 'Setup' };
 
 /** A row waits for a person until it is decided, sent, or staged for Run all: only a waiting row is drawn amber. */
 export const waits = (n: DeskItem, out: DeskOut, sent: readonly string[]): boolean =>
@@ -45,7 +44,7 @@ export function moveOf(n: DeskItem): MoveView {
   if (n.kind === 'gap' && typeof s?.rungTo === 'number') {
     return typeof s.rungFrom === 'number' ? { kind: 'rungs', from: s.rungFrom, to: s.rungTo } : { kind: 'chip', label: `R? → R${s.rungTo}`, tone: 'unknown', title: 'The rung now is unknown' };
   }
-  return { kind: 'chip', label: n.kind === 'gap' ? 'gap' : (OTHER[s?.kind ?? ''] ?? 'read-only'), tone: 'plain' };
+  return { kind: 'chip', label: n.kind === 'gap' ? 'gap' : (readOnlyName(s?.kind) ?? 'read-only'), tone: 'plain' };
 }
 
 /** When: a deadline on a waiting row, else how long it has waited (or since it was decided); unknown says so. */
