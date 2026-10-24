@@ -69,6 +69,14 @@ describe('review, then at most one repair turn, then the gates', () => {
     expect(sh(f.repoDir, 'ls-tree', '-r', '--name-only', `belay/wave-${r.wave}`)).toContain('tst-a.txt');
   }, 90_000);
 
+  it('puts back an existing test the repair turn rewrote, before the gates', async () => {
+    const r = await runOne(f, ['rt-a']);
+    expect(r.calls.filter((c) => c.lane === 'rt-a').map((c) => c.step)).toEqual(['lane', 'review', 'repair']);
+    expect(r.ends['rt-a']).toMatchObject({ outcome: 'landed', review: 'defects', restored: ['existing.test.mjs'] });
+    expect(sh(f.repoDir, 'show', `belay/wave-${r.wave}:existing.test.mjs`)).toContain('assert.equal(add(1, 2), 3);');
+    expect(sh(f.repoDir, 'ls-tree', '-r', '--name-only', `belay/wave-${r.wave}`)).toContain('rt-a.repair.txt');
+  }, 90_000);
+
   it('a repair turn that parks parks the lane before any gate, and its work is saved as a patch', async () => {
     const r = await runOne(f, ['pk-a']);
     expect(r.ends['pk-a']).toMatchObject({ outcome: 'parked', parkReason: 'after review: the finding needs a gate edit', review: 'defects' });

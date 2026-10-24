@@ -6,8 +6,9 @@
 //              .claude/settings.json; exp-* is DONE at $9; park-* PARKs; hang-* never answers;
 //              def-* drops red.flag too (its review cites it, its repair removes it); tst-* also deletes the
 //              assertion line of existing.test.mjs; frontier writes size.txt = 50
-//   review  -> def-* lanes get one finding (red.flag); every other lane an empty list (OK); $0.05
-//   repair  -> removes red.flag if present, writes <lane>.repair.txt, says DONE ($0.10); a pk-* lane PARKs
+//   review  -> def-*, pk-* and rt-* lanes get one finding (red.flag); every other lane an empty list (OK); $0.05
+//   repair  -> removes red.flag if present, writes <lane>.repair.txt, says DONE ($0.10); a pk-* lane PARKs; an
+//              rt-* lane also deletes the assertion line of existing.test.mjs
 //   reflect -> a one-line "nothing to change"
 // FAKE_CALLS names a file each call appends its argv and --settings content to (permission tests).
 import fs from 'node:fs';
@@ -62,12 +63,13 @@ if (step === 'plan') {
     finish(`did it\nDONE: edited ${lane}.txt`, lane.startsWith('exp-') ? 9 : 0.5);
   }
 } else if (step === 'review') {
-  const cites = lane.startsWith('def-') || lane.startsWith('pk-');
+  const cites = lane.startsWith('def-') || lane.startsWith('pk-') || lane.startsWith('rt-');
   finish(review(cites ? [{ file: 'red.flag', line: 1, check: 'test', problem: 'gate.mjs fails while red.flag exists', evidence: 'gate.mjs:1' }] : []), 0.05);
 } else if (step === 'repair') {
   if (lane.startsWith('pk-')) finish('PARK: the finding needs a gate edit', 0.1);
   else {
     if (fs.existsSync('red.flag')) fs.unlinkSync('red.flag');
+    if (lane.startsWith('rt-')) fs.writeFileSync('existing.test.mjs', fs.readFileSync('existing.test.mjs', 'utf8').replace(/^assert\..*\r?\n/m, ''));
     fs.writeFileSync(`${lane}.repair.txt`, 'repaired\n');
     finish('fixed the finding\nDONE: removed red.flag after the review', 0.1);
   }

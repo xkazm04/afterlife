@@ -98,6 +98,12 @@ export async function reviewAndRepair(c: ReviewCtx): Promise<ReviewResult> {
   if (r.usage) c.log({ kind: 'lane.usage', lane, call: 'repair', model: r.model ?? c.model, ...r.usage, costUsd: r.costUsd ?? 0, ...(r.sessionId ? { sessionId: r.sessionId } : {}) });
   const claim = r.timedOut || r.isError ? null : readClaim(r.text);
   if (claim?.kind === 'PARK') return { ...base, stop: { outcome: 'parked', parkReason: `after review: ${claim.rest || 'parked without a reason'}` } };
+  // The repair turn runs under the lane profile, so it can rewrite an existing test too: the same rule puts it back.
+  const again = (await integrityForecast(c.dir, c.baseSha, await changedAgainst(c.dir, c.baseSha))).map((f) => f.path);
+  if (again.length) {
+    await restoreFromBase(c.dir, c.baseSha, again);
+    base.restored = [...new Set([...restored, ...again])];
+  }
   // No new DONE (a failed or killed repair): the lane's first claim stands, and the gates judge the tree as it is.
   return claim ? { ...base, done: claim.rest } : base;
 }

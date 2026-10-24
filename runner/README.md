@@ -94,6 +94,8 @@ its gates:
    the findings (`[integrity]` ones first): the lane's own session resumed (`claude -p --resume <sessionId>` with
    the lane profile, in the same worktree), or, with no session id, a fresh lane call on the lane's prompt plus the
    review. Its DONE line supersedes the first; a PARK parks the lane before any gate; no line keeps the first DONE.
+   The repair runs under the lane profile, so step 1's rule runs again on its tree: an existing test it rewrote is
+   put back too, and joins `restored`.
 4. Then the diff check and the gates run as before. `lane.end.review` is `clean`, `defects` or `unread`.
 
 Both calls are metered as `lane.usage` on the lane's own id with `call: "review"` / `"repair"`, and count against
