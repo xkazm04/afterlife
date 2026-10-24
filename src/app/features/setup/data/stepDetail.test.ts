@@ -159,6 +159,11 @@ describe('"Open in GitLab ↗" on a human step has a page to open', () => {
     expect(stepDetailsFor(live)[3]?.url).toBeUndefined();
     expect(stepDetailsFor({ ...live, host: 'gitlab.com' })[3]?.url).toBe('https://gitlab.com/groups/kazdanm/-/billings');
   });
+  it('the trial (step 3) still says when to start it, on every host and in the demo', () => {
+    for (const d of [STEP_DETAIL, stepDetailsFor(live), stepDetailsFor({ ...live, host: 'gitlab.com' })]) {
+      expect(d[3]?.note).toBe('Trial credits last 30 days: start no earlier than needed.');
+    }
+  });
   it('a project page is the target’s full path', () => {
     const d = stepDetailsFor(live);
     expect(d[6]?.url).toBe('https://gitlab.example.com/kazdanm/apps/afterlife/-/settings/ci_cd#js-runners-settings');
