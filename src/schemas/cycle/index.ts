@@ -6,7 +6,8 @@ import { canonical, GENESIS } from '../ledger';
 import type { Stage } from '../stages';
 
 /** What the closing rescan made of a change. A closed cycle has no pending or planned change. */
-export type ClosedVerdict = 'credited' | 'nolift' | 'rejected' | 'resolved' | 'regressed';
+export const CLOSED_VERDICTS = ['credited', 'nolift', 'rejected', 'resolved', 'regressed'] as const;
+export type ClosedVerdict = (typeof CLOSED_VERDICTS)[number];
 
 export interface CycleChangeRecord {
   /** The MR iid; null for a probe or a drift. */

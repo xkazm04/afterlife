@@ -1,11 +1,10 @@
 // belay-ledger/cycles/<project-id>.jsonl, checked line by line before it is trusted (it is read from a GitLab
 // repository): a bad line fails the whole file, like the event ledger.
-import type { ClosedVerdict, CycleChangeRecord, CycleRecord } from '@/schemas/cycle';
+import { CLOSED_VERDICTS, type CycleChangeRecord, type CycleRecord } from '@/schemas/cycle';
 import { STAGES } from '@/schemas/stages';
 import { isoInstantMs } from '../../../engine/core/types';
 import { LedgerParseError } from './parse';
 
-const VERDICTS: readonly ClosedVerdict[] = ['credited', 'nolift', 'rejected', 'resolved', 'regressed'];
 const KINDS = ['mr', 'probe', 'drift'] as const;
 const HASH = /^[0-9a-f]{64}$/;
 
@@ -21,7 +20,7 @@ function toChange(v: unknown, bad: (what: string) => never): CycleChangeRecord {
   if (!isRec(v)) return bad('a change is not an object');
   const kind = KINDS.find((k) => k === v.kind);
   const stage = STAGES.find((s) => s === v.stage);
-  const verdict = VERDICTS.find((x) => x === v.verdict);
+  const verdict = CLOSED_VERDICTS.find((x) => x === v.verdict);
   if (!kind || !stage || !verdict) return bad('a change needs a known kind, stage and closed verdict');
   if (v.mr_iid !== null && !isInt(v.mr_iid)) bad('mr_iid must be an iid or null');
   if ((kind === 'mr') !== (v.mr_iid !== null)) bad('an mr change has an iid; a probe or drift has none');
