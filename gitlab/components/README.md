@@ -161,10 +161,10 @@ note for this head, and `tier_at_time` is the engine's, from the live `tier-stat
 `--guardrail-authors` is the guardrail's real account, as in step 3.
 
 `derive-gate` writes `<new dir>/ledger-key`, `<project id>!<iid>@<head>` with the numeric id GitLab answers for the project (never
-`CI_PROJECT_ID` as typed), the key belay-apply forms (`sweep.mjs:129`); `--key` puts it on the commit as `Belay-Head: <key>`, so
+`CI_PROJECT_ID` as typed), the key belay-apply forms (`sweep.mjs` `ledgerKey`); `--key` puts it on the commit as `Belay-Head: <key>`, so
 belay-apply (M2) finds the head ledgered and skips it. Once per head is enforced, not asked: before it writes any events
 `derive-gate` reads the commits of `events/<project id>.jsonl` on `--ledger-branch` (default `main`) since the MR was opened
-(`sweep.mjs:133-142`, same 5-page cap) and, if one carries the key, exits 3 with `already ledgered for this head` and writes no
+(`ledgered.mjs`, the one copy of the rule belay-apply's sweep reads through, same 5-page cap) and, if one carries the key, exits 3 with `already ledgered for this head` and writes no
 `events` directory. A ledger it cannot read, or more commits than the cap, is exit 2: whether the head was appended is not known.
 The command it prints on success is step 4's second line with the key, `BELAY_DIR` and the numeric project id filled in,
 every path single-quoted so Git Bash keeps its backslashes: paste it as printed. Only a head ledgered by hand without `--key`

@@ -29,6 +29,7 @@ import { api, apiAll, arg, blocks, enc, glab, httpStatus, need, trustedNotes } f
 import { engine } from '../components/scripts/lib/engine.mjs';
 import { fileHead, readFile } from '../components/scripts/lib/repo-write.mjs';
 import { diffOf } from '../components/scripts/hand/facts.mjs';
+import { ledgerHeads } from '../components/scripts/hand/ledgered.mjs';
 import { touchesCi } from './ci-touch.mjs';
 import { clonePolicy, glue, loadConfig, targetsOf, tokens } from './lib.mjs';
 
@@ -39,7 +40,6 @@ const WRITE = MISSING.length === 0;
 const SCHEMAS = path.resolve(import.meta.dirname, '..', 'flows', 'schemas');
 const FINISHED = new Set(['success', 'failed', 'canceled', 'skipped']);
 const EVIDENCE_SOURCE = 'merge_request_event';
-const LEDGER_PAGES = 5;
 const say = (m) => console.error(`belay-apply: ${m}`);
 if (!WRITE) say(`${MISSING.join(' and ')} ${MISSING.length > 1 ? 'are' : 'is'} not set: reporting only, nothing is written`);
 
@@ -115,17 +115,9 @@ function sweepMr(t, iid) {
   const ledgerKey = `${t.id}!${iid}@${head}`;
   const blockKey = `${ledgerKey}/guardrail-block`; // the guardrail's own block for this head, once its events carry it
   const ledgerFile = `events/${t.id}.jsonl`;
-  let ledgerLog;
-  const ledgered = (key) => {
-    if (!ledgerLog) {
-      // Only commits since the MR was opened can carry its key; past the cap the answer is unknown, so the MR stops rather
-      // than appending its events again (F76).
-      const since = typeof m.created_at === 'string' ? `&since=${enc(m.created_at)}` : '';
-      ledgerLog = apiAll(`projects/${enc(cfg.ledger.project)}/repository/commits?ref_name=${enc(cfg.ledger.branch)}&path=${enc(ledgerFile)}${since}`, LEDGER_PAGES);
-      if (ledgerLog.length >= LEDGER_PAGES * 100) throw new Error(`more than ${LEDGER_PAGES * 100} commits of ${ledgerFile} since this MR was opened: whether its events were appended is not known`);
-    }
-    return ledgerLog.some((c) => String(c.message ?? '').split('\n').includes(`Belay-Head: ${key}`));
-  };
+  // Read once, when first asked (hand/ledgered.mjs). Past its page cap the MR stops rather than append its events again (F76).
+  let heads;
+  const ledgered = (key) => (heads ??= ledgerHeads({ ledgerProject: cfg.ledger.project, branch: cfg.ledger.branch, projectId: t.id, mr: m }))(key);
   const appendLedger = (events, keys) => {
     const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile,
       ...keys.flatMap((k) => ['--key', k]), '--write-token-var', 'BELAY_LEDGER_TOKEN'], { ...env, ...tokens('BELAY_LEDGER_TOKEN') }, dir);
