@@ -1,6 +1,7 @@
 // Puts a fake GitLab in the state a person leaves after Setup's human steps, as Setup reads them (src/server/data/setup):
 // the projects step 4 creates, a gitlab--duo runner (6), belay-apply's settings that hold no secret (8) and the merged
 // bootstrap MR with the agent config on the target's default branch (10). For tests and the live-mode demo; [R] shapes.
+import { BELAY_PROJECTS } from '@/server/data/setup/read';
 import type { Rec } from '../adapter/fields';
 import { project, type ProjectData } from './dataset';
 import type { FakeGitLab } from './fakeGitLab';
@@ -19,10 +20,8 @@ export function projectNamed(gl: FakeGitLab, name: string): ProjectData {
   return p;
 }
 
-export const BELAY = ['belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine', 'belay-apply'] as const;
-
-/** Step 4: every belay project exists. */
-export const createBelayProjects = (gl: FakeGitLab): ProjectData[] => BELAY.map((n) => projectNamed(gl, n));
+/** Step 4: every belay project Setup reads exists (BELAY_PROJECTS, the reader's own list, not a copy of it). */
+export const createBelayProjects = (gl: FakeGitLab): ProjectData[] => BELAY_PROJECTS.map((n) => projectNamed(gl, n));
 
 /** Step 6: one runner tagged gitlab--duo, online, available to the target. */
 export function addRunner(gl: FakeGitLab, target: string, o: { online?: boolean } = {}): void {
