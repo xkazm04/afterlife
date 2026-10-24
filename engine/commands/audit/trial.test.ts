@@ -94,7 +94,9 @@ describe('ledger trial: the chain alone, read as the MR states it', () => {
   it('a short or bad input is exit 2, and ledger append is untouched', () => {
     expect(cli('ledger', 'trial', '--chain', fx('ledger', 'chain.jsonl'), '--agent', 'a', '--class', 'c').code).toBe(2);
     expect(trial('--since', 'yesterday').code).toBe(2);
-    expect(trial('--through', '0').code).toBe(2);
+    // a seq is written in decimal digits: Number() would read 0xb and 1.1e1 as seq 11, and ' 5' or '5.0' as 5
+    for (const seq of ['0', '0xb', '1.1e1', ' 5', '5.0', '05', '']) expect(trial('--through', seq).json.error, seq).toMatch(/--through must be a seq/);
+    expect(trial('--through', '5').code).toBe(0);
     expect(trial('--head', 'abc').code).toBe(2);
     expect(cli('ledger', 'prepend').code).toBe(2);
   });

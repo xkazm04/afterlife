@@ -16,9 +16,9 @@ const HASH = /^[0-9a-f]{64}$/;
 
 function throughOf(v: string | undefined): number | null {
   if (v === undefined) return null;
-  const n = Number(v);
-  if (!Number.isInteger(n) || n < 1) throw new EngineError(`--through must be a seq (a positive integer), not ${v}`);
-  return n;
+  // decimal digits only: Number() also reads '0xb', '1.1e1', ' 11' and '11.0' as 11
+  if (!/^[1-9]\d*$/.test(v) || !Number.isSafeInteger(Number(v))) throw new EngineError(`--through must be a seq (a positive integer), not ${JSON.stringify(v)}`);
+  return Number(v);
 }
 
 export function trialCommand(argv: readonly string[], ctx: Ctx): CommandResult {
