@@ -49,6 +49,15 @@ describe('the cycle screens get the same data from the live source as from the d
     const [d, l] = both(() => asProps(loadCyclesData()));
     expect(l).toEqual(d);
     expect((l as { drift: string[] }).drift).toEqual([]);
+    expect((l as { project: string }).project).toBe('acme-lab/ledgerline');
+  });
+
+  it('Cycles names the live group and deep project, not the demo literal', () => {
+    const other: DataSource = { ...live, deepProjectId: () => 'payroll', getPortfolio: () => ({ ...live.getPortfolio(), group: 'north-co' }) };
+    setDataSource(other);
+    const v = loadCyclesData();
+    setDataSource(null);
+    expect(v.project).toBe('north-co/payroll');
   });
 
   it('Cycles, estate scope: every project in cycles per group, each history replayed against its rungs', () => {
