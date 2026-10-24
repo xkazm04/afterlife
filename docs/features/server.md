@@ -119,8 +119,9 @@
 ## Status and limits
 - Demo mode is the default and what the app shows. Live mode against a real group is wired but the real group was
   empty when recorded (2026-10-06); most read shapes come from documentation fixtures, not recordings.
-- In live mode tracks, loop, event feed, cockpit text, setup phases and doctor rows, tier meanings and stage list are
-  still the demo catalogue.
+- In live mode tracks, loop, cockpit text, setup phases and the Ladder's opening policy history are still the demo
+  catalogue (`LIVE_ILLUSTRATIVE`, which the screens label "demo"). The event feed is the index's (`getEvents`), the
+  doctor rows are the live probe's, the tier meanings are the product vocabulary and the stage list is the schema's.
 - Needs you, Ladder, Maturity, Setup and Onboard call `previewAction` / `confirmAction` (see
   `src/server/actions/README.md`, "Screens that call them"); no screen sends `mark-cra-ready` yet. Not verified live: every write, the diffs endpoint,
   `start_branch`, issue label PUT for work items, the Flows API route. The fake does not model branches, issues or
