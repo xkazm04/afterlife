@@ -1,6 +1,7 @@
 // Puts a fake GitLab in the state a person leaves after Setup's human steps, as Setup reads them (src/server/data/setup):
 // the projects step 4 creates, a gitlab--duo runner (6), belay-apply's settings that hold no secret (8) and the merged
 // bootstrap MR with the agent config on the target's default branch (10). For tests and the live-mode demo; [R] shapes.
+import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
 import { BELAY_PROJECTS } from '@/server/data/setup/read';
 import type { Rec } from '../adapter/fields';
 import { project, type ProjectData } from './dataset';
@@ -43,7 +44,7 @@ export function addBootstrap(gl: FakeGitLab, target: string, o: { merged?: boole
   const p = projectNamed(gl, target);
   p.mrs.unshift({
     id: 590002, iid: 2, project_id: p.raw.id, title: 'belay: bootstrap', description: '', state: merged ? 'merged' : 'opened', draft: false,
-    source_branch: 'belay/bootstrap', target_branch: 'main', author: { username: 'kazdanm' }, labels: [], web_url: `${String(p.raw.web_url)}/-/merge_requests/2`,
+    source_branch: BOOTSTRAP_BRANCH, target_branch: 'main', author: { username: 'kazdanm' }, labels: [], web_url: `${String(p.raw.web_url)}/-/merge_requests/2`,
     sha: 'b007000000000000000000000000000000000002', created_at: '2026-10-08T08:00:00.000Z', updated_at: '2026-10-08T08:30:00.000Z',
     merged_at: merged ? '2026-10-08T08:30:00.000Z' : null, head_pipeline: null,
   });

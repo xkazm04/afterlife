@@ -4,6 +4,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
 import { describePlan, planPair, type PairPlan } from './plan';
 
 export interface PairIo {
@@ -101,7 +102,7 @@ export function pair(argv: readonly string[], io: PairIo): PairResult {
   }
   io.out(`${describePlan(plan, write)}\n`);
   if (write && !plan.paired) {
-    io.out(['', 'written. Nothing was committed or pushed; to propose it, as you:', `  git -C ${dirArg} switch -c belay/bootstrap`, `  git -C ${dirArg} add -A && git -C ${dirArg} commit -m "Belay bootstrap"`, `  git -C ${dirArg} push -u origin belay/bootstrap`, '  glab mr create --source-branch belay/bootstrap --title "Belay bootstrap" --draft', ''].join('\n'));
+    io.out(['', 'written. Nothing was committed or pushed; to propose it, as you:', `  git -C ${dirArg} switch -c ${BOOTSTRAP_BRANCH}`, `  git -C ${dirArg} add -A && git -C ${dirArg} commit -m "Belay bootstrap"`, `  git -C ${dirArg} push -u origin ${BOOTSTRAP_BRANCH}`, `  glab mr create --source-branch ${BOOTSTRAP_BRANCH} --title "Belay bootstrap" --draft`, ''].join('\n'));
   }
   return { code: plan.partial ? 1 : 0, plan };
 }
