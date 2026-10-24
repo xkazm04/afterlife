@@ -8,9 +8,14 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { capture } from '../../../engine/__tests__/helpers';
 import { main } from '../../../engine/cli';
 import { parseLedgerEvent } from '../../../engine/commands/ledger';
+import type { Decision } from '../../../engine/decide/gate';
 import { parseLedgerJsonl } from '../../server/ledger/parse';
-import { append, verifyChain } from '../ledger';
+import { append, verifyChain, type GateDecision } from '../ledger';
 import { parseChainText, parseEventBody, parseStoredLine } from './parse';
+
+// The gate's own decision union (engine/decide/gate.ts) and the one a `would` may state are the same four, both ways.
+const DECISIONS_MATCH: [Decision, GateDecision] extends [GateDecision, Decision] ? true : never = true;
+void DECISIONS_MATCH;
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-chain-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));

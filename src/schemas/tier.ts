@@ -1,9 +1,11 @@
 // Autonomy is held per action class, not per agent. Restricting is free; extending is earned.
 
-export type Tier = 'quarantined' | 'assisted' | 'supervised' | 'hands_off';
+// The union derives from the list, so the order names every tier: a tier added to one and not the other cannot compile.
+const TIERS = ['quarantined', 'assisted', 'supervised', 'hands_off'] as const;
+export type Tier = (typeof TIERS)[number];
 export type Ceiling = Tier | 'human_only';
 
-export const TIER_ORDER: readonly Tier[] = ['quarantined', 'assisted', 'supervised', 'hands_off'];
+export const TIER_ORDER: readonly Tier[] = TIERS;
 
 /** Every trigger the tripwire can be handed: the one list the engine, the policy reader and the screens share. */
 export const DEMOTION_TRIGGERS = ['revert', 'reopened_finding', 'post_merge_proof_fail', 'default_branch_red_1h', 'guardrail_high', 'budget_breach_x2'] as const;

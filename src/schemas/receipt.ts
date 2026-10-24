@@ -1,10 +1,11 @@
 // Where a tier record was enforced: the receipt the poller derives for a class one agent holds, from tier-state.yml's
 // commit list on belay-policy and the tier_decision events of the ledger (src/server/poller/derive/receipt.ts). Plain
 // data, client-safe: the Ladder's class page reads it as three facts (committed, read, withdrawn) and an alarm.
+import type { WithdrawnGrant } from './chain/kinds';
 import type { Tier } from './tier';
 
-/** What belay-apply's sweep took back from a merge request (the ledger's `withdrew`, src/schemas/ledger.ts). */
-export type Withdrawn = 'approval' | 'auto_merge';
+/** What belay-apply's sweep took back from a merge request (the ledger's `withdrew`, src/schemas/chain/kinds.ts). */
+export type Withdrawn = WithdrawnGrant;
 
 export interface ReceiptWithdrawal {
   what: Withdrawn;
