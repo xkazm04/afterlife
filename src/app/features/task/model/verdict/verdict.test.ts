@@ -54,6 +54,11 @@ describe('claimStatus', () => {
     const qa = get('01J8QA');
     expect(claimStatus(qa, qa.claims[0]!)).toEqual({ kind: 'unk', label: '? open' });
   });
+  it('neither upholds nor contradicts on a struck check (a person decides it): the claim stays open', () => {
+    const q8 = get('01J8Q8');
+    const signed = { ...q8, proof: { ...q8.proof, checks: q8.proof.checks.map((c) => ({ ...c, decidedBy: 'human' as const })) } };
+    expect(signed.claims.map((c) => claimStatus(signed, c).label)).toEqual(signed.claims.map((c) => (c.checks.length ? '? open' : '? no weight')));
+  });
 });
 
 describe('equation', () => {

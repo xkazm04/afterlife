@@ -85,6 +85,11 @@ describe('ties', () => {
     expect(all.filter((t) => t.kind === 'holds')).toHaveLength(3);
   });
 
+  it('draws a struck check (a person decides it) dashed unknown whatever its ok, as the equation draws its term', () => {
+    const signed = { ...q8, proof: { ...q8.proof, checks: q8.proof.checks.map((c) => ({ ...c, decidedBy: 'human' as const })) } };
+    expect(ties(signed, null, null).map((t) => t.kind)).toEqual(ties(q8, null, null).map(() => 'unknown'));
+  });
+
   it('draws one tie per claim/check pair and none for invariants', () => {
     expect(ties(q4, null, null)).toHaveLength(4);
     expect(ties(get('01J8QC'), null, null).filter((t) => t.checkId === 'links')).toHaveLength(2);

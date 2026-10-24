@@ -66,12 +66,18 @@ export interface ClaimStatus {
   label: string;
 }
 
-/** What the checks say about a claim. A contradiction wins over an open check; no check at all means no weight. */
+/**
+ * What the checks say about a claim. A contradiction wins over an open check; no check at all means no weight. A struck
+ * check (a person decides it) is open whatever its ok, as its term is (termKind).
+ */
 export function claimStatus(task: TaskView, claim: TaskClaim): ClaimStatus {
   if (!claim.checks.length) return { kind: 'unk', label: '? no weight' };
-  const results = claim.checks.map((id) => task.proof.checks.find((c) => c.id === id)?.ok ?? null);
-  if (results.includes(false)) return { kind: 'bad', label: '✗ contradicted' };
-  if (results.includes(null)) return { kind: 'unk', label: '? open' };
+  const kinds = claim.checks.map((id) => {
+    const c = task.proof.checks.find((x) => x.id === id);
+    return c ? termKind(c) : 'unk';
+  });
+  if (kinds.includes('bad')) return { kind: 'bad', label: '✗ contradicted' };
+  if (kinds.includes('unk')) return { kind: 'unk', label: '? open' };
   return { kind: 'ok', label: `✓ upheld · ${claim.checks.length}` };
 }
 

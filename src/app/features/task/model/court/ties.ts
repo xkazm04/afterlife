@@ -1,5 +1,6 @@
 import type { CheckResult, TaskView } from '../types';
 import { checkShown, replayDone, type ReplayState } from '../verdict/replay';
+import { isStruck } from '../verdict/verdict';
 import { isSelected, type Selection } from './selection';
 
 export type TieKind = 'holds' | 'contradicts' | 'unknown';
@@ -20,7 +21,7 @@ export const tieOpacity = (e: TieEmphasis): number => (e === 'on' ? 1 : e === 'd
 /** Stroke width in unscaled px (multiply by --ui-scale). */
 export const tieWidth = (e: TieEmphasis): number => (e === 'on' ? 2.2 : 1.4);
 
-/** One tie per claim/check pair, skipping checks that have not landed yet in a replay. */
+/** One tie per claim/check pair, skipping checks that have not landed yet in a replay. A struck check's tie is unknown, whatever its ok. */
 export function ties(task: TaskView, sel: Selection, rv: ReplayState): Tie[] {
   const out: Tie[] = [];
   for (const claim of task.claims) {
@@ -29,7 +30,7 @@ export function ties(task: TaskView, sel: Selection, rv: ReplayState): Tie[] {
       const check = task.proof.checks[i];
       if (!check || !checkShown(rv, i)) continue;
       const on = isSelected(sel, 'claim', claim.id) || isSelected(sel, 'check', checkId);
-      out.push({ claimId: claim.id, checkId, kind: tieKind(check.ok), emphasis: !sel ? 'rest' : on ? 'on' : 'dim' });
+      out.push({ claimId: claim.id, checkId, kind: tieKind(isStruck(check) ? null : check.ok), emphasis: !sel ? 'rest' : on ? 'on' : 'dim' });
     }
   }
   return out;
