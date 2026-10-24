@@ -44,6 +44,16 @@ describe('belay scan of a checkout (files only)', () => {
     expect(mon?.why).toMatch(/\.gitlab\/alerting\.yml is empty: a detector surface, not monitoring/);
   });
 
+  it('never opens a local include outside the checkout, even in a sibling folder whose name starts with it', () => {
+    const sibling = checkout({});
+    fs.mkdirSync(`${sibling}-evil`);
+    fs.writeFileSync(path.join(`${sibling}-evil`, 'ci.yml'), 'unit-tests:\n  stage: test\n  script: [npm test]\n');
+    fs.writeFileSync(path.join(sibling, '.gitlab-ci.yml'), `include:\n  - local: ../${path.basename(sibling)}-evil/ci.yml\n`);
+    const verify = scan(checkoutFacts(sibling), NOW).cells.find((c) => c.stage === 'verify');
+    expect(verify).toMatchObject({ rung: null, evidence: [] });
+    expect(verify?.why).toMatch(/1 include\(s\) not opened/);
+  });
+
   it('keeps a stage unknown when an include it could not open might hold the job', () => {
     const dir = checkout({ '.gitlab-ci.yml': 'include:\n  - project: acme/ci\n    file: security.yml\n' });
     const sec = scan(checkoutFacts(dir), NOW).cells.find((c) => c.stage === 'secure');

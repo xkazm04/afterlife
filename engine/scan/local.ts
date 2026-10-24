@@ -38,7 +38,10 @@ function ci(root: string): Fact<CiConfig> {
   try {
     const open = (rel: string): unknown => {
       const abs = path.resolve(root, rel);
-      return abs.startsWith(root) && fs.existsSync(abs) ? yaml(fs.readFileSync(abs, 'utf8')) : undefined;
+      // inside the checkout by path, not by prefix: /x/repo-evil starts with /x/repo
+      const up = path.relative(root, abs);
+      const inside = up !== '' && up !== '..' && !up.startsWith(`..${path.sep}`) && !path.isAbsolute(up);
+      return inside && fs.existsSync(abs) ? yaml(fs.readFileSync(abs, 'utf8')) : undefined;
     };
     return known(readCi(yaml(fs.readFileSync(file, 'utf8')), '.gitlab-ci.yml', open));
   } catch (e) {
