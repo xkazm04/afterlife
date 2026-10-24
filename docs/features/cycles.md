@@ -102,7 +102,7 @@
   writes a cycle record yet: the closing rescan is meant to append it (the autopilot, or `belay scan` in CI). A
   project with no cycle file shows C1 running from day 0, and every stage the scan moved since day 0 as drift.
   Sending, merging and rescanning happen in Maturity.
-- A saved design is kept for the browser session only, and the screen says so.
+- A saved design is screen state: it is kept until you leave or reload the page, and the screen says so.
 - Six projects have a cycle history in the demo; only the deep project (ledgerline) has the grid, designer and
   report, because only it has a Maturity scan with gaps. In live mode the other estate histories come from the seed
   (the demo GitLab holds only ledgerline); a real group's projects would each import their own cycle file.

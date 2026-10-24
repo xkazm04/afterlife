@@ -12,7 +12,7 @@ import { walkTo } from './walk';
 /**
  * The Cycles screen state: which cycle is selected (the running one to start), and the design of the next cycle.
  * While you design, the grid previews the design live; a saved design becomes the planned cycle for this session
- * (the demo keeps it in the browser only, and says so).
+ * (the demo keeps it in this page's state only, until you leave or reload it, and says so).
  */
 export function useCycles(data: CyclesData, startDesign = false) {
   const { status } = useToast();
@@ -60,7 +60,7 @@ export function useCycles(data: CyclesData, startDesign = false) {
       if (!draft || checkDesign(pickOf(draft)).length) return;
       setSaved(draft);
       setDraft(null);
-      status(`${planned?.id ?? 'The next cycle'} designed: ${plural(draft.length, 'change')} · kept in this browser session (demo)`);
+      status(`${planned?.id ?? 'The next cycle'} designed: ${plural(draft.length, 'change')} · kept until you leave this page (demo)`);
     },
     saved: saved != null,
   };

@@ -23,7 +23,7 @@ grid previews the design live. The rules are checked as you pick, and a design t
 - **at most four changes** (`WIP_CAP`), so a red rescan still says which change failed;
 - **nothing on a stage the running cycle is lifting**: nobody plans on a rung that is still moving;
 - an unknown rung gets a **probe** first, never a lift. The engine is pinned for the whole cycle.
-A saved design becomes the planned cycle for this browser session (demo).
+A saved design becomes the planned cycle until you leave or reload the page (demo: it is screen state, not stored).
 
 ## Reporting a cycle
 A closed cycle's inspector has **Report**: the hand-back as Markdown (`model/report/report.ts`, tested), exactly as it

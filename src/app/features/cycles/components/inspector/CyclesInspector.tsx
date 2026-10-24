@@ -87,7 +87,7 @@ export function CyclesInspector({
           <div className={styles.next}>
             <p>
               Starts when {running?.id ?? 'the running cycle'} closes: one cycle at a time, so every rung it credits is measured against a settled scan.
-              {designed ? ' Designed here in this session (demo: kept in this browser only).' : ''}
+              {designed ? ' Designed here (demo: kept until you leave this page).' : ''}
             </p>
             <Button variant="accent" onClick={onDesign}>
               {designed ? `Redesign ${cycle.id}` : `Design ${cycle.id}`}
