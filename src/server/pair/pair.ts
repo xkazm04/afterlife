@@ -33,21 +33,46 @@ export function rootNamespace(remote: string): string | null {
   return m?.[1] ?? null;
 }
 
-function flag(argv: readonly string[], name: string): string | undefined {
-  const i = argv.indexOf(`--${name}`);
-  return i >= 0 ? argv[i + 1] : undefined;
+const USAGE = 'usage: belay pair <checkout> [--group <path>] [--pack-version 1.0.0] [--engine-ref v0.1.0] [--write]';
+const VALUED = ['--group', '--pack-version', '--engine-ref'];
+
+interface PairArgs {
+  dir: string;
+  flags: Map<string, string>;
+  write: boolean;
+}
+
+/** One checkout, the valued flags each with a value, and --write; anything else is refused, never guessed. */
+export function parsePairArgs(argv: readonly string[]): PairArgs | string {
+  const flags = new Map<string, string>();
+  const dirs: string[] = [];
+  let write = false;
+  for (let i = 0; i < argv.length; i += 1) {
+    const a = argv[i]!;
+    if (a === '--write') write = true;
+    else if (VALUED.includes(a)) {
+      const v = argv[i + 1];
+      if (v === undefined || v.startsWith('--')) return `${a} needs a value`;
+      flags.set(a, v);
+      i += 1;
+    } else if (a.startsWith('--')) return `unknown option ${a}`;
+    else dirs.push(a);
+  }
+  if (dirs.length !== 1) return dirs.length === 0 ? USAGE : `one checkout, not ${dirs.length} (${dirs.join(', ')})`;
+  return { dir: dirs[0]!, flags, write };
 }
 
 export function pair(argv: readonly string[], io: PairIo): PairResult {
   const fail = (why: string): PairResult => (io.err(`belay pair: ${why}\n`), { code: 2 });
-  const dirArg = argv.find((a, i) => !a.startsWith('--') && !['--group', '--pack-version', '--engine-ref'].includes(argv[i - 1] ?? ''));
-  if (!dirArg) return fail('usage: belay pair <checkout> [--group <path>] [--pack-version 1.0.0] [--engine-ref v0.1.0] [--write]');
+  const args = parsePairArgs(argv);
+  if (typeof args === 'string') return fail(args);
+  const { dir: dirArg, flags, write } = args;
   const dir = path.resolve(io.cwd, dirArg);
   if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return fail(`${dirArg} is not a directory`);
   const top = git(dir, ['rev-parse', '--show-toplevel']);
   if (!top || fs.realpathSync(top) !== fs.realpathSync(dir)) return fail(`${dirArg} is not the root of a git checkout (git rev-parse --show-toplevel)`);
   const remote = git(dir, ['remote', 'get-url', 'origin']);
-  const group = flag(argv, 'group') ?? (remote ? rootNamespace(remote) : null);
+  const group = flags.get('--group') ?? (remote ? rootNamespace(remote) : null);
   if (!group) return fail('no group: the checkout has no origin remote on a group; pass --group <path>');
 
   const template = path.join(io.root, 'gitlab/examples/target-project/.gitlab/duo/agent-config.yml');
@@ -56,8 +81,7 @@ export function pair(argv: readonly string[], io: PairIo): PairResult {
     const abs = path.join(dir, p);
     return fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : null;
   };
-  const plan = planPair(read, { group, packVersion: flag(argv, 'pack-version') ?? '1.0.0', engineRef: flag(argv, 'engine-ref') ?? 'v0.1.0' }, agentConfig);
-  const write = argv.includes('--write');
+  const plan = planPair(read, { group, packVersion: flags.get('--pack-version') ?? '1.0.0', engineRef: flags.get('--engine-ref') ?? 'v0.1.0' }, agentConfig);
 
   io.out(`belay pair ${dir} (group ${group})\n\n`);
   if (write) {

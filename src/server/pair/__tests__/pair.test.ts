@@ -63,6 +63,17 @@ describe('belay pair', () => {
     expect(run([repo({}, ''), '--group', 'acme-lab']).code).toBe(0);
   });
 
+  it('refuses a valued flag without its value, an unknown option or a second checkout, and writes nothing (exit 2)', () => {
+    const dir = repo();
+    for (const argv of [[dir, '--group', '--write'], [dir, '--group'], [dir, '--engine-ref'], [dir, '--wrte'], [dir, dir]]) {
+      const r = run(argv);
+      expect(r.code, argv.join(' ')).toBe(2);
+      expect(r.err).toMatch(/needs a value|unknown option|one checkout/);
+    }
+    expect(fs.existsSync(path.join(dir, BELAY_CI))).toBe(false);
+    expect(run([dir, '--group', 'other', '--engine-ref', 'v9']).out).toContain('$CI_SERVER_FQDN/other/belay-pack/tier-gate@1.0.0');
+  });
+
   it('keeps an existing, different Belay file and agent config as they are, and says so (exit 1)', () => {
     const dir = repo({ [BELAY_CI]: 'include: []\n', '.gitlab/duo/agent-config.yml': 'image: ours\n' });
     const r = run([dir, '--write']);
