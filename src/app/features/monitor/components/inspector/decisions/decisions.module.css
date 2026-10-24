@@ -1,0 +1,110 @@
+/* The deep project's decisions: one dense row each, the open one showing what it does and the decide buttons. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2px * var(--ui-scale));
+}
+.row {
+  min-width: 0;
+  border-radius: var(--r-sm);
+}
+.open {
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--ui-scale));
+  width: 100%;
+  min-height: var(--row-h);
+  padding: 0 calc(6px * var(--ui-scale)) 0 calc(4px * var(--ui-scale));
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-1);
+  font-size: var(--t-body);
+  text-align: left;
+  cursor: default;
+}
+.head:hover {
+  background: var(--hover);
+}
+.disc {
+  flex: none;
+  color: var(--text-3);
+  transition: transform var(--t-fast) var(--ease);
+}
+.open .disc {
+  transform: rotate(90deg);
+}
+.t {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.due {
+  flex: none;
+  margin-left: auto;
+  color: var(--text-3);
+  font-size: var(--t-small);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.body {
+  display: grid;
+  gap: calc(6px * var(--ui-scale));
+  padding: calc(2px * var(--ui-scale)) calc(10px * var(--ui-scale)) calc(10px * var(--ui-scale)) calc(20px * var(--ui-scale));
+}
+.does,
+.note {
+  margin: 0;
+}
+.does {
+  color: var(--text-2);
+  font-size: var(--t-body);
+}
+.note {
+  color: var(--text-3);
+  font-size: var(--t-small);
+}
+.rules {
+  display: grid;
+  gap: calc(2px * var(--ui-scale));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-small);
+}
+.rules li {
+  display: flex;
+  align-items: baseline;
+  gap: calc(6px * var(--ui-scale));
+  color: var(--text-2);
+}
+.mark {
+  flex: none;
+  width: calc(10px * var(--ui-scale));
+  color: var(--ok);
+  font-weight: 700;
+}
+.rules li[data-met="false"] .mark {
+  color: var(--fail);
+}
+.rule {
+  flex: 1;
+  min-width: 0;
+}
+.actual {
+  flex: none;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(6px * var(--ui-scale));
+  padding-top: calc(2px * var(--ui-scale));
+}

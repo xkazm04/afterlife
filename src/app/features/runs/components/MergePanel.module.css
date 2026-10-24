@@ -1,0 +1,36 @@
+/* The merge card above the runs table: the runner card's frame (Needs you's merge card), a title, the instruction and
+   each caveat on its own dim line, then the exact commands. The text keeps a reading width on a wide pane. */
+.card {
+  flex: none;
+  margin: calc(4px * var(--ui-scale)) calc(16px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--ui-scale));
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--sep);
+  font-size: var(--t-body);
+}
+.title {
+  margin: 0;
+  font-size: var(--t-title);
+  font-weight: 700;
+  color: var(--text-1);
+}
+.lead,
+.note {
+  margin: 0;
+  max-width: calc(640px * var(--ui-scale));
+  color: var(--text-3);
+}
+.lead {
+  font-size: var(--t-body);
+}
+.note {
+  font-size: var(--t-small);
+}
+.cmds {
+  margin-top: calc(6px * var(--ui-scale));
+  max-width: calc(880px * var(--ui-scale));
+}

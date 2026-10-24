@@ -1,17 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/controls/Button';
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
-import { needsAction } from '@/lib/demo/needsActions';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { fleetHref } from '@/lib/url/fleetHref';
 import { decisionsWord, liveNeeds } from '../../model/totals';
+import { DecisionRow } from './decisions/DecisionRow';
+import rows from './decisions/decisions.module.css';
 import styles from './inspector.module.css';
 
 /**
- * The items to act on, for the selected beat. The deep project lists its real decisions (none listed: it reads like any other project). Demo resolves one on a click
- * (the button's tooltip says what it does); live claims nothing: the button opens Needs you, where it is decided; another project says how many wait and where to take them.
+ * The items to act on, for the selected beat. The deep project lists its real decisions as dense rows, one open at a time to
+ * what it does and its decide buttons (none listed: it reads like any other project). Demo resolves one on a click; live
+ * claims nothing: the button opens Needs you, where it is decided; another project says how many wait and where to take them.
  */
 export function Decisions({
   p,
@@ -33,6 +36,8 @@ export function Decisions({
   onRepoll: (id: string) => void;
 }) {
   const n = liveNeeds(p);
+  // The one open row (none at first): opening another shuts it.
+  const [openId, setOpenId] = useState<string | null>(null);
   let body;
   if (p.state === 'not-set-up') {
     body = (
@@ -46,30 +51,22 @@ export function Decisions({
       </div>
     );
   } else if (isDeep && needs.length) {
-    body = needs.map((d) => {
-      const [primary, quiet] = needsAction(d.kind);
-      return (
-        <div key={d.id} className={styles.item}>
-          <div className={styles.t}>{d.title}</div>
-          <div className={styles.acts}>
-            {live ? (
-              <Button variant="primary" href="/needs-you" title={`Opens Needs you, where this is decided; nothing is decided here. ${d.does}`}>
-                Decide in Needs you…
-              </Button>
-            ) : done.has(d.id) ? (
-              <span className={styles.done}>✓ Done</span>
-            ) : (
-              <>
-                <Button variant="primary" title={d.does} onClick={() => onResolve(d.id, d.does)}>
-                  {primary}
-                </Button>
-                <Button onClick={() => onFlash(`Deferred: ${d.title}`)}>{quiet}</Button>
-              </>
-            )}
-          </div>
-        </div>
-      );
-    });
+    body = (
+      <div className={rows.list}>
+        {needs.map((d) => (
+          <DecisionRow
+            key={d.id}
+            d={d}
+            open={openId === d.id}
+            live={live}
+            done={done.has(d.id)}
+            onToggle={() => setOpenId((o) => (o === d.id ? null : d.id))}
+            onResolve={onResolve}
+            onFlash={onFlash}
+          />
+        ))}
+      </div>
+    );
   } else if (n) {
     body = (
       <div className={styles.item}>

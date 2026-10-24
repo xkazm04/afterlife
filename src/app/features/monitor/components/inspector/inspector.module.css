@@ -35,10 +35,6 @@
   gap: 6px;
   padding-top: 4px;
 }
-.done {
-  color: var(--ok);
-  font-size: var(--t-head);
-}
 .tiers {
   display: flex;
   flex-wrap: wrap;
