@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { ScanMeta } from './ScanMeta';
 import { StatusCounts } from './StatusCounts';
 
-const text = (html: string): string => html.replace(/<[^>]+>/g, '').replace(/&nbsp;| /g, ' ');
+const text = (html: string): string => html.replace(/<[^>]+>/g, '').replace(/&nbsp;|\u00a0/g, ' ');
 const meta = (ageMin: number | null, scanned = true) => text(renderToStaticMarkup(createElement(ScanMeta, { engine: '1.4.0', scannedAt: '14:02', ageMin, cadence: 'weekly', scanned })));
 
 describe('ScanMeta', () => {
