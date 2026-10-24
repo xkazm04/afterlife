@@ -10,6 +10,7 @@ import { STAGES, type Stage } from '../../src/schemas/stages';
 import { capture, fx } from '../__tests__/helpers';
 import { main } from '../cli';
 import { ENGINE_VERSION } from '../core/version';
+import { RUBRIC } from './rubric';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
@@ -166,6 +167,18 @@ describe('scan: the rubric', () => {
       const c = capture();
       expect(main(['scan', '--facts', f], c.io), f).toBe(2);
       expect(typeof (c.json() as { error?: unknown }).error).toBe('string');
+    }
+  });
+});
+
+describe('the README rubric table is the RUBRIC data', () => {
+  it('a rung the table marks "not read" is exactly one RUBRIC does not read, and each R4 names its proof job', () => {
+    const readme = fs.readFileSync(path.join(import.meta.dirname, '..', 'README.md'), 'utf8').split('\n');
+    for (const rule of RUBRIC) {
+      const row = readme.find((l) => l.startsWith(`| ${rule.stage} |`))?.split('|').map((c) => c.trim()) ?? [];
+      const [, , , r2, r3, r4] = row;
+      expect([r2 === 'not read', r3 === 'not read', r4 === 'not read'], rule.stage).toEqual([rule.r2 === null, !rule.r3, rule.r4 === null]);
+      if (rule.r4) expect(rule.r4.test((r4 ?? '').match(/`([^`]+)`/)?.[1] ?? ''), `${rule.stage}: ${r4}`).toBe(true);
     }
   });
 });
