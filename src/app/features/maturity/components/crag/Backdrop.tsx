@@ -1,6 +1,6 @@
 import { MAT_META } from '../../data/meta';
-import { wavyPath, type CragGeom } from '../../model/crag/geometry';
-import { TOP_RUNG } from '../../model/rungs';
+import { markY, wavyPath, type CragGeom } from '../../model/crag/geometry';
+import { rungLabel, TOP_RUNG } from '../../model/rungs';
 import styles from './crag.module.css';
 import { cx } from '../cx';
 
@@ -30,11 +30,11 @@ export function Backdrop({ g, hatchId, rungNames }: { g: CragGeom; hatchId: stri
   );
   // Outside the inert group: a <title> tooltip needs the pointer, and the group sets pointer-events: none.
   const labels = LEVELS.map((r) => {
-    const y = r === 0 ? g.Y0 + 4 * s : g.yOf(r);
+    const y = markY(g, r, 4);
     const name = rungNames[r] ?? '';
     return (
       <g key={r}>
-        <title>{`R${r} ${name}: ${MAT_META.rungMeans[r] ?? ''}`}</title>
+        <title>{`${rungLabel(r, rungNames)}: ${MAT_META.rungMeans[r] ?? ''}`}</title>
         <text className={styles.rlab} x={14 * s} y={y - s}>{`R${r}`}</text>
         <text className={styles.rlab2} x={14 * s} y={y + 13 * s}>{name}</text>
       </g>

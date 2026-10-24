@@ -8,7 +8,7 @@ import type { Stage } from '@/schemas';
 import { gitlabUrl } from '../../data/meta';
 import type { EvidenceRung } from '../../data/types';
 import type { MaturityCtx } from '../../model/ctx';
-import { isDeep, nextOf, TOP_RUNG, type Level } from '../../model/rungs';
+import { isDeep, nextOf, rungLabel, TOP_RUNG, type Level } from '../../model/rungs';
 import { statusLine } from '../../model/state';
 import { cx } from '../cx';
 import { BoltGlyph } from './BoltGlyph';
@@ -56,7 +56,7 @@ export function EvidenceSection({
           <div key={r}>
             <div className={cx(styles.rg, !on && (isNext ? styles.nx : styles.off))}>
               <BoltGlyph on={on} deep={deep} next={isNext} />
-              <span>{`R${r} ${ctx.rungNames[r] ?? ''}`}</span>
+              <span>{rungLabel(r, ctx.rungNames)}</span>
               <span className={styles.aux}>{on ? (count ? `${count} object${count > 1 ? 's' : ''}` : 'no links') : isNext ? 'next' : '—'}</span>
             </div>
             {isNext && ev ? <div className={styles.lack}>{ev.missing}</div> : null}
