@@ -7,6 +7,8 @@ import { Funnel } from './components/funnel/Funnel';
 import { Baseline } from './components/groups/Baseline';
 import { GroupBars } from './components/groups/GroupBars';
 import { ProjectPanel } from './components/inspector/ProjectPanel';
+import { OnboardStatus } from './components/OnboardStatus';
+import type { OnboardApi } from './hooks/useOnboard';
 import { planBatch } from './model/batch';
 import { initialRuns, type OnboardData } from './model/build';
 import { baseline, byGroup, funnel } from './model/funnel';
@@ -37,6 +39,12 @@ describe('Onboard parts render', () => {
     expect(html(createElement(BatchTable, { batch, runs, byId, org: 'acme-lab', filter: 'paired', selected: null, onSelect: () => {}, onResolve: () => {} }))).toContain(
       'Nothing sitting at paired here.',
     );
+  });
+  it('the status bar counts in words that agree with their number', () => {
+    const o = (yours: number, reads: number, writes: number) =>
+      ({ counts: funnel(steps), group: null, batch: { yours: Array(yours).fill('x'), reads: Array(reads).fill('x'), writes: Array(writes).fill('x') } }) as unknown as OnboardApi;
+    expect(html(createElement(OnboardStatus, { o: o(1, 1, 1) }))).toContain('1 waits for you · next batch 1 read, 1 write');
+    expect(html(createElement(OnboardStatus, { o: o(12, 9, 0) }))).toContain('12 wait for you · next batch 9 reads, 0 writes');
   });
   it('every project panel renders, unknown baselines included', () => {
     for (const p of data.projects) {
