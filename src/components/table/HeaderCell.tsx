@@ -59,6 +59,12 @@ export function HeaderCell<K extends string>({
       aria-label={iconOnly ? tip : undefined}
       data-tier={tier}
       tabIndex={-1}
+      onMouseDown={(e) => {
+        // A button takes focus on mouse-down; the treegrid's keys only work while the table itself has it.
+        if (e.button === 1) return;
+        e.preventDefault();
+        e.currentTarget.closest<HTMLElement>('[role="treegrid"]')?.focus({ preventScroll: true });
+      }}
       onClick={() => onSort(sortKey)}
     >
       {inner}
