@@ -19,7 +19,7 @@ export function ageStr(sec: number | null | undefined): string | null {
 
 /** "last good poll 47 min ago", unless the feed's own error already carries its age. The one place that rule lives. */
 export function lastGoodPoll(p: FleetProject): string | null {
-  const a = /ago/.test(p.feed.error ?? '') ? null : ageStr(p.feed.ageSec);
+  const a = /\bago\b/.test(p.feed.error ?? '') ? null : ageStr(p.feed.ageSec);
   return a ? `last good poll ${a}` : null;
 }
 

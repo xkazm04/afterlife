@@ -141,6 +141,8 @@ describe('the stale feed says the same thing in the readout and on the tower', (
     ['project token expired', 'project token expired · last good poll 47 min ago', ['feed stale', 'project token expired', 'last good poll 47 min ago']],
     ['rate limited · 3 min ago', 'rate limited · 3 min ago', ['feed stale', 'rate limited', '3 min ago']],
     [undefined, 'last good poll 47 min ago', ['feed stale', 'last good poll 47 min ago']],
+    // "ago" inside a word is not an age: the host still needs its last good poll
+    ['502 from gitlab.paragon.dev', '502 from gitlab.paragon.dev · last good poll 47 min ago', ['feed stale', '502 from gitlab.paragon.dev', 'last good poll 47 min ago']],
   ];
   it.each(cases)('error %j', (error, text, lines) => {
     expect(staleText(withFeed(error))).toBe(text);
