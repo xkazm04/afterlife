@@ -73,6 +73,9 @@ export function pendingIds(s: MaturityState, ctx: MaturityCtx): string[] {
 
 export const inFlightIds = (s: MaturityState): string[] => Object.keys(s.flow);
 
+/** A sent gap as its notices and credit rows name it: the MR GitLab named, else "gap g2" (never an MR number the screen made up). */
+export const sentName = (s: MaturityState, id: string): string => s.mrs[id] ?? `gap ${id}`;
+
 /** Raise a one-line notice (toast and status bar). */
 export const say = (s: MaturityState, text: string): MaturityState => ({ ...s, notice: { seq: (s.notice?.seq ?? 0) + 1, text } });
 export const openGap = (s: MaturityState): MaturityState => ({ ...s, open: { ...s.open, gap: true } });
