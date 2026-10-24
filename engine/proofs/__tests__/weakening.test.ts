@@ -90,4 +90,13 @@ rename to ${to}
   it('accepts moving a test between hunks of the same count', () => {
     expect(kinds(edit(T, ['-    @Test', '-    fun b() {}', '+    @Test', '+    fun b() { check() }']))).toEqual([]);
   });
+
+  it('reads a 20k-assertion hunk in linear time: the agent writes the diff, so its size is hostile input', () => {
+    const n = 20_000;
+    const body = [...Array.from({ length: n }, (_, i) => `-  expect(f(${i})).toBe(${i});`), ...Array.from({ length: n }, (_, i) => `+  expect(f(${n - 1 - i})).toBe(${n - 1 - i});`)];
+    const files = parseDiff(edit('web/a.test.ts', body));
+    const t = performance.now();
+    expect(findWeakening(files)).toEqual([]); // every assertion moved, none removed
+    expect(performance.now() - t).toBeLessThan(500);
+  });
 });

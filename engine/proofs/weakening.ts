@@ -79,15 +79,24 @@ export function findWeakening(files: readonly DiffFile[]): Weakening[] {
         if (SKIP.test(l)) out.push({ file: f.path, kind: 'skip-added', detail: `added "${l}"` });
         else if (strengthOf(l) === 0) out.push({ file: f.path, kind: 'trivial-assertion', detail: `added "${l}" which cannot fail` });
       }
-      const addLeft = [...add];
+      // added lines counted once each, so a removed assertion finds its moved copy in O(1), not by scanning every added line
+      const left = new Map<string, number>();
+      for (const l of add) left.set(l, (left.get(l) ?? 0) + 1);
+      const moved = new Map<string, number>();
       const lost: string[] = [];
       for (const l of del) {
         if (strengthOf(l) === null) continue;
-        const same = addLeft.indexOf(l);
-        if (same !== -1) addLeft.splice(same, 1); // moved or reordered, not removed
-        else lost.push(l);
+        const n = left.get(l) ?? 0;
+        if (n > 0) {
+          left.set(l, n - 1); // moved or reordered, not removed
+          moved.set(l, (moved.get(l) ?? 0) + 1);
+        } else lost.push(l);
       }
-      const replacements = addLeft.filter((l) => strengthOf(l) !== null);
+      const replacements = add.filter((l) => {
+        const m = moved.get(l) ?? 0;
+        if (m > 0) moved.set(l, m - 1); // the first copies of a moved line are the ones it moved to
+        return m === 0 && strengthOf(l) !== null;
+      });
       lost.forEach((l, i) => {
         const r = replacements[i];
         if (r === undefined) out.push({ file: f.path, kind: 'removed-assertion', detail: `removed "${l}"` });
