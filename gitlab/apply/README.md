@@ -36,6 +36,10 @@ are not part of the project.
 | 8 | Fails closed: a failed read stops that MR's writes and prints GitLab's message (the job ends red). No `BELAY_BOT_TOKEN` or no `BELAY_LEDGER_TOKEN`: report-only | tests "a failed read", "without BELAY_BOT_TOKEN", "without BELAY_LEDGER_TOKEN" |
 | 9 | Reuses the existing write scripts, so every note is byte-identical | `post-proof.mjs`, `apply-gate.mjs`, `ledger-append.mjs`, `dispatch.mjs`, `tripwire.mjs` |
 
+The sweep's tests, by numeral, are split four ways so they run side by side (`test/rig.mjs` holds the shared fixture):
+`test/sweep-apply.test.mjs` (i)-(vi); `test/sweep-heads.test.mjs` (vii)-(x), (xii)-(xiv), (xviii), (xxii) and the
+fail-closed cases; `test/sweep-withdraw.test.mjs` (xi), (xv), (xix); `test/sweep-ledger.test.mjs` (xvi), (xvii), (xx), (xxi).
+
 ## One sweep, per agent MR
 
 1. `mr-context.mjs` with the target's id: not an agent MR with a `Belay-Task` trailer, skip.
@@ -193,14 +197,14 @@ next sweep reads it as a trusted note for the current head and applies it. With 
 Either way `apply-gate.mjs` sets `guardrail::block`, writes the BLOCK note, and grants nothing. Needs: `BELAY_BOT_TOKEN`
 and `BELAY_DISPATCH_TOKEN` on belay-apply, the guardrail's consumer id in `apply.json`, and the guardrail account in
 `guardrail_authors`. If the MR changes CI configuration, it is a BLOCK all the same, and the note also says why nothing
-else was granted. Test: `sweep.test.mjs` (ii).
+else was granted. Test: `test/sweep-apply.test.mjs` (ii).
 
 **16 Oct: the hands-off merge of D-101.** D-101's agent and class stand at `hands_off` in `tier-state.yml` (a person's
 promotion MR). The MR changes no CI configuration. Its `belay-replay` job ran in a pipeline of the current head. Then the
 sweep derives an `exploit-test` pass from those artifacts, the guardrail passes for that head, the change is inside the
 hands-off envelope, and `engine gate` says `merge`. `apply-gate.mjs` runs `glab mr merge --auto-merge --sha <head>`, so a
 push after the sweep read the head is never merged. The ledger records the proof, guardrail and tier events. Test:
-`sweep.test.mjs` (i) takes the same path at `supervised`, ending in an approve.
+`test/sweep-apply.test.mjs` (i) takes the same path at `supervised`, ending in an approve.
 
 ## Verify (`[R?]`)
 
