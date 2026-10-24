@@ -5,6 +5,7 @@
 // probe - glab cannot start, GitLab cannot be reached, no login, an unreadable group - the report names it (`blocker`,
 // doctor/blocker.ts). For glab, network or login every row is "blocked by" it, with no endpoint GET spent; for an unreadable
 // group the rows still run, and its group routes say they cannot be judged.
+import { messageOf } from '@/lib/format/error';
 import { findBlocker, type Blocker } from './doctor/blocker';
 import { GitLabError } from './errors';
 import type { GitLabPort } from './port';
@@ -83,7 +84,7 @@ type Outcome<T> = { value: T; error: null } | { value: null; error: unknown };
 /** One preflight read; a failed context read (not the user read) also lands in `errors`, kind and message, so the doctor can say why. */
 const attempt = async <T>(read: ReadError['read'] | null, errors: ReadError[], f: () => Promise<T>): Promise<Outcome<T>> => {
   try { return { value: await f(), error: null }; } catch (e) {
-    if (read) errors.push(e instanceof GitLabError ? { read, kind: e.kind, message: e.message } : { read, kind: 'unexpected', message: e instanceof Error ? e.message : String(e) });
+    if (read) errors.push(e instanceof GitLabError ? { read, kind: e.kind, message: e.message } : { read, kind: 'unexpected', message: messageOf(e) });
     return { value: null, error: e };
   }
 };

@@ -1,5 +1,6 @@
 // `belay doctor`: local preflight, then real capability probes against BELAY_GROUP_ID.
 // Run by cli/belay.mjs through tsx. Read-only: it only ever sends GETs. Exit 0, 2 or 3: doctor/render.ts.
+import { messageOf } from '@/lib/format/error';
 import { defaultExec, type ExecFn } from './adapter/exec';
 import { createGlabAdapter } from './adapter/glabAdapter';
 import { probeCapabilities } from './capabilities';
@@ -13,7 +14,7 @@ async function local(exec: ExecFn, bin: string, args: string[]): Promise<{ ok: b
     const text = lines.find((l) => /^Logged in/.test(l)) ?? lines[0] ?? '';
     return { ok: r.code === 0, out: text };
   } catch (e) {
-    return { ok: false, out: e instanceof Error ? e.message : String(e) };
+    return { ok: false, out: messageOf(e) };
   }
 }
 
