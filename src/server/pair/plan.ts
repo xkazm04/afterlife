@@ -1,7 +1,7 @@
 // `belay pair`: what the bootstrap adds to a checkout. Pure: the caller reads the files and writes the plan. Every
 // action only adds: a new file, appended lines, one inserted include line. A file Belay would have to change is kept
 // as it is, and the operator is told what to add.
-import { BELAY_CI, belayCi, wireCi, type PackRef } from './ciFile';
+import { BELAY_CI, belayCi, eolOf, wireCi, type PackRef } from './ciFile';
 
 export const AGENT_CONFIG = '.gitlab/duo/agent-config.yml';
 const IGNORE = ['.belay-engine/', '.belay-policy/', '.belay/', 'evidence/'];
@@ -52,7 +52,8 @@ export function planPair(read: (path: string) => string | null, ref: PackRef, ag
   if (missing.length === 0) actions.push({ path: '.gitignore', op: 'keep', added: [], why: 'already ignores the Belay work folders' });
   else {
     const base = ignore ?? '';
-    const text = `${base}${base === '' || base.endsWith('\n') ? '' : '\n'}${base === '' ? '' : '\n'}# Belay work folders (never committed)\n${missing.join('\n')}\n`;
+    const eol = eolOf(base);
+    const text = `${base}${base === '' || base.endsWith('\n') ? '' : eol}${base === '' ? '' : eol}# Belay work folders (never committed)${eol}${missing.join(eol)}${eol}`;
     actions.push({ path: '.gitignore', op: ignore === null ? 'create' : 'append', text, added: missing, why: 'Belay work folders stay out of git' });
   }
 

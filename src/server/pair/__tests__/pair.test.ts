@@ -101,6 +101,18 @@ describe('wiring .gitlab-ci.yml', () => {
     expect(rootNamespace('git@gitlab.example.com:acme-lab/x.git')).toBe('acme-lab');
     expect(rootNamespace('nonsense')).toBeNull();
   });
+  it('a CRLF file gets CRLF lines: every line the plan adds ends as the lines around it do', () => {
+    const sets: Record<string, string>[] = [
+      { '.gitlab-ci.yml': 'include: # ours\r\n  - template: A.yml\r\n\r\nb:\r\n  script: [y]\r\n', '.gitignore': 'node_modules/\r\n' },
+      { '.gitlab-ci.yml': 'b:\r\n  script: [y]\r\n', '.gitignore': '.env\r\n' },
+    ];
+    for (const files of sets) {
+      const p = planPair((f) => files[f] ?? null, REF, 'image: x\n');
+      const edited = p.actions.filter((x) => x.text !== undefined && files[x.path] !== undefined);
+      expect(edited.map((a) => a.path)).toEqual(['.gitlab-ci.yml', '.gitignore']);
+      for (const a of edited) expect(a.text!.split('\r\n').filter((l) => l.includes('\n')), a.path).toEqual([]);
+    }
+  });
   it('the plan only ever adds lines to files that exist', () => {
     const files: Record<string, string> = { '.gitlab-ci.yml': 'include:\n  - template: A.yml\nb:\n  script: [y]\n', '.gitignore': '.env\n' };
     const p = planPair((f) => files[f] ?? null, REF, 'image: x\n');

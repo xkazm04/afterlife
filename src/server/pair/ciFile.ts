@@ -47,6 +47,9 @@ const parse = (text: string): Doc | null => {
 const includes = (d: Doc): unknown[] => (Array.isArray(d.include) ? d.include : d.include === undefined ? [] : [d.include]);
 const wired = (d: Doc): boolean => includes(d).some((i) => i === BELAY_CI || (typeof i === 'object' && i !== null && (i as Doc).local === BELAY_CI));
 
+/** The file's own line ending, so an added line matches the lines around it. */
+export const eolOf = (text: string): '\r\n' | '\n' => (text.includes('\r\n') ? '\r\n' : '\n');
+
 export type CiEdit = { op: 'create' | 'insert' | 'append'; text: string } | { op: 'keep' } | { op: 'refuse'; why: string };
 
 /**
@@ -59,16 +62,17 @@ export function wireCi(current: string | null): CiEdit {
   const before = parse(current);
   if (!before) return { op: 'refuse', why: '.gitlab-ci.yml does not parse as YAML' };
   if (wired(before)) return { op: 'keep' };
+  const eol = eolOf(current);
   let edit: CiEdit;
   if (before.include === undefined) {
-    edit = { op: 'append', text: `${current}${current.endsWith('\n') || current === '' ? '' : '\n'}\ninclude:\n  - ${INCLUDE_LINE}\n` };
+    edit = { op: 'append', text: `${current}${current.endsWith('\n') || current === '' ? '' : eol}${eol}include:${eol}  - ${INCLUDE_LINE}${eol}` };
   } else {
     const lines = current.split('\n');
-    const at = lines.findIndex((l) => /^include:\s*(#.*)?$/.test(l));
+    const at = lines.findIndex((l) => /^include:\s*(#[^\r]*)?\r?$/.test(l));
     const item = at >= 0 ? lines.slice(at + 1).find((l) => l.trim() !== '' && !l.trim().startsWith('#')) : undefined;
     const indent = item?.match(/^(\s*)- /)?.[1];
     if (at < 0 || indent === undefined) return { op: 'refuse', why: `include: is not a block list; add "- ${INCLUDE_LINE}" to it yourself` };
-    edit = { op: 'insert', text: [...lines.slice(0, at + 1), `${indent}- ${INCLUDE_LINE}`, ...lines.slice(at + 1)].join('\n') };
+    edit = { op: 'insert', text: [...lines.slice(0, at + 1), `${indent}- ${INCLUDE_LINE}${eol === '\r\n' ? '\r' : ''}`, ...lines.slice(at + 1)].join('\n') };
   }
   const after = parse(edit.text);
   const same = (a: Doc, b: Doc) => JSON.stringify({ ...a, include: null }) === JSON.stringify({ ...b, include: null });
