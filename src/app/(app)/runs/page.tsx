@@ -5,11 +5,6 @@ import { readDesk } from '@/server/runs/readDesk';
 import { readRuns } from '@/server/runs/readRuns';
 import { connection } from 'next/server';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = { title: 'Belay Runs' };
 
 // Runs: read on every request, because the runner appends to these files while the page is open.

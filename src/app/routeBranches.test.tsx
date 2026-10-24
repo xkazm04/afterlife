@@ -74,7 +74,8 @@ describe('dynamic route pages', () => {
   });
 
   it('fleet ?project= redirects only to a project that exists', async () => {
-    const page = (await import('./(app)/fleet/page')).default;
+    // the page is a <Suspense> around FleetList, its request-time half: the branch is FleetList's
+    const page = (await import('./(app)/fleet/FleetList')).FleetList;
     nav.redirect.mockImplementation(() => {
       throw new Error('NEXT_REDIRECT');
     });

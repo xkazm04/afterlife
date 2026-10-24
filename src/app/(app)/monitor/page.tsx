@@ -5,11 +5,6 @@ import { MonitorScreen } from '@/app/features/monitor/MonitorScreen';
 import { readDesk } from '@/server/runs/readDesk';
 import { connection } from 'next/server';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = { title: 'Belay Monitor' };
 
 // The fleet from the data source, and beside it (its own prop, never in FleetProject) the agents' spend read off the

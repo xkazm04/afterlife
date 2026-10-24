@@ -1,0 +1,90 @@
+/* A screen's shape in hairlines with one slow phosphor pass (the pass ShellLoading draws), so the pane reads as alive. */
+.pane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(12px * var(--ui-scale));
+  padding: calc(18px * var(--ui-scale));
+  overflow: hidden;
+}
+.strip,
+.head,
+.row,
+.bar,
+.card,
+.grid,
+.band,
+.lane,
+.title {
+  display: block;
+  flex: none;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface-1) 0%, color-mix(in oklab, var(--accent) 10%, transparent) 50%, var(--surface-1) 100%) 0 0 / 300% 100%;
+  animation: skeleton-pass 1.6s linear infinite;
+}
+.strip {
+  width: 46%;
+  height: calc(22px * var(--ui-scale));
+}
+.head {
+  height: calc(12px * var(--ui-scale));
+  background: var(--surface-2);
+  animation: none;
+}
+.row,
+.bar {
+  height: calc(10px * var(--ui-scale));
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(140px * var(--ui-scale)), 1fr));
+  gap: calc(12px * var(--ui-scale));
+}
+.card {
+  height: calc(74px * var(--ui-scale));
+  border: 1px solid var(--border-1);
+}
+.grid {
+  height: calc(220px * var(--ui-scale));
+  border: 1px solid var(--border-1);
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ui-scale));
+  padding: calc(14px * var(--ui-scale));
+  border: 1px solid var(--border-1);
+  border-radius: 8px;
+}
+.band {
+  height: calc(96px * var(--ui-scale));
+  border: 1px solid var(--border-1);
+}
+.lane {
+  height: calc(34px * var(--ui-scale));
+}
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: calc(12px * var(--ui-scale));
+  width: min(100%, calc(760px * var(--ui-scale)));
+  margin: 0 auto;
+}
+.title {
+  width: 34%;
+  height: calc(20px * var(--ui-scale));
+}
+@keyframes skeleton-pass {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pane * {
+    animation: none;
+  }
+}

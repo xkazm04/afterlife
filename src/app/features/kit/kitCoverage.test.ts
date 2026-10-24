@@ -21,6 +21,7 @@ const EXEMPT: Record<string, string> = {
   ShellProvider: 'a context provider: it draws nothing',
   AdoptedShell: 'holds the root layout shell state for app/Providers: it draws nothing of its own',
   ShellAdopt: 'hands the request-time shell read to AdoptedShell: it draws nothing',
+  ScreenSkeleton: 'a Window with a skeleton pane, drawn by every route loading.tsx while its data streams',
 };
 
 const exported = walk(COMPONENTS)
