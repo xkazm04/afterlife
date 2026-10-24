@@ -65,6 +65,12 @@ describe('cited-diff: every finding quotes a hunk that exists', () => {
     expect(run({ ...fixture('cited', 'input.grounded.json'), claims: [] }).verdict).toBe('pass');
   });
 
+  it('finds a quoted file that sits in a top-level folder named a or b, as well as one quoted with the a/ b/ prefix', () => {
+    const d = 'diff --git a/b/api.kt b/b/api.kt\n--- a/b/api.kt\n+++ b/b/api.kt\n@@ -1 +1 @@\n-old line here\n+val token = readSecret()\n';
+    const q = (file: string) => checkOf(run({ ...fixture('cited', 'input.grounded.json'), diff: d, claims: [{ id: 'q', text: 't', quote: { file, text: 'val token = readSecret()' } }] }), 'quote-in-diff').ok;
+    for (const file of ['b/api.kt', 'b/b/api.kt', './b/api.kt']) expect(q(file), file).toBe(true);
+  });
+
   it('refuses claims that are not a list, instead of reading them as no findings and passing', () => {
     const one = { id: 'q', text: 't', quote: { file: 'x.kt', text: 'not in the diff at all' } };
     for (const claims of [one, 'f1', 1]) expect(() => run({ ...fixture('cited', 'input.grounded.json'), claims }), JSON.stringify(claims)).toThrow(/claims must be a list/);

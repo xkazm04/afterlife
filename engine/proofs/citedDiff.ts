@@ -9,9 +9,10 @@ export const MIN_QUOTE_CHARS = 6;
 
 export const squashWs = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
+/** The quoted path as written, or without git's a/ b/ prefix: `b/api.kt` may be the file api.kt or a file in folder b. */
 function sameFile(f: DiffFile, quoted: string): boolean {
-  const q = quoted.replace(/^\.\//, '').replace(/^[ab]\//, '');
-  return f.path === q || f.oldPath === q || f.newPath === q;
+  const q = quoted.replace(/^\.\//, '');
+  return [q, q.replace(/^[ab]\//, '')].some((p) => f.path === p || f.oldPath === p || f.newPath === p);
 }
 
 /** Each stretch of consecutive lines of one kind, joined: a quote may span lines that sit next to each other, never ones with other lines between. */
