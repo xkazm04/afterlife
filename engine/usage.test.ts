@@ -4,6 +4,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { capture } from './__tests__/helpers';
+import { main } from './cli';
 
 const dir = import.meta.dirname;
 const strip = (src: string): string => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1');
@@ -58,6 +60,14 @@ describe('the documented commands and options are the parsed ones', () => {
   it('every COMMANDS entry has a line in USAGE and a row in the README table', () => {
     expect(commands.filter((c) => !usage.some((l) => isUsage(l, c))), 'missing from USAGE in engine/cli.ts').toEqual([]);
     expect(commands.filter((c) => !readme.some((l) => isRow(l, c))), 'missing from engine/README.md').toEqual([]);
+  });
+
+  it("ledger's own usage error names each ledger form exactly as USAGE writes it", () => {
+    const c = capture();
+    expect(main(['ledger', 'prepend'], c.io)).toBe(2);
+    const forms = usage.filter((l) => isUsage(l, 'ledger')).map((l) => l.trim());
+    expect(forms.length).toBeGreaterThan(1);
+    for (const f of forms) expect((c.json() as { error: string }).error, f).toContain(f);
   });
 
   for (const e of entries) {

@@ -48,7 +48,7 @@ function appendLine(file: string, data: string): void {
 export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   if (argv[0] === 'trial') return trialCommand(argv.slice(1), ctx);
   const args = parseArgs(argv, { values: ['event', 'chain'], switches: ['write'], positional: 1 });
-  if (args.positional[0] !== 'append') throw new EngineError(`usage: ledger append --event <file> --chain <events.jsonl> [--write] | ${TRIAL_USAGE}`);
+  if (args.positional[0] !== 'append') throw new EngineError(`usage: ledger append --event <event.json> --chain <events.jsonl> [--write] | ${TRIAL_USAGE}`);
   const chainFile = path.resolve(ctx.cwd, args.need('chain'));
   const text = fs.existsSync(chainFile) ? readText(ctx, chainFile) : ''; // no chain yet is genesis; a directory is an error
   const chain = readChain(text);
