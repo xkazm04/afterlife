@@ -17,24 +17,28 @@ export type AccountFind = { ok: true; account: string; from: string } | { ok: fa
 const HOUR = 3_600_000;
 const uniq = (xs: readonly string[]): string[] => [...new Set(xs)].sort();
 
-/** The accounts the poller has seen acting for the role in the project, within its task window. */
+/**
+ * The accounts the poller has seen acting for the role in the project, within its task window. The guardrail's are read
+ * from notes, one listNotes per MR, so that read stops at the second account: two is already a refusal (`one`).
+ */
 async function seenActing(ctx: PlanContext, project: GlProject, role: string, classes: readonly string[]): Promise<string[]> {
   const after = new Date(ctx.now.getTime() - ctx.cfg.taskWindowMs).toISOString();
   const mrs = await ctx.port.listMergeRequests(project.id, { state: 'all', updatedAfter: after, limit: ctx.cfg.mrLimit });
-  const out: string[] = [];
+  const out = new Set<string>();
   for (const mr of mrs) {
     if (role !== 'guardrail') {
       const cls = parseTrailers(mr.description).class;
-      if (cls && classes.includes(cls) && allows(ctx.cfg.agents, mr.author)) out.push(mr.author);
+      if (cls && classes.includes(cls) && allows(ctx.cfg.agents, mr.author)) out.add(mr.author);
       continue;
     }
+    if (out.size > 1) break;
     if (!mr.labels.some((l) => l.startsWith('guardrail::'))) continue;
     for (const n of await ctx.port.listNotes(project.id, mr.iid)) {
       if (n.system || !allows(ctx.cfg.guardrail, n.author)) continue;
-      if (extractBlocks(n.body, 'belay-guardrail').some((b) => parseGuardrailBlock(b) !== null)) out.push(n.author);
+      if (extractBlocks(n.body, 'belay-guardrail').some((b) => parseGuardrailBlock(b) !== null)) out.add(n.author);
     }
   }
-  return uniq(out);
+  return uniq([...out]);
 }
 
 function one(found: readonly string[], from: string, role: string): AccountFind | null {
