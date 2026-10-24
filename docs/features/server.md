@@ -50,8 +50,10 @@
   `now` argument; `seed/` loads the demo anchored at `SEED_NOW`.
 - **Poller** (`poller/cycle.ts`, `project.ts`): group and projects; skip `belay-policy`, `belay-ledger`, `belay-pack`,
   `belay-engine`; read `trust-policy.yml` and `tier-state.yml` with the engine's own parsers; per project, read MRs (7
-  days for proof roll-ups, 24 h for tasks), notes, deployments and the ledger, then write in one transaction; record
-  `poll_state`. `startScheduler` repeats it every `BELAY_POLL_SECONDS` (default 30, minimum 5), never overlapping.
+  days for proof roll-ups, 24 h for tasks), notes, deployments, each agent MR's size and head pipeline, the CI file's
+  arm markers and the ledger, then write in one transaction; then the newest maturity scan artifact and its gap
+  proposals; record `poll_state`. tier-state.yml's commit list is read once per cycle for the enforcement receipts. The
+  full cycle, and where each counter comes from, is `src/server/poller/README.md`. `startScheduler` repeats it every `BELAY_POLL_SECONDS` (default 30, minimum 5), never overlapping.
 - **Ledger import** (`ledger/importLedger.ts`): list `events/`, skip if the blob id is unchanged, parse each line,
   verify the whole file from genesis, then append from the stored tail in one transaction.
 - **Cycle import** (`ledger/importCycles.ts`): `cycles/<project-id>.jsonl`, one hash-chained line per closed
@@ -86,7 +88,7 @@
 | `src/server/data/` | `DataSource` types, `select.ts`, `demoSource.ts`, `config.ts`, `boot.ts`, `live/` (runtime, snapshot, narrow, clock, ports, liveSource) |
 | `src/server/gitlab/` | `port.ts`, `types.ts`, `plan/`, `adapter/`, `fake/`, `capabilities.ts`, `doctorCli.ts`, `config.ts`, `errors.ts` |
 | `src/server/index/` | `db.ts`, `migrations/`, `repositories/`, `views/`, `seed/` |
-| `src/server/poller/` | `cycle.ts`, `project.ts`, `scheduler.ts`, `config.ts`, `derive/` (policy, tiers, task, readmit, rollup), `parse/` (proof block, guardrail, trailers, labels) |
+| `src/server/poller/` | `cycle.ts`, `project.ts`, `classes.ts`, `maturityScan.ts`, `stateHistory.ts`, `state.ts` (memory between cycles), `scheduler.ts`, `config.ts`, `derive/` (policy, tiers, counters, gate, sources, promotion, readmit, receipt, task, rollup), `parse/` (proof block, guardrail, trailers, labels, pushes, blocks), `ci/` (armed tracks), `mrFacts/` (MR size and pipeline), `gaps/` (maturity gap proposals) |
 | `src/server/ledger/` | `parse.ts`, `importLedger.ts`, `parseCycles.ts`, `importCycles.ts` |
 | `src/server/actions/` | `actions.ts` (`'use server'`), `run.ts`, `intents.ts`, `plans/`, `deps.ts`, `types.ts` |
 | `src/instrumentation.ts` | Starts the live runtime on Node |
@@ -100,7 +102,9 @@
 - `index/__tests__/`: migrations (idempotent, checksum, unknown version), repositories, poll state, ledger chain and
   fork rejection, seeded views matching the demo, opening a fresh data folder.
 - `poller/__tests__/`: one cycle, task and proof derivation with author rules and stale heads, block parsing,
-  scheduler non-overlap.
+  scheduler non-overlap, live config refusals, demotions, receipts and tier-state history, bounded memory, the
+  maturity scan. `poller/derive/__tests__/`: record counters, no-edit, gated, trial, sources, promotion asks.
+  `poller/ci/`, `poller/mrFacts/`, `poller/gaps/`: armed tracks, MR facts, gap proposals.
 - `ledger/__tests__/ledger.test.ts`: full and incremental import, blob-id skip, edited event, fork, rewind, foreign
   project, parser.
 - `actions/__tests__/`: preview writes nothing, confirm records before and after and polls, stale or made-up preview
