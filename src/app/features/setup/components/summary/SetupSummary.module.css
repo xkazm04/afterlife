@@ -1,6 +1,6 @@
 .strip {
   padding: calc(10px * var(--ui-scale)) calc(14px * var(--ui-scale)) calc(8px * var(--ui-scale));
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--sep);
 }
 .top {
   display: flex;
@@ -17,7 +17,7 @@
 }
 .err {
   font-size: var(--t-head);
-  color: var(--bad);
+  color: var(--fail);
 }
 .gates {
   display: grid;

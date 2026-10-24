@@ -34,10 +34,11 @@ describe('tokens.css', () => {
     expect(unused).toEqual([]);
   });
 
-  it('resolves every var() the shell and the base styles use without a fallback', () => {
-    const known = new Set(css.flatMap((f) => defined(f.text)));
-    const own = css.filter((f) => f.path.startsWith('components/shell/') || f.path.startsWith('styles/'));
-    const missing = own.flatMap((f) =>
+  it('resolves every var() a stylesheet under src uses without a fallback', () => {
+    // Defined in a stylesheet, or set by a component's inline style (`style={{ '--cols': ... }}`).
+    const inline = files.filter((f) => !f.path.endsWith('.css')).flatMap((f) => [...f.text.matchAll(/['"`](--[\w-]+)['"`]\s*\]?\s*:/g)].map((m) => m[1] as string));
+    const known = new Set([...css.flatMap((f) => defined(f.text)), ...inline]);
+    const missing = css.flatMap((f) =>
       [...f.text.matchAll(/var\((--[\w-]+)\s*\)/g)].map((m) => m[1] as string).filter((n) => !known.has(n)).map((n) => `${f.path}: ${n}`),
     );
     expect(missing).toEqual([]);
