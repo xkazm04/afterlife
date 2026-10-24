@@ -64,5 +64,11 @@ export function useParts(layer: RefObject<HTMLElement | null>, callouts: readonl
       window.removeEventListener('resize', measure);
     };
   }, [layer, callouts, active, on]);
-  return on ? layout : EMPTY;
+  return shownLayout(layout, on, callouts.length);
 }
+
+/**
+ * The layout to draw: the last measured one only while on and on a labelled screen. The effect stops measuring on a
+ * screen with no callouts, so its kept state is the previous screen's parts and must not be drawn there.
+ */
+export const shownLayout = (layout: Layout, on: boolean, callouts: number): Layout => (on && callouts > 0 ? layout : EMPTY);

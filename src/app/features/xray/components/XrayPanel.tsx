@@ -6,7 +6,7 @@ import { Fragment, startTransition, useEffect, useRef, type KeyboardEvent } from
 import { Button } from '@/components/controls/Button';
 import { useShellInfo } from '@/components/shell/ShellContext';
 import { dataLabel } from '@/components/shell/bars/dataLabel';
-import { TOUR, nextStop } from '../callouts/tour';
+import { TOUR, nextStop, tourNote } from '../callouts/tour';
 import { xrayStore } from '../model/store';
 import type { CalloutKind, TourStop } from '../model/types';
 import type { Part } from './useParts';
@@ -74,7 +74,7 @@ export function XrayPanel({ stop, parts, active, path }: { stop: TourStop | null
           ))}
         </ol>
       ) : (
-        <p className={styles.note}>The X-ray labels five screens: Fleet, Needs you, Monitor, Ladder and Setup.</p>
+        <p className={styles.note}>{tourNote()}</p>
       )}
       <div className={styles.actions}>
         {stop ? (

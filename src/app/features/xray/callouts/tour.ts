@@ -37,6 +37,13 @@ export const TOUR: readonly TourStop[] = APP_NAV.filter((e) => CALLOUTS[e.key]).
   callouts: CALLOUTS[e.key]!,
 }));
 
+/** What the panel says on a screen off the tour: the screens it does label, from TOUR, so the count is never stale. */
+export const tourNote = (stops: readonly TourStop[] = TOUR): string => {
+  const names = stops.map((s) => s.label);
+  const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : (names[0] ?? 'no screen');
+  return `The X-ray labels ${names.length === 1 ? 'one screen' : `${names.length} screens`}: ${list}.`;
+};
+
 /** The tour stop a nav key is, or null for a screen the X-ray does not label. */
 export const stopOf = (key: string | null): TourStop | null => TOUR.find((s) => s.key === key) ?? null;
 
