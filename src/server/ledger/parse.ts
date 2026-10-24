@@ -15,11 +15,15 @@ export class LedgerParseError extends Error {
 type Rec = Record<string, unknown>;
 const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v);
 
-/** Every key a line may carry. The hash covers the line as written, so a key dropped here would read as a tampered chain. */
-const KNOWN_KEYS: ReadonlySet<string> = new Set([
-  'seq', 'at', 'agent', 'action_class', 'kind', 'tier_at_time', 'subject', 'payload_ref', 'observed_by', 'prev_hash', 'hash',
-  'verdict', 'environment', 'state_rev', 'withdrew', 'would',
-]);
+/**
+ * Every key a line may carry: LedgerEvent's own, so a key added to the type and not here (or here and not on the type) is
+ * a typecheck error, not every new line refused as "newer than this reader". The hash covers the line as written.
+ */
+const KEYS: { readonly [K in keyof LedgerEvent]-?: true } = {
+  seq: true, at: true, agent: true, action_class: true, kind: true, tier_at_time: true, subject: true, payload_ref: true,
+  observed_by: true, prev_hash: true, hash: true, verdict: true, environment: true, state_rev: true, withdrew: true, would: true,
+};
+const KNOWN_KEYS: ReadonlySet<string> = new Set(Object.keys(KEYS));
 
 /** The rule the engine's `ledger append` writes by (isoMs): Date.parse alone takes '10' and reads a zone-less time in this machine's zone. */
 function isIsoInstant(v: unknown): boolean {
