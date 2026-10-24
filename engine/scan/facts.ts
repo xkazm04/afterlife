@@ -1,6 +1,6 @@
-// What the maturity scan scores from. Every fact is read or unreadable, never guessed: an unreadable fact keeps a stage
-// unknown (null), it never makes it absent. A checkout scan reads files only, so pipeline, protection and approvals are
-// always unread here; the facts collect-facts.mjs gathers from GitLab are scored by `scan --facts` (commands/facts.ts).
+// What the checkout scan scores from. Every fact is read or unreadable, never guessed: an unreadable fact keeps a stage
+// unknown (null), it never makes it absent. A checkout holds files only: pipelines, protections and approvals live in
+// GitLab, and the facts collect-facts.mjs gathers there are scored by `scan --facts` (commands/facts.ts).
 
 export type Fact<T> = { ok: true; value: T } | { ok: false; why: string };
 
@@ -29,18 +29,12 @@ export interface CiConfig {
 }
 
 export interface ScanFacts {
-  source: 'checkout' | 'gitlab';
+  source: 'checkout';
   project: string | null;
-  /** Repository files the rules look at, by path. A GitLab scan knows that a file exists, not always its content (null). */
+  /** Repository files the rules look at, by path; content only for the alerting files (else null). */
   files: Fact<Record<string, string | null>>;
   /** Why some of the files were not seen (a walk cut off, a folder that could not be read); null: every file was. A stage
    * that finds none of its files is then unknown, not absent: the file may be in the part not read. */
   filesGap: string | null;
   ci: Fact<CiConfig>;
-  /** The latest successful default-branch pipeline. */
-  pipeline: Fact<{ id: number | null; jobs: { name: string; status: string }[] }>;
-  /** Protected branch names; and whether the default branch is one of them. */
-  protection: Fact<{ defaultProtected: boolean }>;
-  /** Approval rules that require at least one approval. */
-  approvals: Fact<number>;
 }

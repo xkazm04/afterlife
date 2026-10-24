@@ -54,7 +54,7 @@ describe('gapBlocker', () => {
 describe('the template catalogue', () => {
   it('has one entry per GAP_TEMPLATES id, each saying the scan\'s next change for its stage word for word', () => {
     expect(Object.keys(TEMPLATES).sort()).toEqual([...GAP_TEMPLATES].sort());
-    const scan = { source: 'gitlab', cells: STAGES.map((stage) => ({ stage, rung: 0 })) } as unknown as Parameters<typeof propose>[0];
+    const scan = { source: 'gitlab' as const, cells: STAGES.map((stage) => ({ stage, rung: 0 })) };
     const next = new Map(propose(scan).map((p) => [p.stage, p]));
     for (const t of Object.values(TEMPLATES)) expect({ change: t.change, to: t.to }).toEqual({ change: next.get(t.stage)?.change, to: next.get(t.stage)?.to });
   });

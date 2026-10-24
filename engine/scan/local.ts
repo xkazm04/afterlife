@@ -1,5 +1,5 @@
 // Facts from a checkout: files only. Reads the CI config (local includes followed), CODEOWNERS, .gitlab/, IaC and
-// alerting files. What only GitLab knows (pipelines, protections, approvals) is recorded as not read, never as none.
+// alerting files. What only GitLab knows (pipelines, protections, approvals) is not a fact here: the rules say so.
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
@@ -10,7 +10,6 @@ const SKIP = new Set(['.git', 'node_modules', '.belay', '.belay-engine', '.belay
 const WANT = /^(\.gitlab\/.+|(docs\/)?CODEOWNERS|.+\.tf|(.+\/)?prometheus[^/]*\.ya?ml|alerts?\/.+\.ya?ml)$/;
 const CONTENT = /alerting|prometheus|^alerts?\//;
 const MAX_FILES = 20_000;
-const NOT_READ = 'a checkout scan reads files only';
 
 /** How far the walk goes. A checkout past either limit is read in part, and the scan says so. */
 export interface WalkLimits {
@@ -91,8 +90,5 @@ export function checkoutFacts(root: string, limits: WalkLimits = LIMITS): ScanFa
     files: known(w.files),
     filesGap: w.gap,
     ci: ci(root),
-    pipeline: unread(NOT_READ),
-    protection: unread(NOT_READ),
-    approvals: unread(NOT_READ),
   };
 }

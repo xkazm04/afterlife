@@ -5,6 +5,9 @@ import { afterAll, describe, expect, it, vi } from 'vitest';
 import { main } from '../cli';
 import { capture, NOW, ROOT } from '../__tests__/helpers';
 import { readCi } from './ci';
+import { parseMaturityScan } from '../../src/schemas/maturity';
+import { parseFacts } from '../commands/facts';
+import { scoreFacts } from '../commands/scan';
 import { checkoutFacts } from './local';
 import { propose, scan } from './scan';
 
@@ -22,10 +25,11 @@ function checkout(files: Record<string, string>): string {
 const rungs = (dir: string) => Object.fromEntries(scan(checkoutFacts(dir), NOW).cells.map((c) => [c.stage, c.rung]));
 
 describe('belay scan of a checkout (files only)', () => {
-  it('scores the example target project: scanners, tests and the Belay jobs configured; nothing above R1', () => {
+  it('scores the example target project: scanners and the tier gate configured; nothing above R1', () => {
     const s = scan(checkoutFacts(path.join(ROOT, 'gitlab/examples/target-project')), NOW);
     const r = Object.fromEntries(s.cells.map((c) => [c.stage, c.rung]));
-    expect(r).toMatchObject({ secure: 1, verify: 1, govern: 1, package: 0, release: 0, plan: null, create: null, monitor: null });
+    // verify 0: belay-replay runs in the test stage, but the rubric's R1 is a job named for tests (or a junit report)
+    expect(r).toMatchObject({ secure: 1, verify: 0, govern: 1, package: 0, release: 0, plan: null, create: null, monitor: null });
     expect(s.cells.find((c) => c.stage === 'secure')?.evidence).toContain('.gitlab-ci.yml: include Jobs/SAST.gitlab-ci.yml');
     expect(s.cells.find((c) => c.stage === 'secure')?.why).toMatch(/whether it runs needs the default branch's last pipeline/);
     expect(Math.max(...s.cells.map((c) => c.rung ?? 0))).toBe(1);
@@ -115,12 +119,46 @@ describe('a checkout read in part', () => {
   });
 });
 
+describe('one rubric for --dir and --facts', () => {
+  /** The GitLab facts of the same project: the checkout's job names, CODEOWNERS and issue templates; no run, no protection. */
+  const factsOf = (dir: string) => {
+    const f = checkoutFacts(dir);
+    const files = Object.keys(f.files.ok ? f.files.value : {});
+    const jobs = f.ci.ok ? f.ci.value.jobs.map((j) => ({ name: j.name, stage: j.stage ?? 'test', allow_failure: false })) : [];
+    return scoreFacts(parseFacts({
+      schema: 'belay.facts/0', project_id: 1, at: NOW.toISOString(),
+      facts: {
+        project: { web_url: 'https://gitlab.example.com/acme/app', default_branch: 'main', merge_requires_pipeline: true },
+        ci_config: { jobs }, protected_branches: [], duo_agent_config: false, latest_pipeline_jobs: { pipeline: null, jobs: [] },
+        codeowners: files.filter((p) => p.endsWith('CODEOWNERS')), issue_templates: files.filter((p) => p.startsWith('.gitlab/issue_templates/')),
+      },
+    }));
+  };
+  const job = (name: string) => `${name}:\n  script: [echo]\n`;
+
+  it.each([
+    ['every stage present', ['lint', 'docker-build', 'sast', 'release', 'deploy', 'smoke', 'belay-tier-gate', 'notes'], { CODEOWNERS: '* @team\n', '.gitlab/issue_templates/bug.md': 'x\n' }],
+    ['most absent', ['unit-check', 'belay-proof-exploit-test'], {}],
+  ])('rates the same project the same at R1 both ways: %s', (_, jobs, files) => {
+    const dir = checkout({ ...files, '.gitlab-ci.yml': jobs.map(job).join('') });
+    const viaDir = scan(checkoutFacts(dir), NOW).cells;
+    const viaFacts = factsOf(dir).cells;
+    for (const c of viaDir.filter((x) => x.rung !== null)) {
+      const other = viaFacts.find((x) => x.stage === c.stage)?.rung;
+      expect([c.stage, c.rung], c.why).toEqual([c.stage, other === null || other === undefined ? other : Math.min(other, 1)]);
+    }
+    expect(viaDir.filter((x) => x.rung !== null).length).toBeGreaterThan(5);
+  });
+});
+
 describe('the scan command', () => {
   it('prints the cells as JSON with the pinned engine, and exits 0', () => {
     const c = capture();
     expect(main(['scan', '--dir', 'gitlab/examples/target-project', '--propose'], c.io)).toBe(0);
     const out = c.json() as { schema: string; engine: { sha256: string }; cells: unknown[]; proposals: unknown[] };
-    expect([out.schema, out.cells.length, out.engine.sha256.length]).toEqual(['belay.maturity/0', 9, 64]);
+    expect([out.schema, out.cells.length, out.engine.sha256.length]).toEqual(['belay.maturity.checkout/0', 9, 64]);
+    // not belay.maturity/0: a checkout has no project id nor GitLab URLs, and the server's parser refuses it
+    expect(parseMaturityScan(out).ok).toBe(false);
     expect(out.proposals.length).toBeGreaterThan(0);
     expect(c.err()).toMatch(/nothing was written/);
   });

@@ -2,8 +2,9 @@
 // --facts: scores the facts collect-facts.mjs wrote into nine cells (belay.maturity/0), by the rubric table in rubric.ts. No
 // network, no model, no clock: scanned_at is the facts' `at`, and "the last 14 days" are counted back from it. Exit 0 when
 // every cell is determined, 2 when any is unknown (the document is printed either way) or the facts file cannot be read.
-// --dir: the Day-0 read of a local checkout (engine/scan: its files and CI config, nothing read from GitLab); --propose
-// adds the next change per stage. Read-only either way; exit 2 only when every stage is unknown.
+// --dir: the Day-0 read of a local checkout (engine/scan: its files and CI config, nothing read from GitLab) by the same
+// table's R1, printed as belay.maturity.checkout/0; --propose adds the next change per stage. Read-only either way; exit 2
+// only when every stage is unknown.
 import fs from 'node:fs';
 import path from 'node:path';
 import { MATURITY_SCHEMA, type MaturityScan, type ScanCell, type ScanEvidence } from '../../src/schemas/maturity';

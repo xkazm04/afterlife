@@ -1,10 +1,14 @@
-// Scores the nine stages from facts. Model-free: rules over files, CI config and GitLab settings, no network here.
+// Scores the nine stages from a checkout's facts. Model-free: rules over files and CI config, no network here. Its own
+// schema id: a checkout has no project id and no GitLab object to cite, so its cells are not belay.maturity/0's
+// (src/schemas/maturity.ts, what `scan --facts` prints and the server parses), though both rate by the one rubric.
 import { RUNGS, STAGES, type Stage } from '../../src/schemas/stages';
 import type { ScanFacts } from './facts';
 import { scoreStage, type ScanCell } from './rules';
 
-export interface MaturityScan {
-  schema: 'belay.maturity/0';
+export const CHECKOUT_SCHEMA = 'belay.maturity.checkout/0';
+
+export interface CheckoutScan {
+  schema: typeof CHECKOUT_SCHEMA;
   source: ScanFacts['source'];
   project: string | null;
   scanned_at: string;
@@ -13,14 +17,14 @@ export interface MaturityScan {
   counts: { deep: number; touched: number; absent: number; unknown: number };
 }
 
-export function scan(facts: ScanFacts, at: Date): MaturityScan {
+export function scan(facts: ScanFacts, at: Date): CheckoutScan {
   const cells = STAGES.map((s) => {
     const c = scoreStage(s, facts);
     return { ...c, rung_name: c.rung === null ? null : (RUNGS[c.rung] ?? null) };
   });
   const n = (test: (r: number | null) => boolean): number => cells.filter((c) => test(c.rung)).length;
   return {
-    schema: 'belay.maturity/0', source: facts.source, project: facts.project, scanned_at: at.toISOString(), cells,
+    schema: CHECKOUT_SCHEMA, source: facts.source, project: facts.project, scanned_at: at.toISOString(), cells,
     counts: { deep: n((r) => r !== null && r >= 3), touched: n((r) => r === 1 || r === 2), absent: n((r) => r === 0), unknown: n((r) => r === null) },
   };
 }
@@ -45,7 +49,13 @@ export interface Proposal {
   change: string;
 }
 
-export function propose(s: MaturityScan): Proposal[] {
+/** What propose reads: where the rungs came from, and each stage's rung (a checkout scan, or the stored GitLab cells). */
+export interface Rated {
+  source: 'checkout' | 'gitlab';
+  cells: readonly { stage: Stage; rung: number | null }[];
+}
+
+export function propose(s: Rated): Proposal[] {
   return s.cells.flatMap((c): Proposal[] => {
     if (c.rung === null || c.rung === 0) return [{ stage: c.stage, from: c.rung, to: 1, change: NEXT[c.stage][1] }];
     if (c.rung < 3 && s.source === 'checkout') {
@@ -55,7 +65,7 @@ export function propose(s: MaturityScan): Proposal[] {
   });
 }
 
-export function summary(s: MaturityScan): string {
+export function summary(s: CheckoutScan): string {
   const w = Math.max(...s.cells.map((c) => c.stage.length));
   const rows = s.cells.map((c) => `  ${c.stage.padEnd(w)}  ${c.rung === null ? 'R?' : `R${c.rung}`}  ${(c.rung_name ?? 'unknown').padEnd(12)} ${c.why}`);
   const k = s.counts;

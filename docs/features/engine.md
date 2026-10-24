@@ -14,15 +14,18 @@
   adds one hash-chained event line (with `--write` under an exclusive `<chain>.lock`: an append racing another waits
   about a second, then is refused by name rather than forking the chain); `ledger trial` recomputes a holder's next-rung trial from the chain cut at the seq
   a promotion MR states. `pin` prints the engine pin (`{version, sha256, files}`) every Proof Block carries.
-- `scan` rates the nine stages R0–R4, model-free. `--dir <checkout>` reads files only (CI config with local includes
-  followed, CODEOWNERS, `.gitlab/`, IaC and alerting files) and credits at most R1 (configured): pipelines and
-  protections are not in a checkout (`engine/scan/`). `--facts <facts.json>` scores the `belay.facts/0` file the
-  `maturity-scan` component collects by the rubric table (`commands/rubric.ts`, the table in `engine/README.md`): R1
-  present on the default branch, R2 ran there within 14 days with an artifact, R3 failing it blocks a merge, R4 an
-  agent operates it and a Belay proof job re-derives it. A stage whose lifting facts could not be read is unknown
-  (null), never absent, and an empty alerting file is not monitoring; a checkout walk cut off (20,000 entries, 8 levels)
-  or with a folder it could not read leaves a stage that found none of its files unknown with that reason. `--propose` (with `--dir`) adds the smallest
-  next change per stage, as text.
+- `scan` rates the nine stages R0–R4, model-free, by one rubric table (`commands/rubric.ts`, the table in
+  `engine/README.md`): R1 present on the default branch, R2 ran there within 14 days with an artifact, R3 failing it
+  blocks a merge, R4 an agent operates it and a Belay proof job re-derives it. `--facts <facts.json>` scores the
+  `belay.facts/0` file the `maturity-scan` component collects and prints `belay.maturity/0`. `--dir <checkout>`
+  reads files only (CI config with local includes followed, CODEOWNERS, `.gitlab/`, IaC and alerting files), takes
+  the table's R1 and credits at most that: pipelines and protections are not in a checkout (`engine/scan/`). Beyond the
+  table's job names it counts what only a checkout shows (a job's junit or SBOM report, its script, template and
+  component includes, `.tf` and alerting files), and prints `belay.maturity.checkout/0` (paths, not GitLab URLs). A
+  stage whose lifting facts could not be read is unknown (null), never absent, and an empty alerting file is not
+  monitoring; a checkout walk cut off (20,000 entries, 8 levels) or with a folder it could not read leaves a stage
+  that found none of its files unknown with that reason. `--propose` (with `--dir`) adds the smallest next change per
+  stage, as text.
 - `cli/belay.mjs` is the `belay` command-line companion, each part run through tsx:
   - `doctor` runs the real capability probes (`src/server/gitlab/doctorCli.ts`).
   - `run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file]
@@ -136,7 +139,8 @@
   `__tests__/ledgerLock.test.ts` (a racing append is refused, the lock freed), `commands/audit/trial.test.ts`, `commands/scan.test.ts` (`scan --facts` by the rubric).
 - `engine/usage.test.ts`: every command in `cli.ts`'s COMMANDS table, and every option each one parses, is in the
   usage text and the README table (derived from the code, `ledger trial` included).
-- `engine/scan/scan.test.ts`: the example target project scores secure, verify and govern at R1 and nothing above;
+- `engine/scan/scan.test.ts`: the example target project scores secure and govern at R1 and nothing above; the same
+  project rates the same at R1 by `--dir` and by `--facts`;
   local includes, IaC and CODEOWNERS count; an empty alerting file and an unopened include do not; an unparsable CI
   file leaves the CI stages unknown; a cut-off walk or an unreadable folder makes a file stage unknown, not absent or a
   crash; the command's JSON and refusals. `scan --facts` (the rubric over GitLab facts) is

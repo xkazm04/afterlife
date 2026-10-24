@@ -2,7 +2,7 @@
 // names, `gap:<project>:<stage>:<to>`. Pure. As with the promotion asks, an id a person acted on or dismissed (or one
 // that expired) is never opened again, an open one keeps its openedAt, and an open one whose stage reached its rung expires.
 // Only `gap:` ids are this module's: the seed's 'gaps' parent and its picks are left as they are.
-import { propose, type MaturityScan as EngineScan, type Proposal } from '../../../../engine/scan/scan';
+import { propose, type Proposal } from '../../../../engine/scan/scan';
 import type { ScanCell } from '@/schemas/maturity';
 import type { Stage } from '@/schemas/stages';
 import type { ProposalRow } from '@/server/index/repositories/work/proposal';
@@ -17,13 +17,6 @@ export interface GapPlan {
 
 /** The id of one stage's gap to rung `to`. */
 export const gapId = (projectId: string, stage: Stage, to: number): string => `gap:${projectId}:${stage}:${to}`;
-
-/** The stored cells in the engine's shape. propose() reads the source and each cell's stage and rung only. */
-const engineScan = (cells: readonly ScanCell[], now: Date): EngineScan => ({
-  schema: 'belay.maturity/0', source: 'gitlab', project: null, scanned_at: now.toISOString(),
-  cells: cells.map((c) => ({ stage: c.stage, rung: c.rung, evidence: c.evidence.map((e) => e.url), why: c.note, rung_name: null })),
-  counts: { deep: 0, touched: 0, absent: 0, unknown: 0 },
-});
 
 /** The change's first clause, so the title stays one line; the subject keeps it whole. */
 const short = (change: string): string => {
@@ -52,7 +45,7 @@ export function planGaps(projectId: string, cells: readonly ScanCell[], existing
   const byId = new Map(own.map((p) => [p.id, p]));
   const wanted = new Set<string>();
   const upsert: ProposalRow[] = [];
-  for (const g of propose(engineScan(cells, now))) {
+  for (const g of propose({ source: 'gitlab', cells })) {
     const id = gapId(projectId, g.stage, g.to);
     wanted.add(id);
     const have = byId.get(id);
