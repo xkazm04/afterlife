@@ -8,6 +8,7 @@ import { STAGES } from '@/schemas/stages';
 import { TIER_ORDER } from '@/schemas/tier';
 import type { ApplyGapTemplate, GapTemplateId, PromoteClass } from '@/server/actions/types';
 import type { Outcome } from '@/server/actions/words';
+import { POLICY_FILE } from './outbox/policy';
 
 /** The action class an inbox title names after its last " · " ("Promote T7 qa · qa.file-bug"). */
 export const classOfTitle = (title: string): string | null => title.split(' · ').at(-1)?.trim() || null;
@@ -39,6 +40,10 @@ const RUN: Readonly<Partial<Record<NeedsKind, string>>> = { readmit: 'Run · ope
 
 /** The button: "Run · open the promotion MR" / "… the re-admit MR" / "… the gap MR". */
 export const runLabel = (kind: NeedsKind): string => RUN[kind] ?? 'Run · open the promotion MR';
+
+/** A live write's diff file line: the policy file, or the gap MR's project and branch (the template's name until one is planned). */
+export const diffFile = (intent: PromoteClass | ApplyGapTemplate, branch: string | undefined): string =>
+  intent.kind === 'promote-class' ? POLICY_FILE : `${intent.project} · ${branch ?? intent.template}`;
 
 /** The write, as an answer names it: "code-fix.patch → Supervised". */
 export const writeName = (intent: PromoteClass): string => `${intent.class} → ${TIER_META[intent.to].name}`;

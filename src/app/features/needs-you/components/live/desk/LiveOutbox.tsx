@@ -5,8 +5,8 @@ import { BottomDrawer } from '@/components/shell/BottomDrawer';
 import type { NeedsYouItem } from '@/lib/demo';
 import { commandLines, type WriteView } from '@/server/actions/words';
 import type { DeskItem, DeskOut } from '../../../model/desk';
-import type { LiveAnswer } from '../../../model/live';
-import { policyNote } from '../../../model/outbox/policy';
+import { diffFile, type LiveAnswer } from '../../../model/live';
+import { POLICY_FILE, policyNote } from '../../../model/outbox/policy';
 import type { Action, OutItem } from '../../../model/types';
 import { OutboxItem } from '../../outbox/OutboxItem';
 import drawer from '../../outbox/OutboxDrawer.module.css';
@@ -23,7 +23,7 @@ export function outItemOf(n: DeskItem, view: WriteView | undefined, out: DeskOut
     note: r?.text ?? policyNote(view), askable: view?.kind === 'refused' && !out.running, runnable: !out.running && r?.state !== 'running',
   };
   if (view?.kind !== 'preview') return { ...base, commands: [] };
-  return { ...base, commands: commandLines(view.preview), file: gap ? `${n.project} · ${view.preview.branch ?? 'new branch'}` : 'belay-policy · tier-state.yml', diff: parseDiff(view.preview.diff) };
+  return { ...base, commands: commandLines(view.preview), file: n.intent ? diffFile(n.intent, view.preview.branch) : POLICY_FILE, diff: parseDiff(view.preview.diff) };
 }
 
 export interface LiveOutboxProps {

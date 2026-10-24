@@ -7,6 +7,10 @@ import { commandLines, NO_ANSWER, type WriteView } from '@/server/actions/words'
 import type { NeedsYouDemo } from '../../data/types';
 import type { OutItem, PolicyKey } from '../types';
 
+/** The file a policy MR changes, and where its MR opens: what the outbox, the page and the live list name. */
+export const POLICY_FILE = 'belay-policy · tier-state.yml';
+export const POLICY_REF = 'new MR · belay-policy';
+
 export const POLICY_KEYS: readonly PolicyKey[] = ['n1', 'n4'];
 export const isPolicyKey = (key: string): key is PolicyKey => (POLICY_KEYS as readonly string[]).includes(key);
 
@@ -30,7 +34,7 @@ export function policyNote(view: WriteView | undefined): string {
 
 /** The outbox item of a policy-MR decision: the server's commands and diff, or none yet. */
 export function policyItem(key: PolicyKey, demo: Slice, view: WriteView | undefined): OutItem {
-  const base = { key, kind: 'policy MR', title: policyTitle(key, demo), ref: 'new MR · belay-policy', note: policyNote(view) };
+  const base = { key, kind: 'policy MR', title: policyTitle(key, demo), ref: POLICY_REF, note: policyNote(view) };
   if (view?.kind !== 'preview') return { ...base, commands: [] };
-  return { ...base, commands: commandLines(view.preview), file: 'belay-policy · tier-state.yml', diff: parseDiff(view.preview.diff) };
+  return { ...base, commands: commandLines(view.preview), file: POLICY_FILE, diff: parseDiff(view.preview.diff) };
 }

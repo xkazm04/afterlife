@@ -6,16 +6,10 @@ import { parseDiff } from '@/components/inspector/blocks/diff';
 import { commandLines, type WriteView } from '@/server/actions/words';
 import type { DeskIntent } from '../../model/desk';
 import type { LiveEvidence as Evidence } from '../../model/evidence/evidence';
-import { elsewhere, runLabel, type LiveAnswer } from '../../model/live';
+import { diffFile, elsewhere, runLabel, type LiveAnswer } from '../../model/live';
 import { policyNote } from '../../model/outbox/policy';
 import { LiveEvidence } from './LiveEvidence';
 import styles from './live.module.css';
-
-const FILE = 'belay-policy · tier-state.yml';
-
-/** The diff's file line: the policy file, or the gap MR's project and branch (the template's name until one is planned). */
-const fileOf = (intent: DeskIntent, branch: string | undefined): string =>
-  intent.kind === 'promote-class' ? FILE : `${intent.project} · ${branch ?? intent.template}`;
 
 export interface LiveActProps {
   item: NeedsYouItem;
@@ -56,7 +50,7 @@ export function LiveAct({ item, intent, view, answer, evidence, sending, onRun, 
       {view?.kind === 'preview' ? (
         <>
           <CommandBlock commands={commandLines(view.preview)} />
-          <DiffBlock file={fileOf(intent, view.preview.branch)} lines={parseDiff(view.preview.diff)} />
+          <DiffBlock file={diffFile(intent, view.preview.branch)} lines={parseDiff(view.preview.diff)} />
           {done ? null : (
             <div className={styles.row}>
               <Button variant="primary" onClick={onRun} disabled={sending || closed}

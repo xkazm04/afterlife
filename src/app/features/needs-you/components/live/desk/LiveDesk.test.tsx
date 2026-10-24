@@ -122,3 +122,13 @@ describe('an outbox card', () => {
     expect(outItemOf(promote, undefined, OUT_EMPTY).commands).toEqual([]);
   });
 });
+
+describe('a templated gap\'s diff file', () => {
+  it('reads the same in the outbox card as beside Run: the template until the server names a branch', () => {
+    const intent = { kind: 'apply-gap-template', project: 'ledgerline', proposal: gap.id, stage: 'secure', from: null, to: 3, template: 'secure-includes' } as const;
+    const tpl: DeskItem = { ...gap, intent, readOnly: null };
+    const v = { kind: 'preview' as const, preview: { ...preview, kind: 'apply-gap-template' } as unknown as ActionPreview };
+    expect(outItemOf(tpl, v, OUT_EMPTY).file).toBe('ledgerline · secure-includes');
+    expect(inspect(tpl, v)).toContain('ledgerline · secure-includes');
+  });
+});
