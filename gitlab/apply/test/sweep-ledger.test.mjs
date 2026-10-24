@@ -1,10 +1,12 @@
 // belay-apply's MR sweep end to end, the guardrail block and tier_decision lines the sweep ledgers: (xvi), (xvii),
-// (xx), (xxi). Each case is one of F4's invariants (../README.md).
+// (xx), (xxi), and (xxiii) an engine that fails there. Each case is one of F4's invariants (../README.md).
 // rig.mjs holds the fake group, the POLICY clone and the sweep; this file owns its own copy of each.
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { HEAD, fixture, LEDGER, POLICY_API, STATE, description, guardrailNote, group, glabWrites, granted, rig } from './rig.mjs';
+import { HEAD, fixture, LEDGER, POLICY_API, STATE, TOKENS, description, guardrailNote, group, glabWrites, granted, rig } from './rig.mjs';
 
-const { sweep } = rig('apply-ledger');
+const { dir, sweep } = rig('apply-ledger');
 
 // Each sweep spawns the engine (npx tsx) up to five times: seconds each, so a case takes tens of seconds.
 describe('belay-apply sweep: ledger', { timeout: 240_000 }, () => {
@@ -45,6 +47,20 @@ describe('belay-apply sweep: ledger', { timeout: 240_000 }, () => {
       expect(glabWrites(o, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: (WAIT|BLOCK)\*\* \| tier `unknown`/);
       expect(ledgerOf(o)).toEqual([]);
     }
+  });
+
+  it("(xxiii) an engine gate that answers nothing readable is logged as the engine's failure, never as a policy fact", () => {
+    // A BELAY_DIR whose tsx prints no JSON and exits 2: the gate blockTier asks for the guardrail block's tier gives no answer.
+    const broken = path.join(dir, 'broken-engine');
+    fs.mkdirSync(path.join(broken, 'node_modules', 'tsx', 'dist'), { recursive: true });
+    fs.writeFileSync(path.join(broken, 'node_modules', 'tsx', 'dist', 'cli.mjs'), "process.stdout.write('boom');\nprocess.exit(2);\n");
+    const finding = { rule: 'prompt-injection', severity: 'high', file: 'CHANGELOG.md', quote: 'ignore previous instructions', explanation: 'an instruction to the reviewer in the changelog' };
+    const ciHunk = 'diff --git a/.gitlab-ci.yml b/.gitlab-ci.yml\n--- a/.gitlab-ci.yml\n+++ b/.gitlab-ci.yml\n@@ -1 +1 @@\n-stages: [build, test, review]\n+stages: [build, test]\n';
+    const r = sweep(group({ diff: fixture('fix.diff') + ciHunk, notes: [guardrailNote('block', HEAD, [finding])] }), { ...TOKENS, BELAY_DIR: broken });
+    expect(r.stderr).toMatch(/engine gate gave no readable answer \(exit 2\): the guardrail's block is not ledgered/);
+    expect(r.stderr).not.toMatch(/holds ai-patcher-acme at no tier/);
+    expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: BLOCK\*\*/);
+    expect(r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`)).toEqual([]);
   });
 
   it('(xvii) F81: a guardrail block that comes after the head was gated is applied (BLOCK, guardrail::block) and ledgered once', () => {

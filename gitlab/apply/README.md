@@ -38,7 +38,7 @@ are not part of the project.
 
 The sweep's tests, by numeral, are split four ways so they run side by side (`test/rig.mjs` holds the shared fixture):
 `test/sweep-apply.test.mjs` (i)-(vi); `test/sweep-heads.test.mjs` (vii)-(x), (xii)-(xiv), (xviii), (xxii) and the
-fail-closed cases; `test/sweep-withdraw.test.mjs` (xi), (xv), (xix); `test/sweep-ledger.test.mjs` (xvi), (xvii), (xx), (xxi).
+fail-closed cases; `test/sweep-withdraw.test.mjs` (xi), (xv), (xix); `test/sweep-ledger.test.mjs` (xvi), (xvii), (xx), (xxi), (xxiii).
 
 ## One sweep, per agent MR
 

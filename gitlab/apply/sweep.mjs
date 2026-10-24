@@ -216,12 +216,19 @@ function sweepMr(t, iid) {
   const blockTier = () => {
     if (!guardBlocked || !actionClass || !mr.BELAY_AGENT || ledgered(blockKey)) return null;
     const g = engine(['gate', '--policy', policyFile, '--state', states(), '--class', actionClass, '--agent', mr.BELAY_AGENT, '--guardrail', path.join(dir, 'guardrail-gate.json')]);
-    let tier = null;
+    let out = null;
     try {
-      tier = JSON.parse(g.stdout).tier ?? null;
+      out = JSON.parse(g.stdout);
     } catch {
-      tier = null;
+      out = null;
     }
+    // No JSON, or the engine's own {"error"}: the engine failed, which says nothing about the agent's tier.
+    if (!out || typeof out !== 'object' || 'error' in out) {
+      const why = out?.error ? `: ${out.error}` : '';
+      say(`${tag}: engine gate gave no readable answer (exit ${g.code})${why}: the guardrail's block is not ledgered`);
+      return null;
+    }
+    const tier = out.tier ?? null;
     if (!tier) say(`${tag}: the gate holds ${mr.BELAY_AGENT} at no tier for ${actionClass}: the guardrail's block is not ledgered`);
     return tier;
   };
