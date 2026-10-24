@@ -24,11 +24,13 @@
 - `cli/belay.mjs` is the `belay` command-line companion, each part run through tsx:
   - `doctor` runs the real capability probes (`src/server/gitlab/doctorCli.ts`).
   - `scan [<checkout>] [--propose] [--facts F]` runs `engine scan` (the checkout defaults to the current folder).
-  - `pair <checkout> [--group G] [--write]` (`src/server/pair/`) adds the Belay bootstrap to a checkout:
+  - `pair <checkout> [--group G] [--pack-version V] [--engine-ref R] [--write]` (`src/server/pair/`) adds the Belay bootstrap to a checkout:
     `.gitlab/belay.gitlab-ci.yml` (the components, pinned to the pack), one `include` line in `.gitlab-ci.yml`,
     `.gitlab/duo/agent-config.yml` and the work folders in `.gitignore`. It prints the plan and writes only with
     `--write`, only ever adds lines, keeps a file it would have to change (exit 1, finish by hand), and never
-    commits, pushes or opens an MR: it prints those commands. The group comes from the `origin` remote.
+    commits, pushes or opens an MR: it prints those commands. The group comes from the `origin` remote. A valued
+    flag without its value, an unknown option or a second checkout exits 2 with nothing written; a write that fails
+    part-way exits 2 and names the files it already wrote. Added lines take the file's own line ending (CRLF or LF).
   - `replay` prints "not implemented yet" and exits 2.
 - `gitlab/` holds what runs inside GitLab: six CI/CD components (`belay-pack`), six custom flow definitions, their
   output schemas, and example target and policy projects.
@@ -133,7 +135,8 @@
   `engine/commands/scan.test.ts`.
 - `src/server/pair/__tests__/pair.test.ts` (real temporary git checkouts): no write without `--write`; every line
   of the project's files kept; a second run is a no-op; not a checkout root or no group is refused; a different
-  existing file is kept; the include is created, appended, inserted or refused.
+  existing file is kept; the include is created, appended, inserted or refused; malformed arguments and a
+  part-way write failure exit 2; a CRLF file gets CRLF lines.
 - The Node glue has vitest tests beside it (`gitlab/components/scripts/**/*.test.mjs`, `gitlab/apply/*.test.mjs`,
   `gitlab/flows/flows.test.mjs`); the component YAML itself only runs on GitLab. The `maturity-scan` component calls
   `engine scan --facts`.
