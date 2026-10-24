@@ -78,8 +78,7 @@ export function usePopover(delayMs = 380): PopoverApi {
       const el = anchorEl.current;
       if (cause === 'press' && el) {
         guard.pressClosed(el, target instanceof Node && el.contains(target));
-        // No click follows a press that was dragged away: forget it when the next press begins.
-        setTimeout(() => document.addEventListener('mousedown', guard.reset, { capture: true, once: true }), 0);
+        guard.forgetOnNextPress();
       }
       close();
     },

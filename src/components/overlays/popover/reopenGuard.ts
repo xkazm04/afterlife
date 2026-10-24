@@ -11,10 +11,18 @@ export interface ReopenGuard<A> {
   swallows: (anchor: A) => boolean;
   /** Forget it (the next press began, so no click follows the old one). */
   reset: () => void;
+  /**
+   * Call after pressClosed: no click follows a press that was dragged away, so forget it when the next press on `root`
+   * begins. Armed after the current press has finished dispatching, so the press that closed it does not count.
+   */
+  forgetOnNextPress: (root?: EventTarget) => void;
 }
 
 export function createReopenGuard<A>(): ReopenGuard<A> {
   let armed: { anchor: A } | null = null;
+  const reset = () => {
+    armed = null;
+  };
   return {
     pressClosed: (anchor, onAnchor) => {
       armed = onAnchor ? { anchor } : null;
@@ -24,8 +32,9 @@ export function createReopenGuard<A>(): ReopenGuard<A> {
       armed = null;
       return hit;
     },
-    reset: () => {
-      armed = null;
+    reset,
+    forgetOnNextPress: (root = document) => {
+      setTimeout(() => root.addEventListener('mousedown', reset, { capture: true, once: true }), 0);
     },
   };
 }

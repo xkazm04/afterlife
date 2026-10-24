@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createReopenGuard } from './reopenGuard';
 
 const trigger = { id: 'trigger' };
@@ -45,5 +45,27 @@ describe('reopen guard', () => {
     expect(g.swallows(trigger)).toBe(false);
     g.pressClosed(other, true);
     expect(g.swallows(other)).toBe(true);
+  });
+});
+
+describe('forgetOnNextPress', () => {
+  const press = (root: EventTarget) => root.dispatchEvent(new Event('mousedown'));
+  it('forgets a press that was dragged away once the next press begins, not on the press that closed it', () => {
+    vi.useFakeTimers();
+    try {
+      const root = new EventTarget();
+      const g = createReopenGuard<object>();
+      g.pressClosed(trigger, true);
+      g.forgetOnNextPress(root);
+      press(root); // still the closing press, dispatching: not armed yet
+      expect(g.swallows(trigger)).toBe(true);
+      g.pressClosed(trigger, true);
+      g.forgetOnNextPress(root);
+      vi.runAllTimers();
+      press(root);
+      expect(g.swallows(trigger)).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

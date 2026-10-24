@@ -82,8 +82,7 @@ export function useMenu<D = unknown>(
     const shut = (refocus: boolean, target?: EventTarget | null) => {
       if (!refocus && open.trigger) {
         guard.pressClosed(open.trigger, target != null && open.trigger.contains(target as Node));
-        // No click follows a press that was dragged away: forget it when the next press begins.
-        setTimeout(() => document.addEventListener('mousedown', guard.reset, { capture: true, once: true }), 0);
+        guard.forgetOnNextPress();
       }
       setOpen(null);
       if (refocus) open.returnTo?.focus();
