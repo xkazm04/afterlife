@@ -3,7 +3,7 @@ import type { Stage } from '@/schemas';
 import type { Gap, MaturityCtx } from '../ctx';
 import { nextOf, rungLabel, rungText } from '../rungs';
 import type { MaturityState } from '../state';
-import type { Phase } from './credit';
+import { ranWhere, type Phase } from './credit';
 
 /** A sent gap's phase in words, as the gaps table says it: never the code name ("nolift"). */
 const phaseWords = (phase: Phase, gap: Gap): string =>
@@ -11,7 +11,7 @@ const phaseWords = (phase: Phase, gap: Gap): string =>
     probed: 'probed, read only',
     opened: 'opened',
     merged: 'merged',
-    ran: gap.x.runsOn === 'tag' ? 'ran in the tagged release' : 'ran on main',
+    ran: `ran ${ranWhere(gap.x.runsOn)}`,
     nolift: 'no lift: configured, not exercised',
     credited: 'credited',
   })[phase];

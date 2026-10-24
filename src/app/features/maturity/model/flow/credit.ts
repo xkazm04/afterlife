@@ -13,6 +13,9 @@ export function rescanOutcome(needsRun: boolean, phase: Phase): Outcome {
   return needsRun && phase !== 'ran' ? 'nolift' : 'credited';
 }
 
+/** Where a gap's job runs, as every 'ran' says it: "in the tagged release" or "on main". */
+export const ranWhere = (runsOn: 'main' | 'tag'): string => (runsOn === 'tag' ? 'in the tagged release' : 'on main');
+
 export interface Check {
   mark: 'ok' | 'no' | 'q';
   text: string;
@@ -20,7 +23,6 @@ export interface Check {
 
 /** The four credit checks as the inspector lists them after a rescan. */
 export function creditChecks(needsRun: boolean, outcome: Outcome, runsOn: 'main' | 'tag' = 'main'): Check[] {
-  const where = runsOn === 'tag' ? 'the tagged release' : 'main';
   const exercised = outcome === 'credited' || !needsRun;
   return [
     { mark: 'q', text: 'same engine · not checked' },
@@ -29,9 +31,9 @@ export function creditChecks(needsRun: boolean, outcome: Outcome, runsOn: 'main'
       mark: exercised ? 'ok' : 'no',
       text: exercised
         ? needsRun
-          ? `exercised · ran ${runsOn === 'tag' ? 'in' : 'on'} ${where}, Proof Block passed`
+          ? `exercised · ran ${ranWhere(runsOn)}, Proof Block passed`
           : 'enforced · the policy blocks a merge'
-        : `exercised · not yet: configured, has not run ${runsOn === 'tag' ? 'in' : 'on'} ${where}`,
+        : `exercised · not yet: configured, has not run ${ranWhere(runsOn)}`,
     },
     {
       mark: exercised ? 'ok' : 'q',
