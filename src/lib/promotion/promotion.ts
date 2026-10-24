@@ -39,8 +39,6 @@ export function promotion(c: PromotionSubject, proofClass: string, rules: Promot
   return { kind: counts.every((x) => x.met) ? 'eligible' : 'notyet', next, rules: counts, precondition: HUMAN_KEY };
 }
 
-export const isEligible = (p: Promotion): boolean => p.kind === 'eligible';
-
 /** The Needs-you item the poller opens for an eligible class (poller/derive/promotion.ts): one id, both sides. */
 export const promotionId = (projectId: string, classId: string): string => `promote:${projectId}:${classId}`;
 

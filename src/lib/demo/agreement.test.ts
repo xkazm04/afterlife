@@ -2,7 +2,7 @@
 // against the demo's policy (policy/trust-policy.yml), and no other class is. When they disagree, scripts/build-demo.mjs
 // is fixed, never this test.
 import { describe, expect, it } from 'vitest';
-import { explain, isEligible, promotion } from '@/lib/promotion';
+import { explain, promotion } from '@/lib/promotion';
 import { repoPolicy } from '@/server/data/policy';
 import { DEMO_NOW } from './clock';
 import { DEMO } from './index';
@@ -19,7 +19,7 @@ describe('the demo fixture and promotion() agree on who is eligible', () => {
   });
   for (const c of DEMO.actionClasses) {
     it(`${c.id}: "${c.lastMove}"`, () => {
-      expect(isEligible(promotion(c, proofOf(c.track), rules, DEMO_NOW))).toBe(says(c.lastMove));
+      expect(promotion(c, proofOf(c.track), rules, DEMO_NOW).kind === 'eligible').toBe(says(c.lastMove));
     });
   }
 });

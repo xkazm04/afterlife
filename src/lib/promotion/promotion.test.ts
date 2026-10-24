@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { repoPolicy } from '@/server/data/policy';
 import type { PolicyRules } from '@/server/data/types';
-import { HUMAN_KEY, isEligible, pct, promoteTitle, promotion, WHY_NOT, whyNot, type Counters, type Promotion, type PromotionSubject } from '.';
+import { HUMAN_KEY, pct, promoteTitle, promotion, WHY_NOT, whyNot, type Counters, type Promotion, type PromotionSubject } from '.';
 import { ungated } from './gate/ungated';
 
 // The thresholds are policy/trust-policy.yml's, read the way the server reads them for the screen, without its `gated` key:
@@ -31,7 +31,7 @@ describe('promotion', () => {
   });
   it('is eligible when every rule is met', () => {
     const p = promotion(subject({ record: rec({ accepted: 16, cleanDays: 14, noEdit: 0.94 }) }), 'exploit-test', RULES);
-    expect(isEligible(p)).toBe(true);
+    expect(p.kind).toBe('eligible');
   });
   it('needs a mechanical proof class for Hands-off', () => {
     const r = rec({ accepted: 16, cleanDays: 14 });
