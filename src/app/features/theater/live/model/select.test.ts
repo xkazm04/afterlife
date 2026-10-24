@@ -6,7 +6,7 @@ import { foldRuns, foldWave } from '@/lib/runs/fold';
 import { parseRunLine } from '@/lib/runs/parse';
 import type { RunEvent } from '@/schemas/run/run';
 import { waveMetaOf } from './meta';
-import { theaterMode, waveFocusOf } from './mode';
+import { mrOf, theaterMode, waveFocusOf } from './mode';
 import { hasRunningWave, isStale, selectLive, STALE_MS } from './select';
 import { waveKey, type LivePayload } from './types';
 
@@ -93,5 +93,20 @@ describe('waveFocusOf', () => {
     expect(waveFocusOf({ repo: 'alpha', wave: '2x' })).toBeUndefined();
     expect(waveFocusOf({ wave: '2' })).toBeUndefined();
     expect(waveFocusOf({ live: '0' })).toBeUndefined();
+  });
+});
+
+describe('mrOf: the one ?mr= rule, read by theaterMode and the loader alike', () => {
+  it.each([
+    [{ mr: '41' }, 41],
+    [{ mr: ['41', 'x'] }, 41],
+    [{ mr: ['x', '41'] }, undefined],
+    [{ mr: '4a' }, undefined],
+    [{ mr: ' 41' }, undefined],
+    [{ mr: '' }, undefined],
+    [{}, undefined],
+  ] as const)('%j is %s, and replays over a running wave only when it names an MR', (params, want) => {
+    expect(mrOf(params)).toBe(want);
+    expect(theaterMode(params, true)).toBe(want === undefined ? 'live' : 'replay');
   });
 });

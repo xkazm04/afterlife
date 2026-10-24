@@ -5,7 +5,7 @@
 //   read from the catalogue (DEMO) only, in every mode, so live mode never splices a real MR or scan into it.
 import { DEMO } from '@/lib/demo';
 import { getDataSource } from '@/server/data';
-import { firstParam } from '@/lib/url/searchParams';
+import { mrOf } from '../live/model/mode';
 import { ledgerFilm } from '../model/film/fromLedger';
 import type { TheaterData } from '../model/types';
 import { TAKES } from './constants';
@@ -38,10 +38,10 @@ export interface TheaterParams {
   wave?: string | string[];
 }
 
-/** `?mr=N` (digits only, the first if repeated) as the film's focus; anything else is no focus. */
+/** `?mr=N` as the film's focus, by the same rule that picks the replay over the live film (live/model/mode.ts `mrOf`). */
 function focusOf(params: TheaterParams): { mr?: number } {
-  const raw = firstParam(params.mr);
-  return raw !== undefined && /^\d+$/.test(raw) ? { mr: Number(raw) } : {};
+  const mr = mrOf(params);
+  return mr === undefined ? {} : { mr };
 }
 
 /** `/theater?mr=N` films MR N first (the illustrative film has no MR, so it ignores it). */

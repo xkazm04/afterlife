@@ -12,6 +12,12 @@ export interface ModeParams {
 
 const first = (v: string | readonly string[] | undefined): string | undefined => (typeof v === 'string' || v === undefined ? v : v[0]);
 
+/** `?mr=N` (digits only, the first if repeated) as the MR to film first; anything else is none. The one rule for theaterMode and the loader. */
+export function mrOf(params: Pick<ModeParams, 'mr'>): number | undefined {
+  const mr = first(params.mr);
+  return mr !== undefined && /^\d+$/.test(mr) ? Number(mr) : undefined;
+}
+
 /** `?repo=R&wave=N` (N digits only) as the finished wave asked for; anything else is none. */
 export function waveFocusOf(params: ModeParams): { repo: string; wave: number } | undefined {
   const repo = first(params.repo);
@@ -21,8 +27,7 @@ export function waveFocusOf(params: ModeParams): { repo: string; wave: number } 
 }
 
 export function theaterMode(params: ModeParams, waveRunning: boolean): TheaterMode {
-  const mr = first(params.mr);
-  if (mr !== undefined && /^\d+$/.test(mr)) return 'replay';
+  if (mrOf(params) !== undefined) return 'replay';
   if (waveFocusOf(params)) return 'wave';
   if (first(params.live) === '0') return 'replay';
   if (first(params.live) === '1') return 'live';
