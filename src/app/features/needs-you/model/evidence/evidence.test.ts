@@ -77,3 +77,14 @@ describe('liveEvidence', () => {
     expect(e.gate).toBeNull();
   });
 });
+
+describe('liveEvidence on an unreadable from', () => {
+  it('a from that is no tier (even an Object prototype key) is not a move: Run stays open, no moved line', () => {
+    for (const from of ['garbage', 'toString', 'constructor']) {
+      const e = liveEvidence({ ...promote, from: from as NeedsYouItem['from'] }, cls(), null);
+      if (e.kind !== 'class') throw new Error('expected the class');
+      expect(e.moved).toBeNull();
+      expect(e.canRun).toBe(true);
+    }
+  });
+});

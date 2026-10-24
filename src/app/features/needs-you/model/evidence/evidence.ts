@@ -60,7 +60,7 @@ function recordLine(r: RecordCounters | null): string | null {
 /** The tier a proposal expects its class at: a promotion's from, a re-admit's quarantine. */
 function expected(item: Pick<NeedsYouItem, 'kind' | 'from'>): TierKey | null {
   if (item.kind === 'readmit') return 'quarantined';
-  return item.from && item.from in TIER_META ? (item.from as TierKey) : null;
+  return item.from && Object.hasOwn(TIER_META, item.from) ? (item.from as TierKey) : null;
 }
 
 /** The class beside a live promotion or re-admit; `cls` undefined: the index does not hold it. */
