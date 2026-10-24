@@ -7,6 +7,7 @@ import { useToast } from '@/components/overlays/toast/useToast';
 import type { CyclesData } from '../../model/build';
 import { cycleReport, reportTitle } from '../../model/report/report';
 import type { Cycle } from '../../model/types';
+import { copyReport } from './copyReport';
 import styles from './report.module.css';
 
 /**
@@ -16,12 +17,7 @@ import styles from './report.module.css';
 export function ReportSheet({ cycle, data, onClose }: { cycle: Cycle; data: CyclesData; onClose: () => void }) {
   const { status } = useToast();
   const md = cycleReport(cycle, data);
-  const copy = () => {
-    navigator.clipboard?.writeText(md).then(
-      () => status(`${cycle.id} report copied as Markdown`),
-      () => status('Copy failed: select the report and copy it by hand'),
-    );
-  };
+  const copy = () => copyReport(cycle.id, md, navigator.clipboard, status);
   return (
     <Sheet
       title={`${cycle.id} report`}
