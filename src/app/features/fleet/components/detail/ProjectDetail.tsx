@@ -2,6 +2,7 @@ import { DetailPage } from '@/components/shell/detail/DetailPage';
 import { StateGlyph } from '@/components/status/StateGlyph';
 import { plural } from '@/lib/format/plural';
 import type { FleetProjectView } from '../../data/loadFleetProject';
+import { needsSum } from '../../model/groups';
 import { projectLede, waitingTitle } from '../../model/inspector';
 import { FleetLegend } from '../legend/FleetLegend';
 import type { FleetEstate } from '../../model/types';
@@ -26,8 +27,8 @@ import { TracksSection } from '../inspector/sections/TracksSection';
  */
 export function ProjectDetail({ project: p, data, view, estate }: FleetProjectView & { estate?: FleetEstate }) {
   const { depth } = view;
-  // An unwatched project's count is shown nowhere (the row, the group sum), so the status bar counts none either.
-  const waiting = p.state === 'not-set-up' ? 0 : p.needsYou;
+  // needsSum, the rule of the row and the group sum: an unwatched project's count is shown nowhere, so it counts none here either.
+  const waiting = needsSum([p]);
   return (
     <DetailPage
       parent={{ label: 'Fleet', href: '/fleet' }}
