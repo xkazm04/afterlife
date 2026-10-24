@@ -28,7 +28,7 @@ function sources(dir: string): [string, string][] {
 describe('one implementation', () => {
   it('no source under src but fleetHref spells the project route', () => {
     expect(sources(SRC).filter(([f, s]) => f !== HOME && COPY.test(s)).map(([f]) => f)).toEqual([]);
-  });
+  }, 120_000); // walks the whole src/ tree: seconds alone, past the 30 s default under a loaded full suite
   it('the matcher sees a copy (seeded control)', () => {
     expect(COPY.test('router.push(`/fleet/${encodeURIComponent(id)}`);')).toBe(true);
     expect(COPY.test('redirect(`/fleet/${ encodeURIComponent(want)}`)')).toBe(true);
