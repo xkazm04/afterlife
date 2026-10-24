@@ -16,7 +16,7 @@ import { permissionArgs, type PermissionProfile } from './permissions';
 import { parseStream, type StreamResult } from './stream';
 
 /** Windows re-parses argv through cmd.exe for claude.cmd, so every argument must stay a plain token. */
-const MODEL_TOKEN = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
+export const MODEL_TOKEN = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
 export const PATH_TOKEN = /^[A-Za-z0-9_:\\/.~-]+$/;
 const TOOLS_TOKEN = /^[A-Za-z,]*$/;
 /** A claude session id (a uuid; the test fake's are `fake-<step>-<lane>`). */

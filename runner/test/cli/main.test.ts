@@ -40,4 +40,10 @@ describe('belay run flags', () => {
     expect(r.code).toBe(2);
     expect(r.err).toContain('whole numbers');
   }, 60_000);
+
+  it('refuses a model id claude could not be called with, before the base gates spend minutes', () => {
+    const r = run('--model', 'sonnet&calc');
+    expect(r.code).toBe(2);
+    expect(r.err).toContain('--model must be a plain model id');
+  }, 60_000);
 });

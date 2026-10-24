@@ -1,6 +1,7 @@
 // `belay run` lands here (cli/belay.mjs runs this through tsx): parse flags, print what is about to be
 // spent, stop there on --dry-run, otherwise run the waves and narrate each event. Exit 2 = bad usage.
 import { RUN_DEFAULTS, loadFleet, runWaves, type RunOptions } from './index';
+import { MODEL_TOKEN } from './agent/spawn';
 import { killAll } from './proc/proc';
 import { defaultFleetFile } from './wave/runWaves';
 
@@ -66,6 +67,11 @@ async function main(argv: string[]): Promise<number> {
   };
   if ([opts.waves, opts.lanes, opts.laneCapUsd, opts.waveCapUsd].some(Number.isNaN)) {
     console.error(`${USAGE}\nbelay run: --waves and --lanes must be whole numbers above 0, caps positive numbers`);
+    return 2;
+  }
+  // claudeArgs refuses it too, but only at the plan call: after the base gates, minutes in.
+  if (!MODEL_TOKEN.test(opts.model)) {
+    console.error(`${USAGE}\nbelay run: --model must be a plain model id (sonnet, claude-sonnet-5-5)`);
     return 2;
   }
   let fleetRepo;
