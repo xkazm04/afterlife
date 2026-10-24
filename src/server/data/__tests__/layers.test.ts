@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { demoSource } from '../demoSource';
 import { BELAY_PROJECTS } from '../setup/read';
 
 const SERVER = path.resolve('src/server');
@@ -32,6 +33,14 @@ describe('the READMEs', () => {
     const files = ['data', 'data/live', 'data/setup'].flatMap((d) => names(d, source));
     expect(files.length).toBeGreaterThan(20);
     expect(files.filter((f) => !readme.includes(f))).toEqual([]);
+  });
+
+  // The DataSource's members are the ground truth: a member added to the interface that the README does not name fails here.
+  it('data/README.md names every member of DataSource', () => {
+    const readme = read('data/README.md');
+    const members = Object.keys(demoSource);
+    expect(members.length).toBeGreaterThan(20);
+    expect(members.filter((m) => !readme.includes(`\`${m}`))).toEqual([]);
   });
 
   it('data/README.md names every belay project the Setup reads', () => {

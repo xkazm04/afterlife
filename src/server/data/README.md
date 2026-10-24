@@ -2,7 +2,9 @@
 
 Every screen's server loader reads through one interface, `DataSource` (`types.ts`). It has the surface `@/lib/demo` always
 had (`getFleet`, `getPortfolio`, `getStages`, `getTiers`, `getTracks`, `getActionClasses`, `getMaturity`, `getLoop`, `getTasks`,
-`getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`), `getCycles()` and `getEstateCycles()` (the deep
+`getNeedsYou`, `getNeedsYouCount`, `getSetup`, `getEvents`, `getCockpit`), `getDecided()` (live: the deep project's
+proposals acted on in the 7 days before the snapshot, newest first, the seed's own left out; demo `[]`, the desk keeps its
+own week), `getCycles()` and `getEstateCycles()` (the deep
 project's closed cycles, and every project's: `src/lib/demo/cycles.ts` and `estate.ts` in demo, `cycle_record` in live),
 `getStability()` (each project's agent-MR stability over 7 days, `src/lib/stability`: live from `index/views/stability`,
 every polled project; demo the deep project only, counted from the demo's tasks that name an MR, sizes and pipelines null
@@ -38,14 +40,14 @@ demo answers verified, marked `demo`.
 | `select.ts` | `getDataSource()`, and `setDataSource()` for tests |
 | `demoSource.ts` | the demo accessors, unchanged |
 | `live/liveSource.ts` | the snapshot + the demo catalogue; throws before the first poll has finished (an empty fleet must not pass for real) |
-| `live/snapshot.ts` | `buildSnapshot(db, at, deep, catalogue)`: views from `../index` for fleet, action classes, maturity, tasks, recent events, needs-you, plus feed age, the group name and the deep project's ledger (`readLedger` by its row's gitlab id) |
+| `live/snapshot.ts` | `buildSnapshot(db, at, deep, catalogue, policy, group)`: views from `../index` for fleet, action classes, maturity, tasks, recent events, needs-you, decided, every project's cycles, stability and the trend's 28 days, plus feed age, the group name, the pairing row, the poll's health (`pollHealthOf`: the watched group's row and the linked projects'), the tiers' staleness (belay-policy's poll row) and the deep project's ledger (`readLedger` by its row's gitlab id) |
 | `live/seeded.ts` | `SEEDED_ITEMS` and `isSeeded(id)`: the ids the demo seeds into an index, which a real group's index never holds. `getNeedsYouCount()` and the deep project's fleet row exclude them, as `/needs-you` does (`getNeedsYou()` still returns them) |
 | `live/narrow.ts` | where the screens' types have no "unknown": quarantined for an unknown tier, 9 null rungs for a scan that never ran, an unclassified task is not listed |
 | `live/runtime.ts`, `boot.ts` | one port + index + poller + snapshot per process, kept on `globalThis`; started by `src/instrumentation.ts` (`register`); a failed start (a first poll cycle that throws included) is kept, named on the pages, and retried no more often than the poll interval |
 | `live/cycleLog.ts` | `cycleProblems` and `cycleLine`: what a cycle reported without throwing (the group read's error, the warnings, each project's error and issues), logged by the runtime as one `belay: poll cycle` line only when it differs from the last cycle's (what is new, what cleared) |
 | `setup/` | Setup's live reads (`read.ts`): each track's arm block on the target's main (`checkArm`; a track with no arm content is "not defined yet", a refused or failed read is unknown with its reason), the belay doctor (`probeCapabilities` on the configured group, stamped with the real time), and the steps a read observes (`OBSERVED_STEPS`): 0 (`glab api user`), 1 (the snapshot's pairing row), 3 (the group's plan, `humanSteps.ts`), 4 (the target and belay-pack, belay-policy, belay-ledger, belay-engine and belay-apply in the group), 6 (a gitlab--duo runner online), 8 (the settings of belay-apply that hold no secret; it never reads done), 9 (every protection it lists, read back: `protections.ts`) and 10 (the bootstrap MR). Every other step is unknown, "not probed". `ctx.ts` is what one load's step reads share (the port, the group, the one project listing). `humanKey.ts` reads the human key on belay-policy. `rereadAction.ts` (`'use server'`, localhost only, read only) is Re-probe and a step's verify. `types.ts` is what the screen receives |
 | `live/clock.ts`, `ports.ts` | system clock vs the fake group's **replay clock** (polled 14:21:48, read 14:22:00, always) |
-| `shell/read.ts` | `readShellInfo(ds, env)`: the shell's numbers (the Needs-you badge, the status bar's mode, fake flag, group, illustrative). The root layout renders it and `GET /api/shell` (`src/app/api/shell/route.ts`, no-store; 503 with the reason before the first live poll, never a demo payload) answers it, so the client re-reads it on navigation and focus (`components/shell/live/`): a layout does not re-render on navigation |
+| `shell/read.ts` | `readShellInfo(ds, env)`: the shell's numbers (the Needs-you badge, the status bar's mode, fake flag, group, illustrative and poll health, the palette's projects). The root layout renders it and `GET /api/shell` (`src/app/api/shell/route.ts`, no-store; 503 with the reason before the first live poll, never a demo payload) answers it, so the client re-reads it on navigation and focus (`components/shell/live/`): a layout does not re-render on navigation |
 
 ## The ledger
 
