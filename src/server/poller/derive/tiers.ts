@@ -77,10 +77,10 @@ const when = (s: string | undefined): Date | null => {
 /** Who set a record, when it says so in text. The gate reads a record by its tier alone, so a hand-written one may lack it (F51). */
 const byOf = (r: { by?: unknown } | null): string | null => (typeof r?.by === 'string' ? r.by : null);
 
-/** The classes in the policy's order, with the track their agent role belongs to. */
 /** The track of an agent role, null for a role the table does not name (a role is YAML text: 'constructor' is not a track). */
 export const trackOfRole = (role: string): number | null => (Object.hasOwn(ROLE_TRACK, role) ? (ROLE_TRACK[role] ?? null) : null);
 
+/** The classes in the policy's order, with the track their agent role belongs to. */
 export const trustClassesOf = (policy: EnginePolicy): TrustClassRow[] =>
   Object.entries(policy.classes).map(([id, c], ord) => ({ id, ord, track: trackOfRole(c.agent), agent: c.agent, ceiling: c.ceiling }));
 
