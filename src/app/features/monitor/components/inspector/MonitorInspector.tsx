@@ -12,7 +12,7 @@ import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { plural, pluralWord } from '@/lib/format/plural';
 import { stabilityLine, type Stability } from '@/lib/stability/stability';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
-import { liveNeeds, stateLine, tiersRead, topWaiting } from '../../model/totals';
+import { TRACKS, liveNeeds, stateLine, tiersRead, topWaiting } from '../../model/totals';
 import type { Totals } from '../../model/types';
 import { Decisions, fleetHref } from './Decisions';
 import styles from './inspector.module.css';
@@ -76,7 +76,7 @@ export function MonitorInspector(props: {
   const watched = p.state !== 'not-set-up';
   const cells = [
     { n: liveNeeds(p), label: pluralWord(liveNeeds(p), 'decision'), tone: 'you' as const },
-    ...(p.armed === null ? [] : [{ n: p.armed, label: 'of 8 tracks armed' }]), // not read: said in words below, never a 0
+    ...(p.armed === null ? [] : [{ n: p.armed, label: `of ${TRACKS} tracks armed` }]), // not read: said in words below, never a 0
     ...(p.proofs7d ? [{ n: p.proofs7d.pass, label: 'proofs pass · 7 d', tone: 'ok' as const }, { n: p.proofs7d.fail, label: 'fail' }] : []),
   ];
   return (

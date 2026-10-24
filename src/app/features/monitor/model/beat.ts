@@ -2,7 +2,7 @@
 // quarantined class dips the Q wave, setting-up beats are lower (and drawn dashed). Armed tracks not read have no height
 // to draw: the beat is the unknown break, never a flat or a guessed one. Pure; components only draw it.
 import type { FleetProject } from '@/lib/demo/types';
-import { isLive, isQuarantined, liveNeeds } from './totals';
+import { TRACKS, isLive, isQuarantined, liveNeeds } from './totals';
 
 type Pt = readonly [number, number];
 
@@ -31,7 +31,7 @@ export interface Slot {
 
 /** R height: setting up is a low beat; a watched beat grows with its armed tracks (0..8); null when they were not read. */
 export const amplitude = (p: FleetProject, amax: number): number | null =>
-  p.state === 'setting-up' ? amax * 0.42 : p.armed === null ? null : amax * (0.38 + 0.62 * (Math.max(0, p.armed) / 8));
+  p.state === 'setting-up' ? amax * 0.42 : p.armed === null ? null : amax * (0.38 + 0.62 * (Math.max(0, p.armed) / TRACKS));
 
 const f1 = (n: number) => n.toFixed(1);
 

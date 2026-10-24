@@ -11,6 +11,8 @@ export const tiersRead = (p: FleetProject): boolean => p.state !== 'not-set-up' 
 /** Quarantined classes where tiers are known (the door's rule, door/model/words): a stale project keeps its last known count, an unknown tier is never a quarantine. */
 export const quarOf = (p: FleetProject): number => (tiersRead(p) ? (p.tiers?.quarantined ?? 0) : 0);
 export const isQuarantined = (p: FleetProject): boolean => quarOf(p) > 0;
+/** The tracks a project can arm (T1..T8): the R height, the readout and the inspector all count against this. */
+export const TRACKS = 8;
 /** A live project draws a beat; stale and unwatched ones do not. */
 export const isLive = (p: FleetProject): boolean => p.state === 'watching' || p.state === 'setting-up';
 /** An unwatched project has no live count: its decisions are not drawn and not added. */
@@ -71,7 +73,7 @@ export function topWaiting(projects: readonly FleetProject[], k = 4): FleetProje
 export function stateLine(p: FleetProject): string {
   const parts: string[] = [];
   if (p.state === 'watching') parts.push(`watching · ${ageLine(p.feed.ageSec)}`);
-  else if (p.state === 'setting-up') parts.push(`setting up · ${p.armed === null ? 'armed tracks not read' : `${p.armed} of 8 tracks armed`}${p.setupStep ? ` · ${p.setupStep}` : ' · step unknown'}`);
+  else if (p.state === 'setting-up') parts.push(`setting up · ${p.armed === null ? 'armed tracks not read' : `${p.armed} of ${TRACKS} tracks armed`}${p.setupStep ? ` · ${p.setupStep}` : ' · step unknown'}`);
   else if (p.state === 'stale') parts.push(`stale · ${p.feed.error || (p.feed.ageSec === null ? NO_GOOD_POLL : `no good poll for ${formatAge(p.feed.ageSec)}`)}`);
   else parts.push('not watched · unknown, not zero');
   const n = liveNeeds(p);
