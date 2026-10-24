@@ -13,12 +13,12 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/setup/cap', useRouter: 
 const CAP = 'Pipelines, MRs, releases';
 const at = { at: '2026-10-07T09:30:00.000Z', label: '11:30' };
 
-const page = (error: string | null) => {
+const page = (error: string | null, rows = [{ id: CAP, label: CAP, status: 'available' as const, reason: 'ok' }]) => {
   const steps = Object.fromEntries(Array.from({ length: 15 }, (_, n) => [n, { state: 'unknown' as const, reason: 'not probed' }]));
   const live: LiveSetupRead = {
     group: 'kazdanm', host: 'gitlab.com', project: 'afterlife', projects: ['afterlife'],
     tracks: Object.fromEntries(getSetup().arm.map(([id]) => [id, { state: 'undefined' as const, text: 'not defined' }])),
-    tracksAt: at, doctor: { ...at, error, rows: [{ id: CAP, label: CAP, status: 'available', reason: 'ok' }] }, steps: { ...at, steps },
+    tracksAt: at, doctor: { ...at, error, rows }, steps: { ...at, steps },
   };
   return renderToStaticMarkup(
     <ToastProvider>
@@ -42,5 +42,12 @@ describe('Setup, a capability page: the probe section', () => {
     expect(html).toContain('probe failed 11:30');
     expect(html).toContain('belay doctor: glab: 401 Unauthorized');
     expect(html).toContain('available · last good read');
+  });
+
+  it('a probe that failed with no rows has no last good read to show: the status is unknown, said plainly', () => {
+    const html = page('belay doctor failed: glab not found', []);
+    expect(html).toContain('probe failed 11:30');
+    expect(html).not.toContain('last good read');
+    expect(html).toContain('>unknown<');
   });
 });

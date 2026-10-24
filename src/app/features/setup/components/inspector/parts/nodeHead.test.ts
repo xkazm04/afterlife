@@ -58,6 +58,7 @@ describe('nodeHead: step and capability', () => {
     expect(head?.lede).toBe(`${row.st} in ${state.group}`);
     const failed: SetupState = { ...state, doctorError: 'glab: 401', doctorNever: false };
     expect(nodeHead(failed, tracks, { k: 'cap', id: row.name })?.lede).toBe(`last seen ${row.st} in ${state.group}`);
+    expect(nodeHead({ ...failed, doctor: [] }, tracks, { k: 'cap', id: row.name })?.lede).toBe(`unknown in ${state.group}`);
     const live: SetupState = { ...state, live: true, doctor: [{ ...row, reason: 'needs Ultimate' }] };
     expect(nodeHead(live, tracks, { k: 'cap', id: row.name })?.tip).toBe(`${row.name}. needs Ultimate`);
   });

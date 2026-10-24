@@ -16,7 +16,8 @@ export function CapPanel({ name }: { name: string }) {
   const { state, actions } = useSetup();
   const st = capSt(state, name);
   // A re-probe that failed over an earlier read leaves that read's rows: the status is the last good one, and says so.
-  const lastGood = !!state.doctorError && !state.doctorNever;
+  // A probe that failed as a whole leaves no row: there is no last good read, only unknown.
+  const lastGood = !!state.doctorError && !state.doctorNever && state.doctor.some((r) => r.name === name);
   const uses = state.live ? [] : (CAP_USES[name] ?? []);
   return (
     <>
