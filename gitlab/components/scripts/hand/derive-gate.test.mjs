@@ -2,94 +2,13 @@
 // GitLab holds (the notes, belay-policy's default branch, the compare API), against a fake glab and the real engine. It
 // emits what apply-gate emits for the same inputs, trusts only the guardrail account named on its command line, never
 // reads a job artifact and writes nothing to GitLab.
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
-import { ROOT, runScript, workdir } from '../testing/harness.mjs';
+import { runScript } from '../testing/harness.mjs';
+import { applyGateOn, derive, DIFF, dir, LEDGER, noArtifactNoWrite, note, OP, PROOF, proofNote, routes, URL_, verdict, withoutAt } from './derive-gate.fixture.mjs';
 
-const dir = workdir('hand-gate');
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
-
-const BASE = 'b'.repeat(40);
-const HEAD = 'a'.repeat(40);
-const URL_ = 'https://gitlab.example/acme/ledgerline';
-const OP = 'op-hand';
-const FIX = path.join(ROOT, 'engine/__fixtures__/exploit');
-const POLICY_TEXT = fs.readFileSync(path.join(ROOT, 'policy', 'trust-policy.yml'), 'utf8');
-const POLICY_API = `projects/${encodeURIComponent('acme/belay-policy')}`;
-const STATE = 'version: 1\npolicy_sha: a1b2c3\nagents:\n  ai-patcher-acme:\n    code-fix.patch: { tier: supervised, since: "2026-10-01", by: "start tier + record" }\n';
-const DIFF = fs.readFileSync(path.join(FIX, 'fix.diff'), 'utf8');
-const engine = (...args) => spawnSync('npx', ['tsx', 'engine/cli.ts', ...args], { cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32' });
-
-/** A Proof Block from the real engine, made for HEAD, as the operator posted it in step 2. */
-const PROOF = { ...JSON.parse(engine('prove', '--class', 'exploit-test', '--input', path.join(FIX, 'input.pass.json'), '--policy', path.join(ROOT, 'policy', 'trust-policy.yml'), '--files-root', FIX).stdout) };
-PROOF.task = { ...PROOF.task, head_sha: HEAD };
-
-const verdict = (v, head = HEAD) => ({ schema: 'belay.guardrail/1', verdict: v, head_sha: head, findings: [] });
-const note = (id, username, tag, value) => ({ id, system: false, author: { username }, created_at: '2026-10-09T10:00:00Z', body: `note\n\n\`\`\`${tag}\n${JSON.stringify(value)}\n\`\`\`` });
-const proofNote = note(40, OP, 'belay-proof', PROOF);
-const compareOf = (diff) => ({
-  diffs: diff.split(/^(?=diff --git )/m).filter(Boolean).map((chunk) => {
-    const from = /^--- (?:a\/)?(.+)$/m.exec(chunk)[1];
-    const to = /^\+\+\+ (?:b\/)?(.+)$/m.exec(chunk)[1];
-    return { old_path: from === '/dev/null' ? to : from, new_path: to, new_file: from === '/dev/null', deleted_file: false, diff: chunk.slice(chunk.indexOf('@@')) };
-  }),
-});
-const description = 'Fix the export traversal\n\nBelay-Task: 01J9ZP6M2Q8E4V7K3N5R1T0XAB\nBelay-Class: code-fix.patch';
-
-const LEDGER = 'acme/belay-ledger';
-const LEDGER_API = `projects/${encodeURIComponent(LEDGER)}/repository/commits`;
-/** A ledger commit as sweep.mjs's appendLedger leaves it: the key in a `Belay-Head:` line of the message. */
-const commit = (key) => ({ id: 'c1', message: `ledger: events
-
-Belay-Head: ${key}` });
-
-function routes({ notes = [note(50, 'ai-guardrail-acme', 'belay-guardrail', verdict('pass')), proofNote], diff = DIFF, ledger = [] } = {}) {
-  return {
-    [LEDGER_API]: ledger,
-    'projects/1': { id: 1, path_with_namespace: 'acme/ledgerline', web_url: URL_, default_branch: 'main', ci_config_path: null },
-    'projects/1/merge_requests/7': { iid: 7, author: { username: 'ai-patcher-acme' }, description, target_branch: 'main', sha: HEAD, diff_refs: { base_sha: BASE, head_sha: HEAD } },
-    'projects/1/merge_requests/7/notes': notes,
-    'projects/1/repository/compare': compareOf(diff),
-    'projects/1/repository/files/.gitlab-ci.yml/raw': { __raw: 'stages: [build, test]\n' },
-    [POLICY_API]: { default_branch: 'main' },
-    [`${POLICY_API}/repository/files/trust-policy.yml/raw`]: { __raw: POLICY_TEXT },
-    [`${POLICY_API}/repository/files/tier-state.yml/raw`]: { __raw: STATE },
-  };
-}
-
-/** One hand-run. The variables the target's job would read name the agent: the script must not take them. */
-function derive(name, opts) {
-  const out = path.join(dir, `out-${name}`);
-  const r = runScript(dir, 'hand/derive-gate.mjs', ['--mr', '7', '--proof-authors', OP, '--guardrail-authors', 'ai-guardrail-acme', '--policy-project', 'acme/belay-policy', '--ledger-project', LEDGER, '--out', out],
-    { routes: routes(opts), env: { BELAY_GUARDRAIL_AUTHORS: 'ai-patcher-acme', BELAY_PROOF_AUTHORS: 'ai-patcher-acme' } });
-  const events = path.join(out, 'events');
-  const files = fs.existsSync(events) ? fs.readdirSync(events).sort() : [];
-  return { r, out, files, read: (f) => JSON.parse(fs.readFileSync(path.join(events, f), 'utf8')) };
-}
-
-/** What apply-gate emits for the same inputs, each written here by the test, and the decision of the engine on them. */
-function applyGateOn(guardrail) {
-  const d = path.join(dir, `expect-${guardrail.verdict}`);
-  fs.mkdirSync(d, { recursive: true });
-  const f = (n, text) => (fs.writeFileSync(path.join(d, n), text), path.join(d, n));
-  const g = engine('gate', '--policy', f('trust-policy.yml', POLICY_TEXT), '--state', f('tier-state.yml', STATE), '--class', 'code-fix.patch', '--agent', 'ai-patcher-acme',
-    '--proof', f('proof.json', JSON.stringify(PROOF)), '--guardrail', f('guardrail-gate.json', JSON.stringify({ verdict: guardrail.verdict })), '--diff', f('diff.patch', DIFF));
-  const r = runScript(dir, 'decide/apply-gate.mjs', ['--mr', '7', '--sha', HEAD, '--decision', f('decision.json', g.stdout), '--guardrail', f('guardrail.json', JSON.stringify(guardrail)),
-    '--agent', 'ai-patcher-acme', '--class', 'code-fix.patch', '--emit-dir', path.join(d, 'events'), '--dry', '1'], { env: { CI_PROJECT_URL: URL_ } });
-  expect(r.code, r.stderr).toBeLessThan(2);
-  return fs.readdirSync(path.join(d, 'events')).sort().map((n) => JSON.parse(fs.readFileSync(path.join(d, 'events', n), 'utf8')));
-}
-const withoutAt = ({ at, ...rest }) => (expect(typeof at).toBe('string'), rest);
-
-/** (iii) after every run: no job or artifact path was read, and nothing was written to GitLab. */
-function noArtifactNoWrite(r) {
-  expect(r.reads.filter((p) => /(^|\/)jobs\/|artifacts/.test(p))).toEqual([]);
-  expect(r.writes).toEqual([]);
-}
-
-const KEY = `1!7@${HEAD}`;
 
 describe('derive-gate (M1 hand-run step 4, F90)', { timeout: 120_000 }, () => {
   it('(i) emits the proof_verdict, guardrail_verdict and tier_decision bodies apply-gate emits for the same inputs', () => {
@@ -156,59 +75,5 @@ describe('derive-gate (M1 hand-run step 4, F90)', { timeout: 120_000 }, () => {
     expect(r.code).toBe(2);
     expect(r.stderr).toMatch(/is not empty/);
     expect(r.reads).toEqual([]);
-  });
-
-  it('writes the key belay-apply forms (numeric project id, MR iid, head) to ledger-key, and prints the append command', () => {
-    const got = derive('key');
-    expect(got.r.code, got.r.stderr).toBe(0);
-    expect(fs.readFileSync(path.join(got.out, 'ledger-key'), 'utf8').trim()).toBe(KEY);
-    expect(got.r.stderr).toContain(`ledger-append.mjs' --events '${path.join(got.out, 'events')}' --project '${LEDGER}' --branch 'main' --key '${KEY}'`);
-    noArtifactNoWrite(got.r);
-  });
-
-  it('prints an append command that runs as printed in bash: BELAY_DIR set, C:\\ paths kept, the key on the commit', () => {
-    const got = derive('printed');
-    expect(got.r.code, got.r.stderr).toBe(0);
-    const printed = /^Append them once: (.*)$/m.exec(got.r.stderr)?.[1];
-    expect(printed).toContain(`BELAY_DIR='${ROOT}'`);
-    const ledgerApi = `projects/${encodeURIComponent(LEDGER)}`;
-    const routesFile = path.join(dir, 'printed-routes.json');
-    const writesFile = path.join(dir, 'printed-writes.jsonl');
-    fs.writeFileSync(routesFile, JSON.stringify({
-      [`${ledgerApi}/repository/files/events%2F1.jsonl`]: { __http: 404, message: '404 File Not Found' },
-      [`POST ${ledgerApi}/repository/commits`]: { reply: { id: 'f'.repeat(40) } },
-    }));
-    fs.writeFileSync(writesFile, '');
-    // The operator's shell: no BELAY_DIR and no CI_PROJECT_ID of its own, so the command must carry both.
-    const r = spawnSync('bash', ['-c', printed], { cwd: dir, encoding: 'utf8', env: { PATH: process.env.PATH, SYSTEMROOT: process.env.SYSTEMROOT,
-      BELAY_GLAB: `${process.execPath}|${path.join(ROOT, 'gitlab/components/scripts/testing/fake-glab.mjs')}`, FAKE_GLAB_ROUTES: routesFile, FAKE_GLAB_WRITES: writesFile } });
-    expect(r.status, r.stderr).toBe(0);
-    const [write] = fs.readFileSync(writesFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
-    expect(write.body.actions.map((a) => a.file_path)).toEqual(['events/1.jsonl']);
-    expect(write.body.commit_message.split('\n')).toContain(`Belay-Head: ${KEY}`);
-    expect(write.body.actions[0].content.trim().split('\n')).toHaveLength(3);
-  });
-
-  it('refuses a head the ledger already carries (exit 3, no events directory), not another head of the same MR', () => {
-    const had = derive('had', { ledger: [commit(`1!6@${HEAD}`), commit(KEY)] });
-    expect(had.r.code, had.r.stderr).toBe(3);
-    expect(had.r.stderr).toMatch(/already ledgered for this head/);
-    expect(fs.existsSync(path.join(had.out, 'events'))).toBe(false);
-    expect(had.r.reads.some((p) => p.startsWith(`${LEDGER_API}?ref_name=main&path=${encodeURIComponent('events/1.jsonl')}`))).toBe(true);
-    noArtifactNoWrite(had.r);
-
-    const other = derive('other-head', { ledger: [commit(`1!7@${'c'.repeat(40)}`), commit(`2!7@${HEAD}`)] });
-    expect(other.r.code, other.r.stderr).toBe(0);
-    expect(other.files.length).toBe(3);
-  });
-
-  it('exits 2 when the ledger cannot be read or has more commits than it reads, and writes no events', () => {
-    const failed = derive('ledger-down', { ledger: { __http: 500, message: 'boom' } });
-    expect(failed.r.code).toBe(2);
-    const pages = Array.from({ length: 5 }, () => Array.from({ length: 100 }, () => commit('9!9@x')));
-    const capped = derive('ledger-cap', { ledger: { __pages: pages } });
-    expect(capped.r.code).toBe(2);
-    expect(capped.r.stderr).toMatch(/not known/);
-    for (const x of [failed, capped]) expect(x.files).toEqual([]);
   });
 });
