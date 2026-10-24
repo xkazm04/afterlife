@@ -3,7 +3,7 @@ import { getActionClasses, getTasks, getTracks, type Task } from '@/lib/demo';
 import { TASK_DETAIL, TASK_ORDER } from '../../data/details';
 import { derivedVerdict } from '../verdict/verdict';
 import { buildTasks, toVerdict } from './buildTasks';
-import { ledgerIntact } from './ledger';
+import { firstBrokenSeq } from './ledger';
 import { firstTaskId, loadTasks } from './loadTasks';
 
 const tasks = loadTasks();
@@ -75,7 +75,7 @@ describe('loadTasks', () => {
   it('gives every task a ledger whose hashes chain', () => {
     for (const t of tasks) {
       expect(t.ledger.length).toBeGreaterThan(0);
-      expect(ledgerIntact(t.ledger)).toBe(true);
+      expect(firstBrokenSeq(t.ledger)).toBeNull();
     }
   });
 

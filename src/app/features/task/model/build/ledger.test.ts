@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GENESIS, chainLedger, firstBrokenSeq, fnv, ledgerIntact } from './ledger';
+import { GENESIS, chainLedger, firstBrokenSeq, fnv } from './ledger';
 
 const SEEDS = [
   [1, '09:00', 'task_started', 'a'],
@@ -22,10 +22,10 @@ describe('ledger chain', () => {
 
   it('detects a changed row', () => {
     const rows = chainLedger(SEEDS);
-    expect(ledgerIntact(rows)).toBe(true);
+    expect(firstBrokenSeq(rows)).toBeNull();
     const first = rows[0];
     if (!first) throw new Error('no rows');
-    expect(ledgerIntact([{ ...first, text: 'changed' }, ...rows.slice(1)])).toBe(false);
+    expect(firstBrokenSeq([{ ...first, text: 'changed' }, ...rows.slice(1)])).toBe(first.seq);
   });
 
   it('names the first row that does not verify, the seq the replay and the build both state', () => {

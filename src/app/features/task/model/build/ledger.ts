@@ -32,6 +32,3 @@ export function firstBrokenSeq(rows: readonly LedgerRow[]): number | null {
   }
   return null;
 }
-
-/** True when every row's hash is the one its predecessor and its own fields give (the replay's "hashes match"). */
-export const ledgerIntact = (rows: readonly LedgerRow[]): boolean => firstBrokenSeq(rows) === null;

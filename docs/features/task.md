@@ -31,7 +31,8 @@
     `TaskView`. The dataset wins where it has a value; the dataset quote replaces the hunk's added line; tier now comes
     from the action class; `seeded` comes from the fixture or the title/reason text. A task without base row or proof is
     dropped, never invented.
-  - `build/ledger.ts`: `chainLedger` (each FNV-1a hash covers the previous hash and the row), `ledgerIntact`.
+  - `build/ledger.ts`: `chainLedger` (each FNV-1a hash covers the previous hash and the row), `firstBrokenSeq` (the seq of the
+    first row that does not verify, or null).
   - `verdict/verdict.ts`: `checkKind`, `checkGlyph`, `proofChecks` + `taskVerdict` (the schema's `verdictOf` over the
     checks and envelope), `tally`, `claimStatus` (upheld, contradicted, open, no weight), `ruleWord`, `isStruck`.
   - `verdict/equation.ts`: `equationTerms`, `verdictWord` ("checking…" until every term has landed).
