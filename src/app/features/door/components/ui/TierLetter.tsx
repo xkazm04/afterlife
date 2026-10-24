@@ -1,7 +1,9 @@
-import { cellLetter, cellName, isCeiling, isStanding, type ClassCell, type Holder } from '@/lib/tiers';
+import { cellLetter, cellName, isCeiling, isStanding, STANDINGS, type ClassCell, type Holder, type Standing } from '@/lib/tiers';
+import type { Ceiling } from '@/schemas/tier';
 import styles from './tier.module.css';
 
-const CLS: Record<string, string | undefined> = {
+/** A style per cell lib/tiers knows: a tier or standing added there fails the type here instead of drawing uncoloured. */
+const CLS: Record<Ceiling | Standing, string | undefined> = {
   hands_off: styles.handsOff,
   supervised: styles.supervised,
   assisted: styles.assisted,
@@ -11,7 +13,7 @@ const CLS: Record<string, string | undefined> = {
   refused: styles.refused,
 };
 
-const cellOf = (t: string | null): ClassCell => (isCeiling(t) || t === 'no_record' || t === 'refused' ? t : null);
+const cellOf = (t: string | null): ClassCell => (isCeiling(t) ? t : (STANDINGS.find((s) => s === t) ?? null));
 
 /**
  * A tier as its letter in its colour (never colour alone); a dashed "?" when the class is unknown. No record yet is not a

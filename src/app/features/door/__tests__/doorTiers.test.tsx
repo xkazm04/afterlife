@@ -1,10 +1,12 @@
 // The door's tier cells come from lib/tiers: a tier added there must not leave the legend, the L2 list or the windows out.
 import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
 import { DOOR_TIERS, legendTiers, tierLabel } from '../components/rail/Rail';
 import { TIER_CLASS } from '../components/scene/District';
+import { TierLetter } from '../components/ui/TierLetter';
 
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));
 
@@ -36,6 +38,15 @@ describe('the L2 cutaway windows', () => {
       expect(css, `.wl.w_${t}`).toMatch(rule(`.wl.w_${t}`));
     }
     expect(css).toMatch(rule('.w_null'));
+  });
+  it('the tier letter colours every cell, and the unknown one, with a rule in tier.module.css', () => {
+    const css = readFileSync(new URL('../components/ui/tier.module.css', import.meta.url), 'utf8');
+    for (const t of [...cells, null]) {
+      const cls = /class="([^"]*)"/.exec(renderToString(createElement(TierLetter, { tier: t })))![1]!.split(' ');
+      const names = cls.map((c) => /^_(\w+?)_[0-9a-z]+$/.exec(c)?.[1]).filter((n) => n && n !== 'tl');
+      expect(names, String(t)).toHaveLength(1);
+      expect(css, `${t} -> .${names[0]}`).toMatch(new RegExp(`^\\.${names[0]} \\{`, 'm'));
+    }
   });
   it('the city windows each have their rule in city.module.css', () => {
     const css = readFileSync(new URL('../components/scene/city.module.css', import.meta.url), 'utf8');
