@@ -65,6 +65,17 @@ describe('ProjectRow stage cells', () => {
   });
 });
 
+describe('ProjectRow proofs title', () => {
+  it('counts what the bar draws, inconclusive included, as the bar\'s own title does', () => {
+    const out = row(makeProject({ id: 'a', proofs7d: { pass: 3, fail: 1, inconclusive: 2 } }));
+    expect(out).toContain('title="Last 7 days: 3 pass · 1 fail · 2 inconclusive"');
+    expect(out).toContain('title="3 pass · 1 fail · 2 inconclusive"');
+  });
+  it('says no proofs yet for a known zero, as the bar does', () => {
+    expect(row(makeProject({ id: 'a', proofs7d: { pass: 0, fail: 0, inconclusive: 0 } }))).toContain('title="Last 7 days: no proofs yet"');
+  });
+});
+
 describe('ProjectRow unwatched', () => {
   const unwatched = makeProject({ id: 'a', state: 'not-set-up', needsYou: 3, classTiers: {} });
 

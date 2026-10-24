@@ -37,8 +37,11 @@ export interface ProjectRowProps {
 }
 
 
-/** The proofs cell's tooltip: its numbers say pass and fail only by position and colour. */
-const proofsTitle = (c: FleetProject['proofs7d']) => (c ? `Last 7 days: ${c.pass} pass, ${c.fail} fail` : 'Proofs unknown for the last 7 days');
+/** The proofs cell's tooltip: its numbers say pass and fail only by position and colour, and the bar draws inconclusive too (in ProofBar's words). */
+function proofsTitle(c: FleetProject['proofs7d']): string {
+  if (!c) return 'Proofs unknown for the last 7 days';
+  return c.pass + c.fail + c.inconclusive === 0 ? 'Last 7 days: no proofs yet' : `Last 7 days: ${c.pass} pass · ${c.fail} fail · ${c.inconclusive} inconclusive`;
+}
 
 /** The view-dependent middle cells: tier counts, the tier of each class, or the rung of each stage. */
 function MiddleCells({ p, view, ranked, narrow, meta, h }: Pick<ProjectRowProps, 'p' | 'view' | 'ranked' | 'narrow' | 'meta' | 'h'>) {
