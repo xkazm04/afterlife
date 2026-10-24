@@ -72,3 +72,10 @@ describe('the status line\'s clock', () => {
     expect(clockText(film.entries[0]!)).toBe('10:00:04 UTC');
   });
 });
+
+describe('a reel too long to spread into Math.min', () => {
+  it('seqRange of a 200 000-entry reel is its lowest and highest seq, not a stack overflow', () => {
+    const entries = Array.from({ length: 200_000 }, (_, k) => ({ seq: 200_000 - k, t: '00:00:00' }));
+    expect(seqRange({ entries, takes: [] })).toEqual({ a: 1, b: 200_000 });
+  });
+});

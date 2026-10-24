@@ -83,8 +83,15 @@ export const takeOfIndex = (i: number, r: Reel = ILLUSTRATIVE_REEL): number =>
   });
 /** The lowest and highest seq among entries a..b (reel indexes, inclusive). A seq is a label: it need not rise with the index. */
 export function seqLabel(r: Reel, a: number, b: number): Marks {
-  const seqs = r.entries.slice(Math.max(0, a), b + 1).map((e) => e.seq);
-  return seqs.length ? { a: Math.min(...seqs), b: Math.max(...seqs) } : { a: 0, b: 0 };
+  // A loop, not Math.min(...seqs): spreading a ledger-sized reel overflows the call stack (~125k arguments).
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (let k = Math.max(0, a); k <= b && k < r.entries.length; k++) {
+    const seq = r.entries[k]!.seq;
+    if (seq < lo) lo = seq;
+    if (seq > hi) hi = seq;
+  }
+  return lo <= hi ? { a: lo, b: hi } : { a: 0, b: 0 };
 }
 /** The lowest and highest seq of the whole reel. */
 export const seqRange = (r: Reel): Marks => seqLabel(r, 0, r.entries.length - 1);
