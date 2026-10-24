@@ -22,6 +22,11 @@ describe('Sheet focus handling', () => {
     const seeded = tsx.replace(/\},\s*\[\s*\]\s*\);/, '}, [onClose]);');
     expect(depsAfter(seeded, 'onEscape(')).toBe('onClose');
   });
+  it('keeps Tab inside: the dialog handles keydown through the focus trap (the rule is tested in focusTrap.test.ts)', () => {
+    expect(tsx).toMatch(/role="dialog"[^>]*onKeyDown=\{onKeyDown\}/);
+    expect(tsx).toMatch(/trapTarget\(items, active, e\.shiftKey, self\)/);
+    expect(tsx).toMatch(/e\.preventDefault\(\);\s*target\.focus\(\)/);
+  });
 });
 
 describe('Sheet drop animation', () => {

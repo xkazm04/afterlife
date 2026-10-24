@@ -46,7 +46,8 @@
   (used by Ladder `ClassTable` and Needs-you `DecisionsTable`). `HeaderCell`, `RowGroup`, `GroupRow`, `Row` (`stale`,
   `muted`, `level`), `Cell`; `useSort` and `useRowNavigation` over pure `model/sort.ts`, `model/rowNavigation.ts`,
   `model/columns.ts`.
-- **Overlays**: `Sheet` drops from the top of the content pane with a veil, and captures Escape first. `usePopover`
+- **Overlays**: `Sheet` drops from the top of the content pane with a veil, and captures Escape first; Tab wraps
+  inside it (`lib/keyboard/focusTrap`) and closing returns focus to the opener. `usePopover`
   (with `reopenGuard` so the press that closed a sticky popover does not reopen it), `Legend`, `useMenu` (items,
   separators, headings, `checked`, `glyph`, optional `onHighlight` and j/k keys; logic in `menuModel.ts`),
   `position.ts` for clamping and above/below flipping. `ToastProvider` / `useToast()` give `toast` (about 2.6 s,
