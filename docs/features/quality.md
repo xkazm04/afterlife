@@ -46,7 +46,7 @@
   those that walk or grep the tree (`readdirSync`, `globSync`, `process.cwd()`, `git ls-files`, or a read of a path under
   `src` or `docs`). They always run, because a new route or file can break them with no import linking the two. Nothing is cached.
 - Infra changes (`package.json`, the lockfile, `vitest.config.ts`, `tsconfig*.json`, `next.config.ts`, `eslint.config.mjs`) run
-  the guards, the changed and related tests, and the `unit` project when the config has one, then print
+  the guards, the changed and related tests and the whole `unit` tier in the same single run, then print
   `infra changed: the full suite is the owner's call (npm run test:all)`. The full suite is the owner's call.
 
 <!-- WP2: tiers and throttle -->

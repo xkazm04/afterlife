@@ -1,7 +1,7 @@
 // `npm test`: only the tests that matter for what changed, plus the derived guard tests, through the throttled runner.
 //   node scripts/test/targeted.mjs [--guards-only] [--plan] [--since <rev | a..b>] [-- <vitest args>]
 // --plan prints the plan and runs nothing. --since replaces the merge-base with main (a..b replays a committed range alone).
-// It never selects the whole suite: an infra change runs the guards and the `unit` project (when there is one) and says so.
+// It never selects the whole suite: an infra change adds the `unit` tier to the same single run and says so.
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -108,12 +108,8 @@ if (!plan.files.length) {
   process.exit(1);
 }
 
-let code = run(guardsOnly ? plan.guards : plan.files, forwarded);
-if (plan.infra && !guardsOnly) {
-  console.log('infra changed: the full suite is the owner\'s call (npm run test:all)');
-  // the config names its projects from TIERS (scripts/test/tiers.mjs), so `name: 'unit'` is no longer written out
-  if (/name:\s*['"]unit['"]|\bTIERS\b/.test(fs.readFileSync(path.join(root, 'vitest.config.ts'), 'utf8'))) {
-    code = Math.max(code, spawnSync(process.execPath, [path.join(here, 'run.mjs'), '--project', 'unit', '--passWithNoTests', ...forwarded], { cwd: root, stdio: 'inherit' }).status ?? 1);
-  }
-}
+// An infra change also runs the whole unit tier - folded into the same list, so it is one vitest process and no file runs twice.
+const unitTier = plan.infra && !guardsOnly ? allTests.filter((f) => tierOf(f) === 'unit') : [];
+if (unitTier.length) console.log(`infra changed: adding the unit tier (${unitTier.length} files); the full suite is the owner's call (npm run test:all)`);
+const code = run(guardsOnly ? plan.guards : [...new Set([...plan.files, ...unitTier])].sort(), forwarded);
 process.exit(code);
