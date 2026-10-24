@@ -3,14 +3,14 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
-import { DOOR_TIERS, legendTiers, tierLabel } from '../components/rail/Rail';
+import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
+import { DOOR_TIERS, legendTiers, tierLabel, tierName } from '../components/rail/Rail';
 import { TIER_CLASS } from '../components/scene/District';
 import { TierLetter } from '../components/ui/TierLetter';
 
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));
 
-const cells = [...TIER_DISPLAY_ORDER, ...Object.keys(STANDING_META)];
+const cells = [...TIER_DISPLAY_ORDER, ...(Object.keys(STANDING_META) as Standing[])];
 
 describe('door tier cells', () => {
   it('the door list is the five tiers then the standings, in lib order', () => {
@@ -18,7 +18,12 @@ describe('door tier cells', () => {
   });
   it('the legend names every cell as lib/tiers does', () => {
     expect(legendTiers().map(([t]) => t)).toEqual(cells);
-    for (const [t, name] of legendTiers()) expect(name).toBe(t in TIER_META ? TIER_META[t as keyof typeof TIER_META].name : STANDING_META[t as keyof typeof STANDING_META].name);
+    for (const [t, name] of legendTiers()) expect(name).toBe(Object.hasOwn(TIER_META, t) ? TIER_META[t as keyof typeof TIER_META].name : STANDING_META[t as Standing].name);
+  });
+  it('names a door cell only: a prototype key is a type error, not the name "toString"', () => {
+    // @ts-expect-error 'toString' answers `in TIER_META` through the prototype; it is not a cell
+    const named = () => tierName('toString');
+    expect(typeof named).toBe('function');
   });
   it('the window classes cover every cell, and the unknown one', () => {
     expect(Object.keys(TIER_CLASS).sort()).toEqual([...cells, 'null'].sort());

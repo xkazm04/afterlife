@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { STANDING_META, STANDINGS, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/lib/tiers';
+import { cellName, STANDINGS, TIER_DISPLAY_ORDER, type Standing } from '@/lib/tiers';
 import type { Ceiling } from '@/schemas/tier';
 import { byName, needsOf, type District } from '../../model/city';
 import { plural, staleText } from '../../model/words';
@@ -12,11 +12,11 @@ import styles from './rail.module.css';
 /** Every cell a class can hold on the door: the five tiers, then the two standings (all from lib/tiers). */
 export const DOOR_TIERS: readonly (Ceiling | Standing)[] = [...TIER_DISPLAY_ORDER, ...STANDINGS];
 
-/** The name lib/tiers gives a cell. */
-export const tierName = (t: string): string => (t in TIER_META ? TIER_META[t as Ceiling].name : STANDING_META[t as Standing].name);
+/** The name lib/tiers gives a cell (cellName): only a door cell, so a string such as 'toString' is a type error, not a name. */
+export const tierName = (t: Ceiling | Standing): string => cellName(t);
 
 /** The L2 autonomy list's wording: the name in lower case; a split class keeps its longer sentence. */
-export const tierLabel = (t: string): string => (t === 'refused' ? 'split, each holder at its own tier' : tierName(t).toLowerCase());
+export const tierLabel = (t: Ceiling | Standing): string => (t === 'refused' ? 'split, each holder at its own tier' : tierName(t).toLowerCase());
 
 export const legendTiers = (): (readonly [Ceiling | Standing, string])[] => DOOR_TIERS.map((t) => [t, tierName(t)] as const);
 
