@@ -34,4 +34,10 @@ describe('SetupLegend rows', () => {
     for (const gone of ['Waits on a gate', 'Track needs track', 'Unknown capability', 'Tab walks the map', 'Locked']) expect(page).not.toContain(gone);
     expect(renderToStaticMarkup(<SetupLegend />)).toContain('Tab walks the map');
   });
+  it('says what lights an edge as the map does it: a hover or the lozenge, never a pick (a pick opens the page)', () => {
+    const map = renderToStaticMarkup(<SetupLegend />);
+    expect(map).not.toMatch(/pick/);
+    expect(map).toContain('lit on hover or by the doctor lozenge');
+    expect(map).toContain('Capability edges are illustrative, drawn in demo mode only');
+  });
 });

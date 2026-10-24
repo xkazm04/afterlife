@@ -35,14 +35,14 @@ export function SetupLegend({ where = 'map' }: { where?: 'map' | 'page' }) {
       <hr />
       <Legend
         rows={[
-          [edge('needs'), 'Needs / relies on (lit for the pick)'],
+          [edge('needs'), 'Needs / relies on (lit on hover or by the doctor lozenge)'],
           [edge('wait'), 'Waits on a gate of yours'],
           [edge('dep'), 'Track needs track'],
           [edge('unk'), 'Unknown capability'],
         ]}
       />
       <hr />
-      <div className={styles.muted}>Capability edges are illustrative · click a node · it opens its page · Esc clears · Tab walks the map</div>
+      <div className={styles.muted}>Capability edges are illustrative, drawn in demo mode only · click a node · it opens its page · Esc clears · Tab walks the map</div>
     </>
   );
 }
