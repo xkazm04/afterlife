@@ -1,7 +1,7 @@
 // Loads and validates policy/trust-policy.yml and policy/tier-state.yml. The files are structured data
 // a person reviews; the engine refuses a malformed one instead of guessing what it meant.
 import { PROOF_CLASSES } from '../../src/schemas/proof';
-import { DEMOTION_TRIGGERS, TIER_ORDER, type DemotionTrigger, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
+import { DEMOTION_TRIGGERS, TIER_ORDER, type Tier, type TierState, type TrustPolicy } from '../../src/schemas/tier';
 import { readYaml } from '../core/files';
 import { EngineError, isRecord, num, rec, strList, type Ctx } from '../core/types';
 
