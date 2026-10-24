@@ -11,8 +11,8 @@ Route `/`, from `src/app/(door)/page.tsx`. This is the port of the front-door co
   class is a dashed "?", and a project whose tiers are unknown lights no quarantine lamp;
 - each waiting decision is an amber beam.
 
-It sits outside the app window. **Enter Afterlife** goes to `/fleet`, and **Screens** lists every
-route.
+It sits outside the app window. **Enter Afterlife** goes to `/fleet`, and **What is this?** on the brand plate goes to
+`/about?from=door` (About knows it was opened from the door). There is no screens menu: the way in is Enter.
 
 ## Entrance
 
@@ -34,11 +34,12 @@ paint. `(door)/loading.tsx` shows the night ground and the brand while the city 
 
 ## Levels
 
-- **L0, the fleet:** the answer block (the amber 115, who holds the most, five marks that light
-  their towers, seven when a class has no record yet or is split), a label per district, and the readout for
-  whatever the pointer is on.
+- **L0, the fleet:** the answer block, in one order: the amber 115 and its words; one wrapping row of filter chips (five
+  marks that light their towers, seven when a class has no record yet or is split; the locked one is pressed and
+  carries a ✕); a rule; then the stats, who holds the most and the cycles link. A label per district, and the readout
+  for whatever the pointer is on.
 - **L1, a district:** the camera frames it, the other districts fade, and the rail lists who needs
-  you, what is stale, what is setting up and what is not watched.
+  you, what is stale, what is setting up and what is not watched. The tier legend's "?" sits beside the rail's title.
 - **L2, a project:** the cutaway lifts from its tower. Floors are lit by stage rung, windows show
   tier letters, the antenna is the feed and the beacon is its decisions. The panel shows the
   numbers, plus the decisions and tracks for ledgerline. In live mode the cockpit lines and the
@@ -142,6 +143,7 @@ Two departures are on purpose, both for rendering cost:
   loading frame.
 
 ## Ways in to the loop
-Under the week's proofs, a loop mark says how many projects are in improvement cycles and the rungs those cycles have
+Last in the answer's stats, a link says how many projects are in improvement cycles and the rungs those cycles have
 earned since day 0, net (the same figures the Cycles estate shows: data/loadDoorData.ts reads loadEstateData); it
-links to Cycles. With no project in cycles the mark is left out.
+goes to Cycles. With no project in cycles the link is left out. The week's proofs are not on the door's answer any
+more (Fleet says them; the readout and L2 still say a project's).

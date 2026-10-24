@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
 import type { Holder } from '@/lib/tiers';
-import { FilterChip } from './components/chrome/FilterChip';
 import { Splash } from './components/chrome/Splash';
 import { BottomChrome, TopChrome } from './components/chrome/Chrome';
 import { Entrance, enteredBefore } from './components/entrance/Entrance';
@@ -58,13 +57,10 @@ export function DoorScreen({ data, entrance = true }: { data: DoorData; entrance
   const tiersTop = useMemo(() => topTiers(data.projects), [data.projects]);
   const staleTop = useMemo(() => s.ds.slice().sort((a, b) => b.stale - a.stale)[0] ?? null, [s.ds]);
   const { ds, openG, hover, goHome, curG: openGi } = s;
-  const onOpenTop = useCallback(
-    (k: 'needs' | 'stale') => {
-      const best = ds.slice().sort((a, b) => (k === 'needs' ? b.needs - a.needs : b.stale - a.stale))[0];
-      if (best) openG(best.gi);
-    },
-    [ds, openG],
-  );
+  const onOpenTop = useCallback(() => {
+    const best = ds.slice().sort((a, b) => b.needs - a.needs)[0];
+    if (best) openG(best.gi);
+  }, [ds, openG]);
   const onLabelHover = useCallback((gi: number | null) => hover(gi, null), [hover]);
   const onGo = useCallback((l: 0 | 1) => (l === 0 ? goHome() : openGi != null && openG(openGi)), [goHome, openG, openGi]);
   const cur = s.curG != null ? (s.ds[s.curG] ?? null) : null;
@@ -129,7 +125,6 @@ export function DoorScreen({ data, entrance = true }: { data: DoorData; entrance
       <div className={`${styles.stage} ${styles.uiStage}`}>
         <div className={styles.ui}>
           <Answer totals={totals} tiers={tiersTop} staleTop={staleTop} cycles={data.cycles} intro={s.intro} tabbable={s.level === 0} locked={s.locked} onMark={s.setMark} onLock={s.lock} onOpen={onOpenTop} />
-          <FilterChip kind={s.locked} open={s.locked === 'stale' && staleTop && staleTop.stale > 0 ? staleTop.name : null} onClear={s.unlock} onOpen={() => onOpenTop('stale')} />
           <Labels ds={s.ds} hotG={s.hotG} tabbable={s.level === 0} onHover={onLabelHover} onOpen={s.openG} />
           <Readout name={name} line={line} tiers={tiers} holders={holders} />
           {s.level === 1 && cur ? <Rail key={cur.gi} d={cur} hotId={s.hotId} onHover={s.setHotId} onOpen={s.openP} /> : null}

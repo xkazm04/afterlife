@@ -21,9 +21,8 @@ describe('the door says every proof outcome Fleet says', () => {
     expect(sum).toBe(29);
     expect(fleetTotals(fleet.projects).inc).toBe(sum);
   });
-  it('shows them in the answer proof line, and stays quiet at 0', () => {
-    expect(answer({ pass: 40, fail: 2, inc: 29 })).toContain('40 proofs passed this week · 2 failed · 29 inconclusive');
-    expect(answer({ pass: 40, fail: 2, inc: 0 })).not.toContain('inconclusive');
+  it('leaves the week of proofs off the answer block (Fleet, the readout and L2 say it)', () => {
+    expect(answer({ pass: 40, fail: 2, inc: 29 })).not.toMatch(/passed this week|inconclusive/);
   });
   it('shows them in a tower readout, and stays quiet at 0', () => {
     const p = fleet.projects.find((x) => x.state === 'watching' && x.proofs7d)!;

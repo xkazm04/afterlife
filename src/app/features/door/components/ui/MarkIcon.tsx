@@ -7,7 +7,7 @@ const box = (style: React.CSSProperties) => {
 };
 
 /** The answer's drawn marks, in the city's own vocabulary: a hatched tile, a Q, a dashed tile with a dash, a tile with a split mark, a dashed or solid little tower, a tick, a loop. */
-export function MarkIcon({ kind }: { kind: MarkKind | 'proof' | 'cycle' }) {
+export function MarkIcon({ kind }: { kind: MarkKind | 'cycle' }) {
   let body;
   if (kind === 'stale') body = <rect x="3" y="3" width="24" height="24" rx="3" style={{ fill: 'url(#d-hatch)', stroke: 'var(--stale)' }} />;
   else if (kind === 'quar')
@@ -45,7 +45,6 @@ export function MarkIcon({ kind }: { kind: MarkKind | 'proof' | 'cycle' }) {
         <path d="M22.5 2.5 V8 H17" style={{ fill: 'none', stroke: 'var(--accent)', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
       </>
     );
-  else if (kind === 'proof') body = <path d="M6 16 L12 22 L24 8" style={{ fill: 'none', stroke: 'var(--accent)', strokeWidth: 2.4, strokeLinecap: 'round', strokeLinejoin: 'round' }} />;
   else body = <path d="M15 3 L27 15 L15 27 L3 15 Z" style={{ fill: 'var(--needs-you)' }} />;
   return (
     <svg viewBox="0 0 30 30" aria-hidden>

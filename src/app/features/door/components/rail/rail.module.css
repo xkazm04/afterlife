@@ -24,6 +24,13 @@
   border-bottom: 1px solid var(--border-2);
   box-shadow: var(--edge-glow);
 }
+/* the title, with the tier legend's "?" on its line; the legend's popover anchors here, opening down over the list */
+.title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .head h2 {
   margin: 0;
   font-size: 30px;

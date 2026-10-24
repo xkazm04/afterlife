@@ -2,43 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { memo, useEffect, useRef, useState } from 'react';
-import { ALL_NAV } from '@/components/shell/sidebar/navItems';
+import { memo } from 'react';
 import bottom from './bottom.module.css';
 import styles from './chrome.module.css';
 
-/** Every screen of the app, from the sidebar's own list (Settings included), so the menu cannot drift from it; then About (/about, the film). */
-export const SCREENS: readonly (readonly [string, string])[] = [...ALL_NAV.map((e) => [e.label, e.href] as const), ['About', '/about'] as const];
-
-/**
- * Escape closes the open menu and is claimed, so the door's own Esc (up a level) does not also fire on the same press:
- * `useDoor` skips a key whose default is prevented.
- */
-export function claimEscape(e: { key: string; preventDefault: () => void }): boolean {
-  if (e.key !== 'Escape') return false;
-  e.preventDefault();
-  return true;
-}
-
-/** Top left: the brand plate. Top right: the way in, and every screen. */
+/** Top left: the brand plate, and what this is (About, told from the door). Top right: the way in. */
 export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; asOf: string }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const toggle = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: PointerEvent | KeyboardEvent) => {
-      const esc = e instanceof KeyboardEvent && claimEscape(e);
-      if (esc || (!(e instanceof KeyboardEvent) && !ref.current?.contains(e.target as Node))) setOpen(false);
-      if (esc) toggle.current?.focus(); // the list unmounts under a keyboard user: focus goes back to Screens, not to the body
-    };
-    window.addEventListener('pointerdown', close);
-    window.addEventListener('keydown', close, true);
-    return () => {
-      window.removeEventListener('pointerdown', close);
-      window.removeEventListener('keydown', close, true);
-    };
-  }, [open]);
   return (
     <>
       <header className={`${styles.chrome} ${styles.tl}`}>
@@ -48,39 +17,15 @@ export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; a
           <small>
             {org} · as of {asOf}
           </small>
-          <Link className={styles.about} href="/about" data-role="door-about">
+          <Link className={styles.about} href="/about?from=door" data-role="door-about">
             What is this?
           </Link>
         </div>
       </header>
-      <div
-        ref={ref}
-        className={`${styles.chrome} ${styles.tr}`}
-        // Tab past the last screen closes the menu; focus leaving the window (no relatedTarget) does not
-        onBlur={(e) => {
-          if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
-        }}
-      >
-        <div className={styles.row}>
-          <Link className={styles.enter} href="/fleet" data-role="door-enter">
-            Enter Afterlife
-          </Link>
-          <button ref={toggle} type="button" className={styles.menuBtn} aria-expanded={open} aria-controls="door-menu" aria-label="Screens, all of the app" onClick={() => setOpen((v) => !v)}>
-            Screens<span className={styles.cv}>▾</span>
-          </button>
-        </div>
-        {open ? (
-          <ul id="door-menu" className={styles.menu}>
-            {SCREENS.map(([name, href]) => (
-              <li key={href}>
-                <Link href={href}>
-                  {name}
-                  <span>{href}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : null}
+      <div className={`${styles.chrome} ${styles.tr}`}>
+        <Link className={styles.enter} href="/fleet" data-role="door-enter">
+          Enter Afterlife
+        </Link>
       </div>
     </>
   );

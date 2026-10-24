@@ -1,8 +1,9 @@
-/* The rail's tier legend: a "?" that reveals the seven letters above it on hover or focus. */
+/* The rail's tier legend: a "?" beside the rail's title that reveals the seven letters on hover or focus. The hint is
+   not positioned, so the popover anchors to the title row (its nearest positioned ancestor) and spans it, opening
+   downward over the list: upward would leave the rail's top and the stage. */
 .hint {
-  position: relative;
-  width: 100%;
-  margin-bottom: 6px;
+  flex: none;
+  display: flex;
 }
 .q {
   width: 28px;
@@ -28,12 +29,12 @@
 .pop {
   position: absolute;
   left: 0;
-  bottom: calc(100% + 8px);
+  right: 0;
+  top: calc(100% + 8px);
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  width: 420px;
   padding: 12px 14px;
   border: 1px solid var(--border-3);
   background: var(--d-plate-solid);

@@ -72,9 +72,19 @@ export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string
   return (
     <aside className={styles.rail} aria-label={`${d.name} district`} data-role="door-rail">
       <div className={styles.head}>
-        <h2 data-role="door-rail-title">
-          {d.needP} of {d.n} {plural(d.needP, 'needs', 'need')} you
-        </h2>
+        <div className={styles.title}>
+          <h2 data-role="door-rail-title">
+            {d.needP} of {d.n} {plural(d.needP, 'needs', 'need')} you
+          </h2>
+          <LegendHint>
+            {legendTiers().map(([t, name]) => (
+              <span key={t}>
+                <TierLetter tier={t} />
+                {name}
+              </span>
+            ))}
+          </LegendHint>
+        </div>
         <p>pick any project to open it</p>
       </div>
       <div className={styles.body}>
@@ -87,14 +97,6 @@ export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string
         </p>
       </div>
       <div className={styles.foot}>
-        <LegendHint>
-          {legendTiers().map(([t, name]) => (
-            <span key={t}>
-              <TierLetter tier={t} />
-              {name}
-            </span>
-          ))}
-        </LegendHint>
         <Link className={styles.enter} href="/fleet">
           Enter Afterlife
         </Link>

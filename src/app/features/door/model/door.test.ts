@@ -130,15 +130,12 @@ describe('copy that counts: one is singular', () => {
     for (const n of [0, 1, 2]) expect([html({ needs: n }), answer({ needs: n }), lineOf(n)].map((t) => t.includes(waitWords(n)))).toEqual([true, true, true]);
     expect(html({ needs: 1 })).toContain('aria-label="1 decision waits for you.');
   });
-  it('says "1 class quarantined" and "1 proof passed" in the answer block', () => {
+  it('says "1 class quarantined" in the answer block, and no longer a week of proofs', () => {
     expect(answer({ quar: 1, pass: 1 })).toContain('1 class quarantined');
-    expect(answer({ quar: 1, pass: 1 })).toContain('1 proof passed this week');
     expect(answer({ quar: 25, pass: 40 })).toContain('25 classes quarantined');
-    expect(answer({ quar: 25, pass: 40 })).toContain('40 proofs passed this week');
+    expect(answer({ quar: 25, pass: 40, fail: 3 })).not.toContain('passed this week');
   });
-  it('paints the failed count in the failure colour only when something failed, as the readout does', () => {
-    const failed = (fail: number) => /<span class="[^"]+">\d+<\/span> (<!-- -->)?failed/.test(html({ fail }));
-    expect([failed(0), failed(3)]).toEqual([false, true]);
+  it('says a zero failed count plainly in the readout', () => {
     expect(projectLine({ ...watching, proofs7d: { pass: 2, fail: 0, inconclusive: 0 } }).at(-1)).toEqual(['0 fail', 'plain']);
   });
 });

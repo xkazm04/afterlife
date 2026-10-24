@@ -9,22 +9,24 @@
 - A page load opens on the entrance: treasure gates over the city whose lock is the Belay knot (`components/entrance/`).
   They open by themselves after about 2.2 s, or at once on any key or click; `?entrance=off`, reduced motion and a
   client-side return from the app go straight to the city.
-- L0 (fleet): the answer block on the left gives the one loud number (decisions waiting), who holds the most, five
-  marks (stale, classes quarantined, setting up, not watched, watching) plus two shown only when non-zero (classes
-  with no record yet, classes split between agents), the week's proofs passed, failed and (when any) inconclusive,
-  and a loop mark ("N in improvement cycles · +M rungs since day 0") that links to `/cycles`. Pointing at a mark
-  lights its towers; clicking it locks it as a filter, shown as a chip that clears it (and, for stale, opens the
-  district with the most stale). The big number opens the district that holds the most decisions.
+- L0 (fleet): the answer block on the left reads in one order. First the one loud number (decisions waiting) and its
+  words; then one wrapping row of filter chips: five marks (stale, classes quarantined, setting up, not watched,
+  watching) plus two shown only when non-zero (classes with no record yet, classes split between agents); then a
+  rule; then the stats: who holds the most, and a link ("N in improvement cycles · +M rungs since day 0") to
+  `/cycles`. Pointing at a chip lights its towers; clicking it locks it as the filter: the chip shows pressed with a
+  ✕, and clicking it again or Esc lets it go. The big number opens the district that holds the most decisions. The
+  week's proofs are not on the answer (Fleet says them; the readout and L2 say a project's).
 - L1 (district): the camera frames one district, the others fade, and the rail lists who needs you (most first),
-  stale, setting up and not watched projects, each saying why, then how many are calm. Exits: Enter Afterlife
-  (`/fleet`), Needs you, Ladder, and Setup when a district has projects setting up or not watched.
+  stale, setting up and not watched projects, each saying why, then how many are calm. The tier legend is a "?" beside the
+  rail's title, opening downward on hover or focus. Exits: Enter Afterlife (`/fleet`), Needs you, Ladder, and Setup
+  when a district has projects setting up or not watched.
 - L2 (project): a cutaway tower lifts out. A floor per listed stage (nine today), each lit by its rung (dashed when unknown), windows carry tier
   letters, the antenna is the feed and the roof beacon is its decisions. The side panel shows state and numbers; for
   the deep project it adds the cockpit lines, its decisions and its tracks. Exits go to Needs you, Ladder, Maturity,
   Task, Theater or Setup depending on the project.
-- Esc and Back go up a level; Tab, Enter and Space work at every level. **Screens** in the top chrome lists every
-  route (the app nav, then About); **Enter Afterlife** goes to `/fleet`; **What is this?** on the brand plate opens
-  `/about`.
+- Esc and Back go up a level (Esc lets a locked filter go first); Tab, Enter and Space work at every level. **Enter
+  Afterlife** in the top chrome goes to `/fleet`; **What is this?** on the brand plate opens `/about?from=door`. There
+  is no screens menu.
 
 ## How it works
 - The root layout's `<head>` renders `DoorFitBoot` (`components/chrome/FitBoot.tsx`): the inline script from
@@ -80,9 +82,9 @@
 | `hooks/useQuality.ts`, `useStill.ts`, `useStageFit.ts`, `useCountUp.ts` | Render tier probe, idle pause, resize fit, count-up |
 | `components/scene/` | City layers: `Scene`, `District`, `Ground`/`Pulses`, `Beams`/`SetupLights`/`HoverMarks`, `SceneDefs` |
 | `components/ui/` | `Answer`, `Labels`, `Readout`, `Parts`, `TierLetter`, `MarkIcon` |
-| `components/rail/Rail.tsx` | L1 district list and exits |
+| `components/rail/` | `Rail` (L1 district list and exits), `LegendHint` (the tier legend beside its title) |
 | `components/l2/` | `L2View`, `L2Tower`, `L2Panel` (project cutaway and panel) |
-| `components/chrome/` | `TopChrome` (brand, Enter, Screens), `BottomChrome` (crumbs, Back), `FilterChip` (the locked mark), `Splash`, `DoorLoading`, `DoorFitBoot` |
+| `components/chrome/` | `TopChrome` (brand, What is this?, Enter), `BottomChrome` (crumbs, Back), `Splash`, `DoorLoading`, `DoorFitBoot` |
 | `components/entrance/` | `Entrance` and the treasure gates (`gates/`): the overlay a page load opens on |
 
 ## Tests
@@ -94,7 +96,7 @@
 - `data/loadDoorData.live.test.tsx`: live over the seeded index, the door, Fleet, Monitor and `/needs-you` list the
   same decisions and the cycles line counts what `/cycles` counts; demo keeps all five decisions.
 - `hooks/*.test.ts`: the count-up, the render-tier probe, the stage fit and the idle pause.
-- `__tests__/` (chrome menu and Escape, tier cells, empty fleet, L2 rungs, rail rows, scene focus) and
+- `__tests__/` (the answer's order and its locked chip, tier cells, empty fleet, L2 rungs, rail rows, scene focus) and
   `__tests__/proofs/` (city fit, gates fail-safe and clock, inconclusive proofs, L2 class focus, quarantine parity,
   readout); `components/ui/labels/Labels.test.tsx` beside the labels.
 

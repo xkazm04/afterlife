@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { memo } from 'react';
 import type { District } from '../../model/city';
-import { fmt, plural, waits, waitWords, type FleetTotals, type MarkKind } from '../../model/words';
+import { MARK_LABEL } from '../../model/filter';
+import { fmt, waits, waitWords, type FleetTotals, type MarkKind } from '../../model/words';
 import { COUNT_BIG, COUNT_MARK, useCountUp } from '../../hooks/useCountUp';
 import { MarkIcon } from './MarkIcon';
 import styles from './answer.module.css';
@@ -24,9 +25,10 @@ function Count({ n, delay, dur, intro }: { n: number; delay: number; dur: number
 }
 
 /**
- * The answer, left of the city: the one loud number, who holds the most, then the drawn marks, the week's proofs and the
- * improvement cycles (a way into Cycles). Pointing at a mark previews it across the city, clicking locks it as the filter
- * (again to let it go); the number opens the district that holds the most.
+ * The answer, left of the city, in one order: the one loud number and its words; one wrapping row of mark chips (the
+ * filters); a rule; then the stats, who holds the most and the improvement cycles (a link into Cycles). Pointing at a
+ * chip previews it across the city, clicking locks it as the filter and gives it a ✕ (again, or Esc, lets it go); the
+ * number opens the district that holds the most.
  */
 export const Answer = memo(function Answer({
   totals,
@@ -62,23 +64,10 @@ export const Answer = memo(function Answer({
       <div className={styles.bigSub} data-role="door-big-sub">
         {waitWords(totals.needs)} for you
       </div>
-      <div className={styles.top}>
-        {tiers.map((t) => (
-          <div key={t.n}>
-            <span className={styles.n}>{t.n}</span> each at{' '}
-            {t.names.map((name, i) => (
-              <span key={name}>
-                {i ? ', ' : ''}
-                <b>{name}</b>
-              </span>
-            ))}
-          </div>
-        ))}
-      </div>
-      <ul className={styles.marks}>
+      <ul className={styles.chips} aria-label="Filter the city">
         {MARKS.filter((m) => !m.quiet || m.n(totals) > 0).map((m) => (
           <li key={m.kind}>
-            <button type="button" className={styles.mk} tabIndex={tab} data-role="door-mark" aria-pressed={locked === m.kind} onClick={() => onLock(m.kind)} {...lit(m.kind)}>
+            <button type="button" className={styles.chip} tabIndex={tab} data-role="door-mark" aria-pressed={locked === m.kind} onClick={() => onLock(m.kind)} {...lit(m.kind)}>
               <MarkIcon kind={m.kind} />
               <span>
                 <b>
@@ -86,41 +75,39 @@ export const Answer = memo(function Answer({
                 </b>
                 {m.words(totals, staleTop)}
               </span>
+              {locked === m.kind ? (
+                <span className={styles.x} aria-hidden title={`Clear the ${MARK_LABEL[m.kind]} filter`}>
+                  ✕
+                </span>
+              ) : null}
             </button>
           </li>
         ))}
-        <li>
-          <span className={`${styles.mk} ${styles.proof}`}>
-            <MarkIcon kind="proof" />
-            <span>
-              <b>
-                <Count n={totals.pass} {...COUNT_MARK} intro={intro} />
-              </b>{' '}
-              {plural(totals.pass, 'proof')} passed this week ·{' '}
-              <span className={totals.fail ? styles.fl : undefined}>
-                <Count n={totals.fail} {...COUNT_MARK} intro={intro} />
-              </span>{' '}
-              failed
-              {totals.inc ? (
-                <>
-                  {' '}
-                  · <Count n={totals.inc} {...COUNT_MARK} intro={intro} /> inconclusive
-                </>
-              ) : null}
-            </span>
-          </span>
-        </li>
-        {cycles.projects ? (
-          <li>
-            <Link className={`${styles.mk} ${styles.proof} ${styles.link}`} href="/cycles" tabIndex={tab} data-role="door-cycles">
-              <MarkIcon kind="cycle" />
-              <span>
-                <b>{cycles.projects}</b> in improvement cycles · <b>{cycles.gained >= 0 ? '+' : ''}{cycles.gained}</b> rungs since day 0
-              </span>
-            </Link>
-          </li>
-        ) : null}
       </ul>
+      <hr className={styles.rule} />
+      <div className={styles.stats}>
+        <div className={styles.top}>
+          {tiers.map((t) => (
+            <div key={t.n}>
+              <span className={styles.n}>{t.n}</span> each at{' '}
+              {t.names.map((name, i) => (
+                <span key={name}>
+                  {i ? ', ' : ''}
+                  <b>{name}</b>
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+        {cycles.projects ? (
+          <Link className={styles.cycles} href="/cycles" tabIndex={tab} data-role="door-cycles">
+            <MarkIcon kind="cycle" />
+            <span>
+              <b>{cycles.projects}</b> in improvement cycles · <b>{cycles.gained >= 0 ? '+' : ''}{cycles.gained}</b> rungs since day 0
+            </span>
+          </Link>
+        ) : null}
+      </div>
     </section>
   );
 });

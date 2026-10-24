@@ -1,9 +1,10 @@
-/* The answer block and the HUD readout (stage px; the stage scales as a whole). The district labels: labels/. */
+/* The answer block (stage px; the stage scales as a whole): the hero, one row of chips, a rule, the stats. The chip row
+   runs to x 1064 above the towers (they rise from about y 400); the stats keep to the left column, clear of payments. */
 .answer {
   position: absolute;
   left: 64px;
   top: 104px;
-  width: 520px;
+  width: 1000px;
   transition: opacity 500ms var(--ease), transform 600ms var(--ease);
   pointer-events: auto;
 }
@@ -34,8 +35,72 @@
   font-weight: 600;
   color: var(--text-1);
 }
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 14px 0 8px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-pill);
+  background: var(--d-plate);
+  font-size: 20px;
+  color: var(--text-2);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chip:hover,
+.chip:focus-visible {
+  border-color: var(--border-3);
+  background: var(--d-plate-solid);
+  color: var(--text-1);
+}
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--d-plate-solid);
+  color: var(--text-1);
+}
+.chip b {
+  color: var(--text-1);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.chip svg,
+.cycles svg {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  overflow: visible;
+}
+.x {
+  margin-left: 2px;
+  color: var(--accent);
+  font-size: 17px;
+}
+.rule {
+  width: 100%;
+  height: 0;
+  margin: 18px 0 14px;
+  border: 0;
+  border-top: 1px solid var(--border-2);
+}
+/* the stats: text, and the cycles link; kept to the left column so they never cross a tower */
+.stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 400px;
+}
 .top {
-  margin-top: 12px;
   font-size: 21px;
   line-height: 1.45;
   color: var(--text-2);
@@ -49,71 +114,29 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.marks {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 26px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.mk {
+.cycles {
   display: flex;
   align-items: center;
-  gap: 14px;
-  width: max-content;
-  padding: 5px 8px 5px 2px;
-  border: 0;
+  gap: 12px;
   border-radius: var(--r-sm);
-  background: none;
-  font-size: 21px;
-  color: var(--text-2);
-  text-align: left;
-  cursor: pointer;
+  font-size: 20px;
+  line-height: 1.35;
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent) 40%, transparent);
+  text-underline-offset: 4px;
 }
-.mk:hover,
-.mk:focus-visible {
-  background: var(--hover);
-  color: var(--text-1);
-}
-.mk[aria-pressed="true"] {
-  background: var(--hover);
-  color: var(--text-1);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-.mk b {
-  color: var(--text-1);
+.cycles b {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.mk svg {
-  flex: none;
-  width: 30px;
-  height: 30px;
-  overflow: visible;
-}
-.proof {
-  width: 470px;
-  margin-top: 6px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-2);
-  border-radius: 0;
-}
-.fl {
-  color: var(--fail);
-  font-weight: 700;
+.cycles:hover,
+.cycles:focus-visible {
+  text-decoration-color: var(--accent);
 }
 .big:focus-visible,
-.mk:focus-visible {
+.chip:focus-visible,
+.cycles:focus-visible {
   outline: none;
   box-shadow: var(--ring);
-}
-
-/* the cycles mark links into Cycles: it reads like the other marks until pointed at */
-.link {
-  text-decoration: none;
-  color: inherit;
-}
-.link:is(:hover, :focus-visible) span {
-  text-decoration: underline 1px;
 }
