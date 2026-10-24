@@ -106,7 +106,12 @@ export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
       if (off) throw new GitLabError('api', off, planned.display);
       const r = await c.run(planned.argv);
       let body: unknown = null;
-      try { body = r.stdout.trim() ? JSON.parse(r.stdout) : null; } catch { body = null; }
+      try {
+        body = r.stdout.trim() ? JSON.parse(r.stdout) : null;
+      } catch (e) {
+        // The write ran; only its answer is unreadable, so the result names nothing it made (no MR link, no commit).
+        console.error(`belay: ${planned.display} succeeded but its answer is not JSON; the result names nothing it made`, e);
+      }
       return { ok: true, stdout: r.stdout, body };
     },
   };
