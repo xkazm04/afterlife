@@ -68,14 +68,14 @@ function commitList(p: ProjectData, q: URLSearchParams): Res {
 const allMrs = (st: FakeState, q: URLSearchParams, only?: ProjectData): Record<string, unknown>[] => {
   const state = q.get('state') ?? 'all';
   const labels = (q.get('labels') ?? '').split(',').filter(Boolean);
-  const after = q.get('updated_after');
+  const after = q.get('updated_after'); // GitLab: updated on or after, as an instant
   const source = q.get('source_branch');
   return byId((only ? [only] : st.projects).flatMap((p) => p.mrs)).filter(
     (r) =>
       (state === 'all' || r.state === state) &&
       (!source || r.source_branch === source) &&
       labels.every((l) => (r.labels as string[]).includes(l)) &&
-      (!after || String(r.updated_at) > after),
+      (!after || Date.parse(String(r.updated_at)) >= Date.parse(after)),
   );
 };
 
