@@ -1,7 +1,7 @@
 // The Onboard screen's data and its starting point, built once on the server from the fleet. Pure.
 import type { FleetProject } from '@/lib/demo/types';
 import type { ProjectRun } from './batch';
-import { setupStepNumber, stepOf } from './funnel';
+import { stepOf } from './funnel';
 
 export interface OnboardData {
   /** The GitLab group the estate lives in ("acme-lab") and its host. */
@@ -25,7 +25,8 @@ export function initialRuns(data: OnboardData): Record<string, ProjectRun> {
   const out: Record<string, ProjectRun> = {};
   for (const p of data.projects) {
     const step = stepOf(p, cycling);
-    const waitsMerge = p.state === 'setting-up' && /waits for your merge/.test(p.setupStep ?? '') && setupStepNumber(p) < 11;
+    // a bootstrap MR that waits for its merge holds a setup at baselined; stepOf alone says where paired begins
+    const waitsMerge = p.state === 'setting-up' && /waits for your merge/.test(p.setupStep ?? '') && step === 'baselined';
     const setupUnknown = p.state === 'setting-up' && !p.setupStep;
     out[p.id] = {
       step,

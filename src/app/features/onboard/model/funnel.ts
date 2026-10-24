@@ -35,7 +35,7 @@ export function stepOf(p: FleetProject, cycling: Cycling): Step {
 }
 
 /** "step 10 of 14 · ..." -> 10; no step recorded -> 0 (the bootstrap is not merged). */
-export function setupStepNumber(p: FleetProject): number {
+function setupStepNumber(p: FleetProject): number {
   const m = /step (\d+)/.exec(p.setupStep ?? '');
   return m ? Number(m[1]) : 0;
 }
