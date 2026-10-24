@@ -3,7 +3,8 @@
 // sections only draw their slice. A button is a link (in the app, or out to GitLab), disabled with the reason, or (demo
 // mode only) a simulated flash.
 import type { ActionClass, FleetProject, NeedsYouItem } from '@/lib/demo/types';
-import { feedRows, gitlabUrl, type FeedRow } from '../inspector';
+import { feedRows, type FeedRow } from '../inspector';
+import { demoRevealText, projectPath } from '../menus/contextMenus';
 import type { DeepProject, FleetSource, FleetTask } from '../types';
 
 export type FleetMode = FleetSource['mode'];
@@ -74,7 +75,7 @@ export function projectView(p: FleetProject, deep: DeepProject | null, ctx: Proj
         kind: 'summary', ...common, records: {}, tasks: { kind: 'elsewhere', deepId: ctx.deepId },
         events: { kind: 'last', row: p.last ? [p.last.at, p.last.track, p.last.text] : null },
       };
-  const core = { id: p.id, name: p.name, path: `${ctx.portfolio}/${p.group}/${p.id}`, deepId: ctx.deepId, webUrl: p.webUrl ?? null, mode: source.mode, depth };
+  const core = { id: p.id, name: p.name, path: projectPath(ctx.portfolio, p), deepId: ctx.deepId, webUrl: p.webUrl ?? null, mode: source.mode, depth };
   return { ...core, actions: projectActions(core, source.mode) };
 }
 
@@ -92,7 +93,7 @@ export function projectActions(v: Pick<ProjectView, 'name' | 'path' | 'deepId' |
   return demo
     ? [
         { label: 'Review queue', variant: 'primary', kind: 'flash', text: `Opening the queue for ${v.name} (demo)` },
-        { label: 'Open in GitLab', kind: 'flash', text: `${gitlabUrl(v.path)} (demo, no network)` },
+        { label: 'Open in GitLab', kind: 'flash', text: demoRevealText(v.path) },
       ]
     : [
         { label: 'Review queue', variant: 'primary', kind: 'disabled', reason: `Needs you lists ${v.deepId}’s decisions only` },

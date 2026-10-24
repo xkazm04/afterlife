@@ -22,12 +22,15 @@ export interface RowMenuArgs {
 /** The project's place in GitLab: portfolio / group / project. */
 export const projectPath = (portfolio: string, p: FleetProject): string => `${portfolio}/${p.group}/${p.id}`;
 
+/** What demo says instead of opening GitLab: the address it would open, and that nothing went out. */
+export const demoRevealText = (path: string): string => `${gitlabUrl(path)} (demo, no network)`;
+
 /**
  * As the project page's Open in GitLab: demo says where it would go (no network); live opens the address a poll stored
  * (`webUrl`, http or https only), and has nothing to open before one did (null: the item is disabled).
  */
 export function revealTarget(mode: 'demo' | 'live', p: FleetProject, path: string): RevealTarget | null {
-  if (mode === 'demo') return { kind: 'flash', text: `${gitlabUrl(path)} (demo, no network)` };
+  if (mode === 'demo') return { kind: 'flash', text: demoRevealText(path) };
   return p.webUrl && /^https?:\/\//i.test(p.webUrl) ? { kind: 'open', href: p.webUrl } : null;
 }
 

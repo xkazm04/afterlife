@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { demoSource, setDataSource } from '@/server/data';
 import { loadFleetProject } from '../../data/loadFleetProject';
+import { projectPath, revealTarget } from '../menus/contextMenus';
 import { projectActions, type ProjectAction, type ProjectView } from './view';
 
 afterEach(() => setDataSource(null));
@@ -58,6 +59,14 @@ describe('projectActions: a flash exists only in demo mode', () => {
     expect([review?.kind, gitlab?.kind]).toEqual(['flash', 'flash']);
     expect(review?.kind === 'flash' && review.text.endsWith('(demo)')).toBe(true);
     expect(gitlab?.kind === 'flash' && gitlab.text.endsWith('(demo, no network)')).toBe(true);
+  });
+
+  it('demo, fx-rates: the page path and Open in GitLab say what the row menu says', () => {
+    setDataSource(demoSource);
+    const { project: p, data, view: v } = loadFleetProject('fx-rates')!;
+    const path = projectPath(data.portfolio, p);
+    expect(v.path).toBe(path);
+    expect(named(projectActions(v, 'demo'), 'Open in GitLab')).toEqual({ label: 'Open in GitLab', ...revealTarget('demo', p, path) });
   });
 });
 
