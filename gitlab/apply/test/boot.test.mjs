@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const yml = fs.readFileSync(path.resolve(import.meta.dirname, '.gitlab-ci.yml'), 'utf8').split('\n');
+const yml = fs.readFileSync(path.resolve(import.meta.dirname, '..', '.gitlab-ci.yml'), 'utf8').split('\n');
 const start = yml.findIndex((l) => l.startsWith('    - |')) + 1;
 const end = yml.findIndex((l) => l.includes('export BELAY_DIR='));
 const checks = yml.slice(start, end).map((l) => l.slice(6)).join('\n');

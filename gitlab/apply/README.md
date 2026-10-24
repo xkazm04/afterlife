@@ -19,7 +19,7 @@ belay-apply/
 
 The scripts are not copied here. Each job clones `belay-engine` at `engine.ref` and checks that it resolves to
 `engine.commit` (both required), then runs `gitlab/apply/sweep.mjs` and `gitlab/apply/tripwire-sweep.mjs` from that
-checkout. The other files in this folder of the Belay repo (`*.mjs`, `*.test.mjs`) are those scripts and their tests. They
+checkout. The other files in this folder of the Belay repo (`*.mjs`) are those scripts; their tests are in `test/`. They
 are not part of the project.
 
 ## What it promises

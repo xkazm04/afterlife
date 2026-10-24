@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const spawn = vi.hoisted(() => vi.fn());
 vi.mock('node:child_process', async (orig) => ({ ...(await orig()), spawnSync: spawn }));
-const { clonePolicy, setCloneSleep } = await import('./lib.mjs');
+const { clonePolicy, setCloneSleep } = await import('../lib.mjs');
 
 const cfg = { policy: { project: 'acme/belay-policy', branch: 'main' } };
 const fail = (stderr) => ({ status: 128, stderr: `${stderr}\nsecond line\n` });

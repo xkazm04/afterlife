@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
-import { ROOT, runScript, workdir } from '../components/scripts/testing/harness.mjs';
+import { ROOT, runScript, workdir } from '../../components/scripts/testing/harness.mjs';
 
 const dir = workdir('apply-tripwire');
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));

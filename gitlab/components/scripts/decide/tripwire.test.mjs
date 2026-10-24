@@ -126,7 +126,7 @@ describe('tripwire.mjs never writes over a newer tier-state.yml', () => {
 });
 
 // The tripwire is no longer a component of the target's pipeline (F4): belay-apply runs it, in sweep mode, from its own
-// protected default branch, never in a merge request pipeline. gitlab/apply/tripwire-sweep.test.mjs runs it end to end.
+// protected default branch, never in a merge request pipeline. gitlab/apply/test/tripwire-sweep.test.mjs runs it end to end.
 // F88's sibling: the write token named by --write-token-var is the only one it commits with; never GITLAB_TOKEN instead.
 describe('tripwire.mjs --write-token-var', () => {
   const failed = { pipelines: [pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob] } };

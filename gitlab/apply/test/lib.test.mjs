@@ -1,7 +1,7 @@
 // glue() runs the components' scripts for belay-apply's sweeps. Each child gets only the write token its call names (F71):
 // the four Belay tokens are never inherited, so a script that writes with one cannot read another.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { glue } from './lib.mjs';
+import { glue } from '../lib.mjs';
 
 const TOKENS = { BELAY_BOT_TOKEN: 'bot', BELAY_POLICY_TOKEN: 'policy', BELAY_LEDGER_TOKEN: 'ledger', BELAY_DISPATCH_TOKEN: 'dispatch' };
 const saved = {};
