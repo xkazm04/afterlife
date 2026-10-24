@@ -1,8 +1,8 @@
 import type { ArmState, SetupState } from '../types';
 import { needLabel, unmet } from './state';
 
-/** The MR a track is armed by or waits on, as GitLab named it; never a number GitLab did not give. */
-export const mrName = (a: ArmState): string => a.mr ?? (a.simulated ? 'the simulated MR' : 'the MR');
+/** The MR a track is armed by or waits on (or an enrollment opened), as GitLab named it; never a number GitLab did not give. */
+export const mrName = (a: Pick<ArmState, 'mr' | 'simulated'>): string => a.mr ?? (a.simulated ? 'the simulated MR' : 'the MR');
 
 /** Why an MR cannot be opened from here: a demo MR is only simulated, and GitLab may name an MR without giving its address. */
 export const noMrAddress = (simulated: boolean, name: string): string =>

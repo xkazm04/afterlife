@@ -7,7 +7,7 @@ import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { useSetup } from '../../hooks/SetupContext';
 import { enrollGate, enrollWhyNot } from '../../model/enroll/enroll';
-import { noMrAddress } from '../../model/flow/wording';
+import { mrName, noMrAddress } from '../../model/flow/wording';
 import styles from './inspector.module.css';
 import { ArmPreview } from './parts/ArmPreview';
 import { NeedYouAux } from './parts/NeedYouAux';
@@ -29,7 +29,7 @@ export function EnrollSection({ id }: { id: string }) {
 
   const sent = enroll.sentOf(id);
   if (sent) {
-    const mr = sent.mr ?? 'the MR';
+    const mr = mrName(sent);
     const rows: [string, string][] = [['Do', `Merge ${mr} in belay-policy`], ['Why you', 'Raising a tier is a policy MR a person merges; Belay never does']];
     if (sent.simulated) rows.push(['Simulated', 'demo mode: nothing was sent to GitLab']);
     return (

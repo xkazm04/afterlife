@@ -17,4 +17,8 @@ describe('EnrollSection: a sent policy MR', () => {
     expect(isDisabled(buttonTag(sentPage(null), 'Open !8'))).toBe(false);
     expect(isDisabled(buttonTag(sentPage(null, true), 'Open !8'))).toBe(false);
   });
+  it('a demo MR GitLab never named reads as simulated, as the arm section words it', () => {
+    const html = renderPanel(<EnrollSection id="T4" />, base(), { sent: { mr: null, url: null, simulated: true } }).html;
+    expect(html).toContain('Merge the simulated MR in belay-policy');
+  });
 });
