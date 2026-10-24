@@ -12,5 +12,5 @@ export const metadata: Metadata = { title: 'Belay Monitor' };
 export default async function MonitorPage() {
   await connection(); // request time: the data source and its data are the running server's, never the build's
   const data = loadMonitorData();
-  return <MonitorScreen data={data} estate={loadMonitorEstate(data, readDesk())} />;
+  return <MonitorScreen data={data} estate={loadMonitorEstate(data, await readDesk())} />;
 }

@@ -20,6 +20,6 @@ export async function FleetList({ searchParams }: { searchParams: Promise<RawPar
   const want = firstParam(params.project);
   const data = loadFleetData();
   if (want && data.projects.some((p) => p.id === want)) redirect(fleetHref(want));
-  const runner = readDesk();
+  const runner = await readDesk();
   return <FleetScreen data={data} source={loadFleetSource()} start={decodeListState(params)} runner={runner} estate={loadFleetEstate(data, runner)} />;
 }

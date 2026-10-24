@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Belay Needs you' };
 export default async function NeedsYouPage() {
   await connection(); // request time: the data source and its data are the running server's, never the build's
   const view = loadNeedsYouView();
-  const runner = readDesk().needs;
+  const runner = (await readDesk()).needs;
   if (view.kind === 'desk') return <NeedsYouScreen demo={view.demo} runner={runner} />;
   if (view.kind === 'live') {
     return <NeedsYouLive items={view.items} seeded={view.seeded} project={view.project} evidence={view.evidence} decided={view.decided} now={view.now} runner={runner} />;

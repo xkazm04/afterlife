@@ -10,11 +10,11 @@ import { readDesk } from '@/server/runs/readDesk';
 import type { LiveSnapshot } from './snapshot';
 
 /** The runner's spend per Fleet project, as Fleet's estate joins it; null when the local run files cannot be read. */
-export type ReadCost = (snap: LiveSnapshot) => Readonly<Record<string, ProjectCost>> | null;
+export type ReadCost = (snap: LiveSnapshot) => Promise<Readonly<Record<string, ProjectCost>> | null> | Readonly<Record<string, ProjectCost>> | null;
 
-const deskCost: ReadCost = (snap) => {
+const deskCost: ReadCost = async (snap) => {
   try {
-    return costByProject(readDesk(), costProjects(snap.data.fleet.projects, snap.data.portfolio.group)).byProject;
+    return costByProject(await readDesk(),costProjects(snap.data.fleet.projects, snap.data.portfolio.group)).byProject;
   } catch {
     return null;
   }
@@ -28,7 +28,7 @@ export async function recordFleetDay(db: Queryable, snap: LiveSnapshot, onError:
   const day = utcDay(snap.at);
   if (snap.data.trend.some((r) => r.day === day)) return snap;
   try {
-    const wrote = await writeFleetDay(db, day, dayRowsOf(day, snap.data.fleet.projects, snap.data.stability, cost(snap)));
+    const wrote = await writeFleetDay(db, day, dayRowsOf(day, snap.data.fleet.projects, snap.data.stability, await cost(snap)));
     if (!wrote) return snap;
     return { ...snap, data: { ...snap.data, trend: await readFleetDays(db, addDays(day, 1 - TREND_DAYS)) } };
   } catch (e) {

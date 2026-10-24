@@ -19,5 +19,5 @@ export default async function FleetProjectPage({ params }: Params) {
   const view = loadFleetProject(project);
   if (!view) notFound();
   // the agent cost is read beside the project (the runner's local files), never in FleetProject
-  return <ProjectDetail {...view} estate={loadFleetEstate(view.data, readDesk())} />;
+  return <ProjectDetail {...view} estate={loadFleetEstate(view.data, await readDesk())} />;
 }

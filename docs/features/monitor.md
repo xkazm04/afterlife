@@ -23,7 +23,7 @@
 
 ## How it works
 - `src/app/(app)/monitor/page.tsx` (server) renders `MonitorScreen` with `loadMonitorData()` and, as its own `estate` prop,
-  `loadMonitorEstate(data, readDesk())`.
+  `loadMonitorEstate(data, await readDesk())`.
 - `data/loadMonitorData.ts` reads the DataSource into `MonitorData`: the mode (demo or live), org and as-of time, groups,
   projects, stages, the deep project id and its own needs-you items (`ownDecisions`).
 - `data/loadMonitorEstate.ts` reads beside the fleet (`MonitorEstate`): the agents' spend summed over the metered

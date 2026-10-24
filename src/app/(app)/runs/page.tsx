@@ -1,15 +1,16 @@
 import type { Metadata } from 'next';
 import { RunsScreen } from '@/app/features/runs/RunsScreen';
 import type { MergeNeed } from '@/lib/runs/desk/types';
-import { readDesk } from '@/server/runs/readDesk';
-import { readRuns } from '@/server/runs/readRuns';
+import { readDeskAndRuns } from '@/server/runs/readDesk';
 import { connection } from 'next/server';
 
 export const metadata: Metadata = { title: 'Belay Runs' };
 
-// Runs: read on every request, because the runner appends to these files while the page is open.
+// Runs: read on every request, because the runner appends to these files while the page is open. The run files are
+// read once, for the desk and the screen alike.
 export default async function RunsPage() {
   await connection();
-  const merges = readDesk().needs.filter((n): n is MergeNeed => n.kind === 'merge-wave');
-  return <RunsScreen data={readRuns()} merges={merges} />;
+  const { desk, runs } = await readDeskAndRuns();
+  const merges = desk.needs.filter((n): n is MergeNeed => n.kind === 'merge-wave');
+  return <RunsScreen data={runs} merges={merges} />;
 }
