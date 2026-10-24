@@ -2,8 +2,10 @@
 
 import { useMemo } from 'react';
 import { Window } from '@/components/shell/Window';
+import { bindKeymap } from '@/lib/keyboard/keymap';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { usePresent } from '../hooks/usePresent';
+import { LIVE_KEYMAP } from '../model/keymap';
 import outer from '../TheaterScreen.module.css';
 import { LiveStage } from './components/LiveStage';
 import { useLivePayload } from './hooks/useLivePayload';
@@ -19,10 +21,7 @@ export function LiveScreen({ initial, focus }: { initial: LivePayload; focus?: W
   const { payload, now } = useLivePayload(initial);
   const v = useMemo(() => selectLive(payload, now, focus), [payload, now, focus]);
   const present = usePresent();
-  useHotkeys([
-    { key: 'f', once: true, handler: present.toggle },
-    { key: 'Escape', preventDefault: false, handler: () => present.set(false) },
-  ]);
+  useHotkeys(bindKeymap(LIVE_KEYMAP, { present: [present.toggle, () => present.set(false)] }));
   const status = v.stale ? 'STALE: the runner has been quiet for over 30 s; the frame is frozen' : 'Live from .belay/runs · F presents';
   return (
     <>

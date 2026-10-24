@@ -103,3 +103,15 @@ describe('LiveStage', () => {
 function foldRunsEmpty(): LivePayload {
   return { ...foldRuns([], 0), meta: {}, generatedAt: 0 };
 }
+
+describe('the live film\'s keys are the replay\'s present keys, declared once', () => {
+  it('LIVE_KEYMAP holds THEATER_KEYMAP\'s present entry itself, and LiveScreen binds it with no key of its own', async () => {
+    const { LIVE_KEYMAP, THEATER_KEYMAP } = await import('../model/keymap');
+    expect(LIVE_KEYMAP.entries).toEqual([THEATER_KEYMAP.entries.find((e) => e.id === 'present')]);
+    expect(LIVE_KEYMAP.entries[0]).toBe(THEATER_KEYMAP.entries.find((e) => e.id === 'present'));
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('./LiveScreen.tsx', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+    expect(src).toContain('bindKeymap(LIVE_KEYMAP');
+    expect(src).not.toMatch(/key:\s*'/);
+  });
+});
