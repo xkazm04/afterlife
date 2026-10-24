@@ -3,6 +3,7 @@
 //   a class tier the index cannot give          -> its cell stays null, shown unknown (Ladder reads the cell); `tier`,
 //                                                  which has no unknown, reads quarantined for code that only acts on it
 //   a task tier the index cannot give           -> quarantined
+//   a task track the index cannot give          -> 'T?', as the event feed and the poller's titles name it
 //   a task whose class is unknown               -> not listed (it is not a Belay task yet)
 //   a maturity scan that never ran              -> nine rungs, every one unknown (null: the screens already draw null as unknown)
 import { RUNGS, STAGES } from '@/schemas/stages';
