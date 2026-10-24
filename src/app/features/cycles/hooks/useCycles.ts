@@ -7,6 +7,7 @@ import type { CyclesData } from '../model/build';
 import { applyDesign, candidates, checkDesign, type Candidate } from '../model/design';
 import { gridView } from '../model/grid';
 import type { Cycle } from '../model/types';
+import { walkTo } from './walk';
 
 /**
  * The Cycles screen state: which cycle is selected (the running one to start), and the design of the next cycle.
@@ -35,11 +36,10 @@ export function useCycles(data: CyclesData, startDesign = false) {
   /** Left and right walk the cycles; Home and End jump to the first and the planned one. Not while designing. */
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (draft || e.metaKey || e.ctrlKey || e.altKey) return;
-      const at = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: view.cycles.length - 1 }[e.key];
+      const at = draft ? null : walkTo(e.key, index, view.cycles.length, e.metaKey || e.ctrlKey || e.altKey);
       if (at == null) return;
       e.preventDefault();
-      const next = view.cycles[Math.max(0, Math.min(view.cycles.length - 1, at))];
+      const next = view.cycles[at];
       if (next) setSelectedId(next.id);
     },
     [view.cycles, index, draft],
