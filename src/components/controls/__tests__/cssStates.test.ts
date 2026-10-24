@@ -3,7 +3,7 @@
 //     and Stepper each style :disabled; ToolbarButton and PopupButton (one stylesheet) did not.
 //  2. A lozenge cell's word is part of its accessible name. `display: none` drops it from the name; at the
 //     breakpoints where the word is hidden it must stay readable to assistive tech (visually hidden instead).
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -99,6 +99,24 @@ describe('Button mini hit target', () => {
     expect(scales).toHaveLength(3);
     expect(scales.filter((s) => Math.round(base * s) + 2 * reach * s < 24)).toEqual([]);
     expect(body(css('Button.module.css'), '.mini')).toMatch(/position:\s*relative/);
+  });
+});
+
+describe('fixed sizes follow --ui-scale (README "Sizes")', () => {
+  // A width or height above a 1px hairline is written calc(Npx * var(--ui-scale)), so it grows with the text size.
+  const SHEETS = readdirSync(path.resolve(__dirname, '..'), { recursive: true, encoding: 'utf8' }).filter((f) => f.endsWith('.module.css'));
+  const raw = (src: string): string[] =>
+    [...stripCss(src).replace(/calc\(\s*[\d.]+px\s*\*\s*var\(--ui-scale\)\s*\)/g, '').matchAll(/(?:^|[;{\s])((?:min-|max-)?(?:width|height))\s*:\s*([^;}]*)/g)]
+      .filter(([, , v]) => (v!.match(/[\d.]+px/g) ?? []).some((n) => parseFloat(n) > 1))
+      .map(([, p, v]) => `${p}: ${v!.trim()}`);
+  it('finds the stylesheets, nested ones included', () => {
+    expect(SHEETS.length).toBeGreaterThanOrEqual(9);
+  });
+  it.each(SHEETS)('%s states no raw px width or height', (f) => {
+    expect(raw(readFileSync(path.resolve(__dirname, '..', f), 'utf8'))).toEqual([]);
+  });
+  it('Spacer keeps its minimum gap scaled', () => {
+    expect(readFileSync(path.resolve(__dirname, '../Spacer.tsx'), 'utf8')).toMatch(/minWidth: 'calc\(\d+px \* var\(--ui-scale\)\)'/);
   });
 });
 

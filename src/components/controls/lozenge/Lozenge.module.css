@@ -36,7 +36,7 @@
 }
 .div {
   width: 1px;
-  height: 14px;
+  height: calc(14px * var(--ui-scale));
   background: var(--sep);
 }
 /* A narrow toolbar keeps the counts; the words stay readable to assistive tech and in the tooltip. */

@@ -68,7 +68,7 @@
 .q {
   font-size: var(--t-small);
   color: var(--text-3);
-  min-width: 8px;
+  min-width: calc(8px * var(--ui-scale));
 }
 /* a narrow toolbar: only the current step keeps its name on screen */
 @container toolbar (max-width: 76em) {
