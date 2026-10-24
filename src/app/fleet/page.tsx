@@ -5,6 +5,7 @@ import { loadFleetSource } from '../features/fleet/data/loadFleetSource';
 import { FleetScreen } from '../features/fleet/FleetScreen';
 import { decodeListState, type RawParams } from '../features/fleet/model/list/urlState';
 import { loadFleetEstate } from '../features/fleet/data/loadFleetEstate';
+import { firstParam } from '@/lib/url/searchParams';
 import { readDesk } from '@/server/runs/readDesk';
 
 export const metadata: Metadata = { title: 'Belay Fleet' };
@@ -16,7 +17,7 @@ export const metadata: Metadata = { title: 'Belay Fleet' };
 // `?project=<id>` (the command palette's project links) opens that project's page, /fleet/<id>.
 export default async function FleetPage({ searchParams }: { searchParams: Promise<RawParams> }) {
   const params = await searchParams;
-  const want = Array.isArray(params.project) ? params.project[0] : params.project;
+  const want = firstParam(params.project);
   const data = loadFleetData();
   if (want && data.projects.some((p) => p.id === want)) redirect(`/fleet/${encodeURIComponent(want)}`);
   const runner = readDesk();

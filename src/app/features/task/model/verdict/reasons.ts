@@ -2,6 +2,7 @@
 // writes it into the URL and walks them with n.
 import type { TaskView } from '../types';
 import type { Selection } from '../court/selection';
+import { firstParam } from '@/lib/url/searchParams';
 import { derivedVerdict, isStruck } from './verdict';
 
 /**
@@ -44,13 +45,11 @@ export interface SelectionQuery {
   claim?: string | string[];
 }
 
-const first = (v: string | string[] | undefined): string | undefined => (Array.isArray(v) ? v[0] : v);
-
 /** The selection a URL asks for (?check= or ?claim=), when the task holds that id; otherwise the opening selection. */
 export function selectionFromQuery(task: Task, q: SelectionQuery): Selection {
-  const check = first(q.check);
+  const check = firstParam(q.check);
   if (check && task.proof.checks.some((c) => c.id === check)) return { side: 'check', id: check };
-  const claim = first(q.claim);
+  const claim = firstParam(q.claim);
   if (claim && task.claims.some((c) => c.id === claim)) return { side: 'claim', id: claim };
   return openingSelection(task);
 }
