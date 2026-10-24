@@ -5,13 +5,17 @@
 ## What it does
 - Four routed sub-pages (Display, Keyboard, Data & connection, About) in one window; the sidebar lists them and marks
   the current one from the route. `/settings` redirects to `/settings/display`.
-- Text size: a 3-way segmented control (Smaller / Standard / Larger), a table of what each size sets, and a live
-  preview built from real shared parts (`StateGlyph`, `TierChip`, `FeedAge`, `KeyValue`) so it restyles as you choose.
+- Text size: a 3-way segmented control (Smaller / Standard / Larger), a note saying whether the choice was saved or
+  applies for this visit only (`model/saveNote.ts`: the browser refused to store it), a table of what each size sets,
+  and a live preview built from real shared parts (`StateGlyph`, `TierChip`, `FeedAge`, `KeyValue`) so it restyles as
+  you choose.
 - Keyboard: lists the shortcuts with Mac and Windows/Linux key caps: Cmd/Ctrl `=` larger, `-` smaller, `0` standard,
-  `I` toggle the inspector (on a screen that has one), then the keys each screen adds.
-- Data & connection: the data mode, fake or real GitLab, host and group id, read from the server's environment.
-- About: the app version (`lib/version.ts`), an "illustrative demo data" honesty chip, and every key Belay keeps in
-  this browser's localStorage (`data/browserKeys.ts`).
+  `I` toggle the inspector (on a screen that has one), then the keys each screen adds (`data/screenKeys.ts`, derived
+  from the keymaps the screens bind).
+- Data & connection: the data mode, fake or real GitLab, host and group id, read from the server's environment, and
+  what the status bar says about the data (`sections/StatusLine.tsx`, the status bar's own `dataLabel`).
+- About: the app version (`lib/version.ts`) and every key Belay keeps in this browser's localStorage
+  (`data/browserKeys.ts`). What the data is lives on Data & connection.
 - The subtitle is the sub-page's name; the status bar says where that page's values live (`status` in
   `SETTINGS_PAGES`: saved in this browser, read only, or read from the server's environment).
 
@@ -63,8 +67,11 @@ Smaller is the original prototype size.
 | `.../settings/model/settingsNav.ts` | Sub-page list and current-page match |
 | `.../settings/components/TextSizeSection.tsx` | Segmented control, scale table, preview |
 | `.../settings/components/SizePreview.tsx` | Sample table row, tier chip and inspector line |
-| `.../settings/components/KeyboardSection.tsx`, `data/shortcuts.ts` | Shortcut list |
-| `.../settings/components/AboutSection.tsx` | Version, data honesty chip, storage key |
+| `.../settings/components/KeyboardSection.tsx`, `data/shortcuts.ts` | Global shortcut list |
+| `.../settings/sections/ScreenKeysSection.tsx`, `data/screenKeys.ts` | Per-screen keys, derived from the screens' keymaps |
+| `.../settings/sections/ConnectionSection.tsx`, `StatusLine.tsx` | Data & connection (server component) and the status bar's label |
+| `.../settings/components/AboutSection.tsx`, `data/browserKeys.ts` | Version and every localStorage key |
+| `.../settings/model/saveNote.ts` | Display's saved / not-saved note |
 | `.../settings/components/SettingsSection.tsx` | Section wrapper with anchor id |
 | `.../settings/model/specRows.ts` | Scale table rows |
 | `src/lib/settings/textSize.ts` | Pure size helpers and boot script source |
@@ -73,12 +80,19 @@ Smaller is the original prototype size.
 | `src/styles/text-size.css` | The three variable sets and derived metrics |
 
 ## Tests
-- `model/specRows.test.ts`: reproduces the D10 table for all three sizes.
+- `model/specRows.test.ts`: reproduces the D10 table for all three sizes; `model/specCss.test.ts` reads
+  `src/styles/text-size.css` against `TEXT_SIZE_SPEC`; `model/sizeTitles.test.tsx` the size buttons' tooltips;
+  `model/saveNote.test.ts` the saved / not-saved note; `model/settingsNav.test.ts` the current-page match.
+- `data/shortcuts.test.ts` presses the listed caps through the real matcher; `data/screenKeys.test.ts` the derived
+  per-screen rows and the server-safety of their imports; `data/browserKeys.test.ts` every key a module stores is
+  listed. `sections/ScreenKeysSection.test.tsx` and `sections/ConnectionSection.test.tsx` render those sections.
+- `src/app/settings/settingsRoutes.test.ts`: the route folders against `SETTINGS_PAGES`, the redirect, the tab titles.
 - `src/lib/settings/textSize.test.ts`: parsing defaults to Standard, step clamping, Cmd/Ctrl intents (bare keys and
   Alt chords ignored), storage read/write surviving missing, corrupt or throwing stores, and the boot script setting
-  the attribute only for a valid saved value inside try/catch.
+  the attribute only for a valid saved value inside try/catch; `textSizeStore.test.ts` the store.
 
 ## Status and limits
-- Text size is the only real setting; Keyboard and About are read-only.
+- Text size is the only real setting; Keyboard, Data & connection and About are read-only.
 - No server-side persistence and no per-user sync: a new browser starts at Standard.
-- The shortcut list is static data and is not generated from the bound hotkeys.
+- The global shortcut list (`data/shortcuts.ts`) is static data, pinned by a test to the real key matcher; the
+  per-screen keys are derived from the keymaps the screens bind.

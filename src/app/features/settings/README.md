@@ -6,7 +6,8 @@ Routes `/settings/display`, `/keyboard`, `/data`, `/about`. `/settings` redirect
 ## Parts
 - `SettingsWindow.tsx` the Window with the sidebar sub-navigation (section "Settings", current from the route via
   `model/settingsNav.ts`). To add a sub-page: one line in `SETTINGS_PAGES` and a `src/app/settings/<name>/page.tsx`.
-- `components/TextSizeSection.tsx` (Display) the 3-way control, the scale table from `model/specRows.ts` and a live `SizePreview`.
+- `components/TextSizeSection.tsx` (Display) the 3-way control, its saved / not-saved note (`model/saveNote.ts`), the
+  scale table from `model/specRows.ts` and a live `SizePreview`.
 - `components/KeyboardSection.tsx` (Keyboard) the global shortcuts from `data/shortcuts.ts`;
   `sections/ScreenKeysSection.tsx` the per-screen keys from `data/screenKeys.ts`, derived from the keymaps the screens'
   hooks bind (`lib/keyboard/keymap.ts`; each screen's `model/.../keymap.ts`, Task's beside `actionFor`). A new key goes
@@ -30,6 +31,7 @@ closure (no `'use client'` module). `sections/ScreenKeysSection.test.tsx` pins o
 `app/settings/settingsRoutes.test.ts` checks the route folders against `SETTINGS_PAGES`, the `/settings` redirect, and
 each page's tab title ("Belay Settings <label>").
 `model/specCss.test.ts` reads `src/styles/text-size.css` against `TEXT_SIZE_SPEC` (all 27 measures);
-`model/sizeTitles.test.tsx` the size buttons' tooltips from the spec and the default; `data/shortcuts.test.ts` presses
+`model/sizeTitles.test.tsx` the size buttons' tooltips from the spec and the default; `model/saveNote.test.ts` the
+Display note (saved, or this visit only when the browser refuses to store the size); `data/shortcuts.test.ts` presses
 the listed caps through `textSizeIntent` and keeps the inspector row qualified while a screen draws no inspector;
 `data/browserKeys.test.ts` every key a module stores in localStorage is on the About page.
