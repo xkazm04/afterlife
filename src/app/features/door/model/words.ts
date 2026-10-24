@@ -30,7 +30,9 @@ export function staleText(p: FleetProject): string {
   return e && last ? `${e} · ${last}` : (e || last || 'no error recorded');
 }
 
-const waits = (n: number): string => `${n} ${plural(n, 'decision')} wait${n === 1 ? 's' : ''}`;
+/** "decision waits" / "decisions wait": the readout, the big number and the L2 panel all say it with this. */
+export const waitWords = (n: number): string => (n === 1 ? 'decision waits' : 'decisions wait');
+export const waits = (n: number): string => `${n} ${waitWords(n)}`;
 
 /** The readout's line for one tower. Unknown stays unknown; stale says why and how old. */
 export function projectLine(p: FleetProject): Part[] {

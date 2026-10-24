@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { memo } from 'react';
 import type { District } from '../../model/city';
-import { fmt, plural, type FleetTotals, type MarkKind } from '../../model/words';
+import { fmt, plural, waits, waitWords, type FleetTotals, type MarkKind } from '../../model/words';
 import { COUNT_BIG, COUNT_MARK, useCountUp } from '../../hooks/useCountUp';
 import { MarkIcon } from './MarkIcon';
 import styles from './answer.module.css';
@@ -56,11 +56,11 @@ export const Answer = memo(function Answer({
   const lit = (k: MarkKind) => ({ onPointerEnter: () => onMark(k), onPointerLeave: () => onMark(null), onFocus: () => onMark(k), onBlur: () => onMark(null) });
   return (
     <section className={styles.answer} aria-label="The fleet at a glance" data-role="door-answer">
-      <button type="button" className={styles.big} tabIndex={tab} data-role="door-big" aria-label={`${totals.needs} ${plural(totals.needs, 'decision')} wait${totals.needs === 1 ? 's' : ''} for you. Open the district with the most.`} onClick={() => onOpen('needs')} {...lit('needs')}>
+      <button type="button" className={styles.big} tabIndex={tab} data-role="door-big" aria-label={`${waits(totals.needs)} for you. Open the district with the most.`} onClick={() => onOpen('needs')} {...lit('needs')}>
         <Count n={totals.needs} {...COUNT_BIG} intro={intro} />
       </button>
       <div className={styles.bigSub} data-role="door-big-sub">
-        {plural(totals.needs, 'decision')} {totals.needs === 1 ? 'waits' : 'wait'} for you
+        {waitWords(totals.needs)} for you
       </div>
       <div className={styles.top}>
         {tiers.map((t) => (

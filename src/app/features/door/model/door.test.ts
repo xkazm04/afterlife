@@ -13,7 +13,7 @@ import { beamsOf, districtGlows, towerShape } from './shapes';
 import { activeMark, dimSet, escapeStep, redSet, toggleLock } from './filter';
 import { cutawayOf } from './cutaway';
 import { stageFit, stageFitSource } from './fit';
-import { districtLine, fleetTotals, projectLine, staleText, topTiers } from './words';
+import { districtLine, fleetTotals, projectLine, staleText, topTiers, waitWords } from './words';
 
 const fleet = demoSource.getFleet();
 const ds = districtsOf(fleet.groups, fleet.projects);
@@ -121,6 +121,10 @@ describe('copy that counts: one is singular', () => {
   const answer = (over: Partial<ReturnType<typeof fleetTotals>>) => {
     return html(over).replace(/<[^>]*>/g, '');
   };
+  it('says the waits in one wording: the district line, the big number and its subtitle', () => {
+    for (const n of [0, 1, 2]) expect([html({ needs: n }), answer({ needs: n }), lineOf(n)].map((t) => t.includes(waitWords(n)))).toEqual([true, true, true]);
+    expect(html({ needs: 1 })).toContain('aria-label="1 decision waits for you.');
+  });
   it('says "1 class quarantined" and "1 proof passed" in the answer block', () => {
     expect(answer({ quar: 1, pass: 1 })).toContain('1 class quarantined');
     expect(answer({ quar: 1, pass: 1 })).toContain('1 proof passed this week');
