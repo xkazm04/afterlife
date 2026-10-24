@@ -9,7 +9,7 @@ and live mode alike, so it is not part of the `DataSource`.
   valid event and counts it (`skippedLines`), notes `<wave>.proposals.md` beside the events. No `runs/` directory is no runs.
 - `src/lib/runs/` (shared with src/server, which never imports src/app): pure, tested. `parse.ts` (a line -> event or
   null), `fold.ts` (events -> lanes -> a wave -> repos and totals), `types.ts`, `fixture.ts` (all five kinds, a malformed line, a running wave, a lane
-  without usage). `model/format.ts` here: the figures' words (an absent one is `-`). Absent values stay absent keys: a lane with no `lane.usage` has no tokens, cost or model, and the screen
+  without usage). `model/format.ts` here: the figures' words (an absent one is `-`; a wave's wall is its `wave.end` stamp less its `wave.start`, `spanSec`). Absent values stay absent keys: a lane with no `lane.usage` has no tokens, cost or model, and the screen
   draws `-`, never 0. Several `lane.usage` events for one lane add up; tokens are input + output + cache read + cache write.
   A wave's cost is `wave.end`'s figure, else the sum of the lanes that reported one. `running` = `wave.start` and no `wave.end`.
 - `RunsScreen.tsx`: header totals (waves, lanes, landed, tokens, spent, the skipped-lines badge when > 0), then one

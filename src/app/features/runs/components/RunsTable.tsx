@@ -11,7 +11,7 @@ import { px, minWidth } from '@/components/table/model/columns';
 import { groupNavId, isGroupNavId, rowDomId, type NavItem } from '@/components/table/model/rowNavigation';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { Chip } from '@/components/status/chip/Chip';
-import { outcomeWords, pct, tokens, usd, wall } from '../model/format';
+import { outcomeWords, pct, spanSec, tokens, usd, wall } from '../model/format';
 import type { RunLane, RunRepo, RunWave } from '@/lib/runs/types';
 import { LANE_TONE, WaveState } from './WaveState';
 
@@ -99,7 +99,7 @@ function WaveRow({ w, alt, selected, onSelect, onActivate }: { w: RunWave; alt: 
       <Cell>{outcomeWords(w.counts, w.open)}</Cell>
       <Cell align="end">{tokens(w.tokens)}</Cell>
       <Cell align="end">{usd(w.costUsd)}</Cell>
-      <Cell align="end">-</Cell>
+      <Cell align="end">{wall(spanSec(w.startedAt, w.endedAt))}</Cell>
       <Cell>{w.promptVersion ?? '-'}</Cell>
     </Row>
   );

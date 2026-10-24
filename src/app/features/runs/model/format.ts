@@ -19,6 +19,13 @@ export function wall(sec: number | undefined): string {
   return m < 60 ? `${m}m ${s % 60}s` : `${Math.floor(m / 60)}h ${m % 60}m`;
 }
 
+/** A wave's wall time from its wave.start and wave.end stamps; absent (a dash) while either is missing or unreadable. */
+export function spanSec(start: string | undefined, end: string | undefined): number | undefined {
+  if (!start || !end) return undefined;
+  const ms = Date.parse(end) - Date.parse(start);
+  return Number.isFinite(ms) && ms >= 0 ? ms / 1000 : undefined;
+}
+
 export const pct = (n: number | undefined): string => (n === undefined ? DASH : `${Math.round(n * 100)}%`);
 
 /** "2 landed, 1 parked": only the outcomes that happened, then lanes still open. */

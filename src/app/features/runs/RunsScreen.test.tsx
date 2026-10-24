@@ -31,6 +31,7 @@ describe('RunsScreen', () => {
     expect(out).toContain('mergeable');
     expect(out).toContain('belay/wave-1');
     expect(out).toContain('50%');
+    expect(out).toContain('6m 0s'); // wave 1's wall: wave.start 10:00:00 to wave.end 10:06:00
   });
 
   it('shows the exact merge commands for a mergeable wave, and nothing for a running one', () => {

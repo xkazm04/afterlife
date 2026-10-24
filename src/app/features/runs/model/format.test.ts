@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DASH, tokens, wall } from './format';
+import { DASH, spanSec, tokens, wall } from './format';
 
 describe('the figures at their rounding edges', () => {
   it('wall never reads 60 seconds: a rounded-up minute carries over', () => {
@@ -18,5 +18,12 @@ describe('the figures at their rounding edges', () => {
     expect(tokens(999)).toBe('999');
     expect(tokens(1234)).toBe('1.2k');
     expect(tokens(2_500_000)).toBe('2.5M');
+  });
+
+  it("a wave's wall is its end stamp less its start stamp; a dash while either is missing or unreadable", () => {
+    expect(wall(spanSec('2026-10-20T10:00:00Z', '2026-10-20T10:42:05Z'))).toBe('42m 5s');
+    expect(spanSec('2026-10-20T10:00:00Z', undefined)).toBeUndefined();
+    expect(spanSec('soon', '2026-10-20T10:00:00Z')).toBeUndefined();
+    expect(spanSec('2026-10-20T10:00:00Z', '2026-10-20T09:00:00Z')).toBeUndefined();
   });
 });
