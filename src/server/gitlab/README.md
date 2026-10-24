@@ -67,3 +67,6 @@ Server-only. The app imports `@/server/gitlab` (index.ts); tests and `belay doct
 
 - `MrFilter.sourceBranch` is GitLab's `source_branch` (`mrQuery` in `adapter/glabAdapter.ts`; the fake's `allMrs` filters
   by it too). Arm's "no MR already open from this branch" check asks for its branch, so N open MRs cost one page, not N/100.
+- Every address the mappers read (`web_url` on user, group, project, pipeline, job, MR, vulnerability; a release's
+  `_links.self`) passes `httpUrl` in `adapter/fields.ts`: anything not http(s) maps to `''` (a vulnerability's to null),
+  so a `javascript:` or `data:` address never reaches a screen's link.

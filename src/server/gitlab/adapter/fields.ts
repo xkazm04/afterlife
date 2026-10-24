@@ -24,6 +24,13 @@ export const strN = (r: Rec, k: string): string | null => (typeof r[k] === 'stri
 export const numN = (r: Rec, k: string): number | null => (typeof r[k] === 'number' ? (r[k] as number) : null);
 export const bool = (r: Rec, k: string, d = false): boolean => (typeof r[k] === 'boolean' ? (r[k] as boolean) : d);
 export const strs = (r: Rec, k: string): string[] => (Array.isArray(r[k]) ? (r[k] as unknown[]).filter((x): x is string => typeof x === 'string') : []);
+/** An address a screen may link to: http(s) only, never javascript:, data: or file: (null otherwise). */
+export const httpUrl = (r: Rec, k: string): string | null => {
+  const v = strN(r, k);
+  if (v === null || !URL.canParse(v)) return null;
+  const { protocol } = new URL(v);
+  return protocol === 'https:' || protocol === 'http:' ? v : null;
+};
 /** Author of a note or MR: GitLab nests it as { author: { username } }. */
 export const who = (r: Rec, k = 'author'): string => {
   const a = r[k];

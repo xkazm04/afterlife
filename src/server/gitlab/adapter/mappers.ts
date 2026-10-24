@@ -4,18 +4,18 @@ import type {
   GlRelease, GlSchedule, GlTestSummary, GlTreeEntry, GlUser, GlVulnerability,
 } from '../types';
 import { GitLabError } from '../errors';
-import { bool, num, numN, rec, str, strN, strOr, type Rec } from './fields';
+import { bool, httpUrl, num, numN, rec, str, strN, strOr, type Rec } from './fields';
 
 const sub = (r: Rec, k: string): Rec | null => (r[k] !== null && typeof r[k] === 'object' ? (r[k] as Rec) : null);
 
 export const mapUser = (r: Rec): GlUser => ({
   id: num(r, 'id'), username: str(r, 'username'), name: strOr(r, 'name', ''), state: strOr(r, 'state', ''),
-  webUrl: strOr(r, 'web_url', ''), bot: bool(r, 'bot'),
+  webUrl: httpUrl(r, 'web_url') ?? '', bot: bool(r, 'bot'),
 });
 
 export const mapGroup = (r: Rec): GlGroup => ({
   id: num(r, 'id'), name: str(r, 'name'), path: str(r, 'path'), fullPath: strOr(r, 'full_path', str(r, 'path')),
-  visibility: strOr(r, 'visibility', ''), webUrl: strOr(r, 'web_url', ''),
+  visibility: strOr(r, 'visibility', ''), webUrl: httpUrl(r, 'web_url') ?? '',
 });
 
 export const mapNamespace = (r: Rec): GlNamespace => ({
@@ -27,19 +27,19 @@ export const mapInstance = (r: Rec): GlInstance => ({ version: str(r, 'version')
 
 export const mapProject = (r: Rec): GlProject => ({
   id: num(r, 'id'), name: str(r, 'name'), path: str(r, 'path'), pathWithNamespace: str(r, 'path_with_namespace'),
-  defaultBranch: strN(r, 'default_branch'), webUrl: strOr(r, 'web_url', ''), visibility: strOr(r, 'visibility', ''),
+  defaultBranch: strN(r, 'default_branch'), webUrl: httpUrl(r, 'web_url') ?? '', visibility: strOr(r, 'visibility', ''),
   archived: bool(r, 'archived'), description: strN(r, 'description')?.trim() || null,
 });
 
 export const mapPipeline = (r: Rec): GlPipeline => ({
   id: num(r, 'id'), iid: numN(r, 'iid'), projectId: num(r, 'project_id'), status: str(r, 'status'), source: strN(r, 'source'),
-  ref: str(r, 'ref'), sha: str(r, 'sha'), webUrl: strOr(r, 'web_url', ''), createdAt: str(r, 'created_at'), updatedAt: str(r, 'updated_at'),
+  ref: str(r, 'ref'), sha: str(r, 'sha'), webUrl: httpUrl(r, 'web_url') ?? '', createdAt: str(r, 'created_at'), updatedAt: str(r, 'updated_at'),
 });
 
 export const mapJob = (r: Rec): GlJob => ({
   id: num(r, 'id'), name: str(r, 'name'), stage: strOr(r, 'stage', ''), status: str(r, 'status'),
   allowFailure: bool(r, 'allow_failure'), durationSec: numN(r, 'duration'), ref: strOr(r, 'ref', ''),
-  webUrl: strOr(r, 'web_url', ''), pipelineId: sub(r, 'pipeline') ? numN(sub(r, 'pipeline') as Rec, 'id') : null,
+  webUrl: httpUrl(r, 'web_url') ?? '', pipelineId: sub(r, 'pipeline') ? numN(sub(r, 'pipeline') as Rec, 'id') : null,
   startedAt: strN(r, 'started_at'), finishedAt: strN(r, 'finished_at'), failureReason: strN(r, 'failure_reason'),
 });
 
@@ -73,12 +73,12 @@ export const mapDeployment = (r: Rec): GlDeployment => ({
 export const mapRelease = (r: Rec): GlRelease => ({
   tagName: str(r, 'tag_name'), name: strOr(r, 'name', ''), description: strOr(r, 'description', ''),
   createdAt: str(r, 'created_at'), releasedAt: strN(r, 'released_at'),
-  webUrl: sub(r, '_links') ? strOr(sub(r, '_links') as Rec, 'self', '') : '',
+  webUrl: sub(r, '_links') ? httpUrl(sub(r, '_links') as Rec, 'self') ?? '' : '',
 });
 
 export const mapVulnerability = (r: Rec): GlVulnerability => ({
   id: num(r, 'id'), title: str(r, 'title'), severity: str(r, 'severity'), state: strOr(r, 'state', ''),
-  reportType: strOr(r, 'report_type', ''), detectedAt: strOr(r, 'created_at', ''), webUrl: strN(r, 'web_url'),
+  reportType: strOr(r, 'report_type', ''), detectedAt: strOr(r, 'created_at', ''), webUrl: httpUrl(r, 'web_url'),
 });
 
 export const mapSchedule = (r: Rec): GlSchedule => ({
