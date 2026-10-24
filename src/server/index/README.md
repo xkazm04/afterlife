@@ -31,8 +31,10 @@ tables above. NULL means unknown, never zero.
   through its own prefix, `migrate(db, MIGRATIONS.filter((m) => m.version <= N))`, never the whole list: asserting that
   `migrate(db)` applies exactly `[9]` broke when 0010 arrived, and updating every older test per new migration ties each
   test to every later one (c4fd9d2). `repositories/` typed, parameterised functions per table (no ORM).
-- `views/` return the shapes in `src/lib/demo` (`getFleet`, `getNeedsYou`, `getActionClasses`, `getMaturity`,
-  `getTasks`, and `getEvents`: the deep project's recent events, dated only by what the index holds with a time;
+- `views/` return the shapes in `src/lib/demo` (`getFleet`, `getNeedsYou` and its badge `getNeedsYouCount`, `getDecided`,
+  `getActionClasses`, `getMaturity`, `getTasks` and one task's `getTask`, `getLastTaskEvent` for the Fleet row's last
+  event, and `getEvents`: the deep project's recent events, dated only by what the index holds with a time;
+  `cycles/` `getCycles` and `getEstateCycles`, the closed cycles of `cycle_record` counted in days from the first;
   `stability/` `getStability`, each polled project's agent MRs started in the last 7 days, folded from the `size` and
   `pipeline` the poller stores on the task detail). Countdowns and ages are computed from stored instants with a `now` argument. Where the index cannot
   know a value the field is `null` (types widened in `views/types.ts`).
@@ -73,7 +75,9 @@ on a `deployed` event only, tier one of GitLab's five), 0011 `state_rev` and `wi
 a null reads back as no key, the same way.
 
 ## Not yet served
-Tracks, loop, setup phases and cockpit have no view yet; `pairing`/`setup_step` have repositories only. Times are
+Tracks, loop, setup phases and cockpit have no view yet. `pairing` is read by the live snapshot and written by each poll
+cycle (`server/data/live/snapshot.ts`, `server/poller/cycle.ts`); `setup_step` has its repository only, and no code
+outside the tests calls it. Times are
 formatted in UTC.
 
 ## Decision: the standing key `refused`

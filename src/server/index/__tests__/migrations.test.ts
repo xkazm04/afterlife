@@ -188,4 +188,10 @@ describe('README', () => {
     const named = new Set(rows.flatMap((l) => [...(l.split('|')[1] ?? '').matchAll(/`(\w+)`/g)].map((m) => m[1])));
     expect(TABLES.filter((t) => t !== 'belay_migration' && !named.has(t))).toEqual([]);
   });
+
+  it('names every view the views barrel exports', async () => {
+    const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
+    const views = Object.keys(await import('../views')).filter((k) => /^get[A-Z]/.test(k));
+    expect(views.filter((v) => !readme.includes(`\`${v}\``))).toEqual([]);
+  });
 });

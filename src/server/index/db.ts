@@ -1,6 +1,6 @@
 // The one PGlite instance. Data lives under BELAY_DATA_DIR (default `.belay/` in the repo root, gitignored), in its
 // `index/` folder; pass `{ memory: true }` for tests. The index is a cache of GitLab and the exported ledger, except
-// commands_run and action_runs, Belay's own records: deleting the folder loses those two (see README).
+// commands_run, action_runs and fleet_day, Belay's own records: deleting the folder loses those three (see README).
 import 'server-only';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
