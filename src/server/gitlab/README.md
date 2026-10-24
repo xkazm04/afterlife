@@ -62,3 +62,8 @@ Server-only. The app imports `@/server/gitlab` (index.ts); tests and `belay doct
   rows. Exit codes: 0 the probes answered, 2 every row unknown with no blocker, 3 blocked; `cli/belay.mjs` passes them on.
 - Setup's doctor read (`src/server/data/setup/read.ts`) returns no rows and the blocker as its error, so SetupSummary shows
   "belay doctor: glab is not logged in to gitlab.com: run glab auth login".
+
+## Decisions from the optimize sweep
+
+- `MrFilter.sourceBranch` is GitLab's `source_branch` (`mrQuery` in `adapter/glabAdapter.ts`; the fake's `allMrs` filters
+  by it too). Arm's "no MR already open from this branch" check asks for its branch, so N open MRs cost one page, not N/100.

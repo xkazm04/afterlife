@@ -1,7 +1,7 @@
 // GitLabPort over `glab api`. Reads are GETs; the one write path is execute(PlannedCommand).
 import { GitLabError, isKind } from '../errors';
 import type { GitLabPort } from '../port';
-import type { ProjectRef } from '../types';
+import type { MrFilter, ProjectRef } from '../types';
 import { planBuilders } from '../plan/builders';
 import { GlabClient, type ClientConfig } from './client';
 import { rec, recs } from './fields';
@@ -41,8 +41,8 @@ export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
     const rows = recs(await c.getPages(path, q, limit), path);
     return rows.filter((r) => !byId || typeof r.id === 'undefined' || (!seen.has(r.id) && !!seen.add(r.id))).map(map);
   };
-  const mrQuery = (f: { state?: string; labels?: string[]; updatedAfter?: string } = {}) => ({
-    state: f.state, labels: f.labels?.join(','), updated_after: f.updatedAfter,
+  const mrQuery = (f: MrFilter = {}) => ({
+    state: f.state, labels: f.labels?.join(','), updated_after: f.updatedAfter, source_branch: f.sourceBranch,
   });
 
   return {

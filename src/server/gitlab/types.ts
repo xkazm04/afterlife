@@ -91,7 +91,10 @@ export interface PageOpts { limit?: number }
  * pipelines ([R]: docs.gitlab.com/api/pipelines/#list-project-pipelines). The list response has no `tag` field, so it is asked, not mapped.
  */
 export interface PipelineFilter extends PageOpts { ref?: string; status?: string; scope?: 'branches' | 'tags' }
-export interface MrFilter extends PageOpts { state?: 'opened' | 'merged' | 'closed' | 'all'; labels?: string[]; updatedAfter?: string }
+/** `sourceBranch` is GitLab's `source_branch`: only the MRs from that branch, so a caller looking for one branch reads one page. */
+export interface MrFilter extends PageOpts {
+  state?: 'opened' | 'merged' | 'closed' | 'all'; labels?: string[]; updatedAfter?: string; sourceBranch?: string;
+}
 export interface DeploymentFilter extends PageOpts { environment?: string; status?: string }
 export interface TreeOpts { path?: string; ref?: string; recursive?: boolean }
 /** `path`: only the commits that changed that file; `ref`: GitLab's `ref_name`, the branch (or tag, or commit) to list from. */

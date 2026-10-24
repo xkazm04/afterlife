@@ -51,7 +51,7 @@ async function ciFile(ctx: PlanContext, t: Target, missing: string): Promise<GlF
 }
 
 async function noOpenMr(ctx: PlanContext, t: Target, branch: string): Promise<void> {
-  const open = (await ctx.port.listMergeRequests(t.project.id, { state: 'opened' })).find((m) => m.sourceBranch === branch);
+  const open = (await ctx.port.listMergeRequests(t.project.id, { state: 'opened', sourceBranch: branch })).find((m) => m.sourceBranch === branch);
   if (open) throw new ActionRefused(`!${open.iid} from ${branch} is already open: merge or close it first`);
 }
 
