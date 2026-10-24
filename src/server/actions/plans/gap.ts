@@ -9,7 +9,6 @@ import { branchMr, type BranchMrInput } from './mr/branchMr';
 export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<Plan> {
   const { project } = await locate(ctx, intent.project);
   const base = project.defaultBranch ?? 'main';
-  if (intent.to <= intent.from) throw new ActionRefused(`gap ${intent.gap} would not raise ${intent.stage}: ${intent.from} -> ${intent.to}`);
 
   const commits: Array<BranchMrInput['commits'][number]> = [];
   const diff: string[] = [];

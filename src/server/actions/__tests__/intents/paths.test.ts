@@ -59,3 +59,13 @@ describe("a gap branch never takes a branch Belay's other writes plan", () => {
     for (const branch of branches) expect(ok(gap({ branch })), branch).toBe(false);
   });
 });
+
+describe('a gap rung', () => {
+  it('refuses a to that raises nothing at the door, as apply-gap-template does, before anything is read', () => {
+    for (const [from, to] of [[2, 2], [3, 1]]) {
+      const r = parseIntent(gap({ from, to }));
+      expect(r.ok ? 'admitted' : r.reason).toMatch(/raises nothing: to must be above from/);
+    }
+    expect(ok(gap({ from: 1, to: 2 }))).toBe(true);
+  });
+});

@@ -105,6 +105,7 @@ export function parseIntent(raw: unknown): IntentParse {
         return no('gap, stage, title, branch (belay/...), from/to (0-4) and 1 to 8 files are required');
       }
       if (OTHER_WRITES.test(branch)) return no(`${branch} is a branch Belay's promote, enroll, arm or disarm MRs use: a gap names its own (belay/gap-...)`);
+      if (to <= from) return no(`${stage} R${from} -> R${to} raises nothing: to must be above from`);
       return { ok: true, intent: { kind: 'stage-gap-mr', ...base, gap, stage, from, to, title, branch, files: fs, ...(workItem ? { workItem } : {}) } };
     }
     case 'apply-gap-template': {
