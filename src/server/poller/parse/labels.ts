@@ -1,4 +1,4 @@
-// GitLab labels that Belay's jobs set (docs/BACKEND-PLAN.md section 3): proof::*, guardrail::*, belay::tier::*.
+// GitLab labels that Belay's jobs set (gitlab/README.md, "Contracts used"): proof::*, guardrail::*, belay::tier::*.
 // Conflicting labels resolve to the more restrictive reading, so a stray label can only make Belay more careful.
 import { TIER_ORDER, type Tier } from '@/schemas/tier';
 import type { Verdict } from '@/schemas/proof';
