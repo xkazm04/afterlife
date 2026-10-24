@@ -1,16 +1,20 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { HZ } from '../../model/city';
-import { groundOf } from '../../model/ground';
+import { groundOf, type Ground as GroundPaths } from '../../model/ground';
 import styles from './ground.module.css';
+
+/** The ground is seeded, so it is the same every time: built once (about 2 ms) for the ground, its pulses and every return to the door. */
+let built: GroundPaths | null = null;
+const ground = (): GroundPaths => (built ??= groundOf());
 
 /**
  * The ground: sky, the diamond lattice, circuit traces with vias, the distant skyline and the split horizon (cyan, with
  * a pink ghost 1.5 px under it). Static: about a dozen nodes, rastered once. Pulses run in their own layer (Pulses).
  */
 export const Ground = memo(function Ground() {
-  const g = useMemo(() => groundOf(), []);
+  const g = ground();
   return (
     <svg className={styles.svg} width="1600" height="1000" viewBox="0 0 1600 1000" aria-hidden>
       <rect x="-4000" y="-4000" width="10000" height={4000 + HZ} fill="url(#d-sky)" />
@@ -32,7 +36,7 @@ export const Ground = memo(function Ground() {
 
 /** Eight data pulses running along bus traces: their own small layer, so the ground never repaints for them. */
 export const Pulses = memo(function Pulses() {
-  const g = useMemo(() => groundOf(), []);
+  const g = ground();
   return (
     <svg className={styles.svg} width="1600" height="1000" viewBox="0 0 1600 1000" aria-hidden>
       <g mask="url(#d-ground)">
