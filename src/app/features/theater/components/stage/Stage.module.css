@@ -57,7 +57,8 @@
   --padX: calc(var(--k) * 3.1);
   --padB: var(--sP);
   --bolt: calc(var(--k) * 3.4);
-  --railw: clamp(300px, 24vw, 460px);
+  /* the 300px floor yields to 36vw below an 834px viewport, as the window rail yields to 36cqw: a phone keeps a pitch */
+  --railw: min(clamp(300px, 24vw, 460px), 36vw);
   --rowS: calc(var(--k) * 3.4);
   --numSize: var(--fE);
   --numLh: 1;
