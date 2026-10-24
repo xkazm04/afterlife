@@ -1,7 +1,7 @@
 .meter {
   display: inline-flex;
   align-items: flex-end;
-  gap: 2px;
+  gap: calc(2px * var(--ui-scale));
   height: calc(13px * var(--ui-scale));
 }
 .meter i {
@@ -31,7 +31,7 @@
 .rn {
   font-size: var(--t-small);
   color: var(--text-3);
-  margin-left: 4px;
+  margin-left: calc(4px * var(--ui-scale));
   align-self: center;
 }
 [data-stale="true"] .meter i.on {

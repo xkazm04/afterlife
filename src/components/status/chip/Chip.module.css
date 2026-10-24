@@ -2,10 +2,10 @@
   --cc: var(--text-3);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: calc(4px * var(--ui-scale));
   flex: none;
   height: var(--mini-h);
-  padding: 0 6px;
+  padding: 0 calc(6px * var(--ui-scale));
   border-radius: 5px;
   font-size: var(--t-small);
   font-weight: 600;
@@ -15,7 +15,7 @@
 }
 .compact {
   height: var(--chip-h);
-  padding: 0 5px;
+  padding: 0 calc(5px * var(--ui-scale));
   border-radius: 4px;
   line-height: 1;
   color: var(--text-3);

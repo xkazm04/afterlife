@@ -22,11 +22,11 @@
 }
 .fl {
   background: var(--fail);
-  min-width: 3px;
+  min-width: calc(3px * var(--ui-scale));
 }
 .inc {
   background: repeating-linear-gradient(90deg, var(--unknown) 0 2px, transparent 2px 4px);
-  min-width: 4px;
+  min-width: calc(4px * var(--ui-scale));
 }
 .unk {
   background: none;

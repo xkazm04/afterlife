@@ -1,9 +1,9 @@
 .tier {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: calc(4px * var(--ui-scale));
   height: var(--mini-h);
-  padding: 0 6px 0 3px;
+  padding: 0 calc(6px * var(--ui-scale)) 0 calc(3px * var(--ui-scale));
   border-radius: 5px;
   font-size: var(--t-small);
   font-weight: 650;

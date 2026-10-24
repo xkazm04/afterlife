@@ -1,7 +1,7 @@
 .lad {
   display: inline-grid;
   grid-template-columns: repeat(4, calc(8px * var(--ui-scale)));
-  gap: 2px;
+  gap: calc(2px * var(--ui-scale));
   flex: none;
 }
 .lad i {
@@ -21,7 +21,7 @@
   box-shadow: 0 0 5px color-mix(in oklab, var(--tc) 55%, transparent);
 }
 .le {
-  margin-left: 6px;
+  margin-left: calc(6px * var(--ui-scale));
   font-size: var(--t-small);
   color: var(--text-3);
 }

@@ -4,7 +4,7 @@
   place-items: center;
   min-width: calc(20px * var(--ui-scale));
   height: var(--chip-h);
-  padding: 0 5px;
+  padding: 0 calc(5px * var(--ui-scale));
   border-radius: 8px;
   background: var(--needs-you);
   color: var(--needs-you-ink);

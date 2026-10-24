@@ -1,7 +1,7 @@
 .ticks {
   display: inline-flex;
   align-items: flex-end;
-  gap: 2px;
+  gap: calc(2px * var(--ui-scale));
   height: calc(13px * var(--ui-scale));
 }
 .ticks i {

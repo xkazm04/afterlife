@@ -40,7 +40,7 @@
 /* A class several agents hold: its most restrictive holder's letter, then the split mark. Not a failure: no red. */
 .mk[data-split="true"] {
   width: auto;
-  padding: 0 2px 0 3px;
+  padding: 0 calc(2px * var(--ui-scale)) 0 calc(3px * var(--ui-scale));
   grid-auto-flow: column;
   gap: 1px;
 }

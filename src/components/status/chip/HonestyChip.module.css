@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   height: var(--chip-h);
-  padding: 0 5px;
+  padding: 0 calc(5px * var(--ui-scale));
   border-radius: 4px;
   flex: none;
   font-size: var(--t-small);
@@ -26,5 +26,5 @@
 }
 .age {
   font-weight: 500;
-  margin-left: 3px;
+  margin-left: calc(3px * var(--ui-scale));
 }
