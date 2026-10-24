@@ -16,5 +16,5 @@ describe('Copy Command is implemented once', () => {
     const decl = /(?:function|const)\s+copyCommand\b/;
     const owners = walk(path.join(root, 'src')).filter((p) => decl.test(fs.readFileSync(p, 'utf8'))).map((p) => path.relative(root, p).split(path.sep).join('/'));
     expect(owners).toEqual(['src/lib/clipboard/copyCommand.ts']);
-  });
+  }, 120_000); // walks the whole src/ tree: seconds alone, past the 30 s default under a loaded full suite
 });

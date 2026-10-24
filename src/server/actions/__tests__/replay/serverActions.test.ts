@@ -35,11 +35,11 @@ describe('every server action is called by the replay-inertness guard', () => {
 
   it('finds the endpoints this repo ships', () => {
     expect(serverActionsIn(SRC)).toEqual(expect.arrayContaining(['previewAction', 'confirmAction', 'repollAction', 'verifyArmAction', 'rereadSetupAction']));
-  });
+  }, 120_000); // walks the whole src/ tree: seconds alone, past the 30 s default under a loaded full suite
 
   it('calls each of them', () => {
     expect(uncalled(serverActionsIn(SRC), inert)).toEqual([]);
-  });
+  }, 120_000); // walks the whole src/ tree: seconds alone, past the 30 s default under a loaded full suite
 
   it('goes red for a sixth endpoint nobody called (seeded control)', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'actions-'));

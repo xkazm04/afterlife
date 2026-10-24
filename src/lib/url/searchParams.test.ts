@@ -31,7 +31,7 @@ function sources(dir: string): [string, string][] {
 describe('one implementation', () => {
   it('no source under src/app hand-writes the first-value read', () => {
     expect(sources(APP).filter(([, s]) => COPY.test(s)).map(([f]) => f)).toEqual([]);
-  });
+  }, 120_000); // walks the whole src/app tree: seconds alone, past the 30 s default under a loaded full suite
   it('the matcher sees a copy (seeded control)', () => {
     expect(COPY.test('const raw = Array.isArray(params.mr) ? params.mr[0] : params.mr;')).toBe(true);
     expect(COPY.test('const one = (v) => (Array.isArray(v) ? v[0] : v);')).toBe(true);

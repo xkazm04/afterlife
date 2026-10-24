@@ -62,5 +62,5 @@ describe('src/app holds no hand-written gap MR, gap issue or probe', () => {
   });
   it('the allowance names files that exist', () => {
     for (const n of NOT_A_SEND) expect(sources(APP).some((f) => f.includes(n)), n).toBe(true);
-  });
+  }, 120_000); // walks the whole src/app tree once per allowance: seconds alone, past the 30 s default under a loaded full suite
 });

@@ -76,5 +76,5 @@ describe('source encoding', () => {
       if (line > 0) bad.push(`${file}:${line} is not valid UTF-8`);
     }
     expect(bad.join('\n')).toBe('');
-  });
+  }, 120_000); // walks the whole tracked tree: seconds alone, past the 30 s default under a loaded full suite
 });

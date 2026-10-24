@@ -65,5 +65,5 @@ describe('the one screen list', () => {
       );
     const spreads = walk(join(process.cwd(), 'src')).filter((f) => /\.\.\.APP_NAV, SETTINGS_NAV/.test(readFileSync(f, 'utf8')));
     expect(spreads.map((f) => f.replaceAll('\\', '/').split('/src/')[1])).toEqual(['components/shell/sidebar/navItems.ts']);
-  });
+  }, 120_000); // walks the whole src/ tree: seconds alone, past the 30 s default under a loaded full suite
 });

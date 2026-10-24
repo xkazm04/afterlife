@@ -24,7 +24,7 @@ const spellings = (): string[] => {
 describe('the open-inbox count rule', () => {
   it('is written once in SQL, in the proposal repository', () => {
     expect(spellings()).toEqual(['index/repositories/work/proposal.ts']);
-  });
+  }, 120_000); // walks the whole src/server tree: seconds alone, past the 30 s default under a loaded full suite
 
   it('counts the open top-level proposals of one project only', async () => {
     const db = await memoryIndex();

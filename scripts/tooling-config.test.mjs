@@ -38,5 +38,5 @@ describe('vitest.config.ts', () => {
     expect(tests.length).toBeGreaterThan(100);
     const skipped = tests.filter((f) => !include.some((g) => path.posix.matchesGlob(f, g)));
     expect(skipped).toEqual([]);
-  });
+  }, 120_000); // walks the whole tracked tree: seconds alone, past the 30 s default under a loaded full suite
 });

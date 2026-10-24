@@ -147,7 +147,7 @@ describe('stored chain integrity', () => {
     const src = path.join(__dirname, '..', '..', '..');
     const hits = walk(src).filter((f) => !f.includes('__tests__') && /disable\s+trigger/i.test(strip(fs.readFileSync(f, 'utf8'))));
     expect(hits.map((f) => path.relative(src, f))).toEqual([]);
-  });
+  }, 120_000); // walks the whole src/ tree: seconds alone, past the 30 s default under a loaded full suite
 });
 
 describe('appendLedgerEvents cost', () => {

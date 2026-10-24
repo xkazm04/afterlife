@@ -62,5 +62,5 @@ describe('layers', () => {
     expect(files.length).toBeGreaterThan(50);
     const bad = files.flatMap((f) => imports(f).filter((i) => i === APP || i.startsWith(APP + path.sep)).map(() => path.relative(SERVER, f)));
     expect(bad).toEqual([]);
-  });
+  }, 120_000); // walks the whole src/server tree: seconds alone, past the 30 s default under a loaded full suite
 });
