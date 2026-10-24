@@ -61,8 +61,9 @@ export class GlabClient {
   }
 
   /**
-   * Walks page=1.. until a short page, `limit` items, or maxPages. Concatenates the arrays. per_page stays within GitLab's
-   * 1..100: above 100 GitLab answers 100 and a full page would read as the last one; a limit of 0 or less asks nothing.
+   * Walks page=1.. until a short page, `limit` items, or maxPages (logged: the list may be cut). Concatenates the arrays.
+   * per_page stays within GitLab's 1..100: above 100 GitLab answers 100 and a full page would read as the last one; a
+   * limit of 0 or less asks nothing.
    */
   async getPages(path: string, query: Query = {}, limit?: number): Promise<unknown[]> {
     if (limit !== undefined && !(limit >= 1)) return [];
@@ -73,8 +74,10 @@ export class GlabClient {
       const body = await this.getJson(path, { ...query, per_page: perPage, page });
       if (!Array.isArray(body)) throw new GitLabError('parse', 'expected a JSON array', path);
       all.push(...body);
-      if (body.length < perPage || (limit !== undefined && all.length >= limit)) break;
+      if (body.length < perPage || (limit !== undefined && all.length >= limit)) return limit === undefined ? all : all.slice(0, limit);
     }
+    // The last page was full: GitLab may hold more rows than the walk read, and the caller cannot tell.
+    console.error(`belay: ${path} stopped at ${maxPages} pages of ${perPage}; the list may be cut at ${all.length} rows`);
     return limit === undefined ? all : all.slice(0, limit);
   }
 
