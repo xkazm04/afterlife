@@ -37,7 +37,7 @@ export function TaskLegend() {
       />
       <hr />
       <div className={styles.keys}>
-        <Kbd>↑</Kbd> <Kbd>↓</Kbd> walk · <Kbd>←</Kbd> <Kbd>→</Kbd> cross · <Kbd>[</Kbd> <Kbd>]</Kbd> task · <Kbd>f</Kbd> fail only · <Kbd>r</Kbd> replay ·{' '}
+        <Kbd>↑</Kbd> <Kbd>↓</Kbd> walk · <Kbd>←</Kbd> <Kbd>→</Kbd> cross · <Kbd>[</Kbd> <Kbd>]</Kbd> task · <Kbd>f</Kbd> fail only · <Kbd>n</Kbd> next reason · <Kbd>r</Kbd> replay ·{' '}
         <Kbd>w</Kbd> words · <Kbd>Esc</Kbd> clear · <Kbd>⌘I</Kbd> inspector
       </div>
     </>
