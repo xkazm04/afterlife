@@ -1,6 +1,6 @@
 // What the maturity scan scores from. Every fact is read or unreadable, never guessed: an unreadable fact keeps a stage
-// unknown (null), it never makes it absent. A checkout scan reads files only; a GitLab scan (collect-facts.mjs in the
-// maturity-scan component) adds the pipeline, protections and approval rules.
+// unknown (null), it never makes it absent. A checkout scan reads files only, so pipeline, protection and approvals are
+// always unread here; the facts collect-facts.mjs gathers from GitLab are scored by `scan --facts` (commands/facts.ts).
 
 export type Fact<T> = { ok: true; value: T } | { ok: false; why: string };
 

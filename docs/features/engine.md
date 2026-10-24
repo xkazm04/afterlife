@@ -119,8 +119,9 @@
   bench-delta, score-delta, ledger-record, `head_sha`. Also `decide/standing.test.ts`, `decide/shadow.test.ts`,
   `parse/*.test.ts`, `policy/envelope.test.ts`, `policy/load.test.ts`, `core/core.test.ts`.
 - `engine/scan/scan.test.ts`: the example target project scores secure, verify and govern at R1 and nothing above;
-  local includes, IaC and CODEOWNERS count; an empty alerting file and an unopened include do not; GitLab facts
-  credit running and enforced; an unreadable fact leaves a stage unknown; the command's JSON and refusals.
+  local includes, IaC and CODEOWNERS count; an empty alerting file and an unopened include do not; an unparsable CI
+  file leaves the CI stages unknown; the command's JSON and refusals. `scan --facts` (the rubric over GitLab facts) is
+  `engine/commands/scan.test.ts`.
 - `src/server/pair/__tests__/pair.test.ts` (real temporary git checkouts): no write without `--write`; every line
   of the project's files kept; a second run is a no-op; not a checkout root or no group is refused; a different
   existing file is kept; the include is created, appended, inserted or refused.

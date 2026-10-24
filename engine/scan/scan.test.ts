@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { main } from '../cli';
 import { capture, NOW, ROOT } from '../__tests__/helpers';
 import { readCi } from './ci';
-import { gitlabFacts } from './gitlabFacts';
 import { checkoutFacts } from './local';
 import { propose, scan } from './scan';
 
@@ -63,32 +62,6 @@ describe('belay scan of a checkout (files only)', () => {
     expect(p.find((x) => x.stage === 'secure')).toMatchObject({ from: 0, to: 1 });
     expect(p.find((x) => x.stage === 'create')).toMatchObject({ from: 1, to: 2 });
     expect(fs.readdirSync(dir)).toEqual(before);
-  });
-});
-
-describe('belay scan of GitLab facts (the maturity-scan job)', () => {
-  const doc = (over: Record<string, unknown> = {}) => ({
-    schema: 'belay.facts/0', project_id: 1, at: NOW.toISOString(),
-    facts: {
-      project: { path: 'acme/ledgerline', default_branch: 'main' },
-      ci_config: { merged_yaml: 'semgrep-sast:\n  stage: test\n  script: [scan]\nunit:\n  stage: test\n  script: [gradle test]\n' },
-      protected_branches: [{ name: 'main' }],
-      approval_rules: [{ approvals_required: 1 }],
-      codeowners: ['CODEOWNERS'],
-      duo_agent_config: false,
-      latest_pipeline_jobs: { pipeline: 9812, jobs: [{ name: 'semgrep-sast', status: 'success' }, { name: 'unit', status: 'failed' }] },
-      ...over,
-    },
-  });
-  it('credits running from the last pipeline and enforced from protection plus approvals', () => {
-    const r = Object.fromEntries(scan(gitlabFacts(doc()), NOW).cells.map((c) => [c.stage, c.rung]));
-    expect(r).toMatchObject({ secure: 2, verify: 1, create: 3 });
-  });
-  it('an unreadable fact keeps what it could have lifted unknown, never absent', () => {
-    const s = scan(gitlabFacts(doc({ ci_config: { error: '403 Forbidden' }, protected_branches: { error: 'timeout' } })), NOW);
-    expect(s.cells.find((c) => c.stage === 'secure')).toMatchObject({ rung: null });
-    expect(s.cells.find((c) => c.stage === 'secure')?.why).toMatch(/ci_config could not be read: 403 Forbidden/);
-    expect(s.cells.find((c) => c.stage === 'create')).toMatchObject({ rung: 1 });
   });
 });
 
