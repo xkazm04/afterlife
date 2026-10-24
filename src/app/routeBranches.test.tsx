@@ -1,3 +1,5 @@
+import { existsSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The route-level branches of the dynamic pages: a known id renders its screen, an unknown one calls notFound, the fleet
@@ -82,4 +84,21 @@ describe('dynamic route pages', () => {
     await expect(page({ searchParams: Promise.resolve({}) })).resolves.toBeTruthy();
     expect(nav.redirect).not.toHaveBeenCalled();
   });
+
+  // ROUTES is typed by hand, so it is held to the [param] folders on disk: a new dynamic route without a branch test (or
+  // without its own not-found page) fails here instead of going unseen.
+  it('covers every dynamic route folder on disk, each with its own not-found page', () => {
+    const covered = [...ROUTES.map((r) => r[0]), 'task/[id]'].sort();
+    expect(dynamicRoutes(import.meta.dirname)).toEqual(covered);
+    for (const r of covered) expect(existsSync(path.join(import.meta.dirname, r, 'not-found.tsx')), r).toBe(true);
+  });
 });
+
+/** The route folders named `[param]` under src/app (features and api hold no pages), as posix paths from src/app. */
+function dynamicRoutes(dir: string, rel = ''): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    if (!e.isDirectory() || e.name === 'features' || e.name === 'api') return [];
+    const next = path.posix.join(rel, e.name);
+    return [...(e.name.startsWith('[') ? [next] : []), ...dynamicRoutes(path.join(dir, e.name), next)];
+  }).sort();
+}
