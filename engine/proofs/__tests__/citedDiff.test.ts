@@ -71,6 +71,15 @@ describe('cited-diff: every finding quotes a hunk that exists', () => {
     for (const file of ['b/api.kt', 'b/b/api.kt', './b/api.kt']) expect(q(file), file).toBe(true);
   });
 
+  it('reads each hunk once, not once per finding: 200 findings over a 5000-line hunk stay cheap', () => {
+    const n = 5000;
+    const d = `diff --git a/x.ts b/x.ts\n--- a/x.ts\n+++ b/x.ts\n@@ -0,0 +1,${n} @@\n${Array.from({ length: n }, (_, i) => `+  line number ${i} of the change`).join('\n')}\n`;
+    const claims = Array.from({ length: 200 }, (_, i) => ({ id: `f${i}`, text: 't', quote: { file: 'x.ts', text: `not there ${i}` } }));
+    const t = performance.now();
+    expect(run({ ...fixture('cited', 'input.grounded.json'), diff: d, claims }).verdict).toBe('fail');
+    expect(performance.now() - t).toBeLessThan(500);
+  });
+
   it('refuses claims that are not a list, instead of reading them as no findings and passing', () => {
     const one = { id: 'q', text: 't', quote: { file: 'x.kt', text: 'not in the diff at all' } };
     for (const claims of [one, 'f1', 1]) expect(() => run({ ...fixture('cited', 'input.grounded.json'), claims }), JSON.stringify(claims)).toThrow(/claims must be a list/);

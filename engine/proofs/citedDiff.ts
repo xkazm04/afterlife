@@ -29,11 +29,26 @@ function runsOf(h: DiffHunk, kind: DiffLine['kind']): string[] {
   return out;
 }
 
+interface HunkText {
+  add: string[];
+  del: string[];
+  all: string;
+}
+
+/** A hunk's searchable text, built once per hunk however many findings quote it (the agent sets how many there are). */
+const texts = new WeakMap<DiffHunk, HunkText>();
+function textOf(h: DiffHunk): HunkText {
+  let t = texts.get(h);
+  if (!t) texts.set(h, (t = { add: runsOf(h, 'add'), del: runsOf(h, 'del'), all: squashWs(h.lines.map((l) => l.text).join(' ')) }));
+  return t;
+}
+
 /** Where in this hunk the quote sits: on added lines, removed lines, or across the whole hunk. */
 function foundIn(h: DiffHunk, needle: string): string | null {
-  if (runsOf(h, 'add').some((r) => r.includes(needle))) return 'added lines';
-  if (runsOf(h, 'del').some((r) => r.includes(needle))) return 'removed lines';
-  if (squashWs(h.lines.map((l) => l.text).join(' ')).includes(needle)) return 'the hunk';
+  const t = textOf(h);
+  if (t.add.some((r) => r.includes(needle))) return 'added lines';
+  if (t.del.some((r) => r.includes(needle))) return 'removed lines';
+  if (t.all.includes(needle)) return 'the hunk';
   return null;
 }
 
