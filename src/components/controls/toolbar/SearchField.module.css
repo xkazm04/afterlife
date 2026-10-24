@@ -39,12 +39,9 @@
 .search input::-webkit-search-cancel-button {
   display: none;
 }
+/* the "/" hint is a Kbd (its look is Kbd.module.css); here it only sits in the field and dims */
 .search kbd {
   position: absolute;
   right: 6px;
-  font: 600 var(--t-small) / 1 var(--sys);
   color: var(--text-4);
-  border: 1px solid var(--border-3);
-  border-radius: 4px;
-  padding: 1px 4px;
 }

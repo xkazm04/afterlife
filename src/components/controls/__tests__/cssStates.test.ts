@@ -89,6 +89,14 @@ describe('Checkbox hit target', () => {
   });
 });
 
+describe('keycap look', () => {
+  // SearchField's "/" hint is a Kbd: it may place and dim the keycap, but the keycap's look lives in Kbd.module.css alone.
+  it('is drawn by Kbd, not re-declared by SearchField', () => {
+    expect(body(css('Kbd.module.css'), '.kbd')).toMatch(/border:/);
+    expect(body(css('toolbar/SearchField.module.css'), '.search kbd')).not.toMatch(/(^|;)\s*(font|border|border-radius|padding):/);
+  });
+});
+
 describe('visually hidden recipe', () => {
   const decls = (b: string): string[] => b.split(';').map((d) => d.replace(/\s+/g, ' ').trim()).filter(Boolean).sort();
   const recipe = decls(body(css('../../styles/base.css'), '.sr-only'));

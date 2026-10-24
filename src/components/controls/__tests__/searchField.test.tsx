@@ -9,7 +9,7 @@ const render = (value: string, withRef: boolean) =>
   renderToStaticMarkup(
     createElement(SearchField, { value, onChange: () => {}, label: 'Search', inputRef: withRef ? createRef<HTMLInputElement>() : undefined }),
   );
-const hint = (html: string) => /<kbd>\/<\/kbd>/.test(html);
+const hint = (html: string) => /<kbd[^>]*>\/<\/kbd>/.test(html);
 
 describe('SearchField "/" hint', () => {
   it('shows on an empty field a screen can focus with "/"', () => {

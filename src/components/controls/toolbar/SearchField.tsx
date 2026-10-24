@@ -1,4 +1,5 @@
 import type { Ref } from 'react';
+import { Kbd } from '@/components/controls/Kbd';
 import { Icon } from '@/components/icons/Icon';
 import styles from './SearchField.module.css';
 
@@ -34,7 +35,7 @@ export function SearchField({
         onChange={(e) => onChange(e.target.value)}
       />
       {/* the keycap promises "/" focuses this field; only a screen holding inputRef can keep that promise */}
-      {value || !inputRef ? null : <kbd>/</kbd>}
+      {value || !inputRef ? null : <Kbd>/</Kbd>}
     </label>
   );
 }
