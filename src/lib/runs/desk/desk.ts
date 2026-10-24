@@ -9,16 +9,23 @@ import type { BranchState, FleetFile, FleetRef, MergeNeed, ParkNeed, RunnerDesk,
 
 export const branchKey = (repo: string, branch: string): string => `${repo}\u0000${branch}`;
 
-const quote = (p: string): string => (/[\s"']/.test(p) ? `"${p.replace(/"/g, '\\"')}"` : p);
+/** The runner's wave branch (runner/git/worktree.ts). A run file naming anything else is not a wave to merge. */
+export const WAVE_BRANCH = /^belay\/wave-\d+$/;
+
+/**
+ * A word as a pasted shell reads it, literally: bare when it holds only safe characters, else single-quoted (POSIX
+ * escaping of a quote inside). Single quotes expand nothing in sh, bash or PowerShell, so no `$(...)` or backtick runs.
+ */
+const quote = (w: string): string => (/^[A-Za-z0-9_./:@%+=,-]+$/.test(w) ? w : `'${w.replace(/'/g, "'\\''")}'`);
 
 /** The commands a person runs to take a wave: on the base, fast-forward only, then push. Text only. */
 export function mergeCommands(where: string, branch: string, base: string): string[] {
   const at = `git -C ${quote(where)}`;
-  return [`${at} switch ${base}`, `${at} merge --ff-only ${branch}`, `${at} push`];
+  return [`${at} switch ${quote(base)}`, `${at} merge --ff-only ${quote(branch)}`, `${at} push`];
 }
 
 function mergeNeed(w: RunWave, ref: FleetRef | undefined, state: BranchState | undefined): MergeNeed | null {
-  if (!w.mergeable || !w.branch) return null;
+  if (!w.mergeable || !w.branch || !WAVE_BRANCH.test(w.branch)) return null;
   if (state && (!state.exists || state.merged)) return null;
   const base = ref?.base ?? 'main';
   return {

@@ -18,7 +18,7 @@ describe('buildDesk', () => {
     const d = buildDesk({ runs: runs(), fleet: { file: 'ok', refs: [ALPHA, BETA] }, branches: git({ exists: true, merged: false }) });
     const merge = d.needs.find((n) => n.kind === 'merge-wave');
     expect(merge).toMatchObject({ id: 'merge:alpha:1', branch: 'belay/wave-1', base: 'main', path: 'C:/work/alpha repo', landed: 1, costUsd: 0.25, checked: true });
-    expect(merge?.commands).toEqual(['git -C "C:/work/alpha repo" switch main', 'git -C "C:/work/alpha repo" merge --ff-only belay/wave-1', 'git -C "C:/work/alpha repo" push']);
+    expect(merge?.commands).toEqual(["git -C 'C:/work/alpha repo' switch main", "git -C 'C:/work/alpha repo' merge --ff-only belay/wave-1", "git -C 'C:/work/alpha repo' push"]);
   });
   it('a merged or deleted branch is no decision; an unchecked one still is, and says so', () => {
     for (const s of [{ exists: true, merged: true }, { exists: false, merged: false }]) {
@@ -51,4 +51,20 @@ describe('buildDesk', () => {
 
 describe('mergeCommands', () => {
   it('leaves a plain path bare', () => expect(mergeCommands('/w/beta', 'belay/wave-3', 'dev')[1]).toBe('git -C /w/beta merge --ff-only belay/wave-3'));
+  it('single-quotes a hostile path, branch or base, so a pasted line runs no shell syntax', () => {
+    expect(mergeCommands('/w/$(touch x)', 'b`id`', "it's")).toEqual([
+      "git -C '/w/$(touch x)' switch 'it'\\''s'",
+      "git -C '/w/$(touch x)' merge --ff-only 'b`id`'",
+      "git -C '/w/$(touch x)' push",
+    ]);
+  });
+});
+
+describe('a wave branch the runner did not name', () => {
+  it('is no merge decision', () => {
+    const hostile = runs();
+    hostile.repos[0]!.waves[0]!.branch = 'belay/wave-1;$(rm -rf ~)';
+    const d = buildDesk({ runs: hostile, fleet: { file: 'ok', refs: [ALPHA] }, branches: new Map() });
+    expect(d.needs.map((n) => n.kind)).toEqual(['parked-lane']);
+  });
 });

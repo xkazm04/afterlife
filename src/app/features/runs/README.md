@@ -18,5 +18,7 @@ and live mode alike, so it is not part of the `DataSource`.
   commands the person runs, from the desk's merge decisions (`readDesk()`): `git -C <path> switch <base>`, `merge --ff-only
   belay/wave-<n>`, `push`, with `<path>` and `<base>` from `.belay/fleet.yml` (the slug only when the repo is not listed; when the file is invalid the panel names its error instead of "not in
   fleet.yml"). A
-  mergeable wave git says is in its base already reads "nothing to merge". Text only; nothing here merges, pushes or writes.
+  mergeable wave git says is in its base already reads "nothing to merge". Each word of a command is single-quoted when it
+  holds anything but safe characters, and a run file whose branch is not `belay/wave-<n>` gives no merge decision, so a
+  pasted line never carries shell syntax from run data. Text only; nothing here merges, pushes or writes.
 - `components/RunsEmpty.tsx`: no runs yet names `belay run --repo <slug>` and `.belay/runs/`.
