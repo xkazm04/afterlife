@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Popover, type PopoverCloseCause } from './Popover';
+import { anchorName } from './anchorName';
 import { createReopenGuard } from './reopenGuard';
 import type { Box } from '../position';
 
@@ -10,6 +11,8 @@ interface Shown {
   content: ReactNode;
   sticky: boolean;
   placement: 'below' | 'above';
+  /** A sticky one is a dialog, named by the control that opened it. */
+  label?: string;
 }
 
 export interface PopoverApi {
@@ -57,7 +60,7 @@ export function usePopover(delayMs = 380): PopoverApi {
       if (stickyRef.current && !opts.sticky) return;
       if (opts.sticky && guard.swallows(anchor)) return;
       const box = toBox(anchor);
-      const next: Shown = { anchor: box, content, sticky: !!opts.sticky, placement: opts.placement ?? 'below' };
+      const next: Shown = { anchor: box, content, sticky: !!opts.sticky, placement: opts.placement ?? 'below', label: opts.sticky ? anchorName(anchor) : undefined };
       const go = () => {
         stickyRef.current = next.sticky;
         anchorEl.current = anchor;
@@ -97,7 +100,7 @@ export function usePopover(delayMs = 380): PopoverApi {
   );
 
   const popover = shown ? (
-    <Popover anchor={shown.anchor} placement={shown.placement} onClose={shown.sticky ? closeBy : undefined}>
+    <Popover anchor={shown.anchor} placement={shown.placement} onClose={shown.sticky ? closeBy : undefined} label={shown.label}>
       {shown.content}
     </Popover>
   ) : null;
