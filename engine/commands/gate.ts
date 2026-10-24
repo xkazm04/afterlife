@@ -54,11 +54,11 @@ export function gateCommand(argv: readonly string[], ctx: Ctx): CommandResult {
     policy,
     state,
     classId,
-    agent: args.get('agent'),
+    agent: args.opt('agent'),
     proof: toProof(optionalJson(ctx, args.opt('proof'))),
     guardrail: toGuardrail(optionalJson(ctx, args.opt('guardrail'))),
     envelope: diff !== undefined ? checkEnvelope(policy, classId, readText(ctx, diff), args.all('env')) : undefined,
-    engineSha: args.get('engine-sha'),
+    engineSha: args.opt('engine-sha'),
     now,
   };
   const result = gate(input);

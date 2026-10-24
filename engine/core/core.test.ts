@@ -55,13 +55,16 @@ describe('gate reads a proof that is not there as wait, and one it cannot read a
 });
 
 describe('an optional path given empty is refused, not read as the working directory or as absent', () => {
-  it('scan --dir "", gate --diff "" / --proof "", prove --files-root "" exit 2 naming the option', () => {
+  it('scan --dir "", gate --diff "" / --proof "" / --agent "" / --engine-sha "", prove --files-root "" exit 2 naming the option', () => {
     const cases: [string, string[]][] = [
       ['dir', ['scan', '--dir', '']],
       ['facts', ['scan', '--facts', '']],
       ['diff', ['gate', '--class', 'dep-bump.patch', '--diff', '']],
       ['proof', ['gate', '--class', 'dep-bump.patch', '--proof', '']],
       ['guardrail', ['gate', '--class', 'dep-bump.patch', '--guardrail', '']],
+      // an unset $BELAY_AGENT is not "no agent named" (the sole holder's tier), nor an unset sha "no pin" (the build check skipped)
+      ['agent', ['gate', '--class', 'dep-bump.patch', '--agent', '']],
+      ['engine-sha', ['gate', '--class', 'dep-bump.patch', '--engine-sha', '']],
       ['files-root', ['prove', '--class', 'rerun-stats', '--input', 'engine/__fixtures__/rerun/flake.json', '--files-root', '']],
     ];
     for (const [opt, argv] of cases) {
