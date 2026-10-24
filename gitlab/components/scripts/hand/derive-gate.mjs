@@ -16,12 +16,12 @@
 // Usage: CI_PROJECT_ID=<id> node derive-gate.mjs --mr <iid> --proof-authors <you> --guardrail-authors <account>
 //          --policy-project <path> --ledger-project <belay-ledger path> --out <new dir> [--agent-prefix ai-] [--ledger-branch main]
 // Exit 0 = <out>/events written; 3 = nothing to append, the reason on stderr; 2 = a read failed or an input is wrong.
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { api, arg, die, enc, need } from '../lib/lib.mjs';
 import { engine } from '../lib/engine.mjs';
 import { readFile } from '../lib/repo-write.mjs';
+import { glue as applyGlue } from '../../../apply/lib.mjs';
 import { mrFacts } from './facts.mjs';
 import { ledgerKey, ledgered } from './ledgered.mjs';
 
@@ -46,14 +46,8 @@ const nothing = (why) => {
   console.error(`belay: no events for !${iid}: ${why}. Append nothing.`);
   process.exit(3);
 };
-/** A glue script of this checkout, with the operator's environment minus any write token. */
-function glue(script, args, env = {}) {
-  const inherited = { ...process.env };
-  for (const k of ['BELAY_BOT_TOKEN', 'BELAY_POLICY_TOKEN', 'BELAY_LEDGER_TOKEN', 'BELAY_DISPATCH_TOKEN']) delete inherited[k];
-  const r = spawnSync(process.execPath, [path.join(SCRIPTS, script), ...args], { cwd: out, encoding: 'utf8', env: { ...inherited, ...env }, maxBuffer: 64 << 20 });
-  if (r.stderr) process.stderr.write(r.stderr);
-  return r.status ?? 2;
-}
+/** A glue script of this checkout, with the operator's environment minus any write token: belay-apply's own glue (F71). */
+const glue = (script, args, env = {}) => applyGlue(script, args, env, out).code;
 
 let facts;
 try {

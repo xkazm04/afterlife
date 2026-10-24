@@ -6,9 +6,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parse, parseAllDocuments } from 'yaml';
+import { TOKENS } from '../../apply/lib.mjs';
 import { ROOT } from './testing/harness.mjs';
 
-const WRITE_TOKENS = ['BELAY_BOT_TOKEN', 'BELAY_POLICY_TOKEN', 'BELAY_LEDGER_TOKEN', 'BELAY_DISPATCH_TOKEN'];
+// The list belay-apply itself withholds from every child (F71), so a token added there is checked here without a second edit.
+const WRITE_TOKENS = TOKENS;
 const TEMPLATES = path.join(ROOT, 'gitlab/components/templates');
 const EXAMPLE = path.join(ROOT, 'gitlab/examples/target-project/.gitlab-ci.yml');
 
