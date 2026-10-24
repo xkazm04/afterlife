@@ -8,13 +8,13 @@ import { Leaf } from './Leaf';
 import { Light } from './Light';
 import styles from './gates.module.css';
 
-/** When the gates part (ms of the CSS clock, from first paint) and how long they swing (gates.module.css --g-sw). */
-const T_OPEN = 2200;
-const SWING = 1300;
-const SWING_LITE = 900;
-const SWING_FAST = 560;
-/** The CSS fail-safe (gates.module.css `failsafe`) drops the overlay at this clock time unless the script has marked it live by then. */
-const FAILSAFE = 6000;
+/**
+ * The gates' clock in ms, as the stylesheets also write it (pinned by __tests__/proofs/gatesClock.test.ts): when they
+ * part (the CSS clock from first paint), how long they swing (--g-sw: full, lite, fast), and when the CSS fail-safe
+ * drops the overlay unless the script has marked it live by then.
+ */
+export const GATES_MS = { open: 2200, swing: 1300, swingLite: 900, swingFast: 560, failsafe: 6000 } as const;
+const { open: T_OPEN, swing: SWING, swingLite: SWING_LITE, swingFast: SWING_FAST, failsafe: FAILSAFE } = GATES_MS;
 
 type Phase = 'run' | 'open' | 'fast';
 

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { GATES_MS } from '../../components/entrance/gates/GatesEntrance';
 
 const dir = '../../components/entrance/gates/';
 const css = readFileSync(new URL(`${dir}gates.module.css`, import.meta.url), 'utf8');
@@ -15,7 +16,7 @@ describe('the entrance gates do not outlive a page whose script never runs', () 
   it('the root carries a CSS fail-safe that drops the overlay and its pointer events, later than the ceremony', () => {
     const m = /animation:\s*failsafe\s+(\d+)ms/.exec(rule('.root'));
     expect(m).not.toBeNull();
-    expect(Number(m![1])).toBeGreaterThanOrEqual(2200 + 1300 + 40 + 1000);
+    expect(Number(m![1])).toBeGreaterThanOrEqual(GATES_MS.open + GATES_MS.swing + 40 + 1000);
     const kf = /@keyframes failsafe\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
     expect(kf).toMatch(/visibility:\s*hidden/);
     expect(kf).toMatch(/pointer-events:\s*none/);
