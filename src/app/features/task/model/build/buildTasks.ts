@@ -22,6 +22,8 @@ export interface BuildInput {
 /** What a task with no fixture says it does not know. */
 export const UNKNOWN_AGENT = 'agent unknown';
 export const UNKNOWN_RUN = 'flow run unknown';
+/** The engine a source task with no proof carries: a placeholder, not an engine (engineHeld reads it). */
+export const NO_ENGINE = 'no engine';
 
 const SEEDED = /seeded/;
 
@@ -141,7 +143,7 @@ export function sourceTask(base: Task, input: Pick<BuildInput, 'tracks' | 'actio
     flowRun: UNKNOWN_RUN,
     chain,
     claims,
-    proof: { cls: p?.cls ?? 'no proof', verdict: toVerdict(p?.verdict), engine: p?.engine ?? 'no engine', digest: p?.digest ?? '', checks },
+    proof: { cls: p?.cls ?? 'no proof', verdict: toVerdict(p?.verdict), engine: p?.engine ?? NO_ENGINE, digest: p?.digest ?? '', checks },
     agentWords: base.agentWords ?? '',
     countsToward: base.countsToward ?? '',
     envelope: null,

@@ -6,10 +6,11 @@ import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { engineHeld } from '../components/engineHeld';
 import { Court } from '../components/court/Court';
 import { EngineLine } from '../components/equation/EngineLine';
+import { NO_ENGINE } from '../model/build/buildTasks';
 import { loadTasks } from '../model/build/loadTasks';
 
 const held = loadTasks()[0]!;
-const bare = { ...held, proof: { ...held.proof, engine: 'no engine', digest: '' } };
+const bare = { ...held, proof: { ...held.proof, engine: NO_ENGINE, digest: '' } };
 const court = (task: typeof held) => renderToStaticMarkup(createElement(ToastProvider, null, createElement(Court, { task, ...props })));
 const props = { sel: null, rv: null, onPick: () => undefined, onSelect: () => undefined };
 
