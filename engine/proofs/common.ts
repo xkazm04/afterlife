@@ -51,6 +51,8 @@ export function parseBase(input: unknown): ProofBase {
   if (typeof t.mr_iid === 'number') task.mr_iid = t.mr_iid;
   const headSha = optStr(t.head_sha, 'task.head_sha');
   if (headSha) task.head_sha = headSha;
+  // a claim object or text where the list belongs would read as no findings, and cited-diff passes no findings
+  if (i.claims !== undefined && !Array.isArray(i.claims)) throw new EngineError('claims must be a list');
   const claims = Array.isArray(i.claims) ? i.claims.map(parseClaim) : [];
   return {
     id: optStr(i.id, 'id'),
