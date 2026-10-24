@@ -5,12 +5,12 @@ import { useToast } from '@/components/overlays/toast/useToast';
 import type { TaskView } from '../model/types';
 import {
   REPLAY_CLEAR_MS,
-  REPLAY_DONE_STATUS,
   REPLAY_NOTHING,
   REPLAY_START,
   REPLAY_STEP_MS,
   ledgerRowAt,
   nextReplay,
+  replayDoneStatus,
   replayMessage,
   replayStartStatus,
   replayStepStatus,
@@ -44,7 +44,7 @@ export function useReplay(task: TaskView, opts: { onStart: () => void }) {
       const next = nextReplay(rv, n);
       if (next === null) {
         setRun({ taskId: task.id, rv: null, row: ledgerRowAt(n, n, rows) });
-        status(REPLAY_DONE_STATUS);
+        status(replayDoneStatus(task));
         toast(replayMessage(task));
         return;
       }

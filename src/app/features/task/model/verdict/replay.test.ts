@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadTasks } from '../build/loadTasks';
-import { REPLAY_START, checkShown, ledgerCheckLabel, ledgerRowAt, nextReplay, replayDone, replayMessage, replayStartStatus, replayStepStatus } from './replay';
+import { REPLAY_START, checkShown, ledgerCheckLabel, ledgerRowAt, nextReplay, replayDone, replayDoneStatus, replayMessage, replayStartStatus, replayStepStatus } from './replay';
 
 const task = loadTasks()[0]!;
 
@@ -69,6 +69,13 @@ describe('replay states the chain check it computed', () => {
     expect(replayMessage(broken)).not.toContain('hashes match');
     expect(replayStepStatus(broken, 0)).toMatch(/✓$/);
     expect(replayStepStatus(broken, 2)).toMatch(/✗$/);
+  });
+
+  it('ends the status line as the toast ends: never "identical to the record" over a broken chain', () => {
+    expect(replayDoneStatus(task)).toBe('replayed · identical to the record');
+    const broken = { ...task, ledger: task.ledger.map((r, i) => (i === 2 ? { ...r, text: 'changed' } : r)) };
+    expect(replayDoneStatus(broken)).toBe('replayed · chain broken at #478');
+    expect(replayDoneStatus({ ...task, ledgerCheck: { hash: 'sha256', brokenAt: 9 } })).toBe('replayed · chain broken at #9');
   });
 
   it('labels the inspector’s ledger from the check', () => {

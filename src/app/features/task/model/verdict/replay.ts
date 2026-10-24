@@ -57,7 +57,11 @@ export function replayStepStatus(task: TaskView, row: number): string {
   return r ? `ledger #${r.seq} · ${r.kind} · hash ${r.hash.slice(0, 7)} ${broken !== null && r.seq >= broken ? '✗' : '✓'}` : '';
 }
 
-export const REPLAY_DONE_STATUS = 'replayed · identical to the record';
+/** The status line once the replay ends: it says what the toast says about the chain, never "identical" over a break. */
+export function replayDoneStatus(task: TaskView): string {
+  const broken = ledgerBreak(task);
+  return broken !== null ? `replayed · chain broken at #${broken}` : 'replayed · identical to the record';
+}
 
 /** A task with no ledger rows has nothing to re-derive its verdict from: the replay does not start. */
 export const REPLAY_NOTHING = 'Nothing to replay: no ledger rows are held for this task';
