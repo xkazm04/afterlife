@@ -41,12 +41,18 @@ describe("the reducer's verify path", () => {
     expect(s.arm.T3).toMatchObject({ st: 'open', found: 'could not verify: live mode has not finished its first poll' });
   });
   it('a disarm settles only when the block is gone; until then the track stays as it was asked', () => {
-    // The demo opens with T4 armed and step 4 unprobed; a disarmed T4 is ready only once step 4 reads done (T4 needs it).
-    let s = run(fresh(), { t: 'probe-start', n: 4 }, { t: 'probe-end', n: 4, at: '14:05' }, sent('T4', true));
+    // The demo opens with T4 armed and step 4 done, so a disarmed T4 is ready again (T4 needs step 4).
+    let s = run(fresh(), sent('T4', true));
     s = verify(s, 'T4', { status: 'read', armed: true, text: 'the block is still on main' });
     expect(s.arm.T4).toMatchObject({ st: 'open', revert: true, found: 'the block is still on main' });
     s = verify(s, 'T4', { status: 'read', armed: false, text: 'no T4 block' });
     expect(s.arm.T4).toMatchObject({ st: 'ready', mr: null, revert: false, found: null });
+  });
+  it('a disarmed track whose need no longer reads met locks, never ready: T4 with step 4 taken back', () => {
+    const armed = fresh();
+    const back = { ...armed, steps: { ...armed.steps, 4: { ...armed.steps[4]!, st: 'todo' as const } } };
+    const s = verify(run(back, sent('T4', true)), 'T4', { status: 'read', armed: false, text: 'no T4 block' });
+    expect(s.arm.T4).toMatchObject({ st: 'locked', mr: null, revert: false, found: null });
   });
   it('demo mode keeps the simulated flow, and the track says it was simulated', () => {
     const demo = run(fresh(), { t: 'arm-sent', id: 'T3', revert: false, mr: null, url: null, simulated: true });

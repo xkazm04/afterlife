@@ -103,11 +103,9 @@ Also generic enough to promote: `map/useEdgeGeometry` (measure nodes for drawn e
   unknown), T4 stays locked, as T5 does for step 6 (`ARM_META.T5`; `model/live/live.test.ts`, "with step 4 failed T4 is
   locked and reads "needs" with step 4's label"). This fails closed: Setup does not offer an arm MR for a project that may
   not exist. The App Master made this call on 2026-10-08.
-- In the demo, disarming T4 returns it to locked until step 4 is probed, not to ready (`model/flow/reducer.ts` `verifyEnd`: the
-  disarm sets `ready`, then locks every ready track with an unmet need, T4 included). The test is "a disarm settles only
-  when the block is gone; until then the track stays as it was asked" (`model/flow/verify.test.ts`). It probes step 4
-  first, then asserts `ready` after the disarm verifies. It states the locked half in a comment and
-  does not assert it.
+- A merged disarm returns a track to ready, then `recomputeLocks` locks it again if a need no longer reads met
+  (`model/flow/reducer.ts` `verifyEnd`). The demo opens with step 4 done, so a disarmed T4 is ready there; with step 4
+  taken back (a live read that sees it undone) it locks. `model/flow/verify.test.ts` asserts both halves.
 
 Known disagreements (the skill is `skills/adopt-belay/SKILL.md`, by step row; Setup is `data/stepDetail.ts` by step key and
 the reads in `src/server/data/setup/`; named, not line-numbered, so they do not drift):
