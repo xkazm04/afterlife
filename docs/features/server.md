@@ -36,8 +36,10 @@
   untyped `get` for probes, and `execute(planned)`. `plan/builders.ts` has seven pure write builders (`createMr`,
   `addNote`, `setLabels`, `setIssueLabels`, `commitFile`, `pauseSchedule`, `approveDeployment`) that return
   `{argv, display, risk}` with risk `low`, `policy` or `merge`.
-- **glab adapter** (`gitlab/adapter/`): `glab api` through `execFile` (no shell), pagination, 429 backoff, typed
-  `GitLabError`. No token is read or stored; glab's keyring is the login.
+- **glab adapter** (`gitlab/adapter/`): `glab api` through `execFile` (no shell), pagination, 429 and 502/503/504
+  backoff on reads, typed `GitLabError`. No token is read or stored; glab's keyring is the login. MR lists take
+  `sourceBranch` (GitLab's `source_branch`), so arm's open-MR check reads one page; every address a mapper reads passes
+  `httpAddress` (http(s) only, else empty), the one rule `actions/run.ts` also names an opened MR's link by.
 - **Fake GitLab** (`gitlab/fake/`): the same adapter over an in-memory `glab api` server; `execute` changes its state.
   `fake/demo/` builds group `acme-lab` from the demo dataset (ledgerline's MRs, notes, labels, deployments, policy
   files and a verifying ledger).
