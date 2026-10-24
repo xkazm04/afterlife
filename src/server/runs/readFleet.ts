@@ -26,6 +26,8 @@ export function readFleet(root: string): FleetRead {
     for (const [i, r] of repos.entries()) {
       const { slug, path, base, gitlab } = (r ?? {}) as Record<string, unknown>;
       if (!str(slug) || !str(path) || !str(base)) return { file: 'invalid', refs: [], error: `repos[${i}] needs slug, path and base` };
+      // the runner refuses a repeated slug (runner/fleet/load.ts), so the screens do not call that file ok
+      if (refs.some((x) => x.slug === slug)) return { file: 'invalid', refs: [], error: `repos[${i}]: duplicate slug "${slug}"` };
       refs.push({ slug, path, base, ...(str(gitlab) ? { gitlab } : {}) }); // gitlab: optional, the cost join's key
     }
     return { file: 'ok', refs };

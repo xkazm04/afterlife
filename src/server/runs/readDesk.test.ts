@@ -42,6 +42,12 @@ describe('readFleet', () => {
     expect(readFleet(root)).toEqual({ file: 'ok', refs: [{ slug: 'a', path: '/x', base: 'main' }] });
     writeFileSync(join(root, 'fleet.yml'), 'repos:\n  - {slug: a, path: /x, base: main, gitlab: acme/core/a}\n');
     expect(readFleet(root).refs).toEqual([{ slug: 'a', path: '/x', base: 'main', gitlab: 'acme/core/a' }]);
+    writeFileSync(join(root, 'fleet.yml'), 'repos:\n  - {slug: a, path: /x, base: main}\n  - {slug: a, path: /y, base: main}\n');
+    expect(readFleet(root)).toEqual({ file: 'invalid', refs: [], error: 'repos[1]: duplicate slug "a"' });
+    writeFileSync(join(root, 'fleet.yml'), 'repos: [\n');
+    expect(readFleet(root)).toMatchObject({ file: 'invalid', refs: [] });
+    writeFileSync(join(root, 'fleet.yml'), 'other: 1\n');
+    expect(readFleet(root)).toEqual({ file: 'invalid', refs: [], error: 'no "repos" list' });
   });
 });
 
