@@ -3,6 +3,8 @@ import { ProofBar } from '@/components/viz/ProofBar';
 import { RungGlyph } from '@/components/viz/RungGlyph';
 import { StageMeter } from '@/components/viz/StageMeter';
 import { StageTicks } from '@/components/viz/StageTicks';
+import { TrendDelta } from '@/components/viz/trend/TrendDelta';
+import { TrendStrip } from '@/components/viz/trend/TrendStrip';
 import { getStages } from '@/lib/demo';
 import { GallerySection } from './GallerySection';
 import { Specimen } from './Specimen';
@@ -50,6 +52,18 @@ export function VizGallery() {
         <DayStrip clean={6} />
         <DayStrip clean={0} revertedToday />
         <DayStrip clean={null} />
+      </Specimen>
+      <Specimen label="TrendStrip 28 days / 9 days (younger history) / unknown days / no days">
+        <TrendStrip label="waiting" values={Array.from({ length: 28 }, (_, i) => (i * 7) % 11)} />
+        <TrendStrip label="waiting" values={[4, 6, 5, 8, 7, 9, 6, 3, 2]} />
+        <TrendStrip label="waiting" values={[3, null, 5, 6, null, null, 4, 2]} />
+        <TrendStrip label="waiting" values={[]} />
+      </Specimen>
+      <Specimen label="TrendDelta up / down / flat / no week to compare">
+        <TrendDelta label="waiting" value={2} />
+        <TrendDelta label="waiting" value={-1} />
+        <TrendDelta label="waiting" value={0} />
+        <TrendDelta label="waiting" value={null} />
       </Specimen>
     </GallerySection>
   );
