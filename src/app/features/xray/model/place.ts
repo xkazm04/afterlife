@@ -27,7 +27,12 @@ export function placeCard(t: Box, card: { w: number; h: number }, area: Box, avo
   const midX = clamp(t.x + t.w / 2 - w / 2, area.x + EDGE, area.x + area.w - w - EDGE);
   const big = t.w > area.w * 0.5 && t.h > area.h * 0.45;
   const tries: Box[] = big
-    ? [{ x: t.x + t.w - w - 3 * GAP, y: t.y + 3 * GAP, w, h }]
+    ? [
+        { x: t.x + t.w - w - 3 * GAP, y: t.y + 3 * GAP, w, h },
+        // the docked panel sits in that corner (a map that fills the window): left of the panel, then the target's other corner
+        ...(avoid ? [{ x: avoid.x - w - GAP, y: t.y + 3 * GAP, w, h }] : []),
+        { x: t.x + 3 * GAP, y: t.y + 3 * GAP, w, h },
+      ]
     : [
         { x: t.x + t.w + GAP, y: midY, w, h },
         { x: t.x - w - GAP, y: midY, w, h },

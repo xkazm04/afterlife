@@ -30,6 +30,17 @@ describe('placeCard', () => {
     expect(b.x).toBeGreaterThan(500);
     expect(b.y).toBeGreaterThan(50);
   });
+  it("keeps a big target's card clear of the docked panel (Setup: the map under the panel)", () => {
+    const avoid = { x: 650, y: 420, w: 340, h: 370 };
+    const b = placeCard({ x: 0, y: 220, w: 1000, h: 580 }, { w: 460, h: 300 }, area, avoid);
+    expect(b.x + b.w <= avoid.x || b.y + b.h <= avoid.y).toBe(true);
+    expect(b.x >= 0 && b.y >= 220).toBe(true);
+  });
+  it("leaves a big target's card in its top-right corner when the panel is clear of it (Fleet)", () => {
+    const avoid = { x: 650, y: 420, w: 340, h: 370 };
+    const b = placeCard({ x: 0, y: 50, w: 1000, h: 750 }, card, area, avoid);
+    expect(b).toEqual({ x: 1000 - 300 - 54, y: 104, w: 300, h: 120 });
+  });
   it('always stays inside the area', () => {
     const b = placeCard({ x: 0, y: 0, w: 990, h: 20 }, card, area, null);
     expect(b.x).toBeGreaterThanOrEqual(0);

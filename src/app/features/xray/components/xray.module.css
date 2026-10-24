@@ -100,8 +100,11 @@
 .legend {
   /* The card ignores the pointer except here: a long legend scrolls. */
   pointer-events: auto;
-  max-height: min(calc(380px * var(--ui-scale)), 54vh);
+  /* Tall enough for a ten-column legend; past that it scrolls with a visible bar, so a cut row reads as more, not as lost. */
+  max-height: min(calc(560px * var(--ui-scale)), 64vh);
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-3) transparent;
   margin: calc(8px * var(--ui-scale)) 0 0;
   padding-top: calc(8px * var(--ui-scale));
   border-top: 1px solid var(--sep);
