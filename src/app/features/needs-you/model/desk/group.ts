@@ -3,16 +3,18 @@
 import type { NeedsKind } from '@/lib/demo/types';
 import type { Deadline, DeskGroup, DeskItem, DeskSummary, Grouping } from './types';
 
+/** The read-only kinds with a group of their own, declared once: 'Elsewhere' takes every other one. */
+const READ_ONLY_GROUPS = [['signoff', 'CRA sign-off'], ['setup', 'Setup']] as const satisfies readonly (readonly [NeedsKind, string])[];
+const named = (k: NeedsKind | undefined): boolean => READ_ONLY_GROUPS.some(([g]) => g === k);
+
 /** The kind groups, in the desk's order: what extends trust first, what this desk only reads last. */
 const KIND_GROUPS: readonly { id: string; name: string; has: (n: DeskItem) => boolean }[] = [
   { id: 'k-promote', name: 'Extend trust', has: (n) => n.kind === 'promote' },
   { id: 'k-readmit', name: 'Re-admit', has: (n) => n.kind === 'readmit' },
   { id: 'k-gap', name: 'Maturity gaps', has: (n) => n.kind === 'gap' },
-  ...(
-    [['signoff', 'CRA sign-off'], ['setup', 'Setup']] as const satisfies readonly (readonly [NeedsKind, string])[]
-  ).map(([k, name]) => ({ id: `k-${k}`, name, has: (n: DeskItem) => n.kind === 'other' && n.source?.kind === k })),
-  // any other read-only kind a later inbox adds still gets a row
-  { id: 'k-other', name: 'Elsewhere', has: (n) => n.kind === 'other' && n.source?.kind !== 'signoff' && n.source?.kind !== 'setup' },
+  ...READ_ONLY_GROUPS.map(([k, name]) => ({ id: `k-${k}`, name, has: (n: DeskItem) => n.kind === 'other' && n.source?.kind === k })),
+  // any other read-only kind a later inbox adds still gets a row, and only one
+  { id: 'k-other', name: 'Elsewhere', has: (n) => n.kind === 'other' && !named(n.source?.kind) },
 ];
 
 const DEADLINES: readonly { id: Deadline; name: string }[] = [

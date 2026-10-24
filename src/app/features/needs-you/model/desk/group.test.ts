@@ -74,3 +74,12 @@ describe('summarize', () => {
     expect(summarize([])).toEqual({ count: 0, projects: 0, oldestOpenedAt: null });
   });
 });
+
+describe('groupDesk by kind, every row once', () => {
+  it('puts a read-only item of each inbox kind in exactly one group', () => {
+    const kinds: NeedsKind[] = ['promote', 'signoff', 'gaps', 'readmit', 'setup'];
+    const list = kinds.map((k) => row(`o-${k}`, 'other', { src: k }));
+    const seen = groupDesk(list, 'kind').flatMap((g) => g.items.map((n) => n.id));
+    expect([...seen].sort()).toEqual(list.map((n) => n.id).sort());
+  });
+});
