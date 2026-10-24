@@ -51,6 +51,7 @@ export function planReadmits(
     return !have.has(readmitTitle(q)) && !isSettled(settled.get(id), q.since, settled.has(id));
   };
   const open = quarantines.filter(fresh).map((q) => readmitProposal(projectId, q, now));
-  const close = openNow.filter((p) => p.id.startsWith(`readmit:${projectId}:`) && !wanted.has(p.title)).map((p) => p.id);
+  const own = readmitId(projectId, ''); // the id prefix of this project's re-admits, from the one id builder
+  const close = openNow.filter((p) => p.id.startsWith(own) && !wanted.has(p.title)).map((p) => p.id);
   return { open, close };
 }

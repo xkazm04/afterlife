@@ -73,7 +73,7 @@ export function planPromotions(
   projectId: string, eligible: readonly EligibleClass[], sinceOf: ReadonlyMap<string, Date | null>, openNow: readonly ProposalRow[],
   settled: ReadonlyMap<string, Date | null>, now: Date,
 ): PromotionPlan {
-  const own = (p: ProposalRow) => p.id.startsWith(`promote:${projectId}:`);
+  const own = (p: ProposalRow) => p.id.startsWith(promotionId(projectId, '')); // this project's asks, by the one id builder
   const open = openNow.filter((p) => p.kind === 'promotion');
   const byTitle = new Map(open.map((p) => [p.title, p]));
   const out: ProposalRow[] = [];
