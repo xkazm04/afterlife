@@ -16,12 +16,16 @@ for (const sig of ['SIGINT', 'SIGTERM'] as const) {
 
 const USAGE = 'usage: belay run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run]';
 
+/** The flags USAGE names. Anything else is bad usage: a misspelt cap (`--lane-caps 1`) must not run at the default. */
+const SWITCHES = new Set(['--dry-run', '--skip-base-gates']);
+const VALUED = new Set(['--repo', '--waves', '--lanes', '--lane-cap', '--wave-cap', '--model', '--fleet']);
+
 function flags(argv: string[]): Map<string, string> | null {
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i] ?? '';
-    if (!a.startsWith('--')) return null;
-    if (a === '--dry-run' || a === '--skip-base-gates') out.set(a, '1');
+    if (SWITCHES.has(a)) out.set(a, '1');
+    else if (!VALUED.has(a)) return null;
     else {
       const v = argv[++i];
       if (v === undefined || v.startsWith('--')) return null;

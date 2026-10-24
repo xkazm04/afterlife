@@ -11,7 +11,8 @@ npm run runner -- --repo athena-portable            # = belay run --repo ...
 belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [--model sonnet] [--fleet .belay/fleet.yml] [--skip-base-gates] [--dry-run]
 ```
 
-`run` prints repo, base, caps and model before spending; `--dry-run` stops there. Copy `fleet.example.yml` to
+`run` prints repo, base, caps and model before spending; `--dry-run` stops there. A flag not in that list (a
+misspelt `--lane-caps`) exits 2 before anything runs. Copy `fleet.example.yml` to
 `.belay/fleet.yml` (gitignored) and fix the paths. A repo's own `laneCapUsd`/`waveCapUsd` are ceilings on the flags.
 `laneTools` (optional) lists extra command prefixes a lane may run, e.g. `npx vitest run`, `cargo check`.
 
