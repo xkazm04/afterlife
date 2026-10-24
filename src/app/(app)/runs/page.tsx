@@ -12,5 +12,6 @@ export default async function RunsPage() {
   await connection();
   const { desk, runs } = await readDeskAndRuns();
   const merges = desk.needs.filter((n): n is MergeNeed => n.kind === 'merge-wave');
-  return <RunsScreen data={runs} merges={merges} />;
+  const fleetError = desk.fleet === 'invalid' ? (desk.fleetError ?? 'it did not parse') : undefined;
+  return <RunsScreen data={runs} merges={merges} fleetError={fleetError} />;
 }

@@ -12,9 +12,10 @@ import styles from './RunsScreen.module.css';
 
 /**
  * Runs: what the runner did, read from .belay/runs (real local files, demo and live alike). Repos, their waves, a wave's
- * lanes on Enter. A mergeable wave shows the commands to take it; nothing here writes.
+ * lanes on Enter. A mergeable wave shows the commands to take it; nothing here writes. `fleetError`: why an invalid
+ * .belay/fleet.yml did not read (absent when the file is fine or missing).
  */
-export function RunsScreen({ data, merges }: { data: RunsData; merges?: readonly MergeNeed[] }) {
+export function RunsScreen({ data, merges, fleetError }: { data: RunsData; merges?: readonly MergeNeed[]; fleetError?: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const wave = data.repos.flatMap((r) => r.waves).find((w) => waveId(w) === selected);
   const empty = data.repos.length === 0;
@@ -22,7 +23,7 @@ export function RunsScreen({ data, merges }: { data: RunsData; merges?: readonly
     <Window title="Runs" subtitle={empty ? 'no runs yet' : `${data.totals.waves} wave${data.totals.waves === 1 ? '' : 's'}`} status={empty ? 'No runs in .belay/runs' : 'Enter or double-click a wave to open its lanes'}>
       <div className={styles.pane}>
         <RunsHeader data={data} />
-        {wave ? <MergePanel w={wave} needs={merges} /> : null}
+        {wave ? <MergePanel w={wave} needs={merges} fleetError={fleetError} /> : null}
         {empty ? (
           <RunsEmpty skippedLines={data.skippedLines} />
         ) : (

@@ -49,6 +49,15 @@ describe('RunsScreen', () => {
     expect(renderToStaticMarkup(<MergePanel w={w1} needs={[]} />)).toContain('nothing to merge');
   });
 
+  it('an invalid fleet.yml is named with its error, not read as the repo missing from it', () => {
+    const w1 = data.repos[0]!.waves[1]!;
+    const need = { kind: 'merge-wave' as const, id: 'merge:alpha:1', repo: 'alpha', wave: 1, branch: 'belay/wave-1', base: 'main', landed: 1, checked: false, commands: ['git -C alpha switch main'] };
+    const bad = renderToStaticMarkup(<MergePanel w={w1} needs={[need]} fleetError='repos[1]: duplicate slug "a"' />);
+    expect(bad).toContain('.belay/fleet.yml is invalid (repos[1]: duplicate slug &quot;a&quot;)');
+    expect(bad).not.toContain('not in .belay/fleet.yml');
+    expect(renderToStaticMarkup(<MergePanel w={w1} needs={[need]} />)).toContain('The repo is not in .belay/fleet.yml');
+  });
+
   it('writes nothing: no button, only text', () => {
     expect(renderToStaticMarkup(<RunsScreen data={data} />)).not.toContain('<button class="Button');
   });
