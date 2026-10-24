@@ -2,7 +2,8 @@
 // finished after GitLab answered, the confirm has no answer to give, and says so as no answer ("may or may not have run"),
 // never as "Failed · command 1: <the index's error>. Nothing before it ran.", which reads as safe to send again.
 import type { PGlite } from '@electric-sql/pglite';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { GitLabPort } from '@/server/gitlab/port';
 import { confirmIntent, previewIntent } from '../../run';
 import { liveRig } from '../rig';
 
@@ -34,5 +35,34 @@ describe('a command that ran, whose record could not be finished', () => {
     const r = confirmIntent(flaky, revoke, p.preview.previewId);
     await expect(r).rejects.toThrow('the index is closed');
     expect(gl.state.writes).toHaveLength(1);
+  });
+});
+
+/** The same port, except that once `armed`, the second read of tier-state.yml (the confirm's read-back, after its plan's) fails. */
+function readBackFails(armed: { on: boolean }) {
+  let n = 0;
+  return (port: GitLabPort): GitLabPort => new Proxy(port, {
+    get: (t, k, r) => (k !== 'getFile' ? Reflect.get(t, k, r) : (...a: Parameters<GitLabPort['getFile']>) =>
+      armed.on && a[1] === 'tier-state.yml' && ++n === 2 ? Promise.reject(new Error('read-back 503')) : t.getFile(...a)),
+  });
+}
+
+describe('a write whose poll or read-back failed after GitLab answered', () => {
+  it('still answers done, and the server log names each failure', async () => {
+    const armed = { on: false };
+    const { deps } = await liveRig(readBackFails(armed));
+    const p = await previewIntent(deps, revoke);
+    if (p.status !== 'preview') throw new Error(p.status);
+    armed.on = true;
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      const r = await confirmIntent({ ...deps, refresh: () => Promise.reject(new Error('poll 502')) }, revoke, p.preview.previewId);
+      expect(r.status).toBe('done');
+      const said = log.mock.calls.map((c) => c.map((x) => (x instanceof Error ? x.message : String(x))).join(' '));
+      expect(said.filter((l) => l.startsWith('belay:') && l.includes('poll 502'))).toHaveLength(1);
+      expect(said.filter((l) => l.startsWith('belay:') && l.includes('read-back 503'))).toHaveLength(1);
+    } finally {
+      log.mockRestore();
+    }
   });
 });
