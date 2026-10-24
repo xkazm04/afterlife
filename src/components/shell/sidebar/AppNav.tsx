@@ -25,7 +25,7 @@ export function AppNav() {
         }
       >
         {APP_NAV.map((e) => (
-          <NavLink key={e.key} entry={e} current={e.key === active} needsYou={needsYouCount} />
+          <NavLink key={e.key} entry={e} current={e.key === active} needsYou={needsYouCount ?? undefined} />
         ))}
       </SidebarSection>
     </nav>

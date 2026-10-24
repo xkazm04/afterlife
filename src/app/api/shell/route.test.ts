@@ -5,6 +5,9 @@ import { demoSource, setDataSource } from '@/server/data';
 import { readShellInfo } from '@/server/data/shell/read';
 import { GET } from './route';
 
+// Outside Next there is no request scope: connection() (request time, never the build) resolves at once here.
+vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
+
 afterEach(() => {
   setDataSource(null);
   vi.unstubAllEnvs();
@@ -13,7 +16,7 @@ afterEach(() => {
 describe('GET /api/shell', () => {
   it('answers the shell read as JSON, not stored by any cache', async () => {
     setDataSource(demoSource);
-    const res = GET();
+    const res = await GET();
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(readShellInfo(demoSource));
     expect(res.headers.get('cache-control')).toContain('no-store');
@@ -21,7 +24,7 @@ describe('GET /api/shell', () => {
 
   it('live before the first poll: 503 with the reason, never a demo payload', async () => {
     vi.stubEnv('BELAY_MODE', 'live');
-    const res = GET();
+    const res = await GET();
     expect(res.status).toBe(503);
     expect(res.headers.get('cache-control')).toContain('no-store');
     const body = await res.json();

@@ -2,7 +2,7 @@
 // navigation), so the client re-reads them from /api/shell on a route change and on regained focus. Requests are
 // numbered: the newest answer wins, a late answer to an older request is dropped, and a new server prop (the layout
 // re-rendered by refresh()) is adopted at once and voids every request issued before it. A failed read changes nothing.
-import type { ShellInfo } from '../ShellContext';
+import type { KnownShellInfo, ShellInfo } from '../ShellContext';
 
 export interface SyncState {
   /** What the chrome shows. */
@@ -51,13 +51,13 @@ export function shouldSync(s: SyncState, t: SyncTrigger): boolean {
   return t.kind === 'focus' || (t.from !== null && t.from !== t.to);
 }
 
-const isShellInfo = (v: unknown): v is ShellInfo => {
-  const o = v as ShellInfo | null;
+const isShellInfo = (v: unknown): v is KnownShellInfo => {
+  const o = v as KnownShellInfo | null;
   return typeof o?.needsYouCount === 'number' && typeof o.data?.mode === 'string' && typeof o.data.group === 'string' && Array.isArray(o.projects);
 };
 
 /** One read of /api/shell: the shell info, or null for a refused fetch, a non-200 (503 before the first poll) or a bad body. */
-export async function readAnswer(signal?: AbortSignal): Promise<ShellInfo | null> {
+export async function readAnswer(signal?: AbortSignal): Promise<KnownShellInfo | null> {
   try {
     const res = await fetch(SHELL_URL, { cache: 'no-store', signal });
     if (!res.ok) return null;

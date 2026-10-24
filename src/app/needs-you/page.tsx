@@ -4,6 +4,12 @@ import { NeedsYouEmpty } from '../features/needs-you/NeedsYouEmpty';
 import { NeedsYouLive } from '../features/needs-you/NeedsYouLive';
 import { NeedsYouScreen } from '../features/needs-you/NeedsYouScreen';
 import { readDesk } from '@/server/runs/readDesk';
+import { connection } from 'next/server';
+
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 export const metadata: Metadata = { title: 'Belay Needs you' };
 
@@ -12,7 +18,8 @@ export const metadata: Metadata = { title: 'Belay Needs you' };
  * `?item=<id>` opens that item selected (read on the client: Ladder's p sends `promote:<project>:<class>`). In every
  * view, the cycle runner's decisions (readDesk: .belay, real local data) sit beside the group's.
  */
-export default function NeedsYouPage() {
+export default async function NeedsYouPage() {
+  await connection(); // request time: the data source and its data are the running server's, never the build's
   const view = loadNeedsYouView();
   const runner = readDesk().needs;
   if (view.kind === 'desk') return <NeedsYouScreen demo={view.demo} runner={runner} />;

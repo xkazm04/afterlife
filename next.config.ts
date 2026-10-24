@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Local-first: Belay runs on the operator's machine. The hosted read-only replay (Cloud Run)
   // is the same build started with BELAY_MODE=replay; see infra/cloudrun.
   output: 'standalone',
+  // Static shell + dynamic holes: every data read waits for a request (connection()) inside <Suspense>, and nothing is
+  // kept in a server cache (no 'use cache'), so a build never bakes in the BELAY_MODE or the data it ran with.
+  cacheComponents: true,
   // PGlite loads its WebAssembly and data files from its own folder, so it must not be bundled.
   serverExternalPackages: ['@electric-sql/pglite'],
   turbopack: {

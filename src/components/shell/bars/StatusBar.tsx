@@ -21,7 +21,7 @@ export function StatusBar({ children, help }: { children?: ReactNode; help?: Rea
       <span className={styles.msg} aria-live="polite">
         {message ? `· ${message}` : ''}
       </span>
-      {data.poll && <PollStatus poll={data.poll} />}
+      {data?.poll && <PollStatus poll={data.poll} />}
       <span className={styles.demo}>{dataLabel(data)}</span>
       {help}
     </footer>

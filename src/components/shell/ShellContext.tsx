@@ -41,19 +41,32 @@ export interface ShellProject {
 }
 
 export interface ShellInfo {
-  /** Decisions waiting for the operator: the badge on the "Needs you" nav item. */
-  needsYouCount: number;
-  data: ShellData;
+  /** Decisions waiting for the operator: the badge on the "Needs you" nav item. Null: not read yet (no badge, never 0). */
+  needsYouCount: number | null;
+  /** Null: not read yet; the status bar says the data is unknown, never demo. */
+  data: ShellData | null;
   /** Every project, as small as the palette needs. */
   projects: readonly ShellProject[];
 }
 
+/** A server read of the shell (readShellInfo, GET /api/shell): every value known. */
+export interface KnownShellInfo extends ShellInfo {
+  needsYouCount: number;
+  data: ShellData;
+}
+
 /** Without a provider the shell is the demo: tests and the kit render that way. */
-export const DEMO_SHELL: ShellInfo = {
+export const DEMO_SHELL: KnownShellInfo = {
   needsYouCount: 0,
   data: { mode: 'demo', fakeGitlab: false, group: 'not paired', illustrative: false, poll: null },
   projects: [],
 };
+
+/**
+ * The shell before its request-time read has streamed in (the root layout's static shell): every value unknown, never the
+ * demo's and never a zero count. The read (live/ShellRead.tsx) replaces it.
+ */
+export const PENDING_SHELL: ShellInfo = { needsYouCount: null, data: null, projects: [] };
 
 const ShellContext = createContext<ShellInfo>(DEMO_SHELL);
 

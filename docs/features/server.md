@@ -17,8 +17,8 @@
 ## How it works
 - **Selection** (`data/select.ts`, `config.ts`): `getDataSource()` reads the environment on every call.
   `BELAY_MODE=live` is live; anything else is demo. `BELAY_GITLAB=fake` uses the fake group instead of the operator's
-  glab login. `BELAY_PROJECT` names the deep project (default ledgerline). `app/layout.tsx` is `force-dynamic` so
-  nothing is prerendered with the build's environment.
+  glab login. `BELAY_PROJECT` names the deep project (default ledgerline). Every read waits for a request
+  (see Rendering), so nothing is prerendered with the build's environment.
 - **Live runtime** (`data/live/runtime.ts`, `boot.ts`, `src/instrumentation.ts`): on server start in live mode,
   `register()` creates one port, one index, one poller and one snapshot per process, kept on `globalThis`. `refresh()`
   runs `runPollCycle`, then `buildSnapshot`; concurrent callers share the cycle in flight. Pages read the snapshot
@@ -72,6 +72,21 @@
   kept under its previewId (`runs/journal.ts`, `action_runs`), so one preview runs once, and `recallAction` answers a
   confirm that got no answer. Live, every action answers only a request addressed to this machine (`local.ts`).
 
+## Rendering
+- `cacheComponents: true` (`next.config.ts`): the build prerenders a static shell (`<html>`, `<head>` and its boot
+  scripts, loading frames) and every data read is a dynamic hole filled per request.
+- Each read sits behind `await connection()`: the root layout's shell read (`components/shell/live/ShellRead.tsx`, inside
+  `<Suspense>`), every page or layout that reads the data source, the runner's files or the environment, and both route
+  handlers. A prerender stops at `connection()`, so the build never sees `BELAY_MODE` or the data.
+- Until the shell read streams in, the chrome shows `PENDING_SHELL`: no Needs-you badge and a dashed data label, never
+  the demo's values or a zero count (`ShellInfo.needsYouCount` and `data` may be `null`).
+- No server cache: no `'use cache'`, `cacheLife` or `cacheTag` anywhere. The data source is picked per request and live
+  data changes every poll, so a cached answer could carry the wrong mode or a stale poll.
+- Every segment exports `instant = false` (the `cache-components-instant-false` codemod): blocking is allowed while the
+  routes are converted one by one to stream their reads under their own `<Suspense>`.
+- Not-ready live (before the first poll): the shell read throws, as the layout's read did, and `global-error.tsx` names
+  it; the throw now happens in the streamed hole, after the static shell has gone out.
+
 ## Rules it keeps
 - Writes only on a click, as the operator's own glab login, with the exact command shown first. If GitLab moved
   between preview and confirm, nothing runs and `changed` returns the new preview.
@@ -100,7 +115,7 @@
 | `src/server/actions/` | `actions.ts` (`'use server'`), `run.ts`, `intents.ts`, `plans/`, `arm/` (arm, disarm, verify), `gap/` (gap templates), `runs/` (run journal, recall), `local.ts`, `repoll.ts` + `repollAction.ts`, `deps.ts`, `types.ts`, `words.ts` |
 | `src/server/runs/` | The cycle runner's local files, read in demo and live alike: `readRuns.ts` (`.belay/runs/<repo>/<wave>.jsonl`, each file re-parsed only when its mtime or size changes; `BELAY_DATA_DIR` moves the root), `readFleet.ts` (`.belay/fleet.yml`: slug, path, base, gitlab), `branchState.ts` (git: does the wave branch exist, is it merged), `readDesk.ts` (folds them for Fleet and Needs you) |
 | `src/server/testing/` | `serverOnly.ts`: the `server-only` stand-in vitest aliases |
-| `src/app/api/` | Route handlers, GET only, `force-dynamic`, `Cache-Control: no-store`: `runs/` (`readRuns()` plus the live meta; Theater polls it every 2 s), `shell/` (the shell read; 503 with the reason live before the first poll) |
+| `src/app/api/` | Route handlers, GET only, `await connection()` first, `Cache-Control: no-store`: `runs/` (`readRuns()` plus the live meta; Theater polls it every 2 s), `shell/` (the shell read; 503 with the reason live before the first poll) |
 | `src/instrumentation.ts` | Starts the live runtime on Node |
 
 ## Tests

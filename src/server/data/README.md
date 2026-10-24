@@ -29,7 +29,8 @@ demo answers verified, marked `demo`.
 | `BELAY_POLL_SECONDS`, `BELAY_GROUP_ID`, `BELAY_DATA_DIR` | see `../poller`, `../gitlab`, `../index` | 30, 144060371, `.belay/` |
 
 `getDataSource()` is chosen per call from the environment of the running server, so the build's environment never matters.
-`layout.tsx` is `force-dynamic` for that reason: no page is prerendered.
+Every caller reads it after `await connection()` for that reason: the build prerenders only the static shell, never a
+read (`docs/features/server.md`, Rendering).
 
 ## Files
 

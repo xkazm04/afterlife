@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
-import { DEMO_SHELL, ShellProvider, type ShellData } from '../ShellContext';
+import { DEMO_SHELL, PENDING_SHELL, ShellProvider, type ShellData } from '../ShellContext';
 import { StatusBar } from './StatusBar';
 
 const render = (data?: ShellData) => {
@@ -14,6 +14,11 @@ const health = { ageSec: 12, error: null, failing: 0, of: 7, intervalSec: 30 };
 describe('StatusBar data label', () => {
   it('says illustrative demo data without a provider', () => {
     expect(render()).toContain('illustrative demo data');
+  });
+  it('before the shell read streams in (PENDING_SHELL): unknown, a dash, never demo and no poll line', () => {
+    const html = renderToString(<ToastProvider><ShellProvider value={PENDING_SHELL}><StatusBar>left</StatusBar></ShellProvider></ToastProvider>);
+    expect(html).toContain('data —');
+    expect(html).not.toMatch(/demo data|live data|live mode|polled/);
   });
   it('says illustrative demo data in demo mode', () => {
     expect(render(DEMO_SHELL.data)).toContain('illustrative demo data');

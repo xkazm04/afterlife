@@ -19,6 +19,8 @@ const EXEMPT: Record<string, string> = {
   ...Object.fromEntries(BY_WINDOW.map((n) => [n, 'drawn by Window, which /kit renders'])),
   CommandPalette: 'mounted once by app/Providers on every route, /kit included (Cmd/Ctrl+K)',
   ShellProvider: 'a context provider: it draws nothing',
+  AdoptedShell: 'holds the root layout shell state for app/Providers: it draws nothing of its own',
+  ShellAdopt: 'hands the request-time shell read to AdoptedShell: it draws nothing',
 };
 
 const exported = walk(COMPONENTS)

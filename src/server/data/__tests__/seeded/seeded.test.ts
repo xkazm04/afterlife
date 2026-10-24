@@ -33,6 +33,8 @@ import { getDataSource, setDataSource } from '../../select';
 vi.mock('next/navigation', () => ({ usePathname: () => '/ladder', useRouter: () => ({ push: () => undefined, refresh: () => undefined }) }));
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));
 vi.mock('@/server/actions/actions', () => ({ previewAction: vi.fn(), confirmAction: vi.fn() }));
+// No request scope outside Next: the page's connection() (request time, never the build) resolves at once here.
+vi.mock('next/server', async (orig) => ({ ...(await orig<object>()), connection: () => Promise.resolve() }));
 
 let db: PGlite;
 let snap: () => Promise<LiveSnapshot>;
@@ -100,7 +102,7 @@ describe('Needs you, live', () => {
     setDataSource(liveSource(() => s));
     const view = loadNeedsYouView();
     expect(view).toEqual({ kind: 'empty', seeded: 5 });
-    const out = html(createElement(NeedsYouPage));
+    const out = html(await NeedsYouPage());
     for (const t of SEEDED_TITLES) expect(out).not.toContain(t);
     expect(out).not.toContain('!44');
     expect(out).not.toContain('patch-bump');
@@ -137,7 +139,7 @@ describe('Needs you, live', () => {
     expect(view.kind === 'live' && view.items.map((n) => n.id)).toEqual(['readmit:ledgerline:qa.file-bug']);
     expect(view.kind === 'live' && view.items.some((n) => SEEDED_ITEMS.has(n.id))).toBe(false);
     expect(counts()).toEqual([1, 1, 1, 1]);
-    const out = html(createElement(NeedsYouPage));
+    const out = html(await NeedsYouPage());
     expect(out).toContain('Re-admit T7 qa · qa.file-bug');
     for (const t of SEEDED_TITLES) expect(out).not.toContain(t);
   });

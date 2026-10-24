@@ -17,6 +17,8 @@ const loaders = vi.hoisted(() => ({
 }));
 
 vi.mock('next/navigation', () => nav);
+// No request scope outside Next: the page's connection() (request time, never the build) resolves at once here.
+vi.mock('next/server', async (orig) => ({ ...(await orig<object>()), connection: () => Promise.resolve() }));
 vi.mock('./features/fleet/components/detail/ProjectDetail', () => ({ ProjectDetail: () => null }));
 vi.mock('./features/fleet/data/loadFleetProject', () => ({ loadFleetProject: loaders.fleetProject }));
 vi.mock('./features/fleet/data/loadFleetData', () => ({ loadFleetData: loaders.fleetData }));

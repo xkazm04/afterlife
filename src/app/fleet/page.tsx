@@ -8,6 +8,12 @@ import { loadFleetEstate } from '../features/fleet/data/loadFleetEstate';
 import { fleetHref } from '@/lib/url/fleetHref';
 import { firstParam } from '@/lib/url/searchParams';
 import { readDesk } from '@/server/runs/readDesk';
+import { connection } from 'next/server';
+
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 export const metadata: Metadata = { title: 'Belay Fleet' };
 
@@ -17,6 +23,7 @@ export const metadata: Metadata = { title: 'Belay Fleet' };
 // and joined onto the projects as their agent cost (loadFleetEstate), passed as its own prop.
 // `?project=<id>` (the command palette's project links) opens that project's page, /fleet/<id>.
 export default async function FleetPage({ searchParams }: { searchParams: Promise<RawParams> }) {
+  await connection(); // request time: the data source and its data are the running server's, never the build's
   const params = await searchParams;
   const want = firstParam(params.project);
   const data = loadFleetData();

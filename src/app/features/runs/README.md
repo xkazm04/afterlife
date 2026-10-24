@@ -4,7 +4,7 @@ What the runner did: every wave of every repo, its lanes, what they cost and how
 runner's own files, `.belay/runs/<repo>/<wave>.jsonl` (belay.run/0, `src/schemas/run/run.ts`), real local data in demo
 and live mode alike, so it is not part of the `DataSource`.
 
-- `app/runs/page.tsx`: reads `readRuns()` on every request (`force-dynamic`: the runner appends while the page is open).
+- `app/runs/page.tsx`: reads `readRuns()` on every request (after `await connection()`: the runner appends while the page is open).
 - `src/server/runs/readRuns.ts`: `readRuns(root = BELAY_DATA_DIR ?? '.belay')`. Parses each line, skips what is not a
   valid event and counts it (`skippedLines`), notes `<wave>.proposals.md` beside the events. No `runs/` directory is no runs.
 - `src/lib/runs/` (shared with src/server, which never imports src/app): pure, tested. `parse.ts` (a line -> event or
