@@ -82,6 +82,9 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
 Ported from Ascent's archived experiment branch (`refs/hygiene-archive/2026-10-20/experiment/infinite-cycles`,
 paradigm P2: cycles personas-web-006 `f6994190` and -007 `332c702f`), in `lane/review.ts`, between a lane's DONE and
 its gates:
+0. A lane that changed agent or hook config (`.claude/`, `.mcp.json`, `.husky/`, `.githooks/`) is parked first, with no
+   review or repair turn: claude loads the worktree's project settings, so its hooks and allow rules would be live
+   in the turns that judge it. The same check runs again at landing, for what the repair turn wrote.
 1. Integrity (`lane/integrity.ts`): an EXISTING test file (`*.test.*`, `*.spec.*`, a `tests/` dir, `test_*.py`,
    `*_test.go`, `*_tests.rs`, ...) the lane deleted, or changed beyond what `lane.md` allows, and any changed fixture,
    is put back to its base text. Allowed: a mechanical call-site update (on non-import lines, the assertion words

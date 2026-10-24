@@ -154,6 +154,8 @@ describe('runWaves with a fake claude', () => {
   it('parks a green lane that edits agent or hook config, so a landed commit cannot arm later waves', async () => {
     const r = await run(['cfg-a', 'ok-b']);
     expect(r.ends['cfg-a']).toMatchObject({ outcome: 'parked', parkReason: expect.stringContaining('.claude/settings.json') });
+    // Refused before the review turn, which would have run in a worktree whose project settings the lane wrote.
+    expect(r.lines.filter((e) => e.kind === 'lane.usage' && e.lane === 'cfg-a').map((e) => (e.kind === 'lane.usage' ? e.call ?? 'lane' : ''))).toEqual(['lane']);
     expect(r.ends['ok-b']).toMatchObject({ outcome: 'landed' });
     expect(sh(repoDir, 'ls-tree', '-r', '--name-only', `belay/wave-${r.wave}`)).not.toContain('.claude/settings.json');
   }, 90_000);

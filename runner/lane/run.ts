@@ -9,7 +9,7 @@ import { addWorktree, removeWorktree, worktreeDir } from '../git/worktree';
 import type { LaneOutcome } from '../../src/schemas/run';
 import type { Log } from '../wave/events';
 import { lanePrompt, type PlanItem } from '../wave/plan';
-import { verifyAndLand } from './land';
+import { armedReason, verifyAndLand } from './land';
 import { saveGateLog, savePatch } from './patch';
 import { readClaim, reviewAndRepair } from './review';
 import { failureLines, redReason, runGates } from './verify';
@@ -107,6 +107,9 @@ export async function runLane(ctx: LaneCtx, item: PlanItem, frontier?: FrontierB
     } else if (claim.kind === 'PARK') {
       outcome = 'parked';
       parkReason = claim.rest || 'parked without a reason';
+    } else if ((parkReason = (await armedReason(dir, ctx.baseSha)) ?? undefined)) {
+      // Before any later claude call: the review and repair turns would load the lane's own .claude settings.
+      outcome = 'parked';
     } else {
       const prompts = { review: ctx.reviewPromptText, repair: ctx.repairPromptText, lane: ctx.lanePromptText };
       const rv = await reviewAndRepair({ dir, baseSha: ctx.baseSha, item, gates: ctx.gates, bash: ctx.bash, model: ctx.model, timeoutMs: ctx.timeoutMs, laneCapUsd: ctx.laneCapUsd, spentUsd: costUsd, prompts, lanePrompt: prompt, sessionId: a.sessionId, log });

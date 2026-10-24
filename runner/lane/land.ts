@@ -1,5 +1,5 @@
-// A DONE lane's last steps, after its review: refuse agent or hook config, the diff check, the gates, and - only
-// on green - one commit `belay(wave-<n>): <title>` cherry-picked onto the wave branch. A red gate can never reach
+// A DONE lane's last steps, after its review: refuse agent or hook config (run.ts checks it before the review too),
+// the diff check, the gates, and - only on green - one commit `belay(wave-<n>): <title>` cherry-picked onto the wave branch. A red gate can never reach
 // the commit line. The commit says why (the item's evidence), what (the lane's DONE line), which lane, and which
 // model wrote it: a Co-Authored-By trailer (Ascent LESSONS 1.1: lane commits without an AI trailer lower the
 // target's D7, the share of recent commits that credit their AI author).
@@ -40,6 +40,16 @@ async function changedFiles(dir: string, baseSha: string): Promise<string[]> {
   return (await git(dir, ['diff', '--cached', '--name-only', '-z', baseSha])).split('\0').filter(Boolean);
 }
 
+/**
+ * Why a lane that touched ARMED_PATH ends parked, or null. Checked right after the lane call, before the review and
+ * repair turns (claude loads the worktree's project settings, so a lane's hooks or allow rules would be live in the
+ * turns that judge it), and again at landing for what the repair turn wrote.
+ */
+export async function armedReason(dir: string, baseSha: string): Promise<string | null> {
+  const armed = (await changedFiles(dir, baseSha)).filter((f) => ARMED_PATH.test(f));
+  return armed.length ? `edits agent or hook config: ${armed.slice(0, 5).join(', ')}` : null;
+}
+
 /** A model id as the lane's usage reported it (`claude-sonnet-5-5`), or null when it is not a plain token. */
 const MODEL_ID = /^[A-Za-z0-9][A-Za-z0-9._:[\]-]{0,79}$/;
 
@@ -52,8 +62,8 @@ export const commitBody = (item: PlanItem, done: string, model?: string | null):
 export async function verifyAndLand(ctx: LandCtx, dir: string, item: PlanItem, done: string, model: string | null): Promise<Landing> {
   const changed = (await git(dir, ['status', '--porcelain'])) !== '' || (await git(dir, ['rev-parse', 'HEAD'])) !== ctx.baseSha;
   if (!changed) return { outcome: 'parked', parkReason: 'DONE claimed but nothing changed' };
-  const armed = (await changedFiles(dir, ctx.baseSha)).filter((f) => ARMED_PATH.test(f));
-  if (armed.length) return { outcome: 'parked', parkReason: `edits agent or hook config: ${armed.slice(0, 5).join(', ')}` };
+  const armed = await armedReason(dir, ctx.baseSha);
+  if (armed) return { outcome: 'parked', parkReason: armed };
   if (ctx.diffCheck) {
     const slips = await diffSlips(dir, ctx.baseSha);
     if (slips.length) return { outcome: 'failed', parkReason: `diff check: whitespace the lane added\n${slips.join('\n')}` };
