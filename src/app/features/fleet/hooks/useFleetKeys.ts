@@ -1,6 +1,7 @@
 'use client';
 
 import type { RefObject } from 'react';
+import { useSearchKeys } from '@/components/controls/toolbar/useSearchKeys';
 import { useKeymap } from '@/lib/keyboard/keymap';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { FLEET_KEYMAP } from '../model/keys/keymap';
@@ -25,21 +26,15 @@ export function useFleetKeys(o: {
 }) {
   const inField = (e: KeyboardEvent) => e.target === o.searchRef.current;
   const toTable = () => o.tableRef.current?.focus({ preventScroll: true });
+  const search = useSearchKeys({ searchRef: o.searchRef, query: o.query, clear: () => o.onQuery(''), toTable });
   useHotkeys(
     useKeymap(FLEET_KEYMAP, {
-      search: () => {
-        o.searchRef.current?.focus();
-        o.searchRef.current?.select();
-      },
+      search: search.focusSearch,
       escape: (e) => {
         if (o.popoverOpen) {
           o.closePopover();
           e.preventDefault();
-        } else if (inField(e)) {
-          if (o.query) o.onQuery('');
-          toTable();
-          e.preventDefault();
-        }
+        } else if (search.escape(e)) e.preventDefault();
       },
       toTable: (e) => {
         if (!inField(e)) return;

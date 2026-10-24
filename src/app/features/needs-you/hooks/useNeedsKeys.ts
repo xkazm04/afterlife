@@ -1,6 +1,7 @@
 'use client';
 
 import type { KeyboardEvent, RefObject } from 'react';
+import { useSearchKeys } from '@/components/controls/toolbar/useSearchKeys';
 import { useKeymap } from '@/lib/keyboard/keymap';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
@@ -46,15 +47,7 @@ export function useNeedsKeys(o: KeyOptions): (e: KeyboardEvent<HTMLElement>) => 
     tableRef.current?.focus({ preventScroll: true });
   };
 
-  const focusSearch = () => {
-    searchRef.current?.focus();
-    searchRef.current?.select();
-  };
-  const escape = (e: globalThis.KeyboardEvent) => {
-    if (e.target !== searchRef.current) return;
-    if (s.query) dispatch({ type: 'query', query: '' });
-    tableRef.current?.focus({ preventScroll: true });
-  };
+  const { focusSearch, escape } = useSearchKeys({ searchRef, query: s.query, clear: () => dispatch({ type: 'query', query: '' }), toTable: () => tableRef.current?.focus({ preventScroll: true }) });
 
   useHotkeys(useKeymap(NEEDS_KEYMAP, { search: focusSearch, escape, toTable: leaveSearch }));
 

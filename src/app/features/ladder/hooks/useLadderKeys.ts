@@ -1,6 +1,7 @@
 'use client';
 
 import type { RefObject } from 'react';
+import { useSearchKeys } from '@/components/controls/toolbar/useSearchKeys';
 import { useKeymap } from '@/lib/keyboard/keymap';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import type { Ceiling } from '../model/types';
@@ -36,15 +37,8 @@ export function useLadderKeys({
     actions.setFilter(t);
     actions.focusTable();
   };
-  const focusSearch = () => {
-    searchRef.current?.focus();
-    searchRef.current?.select();
-  };
-  const escape = (e: KeyboardEvent) => {
-    const inSearch = e.target === searchRef.current;
-    if (inSearch || state.q) dispatch({ type: 'query', q: '' });
-    if (inSearch) actions.focusTable();
-  };
+  // Escape clears the query from the table too, not only in the field
+  const { focusSearch, escape } = useSearchKeys({ searchRef, query: state.q, clear: () => dispatch({ type: 'query', q: '' }), toTable: actions.focusTable, clearFromAnywhere: true });
 
   const keys = useKeymap(LADDER_KEYMAP, {
     step: [step(1), step(-1)],
