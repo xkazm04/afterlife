@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { onEscape } from '@/components/overlays/escapeLayers';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { paletteItems, type PaletteItem, type ProjectRef } from './model/items';
 import { rank } from './model/rank';
@@ -32,12 +33,17 @@ export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }
     window.addEventListener('afterlife:palette', show);
     return () => window.removeEventListener('afterlife:palette', show);
   }, []);
-  // focus the field on open, and hand focus back to where it was on close
+  // focus the field on open, and hand focus back to where it was on close. Escape goes through the overlay layers: the
+  // palette opens over a sheet, a popover or a menu, and is the one layer Escape must close.
   useEffect(() => {
     if (!open) return;
     const back = document.activeElement as HTMLElement | null;
     input.current?.focus();
-    return () => back?.focus?.();
+    const off = onEscape(() => setOpen(false));
+    return () => {
+      off();
+      back?.focus?.();
+    };
   }, [open]);
 
   if (!open) return null;
@@ -47,8 +53,7 @@ export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }
     router.push(it.href);
   };
   const onKey = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') setOpen(false);
-    else if (e.key === 'ArrowDown') setAt((i) => Math.min(hits.length - 1, i + 1));
+    if (e.key === 'ArrowDown') setAt((i) => Math.min(hits.length - 1, i + 1));
     else if (e.key === 'ArrowUp') setAt((i) => Math.max(0, i - 1));
     else if (e.key === 'Enter') go(hits[at]);
     else return;

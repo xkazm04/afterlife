@@ -57,7 +57,8 @@ describe('Escape over stacked overlays', () => {
 describe('every overlay that closes on Escape goes through the layers', () => {
   const strip = (s: string): string => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
   const src = (p: string) => strip(readFileSync(new URL(p, import.meta.url), 'utf8'));
-  it.each(['./Sheet.tsx', './popover/Popover.tsx', './menu/Menu.tsx'])('%s', (p) => {
+  // The command palette opens over all of them (⌘K anywhere): its own Escape was out-heard by a sheet's capture listener.
+  it.each(['./Sheet.tsx', './popover/Popover.tsx', './menu/Menu.tsx', '../palette/CommandPalette.tsx'])('%s', (p) => {
     expect(src(p)).toContain('onEscape(');
     expect(src(p)).not.toMatch(/addEventListener\('keydown'|key === 'Escape'/);
   });
