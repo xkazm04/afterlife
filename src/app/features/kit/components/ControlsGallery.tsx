@@ -7,6 +7,8 @@ import { Kbd } from '@/components/controls/Kbd';
 import { ObjectLink } from '@/components/controls/ObjectLink';
 import { SegmentedControl, type SegmentOption } from '@/components/controls/toolbar/SegmentedControl';
 import { Stepper, type StepperStep } from '@/components/controls/toolbar/Stepper';
+import { Icon } from '@/components/icons/Icon';
+import { GLYPHS, type IconName } from '@/components/icons/glyphs';
 import { TierMark } from '@/components/status/TierMark';
 import { GallerySection } from './GallerySection';
 import { Specimen } from './Specimen';
@@ -17,6 +19,9 @@ const TIERS: SegmentOption<string>[] = [
   { value: 'a', label: <TierMark tier="assisted" />, count: 0, ariaLabel: 'Assisted, 0' },
   { value: 'q', label: <TierMark tier="quarantined" />, count: 2, ariaLabel: 'Quarantined, 2' },
 ];
+
+/** Every glyph, from the glyph table itself: a new icon gets a specimen without anyone listing it. */
+const ICONS = Object.keys(GLYPHS) as IconName[];
 
 const step = (k: number, name: string, over: Partial<StepperStep<number>>): StepperStep<number> => ({
   k, name, title: name, enabled: true, current: false, past: false, count: null, loud: false, ...over,
@@ -81,6 +86,13 @@ export function ControlsGallery() {
         <Kbd>Ctrl</Kbd>
         <Kbd>/</Kbd>
         <Kbd>Esc</Kbd>
+      </Specimen>
+      <Specimen label={`Icon, all ${ICONS.length} glyphs (hover for the name)`}>
+        {ICONS.map((n) => (
+          <span key={n} title={n}>
+            <Icon name={n} label={n} />
+          </span>
+        ))}
       </Specimen>
     </GallerySection>
   );

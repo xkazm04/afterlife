@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
+import { GLYPHS } from '@/components/icons/glyphs';
 import { ToastContext } from '@/components/overlays/toast/useToast';
 import { KitScreen } from './KitScreen';
 import { ControlsGallery } from './components/ControlsGallery';
@@ -58,6 +59,10 @@ describe('the kit galleries', () => {
     const html = render(createElement(KitScreen));
     expect(html).toContain('aria-label="Segmented control specimen"');
     expect(html).not.toContain('Gallery view');
+  });
+  it('draws every glyph in the icon table, each named', () => {
+    const html = render(createElement(ControlsGallery));
+    expect(Object.keys(GLYPHS).filter((n) => !html.includes(`role="img" aria-label="${n}"`))).toEqual([]);
   });
   it('draws the inspector column', () => {
     expect(render(createElement(InspectorGallery))).toContain('UntrustedText');
