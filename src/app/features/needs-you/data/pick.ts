@@ -20,9 +20,9 @@ function item(items: readonly NeedsYouItem[], id: string): NeedsYouItem {
   return found;
 }
 
-/** The action class an inbox title names after its last " · " ("Promote T7 qa · qa.file-bug"), if the source has it. */
+/** The action class an inbox title names (model/live.ts classOfTitle, the live list's reader too), if the source has it. */
 function classOf(title: string, classes: readonly { id: string }[]): string {
-  const id = title.split(' · ').at(-1) ?? '';
+  const id = classOfTitle(title) ?? '';
   if (!classes.some((c) => c.id === id)) throw new MissingNeedsYouData(`no action class ${id} for "${title}"`);
   return id;
 }
