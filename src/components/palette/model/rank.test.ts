@@ -17,6 +17,11 @@ describe('palette ranking', () => {
     expect(out.map((i) => i.label)).toContain('Cycles');
     expect(out.map((i) => i.label)).toContain('Design the next cycle');
   });
+  it('shows every screen and every action at the default limit, before anything is typed', () => {
+    // The palette calls rank(items, q) with the default limit; the screens alone used to fill it, burying every action.
+    const want = items.filter((i) => i.kind !== 'project').map((i) => i.id);
+    expect(rank(items, '').map((i) => i.id)).toEqual(want);
+  });
   it('puts a prefix first, and the shorter of two prefixes first', () => {
     expect(labels('ledger').slice(0, 2)).toEqual(['ledgerline', 'ledgerline-web']);
     expect(labels('cyc')[0]).toBe('Cycles');

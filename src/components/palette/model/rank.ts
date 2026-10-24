@@ -26,12 +26,12 @@ export function score(text: string, q: string): number {
 }
 
 /**
- * The items for a query, best first, at most `limit`. With nothing typed: the screens and actions only (projects
- * appear as soon as you type, so 184 of them never bury the screens).
+ * The items for a query, best first, at most `limit`. With nothing typed: every screen and action, whatever `limit`
+ * (projects appear as soon as you type, so 184 of them never bury the screens; the 12 screens alone fill a limit of 12).
  */
 export function rank(items: readonly PaletteItem[], query: string, limit = 12): PaletteItem[] {
   const q = query.trim().toLowerCase();
-  if (!q) return items.filter((i) => i.kind !== 'project').slice(0, limit);
+  if (!q) return items.filter((i) => i.kind !== 'project');
   return items
     .map((it) => {
       const s = Math.max(score(it.label.toLowerCase(), q), it.keywords ? score(it.keywords.toLowerCase(), q) * 0.8 : 0);
