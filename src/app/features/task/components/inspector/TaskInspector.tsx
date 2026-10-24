@@ -43,7 +43,8 @@ export function TaskInspector({
 }) {
   const verdict = derivedVerdict(task).verdict;
   const kind = verdictKind(verdict);
-  const ledgerRead = !task.fixture && !task.ledger.length ? (
+  // Any task with no rows says so, fixture or not: a live fixture task's rows are its MR's slice of the chain, maybe empty.
+  const ledgerRead = !task.ledger.length ? (
     <HonestyChip key="l" kind="unknown">no rows</HonestyChip>
   ) : clock.ageSec === null ? (
     <HonestyChip key="l" kind="unknown">no poll yet</HonestyChip>
