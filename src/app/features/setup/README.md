@@ -114,12 +114,12 @@ the reads in `src/server/data/setup/`; named, not line-numbered, so they do not 
 |---|---|---|---|
 | a | all | "done when `belay doctor` says so" | doctor probes capabilities only; Setup reads steps 0, 1, 3, 4, 6, 8 (never done), 9 and 10 itself (`read.ts` `OBSERVED_STEPS`, `humanSteps.ts`, `protections.ts`); 7 is said, not read; 2, 5 and 11-14 are not read yet |
 | b | 1 | no pairing; names `BELAY_PACK_VERSION`, `BELAY_ENGINE_REF` and `BELAY_ENGINE_COMMIT` | pairs the checkout (`1.does`); names the same three in `1.note`, as the example's values (1.0.0, v0.1.0), never defaults |
-| c | 5 | pushes the demo bank and pairs the checkout | agrees: shows only `git push --mirror` and says the pairing in prose (`cli/belay.mjs` answers `pair` with "not implemented yet") |
+| c | 5 | pushes the demo bank and pairs the checkout | agrees: shows only `git push --mirror` and says the pairing in prose, though `belay pair <checkout>` (`cli/belay.mjs`, `src/server/pair/`) prints the bootstrap and adds it with `--write` |
 | d | 0 | checks the GitLab version | does not (`0.cmd`, `read.ts` `loginRead`) |
 | e | 2 | asks for a CRA drill mode | does not (`2.does`) |
 | f | 9 | agrees: author-cannot-approve, the CODEOWNERS paths, read first then DELETE and POST, done when Setup reads every setting back | same (`9.does`, `9.cmd`, `protections.ts`) |
 | g | 10 | Agent, then Human | human (`10.who`); Setup reads it done when the bootstrap MR is merged and the agent config is on main |
-| h | 11, 12, 14 | | agrees: 11 shows no command, 12 `glab ci run`, 14 `npx belay doctor`, the one belay command `cli/belay.mjs` runs |
+| h | 11, 12, 14 | | agrees: 11 shows no command, 12 `glab ci run`, 14 `npx belay doctor` (`cli/belay.mjs` runs `doctor`, `run`, `scan` and `pair`; only `replay` is not implemented yet) |
 | i | 4 | creates belay-engine too | agrees: `DEMO_NAMES.projects` and `BELAY_PROJECTS` have belay-engine |
 | j | 3 | Ultimate trial and the hackathon group | the trial only (`3.does`); the read sees the group's plan and trial, not a hackathon group |
 | k | 11 | Agent, else Human | agent, coming back to you in prose if the API route is not there (`11.does`) |

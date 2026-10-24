@@ -23,6 +23,9 @@
   next change per stage, as text.
 - `cli/belay.mjs` is the `belay` command-line companion, each part run through tsx:
   - `doctor` runs the real capability probes (`src/server/gitlab/doctorCli.ts`).
+  - `run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file]
+    [--skip-base-gates] [--dry-run]` dispatches to `runner/main.ts`. It prints the repo, base, caps and model (and the
+    gate and frontier counts) before anything is spent; `--dry-run` stops there and spawns nothing.
   - `scan [<checkout>] [--propose] [--facts F]` runs `engine scan` (the checkout defaults to the current folder).
   - `pair <checkout> [--group G] [--pack-version V] [--engine-ref R] [--write]` (`src/server/pair/`) adds the Belay bootstrap to a checkout:
     `.gitlab/belay.gitlab-ci.yml` (the components, pinned to the pack), one `include` line in `.gitlab-ci.yml`,
@@ -107,7 +110,7 @@
 | `engine/decide/` | `gate.ts`, `standing.ts` (effective tier, holder), `shadow.ts` (`--shadow-next-rung`), `tripwire.ts` |
 | `engine/__fixtures__/` | Inputs per proof class (exploit, cited, rerun, linked, repro, bench, score, ledger), events, maturity facts |
 | `src/schemas/` | Shared Proof Block, tier, ledger, CRA and stage schemas |
-| `cli/belay.mjs` | `belay doctor \| scan \| pair \| replay` |
+| `cli/belay.mjs` | `belay doctor \| run \| scan \| pair \| replay` (`run` goes to `runner/main.ts`) |
 | `gitlab/components/` | `belay-pack` CI/CD components and `scripts/` glue |
 | `gitlab/flows/` | Six custom flow definitions and `schemas/` |
 | `gitlab/examples/` | Target project `.gitlab-ci.yml` and agent config; `belay-policy` layout and `CODEOWNERS` |
