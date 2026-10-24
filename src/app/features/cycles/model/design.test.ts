@@ -33,6 +33,11 @@ describe('the rules of a design', () => {
     expect(checkDesign(five).map((p) => p.rule)).toEqual(['wip']);
     expect(checkDesign([]).map((p) => p.rule)).toEqual(['empty']);
   });
+  it('refuses a lift on an unknown rung, wherever the candidate came from: it is probed first', () => {
+    const lift = { ...byId('g3'), id: 'u', stage: 'monitor' as const, from: null, kind: 'mr' as const };
+    expect(checkDesign([lift]).map((p) => p.rule)).toEqual(['unknown']);
+    expect(checkDesign([{ ...lift, kind: 'probe' }])).toEqual([]);
+  });
   it('sums what a design costs and what it can earn (a probe on a known rung earns nothing)', () => {
     expect(designSummary([byId('g3'), byId('g4'), byId('next:plan')])).toEqual({ mrs: 2, probes: 1, lines: 51, drafted: 1, reach: 2 });
   });

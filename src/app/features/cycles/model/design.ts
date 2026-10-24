@@ -63,11 +63,14 @@ export function candidates(data: CyclesData): Candidate[] {
 
 /** One rule a design breaks. */
 export interface Problem {
-  rule: 'one-per-stage' | 'wip' | 'moving' | 'empty';
+  rule: 'one-per-stage' | 'wip' | 'moving' | 'unknown' | 'empty';
   text: string;
 }
 
-/** The rules a design must keep. An empty design is allowed to be saved only as "nothing planned". */
+/**
+ * The rules a design must keep: one change per stage, nothing on a moving stage, an unknown rung probed before
+ * anything lifts it, at most WIP_CAP changes, and at least one. A design that breaks any of them cannot be saved.
+ */
 export function checkDesign(picks: readonly Candidate[]): Problem[] {
   const out: Problem[] = [];
   const seen = new Set<Stage>();
@@ -75,6 +78,7 @@ export function checkDesign(picks: readonly Candidate[]): Problem[] {
     if (seen.has(c.stage)) out.push({ rule: 'one-per-stage', text: `two changes on ${c.stage}: a rescan could not say which one earned the rung` });
     seen.add(c.stage);
     if (c.blocked) out.push({ rule: 'moving', text: c.blocked });
+    if (c.from == null && c.kind !== 'probe') out.push({ rule: 'unknown', text: `${c.stage} is unknown: probe it before anything lifts it (unknown is never zero)` });
   }
   if (picks.length > WIP_CAP) out.push({ rule: 'wip', text: `${picks.length} changes: at most ${WIP_CAP} per cycle, so a red rescan still says which change failed` });
   if (!picks.length) out.push({ rule: 'empty', text: 'nothing picked: the cycle would close with nothing to credit' });

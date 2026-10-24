@@ -83,7 +83,7 @@ export function Designer({
               ))}
             </ul>
           ) : (
-            <span className={styles.ok}>✓ one change per stage · at most {WIP_CAP} · nothing on a moving stage · engine pinned</span>
+            <span className={styles.ok}>✓ one change per stage · at most {WIP_CAP} · nothing on a moving stage · unknowns probed first · engine pinned</span>
           )}
         </div>
         <Button onClick={onCancel}>Cancel</Button>
