@@ -4,13 +4,15 @@
 // pauses (unless a button has focus: then Space presses it); Esc leaves for the app, as "Enter Afterlife" does. Keys
 // with a modifier (the palette's ⌘K, the text-size shortcuts) and keys typed into a field are not the film's.
 import { useEffect, useRef, type Dispatch } from 'react';
+import { aboutKey } from '../keys/keymap';
 import type { FilmAction, FilmState } from '../model/playback';
 
+// From ABOUT_KEYMAP, the declaration Settings > Keyboard lists, so the reference and the bindings cannot drift.
 const SCRUB: Record<string, FilmAction> = {
-  ArrowRight: { type: 'next' },
-  ArrowLeft: { type: 'prev' },
-  Home: { type: 'first' },
-  End: { type: 'last' },
+  [aboutKey('next')]: { type: 'next' },
+  [aboutKey('prev')]: { type: 'prev' },
+  [aboutKey('ends', 0)]: { type: 'first' },
+  [aboutKey('ends', 1)]: { type: 'last' },
 };
 
 function inField(t: EventTarget | null): boolean {
@@ -27,7 +29,7 @@ export function useFilmKeys(st: FilmState, dispatch: Dispatch<FilmAction>, leave
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || inField(e.target)) return;
       const { st: s, leave: out } = now.current;
-      if (e.key === 'Escape') {
+      if (e.key === aboutKey('leave')) {
         e.preventDefault();
         out();
         return;
@@ -45,7 +47,7 @@ export function useFilmKeys(st: FilmState, dispatch: Dispatch<FilmAction>, leave
         return;
       }
       const onButton = e.target instanceof Element && !!e.target.closest('button, a, [role="button"]');
-      if (e.key === ' ' && !onButton) {
+      if (e.key === aboutKey('play') && !onButton) {
         e.preventDefault();
         dispatch({ type: 'toggle' });
       }

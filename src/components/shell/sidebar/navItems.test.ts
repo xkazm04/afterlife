@@ -4,10 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { ALL_NAV, APP_NAV, SETTINGS_NAV, activeNavKey, navEntryFor } from './navItems';
 
 // The routes are the ground truth: a top-level route folder that holds a page.tsx is a screen. Route groups add no URL
-// segment, so their folders are searched as top level (the windowed screens live in "(app)"). The one screen the nav leaves
-// out on purpose is the kit gallery; the front door is the "(door)" group's own page and has no folder name.
+// segment, so their folders are searched as top level (the windowed screens live in "(app)"). The screens the nav leaves out
+// on purpose: the kit gallery, and About (full-bleed outside the window, reached from the front door); the front door is the
+// "(door)" group's own page and has no folder name.
 const APP_DIR = join(process.cwd(), 'src/app');
-const NAV_EXEMPT = ['kit'];
+const NAV_EXEMPT = ['about', 'kit'];
 const screenFolders = (dir = APP_DIR): string[] =>
   readdirSync(dir, { withFileTypes: true })
     .filter((d) => d.isDirectory())
@@ -15,7 +16,7 @@ const screenFolders = (dir = APP_DIR): string[] =>
     .sort();
 
 describe('nav entries against the routes', () => {
-  it('every screen folder is in the nav or is the one exemption, and every nav entry is a screen folder', () => {
+  it('every screen folder is in the nav or is an exemption, and every nav entry is a screen folder', () => {
     const inNav = [...APP_NAV, SETTINGS_NAV].map((e) => e.key).sort();
     expect(screenFolders()).toEqual([...inNav, ...NAV_EXEMPT].sort());
   });
