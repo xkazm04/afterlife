@@ -53,8 +53,10 @@ export type LadderAction =
   | { type: 'filter'; tier: Ceiling | null }
   | { type: 'source'; src: string }
   | { type: 'query'; q: string }
-  /** The server answered done: `sent` says whether it was simulated, and the commit GitLab made if not. */
-  /** `sha` (demo only): the simulated commit id the settle timer will name; without it the reducer takes the next one. */
+  /**
+   * The server answered done: `sent` says whether it was simulated, and the commit GitLab made if not. `sha` (demo only):
+   * the simulated commit id the settle timer will name; without it the reducer takes the next one.
+   */
   | { type: 'revoke'; id: string; to: Tier; at: number; sent: Sent; sha?: string }
   /** A whole track's write answered done: every change in one commit (`sha` as for revoke). */
   | { type: 'revokeTrack'; track: string; changes: readonly Change[]; at: number; sent: Sent; sha?: string }
