@@ -169,9 +169,11 @@ pipeline status for the stability view (`mrFacts/facts.ts`, onto the task's `det
 ## Decided choices (the App Master's; council r2 judged both sound)
 
 - **(a) A guardrail block on any head of an MR counts against `guardrail_blocks`**, even if a later head passed and the
-  MR merged. It counts per merge request, not per event, so retries cannot inflate it. One gap is known: a block that
-  belay-apply's forced path applies (`--force block`) emits no `guardrail_verdict`, so if such an MR later merges on a
-  new head, the block is not counted.
+  MR merged. It counts per merge request, not per event, so retries cannot inflate it. A forced gate (`--force block`)
+  ledgers the guardrail's own block as a `guardrail_verdict` when its guardrail file states block and the caller read a
+  tier (`--ledger-tier`, which `gitlab/apply/sweep.mjs` passes when it has one; 7cca11a6). One gap is left: a forced block
+  with no tier read, or one for missing inputs whose guardrail file states no block, ledgers nothing, so if such an MR
+  later merges on a new head, that block is not counted.
 - **(b) Any other account's push counts as an edit**, other bots and agents included, not only a person's. It can only
   lower no-edit, never raise it.
 
