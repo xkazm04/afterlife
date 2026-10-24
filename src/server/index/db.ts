@@ -25,7 +25,9 @@ export async function openIndex(opts: OpenOptions = {}): Promise<PGlite> {
   const db = opts.memory ? new PGlite() : new PGlite(indexDir(opts.dataDir));
   await db.waitReady;
   try {
-    await migrate(db);
+    const ran = await migrate(db);
+    // A schema change to the operator's own data folder is said once, on the start that made it (the memory index is silent).
+    if (!opts.memory && ran.length) console.log(`belay: index ${indexDir(opts.dataDir)} migrated: applied ${ran.join(', ')}`);
   } catch (err) {
     await db.close().catch(() => undefined); // a refused folder must not stay open under the retry that follows
     throw err;
