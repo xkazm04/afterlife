@@ -18,7 +18,8 @@
 - `src/app/(app)/trace/page.tsx` renders `TraceScreen` with `loadTraceFacts`; `LiveGate` renders it in the layout when the gate is set.
 - `data/facts.ts` reads what the server knows without probing (mode, fake, group id, host, live runtime, project count);
   `data/probe.ts` is the re-check server action: it answers `read` (nodes, doctor rows, source) or `refused`.
-- `model/nodes.ts` is the six nodes with their commands (copied from the setup facts, none invented); `model/judge.ts`
+- `model/nodes.ts` is the six nodes with their commands (copied from the setup facts, none invented; an env command has a
+  macOS / Linux line and a Windows PowerShell line); `model/judge.ts`
   turns a probe's readings into node states (`pass`, `fail`, `wait` behind an earlier failure, `unknown`).
 - `components/`: `Wire`, `NodeDetail` (command, doctor's eleven capability rows), `useTrace`.
 
