@@ -13,7 +13,7 @@ import { ENGINE_VERSION } from '../core/version';
 import { RUBRIC } from './rubric';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 function scan(file: string) {
   const c = capture();

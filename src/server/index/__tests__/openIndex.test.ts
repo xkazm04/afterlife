@@ -27,7 +27,7 @@ describe('the persistent index', () => {
       expect(log).toHaveBeenCalledTimes(1);
     } finally {
       log.mockRestore();
-      fs.rmSync(base, { recursive: true, force: true });
+      fs.rmSync(base, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     }
   });
 

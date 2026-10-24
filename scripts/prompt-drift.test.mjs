@@ -25,7 +25,7 @@ beforeEach(() => {
     JSON.stringify({ ascent: 'a'.repeat(40), sources: [{ file: 'plan.md', from: [{ path: 'src/a.ts', sha256: hash('export const a = 1;\n') }] }] }),
   );
 });
-afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterEach(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const run = (dir) => spawnSync(process.execPath, [script, '--ascent', dir, '--sources', sources], { encoding: 'utf8' });
 

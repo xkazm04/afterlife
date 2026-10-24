@@ -10,7 +10,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 const bin = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'belay.mjs');
 const belay = (...args) => spawnSync(process.execPath, [bin, ...args], { encoding: 'utf8' });
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-cli-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('cli/belay.mjs', () => {
   it('prints usage and exits 0 for no verb and for help', () => {

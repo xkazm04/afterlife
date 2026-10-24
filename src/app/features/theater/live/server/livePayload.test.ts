@@ -6,7 +6,7 @@ import { WAVE_1, WAVE_2_RUNNING } from '@/lib/runs/fixture';
 import { loadLivePayload } from './livePayload';
 
 let root = '';
-afterEach(() => root && rmSync(root, { recursive: true, force: true }));
+afterEach(() => root && rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('loadLivePayload', () => {
   it('is readRuns()\'s data plus the newest wave\'s meta', () => {

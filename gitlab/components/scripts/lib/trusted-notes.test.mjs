@@ -35,7 +35,7 @@ beforeAll(async () => {
   process.env.BELAY_GLAB = `${process.execPath}|${path.join(dir, 'fake.mjs')}`;
   ({ trustedNotes } = await import('./lib.mjs'));
 });
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('trustedNotes', () => {
   it('reaches a bot note beyond note 500', () => {

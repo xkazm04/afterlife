@@ -11,7 +11,7 @@ import { runScript, SCRIPTS, workdir } from '../testing/harness.mjs';
 vi.setConfig({ testTimeout: 120_000 });
 
 const dir = workdir('fail-closed');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const LEDGER = 'acme/belay-ledger';
 const FILE = 'events/1.jsonl';

@@ -7,7 +7,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { runScript, workdir } from '../testing/harness.mjs';
 
 const dir = workdir('evidence');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const SECRET = path.join(dir, 'secret.txt');
 fs.writeFileSync(SECRET, 'BELAY_BOT_TOKEN=glpat-not-a-real-token');

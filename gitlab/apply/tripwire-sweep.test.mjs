@@ -9,7 +9,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { ROOT, runScript, workdir } from '../components/scripts/testing/harness.mjs';
 
 const dir = workdir('apply-tripwire');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const SHA = 'a'.repeat(40);
 const L1 = '1'.repeat(40);

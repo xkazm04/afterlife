@@ -8,7 +8,7 @@ import { smokeRoutes, staticRoutes } from './routes.mjs';
 
 const app = fileURLToPath(new URL('../../src/app', import.meta.url));
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-routes-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const page = (rel) => {
   fs.mkdirSync(path.join(tmp, rel), { recursive: true });

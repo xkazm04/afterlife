@@ -20,7 +20,7 @@ function boot(patch = {}) {
   const cfg = { engine: { ...GOOD.engine, ...patch.engine }, glab: { ...GOOD.glab, ...patch.glab } };
   fs.writeFileSync(path.join(dir, 'apply.json'), JSON.stringify(cfg));
   const r = spawnSync('bash', ['-c', `${checks}\necho BOOT-OK`], { env: { ...process.env, CI_PROJECT_DIR: dir.split(path.sep).join('/') }, encoding: 'utf8' });
-  fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   return r;
 }
 

@@ -12,7 +12,7 @@ const HEAD11 = 'f3d3a9e5da945b0b357d23049a73999fb99db6b1a9ba12d24234d59cbc56db7b
 const HEAD5 = 'c1f70ebbb4ff1e32c22d00d1fa21a604b00bd267afd71184850b585394fff526';
 const HOLDER = ['--agent', 'ai-qa-acme-lab', '--class', 'qa.file-bug', '--since', '2026-09-20T08:00:00Z'];
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-trial-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 function cli(...argv: string[]) {
   const c = capture();

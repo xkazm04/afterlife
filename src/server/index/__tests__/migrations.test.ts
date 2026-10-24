@@ -60,7 +60,7 @@ describe('db.ts', () => {
     const { closeIndex } = await import('../db');
     await closeIndex();
     delete process.env.BELAY_DATA_DIR;
-    for (const d of dirs.splice(0)) fs.rmSync(d, { recursive: true, force: true });
+    for (const d of dirs.splice(0)) fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   });
 
   it('opens one shared instance at BELAY_DATA_DIR and keeps data across a restart', async () => {

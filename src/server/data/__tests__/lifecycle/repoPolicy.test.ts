@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   warn.mockRestore();
-  for (const r of roots.splice(0)) fs.rmSync(r, { recursive: true, force: true });
+  for (const r of roots.splice(0)) fs.rmSync(r, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
 describe('repoPolicy on a policy it cannot use', () => {

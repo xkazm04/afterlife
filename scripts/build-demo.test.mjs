@@ -24,7 +24,7 @@ function build(edit = (_rel, text) => text) {
     expect(r.status, r.stderr).toBe(0);
     return fs.readFileSync(path.join(tmp, 'src/lib/demo/data/belay-demo.json'), 'utf8');
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   }
 }
 

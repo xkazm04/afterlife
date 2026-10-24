@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { runScript, workdir } from '../testing/harness.mjs';
 
 const dir = workdir('apply-gate');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const HEAD = 'a'.repeat(40);
 const LEDGER = `projects/${encodeURIComponent('acme/belay-ledger')}`;

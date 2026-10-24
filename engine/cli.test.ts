@@ -8,7 +8,7 @@ import { capture, fx, ROOT } from './__tests__/helpers';
 import { main } from './cli';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-engine-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 function cli(...argv: string[]) {
   const c = capture();

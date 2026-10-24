@@ -9,7 +9,7 @@ import { checkoutFacts } from './local';
 import { propose, scan } from './scan';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 function checkout(files: Record<string, string>): string {
   const dir = fs.mkdtempSync(path.join(tmp, 'co-'));

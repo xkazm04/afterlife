@@ -27,7 +27,7 @@ beforeAll(async () => {
   harness = await import('../testing/harness.mjs');
   lib.setSleep((ms) => slept.push(ms));
 });
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const serve = (routes) => {
   fs.writeFileSync(ROUTES, JSON.stringify(routes));

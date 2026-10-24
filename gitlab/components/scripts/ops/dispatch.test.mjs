@@ -4,7 +4,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { runScript, workdir } from '../testing/harness.mjs';
 
 const dir = workdir('dispatch');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 // Accepted goals get past the check and fail later at the (unfaked) POST: exit 1 from glab, not exit 2 from die().
 const run = (goal) => runScript(dir, 'ops/dispatch.mjs', ['--goal', goal, '--consumer-id', '5']);

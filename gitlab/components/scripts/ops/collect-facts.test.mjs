@@ -13,7 +13,7 @@ import { runScript, workdir } from '../testing/harness.mjs';
 vi.setConfig({ testTimeout: 120_000 });
 
 const dir = workdir('collect-facts');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const WEB = 'https://gitlab.example.com/acme/app';
 // Relative to now: the engine counts a job as exercised only within a 14-day ran-within window of the facts' `at`.

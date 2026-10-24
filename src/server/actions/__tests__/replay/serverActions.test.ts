@@ -50,7 +50,7 @@ describe('every server action is called by the replay-inertness guard', () => {
       expect(found).toEqual(['sixthAction']);
       expect(uncalled(found, inert)).toEqual(['sixthAction']);
     } finally {
-      fs.rmSync(dir, { recursive: true, force: true });
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     }
   });
 });

@@ -116,7 +116,7 @@ describe('parseLedgerEvent: what the next rung would have decided, on a tier_dec
 
 describe('ledger append through the CLI: the shared parser guards the writer', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-ledger-'));
-  afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+  afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
   const cli = (raw: unknown, chain: string) => {
     const e = path.join(tmp, 'event.json');
     fs.writeFileSync(e, JSON.stringify(raw));
@@ -181,7 +181,7 @@ describe('ledger append --write', () => {
       expect(lines.map((l) => l.seq)).toEqual([1, 2]);
       expect(verifyChain(lines)).toBeNull();
     } finally {
-      fs.rmSync(dir, { recursive: true, force: true });
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     }
   });
 });

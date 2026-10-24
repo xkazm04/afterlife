@@ -10,7 +10,7 @@ import { capture, ctx, ROOT } from '../__tests__/helpers';
 import { inlineFiles, readInput, readText } from './files';
 
 const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'belay-files-')));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const SECRET = 'BELAY_BOT_TOKEN=glpat-not-a-real-token';
 const outside = path.join(tmp, 'outside');

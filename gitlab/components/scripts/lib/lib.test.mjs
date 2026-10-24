@@ -100,7 +100,7 @@ describe('engine', () => {
     try {
       expect(tsxCommand(bare)).toMatchObject({ cmd: 'npx', args: ['tsx'] });
     } finally {
-      fs.rmSync(bare, { recursive: true, force: true });
+      fs.rmSync(bare, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     }
   });
 

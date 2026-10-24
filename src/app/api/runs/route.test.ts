@@ -10,7 +10,7 @@ import { GET } from './route';
 let root = '';
 afterEach(() => {
   vi.unstubAllEnvs();
-  if (root) rmSync(root, { recursive: true, force: true });
+  if (root) rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
 describe('GET /api/runs', () => {

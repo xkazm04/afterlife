@@ -19,7 +19,7 @@ const scratch = () => {
 };
 
 afterEach(() => {
-  for (const d of made.splice(0)) fs.rmSync(d, { recursive: true, force: true });
+  for (const d of made.splice(0)) fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
 describe('scripts/sci/measure.mjs', () => {

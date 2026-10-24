@@ -14,7 +14,7 @@ const temp = (p: string) => {
   roots.push(d);
   return d;
 };
-afterEach(() => roots.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true })));
+afterEach(() => roots.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })));
 
 const git = (cwd: string, ...a: string[]) => execFileSync('git', ['-C', cwd, '-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { stdio: 'ignore' });
 

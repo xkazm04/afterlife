@@ -11,7 +11,7 @@ import { capture, ctx } from '../__tests__/helpers';
 import { main } from '../cli';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-core-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('parseArgs', () => {
   const spec = { values: ['class', 'env'], switches: ['write'] };

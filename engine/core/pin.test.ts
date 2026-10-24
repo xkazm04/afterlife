@@ -10,7 +10,7 @@ import { EngineError } from './types';
 import { ENGINE_VERSION, engineFiles, engineInfo, engineSha256 } from './version';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-pin-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 let n = 0;
 function tree(files: Record<string, string>): string {

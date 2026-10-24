@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { runScript, workdir } from '../testing/harness.mjs';
 
 const dir = workdir('replay-vars');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const describeMr = (test, extra = '') => `Fix\n\n\`\`\`belay-claims\n${JSON.stringify({ test })}\n\`\`\`\n${extra}`;
 const run = (description) => runScript(dir, 'proof/replay-vars.mjs', ['--mr', '7'], { routes: { 'projects/1/merge_requests/7': { iid: 7, description } } });

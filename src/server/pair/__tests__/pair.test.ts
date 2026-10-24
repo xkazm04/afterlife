@@ -17,7 +17,7 @@ const temp = (prefix: string): string => {
   made.push(d);
   return d;
 };
-afterEach(() => made.splice(0).forEach((d) => fs.rmSync(d, { recursive: true, force: true })));
+afterEach(() => made.splice(0).forEach((d) => fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })));
 
 function repo(files: Record<string, string> = {}, remote = 'git@gitlab.com:acme-lab/core-banking/ledgerline.git'): string {
   const dir = temp('belay-pair-');

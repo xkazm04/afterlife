@@ -18,7 +18,7 @@ const DECISIONS_MATCH: [Decision, GateDecision] extends [GateDecision, Decision]
 void DECISIONS_MATCH;
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-chain-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 type Body = Parameters<typeof append>[1];
 const base = {

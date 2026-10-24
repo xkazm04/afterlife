@@ -23,7 +23,7 @@ const lines = (n) => Array.from({ length: n }, (_, i) => `// ${i}`).join('\n');
 const run = (dir) => spawnSync(process.execPath, [script, dir], { encoding: 'utf8' });
 
 afterEach(() => {
-  for (const d of made.splice(0)) fs.rmSync(d, { recursive: true, force: true });
+  for (const d of made.splice(0)) fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
 describe('scripts/check-structure.mjs', () => {

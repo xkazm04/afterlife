@@ -6,7 +6,7 @@ import { WAVE_1, WAVE_2_RUNNING } from '@/lib/runs/fixture';
 import { readRuns } from './readRuns';
 
 let root = '';
-afterEach(() => root && rmSync(root, { recursive: true, force: true }));
+afterEach(() => root && rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('readRuns', () => {
   it('no runs directory is no runs', () => {

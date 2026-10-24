@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { runScript, SCRIPTS, workdir } from '../testing/harness.mjs';
 
 const dir = workdir('fetch');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const HEAD = 'b'.repeat(40);
 const OLD = 'a'.repeat(40);

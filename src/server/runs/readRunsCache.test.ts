@@ -12,7 +12,7 @@ vi.mock('@/lib/runs/parse', async (orig) => {
 });
 
 let root = '';
-afterEach(() => root && rmSync(root, { recursive: true, force: true }));
+afterEach(() => root && rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('readRuns cache', () => {
   it('an unchanged file is not re-parsed, its skipped lines still count, and an appended line is seen', () => {

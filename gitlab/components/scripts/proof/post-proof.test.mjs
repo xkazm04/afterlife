@@ -9,7 +9,7 @@ import { blocks } from '../lib/lib.mjs';
 import { runScript, workdir } from '../testing/harness.mjs';
 
 const dir = workdir('post-proof');
-afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const URL_ = 'https://gitlab.example/acme/ledgerline';
 const PROOF = { schema: 'belay.proof/1', class: 'exploit-test', verdict: 'pass', task: { head_sha: 'a'.repeat(40), trailer: 'Belay-Task: 01J9ZP6M2Q8E4V7K3N5R1T0XAB' }, checks: [{ ok: true }], engine: { version: '0.1.0' } };
