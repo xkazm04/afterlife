@@ -69,7 +69,8 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
    `{from, to, metrics: [{name, unit, before?, after?, gain?, threshold, breakthrough, noisy}]}`: `gain` is signed
    so positive is better, `breakthrough` = gain >= threshold, `noisy` = either side's spread ((max - min) / mean)
    >= threshold (Ascent SKILL.md's noise rule: a noisy metric is not evidence either way).
-5. `wave.end`: `mergeable` = at least one lane landed AND the gates are green on the wave branch itself. `branchKept`
+5. `wave.end`: `mergeable` = at least one lane landed AND setup and the gates are green on the wave branch itself
+   (a red one's output is `gateLog`, `<repo>/<wave>.wave.gate.log`; a red setup is also printed). `branchKept`
    is false when nothing landed and the branch was deleted (`branch` still names it; older files have no key).
 6. Reflect: one claude call (`prompts/reflect.md` + the wave's events, a `wave.tech` line first under its own
    heading, and `frontier.md` when a frontier lane ran) in an empty scratch dir; its text is written to

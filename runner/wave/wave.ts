@@ -128,7 +128,12 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
     }
     let green = false;
     let waveLog: string | undefined;
-    if (landed > 0 && (await runGates(repo.setup ?? [], waveDir, c.timeoutMs)).ok) {
+    const setup = landed > 0 ? await runGates(repo.setup ?? [], waveDir, c.timeoutMs) : null;
+    if (setup && !setup.ok) {
+      // Setup red on the landed tip: the gates never ran, so the setup's own output is the wave's gate log.
+      waveLog = saveGateLog(c.runsDir, { repo: repo.slug, wave, what: 'wave' }, setup.output);
+      console.error(`runner: ${repo.slug} wave ${wave}: ${redReason('wave setup', setup).split('\n')[0]}`);
+    } else if (setup) {
       const wg = await runGates(repo.gates, waveDir, c.timeoutMs, GATE_RETRIES);
       green = wg.ok;
       flaky.push(...(wg.flaky ?? []));
