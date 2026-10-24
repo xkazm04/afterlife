@@ -23,6 +23,7 @@ export interface Layout {
 
 const EMPTY: Layout = { area: { x: 0, y: 0, w: 0, h: 0 }, parts: [], card: null, line: null, text: '' };
 const CARD_W = 330;
+const LEGEND_W = 460;
 const TICK_MS = 450;
 
 /**
@@ -46,7 +47,7 @@ export function useParts(layer: RefObject<HTMLElement | null>, callouts: readonl
       const target = parts[active]?.box ?? null;
       const panel = host.querySelector('[data-xray-panel]');
       const cardEl = host.querySelector('[data-xray-card]') as HTMLElement | null;
-      const size = { w: Math.min(CARD_W, area.w - 40), h: cardEl?.offsetHeight || 150 };
+      const size = { w: Math.min(callouts[active]?.legend ? LEGEND_W : CARD_W, area.w - 40), h: cardEl?.offsetHeight || 150 };
       const card = target ? placeCard(target, size, area, panel ? boxOf(panel, origin) : null) : null;
       const c = callouts[active];
       const text = c ? c.body(screenRead) : '';

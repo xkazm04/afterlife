@@ -18,6 +18,13 @@ describe('placeCard', () => {
     const b = placeCard({ x: 400, y: 500, w: 200, h: 40 }, card, area, avoid);
     expect(b.x + b.w <= avoid.x || b.y + b.h <= avoid.y).toBe(true);
   });
+  it('slides a wide card left of the panel when a header row spans the window', () => {
+    const avoid = { x: 650, y: 400, w: 340, h: 380 };
+    const wide = { w: 460, h: 300 };
+    const b = placeCard({ x: 0, y: 60, w: 1000, h: 30 }, wide, area, avoid);
+    expect(b.x + b.w <= avoid.x || b.y + b.h <= avoid.y).toBe(true);
+    expect(b.y).toBeGreaterThan(90);
+  });
   it('labels a table from inside its own corner', () => {
     const b = placeCard({ x: 0, y: 50, w: 1000, h: 750 }, card, area, null);
     expect(b.x).toBeGreaterThan(500);

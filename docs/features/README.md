@@ -35,7 +35,9 @@ flowchart LR
 | [Task](task.md) | `/task/[id]` | What did this agent do, and why may I believe it? |
 | [Onboard](onboard.md) | `/onboard` | How far is the estate onboarded, and what runs in the next batch? |
 | [Setup](setup.md) | `/setup` | What blocks each track on one project, and what can only I do? |
+| [Trace](trace.md) | `/trace` | Is this machine, my GitLab login and my group ready? |
 | [Theater](theater.md) | `/theater` | A deterministic replay for recording |
+| [X-ray](xray.md) | `?xray=1` | What is this screen for, what do its columns mean, what do I do? |
 | [Settings](settings.md) | `/settings` | How large is the interface, which keys work, and where does the data come from? |
 
 ## Foundations

@@ -2,15 +2,22 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { startTransition, useEffect, useRef, type KeyboardEvent } from 'react';
+import { Fragment, startTransition, useEffect, useRef, type KeyboardEvent } from 'react';
 import { Button } from '@/components/controls/Button';
 import { useShellInfo } from '@/components/shell/ShellContext';
 import { dataLabel } from '@/components/shell/bars/dataLabel';
 import { TOUR, nextStop } from '../callouts/tour';
 import { xrayStore } from '../model/store';
-import type { TourStop } from '../model/types';
+import type { CalloutKind, TourStop } from '../model/types';
 import type { Part } from './useParts';
 import styles from './panel.module.css';
+
+const HEADING: Record<CalloutKind, string> = {
+  module: 'This screen',
+  columns: 'Columns',
+  activity: 'What to do',
+  shell: 'Around it',
+};
 
 /**
  * The X-ray's docked panel, bottom right of the window: the parts of this screen as a numbered list (click, or ← → while
@@ -50,12 +57,20 @@ export function XrayPanel({ stop, parts, active, path }: { stop: TourStop | null
       {stop ? (
         <ol className={styles.list}>
           {parts.map((p, i) => (
-            <li key={p.callout.id}>
-              <button type="button" className={styles.item} aria-current={i === active ? 'step' : undefined} onClick={() => go(i)} data-missing={p.box ? undefined : ''}>
-                <span className={styles.itemNum}>{p.n}</span>
-                {p.callout.title}
-              </button>
-            </li>
+            <Fragment key={p.callout.id}>
+              {i === 0 || parts[i - 1]?.callout.kind !== p.callout.kind ? (
+                <li role="presentation" className={styles.heading}>
+                  {HEADING[p.callout.kind]}
+                </li>
+              ) : null}
+              <li>
+                <button type="button" className={styles.item} aria-current={i === active ? 'step' : undefined} onClick={() => go(i)} data-missing={p.box ? undefined : ''}>
+                  <span className={styles.itemNum}>{p.n}</span>
+                  {p.callout.title}
+                  {p.box ? null : <span className={styles.off}>not on screen now</span>}
+                </button>
+              </li>
+            </Fragment>
           ))}
         </ol>
       ) : (

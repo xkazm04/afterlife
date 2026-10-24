@@ -15,6 +15,7 @@ export const projectsIn = (r: ScreenRead): string => numberIn(r.text(STATUS), 'e
 
 export const statusCallout = (title: string, after: string): Callout => ({
   id: 'status',
+  kind: 'shell',
   sel: STATUS,
   title,
   body: (r) => `"${statusLine(r)}". ${after}`,
@@ -22,6 +23,7 @@ export const statusCallout = (title: string, after: string): Callout => ({
 
 export const dataLabelCallout: Callout = {
   id: 'data',
+  kind: 'shell',
   sel: DATA_LABEL,
   title: 'Where the data comes from',
   body: (r) =>
@@ -32,8 +34,21 @@ export const dataLabelCallout: Callout = {
 
 export const helpCallout: Callout = {
   id: 'help',
+  kind: 'shell',
   sel: HELP,
   title: 'Legend and keys',
   body: () => 'Every screen keeps its legend and its keys behind this ?. Pinned open, it also turns this X-ray back on.',
   try: 'Click ?',
 };
+
+/** The sidebar, on any screen: the way to every other screen, with what waits on Needs you. */
+export const navCallout = (here: string): Callout => ({
+  id: 'nav',
+  kind: 'shell',
+  sel: NAV,
+  title: 'The screens',
+  body: (r) => {
+    const badge = r.text(`${NAV} [role="img"]`);
+    return `Every screen is one click here; you are on ${here}.${badge ? ` The amber ${badge} on Needs you is what waits for you now.` : ''}`;
+  },
+});

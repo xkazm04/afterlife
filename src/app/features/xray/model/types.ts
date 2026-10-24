@@ -8,8 +8,20 @@ export interface ScreenRead {
   count: (selector: string) => number;
 }
 
+/** What a part is for. Contract per screen: one 'module' first, then 'columns', 'activity', 'shell' parts, in that order. */
+export type CalloutKind = 'module' | 'columns' | 'activity' | 'shell';
+
+/** One column of a table, named exactly as its header renders, and what it counts. */
+export interface LegendEntry {
+  name: string;
+  means: string;
+}
+
 export interface Callout {
   id: string;
+  kind: CalloutKind;
+  /** With kind 'columns': every column the header row draws, one entry each; the card shows it as a definition list. */
+  legend?: readonly LegendEntry[];
   /** CSS selector of the real element; the first visible match is the one labelled. */
   sel: string;
   /** What the part is, in two to four words. */

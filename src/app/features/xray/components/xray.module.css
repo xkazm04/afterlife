@@ -97,6 +97,31 @@
   line-height: 1.45;
   color: var(--text-2);
 }
+.legend {
+  /* The card ignores the pointer except here: a long legend scrolls. */
+  pointer-events: auto;
+  max-height: min(calc(380px * var(--ui-scale)), 54vh);
+  overflow: auto;
+  margin: calc(8px * var(--ui-scale)) 0 0;
+  padding-top: calc(8px * var(--ui-scale));
+  border-top: 1px solid var(--sep);
+  font-size: var(--t-small);
+}
+.legendRow {
+  display: grid;
+  grid-template-columns: calc(112px * var(--ui-scale)) 1fr;
+  gap: calc(8px * var(--ui-scale));
+  padding: calc(3px * var(--ui-scale)) 0;
+}
+.legendRow dt {
+  color: var(--text-1);
+  font-weight: 600;
+}
+.legendRow dd {
+  margin: 0;
+  color: var(--text-2);
+  line-height: 1.4;
+}
 .cardTry {
   margin: calc(8px * var(--ui-scale)) 0 0;
   font: var(--t-small) var(--mono);

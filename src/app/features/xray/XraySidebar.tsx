@@ -9,9 +9,9 @@ import { TOUR } from './callouts/tour';
 import { useXray, xrayStore } from './model/store';
 
 /**
- * The sidebar's first-run mode: until the five labelled screens have been seen, a "First run" section lists them with a
+ * The sidebar's first-run mode: until every labelled screen has been seen, a "First run" section lists them with a
  * check for each one seen (each link opens that screen with the X-ray on), the X-ray switch and the way to your own
- * project. Once all five are seen it folds to the switch and that way alone.
+ * project. Once all are seen it folds to the switch and that way alone.
  */
 export function XraySidebar() {
   const x = useXray();

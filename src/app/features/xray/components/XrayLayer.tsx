@@ -7,8 +7,8 @@ import styles from './xray.module.css';
 const PAD = 4;
 
 /**
- * The X-ray itself, drawn over the real window: a blueprint wash with the active part cut out clear, every labelled part
- * outlined and numbered, a leader line to the card that says what the part is and what to do with it. It never takes a
+ * The X-ray itself, drawn over the real window: a blueprint wash with the active part cut out clear and outlined,
+ * every other part just a number chip, a leader line to the card that says what the part is and what to do with it. It never takes a
  * click from the app (pointer-events none): parts are picked in the panel.
  */
 export function XrayLayer({ layout, active }: { layout: Layout; active: number }) {
@@ -31,20 +31,18 @@ export function XrayLayer({ layout, active }: { layout: Layout; active: number }
         </defs>
         <rect width={area.w} height={area.h} className={styles.wash} mask={`url(#${mask})`} />
         <rect width={area.w} height={area.h} fill={`url(#${grid})`} mask={`url(#${mask})`} />
-        {parts.map((p, i) =>
-          p.box ? (
-            <rect
-              key={`${p.callout.id}-${i === active}`}
-              x={p.box.x - PAD}
-              y={p.box.y - PAD}
-              width={p.box.w + 2 * PAD}
-              height={p.box.h + 2 * PAD}
-              rx="6"
-              pathLength={100}
-              className={i === active ? styles.outlineOn : styles.outline}
-            />
-          ) : null,
-        )}
+        {target ? (
+          <rect
+            key={c?.id}
+            x={target.x - PAD}
+            y={target.y - PAD}
+            width={target.w + 2 * PAD}
+            height={target.h + 2 * PAD}
+            rx="6"
+            pathLength={100}
+            className={styles.outlineOn}
+          />
+        ) : null}
         {line ? <line key={`${active}-line`} {...line} className={styles.leader} /> : null}
         {line ? <circle cx={line.x2} cy={line.y2} r="3.5" className={styles.dot} /> : null}
       </svg>
@@ -75,6 +73,16 @@ export function XrayLayer({ layout, active }: { layout: Layout; active: number }
             <b>{c.title}</b>
           </div>
           <p className={styles.cardBody}>{text}</p>
+          {c.legend ? (
+            <dl className={styles.legend} aria-label="Columns">
+              {c.legend.map((e) => (
+                <div key={e.name} className={styles.legendRow}>
+                  <dt>{e.name}</dt>
+                  <dd>{e.means}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
           {c.try ? <p className={styles.cardTry}>Try: {c.try}</p> : null}
           {!target ? <p className={styles.cardTry}>Not on screen right now.</p> : null}
         </div>

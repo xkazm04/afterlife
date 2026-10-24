@@ -33,6 +33,8 @@ export function placeCard(t: Box, card: { w: number; h: number }, area: Box, avo
         { x: t.x - w - GAP, y: midY, w, h },
         { x: midX, y: t.y + t.h + GAP, w, h },
         { x: midX, y: t.y - h - GAP, w, h },
+        // a wide card beside the docked panel: slid left of it, below then above the target
+        ...(avoid ? [{ x: avoid.x - w - GAP, y: t.y + t.h + GAP, w, h }, { x: avoid.x - w - GAP, y: t.y - h - GAP, w, h }] : []),
       ];
   const fits = tries.find((b) => inside(b, area) && !(avoid && overlaps(b, avoid)) && (big || !overlaps(b, t)));
   if (fits) return fits;
