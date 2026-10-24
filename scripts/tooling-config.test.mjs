@@ -4,19 +4,27 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ESLint } from 'eslint';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// The case checks this repo's own ignores block, not Next's rules: loading eslint-config-next (typescript-eslint and
+// typescript) took 2.1 s of the case's 2.6 s alone and pushed it past 60 s under a loaded full suite. Each stands in as
+// one config that lints every source extension, so a too-wide ignore still reads as an app file going unlinted.
+const linted = vi.hoisted(() => ({ default: [{ files: ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'] }] }));
+vi.mock('eslint-config-next/core-web-vitals', () => linted);
+vi.mock('eslint-config-next/typescript', () => linted);
 
 describe('eslint.config.mjs', () => {
   // belay run (runner/git/worktree.ts:14) and agent worktree isolation both check out whole copies of the repo under
   // .claude/worktrees/<name>; `npm run lint` (eslint, no args) would lint every copy and report a lane's in-flight edits.
   it('ignores the worktree copies under .claude/, and still lints the app', async () => {
-    const eslint = new ESLint({ cwd: root });
+    const { default: config } = await import('../eslint.config.mjs');
+    const eslint = new ESLint({ cwd: root, overrideConfigFile: true, overrideConfig: config });
     expect(await eslint.isPathIgnored(path.join(root, '.claude/worktrees/lane-1/src/app/page.tsx'))).toBe(true);
     expect(await eslint.isPathIgnored(path.join(root, 'src/app/error.tsx'))).toBe(false);
     expect(await eslint.isPathIgnored(path.join(root, 'scripts/build-demo.mjs'))).toBe(false);
-  }, 60_000);
+  });
 });
 
 describe('vitest.config.ts', () => {
