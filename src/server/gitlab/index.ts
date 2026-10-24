@@ -3,6 +3,7 @@ import 'server-only';
 
 export { createGlabAdapter } from './adapter/glabAdapter';
 export { defaultExec } from './adapter/exec';
+export { httpAddress } from './adapter/fields';
 export { createFakeGitLab } from './fake/fakeGitLab';
 export { probeCapabilities } from './capabilities';
 export { readConfig, resolveGlabBin } from './config';

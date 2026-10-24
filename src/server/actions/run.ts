@@ -6,6 +6,7 @@
 // one sent while the same previewId is running is refused, and neither runs the commands again.
 import { createHash } from 'node:crypto';
 import type { PGlite } from '@electric-sql/pglite';
+import { httpAddress } from '@/server/gitlab';
 import { GitLabError } from '@/server/gitlab/errors';
 import type { GitLabPort } from '@/server/gitlab/port';
 import type { PlannedCommand, Risk } from '@/server/gitlab/plan/types';
@@ -80,17 +81,6 @@ export async function previewIntent(deps: ActionDeps, raw: unknown): Promise<Act
   return b.ok ? { status: 'preview', preview: b.preview } : b.response;
 }
 
-/** An address a screen may link to: http(s) only, never javascript: or data:. */
-function webUrl(v: unknown): string | null {
-  if (typeof v !== 'string') return null;
-  try {
-    const u = new URL(v);
-    return u.protocol === 'https:' || u.protocol === 'http:' ? v : null;
-  } catch {
-    return null;
-  }
-}
-
 /** Only createMr (<project>/merge_requests) opens an MR: an issue or work item's answer has an iid and a web_url too. */
 const opensMr = (cmd: PlannedCommand): boolean => cmd.argv.some((a) => /^projects\/[^/]+\/merge_requests$/.test(a));
 
@@ -98,7 +88,7 @@ const opensMr = (cmd: PlannedCommand): boolean => cmd.argv.some((a) => /^project
 async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Promise<{ named: Pick<CommandOutcome, 'made' | 'url'>; commit?: string }> {
   const b = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
   if (opensMr(cmd) && Number.isSafeInteger(b.iid) && (b.iid as number) > 0) {
-    const url = webUrl(b.web_url);
+    const url = httpAddress(b.web_url);
     return { named: { made: `!${b.iid as number}`, ...(url ? { url } : {}) } };
   }
   if (!cmd.file) return { named: {} };
