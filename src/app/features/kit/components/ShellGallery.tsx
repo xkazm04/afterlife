@@ -6,12 +6,24 @@ import { BottomDrawer } from '@/components/shell/BottomDrawer';
 import { CommandDock } from '@/components/shell/dock/CommandDock';
 import { DockKey } from '@/components/shell/dock/DockKey';
 import { DockText } from '@/components/shell/dock/DockText';
+import { PollStatusView, type PollRepoll } from '@/components/shell/bars/poll/PollStatusView';
+import type { ShellPoll } from '@/components/shell/ShellContext';
 import { Card } from '@/components/surface/Card';
 import { GallerySection } from './GallerySection';
 import { Specimen } from './Specimen';
 import styles from './ShellGallery.module.css';
 
-/** shell/ parts that frame a pane (BottomDrawer, CommandDock) and surface/Card. The sidebar parts are in the sidebar. */
+// PollStatus's three tones, drawn through its view with stand-in reads: the kit polls nothing. A recheck answers the
+// same health afresh, so the ok specimen stays ok; Re-poll toasts that the kit has no group to poll.
+const health: ShellPoll = { ageSec: 12, error: null, failing: 0, of: 7, intervalSec: 30 };
+const POLLS: [string, ShellPoll][] = [
+  ['PollStatus ok: polled 12s ago, no Re-poll', health],
+  ['PollStatus late: no good poll for two intervals, no Re-poll', { ...health, ageSec: 95 }],
+  ['PollStatus failed: the reason, the last good poll, Re-poll', { ...health, ageSec: 300, error: 'HTTP 401 Unauthorized', failing: 7 }],
+];
+const kitRepoll: PollRepoll = async () => ({ ok: false, reason: 'the kit has no group to poll' });
+
+/** shell/ parts that frame a pane (BottomDrawer, CommandDock), the status bar's poll line and surface/Card. The sidebar parts are in the sidebar. */
 export function ShellGallery() {
   const [open, setOpen] = useState(true);
   return (
@@ -59,6 +71,11 @@ export function ShellGallery() {
           </CommandDock>
         </div>
       </Specimen>
+      {POLLS.map(([label, poll]) => (
+        <Specimen key={label} label={label}>
+          <PollStatusView poll={poll} repoll={kitRepoll} recheck={async () => ({ ...poll })} />
+        </Specimen>
+      ))}
       <Specimen label="Card">
         <Card className={styles.card}>a quiet raised tile</Card>
         <Card className={styles.card}>another</Card>

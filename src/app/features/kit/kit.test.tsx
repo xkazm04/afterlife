@@ -68,6 +68,12 @@ describe('the kit galleries', () => {
     const html = render(createElement(ControlsGallery));
     expect(Object.keys(GLYPHS).filter((n) => !html.includes(`role="img" aria-label="${n}"`))).toEqual([]);
   });
+  it("draws PollStatus in its three tones, with Re-poll only on the failed one", () => {
+    const html = render(createElement(ShellGallery));
+    const specimens = html.split('role="group"').filter((s) => s.startsWith(' aria-label="PollStatus '));
+    const seen = specimens.map((s) => [/^ aria-label="PollStatus (\w+)/.exec(s)?.[1], /class="[^"]*_(ok|late|failed)_/.exec(s)?.[1], s.includes('>Re-poll</button>')]);
+    expect(seen).toEqual([['ok', 'ok', false], ['late', 'late', false], ['failed', 'failed', true]]);
+  });
   it('draws the inspector column', () => {
     expect(render(createElement(InspectorGallery))).toContain('UntrustedText');
   });

@@ -19,7 +19,6 @@ const EXEMPT: Record<string, string> = {
   ...Object.fromEntries(BY_WINDOW.map((n) => [n, 'drawn by Window, which /kit renders'])),
   CommandPalette: 'mounted once by app/Providers on every route, /kit included (Cmd/Ctrl+K)',
   ShellProvider: 'a context provider: it draws nothing',
-  PollStatus: "drawn only on a live poll; a specimen's Re-poll would poll the live group for real",
 };
 
 const exported = walk(COMPONENTS)
