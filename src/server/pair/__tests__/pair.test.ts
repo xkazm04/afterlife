@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import { BELAY_CI, wireCi } from '../ciFile';
 import { pair, rootNamespace } from '../pair';
@@ -10,9 +10,17 @@ import { planPair } from '../plan';
 
 const ROOT = path.resolve(import.meta.dirname, '../../../..');
 const REF = { group: 'acme-lab', packVersion: '1.0.0', engineRef: 'v0.1.0' };
+// Every temporary checkout is removed after its test.
+const made: string[] = [];
+const temp = (prefix: string): string => {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  made.push(d);
+  return d;
+};
+afterEach(() => made.splice(0).forEach((d) => fs.rmSync(d, { recursive: true, force: true })));
 
 function repo(files: Record<string, string> = {}, remote = 'git@gitlab.com:acme-lab/core-banking/ledgerline.git'): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-pair-'));
+  const dir = temp('belay-pair-');
   execFileSync('git', ['init', '-q', dir]);
   if (remote) execFileSync('git', ['-C', dir, 'remote', 'add', 'origin', remote]);
   for (const [p, t] of Object.entries(files)) {
@@ -55,7 +63,7 @@ describe('belay pair', () => {
   });
 
   it('refuses what is not the root of a git checkout, or has no group', () => {
-    const plain = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-plain-'));
+    const plain = temp('belay-plain-');
     expect(run([plain]).err).toMatch(/not the root of a git checkout/);
     const sub = repo({ 'app/x.txt': '' });
     expect(run([path.join(sub, 'app')]).code).toBe(2);
