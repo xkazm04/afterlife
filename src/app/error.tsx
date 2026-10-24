@@ -6,7 +6,7 @@ import { ErrorView } from '@/components/shell/fallback/ErrorView';
 export default function Error(p: { error: Error & { digest?: string }; retry: () => void }) {
   return (
     <div className="fallback-scroll">
-      <title>Error | Afterlife</title>
+      <title>Belay Error</title>
       <ErrorView error={p.error} retry={p.retry} />
     </div>
   );

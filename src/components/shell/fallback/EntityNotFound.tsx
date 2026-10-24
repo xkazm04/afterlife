@@ -5,7 +5,7 @@ import styles from './Fallback.module.css';
 export function EntityNotFound({ title, note, href, back }: { title: string; note: string; href: string; back: string }) {
   return (
     <div className="fallback-scroll">
-      <title>{`${title} | Afterlife`}</title>
+      <title>{`Belay ${title}`}</title>
       <main className={styles.page}>
         <div className={styles.card}>
           <h1 className={styles.title}>{title}</h1>

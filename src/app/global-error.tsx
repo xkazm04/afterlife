@@ -8,7 +8,7 @@ export default function GlobalError(p: { error: Error & { digest?: string }; ret
   return (
     <html lang="en">
       <body>
-        <title>Error | Afterlife</title>
+        <title>Belay Error</title>
         <div className="fallback-scroll">
           <ErrorView error={p.error} retry={p.retry} />
         </div>

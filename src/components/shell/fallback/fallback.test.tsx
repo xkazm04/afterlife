@@ -20,10 +20,12 @@ describe('error boundaries', () => {
     expect(html).toContain('belay:');
     expect(html).toContain('>Retry</button>');
     expect(html).not.toContain('illustrative demo data');
+    expect(html).toContain('<title>Belay Error</title>');
   });
   it('global-error.tsx is the same inside its own html and body', () => {
     const html = renderToString(createElement(GlobalError, { error: err, retry }));
     expect(html).toMatch(/^<html/);
+    expect(html).toContain('<title>Belay Error</title>');
     expect(html).toContain('<body');
     expect(html).toContain('first poll has not finished');
     expect(html).toContain('d1g3st');
@@ -33,5 +35,7 @@ describe('error boundaries', () => {
     const html = renderToString(createElement(NotFound));
     expect(html).toContain('/nope/here');
     expect(html).toContain('href="/fleet"');
+    // the tab title has the screens' form ("Belay Fleet"), not a second brand or separator
+    expect(html).toContain('<title>Belay Not found</title>');
   });
 });
