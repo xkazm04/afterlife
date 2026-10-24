@@ -35,7 +35,9 @@
   `localStorage` before first paint, so there is no flash of the wrong size. The `<html>` element starts at `standard`
   with `suppressHydrationWarning`.
 - `textSizeStore.ts` treats the DOM attribute as the single source of truth and exposes it to React via
-  `useSyncExternalStore` (`useTextSize`); it also follows `storage` events, so another tab's change applies here.
+  `useSyncExternalStore` (`useTextSize`); it also follows `storage` events, so another tab's change applies here. It
+  keeps whether this browser keeps the size (`useTextSizeSaved`): the last write's answer, whoever made it (Display, a
+  shortcut), else on load whether `localStorage` holds the size on screen. Display's saved / not-saved note reads it.
 - `TextSizeShortcuts` (mounted once in `app/Providers.tsx`) binds the Cmd/Ctrl chords app-wide through `useHotkeys`,
   which cancels the browser's own zoom for those chords.
 - `model/specRows.ts` turns `TEXT_SIZE_SPEC` into the table rows (body/header/small, row/header row, toolbar/status

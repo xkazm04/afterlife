@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { SegmentedControl, type SegmentOption } from '@/components/controls/toolbar/SegmentedControl';
 import { DEFAULT_TEXT_SIZE, TEXT_SIZES, TEXT_SIZE_LABEL, TEXT_SIZE_SPEC, type TextSize } from '@/lib/settings/textSize';
-import { useTextSize } from '@/lib/settings/useTextSize';
+import { useTextSize, useTextSizeSaved } from '@/lib/settings/useTextSize';
 import { saveNote } from '../model/saveNote';
 import { specRows } from '../model/specRows';
 import { SettingsSection } from './SettingsSection';
@@ -19,12 +18,12 @@ const OPTIONS: readonly SegmentOption<TextSize>[] = TEXT_SIZES.map((t) => ({
 /** D10: the 3-way text-size control, the scale table and a live preview that restyles as you choose. */
 export function TextSizeSection() {
   const [size, setSize] = useTextSize();
-  const [saved, setSaved] = useState(true);
+  const saved = useTextSizeSaved();
   const rows = specRows();
   return (
     <SettingsSection id="text-size" title="Text size">
       <div className={styles.line}>
-        <SegmentedControl label="Text size" options={OPTIONS} value={size} onChange={(next) => setSaved(setSize(next))} />
+        <SegmentedControl label="Text size" options={OPTIONS} value={size} onChange={setSize} />
         <span className={styles.note}>{saveNote(saved, TEXT_SIZE_LABEL[DEFAULT_TEXT_SIZE])}</span>
       </div>
       <table className={styles.spec} aria-label="What each text size changes">

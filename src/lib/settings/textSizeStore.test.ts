@@ -60,3 +60,41 @@ describe('applyTextSize reports whether the browser kept the size', () => {
     expect(applyTextSize('smaller')).toBe(false);
   });
 });
+
+// Display's note reads this: a shortcut's refused write must not leave it saying "Saved in this browser".
+describe('the store keeps whether the browser kept the size', () => {
+  const fresh = async () => {
+    vi.resetModules();
+    return import('./textSizeStore');
+  };
+  const store = (getItem: () => string | null, setItem: () => void = () => undefined) => vi.stubGlobal('window', { localStorage: { getItem, setItem }, addEventListener: () => {}, removeEventListener: () => {} });
+  it('on load: true when the stored size is the one on screen, or nothing is stored and it is the default', async () => {
+    attrs[TEXT_SIZE_ATTRIBUTE] = 'larger';
+    store(() => 'larger');
+    expect((await fresh()).getTextSizeSavedSnapshot()).toBe(true);
+    attrs[TEXT_SIZE_ATTRIBUTE] = 'standard';
+    store(() => null);
+    expect((await fresh()).getTextSizeSavedSnapshot()).toBe(true);
+  });
+  it('on load: false when reading localStorage throws', async () => {
+    store(() => {
+      throw new Error('blocked');
+    });
+    expect((await fresh()).getTextSizeSavedSnapshot()).toBe(false);
+  });
+  it('a refused write (as a shortcut makes, dropping the answer) flips it to false and tells the listeners; a kept one back', async () => {
+    store(() => null, () => {
+      throw new Error('quota');
+    });
+    const s = await fresh();
+    expect(s.getTextSizeSavedSnapshot()).toBe(true);
+    const seen = vi.fn();
+    const off = s.subscribeTextSize(seen);
+    s.applyTextSize('larger');
+    expect([s.getTextSizeSavedSnapshot(), seen.mock.calls.length]).toEqual([false, 1]);
+    store(() => null);
+    s.applyTextSize('smaller');
+    expect(s.getTextSizeSavedSnapshot()).toBe(true);
+    off();
+  });
+});
