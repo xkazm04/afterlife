@@ -6,8 +6,9 @@
 - `engine/` is the model-free proof engine, run in GitLab CI as `npx tsx engine/cli.ts <cmd>` (or
   `npm run engine -- <cmd>`). Commands: `prove`, `envelope`, `gate`, `tripwire`, `ledger append`, `scan`. No network, no LLM, no dependency
   beyond `yaml`.
-- `prove` writes a Proof Block for a proof class: `exploit-test`, `cited-diff`, `rerun-stats`, `linked-evidence` are
-  implemented; `repro`, `bench-delta`, `score-delta`, `ledger-record` are stubs that return inconclusive.
+- `prove` writes a Proof Block for a proof class. All eight classes have a checker: `exploit-test`, `cited-diff`,
+  `rerun-stats`, `linked-evidence`, `repro`, `bench-delta`, `score-delta`, `ledger-record` (`proofs/stubs.ts` keeps
+  the inconclusive answer for a class named before its checker exists; none is today).
 - `gate` decides `merge` / `approve` / `wait` / `block` for an agent MR from tier state, policy, the proof and the
   guardrail verdict. `tripwire` turns a bad-outcome event into a demotion commit of `tier-state.yml`. `ledger append`
   adds one hash-chained event line.
@@ -43,16 +44,21 @@
   in a diff hunk after whitespace collapsing), `rerunStats.ts` (counts recomputed from job records, cancelled and
   runner failures left out; thresholds from the policy's `rerun_stats` block or defaults 5 runs / 0.8),
   `linkedEvidence.ts` (links resolve in the results the input carries, allowed hosts, CRA clock arithmetic recomputed;
-  legal wording is a `decidedBy: human` check). An optional `head_sha` is carried through when the input has it.
+  legal wording is a `decidedBy: human` check), and in `checkers/`: `repro.ts` (the claimed failure reproduces in 2
+  probe runs on the MR head against the target environment), `benchDelta.ts` (no new test failure, benchmarks within
+  the tolerance on one runner tag), `scoreDelta.ts` (no maturity stage lower at head, same engine and project),
+  `ledgerRecord.ts` (the ledger chain verifies and a holder's next-rung trial is recomputed from it). An optional
+  `head_sha` is carried through when the input has it.
 - **Verdict**: `verdictOf(checks, envelope.within)` in `src/schemas/proof.ts`: outside the envelope is fail; no
   engine-decided checks is inconclusive; any false check is fail; any null is inconclusive; else pass. Claims never
   decide. The block's `engine` is `{version, sha256}` over every engine source file (`core/version.ts`).
 - **Envelope** (`policy/envelope.ts`, `glob.ts`, `load.ts`): files, lines, denied paths and target environments
   against the class and the `envelope` section.
 - **Gate** (`decide/gate.ts`): effective tier is the lower of recorded tier and class ceiling; a lapsed hands-off
-  lease counts as supervised. Unknown class, `human_only`, no tier record, quarantined, guardrail block, failed proof,
-  wrong proof class, verdict not following from checks, proof from another engine build (when pinned), or outside the
-  envelope: `block`. Missing or inconclusive proof or guardrail: `wait`. Then hands-off `merge`, supervised `approve`
+  lease counts as supervised (`decide/standing.ts`, which the screens read too). Unknown class, `human_only`, no tier
+  record, several holders and no `--agent`, quarantined, guardrail block, failed proof, a class that declares no proof
+  class, wrong proof class, verdict not following from checks, proof from another engine build (when pinned), a proof
+  made from a different diff than the one the gate measured (paths touched differ), or outside the envelope: `block`. Missing or inconclusive proof or guardrail: `wait`. Then hands-off `merge`, supervised `approve`
   (a person merges), assisted `wait`.
 - **Tripwire** (`decide/tripwire.ts`): triggers `revert`, `reopened_finding`, `post_merge_proof_fail`,
   `default_branch_red_1h` (one step down) and `guardrail_high`, `budget_breach_x2` (quarantine), per the policy. It
@@ -89,9 +95,9 @@
 | `src/server/pair/` | `belay pair`: the bootstrap plan (`plan.ts`, `ciFile.ts`) and its IO (`pair.ts`, `pairCli.ts`) |
 | `engine/core/` | Args, files, types, ULID, engine version and source hash |
 | `engine/parse/` | Diff, JUnit, trace parsers, test-case shapes |
-| `engine/proofs/` | Proof classes, weakening detector, stubs, shared helpers |
+| `engine/proofs/` | Proof classes (`checkers/` for repro, bench-delta, score-delta, ledger-record), weakening detector, stubs, shared helpers |
 | `engine/policy/` | Policy loading, envelope, globbing |
-| `engine/decide/` | `gate.ts`, `tripwire.ts` |
+| `engine/decide/` | `gate.ts`, `standing.ts` (effective tier, holder), `shadow.ts` (`--shadow-next-rung`), `tripwire.ts` |
 | `engine/__fixtures__/` | Exploit, cited, rerun, linked and event inputs |
 | `src/schemas/` | Shared Proof Block, tier, ledger, CRA and stage schemas |
 | `cli/belay.mjs` | `belay doctor \| scan \| pair \| replay` |
@@ -109,8 +115,9 @@
   ceiling, lapsed lease, reasons kept.
 - `engine/decide/tripwire.test.ts`: never promotes, no-op when quarantined or trigger unlisted, record fields and
   cooldown, YAML preserved, commit message, lease dropped, event validation.
-- `engine/proofs/__tests__/`: exploit-test, weakening (24 cases), cited-diff, rerun/linked/stub classes, `head_sha`.
-  Also `parse/*.test.ts`, `policy/envelope.test.ts`, `core/core.test.ts`.
+- `engine/proofs/__tests__/`: exploit-test, weakening, cited-diff, rerun/linked classes and dispatch, repro,
+  bench-delta, score-delta, ledger-record, `head_sha`. Also `decide/standing.test.ts`, `decide/shadow.test.ts`,
+  `parse/*.test.ts`, `policy/envelope.test.ts`, `policy/load.test.ts`, `core/core.test.ts`.
 - `engine/scan/scan.test.ts`: the example target project scores secure, verify and govern at R1 and nothing above;
   local includes, IaC and CODEOWNERS count; an empty alerting file and an unopened include do not; GitLab facts
   credit running and enforced; an unreadable fact leaves a stage unknown; the command's JSON and refusals.
@@ -123,8 +130,6 @@
 ## Status and limits
 - Nothing in `gitlab/` has run on a live GitLab; it is written against the docs, with unchecked points marked `[R?]`.
   Exploit fixtures for Gradle JUnit and traces are recalled shapes, not recorded.
-- `repro`, `bench-delta`, `score-delta`, `ledger-record` are stubs (inconclusive, exit 2), so QA and gardener proofs
-  cannot pass yet.
 - Flow triggers do not fire on bot or service-account actions, hence `flow-dispatch`; a CI job token cannot post
   notes, label, approve or merge, hence a bot token.
 - `belay replay` is not implemented. `policy/tier-state.yml` holds illustrative values.
