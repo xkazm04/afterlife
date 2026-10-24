@@ -7,7 +7,7 @@ import { useTieGeometry } from '../../hooks/useTieGeometry';
 import type { TaskView } from '../../model/types';
 import { emphasis, type Selection } from '../../model/court/selection';
 import { checkShown, replayDone, type ReplayState } from '../../model/verdict/replay';
-import { checkKind } from '../../model/verdict/verdict';
+import { termKind } from '../../model/verdict/verdict';
 import { engineHeld } from '../engineHeld';
 import { CheckCard } from './CheckCard';
 import { ClaimCard } from './ClaimCard';
@@ -58,7 +58,7 @@ export function Court({ task, sel, rv, onPick }: { task: TaskView; sel: Selectio
             key={c.id}
             task={task}
             check={c}
-            kind={checkKind(c.ok)}
+            kind={termKind(c)}
             emphasis={emphasis(task, sel, 'check', c.id)}
             landed={checkShown(rv, i)}
             onSelect={() => onPick('check', c.id)}

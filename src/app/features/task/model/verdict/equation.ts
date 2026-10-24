@@ -1,6 +1,6 @@
 import type { CheckKind, CheckResult, TaskView } from '../types';
 import { isSelected, type Selection } from '../court/selection';
-import { derivedVerdict, termKind } from './verdict';
+import { KIND_GLYPH, derivedVerdict, termKind } from './verdict';
 import { checkShown, replayDone, type ReplayState } from './replay';
 
 export interface EquationTerm {
@@ -14,8 +14,6 @@ export interface EquationTerm {
   selected: boolean;
 }
 
-const GLYPH: Record<CheckKind, string> = { ok: '✓', bad: '✗', unk: '?' };
-
 /** The terms in check order. A struck term (a person decides it) draws open, '?', whatever its ok: never a hold or a fail. */
 export function equationTerms(task: TaskView, sel: Selection, rv: ReplayState): EquationTerm[] {
   return task.proof.checks.map((c, i) => ({
@@ -23,7 +21,7 @@ export function equationTerms(task: TaskView, sel: Selection, rv: ReplayState): 
     text: c.text,
     ok: c.ok,
     kind: termKind(c),
-    glyph: GLYPH[termKind(c)],
+    glyph: KIND_GLYPH[termKind(c)],
     landed: checkShown(rv, i),
     selected: isSelected(sel, 'check', c.id),
   }));

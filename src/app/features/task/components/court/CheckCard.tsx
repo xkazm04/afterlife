@@ -3,7 +3,7 @@ import { Chip } from '@/components/status/chip/Chip';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import type { CheckKind, TaskCheck, TaskView } from '../../model/types';
 import { linkLabel, type Emphasis } from '../../model/court/selection';
-import { checkGlyph } from '../../model/verdict/verdict';
+import { KIND_GLYPH } from '../../model/verdict/verdict';
 import styles from './cards.module.css';
 
 const KIND_CLASS: Record<CheckKind, string> = { ok: styles.check_ok ?? '', bad: styles.check_bad ?? '', unk: styles.check_unk ?? '' };
@@ -38,7 +38,7 @@ export function CheckCard({
       />
       <div className={styles.top}>
         <span className={styles.nm}>
-          <span className={styles.g}>{checkGlyph(check.ok)}</span>
+          <span className={styles.g}>{KIND_GLYPH[kind]}</span>
           {check.id}
         </span>
         {check.claims.length ? null : (

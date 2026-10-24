@@ -5,7 +5,8 @@ export const checkKind = (ok: CheckResult): CheckKind => (ok === true ? 'ok' : o
 /** The kind a stored verdict draws as: only PASS is ok, only FAIL is bad, INCONCLUSIVE and UNKNOWN are open. */
 export const verdictKind = (v: Verdict): CheckKind => (v === 'PASS' ? 'ok' : v === 'FAIL' ? 'bad' : 'unk');
 export const verdictGlyph = (v: Verdict): string => (v === 'PASS' ? '✓' : v === 'FAIL' ? '✗' : '?');
-export const checkGlyph = (ok: CheckResult): string => (ok === true ? '✓' : ok === false ? '✗' : '?');
+/** The glyph a term, a check card or a ruling draws for its kind: a term is never colour alone. */
+export const KIND_GLYPH: Record<CheckKind, string> = { ok: '✓', bad: '✗', unk: '?' };
 
 /**
  * The word the screen shows for a schema verdict (`verdictOf` from `@/schemas`). The verdict itself is derived there:
@@ -81,7 +82,7 @@ export function claimStatus(task: TaskView, claim: TaskClaim): ClaimStatus {
   return { kind: 'ok', label: `✓ upheld · ${claim.checks.length}` };
 }
 
-/** Words for the inspector's ruling on a check. */
-export function ruleWord(ok: CheckResult): string {
-  return ok === true ? 'holds' : ok === false ? 'fails the verdict' : 'a person decides';
+/** Words for the inspector's ruling on a check, by its term kind (a struck check is 'unk': a person decides). */
+export function ruleWord(kind: CheckKind): string {
+  return kind === 'ok' ? 'holds' : kind === 'bad' ? 'fails the verdict' : 'a person decides';
 }

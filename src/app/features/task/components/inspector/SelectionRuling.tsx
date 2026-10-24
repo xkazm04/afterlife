@@ -6,21 +6,21 @@ import { ObjectLink } from '@/components/controls/ObjectLink';
 import { StatusTag } from '../StatusTag';
 import type { TaskView } from '../../model/types';
 import { linkLabel, type Selection } from '../../model/court/selection';
-import { checkGlyph, checkKind, claimStatus, ruleWord } from '../../model/verdict/verdict';
+import { KIND_GLYPH, claimStatus, ruleWord, termKind } from '../../model/verdict/verdict';
 import styles from './inspector.module.css';
 
 function CheckRuling({ task, id }: { task: TaskView; id: string }) {
   const c = task.proof.checks.find((x) => x.id === id);
   if (!c) return null;
   const link = task.chain[c.link];
-  const kind = checkKind(c.ok);
+  const kind = termKind(c);
   return (
     <div className={styles.rl}>
       <div className={styles.hh}>
-        <span className={styles[`c_${kind}`]}>{checkGlyph(c.ok)}</span>
+        <span className={styles[`c_${kind}`]}>{KIND_GLYPH[kind]}</span>
         <span className={styles.mono}>{c.id}</span>
         <span className={styles.push}>
-          <StatusTag kind={kind}>{ruleWord(c.ok)}</StatusTag>
+          <StatusTag kind={kind}>{ruleWord(kind)}</StatusTag>
         </span>
       </div>
       {c.text}
@@ -81,10 +81,11 @@ function ClaimRuling({ task, id }: { task: TaskView; id: string }) {
         <dd>
           {c.checks.length ? (
             c.checks.map((cid) => {
-              const ok = task.proof.checks.find((x) => x.id === cid)?.ok ?? null;
+              const check = task.proof.checks.find((x) => x.id === cid);
+              const kind = check ? termKind(check) : 'unk';
               return (
-                <div key={cid} className={`${styles.mono} ${styles[`c_${checkKind(ok)}`]}`}>
-                  {checkGlyph(ok)} {cid}
+                <div key={cid} className={`${styles.mono} ${styles[`c_${kind}`]}`}>
+                  {KIND_GLYPH[kind]} {cid}
                 </div>
               );
             })
