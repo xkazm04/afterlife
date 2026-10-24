@@ -44,7 +44,7 @@ export function stepTextSize(current: TextSize, direction: 1 | -1): TextSize {
 
 export type TextSizeIntent = 'bigger' | 'smaller' | 'reset';
 
-/** The keys that change the text size when held with Cmd or Ctrl. textSizeIntent and the mounted shortcuts both read this. */
+/** The keys that change the text size when held with Cmd or Ctrl: what TextSizeShortcuts mounts (TEXT_SIZE_HOTKEYS). */
 export const TEXT_SIZE_KEYS: readonly (readonly [key: string, intent: TextSizeIntent])[] = [
   ['=', 'bigger'],
   ['+', 'bigger'],
@@ -53,31 +53,9 @@ export const TEXT_SIZE_KEYS: readonly (readonly [key: string, intent: TextSizeIn
   ['0', 'reset'],
 ];
 
-interface KeyLike {
-  key: string;
-  metaKey: boolean;
-  ctrlKey: boolean;
-  altKey: boolean;
-}
-
-/** Cmd or Ctrl plus = (or +) / - (or _) / 0. Returns null for every other key. */
-export function textSizeIntent(e: KeyLike): TextSizeIntent | null {
-  if (!(e.metaKey || e.ctrlKey) || e.altKey) return null;
-  return TEXT_SIZE_KEYS.find(([key]) => key === e.key)?.[1] ?? null;
-}
-
 export function applyIntent(current: TextSize, intent: TextSizeIntent): TextSize {
   if (intent === 'reset') return DEFAULT_TEXT_SIZE;
   return stepTextSize(current, intent === 'bigger' ? 1 : -1);
-}
-
-/** Reads the saved choice. Storage may be missing, blocked or throw: all of that means "use the default". */
-export function readStoredTextSize(storage: Pick<Storage, 'getItem'> | null | undefined): TextSize {
-  try {
-    return parseTextSize(storage?.getItem(TEXT_SIZE_STORAGE_KEY));
-  } catch {
-    return DEFAULT_TEXT_SIZE;
-  }
 }
 
 /** Best effort: a blocked or full store must never break the UI. Returns whether it was saved. */

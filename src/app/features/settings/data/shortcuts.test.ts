@@ -1,25 +1,50 @@
 // SHORTCUTS is the Keyboard page's copy of what TextSizeShortcuts binds. This presses each listed key caps through the
-// real matcher (textSizeIntent) and checks the label says what happens.
+// mounted hotkeys (TEXT_SIZE_HOTKEYS, via dispatchHotkey as useHotkeys does) and checks the size moves as the label says.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
-import { textSizeIntent, type TextSizeIntent } from '@/lib/settings/textSize';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { INSPECTOR_HOTKEY } from '@/components/shell/bars/inspectorHotkey';
 import { matchHotkey } from '@/lib/keyboard/hotkeys';
+import { dispatchHotkey } from '@/lib/keyboard/useHotkeys';
+import { TEXT_SIZE_ATTRIBUTE, type TextSize } from '@/lib/settings/textSize';
+import { TEXT_SIZE_HOTKEYS } from '@/lib/settings/TextSizeShortcuts';
 import { SHORTCUTS } from './shortcuts';
 
-const INTENT: Record<string, TextSizeIntent> = { 'Larger text': 'bigger', 'Smaller text': 'smaller', 'Standard size': 'reset' };
+/** Each label's press from a size, and the size it must leave on screen. */
+const MOVES: Record<string, readonly [from: TextSize, to: TextSize]> = { 'Larger text': ['standard', 'larger'], 'Smaller text': ['standard', 'smaller'], 'Standard size': ['larger', 'standard'] };
 const INSPECTOR = 'Toggle the inspector, on a screen that has one';
 
+let attrs: Record<string, string>;
+beforeEach(() => {
+  attrs = {};
+  vi.stubGlobal('document', { documentElement: { getAttribute: (k: string) => attrs[k] ?? null, setAttribute: (k: string, v: string) => (attrs[k] = v) } });
+  vi.stubGlobal('window', { localStorage: { setItem: () => undefined } });
+});
+afterEach(() => vi.unstubAllGlobals());
+
+/** Press `key` with the given modifiers from `from`; the size on screen after, or null when no hotkey matched. */
+const press = (from: TextSize, key: string, mods: { metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean }): string | null => {
+  attrs[TEXT_SIZE_ATTRIBUTE] = from;
+  const e = { key, metaKey: false, ctrlKey: false, shiftKey: false, altKey: false, ...mods, repeat: false, target: null, preventDefault: () => {} };
+  return dispatchHotkey(TEXT_SIZE_HOTKEYS, e as unknown as KeyboardEvent) ? (attrs[TEXT_SIZE_ATTRIBUTE] ?? null) : null;
+};
+
 describe('SHORTCUTS', () => {
-  it.each(SHORTCUTS.filter((s) => s.label in INTENT))('$label: both key-cap lists do what the label says', (s) => {
+  it.each(SHORTCUTS.filter((s) => s.label in MOVES))('$label: both key-cap lists do what the label says', (s) => {
     const mac = s.mac[1] ?? '';
     const other = s.other[1] ?? '';
+    const [from, to] = MOVES[s.label] ?? ['standard', 'standard'];
     expect(mac).toBe(other);
-    expect(textSizeIntent({ key: mac, metaKey: true, ctrlKey: false, altKey: false })).toBe(INTENT[s.label]);
-    expect(textSizeIntent({ key: other, metaKey: false, ctrlKey: true, altKey: false })).toBe(INTENT[s.label]);
+    expect(press(from, mac, { metaKey: true })).toBe(to);
+    expect(press(from, other, { ctrlKey: true })).toBe(to);
     expect(s.mac[0]).toBe('⌘');
     expect(s.other[0]).toBe('Ctrl');
+  });
+  it('the mounted text-size keys ignore bare keys and Alt chords', () => {
+    expect(press('standard', '=', {})).toBeNull();
+    expect(press('standard', '0', {})).toBeNull();
+    expect(press('standard', '=', { ctrlKey: true, altKey: true })).toBeNull();
+    expect(press('standard', 'a', { ctrlKey: true })).toBeNull();
   });
   it('lists all three text-size actions and the inspector toggle, nothing else', () => {
     expect(SHORTCUTS.map((s) => s.label)).toEqual(['Larger text', 'Smaller text', 'Standard size', INSPECTOR]);

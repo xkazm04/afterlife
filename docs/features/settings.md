@@ -29,8 +29,8 @@
   `--ui-scale`) and derives control metrics from `--ui-scale` (`--ctl-h`, `--seg-h`, `--lozenge-h`, `--mini-h`,
   `--chip-h`, `--sum-h`, `--ico`, `--t-title`). Components size from these variables, never from literal px.
 - `lib/settings/textSize.ts` (pure): `TEXT_SIZES`, `TEXT_SIZE_SPEC` (the D10 table), `parseTextSize`, `stepTextSize`
-  (clamped), `textSizeIntent` (Cmd/Ctrl + `=`/`+`, `-`/`_`, `0`; Alt chords ignored), `applyIntent`,
-  `readStoredTextSize` / `writeStoredTextSize` (try/catch), and `bootScriptSource`.
+  (clamped), `TEXT_SIZE_KEYS` (`=`/`+`, `-`/`_`, `0`), `applyIntent`, `writeStoredTextSize` (try/catch), and
+  `bootScriptSource`.
 - `TextSizeBoot` puts that inline script in `<head>` (from `app/layout.tsx`): it sets the attribute from
   `localStorage` before first paint, so there is no flash of the wrong size. The `<html>` element starts at `standard`
   with `suppressHydrationWarning`.
@@ -38,7 +38,8 @@
   `useSyncExternalStore` (`useTextSize`); it also follows `storage` events, so another tab's change applies here. It
   keeps whether this browser keeps the size (`useTextSizeSaved`): the last write's answer, whoever made it (Display, a
   shortcut), else on load whether `localStorage` holds the size on screen. Display's saved / not-saved note reads it.
-- `TextSizeShortcuts` (mounted once in `app/Providers.tsx`) binds the Cmd/Ctrl chords app-wide through `useHotkeys`,
+- `TextSizeShortcuts` (mounted once in `app/Providers.tsx`) binds `TEXT_SIZE_HOTKEYS` (Cmd/Ctrl plus each of
+  `TEXT_SIZE_KEYS`; Alt chords ignored) app-wide through `useHotkeys`,
   which cancels the browser's own zoom for those chords.
 - `model/specRows.ts` turns `TEXT_SIZE_SPEC` into the table rows (body/header/small, row/header row, toolbar/status
   bar, sidebar, drawn-part scale).

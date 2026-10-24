@@ -33,5 +33,5 @@ each page's tab title ("Belay Settings <label>").
 `model/specCss.test.ts` reads `src/styles/text-size.css` against `TEXT_SIZE_SPEC` (all 27 measures);
 `model/sizeTitles.test.tsx` the size buttons' tooltips from the spec and the default; `model/saveNote.test.ts` the
 Display note (saved, or this visit only when the browser refuses to store the size); `data/shortcuts.test.ts` presses
-the listed caps through `textSizeIntent` and keeps the inspector row qualified while a screen draws no inspector;
+the listed caps through the mounted `TEXT_SIZE_HOTKEYS` (`dispatchHotkey`) and keeps the inspector row qualified while a screen draws no inspector;
 `data/browserKeys.test.ts` every key a module stores in localStorage is on the About page.

@@ -7,19 +7,9 @@ import {
   bootScriptSource,
   isTextSize,
   parseTextSize,
-  readStoredTextSize,
   stepTextSize,
-  textSizeIntent,
   writeStoredTextSize,
 } from './textSize';
-
-const key = (k: string, mods: Partial<{ metaKey: boolean; ctrlKey: boolean; altKey: boolean }> = {}) => ({
-  key: k,
-  metaKey: false,
-  ctrlKey: false,
-  altKey: false,
-  ...mods,
-});
 
 describe('text size parsing', () => {
   it('defaults to Standard', () => {
@@ -46,21 +36,8 @@ describe('stepTextSize', () => {
 });
 
 describe('keyboard intent', () => {
-  it('maps Cmd/Ctrl + = - 0', () => {
-    expect(textSizeIntent(key('=', { metaKey: true }))).toBe('bigger');
-    expect(textSizeIntent(key('+', { ctrlKey: true }))).toBe('bigger');
-    expect(textSizeIntent(key('-', { ctrlKey: true }))).toBe('smaller');
-    expect(textSizeIntent(key('0', { metaKey: true }))).toBe('reset');
-  });
-  it('ignores bare keys and Alt chords', () => {
-    expect(textSizeIntent(key('='))).toBeNull();
-    expect(textSizeIntent(key('0'))).toBeNull();
-    expect(textSizeIntent(key('=', { ctrlKey: true, altKey: true }))).toBeNull();
-    expect(textSizeIntent(key('a', { ctrlKey: true }))).toBeNull();
-  });
-  it('has one key table, which the mounted shortcuts and the intent reader share', () => {
-    expect(TEXT_SIZE_KEYS.map(([k]) => k)).toEqual(['=', '+', '-', '_', '0']);
-    for (const [k, intent] of TEXT_SIZE_KEYS) expect(textSizeIntent(key(k, { ctrlKey: true }))).toBe(intent);
+  it('has one key table, which the mounted shortcuts read (pressed in features/settings/data/shortcuts.test.ts)', () => {
+    expect(TEXT_SIZE_KEYS).toEqual([['=', 'bigger'], ['+', 'bigger'], ['-', 'smaller'], ['_', 'smaller'], ['0', 'reset']]);
   });
   it('applies an intent', () => {
     expect(applyIntent('smaller', 'bigger')).toBe('standard');
@@ -70,20 +47,6 @@ describe('keyboard intent', () => {
 });
 
 describe('storage', () => {
-  it('reads a saved value', () => {
-    expect(readStoredTextSize({ getItem: (k) => (k === TEXT_SIZE_STORAGE_KEY ? 'larger' : null) })).toBe('larger');
-  });
-  it('survives a missing, corrupt or throwing store', () => {
-    expect(readStoredTextSize(null)).toBe('standard');
-    expect(readStoredTextSize({ getItem: () => 'nope' })).toBe('standard');
-    expect(
-      readStoredTextSize({
-        getItem: () => {
-          throw new Error('blocked');
-        },
-      }),
-    ).toBe('standard');
-  });
   it('writes best-effort', () => {
     const saved: Record<string, string> = {};
     expect(writeStoredTextSize({ setItem: (k, v) => void (saved[k] = v) }, 'smaller')).toBe(true);
