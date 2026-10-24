@@ -4,10 +4,16 @@ import type { DecisionStatus } from '../types';
 
 export type GradeState = 'cur' | 'done' | 'idle';
 
+/** The source's "a / b" link count, read once for the grade and the evidence strip; null when it does not read as one. */
+export function linksCount(linksResolved: string): { resolved: number; total: number } | null {
+  const m = /^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(linksResolved);
+  return m ? { resolved: Number(m[1]), total: Number(m[2]) } : null;
+}
+
 /** True when the source says "a / b" with a < b: a link is unresolved. An unreadable count says nothing either way. */
 export function linksUnresolved(linksResolved: string): boolean {
-  const m = /^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(linksResolved);
-  return !!m && Number(m[1]) < Number(m[2]);
+  const c = linksCount(linksResolved);
+  return !!c && c.resolved < c.total;
 }
 
 /** Today's grade index. Draft while a link is unresolved; otherwise reviewable until the sign-off is sent, then ready to sign. */

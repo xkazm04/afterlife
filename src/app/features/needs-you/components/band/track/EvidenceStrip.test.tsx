@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { EVIDENCE } from '../../../data/cra';
+import { gradeIndex } from '../../../model/clock/grades';
 import { EvidenceStrip } from './EvidenceStrip';
 
 const out = renderToStaticMarkup(<EvidenceStrip resolved="6 / 6" />);
@@ -37,5 +38,11 @@ describe('the evidence strip', () => {
     const none = renderToStaticMarkup(<EvidenceStrip resolved="" />);
     expect(none).not.toContain('✓');
     expect(none).toContain('Evidence not held');
+  });
+
+  it('never draws every tick resolved while the count, and so the grade (draft), says a link is not', () => {
+    const short = renderToStaticMarkup(<EvidenceStrip resolved={`${EVIDENCE.length} / ${EVIDENCE.length + 1}`} />);
+    expect(short).toContain('· not resolved');
+    expect(gradeIndex('open', `${EVIDENCE.length} / ${EVIDENCE.length + 1}`)).toBe(0);
   });
 });
