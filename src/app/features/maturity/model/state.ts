@@ -78,4 +78,6 @@ export const sentName = (s: MaturityState, id: string): string => s.mrs[id] ?? `
 
 /** Raise a one-line notice (toast and status bar). */
 export const say = (s: MaturityState, text: string): MaturityState => ({ ...s, notice: { seq: (s.notice?.seq ?? 0) + 1, text } });
+/** A notice as the status bar shows it: after the demo's clock, or bare in live mode, where nothing invents a time. */
+export const statusLine = (ctx: Pick<MaturityCtx, 'nowClock'>, text: string): string => (ctx.nowClock ? `${ctx.nowClock} · ${text}` : text);
 export const openGap = (s: MaturityState): MaturityState => ({ ...s, open: { ...s.open, gap: true } });

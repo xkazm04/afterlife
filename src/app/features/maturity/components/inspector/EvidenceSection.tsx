@@ -9,6 +9,7 @@ import { gitlabUrl } from '../../data/meta';
 import type { EvidenceRung } from '../../data/types';
 import type { MaturityCtx } from '../../model/ctx';
 import { isDeep, nextOf, TOP_RUNG, type Level } from '../../model/rungs';
+import { statusLine } from '../../model/state';
 import { cx } from '../cx';
 import { BoltGlyph } from './BoltGlyph';
 import styles from './inspector.module.css';
@@ -41,7 +42,7 @@ export function EvidenceSection({
     e.preventDefault();
     const msg = `would open in GitLab: ${gitlabUrl(path).replace('https://', '')}`;
     toast(msg);
-    status(ctx.nowClock ? `${ctx.nowClock} · ${msg}` : msg);
+    status(statusLine(ctx, msg));
   };
 
   return (

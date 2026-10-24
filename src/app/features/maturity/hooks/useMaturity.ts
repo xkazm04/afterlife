@@ -6,7 +6,7 @@ import type { DemoData } from '@/lib/demo';
 import type { Stage } from '@/schemas';
 import { makeCtx, type MaturityCtx } from '../model/ctx';
 import { reduce, type Action } from '../model/reducer';
-import { initialState, pendingIds, type MaturityState, type Step } from '../model/state';
+import { initialState, pendingIds, statusLine, type MaturityState, type Step } from '../model/state';
 import { stepsView, type StepView } from '../model/steps';
 import { routeViews, type RouteView } from '../model/crag/routes';
 import type { Mode } from '../model/rungs';
@@ -31,11 +31,13 @@ export function useMaturity(maturity: DemoData['maturity'], stages: readonly Sta
   const [state, dispatch] = useReducer((s: MaturityState, a: Action) => reduce(s, a, ctx), ctx, initialState);
   const { toast, status } = useToast();
 
+  // Keyed on the clock, not ctx: a new ctx (a mode change) must not raise the last notice again.
+  const nowClock = ctx.nowClock;
   useEffect(() => {
     if (!state.notice) return;
     toast(state.notice.text);
-    status(ctx.nowClock ? `${ctx.nowClock} · ${state.notice.text}` : state.notice.text);
-  }, [state.notice, toast, status, ctx.nowClock]);
+    status(statusLine({ nowClock }, state.notice.text));
+  }, [state.notice, toast, status, nowClock]);
 
   const routes = useMemo(() => routeViews(state, ctx), [state, ctx]);
   const steps = useMemo(() => stepsView(state, ctx), [state, ctx]);

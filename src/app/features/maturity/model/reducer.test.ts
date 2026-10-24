@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { reduce, type Action } from './reducer';
-import { initialState, pendingIds, type MaturityState } from './state';
+import { initialState, pendingIds, statusLine, type MaturityState } from './state';
 import { ctx } from './testCtx';
 
 const run = (s: MaturityState, ...actions: Action[]) => actions.reduce((acc, a) => reduce(acc, a, ctx), s);
@@ -142,5 +142,12 @@ describe('rescan and modes', () => {
     const s = run(start(), { type: 'file', id: 'g1', index: 1 }, { type: 'section', key: 'day0', open: true });
     expect(s.file.g1).toBe(1);
     expect(s.open.day0).toBe(true);
+  });
+});
+
+describe('statusLine', () => {
+  it('puts the demo clock before a notice, and invents no time in live mode', () => {
+    expect(statusLine(ctx, 'picked g1')).toBe(`${ctx.nowClock} · picked g1`);
+    expect(statusLine({ nowClock: null }, 'picked g1')).toBe('picked g1');
   });
 });
