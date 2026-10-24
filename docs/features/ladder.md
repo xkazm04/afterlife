@@ -38,13 +38,13 @@
   - `view/`: `computeOrder` (frozen sort), `visibleClasses`, `tierCounts`, `buildRows` / `stepClass` (grouping and
     j/k walk), `layoutAxis` (to-scale timeline), ledger queries in `moves.ts`. `clock.ts`: simulated clock helpers.
 - Hooks: `useLadderData` (reducer and derived rows), `useLadderActions` (revoke through the server, promote, timers,
-  toasts, reset), `useRevokeWrites` (the dock's server plan),
+  toasts, reset), `useRevokeWrite` (the dock's server plan),
   `useSimClock` (starts at 14:24:12, no `Date.now` so server and client agree), `useLadderMenus`, `useLadderKeys`,
   `useLadderPopovers`.
 
 ## Rules it keeps
 - The exact write is on screen before it runs: the dock line shows the command the server planned for the selected
-  row's revoke (`useRevokeWrites`; full command in its tooltip), and `r` confirms that same plan. A revoke to another
+  row's revoke (`useRevokeWrite`; full command in its tooltip), and `r` confirms that same plan. A revoke to another
   rung from the menu is planned and confirmed in one step. The row moves only if the server says `done`.
 - Writes happen only on a click or a key. A revoke lowers only; there is no undo, and the status line says going back
   up is a policy MR a person merges.
