@@ -22,7 +22,7 @@ export interface ProcOptions {
   shell?: boolean;
   /** Default childEnv(): no secrets. Only claude is spawned with agentEnv(). */
   env?: NodeJS.ProcessEnv;
-  /** Characters kept per stream (the tail); default MAX_OUTPUT. A child cannot grow the runner's heap past it. */
+  /** Characters kept per stream (the tail); default MAX_OUTPUT. A child cannot grow the runner's heap past a quarter more. */
   maxOutput?: number;
 }
 
@@ -90,26 +90,48 @@ export async function killAll(): Promise<void> {
   await Promise.all([...live].map((pid) => killTree(pid)));
 }
 
+/**
+ * A stream's last `max` characters. Chunks are kept as they come and cut back to `max` only once a quarter more has
+ * piled up, so a child flooding past the cap costs linear time, not one copy of the whole tail per chunk.
+ */
+function tailBuffer(max: number) {
+  let parts: string[] = [];
+  let len = 0;
+  let cut = false;
+  const compact = (): string => {
+    const all = parts.join('');
+    const kept = all.length > max ? all.slice(-max) : all;
+    if (kept.length < all.length) cut = true;
+    parts = [kept];
+    len = kept.length;
+    return kept;
+  };
+  return {
+    push(s: string): void {
+      parts.push(s);
+      len += s.length;
+      if (len > max + (max >> 2)) compact();
+    },
+    text: compact,
+    cut: (): boolean => cut,
+  };
+}
+
 export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Promise<ProcResult> {
   return new Promise((resolve) => {
-    let stdout = '';
-    let stderr = '';
     let timedOut = false;
-    let truncated = false;
     const max = opts.maxOutput ?? MAX_OUTPUT;
-    const keep = (acc: string, d: Buffer): string => {
-      const next = acc + d.toString('utf8');
-      if (next.length <= max) return next;
-      truncated = true;
-      return next.slice(-max);
-    };
+    const out = tailBuffer(max);
+    const err = tailBuffer(max);
     let settled = false;
     const done = (code: number | null) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
       if (child.pid) live.delete(child.pid);
-      resolve({ code, stdout, stderr, timedOut, truncated });
+      const stdout = out.text();
+      const stderr = err.text();
+      resolve({ code, stdout, stderr, timedOut, truncated: out.cut() || err.cut() });
     };
     const child = spawn(cmd, args, {
       cwd: opts.cwd,
@@ -124,10 +146,13 @@ export function runProc(cmd: string, args: string[], opts: ProcOptions = {}): Pr
       timedOut = true;
       void killTree(child.pid).then(() => done(null));
     }, opts.timeoutMs || DEFAULT_TIMEOUT_MS);
-    child.stdout.on('data', (d: Buffer) => (stdout = keep(stdout, d)));
-    child.stderr.on('data', (d: Buffer) => (stderr = keep(stderr, d)));
+    // Decoded per stream, so a multibyte character split across two chunks arrives whole.
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (d: string) => out.push(d));
+    child.stderr.on('data', (d: string) => err.push(d));
     child.on('error', (e) => {
-      stderr += String(e);
+      err.push(String(e));
       done(null);
     });
     child.on('close', (code) => done(code));

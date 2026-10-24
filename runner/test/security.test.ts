@@ -72,6 +72,12 @@ describe('child output', () => {
     expect(r.stdout.endsWith('TAIL')).toBe(true);
     expect(r.truncated).toBe(true);
   });
+
+  it('a multibyte character split across two output chunks arrives whole', async () => {
+    const r = await runProc(process.execPath, ['-e', "process.stdout.write('\\u20ac'.repeat(300000))"]);
+    expect(r.stdout).toBe('€'.repeat(300000));
+    expect(r.truncated).toBe(false);
+  });
 });
 
 describe('child lifetime', () => {
