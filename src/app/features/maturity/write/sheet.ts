@@ -50,9 +50,6 @@ export interface Sent {
   view?: WriteView;
 }
 
-/** Confirm every ready row by its own preview id. One gap's failure does not stop the others. */
-export const sendReady = (rows: readonly SheetRow[]): Promise<Sent[]> => Promise.all(readyRows(rows).map(sendRow));
-
 /** Confirm one row's write by its preview id; the answer is only what the response says. */
 export async function sendRow(row: SheetRow): Promise<Sent> {
   if (!row.send.ok) return { id: row.id, answer: { status: 'failed', text: row.send.reason } };

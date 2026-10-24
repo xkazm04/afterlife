@@ -14,7 +14,9 @@ import type { SheetRow } from './sheet';
 
 const actions = vi.hoisted(() => ({ previewAction: vi.fn(), confirmAction: vi.fn() }));
 vi.mock('@/server/actions/actions', () => actions);
-const { ask, readyRows, sendReady, sheetRows, toAsk } = await import('./sheet');
+const { ask, readyRows, sendRow, sheetRows, toAsk } = await import('./sheet');
+/** The button, as useGapSheet's send runs it: every ready row by its own preview id, one gap's failure not stopping the others. */
+const sendReady = (rows: readonly SheetRow[]) => Promise.all(readyRows(rows).map(sendRow));
 
 const preview = (id: string): ActionPreview => ({
   kind: 'stage-gap-mr', title: `Open the draft MR for gap ${id}`, summary: 's', risk: 'low', previewId: `pv-${id}`, mode: 'demo',
