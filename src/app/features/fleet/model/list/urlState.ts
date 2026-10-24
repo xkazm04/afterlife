@@ -7,7 +7,7 @@ import type { SortDir, SortState } from '@/components/table/model/sort';
 import type { FleetFilters, FleetView, SmartId, SortKey, Source } from '../types';
 import { EMPTY_FILTERS } from './filtering';
 import { SMART_FILTERS } from './smartFilters';
-import { INITIAL_SORT, defaultDir } from './sorting';
+import { INITIAL_SORT, defaultDir, sortFitsView } from './sorting';
 
 export interface FleetListState {
   view: FleetView;
@@ -47,10 +47,6 @@ const isSortKey = (s: string): s is SortKey =>
   (s.startsWith('class:') && s.length > 6) ||
   /^stage:\d{1,3}$/.test(s);
 
-/** A sort on a column only the other views have is dropped. */
-const fitsView = (key: SortKey, view: FleetView): boolean =>
-  key.startsWith('tier:') ? view === 'tiers' : key.startsWith('class:') ? view === 'classes' : key.startsWith('stage:') ? view === 'stages' : key !== 'stages' || view === 'tiers';
-
 /** Search params (or a URLSearchParams) to list state. Unknown or malformed values are ignored. */
 export function decodeListState(raw: RawParams | URLSearchParams | null | undefined): FleetListState {
   try {
@@ -64,7 +60,8 @@ export function decodeListState(raw: RawParams | URLSearchParams | null | undefi
     const src = first(p, 'src');
     return {
       view,
-      sort: fitsView(sortKey, view) ? { key: sortKey, dir } : INITIAL_SORT,
+      // a sort on a column only the other views have is dropped
+      sort: sortFitsView(sortKey, view) ? { key: sortKey, dir } : INITIAL_SORT,
       grouped: first(p, 'flat') !== '1',
       collapsed: new Set(all(p, 'fold').filter(Boolean)),
       filters: {

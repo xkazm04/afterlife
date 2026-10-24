@@ -49,10 +49,13 @@ export const rankedTier = (sort: SortState<SortKey>): TierKey | null => (sort.ke
 export type ColumnRole = 'ranked' | 'dim' | 'plain';
 export const columnRole = (tier: TierKey, ranked: TierKey | null): ColumnRole => (ranked === null ? 'plain' : ranked === tier ? 'ranked' : 'dim');
 
-/** Switching view drops a sort on a column the new view does not have. */
+/** Whether `view` draws the column `key` sorts by: tier columns and the Stages total are the Tiers view's, classes and stages their own views'. */
+export const sortFitsView = (key: SortKey, view: FleetView): boolean =>
+  key.startsWith('tier:') ? view === 'tiers' : key.startsWith('class:') ? view === 'classes' : key.startsWith('stage:') ? view === 'stages' : key !== 'stages' || view === 'tiers';
+
+/** Switching view drops a sort on a column the new view does not have (the URL decoder keeps the same rule). */
 export function sortAfterViewChange(sort: SortState<SortKey>, view: FleetView): SortState<SortKey> {
-  const gone = /^(class|stage|tier):/.test(sort.key) || (sort.key === 'stages' && view !== 'tiers');
-  return gone ? INITIAL_SORT : sort;
+  return sortFitsView(sort.key, view) ? sort : INITIAL_SORT;
 }
 
 const SORT_NAMES: Record<string, string> = { attention: 'Attention', name: 'Name', state: 'State', needs: 'Needs you', proofs: 'Proofs', stages: 'Stages', feed: 'Feed age' };

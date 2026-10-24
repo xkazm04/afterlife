@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeProject } from '../testProject';
-import { INITIAL_SORT, byAttention, columnRole, defaultDir, rankedTier, sortAfterViewChange, sortLabel, sortProjects, sortValue } from './sorting';
+import { INITIAL_SORT, byAttention, columnRole, defaultDir, rankedTier, sortAfterViewChange, sortFitsView, sortLabel, sortProjects, sortValue } from './sorting';
 
 const STAGES = ['plan', 'create', 'verify'];
 const a = makeProject({ id: 'a', name: 'alpha', needsYou: 0 });
@@ -88,6 +88,18 @@ describe('view change', () => {
     expect(sortAfterViewChange({ key: 'stages', dir: -1 }, 'classes')).toEqual(INITIAL_SORT);
     expect(sortAfterViewChange({ key: 'stages', dir: -1 }, 'tiers')).toEqual({ key: 'stages', dir: -1 });
     expect(sortAfterViewChange({ key: 'proofs', dir: 1 }, 'stages')).toEqual({ key: 'proofs', dir: 1 });
+  });
+  it('keeps a sort on a column the view still has (pressing the view already shown)', () => {
+    expect(sortAfterViewChange({ key: 'tier:assisted', dir: 1 }, 'tiers')).toEqual({ key: 'tier:assisted', dir: 1 });
+    expect(sortAfterViewChange({ key: 'class:qa.file-bug', dir: -1 }, 'classes')).toEqual({ key: 'class:qa.file-bug', dir: -1 });
+    expect(sortAfterViewChange({ key: 'stage:2', dir: -1 }, 'stages')).toEqual({ key: 'stage:2', dir: -1 });
+  });
+  it('is the rule the URL decoder keeps', () => {
+    for (const view of ['tiers', 'classes', 'stages'] as const) {
+      for (const key of ['attention', 'stages', 'tier:assisted', 'class:x', 'stage:1'] as const) {
+        expect(sortFitsView(key, view)).toBe(sortAfterViewChange({ key, dir: -1 }, view).key === key);
+      }
+    }
   });
 });
 
