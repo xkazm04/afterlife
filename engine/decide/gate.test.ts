@@ -87,6 +87,14 @@ describe('gate: what hands-off merging needs', () => {
     expect(decide({ proof: same, envelope: checkEnvelope(P, 'dep-bump.patch', mr) }).decision).toBe('merge');
   });
 
+  it('blocks a diff-reading proof that read zero files when the gate measured a real diff', () => {
+    const d = 'diff --git a/package.json b/package.json\n--- a/package.json\n+++ b/package.json\n@@ -1 +1 @@\n-a\n+b\n';
+    const empty = proof('exploit-test', true, { envelope: { files: 0, lines: 0, paths_touched: [], within: true } });
+    const r = decide({ proof: empty, envelope: checkEnvelope(P, 'dep-bump.patch', d) });
+    expect([r.decision, r.reasons.join(' ')]).toEqual(['block', expect.stringMatching(/read no diff, but the gate measured 1 file/)]);
+    expect(decide({ proof: empty }).decision).toBe('merge'); // no measured diff: nothing to compare against
+  });
+
   it('blocks production for a class without a mechanical proof, through the envelope result', () => {
     const d = 'diff --git a/a.kt b/a.kt\n--- a/a.kt\n+++ b/a.kt\n@@ -1 +1 @@\n-a\n+b\n';
     const r = decide({ classId: 'guard.block', proof: proof('cited-diff', true), envelope: checkEnvelope(P, 'guard.block', d, ['production']) });

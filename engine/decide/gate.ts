@@ -38,6 +38,8 @@ export interface GateResult {
 }
 
 const samePaths = (a: readonly string[], b: readonly string[]): boolean => new Set(a).size === new Set(b).size && a.every((x) => b.includes(x));
+/** Classes whose checks read the change's diff (test-not-weakened, quote-in-diff): a zero-file proof of one read nothing. */
+const READS_THE_DIFF: readonly string[] = ['exploit-test', 'cited-diff'];
 
 export function gate(g: GateInput): GateResult {
   const blocks: string[] = [];
@@ -78,6 +80,10 @@ export function gate(g: GateInput): GateResult {
   // proof's test-not-weakened / cited-diff read a diff that leaves a file out.
   if (p && g.envelope && p.envelope.files > 0 && !samePaths(p.envelope.paths_touched, g.envelope.paths_touched)) {
     blocks.push('the proof was made from a different diff than the one measured (paths touched differ)');
+  }
+  // A diff-reading proof that says it read no file cannot vouch for the non-empty diff the gate measured.
+  if (p && g.envelope && g.envelope.files > 0 && p.envelope.files === 0 && READS_THE_DIFF.includes(p.class)) {
+    blocks.push(`the ${p.class} proof read no diff, but the gate measured ${g.envelope.files} file(s)`);
   }
 
   const reasons = [...notes, ...blocks, ...waits];

@@ -67,7 +67,8 @@
   lease counts as supervised (`decide/standing.ts`, which the screens read too). Unknown class, `human_only`, no tier
   record, several holders and no `--agent`, quarantined, guardrail block, failed proof, a class that declares no proof
   class, wrong proof class, verdict not following from checks, proof from another engine build (when pinned), a proof
-  made from a different diff than the one the gate measured (paths touched differ), or outside the envelope: `block`. Missing or inconclusive proof or guardrail: `wait`. Then hands-off `merge`, supervised `approve`
+  made from a different diff than the one the gate measured (paths touched differ), an `exploit-test` or `cited-diff`
+  proof that read zero files when the gate measured a non-empty diff, or outside the envelope: `block`. Missing or inconclusive proof or guardrail: `wait`. Then hands-off `merge`, supervised `approve`
   (a person merges), assisted `wait`.
 - **Tripwire** (`decide/tripwire.ts`): triggers `revert`, `reopened_finding`, `post_merge_proof_fail`,
   `default_branch_red_1h` (one step down) and `guardrail_high`, `budget_breach_x2` (quarantine), per the policy. It
