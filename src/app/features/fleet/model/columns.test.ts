@@ -23,6 +23,11 @@ describe('fleetColumns', () => {
   it('has nine stage columns', () => {
     expect(keys('stages').filter((x) => x.startsWith('stage:'))).toHaveLength(9);
   });
+  it('counts the stages in the Stages column tip from the fleet, not a hand-typed nine', () => {
+    const tip = (stages: readonly string[]) => fleetColumns('tiers', { ...meta, stages }).find((c) => c.key === 'stages')?.tip;
+    expect(tip(DEMO.stages)).toBe(`Rung on the ${DEMO.stages.length} stages`);
+    expect(tip(['plan', 'create', 'verify'])).toBe('Rung on the 3 stages');
+  });
   it('tips a tier column with what it means', () => {
     const col = fleetColumns('tiers', meta).find((c) => c.tier === 'hands_off');
     expect(col?.tip).toContain(DEMO.tiers.hands_off.means);

@@ -20,7 +20,7 @@ export interface ColumnSpec {
 
 const PROOFS: ColumnSpec = { key: 'proofs', kind: 'proofs', label: 'Proofs', tip: 'Proofs, last 7 days', align: 'start' };
 const FEED: ColumnSpec = { key: 'feed', kind: 'feed', label: 'Feed', tip: 'Feed age', align: 'end' };
-const STAGES: ColumnSpec = { key: 'stages', kind: 'stages', label: 'Stages', tip: 'Rung on the nine stages', align: 'start' };
+const stagesColumn = (stages: readonly string[]): ColumnSpec => ({ key: 'stages', kind: 'stages', label: 'Stages', tip: `Rung on the ${stages.length} stages`, align: 'start' });
 
 const BASE: readonly ColumnSpec[] = [
   { key: 'name', kind: 'name', label: 'Project', tip: 'Project', align: 'start' },
@@ -38,7 +38,7 @@ export function fleetColumns(view: FleetView, meta: FleetMeta): ColumnSpec[] {
       align: 'start',
       tier: t,
     }));
-    return [...BASE, ...tiers, PROOFS, STAGES, FEED];
+    return [...BASE, ...tiers, PROOFS, stagesColumn(meta.stages), FEED];
   }
   if (view === 'classes') {
     const classes = meta.classes.map((c): ColumnSpec => ({ key: `class:${c}`, kind: 'class', label: CLASS_SHORT[c] ?? c, tip: c, align: 'center', classId: c }));
