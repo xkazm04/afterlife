@@ -58,7 +58,7 @@ export function OutlineTable({
       <div className={styles.thead} data-part="thead" role="rowgroup">
         <div className={styles.r} role="row">
           {header}
-          <div className={`${styles.c} ${styles.th} ${styles.fill}`} role="columnheader" />
+          <div className={`${styles.c} ${styles.th} ${styles.fill}`} aria-hidden="true" />
         </div>
       </div>
       <div className={styles.rows} role="rowgroup">

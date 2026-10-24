@@ -58,7 +58,7 @@ export function Row({
       }}
     >
       {children}
-      <div className={`${styles.c} ${styles.fill}`} role="gridcell" />
+      <div className={`${styles.c} ${styles.fill}`} aria-hidden="true" />
     </div>
   );
 }
