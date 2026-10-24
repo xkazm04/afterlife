@@ -9,16 +9,18 @@
 - The **CRA legal clock band** sits above the table and is the loudest thing on the screen: a live countdown, a 24 h
   rail from "aware 09:10" to "due 09:10" with +6/+12/+18 h ticks, the packet grade ladder (draft, reviewable, ready to
   sign, with "attested" struck out), the six evidence links, and the buttons. It is labelled "drill · seeded".
-- The CRA flow: **Read the draft** opens the inspector on the draft; **Ready to sign** is disabled until it is read;
+- The CRA flow: **Read the draft** opens the decision's page (`/needs-you/n2`) on the draft; **Ready to sign** is disabled until it is read;
   it then stages the write; after Run the band shows "Ready to sign · you submit on ENISA" and **I submitted it**
   records the submission note.
 - Each row has one action (Read draft, Ready to sign, Promote, Re-admit, Read note, Stage, Take back, Open runner page,
   Check again, Simulate merge, Show again). Space ticks an unstaged gap or runs the row's action. Right-click offers
-  Show in Inspector, the row's action, Not yet (promotion), Retire (re-admission), Pick/Untick (gap) and Copy Command.
+  Open (the decision's page), the row's action, Not yet (promotion), Retire (no write) (re-admission), Pick/Untick (gap),
+  Copy Command and Collapse the row's group (`model/menu.ts`).
 - The **outbox** drawer holds staged writes. Each item shows its kind, title, write ref, the exact commands and (for
   policy MRs) the diff of `belay-policy/tier-state.yml`, with **Run** and **Remove**. Below it, "Sent this session".
-- The inspector has one view per selection (CRA, promote, re-admit, gap, runner, history row, group); "The click"
-  lists what a button does and what it will not do.
+- Each decision has a page (`/needs-you/[item]`, `components/detail/NeedsItemPage`) drawn by the inspector: one view
+  per decision (CRA, promote, re-admit, runner, and each gap); a group or ledger row only takes the selection. "The
+  click" lists what a button does and what it will not do.
 - The sidebar filters All / Waiting / Outbox / Sent; the toolbar has the grouping and search.
 
 ## How it works
@@ -48,15 +50,19 @@
     `clock/grades.ts`: `gradeIndex`, `gradeState`.
   - `rows/`: `rowState` (state column, waiting / in outbox / decided), `rowAction` / `spaceAction`, `grouping`
     (`groupsFor`, `isVisible`, `visibleGroups`, `navItems`), `rowData` (cells), `history` ("Decided this week").
-  - `menu.ts`: right-click entries as data.
-- Hooks: `useNeedsYou` (the reducer; each notice shown once as toast or status), `useElapsed` (seconds since mount,
-  0 on server and first render), `useNeedsKeys`, `useNeedsMenus`.
+  - `menu.ts`: right-click entries as data. `keys/keymap.ts`: the document-wide keys, which Settings > Keyboard lists.
+  - `slot/`: one server-planned write's lifecycle (`slot.ts`), the desk's (`run.ts`) and the live list's
+    (`liveActs.ts`). `live.ts`, `desk/` and `evidence/`: the live list's writes, rows, groups, outbox and evidence.
+- Hooks: `useNeedsYou` (the reducer; each notice shown once as toast or status), `NeedsStore` (the layout's shared
+  desk state, so the list and a decision's page agree), `ClockProvider` + `useElapsed` (the 1 s tick, 0 on server and
+  first render), `useNeedsKeys`, `useNeedsMenus`, `useReveal`; live: `useLiveDesk`, `useLiveActs`.
 
 ## Rules it keeps
-- Writes only on Run. Staging sends nothing; Run is the only send, and its toast always says "ran as @operator". The
+- Writes only on Run. Staging sends nothing; Run is the only send. A write the screen runs itself (the CRA mark, the
+  submission note) says "ran as @operator"; a policy or gap MR's toast is the server's answer in its own words. The
   exact command (and diff) is shown in the outbox before anything runs. Remove or Take back says "Nothing was sent".
-- Retire, Not yet and the runner check skip the outbox. Retire ("Retire (runs now)") is one commit to
-  belay-policy as you, since restricting is free; Not yet and the runner check write nothing.
+- Retire, Not yet and the runner check skip the outbox and write nothing. Retire ("Retire (no write)") is recorded
+  here only: Belay has no retire write (tier-state.yml has no retired tier), so the class stays quarantined.
 - Read before act: Ready to sign needs the draft read; Re-admit needs the incident note read. Opening those inspector
   sections counts as reading.
 - The legal clock never pauses and never goes below zero; it is first in line in the outbox. Marking ready to sign
@@ -88,7 +94,7 @@
 | `hooks/` | Reducer + notices, elapsed clock, keys, menus |
 
 ## Tests
-74 vitest tests, all on the pure model:
+Vitest, in the node environment (no DOM: components are rendered with `renderToStaticMarkup`). The pure model's files:
 - `model/reducer.test.ts`: read before act, staging and running, gaps, actions that skip the outbox, view state.
 - `model/outbox/outbox.test.ts`, `model/outbox/commands.test.ts`: list order (clock first), replace on restage, what
   each decision stages, exact gap and Copy Command commands.
@@ -96,8 +102,11 @@
 - `model/rows/rows.test.ts`, `model/rows/grouping.test.ts`: row state, filters, one action per row, cells,
   grouping, keyboard order.
 - `model/menu.test.ts`: row and group menus.
-- `src/server/actions/__tests__/screens.test.ts`: every decision's intent is planned by the server (done, or refused
-  with the reason the screen shows).
+- `model/slot/`, `model/desk/`, `model/evidence/`, `write/`: the write slot, the live desk, the live evidence, the intents.
+- Beside the components (`components/**/*.test.tsx`, `NeedsYouLive.test.tsx`): the band, table, inspector, outbox and
+  live desk as rendered markup; `components/readme.test.ts` checks the README names every component folder.
+- `src/server/actions/__tests__/demo/n1Preview.test.ts`: n1 previews through the demo planner and its card agrees with
+  the class record against trust-policy's thresholds.
 - `src/server/data/__tests__/parity.test.ts`: `pickNeedsYouDemo` reads the same from the live source as from demo.
 
 ## Status and limits
@@ -105,9 +114,8 @@
   inbox items and the `!44` incident. In live mode without them, `NeedsYouEmpty` is shown.
 - Run goes through the server for the promotions (n1, n4) and the gap MRs: the outbox shows the server's planned
   commands, Run confirms them, and a refusal disables Run with the reason. The CRA mark (n2) is not sent to the server
-  on the demo desk: its Run is simulated on the client (`model/run.ts` `runItem`) and says so. In the demo data
-  `dep-bump.patch` is already Hands-off, so the server refuses n1's promotion ("a promotion goes up"); the fixture
-  and the ledger disagree, and the refusal is the honest answer until the fixture is fixed.
+  on the demo desk: its Run is simulated on the client (`model/run.ts` `runItem`) and says so. n1 promotes
+  `qa.file-bug` (Supervised in the demo data) to Hands-off, and the demo planner previews it.
 - In demo mode the server plans but never executes: no `glab` command runs; screen state lives in the reducer and is
   lost on reload. The CRA clock counts down from a fixed `remainingSec` (19 h 12 m) from page load.
 - The CRA case, its draft, evidence, diffs, MR numbers and the week's ledger are invented fixtures in `data/`.
