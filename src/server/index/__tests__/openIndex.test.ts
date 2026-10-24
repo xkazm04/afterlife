@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
+import { track } from '../../testing/closeDbs';
 import { describe, expect, it, vi } from 'vitest';
 import { indexDir, openIndex } from '../db';
 import { MIGRATIONS, migrate } from '../migrations/migrate';
@@ -32,7 +33,7 @@ describe('the persistent index', () => {
   });
 
   it('names the migration whose sql failed, and records none of it', async () => {
-    const db = new PGlite();
+    const db = track(new PGlite());
     const bad = { version: 99, name: 'bad_step', sql: 'alter table no_such_table add column x int;' };
     await expect(migrate(db, [...MIGRATIONS, bad])).rejects.toThrow(/^migration 99 \(bad_step\) failed: .*no_such_table/);
     const { rows } = await db.query<{ n: number }>('select count(*)::int as n from belay_migration where version = 99');

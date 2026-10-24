@@ -1,13 +1,14 @@
 // Migration 0009 adds class_tier.cooldown_until. A populated index at version 8 (rows written before the column existed)
 // migrates to 9 with every row kept, the new column null, and the repository reading it back.
 import { PGlite } from '@electric-sql/pglite';
+import { track } from '../../testing/closeDbs';
 import { describe, expect, it } from 'vitest';
 import { MIGRATIONS, migrate } from '../migrations/migrate';
 import { listClassTiers, upsertClassTiers } from '../repositories/fleet/classTier';
 
 describe('migration 0009 on a populated version-8 index', () => {
   it('keeps every class_tier row, adds cooldown_until null, and the repository reads and writes it', async () => {
-    const db = new PGlite();
+    const db = track(new PGlite());
     expect(await migrate(db, MIGRATIONS.filter((m) => m.version <= 8))).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     await db.exec(`
       insert into fleet_group (path, ord) values ('core-banking', 0);

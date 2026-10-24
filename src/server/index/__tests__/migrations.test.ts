@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
+import { track } from '../../testing/closeDbs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { STAGES } from '@/schemas/stages';
 import { TIER_ORDER } from '@/schemas/tier';
@@ -37,7 +38,7 @@ describe('migrations', () => {
   });
 
   it('apply only the pending ones on an older database', async () => {
-    const db = new PGlite();
+    const db = track(new PGlite());
     await migrate(db);
     await db.exec('drop table commands_run, poll_state, setup_step, pairing; delete from belay_migration where version = 4');
     expect(await migrate(db)).toEqual([4]);
