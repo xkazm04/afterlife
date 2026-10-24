@@ -41,7 +41,8 @@ function ci(root: string): Fact<CiConfig> {
       // inside the checkout by path, not by prefix: /x/repo-evil starts with /x/repo
       const up = path.relative(root, abs);
       const inside = up !== '' && up !== '..' && !up.startsWith(`..${path.sep}`) && !path.isAbsolute(up);
-      return inside && fs.existsSync(abs) ? yaml(fs.readFileSync(abs, 'utf8')) : undefined;
+      // a folder is no include file: unresolved, not a read error that would void the whole CI config
+      return inside && fs.statSync(abs, { throwIfNoEntry: false })?.isFile() ? yaml(fs.readFileSync(abs, 'utf8')) : undefined;
     };
     return known(readCi(yaml(fs.readFileSync(file, 'utf8')), '.gitlab-ci.yml', open));
   } catch (e) {

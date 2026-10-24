@@ -61,6 +61,13 @@ describe('belay scan of a checkout (files only)', () => {
     expect(sec?.why).toMatch(/1 include\(s\) not opened \(acme\/ci:security.yml\)/);
   });
 
+  it('a local include that is a folder is one include not opened, not the whole CI file read as invalid YAML', () => {
+    const dir = checkout({ '.gitlab-ci.yml': 'include:\n  - local: ci\nunit-tests:\n  stage: test\n  script: [npm test]\n', 'ci/x.yml': 'a: 1\n' });
+    const s = scan(checkoutFacts(dir), NOW);
+    expect(s.cells.find((c) => c.stage === 'verify')).toMatchObject({ rung: 1 });
+    expect(s.cells.map((c) => c.why).join('\n')).not.toMatch(/not valid YAML/);
+  });
+
   it('a CI file that does not parse leaves every CI stage unknown, not absent', () => {
     const dir = checkout({ '.gitlab-ci.yml': 'a: [\n' });
     const s = scan(checkoutFacts(dir), NOW);
