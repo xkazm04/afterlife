@@ -6,11 +6,6 @@ import { loadTasks } from '@/app/features/task/model/build/loadTasks';
 import { selectionFromQuery, type SelectionQuery } from '@/app/features/task/model/verdict/reasons';
 import { connection } from 'next/server';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 type Params = { params: Promise<{ id: string }> };
 type Props = Params & { searchParams: Promise<SelectionQuery> };
 

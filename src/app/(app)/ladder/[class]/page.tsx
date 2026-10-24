@@ -4,11 +4,6 @@ import { ClassScreen } from '@/app/features/ladder/ClassScreen';
 import { loadHumanKey, loadLadderClass } from '@/app/features/ladder/data/loadLadderClass';
 import { connection } from 'next/server';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 type Params = { params: Promise<{ class: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

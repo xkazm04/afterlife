@@ -4,11 +4,6 @@ import { NeedsItemPage } from '@/app/features/needs-you/components/detail/NeedsI
 import { loadNeedsItem } from '@/app/features/needs-you/data/pick';
 import { connection } from 'next/server';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 type Params = { params: Promise<{ item: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

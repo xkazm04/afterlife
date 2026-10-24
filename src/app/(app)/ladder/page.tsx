@@ -1,16 +1,23 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import { ScreenSkeleton } from '@/components/shell/loading/ScreenSkeleton';
 import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
 import { LadderScreen } from '@/app/features/ladder/LadderScreen';
 import { connection } from 'next/server';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = { title: 'Belay Ladder' };
 
-export default async function LadderPage() {
+// The table skeleton is the page's own boundary, not a ladder/loading.tsx: that one would also wrap /ladder/<class> and
+// paint the list's rows before the class page's sections on a direct load.
+export default function LadderPage() {
+  return (
+    <Suspense fallback={<ScreenSkeleton title="Ladder" layout="table" />}>
+      <Ladder />
+    </Suspense>
+  );
+}
+
+async function Ladder() {
   await connection(); // request time: the data source and its data are the running server's, never the build's
   return <LadderScreen {...loadLadderData()} />;
 }

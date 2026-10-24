@@ -4,11 +4,6 @@ import { loadMaturityStage } from '@/app/features/maturity/data/loadMaturityStag
 import { StageScreen } from '@/app/features/maturity/StageScreen';
 import { connection } from 'next/server';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 type Params = { params: Promise<{ stage: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
