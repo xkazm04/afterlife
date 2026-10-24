@@ -33,7 +33,7 @@ const pagesFetched = () => fs.readFileSync(path.join(dir, 'calls.log'), 'utf8').
 beforeAll(async () => {
   fs.writeFileSync(path.join(dir, 'fake.mjs'), FAKE);
   process.env.BELAY_GLAB = `${process.execPath}|${path.join(dir, 'fake.mjs')}`;
-  ({ trustedNotes } = await import('./lib.mjs'));
+  ({ trustedNotes } = await import('../lib.mjs'));
 });
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 

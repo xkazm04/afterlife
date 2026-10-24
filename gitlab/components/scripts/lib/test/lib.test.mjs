@@ -7,11 +7,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ROOT, SCRIPTS } from '../testing/harness.mjs';
-import { engine, tsxCommand } from './engine.mjs';
-import { blocks, pageAll, trailer } from './lib.mjs';
-import trailerCases from './fixtures/trailer-cases.json' with { type: 'json' };
-import { validate } from './validate.mjs';
+import { ROOT, SCRIPTS } from '../../testing/harness.mjs';
+import { engine, tsxCommand } from '../engine.mjs';
+import { blocks, pageAll, trailer } from '../lib.mjs';
+import trailerCases from '../fixtures/trailer-cases.json' with { type: 'json' };
+import { validate } from '../validate.mjs';
 
 describe('blocks', () => {
   it('reads fenced blocks, LF or CRLF, in order, and ignores malformed ones', () => {

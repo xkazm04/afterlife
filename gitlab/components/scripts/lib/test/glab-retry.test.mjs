@@ -14,7 +14,7 @@ vi.setConfig({ testTimeout: 120_000 }); // every call spawns node (see fail-clos
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-glab-retry-'));
 const ROUTES = path.join(dir, 'routes.json');
 const WRITES = path.join(dir, 'writes.jsonl');
-process.env.BELAY_GLAB = `${process.execPath}|${path.resolve(import.meta.dirname, '..', 'testing', 'fake-glab.mjs')}`;
+process.env.BELAY_GLAB = `${process.execPath}|${path.resolve(import.meta.dirname, '..', '..', 'testing', 'fake-glab.mjs')}`;
 process.env.CI_SERVER_FQDN = 'gitlab.invalid';
 process.env.FAKE_GLAB_ROUTES = ROUTES;
 process.env.FAKE_GLAB_WRITES = WRITES;
@@ -23,8 +23,8 @@ let harness;
 let slept = [];
 
 beforeAll(async () => {
-  lib = await import('./lib.mjs');
-  harness = await import('../testing/harness.mjs');
+  lib = await import('../lib.mjs');
+  harness = await import('../../testing/harness.mjs');
   lib.setSleep((ms) => slept.push(ms));
 });
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
@@ -201,7 +201,7 @@ describe('writeFile (belay-policy, belay-ledger)', () => {
   const FILE = `projects/${encodeURIComponent(PROJECT)}/repository/files/${encodeURIComponent('events/1.jsonl')}`;
   const COMMITS = `POST projects/${encodeURIComponent(PROJECT)}/repository/commits`;
   const head = (id) => ({ content: Buffer.from('x\n').toString('base64'), encoding: 'base64', last_commit_id: id });
-  const write = async (o) => (await import('./repo-write.mjs')).writeFile({ project: PROJECT, branch: 'main', path: 'events/1.jsonl', content: 'x\ny\n', message: 'ledger', ...o });
+  const write = async (o) => (await import('../repo-write.mjs')).writeFile({ project: PROJECT, branch: 'main', path: 'events/1.jsonl', content: 'x\ny\n', message: 'ledger', ...o });
 
   it('commits again when the file still has the last commit it was computed from: one write lands', async () => {
     serve({ [FILE]: head(L1), [COMMITS]: flaky([502], { reply: { id: 'c' }, current: { 'events/1.jsonl': L1 } }) });

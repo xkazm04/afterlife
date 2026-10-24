@@ -56,7 +56,7 @@ describe('trailers', () => {
 });
 
 describe('trailers shared with the CI glue', () => {
-  // gitlab/components/scripts/lib/lib.test.mjs runs the same cases through lib.mjs trailer(): the two readers must agree.
+  // gitlab/components/scripts/lib/test/lib.test.mjs runs the same cases through lib.mjs trailer(): the two readers must agree.
   it.each(trailerCases)('$name', ({ text, key, want }) => {
     expect(lastTrailer(text, key, /^\S+$/)).toBe(want);
   });

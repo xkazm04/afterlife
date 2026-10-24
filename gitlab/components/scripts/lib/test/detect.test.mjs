@@ -2,9 +2,9 @@
 // once belay-proof-<class> failed, and a sweep read only the newest default-branch pipeline, its own, still running.
 // detect() takes its reads as arguments, so these run in process against the harness's route map (no glab at all).
 import { describe, expect, it } from 'vitest';
-import { fakeApi } from '../testing/harness.mjs';
-import { detect, eventKey } from './detect.mjs';
-import { pageAll } from './lib.mjs';
+import { fakeApi } from '../../testing/harness.mjs';
+import { detect, eventKey } from '../detect.mjs';
+import { pageAll } from '../lib.mjs';
 
 const NOW = Date.parse('2026-10-07T12:00:00Z');
 const SHA = 'a'.repeat(40);
