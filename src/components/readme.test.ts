@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 // The README's "parts" table is how a screen author finds a shared component. Its set is src/components on disk, not a
@@ -24,6 +24,22 @@ const readme = readFileSync(join(__dirname, 'README.md'), 'utf8');
 /** Named as code: `Name`, `Name(...)` or `folder/Name...`, so a word in prose ("Sidebar") does not count. */
 const named = (n: string): boolean => new RegExp(`\`(?:[\\w-]+/)*${n}\\b`).test(readme);
 
+/** Every src/components file Window.tsx reaches through relative imports (the shell never imports its own parts by alias). */
+function windowReach(): Set<string> {
+  const seen = new Set<string>();
+  const visit = (f: string) => {
+    if (seen.has(f)) return;
+    seen.add(f);
+    for (const m of strip(readFileSync(f, 'utf8')).matchAll(/from '(\.\.?\/[^']+)'/g)) {
+      const base = resolve(dirname(f), m[1] ?? '');
+      const hit = ['.tsx', '.ts'].map((x) => base + x).find((x) => existsSync(x));
+      if (hit) visit(hit);
+    }
+  };
+  visit(join(__dirname, 'shell/Window.tsx'));
+  return seen;
+}
+
 describe('src/components/README.md names the shared components on disk', () => {
   it('finds the shared components (the walk is not empty)', () => {
     expect(exported.length).toBeGreaterThan(60);
@@ -35,6 +51,10 @@ describe('src/components/README.md names the shared components on disk', () => {
   it('keeps no stale exemption: each is still exported and still not named', () => {
     const names = new Set(exported.map((e) => e.name));
     expect(Object.keys(EXEMPT).filter((n) => !names.has(n) || named(n))).toEqual([]);
+  });
+  it('exempts as drawn inside Window only what Window really reaches', () => {
+    const reach = windowReach();
+    expect(BY_WINDOW.filter((n) => !exported.some((e) => e.name === n && reach.has(e.file)))).toEqual([]);
   });
   it('names no component that is not on disk', () => {
     const names = new Set(exported.map((e) => e.name));
