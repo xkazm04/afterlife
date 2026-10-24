@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { GitLabPort } from '@/server/gitlab/port';
 import { listCommands } from '@/server/index/repositories/commandsRun';
 import { confirmIntent, previewIntent } from '../../run';
+import { STILL_RUNNING_REASON } from '../../runs/journal';
 import { liveRig } from '../rig';
 
 const intents = {
@@ -30,7 +31,8 @@ describe('two concurrent confirms of one preview', () => {
       const [a, b] = await Promise.all([confirmIntent(deps, intents[name], p.preview.previewId), confirmIntent(deps, intents[name], p.preview.previewId)]);
       const answers = [a, b];
       expect(answers.filter((r) => r.status === 'done')).toHaveLength(1);
-      expect(answers.filter((r) => r.status === 'refused' && /still running/.test(r.reason))).toHaveLength(1);
+      // one wording, whichever guard caught it (this process's set or the journal's claim)
+      expect(answers.filter((r) => r.status === 'refused' && r.reason === STILL_RUNNING_REASON)).toHaveLength(1);
       expect(counter.n).toBe(planned);
       expect(await listCommands(db, 'ledgerline')).toHaveLength(planned);
     });

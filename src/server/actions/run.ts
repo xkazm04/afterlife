@@ -14,7 +14,7 @@ import { closeProposal } from '@/server/index/repositories/work/proposal';
 import type { PollerConfig } from '@/server/poller/config';
 import { headMismatch } from './arm/head';
 import { parseIntent } from './intents';
-import { answered, claim, finish } from './runs/journal';
+import { answered, claim, finish, STILL_RUNNING_REASON } from './runs/journal';
 import { ActionRefused, planIntent, type Plan, type PlanContext } from './plans';
 import { COMMIT_ID } from './plans/context';
 import { ledgerReader } from './plans/trial';
@@ -170,7 +170,7 @@ const running = new Set<string>();
  */
 export async function confirmIntent(deps: ActionDeps, raw: unknown, previewId: string): Promise<ActionResponse> {
   if (deps.mode !== 'live') return confirm(deps, raw, previewId);
-  if (running.has(previewId)) return refused('this preview is still running from an earlier click; wait for its answer');
+  if (running.has(previewId)) return refused(STILL_RUNNING_REASON); // the journal's own wording: one refusal, whichever guard caught it
   running.add(previewId);
   try {
     return await confirm(deps, raw, previewId);
