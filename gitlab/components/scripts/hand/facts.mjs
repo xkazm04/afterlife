@@ -37,8 +37,8 @@ export function unifiedDiff(diffs) {
 }
 
 /**
- * The MR's diff as one unified diff, from the compare API; a truncated diff is refused. sweep.mjs's diffOf, except that
- * paths are quoted as git quotes them (F127; sweep.mjs, outside this folder, still writes them bare).
+ * The MR's diff as one unified diff, from the compare API; a truncated diff is refused. Paths are quoted as git quotes them
+ * (F127). belay-apply's sweep (../../../apply/sweep.mjs) reads its diff through this one too.
  */
 export function diffOf(projectId, base, head) {
   const c = api(`projects/${projectId}/repository/compare?from=${base}&to=${head}&straight=false`);

@@ -543,6 +543,19 @@ describe('belay-apply sweep', { timeout: 240_000 }, () => {
     expect(r.stderr).toMatch(/acme\/ledgerline!7@a{12}: it targets agent-work, not the default branch main: Belay gates only MRs into main/);
   });
 
+  // F127: the diff the gate reads is rebuilt from the compare API. A new file named `infra/x<LF>+++ b/ok.txt`, written bare,
+  // began a `+++` header of its own and was read as ok.txt, outside every deny_paths rule. The sweep quotes it as git does.
+  it('(xxii) F127: a file name holding a forged +++ line reaches the gate by its real name', async () => {
+    const { parseDiff } = await import('../../engine/parse/diff');
+    const name = 'infra/x\n+++ b/ok.txt';
+    const compare = { diffs: [{ old_path: name, new_path: name, new_file: true, deleted_file: false, diff: '@@ -0,0 +1 @@\n+x\n' }] };
+    // No Belay-Class: the sweep forces a wait before any engine call, after the diff is written.
+    const r = sweep(group({ desc: description.replace('\nBelay-Class: code-fix.patch', ''), extra: { 'projects/1/repository/compare': compare } }));
+    expect(r.code, r.stderr).toBe(0);
+    const patch = fs.readFileSync(path.join(dir, 'work', '1-7', 'diff.patch'), 'utf8');
+    expect(parseDiff(patch).map((f) => f.path)).toEqual([name]);
+  });
+
   it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
     const r = sweep(group(), { CI_SERVER_FQDN: 'gitlab.example' });
     expect(r.code, r.stderr).toBe(0);

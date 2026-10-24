@@ -28,6 +28,7 @@ import { parse } from 'yaml';
 import { api, apiAll, arg, blocks, enc, glab, httpStatus, need, trustedNotes } from '../components/scripts/lib/lib.mjs';
 import { engine } from '../components/scripts/lib/engine.mjs';
 import { fileHead, readFile } from '../components/scripts/lib/repo-write.mjs';
+import { diffOf } from '../components/scripts/hand/facts.mjs';
 import { touchesCi } from './ci-touch.mjs';
 import { clonePolicy, glue, loadConfig, targetsOf, tokens } from './lib.mjs';
 
@@ -61,21 +62,6 @@ function raw(p) {
     if (httpStatus(e) === 404) return null;
     throw e;
   }
-}
-
-/** The MR's diff from base to head as one unified diff, from the compare API; a truncated diff is refused. */
-function diffOf(t, base, head) {
-  const c = api(`projects/${t.id}/repository/compare?from=${base}&to=${head}&straight=false`);
-  if (!c || !Array.isArray(c.diffs)) throw new Error('the compare API gave no diffs');
-  if (c.compare_timeout) throw new Error('GitLab timed out comparing the MR: its diff is incomplete');
-  const parts = [];
-  for (const d of c.diffs) {
-    if (d.too_large || d.collapsed) throw new Error(`the diff of ${d.new_path} is too large for GitLab to return: incomplete`);
-    const a = d.new_file ? '/dev/null' : `a/${d.old_path}`;
-    const b = d.deleted_file ? '/dev/null' : `b/${d.new_path}`;
-    parts.push(`diff --git a/${d.old_path} b/${d.new_path}\n${d.new_file ? 'new file mode 100644\n' : ''}${d.deleted_file ? 'deleted file mode 100644\n' : ''}--- ${a}\n+++ ${b}\n${String(d.diff ?? '').replace(/\n?$/, '\n')}`);
-  }
-  return { text: parts.join(''), changed: c.diffs.flatMap((d) => [d.old_path, d.new_path]) };
 }
 
 const GATE = '**Belay gate: ';
@@ -112,7 +98,7 @@ function sweepMr(t, iid) {
   // would be the agent's to make, and the tier says nothing about that branch.
   if (!t.default_branch || m.target_branch !== t.default_branch) return say(`${tag}: it targets ${m.target_branch}, not the default branch ${t.default_branch ?? '(unknown)'}: Belay gates only MRs into ${t.default_branch ?? 'the default branch'}`);
   const notes = [...trustedNotes(t.id, iid, cfg.bot)];
-  const { text: diff, changed } = diffOf(t, mr.BELAY_BASE_SHA, head);
+  const { text: diff, changed } = diffOf(t.id, mr.BELAY_BASE_SHA, head); // paths quoted as git quotes them (F127)
   const diffFile = path.join(dir, 'diff.patch');
   fs.writeFileSync(diffFile, diff);
   const ci = touchesCi({ changed, project: t, readAt: (p) => readFile(t.id, p, head) });

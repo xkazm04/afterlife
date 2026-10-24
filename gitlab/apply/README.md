@@ -165,7 +165,7 @@ trigger token only after checking that on the instance. The schedule alone is en
 - F68: closed (52599d2). An include whose path or project carries a variable, or whose path is a wildcard, counts as
   touching CI (`ci-touch.mjs`): the MR waits for a person. A target that includes with a wildcard waits on every agent MR
   until it lists its includes by name.
-- F69, accepted: the compare API's diff cap (`sweep.mjs:56-69`, `diffOf`). The envelope (`max_files` 6, `max_lines` 120) blocks any
+- F69, accepted: the compare API's diff cap (`diffOf` in `../components/scripts/hand/facts.mjs`, which the sweep reads its diff through). The envelope (`max_files` 6, `max_lines` 120) blocks any
   diff large enough to reach it; re-open it if the envelope is widened.
 - F75: closed in `detect.mjs`. A `Revert "..."` commit names the commit it reverts in a message its author writes, so a
   revert that another agent's MR carried onto the default branch demotes nobody; a person's revert and the agent's own
