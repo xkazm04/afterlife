@@ -48,9 +48,26 @@
 - Infra changes (`package.json`, the lockfile, `vitest.config.ts`, `tsconfig*.json`, `next.config.ts`, `eslint.config.mjs`) run
   the guards, the changed and related tests, and the `unit` project when the config has one, then print
   `infra changed: the full suite is the owner's call (npm run test:all)`. The full suite is the owner's call.
-- A long file list is split into several runs, because `run.mjs` goes through `cmd.exe` on Windows (8,191-character limit).
 
 <!-- WP2: tiers and throttle -->
+- Three Vitest projects, `unit`, `db` and `spawn`. Membership is derived from each test file's text when the config loads
+  (`scripts/test/tiers.mjs`), never listed by hand. `db` names `memoryIndex`, `@electric-sql/pglite`, `seedDemo`, `openIndex`
+  or `PGlite` (an embedded Postgres, about 1 GB a worker); `spawn` names `child_process`, `spawnSync`, `execFile`, `spawn(` or
+  `execSync`; `db` wins over `spawn`; everything else is `unit`. A helper under `__tests__/` or `testing/` that a test imports
+  counts as part of that test, so a test that only imports a rig that boots the index is a `db` test. Today that is about
+  533 `unit`, 102 `db` and 36 `spawn` files. `scripts/tooling-config.test.mjs` checks that every tracked test file lands in
+  exactly one project.
+- Workers are capped at `33%` of the cores, at the root and in each project (4 of 12), unless the command line passes
+  `--maxWorkers`.
+- `scripts/test/run.mjs` lowers its own priority to below normal before it starts Vitest, so Vitest and every worker run
+  below normal and the machine stays usable. It starts Vitest without a shell (`node node_modules/vitest/vitest.mjs run`), so
+  there is no `cmd.exe` limit. A file list longer than about 30,000 characters goes through a temp file (`AFTERLIFE_TEST_LIST`),
+  and the config narrows every project to the files in it. `npm test` is always one Vitest process.
+- Broad change: when the related tests are more than 35% of all test files (one widely imported file can relate to all of
+  them), `npm test` runs the guards, the changed test files and only the `unit` related tests, and prints
+  `broad change: <n> related tests in db/spawn not run - the full suite is the owner's call (npm run test:all)`. It never
+  runs the whole suite on its own.
+- `npm run test:fast` runs the `unit` project alone: no database, no child processes.
 <!-- /WP2 -->
 
 ## Rules it keeps

@@ -39,4 +39,23 @@ describe('vitest.config.ts', () => {
     const skipped = tests.filter((f) => !include.some((g) => path.posix.matchesGlob(f, g)));
     expect(skipped).toEqual([]);
   }, 120_000); // walks the whole tracked tree: seconds alone, past the 30 s default under a loaded full suite
+
+  // The projects (`unit` / `db` / `spawn`) are what actually run: a file in none is never run, a file in two runs twice.
+  it('puts every tracked test file in exactly one project', async () => {
+    const { default: config } = await import('../vitest.config.ts');
+    const projects = config.test.projects;
+    expect(projects.map((p) => p.test.name)).toEqual(['unit', 'db', 'spawn']);
+    const tracked = spawnSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).stdout.split('\n');
+    const tests = tracked.filter((f) => /\.(test|spec)\.[cm]?[jt]sx?$/.test(f));
+    expect(tests.length).toBeGreaterThan(100);
+    // Each project lists its files by path; a glob still counts, so a hand-added one cannot slip past.
+    const matchers = projects.map((p) => {
+      const exact = new Set(p.test.include.filter((g) => !/[*?[{]/.test(g)));
+      const globs = p.test.include.filter((g) => !exact.has(g));
+      return { name: p.test.name, has: (f) => exact.has(f) || globs.some((g) => path.posix.matchesGlob(f, g)) };
+    });
+    const homes = (f) => matchers.filter((m) => m.has(f)).map((m) => m.name);
+    expect(tests.filter((f) => homes(f).length !== 1).map((f) => `${f}: ${homes(f).join(', ') || 'none'}`)).toEqual([]);
+    for (const p of projects) expect(p.test.include.length, p.test.name).toBeGreaterThan(0);
+  }, 120_000);
 });

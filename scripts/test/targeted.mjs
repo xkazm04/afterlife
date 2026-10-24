@@ -6,13 +6,13 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findGuards, listTests } from './guards.mjs';
-import { SOURCE_ROOTS, planFor, relatedSources } from './plan.mjs';
+import { findGuards, listTests, testGlobs } from './guards.mjs';
+import { BROAD_PERCENT, SOURCE_ROOTS, planFor, relatedSources } from './plan.mjs';
+import { splitTiers } from './tiers.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..', '..');
 const git = (args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 << 20 });
-const ARG_BUDGET = process.platform === 'win32' ? 6_500 : 100_000; // run.mjs goes through cmd.exe on Windows, which caps a command line at 8,191 characters
 
 const argv = process.argv.slice(2);
 const dd = argv.indexOf('--');
@@ -73,29 +73,31 @@ function relatedTests(listed) {
   return JSON.parse(r.stdout || '[]');
 }
 
-/** Run the throttled wrapper on file filters, in chunks that fit a command line; returns the worst exit code. */
+/** One throttled vitest run on these file filters (run.mjs takes a list of any length: one process, one startup). */
 function run(filters, extra) {
-  const chunks = [[]];
-  let size = 0;
-  for (const f of filters) {
-    if (size + f.length + 1 > ARG_BUDGET) { chunks.push([]); size = 0; }
-    chunks.at(-1).push(f);
-    size += f.length + 1;
+  return spawnSync(process.execPath, [path.join(here, 'run.mjs'), ...filters, '--passWithNoTests', ...extra], { cwd: root, stdio: 'inherit' }).status ?? 1;
+}
+
+/** A test file's project, the same derivation vitest.config.ts uses; read only when a change is broad. */
+let tiers = null;
+function tierOf(file) {
+  if (!tiers) {
+    const byTier = splitTiers(root, testGlobs(fs.readFileSync(path.join(root, 'vitest.config.ts'), 'utf8')));
+    tiers = new Map(Object.entries(byTier).flatMap(([t, files]) => files.map((f) => [f, t])));
   }
-  let code = 0;
-  for (const chunk of chunks.filter((c) => c.length)) {
-    const r = spawnSync(process.execPath, [path.join(here, 'run.mjs'), ...chunk, '--passWithNoTests', ...extra], { cwd: root, stdio: 'inherit' });
-    code = Math.max(code, r.status ?? 1);
-  }
-  return code;
+  return tiers.get(file) ?? 'unit';
 }
 
 const allTests = listTests(root);
 const guards = findGuards(root, allTests);
 const changed = guardsOnly ? [] : changedSet();
-const plan = planFor({ changed, allTests, guards, related: guardsOnly ? [] : relatedTests(relatedSources(changed)) });
+const plan = planFor({ changed, allTests, guards, related: guardsOnly ? [] : relatedTests(relatedSources(changed)) }, tierOf);
 const reason = guardsOnly ? 'guards only' : plan.reason;
 console.log(`plan: ${plan.files.length} test files (${plan.guards.length} guards) because ${reason}`);
+if (plan.skipped.length) {
+  console.log(`broad change (related tests over ${BROAD_PERCENT}% of all): only the unit tier of them runs, with the guards and the changed tests`);
+  console.log(`broad change: ${plan.skipped.length} related tests in db/spawn not run - the full suite is the owner's call (npm run test:all)`);
+}
 
 if (planOnly) {
   for (const f of plan.files) console.log(`  ${plan.guards.includes(f) ? 'guard  ' : 'related'} ${f}`);
@@ -109,7 +111,8 @@ if (!plan.files.length) {
 let code = run(guardsOnly ? plan.guards : plan.files, forwarded);
 if (plan.infra && !guardsOnly) {
   console.log('infra changed: the full suite is the owner\'s call (npm run test:all)');
-  if (/name:\s*['"]unit['"]/.test(fs.readFileSync(path.join(root, 'vitest.config.ts'), 'utf8'))) {
+  // the config names its projects from TIERS (scripts/test/tiers.mjs), so `name: 'unit'` is no longer written out
+  if (/name:\s*['"]unit['"]|\bTIERS\b/.test(fs.readFileSync(path.join(root, 'vitest.config.ts'), 'utf8'))) {
     code = Math.max(code, spawnSync(process.execPath, [path.join(here, 'run.mjs'), '--project', 'unit', '--passWithNoTests', ...forwarded], { cwd: root, stdio: 'inherit' }).status ?? 1);
   }
 }
