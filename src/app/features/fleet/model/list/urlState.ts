@@ -3,6 +3,7 @@
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { ProjectState, TierKey } from '@/lib/demo/types';
 import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
+import { firstParam, type ParamValue } from '@/lib/url/searchParams';
 import type { SortDir, SortState } from '@/components/table/model/sort';
 import type { FleetFilters, FleetView, SmartId, SortKey, Source } from '../types';
 import { EMPTY_FILTERS } from './filtering';
@@ -26,7 +27,7 @@ export const DEFAULT_LIST_STATE: FleetListState = {
 };
 
 /** The shape of a page's `searchParams` prop. */
-export type RawParams = Record<string, string | string[] | undefined>;
+export type RawParams = Record<string, ParamValue>;
 
 const VIEWS: readonly FleetView[] = ['tiers', 'classes', 'stages'];
 /** Every project state, in display order: the keys of STATE_LABEL, so a new state cannot be missed by the legend, the URL decoder or the Filter menu. */
@@ -37,7 +38,7 @@ const all = (p: RawParams, k: string): string[] => {
   const v = p[k];
   return v === undefined ? [] : Array.isArray(v) ? v : [v];
 };
-const first = (p: RawParams, k: string): string | undefined => all(p, k)[0];
+const first = (p: RawParams, k: string): string | undefined => firstParam(p[k]);
 
 const isSource = (s: string): s is Source => s === 'all' || s === 'changed' || (SMART as readonly string[]).includes(s) || (s.startsWith('g:') && s.length > 2);
 const isSortKey = (s: string): s is SortKey =>
