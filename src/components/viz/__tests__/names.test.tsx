@@ -55,6 +55,19 @@ describe('RungGlyph caption', () => {
   });
 });
 
+// ProjectRow draws one stage cell per header stage, a stage the rung list does not reach as unknown: the ticks agree.
+describe('StageTicks draws a tick for every stage it names', () => {
+  const ticks = (html: string) => (html.match(/<i /g) ?? []).length;
+  it('a short rung list is padded with unknown ticks up to the labels', () => {
+    const html = renderToStaticMarkup(createElement(StageTicks, { rungs: [1, 2], labels: ['plan', 'create', 'verify'] }));
+    expect(ticks(html)).toBe(3);
+    expect(name(html)).toBe('plan 1 · create 2 · verify ?');
+  });
+  it('a rung past the labels is still named, by its position', () => {
+    expect(name(renderToStaticMarkup(createElement(StageTicks, { rungs: [1, 2, 3], labels: ['plan'] })))).toBe('plan 1 · stage 2 2 · stage 3 3');
+  });
+});
+
 // CASES is a hand list: derive what it must cover from the folder (trend/ included), so a new self-naming glyph cannot skip it.
 describe('the name pins cover every viz component that names itself', () => {
   const dir = join(__dirname, '..');
