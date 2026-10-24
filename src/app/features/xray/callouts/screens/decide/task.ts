@@ -1,7 +1,7 @@
 // Task: one agent task cross-examined against its proof. Introduces the module, how to read the court and the receipt
 // chain, and what to do; not the verdict filter or the proof-class menu.
 import type { Callout, LegendEntry, ScreenRead } from '../../../model/types';
-import { HELP, STATUS, dataLabelCallout, helpCallout, statusCallout } from '../../shared';
+import { dataLabelCallout, helpCallout, statusCallout } from '../../shared';
 
 const VERDICT = 'section[role="group"][aria-label="Verdict"]';
 const COURT = 'section[aria-label="Claims tested by checks"]';
@@ -93,6 +93,5 @@ export const TASK: readonly Callout[] = [
   },
   statusCallout('The docket in one line', 'Tasks, fails, how fresh the ledger read is; it ends "reads only".'),
   dataLabelCallout,
-  // The equation carries its own "?" (data-xray="help") before the status bar's, so this one is scoped to the bar.
-  { ...helpCallout, sel: `${STATUS} ~ ${HELP}` },
+  helpCallout, // shared.ts scopes HELP to the status bar's ?, not the equation's own
 ];

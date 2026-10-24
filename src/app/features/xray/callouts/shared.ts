@@ -4,7 +4,8 @@ import type { Callout, ScreenRead } from '../model/types';
 
 export const STATUS = '[data-xray="status"]';
 export const DATA_LABEL = '[data-xray="data-label"]';
-export const HELP = '[data-xray="help"]';
+// The status bar's ?, not another HelpButton drawn earlier in the page (Task's verdict equation has its own).
+export const HELP = '[data-xray="status"] ~ [data-xray="help"]';
 export const NAV = 'nav[aria-label="Afterlife"]';
 
 /** The status bar's own line, as the screen wrote it. */

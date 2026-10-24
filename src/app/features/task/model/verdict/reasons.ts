@@ -58,6 +58,15 @@ export function selectionFromQuery(task: Task, q: SelectionQuery): Selection {
 export const selectionHref = (taskId: string, sel: Selection): string =>
   `/task/${encodeURIComponent(taskId)}${sel ? `?${sel.side}=${encodeURIComponent(sel.id)}` : ''}`;
 
+/** A selection's address plus every query key of `search` the task does not own (check and claim are its own). */
+export function keepForeignKeys(href: string, search: string): string {
+  const [path = '', own = ''] = href.split('?');
+  const q = new URLSearchParams(own);
+  for (const [k, v] of new URLSearchParams(search)) if (k !== 'check' && k !== 'claim' && !q.has(k)) q.append(k, v);
+  const s = q.toString();
+  return s ? `${path}?${s}` : path;
+}
+
 /**
  * The next deciding check after the current one: the next in this task, then the first of the next visible task that has
  * one, wrapping round to this task. A selection that is not a reason starts at this task's first. Null when no visible

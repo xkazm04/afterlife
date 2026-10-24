@@ -10,7 +10,7 @@ import pass from '../build/engineBlock.pass.json';
 import { buildTasks } from '../build/buildTasks';
 import { loadTasks } from '../build/loadTasks';
 import type { TaskView } from '../types';
-import { becauseLine, nextReason, openingSelection, selectionFromQuery, selectionHref, verdictReasons } from './reasons';
+import { becauseLine, keepForeignKeys, nextReason, openingSelection, selectionFromQuery, selectionHref, verdictReasons } from './reasons';
 
 const tasks = loadTasks();
 const get = (id: string): TaskView => {
@@ -103,5 +103,13 @@ describe('nextReason', () => {
     expect(nextReason(tasks, '01J8Q4', null)).toEqual({ id: '01J8Q8', sel: envelope });
     expect(nextReason([q4, lie], '01J8Q4', null)).toEqual({ id: '01J8Q4', sel: { side: 'check', id: 'base-red' } });
     expect(nextReason([q4], '01J8Q4', null)).toBeNull();
+  });
+});
+
+describe('keepForeignKeys', () => {
+  it('keeps the X-ray flag and drops a stale selection of its own', () => {
+    expect(keepForeignKeys('/task/a?check=c1', '?xray=1&claim=old')).toBe('/task/a?check=c1&xray=1');
+    expect(keepForeignKeys('/task/a', '')).toBe('/task/a');
+    expect(keepForeignKeys('/task/a', '?xray=1')).toBe('/task/a?xray=1');
   });
 });

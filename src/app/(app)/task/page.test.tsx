@@ -18,14 +18,21 @@ describe('/task index', () => {
   it('redirects to the first task when the docket holds one', async () => {
     first.id = 'a b';
     const { default: Page } = await import('./page');
-    await Page();
+    await Page({ searchParams: Promise.resolve({}) });
     expect(redirect).toHaveBeenCalledWith('/task/a%20b');
+  });
+
+  it('carries the query through the redirect, so the X-ray link lands with the X-ray on', async () => {
+    first.id = 'a b';
+    const { default: Page } = await import('./page');
+    await Page({ searchParams: Promise.resolve({ xray: '1' }) });
+    expect(redirect).toHaveBeenCalledWith('/task/a%20b?xray=1');
   });
 
   it('draws an in-window empty docket, not a redirect to the front door, when it holds none', async () => {
     first.id = null;
     const { default: Page } = await import('./page');
-    const html = renderToString(await Page());
+    const html = renderToString(await Page({ searchParams: Promise.resolve({}) }));
     expect(redirect).not.toHaveBeenCalled();
     expect(html).toContain('No task is held in the docket');
   });

@@ -26,7 +26,7 @@ import { NO_FILTERS, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdic
 import type { TaskAction } from './model/docket/keys';
 import type { PageFacts } from './model/build/loadPage';
 import type { TaskView } from './model/types';
-import { nextReason, selectionHref } from './model/verdict/reasons';
+import { keepForeignKeys, nextReason, selectionHref } from './model/verdict/reasons';
 import styles from './TaskScreen.module.css';
 
 /**
@@ -50,8 +50,9 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
   });
   const visible = visibleTasks(tasks, filters);
   // The selection is the address: replaceState keeps useSearchParams in step without a server render.
+  // Keys it does not own (the X-ray's ?xray=1, read behind Suspense after this runs) are kept.
   useEffect(() => {
-    const href = selectionHref(task.id, sel);
+    const href = keepForeignKeys(selectionHref(task.id, sel), location.search);
     if (`${location.pathname}${location.search}` !== href) window.history.replaceState(null, '', href);
   }, [task.id, sel]);
 
