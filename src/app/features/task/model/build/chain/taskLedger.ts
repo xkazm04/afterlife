@@ -31,6 +31,3 @@ export function chainLedgers(events: readonly LedgerEvent[]): (mr: string | null
     ledgerCheck: { hash: 'sha256', brokenAt },
   });
 }
-
-/** One task's ledger from the chain (chainLedgers, for a single merge request). */
-export const taskLedger = (events: readonly LedgerEvent[], mr: string | null): TaskLedger => chainLedgers(events)(mr);
