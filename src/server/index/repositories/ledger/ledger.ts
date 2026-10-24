@@ -1,5 +1,5 @@
 // The ledger index. Source of truth: belay-ledger/events/<project-id>.jsonl. Rows are only ever appended
-// (a trigger refuses UPDATE and DELETE); a rebuild goes through resetLedger() and re-imports the file.
+// (a trigger refuses UPDATE and DELETE, and no code here disables it); a rebuild deletes the index folder and re-imports.
 import type { PGlite } from '@electric-sql/pglite';
 import { verifyChain, type LedgerEvent } from '@/schemas/ledger';
 import type { Queryable } from '../sql';
@@ -96,13 +96,4 @@ export async function appendLedgerEvents(db: PGlite, events: readonly LedgerEven
 /** Re-verifies a stored chain from genesis. Returns the seq of the first broken link, or null when it verifies. */
 export async function verifyStoredChain(db: Queryable, projectId: number): Promise<number | null> {
   return verifyChain(await readLedger(db, projectId));
-}
-
-/** Deletes one project's chain so it can be re-imported from belay-ledger. The only way a ledger row is removed. */
-export async function resetLedger(db: PGlite, projectId: number): Promise<void> {
-  await db.transaction(async (tx) => {
-    await tx.exec('alter table ledger_event disable trigger ledger_event_no_change');
-    await tx.query('delete from ledger_event where project_id = $1', [projectId]);
-    await tx.exec('alter table ledger_event enable trigger ledger_event_no_change');
-  });
 }

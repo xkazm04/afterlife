@@ -7,7 +7,7 @@ table is rebuilt from the source in the last column, except the three marked **n
 |---|---|---|
 | `fleet_group`, `project`, `project_stage` | groups, projects, nine rungs per project | GitLab group/project API, the default branch's .gitlab-ci.yml arm markers + maturity scan |
 | `trust_class`, `class_tier` | classes; per project and class the tier recorded in tier-state.yml, capped by the policy, its lease, record and last move (`no_record` when no agent holds the class, `refused` when several do, with each holder's tier: read by `views/standing.ts`) | `belay-policy` trust-policy.yml, tier-state.yml + ledger |
-| `ledger_event` | hash chain, unique `(project_id, seq)`, append-only trigger | `belay-ledger/events/<id>.jsonl` (`resetLedger` then re-append) |
+| `ledger_event` | hash chain, unique `(project_id, seq)`, append-only trigger | `belay-ledger/events/<id>.jsonl` (delete the folder, the poller re-imports; no code disables the trigger) |
 | `cycle_record` | closed improvement cycles per project (the index's project id; each record keeps the GitLab id it names), hash-chained | `belay-ledger/cycles/<id>.jsonl` |
 | `task`, `proof` | tasks and Proof Blocks | MR notes (`belay-proof`, `Belay-Task:` trailer) + ledger |
 | `proposal` | Needs-you inbox; gap picks are children of one `gap` item | GitLab state, CRA clocks, maturity scan |

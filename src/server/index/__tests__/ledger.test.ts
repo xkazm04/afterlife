@@ -1,8 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import type { PGlite } from '@electric-sql/pglite';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { append, GENESIS, type LedgerEvent } from '@/schemas/ledger';
 import {
-  appendLedgerEvents, ledgerTail, LedgerChainError, readLedger, resetLedger, verifyStoredChain,
+  appendLedgerEvents, ledgerTail, LedgerChainError, readLedger, verifyStoredChain,
 } from '../repositories';
 import { memoryIndex } from './memoryIndex';
 
@@ -138,15 +140,13 @@ describe('stored chain integrity', () => {
     expect(await verifyStoredChain(db, PROJECT)).toBe(2);
   });
 
-  it('can be reset for a re-import from belay-ledger, and the guard stays on', async () => {
-    const db = await memoryIndex();
-    const events = chain(3);
-    await appendLedgerEvents(db, events);
-    await resetLedger(db, PROJECT);
-    expect(await readLedger(db, PROJECT)).toEqual([]);
-    await appendLedgerEvents(db, events);
-    expect(await verifyStoredChain(db, PROJECT)).toBeNull();
-    await expect(db.query('delete from ledger_event')).rejects.toThrow(/append-only/);
+  it('is never unguarded by app code: only a test disables the append-only trigger', () => {
+    const strip = (src: string): string => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    const walk = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? walk(path.join(dir, e.name)) : /\.(ts|tsx|mjs)$/.test(e.name) && !/\.test\./.test(e.name) ? [path.join(dir, e.name)] : []);
+    const src = path.join(__dirname, '..', '..', '..');
+    const hits = walk(src).filter((f) => !f.includes('__tests__') && /disable\s+trigger/i.test(strip(fs.readFileSync(f, 'utf8'))));
+    expect(hits.map((f) => path.relative(src, f))).toEqual([]);
   });
 });
 
