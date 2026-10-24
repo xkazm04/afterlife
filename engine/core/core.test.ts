@@ -130,3 +130,18 @@ describe('isoMs', () => {
     for (const v of ['10', '2026', '3/4/2026', 'Oct 5 2026', '2026-10-05', '2026-10-05T10:00:00', '2026-13-45T99:00:00Z', '', null, 7]) expect(() => isoMs(v, 't'), String(v)).toThrow(/t must be an ISO time/);
   });
 });
+
+describe('an unexpected error (an engine bug, not bad input) is still exit 2, and stderr says where it came from', () => {
+  it('stdout keeps the one-line {error}; stderr adds the stack, so a CI log locates the bug', () => {
+    const c = capture();
+    const io = { ...c.io, now: (): Date => { throw new TypeError('clock broke'); } };
+    expect(main(['gate', '--class', 'dep-bump.patch'], io)).toBe(2);
+    expect(c.json()).toEqual({ error: 'unexpected: clock broke' });
+    expect(c.err()).toMatch(/^engine gate: error: unexpected: clock broke\nTypeError: clock broke\n\s+at /);
+  });
+  it('an EngineError (bad input) prints its one line only', () => {
+    const c = capture();
+    expect(main(['gate'], c.io)).toBe(2);
+    expect(c.err()).toBe('engine gate: error: missing --class\n');
+  });
+});

@@ -62,7 +62,9 @@ export function main(argv: readonly string[], io: Io = { stdout: (s) => process.
   } catch (e) {
     const message = e instanceof EngineError ? e.message : `unexpected: ${e instanceof Error ? e.message : String(e)}`;
     io.stdout(`${JSON.stringify({ error: message })}\n`);
-    io.stderr(`engine ${cmd}: error: ${message}\n`);
+    // bad input is one line; anything else is an engine bug, and its stack is the only place a CI log can say where
+    const stack = !(e instanceof EngineError) && e instanceof Error && e.stack ? `${e.stack}\n` : '';
+    io.stderr(`engine ${cmd}: error: ${message}\n${stack}`);
     return 2;
   }
 }
