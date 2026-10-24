@@ -14,7 +14,6 @@ const rel = (f: string): string => relative(__dirname, f).split(sep).join('/');
 const BY_WINDOW = ['Backdrop', 'Toolbar', 'Inspector', 'StatusBar', 'Sidebar', 'AppNav', 'NavLink', 'SettingsNav', 'TrafficLights'];
 const EXEMPT: Record<string, string> = {
   ...Object.fromEntries(BY_WINDOW.map((n) => [n, 'drawn inside Window; no screen renders it'])),
-  Menu: "drawn by useMenu: a screen renders the hook's `menu`, never Menu itself",
 };
 
 const exported = walk(__dirname)
