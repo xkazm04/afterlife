@@ -8,7 +8,7 @@ import { TIER_META } from '@/lib/tiers';
 import { clockLabel } from '../../model/clock';
 import type { LedgerSeedEntry } from '../ledgerSeed';
 
-/** The newest events shown: a class page reads its own, the rail only the timed ones. */
+/** The newest moves shown (events that are not moves are dropped first): a class page reads its own, the rail only the timed ones. */
 export const LIVE_LEDGER_MAX = 200;
 const WITHDRAWN = { approval: 'the approval', auto_merge: 'the auto-merge' } as const;
 
@@ -37,7 +37,8 @@ function said(e: LedgerEvent): { actor: string; text: string } | null {
  * A guardrail block quotes its MR's finding (resolved like the seed's). `replay` is the Theater filming its MR first.
  */
 export function liveLedgerEntries(events: readonly LedgerEvent[], now: Date, tz: string): LedgerSeedEntry[] {
-  return events.slice(-LIVE_LEDGER_MAX).flatMap((e): LedgerSeedEntry[] => {
+  // capped after the events that are not moves (task starts, deployments, outcomes, clock events) are dropped
+  const moves = events.flatMap((e): LedgerSeedEntry[] => {
     const s = said(e);
     if (!s) return [];
     const quote = e.kind === 'guardrail_verdict' && e.verdict === 'block' ? { quoteMr: `!${e.subject.iid}` } : {};
@@ -45,4 +46,5 @@ export function liveLedgerEntries(events: readonly LedgerEvent[], now: Date, tz:
     const replay = `/theater?mr=${e.subject.iid}`;
     return [{ at, t: clockLabel(at, tz, now), ids: [e.action_class], actor: s.actor, where: 'GitLab', kind: 'gitlab', text: s.text, replay, ...quote }];
   });
+  return moves.slice(-LIVE_LEDGER_MAX);
 }

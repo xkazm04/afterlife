@@ -8,7 +8,7 @@ import { ledgerEvents } from '@/server/gitlab/fake/demo';
 import { SEED_NOW } from '@/server/index/seed/parse';
 import { LogItem } from '../../components/inspector/log/LogItem';
 import { LEDGER_SEED } from '../ledgerSeed';
-import { liveLedgerEntries } from './ledgerEntries';
+import { LIVE_LEDGER_MAX, liveLedgerEntries } from './ledgerEntries';
 
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));
 
@@ -38,6 +38,15 @@ describe('liveLedgerEntries', () => {
     const at = (iso: string) => liveLedgerEntries([{ ...first!, kind: 'merged', at: iso }], SEED_NOW, 'UTC')[0]?.t;
     expect(at(SEED_NOW.toISOString())).toBe(SEED_NOW.toISOString().slice(11, 19));
     expect(at(new Date(SEED_NOW.getTime() - 3 * 86_400_000 - 1000).toISOString())).toBe('3 d ago');
+  });
+
+  it('keeps the newest LIVE_LEDGER_MAX moves: events that are not moves do not count against the cap', () => {
+    const [first] = ledgerEvents(SEED_NOW);
+    const merged = { ...first!, kind: 'merged' as const };
+    const noise = Array.from({ length: LIVE_LEDGER_MAX }, () => ({ ...first!, kind: 'deployed' as const }));
+    expect(liveLedgerEntries([merged, ...noise], SEED_NOW, 'UTC')).toHaveLength(1);
+    const many = Array.from({ length: LIVE_LEDGER_MAX + 5 }, () => merged);
+    expect(liveLedgerEntries(many, SEED_NOW, 'UTC')).toHaveLength(LIVE_LEDGER_MAX);
   });
 
   it('each entry carries its instant, labelled in the screen’s zone, not the process’s', () => {
