@@ -61,7 +61,7 @@ Everything comes through the DataSource (`@/server/data`): the demo fixture, or 
 are the source's `getTasks()`, each with its stored verdict (no proof: none, never a pass). Its recent events are the
 demo's feed in demo mode and, in live mode, read from the index's tasks, proofs and poll state; they travel in
 `loadFleetSource` because they are not the same in both modes (`src/server/data/__tests__/parity.test.ts`). Button labels
-of the ledgerline decisions are shared, in `@/lib/demo/needsActions`.
+of the decisions are shared, by the item's kind, in `@/lib/demo/needsActions` (live items read them too).
 
 ## Behaviour to know
 - Demo mode: re-polling only changes this screen's state; nothing is written.

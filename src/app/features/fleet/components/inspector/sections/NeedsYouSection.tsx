@@ -6,7 +6,7 @@ import { DetailSection } from '@/components/shell/detail/DetailPage';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
-import { DEFAULT_NEEDS_ACTION, NEEDS_ACTIONS } from '@/lib/demo/needsActions';
+import { needsAction } from '@/lib/demo/needsActions';
 import { decideLabel, needsMeta, waitingTitle } from '../../../model/inspector';
 import type { NeedsSlice, ProjectAction } from '../../../model/project/view';
 import styles from './sections.module.css';
@@ -24,7 +24,7 @@ function Decision({
   onResolve: (needId: string, does: string) => void;
   onFlash: (m: string) => void;
 }) {
-  const [primary, quiet] = NEEDS_ACTIONS[n.id] ?? DEFAULT_NEEDS_ACTION;
+  const [primary, quiet] = needsAction(n.kind);
   const meta = needsMeta(n);
   return (
     <div className={styles.nyi}>

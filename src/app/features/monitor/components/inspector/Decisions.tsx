@@ -3,7 +3,7 @@
 import { Button } from '@/components/controls/Button';
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
-import { DEFAULT_NEEDS_ACTION, NEEDS_ACTIONS } from '@/lib/demo/needsActions';
+import { needsAction } from '@/lib/demo/needsActions';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { fleetHref } from '@/lib/url/fleetHref';
 import { decisionsWord, liveNeeds } from '../../model/totals';
@@ -47,7 +47,7 @@ export function Decisions({
     );
   } else if (isDeep && needs.length) {
     body = needs.map((d) => {
-      const [primary, quiet] = NEEDS_ACTIONS[d.id] ?? DEFAULT_NEEDS_ACTION;
+      const [primary, quiet] = needsAction(d.kind);
       return (
         <div key={d.id} className={styles.item}>
           <div className={styles.t}>{d.title}</div>
