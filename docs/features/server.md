@@ -98,6 +98,9 @@
 | `src/server/poller/` | `cycle.ts`, `project.ts`, `classes.ts`, `maturityScan.ts`, `stateHistory.ts`, `state.ts` (memory between cycles), `scheduler.ts`, `config.ts`, `derive/` (policy, tiers, counters, gate, sources, promotion, readmit, receipt, task, rollup), `parse/` (proof block, guardrail, trailers, labels, pushes, blocks), `ci/` (armed tracks), `mrFacts/` (MR size and pipeline), `gaps/` (maturity gap proposals) |
 | `src/server/ledger/` | `parse.ts`, `importLedger.ts`, `parseCycles.ts`, `importCycles.ts` |
 | `src/server/actions/` | `actions.ts` (`'use server'`), `run.ts`, `intents.ts`, `plans/`, `arm/` (arm, disarm, verify), `gap/` (gap templates), `runs/` (run journal, recall), `local.ts`, `repoll.ts` + `repollAction.ts`, `deps.ts`, `types.ts`, `words.ts` |
+| `src/server/runs/` | The cycle runner's local files, read in demo and live alike: `readRuns.ts` (`.belay/runs/<repo>/<wave>.jsonl`, each file re-parsed only when its mtime or size changes; `BELAY_DATA_DIR` moves the root), `readFleet.ts` (`.belay/fleet.yml`: slug, path, base, gitlab), `branchState.ts` (git: does the wave branch exist, is it merged), `readDesk.ts` (folds them for Fleet and Needs you) |
+| `src/server/testing/` | `serverOnly.ts`: the `server-only` stand-in vitest aliases |
+| `src/app/api/` | Route handlers, GET only, `force-dynamic`, `Cache-Control: no-store`: `runs/` (`readRuns()` plus the live meta; Theater polls it every 2 s), `shell/` (the shell read; 503 with the reason live before the first poll) |
 | `src/instrumentation.ts` | Starts the live runtime on Node |
 
 ## Tests
@@ -117,6 +120,11 @@
 - `actions/__tests__/`: preview writes nothing, confirm records before and after and polls, stale or made-up preview
   ids run nothing, refusals, promotion via branch and MR, CRA ready, gap MR order, failure stops the rest, demo
   results simulated.
+- `runs/`: skipped lines counted, the proposals file seen, an unchanged wave file not re-parsed, a deleted one
+  dropped; the fleet file missing, invalid with its reason (a repeated slug too), or its repos; git's word on a wave
+  branch in a real repo; the desk asks git only for mergeable waves of fleet repos.
+- `src/app/api/*/route.test.ts`: both routes answer JSON with `no-store`; `/api/shell` is 503 live before the first
+  poll; `/api/runs` reads `BELAY_DATA_DIR` on each request.
 
 ## Status and limits
 - Demo mode is the default and what the app shows. Live mode against a real group is wired but the real group was
