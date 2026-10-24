@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState, type KeyboardEvent } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
+import { plural } from '@/lib/format/plural';
 import type { CyclesData } from '../model/build';
 import { applyDesign, candidates, checkDesign, type Candidate } from '../model/design';
 import { gridView } from '../model/grid';
@@ -59,7 +60,7 @@ export function useCycles(data: CyclesData, startDesign = false) {
       if (!draft || checkDesign(pickOf(draft)).length) return;
       setSaved(draft);
       setDraft(null);
-      status(`${planned?.id ?? 'The next cycle'} designed: ${draft.length} change${draft.length === 1 ? '' : 's'} · kept in this browser session (demo)`);
+      status(`${planned?.id ?? 'The next cycle'} designed: ${plural(draft.length, 'change')} · kept in this browser session (demo)`);
     },
     saved: saved != null,
   };

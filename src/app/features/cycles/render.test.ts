@@ -6,6 +6,7 @@ import { Answer } from './components/answer/Answer';
 import { ChangesTable } from './components/changes/ChangesTable';
 import { CycleGrid } from './components/grid/CycleGrid';
 import { CyclesInspector } from './components/inspector/CyclesInspector';
+import { CyclesStatus } from './components/CyclesStatus';
 import { LoopRail } from './components/rail/LoopRail';
 import { buildCycles } from './model/build';
 import { gridView } from './model/grid';
@@ -51,6 +52,12 @@ describe('Cycles parts render for every cycle', () => {
     const out = html(createElement(Answer, { data }));
     expect(out).toContain('replay = 14:02 scan');
     expect(out).toContain('chain holds');
+  });
+  it('one closed cycle is "1 cycle", in the band and the status bar', () => {
+    const one = buildCycles(DEMO.maturity, CLOSED_CYCLES.slice(0, 1), { project: 'acme-lab/ledgerline', today: TODAY, cadence: CADENCE_DAYS });
+    const out = html(createElement(Answer, { data: one })) + html(createElement(CyclesStatus, { data: one, selected: one.cycles[0]! }));
+    expect(out).not.toMatch(/\b1 cycles\b/);
+    expect(out).toContain('1 cycle closed');
   });
   it('drift from an unknown rung reads R?, never Rnull', () => {
     const c4 = data.cycles.find((c) => c.changes.some((x) => x.verdict === 'regressed'))!;

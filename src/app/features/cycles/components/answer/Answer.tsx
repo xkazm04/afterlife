@@ -1,4 +1,5 @@
 import { Chip } from '@/components/status/chip/Chip';
+import { plural } from '@/lib/format/plural';
 import type { CyclesData } from '../../model/build';
 import { MAX_TOTAL, summarize, total } from '../../model/replay';
 import { signed } from '../../model/words';
@@ -26,7 +27,7 @@ export function Answer({ data }: { data: CyclesData }) {
         <span>
           of {MAX_TOTAL} rungs
           <em>
-            {signed(gained)} since day 0 · {closed.length} cycles
+            {signed(gained)} since day 0 · {plural(closed.length, 'cycle')}
           </em>
         </span>
       </div>
@@ -50,7 +51,7 @@ export function Answer({ data }: { data: CyclesData }) {
           {reconciles ? '' : ` · off on ${data.drift.join(', ')}`}
         </Chip>
         <Chip tone={chain ? 'ok' : 'bad'} title={chain ? 'Every change starts at the rung the replay holds for its stage' : data.breaks.map((b) => `${b.cycle} ${b.stage}: ${b.text}`).join('\n')}>
-          {chain ? '✓ chain holds' : `✗ ${data.breaks.length} break${data.breaks.length === 1 ? '' : 's'}`}
+          {chain ? '✓ chain holds' : `✗ ${plural(data.breaks.length, 'break')}`}
         </Chip>
         <Chip tone="invariant" title="Credit never crosses engine versions">
           engine {data.engine}

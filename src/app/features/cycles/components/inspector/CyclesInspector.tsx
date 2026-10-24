@@ -4,6 +4,7 @@ import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { Stats } from '@/components/inspector/blocks/Stats';
 import { Chip } from '@/components/status/chip/Chip';
+import { plural, pluralWord } from '@/lib/format/plural';
 import type { CyclesData } from '../../model/build';
 import { reach, summarize } from '../../model/replay';
 import type { Cycle } from '../../model/types';
@@ -76,7 +77,7 @@ export function CyclesInspector({
         {cycle.state === 'running' ? (
           <div className={styles.next}>
             <p>
-              {cycle.changes.length} picked gap{cycle.changes.length === 1 ? '' : 's'} wait for Send as you. Afterlife shows the exact commands first and holds no merge token.
+              {plural(cycle.changes.length, 'picked gap')} {pluralWord(cycle.changes.length, 'waits', 'wait')} for Send as you. Afterlife shows the exact commands first and holds no merge token.
             </p>
             <Button variant="primary" href="/maturity">
               Send in Maturity

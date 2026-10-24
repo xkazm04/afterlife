@@ -1,4 +1,5 @@
 import { Chip } from '@/components/status/chip/Chip';
+import { plural } from '@/lib/format/plural';
 import type { EstateData } from '../../model/estate/estate';
 import { signed } from '../../model/words';
 import styles from '../answer/answer.module.css';
@@ -16,7 +17,7 @@ export function EstateBand({ data }: { data: EstateData }) {
         <span>
           projects in cycles
           <em>
-            {data.closed} cycles closed · {signed(data.sum.net)} rungs net
+            {plural(data.closed, 'cycle')} closed · {signed(data.sum.net)} rungs net
           </em>
         </span>
       </div>

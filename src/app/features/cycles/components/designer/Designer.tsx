@@ -1,5 +1,6 @@
 import { Button } from '@/components/controls/Button';
 import { Checkbox } from '@/components/controls/Checkbox';
+import { plural } from '@/lib/format/plural';
 import { rungLabel } from '../../model/replay';
 import { signed } from '../../model/words';
 import { designSummary, WIP_CAP, type Candidate, type Problem } from '../../model/design';
@@ -71,7 +72,7 @@ export function Designer({
         <div className={styles.sum}>
           <b>{signed(sum.reach)} rungs in reach</b>
           <span>
-            {sum.mrs} MR{sum.mrs === 1 ? '' : 's'} · {sum.probes} probe{sum.probes === 1 ? '' : 's'}
+            {plural(sum.mrs, 'MR')} · {plural(sum.probes, 'probe')}
             {sum.lines ? ` · +${sum.lines} lines drafted` : ''}
             {sum.drafted ? ` · ${sum.drafted} still to draft` : ''}
           </span>

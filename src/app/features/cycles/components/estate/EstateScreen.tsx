@@ -6,6 +6,7 @@ import { Spacer } from '@/components/controls/Spacer';
 import { Window } from '@/components/shell/Window';
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
+import { plural, pluralWord } from '@/lib/format/plural';
 import type { EstateData } from '../../model/estate/estate';
 import { ScopeSwitch } from '../ScopeSwitch';
 import { EstateBand } from './EstateBand';
@@ -43,7 +44,7 @@ export function EstateScreen({ data }: { data: EstateData }) {
       inspector={<EstateInspector project={rows.find((r) => r.id === sel) ?? null} deep={data.deep} />}
       status={
         <>
-          {data.inCycles} projects in cycles · {data.closed} cycles closed · {data.reconciled} of {data.inCycles} replay to their rungs · {data.notCycling} watching, not in cycles
+          {plural(data.inCycles, 'project')} in cycles · {plural(data.closed, 'cycle')} closed · {data.reconciled} of {data.inCycles} replay to their rungs · {data.notCycling} watching, not in cycles
         </>
       }
     >
@@ -51,7 +52,7 @@ export function EstateScreen({ data }: { data: EstateData }) {
         <EstateBand data={data} />
         <EstateTable groups={shown} selected={sel} onSelect={setSel} />
         <p className={styles.foot}>
-          {data.notCycling} watching projects have no cycle yet. A project joins when T6 is armed on it and its first cycle closes.{' '}
+          {data.notCycling} watching {pluralWord(data.notCycling, 'project has', 'projects have')} no cycle yet. A project joins when T6 is armed on it and its first cycle closes.{' '}
           <Link href="/onboard">Arm the next batch in Onboard ›</Link>
         </p>
       </div>

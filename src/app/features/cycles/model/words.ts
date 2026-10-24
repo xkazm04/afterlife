@@ -1,4 +1,5 @@
 // The words of the loop: phase names, what each phase says for a cycle, verdict labels. Pure.
+import { plural } from '@/lib/format/plural';
 import { summarize } from './replay';
 import type { Cycle, Phase, Verdict } from './types';
 
@@ -36,8 +37,8 @@ export function phaseDetail(c: Cycle, p: Phase): string {
   }
   return {
     scan: `day ${c.openedDay}`,
-    pick: `${n} change${n === 1 ? '' : 's'}`,
-    send: `${s.sent} MR${s.sent === 1 ? '' : 's'}`,
+    pick: plural(n, 'change'),
+    send: plural(s.sent, 'MR'),
     merge: `${s.sent} merged`,
     prove: proveDetail(c),
     credit: `${signed(s.net)} · day ${c.closedDay}`,

@@ -1,4 +1,5 @@
 import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { plural } from '@/lib/format/plural';
 import { notEarned, rungLabel } from '../../model/replay';
 import type { Cycle, CycleChange } from '../../model/types';
 import styles from './inspector.module.css';
@@ -26,7 +27,7 @@ export function ClosingRule({ cycle }: { cycle: Cycle }) {
   const missed = cycle.changes.filter(notEarned);
   const failing = RULES.reduce((n, r) => n + (r.fails && cycle.changes.some((c) => c.verdict === r.fails) ? 1 : 0), 0);
   return (
-    <InspectorSection title="Closing rule" aux={closed ? (failing ? `${missed.length} change${missed.length === 1 ? '' : 's'} stopped` : 'all held') : 'ahead'}>
+    <InspectorSection title="Closing rule" aux={closed ? (failing ? `${plural(missed.length, 'change')} stopped` : 'all held') : 'ahead'}>
       <ul className={styles.rules}>
         {RULES.map((r) => {
           const stopped = r.fails ? cycle.changes.filter((c) => c.verdict === r.fails).length : 0;

@@ -1,3 +1,4 @@
+import { plural } from '@/lib/format/plural';
 import type { CyclesData } from '../model/build';
 import type { Cycle } from '../model/types';
 
@@ -7,7 +8,7 @@ export function CyclesStatus({ data, selected }: { data: CyclesData; selected: C
   const running = data.cycles.find((c) => c.state === 'running');
   return (
     <>
-      {closed} cycles closed · {running ? `${running.id} running` : 'none running'} · scan {data.scannedAt} · engine {data.engine} · {selected.id} selected
+      {plural(closed, 'cycle')} closed · {running ? `${running.id} running` : 'none running'} · scan {data.scannedAt} · engine {data.engine} · {selected.id} selected
     </>
   );
 }
