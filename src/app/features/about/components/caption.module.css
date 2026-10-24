@@ -17,15 +17,15 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--acc);
-  text-shadow: 0 0 18px color-mix(in srgb, var(--acc) 60%, transparent);
+  text-shadow: 0 0 18px color-mix(in oklab, var(--acc) 60%, transparent);
 }
 .title {
   margin: 4px 0 0;
-  font: 400 clamp(calc(var(--t-body) * 3.5), 8.5vw, calc(var(--t-body) * 9.8)) / 0.95 var(--serif);
-  letter-spacing: -0.025em;
-  color: var(--film-cream);
+  font: 700 clamp(calc(var(--t-body) * 3.5), 8.5vw, calc(var(--t-body) * 9.8)) / 0.95 var(--sys);
+  letter-spacing: -0.035em;
+  color: var(--text-1);
   white-space: nowrap;
-  text-shadow: 0 0 60px color-mix(in srgb, var(--acc) 45%, transparent), 0 4px 30px color-mix(in srgb, var(--film-black) 70%, transparent);
+  text-shadow: 0 0 60px color-mix(in oklab, var(--acc) 45%, transparent), 0 4px 30px color-mix(in oklab, var(--bg) 70%, transparent);
   animation: rise 0.76s var(--ease) both;
 }
 .ghost {
@@ -37,9 +37,10 @@
   max-width: 760px;
   min-height: 2.7em;
   font-size: calc(var(--t-body) * 1.6);
+  font-weight: 400;
   line-height: 1.35;
-  color: var(--film-cream);
-  text-shadow: 0 2px 14px var(--film-black);
+  color: var(--text-2);
+  text-shadow: 0 2px 14px var(--bg);
 }
 .cta {
   display: inline-flex;
@@ -47,11 +48,12 @@
   gap: 10px;
   margin-top: 8px;
   padding: 10px 18px;
-  border-radius: 10px;
-  background: var(--film-cream);
-  color: var(--film-ink);
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px color-mix(in oklab, var(--accent) 35%, transparent);
+  color: var(--ink-accent);
   font-size: calc(var(--t-body) * 1.2);
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
   transition: transform var(--t-med) var(--ease), background var(--t-med);
   animation: rise 0.76s var(--ease) both 0.2s;
@@ -60,12 +62,12 @@
   content: "→";
 }
 .cta:hover {
-  background: var(--white);
+  background: color-mix(in oklab, var(--accent) 85%, var(--white));
   transform: translateY(-2px);
 }
 .cta:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow: var(--ring);
 }
 @keyframes rise {
   from {

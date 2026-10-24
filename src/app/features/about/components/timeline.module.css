@@ -6,8 +6,8 @@
   align-items: center;
   gap: 24px;
   padding: 16px 60px;
-  background: linear-gradient(var(--film-ink), var(--film-black));
-  border-top: 1px solid color-mix(in srgb, var(--film-cream) 10%, transparent);
+  background: color-mix(in oklab, var(--bg) 97%, var(--tint-side));
+  border-top: 1px solid var(--border-2);
 }
 .play {
   flex: none;
@@ -16,15 +16,16 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--film-cream) 45%, transparent);
-  background: color-mix(in srgb, var(--film-cream) 6%, transparent);
+  border: 0;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--border-3);
   cursor: pointer;
 }
 .play path {
-  fill: var(--film-cream);
+  fill: var(--text-1);
 }
 .play:hover {
-  background: color-mix(in srgb, var(--film-cream) 16%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .wrap {
   --notch: calc(var(--t-body) * 5.9);
@@ -50,7 +51,7 @@
 }
 .line {
   right: calc(var(--notch) / 2);
-  background: color-mix(in srgb, var(--film-cream) 22%, transparent);
+  background: var(--border-3);
 }
 .fill {
   width: calc((100% - var(--notch)) * var(--p));
@@ -67,7 +68,7 @@
   gap: 5px;
   border: 0;
   background: none;
-  color: var(--film-cream-3);
+  color: var(--text-3);
   font: 600 var(--t-body) / 1.1 var(--sys);
   text-align: center;
   cursor: pointer;
@@ -83,8 +84,8 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid var(--film-cream-3);
-  background: var(--film-ink);
+  border: 2px solid var(--text-3);
+  background: var(--bg);
   transition: transform var(--t-slow) var(--ease), background var(--t-slow), border-color var(--t-slow);
 }
 .lbl {
@@ -92,26 +93,26 @@
 }
 .notch:hover,
 .notch[aria-current] {
-  color: var(--film-cream);
+  color: var(--text-1);
 }
 .notch:hover .tick {
   transform: scale(1.35);
-  border-color: var(--film-cream);
+  border-color: var(--text-1);
 }
 .past .tick {
   border-color: var(--accent);
   background: var(--accent);
 }
 .notch[aria-current] .tick {
-  background: var(--film-cream);
-  border-color: var(--film-cream);
+  background: var(--text-1);
+  border-color: var(--text-1);
   transform: scale(1.5);
   box-shadow: 0 0 18px var(--accent);
 }
 .notch:focus-visible,
 .play:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow: var(--ring);
 }
 .notch:focus-visible {
   border-radius: 6px;
@@ -125,7 +126,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--film-cream-2);
+  color: var(--text-2);
 }
 
 @media (max-width: 900px) {

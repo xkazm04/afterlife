@@ -1,6 +1,6 @@
 // The night city behind the road, generated once from a fixed seed: stars, a far skyline, clusters of nearer blocks, a
 // hill, lamp posts with their wires and the grass in front. Every block of one tone is merged into a few paths (front,
-// roof, side, warm windows, cool windows), so the scene is a handful of elements, not thousands.
+// roof, side, pale windows, cyan windows), so the scene is a handful of elements, not thousands.
 import { f1, rng } from './rng';
 
 export interface Star {
@@ -15,7 +15,7 @@ export interface Blocks {
   front: string;
   roof: string;
   side: string;
-  warm: string;
+  lit: string;
   cool: string;
 }
 
@@ -35,7 +35,7 @@ export interface CityArt {
 
 /** Draws blocks of one tone into its paths. */
 function blocks() {
-  const b: Blocks = { front: '', roof: '', side: '', warm: '', cool: '' };
+  const b: Blocks = { front: '', roof: '', side: '', lit: '', cool: '' };
   const add = (x: number, y: number, w: number, h: number, d: number, R: () => number) => {
     const top = y - h, dy = d * 0.6;
     // the prototype's order of draws: one draw to light a window, a second for its colour
@@ -44,7 +44,7 @@ function blocks() {
         if (R() > 0.55) {
           const win = `M${f1(x + 4 + a)} ${f1(top + k)}h4v5h-4z`;
           if (R() > 0.7) b.cool += win;
-          else b.warm += win;
+          else b.lit += win;
         }
       }
     }

@@ -1,20 +1,31 @@
 // The film's first render (the server's, and hydration's): the intro over the scene, one station and one timeline stop
-// per beat of the loop, the real mode on the pill, the way into the app, and the Theater hand-off only on the last beat.
+// per beat of the loop, the plain "Stylised illustration" label (no data-mode pill), the way into the app, where Esc
+// leads (back to the door from ?from=door, else into the app), and the Theater hand-off only on the last beat.
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { AboutFilm } from '../AboutFilm';
 import { Caption } from '../components/Caption';
 import type { AboutData } from '../model/beats';
 
-vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));
+vi.mock('next/link', () => ({
+  default: ({ href, children, ...rest }: { href: string; children?: unknown }) => createElement('a', { href, ...rest }, children as never),
+}));
+const nav = vi.hoisted(() => ({ search: '' }));
+vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(nav.search) }));
 
 const beats = DEMO.loop.map(({ key, label, stage, who, text }) => ({ key, label, stage, who, text }));
-const demo: AboutData = { beats, mode: { mode: 'demo', label: 'illustrative demo data', beatsIllustrative: true } };
+const demo: AboutData = { beats };
 const html = (d: AboutData) => renderToString(createElement(AboutFilm, { data: d }));
+/** The one link that carries Esc, as rendered. */
+const escLink = (h: string) => h.match(/<a [^>]*aria-keyshortcuts="Escape"[^>]*>[^<]*<\/a>/g) ?? [];
 
 describe('AboutFilm', () => {
+  beforeEach(() => {
+    nav.search = '';
+  });
+
   it('opens on the intro with its skip', () => {
     const h = html(demo);
     expect(h).toContain('Watch one change travel from a finding to production.');
@@ -31,21 +42,33 @@ describe('AboutFilm', () => {
     expect(h).not.toMatch(/NaN|Infinity/);
   });
 
-  it('says the real mode: demo is illustrative demo data, live is the live label', () => {
-    expect(html(demo)).toMatch(/data-role="about-mode"[^>]*>.*illustrative demo data/);
-    const live = html({ beats, mode: { mode: 'live', label: 'live data · acme', beatsIllustrative: true } });
-    expect(live).toContain('live data · acme');
-    expect(live).not.toContain('illustrative demo data');
-    expect(live).toContain('beats are illustrative, not your group');
+  it('labels the art "Stylised illustration" and nothing more: no data-mode pill', () => {
+    const h = html(demo);
+    expect(h).toContain('>Stylised illustration</span>');
+    expect(h).not.toContain('about-mode');
+    expect(h).not.toContain('illustrative demo data');
   });
 
   it('carries the header line, the breadcrumb and the way into the app', () => {
     const h = html(demo);
     expect(h).toContain('Eight AI agents on your GitLab group.');
     expect(h).toContain('Agents may act alone only where they can prove it.');
-    expect(h).toMatch(/<a href="\/">Afterlife<\/a>.*About/);
-    expect(h).toContain('<a href="/fleet">Enter Afterlife</a>');
+    expect(h).toMatch(/<a href="\/"[^>]*>Afterlife<\/a>.*About/);
+    expect(h).toMatch(/<a href="\/fleet"[^>]*>Enter Afterlife<\/a>/);
     expect(h).not.toContain('Replay it step by step in Theater'); // not on the first beat
+  });
+
+  it('Esc enters the app by default: "Enter Afterlife" carries the shortcut', () => {
+    const esc = escLink(html(demo));
+    expect(esc).toHaveLength(1);
+    expect(esc[0]).toContain('href="/fleet"');
+  });
+
+  it('Esc goes back to the door when the viewer came from it: the breadcrumb carries the shortcut', () => {
+    nav.search = 'from=door';
+    const esc = escLink(html(demo));
+    expect(esc).toHaveLength(1);
+    expect(esc[0]).toMatch(/href="\/"[^>]*>Afterlife</);
   });
 
   it('hands on to Theater on the last beat only', () => {
@@ -57,7 +80,7 @@ describe('AboutFilm', () => {
   });
 
   it('plays a loop it was not drawn for', () => {
-    const h = html({ ...demo, beats: [{ key: 'new', label: 'Something new', stage: 'plan', who: 'T9', text: 'x' }] });
+    const h = html({ beats: [{ key: 'new', label: 'Something new', stage: 'plan', who: 'T9', text: 'x' }] });
     expect(h).toContain('Beat 1 of 1: Something new');
   });
 });

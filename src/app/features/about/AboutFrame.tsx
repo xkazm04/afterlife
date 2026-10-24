@@ -1,5 +1,5 @@
 // /about's static frame while the film's data streams in (the prerendered shell): the night ground, the breadcrumb and
-// the way into the app. No pill: the data mode is not known yet, and an unknown mode is never shown as demo.
+// the way into the app, in the top bar's own look. No keys yet: Esc is the film's (hooks/useFilmKeys).
 import Link from 'next/link';
 import s from './components/film.module.css';
 import t from './components/topbar.module.css';

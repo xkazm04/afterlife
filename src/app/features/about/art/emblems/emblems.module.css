@@ -1,4 +1,4 @@
-/* The emblems' colours: --e is the beat's voice, set on the station. */
+/* The emblems' colours: --e is the beat's voice, set on the station; the rest is the door's ground and text. */
 .line {
   fill: none;
   stroke: var(--e);
@@ -7,7 +7,7 @@
   fill: var(--e);
 }
 .disk {
-  fill: color-mix(in srgb, var(--e) 13%, var(--film-ink));
+  fill: color-mix(in oklab, var(--e) 13%, var(--bg));
   stroke: var(--e);
 }
 .alt {
@@ -16,15 +16,15 @@
 }
 .ink {
   fill: none;
-  stroke: color-mix(in srgb, var(--film-ink) 70%, var(--film-cream));
+  stroke: color-mix(in oklab, var(--bg) 70%, var(--text-1));
 }
-.cream {
-  fill: var(--film-cream);
+.lit {
+  fill: var(--text-1);
 }
 .white {
   fill: var(--white);
 }
 .dim {
   fill: none;
-  stroke: var(--film-cream-2);
+  stroke: var(--text-2);
 }

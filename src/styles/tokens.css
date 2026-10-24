@@ -124,32 +124,26 @@
   --xray-wash: rgba(6, 22, 40, 0.62);
   --xray-grid: rgba(143, 211, 255, 0.07);
 
-  /* about film (/about): the night city the one-change film plays in. Its own warm cream text, the moon, lamp glow and
-     the night gradient; the beat voices reuse the palette above (accent, accent-2, fail, ok, tier blue and violet) */
-  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-  --film-cream: #f3ead6;
-  --film-cream-2: #cfc5ae;
-  --film-cream-3: #a9a18d;
-  --film-gold: #e9c88a;
-  --film-mint: #b8f2e6;
-  --film-ink: #03050a;
-  --film-night: #02040a;
-  --film-black: #010205;
-  --film-sky-top: #050816;
-  --film-sky-mid: #0d1838;
-  --film-sky-low: #143247;
-  --film-ground: #0a1626;
-  --film-hill: #070d1a;
-  --film-block-far: #0a1330;
-  --film-block-mid: #0d1a30;
-  --film-roof: #1c2a47;
-  --film-side: #070c18;
-  --film-lane: #2b3d5f;
-  --film-post: #2a3550;
-  --film-lamp: #ffe9b8;
-  --film-moon: #e8f4ff;
-  --film-moon-halo: #cfeaff;
-  --film-star: #dfe9ff;
+  /* about film (/about): the night city the one-change film plays in, in the front door's cool palette: every value a
+     color-mix() of the theme above (the door's own recipe, door.module.css), cyan on near-black, no warm tone. Its text
+     is --text-1..4 in --sys; the beat voices reuse the palette above (accent, accent-2, fail, ok, tier blue and violet) */
+  --film-mint: color-mix(in oklab, var(--ok) 45%, var(--accent));
+  --film-night: color-mix(in oklab, var(--bg) 94%, var(--tint-side));
+  --film-sky-top: color-mix(in oklab, var(--bg) 97%, var(--accent));
+  --film-sky-mid: color-mix(in oklab, var(--bg) 91%, var(--accent));
+  --film-sky-low: color-mix(in oklab, var(--tint-win) 84%, var(--accent));
+  --film-ground: color-mix(in oklab, var(--bg) 90%, var(--accent));
+  --film-hill: color-mix(in oklab, var(--bg) 94%, var(--accent));
+  --film-block-far: color-mix(in oklab, var(--bg) 88%, var(--accent));
+  --film-block-mid: color-mix(in oklab, var(--tint-win) 86%, var(--accent));
+  --film-roof: color-mix(in oklab, var(--tint-chrome) 78%, var(--accent));
+  --film-side: color-mix(in oklab, var(--bg) 62%, var(--tint-chrome));
+  --film-lane: color-mix(in oklab, var(--accent) 30%, transparent);
+  --film-post: color-mix(in oklab, var(--tint-chrome) 82%, var(--accent));
+  --film-lamp: color-mix(in oklab, var(--accent) 55%, var(--white));
+  --film-moon: color-mix(in oklab, var(--accent) 18%, var(--white));
+  --film-moon-halo: color-mix(in oklab, var(--accent) 40%, var(--white));
+  --film-star: color-mix(in oklab, var(--text-1) 80%, var(--accent));
 }
 
 /* Tier colour roles: any element with data-tier gets --tc (the tier colour). Used by marks, chips, pips and counts. */

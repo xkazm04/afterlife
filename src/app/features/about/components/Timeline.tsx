@@ -1,6 +1,7 @@
 // The bottom timeline: play or pause, then one stop per beat. A click (or Left and Right anywhere) scrubs; pointer or
 // focus on a stop previews it in the caption. Past stops are filled, the one on screen is marked current.
 import type { CSSProperties } from 'react';
+import { leaveWords, type LeaveHref } from '../keys/leave';
 import { pad2, type AboutBeat } from '../model/beats';
 import s from './timeline.module.css';
 
@@ -8,12 +9,14 @@ interface Props {
   beats: readonly AboutBeat[];
   beat: number;
   playing: boolean;
+  /** Where Esc leads (keys/leave), for the key hint. */
+  out: LeaveHref;
   onToggle(): void;
   onPick(i: number): void;
   onHover(i: number): void;
 }
 
-export function Timeline({ beats, beat, playing, onToggle, onPick, onHover }: Props) {
+export function Timeline({ beats, beat, playing, out, onToggle, onPick, onHover }: Props) {
   const n = beats.length;
   const p = n > 1 ? beat / (n - 1) : 0;
   return (
@@ -48,7 +51,7 @@ export function Timeline({ beats, beat, playing, onToggle, onPick, onHover }: Pr
           ))}
         </ol>
       </div>
-      <p className={s.hint}>← → scrub · Space plays · Esc enters Afterlife</p>
+      <p className={s.hint}>← → scrub · Space plays · {leaveWords(out)}</p>
     </footer>
   );
 }

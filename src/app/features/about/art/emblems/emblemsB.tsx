@@ -8,7 +8,7 @@ const Gate = () => (
   <>
     <path className={s.line} d="M-14 -32V32M14 -32V32" strokeWidth={4.5} strokeLinecap="round" />
     <path className={s.line} d="M-14 -20h28M-14 -6h28M-14 8h28M-14 22h28" strokeWidth={4} />
-    <circle className={s.cream} cx={14} cy={-6} r={6} />
+    <circle className={s.lit} cx={14} cy={-6} r={6} />
   </>
 );
 

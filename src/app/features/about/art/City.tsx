@@ -16,7 +16,7 @@ function BlockPaths({ b, tone }: { b: Blocks; tone: string }) {
       <path className={tone} d={b.front} />
       <path className={s.roof} d={b.roof} />
       <path className={s.side} d={b.side} />
-      <path className={s.warm} d={b.warm} />
+      <path className={s.lit} d={b.lit} />
       <path className={s.cool} d={b.cool} />
     </>
   );

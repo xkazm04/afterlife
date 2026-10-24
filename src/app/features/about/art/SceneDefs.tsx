@@ -1,5 +1,6 @@
 // The night scene's gradients: sky, ground, the fade over the foreground, the moon and its beams, the lamp glow, the
-// travelling light, and one pool of light per station in that beat's voice. Colours are tokens (tokens.css "about film").
+// travelling light, and one pool of light per station in that beat's voice. Colours are tokens (tokens.css "about
+// film", the front door's cool palette).
 
 const stop = (offset: number, color: string, opacity = 1) => (
   <stop offset={offset} style={{ stopColor: color, stopOpacity: opacity }} />
@@ -15,13 +16,13 @@ export function SceneDefs({ voices }: { voices: readonly string[] }) {
       </linearGradient>
       <linearGradient id="ab-ground" x1="0" y1="0" x2="0" y2="1">
         {stop(0, 'var(--film-ground)')}
-        {stop(0.25, 'color-mix(in srgb, var(--film-ground) 45%, var(--film-black))')}
-        {stop(1, 'var(--film-black)')}
+        {stop(0.25, 'color-mix(in oklab, var(--film-ground) 45%, var(--bg))')}
+        {stop(1, 'var(--bg)')}
       </linearGradient>
       <linearGradient id="ab-fgfade" x1="0" y1="0" x2="0" y2="1">
-        {stop(0, 'var(--film-black)', 0)}
-        {stop(0.22, 'var(--film-black)', 0.85)}
-        {stop(1, 'var(--film-black)')}
+        {stop(0, 'var(--bg)', 0)}
+        {stop(0.22, 'var(--bg)', 0.85)}
+        {stop(1, 'var(--bg)')}
       </linearGradient>
       <radialGradient id="ab-glow">
         {stop(0, 'var(--film-lamp)', 0.55)}

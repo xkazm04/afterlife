@@ -1,4 +1,5 @@
-/* The night scene's colours and its few motions. Colours are tokens (tokens.css "about film" and the palette). */
+/* The night scene's colours and its few motions. Colours are tokens: tokens.css "about film" (the door's cool palette,
+   mixed) and the theme's text and voices. */
 .star {
   fill: var(--film-star);
 }
@@ -26,7 +27,7 @@
 .side {
   fill: var(--film-side);
 }
-.warm {
+.lit {
   fill: var(--film-lamp);
   opacity: 0.85;
 }
@@ -38,19 +39,19 @@
   fill: var(--film-hill);
 }
 .post {
-  fill: var(--film-black);
+  fill: var(--bg);
 }
 .bulb {
   fill: var(--film-lamp);
 }
 .wire {
   fill: none;
-  stroke: var(--film-black);
+  stroke: var(--bg);
   stroke-width: 2;
 }
 .grass {
   fill: none;
-  stroke: var(--film-black);
+  stroke: var(--bg);
   stroke-width: 4;
 }
 .moon {
@@ -87,7 +88,7 @@
 }
 .ghost {
   fill: none;
-  stroke: var(--film-cream);
+  stroke: var(--text-1);
   opacity: 0.9;
 }
 .pulse {
@@ -97,12 +98,12 @@
   fill: var(--white);
 }
 .tagBox {
-  fill: var(--film-ink);
-  stroke: var(--film-cream);
+  fill: var(--bg);
+  stroke: var(--accent);
   stroke-opacity: 0.6;
 }
 .tagText {
-  fill: var(--film-cream);
+  fill: var(--text-1);
   font-family: var(--mono);
   font-weight: 600;
 }
@@ -132,14 +133,14 @@
   transform: scale(1.35);
 }
 .slab {
-  fill: var(--film-cream-3);
+  fill: var(--text-3);
   font-family: var(--sys);
   font-weight: 600;
   letter-spacing: 0.1em;
   transition: fill 0.6s;
 }
 .on .slab {
-  fill: var(--film-cream);
+  fill: var(--text-1);
 }
 
 @keyframes pulse {

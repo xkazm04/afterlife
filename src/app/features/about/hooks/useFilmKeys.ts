@@ -1,8 +1,8 @@
 'use client';
 
 // The film's keys, on the whole page: any key skips the intro; Left and Right scrub, Home and End jump, Space plays or
-// pauses (unless a button has focus: then Space presses it); Esc leaves for the app, as "Enter Afterlife" does. Keys
-// with a modifier (the palette's ⌘K, the text-size shortcuts) and keys typed into a field are not the film's.
+// pauses (unless a button has focus: then Space presses it); Esc leaves, back to the door or into the app (keys/leave).
+// Keys with a modifier (the palette's ⌘K, the text-size shortcuts) and keys typed into a field are not the film's.
 import { useEffect, useRef, type Dispatch } from 'react';
 import { aboutKey } from '../keys/keymap';
 import type { FilmAction, FilmState } from '../model/playback';

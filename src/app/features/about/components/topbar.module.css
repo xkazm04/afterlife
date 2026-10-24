@@ -1,10 +1,12 @@
-/* The film's top bar: breadcrumb, mode pill, the way in, and the one line about Afterlife. */
+/* The film's top bar, in the front door's chrome: the door's dark plate with its cyan-and-pink edge underneath, the
+   breadcrumb, the way in (the door's filled Enter), and the one line about Afterlife. */
 .top {
   position: relative;
   z-index: 6;
   padding: 16px 60px 14px;
-  background: linear-gradient(var(--film-black), var(--film-ink));
-  border-bottom: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent);
+  background: color-mix(in oklab, var(--bg) 97%, var(--tint-side));
+  border-bottom: 1px solid var(--border-2);
+  box-shadow: var(--edge-glow);
 }
 .row {
   display: flex;
@@ -18,90 +20,57 @@
   gap: 10px;
   font-size: var(--t-body);
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--film-cream);
+  color: var(--text-1);
 }
 .crumbs a {
+  border-radius: 4px;
   color: var(--accent);
   text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent) 40%, transparent);
   text-underline-offset: 4px;
 }
+.crumbs a:hover {
+  text-decoration-color: var(--accent);
+}
 .sep {
-  color: var(--film-cream-3);
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 5px 14px;
-  border-radius: var(--r-pill);
-  font-size: var(--t-head);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.pill i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  display: block;
-}
-.demo {
-  border: 1.5px dashed var(--accent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
-}
-.demo i {
-  background: repeating-linear-gradient(45deg, var(--accent) 0 2px, transparent 2px 4px);
-}
-.live {
-  border: 1.5px solid var(--ok);
-  color: var(--ok);
-  background: color-mix(in srgb, var(--ok) 9%, transparent);
-}
-.live i {
-  background: var(--ok);
-  box-shadow: 0 0 8px var(--ok);
+  color: var(--text-4);
 }
 .enter {
   display: inline-flex;
   align-items: center;
   padding: 6px 16px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--film-cream) 45%, transparent);
-  background: color-mix(in srgb, var(--film-cream) 8%, transparent);
-  color: var(--film-cream);
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px color-mix(in oklab, var(--accent) 35%, transparent);
+  color: var(--ink-accent);
   font-size: var(--t-body);
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
   transition: background var(--t-med), transform var(--t-med) var(--ease);
 }
 .enter:hover {
-  background: color-mix(in srgb, var(--film-cream) 16%, transparent);
+  background: color-mix(in oklab, var(--accent) 85%, var(--white));
   transform: translateY(-2px);
 }
 .crumbs a:focus-visible,
 .enter:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow: var(--ring);
 }
 .line {
   margin: 10px 0 0;
-  font: italic 400 calc(var(--t-body) * 2) / 1.15 var(--serif);
-  color: var(--film-cream);
+  font-size: calc(var(--t-body) * 1.6);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .line em {
+  font-style: normal;
+  font-weight: 700;
   color: var(--accent);
 }
 
@@ -111,6 +80,6 @@
   }
   .line {
     white-space: normal;
-    font-size: calc(var(--t-body) * 1.4);
+    font-size: calc(var(--t-body) * 1.3);
   }
 }

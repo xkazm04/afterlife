@@ -8,7 +8,7 @@ export const ABOUT_KEYMAP = defineKeymap('About', [
   { id: 'next', keys: [{ key: 'ArrowRight' }], does: 'Next beat' },
   { id: 'ends', keys: [{ key: 'Home' }, { key: 'End' }], does: 'First / last beat' },
   { id: 'play', keys: [{ key: ' ' }], does: 'Play / pause' },
-  { id: 'leave', keys: [{ key: 'Escape' }], does: 'Enter Afterlife (/fleet)' },
+  { id: 'leave', keys: [{ key: 'Escape' }], does: 'Back to the door, or enter Afterlife (/fleet)' },
 ]);
 
 /** The key a declared entry binds, by id and position (the hook's scrub table is built from these). */
