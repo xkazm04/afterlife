@@ -84,7 +84,7 @@ On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (
 - The proof job writes a proof only for an MR whose author starts with `agent_prefix` (default `ai-`) and whose description has
   a `Belay-Task: <ULID>` trailer. Otherwise `mr-context.mjs` exits 10 and the job is green with nothing written
   (`mr-context.mjs:21-26`).
-- `tier-gate`'s `proof_authors` input (`tier-gate/template.yml:39`) must include the operator's username, or the gate never
+- `tier-gate`'s `proof_authors` input (`tier-gate/template.yml:45`) must include the operator's username, or the gate never
   trusts the hand-posted note.
 - `.env.local` for the app: `BELAY_MODE=live`, `BELAY_GROUP_ID=<the group V-204 runs in>` (the default is not that group),
   `BELAY_PROJECT=<target project's path, its last segment>`, `BELAY_PROOF_AUTHORS=<operator username>`
@@ -92,7 +92,7 @@ On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (
   run when one of the last three is missing or malformed, and logs `belay: poll failed` naming it every poll
   (`liveConfigProblems`, `src/server/poller/config.ts:43`): it never falls back to the default group.
 - Every component defaults `engine_project` and `policy_project` to `$CI_PROJECT_NAMESPACE/belay-*`, the namespace the
-  target itself sits in (F30; `tier-gate/template.yml:21,24`). For a top-level target that is the group, as before. A target
+  target itself sits in (F30; `tier-gate/template.yml:24,28`). For a top-level target that is the group, as before. A target
   whose `belay-*` projects sit elsewhere passes both inputs explicitly. belay-apply names all of them in its `apply.json`.
 - The author defaults (`guardrail_authors`, and the `ai-guardrail-` / `ai-medic-` fallbacks for `BELAY_BLOCK_AUTHORS`) still
   use `$CI_PROJECT_ROOT_NAMESPACE`: a namespace path holds slashes and cannot be a username. A subgroup install checks the
@@ -120,7 +120,7 @@ nothing is written.
 CI_PROJECT_URL=https://gitlab.com/<target path> BELAY_BOT_TOKEN=by-hand node gitlab/components/scripts/proof/post-proof.mjs --proof <dir>/proof.json --mr <iid>
 ```
 
-`post-proof` only checks that the variable is set (`post-proof.mjs:43`) and never reads its value: `glab` posts with the
+`post-proof` only checks that the variable is set (`post-proof.mjs:47`) and never reads its value: `glab` posts with the
 operator's own login. `by-hand` is not a secret. If `glab` is not on PATH, set `BELAY_GLAB=<path to glab.exe>`. It runs
 `glab mr note create <iid> -R <url> -m <note>`, then `glab mr update <iid> -R <url> --label proof::<verdict> --unlabel` the
 other two. If `<dir>/proof.json` is not there (step 1 refused and removed it, or a mistyped path) it exits 2 and posts nothing;
@@ -226,7 +226,7 @@ Notes written by the flows carry a fenced block, so Belay and the engine find th
 |---|---|---|---|
 | `belay-proof` | belay-apply's bot (`post-proof.mjs`), or the operator by hand in M1 | tier-gate, belay-apply, Belay | `src/schemas/proof.ts` |
 | `belay-guardrail` | guardrail flow | tier-gate, tripwire, proof-engine (cited-diff) | `../flows/schemas/guardrail-verdict.schema.json` |
-| `belay-claims` | patcher, gardener (MR description) | proof-engine | `../flows/schemas/claims.schema.json`, `gardener-claims.schema.json` |
+| `belay-claims` | patcher, gardener (MR description) | proof-engine | `../flows/schemas/claims.schema.json` (`build-evidence.mjs`); `gardener-claims.schema.json` is checked by nothing yet (gardener is cut) |
 | `belay-medic` | medic flow | proof-engine (rerun-stats) | `../flows/schemas/medic-verdict.schema.json` |
 
 Only the accounts named in a component's inputs count: `fetch-block.mjs` ignores every other author, and ignores a verdict or a Proof

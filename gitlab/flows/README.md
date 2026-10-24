@@ -28,7 +28,8 @@ JSON is not schema-enforced by the platform. It is checked afterwards, in CI, ag
 |---|---|
 | `guardrail-verdict.schema.json` | `tier-gate` (via `fetch-block.mjs --schema`); the cited-diff proof then checks each quote against the diff |
 | `claims.schema.json` | `build-evidence.mjs` (patcher) |
-| `medic-verdict.schema.json`, `qa-report.schema.json`, `cra-draft.schema.json`, `gardener-claims.schema.json` | the matching proof input builder or Belay's reader; they are small, closed shapes |
+| `medic-verdict.schema.json` | `build-evidence.mjs` (rerun-stats) |
+| `qa-report.schema.json`, `cra-draft.schema.json`, `gardener-claims.schema.json` | nothing yet: no script or Belay reader reads a `belay-qa` or `belay-cra` block or the gardener's claims (`qa` and `gardener` are cut). They are design records of the shape a reader must check |
 
 A block that fails its schema is treated as inconclusive: a guardrail block like that **blocks**. A trusted note that carries two blocks of the tag is treated the same way: `fetch-block` exits 4 (F67, 9e56d7f).
 
