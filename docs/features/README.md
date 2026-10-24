@@ -40,7 +40,8 @@ flowchart LR
 ## Foundations
 | Module | Path | Job |
 |---|---|---|
-| [Kit](kit.md) | `src/components`, `src/styles`, `src/lib` | The shared macOS-style window, controls, tables, overlays, ⌘K palette |
+| [Kit](kit.md) | `src/components`, `src/styles`, `src/lib/keyboard` | The shared macOS-style window, controls, tables, overlays, ⌘K palette |
+| Shared contracts | `src/schemas`, `src/lib` | One type and one parser or rule per contract, read alike by the engine, server, poller, runner and screens: the ledger chain (`schemas/chain`), run events (`schemas/run`), tiers, proofs, trials; promotion, runs, trend, stability, text size, the demo fixture |
 | [Server](server.md) | `src/server` | Data sources (demo / live), GitLab port, local index, poller, ledger, previewed writes |
 | [Engine](engine.md) | `engine/`, `cli/`, `gitlab/`, `policy/` | Model-free proof engine, tier gate, tripwire, CI components |
 | [Quality gates](quality.md) | `scripts/`, tests | `npm run verify`, `npm run smoke`, structure rules |
