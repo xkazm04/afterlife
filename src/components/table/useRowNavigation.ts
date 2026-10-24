@@ -15,7 +15,8 @@ export interface RowNavigationOptions {
   onContextMenuKey?: (id: string) => void;
   /** A printable key was typed on the table: start a search with it. */
   onTypeAhead?: (char: string) => void;
-  /** The table element (the `tableRef` you gave OutlineTable), used to scroll the selection into view. */
+  /** The table element (the `tableRef` you gave OutlineTable), used to scroll the selection into view (or, for a `flow`
+   * table, to find the page that scrolls it). */
   tableRef: RefObject<HTMLDivElement | null>;
   /** True when rows sit under sticky group rows (the scroll offset needs them). */
   grouped?: boolean;
@@ -28,11 +29,23 @@ function coverOf(tbl: HTMLElement, selected: string, grouped: boolean | undefine
   return head + groupH;
 }
 
+/**
+ * The element that scrolls the rows: the table itself, or for a `flow` table (data-flow) the nearest ancestor that
+ * scrolls (the page's PaneScroll). Its top edge is where the sticky header sits once the page has scrolled to the rows.
+ */
+function scrollerOf(tbl: HTMLElement): HTMLElement {
+  if (!tbl.hasAttribute('data-flow')) return tbl;
+  for (let el = tbl.parentElement; el; el = el.parentElement) {
+    if (/auto|scroll|overlay/.test(getComputedStyle(el).overflowY)) return el;
+  }
+  return tbl;
+}
+
 /** The PageUp / PageDown step for the table as it is sized now: the rows that show (pageRows). */
 function pageOf(tbl: HTMLElement | null, selected: string | null, grouped: boolean | undefined): number {
   if (!tbl || !selected) return DEFAULT_PAGE;
   const row = document.getElementById(rowDomId(selected))?.offsetHeight ?? 0;
-  return pageRows(tbl.clientHeight, coverOf(tbl, selected, grouped), row);
+  return pageRows(scrollerOf(tbl).clientHeight, coverOf(tbl, selected, grouped), row);
 }
 
 /**
@@ -47,8 +60,9 @@ export function useRowNavigation(o: RowNavigationOptions) {
     if (!tbl || !selected) return;
     const el = document.getElementById(rowDomId(selected));
     if (!el) return;
-    const delta = revealDelta(el.getBoundingClientRect(), { rect: tbl.getBoundingClientRect(), clientTop: tbl.clientTop, clientHeight: tbl.clientHeight }, coverOf(tbl, selected, grouped));
-    if (delta) tbl.scrollTop += delta;
+    const box = scrollerOf(tbl);
+    const delta = revealDelta(el.getBoundingClientRect(), { rect: box.getBoundingClientRect(), clientTop: box.clientTop, clientHeight: box.clientHeight }, coverOf(tbl, selected, grouped));
+    if (delta) box.scrollTop += delta;
   }, [selected, grouped, tableRef]);
 
   return useCallback(

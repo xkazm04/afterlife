@@ -2,9 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { startTransition, useEffect, useRef } from 'react';
+import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
 import type { RunnerNeed } from '@/lib/runs/desk/types';
-import { RunnerNeeds } from './components/runner/RunnerNeeds';
+import { useRunnerStrip } from './components/runner/RunnerStrip';
 import { plural } from '@/lib/format/plural';
 import { LEDGER_READ_AT, PROJECT_REPO } from './data/constants';
 import type { NeedsYouDemo } from './data/types';
@@ -45,6 +46,7 @@ export function NeedsYouScreen({ demo, runner = [] }: { demo: NeedsYouDemo; runn
   const menus = useNeedsMenus(s, demo, dispatch, open);
   const onKeyDown = useNeedsKeys({ s, demo, groups, dispatch, tableRef, searchRef, onActivate: open, onMenuKey: menus.onMenuKey });
   const counts = decisionCounts(s);
+  const runnerUi = useRunnerStrip(runner);
 
   useEffect(() => tableRef.current?.focus({ preventScroll: true }), []);
   useReveal(s.reveal);
@@ -59,23 +61,28 @@ export function NeedsYouScreen({ demo, runner = [] }: { demo: NeedsYouDemo; runn
       help={<NeedsLegend tierMeans={demo.tierMeans} />}
     >
       <div className={styles.content}>
-        <RunnerNeeds needs={runner} />
-        <CraBand s={s} linksResolved={demo.signoff.linksResolved} dispatch={dispatch} />
-        <div className={styles.tw}>
-          <DecisionsTable
-            s={s}
-            demo={demo}
-            groups={groups}
-            menuing={menus.isOpen}
-            tableRef={tableRef}
-            onKeyDown={onKeyDown}
-            dispatch={dispatch}
-            onActivate={open}
-            onRowMenu={menus.onRowMenu}
-            onGroupMenu={menus.onGroupMenu}
-          />
+        <div className={styles.page}>
+          <PaneScroll padded={false}>
+            {runnerUi.strip}
+            <CraBand s={s} linksResolved={demo.signoff.linksResolved} dispatch={dispatch} />
+            <div className={styles.tw}>
+              <DecisionsTable
+                s={s}
+                demo={demo}
+                groups={groups}
+                menuing={menus.isOpen}
+                tableRef={tableRef}
+                onKeyDown={onKeyDown}
+                dispatch={dispatch}
+                onActivate={open}
+                onRowMenu={menus.onRowMenu}
+                onGroupMenu={menus.onGroupMenu}
+              />
+            </div>
+          </PaneScroll>
         </div>
         <OutboxDrawer s={s} dispatch={dispatch} />
+        {runnerUi.sheet}
       </div>
       {menus.menu}
     </Window>

@@ -5,7 +5,9 @@ import styles from './table.module.css';
 
 /**
  * The dense outline table (a treegrid): sticky header, sticky group rows, rows of --row-h, one selection.
- * It fills its positioned parent (the Window's content pane) and scrolls inside it.
+ * It fills its positioned parent (the Window's content pane) and scrolls inside it. With `flow` it takes its natural
+ * height instead and the page around it scrolls (a PaneScroll holding a band above the table): the header and group
+ * rows stick to that page, and useRowNavigation scrolls it to bring the selection into view.
  *
  * Columns: pass `columns` as a CSS grid-template-columns value of the DATA columns only (use px()/range() from
  * table/model/columns so tracks grow with the text size). A flexible filler track is appended and every Row,
@@ -27,6 +29,7 @@ export function OutlineTable({
   onKeyDown,
   tableRef,
   stickyEnd,
+  flow,
 }: {
   label: string;
   columns: string;
@@ -42,16 +45,19 @@ export function OutlineTable({
   tableRef?: Ref<HTMLDivElement>;
   /** Pin the last data column (a row's actions) to the right edge, so it stays in reach in a narrow pane. */
   stickyEnd?: boolean;
+  /** Natural height, no scroll of its own: the nearest scrolling ancestor (a PaneScroll) scrolls it. */
+  flow?: boolean;
 }) {
   const vars = { '--cols': `${columns} minmax(0, 1fr)`, '--minw': minWidth } as CSSProperties;
   return (
     <div
       ref={tableRef}
-      className={`${styles.tbl} ${flat ? styles.flat : ''} ${menuing ? styles.menuing : ''} ${stickyEnd ? styles.stickyEnd : ''}`}
+      className={`${styles.tbl} ${flat ? styles.flat : ''} ${menuing ? styles.menuing : ''} ${stickyEnd ? styles.stickyEnd : ''}${flow ? ` ${styles.flow}` : ''}`}
       style={vars}
       tabIndex={0}
       role="treegrid"
       aria-label={label}
+      data-flow={flow || undefined}
       aria-activedescendant={activeId}
       onKeyDown={onKeyDown}
     >

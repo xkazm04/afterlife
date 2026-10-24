@@ -52,6 +52,7 @@ export function DecisionsTable(p: DecisionsTableProps) {
       tableRef={p.tableRef}
       onKeyDown={p.onKeyDown}
       stickyEnd
+      flow
       header={
         <>
           <HeaderCell>Decision</HeaderCell>

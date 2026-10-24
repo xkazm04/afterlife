@@ -8,8 +8,12 @@
 .tbl:focus-visible {
   box-shadow: none;
 }
-.thead,
-.rows {
+/* flow: natural height in a page scroller (PaneScroll); overflow stays visible so the header sticks to the page */
+.flow {
+  position: relative;
+  overflow: visible;
+}
+.thead, .rows {
   min-width: var(--minw);
 }
 .r {
@@ -27,8 +31,7 @@
   white-space: nowrap;
   box-shadow: inset -1px 0 0 var(--sep-body);
 }
-.c:last-child,
-.fill {
+.c:last-child, .fill {
   box-shadow: none;
 }
 .fill {
@@ -72,8 +75,7 @@
   width: 1px;
   background: var(--sep);
 }
-.th.fill::after,
-.th:last-child::after {
+.th.fill::after, .th:last-child::after {
   display: none;
 }
 .th:hover {
@@ -118,8 +120,7 @@
   background: var(--sel-dim);
   --rbg: var(--sel-dim);
 }
-.tbl:focus .row[aria-selected="true"],
-.menuing .row[aria-selected="true"] {
+.tbl:focus .row[aria-selected="true"], .menuing .row[aria-selected="true"] {
   background: var(--sel);
   --rbg: var(--sel);
   box-shadow: var(--sel-edge);

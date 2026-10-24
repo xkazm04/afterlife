@@ -80,7 +80,7 @@ export interface LiveTableProps {
 export function LiveTable(p: LiveTableProps) {
   const { out, sent } = p;
   return (
-    <OutlineTable label="Decisions" columns={COLUMNS} minWidth={minWidth(600)} activeId={p.sel ? rowDomId(p.sel) : undefined} tableRef={p.tableRef} onKeyDown={p.onKeyDown} stickyEnd
+    <OutlineTable label="Decisions" columns={COLUMNS} minWidth={minWidth(600)} activeId={p.sel ? rowDomId(p.sel) : undefined} tableRef={p.tableRef} onKeyDown={p.onKeyDown} stickyEnd flow
       header={
         <>
           <HeaderCell>Decision</HeaderCell>

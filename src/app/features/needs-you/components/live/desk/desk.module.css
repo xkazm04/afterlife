@@ -1,9 +1,15 @@
-/* The live desk: the summary band on top, the grouped table filling the middle, the outbox docked below. Tokens only. */
+/* The live desk: one scrolling page (runner strip, summary band, the grouped table at its natural height), the outbox
+   docked below it outside the scroller. Tokens only. */
 .content {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+}
+.page {
+  position: relative;
+  flex: 1;
   min-height: 0;
 }
 .band {
@@ -28,9 +34,6 @@
   font-size: var(--t-small);
 }
 .tw {
-  position: relative;
-  flex: 1;
-  min-height: calc(110px * var(--ui-scale));
   margin-top: calc(10px * var(--ui-scale));
   border-top: 1px solid var(--shade-50);
   box-shadow: inset 0 1px 0 var(--sep);

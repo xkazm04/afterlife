@@ -3,6 +3,7 @@
 import { Spacer } from '@/components/controls/Spacer';
 import { SegmentedControl, type SegmentOption } from '@/components/controls/toolbar/SegmentedControl';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
+import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
 import { groupNavId } from '@/components/table/model/rowNavigation';
 import { plural } from '@/lib/format/plural';
@@ -12,7 +13,7 @@ import { summarize, type DeskItem, type Grouping } from '../../../model/desk';
 import type { LiveEvidence } from '../../../model/evidence/evidence';
 import { OutboxIcon } from '../../chrome/OutboxIcon';
 import chrome from '../../chrome/chrome.module.css';
-import { RunnerNeeds } from '../../runner/RunnerNeeds';
+import { useRunnerStrip } from '../../runner/RunnerStrip';
 import { LiveBand } from './LiveBand';
 import { LiveInspector } from './LiveInspector';
 import { LiveOutbox } from './LiveOutbox';
@@ -47,6 +48,7 @@ export function LiveDesk({ rows, seeded, project, evidence, runner, now, desk: d
   const waiting = rows.filter((n) => waits(n, d.out, sentIds)).length;
   const group = d.groups.find((g) => groupNavId(g.id) === d.sel) ?? null;
   const n = d.selected;
+  const runnerUi = useRunnerStrip(runner);
   return (
     <Window
       title="Needs you"
@@ -76,13 +78,17 @@ export function LiveDesk({ rows, seeded, project, evidence, runner, now, desk: d
       status={`${plural(rows.filter((r) => r.kind !== 'decided').length, 'decision')} · ${waiting} waiting · ${d.out.order.length} in outbox · read from your GitLab group by the last poll`}
     >
       <div className={styles.content}>
-        <RunnerNeeds needs={runner} />
-        <LiveBand summary={summarize(rows)} now={now} seeded={seeded} />
-        <div className={styles.tw}>
-          <LiveTable
-            groups={d.groups} shut={d.shut} sel={d.sel} out={d.out} sent={sentIds} now={now} tableRef={d.tableRef} onKeyDown={d.onKeyDown}
-            onSelect={d.select} onToggleGroup={(id) => d.toggleGroup(id)} onActivate={d.focusInspector} onStage={d.toggleStage}
-          />
+        <div className={styles.page}>
+          <PaneScroll padded={false}>
+            {runnerUi.strip}
+            <LiveBand summary={summarize(rows)} now={now} seeded={seeded} />
+            <div className={styles.tw}>
+              <LiveTable
+                groups={d.groups} shut={d.shut} sel={d.sel} out={d.out} sent={sentIds} now={now} tableRef={d.tableRef} onKeyDown={d.onKeyDown}
+                onSelect={d.select} onToggleGroup={(id) => d.toggleGroup(id)} onActivate={d.focusInspector} onStage={d.toggleStage}
+              />
+            </div>
+          </PaneScroll>
         </div>
         {d.outboxOpen ? (
           <LiveOutbox
@@ -90,6 +96,7 @@ export function LiveDesk({ rows, seeded, project, evidence, runner, now, desk: d
             onRunAll={() => void d.runAll()} onRetry={d.retry} onUnstage={d.toggleStage} onClose={() => d.setOutboxOpen(false)}
           />
         ) : null}
+        {runnerUi.sheet}
       </div>
     </Window>
   );

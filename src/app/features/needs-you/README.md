@@ -45,6 +45,12 @@ its parts over hand-built rows; the recording of a done confirm into "Sent this 
 there. The hooks' effects (ask, Run all's loop, the keys' focus) have no test without a DOM.
 Adding a DOM environment is a dependency decision that has not been taken.
 
+## Layout
+The desk and the live desk are one scrolling page (a `PaneScroll`): the runner strip (only when the cycle runner left
+something), the band (CRA on the desk, the summary on the live desk), then the decisions table at its natural height
+(`OutlineTable flow`). The page scrolls, not the table; its header and group rows stick to the page. The outbox docks
+below the page, outside the scroller, when it is open. The runner's sheet sits over the whole pane.
+
 ## Parts
 - `components/band/` the CRA band: live countdown, 24 h rail, grade ladder (attested struck out), one evidence tick per link, resolved only as far as the fixture's count says.
 - `components/table/` decisions grouped By kind / project / deadline, one action per row, "Decided this week".
@@ -61,8 +67,10 @@ Adding a DOM environment is a dependency decision that has not been taken.
   ask-when-in-view, confirm-by-previewId, answer-only-what-the-response-says as the policy MRs. The probe (g4) and a gap with no
   proposal files are not sent and say why. The files are Maturity's proposal data, not copied here. Nothing moves a rung.
 - `components/inspector/` one view per decision (its page); "The click" lists what a button will and will not do.
-- `components/runner/` the cycle runner's decisions (`RunnerNeeds`), on the desk above the CRA band and in the live and
-  empty pages: a mergeable wave not yet in its base (the exact `git -C <path> switch / merge --ff-only / push`, from
+- `components/runner/` the cycle runner's decisions. On the desk and the live desk, `RunnerStrip` (`useRunnerStrip`): one
+  line, "From the cycle runner · N merges · M parked" (a zero part left out) and Open, which opens `RunnerSheet`, the
+  cards in a `Sheet` with the counts and the `/runs` link (Escape or the veil closes it; focus goes back to Open). The
+  empty pages draw the cards in place (`RunnerNeeds`, a short page with nothing else to push down). The cards: a mergeable wave not yet in its base (the exact `git -C <path> switch / merge --ff-only / push`, from
   `.belay/fleet.yml`'s path) and the lanes its repo's newest wave parked. Read by `readDesk()` (`src/server/runs/`, folded by
   `src/lib/runs/desk/`), real local data in demo and live alike. Text only: Belay merges and pushes nothing.
 - `components/chrome/` toolbar, sidebar filters, legend. `components/shared/` marks used by the above.

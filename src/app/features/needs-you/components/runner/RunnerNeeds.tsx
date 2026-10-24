@@ -47,9 +47,15 @@ function Park({ n }: { n: ParkNeed }) {
   );
 }
 
+/** The runner's cards, a merge card per wave and a park card per lane: the empty pages' strip and the desks' sheet. */
+export function RunnerCards({ needs }: { needs: readonly RunnerNeed[] }) {
+  return <ul className={styles.list}>{needs.map((n) => (n.kind === 'merge-wave' ? <Merge key={n.id} n={n} /> : <Park key={n.id} n={n} />))}</ul>;
+}
+
 /**
  * The decisions the cycle runner left: a mergeable wave not yet in its base, and the lanes its newest wave parked. Read
- * from .belay (real local data in demo and live alike); nothing here writes. Draws nothing when nothing waits.
+ * from .belay (real local data in demo and live alike); nothing here writes. Draws nothing when nothing waits. The empty
+ * pages draw the cards in place; the desks fold them into a one-line `RunnerStrip` that opens them in a sheet.
  */
 export function RunnerNeeds({ needs }: { needs: readonly RunnerNeed[] }) {
   if (!needs.length) return null;
@@ -58,7 +64,7 @@ export function RunnerNeeds({ needs }: { needs: readonly RunnerNeed[] }) {
       <h2 className={styles.title}>
         From the cycle runner <span className={styles.dim}>{plural(needs.length, 'decision')} · <Link href="/runs">runs</Link></span>
       </h2>
-      <ul className={styles.list}>{needs.map((n) => (n.kind === 'merge-wave' ? <Merge key={n.id} n={n} /> : <Park key={n.id} n={n} />))}</ul>
+      <RunnerCards needs={needs} />
     </section>
   );
 }
