@@ -7,7 +7,7 @@ import { cellOf, isMechanical, NOT_RECORDED, RUNGS, rungIndex } from '@/lib/prom
 import type { Ceiling } from '@/schemas/tier';
 import type { PolicyRules } from '@/server/data/types';
 import { DemoChip } from '../../chrome/DemoChip';
-import { leaseLeft, noLease } from '../../../model/grant/lease';
+import { leaseLapsed, leaseLeft, noLease } from '../../../model/grant/lease';
 import { shownName } from '../../../model/rules/tiers';
 import type { ClassRow } from '../../../model/types';
 import { Sec } from '../Sec';
@@ -28,8 +28,7 @@ const trialText = (r: NonNullable<ClassRow['record']>): string => (r.trial ? `${
  */
 export function GrantSection({ cls, policy, proofClass, proofDemo, live }: { cls: ClassRow; policy: PolicyRules | null; proofClass: string; proofDemo: boolean; live: boolean }) {
   const lease = leaseLeft(cls.lease_days, policy);
-  // lease_days 0 is a Hands-off lease already past (the index clamps it): the engine gates it at Supervised, policy or not
-  const lapsed = cls.tier === 'hands_off' && cls.lease_days === 0;
+  const lapsed = leaseLapsed(cls); // gated at Supervised, policy or not
   const held = (RUNGS as readonly string[]).includes(cellOf(cls) ?? '');
   // the rung above, under the ceiling, where its decision acts alone (supervised approves, hands_off merges): its trial
   const at = rungIndex(cellOf(cls) as Ceiling);

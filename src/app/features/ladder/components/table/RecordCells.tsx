@@ -2,7 +2,7 @@ import { Cell } from '@/components/table/Cell';
 import { DayStrip } from '@/components/viz/DayStrip';
 import { pct } from '@/lib/promotion';
 import type { PolicyRules } from '@/server/data/types';
-import { belowNoEdit, leaseLeft } from '../../model/grant/lease';
+import { belowNoEdit, leaseLapsed, leaseLeft } from '../../model/grant/lease';
 import type { ClassRow } from '../../model/types';
 import styles from './ladderTable.module.css';
 
@@ -28,8 +28,7 @@ export function RecordCells({ cls, policy, className }: { cls: ClassRow; policy:
     </span>
   );
   const lease = leaseLeft(cls.lease_days, policy);
-  // lease_days 0 is a Hands-off lease already past (the index clamps it): the engine gates it at Supervised
-  const lapsed = cls.tier === 'hands_off' && cls.lease_days === 0;
+  const lapsed = leaseLapsed(cls);
   return (
     <>
       <Cell align="end" className={className}>

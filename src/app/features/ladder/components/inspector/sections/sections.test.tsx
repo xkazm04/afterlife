@@ -8,6 +8,7 @@ import { parse } from 'yaml';
 import { rulesOf } from '@/server/data/policy';
 import type { ActionPreview } from '@/server/actions/types';
 import { parsePolicy } from '../../../../../../../engine/policy/load';
+import { leaseLapsed } from '../../../model/grant/lease';
 import { WRITE_HEAD } from '../../../model/rules/promote';
 import type { ClassRow } from '../../../model/types';
 import { RecordCells } from '../../table/RecordCells';
@@ -47,6 +48,14 @@ describe('the lease and the no-edit bar come from the policy', () => {
     }
     const lower = { ...lapsed, tier: 'supervised' as const };
     expect(renderToStaticMarkup(<RecordCells cls={lower} policy={seven} />).split('role="gridcell"')[1]).not.toContain('lapsed');
+  });
+  it('the Lease cell and the Grant section read lapsed by the one rule the Leased filter and Lease sort read (leaseLapsed)', () => {
+    const rows = [0, 3, null].flatMap((lease_days) => (['hands_off', 'supervised', 'assisted'] as const).map((tier) => ({ ...cls, tier, lease_days })));
+    for (const row of rows) {
+      const g = renderToStaticMarkup(<GrantSection cls={row} policy={seven} proofClass="exploit-test" proofDemo={false} live />);
+      const cell = renderToStaticMarkup(<RecordCells cls={row} policy={seven} />).split('role="gridcell"')[1];
+      expect([g.includes('lapsed ·'), cell?.includes('>lapsed<')]).toEqual([leaseLapsed(row), leaseLapsed(row)]);
+    }
   });
   it('a record whose clean days are not recorded says not recorded on the strip, not "no record"', () => {
     const strip = renderToStaticMarkup(<RecordCells cls={{ ...cls, record: { ...cls.record!, cleanDays: null } }} policy={seven} />).split('role="gridcell"')[5];
