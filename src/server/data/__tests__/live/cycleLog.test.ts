@@ -1,5 +1,8 @@
 // A cycle's warnings, project issues and group error are logged once, when they change, not every poll interval.
+import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { parse } from 'yaml';
+import { parsePolicy, type EnginePolicy } from '../../../../../engine/policy/load';
 import type { CycleResult, ProjectPoll } from '@/server/poller';
 import { cycleLine, cycleProblems } from '../../live/cycleLog';
 
@@ -19,6 +22,12 @@ describe('cycleProblems', () => {
       'a: HTTP 404',
       'b: task t1: ignored',
     ]);
+  });
+
+  it('names a policy the cycle read but the screens cannot show (a threshold missing), and not one they can', () => {
+    const policy = parsePolicy(parse(fs.readFileSync('policy/trust-policy.yml', 'utf8')));
+    expect(cycleProblems(cycle({ policy }))).toEqual([]);
+    expect(cycleProblems(cycle({ policy: { ...policy, cooldown_days: undefined } as unknown as EnginePolicy }))).toEqual([expect.stringMatching(/^policy: trust-policy.yml .*no thresholds/)]);
   });
 
   it('is empty for a clean cycle', () => {
