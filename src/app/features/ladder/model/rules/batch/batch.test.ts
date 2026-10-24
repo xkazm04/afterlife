@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { parseIntent } from '@/server/actions/intents';
 import type { ClassRow } from '../../types';
 import { MAX_CHANGES, trackChanges } from './batch';
 
@@ -43,9 +44,16 @@ describe('trackChanges', () => {
   it('refuses a track with more classes than one write takes, naming both counts, and plans no change', () => {
     const classes = Array.from({ length: 13 }, (_, i) => row(`c${i}`, 'T3'));
     const b = trackChanges(classes, 'T3', 'quarantine');
-    expect(MAX_CHANGES).toBe(12);
     expect(b.changes).toEqual([]);
     expect(b.refused).toMatch(/13 classes/);
-    expect(b.refused).toMatch(/12/);
+    expect(b.refused).toMatch(new RegExp(`at most ${MAX_CHANGES} changes`));
+  });
+
+  // The bound is the server's: parseIntent takes MAX_CHANGES changes in one revoke-class intent and refuses one more.
+  // Pinned against the parser itself, not a literal, so the two cannot drift apart.
+  it('takes as many changes as the server takes in one revoke-class intent, and no more', () => {
+    const intent = (n: number) => ({ kind: 'revoke-class', project: 'p', changes: Array.from({ length: n }, (_, i) => ({ class: `c${i}.x`, to: 'quarantined' })) });
+    expect(parseIntent(intent(MAX_CHANGES)).ok).toBe(true);
+    expect(parseIntent(intent(MAX_CHANGES + 1)).ok).toBe(false);
   });
 });
