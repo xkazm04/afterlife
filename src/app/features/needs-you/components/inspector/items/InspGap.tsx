@@ -5,7 +5,10 @@ import { KeyValue } from '@/components/inspector/KeyValue';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { GAP_DETAIL } from '../../../data/gaps';
+import { Button } from '@/components/controls/Button';
 import { commandsFor } from '../../../model/outbox/commands';
+import { policyNote } from '../../../model/outbox/policy';
+import { canAsk } from '../../../model/slot/slot';
 import { gapBlock } from '../../../write/desk';
 import { PROPOSAL_EXTRAS } from '@/app/features/maturity/data/proposals';
 import { ActBtn, Acts } from '../Acts';
@@ -94,7 +97,10 @@ export function InspGap({ id, ...p }: InspProps & { id: string }) {
             <DiffBlock file={`gap ${id}`} lines={parseDiff(view.preview.diff)} />
           </>
         ) : (
-          <p className={styles.voice}>{view?.kind === 'refused' ? `Belay refuses this write: ${view.reason}. Nothing can run.` : 'Asking Belay for the exact write…'}</p>
+          <>
+            <p className={styles.voice}>{policyNote(view)}</p>
+            {canAsk(s.slots?.[id]) ? <Button onClick={() => dispatch({ type: 'retry', key: id })}>Ask again</Button> : null}
+          </>
         )}
       </Sec>
     </>

@@ -6,6 +6,10 @@ import { PROPOSAL_EXTRAS } from '@/app/features/maturity/data/proposals';
 import { pickNeedsYouDemo } from '../../../data/pick';
 import { initialState } from '../../../model/state';
 import { InspGap } from '../items/InspGap';
+import { NO_ANSWER } from '@/server/actions/words';
+import { UNSURE_NOTE } from '../../../model/outbox/policy';
+import { UNSURE_VIEW } from '../../../model/slot/slot';
+import { gapBlock } from '../../../write/desk';
 
 const demo = pickNeedsYouDemo();
 const classRow = (id: string) => {
@@ -24,5 +28,18 @@ describe('InspGap Class row', () => {
 
   it('the probe claims no class it does not write as', () => {
     expect(classRow('g4')).not.toContain('ci-config.change');
+  });
+});
+
+// An unsure gap MR (the confirm got no answer) says what the outbox says, and offers Ask again, as a policy MR's page does.
+describe('InspGap Command card on an unsure write', () => {
+  const g = demo.gaps.find((x) => !gapBlock(x.id, demo));
+  it('names the unsure state, not a refusal, and offers Ask again', () => {
+    if (!g) throw new Error('the demo holds no sendable gap');
+    const s = { ...initialState(demo), sel: g.id, gapStatus: { [g.id]: 'staged' as const }, writes: { [g.id]: UNSURE_VIEW }, slots: { [g.id]: { phase: 'unsure' as const, answer: { status: 'unsure' as const, text: NO_ANSWER, simulated: false, mr: null } } } };
+    const out = renderToStaticMarkup(<InspGap id={g.id} s={s} demo={demo} leftSec={0} dispatch={() => {}} />);
+    expect(out).toContain(UNSURE_NOTE);
+    expect(out).not.toContain('Belay refuses this write');
+    expect(out).toContain('Ask again');
   });
 });
