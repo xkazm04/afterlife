@@ -10,7 +10,7 @@ import { parseFleet } from '../fleet/load';
 import { runGates } from '../lane/verify';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-sec-'));
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('child environment', () => {
   const planted = { GITLAB_TOKEN: 'glpat-x', ANTHROPIC_API_KEY: 'sk-ant-x', CLAUDE_CODE_OAUTH_TOKEN: 'oat-x', AWS_SECRET_ACCESS_KEY: 'aws-x', NPM_TOKEN: 'npm-x', DB_PASSWORD: 'pw' };

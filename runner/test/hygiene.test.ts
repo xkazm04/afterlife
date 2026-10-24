@@ -22,7 +22,7 @@ beforeEach(() => {
   sh('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '-m', 'base');
   base = sh('rev-parse', 'HEAD');
 });
-afterEach(() => fs.rmSync(repo, { recursive: true, force: true }));
+afterEach(() => fs.rmSync(repo, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('diffSlips', () => {
   it('passes a clean change, an unchanged double blank line and CRLF line ends', async () => {

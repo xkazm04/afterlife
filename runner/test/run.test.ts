@@ -38,7 +38,7 @@ beforeAll(() => {
 });
 afterAll(() => {
   delete process.env.BELAY_CLAUDE_BIN;
-  fs.rmSync(tmp, { recursive: true, force: true });
+  fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
 async function run(plan: string[], over: Partial<RunOptions> = {}) {

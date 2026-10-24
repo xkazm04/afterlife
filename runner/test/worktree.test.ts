@@ -30,7 +30,7 @@ beforeAll(() => {
   sh('add', '-A');
   sh('-c', 'user.email=t@example.com', '-c', 'user.name=T', 'commit', '-q', '-m', 'init');
 });
-afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('removeWorktree', () => {
   it('removes a registered worktree and its branch without emptying a junction target inside it', async () => {

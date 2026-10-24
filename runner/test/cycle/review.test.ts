@@ -14,7 +14,7 @@ beforeAll(() => {
 });
 afterAll(() => {
   delete process.env.BELAY_CLAUDE_BIN;
-  fs.rmSync(f.tmp, { recursive: true, force: true });
+  fs.rmSync(f.tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
 describe('review, then at most one repair turn, then the gates', () => {

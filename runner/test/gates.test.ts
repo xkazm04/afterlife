@@ -12,7 +12,7 @@ describe('runGates retries', () => {
     fs.writeFileSync(path.join(tmp, 'flake.mjs'), "import fs from 'node:fs';\nif (fs.existsSync('ran')) process.exit(0);\nfs.writeFileSync('ran', '');\nconsole.log('socket aborted');\nprocess.exit(1);\n");
     fs.writeFileSync(path.join(tmp, 'red.mjs'), "console.log('1 failed');\nprocess.exit(1);\n");
   });
-  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
   it('without retries the first red run counts', async () => {
     const v = await runGates(['node flake.mjs'], tmp, 20_000);

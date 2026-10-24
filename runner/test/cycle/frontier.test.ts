@@ -40,7 +40,7 @@ beforeAll(() => {
 });
 afterAll(() => {
   delete process.env.BELAY_CLAUDE_BIN;
-  for (const t of [f, plain]) fs.rmSync(t.tmp, { recursive: true, force: true });
+  for (const t of [f, plain]) fs.rmSync(t.tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
 describe('the frontier lane and wave.tech', () => {

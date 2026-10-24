@@ -26,7 +26,7 @@ describe('earlier waves reach the planner', () => {
     // A landed lane whose commit is not in base was dropped by its reviewer (or is not merged yet), and says so.
     expect(waveHistory(dir, 'alpha', new Set(['belay(wave-9): Fix C'])).at(-1)).toBe('wave 10: Fix C -> landed on its wave branch but NOT taken into base (rejected, or not merged yet)');
     expect(waveHistory(dir, 'alpha', new Set(['belay(wave-10): Fix C'])).at(-1)).toBe('wave 10: Fix C -> landed');
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   });
 
   it('puts the history and a stacked base into the plan prompt, and leaves both out when there are none', () => {

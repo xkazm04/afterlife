@@ -98,7 +98,7 @@ describe('callClaude writes a settings file per call and removes it after', () =
   afterAll(() => {
     delete process.env.BELAY_CLAUDE_BIN;
     delete process.env.FAKE_CALLS;
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   });
 
   it.each<[string, PermissionProfile, string]>([
