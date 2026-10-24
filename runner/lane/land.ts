@@ -29,9 +29,10 @@ export interface Landing {
 /**
  * Paths that configure the agent or the hooks git runs: claude's project settings and MCP servers, and the
  * usual in-repo hook dirs. The lane prompt already forbids these; a landed one would arm every later wave
- * stacked on this branch (claude hooks run with the model key), so the runner enforces it.
+ * stacked on this branch (claude hooks run with the model key), so the runner enforces it. Case-blind: on Windows
+ * and macOS a committed `.Claude/settings.json` is read as `.claude/settings.json`.
  */
-const ARMED_PATH = /^(\.claude\/|\.mcp\.json$|\.husky\/|\.githooks\/)/;
+export const ARMED_PATH = /^(\.claude\/|\.mcp\.json$|\.husky\/|\.githooks\/)/i;
 
 /** Files the lane changed against base (tracked and untracked), NUL-split so no name is quoted. */
 async function changedFiles(dir: string, baseSha: string): Promise<string[]> {

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import { claudeArgs } from '../../agent/spawn';
 import { parseFrontier } from '../../fleet/frontier';
-import { coAuthorTrailer, commitBody } from '../../lane/land';
+import { ARMED_PATH, coAuthorTrailer, commitBody } from '../../lane/land';
 import { FIXTURE, TEST_FILE, beyondMechanical } from '../../lane/integrity';
 import { capDiff, parseReview } from '../../lane/reviewPrompt';
 import { afterRuns, parseTech, summarise, techDelta } from '../../tech/parse';
@@ -55,6 +55,15 @@ describe('the review contract', () => {
     expect(args.slice(-2)).toEqual(['--resume', '894b4269-fc4e-4b1b-ac36-e5a1fe9c0462']);
     expect(() => claudeArgs('sonnet', { step: 'lane', bash: [] }, 'C:\\tmp\\s.json', 'x & calc')).toThrow(/session id/);
     expect(claudeArgs('sonnet', { step: 'review' }, 'C:\\tmp\\s.json')).toContain('--tools=Read,Grep,Glob');
+  });
+});
+
+describe('agent and hook config a lane may never land', () => {
+  it.each(['.claude/settings.json', '.Claude/settings.json', '.CLAUDE/hooks/x.sh', '.mcp.json', '.MCP.json', '.husky/pre-commit', '.Husky/pre-commit', '.githooks/x'])('refuses %s', (p) => {
+    expect(ARMED_PATH.test(p)).toBe(true);
+  });
+  it.each(['src/.claude.ts', 'docs/.claude/x.md', 'mcp.json', 'husky.md'])('lets %s through', (p) => {
+    expect(ARMED_PATH.test(p)).toBe(false);
   });
 });
 
