@@ -67,8 +67,11 @@ Tests never start a timer.
 | Source | Counts only from | Default |
 |---|---|---|
 | MR description (`Belay-Task`, `Belay-Class`, claims prose) | agent accounts | prefix `ai-` (`BELAY_AGENT_PREFIX`) |
-| `belay-proof` block in a note | proof accounts. The patcher is **not** one | prefix `ai-proof-`, plus `BELAY_PROOF_AUTHORS` |
-| `belay-guardrail` block | guardrail accounts, and only for the MR's current head | prefix `ai-guardrail-`, plus `BELAY_GUARDRAIL_AUTHORS` |
+| `belay-proof` block in a note | proof accounts. The patcher is **not** one | `BELAY_PROOF_AUTHORS`, plus prefix `ai-proof-` (demo, fake group, or `BELAY_TRUST_PREFIXES=1`) |
+| `belay-guardrail` block | guardrail accounts, and only for the MR's current head | `BELAY_GUARDRAIL_AUTHORS`, plus prefix `ai-guardrail-` (as above) |
+
+On a real group anyone can register an `ai-proof-*` or `ai-guardrail-*` username, so there the prefixes are off and only the
+named accounts count; `BELAY_TRUST_PREFIXES=1` turns them back on for a group whose usernames the operator controls.
 
 Live mode on a real group (`BELAY_MODE=live`, `BELAY_GITLAB` not `fake`) has no defaults: `readPollerConfig` throws, naming
 each variable, when `BELAY_GROUP_ID` (a group id or path), `BELAY_PROJECT` (a project's path, its last segment) or

@@ -2,9 +2,12 @@
 // (gitlab/components/README.md, "M1: report-only, writes by hand"): a missing or malformed variable there must stop the
 // poller with the variable's name, never fall back to the default group or believe no hand-posted proof note.
 import { describe, expect, it, vi } from 'vitest';
-import { readPollerConfig } from '../config';
+import { proofNote } from '@/server/gitlab/fake/demo/notes';
+import { allows, readPollerConfig } from '../config';
 import { runPollCycle } from '../cycle';
+import { deriveTask } from '../derive/task';
 import { NOW, rig } from './helpers';
+import { goodProof, mr, note, SHA } from './proofs';
 
 const LIVE = { BELAY_MODE: 'live', BELAY_GROUP_ID: '987654', BELAY_PROJECT: 'ledgerline', BELAY_PROOF_AUTHORS: 'op-hand' };
 
@@ -38,6 +41,20 @@ describe('readPollerConfig in live mode', () => {
     expect(() => readPollerConfig('987654', { ...LIVE, BELAY_LEDGER_PROJECT: 'belay ledger' })).toThrow(/BELAY_LEDGER_PROJECT is not a project path/);
     const cfg = readPollerConfig('987654', { ...LIVE, BELAY_AGENT_PREFIX: ' op-bot- ', BELAY_POLICY_PROJECT: 'op-policy ', BELAY_LEDGER_PROJECT: ' op-ledger' });
     expect([cfg.agents.prefixes, cfg.policyProject, cfg.ledgerProject]).toEqual([['op-bot-'], 'op-policy', 'op-ledger']);
+  });
+
+  it('on a real group believes only the named proof and guardrail accounts, unless BELAY_TRUST_PREFIXES=1', () => {
+    // anyone can register ai-proof-stranger: a forged proof or block from it must not move a task
+    const cfg = readPollerConfig('987654', { ...LIVE, BELAY_GUARDRAIL_AUTHORS: 'guard-one' });
+    expect([allows(cfg.proof, 'ai-proof-stranger'), allows(cfg.guardrail, 'ai-guardrail-stranger')]).toEqual([false, false]);
+    expect([allows(cfg.proof, 'op-hand'), allows(cfg.guardrail, 'guard-one')]).toEqual([true, true]);
+    const d = deriveTask({ mr: mr(), notes: [note('ai-proof-stranger', proofNote(goodProof(SHA)))], deployments: [] }, 'ledgerline', cfg, () => 1);
+    expect([d?.proof, d?.task.stateLabel]).toEqual([null, 'waiting for proof']);
+    const opted = readPollerConfig('987654', { ...LIVE, BELAY_TRUST_PREFIXES: '1' });
+    expect([allows(opted.proof, 'ai-proof-x'), allows(opted.guardrail, 'ai-guardrail-x')]).toEqual([true, true]);
+    // the demo and the seeded fake group keep the prefixes their accounts are named by
+    expect(allows(readPollerConfig(144060371, { BELAY_MODE: 'live', BELAY_GITLAB: 'fake' }).proof, 'ai-proof-acme-lab')).toBe(true);
+    expect(allows(readPollerConfig(144060371, {}).guardrail, 'ai-guardrail-acme-lab')).toBe(true);
   });
 
   it('names every problem at once', () => {

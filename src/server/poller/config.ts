@@ -71,6 +71,10 @@ export function liveConfigProblems(env: Record<string, string | undefined>): str
 export function readPollerConfig(group: string | number, env: Record<string, string | undefined> = process.env): PollerConfig {
   const problems = liveConfigProblems(env);
   if (problems.length) throw new Error(`BELAY_MODE=live: ${problems.join('; ')}`);
+  // on a real group anyone can register an ai-proof-* name: the proof and guardrail prefixes count there only when the
+  // operator opts in (BELAY_TRUST_PREFIXES=1); otherwise only the named accounts do. Demo and the fake group keep them.
+  const data = readDataConfig(env);
+  const prefixes = data.mode !== 'live' || data.gitlab === 'fake' || env.BELAY_TRUST_PREFIXES?.trim() === '1';
   const policyProject = env.BELAY_POLICY_PROJECT?.trim() || 'belay-policy';
   const ledgerProject = env.BELAY_LEDGER_PROJECT?.trim() || 'belay-ledger';
   const hours = Number(env.BELAY_TASK_HOURS);
@@ -78,8 +82,8 @@ export function readPollerConfig(group: string | number, env: Record<string, str
     group, policyProject, ledgerProject, infra: [policyProject, ledgerProject, 'belay-pack', 'belay-engine'],
     policyRef: env.BELAY_POLICY_REF || 'main', ledgerRef: env.BELAY_LEDGER_REF || 'main',
     agents: { prefixes: [env.BELAY_AGENT_PREFIX?.trim() || 'ai-'], names: [] },
-    proof: { prefixes: ['ai-proof-'], names: list(env.BELAY_PROOF_AUTHORS) },
-    guardrail: { prefixes: ['ai-guardrail-'], names: list(env.BELAY_GUARDRAIL_AUTHORS) },
+    proof: { prefixes: prefixes ? ['ai-proof-'] : [], names: list(env.BELAY_PROOF_AUTHORS) },
+    guardrail: { prefixes: prefixes ? ['ai-guardrail-'] : [], names: list(env.BELAY_GUARDRAIL_AUTHORS) },
     taskWindowMs: (Number.isFinite(hours) && hours > 0 ? hours : 24) * HOUR,
     rollupWindowMs: 7 * 24 * HOUR,
     mrLimit: 200,

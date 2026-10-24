@@ -97,8 +97,11 @@
   branch labelled `belay::promotion` that a person merges. Belay never merges. `mark-cra-ready` never submits.
 - Unknown is never zero: NULL in the index means unknown; views keep it `null`; the live source throws before its
   first poll rather than show an empty fleet as real; the doctor never guesses.
-- Who counts: MR description fields only from agent accounts (`ai-`), `belay-proof` blocks only from proof accounts
-  (`ai-proof-`; the patcher is not one), guardrail blocks only from guardrail accounts and only for the current head.
+- Who counts: MR description fields only from agent accounts (`ai-`, `BELAY_AGENT_PREFIX`), `belay-proof` blocks only
+  from proof accounts (the patcher is not one), guardrail blocks only from guardrail accounts and only for the current
+  head. On a real group the proof and guardrail accounts are exactly `BELAY_PROOF_AUTHORS` / `BELAY_GUARDRAIL_AUTHORS`
+  (anyone can register an `ai-proof-*` name); the `ai-proof-` / `ai-guardrail-` prefixes count in demo, on the fake
+  group, or with `BELAY_TRUST_PREFIXES=1`.
   A proof for an older head is stale and not indexed.
 - The ledger is append-only (trigger) and verified: a bad chain, fork, rewind or foreign event throws
   `LedgerChainError`, writes nothing, and the poller fails that project's feed while the rest lands.
