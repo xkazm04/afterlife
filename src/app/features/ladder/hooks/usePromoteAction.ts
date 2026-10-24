@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { TIER_META } from '@/lib/tiers';
 import { readmitId, whyNot } from '@/lib/promotion';
-import { NO_ANSWER, mrOf, outcomeOf } from '@/server/actions/words';
+import { NO_ANSWER, mrOf, noAnswerOf, outcomeOf } from '@/server/actions/words';
 import { promoteAsk, sentWords } from '../model/rules/promote';
 import { promoteIntent, sendPromote } from '../write/promote';
 import { writeKey } from '../write/revoke';
@@ -69,7 +69,10 @@ export function usePromoteAction(project: string, data: LadderData, promos: Prom
             status(sentWords(sent));
           } else if (o.status === 'changed') latest.current.promos.put(a.id, a.to, { kind: 'preview', preview: o.preview });
           else if (o.status === 'refused') latest.current.promos.put(a.id, a.to, { kind: 'refused', reason: o.reason });
-        }, () => toast(NO_ANSWER))
+        }, (e: unknown) => {
+          toast(NO_ANSWER);
+          status(`${what}: ${noAnswerOf(e)}`);
+        })
         .finally(() => sending.current.delete(key));
     },
     [project, status, toast],

@@ -5,7 +5,7 @@ import { useToast } from '@/components/overlays/toast/useToast';
 import { groupNavId, groupOfNavId } from '@/components/table/model/rowNavigation';
 import { TIER_META } from '@/lib/tiers';
 import type { ActionResponse } from '@/server/actions/types';
-import { NO_ANSWER, commitOf, outcomeOf, type WriteView } from '@/server/actions/words';
+import { NO_ANSWER, commitOf, noAnswerOf, outcomeOf, type WriteView } from '@/server/actions/words';
 import { nothingInTrack, trackChanges, type TrackWant } from '../../model/rules/batch/batch';
 import { actsFrom, revokeTarget, selectHint } from '../../model/rules/tiers';
 import { PENDING_MS, nextSha } from '../../model/state/commit';
@@ -108,7 +108,10 @@ export function useRevokeActions({
             status(o.simulated ? 'Demo: going back up is a policy MR a person merges (p)' : 'No undo: going back up is a policy MR a person merges (p)');
           } else if (o.status === 'changed') w.put({ kind: 'preview', preview: o.preview });
           else if (o.status === 'refused') w.put({ kind: 'refused', reason: o.reason });
-        }, () => toast(NO_ANSWER))
+        }, (e: unknown) => {
+          toast(NO_ANSWER);
+          status(`${w.what}: ${noAnswerOf(e)}`);
+        })
         .finally(() => sending.current.delete(w.key));
       focusTable();
     },

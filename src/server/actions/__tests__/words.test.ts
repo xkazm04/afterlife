@@ -1,7 +1,7 @@
 // A screen words an action's answer with only what the answer says.
 import { describe, expect, it } from 'vitest';
 import type { ActionPreview, CommandOutcome } from '../types';
-import { commandLines, commitOf, mrOf, outcomeOf } from '../words';
+import { commandLines, commitOf, mrOf, NO_ANSWER, noAnswerOf, outcomeOf } from '../words';
 
 const preview: ActionPreview = {
   kind: 'promote-class', title: 'Promote x', summary: 's', risk: 'policy', diff: [], previewId: 'p', mode: 'live',
@@ -46,5 +46,12 @@ describe('outcomeOf', () => {
   it('a preview is not an outcome, and a command block shows each display line', () => {
     expect(outcomeOf({ status: 'preview', preview }, 'x')).toBeNull();
     expect(commandLines(preview)).toEqual(preview.commands.map((c) => c.display));
+  });
+});
+
+describe('noAnswerOf', () => {
+  it('keeps NO_ANSWER and adds why the confirm threw, digest included', () => {
+    expect(noAnswerOf(Object.assign(new Error('masked'), { digest: '99' }))).toBe(`${NO_ANSWER} (masked (digest 99))`);
+    expect(noAnswerOf('x')).toBe(`${NO_ANSWER} (the server did not answer)`);
   });
 });

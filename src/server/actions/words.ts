@@ -31,6 +31,9 @@ export const unreachable = (e: unknown): WriteView => ({ kind: 'refused', reason
 /** A confirm that got no answer: nobody knows whether the write ran. */
 export const NO_ANSWER = 'No answer from the server: the write may or may not have run. Check GitLab before sending it again.';
 
+/** A confirm that threw: NO_ANSWER plus why it threw (the digest that ties it to the server log). The toast keeps NO_ANSWER. */
+export const noAnswerOf = (e: unknown): string => `${NO_ANSWER} (${reasonOf(e)})`;
+
 /** Asked whether an unsure write ran (runs/recallAction.ts), the server says it is still being sent: no answer yet. */
 export const STILL_RUNNING = 'Still running: Belay is sending this write now. Ask again in a moment for its answer.';
 

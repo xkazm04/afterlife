@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import type { ActionPreview, ActionResponse } from '@/server/actions/types';
+import { NO_ANSWER } from '@/server/actions/words';
 import { SendSheet } from '../components/sheet/SendSheet';
 import { gapSend } from './gap';
 import { reduce, type Action } from '../model/reducer';
@@ -120,10 +121,10 @@ describe('the button', () => {
     expect(sent[0]?.view).toEqual({ kind: 'preview', preview: preview('new') });
     expect(sent[1]?.answer.text).toContain('403 Forbidden');
   });
-  it('no answer from the server is said, not guessed', async () => {
-    actions.confirmAction.mockRejectedValue(new Error('network'));
+  it('no answer from the server is said, not guessed, and keeps why it threw (the digest ties it to the server log)', async () => {
+    actions.confirmAction.mockRejectedValue(Object.assign(new Error('network'), { digest: '42' }));
     const [s] = await sendReady([withView(row('g1'))]);
-    expect(s?.answer).toMatchObject({ status: 'failed', text: expect.stringContaining('may or may not have run') });
+    expect(s?.answer).toEqual({ status: 'failed', text: `${NO_ANSWER} (network (digest 42))` });
   });
   it('sends nothing for a gap without a preview on screen, and nothing twice for a gap already done', async () => {
     expect(await sendReady([row('g1'), { ...withView(row('g2')), answer: { status: 'done', text: 'x' } }])).toEqual([]);
