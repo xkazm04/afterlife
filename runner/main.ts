@@ -3,7 +3,7 @@
 import { RUN_DEFAULTS, loadFleet, runWaves, type RunOptions } from './index';
 import { MODEL_TOKEN } from './agent/spawn';
 import { killAll } from './proc/proc';
-import { defaultFleetFile } from './wave/runWaves';
+import { defaultFleetFile, runCaps } from './wave/runWaves';
 
 // Lanes run detached (their own process group on POSIX): stopping the runner must stop them too, or claude
 // keeps editing and spending with nobody to gate it. The lane worktrees under <repo>/.claude/worktrees stay
@@ -85,8 +85,7 @@ async function main(argv: string[]): Promise<number> {
     console.error(`belay run: repo "${repo}" is not in ${opts.fleet}`);
     return 2;
   }
-  const laneCap = Math.min(opts.laneCapUsd, fleetRepo.laneCapUsd ?? Infinity);
-  const waveCap = Math.min(opts.waveCapUsd, fleetRepo.waveCapUsd ?? Infinity);
+  const { laneCapUsd: laneCap, waveCapUsd: waveCap } = runCaps(opts, fleetRepo);
   console.log(`repo   ${repo} (${fleetRepo.path})\nbase   ${fleetRepo.base}\ncaps   lane $${laneCap}, wave $${waveCap}; ${opts.waves} wave(s) x ${opts.lanes} lane(s)\nmodel  ${opts.model}\ngates  ${fleetRepo.gates.length}${fleetRepo.frontier ? `\nfrontier  ${fleetRepo.frontier.metrics.length} metric(s): ${fleetRepo.frontier.metrics.map((m) => m.name).join(', ')}` : ''}`);
   if (f.has('--dry-run')) {
     console.log('dry run: nothing was spawned.');

@@ -9,7 +9,7 @@ import { git } from '../proc/proc';
 import { loadFleet } from '../fleet/load';
 import type { RunEvent } from '../../src/schemas/run';
 import { waveBranch } from '../../src/schemas/run';
-import type { RunOptions } from '../index';
+import type { FleetRepo, RunOptions } from '../index';
 import { makeLog, runFile } from './events';
 import { loadPrompts } from './prompts';
 import { waveHistory } from './history';
@@ -22,15 +22,19 @@ export const DEFAULT_LANE_TIMEOUT_MS = 20 * 60_000;
 export const defaultFleetFile = (): string => path.join(AFTERLIFE_ROOT, '.belay', 'fleet.yml');
 export const defaultRunsDir = (): string => path.join(AFTERLIFE_ROOT, '.belay', 'runs');
 
+/** The caps a run spends under, and what `belay run` prints: a repo's own caps are ceilings on the flags, so a fleet file can only make a run cheaper. */
+export const runCaps = (opts: Pick<RunOptions, 'laneCapUsd' | 'waveCapUsd'>, repo: Pick<FleetRepo, 'laneCapUsd' | 'waveCapUsd'>): { laneCapUsd: number; waveCapUsd: number } => ({
+  laneCapUsd: Math.min(opts.laneCapUsd, repo.laneCapUsd ?? Infinity),
+  waveCapUsd: Math.min(opts.waveCapUsd, repo.waveCapUsd ?? Infinity),
+});
+
 export async function runWaves(opts: RunOptions, emit: (e: RunEvent) => void): Promise<number> {
   const repo = loadFleet(opts.fleet ?? defaultFleetFile()).find((r) => r.slug === opts.repo);
   if (!repo) throw new Error(`runner: repo "${opts.repo}" is not in the fleet file`);
   if (!fs.existsSync(repo.path)) throw new Error(`runner: ${repo.slug} path does not exist: ${repo.path}`);
   const runsDir = opts.runsDir ?? defaultRunsDir();
   const prompts = loadPrompts();
-  // A repo's own caps are ceilings on the run's: a fleet file can only make a run cheaper.
-  const laneCapUsd = Math.min(opts.laneCapUsd, repo.laneCapUsd ?? Infinity);
-  const waveCapUsd = Math.min(opts.waveCapUsd, repo.waveCapUsd ?? Infinity);
+  const { laneCapUsd, waveCapUsd } = runCaps(opts, repo);
   const timeoutMs = opts.laneTimeoutMs ?? DEFAULT_LANE_TIMEOUT_MS;
   let wave = 0;
   // Waves of one run stack: wave n+1 starts from wave n's branch when wave n landed something, since the

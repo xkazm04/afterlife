@@ -11,7 +11,7 @@ const root = path.resolve(import.meta.dirname, '../../..');
 const tsx = createRequire(import.meta.url).resolve('tsx/cli');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-main-'));
 const fleet = path.join(tmp, 'fleet.yml');
-fs.writeFileSync(fleet, `repos:\n  - slug: temp\n    path: ${JSON.stringify(tmp)}\n    base: main\n    gates: [node gate.mjs]\n`);
+fs.writeFileSync(fleet, `repos:\n  - slug: temp\n    path: ${JSON.stringify(tmp)}\n    base: main\n    gates: [node gate.mjs]\n  - slug: capped\n    path: ${JSON.stringify(tmp)}\n    base: main\n    gates: [node gate.mjs]\n    laneCapUsd: 2\n`);
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const run = (...args: string[]) => {
@@ -26,6 +26,12 @@ describe('belay run flags', () => {
     expect(r.code).toBe(0);
     expect(r.out).toContain('caps   lane $1, wave $25');
     expect(r.out).toContain('dry run: nothing was spawned.');
+  }, 60_000);
+
+  it("prints the repo's own cap when it is below the flag, the cap the run spends under", () => {
+    const r = run('--repo', 'capped', '--lane-cap', '5');
+    expect(r.code).toBe(0);
+    expect(r.out).toContain('caps   lane $2, wave $25');
   }, 60_000);
 
   it('refuses a flag it does not know with exit 2, so a misspelt cap never runs at the default', () => {
