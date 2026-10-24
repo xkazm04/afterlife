@@ -1,6 +1,6 @@
 import { Button } from '@/components/controls/Button';
 import type { FleetProject } from '@/lib/demo/types';
-import { nextAction, type Batch, type ProjectRun } from '../../model/batch';
+import { nextAction, resolveWord, type Batch, type ProjectRun } from '../../model/batch';
 import { STEP_WORD, type Step } from '../../model/funnel';
 import styles from './batch.module.css';
 
@@ -14,9 +14,6 @@ interface Props {
   onSelect: (id: string) => void;
   onResolve: (id: string) => void;
 }
-
-/** What the person did, said on the re-probe button's tooltip; the (simulated) probe then checks it. */
-export const RESOLVE_WORD: Partial<Record<string, string>> = { merge: 'I merged it', token: 'I renewed the token', setup: 'I finished the setup' };
 
 const SECTIONS = [
   { key: 'yours', title: 'Only you', aux: 'merges, tokens, setups: Afterlife never does these · whole estate' },
@@ -71,7 +68,7 @@ export function BatchTable(p: Props) {
                   </span>
                   <span role="cell" className={styles.end}>
                     {sec.key === 'yours' ? (
-                      <Button size="mini" onClick={(e) => (e.stopPropagation(), p.onResolve(id))} title={`${RESOLVE_WORD[a.kind] ?? 'Done'}: re-probe (simulated)`}>
+                      <Button size="mini" onClick={(e) => (e.stopPropagation(), p.onResolve(id))} title={`${resolveWord(a.kind) ?? 'Done'}: re-probe (simulated)`}>
                         Re-probe
                       </Button>
                     ) : (

@@ -109,7 +109,10 @@ const byMean = (dir: 1 | -1) => (a: FleetProject, b: FleetProject) => {
   return dir * (x - y) || a.name.localeCompare(b.name);
 };
 
-const PERSON: ReadonlySet<ActionKind> = new Set(['merge', 'token', 'setup']);
+/** The steps only a person takes, each with what they say they did on its re-probe. One list: a person step always has words. */
+const RESOLVE_WORD = { merge: 'I merged it', token: 'I renewed the token', setup: 'I finished the setup' } as const satisfies Partial<Record<ActionKind, string>>;
+const PERSON: ReadonlySet<ActionKind> = new Set(Object.keys(RESOLVE_WORD) as ActionKind[]);
+export const resolveWord = (k: ActionKind): string | undefined => (Object.hasOwn(RESOLVE_WORD, k) ? RESOLVE_WORD[k as keyof typeof RESOLVE_WORD] : undefined);
 
 /**
  * The next batch. What only a person can do is listed for every project, whatever the scope; reads and writes only

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import type { FleetProject } from '@/lib/demo/types';
-import { nextAction, planBatch, ratedMean, resolve, runBatch, type ProjectRun } from './batch';
+import { nextAction, planBatch, ratedMean, resolve, resolveWord, runBatch, type ActionKind, type ProjectRun } from './batch';
 import { initialRuns, type OnboardData } from './build';
 import { baseline, byGroup, funnel, stepOf, weakest, type Step } from './funnel';
 
@@ -54,6 +54,11 @@ describe('the batch machine', () => {
   it('lists what only a person can do apart: 11 tokens, 1 merge, 8 unfinished setups', () => {
     expect(batch.yours).toHaveLength(20);
     expect(batch.yours).toContain('fx-rates');
+  });
+  it('every step only a person takes has its re-probe words; a read or a write has none', () => {
+    for (const id of batch.yours) expect(resolveWord(nextAction(P(id), runs[id]!, 'acme-lab')!.kind)).toBeTruthy();
+    for (const id of [...batch.reads, ...batch.writes]) expect(resolveWord(nextAction(P(id), runs[id]!, 'acme-lab')!.kind)).toBeUndefined();
+    expect(resolveWord('toString' as ActionKind)).toBeUndefined();
   });
   it('runs every read (the 9 day-0 scans) whatever the batch size', () => {
     expect(batch.reads).toHaveLength(9);

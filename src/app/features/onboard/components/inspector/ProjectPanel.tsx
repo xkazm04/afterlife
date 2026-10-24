@@ -5,9 +5,8 @@ import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { StageTicks } from '@/components/viz/StageTicks';
 import type { FleetProject } from '@/lib/demo/types';
 import type { OnboardWrites } from '../../hooks/useOnboardWrites';
-import { nextAction, pathOf, type ProjectRun } from '../../model/batch';
+import { nextAction, pathOf, resolveWord, type ProjectRun } from '../../model/batch';
 import { WritePreview } from '../batch/WritePreview';
-import { RESOLVE_WORD } from '../batch/BatchTable';
 import { rank, STEP_MEANS, STEP_WORD, STEPS } from '../../model/funnel';
 import styles from './inspector.module.css';
 
@@ -67,9 +66,9 @@ export function ProjectPanel({
             ) : (
               <CommandBlock commands={a.cmd} prompt={false} label={`Next for ${p.name}`} />
             )}
-            {RESOLVE_WORD[a.kind] ? (
+            {resolveWord(a.kind) ? (
               <Button size="mini" onClick={() => onResolve(p.id)} title="Simulated: the probe finds it done">
-                {RESOLVE_WORD[a.kind]} · re-probe
+                {resolveWord(a.kind)} · re-probe
               </Button>
             ) : null}
           </div>
