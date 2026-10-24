@@ -39,6 +39,13 @@ describe('scripts/check-structure.mjs', () => {
     expect(r.stderr).toContain('big.ts has 201 lines');
   });
 
+  it('counts a final newline as the end of the last line: 200 lines pass, 201 fail, with or without one', () => {
+    expect(run(tree({ 'edge.ts': `${lines(200)}\n` })).status).toBe(0);
+    expect(run(tree({ 'edge.ts': lines(200) })).status).toBe(0);
+    const r = run(tree({ 'over.ts': `${lines(201)}\n` }));
+    expect([r.status, r.stderr]).toEqual([1, expect.stringContaining('over.ts has 201 lines')]);
+  });
+
   it('fails a folder holding more than 10 files, but not sub-folders', () => {
     const eleven = Object.fromEntries(Array.from({ length: 11 }, (_, i) => [`f${i}.ts`, 'x']));
     const r = run(tree(eleven));

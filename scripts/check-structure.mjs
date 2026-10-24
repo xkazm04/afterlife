@@ -19,7 +19,8 @@ function walk(dir) {
   for (const f of files) {
     if (!EXT.test(f.name)) continue;
     const p = path.join(dir, f.name);
-    const lines = fs.readFileSync(p, 'utf8').split('\n').length;
+    const text = fs.readFileSync(p, 'utf8');
+    const lines = text.split('\n').length - (text.endsWith('\n') ? 1 : 0); // a final newline ends the last line, it is not one
     if (lines > MAX_LINES) problems.push(`${path.relative(process.cwd(), p)} has ${lines} lines (max ${MAX_LINES})`);
   }
   for (const d of entries.filter((e) => e.isDirectory())) walk(path.join(dir, d.name));
