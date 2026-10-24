@@ -65,6 +65,10 @@ describe('an optional path given empty is refused, not read as the working direc
       // an unset $BELAY_AGENT is not "no agent named" (the sole holder's tier), nor an unset sha "no pin" (the build check skipped)
       ['agent', ['gate', '--class', 'dep-bump.patch', '--agent', '']],
       ['engine-sha', ['gate', '--class', 'dep-bump.patch', '--engine-sha', '']],
+      ['policy', ['prove', '--class', 'rerun-stats', '--input', 'engine/__fixtures__/rerun/flake.json', '--policy', '']],
+      ['policy', ['envelope', '--class', 'code-fix.patch', '--diff', 'x.diff', '--policy', '']],
+      ['state', ['gate', '--class', 'dep-bump.patch', '--state', '']],
+      ['state', ['tripwire', '--event', 'x.json', '--state', '']],
       ['files-root', ['prove', '--class', 'rerun-stats', '--input', 'engine/__fixtures__/rerun/flake.json', '--files-root', '']],
     ];
     for (const [opt, argv] of cases) {

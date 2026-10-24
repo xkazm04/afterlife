@@ -45,8 +45,8 @@ function toGuardrail(raw: unknown): GuardrailVerdict | undefined {
 
 export function gateCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   const args = parseArgs(argv, { values: ['policy', 'state', 'class', 'proof', 'guardrail', 'agent', 'diff', 'env', 'now', 'engine-sha'], switches: ['shadow-next-rung'], positional: 0 });
-  const policy = loadPolicy(ctx, args.get('policy') ?? DEFAULT_POLICY);
-  const state = loadState(ctx, args.get('state') ?? DEFAULT_STATE);
+  const policy = loadPolicy(ctx, args.opt('policy') ?? DEFAULT_POLICY);
+  const state = loadState(ctx, args.opt('state') ?? DEFAULT_STATE);
   const classId = str(args.need('class'), 'class');
   const now = args.has('now') ? new Date(isoMs(args.need('now'), '--now')) : ctx.now();
   const diff = args.opt('diff');

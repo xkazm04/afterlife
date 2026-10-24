@@ -9,8 +9,8 @@ import { DEFAULT_POLICY, DEFAULT_STATE } from './prove';
 
 export function tripwireCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   const args = parseArgs(argv, { values: ['policy', 'state', 'event'], positional: 0 });
-  const policy = loadPolicy(ctx, args.get('policy') ?? DEFAULT_POLICY);
-  const statePath = args.get('state') ?? DEFAULT_STATE;
+  const policy = loadPolicy(ctx, args.opt('policy') ?? DEFAULT_POLICY);
+  const statePath = args.opt('state') ?? DEFAULT_STATE;
   const event = parseEvent(readJson(ctx, args.need('event')));
   const r = tripwire(policy, readText(ctx, statePath), statePath, event, ctx.now());
   const lines = [`tripwire ${event.trigger}: ${r.demote ? 'DEMOTE' : 'no change'}`, `  ${r.note}`];
