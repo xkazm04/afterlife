@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { main } from '../cli';
 import { capture, NOW, ROOT } from '../__tests__/helpers';
 import { readCi } from './ci';
@@ -82,6 +82,36 @@ describe('belay scan of a checkout (files only)', () => {
     expect(p.find((x) => x.stage === 'secure')).toMatchObject({ from: 0, to: 1 });
     expect(p.find((x) => x.stage === 'create')).toMatchObject({ from: 1, to: 2 });
     expect(fs.readdirSync(dir)).toEqual(before);
+  });
+});
+
+describe('a checkout read in part', () => {
+  const cell = (dir: string, stage: string, limits?: { files: number; depth: number }) => scan(checkoutFacts(dir, limits), NOW).cells.find((c) => c.stage === stage);
+
+  it('a walk cut off by its entry or depth limit leaves a stage whose file may lie past it unknown, not absent', () => {
+    const dir = checkout({ 'a/a.txt': '', 'b/b.txt': '', 'z/deep/er/main.tf': 'resource "x" "y" {}\n' });
+    expect(cell(dir, 'configure')).toMatchObject({ rung: 1 });
+    for (const limits of [{ files: 2, depth: 8 }, { files: 20_000, depth: 1 }]) {
+      const c = cell(dir, 'configure', limits);
+      expect(c).toMatchObject({ rung: null, evidence: [] });
+      expect(c?.why).toMatch(/part of the checkout was not read: the walk stopped/);
+    }
+  });
+
+  it('a folder that cannot be read is one gap in the walk, not a crash', () => {
+    const dir = checkout({ 'locked/main.tf': 'resource "x" "y" {}\n', 'open/x.txt': '' });
+    const real = fs.readdirSync;
+    const spy = vi.spyOn(fs, 'readdirSync').mockImplementation(((p: fs.PathLike, o?: unknown) => {
+      if (String(p).endsWith('locked')) throw Object.assign(new Error('EACCES'), { code: 'EACCES' });
+      return (real as (p: fs.PathLike, o?: unknown) => unknown)(p, o);
+    }) as typeof fs.readdirSync);
+    try {
+      const c = cell(dir, 'configure');
+      expect(c).toMatchObject({ rung: null });
+      expect(c?.why).toMatch(/1 path\(s\) could not be read \(locked\)/);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
 

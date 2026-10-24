@@ -33,6 +33,9 @@ export interface ScanFacts {
   project: string | null;
   /** Repository files the rules look at, by path. A GitLab scan knows that a file exists, not always its content (null). */
   files: Fact<Record<string, string | null>>;
+  /** Why some of the files were not seen (a walk cut off, a folder that could not be read); null: every file was. A stage
+   * that finds none of its files is then unknown, not absent: the file may be in the part not read. */
+  filesGap: string | null;
   ci: Fact<CiConfig>;
   /** The latest successful default-branch pipeline. */
   pipeline: Fact<{ id: number | null; jobs: { name: string; status: string }[] }>;

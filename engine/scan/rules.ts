@@ -23,10 +23,13 @@ interface Proof {
 const val = <T>(f: Fact<T>): T | null => (f.ok ? f.value : null);
 const fileHits = (facts: ScanFacts, test: (path: string, content: string | null) => boolean): string[] =>
   Object.entries(val(facts.files) ?? {}).filter(([p, c]) => test(p, c)).map(([p]) => p);
+/** Why a file a stage looks for may exist unseen: a stage that found none is then unknown, not absent. */
+const filesGap = (facts: ScanFacts): string[] => (facts.filesGap ? [facts.filesGap] : []);
 
-/** The CI-backed rungs: configured if a job or include matches; running if such a job succeeded on the default branch. */
-function ciStage(facts: ScanFacts, what: string, isJob: (j: CiJob) => boolean, isInclude: RegExp, ranName: RegExp, extra: string[] = []): Proof {
-  const p: Proof = { rung: 0, evidence: [...extra], unread: [], why: '' };
+/** The CI-backed rungs: configured if a job or include matches; running if such a job succeeded on the default branch.
+ * `files`: the stage's file evidence, for a stage a file also lifts (undefined: CI only). */
+function ciStage(facts: ScanFacts, what: string, isJob: (j: CiJob) => boolean, isInclude: RegExp, ranName: RegExp, files?: string[]): Proof {
+  const p: Proof = { rung: 0, evidence: [...(files ?? [])], unread: [], why: '' };
   const ci: CiConfig | null = val(facts.ci);
   if (!ci) p.unread.push(facts.ci.ok ? '' : facts.ci.why);
   else {
@@ -35,6 +38,7 @@ function ciStage(facts: ScanFacts, what: string, isJob: (j: CiJob) => boolean, i
     if (ci.unresolved.length && p.evidence.length === 0) p.unread.push(`${ci.unresolved.length} include(s) not opened (${ci.unresolved.join(', ')})`);
   }
   if (p.evidence.length === 0) {
+    if (files) p.unread.push(...filesGap(facts));
     p.why = `no ${what} configured`;
     return p;
   }
@@ -58,11 +62,11 @@ const RULES: Record<Stage, (f: ScanFacts) => Proof> = {
     const t = fileHits(f, (p) => /^\.gitlab\/(issue|merge_request)_templates\/./.test(p));
     return t.length
       ? { rung: 1, evidence: t, unread: [], why: 'issue or MR templates configured' }
-      : { rung: 0, evidence: [], unread: ['planning lives in GitLab issues and boards, which this scan does not read'], why: 'no templates' };
+      : { rung: 0, evidence: [], unread: ['planning lives in GitLab issues and boards, which this scan does not read', ...filesGap(f)], why: 'no templates' };
   },
   create: (f) => {
     const owners = fileHits(f, (p) => /^(\.gitlab\/|docs\/)?CODEOWNERS$/.test(p));
-    const p: Proof = { rung: owners.length ? 1 : 0, evidence: owners, unread: [], why: owners.length ? 'CODEOWNERS configured' : 'no CODEOWNERS' };
+    const p: Proof = { rung: owners.length ? 1 : 0, evidence: owners, unread: owners.length ? [] : filesGap(f), why: owners.length ? 'CODEOWNERS configured' : 'no CODEOWNERS' };
     if (!f.protection.ok) p.unread.push(f.protection.why);
     else if (f.protection.value.defaultProtected) {
       p.rung = 2;
@@ -86,7 +90,7 @@ const RULES: Record<Stage, (f: ScanFacts) => Proof> = {
     const real = all.filter((p) => { const c = val(f.files)?.[p]; return c === null || (c ?? '').replace(/#.*$/gm, '').trim() !== ''; });
     if (real.length) return { rung: 1, evidence: real, unread: [], why: 'alerting configured' };
     const empty = all.length ? `${all.join(', ')} is empty: a detector surface, not monitoring; ` : '';
-    return { rung: 0, evidence: [], unread: ['alert integrations live in GitLab, which this scan does not read'], why: `${empty}no alerting configured` };
+    return { rung: 0, evidence: [], unread: ['alert integrations live in GitLab, which this scan does not read', ...filesGap(f)], why: `${empty}no alerting configured` };
   },
   govern: (f) => ciStage(f, 'Belay proof job or tier gate', (j) => /^belay-(tier-gate|proof)/.test(j.name), /belay-pack\/(tier-gate|proof-engine)/, /^belay-(tier-gate|proof)/, fileHits(f, (p) => p === '.gitlab/duo/agent-config.yml')),
 };

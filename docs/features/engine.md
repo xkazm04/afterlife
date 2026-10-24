@@ -20,7 +20,8 @@
   `maturity-scan` component collects by the rubric table (`commands/rubric.ts`, the table in `engine/README.md`): R1
   present on the default branch, R2 ran there within 14 days with an artifact, R3 failing it blocks a merge, R4 an
   agent operates it and a Belay proof job re-derives it. A stage whose lifting facts could not be read is unknown
-  (null), never absent, and an empty alerting file is not monitoring. `--propose` (with `--dir`) adds the smallest
+  (null), never absent, and an empty alerting file is not monitoring; a checkout walk cut off (20,000 entries, 8 levels)
+  or with a folder it could not read leaves a stage that found none of its files unknown with that reason. `--propose` (with `--dir`) adds the smallest
   next change per stage, as text.
 - `cli/belay.mjs` is the `belay` command-line companion, each part run through tsx:
   - `doctor` runs the real capability probes (`src/server/gitlab/doctorCli.ts`).
@@ -137,7 +138,8 @@
   usage text and the README table (derived from the code, `ledger trial` included).
 - `engine/scan/scan.test.ts`: the example target project scores secure, verify and govern at R1 and nothing above;
   local includes, IaC and CODEOWNERS count; an empty alerting file and an unopened include do not; an unparsable CI
-  file leaves the CI stages unknown; the command's JSON and refusals. `scan --facts` (the rubric over GitLab facts) is
+  file leaves the CI stages unknown; a cut-off walk or an unreadable folder makes a file stage unknown, not absent or a
+  crash; the command's JSON and refusals. `scan --facts` (the rubric over GitLab facts) is
   `engine/commands/scan.test.ts`.
 - `src/server/pair/__tests__/pair.test.ts` (real temporary git checkouts): no write without `--write`; every line
   of the project's files kept; a second run is a no-op; not a checkout root or no group is refused; a different
