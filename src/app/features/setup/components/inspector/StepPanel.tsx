@@ -7,7 +7,8 @@ import { KeyValue } from '@/components/inspector/KeyValue';
 import { plural } from '@/lib/format/plural';
 import { GATE_FREES } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
-import { isSaid, stepDetail } from '../../model/flow/state';
+import { canSayDone } from '../../model/flow/reducer';
+import { isHumanGate, isSaid, stepDetail } from '../../model/flow/state';
 import { saidText } from '../../model/flow/wording';
 import { GRAPH } from '../../model/map/appGraph';
 import { stepFreesAll } from '../../model/map/graph';
@@ -36,8 +37,9 @@ export function StepPanel({ n }: { n: number }) {
   const done = s.st === 'done';
   const busy = s.st === 'probing';
   const said = isSaid(s) ? (s.said ?? null) : null;
-  const gate = d.who === 'human' && !done && !said;
-  const canSay = state.live && !!d.unread && s.st === 'unknown';
+  const gate = isHumanGate(s);
+  // "say so" while the reducer would take it, "take it back" while it is said: the reducer's rule, not a copy of it
+  const canSay = !!said || canSayDone(state, n);
   const { direct, more } = stepFreesAll(GRAPH, n);
   const freed = direct.length + more.length;
   const rows: [string, string][] = [['Do', d.action ?? ''], ['Where', d.where ?? '']];
