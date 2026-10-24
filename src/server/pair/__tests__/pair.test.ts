@@ -97,6 +97,26 @@ describe('belay pair', () => {
     expect(fs.readFileSync(path.join(dir, BELAY_CI), 'utf8')).toBe('include: []\n');
     expect(fs.readFileSync(path.join(dir, '.gitlab/duo/agent-config.yml'), 'utf8')).toBe('image: ours\n');
   });
+
+  it('refuses to read or write through a link: a linked .gitlab folder or .gitignore stays untouched, exit 1', () => {
+    const outside = temp('belay-outside-');
+    fs.writeFileSync(path.join(outside, 'secret'), 'keep\n');
+    const dir = repo({ '.gitlab-ci.yml': 'test:\n  script: [npm test]\n' });
+    fs.symlinkSync(outside, path.join(dir, '.gitlab'), 'junction'); // a junction needs no symlink privilege on Windows
+    let fileLink = true;
+    try {
+      fs.symlinkSync(path.join(outside, 'secret'), path.join(dir, '.gitignore'), 'file');
+    } catch {
+      fileLink = false; // Windows without the symlink privilege: the folder link alone is checked
+    }
+    const r = run([dir, '--write']);
+    expect(r.code).toBe(1);
+    expect(r.out).toMatch(/refuse  \.gitlab\/belay\.gitlab-ci\.yml .*\.gitlab is a symlink/);
+    expect(r.out).toMatch(/refuse  \.gitlab\/duo\/agent-config\.yml .*\.gitlab is a symlink/);
+    if (fileLink) expect(r.out).toMatch(/refuse  \.gitignore .*\.gitignore is a symlink/);
+    expect(fs.readdirSync(outside)).toEqual(['secret']);
+    expect(fs.readFileSync(path.join(outside, 'secret'), 'utf8')).toBe('keep\n');
+  });
 });
 
 describe('wiring .gitlab-ci.yml', () => {

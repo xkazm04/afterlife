@@ -39,6 +39,7 @@
     commits, pushes or opens an MR: it prints those commands. The group comes from the `origin` remote. A valued
     flag without its value, an unknown option or a second checkout exits 2 with nothing written; a write that fails
     part-way exits 2 and names the files it already wrote. Added lines take the file's own line ending (CRLF or LF).
+    A target that is a symlink or junction, or sits under one, is refused (exit 1): nothing is read or written through a link.
   - `replay` prints "not implemented yet" and exits 2.
 - `gitlab/` holds what runs inside GitLab: six CI/CD components (`belay-pack`), six custom flow definitions, their
   output schemas, and example target and policy projects.
@@ -148,7 +149,7 @@
 - `src/server/pair/__tests__/pair.test.ts` (real temporary git checkouts): no write without `--write`; every line
   of the project's files kept; a second run is a no-op; not a checkout root or no group is refused; a different
   existing file is kept; the include is created, appended, inserted or refused; malformed arguments and a
-  part-way write failure exit 2; a CRLF file gets CRLF lines.
+  part-way write failure exit 2; a CRLF file gets CRLF lines; a linked `.gitlab` or `.gitignore` is refused, its target untouched.
 - The Node glue has vitest tests beside it (`gitlab/components/scripts/**/*.test.mjs`, `gitlab/apply/*.test.mjs`,
   `gitlab/flows/flows.test.mjs`); the component YAML itself only runs on GitLab. The `maturity-scan` component calls
   `engine scan --facts`.

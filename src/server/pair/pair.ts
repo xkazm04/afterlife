@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
-import { describePlan, planPair, type PairPlan } from './plan';
+import { describePlan, planPair, type PairAction, type PairPlan } from './plan';
 
 export interface PairIo {
   out: (s: string) => void;
@@ -34,7 +34,35 @@ export function rootNamespace(remote: string): string | null {
   return m?.[1] ?? null;
 }
 
-const USAGE = 'usage: belay pair <checkout> [--group <path>] [--pack-version 1.0.0] [--engine-ref v0.1.0] [--write]';
+/**
+ * The first symlink (or Windows junction) between the checkout and `rel`, the file or a folder above it, as a path under
+ * the checkout, or null. Git stores links, so a cloned repo could point `.gitignore` or `.gitlab` outside itself.
+ */
+export function linkOn(dir: string, rel: string): string | null {
+  let at = dir;
+  for (const part of rel.split('/')) {
+    at = path.join(at, part);
+    let st: fs.Stats;
+    try {
+      st = fs.lstatSync(at);
+    } catch {
+      return null; // not there: nothing below it exists either
+    }
+    if (st.isSymbolicLink()) return path.relative(dir, at).split(path.sep).join('/');
+  }
+  return null;
+}
+
+/** Each action on a linked path is refused: nothing is read or written through a link. */
+function refuseLinks(p: PairPlan, dir: string): PairPlan {
+  const actions = p.actions.map((a): PairAction => {
+    const link = linkOn(dir, a.path);
+    return link ? { path: a.path, op: 'refuse', added: [], why: `${link} is a symlink: Belay writes only inside the checkout, never through a link` } : a;
+  });
+  return { actions, paired: actions.every((a) => a.op === 'keep'), partial: actions.some((a) => a.op === 'refuse') };
+}
+
+const USAGE ='usage: belay pair <checkout> [--group <path>] [--pack-version 1.0.0] [--engine-ref v0.1.0] [--write]';
 const VALUED = ['--group', '--pack-version', '--engine-ref'];
 
 interface PairArgs {
@@ -80,9 +108,10 @@ export function pair(argv: readonly string[], io: PairIo): PairResult {
   const agentConfig = fs.readFileSync(template, 'utf8');
   const read = (p: string): string | null => {
     const abs = path.join(dir, p);
-    return fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : null;
+    return !linkOn(dir, p) && fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : null;
   };
-  const plan = planPair(read, { group, packVersion: flags.get('--pack-version') ?? '1.0.0', engineRef: flags.get('--engine-ref') ?? 'v0.1.0' }, agentConfig);
+  const ref = { group, packVersion: flags.get('--pack-version') ?? '1.0.0', engineRef: flags.get('--engine-ref') ?? 'v0.1.0' };
+  const plan = refuseLinks(planPair(read, ref, agentConfig), dir);
 
   io.out(`belay pair ${dir} (group ${group})\n\n`);
   if (write) {
@@ -90,6 +119,9 @@ export function pair(argv: readonly string[], io: PairIo): PairResult {
     for (const a of plan.actions) {
       if (a.text === undefined) continue;
       try {
+        // checked again at the write: a link made since the plan was read is refused too
+        const link = linkOn(dir, a.path);
+        if (link) throw new Error(`${link} became a symlink`);
         fs.mkdirSync(path.dirname(path.join(dir, a.path)), { recursive: true });
         fs.writeFileSync(path.join(dir, a.path), a.text);
       } catch (e) {
