@@ -61,8 +61,9 @@ const TAIL_PX = 96 + 52;
 export function gridFor(view: FleetView, narrow: boolean, meta: FleetMeta): GridSpec {
   const lead = `${NAME} ${px(24)} ${px(44)}`;
   if (view === 'tiers') {
-    const tiers = repeatPx(5, narrow ? 50 : 88);
-    return { columns: `${lead} ${tiers} ${px(96)} ${px(66)} ${px(52)}`, minWidth: minWidth(narrow ? 684 : 872) };
+    const n = TIER_DISPLAY_ORDER.length;
+    const tier = narrow ? 50 : 88;
+    return { columns: `${lead} ${repeatPx(n, tier)} ${px(96)} ${px(66)} ${px(52)}`, minWidth: minWidth(LEAD_PX + n * tier + 96 + 66 + 52) };
   }
   if (view === 'classes') {
     const n = meta.classes.length;

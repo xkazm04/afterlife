@@ -43,7 +43,7 @@ describe('gridFor', () => {
   });
   it('narrows the tier columns', () => {
     expect(gridFor('tiers', true, meta).columns).toContain('repeat(5, calc(50px * var(--ui-scale)))');
-    expect(gridFor('tiers', true, meta).minWidth).toBe('calc(684px * var(--ui-scale))');
+    expect(gridFor('tiers', true, meta).minWidth).toBe('calc(682px * var(--ui-scale))');
   });
 });
 
@@ -58,6 +58,19 @@ describe('gridFor tracks follow the columns', () => {
     const m = sized(c, s);
     expect(tracks(gridFor('classes', false, m).columns)).toBe(fleetColumns('classes', m).filter((x) => x.kind === 'class').length);
     expect(tracks(gridFor('stages', false, m).columns)).toBe(fleetColumns('stages', m).filter((x) => x.kind === 'stage').length);
+  });
+  // Every fixed track and each flexible track's minimum, in px at the Smaller setting: what the minimum width must equal.
+  const trackPx = (columns: string): number => {
+    let rest = columns;
+    let n = 0;
+    rest = rest.replace(/repeat\((\d+), calc\((\d+)px \* var\(--ui-scale\)\)\)/g, (_, k: string, w: string) => ((n += Number(k) * Number(w)), ''));
+    rest = rest.replace(/minmax\(calc\((\d+)px \* var\(--ui-scale\)\), calc\(\d+px \* var\(--ui-scale\)\)\)/g, (_, w: string) => ((n += Number(w)), ''));
+    rest.replace(/calc\((\d+)px \* var\(--ui-scale\)\)/g, (_, w: string) => ((n += Number(w)), ''));
+    return n;
+  };
+  it.each([['tiers', false], ['tiers', true], ['classes', false], ['stages', false]] as const)('has a minimum width that is the sum of its tracks (%s, narrow %s)', (view, narrow) => {
+    const g = gridFor(view, narrow, meta);
+    expect(g.minWidth).toBe(`calc(${trackPx(g.columns)}px * var(--ui-scale))`);
   });
   it('keeps the demo minimum widths', () => {
     expect(gridFor('classes', false, meta).minWidth).toBe('calc(870px * var(--ui-scale))');
