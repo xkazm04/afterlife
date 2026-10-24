@@ -89,6 +89,19 @@ describe('Checkbox hit target', () => {
   });
 });
 
+describe('Button mini hit target', () => {
+  // --mini-h is 18px x --ui-scale (rounded): 18 / 21 / 23px at the three text sizes, all under 24 drawn.
+  const sizes = css('../../styles/text-size.css');
+  const base = Number(/--mini-h:\s*round\(calc\((\d+)px/.exec(sizes)?.[1] ?? NaN);
+  const scales = [...sizes.matchAll(/--ui-scale:\s*([\d.]+)/g)].map((m) => Number(m[1]));
+  const reach = Number(/inset:\s*calc\(-(\d+)px/.exec(body(css('Button.module.css'), '.mini::before'))?.[1] ?? 0);
+  it('reaches 24px tall at every text size through an out-of-flow band', () => {
+    expect(scales).toHaveLength(3);
+    expect(scales.filter((s) => Math.round(base * s) + 2 * reach * s < 24)).toEqual([]);
+    expect(body(css('Button.module.css'), '.mini')).toMatch(/position:\s*relative/);
+  });
+});
+
 describe('keycap look', () => {
   // SearchField's "/" hint is a Kbd: it may place and dim the keycap, but the keycap's look lives in Kbd.module.css alone.
   it('is drawn by Kbd, not re-declared by SearchField', () => {

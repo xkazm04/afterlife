@@ -26,6 +26,14 @@
   height: var(--mini-h);
   padding: 0 8px;
   border-radius: 4px;
+  position: relative;
+}
+/* The drawn row button stays --mini-h (18-23px); this invisible band takes its hit area past 24px tall (WCAG 2.5.8)
+   without taking layout space, as Checkbox.module.css does. Width is not extended: padding and a label already pass. */
+.mini::before {
+  content: "";
+  position: absolute;
+  inset: calc(-3px * var(--ui-scale)) 0;
 }
 .primary {
   background: var(--needs-you);
