@@ -36,6 +36,10 @@ describe('MonitorInspector with nothing picked', () => {
     expect(out).toContain('Most waiting');
     expect(out).toContain('Nothing waits for you');
   });
+  it('names the quarantine count as classes (a project can hold several), in the singular for one', () => {
+    expect(html(null, [proj({})], totals({ quar: 2 }))).toContain('>quarantined classes<');
+    expect(html(null, [proj({})], totals({ quar: 1 }))).toContain('>quarantined class<');
+  });
   it('lists who waits most when someone does', () => expect(html(null, [proj({ needsYou: 3 })], totals({ needs: 3, needsP: 1 }))).not.toContain('Nothing waits'));
 });
 

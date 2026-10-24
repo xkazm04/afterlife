@@ -36,7 +36,7 @@ function Overview({ org, totals, projects, onPick }: { org: string; totals: Tota
         cells={[
           { n: totals.needs, label: totals.needs === 1 ? 'decision waits' : 'decisions wait', tone: 'you' },
           { n: totals.stale, label: 'stale' },
-          { n: totals.quar, label: 'quarantined' },
+          { n: totals.quar, label: pluralWord(totals.quar, 'quarantined class', 'quarantined classes') },
         ]}
       />
       <InspectorSection title="Most waiting">
