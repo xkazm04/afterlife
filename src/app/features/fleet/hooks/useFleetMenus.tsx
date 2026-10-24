@@ -3,6 +3,7 @@
 import type { ReactNode, RefObject } from 'react';
 import { useMenu } from '@/components/overlays/menu/useMenu';
 import { groupOfNavId, rowDomId } from '@/components/table/model/rowNavigation';
+import { copyCommand } from '@/lib/clipboard/copyCommand';
 import type { FleetProject } from '@/lib/demo/types';
 import { groupMenu, rowMenu } from '../model/menus/contextMenus';
 import { filterMenu, sortMenu } from '../model/menus/toolbarMenus';
@@ -38,15 +39,7 @@ export function useFleetMenus(a: FleetMenusArgs) {
   );
   const ctx = useMenu();
 
-  const copy = (path: string) => {
-    const done = () => a.onFlash(`Copied ${path}`);
-    const fail = () => a.onFlash(path);
-    try {
-      navigator.clipboard.writeText(path).then(done, fail);
-    } catch {
-      fail();
-    }
-  };
+  const copy = (path: string) => copyCommand(path, navigator.clipboard, a.onFlash, `Copied ${path}`);
 
   /** Opens the menu of a row ("g:<group>" for a group row) at a point; a keyboard open highlights the first item. */
   const openRow = (id: string, x: number, y: number, keyboard = false) => {

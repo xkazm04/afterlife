@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { writeClip } from '@/lib/clipboard/copyCommand';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { buildChain, dedupeChain, pickDefaultIndex, type LocEntry } from './locate';
 import { HighlightBox, InspectorHud, SourceLabel, Z } from './ui';
@@ -13,14 +14,7 @@ interface Hover {
   index: number;
 }
 
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
+const copyText = async (text: string): Promise<boolean> => (await writeClip(text, navigator.clipboard)).ok;
 
 const inHud = (t: EventTarget | null) => t instanceof Element && t.closest('[data-devinspector]') !== null;
 

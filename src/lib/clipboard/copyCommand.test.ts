@@ -16,6 +16,12 @@ describe('copyCommand', () => {
     await settle();
     expect(said).toEqual(['the write']);
   });
+  it('shows the command when writeText throws before it returns a promise, instead of throwing', async () => {
+    const said: string[] = [];
+    copyCommand('the write', { writeText: () => { throw new TypeError('no'); } }, (t) => said.push(t), 'Copied');
+    await settle();
+    expect(said).toEqual(['the write']);
+  });
   it('shows the command when there is no clipboard (insecure origin), instead of staying silent', () => {
     const said: string[] = [];
     copyCommand('the write', undefined, (t) => said.push(t), 'Copied');
