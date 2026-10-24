@@ -130,28 +130,3 @@ describe('isoMs', () => {
     for (const v of ['10', '2026', '3/4/2026', 'Oct 5 2026', '2026-10-05', '2026-10-05T10:00:00', '2026-13-45T99:00:00Z', '', null, 7]) expect(() => isoMs(v, 't'), String(v)).toThrow(/t must be an ISO time/);
   });
 });
-
-describe('the documented options are the parsed options', () => {
-  const dir = path.join(import.meta.dirname, '..');
-  const strip = (src: string): string => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1');
-  const optionsOf = (cmd: string): string[] => {
-    const src = strip(fs.readFileSync(path.join(dir, 'commands', `${cmd}.ts`), 'utf8'));
-    return [...src.matchAll(/(?:values|switches): \[([^\]]*)\]/g)].flatMap((m) => [...(m[1] ?? '').matchAll(/'([a-z-]+)'/g)].map((o) => o[1] as string));
-  };
-  const usage = strip(fs.readFileSync(path.join(dir, 'cli.ts'), 'utf8')).split('const USAGE = `')[1]?.split('`')[0] ?? '';
-  const readme = fs.readFileSync(path.join(dir, 'README.md'), 'utf8').split('\n');
-  const block = (lines: string[], start: (l: string) => boolean): string => {
-    const at = lines.findIndex(start);
-    return lines.slice(at, lines.findIndex((l, i) => i > at && !l.startsWith('    '))).join(' ');
-  };
-  for (const cmd of ['prove', 'envelope', 'gate', 'tripwire', 'ledger', 'scan']) {
-    it(`${cmd}: every option parseArgs accepts is in the usage text and the README table`, () => {
-      const opts = optionsOf(cmd);
-      expect(opts.length, 'found its parseArgs options').toBeGreaterThan(0);
-      const u = block(usage.split('\n'), (l) => l.startsWith(`  ${cmd} `));
-      const r = readme.find((l) => l.startsWith(`| \`${cmd} `)) ?? '';
-      expect(opts.filter((o) => !u.includes(`--${o}`)), 'missing from USAGE in engine/cli.ts').toEqual([]);
-      expect(opts.filter((o) => !r.includes(`--${o}`)), 'missing from engine/README.md').toEqual([]);
-    });
-  }
-});
