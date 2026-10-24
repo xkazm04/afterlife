@@ -10,7 +10,19 @@ import { AppFrame } from '@/components/shell/frame/AppFrame';
 // Trace while live mode has nothing to show (before the first poll, or an empty group); otherwise it draws nothing.
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <AppFrame sidebar={<XraySidebar />} overlay={<XrayOverlay />}>
+    // The X-ray reads the pathname (request data): behind Suspense, so the frame itself stays in the static shell.
+    <AppFrame
+      sidebar={
+        <Suspense fallback={null}>
+          <XraySidebar />
+        </Suspense>
+      }
+      overlay={
+        <Suspense fallback={null}>
+          <XrayOverlay />
+        </Suspense>
+      }
+    >
       {children}
       <Suspense fallback={null}>
         <LiveGate />

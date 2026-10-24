@@ -3,7 +3,7 @@
 import { QUALITY_KEY } from '../../door/model/fit';
 import { BASELINE_KEY } from '../../fleet/model/changes/baseline';
 import { TEXT_SIZE_STORAGE_KEY } from '@/lib/settings/textSize';
-import { XRAY_FIRST_KEY, XRAY_SEEN_KEY } from '../../xray/model/store';
+import { XRAY_FIRST_KEY, XRAY_SEEN_KEY } from '../../xray/model/keys';
 
 export const BROWSER_KEYS: readonly { what: string; key: string }[] = [
   { what: 'Text size', key: TEXT_SIZE_STORAGE_KEY },

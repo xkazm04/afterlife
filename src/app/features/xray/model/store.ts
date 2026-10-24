@@ -2,9 +2,7 @@
 // in localStorage, as the first-visit flag is). An external store, read with useSyncExternalStore, so the toggle, the
 // sidebar, the panel and the keys share it without a provider.
 import { useSyncExternalStore } from 'react';
-
-export const XRAY_SEEN_KEY = 'afterlife.xray.seen';
-export const XRAY_FIRST_KEY = 'afterlife.xray.first-visit';
+import { XRAY_FIRST_KEY, XRAY_SEEN_KEY } from './keys';
 
 export interface XrayState {
   on: boolean;
