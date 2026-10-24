@@ -33,13 +33,23 @@ export const createMemory = (): PollMemory => ({
 const projectOf = (key: string): number => Number(key.slice(0, key.indexOf('!')));
 
 /**
- * Forget what is held for a GitLab project that is no longer polled (left the group, archived): its notes, its scan, its
- * ledger, its cycle file, its CI file and its MRs' sizes and pipelines.
+ * How each map is keyed: by GitLab project id, by `<project id>!<iid>`, or by tier-state.yml commit (stateHistory.ts keeps
+ * those to the commits last read). Keyed by PollMemory itself, so a map added there fails the typecheck here until
+ * forgetProjects is told how to forget it.
+ */
+const KEYED: Readonly<Record<keyof PollMemory, 'project' | 'mr' | 'commit'>> = {
+  notes: 'mr', ledger: 'project', cycles: 'project', scans: 'project', states: 'commit', ciFiles: 'project', mrSizes: 'mr', mrPipelines: 'mr',
+};
+
+/**
+ * Forget what is held for a GitLab project that is no longer polled (left the group, archived): every map keyed by its
+ * project id or by one of its MRs.
  */
 export function forgetProjects(mem: PollMemory, polled: ReadonlySet<number>): void {
-  for (const map of [mem.notes, mem.mrSizes, mem.mrPipelines]) for (const key of map.keys()) if (!polled.has(projectOf(key))) map.delete(key);
-  for (const id of mem.scans.keys()) if (!polled.has(id)) mem.scans.delete(id);
-  for (const id of mem.ledger.keys()) if (!polled.has(id)) mem.ledger.delete(id);
-  for (const id of mem.cycles.keys()) if (!polled.has(id)) mem.cycles.delete(id);
-  for (const id of mem.ciFiles.keys()) if (!polled.has(id)) mem.ciFiles.delete(id);
+  for (const name of Object.keys(KEYED) as (keyof PollMemory)[]) {
+    const kind = KEYED[name];
+    if (kind === 'commit') continue;
+    const map = mem[name] as Map<number | string, unknown>;
+    for (const key of map.keys()) if (!polled.has(kind === 'mr' ? projectOf(String(key)) : Number(key))) map.delete(key);
+  }
 }

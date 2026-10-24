@@ -6,7 +6,7 @@ import type { TierState } from '@/schemas/tier';
 import { createDemoGitLab } from '@/server/gitlab/fake/demo';
 import { POLICY_GID } from '@/server/gitlab/fake/demo/ids';
 import { SEED_NOW } from '@/server/index/seed';
-import { createMemory } from '../../state';
+import { createMemory, forgetProjects } from '../../state';
 import { readStateHistory } from '../../stateHistory';
 import { rig } from '../helpers';
 
@@ -25,6 +25,19 @@ describe('tier-state revisions in memory', () => {
       expect([...mem.states.keys()].every((k) => h.commits.some((c) => c.id === k))).toBe(true);
     }
     expect(Math.max(...sizes)).toBeLessThanOrEqual(2);
+  });
+});
+
+describe('forgetProjects', () => {
+  it('empties every map createMemory makes of a gone project, keeping the polled one and tier-state commits', () => {
+    const mem = createMemory();
+    // every map PollMemory holds, read from the memory itself, not from a list: a new one is covered the day it is added
+    const maps = Object.entries(mem) as [string, Map<unknown, unknown>][];
+    const keyOf = (name: string, id: number): unknown => (name === 'states' ? `commit-${id}` : ['notes', 'mrSizes', 'mrPipelines'].includes(name) ? `${id}!1` : id);
+    for (const [name, map] of maps) for (const id of [7, 8]) map.set(keyOf(name, id), {});
+    forgetProjects(mem, new Set([8]));
+    const left = Object.fromEntries(maps.map(([name, map]) => [name, [...map.keys()]]));
+    expect(left).toEqual(Object.fromEntries(maps.map(([name]) => [name, name === 'states' ? ['commit-7', 'commit-8'] : [keyOf(name, 8)]])));
   });
 });
 
