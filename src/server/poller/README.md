@@ -163,7 +163,8 @@ A promotion ask (`derive/promotion.ts`) carries `from`, `to` and each rule with 
 dismissed at or after the record's `since` is not opened again until the record moves (re-admits likewise).
 
 A task id belongs to the first project and MR that used it: a second MR claiming it is ignored and reported.
-Pipelines are read only to find the maturity scan job; no other row consumes them yet.
+Pipelines are read for two things: to find the maturity scan job (`maturityScan.ts`), and each agent MR's head
+pipeline status for the stability view (`mrFacts/facts.ts`, onto the task's `detail.pipeline`).
 
 ## Decided choices (the App Master's; council r2 judged both sound)
 

@@ -116,5 +116,5 @@
   and Setup do not yet. Not verified live: every write, the diffs endpoint,
   `start_branch`, issue label PUT for work items, the Flows API route. The fake does not model branches, issues or
   protections.
-- Pipelines are not read by the poller. Exact flow and bot account usernames are unverified. Times are formatted in
-  UTC.
+- The poller reads pipelines only to find the maturity scan job and each agent MR's head pipeline status. Exact flow
+  and bot account usernames are unverified. Times are formatted in UTC.
