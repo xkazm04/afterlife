@@ -17,6 +17,11 @@ export function clockText(sec: number): string {
   return formatClock(sec);
 }
 
+/** The time left as the screen words it: "19:11:59 left" (`unit`), or "overdue" once it is gone. Never "00:00:00 left". */
+export function leftText(sec: number, unit = ' left'): string {
+  return sec > 0 ? `${clockText(sec)}${unit}` : 'overdue';
+}
+
 /** How much of the window has passed, 0 to 100, to two decimals. */
 export function elapsedPercent(totalSec: number, leftSec: number): number {
   if (totalSec <= 0) return 100;

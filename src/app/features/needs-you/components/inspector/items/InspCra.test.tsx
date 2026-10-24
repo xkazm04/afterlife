@@ -3,6 +3,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../../data/pick';
+import { itemLede } from '../../../model/rows/lede';
 import { initialState } from '../../../model/state';
 import { InspCra } from './InspCra';
 
@@ -42,5 +43,14 @@ describe('InspCra grade', () => {
   it('reads reviewable when every link resolves and draft when one does not', () => {
     expect(grade('6 / 6')).toBe('reviewable');
     expect(grade('5 / 6')).toBe('draft');
+  });
+});
+
+describe('the clock at zero, on the page', () => {
+  it('reads overdue in the Clock card and the lede, as the band and the table do, not 00:00:00 left', () => {
+    expect(html(false)).not.toContain('00:00:00 left');
+    expect(itemLede(base, 'n2', demo, 0)).toContain('overdue');
+    expect(itemLede(base, 'n2', demo, 0)).not.toContain('left');
+    expect(itemLede(base, 'n2', demo, 3600)).toContain('01:00:00 left');
   });
 });

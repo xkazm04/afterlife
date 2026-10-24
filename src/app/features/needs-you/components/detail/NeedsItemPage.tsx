@@ -8,7 +8,7 @@ import type { NeedsYouDemo } from '../../data/types';
 import { useNeedsStore } from '../../hooks/NeedsStore';
 import { useElapsed } from '../../hooks/useElapsed';
 import { useReveal } from '../../hooks/useReveal';
-import { clockText, secondsLeft } from '../../model/clock/clock';
+import { secondsLeft } from '../../model/clock/clock';
 import { itemLede } from '../../model/rows/lede';
 import { rowView } from '../../model/rows/rowData';
 import { NeedsLegend } from '../chrome/NeedsLegend';
@@ -38,7 +38,7 @@ export function NeedsItemPage({ demo, id }: { demo: NeedsYouDemo; id: string }) 
     <DetailPage
       parent={{ label: 'Needs you', href: '/needs-you' }}
       title={title}
-      lede={itemLede(s, id, demo, clockText(leftSec))}
+      lede={itemLede(s, id, demo, leftSec)}
       status={`${title} · ${s.out.length} in outbox · nothing is sent until Run, in the outbox`}
       help={<NeedsLegend tierMeans={demo.tierMeans} />}
     >

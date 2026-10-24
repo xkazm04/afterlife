@@ -4,7 +4,7 @@ import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierMark } from '@/components/status/TierMark';
 import { PROJECT_REPO } from '../../../data/constants';
 import { CRA, EVIDENCE, GRADES, GRADE_NEVER } from '../../../data/cra';
-import { clockText, notifyLine } from '../../../model/clock/clock';
+import { leftText, notifyLine } from '../../../model/clock/clock';
 import { gradeIndex, gradeState } from '../../../model/clock/grades';
 import { GradeChip } from '../../shared/GradeChip';
 import { ActBtn, Acts } from '../Acts';
@@ -57,7 +57,7 @@ export function InspCra(p: InspProps) {
           ) : null}
         </Acts>
       ) : null}
-      <Sec k="n2-clock" title="Clock" aux={<span>{clockText(p.leftSec)} left</span>} p={p}>
+      <Sec k="n2-clock" title="Clock" aux={<span>{leftText(p.leftSec)}</span>} p={p}>
         <KeyValue
           rows={[
             ['Aware', `${CRA.awareAt} · a person confirms`],

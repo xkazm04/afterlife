@@ -96,7 +96,7 @@ describe('row cells', () => {
   });
   it('writes nothing for a gap Belay has no door for (the probe sends nothing yet), a diff size otherwise', () => {
     expect(rowView(fresh(), 'g4', demo)?.writes).toEqual({ kind: 'none' });
-    expect(itemLede(fresh(), 'g4', demo, '19:12:00')).toContain('writes nothing');
+    expect(itemLede(fresh(), 'g4', demo, 19 * 3600 + 12 * 60)).toContain('writes nothing');
     expect(rowView(fresh(), 'g1', demo)?.writes).toEqual({ kind: 'text', text: 'draft MR · 34 l' });
   });
   it('turns the runner chip from unknown to online after a check', () => {
