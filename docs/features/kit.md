@@ -10,7 +10,9 @@
 - Provides the Cmd/Ctrl+K command palette (`palette/CommandPalette`), mounted once for the whole app.
 - Sizes everything from the text-size variables in `src/styles/text-size.css`, so every part follows the Smaller /
   Standard / Larger setting. Colours come only from `src/styles/tokens.css`.
-- Shows every component in every state at `/kit` (`src/app/features/kit`).
+- Shows every component in every state at `/kit` (`src/app/features/kit`). `kitCoverage.test.ts` lists the exported
+  components from `src/components` on disk and fails when one is neither named by the kit nor exempt with a reason
+  (the parts `Window` draws itself, the palette, `ShellProvider`, the live-only `PollStatus`).
 
 ## How it works
 - **Window** (`shell/Window.tsx`, client): props `title`, `subtitle`, `toolbar`, `sidebar`, `inspector`,
@@ -24,12 +26,19 @@
   name under 76em, `Lozenge` words hide under 84em and the whole lozenge under 44em. Folded words stay available to
   assistive tech. If controls still do not fit, the middle slot clips; `end` sits outside it and is never clipped.
 - **Sidebar** (`shell/sidebar/`): traffic lights and a hide button, `AppNav` from `navItems.ts` (Fleet, Monitor, Needs
-  you with a badge, Ladder, Maturity, Cycles, Task, Onboard, Setup, Theater), the screen's own `SidebarSection` /
+  you with a badge, Ladder, Maturity, Cycles, Task, Onboard, Setup, Theater, Runs), the screen's own `SidebarSection` /
   `SidebarItem` content, and Settings pinned at the bottom. `activeNavKey(pathname)` marks the current item; each
   entry owns its sub-paths and `/` matches none. `SidebarItem` with `href` is a link, without it a filter button; an
   empty count takes no room, 0 still shows.
-- **StatusBar**: the screen's status on the left, the transient `useToast().status` message (`aria-live="polite"`), a
-  fixed "illustrative demo data" label, and the `?` help popover.
+- **StatusBar**: the screen's status on the left, the transient `useToast().status` message (`aria-live="polite"`),
+  in live mode the poll line (`bars/poll/PollStatus`: the last good poll's age, a failure and Re-poll), the data label
+  (`bars/dataLabel`: "illustrative demo data" in demo only; live says "live data · <group>", or the seeded fake
+  GitLab), and the `?` help popover. The shell's numbers come from `ShellContext`, re-read from `/api/shell` on
+  navigation and focus (`live/sync.ts`).
+- **Fallbacks and detail** (`shell/fallback/`, `shell/loading/`, `shell/detail/`): `ErrorView` and `NotFoundView`
+  behind `app/error.tsx`, `global-error.tsx` and `not-found.tsx`; `EntityNotFound` for a dynamic route whose thing is
+  missing; `ShellLoading`, the window frame while a screen streams in; `DetailPage` / `DetailSection`, a nested page
+  with a back link.
 - **OutlineTable** (`table/`): a focusable treegrid with sticky header and sticky group rows, one selection exposed
   via `aria-activedescendant`. `columns` is a grid template of the data columns; a filler track and filler cells are
   appended so rows span the pane. `flat` drops group indentation, `menuing` keeps the selection bright while a menu is
@@ -45,10 +54,11 @@
 - **Inspector blocks**: `InspectorHeader`, `InspectorSection` (collapsible, `aux` note), `KeyValue`, `CommandBlock`
   (lines as commands with `$`, `{code, note}`, or `{note}` comment lines), `blocks/DiffBlock` with `parseDiff`,
   `blocks/Stats`, and `UntrustedText` (mono, dashed rule, rendered as text, never HTML).
-- **Status**: `TierMark`, `TierChip`, `NeedsYouBadge`, `StateGlyph`, `FeedAge`, `chip/Chip` (tones plain, invariant,
+- **Status**: `TierMark`, `TierChip`, `NeedsYouBadge`, `StateGlyph`, `FeedAge`, `GateSeenLine`, `chip/Chip` (tones plain, invariant,
   neutral, ok, bad, accent, pending, lag, you, unknown) and `chip/HonestyChip` (`seeded`, `simulated`, `unknown`,
   `stale` with age).
-- **Viz**: `StageTicks`, `StageMeter`, `ProofBar`, `RungGlyph`, `DayStrip`, with cell logic in `viz/model/cells.ts`.
+- **Viz**: `StageTicks`, `StageMeter`, `ProofBar`, `RungGlyph`, `DayStrip`, with cell logic in `viz/model/cells.ts`;
+  `trend/TrendStrip` (a 28-day bar series, unknown days dashed) and `trend/TrendDelta` (a week's change, null a dash).
 - **Controls**: `Button` (variants, `href` makes it a link), `ObjectLink` (read-only GitLab link; a click toasts what
   would open), `Checkbox`, `Kbd`, `Spacer`, and toolbar controls `ToolbarButton`, `PopupButton`, `SegmentedControl`,
   `Stepper`, `SearchField`, `Lozenge` / `LozengeButton` / `LozengeDivider`. Also `surface/Card`, `icons/Icon`,
@@ -80,12 +90,12 @@
 ## Code map
 | Path | Role |
 |---|---|
-| `src/components/shell/` | `Window`, `bars/` (Toolbar, Inspector, StatusBar), `sidebar/`, `PaneScroll`, `BottomDrawer`, `dock/`, `loading/`, `ShellContext`, `Backdrop` |
+| `src/components/shell/` | `Window`, `bars/` (Toolbar, Inspector, StatusBar, `dataLabel`, `poll/`), `sidebar/`, `PaneScroll`, `BottomDrawer`, `dock/`, `detail/`, `fallback/`, `loading/`, `live/`, `ShellContext`, `Backdrop` |
 | `src/components/table/` | `OutlineTable`, rows, cells, `useSort`, `useRowNavigation`, `model/` |
 | `src/components/overlays/` | `Sheet`, `HelpButton`, `popover/`, `menu/`, `toast/`, `position.ts` |
 | `src/components/inspector/` | Header, Section, KeyValue, CommandBlock, UntrustedText, `blocks/` |
 | `src/components/status/` | Tier marks and chips, badge, glyph, feed age, `chip/` |
-| `src/components/viz/` | Stage, proof, rung and day visuals, `model/cells.ts` |
+| `src/components/viz/` | Stage, proof, rung and day visuals, `trend/`, `model/cells.ts` |
 | `src/components/controls/` | Buttons, links, checkbox, `toolbar/`, `lozenge/` |
 | `src/components/palette/` | `CommandPalette`, `model/items.ts`, `model/rank.ts` |
 | `src/components/surface/`, `icons/` | `Card`; `Icon` and glyphs |
@@ -103,10 +113,16 @@
 - `overlays/position.test.ts`, `menu/menuModel.test.ts`, `popover/reopenGuard.test.ts`;
   `inspector/blocks/diff.test.ts`; `viz/model/cells.test.ts`; `shell/sidebar/navItems.test.ts`;
   `src/lib/keyboard/hotkeys.test.ts`.
+- Component render tests (22 `.test.tsx` files): `shell/Window.test.tsx` and `Window.focus.test.tsx`,
+  `bars/StatusBar.test.tsx` (with `poll/pollLine.test.ts` and `live/sync.test.ts`), `fallback/`, `controls/__tests__/`
+  (Kbd, PopupButton, SearchField, SegmentedControl, Stepper, CSS states), `overlays/` (Menu, useMenu, HelpButton,
+  ToastProvider, Sheet, escape layers), `inspector/blocks/`, `status/__tests__/`, `viz/__tests__/`, `viz/trend/`,
+  `icons/glyphs.test.tsx`.
+- `src/app/features/kit/kit.test.tsx` renders every gallery and the whole `/kit` screen (unique specimen labels, the
+  section count, every icon glyph); `kitCoverage.test.ts` checks the kit against `src/components` on disk.
 
 ## Status and limits
-- Pure models are unit-tested; the React components themselves are exercised through feature server-render tests and
-  the `/kit` gallery, not by their own tests.
-- The status bar always says "illustrative demo data", in live mode too (it is a client component and does not read
-  the data mode).
+- Pure models and most components have their own tests; the rest are exercised through feature server-render tests
+  and the `/kit` gallery.
+- `PollStatus` has no `/kit` specimen: it is drawn only on a live poll, and a specimen's Re-poll would poll the group.
 - The palette searches only screens, seven fixed actions and project names/groups; it does not search tasks or MRs.
