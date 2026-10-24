@@ -114,7 +114,7 @@ async function read(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject
 
 /** One project's scan read. Never fails the poll: a failure is the poll's issue, and the cells stored before stay. `now`: the poll's clock, a gap's openedAt. */
 export async function pollMaturityScan(
-  port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject, projectId: string, issues: string[], now: Date = new Date(),
+  port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject, projectId: string, issues: string[], now: Date,
 ): Promise<ScanRead> {
   try {
     return await read(port, db, mem, gl, projectId, issues, now);

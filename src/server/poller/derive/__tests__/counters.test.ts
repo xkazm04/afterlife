@@ -30,7 +30,7 @@ const rules = repoPolicy();
 const row = (tier: ClassTierRow['tier']): ClassTierRow =>
   ({ projectId: 'ledgerline', classId: CLS, tier, since: SINCE, setBy: 'start tier + record', leaseExpires: null, record: null, move: null });
 const eligible = (src: CounterSource, tier: ClassTierRow['tier'] = 'assisted') =>
-  eligibleOf({ row: row(tier), record: countRecord(src, { agent: AGENT, classId: CLS, since: SINCE, window: tier === 'assisted' ? 5 : null }, NOW), role: 'patcher', track: 1, ceiling: 'hands_off', proof: 'exploit-test' }, rules);
+  eligibleOf({ row: row(tier), record: countRecord(src, { agent: AGENT, classId: CLS, since: SINCE, window: tier === 'assisted' ? 5 : null }, NOW), role: 'patcher', track: 1, ceiling: 'hands_off', proof: 'exploit-test' }, rules, NOW);
 
 describe('counters from tasks and the ledger', () => {
   it('counts merged MRs since the record, once each; no-edit stays null: merges known from the ledger alone state no edit', () => {

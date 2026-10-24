@@ -40,7 +40,7 @@ export const promotionTitle = (track: number | null, role: string, classId: stri
  * The class, when Ladder's rule calls it eligible against these thresholds at `now`: a record whose cooldown_until is
  * still ahead is not (the rule's cooldown row), so no ask opens before that date.
  */
-export function eligibleOf(c: PromotionCandidate, rules: PolicyRules | null, now: Date = new Date()): EligibleClass | null {
+export function eligibleOf(c: PromotionCandidate, rules: PolicyRules | null, now: Date): EligibleClass | null {
   const { row } = c;
   if (row.tier === null || row.tier === 'human_only') return null;
   const shown = shownOf(row);
