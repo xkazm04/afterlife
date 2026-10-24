@@ -70,7 +70,7 @@ export function stateLine(p: FleetProject): string {
   const parts: string[] = [];
   if (p.state === 'watching') parts.push(`watching · ${ageLine(p.feed.ageSec)}`);
   else if (p.state === 'setting-up') parts.push(`setting up · ${p.armed === null ? 'armed tracks not read' : `${p.armed} of 8 tracks armed`}${p.setupStep ? ` · ${p.setupStep}` : ' · step unknown'}`);
-  else if (p.state === 'stale') parts.push(`stale · ${p.feed.error ?? (p.feed.ageSec === null ? NO_GOOD_POLL : `no good poll for ${formatAge(p.feed.ageSec)}`)}`);
+  else if (p.state === 'stale') parts.push(`stale · ${p.feed.error || (p.feed.ageSec === null ? NO_GOOD_POLL : `no good poll for ${formatAge(p.feed.ageSec)}`)}`);
   else parts.push('not watched · unknown, not zero');
   const n = liveNeeds(p);
   if (n) parts.push(p.state === 'stale' ? `${decisionsWord(n)} (last known)` : decisionsWord(n));

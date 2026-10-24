@@ -54,6 +54,9 @@ describe('totals', () => {
     expect(stateLine(mk({ feed: { ageSec: null, ok: null } }))).toBe('watching · no good poll yet');
     expect(stateLine(mk({ state: 'stale', feed: { ageSec: null, ok: false } }))).toBe('stale · no good poll yet');
   });
+  it('a stale feed whose error is empty says its age, never a bare "stale · "', () => {
+    expect(stateLine(mk({ state: 'stale', feed: { ageSec: 2820, ok: false, error: '' } }))).toBe('stale · no good poll for 47 m');
+  });
   it('says stale and unknown in words', () => {
     expect(stateLine(fleet[1]!)).toBe('stale · project token expired · 1 decision waits (last known)');
     expect(stateLine(fleet[3]!)).toBe('not watched · unknown, not zero');
