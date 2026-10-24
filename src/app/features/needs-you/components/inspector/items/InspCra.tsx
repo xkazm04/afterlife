@@ -5,7 +5,7 @@ import { TierMark } from '@/components/status/TierMark';
 import { PROJECT_REPO } from '../../../data/constants';
 import { CRA, EVIDENCE, GRADES, GRADE_NEVER } from '../../../data/cra';
 import { leftText, notifyLine } from '../../../model/clock/clock';
-import { gradeIndex, gradeState } from '../../../model/clock/grades';
+import { gradeIndex, gradeState, resolvedTicks } from '../../../model/clock/grades';
 import { GradeChip } from '../../shared/GradeChip';
 import { ActBtn, Acts } from '../Acts';
 import { ItemHead } from '../Head';
@@ -18,6 +18,7 @@ export function InspCra(p: InspProps) {
   const { s, dispatch } = p;
   const st = s.status.n2;
   const gi = gradeIndex(st, p.demo.signoff.linksResolved);
+  const resolved = resolvedTicks(p.demo.signoff.linksResolved, EVIDENCE.length);
   return (
     <>
       <ItemHead
@@ -80,10 +81,10 @@ export function InspCra(p: InspProps) {
         <UntrustedText source="T2, the drafting agent">{CRA.draft}</UntrustedText>
       </Sec>
       <Sec k="n2-ev" title="Evidence" aux={`${p.demo.signoff.linksResolved} resolve`} p={p}>
-        {EVIDENCE.map((e) => (
+        {EVIDENCE.map((e, i) => (
           <div key={e.what} className={styles.lk}>
-            <span className={styles.y} role="img" aria-label="resolves">
-              ✓
+            <span className={i < resolved ? styles.y : styles.muted} role="img" aria-label={i < resolved ? 'resolves' : 'not resolved'}>
+              {i < resolved ? '✓' : '·'}
             </span>
             <span className={styles.t} title={e.detail}>
               {e.what}

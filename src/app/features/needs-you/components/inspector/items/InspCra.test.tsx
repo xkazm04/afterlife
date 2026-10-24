@@ -2,6 +2,7 @@
 // (BandSide.test.tsx): a disabled button is not focusable, so its title is the only place the reason can live.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { EVIDENCE } from '../../../data/cra';
 import { pickNeedsYouDemo } from '../../../data/pick';
 import { itemLede } from '../../../model/rows/lede';
 import { initialState } from '../../../model/state';
@@ -52,5 +53,15 @@ describe('the clock at zero, on the page', () => {
     expect(itemLede(base, 'n2', demo, 0)).toContain('overdue');
     expect(itemLede(base, 'n2', demo, 0)).not.toContain('left');
     expect(itemLede(base, 'n2', demo, 3600)).toContain('01:00:00 left');
+  });
+});
+
+describe('InspCra evidence ticks against the count', () => {
+  it('resolve only as far as the source count says, as the band strip does', () => {
+    const partial = { ...demo, signoff: { ...demo.signoff, linksResolved: '4 / 6' } };
+    const out = renderToStaticMarkup(<InspCra s={base} demo={partial} leftSec={0} dispatch={() => {}} />);
+    const section = out.slice(out.indexOf('Evidence'), out.indexOf('Grade<'));
+    expect(section.match(/aria-label="resolves"/g)).toHaveLength(4);
+    expect(section.match(/aria-label="not resolved"/g)).toHaveLength(EVIDENCE.length - 4);
   });
 });
