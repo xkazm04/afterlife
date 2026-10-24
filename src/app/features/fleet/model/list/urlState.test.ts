@@ -2,6 +2,9 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { SMART_FILTERS } from './smartFilters';
 import { STATE_LABEL } from '@/lib/demo/labels';
+import { DEMO } from '@/lib/demo';
+import { fleetColumns } from '../columns';
+import { SORT_MENU_KEYS, sortFitsView } from './sorting';
 import { DEFAULT_LIST_STATE, PROJECT_STATES, decodeListState, encodeListState, fitGroups, type FleetListState } from './urlState';
 
 const back = (s: FleetListState) => decodeListState(new URLSearchParams(encodeListState(s)));
@@ -21,6 +24,14 @@ describe('fleet list URL state', () => {
       filters: { source: 'g:payments', q: 'led ger&=', states: new Set(['stale', 'watching']), tiers: new Set(['hands_off', 'quarantined']) },
     };
     expect(back(s)).toEqual(s);
+  });
+
+  it('round-trips a sort on every column the three views draw, and on every Sort menu key', () => {
+    const meta = { classes: DEMO.fleet.classes, stages: DEMO.stages, tiers: DEMO.tiers };
+    for (const view of ['tiers', 'classes', 'stages'] as const) {
+      const keys = [...fleetColumns(view, meta).map((c) => c.key), ...SORT_MENU_KEYS.filter((k) => sortFitsView(k, view))];
+      for (const key of keys) expect(back({ ...DEFAULT_LIST_STATE, view, sort: { key, dir: 1 } }).sort, `${view} ${key}`).toEqual({ key, dir: 1 });
+    }
   });
 
   it('round-trips each default-direction and flipped sort', () => {

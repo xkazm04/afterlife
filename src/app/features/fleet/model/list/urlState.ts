@@ -7,7 +7,7 @@ import type { SortDir, SortState } from '@/components/table/model/sort';
 import type { FleetFilters, FleetView, SmartId, SortKey, Source } from '../types';
 import { EMPTY_FILTERS } from './filtering';
 import { SMART_FILTERS } from './smartFilters';
-import { INITIAL_SORT, defaultDir, sortFitsView } from './sorting';
+import { INITIAL_SORT, PLAIN_SORT_KEYS, defaultDir, sortFitsView } from './sorting';
 
 export interface FleetListState {
   view: FleetView;
@@ -32,7 +32,6 @@ const VIEWS: readonly FleetView[] = ['tiers', 'classes', 'stages'];
 /** Every project state, in display order: the keys of STATE_LABEL, so a new state cannot be missed by the legend, the URL decoder or the Filter menu. */
 export const PROJECT_STATES = Object.keys(STATE_LABEL) as readonly ProjectState[];
 const SMART: readonly SmartId[] = SMART_FILTERS.map((s) => s.id);
-const PLAIN_SORTS = ['attention', 'name', 'state', 'needs', 'proofs', 'stages', 'feed'];
 
 const all = (p: RawParams, k: string): string[] => {
   const v = p[k];
@@ -42,7 +41,7 @@ const first = (p: RawParams, k: string): string | undefined => all(p, k)[0];
 
 const isSource = (s: string): s is Source => s === 'all' || s === 'changed' || (SMART as readonly string[]).includes(s) || (s.startsWith('g:') && s.length > 2);
 const isSortKey = (s: string): s is SortKey =>
-  PLAIN_SORTS.includes(s) ||
+  (PLAIN_SORT_KEYS as readonly string[]).includes(s) ||
   (s.startsWith('tier:') && (TIER_DISPLAY_ORDER as readonly string[]).includes(s.slice(5))) ||
   (s.startsWith('class:') && s.length > 6) ||
   /^stage:\d{1,3}$/.test(s);

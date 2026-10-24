@@ -60,6 +60,9 @@ export function sortAfterViewChange(sort: SortState<SortKey>, view: FleetView): 
 
 const SORT_NAMES: Record<string, string> = { attention: 'Attention', name: 'Name', state: 'State', needs: 'Needs you', proofs: 'Proofs', stages: 'Stages', feed: 'Feed age' };
 
+/** The sort keys that are a plain word, not a tier, class or stage: the ones SORT_NAMES names (the URL decoder reads them). */
+export const PLAIN_SORT_KEYS = Object.keys(SORT_NAMES) as readonly SortKey[];
+
 /** The name shown on the Sort button and in the sort menu. */
 export function sortLabel(key: SortKey, stages: readonly string[]): string {
   const known = SORT_NAMES[key];
