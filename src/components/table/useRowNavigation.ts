@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, type KeyboardEvent, type RefObject } from 'react';
-import { isTypeAhead, navigate, revealDelta, rowDomId, type NavItem } from './model/rowNavigation';
+import { DEFAULT_PAGE, isTypeAhead, navigate, pageRows, revealDelta, rowDomId, type NavItem } from './model/rowNavigation';
 
 export interface RowNavigationOptions {
   /** The visible rows in order: groups ("g:" ids) and rows. Collapsed groups contribute no children. */
@@ -21,6 +21,20 @@ export interface RowNavigationOptions {
   grouped?: boolean;
 }
 
+/** Px of sticky header (and, under a group, the sticky group row) that cover the top of the scrolling table. */
+function coverOf(tbl: HTMLElement, selected: string, grouped: boolean | undefined): number {
+  const head = tbl.querySelector<HTMLElement>('[data-part="thead"]')?.offsetHeight ?? 0;
+  const groupH = grouped && !selected.startsWith('g:') ? (tbl.querySelector<HTMLElement>('[data-part="group-row"]')?.offsetHeight ?? 0) : 0;
+  return head + groupH;
+}
+
+/** The PageUp / PageDown step for the table as it is sized now: the rows that show (pageRows). */
+function pageOf(tbl: HTMLElement | null, selected: string | null, grouped: boolean | undefined): number {
+  if (!tbl || !selected) return DEFAULT_PAGE;
+  const row = document.getElementById(rowDomId(selected))?.offsetHeight ?? 0;
+  return pageRows(tbl.clientHeight, coverOf(tbl, selected, grouped), row);
+}
+
 /**
  * Keyboard and scroll behaviour of a treegrid. Pass the returned `onKeyDown` to OutlineTable. The selected row is
  * scrolled into view below the sticky header (and group row) whenever the selection changes.
@@ -33,10 +47,7 @@ export function useRowNavigation(o: RowNavigationOptions) {
     if (!tbl || !selected) return;
     const el = document.getElementById(rowDomId(selected));
     if (!el) return;
-    const head = tbl.querySelector<HTMLElement>('[data-part="thead"]')?.offsetHeight ?? 0;
-    const isGroup = selected.startsWith('g:');
-    const groupH = grouped && !isGroup ? (tbl.querySelector<HTMLElement>('[data-part="group-row"]')?.offsetHeight ?? 0) : 0;
-    const delta = revealDelta(el.getBoundingClientRect(), { rect: tbl.getBoundingClientRect(), clientTop: tbl.clientTop, clientHeight: tbl.clientHeight }, head + groupH);
+    const delta = revealDelta(el.getBoundingClientRect(), { rect: tbl.getBoundingClientRect(), clientTop: tbl.clientTop, clientHeight: tbl.clientHeight }, coverOf(tbl, selected, grouped));
     if (delta) tbl.scrollTop += delta;
   }, [selected, grouped, tableRef]);
 
@@ -48,7 +59,8 @@ export function useRowNavigation(o: RowNavigationOptions) {
         e.preventDefault();
         return;
       }
-      const action = navigate(items, selected, e.key);
+      const page = e.key === 'PageDown' || e.key === 'PageUp' ? pageOf(tableRef.current, selected, grouped) : DEFAULT_PAGE;
+      const action = navigate(items, selected, e.key, page);
       if (action.type === 'none') {
         if (onTypeAhead && isTypeAhead(e)) {
           onTypeAhead(e.key);
@@ -61,6 +73,6 @@ export function useRowNavigation(o: RowNavigationOptions) {
       else onActivate?.(action.id);
       e.preventDefault();
     },
-    [items, selected, onSelect, onToggleGroup, onActivate, onContextMenuKey, onTypeAhead],
+    [items, selected, onSelect, onToggleGroup, onActivate, onContextMenuKey, onTypeAhead, tableRef, grouped],
   );
 }

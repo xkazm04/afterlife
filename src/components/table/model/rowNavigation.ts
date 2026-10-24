@@ -21,7 +21,7 @@ export type NavAction =
   | { type: 'none' };
 
 const NONE: NavAction = { type: 'none' };
-const STEPS: Record<string, number | undefined> = { ArrowDown: 1, ArrowUp: -1, Home: -1e6, End: 1e6, PageDown: 20, PageUp: -20 };
+const STEPS: Record<string, number | undefined> = { ArrowDown: 1, ArrowUp: -1, Home: -1e6, End: 1e6 };
 
 export const groupNavId = (group: string): string => `g:${group}`;
 export const isGroupNavId = (id: string): boolean => id.startsWith('g:');
@@ -49,8 +49,21 @@ export function moveBy(items: readonly NavItem[], selected: string | null, delta
   return target ? { type: 'select', id: target.id } : NONE;
 }
 
-export function navigate(items: readonly NavItem[], selected: string | null, key: string): NavAction {
-  const step = STEPS[key];
+/** The PageUp / PageDown step when the pane's height is not known. */
+export const DEFAULT_PAGE = 20;
+
+/**
+ * Rows one PageDown moves in a pane `viewport` px tall under `cover` px of sticky header (and group row): one less than
+ * the rows that show, so the old bottom row stays in sight at the top. DEFAULT_PAGE when a size is unknown (0).
+ */
+export function pageRows(viewport: number, cover: number, rowH: number): number {
+  if (!(viewport > 0 && rowH > 0)) return DEFAULT_PAGE;
+  return Math.max(1, Math.floor((viewport - cover) / rowH) - 1);
+}
+
+/** The action for `key`. `page` is the PageUp / PageDown step (pageRows), DEFAULT_PAGE when left out. */
+export function navigate(items: readonly NavItem[], selected: string | null, key: string, page = DEFAULT_PAGE): NavAction {
+  const step = key === 'PageDown' ? page : key === 'PageUp' ? -page : STEPS[key];
   if (step !== undefined) return moveBy(items, selected, step);
   const cur = items.find((it) => it.id === selected);
   if (!cur) return NONE;

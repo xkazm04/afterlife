@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupNavId, groupOfNavId, isTypeAhead, moveBy, navigate, revealDelta, rowDomId, type NavItem } from './rowNavigation';
+import { groupNavId, groupOfNavId, isTypeAhead, moveBy, navigate, pageRows, revealDelta, rowDomId, type NavItem } from './rowNavigation';
 
 const g1 = groupNavId('core');
 const g2 = groupNavId('pay');
@@ -101,5 +101,25 @@ describe('groupOfNavId', () => {
   it('inverts groupNavId and is null for a row id', () => {
     expect(groupOfNavId(groupNavId('core'))).toBe('core');
     expect(groupOfNavId('row-id')).toBeNull();
+  });
+});
+
+describe('PageUp / PageDown move by the rows that show', () => {
+  const long: NavItem[] = Array.from({ length: 50 }, (_, i) => ({ id: `r${i}`, kind: 'row' }));
+  it('pageRows: the visible rows under the sticky cover, less one kept in sight', () => {
+    // a 300px pane, 28px header, 26px rows: 10 rows show, a page moves 9
+    expect(pageRows(300, 28, 26)).toBe(9);
+    // a tall pane at the Larger size (30px rows, 32px header + 30px sticky group row)
+    expect(pageRows(900, 62, 30)).toBe(26);
+    expect(pageRows(40, 28, 26)).toBe(1);
+  });
+  it('pageRows falls back to the default page when a size is unknown', () => {
+    expect(pageRows(0, 28, 26)).toBe(20);
+    expect(pageRows(300, 28, 0)).toBe(20);
+  });
+  it('navigate steps by the page it is given, and by 20 without one', () => {
+    expect(navigate(long, 'r0', 'PageDown', 9)).toEqual({ type: 'select', id: 'r9' });
+    expect(navigate(long, 'r30', 'PageUp', 9)).toEqual({ type: 'select', id: 'r21' });
+    expect(navigate(long, 'r0', 'PageDown')).toEqual({ type: 'select', id: 'r20' });
   });
 });
