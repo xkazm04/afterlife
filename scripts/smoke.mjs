@@ -5,11 +5,13 @@
 //
 //   npm run dev            # or npm start, in another terminal
 //   npm run smoke          # SMOKE_BASE=http://localhost:3000 by default; SMOKE_QUICK=1 checks 1440 x standard only
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { smokeRoutes } from './smoke/routes.mjs';
 
 const BASE = process.env.SMOKE_BASE ?? 'http://localhost:3000';
 const QUICK = process.env.SMOKE_QUICK === '1';
-const ROUTES = ['/fleet', '/monitor', '/needs-you', '/ladder', '/maturity', '/cycles', '/cycles?scope=estate', '/task', '/onboard', '/setup', '/theater', '/settings'];
+const ROUTES = smokeRoutes(fileURLToPath(new URL('../src/app', import.meta.url)));
 const DOOR = '/?quality=lite';
 const WIDTHS = QUICK ? [1440] : [1280, 1440, 1920];
 const SIZES = QUICK ? ['standard'] : ['smaller', 'standard', 'larger'];
