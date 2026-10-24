@@ -3,9 +3,12 @@
 import { QUALITY_KEY } from '../../door/model/fit';
 import { BASELINE_KEY } from '../../fleet/model/changes/baseline';
 import { TEXT_SIZE_STORAGE_KEY } from '@/lib/settings/textSize';
+import { XRAY_FIRST_KEY, XRAY_SEEN_KEY } from '../../xray/model/store';
 
 export const BROWSER_KEYS: readonly { what: string; key: string }[] = [
   { what: 'Text size', key: TEXT_SIZE_STORAGE_KEY },
   { what: 'Fleet "Changed since last look"', key: BASELINE_KEY },
   { what: 'Front door render tier', key: QUALITY_KEY },
+  { what: 'X-ray first visit (it opens once, on the demo)', key: XRAY_FIRST_KEY },
+  { what: 'X-ray screens seen (the sidebar First run)', key: XRAY_SEEN_KEY },
 ];

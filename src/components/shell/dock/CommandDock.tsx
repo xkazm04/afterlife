@@ -8,7 +8,7 @@ import styles from './dock.module.css';
  */
 export function CommandDock({ line, title, children }: { line: ReactNode; title?: string; children?: ReactNode }) {
   return (
-    <div className={styles.dock} aria-live="polite" title={title}>
+    <div className={styles.dock} aria-live="polite" title={title} data-xray="dock">
       <span className={styles.ln}>{line}</span>
       {children ? <span className={styles.keys}>{children}</span> : null}
     </div>

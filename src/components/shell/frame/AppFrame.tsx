@@ -11,9 +11,10 @@ import styles from './AppFrame.module.css';
  * The persistent part of the macOS window: Ghostwire's backdrop, the window box and its sidebar (left column). The `(app)`
  * route group's layout renders it once, so navigating between screens keeps the sidebar mounted and its open state; each
  * screen's Window fills the right column. `sidebar`: sections drawn inline, for a Window rendered on its own (no layout);
- * inside the layout a screen's sections arrive through the slot (FrameContext) instead.
+ * inside the layout a screen's sections arrive through the slot (FrameContext) instead. `overlay`: drawn over the whole window box
+ * (the (app) layout's X-ray), above the sidebar and the screen.
  */
-export function AppFrame({ sidebar, children }: { sidebar?: ReactNode; children?: ReactNode }) {
+export function AppFrame({ sidebar, overlay, children }: { sidebar?: ReactNode; overlay?: ReactNode; children?: ReactNode }) {
   const [sideOpen, setSideOpen] = useState(true);
   const [slot, setSlot] = useState<HTMLDivElement | null>(null);
   const frame = useMemo(() => ({ sideOpen, setSideOpen, slot }), [sideOpen, slot]);
@@ -27,6 +28,7 @@ export function AppFrame({ sidebar, children }: { sidebar?: ReactNode; children?
             <div ref={setSlot} />
           </Sidebar>
           {children}
+          {overlay}
         </div>
       </Motion>
     </FrameContext>

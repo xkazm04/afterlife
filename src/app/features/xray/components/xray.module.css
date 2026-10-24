@@ -1,0 +1,129 @@
+/* The X-ray: a blueprint over the real window (inside AppFrame's .win, so it moves and clips with it). */
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+}
+.svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.wash {
+  fill: var(--xray-wash);
+  animation: wash-in var(--t-slow) var(--ease) both;
+}
+.gridLine {
+  fill: none;
+  stroke: var(--xray-grid);
+  stroke-width: 1;
+}
+.outline,
+.outlineOn {
+  fill: none;
+  stroke: var(--xray-ink);
+  stroke-dasharray: 2 1.2;
+  stroke-width: 1;
+  opacity: 0.55;
+  animation: draw 700ms var(--ease) both;
+}
+.outlineOn {
+  stroke: var(--accent);
+  stroke-dasharray: 100 0;
+  stroke-width: 1.6;
+  opacity: 1;
+  filter: drop-shadow(0 0 calc(5px * var(--ui-scale)) var(--accent));
+}
+.leader {
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+  animation: wash-in var(--t-med) var(--ease) both;
+}
+.dot {
+  fill: var(--accent);
+}
+.badge {
+  position: absolute;
+  pointer-events: none; /* the app under the X-ray stays clickable: parts are picked in the panel */
+  min-width: calc(22px * var(--ui-scale));
+  height: calc(22px * var(--ui-scale));
+  padding: 0 calc(5px * var(--ui-scale));
+  border-radius: var(--r-pill);
+  border: 1px solid var(--xray-ink);
+  background: var(--tint-win);
+  color: var(--xray-ink);
+  font: 600 var(--t-small) / 1 var(--mono);
+  transition: background var(--t-fast);
+}
+.badgeOn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.card {
+  position: absolute;
+  pointer-events: none;
+  padding: calc(12px * var(--ui-scale)) calc(14px * var(--ui-scale));
+  border-radius: var(--r-md);
+  border: 1px solid var(--accent);
+  background: var(--menu);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px var(--shade-55), var(--win-halo);
+  color: var(--text-1);
+  transition: left var(--t-med) var(--ease), top var(--t-med) var(--ease);
+  animation: card-in var(--t-med) var(--ease) both;
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+  font-size: var(--t-title);
+}
+.cardNum {
+  display: inline-grid;
+  place-items: center;
+  min-width: calc(20px * var(--ui-scale));
+  height: calc(20px * var(--ui-scale));
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 600 var(--t-small) / 1 var(--mono);
+}
+.cardBody {
+  margin: calc(8px * var(--ui-scale)) 0 0;
+  font-size: var(--t-body);
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.cardTry {
+  margin: calc(8px * var(--ui-scale)) 0 0;
+  font: var(--t-small) var(--mono);
+  color: var(--accent);
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+}
+@keyframes wash-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6px * var(--ui-scale)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global([data-xray-layer]) *,
+  :global([data-xray-layer]) {
+    animation: none !important;
+    transition: none !important;
+  }
+}

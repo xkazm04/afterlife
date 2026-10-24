@@ -55,6 +55,8 @@ describe('ShellRead (the root layout shell read)', () => {
     expect(settled).not.toHaveBeenCalled();
     release();
     await pending;
-    expect(String(settled.mock.calls[0]?.[0])).toMatch(/first poll has not finished/);
+    // the read threw "first poll has not finished": the shell says live with nothing read, never the error page's throw
+    const el = settled.mock.calls[0]?.[0] as ReactElement<{ info: KnownShellInfo }>;
+    expect(el.props.info).toMatchObject({ needsYouCount: null, data: { mode: 'live', group: 'first poll not finished' } });
   });
 });

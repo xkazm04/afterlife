@@ -17,12 +17,12 @@ export function StatusBar({ children, help }: { children?: ReactNode; help?: Rea
   const { data } = useShellInfo();
   return (
     <footer className={styles.sbar}>
-      <span>{children}</span>
+      <span data-xray="status">{children}</span>
       <span className={styles.msg} aria-live="polite">
         {message ? `· ${message}` : ''}
       </span>
       {data?.poll && <PollStatus poll={data.poll} />}
-      <span className={styles.demo}>{dataLabel(data)}</span>
+      <span className={styles.demo} data-xray="data-label">{dataLabel(data)}</span>
       {help}
     </footer>
   );

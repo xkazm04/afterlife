@@ -1,0 +1,138 @@
+/* The X-ray's docked panel: the parts of this screen, the tour's next screen, the way out. */
+.panel {
+  position: absolute;
+  right: calc(14px * var(--ui-scale));
+  bottom: calc(38px * var(--ui-scale));
+  width: calc(318px * var(--ui-scale));
+  max-height: calc(100% - 120px);
+  overflow: auto;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-md);
+  border: 1px solid var(--xray-ink);
+  background: var(--menu);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 16px 40px var(--shade-60);
+  animation: panel-in var(--t-med) var(--ease) both;
+}
+.panelHead {
+  display: flex;
+  align-items: baseline;
+  gap: calc(8px * var(--ui-scale));
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale)) calc(6px * var(--ui-scale));
+  font-size: var(--t-body);
+}
+.kicker {
+  font: 600 var(--t-small) var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--xray-ink);
+}
+.dim {
+  color: var(--text-4);
+  font-size: var(--t-small);
+}
+.close {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--text-3);
+  font-size: var(--t-title);
+  cursor: pointer;
+}
+.close:hover {
+  color: var(--text-1);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 calc(6px * var(--ui-scale));
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+  width: 100%;
+  min-height: var(--ctl-h);
+  padding: 0 calc(6px * var(--ui-scale));
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-2);
+  font: var(--t-body) var(--sys);
+  text-align: left;
+  cursor: pointer;
+}
+.item:hover {
+  background: var(--hover);
+}
+.item[aria-current="step"] {
+  background: var(--sel);
+  color: var(--text-1);
+  box-shadow: var(--sel-edge);
+}
+.item:not([aria-current="step"]) .itemNum {
+  background: none;
+  border: 1px solid var(--xray-ink);
+  color: var(--xray-ink);
+}
+.item[data-missing] {
+  color: var(--text-4);
+}
+.note {
+  margin: 0;
+  padding: 0 calc(12px * var(--ui-scale));
+  color: var(--text-3);
+  font-size: var(--t-body);
+}
+.actions {
+  display: flex;
+  gap: calc(6px * var(--ui-scale));
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+}
+.actions > :last-child {
+  margin-left: auto;
+}
+.panelFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(4px * var(--ui-scale)) calc(10px * var(--ui-scale));
+  padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border-top: 1px solid var(--sep);
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.panelFoot a {
+  color: var(--accent);
+}
+.honest {
+  padding: 0 calc(6px * var(--ui-scale));
+  border: 1px dashed var(--unknown);
+  border-radius: var(--r-pill);
+  color: var(--text-2);
+}
+
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(8px * var(--ui-scale)));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}
+.itemNum {
+  display: inline-grid;
+  place-items: center;
+  min-width: calc(20px * var(--ui-scale));
+  height: calc(20px * var(--ui-scale));
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 600 var(--t-small) / 1 var(--mono);
+}

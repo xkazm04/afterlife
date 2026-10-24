@@ -36,6 +36,7 @@ describe('activeNavKey', () => {
     expect(activeNavKey('/monitor')).toBe('monitor');
     expect(activeNavKey('/cycles')).toBe('cycles');
     expect(activeNavKey('/onboard')).toBe('onboard');
+    expect(activeNavKey('/trace')).toBe('trace');
     expect(activeNavKey('/task/01J8Q4')).toBe('task');
     expect(activeNavKey('/settings')).toBe('settings');
   });
@@ -46,8 +47,8 @@ describe('activeNavKey', () => {
 });
 
 describe('nav data', () => {
-  it('lists the eleven screens in order, Settings apart', () => {
-    expect(APP_NAV.map((e) => e.label)).toEqual(['Fleet', 'Monitor', 'Needs you', 'Ladder', 'Maturity', 'Cycles', 'Task', 'Onboard', 'Setup', 'Theater', 'Runs']);
+  it('lists the twelve screens in order, Settings apart', () => {
+    expect(APP_NAV.map((e) => e.label)).toEqual(['Fleet', 'Monitor', 'Needs you', 'Ladder', 'Maturity', 'Cycles', 'Task', 'Onboard', 'Setup', 'Trace', 'Theater', 'Runs']);
     expect(SETTINGS_NAV.href).toBe('/settings');
     expect(APP_NAV.filter((e) => e.needsYouBadge).map((e) => e.key)).toEqual(['needs-you']);
   });

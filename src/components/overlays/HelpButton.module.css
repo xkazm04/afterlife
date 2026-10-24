@@ -16,3 +16,21 @@
 .help:hover {
   background: var(--ctl-hover);
 }
+/* the legend's foot: the X-ray of the screen the legend belongs to */
+.xray {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--ui-scale));
+  margin-top: calc(10px * var(--ui-scale));
+  padding: calc(4px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  border: 1px solid var(--xray-ink);
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--xray-ink);
+  font: inherit;
+  font-size: var(--t-small);
+  cursor: pointer;
+}
+.xray:hover {
+  background: var(--hover);
+}

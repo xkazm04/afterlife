@@ -119,6 +119,11 @@
   --sel-edge: inset 1px 0 0 var(--accent), inset -1px 0 0 color-mix(in oklab, var(--accent) 35%, transparent);
   --title-glow: 1px 0 0 color-mix(in oklab, var(--accent-2) 55%, transparent), -1px 0 0 color-mix(in oklab, var(--accent) 55%, transparent);
 
+  /* X-ray (features/xray) and Trace (features/trace): the blueprint the app is seen through, and its grid lines */
+  --xray-ink: #8fd3ff;
+  --xray-wash: rgba(6, 22, 40, 0.62);
+  --xray-grid: rgba(143, 211, 255, 0.07);
+
   /* about film (/about): the night city the one-change film plays in. Its own warm cream text, the moon, lamp glow and
      the night gradient; the beat voices reuse the palette above (accent, accent-2, fail, ok, tier blue and violet) */
   --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;

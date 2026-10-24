@@ -12,4 +12,5 @@ export const SHORTCUTS: readonly ShortcutRow[] = [
   { label: 'Smaller text', mac: ['⌘', '-'], other: ['Ctrl', '-'] },
   { label: 'Standard size', mac: ['⌘', '0'], other: ['Ctrl', '0'] },
   { label: 'Toggle the inspector, on a screen that has one', mac: ['⌘', 'I'], other: ['Ctrl', 'I'] },
+  { label: 'X-ray: label every part of the screen (Esc leaves)', mac: ['X'], other: ['X'] },
 ];
