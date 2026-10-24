@@ -2,6 +2,7 @@
 // for a request always follows the running server's environment, never the one the build ran in.
 import { actionDeps } from '@/server/actions/deps';
 import { pollIntervalMs } from '@/server/poller';
+import { liveLine } from './boot';
 import { demoSource } from './demoSource';
 import { readDataConfig } from './config';
 import { liveSource } from './live/liveSource';
@@ -15,7 +16,9 @@ function notReady(env: Record<string, string | undefined>): Error {
   const failed = lastStartFailure();
   if (!failed) return new Error('BELAY_MODE=live, but the first poll has not finished: the server starts it in instrumentation.ts');
   if (!startInFlight() && Date.now() - failed.at >= pollIntervalMs()) {
-    startRuntime(readDataConfig(env)).catch(() => undefined); // the failure is kept by startRuntime; the next read names it
+    const cfg = readDataConfig(env);
+    // A failure is kept by startRuntime and the next read names it; a success is said once, as bootLive says a first start.
+    startRuntime(cfg).then((rt) => console.log(liveLine(cfg, rt, ' after a failed start')), () => undefined);
   }
   return new Error(`BELAY_MODE=live, but the live start failed: ${failed.message}. It is retried every ${pollIntervalMs() / 1000}s.`);
 }

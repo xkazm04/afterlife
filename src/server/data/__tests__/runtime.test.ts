@@ -92,6 +92,16 @@ describe('the pages after a failed start', () => {
     expect(mocked).toHaveBeenCalledTimes(2); // one retry, the second read sees it in flight
     await vi.waitFor(() => expect(readyRuntime()).not.toBeNull());
   });
+
+  it("say in the log when a page's retry brings live data up, as bootLive says a first start", async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(quiet);
+    await expect(startRuntime(cfg, quiet)).rejects.toThrow();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(Date.now() + 31_000);
+    expect(read).toThrow();
+    await vi.waitFor(() => expect(log.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^belay: live data from the seeded fake GitLab .*after a failed start/)]));
+    log.mockRestore();
+  });
 });
 
 describe('bootLive', () => {

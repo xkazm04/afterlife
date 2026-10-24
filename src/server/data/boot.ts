@@ -1,6 +1,6 @@
 // Starts live mode when the server starts (called from src/instrumentation.ts). In demo mode it does nothing, and tests
 // never call it: the scheduler it starts is the only timer the poller has.
-import { readDataConfig } from './config';
+import { readDataConfig, type DataConfig } from './config';
 import { pollIntervalMs } from '@/server/poller';
 import { startRuntime, type LiveRuntime } from './live/runtime';
 
@@ -15,6 +15,11 @@ export async function bootLive(env: Record<string, string | undefined> = process
     console.error(`belay: live start failed: ${e instanceof Error ? e.message : String(e)}; the pages name it and the start is retried every ${pollIntervalMs() / 1000}s`);
     return;
   }
+  console.log(liveLine(cfg, rt));
+}
+
+/** The one line a live start that succeeded says: bootLive's at server start, select.ts's when a page's retry succeeds. */
+export function liveLine(cfg: DataConfig, rt: LiveRuntime, after = ''): string {
   const failed = rt.last?.projects.filter((p) => !p.ok).length ?? 0;
-  console.log(`belay: live data from ${cfg.gitlab === 'fake' ? 'the seeded fake GitLab (replay clock)' : 'glab'}; ${rt.last?.projects.length ?? 0} project(s) polled${rt.last?.error ? `, group error: ${rt.last.error}` : failed ? `, ${failed} failed` : ''}`);
+  return `belay: live data from ${cfg.gitlab === 'fake' ? 'the seeded fake GitLab (replay clock)' : 'glab'}${after}; ${rt.last?.projects.length ?? 0} project(s) polled${rt.last?.error ? `, group error: ${rt.last.error}` : failed ? `, ${failed} failed` : ''}`;
 }
