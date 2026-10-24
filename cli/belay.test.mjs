@@ -1,13 +1,16 @@
-// The CLI's contract today: `help`/unknown prints usage and exits 0; the unbuilt verbs say so and exit 2 (never a silent 0).
+// The CLI's contract today: no verb or `help` prints usage and exits 0; an unknown verb and the unbuilt ones exit 2 (never a
+// silent 0).
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 
 const bin = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'belay.mjs');
 const belay = (...args) => spawnSync(process.execPath, [bin, ...args], { encoding: 'utf8' });
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-cli-'));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
 describe('cli/belay.mjs', () => {
   it('prints usage and exits 0 for no verb and for help', () => {
@@ -39,7 +42,7 @@ describe('cli/belay.mjs', () => {
     const bad = belay('run');
     expect(bad.status).toBe(2);
     expect(bad.stderr).toContain('usage: belay run --repo');
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-cli-'));
+    const dir = fs.mkdtempSync(path.join(tmp, 'run-'));
     const fleet = path.join(dir, 'fleet.yml');
     fs.writeFileSync(fleet, 'repos:\n  - slug: demo\n    path: /nowhere\n    base: main\n    laneCapUsd: 2\n    gates: [npm test]\n');
     const r = belay('run', '--repo', 'demo', '--fleet', fleet, '--wave-cap', '9', '--model', 'opus', '--dry-run');
@@ -57,7 +60,7 @@ describe('cli/belay.mjs', () => {
   }, 240_000);
 
   it('scan reads a checkout given as a positional or as --dir, the form engine/commands/scan.ts documents', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
+    const dir = fs.mkdtempSync(path.join(tmp, 'scan-'));
     const positional = belay('scan', dir);
     expect(positional.status, positional.stderr).toBe(0);
     for (const args of [['--dir', dir], ['--dir', dir, '--propose'], [dir, '--propose']]) {

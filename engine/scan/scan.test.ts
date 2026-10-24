@@ -1,15 +1,18 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { main } from '../cli';
 import { capture, NOW, ROOT } from '../__tests__/helpers';
 import { readCi } from './ci';
 import { checkoutFacts } from './local';
 import { propose, scan } from './scan';
 
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
 function checkout(files: Record<string, string>): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
+  const dir = fs.mkdtempSync(path.join(tmp, 'co-'));
   for (const [p, text] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(path.join(dir, p)), { recursive: true });
     fs.writeFileSync(path.join(dir, p), text);
