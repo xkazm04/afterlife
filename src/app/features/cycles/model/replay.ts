@@ -96,22 +96,19 @@ export function reach(c: CycleChange): number {
   return Math.max(0, c.to - (c.from ?? 0));
 }
 
-/** The numbers for one cycle. `net` counts rung steps, so R0 -> R2 is 2. */
+/**
+ * The numbers for one cycle. `net` counts rung steps, so R0 -> R2 is 2: every change that moves a rung adds what it
+ * moved (an unknown counts as nothing, as in `total`), so a cycle's net is exactly what the replay moved.
+ */
 export function summarize(cycle: Cycle): CycleSummary {
   const s: CycleSummary = { sent: 0, credited: 0, missed: 0, regressed: 0, resolved: 0, net: 0 };
   for (const c of cycle.changes) {
     if (c.kind === 'mr' && c.mr) s.sent++;
-    if (c.verdict === 'credited') {
-      s.credited++;
-      s.net += c.to - (c.from ?? 0);
-    } else if (notEarned(c)) s.missed++;
-    else if (c.verdict === 'regressed') {
-      s.regressed++;
-      s.net -= (c.from ?? 0) - c.to;
-    } else if (c.verdict === 'resolved') {
-      s.resolved++;
-      s.net += c.to;
-    }
+    if (moves(c)) s.net += c.to - (c.from ?? 0);
+    if (c.verdict === 'credited') s.credited++;
+    else if (notEarned(c)) s.missed++;
+    else if (c.verdict === 'regressed') s.regressed++;
+    else if (c.verdict === 'resolved') s.resolved++;
   }
   return s;
 }

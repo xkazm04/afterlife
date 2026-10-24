@@ -76,6 +76,10 @@ describe('replay', () => {
     expect([after.plan, after.create, after.verify, after.monitor]).toEqual([2, 0, 0, 1]);
     expect(summarize(c)).toEqual({ sent: 3, credited: 1, missed: 2, regressed: 0, resolved: 1, net: 3 });
   });
+  it('nets a resolved probe on a known rung by the steps it moved, as the replay does', () => {
+    const c = cycle({ changes: [{ mr: null, kind: 'probe', stage: 'monitor', from: 1, to: 2, title: '', verdict: 'resolved', why: '' }] });
+    expect(summarize(c).net).toBe(total(applyCycle({ ...zero, monitor: 1 }, c)) - total({ ...zero, monitor: 1 }));
+  });
   it('moves nothing for a running cycle', () => {
     const c = cycle({ state: 'running', changes: [{ mr: null, kind: 'mr', stage: 'plan', from: 0, to: 1, title: '', verdict: 'pending', why: '' }] });
     expect(applyCycle(zero, c)).toBe(zero);
