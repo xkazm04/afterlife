@@ -5,7 +5,7 @@ import type { CycleHistory } from '@/lib/demo/cycles/types';
 import type { DemoData, NeedsYouItem, Task } from '@/lib/demo/types';
 import type { Stability } from '@/lib/stability/stability';
 import { addDays, TREND_DAYS, utcDay, type FleetDayRow } from '@/lib/trend/trend';
-import type { LedgerEvent } from '@/schemas/ledger';
+import { verifyChain, type LedgerEvent } from '@/schemas/ledger';
 import { clock, getActionClasses, getDecided, getEstateCycles, getEvents, getFleet, getMaturity, getNeedsYou, getStability, getTasks } from '@/server/index/views';
 import { readFleetDays } from '@/server/index/repositories/fleet/day';
 import { getProjectRow, listProjects } from '@/server/index/repositories/fleet/project';
@@ -14,7 +14,7 @@ import { getPairing, type PairingRow } from '@/server/index/repositories/pairing
 import { readConfig } from '@/server/gitlab/config';
 import { feedStatusOf, getPollState, listPollStates, policySource, projectSource, type PollStateRow } from '@/server/index/repositories/pollState';
 import type { Queryable } from '@/server/index/repositories/sql';
-import type { DecidedItem, PolicyRules, PollHealth, TiersStale } from '../types';
+import type { DecidedItem, LedgerChainCheck, PolicyRules, PollHealth, TiersStale } from '../types';
 import { isSeeded } from './seeded';
 import { actionClass, maturity, task } from './narrow';
 
@@ -39,6 +39,8 @@ export interface LiveData {
   pairing: PairingRow | null;
   /** The deep project's ledger events as the index holds them (verified on import), in seq order; [] without one. */
   ledger: readonly LedgerEvent[];
+  /** `ledger` verified from genesis, once per snapshot (so once per poll): no page request runs verifyChain. */
+  ledgerCheck: LedgerChainCheck;
   /** The poller's health (the group's poll row and the polled projects'), aged by the snapshot's read clock. */
   poll: PollHealth;
   /** Every project with a recorded cycle, by project id (the deep project included). */
@@ -89,6 +91,7 @@ export async function buildSnapshot(db: Queryable, at: Date, deep: string, catal
       tiersStale,
       pairing,
       ledger,
+      ledgerCheck: { hash: 'sha256', brokenAt: verifyChain(ledger) },
       poll,
       estate,
       stability,

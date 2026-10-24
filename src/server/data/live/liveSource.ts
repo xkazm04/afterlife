@@ -43,6 +43,7 @@ export function liveSource(snapshot: () => LiveSnapshot, catalogue: DemoData = D
     getEvents: () => data().events,
     getCockpit: () => data().cockpit,
     getLedger: () => data().ledger,
+    getLedgerCheck: () => data().ledgerCheck,
     getPolicy: () => data().policy,
     getTiersStale: () => data().tiersStale,
     getPollHealth: () => data().poll,

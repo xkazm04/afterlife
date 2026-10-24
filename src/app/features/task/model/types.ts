@@ -108,8 +108,8 @@ export interface LedgerRow {
 }
 
 /**
- * How the task's ledger rows were checked. 'sha256': the real chain's rows (live), the whole chain re-verified on the server
- * with the schema's verifyChain. 'illustrative': the fixture's rows, chained with the FNV stand-in (demo). brokenAt: the seq
+ * How the task's ledger rows were checked. 'sha256': the real chain's rows (live), the whole chain verified on the server
+ * with the schema's verifyChain, once per poll (the data source's getLedgerCheck). 'illustrative': the fixture's rows, chained with the FNV stand-in (demo). brokenAt: the seq
  * of the first link that does not verify, or null when every link does.
  */
 export interface LedgerCheck {

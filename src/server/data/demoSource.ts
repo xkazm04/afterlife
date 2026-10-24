@@ -5,11 +5,13 @@ import { DEMO_NOW } from '@/lib/demo/clock';
 import { foldStability } from '@/lib/stability/stability';
 import { seedFleetDays } from '@/lib/trend/seed';
 import { utcDay, type FleetDayRow } from '@/lib/trend/trend';
+import { verifyChain } from '@/schemas/ledger';
 import { repoPolicy } from './policy';
 import { DEMO_HUMAN_KEY } from './setup/humanKey';
-import type { DataSource } from './types';
+import type { DataSource, LedgerChainCheck } from './types';
 
 let seeded: FleetDayRow[] | null = null;
+let ledgerCheck: LedgerChainCheck | null = null;
 
 export const demoSource: DataSource = {
   mode: 'demo',
@@ -31,6 +33,7 @@ export const demoSource: DataSource = {
   getEvents: demo.getEvents,
   getCockpit: demo.getCockpit,
   getLedger: () => [],
+  getLedgerCheck: () => (ledgerCheck ??= { hash: 'sha256', brokenAt: verifyChain(demoSource.getLedger()) }),
   getPolicy: () => repoPolicy(),
   getTiersStale: () => null,
   getPollHealth: () => null,

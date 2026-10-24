@@ -53,10 +53,13 @@ demo answers verified, marked `demo`.
 
 `getLedger()` returns the deep project's events (`belay-ledger/events/<gitlab-id>.jsonl`) as the index holds them, in seq
 order. Live, `buildSnapshot` reads them once per poll with `readLedger(db, gitlabId)`, the gitlab id from the deep project's
-row; a project with no gitlab id, or with no ledger, reads `[]`. The index holds only a chain that verified on import
-(`../ledger/importLedger.ts`), so the source does not verify it again. Demo: `[]`: the demo dataset has no ledger, and the
-hosted replay reaches no index. Tested in `__tests__/ledger.test.ts` on the fake group (`__tests__/fakeGroup.ts`, the rig
-`parity.test.ts` shares): ledgerline's 7 events, which `verifyChain` accepts.
+row; a project with no gitlab id, or with no ledger, reads `[]`. Demo: `[]`: the demo dataset has no ledger, and the
+hosted replay reaches no index. `getLedgerCheck()` is that chain verified from genesis (`{ hash: 'sha256', brokenAt }`, the
+first broken seq or null): live, `buildSnapshot` runs `verifyChain` once per poll (the index holds only a chain that verified
+on import, `../ledger/importLedger.ts`, but one edited in the index since must still read broken); demo, once. The Task
+docket reads it, so no page request re-hashes the chain. Tested in `__tests__/ledger.test.ts` on the fake group
+(`__tests__/fakeGroup.ts`, the rig `parity.test.ts` shares): ledgerline's 7 events, which `verifyChain` accepts, and the
+same chain edited in the index, which reads broken.
 
 ## The fake group and parity
 

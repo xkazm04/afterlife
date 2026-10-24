@@ -35,8 +35,8 @@
 - `model/build/loadTasks.ts`: `loadTasks()` reads tasks, tracks and action classes from the DataSource and calls
   `buildTasks` with the fixtures in `data/details/` (`TASK_DETAIL`, and `TASK_ORDER`, its keys). In live mode only the
   source's tasks are drawn (a source task with no fixture from its own fields, `sourceTask`), and each task's ledger is
-  its merge request's slice of the real chain (`build/chain/taskLedger.ts`: `chainLedgers`, verified once with the
-  schema's `verifyChain`; server-only). `build/loadPage.ts`: `loadPageFacts()` (subtitle, poll age).
+  its merge request's slice of the real chain (`build/chain/taskLedger.ts`: `chainLedgers`, its check the data source's
+  `getLedgerCheck()`, which verifies the chain once per poll; no request re-hashes it). `build/loadPage.ts`: `loadPageFacts()` (subtitle, poll age).
 - Pure model (`model/`):
   - `build/buildTasks.ts`: merges each dataset row (or a fixture's own `local` base row) with its fixture into a
     `TaskView`. The dataset wins where it has a value; the dataset quote replaces the hunk's added line; tier now comes

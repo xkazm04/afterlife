@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { getTasks, type Task } from '@/lib/demo';
-import { append, type LedgerEvent } from '@/schemas/ledger';
+import { append, verifyChain, type LedgerEvent } from '@/schemas/ledger';
 import { demoSource } from '@/server/data/demoSource';
 import { setDataSource } from '@/server/data/select';
 import type { DataSource } from '@/server/data/types';
@@ -14,13 +14,11 @@ import type { TaskView } from '../types';
 const v204 = getTasks().filter((t) => t.id === '01J8Q4');
 const FIXTURE_ONLY = ['01J8Q7', '01J8Q8', '01J8QA'];
 
-const live = (over: Partial<DataSource> = {}): DataSource => ({
-  ...demoSource,
-  mode: 'live',
-  getTasks: () => v204,
-  deepProjectId: () => 'ledgerline',
-  ...over,
-});
+/** A live source over `over`; its chain check is its own ledger verified, as the live source's snapshot verifies it. */
+const live = (over: Partial<DataSource> = {}): DataSource => {
+  const ds: DataSource = { ...demoSource, mode: 'live', getTasks: () => v204, deepProjectId: () => 'ledgerline', ...over };
+  return { ...ds, getLedgerCheck: () => ({ hash: 'sha256', brokenAt: verifyChain(ds.getLedger()) }) };
+};
 afterEach(() => setDataSource(null));
 
 describe('the docket in live mode', () => {
