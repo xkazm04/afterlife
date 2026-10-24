@@ -7,7 +7,7 @@ import styles from './table.module.css';
 /**
  * A data row of --row-h. `id` is your row id. Mouse-down selects (and keeps focus on the table); double-click
  * activates; right-click calls onContextMenu. Rules of the honesty marks: `stale` hatches and dims the row's glyphs
- * (data-stale reaches TierMark, ProofBar, StageTicks), `muted` greys the name of an unwatched row.
+ * (data-stale reaches TierMark, ProofBar, StageTicks and StageMeter), `muted` greys the name of an unwatched row.
  * Children are the cells in column order (start with <Cell indent>); the filler cell is added for you.
  */
 export function Row({
