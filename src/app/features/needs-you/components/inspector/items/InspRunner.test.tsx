@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../../data/pick';
+import { RUNNER } from '../../../data/runner';
+import { rowView } from '../../../model/rows/rowData';
 import { initialState } from '../../../model/state';
 import { InspRunner } from './InspRunner';
 
@@ -26,13 +28,15 @@ describe('InspRunner', () => {
 });
 
 describe('InspRunner age', () => {
-  it('the unknown chip and the Checked row quote one age, typed once', () => {
+  it('the unknown chip, the Checked row and the list row chip quote one age, from data/runner.ts', () => {
     const demo = pickNeedsYouDemo();
-    const out = renderToStaticMarkup(<InspRunner s={{ ...initialState(demo), sel: 'n5' }} demo={demo} leftSec={0} dispatch={() => {}} />);
-    expect(out.match(/2 h old/g)).toHaveLength(2);
-    const src = readFileSync(join(__dirname, 'InspRunner.tsx'), 'utf8')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/^\s*\/\/.*$/gm, '');
-    expect(src.match(/2 h old/g)).toHaveLength(1);
+    const s = { ...initialState(demo), sel: 'n5' };
+    const out = renderToStaticMarkup(<InspRunner s={s} demo={demo} leftSec={0} dispatch={() => {}} />);
+    expect(out.split(RUNNER.checkedAgo)).toHaveLength(3);
+    expect(rowView(s, 'n5', demo)?.move).toMatchObject({ title: `Unknown · checked ${RUNNER.checkedAgo}` });
+    for (const f of [join(__dirname, 'InspRunner.tsx'), join(__dirname, '../../../model/rows/rowData.ts')]) {
+      const src = readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+      expect(src).not.toMatch(/\b2 h (old|ago)\b/);
+    }
   });
 });
