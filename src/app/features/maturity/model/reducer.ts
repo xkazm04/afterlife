@@ -23,6 +23,9 @@ export type Action =
   | { type: 'rescanAll' }
   | SendAction;
 
+/** The gap the preview shows: the one it shows, while still picked and unsent, else the first pending one. */
+const previewOf = (pv: string | null, pend: readonly string[]): string | null => (pv && pend.includes(pv) ? pv : (pend[0] ?? null));
+
 /**
  * Keeps the stepper honest after any change: a step whose precondition vanished falls back, the preview follows picks. The
  * sheet stays while it shows a gap (an answered one too); a closed sheet holds no writes (the files may move before it opens).
@@ -33,7 +36,7 @@ function settle(s: MaturityState, ctx: MaturityCtx): MaturityState {
   if (step === 2 && !pend.length) step = 1;
   if (step === 3 && !sheetIds(s, ctx).length) step = 1;
   if (step === 4 && !inFlightIds(s).length) step = 1;
-  const pv = step === 2 && !(s.pv && pend.includes(s.pv)) ? (pend[0] ?? null) : s.pv;
+  const pv = step === 2 ? previewOf(s.pv, pend) : s.pv;
   const sheet = step === 3 ? s.sheet : false;
   const send = sheet || !Object.keys(s.send).length ? s.send : {};
   return step === s.step && pv === s.pv && sheet === s.sheet && send === s.send ? s : { ...s, step, pv, sheet, send };
@@ -55,7 +58,7 @@ function go(s: MaturityState, ctx: MaturityCtx, k: Step): MaturityState {
   if (k === 4 && !fly.length) return s;
   let next: MaturityState = { ...s, step: k };
   if (k === 2) {
-    const pv = s.pv && pend.includes(s.pv) ? s.pv : (pend[0] ?? null);
+    const pv = previewOf(s.pv, pend);
     next = openGap({ ...next, pv, sel: (pv && ctx.gap(pv)?.stage) || s.sel });
   }
   if (k === 3) next = { ...next, sheet: true };

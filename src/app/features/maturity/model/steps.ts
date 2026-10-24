@@ -47,13 +47,10 @@ export function nextStage(ctx: MaturityCtx, sel: MaturityState['sel'], dir: 1 | 
 }
 
 /**
- * The stage a stepper step lands on: Preview shows the previewed (else first picked) gap's diff and After merge the selected
- * stage's sent gap (else the first sent one), as the reducer's go picks them, each on its stage's page. Pick and Send stay on
- * the list (null).
+ * The stage page a stepper step lands on, read from the state the reducer's go left (`went`): Preview and After merge open
+ * the stage it selected (the previewed gap's, the selected stage's or else the first sent gap's), Pick and Send stay on the
+ * list (null). The reducer picks the gap; this never picks it a second time.
  */
-export function stepTarget(ctx: MaturityCtx, s: MaturityState, k: Step): MaturityState['sel'] | null {
-  const own = ctx.gapByStage(s.sel);
-  const sentOwn = own && s.flow[own.id] ? own.id : undefined;
-  const id = k === 2 ? (s.pv && pendingIds(s, ctx).includes(s.pv) ? s.pv : pendingIds(s, ctx)[0]) : k === 4 ? (sentOwn ?? inFlightIds(s)[0]) : undefined;
-  return (id && ctx.gap(id)?.stage) || null;
+export function stepTarget(went: MaturityState, k: Step): MaturityState['sel'] | null {
+  return (k === 2 || k === 4) && went.step === k ? went.sel : null;
 }

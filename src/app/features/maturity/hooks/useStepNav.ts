@@ -21,7 +21,7 @@ export function useStepNav(api: MaturityApi, from: 'list' | 'page') {
   return useCallback(
     (k: Step): boolean => {
       if (!go(k)) return false;
-      const target = stepTarget(ctx, reduce(state, { type: 'go', step: k }, ctx), k);
+      const target = stepTarget(reduce(state, { type: 'go', step: k }, ctx), k);
       if (target) router.push(stagePath(target));
       else if (from === 'page') router.push('/maturity');
       return true;

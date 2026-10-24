@@ -50,12 +50,12 @@ describe('stepTarget', () => {
     const pv = reduce(initialState(ctx), { type: 'go', step: 2 }, ctx);
     const gap = ctx.gap(pv.pv ?? '');
     expect(gap).toBeDefined();
-    expect(stepTarget(ctx, pv, 2)).toBe(gap?.stage);
-    expect(stepTarget(ctx, pv, 1)).toBeNull();
-    expect(stepTarget(ctx, pv, 3)).toBeNull();
+    expect(stepTarget(pv, 2)).toBe(gap?.stage);
+    expect(stepTarget(pv, 1)).toBeNull();
+    expect(stepTarget(pv, 3)).toBeNull();
     const sent = reduce(pv, { type: 'sent', opened: { [gap?.id ?? '']: '!22' }, text: 'x' }, ctx);
-    expect(stepTarget(ctx, sent, 4)).toBe(gap?.stage);
-    expect(stepTarget(ctx, initialState(ctx), 4)).toBeNull();
+    expect(stepTarget(sent, 4)).toBe(gap?.stage);
+    expect(stepTarget(initialState(ctx), 4)).toBeNull();
   });
   it('After merge lands where the reducer put the selection: a sent gap\'s own stage stays, not the first sent gap\'s', () => {
     const [g1, g2] = [ctx.gap('g1')!, ctx.gap('g2')!];
@@ -63,7 +63,7 @@ describe('stepTarget', () => {
     const onG2 = reduce(reduce(sent, { type: 'go', step: 1 }, ctx), { type: 'select', stage: g2.stage }, ctx);
     const went = reduce(onG2, { type: 'go', step: 4 }, ctx);
     expect(went.sel).toBe(g2.stage);
-    expect(stepTarget(ctx, went, 4)).toBe(went.sel);
-    expect(stepTarget(ctx, reduce(reduce(onG2, { type: 'select', stage: g1.stage }, ctx), { type: 'go', step: 4 }, ctx), 4)).toBe(g1.stage);
+    expect(stepTarget(went, 4)).toBe(went.sel);
+    expect(stepTarget(reduce(reduce(onG2, { type: 'select', stage: g1.stage }, ctx), { type: 'go', step: 4 }, ctx), 4)).toBe(g1.stage);
   });
 });
