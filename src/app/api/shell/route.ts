@@ -1,5 +1,5 @@
 // GET /api/shell: the shell's read (readShellInfo, the same the root layout renders) for the client to re-read on
-// navigation and focus, since a layout does not re-render on navigation. Read only; never stored by a cache.
+// regained focus (a layout does not re-render on navigation; refresh() re-renders it). Read only; never stored by a cache.
 import { connection } from 'next/server';
 import { getDataSource } from '@/server/data';
 import { readShellInfo } from '@/server/data/shell/read';

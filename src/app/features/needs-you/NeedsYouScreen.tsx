@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { startTransition, useEffect, useRef } from 'react';
 import { Window } from '@/components/shell/Window';
 import type { RunnerNeed } from '@/lib/runs/desk/types';
 import { RunnerNeeds } from './components/runner/RunnerNeeds';
@@ -34,7 +34,7 @@ export function NeedsYouScreen({ demo, runner = [] }: { demo: NeedsYouDemo; runn
   const searchRef = useRef<HTMLInputElement>(null);
   // A decision opens its page; a group or ledger row only takes the selection.
   const open = (id: string) => {
-    if (isDecisionId(id)) router.push(`/needs-you/${id}`);
+    if (isDecisionId(id)) startTransition(() => router.push(`/needs-you/${id}`));
   };
   // Reading a draft or a note happens on the decision's page.
   const dispatch = (a: Action) => {

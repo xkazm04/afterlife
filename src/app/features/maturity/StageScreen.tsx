@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { startTransition } from 'react';
 import { Kbd } from '@/components/controls/Kbd';
 import { SegmentedControl } from '@/components/controls/toolbar/SegmentedControl';
 import { Stepper } from '@/components/controls/toolbar/Stepper';
@@ -50,7 +51,7 @@ export function StageScreen({ stage }: { stage: Stage }) {
             onChange={(id) => {
               dispatch({ type: 'preview', id });
               const to = ctx.gap(id)?.stage;
-              if (to) router.push(stagePath(to));
+              if (to) startTransition(() => router.push(stagePath(to)));
             }}
           />
           <Kbd>{capsFor('move').slice(0, 2).join(' ')}</Kbd>

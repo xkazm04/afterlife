@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { usePopover } from '@/components/overlays/popover/usePopover';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { Window } from '@/components/shell/Window';
@@ -69,7 +69,7 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
   // A project opens its page; a group row only takes the selection (its expand and collapse is the arrows').
   const open = useEvent((id: string) => {
     setSel(id);
-    if (!id.startsWith('g:')) router.push(fleetHref(id));
+    if (!id.startsWith('g:')) startTransition(() => router.push(fleetHref(id)));
   });
   const menus = useFleetMenus({
     data,

@@ -1,5 +1,6 @@
 // The shell's client sync as pure steps. The root layout renders the shell's numbers once (a layout does not re-render on
-// navigation), so the client re-reads them from /api/shell on a route change and on regained focus. Requests are
+// navigation; a server action's refresh() re-renders it with a fresh read), so the client re-reads /api/shell only on
+// regained focus - never per route change: a navigation changes no number the shell shows. Requests are
 // numbered: the newest answer wins, a late answer to an older request is dropped, and a new server prop (the layout
 // re-rendered by refresh()) is adopted at once and voids every request issued before it. A failed read changes nothing.
 import type { KnownShellInfo, ShellInfo } from '../ShellContext';
@@ -22,8 +23,8 @@ export type SyncAction =
   | { type: 'answer'; id: number; info: ShellInfo | null }
   | { type: 'server'; info: ShellInfo };
 
-/** Why the client might re-read: a route change (from null on the first render) or the window regaining focus. */
-export type SyncTrigger = { kind: 'nav'; from: string | null; to: string } | { kind: 'focus' };
+/** Why the client might re-read: the window regaining focus (the only trigger; a route change is not one). */
+export type SyncTrigger = { kind: 'focus' };
 
 export const SHELL_URL = '/api/shell';
 
@@ -45,15 +46,14 @@ export function syncReducer(s: SyncState, a: SyncAction): SyncState {
   }
 }
 
-/** The first render needs no read (the server prop is fresh), the same route none, and one read at a time is enough. */
+/** Regained focus reads again; one read at a time is enough. */
 export function shouldSync(s: SyncState, t: SyncTrigger): boolean {
-  if (s.inFlight !== null) return false;
-  return t.kind === 'focus' || (t.from !== null && t.from !== t.to);
+  return s.inFlight === null && t.kind === 'focus';
 }
 
 const isShellInfo = (v: unknown): v is KnownShellInfo => {
   const o = v as KnownShellInfo | null;
-  return typeof o?.needsYouCount === 'number' && typeof o.data?.mode === 'string' && typeof o.data.group === 'string' && Array.isArray(o.projects);
+  return typeof o?.needsYouCount === 'number' && typeof o.data?.mode === 'string' && typeof o.data.group === 'string';
 };
 
 /** One read of /api/shell: the shell info, or null for a refused fetch, a non-200 (503 before the first poll) or a bad body. */

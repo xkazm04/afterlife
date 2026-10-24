@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { isGroupNavId } from '@/components/table/model/rowNavigation';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
@@ -63,7 +63,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
     (id?: string) => {
       const target = id ?? data.sel;
       if (!target || isGroupNavId(target)) return;
-      router.push(`/ladder/${encodeURIComponent(target)}`);
+      startTransition(() => router.push(`/ladder/${encodeURIComponent(target)}`));
     },
     [data.sel, router],
   );

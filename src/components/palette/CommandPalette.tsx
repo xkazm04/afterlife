@@ -1,12 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { onEscape } from '@/components/overlays/escapeLayers';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
-import { paletteItems, type PaletteItem, type ProjectRef } from './model/items';
+import { paletteItems, type PaletteItem } from './model/items';
 import { paletteKey } from './model/keys';
 import { rank } from './model/rank';
+import { usePaletteProjects } from './projects';
 import styles from './CommandPalette.module.css';
 
 const KIND_WORD: Record<PaletteItem['kind'], string> = { screen: 'Screen', action: 'Action', project: 'Project' };
@@ -14,10 +15,12 @@ const KIND_WORD: Record<PaletteItem['kind'], string> = { screen: 'Screen', actio
 /**
  * Go to anything: ⌘K (Ctrl+K) opens it anywhere in the app. Type a screen, an action of the loop or a project
  * (by name or group); ↑↓ move, Enter goes, Esc closes, Tab stays in the field. A combobox over a listbox; it only navigates, never writes.
+ * The projects are read on the first open (projects.ts), not carried in the shell: until they land a row says so.
  */
-export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }) {
+export function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { status, projects } = usePaletteProjects(open);
   const [q, setQ] = useState('');
   const [at, setAt] = useState(0);
   const input = useRef<HTMLInputElement>(null);
@@ -51,12 +54,19 @@ export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }
   useEffect(() => {
     list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' });
   }, [open, at, hits]);
+  // the highlighted row is where Enter goes: prefetch it once the highlight rests (arrows, hover), not per keystroke
+  const target = open ? hits[at]?.href : undefined;
+  useEffect(() => {
+    if (!target) return;
+    const t = setTimeout(() => router.prefetch(target), 120);
+    return () => clearTimeout(t);
+  }, [target, router]);
 
   if (!open) return null;
   const go = (it: PaletteItem | undefined) => {
     if (!it) return;
     setOpen(false);
-    router.push(it.href);
+    startTransition(() => router.push(it.href));
   };
   const onKey = (e: KeyboardEvent) => {
     const act = paletteKey(e.key, at, hits.length);
@@ -102,13 +112,14 @@ export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }
               <span className={styles.hint}>{it.hint}</span>
             </li>
           ))}
-          {hits.length === 0 ? <li className={styles.none}>Nothing matches “{q}”.</li> : null}
+          {status !== 'ready' ? <li className={styles.none}>{status === 'loading' ? 'Loading projects...' : 'Projects could not be read; reopen to try again.'}</li> : null}
+          {hits.length === 0 && status === 'ready' ? <li className={styles.none}>Nothing matches “{q}”.</li> : null}
         </ul>
         <div className={styles.foot}>
           <span>↑↓ move</span>
           <span>↵ go</span>
           <span>esc close</span>
-          <span className={styles.push}>{projects.length} projects · every screen</span>
+          <span className={styles.push}>{status === 'ready' ? `${projects.length} projects` : 'projects loading'} · every screen</span>
         </div>
       </div>
     </div>

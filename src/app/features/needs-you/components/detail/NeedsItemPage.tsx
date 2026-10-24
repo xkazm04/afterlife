@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useRef } from 'react';
+import { startTransition, useEffect, useId, useRef } from 'react';
 import { DetailPage } from '@/components/shell/detail/DetailPage';
 import type { NeedsYouDemo } from '../../data/types';
 import { useNeedsStore } from '../../hooks/NeedsStore';
@@ -28,7 +28,7 @@ export function NeedsItemPage({ demo, id }: { demo: NeedsYouDemo; id: string }) 
   useEffect(() => dispatch({ type: 'select', id }), [id, dispatch]);
   const staged = useRef(s.out.length);
   useEffect(() => {
-    if (s.out.length > staged.current && s.outboxOpen) router.push('/needs-you');
+    if (s.out.length > staged.current && s.outboxOpen) startTransition(() => router.push('/needs-you'));
     staged.current = s.out.length;
   }, [s.out.length, s.outboxOpen, router]);
 

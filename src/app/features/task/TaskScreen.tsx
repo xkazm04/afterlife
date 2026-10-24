@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 import { Spacer } from '@/components/controls/Spacer';
 import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
@@ -58,7 +58,7 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
   const applyFilters = (next: Filters) => {
     setFilters(next);
     const id = idAfterFilter(visibleTasks(tasks, next), task.id);
-    if (id) router.replace(taskHref(id));
+    if (id) startTransition(() => router.replace(taskHref(id)));
   };
   const onPick = (side: Side, id: string) => {
     if (!replay.running) pick(side, id);
@@ -74,7 +74,7 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
       const id = stepTask(visible, task.id, a.delta);
       if (!id) return;
       const fromDocket = !!document.activeElement?.closest('[data-docket]');
-      router.replace(taskHref(id));
+      startTransition(() => router.replace(taskHref(id)));
       if (fromDocket) requestAnimationFrame(() => focus(`[data-docket] a[href="${taskHref(id)}"]`));
     } else if (a.type === 'replay') replay.start();
     else if (a.type === 'words') {
@@ -85,7 +85,7 @@ export function TaskScreen({ tasks, task, page, initial }: { tasks: readonly Tas
     else if (a.type === 'reason') {
       const next = nextReason(visible, task.id, sel);
       if (!next) return;
-      if (next.id !== task.id) return router.replace(selectionHref(next.id, next.sel));
+      if (next.id !== task.id) return startTransition(() => router.replace(selectionHref(next.id, next.sel)));
       set(next.sel);
       if (next.sel) focus(cardSelector(next.sel.side, next.sel.id));
     } else {

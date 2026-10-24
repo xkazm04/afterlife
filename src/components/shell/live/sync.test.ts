@@ -9,7 +9,6 @@ import { initSync, readAnswer, shouldSync, syncReducer, type SyncAction, type Sy
 const info = (needsYouCount: number): ShellInfo => ({
   needsYouCount,
   data: { mode: 'live', fakeGitlab: false, group: 'acme', illustrative: false, poll: null },
-  projects: [{ id: 'p1', name: 'P one', group: 'g', state: 'healthy' }],
 });
 const run = (s: SyncState, ...actions: SyncAction[]) => actions.reduce(syncReducer, s);
 const issued = (s: SyncState, n: number) => run(s, ...Array.from({ length: n }, () => ({ type: 'issue' }) as const));
@@ -58,17 +57,13 @@ describe('syncReducer', () => {
 
 describe('shouldSync', () => {
   const idle = initSync(info(1));
-  it('re-reads on a route change and on regained focus, not on the same route or the first render', () => {
-    expect(shouldSync(idle, { kind: 'nav', from: '/fleet', to: '/ladder' })).toBe(true);
-    expect(shouldSync(idle, { kind: 'nav', from: '/fleet', to: '/fleet' })).toBe(false);
-    expect(shouldSync(idle, { kind: 'nav', from: null, to: '/fleet' })).toBe(false);
+  it('re-reads on regained focus (a route change is no trigger at all: useShellSync.test.ts)', () => {
     expect(shouldSync(idle, { kind: 'focus' })).toBe(true);
   });
 
   it('a second trigger while a request is in flight issues no second request', () => {
     const busy = run(idle, { type: 'issue' });
     expect(shouldSync(busy, { kind: 'focus' })).toBe(false);
-    expect(shouldSync(busy, { kind: 'nav', from: '/fleet', to: '/ladder' })).toBe(false);
   });
 });
 

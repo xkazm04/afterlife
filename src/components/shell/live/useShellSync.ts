@@ -1,13 +1,12 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ShellInfo } from '../ShellContext';
 import { initSync, readAnswer, shouldSync, syncReducer, type SyncAction, type SyncTrigger } from './sync';
 
 /**
  * The shell's numbers kept live: `value` is the root layout's read (its first paint, and again whenever refresh()
- * re-renders the layout); on a route change and on regained focus the client re-reads /api/shell (sync.ts).
+ * re-renders the layout); on regained focus the client re-reads /api/shell (sync.ts). A route change reads nothing.
  */
 export function useShellSync(value: ShellInfo): ShellInfo {
   const [state, setState] = useState(() => initSync(value));
@@ -31,14 +30,6 @@ export function useShellSync(value: ShellInfo): ShellInfo {
   useEffect(() => {
     if (current.current.prop !== value) step({ type: 'server', info: value });
   }, [value, step]);
-
-  const pathname = usePathname();
-  const lastPath = useRef<string | null>(null);
-  useEffect(() => {
-    const from = lastPath.current;
-    lastPath.current = pathname;
-    pull({ kind: 'nav', from, to: pathname });
-  }, [pathname, pull]);
 
   useEffect(() => {
     const onFocus = () => pull({ kind: 'focus' });

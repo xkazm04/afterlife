@@ -1,4 +1,4 @@
-// GET /api/shell: the shell's read for the client to re-read on navigation. Never cached; before the first live poll a
+// GET /api/shell: the shell's read for the client to re-read on regained focus. Never cached; before the first live poll a
 // 503 with the reason, never the demo's numbers in live mode.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { demoSource, setDataSource } from '@/server/data';
@@ -18,7 +18,9 @@ describe('GET /api/shell', () => {
     setDataSource(demoSource);
     const res = await GET();
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual(readShellInfo(demoSource));
+    const body = await res.json();
+    expect(body).toEqual(readShellInfo(demoSource));
+    expect(body).not.toHaveProperty('projects'); // the palette reads them apart: GET /api/shell/projects
     expect(res.headers.get('cache-control')).toContain('no-store');
   });
 

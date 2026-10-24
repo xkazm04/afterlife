@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { startTransition } from 'react';
 import { SegmentedControl } from '@/components/controls/toolbar/SegmentedControl';
 
 export type Scope = 'project' | 'estate';
@@ -16,7 +17,7 @@ export function ScopeSwitch({ scope, project }: { scope: Scope; project: string 
         { value: 'project', label: project, title: `${project}: every cycle, every stage` },
         { value: 'estate', label: 'Estate', title: 'Every project in cycles, per group' },
       ]}
-      onChange={(v) => router.push(v === 'estate' ? '/cycles?scope=estate' : '/cycles')}
+      onChange={(v) => startTransition(() => router.push(v === 'estate' ? '/cycles?scope=estate' : '/cycles'))}
     />
   );
 }

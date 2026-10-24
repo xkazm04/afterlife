@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { startTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { reduce } from '../model/reducer';
 import type { Step } from '../model/state';
@@ -22,8 +22,8 @@ export function useStepNav(api: MaturityApi, from: 'list' | 'page') {
     (k: Step): boolean => {
       if (!go(k)) return false;
       const target = stepTarget(reduce(state, { type: 'go', step: k }, ctx), k);
-      if (target) router.push(stagePath(target));
-      else if (from === 'page') router.push('/maturity');
+      if (target) startTransition(() => router.push(stagePath(target)));
+      else if (from === 'page') startTransition(() => router.push('/maturity'));
       return true;
     },
     [go, ctx, state, router, from],

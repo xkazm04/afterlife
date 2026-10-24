@@ -32,7 +32,7 @@ export interface ShellData {
   poll: ShellPoll | null;
 }
 
-/** A project as the command palette needs it; read with the rest of the shell so a state change reaches the palette on the next navigation. */
+/** A project as the command palette needs it: read apart from the shell (GET /api/shell/projects) when the palette opens. */
 export interface ShellProject {
   id: string;
   name: string;
@@ -45,8 +45,6 @@ export interface ShellInfo {
   needsYouCount: number | null;
   /** Null: not read yet; the status bar says the data is unknown, never demo. */
   data: ShellData | null;
-  /** Every project, as small as the palette needs. */
-  projects: readonly ShellProject[];
 }
 
 /** A server read of the shell (readShellInfo, GET /api/shell): every value known. */
@@ -59,20 +57,19 @@ export interface KnownShellInfo extends ShellInfo {
 export const DEMO_SHELL: KnownShellInfo = {
   needsYouCount: 0,
   data: { mode: 'demo', fakeGitlab: false, group: 'not paired', illustrative: false, poll: null },
-  projects: [],
 };
 
 /**
  * The shell before its request-time read has streamed in (the root layout's static shell): every value unknown, never the
  * demo's and never a zero count. The read (live/ShellRead.tsx) replaces it.
  */
-export const PENDING_SHELL: ShellInfo = { needsYouCount: null, data: null, projects: [] };
+export const PENDING_SHELL: ShellInfo = { needsYouCount: null, data: null };
 
 const ShellContext = createContext<ShellInfo>(DEMO_SHELL);
 
 /**
  * The root layout reads the data source on the server and passes the numbers and the mode the chrome needs. With `sync`
- * (the app's Providers) the client re-reads them on navigation and focus (live/useShellSync.ts); without it (tests, the
+ * (the app's Providers) the client re-reads them on regained focus (live/useShellSync.ts); without it (tests, the
  * kit) the value is static and nothing is fetched.
  */
 export function ShellProvider({ value, sync = false, children }: { value: ShellInfo; sync?: boolean; children: ReactNode }) {

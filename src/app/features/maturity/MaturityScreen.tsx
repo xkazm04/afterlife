@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { startTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spacer } from '@/components/controls/Spacer';
 import { SegmentedControl } from '@/components/controls/toolbar/SegmentedControl';
@@ -39,7 +39,7 @@ export function MaturityScreen() {
   const { api, project, mode } = useMaturityShared();
   const { ctx, state, dispatch, routes, steps, pending, select, setMode } = api;
   const router = useRouter();
-  const open = (stage: Stage) => router.push(stagePath(stage));
+  const open = (stage: Stage) => startTransition(() => router.push(stagePath(stage)));
   const scale = useUiScale();
   const gapsRef = useRef<HTMLElement>(null);
   const go = useStepNav(api, 'list');
