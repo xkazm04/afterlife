@@ -42,7 +42,7 @@ function Pips({ p, s, thin }: { p: FleetProject; s: Slot; thin?: boolean }) {
 /**
  * One group as a phosphor lead: every project a beat, drawn as SVG once per size (a handful of paths, not one node
  * per wave). Amber pips are decisions, a rose dip is a quarantined class, hatching is stale, a dashed break is not
- * watched. A CSS sweep stands in for the poll. Each beat is a focusable button for the pointer and the keyboard.
+ * watched or not read. A CSS sweep stands in for the poll. Each beat is a focusable button for the pointer and the keyboard.
  */
 export const LeadStrip = memo(function LeadStrip({ projects, thin, selected, match, tabId, onPick, onHover }: Props) {
   const ref = useRef<HTMLDivElement>(null);

@@ -12,7 +12,8 @@ DataSource, so it works in demo and live mode) and renders the client `MonitorSc
 - **Setting up** draws a low, dashed beat.
 - **Quarantined** adds a rose Q dip to the beat.
 - **Stale** draws a flat line over hatching, with a faint ghost of the last beat.
-- **Not watched** draws a dashed break with end ticks. It is unknown, never zero.
+- **Not watched** draws a dashed break with end ticks, and so does a watched beat whose armed tracks were not read
+  (no height to draw). It is unknown, never zero.
 - **Decisions** are amber pips standing on the R peak. At most six are drawn; the count says the
   rest.
 

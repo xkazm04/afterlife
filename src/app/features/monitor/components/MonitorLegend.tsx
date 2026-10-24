@@ -11,7 +11,7 @@ export function MonitorLegend() {
         [<MarkGlyph key="q" kind="quar" />, 'Rose dip: a quarantined action class'],
         [<MarkGlyph key="s" kind="setup" />, 'Dashed, low: being set up'],
         [<MarkGlyph key="t" kind="stale" />, 'Flat and hatched: stale feed, values last known'],
-        [<MarkGlyph key="u" kind="unwatched" />, 'Dashed break: not watched, unknown and never zero'],
+        [<MarkGlyph key="u" kind="unwatched" />, 'Dashed break: not watched, or armed tracks not read; unknown, never zero'],
         ['←→ ↑↓', 'Move beat to beat, lead to lead · Enter opens the lead into names'],
       ]}
     />
