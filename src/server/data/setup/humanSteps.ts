@@ -4,11 +4,11 @@
 // Step 7 is not read: GitLab's integrations API documents its GET path two ways (integration/ and integrations/), and a
 // saved integration does not show that the Cloud Shell script ran (docs.gitlab.com/api/project_integrations).
 // Step 8 never reads a CI/CD variable: the variables API returns values, and the step promises Belay never sees one.
+import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
 import { belayOf, done, failed, guarded, obj, rows, targetOf, unknown, type StepCtx } from './ctx';
 import type { StepRead } from './types';
 
 export const RUNNER_TAG = 'gitlab--duo';
-export const BOOTSTRAP_BRANCH = 'belay/bootstrap';
 export const AGENT_CONFIG = '.gitlab/duo/agent-config.yml';
 /** Why step 8 can never read done: said on every read of it. */
 export const TOKENS_UNREAD = 'the four BELAY_* tokens are not read, by design: the variables API returns values';

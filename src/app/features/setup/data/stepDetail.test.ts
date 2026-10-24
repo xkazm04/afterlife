@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { BOOTSTRAP_BRANCH } from '@/server/data/setup/humanSteps';
+import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
 import { BELAY_PROJECTS } from '@/server/data/setup/read';
 import { DEMO_NAMES, STDIN, STEP_DETAIL, stepDetailsFor } from './stepDetail';
 

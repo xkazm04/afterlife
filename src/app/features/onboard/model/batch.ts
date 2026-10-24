@@ -3,6 +3,7 @@
 // A write is never spelled here: it is an intent (arm-track or enroll-track, as Setup sends them), and the screen shows
 // the server's preview of it (previewAction) and confirms that preview. Only reads and a person's own steps carry commands.
 import type { FleetProject } from '@/lib/demo/types';
+import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
 import type { ArmTrack, EnrollTrack } from '@/server/actions/types';
 import { rank, type Step } from './funnel';
 
@@ -54,7 +55,7 @@ export function nextAction(p: FleetProject, run: ProjectRun, org: string): NextA
     const into = run.step === 'watching' ? 'cycling' : 'paired';
     const repo = run.mrRepo ?? path;
     // the MR number without its "!": a bare !60 is history expansion in an interactive shell
-    const cmd = run.mr ? `glab mr view ${run.mr.replace(/^!/, '')} -R ${repo} --web` : `glab mr list -R ${repo} --source-branch ${run.branch ?? 'belay/bootstrap'}`;
+    const cmd = run.mr ? `glab mr view ${run.mr.replace(/^!/, '')} -R ${repo} --web` : `glab mr list -R ${repo} --source-branch ${run.branch ?? BOOTSTRAP_BRANCH}`;
     return { kind: 'merge', who: 'you', writes: 0, label: `Merge ${run.mr ?? (run.step === 'watching' ? 'the enroll MR' : 'the bootstrap MR')}`, cmd: [cmd], to: into };
   }
   if (run.waiting === 'token') {

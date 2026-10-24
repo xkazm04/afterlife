@@ -1,3 +1,4 @@
+import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
 import type { StepDetail } from './types';
 
 /** What the step commands name: the GitLab host, the group, the target project and the projects step 4 creates. */
@@ -119,8 +120,8 @@ const details = (n: StepNames): Readonly<Record<number, StepDetail>> => ({
   10: {
     // The demo's MR is !2; live, the read finds it by its branch (server/data/setup/humanSteps.ts), so it names no number.
     who: 'human', short: n === DEMO_NAMES ? 'Merge the bootstrap MR !2' : 'Merge the bootstrap MR', does: 'Config applies only from the default branch, so a person merges it.',
-    action: `Review and merge ${n === DEMO_NAMES ? '!2 ' : 'the MR from '}belay/bootstrap`, where: `GitLab → ${n.project} → Merge requests → ${n === DEMO_NAMES ? '!2' : 'belay/bootstrap'}`,
-    url: page(n, 'merge_requests?source_branch=belay%2Fbootstrap'), note: 'Belay never holds a merge token.',
+    action: `Review and merge ${n === DEMO_NAMES ? '!2 ' : 'the MR from '}${BOOTSTRAP_BRANCH}`, where: `GitLab → ${n.project} → Merge requests → ${n === DEMO_NAMES ? '!2' : BOOTSTRAP_BRANCH}`,
+    url: page(n, `merge_requests?source_branch=${encodeURIComponent(BOOTSTRAP_BRANCH)}`), note: 'Belay never holds a merge token.',
     before: '!2 open · agent-config.yml absent on main', probe: '!2 merged by @you · agent-config.yml on main',
   },
   11: {
