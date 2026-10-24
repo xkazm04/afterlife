@@ -41,6 +41,12 @@ const positive = (v: string | undefined, dflt: number): number => {
   return Number.isFinite(n) && n > 0 ? n : NaN;
 };
 
+/** A wave or lane count: a whole number, or `--lanes 2.5` would run three lanes and `--waves 1.5` two waves. */
+const count = (v: string | undefined, dflt: number): number => {
+  const n = positive(v, dflt);
+  return Number.isInteger(n) ? n : NaN;
+};
+
 async function main(argv: string[]): Promise<number> {
   const f = flags(argv);
   const repo = f?.get('--repo');
@@ -50,8 +56,8 @@ async function main(argv: string[]): Promise<number> {
   }
   const opts: RunOptions = {
     repo,
-    waves: positive(f.get('--waves'), RUN_DEFAULTS.waves),
-    lanes: positive(f.get('--lanes'), RUN_DEFAULTS.lanes),
+    waves: count(f.get('--waves'), RUN_DEFAULTS.waves),
+    lanes: count(f.get('--lanes'), RUN_DEFAULTS.lanes),
     laneCapUsd: positive(f.get('--lane-cap'), RUN_DEFAULTS.laneCapUsd),
     waveCapUsd: positive(f.get('--wave-cap'), RUN_DEFAULTS.waveCapUsd),
     model: f.get('--model') ?? RUN_DEFAULTS.model,
@@ -59,7 +65,7 @@ async function main(argv: string[]): Promise<number> {
     ...(f.has('--skip-base-gates') ? { skipBaseGates: true } : {}),
   };
   if ([opts.waves, opts.lanes, opts.laneCapUsd, opts.waveCapUsd].some(Number.isNaN)) {
-    console.error(`${USAGE}\nbelay run: counts and caps must be positive numbers`);
+    console.error(`${USAGE}\nbelay run: --waves and --lanes must be whole numbers above 0, caps positive numbers`);
     return 2;
   }
   let fleetRepo;

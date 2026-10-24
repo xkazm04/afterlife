@@ -34,4 +34,10 @@ describe('belay run flags', () => {
     expect(r.err).toContain('usage: belay run');
     expect(r.out).not.toContain('caps');
   }, 60_000);
+
+  it.each([['--lanes', '2.5'], ['--waves', '1.5']])('refuses a fractional count %s %s, which would run one more than asked', (flag, v) => {
+    const r = run(flag, v);
+    expect(r.code).toBe(2);
+    expect(r.err).toContain('whole numbers');
+  }, 60_000);
 });
