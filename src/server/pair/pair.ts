@@ -85,10 +85,18 @@ export function pair(argv: readonly string[], io: PairIo): PairResult {
 
   io.out(`belay pair ${dir} (group ${group})\n\n`);
   if (write) {
+    const done: string[] = [];
     for (const a of plan.actions) {
       if (a.text === undefined) continue;
-      fs.mkdirSync(path.dirname(path.join(dir, a.path)), { recursive: true });
-      fs.writeFileSync(path.join(dir, a.path), a.text);
+      try {
+        fs.mkdirSync(path.dirname(path.join(dir, a.path)), { recursive: true });
+        fs.writeFileSync(path.join(dir, a.path), a.text);
+      } catch (e) {
+        // A write that fails part-way says which files it already wrote, so the operator can inspect or revert them.
+        const why = e instanceof Error ? e.message.split('\n')[0] : String(e);
+        return fail(`writing ${a.path} failed (${why}); already written: ${done.length ? done.join(', ') : 'nothing'}. Nothing was committed.`);
+      }
+      done.push(a.path);
     }
   }
   io.out(`${describePlan(plan, write)}\n`);

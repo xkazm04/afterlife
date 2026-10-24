@@ -74,6 +74,13 @@ describe('belay pair', () => {
     expect(run([dir, '--group', 'other', '--engine-ref', 'v9']).out).toContain('$CI_SERVER_FQDN/other/belay-pack/tier-gate@1.0.0');
   });
 
+  it('a write that fails part-way exits 2 and names the files it already wrote', () => {
+    const dir = repo({ '.gitlab/duo': 'a file where a folder goes' });
+    const r = run([dir, '--write']);
+    expect(r.code).toBe(2);
+    expect(r.err).toMatch(/writing \.gitlab\/duo\/agent-config\.yml failed .*already written: \.gitlab\/belay\.gitlab-ci\.yml, \.gitlab-ci\.yml\./);
+  });
+
   it('keeps an existing, different Belay file and agent config as they are, and says so (exit 1)', () => {
     const dir = repo({ [BELAY_CI]: 'include: []\n', '.gitlab/duo/agent-config.yml': 'image: ours\n' });
     const r = run([dir, '--write']);
