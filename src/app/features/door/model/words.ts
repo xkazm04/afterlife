@@ -1,8 +1,8 @@
 // The words of the front door: the answer block's lines, the readout's line for a tower or a district, stale texts.
 // Lines come back as tone-tagged parts so the components colour them without parsing strings. Pure.
 import type { FleetProject } from '@/lib/demo/types';
-import { standingCount, tiersKnown } from '@/lib/tiers';
-import { byName, needsOf, type District } from './city';
+import { standingCount } from '@/lib/tiers';
+import { byName, knownTiers, needsOf, quarOf, type District } from './city';
 
 export type Tone = 'plain' | 'amber' | 'stale' | 'unknown' | 'fail' | 'ok';
 export type Part = readonly [string, Tone];
@@ -68,9 +68,6 @@ export function topTiers(projects: readonly FleetProject[]): { n: number; names:
   return out;
 }
 
-/** Tiers are counted only where they are known (tiersKnown); unknown is never 0 and never quarantined. */
-const knownTiers = (p: FleetProject): boolean => p.state !== 'not-set-up' && tiersKnown(p);
-
 /**
  * Fleet-wide counts for the answer block. A class with no record yet (norec) and a class several agents hold (split: each
  * holder gated at its own tier) are counted apart, never as quarantined.
@@ -83,8 +80,8 @@ export function fleetTotals(projects: readonly FleetProject[]) {
     else if (p.state === 'setting-up') t.setup++;
     else if (p.state === 'not-set-up') t.nsu++;
     else t.watch++;
+    t.quar += quarOf(p);
     if (knownTiers(p)) {
-      t.quar += p.tiers?.quarantined ?? 0;
       t.norec += standingCount(p, 'no_record');
       t.split += standingCount(p, 'refused');
     }
@@ -103,7 +100,7 @@ export type MarkKind = 'needs' | 'stale' | 'quar' | 'norec' | 'split' | 'setup' 
 export const MARK_TEST: Record<MarkKind, (p: FleetProject) => boolean> = {
   needs: (p) => needsOf(p) > 0,
   stale: (p) => p.state === 'stale',
-  quar: (p) => knownTiers(p) && (p.tiers?.quarantined ?? 0) > 0,
+  quar: (p) => quarOf(p) > 0,
   norec: (p) => knownTiers(p) && standingCount(p, 'no_record') > 0,
   split: (p) => knownTiers(p) && standingCount(p, 'refused') > 0,
   setup: (p) => p.state === 'setting-up',

@@ -24,6 +24,10 @@ export const UNKNOWN_H = 30;
 export const towerH = (p: FleetProject): number => (p.armed === null ? UNKNOWN_H : 11 + p.armed * 5.6);
 /** Decisions that count: an unwatched project has no live count. */
 export const needsOf = (p: FleetProject): number => (p.state === 'not-set-up' ? 0 : p.needsYou);
+/** Tiers are counted only where they are known (tiersKnown) on a watched project: unknown is never 0 and never quarantined. */
+export const knownTiers = (p: FleetProject): boolean => p.state !== 'not-set-up' && tiersKnown(p);
+/** Tripwire quarantines that count: the answer's total, a district's, the tower's lamps and the quarantine mark. */
+export const quarOf = (p: FleetProject): number => (knownTiers(p) ? (p.tiers?.quarantined ?? 0) : 0);
 /** Name order in one collation, not the runtime's: the city is server-rendered and hydrated in whatever locale the browser has. */
 export const byName = (a: { name: string }, b: { name: string }): number => a.name.localeCompare(b.name, 'en');
 
@@ -102,7 +106,7 @@ export function districtsOf(groups: readonly string[], projects: readonly FleetP
       stale: ps.filter((p) => p.state === 'stale').length,
       setup: ps.filter((p) => p.state === 'setting-up').length,
       nsu: ps.filter((p) => p.state === 'not-set-up').length,
-      quar: sum((p) => (p.state !== 'not-set-up' && tiersKnown(p) ? (p.tiers?.quarantined ?? 0) : 0)),
+      quar: sum(quarOf),
       w: (cols + rows + 4 * M) * HW,
       cx: 0,
       cy: 0,
