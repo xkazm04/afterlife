@@ -1,6 +1,8 @@
 'use client';
 
+import { useRef } from 'react';
 import { PopupButton } from '@/components/controls/toolbar/PopupButton';
+import { SearchField } from '@/components/controls/toolbar/SearchField';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { HelpButton } from '@/components/overlays/HelpButton';
 import { Legend } from '@/components/overlays/popover/Legend';
@@ -15,6 +17,8 @@ import styles from './FallbackGallery.module.css';
 
 /** The states a screen falls back to (not found, error, loading), the nested detail page, and the toolbar and help buttons. */
 export function FallbackGallery() {
+  const hintRef = useRef<HTMLInputElement>(null);
+  const filledRef = useRef<HTMLInputElement>(null);
   const error = Object.assign(new Error('GitLab answered 502 for projects/acme'), { digest: 'd41d8cd9' });
   return (
     <GallerySection title="fallback/ and detail/">
@@ -59,13 +63,22 @@ export function FallbackGallery() {
           </ToolbarButton>
         </div>
       </Specimen>
-      <Specimen label="PopupButton: plain, active (a filter is applied, tinted), no icon">
+      <Specimen label="PopupButton: plain, active (a filter is applied, tinted), no icon, disabled (no tint, no hover)">
         <div className={styles.bar}>
           <PopupButton icon="sort">Attention</PopupButton>
           <PopupButton icon="filter" active>
             Tier: Hands-off
           </PopupButton>
           <PopupButton>Group</PopupButton>
+          <PopupButton icon="filter" active disabled>
+            Tier
+          </PopupButton>
+        </div>
+      </Specimen>
+      <Specimen label='SearchField: empty with the "/" hint (a screen that binds "/" to it), with text (no hint)'>
+        <div className={styles.bar}>
+          <SearchField value="" onChange={() => {}} label="Empty search specimen" inputRef={hintRef} />
+          <SearchField value="ledger" onChange={() => {}} label="Filled search specimen" inputRef={filledRef} />
         </div>
       </Specimen>
       <Specimen label="HelpButton: hover or focus peeks the legend, click pins it (toasts come from ToastProvider, shown under overlays/)">

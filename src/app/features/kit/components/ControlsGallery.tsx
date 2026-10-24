@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Button } from '@/components/controls/Button';
 import { Checkbox } from '@/components/controls/Checkbox';
 import { Kbd } from '@/components/controls/Kbd';
@@ -33,6 +33,7 @@ export function ControlsGallery() {
   const [b, setB] = useState(false);
   const [tier, setTier] = useState('all');
   const [at, setAt] = useState(2);
+  const reasonId = useId();
   const steps = [
     step(1, 'Pick', { past: at > 1, current: at === 1, count: 2 }),
     step(2, 'Preview', { past: at > 2, current: at === 2, count: 1 }),
@@ -80,6 +81,10 @@ export function ControlsGallery() {
         <Checkbox checked={a} onChange={setA} label="First item" />
         <Checkbox checked={b} onChange={setB} label="Second item" />
         <Checkbox checked={false} onChange={() => {}} label="Disabled item" disabled />
+      </Specimen>
+      <Specimen label="Checkbox disabled with its reason (aria-describedby)">
+        <Checkbox checked={false} onChange={() => {}} label="Blocked item" disabled describedBy={reasonId} />
+        <span id={reasonId}>Blocked: its pipeline has not passed</span>
       </Specimen>
       <Specimen label="Kbd">
         <Kbd>⌘I</Kbd>

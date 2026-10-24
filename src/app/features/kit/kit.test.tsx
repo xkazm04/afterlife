@@ -59,6 +59,12 @@ describe('the kit galleries', () => {
     expect(screen).toMatch(/<a href="\/fleet"[^>]*>[\s\S]*?With href: a link/);
     expect(render(createElement(FallbackGallery))).toMatch(/aria-label="PopupButton: plain, active[^"]*"/);
   });
+  it('draws the control states a screen reaches but no specimen showed: the "/" hint, a disabled PopupButton, a reasoned Checkbox', () => {
+    const fallback = render(createElement(FallbackGallery));
+    expect(fallback).toMatch(/<kbd[^>]*>\/<\/kbd>/);
+    expect(fallback).toMatch(/<button[^>]*aria-haspopup="menu"[^>]*disabled=""/);
+    expect(render(createElement(ControlsGallery))).toMatch(/role="checkbox"[^>]*aria-describedby="([^"]+)"[^>]*disabled=""[\s\S]*?id="\1">Blocked/);
+  });
   it('names the toolbar segmented control as a specimen, not as a gallery filter it is not', () => {
     const html = render(createElement(KitScreen));
     expect(html).toContain('aria-label="Segmented control specimen"');
