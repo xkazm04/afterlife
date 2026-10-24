@@ -6,7 +6,7 @@ import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { makeProject } from '../testProject';
 import { SORT_MENU_KEYS, STATE_RANK } from '../list/sorting';
 import { EMPTY_FILTERS } from '../list/filtering';
-import { groupMenu, projectPath, rowMenu } from './contextMenus';
+import { groupMenu, projectPath, rowMenu, type RowMenuArgs } from './contextMenus';
 import { filterMenu, sortMenu } from './toolbarMenus';
 
 const actions = (items: MenuEntry[]) => items.filter((e): e is Extract<MenuEntry, { label: string }> => 'label' in e);
@@ -72,7 +72,20 @@ describe('menus follow the enumerations they list', () => {
 
 describe('context menus', () => {
   const project = makeProject({ id: 'ledgerline', group: 'core-banking' });
-  const row = { project, portfolio: 'acme-lab', collapsed: false, grouped: true, onOpen: vi.fn(), onRepoll: vi.fn(), onCopy: vi.fn(), onReveal: vi.fn(), onToggleGroup: vi.fn() };
+  const row: RowMenuArgs = { project, portfolio: 'acme-lab', mode: 'demo', collapsed: false, grouped: true, onOpen: vi.fn(), onRepoll: vi.fn(), onCopy: vi.fn(), onReveal: vi.fn(), onToggleGroup: vi.fn() };
+  it('reveals in GitLab as the project page does: a demo flash, else the stored address, disabled without one', () => {
+    const reveal = (over: Partial<typeof row>) => {
+      const onReveal = vi.fn();
+      const item = find(rowMenu({ ...row, ...over, onReveal }), 'Reveal in GitLab');
+      if (!item?.disabled) item?.run();
+      return { disabled: item?.disabled, called: onReveal.mock.calls[0]?.[0] };
+    };
+    expect(reveal({})).toEqual({ disabled: false, called: { kind: 'flash', text: 'gitlab.example/acme-lab/core-banking/ledgerline (demo, no network)' } });
+    const live = (webUrl: string | null) => reveal({ mode: 'live', project: { ...project, webUrl } });
+    expect(live('https://gitlab.acme.dev/acme-lab/core-banking/ledgerline')).toEqual({ disabled: false, called: { kind: 'open', href: 'https://gitlab.acme.dev/acme-lab/core-banking/ledgerline' } });
+    expect(live(null)).toEqual({ disabled: true, called: undefined });
+    expect(live('javascript:alert(1)')).toEqual({ disabled: true, called: undefined });
+  });
   it('builds the project path', () => {
     expect(projectPath('acme-lab', project)).toBe('acme-lab/core-banking/ledgerline');
   });

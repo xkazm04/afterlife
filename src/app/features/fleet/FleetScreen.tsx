@@ -72,6 +72,7 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
   });
   const menus = useFleetMenus({
     data,
+    mode: source.mode,
     list,
     byId: proj.byId,
     tableRef,

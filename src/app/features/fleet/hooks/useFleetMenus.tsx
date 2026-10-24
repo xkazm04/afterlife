@@ -4,7 +4,6 @@ import type { ReactNode, RefObject } from 'react';
 import { useMenu } from '@/components/overlays/menu/useMenu';
 import { isGroupNavId, rowDomId } from '@/components/table/model/rowNavigation';
 import type { FleetProject } from '@/lib/demo/types';
-import { gitlabUrl } from '../model/inspector';
 import { groupMenu, rowMenu } from '../model/menus/contextMenus';
 import { filterMenu, sortMenu } from '../model/menus/toolbarMenus';
 import type { FleetData } from '../model/types';
@@ -12,6 +11,7 @@ import type { useFleetList } from './useFleetList';
 
 export interface FleetMenusArgs {
   data: FleetData;
+  mode: 'demo' | 'live';
   list: ReturnType<typeof useFleetList>;
   byId: ReadonlyMap<string, FleetProject>;
   tableRef: RefObject<HTMLDivElement | null>;
@@ -70,12 +70,13 @@ export function useFleetMenus(a: FleetMenusArgs) {
     const items = rowMenu({
       project,
       portfolio: data.portfolio,
+      mode: a.mode,
       collapsed: list.collapsed.has(project.group),
       grouped: list.grouped,
       onOpen: () => a.onOpen(id),
       onRepoll: () => a.onRepoll(id),
       onCopy: copy,
-      onReveal: (path) => a.onFlash(`${gitlabUrl(path)} (demo, no network)`),
+      onReveal: (r) => (r.kind === 'open' ? window.open(r.href, '_blank', 'noopener,noreferrer') : a.onFlash(r.text)),
       onToggleGroup: () => list.toggleGroup(project.group),
     });
     ctx.openAt(x, y, { items, returnTo, highlightFirst: keyboard });
