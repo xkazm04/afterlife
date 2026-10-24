@@ -1,5 +1,6 @@
-// What the repro, bench-delta and score-delta checkers share: reading a JSON evidence file that may arrive inlined (an
-// object) or as the text a `{"$file": ...}` reference became, and the check builder that maps a check to its claim.
+// What the checkers share: reading a JSON evidence file that may arrive inlined (an object) or as the text a
+// `{"$file": ...}` reference became (repro, bench-delta, score-delta), and the one check builder that maps a check to its
+// claim, which every class reading `claim_ids` uses (exploit-test and rerun-stats too).
 // Evidence that is missing or does not parse is a reason, never an exception: the checker turns it into an ok:null
 // check, so the Proof Block still says what was absent and the verdict stays short of pass.
 import type { Check } from '../../../src/schemas/proof';

@@ -3,7 +3,8 @@
 import type { Check } from '../../src/schemas/proof';
 import { isRecord, num, optStr, rec, str } from '../core/types';
 import type { EnginePolicy, RerunThresholds } from '../policy/load';
-import { claimFor, type Draft } from './common';
+import type { Draft } from './common';
+import { checksFor } from './checkers/evidence';
 
 /** Defaults apply only when trust-policy.yml has no `rerun_stats` block; the check detail says which were used. */
 export const DEFAULT_THRESHOLDS: RerunThresholds = { min_runs: 5, real_failure_rate: 0.8 };
@@ -40,7 +41,7 @@ export function rerunStats(input: Record<string, unknown>, policy: EnginePolicy)
   const runs = (Array.isArray(input.runs) ? input.runs : []).map(parseRun);
   const { t, source } = thresholdsOf(policy);
   const sha = str(input.sha, 'sha');
-  const at = (name: string, ok: boolean | null, detail: string): Check => ({ claim_id: claimFor(input, name), name, ok, detail });
+  const at = checksFor(input);
   const checks: Check[] = [];
 
   const stray = runs.filter((r) => r.sha !== sha);
