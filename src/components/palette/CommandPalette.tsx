@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { onEscape } from '@/components/overlays/escapeLayers';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { paletteItems, type PaletteItem, type ProjectRef } from './model/items';
+import { paletteKey } from './model/keys';
 import { rank } from './model/rank';
 import styles from './CommandPalette.module.css';
 
@@ -12,7 +13,7 @@ const KIND_WORD: Record<PaletteItem['kind'], string> = { screen: 'Screen', actio
 
 /**
  * Go to anything: ⌘K (Ctrl+K) opens it anywhere in the app. Type a screen, an action of the loop or a project
- * (by name or group); ↑↓ move, Enter goes, Esc closes. A combobox over a listbox; it only navigates, never writes.
+ * (by name or group); ↑↓ move, Enter goes, Esc closes, Tab stays in the field. A combobox over a listbox; it only navigates, never writes.
  */
 export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }) {
   const router = useRouter();
@@ -20,6 +21,7 @@ export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }
   const [q, setQ] = useState('');
   const [at, setAt] = useState(0);
   const input = useRef<HTMLInputElement>(null);
+  const list = useRef<HTMLUListElement>(null);
   const items = useMemo(() => paletteItems(projects), [projects]);
   const hits = useMemo(() => rank(items, q), [items, q]);
 
@@ -45,6 +47,10 @@ export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }
       back?.focus?.();
     };
   }, [open]);
+  // the list holds more rows than it shows (19 with nothing typed, 360px tall): keep the highlighted one in sight
+  useEffect(() => {
+    list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' });
+  }, [open, at, hits]);
 
   if (!open) return null;
   const go = (it: PaletteItem | undefined) => {
@@ -53,11 +59,11 @@ export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }
     router.push(it.href);
   };
   const onKey = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowDown') setAt((i) => Math.min(hits.length - 1, i + 1));
-    else if (e.key === 'ArrowUp') setAt((i) => Math.max(0, i - 1));
-    else if (e.key === 'Enter') go(hits[at]);
-    else return;
+    const act = paletteKey(e.key, at, hits.length);
+    if (!act) return;
     e.preventDefault();
+    if ('at' in act) setAt(act.at);
+    else if ('go' in act) go(hits[at]);
   };
   const active = hits[at];
   return (
@@ -79,7 +85,7 @@ export function CommandPalette({ projects }: { projects: readonly ProjectRef[] }
           }}
           onKeyDown={onKey}
         />
-        <ul id="palette-list" className={styles.list} role="listbox" aria-label="Results">
+        <ul ref={list} id="palette-list" className={styles.list} role="listbox" aria-label="Results">
           {hits.map((it, i) => (
             <li
               key={it.id}
