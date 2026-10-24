@@ -5,6 +5,7 @@ import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import type { Hotkey } from '@/lib/keyboard/useHotkeys';
 import { useLadderKeys } from '../hooks/useLadderKeys';
 import { KEY_ROWS } from '../data/policy';
+import { LADDER_KEYMAP } from './keymap';
 
 const bindKeys = useLadderKeys;
 const bound: { keys: Hotkey[] } = vi.hoisted(() => ({ keys: [] }));
@@ -32,5 +33,12 @@ describe('the keys behind "?"', () => {
   });
   it('count the tier filters as the screen has tiers', () => {
     expect(boundKeys().filter((k) => /^[1-9]$/.test(k))).toHaveLength(TIER_DISPLAY_ORDER.length);
+  });
+});
+
+describe('the keymap Settings > Keyboard lists', () => {
+  // Escape clears the search and gives the table focus back (useLadderKeys): the inspector it once closed is the class page
+  it('says what each key does on the screen as it is, never the removed inspector', () => {
+    expect(JSON.stringify(LADDER_KEYMAP)).not.toMatch(/inspector/i);
   });
 });

@@ -10,5 +10,5 @@ export const LADDER_KEYMAP = defineKeymap('Ladder', [
   { id: 'promote', keys: [{ key: 'p' }], does: 'Promote' },
   { id: 'revoke', keys: [{ key: 'r' }, { key: 'q' }], does: 'Revoke a step / quarantine: the class, or on a track header every class of the track in one commit' },
   { id: 'help', keys: [{ key: '?' }], does: 'Legend' },
-  { id: 'escape', keys: [{ key: 'Escape', allowInInput: true }], does: 'Clear search, then close the inspector' },
+  { id: 'escape', keys: [{ key: 'Escape', allowInInput: true }], does: 'Clear search, back to the table' },
 ]);
