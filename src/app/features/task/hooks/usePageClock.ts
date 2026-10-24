@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { livePollAge, wallTime } from '../../ladder/model/clock';
+import { livePollAge, wallTime } from '@/lib/clock/time';
 import { PAGE_NOW } from '../data/pageFacts';
 import type { PageFacts } from '../model/build/loadPage';
 

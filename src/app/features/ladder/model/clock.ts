@@ -1,7 +1,9 @@
 // The clock of the screen. Demo: a simulated one, the ledger starts at 14:24:12 UTC on DEMO_NOW's day and ticks in whole
 // seconds, and the fake feed is polled every 15 s. Live: the wall clock, and the poll age counts up from the snapshot's.
 // A ledger entry's time is an instant (epoch ms); its label is derived from it in the screen's one zone (clockLabel), the
-// zone the server chose for the seed, so the server's render and the client's stamps agree. Pure helpers only.
+// zone the server chose for the seed, so the server's render and the client's stamps agree. Pure helpers only; hms,
+// livePollAge and wallTime are src/lib/clock/time.ts (the Task page shows them too).
+import { hms } from '@/lib/clock/time';
 import { DEMO_NOW } from '@/lib/demo/clock';
 
 /** 14:24:12, the moment the demo opens. */
@@ -10,13 +12,6 @@ export const START_SEC = 14 * 3600 + 24 * 60 + 12;
 /** Poll cadence of the fake feed: the age resets every 15 s. */
 export const POLL_PERIOD_SEC = 15;
 
-const two = (n: number): string => String(n).padStart(2, '0');
-
-/** Seconds since midnight to "HH:MM:SS". */
-export function hms(sec: number): string {
-  return `${two(Math.floor(sec / 3600) % 24)}:${two(Math.floor(sec / 60) % 60)}:${two(sec % 60)}`;
-}
-
 /** True for a clock label ("14:20:03": made within a day of its screen's now), false for "11 d ago". */
 export const isClockTime = (t: string): boolean => /^\d\d:/.test(t);
 
@@ -24,12 +19,6 @@ export const isClockTime = (t: string): boolean => /^\d\d:/.test(t);
 export function pollAge(elapsed: number, initialAge: number, period = POLL_PERIOD_SEC): number {
   return (Math.max(0, elapsed) + initialAge) % period;
 }
-
-/** Live: how old the snapshot's poll is after `elapsed` seconds. It never wraps: the next poll renders the page again. */
-export const livePollAge = (elapsed: number, initialAge: number): number => Math.max(0, elapsed) + Math.max(0, initialAge);
-
-/** The wall clock as "HH:MM:SS" in this process's zone: the Task page's ticking clock. Ledger entries use clockLabel. */
-export const wallTime = (d: Date): string => hms(d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds());
 
 const DAY_MS = 86_400_000;
 const DEMO_DAY = Date.UTC(DEMO_NOW.getUTCFullYear(), DEMO_NOW.getUTCMonth(), DEMO_NOW.getUTCDate());

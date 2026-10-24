@@ -1,5 +1,6 @@
 import type { TiersStale as Stale } from '@/server/data/types';
-import { livePollAge, pollAge } from '../../model/clock';
+import { livePollAge } from '@/lib/clock/time';
+import { pollAge } from '../../model/clock';
 import type { Head } from '../../model/types';
 import { DemoChip } from './DemoChip';
 import { TiersStale } from './TiersStale';
