@@ -2,7 +2,7 @@
 // caught, the proof that the history adds up, and what runs next. Pure; the screen shows it to copy. It spells no
 // command that posts it: a screen never hand-writes a write (src/server/actions/__tests__/handwritten.test.ts).
 import type { CyclesData } from '../build';
-import { replay, rungLabel, summarize, total } from '../replay';
+import { MAX_TOTAL, replay, rungLabel, summarize, total } from '../replay';
 import type { Cycle, CycleChange } from '../types';
 import { signed, VERDICT_WORD } from '../words';
 
@@ -30,7 +30,7 @@ export function cycleReport(c: Cycle, data: CyclesData): string {
     `${data.project} · day ${c.openedDay} to day ${c.closedDay ?? '?'} · engine ${c.engine}`,
     '',
     `**${signed(s.net)} rungs.** ${s.credited} credited, ${s.resolved} resolved by a probe, ${s.missed} not earned, ${s.regressed} drift caught. ` +
-      `After ${c.id} the project held ${after ? total(after) : '?'} of 36 (day 0: ${total(data.day0)}).`,
+      `After ${c.id} the project held ${after ? total(after) : '?'} of ${MAX_TOTAL} (day 0: ${total(data.day0)}).`,
     '',
     '| Change | Stage | Move | Verdict | Why |',
     '|---|---|---|---|---|',
