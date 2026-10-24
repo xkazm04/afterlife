@@ -9,6 +9,7 @@ import type { ClassTierRow } from '@/server/index/repositories/fleet/classTier';
 import type { ClassCounters } from './counters';
 import type { ProposalRow } from '@/server/index/repositories/work/proposal';
 import { shownOf } from '@/server/index/views/standing';
+import { trackLabel } from '@/lib/format/track';
 
 export const PROMOTE_DOES = 'Opens a policy MR in belay-policy that raises the record one tier. You merge it in GitLab; Belay never does.';
 
@@ -34,7 +35,7 @@ export interface EligibleClass {
 
 /** "Promote T1 patcher · dep-bump.patch", the desk's form. */
 export const promotionTitle = (track: number | null, role: string, classId: string): string =>
-  `Promote ${track === null ? 'T?' : `T${track}`} ${role} · ${classId}`;
+  `Promote ${trackLabel(track)} ${role} · ${classId}`;
 
 /**
  * The class, when Ladder's rule calls it eligible against these thresholds at `now`: a record whose cooldown_until is

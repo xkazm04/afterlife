@@ -4,6 +4,7 @@ import { listProofsFor, type ProofRow } from '../repositories/work/proof';
 import type { Queryable } from '../repositories/sql';
 import { countdown } from './format';
 import type { TaskView } from './types';
+import { trackLabel } from '@/lib/format/track';
 
 /**
  * The stored facts a screen draws: not the clock (drawn as a countdown below), nor `edited`, which only the counters read,
@@ -23,7 +24,7 @@ function toTask(row: TaskRow, proof: ProofRow | undefined, now: Date): TaskView 
   const facts = factsOf(row.detail);
   return {
     id: row.id,
-    track: row.track === null ? null : `T${row.track}`,
+    track: row.track === null ? null : trackLabel(row.track),
     cls: row.actionClass,
     mr: row.mrIid === null ? null : `!${row.mrIid}`,
     title: row.title,

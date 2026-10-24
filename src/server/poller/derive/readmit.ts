@@ -7,6 +7,7 @@ import type { DemotionTrigger } from '@/schemas/tier';
 import type { ProposalRow } from '@/server/index/repositories/work/proposal';
 import { isSettled } from './promotion';
 import type { Quarantine } from './tiers';
+import { trackLabel } from '@/lib/format/track';
 
 // Keyed by the schema's union: a trigger added there fails the typecheck here, not at the first quarantine it fires.
 const REASON: Readonly<Record<DemotionTrigger, string>> = {
@@ -23,7 +24,7 @@ const reasonWords = (r: string): string => (Object.hasOwn(REASON, r) ? REASON[r 
 export const READMIT_DOES = 'Re-admits at Assisted at most, never at its old tier.';
 export { readmitId };
 
-export const readmitTitle = (q: Quarantine): string => `Re-admit ${q.track === null ? 'T?' : `T${q.track}`} ${q.role} · ${q.classId}`;
+export const readmitTitle = (q: Quarantine): string => `Re-admit ${trackLabel(q.track)} ${q.role} · ${q.classId}`;
 
 export function readmitProposal(projectId: string, q: Quarantine, now: Date): ProposalRow {
   const why = q.reason ? reasonWords(q.reason) : 'a tripwire';

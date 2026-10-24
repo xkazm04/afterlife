@@ -11,6 +11,7 @@ import type { Queryable } from '../repositories/sql';
 import { listProofsFor } from '../repositories/work/proof';
 import { listTasks } from '../repositories/work/task';
 import { clock } from './format';
+import { trackLabel } from '@/lib/format/track';
 
 /** [time, track, text], the shape of DEMO.events. */
 export type EventView = DemoData['events'][number];
@@ -25,7 +26,7 @@ async function taskEvents(db: Queryable, projectId: string): Promise<{ at: Date;
   const dated: { at: Date; row: EventView }[] = [];
   for (const t of tasks) {
     if (t.actionClass === null) continue;
-    const track = t.track === null ? 'T?' : `T${t.track}`;
+    const track = trackLabel(t.track);
     const mr = t.mrIid === null ? t.id : `!${t.mrIid}`;
     const verdict = proofs.get(t.id)?.verdict;
     const standing = `${t.stateLabel ?? t.state ?? 'state unknown'}${verdict !== undefined ? ` · proof ${verdict ? verdict.toUpperCase() : 'UNKNOWN'}` : ''}`;

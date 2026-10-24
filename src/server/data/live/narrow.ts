@@ -9,13 +9,14 @@
 import { RUNGS, STAGES } from '@/schemas/stages';
 import type { ActionClass, DemoData, MaturityRung, Task } from '@/lib/demo/types';
 import type { ActionClassView, MaturityView, TaskView } from '@/server/index/views';
+import { trackLabel } from '@/lib/format/track';
 
 /** The class as screens take it: the view's cell (a tier, a standing, or null: unknown) is what Ladder shows. */
 export const actionClass = (v: ActionClassView): ActionClass => ({ ...v, tier: v.tier ?? 'quarantined' });
 
 export function task(v: TaskView): Task | null {
   if (v.cls === null) return null;
-  return { ...v, track: v.track ?? 'T?', cls: v.cls, tierAtTime: v.tierAtTime ?? 'quarantined' };
+  return { ...v, track: v.track ?? trackLabel(null), cls: v.cls, tierAtTime: v.tierAtTime ?? 'quarantined' };
 }
 
 export function maturity(v: MaturityView | null): DemoData['maturity'] {
