@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { ctx } from '../testCtx';
-import { addedLines, sendLabel } from './commands';
+import type { Gap } from '../ctx';
+import { sendLabel } from './commands';
+
+/** The '+' lines across a gap's fixture files: the screen shows the dataset's diffLines, so the two must agree. */
+const addedLines = (g: Gap): number => g.x.files.reduce((a, f) => a + f.lines.filter((l) => l.startsWith('+')).length, 0);
 
 describe('fixtures', () => {
   it('every proposal has its screen data and the diff size the dataset states', () => {
