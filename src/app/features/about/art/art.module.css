@@ -1,0 +1,149 @@
+/* The night scene's colours and its few motions. Colours are tokens (tokens.css "about film" and the palette). */
+.star {
+  fill: var(--film-star);
+}
+.hexA {
+  fill: none;
+  stroke: var(--accent);
+  stroke-opacity: 0.16;
+  stroke-width: 3;
+}
+.hexB {
+  fill: none;
+  stroke: var(--accent-2);
+  stroke-opacity: 0.13;
+  stroke-width: 2;
+}
+.far {
+  fill: var(--film-block-far);
+}
+.mid {
+  fill: var(--film-block-mid);
+}
+.roof {
+  fill: var(--film-roof);
+}
+.side {
+  fill: var(--film-side);
+}
+.warm {
+  fill: var(--film-lamp);
+  opacity: 0.85;
+}
+.cool {
+  fill: var(--accent);
+  opacity: 0.85;
+}
+.hill {
+  fill: var(--film-hill);
+}
+.post {
+  fill: var(--film-black);
+}
+.bulb {
+  fill: var(--film-lamp);
+}
+.wire {
+  fill: none;
+  stroke: var(--film-black);
+  stroke-width: 2;
+}
+.grass {
+  fill: none;
+  stroke: var(--film-black);
+  stroke-width: 4;
+}
+.moon {
+  fill: var(--film-moon);
+  opacity: 0.9;
+}
+.beams {
+  mix-blend-mode: screen;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+/* the path layer */
+.grid {
+  fill: none;
+  stroke: var(--accent);
+  opacity: 0.11;
+}
+.road {
+  fill: none;
+  stroke: var(--film-night);
+}
+.lane {
+  fill: none;
+  stroke: var(--film-lane);
+}
+.trail {
+  fill: none;
+  stroke: var(--accent);
+  opacity: 0.85;
+}
+.trail2 {
+  fill: none;
+  stroke: var(--white);
+}
+.ghost {
+  fill: none;
+  stroke: var(--film-cream);
+  opacity: 0.9;
+}
+.pulse {
+  animation: pulse 2.4s ease-in-out infinite;
+}
+.core {
+  fill: var(--white);
+}
+.tagBox {
+  fill: var(--film-ink);
+  stroke: var(--film-cream);
+  stroke-opacity: 0.6;
+}
+.tagText {
+  fill: var(--film-cream);
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+/* a station */
+.st {
+  cursor: pointer;
+}
+.stem {
+  stroke: var(--film-post);
+}
+.pool {
+  opacity: 0.25;
+  transition: opacity 0.8s;
+}
+.on .pool {
+  opacity: 0.9;
+}
+.emb {
+  opacity: 0.5;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: opacity 0.8s, transform 0.8s var(--ease);
+}
+.on .emb {
+  opacity: 1;
+  transform: scale(1.35);
+}
+.slab {
+  fill: var(--film-cream-3);
+  font-family: var(--sys);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  transition: fill 0.6s;
+}
+.on .slab {
+  fill: var(--film-cream);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}

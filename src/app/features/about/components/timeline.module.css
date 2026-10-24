@@ -1,0 +1,143 @@
+/* The bottom timeline: play or pause, one stop per beat on a line that fills up to the beat on screen, the keys hint. */
+.bar {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 60px;
+  background: linear-gradient(var(--film-ink), var(--film-black));
+  border-top: 1px solid color-mix(in srgb, var(--film-cream) 10%, transparent);
+}
+.play {
+  flex: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--film-cream) 45%, transparent);
+  background: color-mix(in srgb, var(--film-cream) 6%, transparent);
+  cursor: pointer;
+}
+.play path {
+  fill: var(--film-cream);
+}
+.play:hover {
+  background: color-mix(in srgb, var(--film-cream) 16%, transparent);
+}
+.wrap {
+  --notch: calc(var(--t-body) * 5.9);
+  position: relative;
+  flex: none;
+}
+.tl {
+  position: relative;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tl li {
+  width: var(--notch);
+}
+.line,
+.fill {
+  position: absolute;
+  left: calc(var(--notch) / 2);
+  top: calc(var(--t-head) + 14px);
+  height: 2px;
+}
+.line {
+  right: calc(var(--notch) / 2);
+  background: color-mix(in srgb, var(--film-cream) 22%, transparent);
+}
+.fill {
+  width: calc((100% - var(--notch)) * var(--p));
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  transition: width 0.9s var(--ease);
+}
+.notch {
+  width: var(--notch);
+  padding: 2px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: none;
+  color: var(--film-cream-3);
+  font: 600 var(--t-body) / 1.1 var(--sys);
+  text-align: center;
+  cursor: pointer;
+  transition: color var(--t-med);
+}
+.n {
+  font-size: var(--t-head);
+  line-height: 1;
+}
+.tick {
+  position: relative;
+  z-index: 2;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--film-cream-3);
+  background: var(--film-ink);
+  transition: transform var(--t-slow) var(--ease), background var(--t-slow), border-color var(--t-slow);
+}
+.lbl {
+  white-space: nowrap;
+}
+.notch:hover,
+.notch[aria-current] {
+  color: var(--film-cream);
+}
+.notch:hover .tick {
+  transform: scale(1.35);
+  border-color: var(--film-cream);
+}
+.past .tick {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.notch[aria-current] .tick {
+  background: var(--film-cream);
+  border-color: var(--film-cream);
+  transform: scale(1.5);
+  box-shadow: 0 0 18px var(--accent);
+}
+.notch:focus-visible,
+.play:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.notch:focus-visible {
+  border-radius: 6px;
+}
+.hint {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--film-cream-2);
+}
+
+@media (max-width: 900px) {
+  .bar {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  .wrap {
+    --notch: calc(var(--t-body) * 3);
+  }
+  .lbl,
+  .hint {
+    display: none;
+  }
+}

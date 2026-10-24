@@ -1,0 +1,30 @@
+/* The emblems' colours: --e is the beat's voice, set on the station. */
+.line {
+  fill: none;
+  stroke: var(--e);
+}
+.fill {
+  fill: var(--e);
+}
+.disk {
+  fill: color-mix(in srgb, var(--e) 13%, var(--film-ink));
+  stroke: var(--e);
+}
+.alt {
+  fill: none;
+  stroke: var(--fail);
+}
+.ink {
+  fill: none;
+  stroke: color-mix(in srgb, var(--film-ink) 70%, var(--film-cream));
+}
+.cream {
+  fill: var(--film-cream);
+}
+.white {
+  fill: var(--white);
+}
+.dim {
+  fill: none;
+  stroke: var(--film-cream-2);
+}
