@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { useModCap } from '@/lib/keyboard/modKey';
 import { openPalette } from '@/components/palette/CommandPalette';
@@ -9,9 +10,24 @@ import { NavLink } from './NavLink';
 import { SidebarSection } from './SidebarSection';
 import styles from './Sidebar.module.css';
 
-/** The app screens; the current one comes from the route (usePathname). The ⌘K (Ctrl+K off Apple platforms) chip opens the command palette. */
+/**
+ * The app screens; the current one comes from the route (usePathname). The ⌘K (Ctrl+K off Apple platforms) chip opens the command palette.
+ * Under Cache Components a dynamic route's pathname is request data, so the read sits behind <Suspense>: the prerendered
+ * shell draws the same nav with nothing current, and the routed one replaces it.
+ */
 export function AppNav() {
-  const active = activeNavKey(usePathname());
+  return (
+    <Suspense fallback={<NavList active={null} />}>
+      <RoutedNav />
+    </Suspense>
+  );
+}
+
+function RoutedNav() {
+  return <NavList active={activeNavKey(usePathname())} />;
+}
+
+function NavList({ active }: { active: string | null }) {
   const { needsYouCount } = useShellInfo();
   const mod = useModCap();
   return (
