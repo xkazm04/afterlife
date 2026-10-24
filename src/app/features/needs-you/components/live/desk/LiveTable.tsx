@@ -50,7 +50,7 @@ export function moveOf(n: DeskItem): MoveView {
 /** When: a deadline on a waiting row, else how long it has waited (or since it was decided); unknown says so. */
 function When({ n, waiting, now }: { n: DeskItem; waiting: boolean; now: Date }) {
   const due = n.source?.dueIn;
-  if (due) return <span className={`${table.mono} ${waiting ? table.due : table.when}`}>{due === 'overdue' ? 'overdue' : due}</span>;
+  if (due) return <span className={`${table.mono} ${waiting ? table.due : table.when}`}>{due}</span>;
   const age = shortAge(n.kind === 'decided' ? n.actedAt : n.openedAt, now);
   if (age) return <span className={`${table.mono} ${table.when}`}>{age}</span>;
   return (
