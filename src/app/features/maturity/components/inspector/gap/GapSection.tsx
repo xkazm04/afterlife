@@ -3,6 +3,7 @@ import { DetailSection } from '@/components/shell/detail/DetailPage';
 import type { MaturityCtx, Gap } from '../../../model/ctx';
 import type { Action } from '../../../model/reducer';
 import type { MaturityState } from '../../../model/state';
+import { capsFor } from '../../../model/keys/keymap';
 import { moveText, mrName } from '../../../model/rungs';
 import { AfterMerge } from './AfterMerge';
 import { DemoChip } from '../../chrome/DemoChip';
@@ -39,7 +40,7 @@ export function GapSection({
       ) : (
         <>
           <div className={styles.acts}>
-            <Button variant={picked ? 'primary' : 'default'} aria-pressed={picked} title="Pick (P)" onClick={() => dispatch({ type: 'togglePick', id: gap.id })}>
+            <Button variant={picked ? 'primary' : 'default'} aria-pressed={picked} title={`Pick (${capsFor('pick').join(' ')})`} onClick={() => dispatch({ type: 'togglePick', id: gap.id })}>
               {picked ? 'Picked ✓' : 'Pick'}
             </Button>
             <span className={styles.aux}>{x.kind === 'mr' ? `+${gap.diffLines} lines · 1 MR · ${x.cls}` : 'reads only · no diff'}</span>

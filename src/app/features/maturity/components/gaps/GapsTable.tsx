@@ -5,13 +5,14 @@ import type { Gap } from '../../model/ctx';
 import type { Phase } from '../../model/flow/credit';
 import type { MoveAction } from '../../model/flow/moves';
 import { cx } from '../cx';
+import { capsFor } from '../../model/keys/keymap';
 import { mrName } from '../../model/rungs';
 import { GapRow } from './GapRow';
 import styles from './gaps.module.css';
 
 const COLUMNS = [px(28), px(36), px(76), px(72), range(120, 1000), px(96), px(48), range(124, 320)].join(' ');
 const HEADERS: readonly { label: string; cls?: string; tip?: string; aria?: string }[] = [
-  { label: '✓', cls: styles.ctr, tip: 'Pick (P)', aria: 'Pick' },
+  { label: '✓', cls: styles.ctr, tip: `Pick (${capsFor('pick').join(' ')})`, aria: 'Pick' },
   { label: 'Gap' },
   { label: 'Stage' },
   { label: 'Move' },

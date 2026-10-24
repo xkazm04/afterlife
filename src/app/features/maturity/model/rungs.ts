@@ -1,5 +1,6 @@
 import type { MaturityRung } from '@/lib/demo';
 import { RUNGS } from '@/schemas/stages';
+import { capsFor } from './keys/keymap';
 
 /** The highest rung (R4 today): the schema's rung list decides, not a literal 4 here and one in the crag. */
 export const TOP_RUNG = RUNGS.length - 1;
@@ -8,10 +9,12 @@ export const TOP_RUNG = RUNGS.length - 1;
 export type Level = number | null;
 export type Mode = 'day0' | 'now' | 'target';
 
+/** The crag's modes, in the keymap's order: each title names its key from there (D, N, T today). */
+const [DAY0_KEY, NOW_KEY, TARGET_KEY] = capsFor('mode');
 export const MODES: readonly { value: Mode; label: string; title: string }[] = [
-  { value: 'day0', label: 'Day 0', title: 'Day 0 high point (D)' },
-  { value: 'now', label: 'Now', title: 'Now, as scanned (N)' },
-  { value: 'target', label: 'Target', title: 'Next bolt on every route, not earned (T)' },
+  { value: 'day0', label: 'Day 0', title: `Day 0 high point (${DAY0_KEY})` },
+  { value: 'now', label: 'Now', title: `Now, as scanned (${NOW_KEY})` },
+  { value: 'target', label: 'Target', title: `Next bolt on every route, not earned (${TARGET_KEY})` },
 ];
 
 /** "R3", or "?" for unknown. */

@@ -14,6 +14,7 @@ import { projectLabel } from './data/meta';
 import { stagePath, useStepNav } from './hooks/useStepNav';
 import { useMaturityShared } from './MaturityProvider';
 import { stageLede } from './model/flow/lede';
+import { capsFor } from './model/keys/keymap';
 import { capitalize } from './model/rungs';
 
 /** /maturity/[stage]: one DevSecOps stage on its own page, in place of the Maturity inspector drawer. */
@@ -52,7 +53,7 @@ export function StageScreen({ stage }: { stage: Stage }) {
               if (to) router.push(stagePath(to));
             }}
           />
-          <Kbd>← →</Kbd>
+          <Kbd>{capsFor('move').slice(0, 2).join(' ')}</Kbd>
         </div>
       ) : null}
       <StageDetail api={api} stage={stage} />

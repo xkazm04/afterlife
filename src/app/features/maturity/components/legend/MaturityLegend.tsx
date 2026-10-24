@@ -1,7 +1,6 @@
 import { Legend } from '@/components/overlays/popover/Legend';
-import { capsOf, type Keymap } from '@/lib/keyboard/keymap';
 import { creditChecks } from '../../model/flow/credit';
-import { MATURITY_KEYMAP } from '../../model/keys/keymap';
+import { capsFor, MATURITY_KEYMAP, type MaturityKeyId } from '../../model/keys/keymap';
 import styles from './MaturityLegend.module.css';
 
 const line = (cls: string, dashed?: boolean) => (
@@ -30,10 +29,9 @@ const GLYPHS = {
   unchecked: <span className={styles.qbox}>·</span>,
 } as const;
 
-type KeyId = typeof MATURITY_KEYMAP extends Keymap<infer I> ? I : never;
 /** The legend's short word per keymap entry; the keys themselves come from the keymap, so a bound key is a named key. */
-const WORD: Record<KeyId, string> = { move: 'stage', go: 'steps', pick: 'pick', mode: 'crag', rescan: 'rescan' };
-const KEYS_LINE = MATURITY_KEYMAP.entries.map((e) => `${capsOf(e.keys).map((c) => (c.length === 1 ? c.toUpperCase() : c)).join(' ')} ${WORD[e.id]}`).join(' · ');
+const WORD: Record<MaturityKeyId, string> = { move: 'stage', go: 'steps', pick: 'pick', mode: 'crag', rescan: 'rescan' };
+const KEYS_LINE = MATURITY_KEYMAP.entries.map((e) => `${capsFor(e.id).join(' ')} ${WORD[e.id]}`).join(' · ');
 
 /** The four credit rules, in creditChecks' order; a rule the inspector marks 'not checked' is not drawn as passing here either. */
 const RULES = ['Same engine before and after', 'Not detector-only', 'Exercised, not just configured', 'Outside the noise band'] as const;

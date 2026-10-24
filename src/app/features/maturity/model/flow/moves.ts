@@ -1,6 +1,7 @@
 // After the send: the one next move of each sent gap (the gaps table and the stage page read it from here), and the
 // rescan that decides merged gaps, one gap from its page or every merged gap at once from the toolbar. All simulated.
 import type { Gap, MaturityCtx } from '../ctx';
+import { capsFor } from '../keys/keymap';
 import { moveText, rungText } from '../rungs';
 import { say, sentName, type MaturityState } from '../state';
 import { rescanOutcome, type Phase } from './credit';
@@ -72,5 +73,6 @@ export function rescanAll(s: MaturityState, ctx: MaturityCtx): MaturityState {
 /** The toolbar Rescan's title: what it will decide, or that it only reads. */
 export function rescanTitle(s: MaturityState, ctx: MaturityCtx): string {
   const n = waiting(s, ctx).length;
-  return n ? `Rescan, read only (R) · decides ${n} merged gap${n === 1 ? '' : 's'} (simulated)` : 'Rescan, read only (R). Simulated: nothing is scanned, no rung moves';
+  const key = capsFor('rescan').join(' ');
+  return n ? `Rescan, read only (${key}) · decides ${n} merged gap${n === 1 ? '' : 's'} (simulated)` : `Rescan, read only (${key}). Simulated: nothing is scanned, no rung moves`;
 }
