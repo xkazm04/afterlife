@@ -22,9 +22,7 @@ import { usePromoteWrite } from './hooks/usePromoteWrite';
 import { useReceipts } from './hooks/useReceipts';
 import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
-import { livePollAge, pollAge } from './model/clock';
-import { DemoChip } from './components/chrome/DemoChip';
-import { TiersStale } from './components/chrome/TiersStale';
+import { HeadStatus } from './components/chrome/HeadStatus';
 import { dockModel, type DockModel } from './model/rules/dock';
 import { promoteAsk } from './model/rules/promote';
 import type { Tier } from './model/types';
@@ -125,7 +123,6 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
   const total = state.classes.length;
   const shown = data.visible.length;
   const filters = filterCount({ src: state.src, filt: state.filt, q: state.q });
-  const age = live ? livePollAge(clock.elapsed, feedAgeSec) : pollAge(clock.elapsed, feedAgeSec);
 
   return (
     <Window
@@ -150,8 +147,8 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
       sidebar={<LadderSidebar classes={state.classes} tracks={tracks} trackIds={data.trackIds} src={state.src} policy={policy} onSource={actions.setSource} />}
       status={
         <>
-          {shown === total ? total : `${shown} of ${total}`} classes · {filters} {pluralWord(filters, 'filter')} · tier-state.yml @ {state.head.sha} <DemoChip on={!!state.head.demo} what="The tier-state.yml head" />
-          <TiersStale stale={tiersStale} /> · polled {age} s ago
+          {shown === total ? total : `${shown} of ${total}`} classes · {filters} {pluralWord(filters, 'filter')} ·{' '}
+          <HeadStatus head={state.head} stale={tiersStale} live={live} elapsed={clock.elapsed} feedAgeSec={feedAgeSec} />
         </>
       }
     >

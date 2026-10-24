@@ -6,8 +6,7 @@ import { DetailPage } from '@/components/shell/detail/DetailPage';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { HelpContent } from './components/help/HelpContent';
 import { keyRowsFor } from './components/help/keyRows';
-import { DemoChip } from './components/chrome/DemoChip';
-import { TiersStale } from './components/chrome/TiersStale';
+import { HeadStatus } from './components/chrome/HeadStatus';
 import { ClassDetail } from './components/inspector/ClassDetail';
 import { useLadderActions } from './hooks/useLadderActions';
 import { useLadderData } from './hooks/useLadderData';
@@ -16,7 +15,6 @@ import { usePromoteWrite } from './hooks/usePromoteWrite';
 import { useReceipts } from './hooks/useReceipts';
 import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
-import { livePollAge, pollAge } from './model/clock';
 import { classLede, enrollLink } from './model/rules/lede';
 import { promoteAsk } from './model/rules/promote';
 import { ALL_KINDS } from './model/view/moves';
@@ -65,7 +63,6 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
   };
   useHotkeys(Object.entries(keys).map(([key, handler]) => ({ key, handler })), !menus.isOpen);
 
-  const age = live ? livePollAge(clock.elapsed, feedAgeSec) : pollAge(clock.elapsed, feedAgeSec);
   const enroll = enrollLink(cls, promotion);
   const toggleKind = (k: ActorKind) => setKinds((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
 
@@ -84,8 +81,7 @@ export function ClassScreen({ id, project, seed, tracks: trackList, means, polic
       helpTitle="Keys and legend"
       status={
         <>
-          {cls.track} · tier-state.yml @ {state.head.sha} <DemoChip on={!!state.head.demo} what="The tier-state.yml head" />
-          <TiersStale stale={tiersStale} /> · polled {age} s ago
+          {cls.track} · <HeadStatus head={state.head} stale={tiersStale} live={live} elapsed={clock.elapsed} feedAgeSec={feedAgeSec} />
         </>
       }
     >
