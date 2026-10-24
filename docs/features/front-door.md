@@ -6,14 +6,19 @@
 - Draws the fleet as a city at night: each GitLab group is a district plate, each project a tower whose height grows
   with its armed tracks and whose class windows are coloured by tier, and each project with waiting decisions sends up
   an amber beam.
+- A page load opens on the entrance: treasure gates over the city whose lock is the Belay knot (`components/entrance/`).
+  They open by themselves after about 2.2 s, or at once on any key or click; `?entrance=off`, reduced motion and a
+  client-side return from the app go straight to the city.
 - L0 (fleet): the answer block on the left gives the one loud number (decisions waiting), who holds the most, five
-  marks (stale, classes quarantined, setting up, not watched, watching), the week's proofs passed and failed, and a
-  loop mark ("N in improvement cycles · +M rungs since day 0") that links to `/cycles`. Pointing at a mark lights its
-  towers; the big number and the stale mark open the district that holds the most of it.
+  marks (stale, classes quarantined, setting up, not watched, watching) plus two shown only when non-zero (classes
+  with no record yet, classes split between agents), the week's proofs passed, failed and (when any) inconclusive,
+  and a loop mark ("N in improvement cycles · +M rungs since day 0") that links to `/cycles`. Pointing at a mark
+  lights its towers; clicking it locks it as a filter, shown as a chip that clears it (and, for stale, opens the
+  district with the most stale). The big number opens the district that holds the most decisions.
 - L1 (district): the camera frames one district, the others fade, and the rail lists who needs you (most first),
   stale, setting up and not watched projects, each saying why, then how many are calm. Exits: Enter Afterlife
-  (`/fleet`), Needs you, Ladder, and Onboard when a district has projects setting up or not watched.
-- L2 (project): a cutaway tower lifts out. Nine floors are stages lit by rung (dashed when unknown), windows carry tier
+  (`/fleet`), Needs you, Ladder, and Setup when a district has projects setting up or not watched.
+- L2 (project): a cutaway tower lifts out. A floor per listed stage (nine today), each lit by its rung (dashed when unknown), windows carry tier
   letters, the antenna is the feed and the roof beacon is its decisions. The side panel shows state and numbers; for
   the deep project it adds the cockpit lines, its decisions and its tracks. Exits go to Needs you, Ladder, Maturity,
   Task, Theater or Setup depending on the project.
@@ -21,12 +26,14 @@
   route (the app nav); **Enter Afterlife** goes to `/fleet`.
 
 ## How it works
-- `src/app/(door)/page.tsx` (server) injects the inline boot script from `model/fit.ts` (`stageFitSource()`), which
-  fits the 1600 x 1000 stage into the viewport and applies the stored render tier before first paint, then renders
-  `DoorScreen` with `loadDoorData()`. `(door)/loading.tsx` shows `DoorLoading` (night ground and brand) while it streams.
-- `data/loadDoorData.ts` reads the DataSource once (`getFleet`, `getPortfolio`, `getCockpit`, `getMaturity`,
-  `getStages`, `getNeedsYou`, `getTracks`, `deepProjectId`) into `DoorData`. `cycles.gained` sums `now - day0` over the
-  maturity rungs, with unknown rungs contributing nothing.
+- The root layout's `<head>` renders `DoorFitBoot` (`components/chrome/FitBoot.tsx`): the inline script from
+  `model/fit.ts` (`stageFitSource()`), which fits the 1600 x 1000 stage into the viewport and applies the stored render
+  tier before first paint. `src/app/(door)/page.tsx` (server) reads `?entrance` and renders `DoorScreen` with
+  `loadDoorData()`. `(door)/loading.tsx` shows `DoorLoading` (night ground and brand) while it streams.
+- `data/loadDoorData.ts` reads the DataSource once (`getFleet`, `getPortfolio`, `getCockpit`, `getStages`,
+  `getNeedsYou`, `getTracks`, `deepProjectId`) into `DoorData`; live mode lists the group's own decisions only
+  (`ownDecisions`), as `/needs-you` does. `cycles` comes from `loadEstateData()`, so it counts what `/cycles` counts:
+  every project with a closed cycle, and their net rungs.
 - Pure model (`model/`):
   - `city.ts`: `districtsOf(groups, projects)` lays out the 2:1 isometric lattice (four districts in front, three
     behind), `towerH` (height from armed tracks), `needsOf` (0 for a not-set-up project), paint and depth order.
@@ -53,7 +60,8 @@
   "last known".
 - Seeded items are labelled: the deep project's CRA sign-off reads "seeded drill" and the seeded `!44` decision reads
   "seeded".
-- The page is read-only; it writes nothing, it only links into the app.
+- The page is read-only: it writes nothing to the server or GitLab, it only links into the app. The one thing it
+  stores is the measured render tier, in the browser's localStorage.
 
 ## Code map
 | Path (under src/app/features/door/) | Role |
@@ -73,19 +81,25 @@
 | `components/ui/` | `Answer`, `Labels`, `Readout`, `Parts`, `TierLetter`, `MarkIcon` |
 | `components/rail/Rail.tsx` | L1 district list and exits |
 | `components/l2/` | `L2View`, `L2Tower`, `L2Panel` (project cutaway and panel) |
-| `components/chrome/` | `TopChrome` (brand, Enter, Screens), `BottomChrome` (crumbs, Back), `DoorLoading` |
+| `components/chrome/` | `TopChrome` (brand, Enter, Screens), `BottomChrome` (crumbs, Back), `FilterChip` (the locked mark), `Splash`, `DoorLoading`, `DoorFitBoot` |
+| `components/entrance/` | `Entrance` and the treasure gates (`gates/`): the overlay a page load opens on |
 
 ## Tests
 - `model/door.test.ts`: every project placed once with four districts in front and three behind; back-to-front paint
   order with the most decisions at the front; one beam per waiting project and a glow per waiting district; a tower
   drawn in about ten nodes; the ground is a handful of paths and deterministic; the answer's fleet counts; stale and
-  unknown said in words; a district framed inside the stage with the ground at half speed.
-- The loader's demo/live parity is not covered by the server parity test (that list does not include `loadDoorData`).
+  unknown said in words; a district framed inside the stage with the ground at half speed. `model/standing.test.ts`:
+  no record yet and split are never a quarantine; names sort in one collation.
+- `data/loadDoorData.live.test.tsx`: live over the seeded index, the door, Fleet, Monitor and `/needs-you` list the
+  same decisions and the cycles line counts what `/cycles` counts; demo keeps all five decisions.
+- `hooks/*.test.ts`: the count-up, the render-tier probe, the stage fit and the idle pause.
+- `__tests__/` (chrome menu and Escape, tier cells, empty fleet, L2 rungs, rail rows, scene focus) and
+  `__tests__/proofs/` (city fit, gates fail-safe and clock, inconclusive proofs, L2 class focus, quarantine parity,
+  readout); `components/ui/labels/Labels.test.tsx` beside the labels.
 
 ## Status and limits
 - Data comes from `getDataSource()` (`src/server/data`): the demo fixture by default (`BELAY_MODE=demo`), or the live
   index snapshot (`BELAY_MODE=live`). In live mode the cockpit text and tracks are still the demo catalogue.
-- `cycles.projects` is hard-coded to 1 in the loader (the deep project, in the demo); only `gained` is computed.
 - The deep-project panel (cockpit, decisions, tracks) exists only for `deepProjectId()` (default `ledgerline`).
 - Two deliberate departures from the contest winner for render cost: the city at L2 is dimmed, not blurred, and the
   beams breathe as one layer-wide pulse.

@@ -35,7 +35,8 @@ paint. `(door)/loading.tsx` shows the night ground and the brand while the city 
 ## Levels
 
 - **L0, the fleet:** the answer block (the amber 115, who holds the most, five marks that light
-  their towers), a label per district, and the readout for whatever the pointer is on.
+  their towers, seven when a class has no record yet or is split), a label per district, and the readout for
+  whatever the pointer is on.
 - **L1, a district:** the camera frames it, the other districts fade, and the rail lists who needs
   you, what is stale, what is setting up and what is not watched.
 - **L2, a project:** the cutaway lifts from its tower. Floors are lit by stage rung, windows show
@@ -132,7 +133,9 @@ Two departures are on purpose, both for rendering cost:
 - `hooks/useDoor` holds the state machine. `useStageFit`, `useQuality`, `useStill` and `useCountUp`
   are the smaller hooks.
 - `model/` holds the geometry, ground, words, camera and cutaway. It is pure and tested
-  (`door.test.ts`, `standing.test.ts`); the components' tests sit in `__tests__/`.
+  (`door.test.ts`, `standing.test.ts`). The hooks' tests sit beside them (`hooks/*.test.ts`), the loader's in
+  `data/`, the labels' in `components/ui/labels/`; the other components' tests sit in `__tests__/` and
+  `__tests__/proofs/`.
 - `components/scene/` draws the city layers.
 - `components/ui/` holds the answer, labels, readout, parts, tier letters and marks.
 - `components/rail/` is L1; `components/l2/` is L2; `components/chrome/` is the corners and the
