@@ -24,7 +24,7 @@ async function polled(pushesOf: (iid: number) => string[], more?: (r: Awaited<Re
   expect(cycle.projects.map((p) => p.error ?? null)).toEqual([null]);
   const row = (await listClassTiers(r.db, 'ledgerline')).find((c) => c.classId === CLS);
   const asks = (await getNeedsYou(r.db, 'ledgerline', NOW)).filter((n) => n.kind === 'promote');
-  return { record: row?.record ?? null, asks };
+  return { record: row?.record ?? null, asks, warnings: cycle.warnings };
 }
 
 describe('no-edit, counted from the merge requests\' push notes', () => {
@@ -39,9 +39,11 @@ describe('no-edit, counted from the merge requests\' push notes', () => {
     })]);
   });
 
-  it("on a proof class the engine does not check (human-review: no machine check, so never mechanical), the same record opens no Hands-off ask", async () => {
-    const { record, asks } = await polled(() => [QA, QA], undefined, 'human-review');
-    expect(record).toMatchObject({ accepted: 15, noEdit: 1 });
+  it('a proof name the engine has no class for (human-review) refuses the policy: no record counted from it, no Hands-off ask', async () => {
+    // engine/policy/load.ts parsePolicy refuses it (b63d6f4e), so the poll leaves the class tiers as they were and says why
+    const { record, asks, warnings } = await polled(() => [QA, QA], undefined, 'human-review');
+    expect(warnings).toEqual(expect.arrayContaining([expect.stringMatching(/classes\.qa\.file-bug\.proof "human-review" is not a proof class/)]));
+    expect(record?.accepted ?? null).not.toBe(15);
     expect(asks).toEqual([]);
   });
 
