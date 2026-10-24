@@ -74,4 +74,16 @@ describe('scripts/prompt-drift.mjs', () => {
     expect(r.status).toBe(2);
     expect(r.stderr).toContain('--ascent');
   });
+  // Exit 1 means drift; a manifest the script cannot read is a broken check, not a drifted prompt.
+  it('exits 2 with one line, not a stack, when sources.json is missing or not JSON', () => {
+    fs.rmSync(sources);
+    const missing = run(ascent);
+    expect(missing.status).toBe(2);
+    expect(missing.stderr).toContain('prompt-drift: cannot read');
+    expect(missing.stderr).not.toContain('node:fs');
+    fs.writeFileSync(sources, '{ not json');
+    const garbled = run(ascent);
+    expect(garbled.status).toBe(2);
+    expect(garbled.stderr).toContain('prompt-drift: cannot read');
+  });
 });

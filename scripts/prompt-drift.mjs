@@ -1,7 +1,8 @@
 // Prompt drift: runner/prompts/* are vendored from ascent at the sha pinned in runner/prompts/sources.json.
 // This recomputes the sha256 of each source file in an ascent checkout and reports any that changed since.
 // Sources marked `"ref": "archive"` are blobs on sources.json `archive.ref` (Ascent's never-merged experiment branch).
-// Exit 0 clean, 1 drift (prints each changed source and ascent's commits since the pinned sha), 2 checkout missing.
+// Exit 0 clean, 1 drift (prints each changed source and ascent's commits since the pinned sha), 2 checkout missing or
+// sources.json unreadable.
 // Hashes are over LF-normalised text so a Windows autocrlf checkout hashes like a Linux one.
 // Usage: node scripts/prompt-drift.mjs [--ascent <path>] [--sources <sources.json>]
 import { spawnSync } from 'node:child_process';
@@ -27,7 +28,14 @@ if (!fs.existsSync(ascent) || !fs.statSync(ascent).isDirectory()) {
   process.exit(2);
 }
 
-const manifest = JSON.parse(fs.readFileSync(sourcesFile, 'utf8'));
+// Exit 1 means drift, so a manifest that cannot be read is a broken check (2), said in one line.
+let manifest;
+try {
+  manifest = JSON.parse(fs.readFileSync(sourcesFile, 'utf8'));
+} catch (e) {
+  console.error(`prompt-drift: cannot read ${sourcesFile}: ${e.code ?? e.message}`);
+  process.exit(2);
+}
 const gitOut = (...a) => spawnSync('git', ['-C', ascent, ...a], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 let drifted = 0;
 let unchecked = 0;
