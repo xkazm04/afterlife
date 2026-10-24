@@ -54,6 +54,13 @@ export function liveConfigProblems(env: Record<string, string | undefined>): str
   else if (!authors.every((a) => NAME.test(a))) problems.push(`BELAY_PROOF_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(env.BELAY_PROOF_AUTHORS)}`);
   // optional; when set, read by the same rule (a name with a space or an @ is nobody's username, so it would believe no one)
   if (!list(env.BELAY_GUARDRAIL_AUTHORS).every((a) => NAME.test(a))) problems.push(`BELAY_GUARDRAIL_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(env.BELAY_GUARDRAIL_AUTHORS)}`);
+  // optional too: a prefix with a space admits no agent, a name with a slash is never <group>/<name>
+  const prefix = env.BELAY_AGENT_PREFIX?.trim();
+  if (prefix && !NAME.test(prefix)) problems.push(`BELAY_AGENT_PREFIX is not a username prefix: ${JSON.stringify(env.BELAY_AGENT_PREFIX)}`);
+  for (const name of ['BELAY_POLICY_PROJECT', 'BELAY_LEDGER_PROJECT'] as const) {
+    const v = env[name]?.trim();
+    if (v && !NAME.test(v)) problems.push(`${name} is not a project path (its last segment, no group): ${JSON.stringify(env[name])}`);
+  }
   return problems;
 }
 
@@ -61,13 +68,13 @@ export function liveConfigProblems(env: Record<string, string | undefined>): str
 export function readPollerConfig(group: string | number, env: Record<string, string | undefined> = process.env): PollerConfig {
   const problems = liveConfigProblems(env);
   if (problems.length) throw new Error(`BELAY_MODE=live: ${problems.join('; ')}`);
-  const policyProject = env.BELAY_POLICY_PROJECT || 'belay-policy';
-  const ledgerProject = env.BELAY_LEDGER_PROJECT || 'belay-ledger';
+  const policyProject = env.BELAY_POLICY_PROJECT?.trim() || 'belay-policy';
+  const ledgerProject = env.BELAY_LEDGER_PROJECT?.trim() || 'belay-ledger';
   const hours = Number(env.BELAY_TASK_HOURS);
   return {
     group, policyProject, ledgerProject, infra: [policyProject, ledgerProject, 'belay-pack', 'belay-engine'],
     policyRef: env.BELAY_POLICY_REF || 'main', ledgerRef: env.BELAY_LEDGER_REF || 'main',
-    agents: { prefixes: [env.BELAY_AGENT_PREFIX || 'ai-'], names: [] },
+    agents: { prefixes: [env.BELAY_AGENT_PREFIX?.trim() || 'ai-'], names: [] },
     proof: { prefixes: ['ai-proof-'], names: list(env.BELAY_PROOF_AUTHORS) },
     guardrail: { prefixes: ['ai-guardrail-'], names: list(env.BELAY_GUARDRAIL_AUTHORS) },
     taskWindowMs: (Number.isFinite(hours) && hours > 0 ? hours : 24) * HOUR,

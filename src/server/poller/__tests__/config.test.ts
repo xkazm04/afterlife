@@ -31,6 +31,15 @@ describe('readPollerConfig in live mode', () => {
     expect(readPollerConfig('987654', { ...LIVE, BELAY_GUARDRAIL_AUTHORS: 'guard-one, guard.two' }).guardrail.names).toEqual(['guard-one', 'guard.two']);
   });
 
+  it('refuses a set agent prefix or Belay project name no username or path can match, and reads one padded with spaces', () => {
+    // a prefix with a space admits no agent (no task is ever read); a project name with a slash is never <group>/<name>
+    expect(() => readPollerConfig('987654', { ...LIVE, BELAY_AGENT_PREFIX: 'ai bot-' })).toThrow(/BELAY_AGENT_PREFIX is not a username prefix/);
+    expect(() => readPollerConfig('987654', { ...LIVE, BELAY_POLICY_PROJECT: 'acme/belay-policy' })).toThrow(/BELAY_POLICY_PROJECT is not a project path/);
+    expect(() => readPollerConfig('987654', { ...LIVE, BELAY_LEDGER_PROJECT: 'belay ledger' })).toThrow(/BELAY_LEDGER_PROJECT is not a project path/);
+    const cfg = readPollerConfig('987654', { ...LIVE, BELAY_AGENT_PREFIX: ' op-bot- ', BELAY_POLICY_PROJECT: 'op-policy ', BELAY_LEDGER_PROJECT: ' op-ledger' });
+    expect([cfg.agents.prefixes, cfg.policyProject, cfg.ledgerProject]).toEqual([['op-bot-'], 'op-policy', 'op-ledger']);
+  });
+
   it('names every problem at once', () => {
     expect(() => readPollerConfig('144060371', { BELAY_MODE: 'live' })).toThrow(/BELAY_GROUP_ID.*BELAY_PROJECT.*BELAY_PROOF_AUTHORS/s);
   });

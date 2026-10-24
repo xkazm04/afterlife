@@ -71,8 +71,9 @@ Tests never start a timer.
 
 Live mode on a real group (`BELAY_MODE=live`, `BELAY_GITLAB` not `fake`) has no defaults: `readPollerConfig` throws, naming
 each variable, when `BELAY_GROUP_ID` (a group id or path), `BELAY_PROJECT` (a project's path, its last segment) or
-`BELAY_PROOF_AUTHORS` (usernames: the operator's, in M1) is missing or malformed, or `BELAY_GUARDRAIL_AUTHORS` is set
-and malformed (`liveConfigProblems`). The cycle then reads
+`BELAY_PROOF_AUTHORS` (usernames: the operator's, in M1) is missing or malformed, or `BELAY_GUARDRAIL_AUTHORS`,
+`BELAY_AGENT_PREFIX`, `BELAY_POLICY_PROJECT` or `BELAY_LEDGER_PROJECT` is set and malformed (`liveConfigProblems`; each
+is read trimmed). The cycle then reads
 nothing, so it never polls the default group, and the runtime logs `belay: poll failed` with the message every poll.
 
 Where it reads from: F49 (e2079f8) reads belay-policy and belay-ledger at `<group>/<name>` by full path and polls only projects under the group's own path (`own` in `runPollCycle`, `cycle.ts`). F51 (8a534c8) reads a tier record whose `by` is not text as the gate does, by its tier alone (`derive/tiers.ts`), so a hand-written `{ tier: quarantined }` no longer aborts the poll.
