@@ -1,5 +1,5 @@
 // The poll scheduler: one cycle, then the next one `intervalMs` after it ends (never two at once). It is started by the
-// server on boot (data/live/boot.ts) and by nothing else: tests call runPollCycle directly and never start a timer.
+// live runtime on boot (data/live/runtime.ts) and by nothing else: tests call runPollCycle directly and never start a timer.
 
 export interface Scheduler {
   /** Runs one cycle now (or joins the one in flight) and resolves when it is done. */
