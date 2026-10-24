@@ -1,6 +1,7 @@
 // Run: the only way a staged write is sent. Each decision records what it wrote in "Decided this week". A policy MR (n1,
 // n4) and a gap MR (g1..) is sent by the server (useNeedsYou calls confirmAction): each is one write slot (slot/slot.ts),
 // and this records what the server answered, saying only what it says.
+import type { NeedsKind } from '@/lib/demo/types';
 import { OPERATOR } from '../data/constants';
 import { CRA } from '../data/cra';
 import type { NeedsYouDemo } from '../data/types';
@@ -51,7 +52,7 @@ export const retried = (s: NeedsState, key: string, demo: NeedsYouDemo): NeedsSt
   return slot ? put(s, key, slot, demo) : s;
 };
 
-const KIND: Record<PolicyKey, string> = { n1: 'promote', n4: 'readmit' };
+const KIND: Record<PolicyKey, NeedsKind> = { n1: 'promote', n4: 'readmit' };
 const refOf = (a: SlotAnswer, repo: string): string => (a.simulated ? 'simulated, no MR' : a.mr ? `${repo}${a.mr}` : 'MR opened (GitLab named none)');
 
 /** What differs between a policy MR and a gap MR: how the answer names it, and how a done one is recorded. */

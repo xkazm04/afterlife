@@ -1,4 +1,5 @@
 // "Decided this week": the session's decisions (newest first) above the ledger's earlier ones.
+import type { NeedsKind } from '@/lib/demo/types';
 import { WEEK } from '../../data/week';
 import type { HistRow, NeedsState } from '../types';
 
@@ -13,7 +14,7 @@ export function histRow(s: Pick<NeedsState, 'session'>, id: string): HistRow | u
 }
 
 /** A decision made now: it goes to the top of the history. */
-export function decided(s: NeedsState, kind: string, what: string, result: string, ref: string): NeedsState {
+export function decided(s: NeedsState, kind: NeedsKind, what: string, result: string, ref: string): NeedsState {
   const row: HistRow = { when: 'just now', kind, what, result, ref, fresh: true };
   return { ...s, session: [row, ...s.session] };
 }

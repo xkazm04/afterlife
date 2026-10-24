@@ -1,13 +1,14 @@
+import type { NeedsKind } from '@/lib/demo/types';
 import type { WeekRow } from './types';
 
-/** Labels for the kinds of decision in the ledger. */
-export const KIND_WORDS: Record<string, string> = {
+/** Labels for the kinds of decision in the ledger: one per inbox kind, so a kind the inbox adds fails the type check here. */
+export const KIND_WORDS: Readonly<Record<string, string>> = {
   promote: 'Promotion',
   signoff: 'CRA sign-off',
   gaps: 'Gap pick',
   readmit: 'Re-admission',
   setup: 'Setup gate',
-};
+} satisfies Record<NeedsKind, string>;
 
 const row = (when: string, kind: string, what: string, result: string, ref: string): WeekRow => ({ when, kind, what, result, ref });
 
