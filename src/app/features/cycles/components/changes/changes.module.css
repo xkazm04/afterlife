@@ -2,9 +2,12 @@
 .t {
   border-radius: 8px;
   box-shadow: inset 0 0 0 1px var(--border-1);
-  overflow: hidden;
+  /* the table scrolls sideways inside itself in a narrow pane (as the Maturity gaps table does), never clips Verdict */
+  overflow-x: auto;
 }
 .row {
+  /* never narrower than its tracks' minimums, so a narrow pane scrolls the table instead of cutting the last column */
+  min-width: min-content;
   display: grid;
   grid-template-columns: var(--cols);
   align-items: stretch;
