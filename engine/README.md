@@ -22,15 +22,19 @@ Only `prove` inlines; `gate`, `tripwire` and `ledger` read their JSON as it is.
 
 ## What each proof class proves
 
-- **exploit-test** - the named test failed at base and its output names the vector; the same test id passed at
+- **exploit-test** - the named test failed at base and its output names the vector (trimmed, at least 3 characters:
+  a shorter one names no attack); the same test id passed at
   head; no test was weakened in the diff (assertions removed or loosened, skips, deleted tests, `assertTrue(true)`);
   the finding is gone on a rescan by the same scanner version; the diff is inside the envelope. Reads JUnit XML,
   or a raw job trace (Gradle, Surefire, pytest, go test, Jest/Vitest).
 - **cited-diff** - every finding quotes text that literally sits in a hunk of the MR diff, compared after
-  collapsing whitespace only. It proves the quote exists, not that the finding reads it right. Diff text is data.
+  collapsing whitespace only, at least 6 characters, and across adjacent lines only (never added lines with others
+  between them). It proves the quote exists, not that the finding reads it right. Diff text is data. `claims` must be a
+  list: no findings is a vacuous pass, so a claim object where the list belongs is refused.
 - **rerun-stats** - N reruns of one SHA, counts recomputed from the job records (cancelled and runner failures
-  left out): `flake` below the real-failure rate, `real-failure` at or above it. Thresholds come from a
-  `rerun_stats` block in the policy, else the engine defaults (5 runs, 0.8), and the check says which.
+  left out, one job counted once however many records repeat it): `flake` below the real-failure rate,
+  `real-failure` at or above it. Thresholds come from a `rerun_stats` block in the policy, else the engine defaults
+  (5 runs, 0.8), and the check says which.
 - **linked-evidence** - every statement's link resolves in the resolution results the input carries (the engine
   never fetches), on an allowed host; CRA clock arithmetic is recomputed. Legal wording is a `decidedBy: human` check.
 - **repro** - the failure the agent claims (`expect: {status?, assertion?}`) reproduces in at least 2 probe runs against
@@ -52,9 +56,9 @@ Only `prove` inlines; `gate`, `tripwire` and `ledger` read their JSON as it is.
   poller resolves those from GitLab. On a chain with no task rows beside it, the checker's row and the poller's agree
   (`src/server/poller/derive/__tests__/gate/chain.test.ts`). Fixtures in `__fixtures__/ledger`.
 
-Evidence that is missing, unreadable or not comparable is an `ok: null` check (inconclusive), never a pass. The three
-checkers above read JSON evidence inline or as a `$file` (its text is parsed), so a CI job writes them with
-`evidence_mode: provided`; fixtures in `__fixtures__/repro`, `bench`, `score`, `ledger`. No class is a stub any more
+Evidence that is missing, unreadable or not comparable is an `ok: null` check (inconclusive), never a pass. repro,
+bench-delta and score-delta read JSON evidence inline or as a `$file` (its text is parsed), ledger-record its chain
+text, so a CI job writes them with `evidence_mode: provided`; fixtures in `__fixtures__/repro`, `bench`, `score`, `ledger`. No class is a stub any more
 (`proofs/stubs.ts` keeps the inconclusive answer for one that is named before its checker exists).
 
 The block's `verdict` is `verdictOf(checks, envelope.within)`: claims never decide. `engine` is
@@ -102,10 +106,12 @@ unreadable fact, a deep project).
 ## Gate and tripwire
 
 The gate fails closed. Effective tier is the lower of the recorded tier and the class ceiling (a lapsed
-hands-off lease counts as supervised). Quarantined or a guardrail block gives `block`. A proof that failed, whose verdict does
-not follow from its checks, or of the wrong class gives `block`; an inconclusive or missing proof or guardrail gives
-`wait`. Then hands-off `merge`, supervised `approve` (a human still merges), assisted `wait`. The tripwire
-only lowers a tier with `demote()`, edits `tier-state.yml` in place (comments kept), and never promotes.
+hands-off lease counts as supervised; `decide/standing.ts`). An unknown or `human_only` class, no tier record, or several
+holders with no `--agent` gives `block`, as do quarantined and a guardrail block. A proof that failed, whose verdict does
+not follow from its checks, of the wrong class, for a class that declares no proof class, made by another engine build
+(`--engine-sha`), or made from a different diff than the one the gate measured (`--diff`: paths touched differ) gives
+`block`, as does a change outside the envelope; an inconclusive or missing proof or guardrail gives `wait`. Then
+hands-off `merge`, supervised `approve` (a human still merges), assisted `wait`. The tripwire only lowers a tier with `demote()`, edits `tier-state.yml` in place (comments kept), and never promotes.
 
 `gate --shadow-next-rung` also prints `would: {tier, decision}`: `gate()` run a second time on the same inputs with a
 copy of tier-state in which the holder's record stands one rung higher (`decide/shadow.ts`; the raised record carries no
