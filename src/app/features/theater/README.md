@@ -60,7 +60,7 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
 !44 line and its quote, and the loop's narrative per hold (who, what). Nothing is marked "demo" instead.
 
 ## Data
-- `live/model/select.ts` (`selectLive`, `isStale`, injected clock), `mode.ts`, `meta.ts`; `live/server/livePayload.ts`; `live/hooks/useLivePayload.ts`; `live/components/`.
+- `live/model/select.ts` (`selectLive`, `isStale`, injected clock), `mode.ts`, `meta.ts`; `live/server/livePayload.ts`; `live/hooks/useLivePayload.ts` (over `livePoll.ts`, its host injected); `live/components/`.
 - `data/ledger.ts` REPLAY_LEDGER; `data/constants.ts` takes, who, checks, initial state, CRA anchor, keys.
 - `loadTheaterData` keeps the films apart from live data. The illustrative film's catalogue parts (`TheaterDemo`:
   stages, tracks, rungs, the !44 quote), its holds (the loop) and its subtitle come from the catalogue (`DEMO`) only,
@@ -76,7 +76,7 @@ CRA clock, the illustrative film's three autonomy classes (one per tier: `qa.fil
     is said), `data/labels.test.tsx` (the REPLAY chip and
     legend), `data/loader.test.tsx` (the loader live against a bare index and the fake group; the quote box),
     `data/constants.test.ts` (the invented constants against the ledger slice), `data/readme.test.ts` (this list).
-  - live: `live/model/select.test.ts` (header facts, stale freeze with an injected clock, the precedence), `live/LiveScreen.test.tsx` (the live stage rendered), `live/server/livePayload.test.ts` (the payload off disk).
+  - live: `live/model/select.test.ts` (header facts, stale freeze with an injected clock, the precedence), `live/LiveScreen.test.tsx` (the live stage rendered), `live/server/livePayload.test.ts` (the payload off disk), `live/hooks/livePoll.test.ts` (the poller: a failed read keeps the last payload, an older answer never overwrites a newer one, a hidden tab reads nothing).
   - keys and parts: `hooks/useTheaterKeys.test.ts` (the "?" legend against the key map),
     `hooks/frameClock.test.ts` (the frame clock asks for no frames while the film is held),
     `components/chrome/TakesSidebar.test.tsx` (key hints follow MAX_TAKES), `components/chrome/Transport.test.tsx` (its
