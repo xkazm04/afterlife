@@ -5,11 +5,9 @@ import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
 import { DEFAULT_NEEDS_ACTION, NEEDS_ACTIONS } from '@/lib/demo/needsActions';
 import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
+import { fleetHref } from '@/lib/url/fleetHref';
 import { decisionsWord, liveNeeds } from '../../model/totals';
 import styles from './inspector.module.css';
-
-/** A project's own Fleet page (/fleet/[project]), not the whole table. */
-export const fleetHref = (id: string): string => `/fleet/${encodeURIComponent(id)}`;
 
 /**
  * The items to act on, for the selected beat. The deep project lists its real decisions (none listed: it reads like any other project). Demo resolves one on a click

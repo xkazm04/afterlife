@@ -12,9 +12,10 @@ import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { plural, pluralWord } from '@/lib/format/plural';
 import { stabilityLine, type Stability } from '@/lib/stability/stability';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
+import { fleetHref } from '@/lib/url/fleetHref';
 import { TRACKS, liveNeeds, stateLine, tiersRead, topWaiting } from '../../model/totals';
 import type { Totals } from '../../model/types';
-import { Decisions, fleetHref } from './Decisions';
+import { Decisions } from './Decisions';
 import styles from './inspector.module.css';
 
 /** Where the picked project goes next. Fleet opens that project's own page (as the Fleet table's rows do); the rest are screens. */

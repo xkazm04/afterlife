@@ -13,6 +13,7 @@ import { StageTicks } from '@/components/viz/StageTicks';
 import { STATE_LABEL } from '@/lib/demo/labels';
 import type { FleetProject, TierKey } from '@/lib/demo/types';
 import { cellName, standingCount, STANDINGS, TIER_DISPLAY_ORDER, tiersKnown } from '@/lib/tiers';
+import { fleetHref } from '@/lib/url/fleetHref';
 import { columnRole } from '../../model/list/sorting';
 import type { FleetMeta, FleetView } from '../../model/types';
 import { ChangeMark } from './cells/ChangeMark';
@@ -89,7 +90,7 @@ export const ProjectRow = memo(function ProjectRow(props: ProjectRowProps) {
   return (
     <Row id={p.id} selected={selected} alt={alt} stale={stale} muted={unwatched} level={grouped ? 2 : 1} onSelect={h.onSelect} onActivate={h.onActivate} onContextMenu={h.onContextMenu}>
       <Cell indent>
-        <Link href={`/fleet/${encodeURIComponent(p.id)}`} className={`${styles.name} ${unwatched ? styles.unwatched : ''}`} title={`Open ${p.name}`}>
+        <Link href={fleetHref(p.id)} className={`${styles.name} ${unwatched ? styles.unwatched : ''}`} title={`Open ${p.name}`}>
           {p.name}
         </Link>
         {props.mark ? <ChangeMark title={props.mark} /> : null}

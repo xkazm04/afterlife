@@ -30,6 +30,7 @@ import { INITIAL_SORT, sortLabel } from './model/list/sorting';
 import { DEFAULT_LIST_STATE, type FleetListState } from './model/list/urlState';
 import type { FleetData, FleetEstate, FleetMeta, FleetSource, Source } from './model/types';
 import type { RunnerDesk } from '@/lib/runs/desk/types';
+import { fleetHref } from '@/lib/url/fleetHref';
 
 /** A bookmarked sort on a class or stage this fleet does not draw (renamed, dropped) would rank by no column: the default instead. */
 function fitColumns(s: FleetListState, meta: FleetMeta): FleetListState {
@@ -68,7 +69,7 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
   // A project opens its page; a group row only takes the selection (its expand and collapse is the arrows').
   const open = useEvent((id: string) => {
     setSel(id);
-    if (!id.startsWith('g:')) router.push(`/fleet/${encodeURIComponent(id)}`);
+    if (!id.startsWith('g:')) router.push(fleetHref(id));
   });
   const menus = useFleetMenus({
     data,

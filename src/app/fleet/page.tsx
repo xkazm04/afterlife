@@ -5,6 +5,7 @@ import { loadFleetSource } from '../features/fleet/data/loadFleetSource';
 import { FleetScreen } from '../features/fleet/FleetScreen';
 import { decodeListState, type RawParams } from '../features/fleet/model/list/urlState';
 import { loadFleetEstate } from '../features/fleet/data/loadFleetEstate';
+import { fleetHref } from '@/lib/url/fleetHref';
 import { firstParam } from '@/lib/url/searchParams';
 import { readDesk } from '@/server/runs/readDesk';
 
@@ -19,7 +20,7 @@ export default async function FleetPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const want = firstParam(params.project);
   const data = loadFleetData();
-  if (want && data.projects.some((p) => p.id === want)) redirect(`/fleet/${encodeURIComponent(want)}`);
+  if (want && data.projects.some((p) => p.id === want)) redirect(fleetHref(want));
   const runner = readDesk();
   return <FleetScreen data={data} source={loadFleetSource()} start={decodeListState(params)} runner={runner} estate={loadFleetEstate(data, runner)} />;
 }
