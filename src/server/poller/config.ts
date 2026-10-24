@@ -1,4 +1,6 @@
 // What the poller reads and whom it believes. Env only; nothing secret.
+import { readDataConfig } from '@/server/data/config';
+
 export interface AuthorRule {
   /** An account whose username starts with one of these counts. */
   prefixes: readonly string[];
@@ -41,7 +43,8 @@ const GROUP = /^(\d+|[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)*)$/;
  * malformed, each by its variable's name; [] when nothing is, or in any other mode.
  */
 export function liveConfigProblems(env: Record<string, string | undefined>): string[] {
-  if (env.BELAY_MODE !== 'live' || env.BELAY_GITLAB === 'fake') return [];
+  const data = readDataConfig(env);
+  if (data.mode !== 'live' || data.gitlab === 'fake') return [];
   const problems: string[] = [];
   const group = env.BELAY_GROUP_ID?.trim();
   if (!group) problems.push('BELAY_GROUP_ID is not set (the group to watch; there is no default in live mode)');
