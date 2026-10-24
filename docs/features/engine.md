@@ -4,20 +4,23 @@
 
 ## What it does
 - `engine/` is the model-free proof engine, run in GitLab CI as `npx tsx engine/cli.ts <cmd>` (or
-  `npm run engine -- <cmd>`). Commands: `prove`, `envelope`, `gate`, `tripwire`, `ledger append`, `scan`. No network, no LLM, no dependency
-  beyond `yaml`.
+  `npm run engine -- <cmd>`). Commands: `prove`, `envelope`, `gate`, `tripwire`, `ledger append`, `ledger trial`, `scan`,
+  `pin`. No network, no LLM, no dependency beyond `yaml`.
 - `prove` writes a Proof Block for a proof class. All eight classes have a checker: `exploit-test`, `cited-diff`,
   `rerun-stats`, `linked-evidence`, `repro`, `bench-delta`, `score-delta`, `ledger-record` (`proofs/stubs.ts` keeps
   the inconclusive answer for a class named before its checker exists; none is today).
 - `gate` decides `merge` / `approve` / `wait` / `block` for an agent MR from tier state, policy, the proof and the
   guardrail verdict. `tripwire` turns a bad-outcome event into a demotion commit of `tier-state.yml`. `ledger append`
-  adds one hash-chained event line.
-- `scan` rates the nine stages R0–R4 from facts, model-free: `--dir <checkout>` reads files only (CI config with
-  local includes followed, CODEOWNERS, `.gitlab/`, IaC and alerting files); `--facts <facts.json>` reads the
-  `belay.facts/0` file the `maturity-scan` component collects (adds the last default-branch pipeline, protections
-  and approval rules). Configured is R1, a job that succeeded on the default branch is R2, a merge-blocking setting
-  is R3; R4 is never scored here. A stage whose lifting facts could not be read is unknown (null), never absent, and
-  an empty alerting file is not monitoring. `--propose` adds the smallest next change per stage, as text.
+  adds one hash-chained event line; `ledger trial` recomputes a holder's next-rung trial from the chain cut at the seq
+  a promotion MR states. `pin` prints the engine pin (`{version, sha256, files}`) every Proof Block carries.
+- `scan` rates the nine stages R0–R4, model-free. `--dir <checkout>` reads files only (CI config with local includes
+  followed, CODEOWNERS, `.gitlab/`, IaC and alerting files) and credits at most R1 (configured): pipelines and
+  protections are not in a checkout (`engine/scan/`). `--facts <facts.json>` scores the `belay.facts/0` file the
+  `maturity-scan` component collects by the rubric table (`commands/rubric.ts`, the table in `engine/README.md`): R1
+  present on the default branch, R2 ran there within 14 days with an artifact, R3 failing it blocks a merge, R4 an
+  agent operates it and a Belay proof job re-derives it. A stage whose lifting facts could not be read is unknown
+  (null), never absent, and an empty alerting file is not monitoring. `--propose` (with `--dir`) adds the smallest
+  next change per stage, as text.
 - `cli/belay.mjs` is the `belay` command-line companion, each part run through tsx:
   - `doctor` runs the real capability probes (`src/server/gitlab/doctorCli.ts`).
   - `scan [<checkout>] [--propose] [--facts F]` runs `engine scan` (the checkout defaults to the current folder).
@@ -51,7 +54,8 @@
   `head_sha` is carried through when the input has it.
 - **Verdict**: `verdictOf(checks, envelope.within)` in `src/schemas/proof.ts`: outside the envelope is fail; no
   engine-decided checks is inconclusive; any false check is fail; any null is inconclusive; else pass. Claims never
-  decide. The block's `engine` is `{version, sha256}` over every engine source file (`core/version.ts`).
+  decide. The block's `engine` is `{version, sha256}` over the import closure of `engine/cli.ts` (`core/version.ts`,
+  `core/imports.ts`): every file that runs, including the `src/schemas` rules it imports, and no test or fixture.
 - **Envelope** (`policy/envelope.ts`, `glob.ts`, `load.ts`): files, lines, denied paths and target environments
   against the class and the `envelope` section.
 - **Gate** (`decide/gate.ts`): effective tier is the lower of recorded tier and class ceiling; a lapsed hands-off
@@ -65,7 +69,8 @@
   edits `tier-state.yml` in place (comments, flow style, quoted dates kept), writes `by: tripwire`, reason, evidence
   and a cooldown, and returns the commit path, content and message.
 - **Ledger** (`commands/ledger.ts`): validates the event (kind, tier, subject, observer), verifies the existing chain
-  first, and prints the new line; `--write` appends it.
+  first, and prints the new line; `--write` appends it. `ledger trial` (`commands/audit/trial.ts`) cuts the chain at
+  `--through`, verifies it, checks `--head`, and recomputes the trial with ledger-record's rule.
 - **GitLab components** (`gitlab/components/templates/`): `proof-engine`, `tier-gate`, `tripwire`, `maturity-scan`,
   `ledger-append`, `flow-dispatch`. Each job checks out `belay-engine` at a required `engine_ref` (optionally pinned
   to `engine_commit`) and runs the engine; Node glue in `scripts/` fetches blocks, builds evidence, posts proofs,
@@ -90,15 +95,15 @@
 ## Code map
 | Path | Role |
 |---|---|
-| `engine/cli.ts`, `engine/commands/` | Entry and the six commands (`prove`, `envelope`, `gate`, `tripwire`, `ledger`, `scan`) |
-| `engine/scan/` | Facts (checkout, GitLab), CI reader, the nine stage rules, scoring and proposals |
+| `engine/cli.ts`, `engine/commands/` | Entry and the commands (`prove`, `envelope`, `gate`, `tripwire`, `ledger` with `append` and `trial` in `audit/`, `scan` with its rubric, `pin`) |
+| `engine/scan/` | `scan --dir`: checkout facts, CI reader, the nine stage rules, scoring and proposals |
 | `src/server/pair/` | `belay pair`: the bootstrap plan (`plan.ts`, `ciFile.ts`) and its IO (`pair.ts`, `pairCli.ts`) |
-| `engine/core/` | Args, files, types, ULID, engine version and source hash |
+| `engine/core/` | Args, files, types, ULID, engine version and the pin over the import closure (`imports.ts`) |
 | `engine/parse/` | Diff, JUnit, trace parsers, test-case shapes |
 | `engine/proofs/` | Proof classes (`checkers/` for repro, bench-delta, score-delta, ledger-record), weakening detector, stubs, shared helpers |
 | `engine/policy/` | Policy loading, envelope, globbing |
 | `engine/decide/` | `gate.ts`, `standing.ts` (effective tier, holder), `shadow.ts` (`--shadow-next-rung`), `tripwire.ts` |
-| `engine/__fixtures__/` | Exploit, cited, rerun, linked and event inputs |
+| `engine/__fixtures__/` | Inputs per proof class (exploit, cited, rerun, linked, repro, bench, score, ledger), events, maturity facts |
 | `src/schemas/` | Shared Proof Block, tier, ledger, CRA and stage schemas |
 | `cli/belay.mjs` | `belay doctor \| scan \| pair \| replay` |
 | `gitlab/components/` | `belay-pack` CI/CD components and `scripts/` glue |
@@ -117,7 +122,11 @@
   cooldown, YAML preserved, commit message, lease dropped, event validation.
 - `engine/proofs/__tests__/`: exploit-test, weakening, cited-diff, rerun/linked classes and dispatch, repro,
   bench-delta, score-delta, ledger-record, `head_sha`. Also `decide/standing.test.ts`, `decide/shadow.test.ts`,
-  `parse/*.test.ts`, `policy/envelope.test.ts`, `policy/load.test.ts`, `core/core.test.ts`.
+  `parse/*.test.ts`, `policy/envelope.test.ts`, `policy/load.test.ts`, `core/core.test.ts` (args, empty options, isoMs),
+  `core/files.test.ts`, `core/pin.test.ts` (the pin is the import closure), `commands/ledger.test.ts`,
+  `commands/audit/trial.test.ts`, `commands/scan.test.ts` (`scan --facts` by the rubric).
+- `engine/usage.test.ts`: every command in `cli.ts`'s COMMANDS table, and every option each one parses, is in the
+  usage text and the README table (derived from the code, `ledger trial` included).
 - `engine/scan/scan.test.ts`: the example target project scores secure, verify and govern at R1 and nothing above;
   local includes, IaC and CODEOWNERS count; an empty alerting file and an unopened include do not; an unparsable CI
   file leaves the CI stages unknown; the command's JSON and refusals. `scan --facts` (the rubric over GitLab facts) is
@@ -125,8 +134,9 @@
 - `src/server/pair/__tests__/pair.test.ts` (real temporary git checkouts): no write without `--write`; every line
   of the project's files kept; a second run is a no-op; not a checkout root or no group is refused; a different
   existing file is kept; the include is created, appended, inserted or refused.
-- The GitLab components, scripts and flows have no automated tests in this repository (vitest covers `src/` and
-  `engine/`). The `maturity-scan` component now has the `engine scan --facts` command it calls.
+- The Node glue has vitest tests beside it (`gitlab/components/scripts/**/*.test.mjs`, `gitlab/apply/*.test.mjs`,
+  `gitlab/flows/flows.test.mjs`); the component YAML itself only runs on GitLab. The `maturity-scan` component calls
+  `engine scan --facts`.
 
 ## Status and limits
 - Nothing in `gitlab/` has run on a live GitLab; it is written against the docs, with unchecked points marked `[R?]`.
