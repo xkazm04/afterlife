@@ -3,7 +3,7 @@ import { DetailSection } from '@/components/shell/detail/DetailPage';
 import type { MaturityCtx, Gap } from '../../../model/ctx';
 import type { Action } from '../../../model/reducer';
 import type { MaturityState } from '../../../model/state';
-import { mrName, rungText } from '../../../model/rungs';
+import { moveText, mrName } from '../../../model/rungs';
 import { AfterMerge } from './AfterMerge';
 import { DemoChip } from '../../chrome/DemoChip';
 import { DiffView } from './DiffView';
@@ -28,7 +28,7 @@ export function GapSection({
   const phase = state.flow[gap.id];
   const picked = state.picked.includes(gap.id) && !phase;
   return (
-    <DetailSection title={`Gap ${gap.id}`} aux={`${rungText(gap.from)} → ${rungText(gap.to)}`} wide>
+    <DetailSection title={`Gap ${gap.id}`} aux={moveText(gap.from, gap.to)} wide>
       <div className={styles.gh}>
         <span className={styles.t}>{gap.title}</span>
         <DemoChip on={ctx.live} what="This gap's invitation, files and what it earns" />

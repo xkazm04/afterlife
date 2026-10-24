@@ -1,7 +1,7 @@
 // After the send: the one next move of each sent gap (the gaps table and the stage page read it from here), and the
 // rescan that decides merged gaps, one gap from its page or every merged gap at once from the toolbar. All simulated.
 import type { Gap, MaturityCtx } from '../ctx';
-import { rungText } from '../rungs';
+import { moveText, rungText } from '../rungs';
 import { say, sentName, type MaturityState } from '../state';
 import { rescanOutcome, type Phase } from './credit';
 
@@ -40,9 +40,9 @@ function decide(s: MaturityState, ctx: MaturityCtx, g: Gap): { s: MaturityState;
   if (rescanOutcome(g.x.needsRun, s.flow[g.id]!) === 'nolift') {
     return { s: { ...s, flow: { ...s.flow, [g.id]: 'nolift' } }, credited: false, text: `${g.stage} stays ${rungText(g.from)}: configured, not exercised` };
   }
-  const row = { mr: sentName(s, g.id), stage: g.stage, move: `${rungText(g.from)} → ${rungText(g.to)}`, verdict: 'credited' as const, why: `rescan${ctx.nowClock ? ` ${ctx.nowClock}` : ''} (simulated)` };
+  const row = { mr: sentName(s, g.id), stage: g.stage, move: moveText(g.from, g.to), verdict: 'credited' as const, why: `rescan${ctx.nowClock ? ` ${ctx.nowClock}` : ''} (simulated)` };
   const next = { ...s, flow: { ...s.flow, [g.id]: 'credited' as const }, now: { ...s.now, [g.stage]: g.to }, log: [...s.log, row] };
-  return { s: next, credited: true, text: `${g.stage} ${rungText(g.from)} → ${rungText(g.to)} credited` };
+  return { s: next, credited: true, text: `${g.stage} ${moveText(g.from, g.to)} credited` };
 }
 
 /** The stage page's rescan: decides this one merged gap. */

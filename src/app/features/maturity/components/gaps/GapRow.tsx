@@ -5,7 +5,7 @@ import { stagePath } from '../../hooks/useStepNav';
 import type { Gap } from '../../model/ctx';
 import type { Phase } from '../../model/flow/credit';
 import type { MoveAction } from '../../model/flow/moves';
-import { rungText } from '../../model/rungs';
+import { moveText } from '../../model/rungs';
 import { DemoChip } from '../chrome/DemoChip';
 import { cx, onActivate } from '../cx';
 import { GapState } from './GapState';
@@ -57,7 +57,7 @@ export function GapRow({
         {gap.stage}
       </div>
       <div className={styles.cell} role="cell">
-        <span className={styles.mv}>{`${rungText(gap.from)} → ${rungText(gap.to)}`}</span>
+        <span className={styles.mv}>{moveText(gap.from, gap.to)}</span>
       </div>
       <div className={cx(styles.cell, styles.ttl)} role="cell">
         <Link className={styles.nm} href={stagePath(gap.stage)} title={`${gap.x.invite} · open the ${gap.stage} page (↵)`}>

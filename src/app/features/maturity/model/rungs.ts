@@ -17,6 +17,12 @@ export const MODES: readonly { value: Mode; label: string; title: string }[] = [
 /** "R3", or "?" for unknown. */
 export const rungText = (n: Level): string => (n == null ? '?' : `R${n}`);
 
+/** "R3 enforced", or "? unknown": a rung with its name, as the crag's labels, a stage's lede and its Day 0 say it. */
+export const rungLabel = (n: Level, rungNames: readonly string[]): string => (n == null ? '? unknown' : `R${n} ${rungNames[n] ?? ''}`.trim());
+
+/** "R1 → R2": a gap's or a credit's move, one spelling for the table, the stage page, the notices and the credit rows. */
+export const moveText = (from: Level, to: Level): string => `${rungText(from)} → ${rungText(to)}`;
+
 export const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** The MR GitLab named for a gap the server opened one for, else the gap's id: never an MR number the screen made up. */

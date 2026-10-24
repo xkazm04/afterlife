@@ -4,7 +4,7 @@ import type { MaturityCtx, Gap } from '../../../model/ctx';
 import { creditChecks, timeline, type Phase } from '../../../model/flow/credit';
 import { nextMove } from '../../../model/flow/moves';
 import type { Action } from '../../../model/reducer';
-import { rungText, type Level } from '../../../model/rungs';
+import { moveText, rungText, type Level } from '../../../model/rungs';
 import { cx } from '../../cx';
 import { Chip } from '@/components/status/chip/Chip';
 import styles from './gap.module.css';
@@ -54,7 +54,7 @@ export function AfterMerge({ ctx, gap, phase, now, mr, dispatch }: { ctx: Maturi
             ))}
           </div>
           {phase === 'credited' ? (
-            <Chip tone="ok">{`credited · ${gap.stage} ${rungText(gap.from)} → ${rungText(gap.to)}`}</Chip>
+            <Chip tone="ok">{`credited · ${gap.stage} ${moveText(gap.from, gap.to)}`}</Chip>
           ) : (
             <Chip tone="neutral">{`no lift · ${gap.stage} stays ${rungText(gap.from)}`}</Chip>
           )}

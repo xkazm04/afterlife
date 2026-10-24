@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { RUNGS } from '@/schemas/stages';
-import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, rungText, TOP_RUNG } from './rungs';
+import { countLevels, countsText, isDeep, levelFor, modeLabel, nextOf, moveText, rungLabel, rungText, TOP_RUNG } from './rungs';
 import { ctx } from './testCtx';
 
 describe('rung helpers', () => {
@@ -66,5 +66,15 @@ describe('rung helpers', () => {
     expect(modeLabel('day0', '14:02')).toBe('Day 0');
     expect(modeLabel('now', '14:02')).toBe('Now · scan 14:02');
     expect(modeLabel('target', '14:02')).toBe('Target · not earned');
+  });
+});
+
+describe('rungLabel', () => {
+  it('names a rung with its name, and unknown as "? unknown", never R0', () => {
+    expect(rungLabel(3, ctx.rungNames)).toBe(`R3 ${ctx.rungNames[3]}`);
+    expect(rungLabel(null, ctx.rungNames)).toBe('? unknown');
+    expect(rungLabel(0, [])).toBe('R0');
+    expect(moveText(1, 2)).toBe('R1 → R2');
+    expect(moveText(null, 1)).toBe('? → R1');
   });
 });

@@ -1,6 +1,6 @@
 import type { Stage } from '@/schemas';
 import type { MaturityCtx } from '../ctx';
-import { isDeep, levelFor, nextOf, mrName, rungText, type Level } from '../rungs';
+import { isDeep, levelFor, nextOf, mrName, rungLabel, type Level } from '../rungs';
 import type { MaturityState } from '../state';
 
 /** A pickable gap tag sitting on a route's next bolt. */
@@ -66,7 +66,7 @@ export function routeViews(s: MaturityState, ctx: MaturityCtx): RouteView[] {
       ring,
       clip,
       selected: s.sel === stage,
-      ariaLabel: `${stage}: ${rungText(lv)} ${lv != null ? (ctx.rungNames[lv] ?? '') : 'unknown'}`,
+      ariaLabel: `${stage}: ${rungLabel(lv, ctx.rungNames)}`,
     };
   });
 }
