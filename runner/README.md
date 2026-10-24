@@ -20,7 +20,8 @@ misspelt `--lane-caps`) exits 2 before anything runs. Copy `fleet.example.yml` t
 
 Headless `-p` denies every tool call that would prompt, so each call gets a permission profile
 (`agent/permissions.ts`): `--permission-mode`, `--tools`, `--strict-mcp-config` (no MCP server) and `--settings <file>`,
-a JSON file written to a fresh temp dir per call and removed after it. Rules live in that file, not argv, because on
+a JSON file written to a fresh temp dir per call and removed after it (retried; one a just-killed child still holds
+is printed, never thrown, so the call keeps its result and its cost). Rules live in that file, not argv, because on
 Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a plain token (set TMP/TEMP to one).
 - plan and review: tools Read, Grep, Glob only; everything else denied.
 - lane: acceptEdits; Bash allowed for `Bash(<prefix>:*)` per sub-command (split on `&&` `;` `||` `|`) of `setup` and

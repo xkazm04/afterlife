@@ -79,6 +79,19 @@ export async function callClaude(call: AgentCall): Promise<AgentOutcome> {
         : await runProc(bin, args, io);
     return { ...parseStream(r.stdout), timedOut: r.timedOut, exitCode: r.code, stderr: r.stderr };
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    removeScratch(dir);
+  }
+}
+
+/**
+ * Removes a temp dir the runner made for a claude call. On Windows a child just killed (taskkill) can still hold it
+ * and rmSync throws EPERM: it is retried, and a dir that still will not go is printed, never thrown - a throw from a
+ * finally would replace the call's result, and with it the cost the caps are counted from.
+ */
+export function removeScratch(dir: string): void {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  } catch (e) {
+    console.error(`runner: could not remove ${dir}: ${e instanceof Error ? e.message : String(e)}`);
   }
 }

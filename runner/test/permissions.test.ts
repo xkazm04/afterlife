@@ -3,10 +3,11 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { bashPrefixes, permissionArgs, type PermissionProfile } from '../agent/permissions';
 import { callClaude, claudeArgs, PATH_TOKEN, shellLine } from '../agent/spawn';
 import { loadFleet } from '../fleet/load';
+import { reflect } from '../wave/reflect';
 
 describe('bashPrefixes', () => {
   it.each([
@@ -116,5 +117,38 @@ describe('callClaude writes a settings file per call and removes it after', () =
     expect(fs.existsSync(path.dirname(file))).toBe(false);
     expect(last.argv).toContain(`--permission-mode`);
     expect(last.argv[last.argv.indexOf('--permission-mode') + 1]).toBe(permissionArgs(permissions).mode);
+  });
+
+  // Windows: a child just killed can still hold its temp dir, and rmSync throws EPERM. That must not replace the
+  // call's result (and the cost the caps count), nor turn a best-effort reflect into a failed wave.
+  it.each(['belay-perm-', 'belay-reflect-'])('a %s dir that will not go is printed, never thrown', async (prefix) => {
+    const real = fs.rmSync;
+    const held: string[] = [];
+    const rm = vi.spyOn(fs, 'rmSync').mockImplementation(((p: fs.PathLike, o?: fs.RmOptions) => {
+      if (path.basename(String(p)).startsWith(prefix)) {
+        held.push(String(p));
+        throw Object.assign(new Error('EPERM: operation not permitted, rmdir'), { code: 'EPERM' });
+      }
+      return real(p, o);
+    }) as typeof fs.rmSync);
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      if (prefix === 'belay-perm-') {
+        const r = await callClaude({ prompt: 'x\n<!-- belay:step=plan -->', cwd: tmp, model: 'sonnet', timeoutMs: 20_000, permissions: { step: 'plan' } });
+        expect(r.costUsd).toBe(0.25);
+      } else {
+        const runFile = path.join(tmp, '1.jsonl');
+        fs.writeFileSync(runFile, '{"kind":"wave.end"}\n');
+        const logged: unknown[] = [];
+        await reflect({ prompt: 'p', runFile, model: 'sonnet', timeoutMs: 20_000, log: (e) => logged.push(e), notes: [], current: { plan: 'p', lane: 'l' } });
+        expect(logged).toEqual([expect.objectContaining({ kind: 'lane.usage', lane: 'reflect' })]);
+      }
+      expect(held).toHaveLength(1);
+      expect(err).toHaveBeenCalledWith(expect.stringContaining('runner: could not remove'));
+    } finally {
+      rm.mockRestore();
+      err.mockRestore();
+      for (const d of held) fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    }
   });
 });

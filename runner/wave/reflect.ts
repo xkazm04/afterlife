@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { callClaude } from '../agent/spawn';
+import { callClaude, removeScratch } from '../agent/spawn';
 import { stepMarker } from './plan';
 import type { Log } from './events';
 
@@ -43,6 +43,6 @@ export async function reflect(o: ReflectInput): Promise<void> {
   } catch {
     /* best effort */
   } finally {
-    fs.rmSync(scratch, { recursive: true, force: true });
+    removeScratch(scratch);
   }
 }
