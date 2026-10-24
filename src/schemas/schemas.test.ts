@@ -4,6 +4,7 @@ import { verdictOf, type Check } from './proof';
 import { demote, type TrustPolicy } from './tier';
 import { due } from './cra';
 import { stagesWithEvidence, type StageCell } from './stages';
+import { actsAlone, resolveTrial, trialCount, trialDecisions, type TrialEvent, type TrialResolution } from './trial';
 
 const check = (ok: boolean | null): Check => ({ claim_id: null, name: 'c', ok, detail: '' });
 
@@ -86,5 +87,35 @@ describe('stage grid', () => {
       tracks: [1], engine_version: 'v1', scanned_at: '',
     });
     expect(stagesWithEvidence([cell('running', 1), cell(null, 1), cell('configured', 0), cell('absent', 1)])).toBe(1);
+  });
+});
+
+describe('next-rung trial', () => {
+  it('a shadow decision is a trial only where it acts alone: merge at hands_off, approve at supervised', () => {
+    expect([actsAlone({ tier: 'hands_off', decision: 'merge' }), actsAlone({ tier: 'supervised', decision: 'approve' })]).toEqual([true, true]);
+    expect([actsAlone({ tier: 'hands_off', decision: 'approve' }), actsAlone({ tier: 'supervised', decision: 'merge' }), actsAlone(undefined)]).toEqual([false, false, false]);
+  });
+
+  it('resolves merged-without-edit as agreed, and only edits, a person closing and reverts as catches', () => {
+    const r = (outcome: Parameters<typeof resolveTrial>[0]['outcome'], edited: boolean | null = null, closedBy: 'agent' | 'person' | null = null) => resolveTrial({ outcome, edited, closedBy });
+    expect([r('merged', false), r('merged', true), r('merged'), r('reverted'), r('closed', null, 'person'), r('closed', null, 'agent'), r('closed'), r('blocked'), r(null)])
+      .toEqual(['agreed', 'edited', 'no_edit_fact', 'reverted', 'closed', 'closed_by_agent', 'closer_unknown', 'open', 'open']);
+    const all: TrialResolution[] = ['agreed', 'edited', 'closed', 'reverted', 'open', 'no_edit_fact', 'closed_by_agent', 'closer_unknown'];
+    expect(trialCount(all)).toEqual({ n: 4, catches: 3 });
+  });
+
+  it("keeps each MR's first acting-alone decision of the holder's class since from, and nothing else", () => {
+    const at = (h: number) => `2026-10-0${h}T00:00:00Z`;
+    const e = (o: Partial<TrialEvent> & { iid?: number }): TrialEvent => ({
+      agent: 'a', action_class: 'c', kind: 'tier_decision', at: at(2), subject: { project_id: 1, type: 'mr', iid: o.iid ?? 1 },
+      would: { tier: 'hands_off', decision: 'merge' }, ...o,
+    });
+    const events = [
+      e({ at: at(1), iid: 9 }), e({ seq: 2 }), e({ seq: 3, at: at(3) }), e({ iid: 2, agent: 'b' }), e({ iid: 3, action_class: 'x' }),
+      e({ iid: 4, kind: 'merged' }), e({ iid: 5, would: { tier: 'hands_off', decision: 'wait' } }), e({ iid: 6, at: 'not a time' }),
+      e({ iid: 7, subject: { project_id: 1, type: 'issue', iid: 7 } }), e({ iid: 8, would: { tier: 'supervised', decision: 'approve' } }),
+    ];
+    const got = trialDecisions(events, { agent: 'a', classId: 'c', from: Date.parse(at(2)) });
+    expect([...got.values()]).toEqual([{ iid: 1, at: Date.parse(at(2)), seq: 2, tier: 'hands_off' }, { iid: 8, at: Date.parse(at(2)), seq: null, tier: 'supervised' }]);
   });
 });
