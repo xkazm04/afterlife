@@ -43,7 +43,7 @@ export function rerunStats(input: Record<string, unknown>, policy: EnginePolicy)
   const checks: Check[] = [];
 
   const stray = runs.filter((r) => r.sha !== sha);
-  checks.push(at('same-sha', runs.length > 0 && stray.length === 0, stray.length ? `${stray.length} run(s) are not on ${sha}: ${stray.map((r) => r.job_id).join(', ')}` : `${runs.length} run(s), all on ${sha}`));
+  checks.push(at('same-sha', runs.length > 0 && stray.length === 0, runs.length === 0 ? `no runs in the input, so none is on ${sha}` : stray.length ? `${stray.length} run(s) are not on ${sha}: ${stray.map((r) => r.job_id).join(', ')}` : `${runs.length} run(s), all on ${sha}`));
 
   const usable = runs.filter((r) => r.sha === sha && (r.status === 'success' || (r.status === 'failed' && !INFRA.has(r.failure_reason ?? ''))));
   const ids = new Set<string>();

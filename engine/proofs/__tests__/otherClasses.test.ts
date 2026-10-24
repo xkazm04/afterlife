@@ -53,6 +53,12 @@ describe('rerun-stats', () => {
     expect(b.verdict).toBe('inconclusive');
   });
 
+  it('says a run list with no runs has none, instead of "0 run(s), all on" beside a failed same-sha', () => {
+    const same = checkOf(run('flake.json', { runs: [] }), 'same-sha');
+    expect(same.ok).toBe(false);
+    expect(same.detail).toBe('no runs in the input, so none is on 4be1c0d7a9e2');
+  });
+
   it('classifies at the thresholds: stable at no failures, real failure from the policy rate', () => {
     const t = DEFAULT_THRESHOLDS;
     expect(classify(6, 0, t)).toBe('stable-pass');
