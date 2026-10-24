@@ -24,7 +24,11 @@ export async function listCycleRecords(db: Queryable, projectId: string): Promis
 export async function listAllCycleRecords(db: Queryable): Promise<Map<string, CycleRecord[]>> {
   const { rows } = await db.query<Db>('select * from cycle_record order by project_id, seq');
   const out = new Map<string, CycleRecord[]>();
-  for (const r of rows) out.set(r.project_id, [...(out.get(r.project_id) ?? []), toRecord(r)]);
+  for (const r of rows) {
+    const chain = out.get(r.project_id);
+    if (chain) chain.push(toRecord(r)); // appended in place: a copy per row made the read quadratic in a project's chain
+    else out.set(r.project_id, [toRecord(r)]);
+  }
   return out;
 }
 
