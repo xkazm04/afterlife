@@ -112,7 +112,7 @@ export function L2Panel({ p, group, classes, deep, rungs }: { p: FleetProject; g
                 <button key={x.id} type="button" className={`${styles.dec} ${i === pick ? styles.on : ''}`} onPointerEnter={() => setPick(i)} onFocus={() => setPick(i)}>
                   <i className={styles.dmark} />
                   <span>{x.title}</span>
-                  {x.kind === 'signoff' ? <span className={styles.seeded}>seeded drill</span> : /!44/.test(x.reason ?? '') ? <span className={styles.seeded}>seeded</span> : null}
+                  {x.kind === 'signoff' ? <span className={styles.seeded}>seeded drill</span> : /!44(?!\d)/.test(x.reason ?? '') ? <span className={styles.seeded}>seeded</span> : null}
                 </button>
               ))}
               {d ? (

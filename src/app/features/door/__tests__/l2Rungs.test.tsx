@@ -39,6 +39,11 @@ describe('L2 panel cockpit count', () => {
     expect(t).toContain('Needs me1 decision');
     expect(t).not.toContain('1 decisions');
   });
+  it('marks the seeded !44 decision "seeded", and not a real !445 or !1440', () => {
+    const item = (id: string, reason: string) => ({ id, title: id, does: 'd', kind: 'merge', reason }) as unknown as Deep['needs'][number];
+    const marked = (reason: string) => renderToStaticMarkup(createElement(L2Panel, { p: project(4, 9), group: 'g', classes: [], deep: { ...deep, id: 'p1', needs: [item('n1', reason)] }, rungs: 9 })).replace(/<[^>]+>/g, '').includes('n1seeded');
+    expect(['guardrail on !44: CI rule relaxed', 'MR !445 waits on review', 'see !1440'].map(marked)).toEqual([true, false, false]);
+  });
   it('words the waiting count as the readout does', () => {
     const say = (needsYou: number) => renderToStaticMarkup(createElement(L2Panel, { p: { ...project(4, 9), needsYou }, group: 'g', classes: [], deep, rungs: 9 })).replace(/<[^>]+>/g, '');
     expect([say(1), say(2)].map((t, i) => t.includes(`${i + 1}${waitWords(i + 1)}`))).toEqual([true, true]);
