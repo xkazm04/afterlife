@@ -5,16 +5,19 @@ import { clockElapsed, exhibitKinds, isDenyPath } from '../../model/exhibits';
 import type { TaskView } from '../../model/types';
 import styles from './exhibits.module.css';
 
-function HunkExhibit({ hunk }: { hunk: NonNullable<TaskView['hunk']> }) {
+/** The quoted hunk; the "seeded" chip only when its task is a planted demo fault (task.seeded). */
+function HunkExhibit({ hunk, seeded }: { hunk: NonNullable<TaskView['hunk']>; seeded: boolean }) {
   return (
     <div className={styles.hunk}>
       <div className={styles.hh2}>
         <span>
           {hunk.file} {hunk.head}
         </span>
-        <span className={styles.push}>
-          <HonestyChip kind="seeded" />
-        </span>
+        {seeded ? (
+          <span className={styles.push}>
+            <HonestyChip kind="seeded" />
+          </span>
+        ) : null}
       </div>
       {hunk.lines.map(([mark, text], i) => (
         <div key={i} className={`${styles.hl} ${mark === '+' ? styles.add : ''}`}>
@@ -101,7 +104,7 @@ export function Exhibits({ task }: { task: TaskView }) {
   return (
     <div className={styles.exhibits}>
       {kinds.map((k) => {
-        if (k === 'hunk' && task.hunk) return <HunkExhibit key={k} hunk={task.hunk} />;
+        if (k === 'hunk' && task.hunk) return <HunkExhibit key={k} hunk={task.hunk} seeded={task.seeded} />;
         if (k === 'reruns' && task.stats) return <RerunExhibit key={k} stats={task.stats} />;
         if (k === 'clock' && task.clock) return <ClockExhibit key={k} task={task} clock={task.clock} />;
         if (k === 'envelope' && task.envelope) return <EnvelopeExhibit key={k} task={task} e={task.envelope} />;
