@@ -86,7 +86,7 @@ export function ClassTable(p: ClassTableProps) {
           {h.label}
         </HeaderCell>
       ))}
-      <HeaderCell />
+      <HeaderCell tip="Act: revoke, promote or re-admit" />
     </>
   );
   return (

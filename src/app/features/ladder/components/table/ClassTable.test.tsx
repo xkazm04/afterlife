@@ -28,6 +28,12 @@ describe('the group row under the header', () => {
     expect(headers.slice(0, 9)).toEqual(['Class', 'Tier', 'Ceiling', 'Lease', 'Acc', 'No-edit', 'Rv', 'Clean · 14 d', 'Last move']);
     expect(cells).toHaveLength(headers.length);
   });
+  it('names every column header, the act column too (a screen reader reads its name before each row’s buttons)', () => {
+    // the kit's filler track after the last column (OutlineTable's) is not one of the Ladder's columns
+    const tags = [...head.matchAll(/<(?:div|button)[^>]*role="columnheader"[^>]*>/g)].map((m) => m[0]).filter((t) => !/_fill_/.test(t));
+    expect(tags).toHaveLength(10);
+    tags.forEach((tag, i) => expect(headers[i] || /aria-label="[^"]+"/.exec(tag)?.[0]).toBeTruthy());
+  });
   it('shows the freshest gate under "Last move"', () => {
     const at = cells.findIndex((c) => c.includes('Gate last seen !41'));
     expect(headers[at]).toBe('Last move');
