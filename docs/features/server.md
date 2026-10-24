@@ -22,7 +22,9 @@
 - **Live runtime** (`data/live/runtime.ts`, `boot.ts`, `src/instrumentation.ts`): on server start in live mode,
   `register()` creates one port, one index, one poller and one snapshot per process, kept on `globalThis`. `refresh()`
   runs `runPollCycle`, then `buildSnapshot`; concurrent callers share the cycle in flight. Pages read the snapshot
-  synchronously.
+  synchronously. A cycle's group error, warnings and project errors and issues are logged as one `belay: poll cycle`
+  line when they differ from the last cycle's (`live/cycleLog.ts`): a standing problem is named when it starts and
+  when it clears, not every interval.
 - **Snapshot** (`data/live/snapshot.ts`): fleet, action classes, maturity, tasks and needs-you from index views; group
   name from the pairing row; cockpit and setup from the demo catalogue with only `feed.lastPollSec`, group and project
   made live. `narrow.ts` maps unknowns to the most restrictive reading: unknown tier -> quarantined, task with unknown

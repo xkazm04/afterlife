@@ -12,6 +12,7 @@ import { createLivePort } from './ports';
 import { rulesOf } from '../policy';
 import { buildSnapshot, type LiveSnapshot } from './snapshot';
 import { recordFleetDay } from './day';
+import { cycleLine, cycleProblems } from './cycleLog';
 
 export interface LiveRuntime {
   cfg: DataConfig;
@@ -46,7 +47,7 @@ export const lastStartFailure = (): StartFailure | null => (globalThis as Holder
 /** Whether a start is in flight right now: begun, neither ready nor failed. */
 export const startInFlight = (): boolean => (globalThis as Holder)[STARTING] !== undefined && readyRuntime() === null;
 
-async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<LiveRuntime> {
+async function create(cfg: DataConfig, onError: (e: unknown) => void, log: (line: string) => void): Promise<LiveRuntime> {
   const { port, clock, seeded } = await createLivePort(cfg.gitlab);
   const db = seeded ? await openIndex({ memory: true }) : await getIndex();
   if (seeded) await seedDemo(db);
@@ -56,10 +57,15 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<L
   };
   let inFlight: Promise<void> | null = null;
   let started = false;
+  let said: string[] | null = null; // the last cycle's problems, as the last line named them
   rt.refresh = () => {
     inFlight ??= (async () => {
       try {
         rt.last = await runPollCycle(port, db, clock.poll(), { mem: rt.mem });
+        const problems = cycleProblems(rt.last);
+        const line = cycleLine(said, problems);
+        if (line) log(line);
+        said = problems;
       } catch (e) {
         // The first cycle's throw (a live config the poller refuses) fails the start, which the pages name and retry: an
         // index no cycle read must not serve as if it were real. Later, a cycle that throws still leaves the index readable.
@@ -89,10 +95,17 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void): Promise<L
   return rt;
 }
 
-/** Starts the runtime once; every later call gets the same one. A start that fails is cleared, so the next call starts afresh. */
-export function startRuntime(cfg: DataConfig, onError: (e: unknown) => void = (e) => console.error('belay: poll failed', e)): Promise<LiveRuntime> {
+/**
+ * Starts the runtime once; every later call gets the same one. A start that fails is cleared, so the next call starts afresh.
+ * `log` gets one line when a cycle's warnings, project issues or group error differ from the last cycle's.
+ */
+export function startRuntime(
+  cfg: DataConfig,
+  onError: (e: unknown) => void = (e) => console.error('belay: poll failed', e),
+  log: (line: string) => void = (line) => console.warn(line),
+): Promise<LiveRuntime> {
   const holder = globalThis as Holder;
-  holder[STARTING] ??= create(cfg, onError).then(
+  holder[STARTING] ??= create(cfg, onError, log).then(
     (rt) => {
       delete holder[FAILED];
       return (holder[READY] = rt);

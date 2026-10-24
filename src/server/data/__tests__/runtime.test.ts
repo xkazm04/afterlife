@@ -134,6 +134,27 @@ describe('bootLive', () => {
   });
 });
 
+describe('the cycle log', () => {
+  it('names a group error once when it starts, not on the cycles it stands, and once when it clears', async () => {
+    let broken = true;
+    mocked.mockReset();
+    mocked.mockImplementation(() =>
+      real('fake').then((p) => ({ ...p, port: new Proxy(p.port, { get: (t, k, r) => (k === 'getGroup' && broken ? () => Promise.reject(new Error('group is gone')) : Reflect.get(t, k, r)) }) })),
+    );
+    const lines: string[] = [];
+    const rt = await startRuntime(cfg, quiet, (l) => void lines.push(l));
+    await rt.refresh();
+    await rt.refresh();
+    broken = false;
+    await rt.refresh();
+    await rt.refresh();
+    expect(lines.filter((l) => l.includes('group is gone'))).toEqual([
+      'belay: poll cycle 1 new: group: group is gone (1 standing)',
+      expect.stringMatching(/^belay: poll cycle .*cleared: group: group is gone/),
+    ]);
+  });
+});
+
 describe('startInFlight', () => {
   it('is true only between a start beginning and it finishing, either way (begun, neither ready nor failed)', async () => {
     mocked.mockReset();
