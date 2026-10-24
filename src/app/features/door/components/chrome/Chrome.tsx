@@ -7,8 +7,8 @@ import { ALL_NAV } from '@/components/shell/sidebar/navItems';
 import bottom from './bottom.module.css';
 import styles from './chrome.module.css';
 
-/** Every screen of the app, from the sidebar's own list (Settings included), so the menu cannot drift from it. */
-export const SCREENS: readonly (readonly [string, string])[] = ALL_NAV.map((e) => [e.label, e.href] as const);
+/** Every screen of the app, from the sidebar's own list (Settings included), so the menu cannot drift from it; then About (/about, the film). */
+export const SCREENS: readonly (readonly [string, string])[] = [...ALL_NAV.map((e) => [e.label, e.href] as const), ['About', '/about'] as const];
 
 /**
  * Escape closes the open menu and is claimed, so the door's own Esc (up a level) does not also fire on the same press:
@@ -48,6 +48,9 @@ export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; a
           <small>
             {org} · as of {asOf}
           </small>
+          <Link className={styles.about} href="/about" data-role="door-about">
+            What is this?
+          </Link>
         </div>
       </header>
       <div

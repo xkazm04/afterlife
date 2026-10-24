@@ -23,7 +23,8 @@
   the deep project it adds the cockpit lines, its decisions and its tracks. Exits go to Needs you, Ladder, Maturity,
   Task, Theater or Setup depending on the project.
 - Esc and Back go up a level; Tab, Enter and Space work at every level. **Screens** in the top chrome lists every
-  route (the app nav); **Enter Afterlife** goes to `/fleet`.
+  route (the app nav, then About); **Enter Afterlife** goes to `/fleet`; **What is this?** on the brand plate opens
+  `/about`.
 
 ## How it works
 - The root layout's `<head>` renders `DoorFitBoot` (`components/chrome/FitBoot.tsx`): the inline script from

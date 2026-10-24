@@ -30,6 +30,18 @@
   color: var(--text-3);
   text-shadow: none;
 }
+.about {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent) 40%, transparent);
+  text-underline-offset: 4px;
+}
+.about:hover,
+.about:focus-visible {
+  text-decoration-color: var(--accent);
+}
 .tr {
   right: 0;
   top: 0;
