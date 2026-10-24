@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react';
 import { Kbd } from '@/components/controls/Kbd';
+import { Icon } from '@/components/icons/Icon';
 import { Lozenge } from '@/components/controls/lozenge/Lozenge';
 import { LozengeDivider } from '@/components/controls/lozenge/LozengeDivider';
 import { Spacer } from '@/components/controls/Spacer';
@@ -15,8 +16,6 @@ function TransportButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button type="button" className={styles.btn} {...props} />;
 }
 
-const sz = (n: number) => ({ width: `calc(${n}px * var(--ui-scale))`, height: `calc(${n}px * var(--ui-scale))` });
-
 /**
  * Toolbar content: the transport (Play / Pause, Roll, Loop, state readout), then Present at the far end. `reduced`: the
  * viewer asked for reduced motion, so a roll pre-rolls PREROLL_REDUCED_MS, and the Roll tooltip says so.
@@ -27,9 +26,7 @@ export function Transport({ playing, loop, readout, actions, onPresent, reduced 
     <>
       <Lozenge label="Transport">
         <TransportButton title={`${playing ? 'Pause' : 'Play'} (space)`} onClick={actions.togglePlay}>
-          <svg className={styles.ico} style={sz(11)} viewBox="0 0 11 11" fill="currentColor" aria-hidden="true">
-            <path d={playing ? 'M2.5 1.5h2v8h-2zM6.5 1.5h2v8h-2z' : 'M2.5 1.5v8l7-4z'} />
-          </svg>
+          <Icon name={playing ? 'pause' : 'play'} />
           {playing ? 'Pause' : 'Play'}
         </TransportButton>
         <LozengeDivider />
@@ -38,9 +35,7 @@ export function Transport({ playing, loop, readout, actions, onPresent, reduced 
           Roll <Kbd>R</Kbd>
         </TransportButton>
         <TransportButton aria-pressed={loop} title="Loop the take (L)" onClick={actions.toggleLoop}>
-          <svg className={styles.ico} style={sz(12)} viewBox="0 0 13 11" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M2 6.5V5a2.5 2.5 0 0 1 2.5-2.5h7M9.5.8l2 1.7-2 1.7M11 4.5V6a2.5 2.5 0 0 1-2.5 2.5h-7M3.5 10.2l-2-1.7 2-1.7" />
-          </svg>
+          <Icon name="loop" />
           Loop <Kbd>L</Kbd>
         </TransportButton>
         <LozengeDivider />
@@ -57,10 +52,7 @@ export function Transport({ playing, loop, readout, actions, onPresent, reduced 
       </Lozenge>
       <Spacer />
       <ToolbarButton className={styles.present} title={`Present: hides all chrome; ${cueKeys(takes)}, R, L, space, ←/→ still work (F; Esc returns)`} onClick={onPresent}>
-        <svg className={styles.ico} style={sz(13)} viewBox="0 0 14 12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" aria-hidden="true">
-          <rect x=".6" y=".6" width="12.8" height="8.4" rx="1.4" />
-          <path d="M4.5 11.2h5" />
-        </svg>
+        <Icon name="present" />
         Present <Kbd>F</Kbd>
       </ToolbarButton>
     </>

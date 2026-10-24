@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spacer } from '@/components/controls/Spacer';
 import { SegmentedControl } from '@/components/controls/toolbar/SegmentedControl';
+import { Icon } from '@/components/icons/Icon';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { Window } from '@/components/shell/Window';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
@@ -64,10 +65,7 @@ export function MaturityScreen() {
           <Spacer />
           <ScanMeta engine={ctx.engine} scannedAt={state.scannedAt} ageMin={state.ageMin} scanned={ctx.scanned} cadence={ctx.live ? LIVE_CADENCE : MAT_META.rescanEvery} />
           <ToolbarButton className={styles.rescan} title={rescanTitle(state, ctx)} onClick={() => dispatch({ type: 'rescanAll' })}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" aria-hidden="true" className={styles.rescanIcon}>
-              <path d="M10.2 4.6A4.5 4.5 0 1 0 10.5 7" />
-              <path d="M10.6 1.6v3h-3" />
-            </svg>
+            <Icon name="probe" />
             Rescan
           </ToolbarButton>
           <HonestyChip kind="simulated" />

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { TRANSPORT_GLYPHS } from './transport';
 
 export interface Glyph {
   /** viewBox width and height (also the size in px at the Smaller setting). */
@@ -118,8 +119,8 @@ export const GLYPHS = {
       </>
     ),
   },
-  // toolbar and sidebar marks that used to be drawn inline where they sit
-  play: { w: 11, h: 12, sw: 0, node: <path d="M2 1.3v9.4L9.6 6z" fill="currentColor" /> },
+  // toolbar and sidebar marks that used to be drawn inline where they sit (play, pause, loop, present: ./transport)
+  ...TRANSPORT_GLYPHS,
   outbox: {
     w: 14,
     h: 12,

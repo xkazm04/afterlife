@@ -25,10 +25,7 @@ const MARKS: readonly (readonly [string, string])[] = [
   ['ladder/components/chrome/PolicyLozenge.tsx', 'branch'],
 ];
 /** Toolbar sites that still hand-draw a glyph, each owed a move into GLYPHS. A ratchet: the list may only shrink. */
-const OWED: Readonly<Record<string, string>> = {
-  'maturity/MaturityScreen.tsx': 'the Rescan arrow, a fixed 12px that ignores the text-size setting',
-  'theater/components/chrome/Transport.tsx': 'play/pause, loop and present, scaled by a private sz() helper',
-};
+const OWED: Readonly<Record<string, string>> = {};
 
 const toolbarSites = walk(FEATURES)
   .filter((f) => f.endsWith('.tsx') && !/\.test\.tsx$/.test(f))

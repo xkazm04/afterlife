@@ -27,9 +27,6 @@
   background: var(--fail);
   flex: none;
 }
-.ico {
-  flex: none;
-}
 .state {
   min-width: calc(92px * var(--ui-scale));
   padding: 0 8px;

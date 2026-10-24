@@ -15,7 +15,3 @@
 .rescan:hover {
   background: var(--ctl-hi);
 }
-.rescanIcon {
-  width: calc(12px * var(--ui-scale));
-  height: calc(12px * var(--ui-scale));
-}
