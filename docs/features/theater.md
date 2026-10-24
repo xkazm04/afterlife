@@ -23,7 +23,7 @@
   frame, paused.
 
 ## How it works
-- `app/theater/page.tsx` picks the film (`live/model/mode.ts` `theaterMode`; `mrOf` is the one `?mr=` rule). The live
+- `app/(app)/theater/page.tsx` picks the film (`live/model/mode.ts` `theaterMode`; `mrOf` is the one `?mr=` rule). The live
   film reads `loadLivePayload()` (`live/server/`). Otherwise it calls `loadTheaterData(params)`: the real film maps
   `getDataSource().getLedger()` (`model/film/fromLedger.ts`, `demo: null`, nothing from the catalogue); the
   illustrative film's stages, tracks, loop, rungs and `!44` quote come from the catalogue (`DEMO`) only, in every mode,
@@ -61,7 +61,7 @@
 ## Code map
 | Path | Role |
 |---|---|
-| `src/app/theater/page.tsx` | Route; renders `TheaterScreen` with `loadTheaterData()` |
+| `src/app/(app)/theater/page.tsx` | Route; renders `TheaterScreen` with `loadTheaterData()` |
 | `src/app/features/theater/TheaterScreen.tsx` | Composes `Window` (transport, takes sidebar, stage, inspector, status, help) and the present layer |
 | `.../theater/components/stage/` | `Stage`, `Answers`, `Pitch`, closing `Board` |
 | `.../theater/components/wall/` | Rope, holds, climbers, riding caption (`Wall`, `Cap`) |

@@ -2,6 +2,7 @@ import { createElement, type ReactNode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
+import { AppFrame } from '../frame/AppFrame';
 import { ShellLoading } from './ShellLoading';
 
 let path = '/fleet';
@@ -9,8 +10,8 @@ vi.mock('next/navigation', () => ({ usePathname: () => path }));
 vi.mock('next/image', () => ({ default: (p: { src: string }) => createElement('img', { src: p.src }) }));
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: ReactNode }) => createElement('a', { href: p.href }, p.children) }));
 
-// The root loading.tsx draws this on every windowed route while its data streams in: the real window, titled from the
-// route, with one busy status region in the pane. It had no test.
+// (app)/loading.tsx draws this on every windowed route while its data streams in: the real window, titled from the
+// route, with one busy status region in the pane. Rendered here outside the (app) layout, it brings its own frame.
 const render = (at: string) => {
   path = at;
   return renderToString(<ToastProvider><ShellLoading /></ToastProvider>);
@@ -30,5 +31,11 @@ describe('ShellLoading', () => {
     expect(html.match(/aria-busy="true"/g)?.length).toBe(1); // the other role="status" is the toast region
     expect(html).toMatch(/role="status" aria-busy="true" aria-label="Loading Monitor"/);
     expect(html).toContain('Loading…');
+  });
+  it('inside the frame adds no second sidebar: the frame has the one', () => {
+    path = '/fleet';
+    const html = renderToString(<ToastProvider><AppFrame><ShellLoading /></AppFrame></ToastProvider>);
+    expect(html.match(/aria-label="Sources"/g)).toHaveLength(1);
+    expect(html).toMatch(/<b>Fleet<\/b>/);
   });
 });

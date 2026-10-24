@@ -22,7 +22,7 @@ export function useTaskKeys(run: (a: TaskAction) => void, replaying: boolean) {
       if (el?.closest('[role="menu"]')) return;
       const action = actionFor(e.key, {
         inDocket: !!el?.closest('[data-docket]'),
-        inChrome: !!el?.closest('header, #inspector'),
+        inChrome: !!el?.closest('header, [data-inspector]'),
         replaying: ref.current.replaying,
       });
       if (!action) return;

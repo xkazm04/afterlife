@@ -22,7 +22,7 @@
 - The "?" in the dock shows keys and the tier legend; in demo mode it also has Reset demo.
 
 ## How it works
-- `src/app/ladder/page.tsx` (server) renders `LadderScreen` with `loadLadderData()`; `src/app/ladder/[class]/page.tsx`
+- `src/app/(app)/ladder/page.tsx` (server) renders `LadderScreen` with `loadLadderData()`; `src/app/(app)/ladder/[class]/page.tsx`
   renders `ClassScreen` with `loadLadderClass(id)` and the human key read back (`loadHumanKey`).
 - `data/loadLadderData.ts` reads the DataSource: action classes, tracks, tier meanings, trust-policy.yml's rules
   (`getPolicy()`), the cockpit poll age, the setup group/project for the subtitle, and the guardrail quotes of tasks by

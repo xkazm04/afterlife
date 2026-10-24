@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { DetailPage } from '@/components/shell/detail/DetailPage';
 import type { NeedsYouDemo } from '../../data/types';
 import { useNeedsStore } from '../../hooks/NeedsStore';
@@ -11,6 +11,7 @@ import { itemLede } from '../../model/rows/lede';
 import { rowView } from '../../model/rows/rowData';
 import { NeedsLegend } from '../chrome/NeedsLegend';
 import { NeedsInspector } from '../inspector/NeedsInspector';
+import { InspScope } from '../inspector/Sec';
 
 /**
  * /needs-you/[item]: one decision as short cards, with the buttons the list's inspector had. It shares the desk's state
@@ -21,7 +22,8 @@ export function NeedsItemPage({ demo, id }: { demo: NeedsYouDemo; id: string }) 
   const { s, dispatch } = useNeedsStore();
   const router = useRouter();
   const leftSec = useLeftSec(); // the layout's one clock: it does not restart when this page mounts
-  useReveal(s.reveal);
+  const scope = useId(); // the cards' ids are this page's own: another item page may be kept hidden beside it
+  useReveal(s.reveal, scope);
   // Selecting the decision is what asks the server for its exact write; the list keeps it selected on the way back.
   useEffect(() => dispatch({ type: 'select', id }), [id, dispatch]);
   const staged = useRef(s.out.length);
@@ -40,7 +42,9 @@ export function NeedsItemPage({ demo, id }: { demo: NeedsYouDemo; id: string }) 
       status={`${title} · ${s.out.length} in outbox · nothing is sent until Run, in the outbox`}
       help={<NeedsLegend tierMeans={demo.tierMeans} />}
     >
-      <NeedsInspector id={id} s={s} demo={demo} leftSec={leftSec} dispatch={dispatch} />
+      <InspScope value={scope}>
+        <NeedsInspector id={id} s={s} demo={demo} leftSec={leftSec} dispatch={dispatch} />
+      </InspScope>
     </DetailPage>
   );
 }

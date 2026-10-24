@@ -1,0 +1,62 @@
+/*
+ * Navigation view transitions (React <ViewTransition>, shell/frame/Motion). Only a screen's right column moves: it is the
+ * one named participant on an app navigation (app-exit / app-enter). Everything else - the backdrop, the window box and
+ * the sidebar - stays in the root snapshot, which swaps without animation, so the sidebar is the anchor and never moves.
+ * The door hand-off: the city leaves (door-exit) as the window arrives (frame-enter). Under prefers-reduced-motion
+ * nothing animates; the swap is instant, as without view transitions. Opacity and transforms only: no colour here.
+ */
+
+/* clicks during the short animation reach the live page, not the overlay */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(.app-exit) {
+  animation: var(--t-fast) var(--ease) both vt-fade-out;
+}
+::view-transition-new(.app-enter) {
+  animation: var(--t-med) var(--ease) both vt-rise;
+}
+
+::view-transition-old(.door-exit) {
+  animation: var(--t-slow) var(--ease) both vt-door-out;
+}
+::view-transition-new(.frame-enter) {
+  animation: var(--t-slow) var(--ease) both vt-frame-in;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes vt-door-out {
+  to {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+@keyframes vt-frame-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

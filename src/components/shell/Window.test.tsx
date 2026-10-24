@@ -21,6 +21,8 @@ vi.mock('next/link', () => ({
 const page = (p: Partial<WindowProps> = {}) => renderToString(<ToastProvider><Window title="Ladder" {...p} /></ToastProvider>);
 const tag = (html: string, re: RegExp) => re.exec(html)?.[0] ?? '';
 const HIDDEN = /\shidden=""/; // not aria-hidden="false", which also contains the word
+// The inspector's id is per window (useId: a route kept hidden in <Activity> may hold a second one), so it is found by its mark.
+const INSP = /<aside[^>]*data-inspector=""[^>]*>/;
 
 describe('Window props', () => {
   it('shows title, subtitle, status and the children in the pane', () => {
@@ -39,7 +41,7 @@ describe('Window props', () => {
 
   it('has no inspector and no toggle when none is passed', () => {
     const html = page();
-    expect(html).not.toContain('id="inspector"');
+    expect(html).not.toMatch(INSP);
     expect(html).not.toContain('Toggle inspector');
   });
 
@@ -48,17 +50,19 @@ describe('Window props', () => {
     expect(html).toContain('<i>detail</i>');
     const toggle = tag(html, /<button[^>]*aria-label="Toggle inspector"[^>]*>/);
     expect(toggle).toContain('aria-pressed="true"');
-    expect(toggle).toContain('aria-controls="inspector"');
-    expect(tag(html, /<aside[^>]*id="inspector"[^>]*>/)).not.toMatch(HIDDEN);
+    const id = /<aside[^>]*\sid="([^"]+)"[^>]*data-inspector/.exec(html)?.[1];
+    expect(id).toMatch(/inspector$/);
+    expect(toggle).toContain(`aria-controls="${id}"`);
+    expect(tag(html, INSP)).not.toMatch(HIDDEN);
   });
 
   it('keeps a closed inspector mounted but hidden, and lets the controlled prop win over the default', () => {
     const closed = page({ inspector: <i>detail</i>, defaultInspectorOpen: false });
     expect(closed).toContain('<i>detail</i>');
-    expect(tag(closed, /<aside[^>]*id="inspector"[^>]*>/)).toMatch(HIDDEN);
+    expect(tag(closed, INSP)).toMatch(HIDDEN);
     expect(tag(closed, /<button[^>]*aria-label="Toggle inspector"[^>]*>/)).toContain('aria-pressed="false"');
     const controlled = page({ inspector: <i>detail</i>, defaultInspectorOpen: false, inspectorOpen: true });
-    expect(tag(controlled, /<aside[^>]*id="inspector"[^>]*>/)).not.toMatch(HIDDEN);
+    expect(tag(controlled, INSP)).not.toMatch(HIDDEN);
   });
 
   it('shows the legend button only when help is passed, under helpTitle', () => {
@@ -116,7 +120,7 @@ describe('DetailPage', () => {
     expect(out).toContain('>core</h1>');
     expect(out).toContain('the answer');
     expect(out).toContain('>Card</h2>');
-    expect(out).not.toContain('id="inspector"');
+    expect(out).not.toMatch(INSP);
   });
 });
 

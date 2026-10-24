@@ -1,0 +1,28 @@
+/* The window box: sidebar | the screen's right column (Window.module.css .right). AppFrame draws it once per (app) layout. */
+.win {
+  position: fixed;
+  inset: var(--win-inset);
+  display: grid;
+  grid-template-columns: var(--sbw) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--win);
+  border: 1px solid var(--border-3);
+  box-shadow: 0 0 0 1px var(--shade-60), 0 24px 60px var(--shade-55), var(--win-halo);
+}
+/* brand overlay (scanlines, grain): inert unless a brand variant sets --win-overlay */
+.win::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: var(--win-overlay);
+}
+.noSide {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+.noSide > :first-child {
+  visibility: hidden;
+}

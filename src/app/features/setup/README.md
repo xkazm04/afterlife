@@ -7,7 +7,7 @@ plan and preview door (`src/server/actions`). Demo mode simulates the steps and 
 
 - `SetupScreen.tsx` composes `Window` (toolbar, summary strip, map, status bar, legend); a node click opens
   `/setup/[node]` (`SetupNodeScreen`, a `DetailPage`; keys `step-<n>`, `track-<id>`, `cap-<slug>`, `loadSetupNode` 404s
-  the rest). `app/setup/layout.tsx` awaits
+  the rest). `app/(app)/setup/layout.tsx` awaits
   `loadSetupData` and holds the flow in `SetupProvider`, so it survives map to node and back: the data source's setup, tracks and classes, and in live mode `live`, what the server read now
   (`src/server/data/setup`): each track's arm block on the target's main (`checkArm`), the belay doctor
   (`probeCapabilities` on the paired group, with each row's reason and the real probe time), and the steps a read can

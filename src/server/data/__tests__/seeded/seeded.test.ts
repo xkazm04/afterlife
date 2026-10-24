@@ -16,7 +16,7 @@ import { LadderScreen } from '@/app/features/ladder/LadderScreen';
 import { loadDoorData } from '@/app/features/door/data/loadDoorData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadNeedsYouView, SEEDED_ITEMS } from '@/app/features/needs-you/data/pick';
-import NeedsYouPage from '@/app/needs-you/page';
+import NeedsYouPage from '@/app/(app)/needs-you/page';
 import { createDemoGitLab } from '@/server/gitlab/fake/demo';
 import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { upsertProposals } from '@/server/index/repositories/work/proposal';

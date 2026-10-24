@@ -26,8 +26,8 @@
   group: Expand/Collapse, Collapse All, Expand All, Show Only This Group.
 
 ## How it works
-- `src/app/fleet/page.tsx` (server) calls `loadFleetData()`, redirects a known `?project=` to `/fleet/<id>`, decodes
-  the list state from the URL (`decodeListState`) and renders `FleetScreen`. `src/app/fleet/[project]/page.tsx` renders
+- `src/app/(app)/fleet/page.tsx` (server) calls `loadFleetData()`, redirects a known `?project=` to `/fleet/<id>`, decodes
+  the list state from the URL (`decodeListState`) and renders `FleetScreen`. `src/app/(app)/fleet/[project]/page.tsx` renders
   `ProjectDetail` from `loadFleetProject(id)` (not found for an unknown id).
 - `data/loadFleetData.ts` reads the DataSource (fleet, portfolio, stages, tiers, cockpit, needs-you, action classes,
   events, tracks, `deepProjectId`) and the Cycles loader (`loadCyclesData`) to build `deep.cycle`: the running cycle

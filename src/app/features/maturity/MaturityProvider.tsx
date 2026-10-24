@@ -26,6 +26,6 @@ export function MaturityProvider({ maturity, stages, project, mode, children }: 
 
 export function useMaturityShared(): MaturityShared {
   const shared = useContext(Shared);
-  if (!shared) throw new Error('Maturity screens render inside MaturityProvider (src/app/maturity/layout.tsx)');
+  if (!shared) throw new Error('Maturity screens render inside MaturityProvider (src/app/(app)/maturity/layout.tsx)');
   return shared;
 }

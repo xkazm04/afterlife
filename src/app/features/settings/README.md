@@ -5,7 +5,7 @@ Routes `/settings/display`, `/keyboard`, `/data`, `/about`. `/settings` redirect
 
 ## Parts
 - `SettingsWindow.tsx` the Window with the sidebar sub-navigation (section "Settings", current from the route via
-  `model/settingsNav.ts`). To add a sub-page: one line in `SETTINGS_PAGES` and a `src/app/settings/<name>/page.tsx`.
+  `model/settingsNav.ts`). To add a sub-page: one line in `SETTINGS_PAGES` and a `src/app/(app)/settings/<name>/page.tsx`.
 - `components/TextSizeSection.tsx` (Display) the 3-way control, its saved / not-saved note (`model/saveNote.ts`), the
   scale table from `model/specRows.ts` and a live `SizePreview`.
 - `components/KeyboardSection.tsx` (Keyboard) the global shortcuts from `data/shortcuts.ts`;
@@ -28,7 +28,7 @@ Routes `/settings/display`, `/keyboard`, `/data`, `/about`. `/settings` redirect
 `data/screenKeys.test.ts` holds the derived rows, the Task keymap to `actionFor`, and the server-safety of the import
 closure (no `'use client'` module). `sections/ScreenKeysSection.test.tsx` pins one rowgroup header per screen (no empty
 `<th>`); `sections/ConnectionSection.test.tsx` the Mode row ("the default" only when `BELAY_MODE` is unset).
-`app/settings/settingsRoutes.test.ts` checks the route folders against `SETTINGS_PAGES`, the `/settings` redirect, and
+`app/(app)/settings/settingsRoutes.test.ts` checks the route folders against `SETTINGS_PAGES`, the `/settings` redirect, and
 each page's tab title ("Belay Settings <label>").
 `model/specCss.test.ts` reads `src/styles/text-size.css` against `TEXT_SIZE_SPEC` (all 27 measures);
 `model/sizeTitles.test.tsx` the size buttons' tooltips from the spec and the default; `model/saveNote.test.ts` the

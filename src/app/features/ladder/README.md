@@ -5,7 +5,7 @@ ceiling, the record behind it, and what you can revoke or promote. Belay writes 
 is always on screen first (the docked strip, the class page's "write behind r"): the server's own preview, never a
 command the screen spells.
 
-- `LadderScreen.tsx`: composes the `Window` (`props.ts`: what the route hands it). The route (`app/ladder/page.tsx`)
+- `LadderScreen.tsx`: composes the `Window` (`props.ts`: what the route hands it). The route (`app/(app)/ladder/page.tsx`)
   reads it on the server through `data/loadLadderData.ts`: the classes from the data source, the promotion thresholds
   from trust-policy.yml (`getPolicy()`: the checkout's in demo, the one the poll read in live), never a constant here.
 - `data/`: the invented ledger the demo opens with, commit ids, the policy's revision, the words for the policy's rules,

@@ -20,10 +20,10 @@
   `SETTINGS_PAGES`: saved in this browser, read only, or read from the server's environment).
 
 ## How it works
-- `app/settings/page.tsx` only redirects to `/settings/display`; each `app/settings/<name>/page.tsx` renders
+- `app/(app)/settings/page.tsx` only redirects to `/settings/display`; each `app/(app)/settings/<name>/page.tsx` renders
   `SettingsWindow` (heading, lede, content). Only Data & connection reads server data.
 - `SettingsWindow.tsx` takes its sidebar from `SETTINGS_PAGES` (`model/settingsNav.ts`); adding a sub-page is one line
-  there plus a `src/app/settings/<name>/page.tsx`, and adding a setting is a `SettingsSection` on its page.
+  there plus a `src/app/(app)/settings/<name>/page.tsx`, and adding a setting is a `SettingsSection` on its page.
 - The current size is the `data-text-size` attribute on `<html>`. `src/styles/text-size.css` defines one block of
   variables per size (`--t-body`, `--t-head`, `--t-small`, `--row-h`, `--hdr-h`, `--tb-h`, `--sb-h`, `--sbw`, `--iw`,
   `--ui-scale`) and derives control metrics from `--ui-scale` (`--ctl-h`, `--seg-h`, `--lozenge-h`, `--mini-h`,
@@ -64,8 +64,8 @@ Smaller is the original prototype size.
 ## Code map
 | Path | Role |
 |---|---|
-| `src/app/settings/page.tsx` | Redirect to `/settings/display` |
-| `src/app/settings/<name>/page.tsx` | One sub-page route each |
+| `src/app/(app)/settings/page.tsx` | Redirect to `/settings/display` |
+| `src/app/(app)/settings/<name>/page.tsx` | One sub-page route each |
 | `src/app/features/settings/SettingsWindow.tsx` | `Window` + sidebar from `SETTINGS_PAGES` |
 | `.../settings/model/settingsNav.ts` | Sub-page list and current-page match |
 | `.../settings/components/TextSizeSection.tsx` | Segmented control, scale table, preview |
@@ -89,7 +89,7 @@ Smaller is the original prototype size.
 - `data/shortcuts.test.ts` presses the listed caps through the real matcher; `data/screenKeys.test.ts` the derived
   per-screen rows and the server-safety of their imports; `data/browserKeys.test.ts` every key a module stores is
   listed. `sections/ScreenKeysSection.test.tsx` and `sections/ConnectionSection.test.tsx` render those sections.
-- `src/app/settings/settingsRoutes.test.ts`: the route folders against `SETTINGS_PAGES`, the redirect, the tab titles.
+- `src/app/(app)/settings/settingsRoutes.test.ts`: the route folders against `SETTINGS_PAGES`, the redirect, the tab titles.
 - `src/lib/settings/textSize.test.ts`: parsing defaults to Standard, step clamping, Cmd/Ctrl intents (bare keys and
   Alt chords ignored), storage read/write surviving missing, corrupt or throwing stores, and the boot script setting
   the attribute only for a valid saved value inside try/catch; `textSizeStore.test.ts` the store.

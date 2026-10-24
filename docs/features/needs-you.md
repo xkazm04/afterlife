@@ -24,7 +24,7 @@
 - The sidebar filters All / Waiting / Outbox / Sent; the toolbar has the grouping and search.
 
 ## How it works
-- `src/app/needs-you/page.tsx` (server) calls `loadNeedsYouView()` from `data/pick.ts`. Demo: it renders
+- `src/app/(app)/needs-you/page.tsx` (server) calls `loadNeedsYouView()` from `data/pick.ts`. Demo: it renders
   `NeedsYouScreen` with the slice, or `NeedsYouEmpty` when the source lacks the items the screen is built around. Live:
   `NeedsYouLive` with the group's own open items (never the demo's seeded ones), the week's decided list and the time
   the view was read, or `NeedsYouEmpty` when no item is open (decided items alone do not fill the desk).

@@ -29,8 +29,8 @@
   the status line ends the same way ("identical to the record" or "chain broken at #n").
 
 ## How it works
-- `src/app/task/page.tsx` (server) redirects to `firstTaskId()` (the first task `loadTasks()` draws).
-  `src/app/task/[id]/page.tsx` (server) calls `loadTasks()`, finds the id or calls `notFound()`, and renders
+- `src/app/(app)/task/page.tsx` (server) redirects to `firstTaskId()` (the first task `loadTasks()` draws).
+  `src/app/(app)/task/[id]/page.tsx` (server) calls `loadTasks()`, finds the id or calls `notFound()`, and renders
   `TaskScreen` with all tasks, the current one, `loadPageFacts()` and the opening selection (`selectionFromQuery`).
 - `model/build/loadTasks.ts`: `loadTasks()` reads tasks, tracks and action classes from the DataSource and calls
   `buildTasks` with the fixtures in `data/details/` (`TASK_DETAIL`, and `TASK_ORDER`, its keys). In live mode only the

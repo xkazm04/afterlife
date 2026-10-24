@@ -1,12 +1,12 @@
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import FleetNotFound from '@/app/fleet/[project]/not-found';
-import LadderNotFound from '@/app/ladder/[class]/not-found';
-import MaturityNotFound from '@/app/maturity/[stage]/not-found';
-import NeedsNotFound from '@/app/needs-you/[item]/not-found';
-import SetupNotFound from '@/app/setup/[node]/not-found';
-import TaskNotFound from '@/app/task/[id]/not-found';
+import FleetNotFound from '@/app/(app)/fleet/[project]/not-found';
+import LadderNotFound from '@/app/(app)/ladder/[class]/not-found';
+import MaturityNotFound from '@/app/(app)/maturity/[stage]/not-found';
+import NeedsNotFound from '@/app/(app)/needs-you/[item]/not-found';
+import SetupNotFound from '@/app/(app)/setup/[node]/not-found';
+import TaskNotFound from '@/app/(app)/task/[id]/not-found';
 
 vi.mock('next/link', () => ({ default: (p: { href: string; className?: string; children?: unknown }) => createElement('a', { href: p.href, className: p.className }, p.children as never) }));
 

@@ -6,8 +6,9 @@ import { navEntryFor } from '../sidebar/navItems';
 import styles from './ShellLoading.module.css';
 
 /**
- * The window frame while a screen's data streams in (the root loading.tsx). The sidebar, toolbar and status bar are the
- * real ones, titled from the route, so the frame appears at once and the screen fills it in place.
+ * The window while a screen's data streams in (`(app)/loading.tsx`). Inside the (app) layout's AppFrame it fills only the
+ * right column - the frame and its sidebar are already there and stay - with the real toolbar and status bar, titled
+ * from the route, so the screen fills it in place.
  */
 export function ShellLoading() {
   const title = navEntryFor(usePathname())?.label ?? 'Afterlife';

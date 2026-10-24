@@ -40,11 +40,11 @@ vi.mock('./features/task/model/build/loadTasks', () => ({ loadTasks: loaders.tas
 vi.mock('./features/task/model/verdict/reasons', () => ({ selectionFromQuery: () => ({}) }));
 
 const ROUTES = [
-  ['fleet/[project]', () => import('./fleet/[project]/page'), { project: 'p1' }, loaders.fleetProject, { id: 'p1' }],
-  ['ladder/[class]', () => import('./ladder/[class]/page'), { class: 'c1' }, loaders.ladderClass, { id: 'c1' }],
-  ['maturity/[stage]', () => import('./maturity/[stage]/page'), { stage: 's1' }, loaders.maturityStage, { key: 's1' }],
-  ['needs-you/[item]', () => import('./needs-you/[item]/page'), { item: 'i1' }, loaders.needsItem, { demo: null, id: 'i1' }],
-  ['setup/[node]', () => import('./setup/[node]/page'), { node: 'n1' }, loaders.setupNode, { id: 'n1' }],
+  ['fleet/[project]', () => import('./(app)/fleet/[project]/page'), { project: 'p1' }, loaders.fleetProject, { id: 'p1' }],
+  ['ladder/[class]', () => import('./(app)/ladder/[class]/page'), { class: 'c1' }, loaders.ladderClass, { id: 'c1' }],
+  ['maturity/[stage]', () => import('./(app)/maturity/[stage]/page'), { stage: 's1' }, loaders.maturityStage, { key: 's1' }],
+  ['needs-you/[item]', () => import('./(app)/needs-you/[item]/page'), { item: 'i1' }, loaders.needsItem, { demo: null, id: 'i1' }],
+  ['setup/[node]', () => import('./(app)/setup/[node]/page'), { node: 'n1' }, loaders.setupNode, { id: 'n1' }],
 ] as const;
 
 describe('dynamic route pages', () => {
@@ -65,7 +65,7 @@ describe('dynamic route pages', () => {
   });
 
   it('task/[id] renders a held task and calls notFound for an unknown one', async () => {
-    const page = (await import('./task/[id]/page')).default;
+    const page = (await import('./(app)/task/[id]/page')).default;
     loaders.tasks.mockReturnValue([{ id: 't1' }]);
     const props = (id: string) => ({ params: Promise.resolve({ id }), searchParams: Promise.resolve({}) });
     await expect(page(props('t1'))).resolves.toBeTruthy();
@@ -74,7 +74,7 @@ describe('dynamic route pages', () => {
   });
 
   it('fleet ?project= redirects only to a project that exists', async () => {
-    const page = (await import('./fleet/page')).default;
+    const page = (await import('./(app)/fleet/page')).default;
     nav.redirect.mockImplementation(() => {
       throw new Error('NEXT_REDIRECT');
     });
@@ -91,10 +91,14 @@ describe('dynamic route pages', () => {
   // without its own not-found page) fails here instead of going unseen.
   it('covers every dynamic route folder on disk, each with its own not-found page', () => {
     const covered = [...ROUTES.map((r) => r[0]), 'task/[id]'].sort();
-    expect(dynamicRoutes(import.meta.dirname)).toEqual(covered);
-    for (const r of covered) expect(existsSync(path.join(import.meta.dirname, r, 'not-found.tsx')), r).toBe(true);
+    const onDisk = dynamicRoutes(import.meta.dirname);
+    expect(onDisk.map(urlOf).sort()).toEqual(covered);
+    for (const r of onDisk) expect(existsSync(path.join(import.meta.dirname, r, 'not-found.tsx')), r).toBe(true);
   });
 });
+
+/** A route folder's path without its route groups (`(app)/fleet/[project]` is `fleet/[project]`): groups are not in the URL. */
+const urlOf = (rel: string) => rel.split('/').filter((s) => !s.startsWith('(')).join('/');
 
 /** The route folders named `[param]` under src/app (features and api hold no pages), as posix paths from src/app. */
 function dynamicRoutes(dir: string, rel = ''): string[] {

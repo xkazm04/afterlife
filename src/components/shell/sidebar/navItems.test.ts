@@ -3,14 +3,15 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ALL_NAV, APP_NAV, SETTINGS_NAV, activeNavKey, navEntryFor } from './navItems';
 
-// The routes are the ground truth: a top-level folder of src/app that holds a page.tsx is a screen. The one screen the
-// nav leaves out on purpose is the kit gallery; the front door is the "(door)" group and has no folder name.
+// The routes are the ground truth: a top-level route folder that holds a page.tsx is a screen. Route groups add no URL
+// segment, so their folders are searched as top level (the windowed screens live in "(app)"). The one screen the nav leaves
+// out on purpose is the kit gallery; the front door is the "(door)" group's own page and has no folder name.
 const APP_DIR = join(process.cwd(), 'src/app');
 const NAV_EXEMPT = ['kit'];
 const screenFolders = (dir = APP_DIR): string[] =>
   readdirSync(dir, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && !d.name.startsWith('(') && existsSync(join(dir, d.name, 'page.tsx')))
-    .map((d) => d.name)
+    .filter((d) => d.isDirectory())
+    .flatMap((d) => (d.name.startsWith('(') ? screenFolders(join(dir, d.name)) : existsSync(join(dir, d.name, 'page.tsx')) ? [d.name] : []))
     .sort();
 
 describe('nav entries against the routes', () => {

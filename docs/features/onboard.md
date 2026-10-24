@@ -22,7 +22,7 @@
   shows its funnel step, its baseline and its one next command.
 
 ## How it works
-`app/onboard/page.tsx` → `data/loadOnboardData.ts` (the fleet through the data source) → `model/build.ts`
+`app/(app)/onboard/page.tsx` → `data/loadOnboardData.ts` (the fleet through the data source) → `model/build.ts`
 `initialRuns()` → `OnboardScreen` → `hooks/useOnboard.ts` (run state, batch size and scope, selection, filter, sheet).
 
 - `model/funnel.ts` `stepOf` decides each project's step from its state:

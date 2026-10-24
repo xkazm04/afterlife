@@ -28,7 +28,7 @@
   cycles and links to Onboard.
 
 ## How it works
-`app/cycles/page.tsx` → `data/loadCyclesData.ts` joins `getMaturity()` (the scan, the gap proposals) with
+`app/(app)/cycles/page.tsx` → `data/loadCyclesData.ts` joins `getMaturity()` (the scan, the gap proposals) with
 `getCycles()` (the closed history) → `model/build.ts` `buildCycles()` → `CyclesScreen` (client).
 
 - **Where the history comes from.** Each closed cycle is one line of `belay-ledger/cycles/<project-id>.jsonl`

@@ -29,6 +29,10 @@ vi.mock('react', async (orig) => ({
     return cells[i];
   },
   useEffect: (fn: Fn) => void effects.push(fn),
+  useContext: (c: { _currentValue: unknown }) => c._currentValue, // the default: no provider in a bare call
+  useMemo: (f: () => unknown) => f(),
+  useId: () => ':r0:',
+  ViewTransition: undefined, // plain React has none; frame/Motion then renders its children as they are
   useSyncExternalStore: (subscribe: (n: () => void) => () => void, get: () => unknown) => {
     effects.push(() => subscribe(() => void (dirty = true)));
     return get();
@@ -48,6 +52,7 @@ vi.stubGlobal('window', {
 });
 
 const { Window } = await import('./Window');
+const { AppFrame } = await import('./frame/AppFrame');
 const { TrafficLights } = await import('./sidebar/TrafficLights');
 
 const pass = <P extends object>(c: (p: P) => unknown, p: P) => {
@@ -92,8 +97,10 @@ describe('window focus and the traffic lights', () => {
     expect(cls()).toBe(lit);
   });
 
-  it('keeps the focus state out of Window, so a blur does not re-render the chrome', () => {
+  it('keeps the focus state out of Window and its frame, so a blur does not re-render the chrome', () => {
     pass(Window, { title: 'x' });
+    effects.forEach((e) => e());
+    pass(AppFrame, {});
     effects.forEach((e) => e());
     dirty = false;
     fire('blur');

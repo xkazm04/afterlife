@@ -1,6 +1,6 @@
 # Fleet (F1)
 
-Route `/fleet`, port of the approved Fleet prototype. `src/app/fleet/page.tsx` reads the data source on the server
+Route `/fleet`, port of the approved Fleet prototype. `src/app/(app)/fleet/page.tsx` reads the data source on the server
 (`data/loadFleetData.ts`, plus `data/loadFleetSource.ts`: the mode and the deep project's recent events) and renders the
 client `FleetScreen`.
 
@@ -17,7 +17,7 @@ client `FleetScreen`.
 - `components/runner/` the cycle runner's strip above the table (`RunnerFleet`, collapsed `<details>`): every repo of
   `.belay/fleet.yml` and any repo that still has runs, with its checkout and base, its newest wave in words (running, to
   merge, merged, not mergeable), its lanes' outcomes, tokens, spend, and the decisions it left (a link to `/needs-you`).
-  `app/fleet/page.tsx` reads it with `readDesk()` (`src/server/runs/`), real local data in demo and live alike; the trust
+  `app/(app)/fleet/page.tsx` reads it with `readDesk()` (`src/server/runs/`), real local data in demo and live alike; the trust
   table below is the data source's, untouched. Read-only. The repos whose spend matched no Fleet project are counted
   "not in Fleet" in its summary and named under it.
 - Agent cost (`data/loadFleetEstate.ts`, `src/lib/runs/desk/join.ts`): the routes join the runner desk's rows onto the

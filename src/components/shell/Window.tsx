@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from '@/components/icons/Icon';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { HelpButton } from '@/components/overlays/HelpButton';
 import { useModCap } from '@/lib/keyboard/modKey';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
-import { Backdrop } from './Backdrop';
+import { AppFrame } from './frame/AppFrame';
+import { useFrame, type Frame } from './frame/FrameContext';
+import { Motion } from './frame/Motion';
 import { Inspector } from './bars/Inspector';
 import { INSPECTOR_HOTKEY } from './bars/inspectorHotkey';
-import { Sidebar } from './sidebar/Sidebar';
 import { StatusBar } from './bars/StatusBar';
 import { Toolbar } from './bars/Toolbar';
 import styles from './Window.module.css';
@@ -41,12 +43,30 @@ export interface WindowProps {
 /**
  * The macOS window every screen lives in: sidebar with the app navigation, toolbar, content pane, optional
  * inspector and status bar. The active nav item comes from the route. Cmd/Ctrl+I toggles the inspector.
- * Mount inside ToastProvider (the root layout does) so status messages reach the status bar. Ghostwire's backdrop
- * (circuit traces, the scan line) is drawn behind every window here; the front door, which has no window, has its own.
+ * Mount inside ToastProvider (the root layout does) so status messages reach the status bar.
+ *
+ * Inside the `(app)` layout's AppFrame (the backdrop, the box and the sidebar, kept across navigations) it draws only
+ * the right column, animated in and out on navigation, and portals its `sidebar` sections into the frame's sidebar.
+ * Rendered on its own (tests, a page outside the layout) it draws its own AppFrame around itself.
  */
 export function Window(p: WindowProps) {
-  const [sideOpen, setSideOpen] = useState(true);
+  const frame = useFrame();
+  if (!frame) {
+    return (
+      <AppFrame sidebar={p.sidebar}>
+        <WindowColumn {...p} sidebar={undefined} />
+      </AppFrame>
+    );
+  }
+  return <WindowColumn {...p} />;
+}
+
+function WindowColumn(p: WindowProps) {
+  // Never null: Window renders this only inside a frame (the layout's, or its own).
+  const frame = useFrame() as Frame;
   const [localInsp, setLocalInsp] = useState(p.defaultInspectorOpen ?? true);
+  // Per instance: a route kept hidden in <Activity> may hold another window with an inspector at the same time.
+  const inspId = `${useId()}inspector`;
   const mod = useModCap();
   const hasInsp = p.inspector !== undefined;
   const inspOpen = hasInsp && (p.inspectorOpen ?? localInsp);
@@ -55,39 +75,39 @@ export function Window(p: WindowProps) {
     if (p.inspectorOpen === undefined) setLocalInsp(open);
     p.onInspectorOpenChange?.(open);
   };
+  // An effect: a screen hidden by <Activity> has its effects cleaned up, so its hotkeys stop with it.
   useHotkeys([{ ...INSPECTOR_HOTKEY, handler: () => setInsp(!inspOpen) }], hasInsp);
 
-  const cls = [styles.win, sideOpen ? '' : styles.noSide, inspOpen ? '' : styles.noInsp].filter(Boolean).join(' ');
   const inspToggle = hasInsp ? (
-    <ToolbarButton pressed={inspOpen} title={`Inspector (${mod}I)`} aria-label="Toggle inspector" aria-controls="inspector" onClick={() => setInsp(!inspOpen)}>
+    <ToolbarButton pressed={inspOpen} title={`Inspector (${mod}I)`} aria-label="Toggle inspector" aria-controls={inspId} onClick={() => setInsp(!inspOpen)}>
       <Icon name="inspectorToggle" />
     </ToolbarButton>
   ) : null;
 
-  const sideShow = sideOpen ? null : (
-    <ToolbarButton title="Show sidebar" aria-label="Show sidebar" aria-expanded={false} onClick={() => setSideOpen(true)}>
+  const sideShow = frame.sideOpen ? null : (
+    <ToolbarButton title="Show sidebar" aria-label="Show sidebar" aria-expanded={false} onClick={() => frame.setSideOpen(true)}>
       <Icon name="sidebarToggle" />
     </ToolbarButton>
   );
 
+  // The screen's sections join the frame's sidebar and leave with the screen; a hidden route's portal is hidden with it.
+  const sections = p.sidebar !== undefined && frame.slot ? createPortal(<div>{p.sidebar}</div>, frame.slot) : null;
+
   return (
     <>
-      <Backdrop />
-      <div className={cls}>
-        <Sidebar onToggle={() => setSideOpen((v) => !v)}>
-          {p.sidebar}
-        </Sidebar>
-        <div className={styles.right}>
+      {sections}
+      <Motion enter="app-enter" exit="app-exit">
+        <div className={`${styles.right} ${inspOpen ? '' : styles.noInsp}`}>
           <Toolbar title={p.title} subtitle={p.subtitle} lead={sideShow} end={inspToggle}>
             {p.toolbar}
           </Toolbar>
           <div className={styles.main}>
             <main className={styles.pane}>{p.children}</main>
-            {hasInsp ? <Inspector open={inspOpen}>{p.inspector}</Inspector> : null}
+            {hasInsp ? <Inspector id={inspId} open={inspOpen}>{p.inspector}</Inspector> : null}
           </div>
           <StatusBar help={p.help ? <HelpButton title={p.helpTitle}>{p.help}</HelpButton> : null}>{p.status}</StatusBar>
         </div>
-      </div>
+      </Motion>
     </>
   );
 }

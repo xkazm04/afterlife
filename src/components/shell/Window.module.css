@@ -1,32 +1,8 @@
-/* The window frame: sidebar | (toolbar / main / status bar). Every screen = this. */
-.win {
-  position: fixed;
-  inset: var(--win-inset);
-  display: grid;
-  grid-template-columns: var(--sbw) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--win);
-  border: 1px solid var(--border-3);
-  box-shadow: 0 0 0 1px var(--shade-60), 0 24px 60px var(--shade-55), var(--win-halo);
-}
-/* brand overlay (scanlines, grain): inert unless a brand variant sets --win-overlay */
-.win::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  pointer-events: none;
-  background: var(--win-overlay);
-}
-.noSide {
-  grid-template-columns: 0 minmax(0, 1fr);
-}
-.noSide > :first-child {
-  visibility: hidden;
-}
+/* A screen's right column: toolbar / main / status bar. The frame around it (box, sidebar) is frame/AppFrame. */
 .right {
+  /* placed, not flowed: a route kept hidden in <Activity> beside it (display: none) never pushes it to a new row */
+  grid-column: 2;
+  grid-row: 1;
   display: grid;
   grid-template-rows: var(--tb-h) minmax(0, 1fr) var(--sb-h);
   min-width: 0;

@@ -22,7 +22,7 @@
 - The toolbar's **Sweep** toggle pauses or resumes the sweep animation.
 
 ## How it works
-- `src/app/monitor/page.tsx` (server) renders `MonitorScreen` with `loadMonitorData()` and, as its own `estate` prop,
+- `src/app/(app)/monitor/page.tsx` (server) renders `MonitorScreen` with `loadMonitorData()` and, as its own `estate` prop,
   `loadMonitorEstate(data, readDesk())`.
 - `data/loadMonitorData.ts` reads the DataSource into `MonitorData`: the mode (demo or live), org and as-of time, groups,
   projects, stages, the deep project id and its own needs-you items (`ownDecisions`).

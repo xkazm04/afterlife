@@ -26,11 +26,11 @@ with `skills/adopt-belay`; this page is the overview.
   The status bar reads `<n>/15 steps read done · <n>/8 armed · <n> need you · belay doctor · probed 14:02 · <age>`.
 
 ## How it works
-- `src/app/setup/layout.tsx` awaits `loadSetupData()` and holds the flow in `SetupProvider`, so a probe or an arm on
+- `src/app/(app)/setup/layout.tsx` awaits `loadSetupData()` and holds the flow in `SetupProvider`, so a probe or an arm on
   a node's page survives the trip back to the map. `loadSetupData` reads `getSetup()`, `getTracks()`,
   `getActionClasses()` and `getPolicy()` through `getDataSource()` (see `server.md`); in live mode it also awaits
   `readLiveSetup` (`src/server/data/setup/read.ts`): each track's arm block on the target's main, the belay doctor and
-  the steps a read can observe. `src/app/setup/[node]/page.tsx` resolves the segment with `loadSetupNode` (404 for
+  the steps a read can observe. `src/app/(app)/setup/[node]/page.tsx` resolves the segment with `loadSetupNode` (404 for
   any other).
 - `model/flow/state.ts` `createSetupState` turns that into `SetupState`: steps (`todo | human | probing | done` in the
   demo, `done | failed | unknown` as a live read saw them), tracks (`locked | ready | open | probing | armed`, plus
@@ -75,7 +75,7 @@ with `skills/adopt-belay`; this page is the overview.
 ## Code map
 | Path | Role |
 |---|---|
-| `src/app/setup/layout.tsx`, `page.tsx`, `[node]/page.tsx` | Routes; the layout loads the data and holds `SetupProvider` |
+| `src/app/(app)/setup/layout.tsx`, `page.tsx`, `[node]/page.tsx` | Routes; the layout loads the data and holds `SetupProvider` |
 | `src/app/features/setup/SetupScreen.tsx` | Composes `Window`: toolbar, summary strip, map, status, legend |
 | `src/app/features/setup/SetupNodeScreen.tsx` | One node as a `DetailPage` (`nodeHead`, `NodeBody`) |
 | `.../setup/components/map/` | `UnlockMap`, `EdgeLayer` (SVG), `useEdgeGeometry`, `columns/`, `nodes/` |

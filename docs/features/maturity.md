@@ -19,7 +19,7 @@
 - The status bar counts the nine stages: deep, touched (running, configured), absent, and unknown (drawn dashed).
 
 ## How it works
-- `src/app/maturity/layout.tsx` (server) loads `loadMaturityData()` (`getMaturity()`: rungs, rung names, engine, scan
+- `src/app/(app)/maturity/layout.tsx` (server) loads `loadMaturityData()` (`getMaturity()`: rungs, rung names, engine, scan
   time, proposals; and `getStages()`) plus the project and data mode, and mounts `MaturityProvider`, which holds the one
   `useMaturity` session for the list (`page.tsx` → `MaturityScreen`) and every stage page (`[stage]/page.tsx` →
   `StageScreen`, `loadMaturityStage` or not found).

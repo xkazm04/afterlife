@@ -14,7 +14,7 @@ const rel = (f: string): string => relative(COMPONENTS, f).split(sep).join('/');
 const named = (code: string, n: string): boolean => new RegExp(`\\b${n}\\b`).test(code);
 
 /** Drawn by Window itself, which /kit renders: the kit shows them by showing the window. */
-const BY_WINDOW = ['Backdrop', 'Toolbar', 'Inspector', 'StatusBar', 'Sidebar', 'AppNav', 'NavLink', 'SettingsNav', 'TrafficLights'];
+const BY_WINDOW = ['AppFrame', 'FrameContext', 'Motion', 'Backdrop', 'Toolbar', 'Inspector', 'StatusBar', 'Sidebar', 'AppNav', 'NavLink', 'SettingsNav', 'TrafficLights'];
 const EXEMPT: Record<string, string> = {
   ...Object.fromEntries(BY_WINDOW.map((n) => [n, 'drawn by Window, which /kit renders'])),
   CommandPalette: 'mounted once by app/Providers on every route, /kit included (Cmd/Ctrl+K)',

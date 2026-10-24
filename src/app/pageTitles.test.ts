@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 // Every windowed screen names its tab: a page.tsx exports `metadata` or `generateMetadata`. The two exceptions have none to give:
 // the front door is not a windowed screen (it titles itself from the root layout) and /settings only redirects to its first sub-page.
-const EXEMPT = new Set(['(door)/page.tsx', 'settings/page.tsx']);
+const EXEMPT = new Set(['(door)/page.tsx', '(app)/settings/page.tsx']);
 
 function pages(dir: string, rel = ''): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {

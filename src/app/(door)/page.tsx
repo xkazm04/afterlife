@@ -1,6 +1,7 @@
 import { firstParam } from '@/lib/url/searchParams';
 import { loadDoorData } from '../features/door/data/loadDoorData';
 import { DoorScreen } from '../features/door/DoorScreen';
+import { Motion } from '@/components/shell/frame/Motion';
 import { connection } from 'next/server';
 
 // @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
@@ -14,5 +15,10 @@ export const instant = false;
 export default async function DoorPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   await connection(); // request time: the data source and its data are the running server's, never the build's
   const entrance = firstParam((await searchParams).entrance) !== 'off';
-  return <DoorScreen data={loadDoorData()} entrance={entrance} />;
+  // Leaving for a screen, the city fades and swells away as the window arrives (styles/transitions.css: door-exit).
+  return (
+    <Motion exit="door-exit">
+      <DoorScreen data={loadDoorData()} entrance={entrance} />
+    </Motion>
+  );
 }
