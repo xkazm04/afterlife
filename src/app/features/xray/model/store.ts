@@ -64,14 +64,22 @@ export const xrayStore = {
     load();
     if (state.seen.includes(key)) return;
     set({ seen: [...state.seen, key] });
-    storage()?.setItem(XRAY_SEEN_KEY, JSON.stringify(state.seen));
+    try {
+      storage()?.setItem(XRAY_SEEN_KEY, JSON.stringify(state.seen));
+    } catch {
+      // a full or refused store: seen holds for this page life only
+    }
   },
-  /** True once per browser: the first call reads and sets the flag. */
+  /** True once per browser: the first call reads and sets the flag. A store that refuses either is never a first visit. */
   takeFirstVisit(): boolean {
-    const s = storage();
-    if (!s || s.getItem(XRAY_FIRST_KEY)) return false;
-    s.setItem(XRAY_FIRST_KEY, new Date().toISOString());
-    return true;
+    try {
+      const s = storage();
+      if (!s || s.getItem(XRAY_FIRST_KEY)) return false;
+      s.setItem(XRAY_FIRST_KEY, new Date().toISOString());
+      return true;
+    } catch {
+      return false; // it could not be remembered, so opening it would repeat on every load
+    }
   },
 };
 
