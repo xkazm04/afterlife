@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../data/pick';
 import { gapBlock } from '../../write/desk';
 import { initialState } from '../state';
-import type { NeedsState } from '../types';
+import { reduce } from '../reducer';
+import type { Action, NeedsState } from '../types';
 import { rowAction, spaceAction } from './rowAction';
 import { itemLede } from './lede';
 import { rowView } from './rowData';
@@ -106,5 +107,15 @@ describe('row cells', () => {
     expect(rowView(fresh(), 'n5', demo)?.move).toMatchObject({ title: 'Unknown · checked 2 h ago' });
     const checked = rowView(with_({ runner: { opened: false, check: 'none' } }), 'n5', demo)?.move;
     expect(checked).toMatchObject({ tone: 'unknown', title: 'Not seen · checked just now (simulated)' });
+  });
+});
+
+describe('the ledger rows a decision records', () => {
+  it('Not yet and Retire name the class the source holds, not one typed in', () => {
+    const d = pickNeedsYouDemo();
+    const other = { ...d, promote: { ...d.promote, cls: 'other.promoted' }, readmit: { ...d.readmit, cls: 'other.readmitted' } };
+    const s = [{ type: 'act', action: 'snooze-n1' }, { type: 'act', action: 'retire-n4' }].reduce((acc, a) => reduce(acc, a as Action, other), initialState(other));
+    expect(s.session.map((r) => r.what).join(' | ')).toContain('other.promoted');
+    expect(s.session.map((r) => r.what).join(' | ')).toContain('other.readmitted');
   });
 });

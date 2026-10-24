@@ -70,7 +70,7 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
     case 'unstage':
       return unstage(s, arg, 'Taken back. Nothing was sent.');
     case 'snooze-n1':
-      return notify(decided(setStatus(s, 'n1', 'snoozed'), 'promote', 'qa.file-bug · T7 qa', 'not yet', 'no write'), 'toast', 'Not yet · no write');
+      return notify(decided(setStatus(s, 'n1', 'snoozed'), 'promote', `${demo.promote.cls} · T7 qa`, 'not yet', 'no write'), 'toast', 'Not yet · no write');
     case 'unsnooze-n1': {
       // Take back the Not yet row itself: other decisions may have been made since, so it is not always the newest.
       const at = s.session.findIndex((r) => r.kind === 'promote' && r.result === 'not yet');
