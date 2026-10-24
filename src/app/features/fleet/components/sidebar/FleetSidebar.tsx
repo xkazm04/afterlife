@@ -8,6 +8,7 @@ import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierMark } from '@/components/status/TierMark';
 import type { FleetProject } from '@/lib/demo/types';
 import { ChangeMark } from '../table/cells/ChangeMark';
+import { sourceLabel } from '../../model/list/filtering';
 import { SMART_FILTERS } from '../../model/list/smartFilters';
 import type { SmartId, Source } from '../../model/types';
 import styles from './sidebar.module.css';
@@ -60,13 +61,13 @@ export function FleetSidebar({
   return (
     <>
       <SidebarSection title="Fleet">
-        <SidebarItem icon={folder} label="All projects" count={projects.length} current={source === 'all'} onClick={() => onSource('all')} />
-        <SidebarItem icon={changeIcon} label="Changed since last look" count={changed} current={source === 'changed'} onClick={() => onSource('changed')} />
+        <SidebarItem icon={folder} label={sourceLabel('all')} count={projects.length} current={source === 'all'} onClick={() => onSource('all')} />
+        <SidebarItem icon={changeIcon} label={sourceLabel('changed')} count={changed} current={source === 'changed'} onClick={() => onSource('changed')} />
         {changed ? <SidebarItem icon={seenIcon} label="Mark seen" title="Take this look as the one the marks compare with" onClick={onMarkSeen} /> : null}
       </SidebarSection>
       <SidebarSection title="Groups">
         {groups.map((g) => (
-          <SidebarItem key={g} icon={folder} label={g} count={projects.filter((p) => p.group === g).length} current={source === `g:${g}`} onClick={() => onSource(`g:${g}`)} />
+          <SidebarItem key={g} icon={folder} label={sourceLabel(`g:${g}`)} count={projects.filter((p) => p.group === g).length} current={source === `g:${g}`} onClick={() => onSource(`g:${g}`)} />
         ))}
       </SidebarSection>
       <SidebarSection title="Smart filters">
