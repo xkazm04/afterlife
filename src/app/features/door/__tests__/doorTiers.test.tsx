@@ -7,6 +7,7 @@ import { STANDING_META, TIER_DISPLAY_ORDER, TIER_META, type Standing } from '@/l
 import { DOOR_TIERS, legendTiers, tierLabel, tierName } from '../components/rail/Rail';
 import { TIER_CLASS } from '../components/scene/District';
 import { TierLetter } from '../components/ui/TierLetter';
+import { RUNGS } from '@/schemas/stages';
 
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));
 
@@ -43,6 +44,12 @@ describe('the L2 cutaway windows', () => {
       expect(css, `.wl.w_${t}`).toMatch(rule(`.wl.w_${t}`));
     }
     expect(css).toMatch(rule('.w_null'));
+  });
+  it('the floors have a rule for every rung of schemas/stages, and for the unknown one', () => {
+    const css = readFileSync(new URL('../components/l2/l2tower.module.css', import.meta.url), 'utf8');
+    const has = (sel: string) => expect(css, sel).toMatch(new RegExp(`^${sel.replace(/\./g, '\\.')} \\{`, 'm'));
+    for (const r of [...RUNGS.map((_, i) => String(i)), 'null']) has(`.r${r} .flTop`);
+    for (const i of RUNGS.keys()) has(`.r${i} .lip`);
   });
   it('the tier letter colours every cell, and the unknown one, with a rule in tier.module.css', () => {
     const css = readFileSync(new URL('../components/ui/tier.module.css', import.meta.url), 'utf8');
