@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_TIMEOUT_MS, agentEnv, childEnv, killAll, runProc } from '../proc/proc';
+import { callClaude } from '../agent/spawn';
 import { parseFleet } from '../fleet/load';
 import { runGates } from '../lane/verify';
 
@@ -47,6 +48,34 @@ describe('child environment', () => {
     plant({ ...planted, BELAY_PASS_ENV: 'NPM_TOKEN' });
     expect(childEnv().NPM_TOKEN).toBe('npm-x');
     expect(childEnv().GITLAB_TOKEN).toBeUndefined();
+  });
+
+  it('BELAY_PASS_ENV stops at the runner-spawned children: claude and the Bash commands it runs never get it', () => {
+    plant({ ...planted, BELAY_PASS_ENV: 'NPM_TOKEN' });
+    expect(agentEnv().NPM_TOKEN).toBeUndefined();
+  });
+
+  it('auth sockets, connection strings and passwords inside URLs are secrets too, whatever the name', () => {
+    const more = { DATABASE_URL: 'postgres://u:pw@db/x', SSH_AUTH_SOCK: '/tmp/ssh-x/agent.1', NPM_CONFIG__AUTH: 'b64', GH_AUTH: 'x', SENTRY_DSN: 'https://k@o.ingest/1', REDIS_URL: 'redis://:pw@cache:6379', SIGNING_KEY: 'k', PG_CONNECTION_STRING: 'Host=db;Password=pw' };
+    plant({ ...more, PUBLIC_URL: 'https://example.com/app', HOME_DIR: '/home/x' });
+    for (const env of [childEnv(), agentEnv()]) {
+      for (const k of Object.keys(more)) expect(env[k]).toBeUndefined();
+      expect(env.PUBLIC_URL).toBe('https://example.com/app');
+      expect(env.HOME_DIR).toBe('/home/x');
+    }
+  });
+
+  // claude itself honours this (checked headless on CLI 2.1.310: a Bash child saw ANTHROPIC_FOUNDRY_API_KEY without
+  // it and not with it, and Edit(./**) still wrote in the cwd and refused ../). The runner's part is to always set it.
+  it('claude is told to strip its own credentials from every process it starts, whatever the operator set', async () => {
+    plant({ ...planted, CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '0', BELAY_PASS_ENV: 'NPM_TOKEN' });
+    expect(agentEnv().CLAUDE_CODE_SUBPROCESS_ENV_SCRUB).toBe('1');
+    const seen = path.join(tmp, 'seen.json');
+    const bin = path.join(tmp, 'envClaude.mjs');
+    fs.writeFileSync(bin, `import fs from 'node:fs';\nconst e = process.env;\nfs.writeFileSync(${JSON.stringify(seen)}, JSON.stringify({ scrub: e.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB, key: e.ANTHROPIC_API_KEY, npm: e.NPM_TOKEN ?? null }));\n`);
+    plant({ BELAY_CLAUDE_BIN: bin });
+    await callClaude({ prompt: 'x', cwd: tmp, model: 'sonnet', timeoutMs: 20_000, permissions: { step: 'lane', bash: ['npm run test'] } });
+    expect(JSON.parse(fs.readFileSync(seen, 'utf8'))).toEqual({ scrub: '1', key: 'sk-ant-x', npm: null });
   });
 
   it("no child inherits the runner's own tsx and npm state (a fleet repo's npx tsx would load this tsconfig)", () => {

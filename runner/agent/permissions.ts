@@ -4,14 +4,16 @@
 // with unescaped argv, and a rule like `Bash(cargo fmt:*)` holds spaces and parens. Deny always wins.
 //   plan    - Read, Grep and Glob only: the tool list itself is cut to those three.
 //   review  - the same three: a fresh session that reads a lane's change and edits nothing.
-//   lane    - edits, plus Bash for the prefixes of the repo's gates, setup and laneTools; never git or network.
-//             The lane's one repair turn runs under this profile too.
+//   lane    - edits under its worktree (`Edit(./**)`: claude runs in default mode, see proc.ts agentEnv), plus Bash
+//             for the prefixes of the repo's gates, setup and laneTools, minus the git and fetch programs. Those
+//             prefixes run code the lane can edit, so the rules do not close the network or the filesystem; what
+//             holds is that claude strips its key from every Bash child. The repair turn runs under this profile too.
 //   reflect - no tool at all.
 
 export type PermissionProfile = { step: 'plan' } | { step: 'review' } | { step: 'reflect' } | { step: 'lane'; bash: string[] };
 
 export interface PermissionArgs {
-  mode: 'default' | 'acceptEdits';
+  mode: 'default';
   /** The value of --tools: a comma list, or '' for no tool at all. */
   tools: string;
   settings: { permissions: { defaultMode: string; allow: string[]; deny: string[] } };
@@ -21,8 +23,10 @@ const PLAN_TOOLS = ['Read', 'Grep', 'Glob'];
 const LANE_TOOLS = ['Bash', 'Read', 'Edit', 'Write', 'Glob', 'Grep', 'NotebookEdit'];
 const NETWORK = ['WebFetch', 'WebSearch'];
 const ALL_TOOLS = ['Bash', 'PowerShell', 'Edit', 'Write', 'NotebookEdit', 'Read', 'Grep', 'Glob', 'Agent', 'Task', 'Skill', ...NETWORK];
-/** Programs a lane never runs: git state is the runner's, and the network is closed. */
+/** Programs a lane never runs by name: git state is the runner's, and these fetch or push. */
 const LANE_DENY_BASH = ['git', 'curl', 'wget', 'gh', 'glab'];
+/** Every edit tool (an Edit rule covers Write and NotebookEdit) under the cwd only: a write outside it prompts, and -p denies it. */
+const LANE_EDITS = 'Edit(./**)';
 
 /** First words that run another program: the prefix then takes one more word (`uv run ruff`, `npm run lint`). */
 const LAUNCHERS = new Set(['uv run', 'npm run', 'npm exec', 'pnpm exec', 'pnpm run', 'yarn run', 'poetry run', 'pipx run', 'bundle exec']);
@@ -67,5 +71,6 @@ export function permissionArgs(p: PermissionProfile): PermissionArgs {
     return { mode: 'default', tools: '', settings: { permissions: { defaultMode: 'default', allow: [], deny: ALL_TOOLS } } };
   }
   const deny = [...NETWORK, 'PowerShell', 'Agent', 'Task', ...LANE_DENY_BASH.map((b) => `Bash(${b}:*)`)];
-  return { mode: 'acceptEdits', tools: LANE_TOOLS.join(','), settings: { permissions: { defaultMode: 'acceptEdits', allow: p.bash.map((b) => `Bash(${b}:*)`), deny } } };
+  const allow = [LANE_EDITS, ...p.bash.map((b) => `Bash(${b}:*)`)];
+  return { mode: 'default', tools: LANE_TOOLS.join(','), settings: { permissions: { defaultMode: 'default', allow, deny } } };
 }

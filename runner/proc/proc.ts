@@ -49,8 +49,13 @@ export function killTree(pid: number | undefined): Promise<void> {
   });
 }
 
-/** Names a child must not inherit: forge and registry tokens, cloud keys, passwords and the model key. */
-const SECRET_NAME = /(^|_)(TOKEN|SECRET|PASSWORD|PASSWD|PAT|API_?KEY|PRIVATE_KEY|ACCESS_KEY|CREDENTIALS?)(_|$)/i;
+/**
+ * Names a child must not inherit: forge and registry tokens, cloud keys, passwords, auth material (`*_AUTH`, npm's
+ * `_auth`, the ssh agent's SSH_AUTH_SOCK), connection strings and DSNs (DATABASE_URL), and the model key.
+ */
+const SECRET_NAME = /(^|_)(TOKEN|SECRET|PASSWORD|PASSWD|PAT|API_?KEY|KEY|AUTH|CREDENTIALS?|COOKIE|DSN|DATABASE_URL|CONN(ECTION)?_?STR(ING)?)(_|$)/i;
+/** A value holding a password in a URL (`postgres://u:pw@h`, `redis://:pw@h`), whatever its name. */
+const SECRET_VALUE = /:\/\/[^\s/@:]*:[^\s/@]+@/;
 /** What claude itself needs to authenticate (API key, OAuth token, Bedrock or Vertex). */
 const AGENT_AUTH = /^(ANTHROPIC_|CLAUDE_CODE_)/i;
 /**
@@ -60,10 +65,9 @@ const AGENT_AUTH = /^(ANTHROPIC_|CLAUDE_CODE_)/i;
 const RUNNER_OWN = /^(TSX_|npm_|NODE_OPTIONS$|INIT_CWD$)/i;
 
 function scrubbed(keep: (name: string) => boolean): NodeJS.ProcessEnv {
-  const pass = new Set((process.env.BELAY_PASS_ENV ?? '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean));
   const out: Record<string, string | undefined> = {};
   for (const [k, v] of Object.entries(process.env)) {
-    if (pass.has(k.toUpperCase()) || keep(k) || (!SECRET_NAME.test(k) && !RUNNER_OWN.test(k))) out[k] = v;
+    if (keep(k) || (!SECRET_NAME.test(k) && !SECRET_VALUE.test(v ?? '') && !RUNNER_OWN.test(k))) out[k] = v;
   }
   return out as NodeJS.ProcessEnv;
 }
@@ -71,15 +75,24 @@ function scrubbed(keep: (name: string) => boolean): NodeJS.ProcessEnv {
 /**
  * The env of every child but claude: gates, setup and git (whose hooks may live in the worktree, e.g. husky).
  * A lane agent edits the files those children run, so they get no secret at all; BELAY_PASS_ENV=A,B names
- * variables the operator hands through anyway (a private registry token for setup).
+ * variables the operator hands through anyway (a private registry token for setup) - to these children only.
  */
-export const childEnv = (): NodeJS.ProcessEnv => scrubbed(() => false);
+export function childEnv(): NodeJS.ProcessEnv {
+  const pass = new Set((process.env.BELAY_PASS_ENV ?? '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean));
+  return scrubbed((k) => pass.has(k.toUpperCase()));
+}
 
-/** claude's env: the scrubbed env plus its own credentials (and AWS / Google ones when it runs on Bedrock / Vertex). */
+/**
+ * claude's env: the scrubbed env plus its own credentials (and AWS / Google ones when it runs on Bedrock / Vertex),
+ * never a BELAY_PASS_ENV variable. CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 makes claude strip those credentials again from
+ * every process it starts (Bash, hooks), so a lane's allowed command - a gate script the lane rewrote - never sees
+ * the key. Under it claude forces --permission-mode default, so the lane profile allows its edits by rule.
+ */
 export function agentEnv(): NodeJS.ProcessEnv {
   const bedrock = !!process.env.CLAUDE_CODE_USE_BEDROCK;
   const vertex = !!process.env.CLAUDE_CODE_USE_VERTEX;
-  return scrubbed((k) => AGENT_AUTH.test(k) || (bedrock && /^AWS_/i.test(k)) || (vertex && /^GOOGLE_APPLICATION_CREDENTIALS$/i.test(k)));
+  const env = scrubbed((k) => AGENT_AUTH.test(k) || (bedrock && /^AWS_/i.test(k)) || (vertex && /^GOOGLE_APPLICATION_CREDENTIALS$/i.test(k)));
+  return { ...env, CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1' };
 }
 
 /** Children still running; killAll() ends them when the runner itself is stopped. */

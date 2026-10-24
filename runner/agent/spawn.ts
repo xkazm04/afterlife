@@ -4,7 +4,8 @@
 // dir that is removed after the call. This file and its siblings under runner/ are the ONLY code in the repo that
 // touches the Anthropic key: claude gets agentEnv() (its own credentials, no other secret), every other child the
 // scrubbed childEnv(), so the key reaches claude and nothing else - not the gates or git hooks a lane agent can
-// rewrite. Bash commands a lane is allowed run as claude's children, so with agentEnv(). The operator's user-scope
+// rewrite. Bash commands a lane is allowed run as claude's children, and agentEnv() sets CLAUDE_CODE_SUBPROCESS_ENV_SCRUB
+// so claude strips its own credentials from them (and from hooks): they get agentEnv() minus the key. The user-scope
 // settings (~/.claude/settings.json: its hooks, plugins, allow rules) are not loaded: a lane's tool calls must not
 // reach the operator's own hooks, and the operator's allow list must not widen the profile. BELAY_CLAUDE_BIN swaps
 // the binary (tests).

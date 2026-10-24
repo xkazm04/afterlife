@@ -24,7 +24,8 @@ a JSON file written to a fresh temp dir per call and removed after it (retried; 
 is printed, never thrown, so the call keeps its result and its cost). Rules live in that file, not argv, because on
 Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a plain token (set TMP/TEMP to one).
 - plan and review: tools Read, Grep, Glob only; everything else denied.
-- lane: acceptEdits; Bash allowed for `Bash(<prefix>:*)` per sub-command (split on `&&` `;` `||` `|`) of `setup` and
+- lane: default mode (claude forces it under `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`, see below) with `Edit(./**)`, so
+  edits land under the worktree and one outside it is refused; Bash allowed for `Bash(<prefix>:*)` per sub-command (split on `&&` `;` `||` `|`) of `setup` and
   `gates`: the first two words, three after a launcher (`uv run ruff`, `npm run lint`), quoted args and flags cut, a
   bare launcher (`npm`, `npx`, `node`, ...) never alone; plus `laneTools`. Denied: WebFetch, WebSearch and the
   programs `git`, `curl`, `wget`, `gh`, `glab`. Read-only commands claude itself treats as safe (`ls`, `whoami`) still run.
@@ -103,8 +104,8 @@ Both calls are metered as `lane.usage` on the lane's own id with `call: "review"
 `--lane-cap`: a lane past its cap after the review gets no repair turn and ends `budget`. Timeouts: review 5
 minutes, repair 6 (or the lane timeout, whichever is lower). `claude --resume <id>` was checked headless on CLI
 2.1.306 with the runner's flags (`-p --output-format stream-json --permission-mode acceptEdits --tools=...
---strict-mcp-config --setting-sources project,local --settings <file>`): the session keeps its context and its id,
-and `total_cost_usd` is the resumed call's own. The session must be resumed from the same cwd, which the fixed lane
+--strict-mcp-config --setting-sources project,local --settings <file>`; the lane mode is `default` since): the session
+keeps its context and its id, and `total_cost_usd` is the resumed call's own. The session must be resumed from the same cwd, which the fixed lane
 worktree path guarantees.
 
 ## Fleet `frontier`
@@ -158,14 +159,21 @@ and run files. If `prompts/<name>.md` is absent the runner uses a minimal inline
 
 `runner/` is the only directory that may hand a model key to a process, and it never reads or logs it. claude gets
 `agentEnv()` (`proc/proc.ts`): the runner's environment minus every secret-shaped variable (`*_TOKEN`, `*_SECRET`,
-`*_PASSWORD`, `*_API_KEY`, ...) except its own `ANTHROPIC_*` / `CLAUDE_CODE_*` (plus `AWS_*` on Bedrock, Google
-credentials on Vertex). The Bash commands a lane is allowed run as claude's
-children, so they too get `agentEnv()`: claude's own credentials and no other secret. Every other child - setup,
-gates, git and its hooks - gets `childEnv()`, with no secret at all:
+`*_PASSWORD`, `*_KEY`, `*_AUTH` and SSH_AUTH_SOCK, `*_DSN`, DATABASE_URL and connection strings, any value with a
+password in a URL, ...) except its own `ANTHROPIC_*` / `CLAUDE_CODE_*` (plus `AWS_*` on Bedrock, Google credentials on
+Vertex), with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`. That makes claude strip its own credentials again from every
+process it starts, so the Bash commands a lane is allowed (claude's children, running scripts the lane can rewrite)
+and its hooks get no secret at all; claude then forces `--permission-mode default`, hence the lane's `Edit(./**)`
+rule. Every other child - setup, gates, git and its hooks - gets `childEnv()`, with no secret at all:
 a lane agent edits the files those children run, so anything they inherit is the agent's. `BELAY_PASS_ENV=NPM_TOKEN,...`
-hands named variables through anyway (a private registry for `setup`). Env scrubbing does not stop a gate reading the
-user's credential files (`~/.claude`, `~/.npmrc`): run the runner as a user that holds only what it needs. Nothing in
-`src/` or `cli/` touches the key.
+hands named variables through anyway (a private registry for `setup`), to those children only, never to claude.
+
+What is NOT enforced: a lane's commands and the gates have the network and the user's filesystem. The Bash allow
+rules name programs, but `npm run test` runs whatever the lane wrote into `package.json`, so they cannot close either,
+and env scrubbing does not stop a gate reading the user's credential files (`~/.claude/.credentials.json` holds the
+OAuth login, `~/.npmrc`, `~/.ssh`). Claude Code's OS sandbox (`sandbox.enabled`) would, for claude's Bash children
+only, but needs bubblewrap / Seatbelt or an admin install on Windows, and per-repo network allow lists; it is not
+turned on. Until then, run the runner as a user that holds only what it needs. Nothing in `src/` or `cli/` touches the key.
 
 ## Tests
 

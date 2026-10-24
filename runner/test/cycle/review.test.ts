@@ -45,7 +45,7 @@ describe('review, then at most one repair turn, then the gates', () => {
     const at = repair.argv.indexOf('--resume');
     expect(repair.argv[at + 1]).toBe('fake-lane-def-a');
     expect(repair.argv).toContain('--permission-mode');
-    expect(repair.settings?.permissions.allow).toEqual(['Bash(node gate.mjs:*)']);
+    expect(repair.settings?.permissions.allow).toEqual(['Edit(./**)', 'Bash(node gate.mjs:*)']);
     expect(repair.prompt).toContain('1. red.flag:1 [test] gate.mjs fails while red.flag exists');
     // Without the repair, red.flag would have failed the gate: it landed, with the repair's own file.
     expect(r.ends['def-a']).toMatchObject({ outcome: 'landed', review: 'defects', done: 'removed red.flag after the review' });

@@ -47,11 +47,13 @@ describe('permissionArgs', () => {
     expect(p.settings.permissions.allow).toEqual(['Read', 'Grep', 'Glob']);
     for (const t of ['Bash', 'Edit', 'Write', 'NotebookEdit', 'WebFetch', 'WebSearch', 'Agent', 'Task']) expect(p.settings.permissions.deny).toContain(t);
   });
-  it('lane: edits plus the allowed prefixes; git and the network denied', () => {
+  it('lane: edits under the cwd plus the allowed prefixes; git and the network denied', () => {
     const p = permissionArgs({ step: 'lane', bash: ['cargo fmt', 'npx vitest run'] });
-    expect(p.mode).toBe('acceptEdits');
+    // Default mode, as claude forces it under CLAUDE_CODE_SUBPROCESS_ENV_SCRUB (proc.ts agentEnv): edits by rule.
+    expect(p.mode).toBe('default');
+    expect(p.settings.permissions.defaultMode).toBe('default');
     expect(p.tools.split(',')).toEqual(expect.arrayContaining(['Bash', 'Read', 'Edit', 'Write']));
-    expect(p.settings.permissions.allow).toEqual(['Bash(cargo fmt:*)', 'Bash(npx vitest run:*)']);
+    expect(p.settings.permissions.allow).toEqual(['Edit(./**)', 'Bash(cargo fmt:*)', 'Bash(npx vitest run:*)']);
     for (const t of ['WebFetch', 'WebSearch', 'Bash(git:*)', 'Bash(curl:*)', 'Bash(wget:*)', 'Bash(gh:*)', 'Bash(glab:*)']) expect(p.settings.permissions.deny).toContain(t);
   });
   it('reflect: no tool at all', () => {
