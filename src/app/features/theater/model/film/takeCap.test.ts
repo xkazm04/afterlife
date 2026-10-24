@@ -46,3 +46,14 @@ describe('?mr= focuses the film on one MR', () => {
     expect(film.missing).toBe(99);
   });
 });
+
+describe('grouping the ledger by MR is linear in its events', () => {
+  it('an old MR of 30 000 events, past the cap, costs well under a second to set aside', () => {
+    const long = Array.from({ length: 30_000 }, (_, k) => ev(k + 1, 1, 'proof_verdict'));
+    const newer = Array.from({ length: 8 }, (_, k) => ev(30_001 + k, k + 2, 'merged'));
+    const t0 = performance.now();
+    const film = ledgerFilm([...long, ...newer])!;
+    expect(performance.now() - t0).toBeLessThan(1000);
+    expect(film.takes.map((t) => t.mr)).toEqual([9, 8, 7, 6, 5, 4, 3, 2]);
+  });
+});

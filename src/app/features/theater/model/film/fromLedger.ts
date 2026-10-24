@@ -60,7 +60,9 @@ export function ledgerFilm(events: readonly LedgerEvent[], focus: FilmFocus = {}
   const byMr = new Map<number, LedgerEvent[]>();
   for (const e of [...events].sort((a, b) => a.seq - b.seq)) {
     if (e.subject.type !== 'mr') continue;
-    byMr.set(e.subject.iid, [...(byMr.get(e.subject.iid) ?? []), e]);
+    const es = byMr.get(e.subject.iid);
+    if (es) es.push(e);
+    else byMr.set(e.subject.iid, [e]);
   }
   const lastSeq = (es: readonly LedgerEvent[]): number => es[es.length - 1]?.seq ?? 0;
   const focused = focus.mr !== undefined ? byMr.get(focus.mr) : undefined;
