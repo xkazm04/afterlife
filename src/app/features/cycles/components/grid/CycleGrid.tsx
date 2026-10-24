@@ -4,6 +4,7 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import { px } from '@/components/table/model/columns';
 import type { GridCell, GridView } from '../../model/grid';
 import { rungLabel } from '../../model/replay';
+import { signed } from '../../model/words';
 import { Trajectory } from './Trajectory';
 import styles from './grid.module.css';
 
@@ -94,7 +95,7 @@ export function CycleGrid({ view, selected, onSelect }: { view: GridView; select
         {view.columns.map((c) => (
           <span key={c.key} role="cell" className={styles.tot} data-sel={c.key === selected || undefined} data-state={c.state}>
             {c.projected != null ? <i title="if every change earns its rung">≤{c.projected}</i> : <b>{c.total}</b>}
-            {c.net != null ? <em data-neg={c.net < 0 || undefined}>{c.net > 0 ? `+${c.net}` : c.net}</em> : null}
+            {c.net != null ? <em data-neg={c.net < 0 || undefined}>{signed(c.net)}</em> : null}
           </span>
         ))}
       </div>

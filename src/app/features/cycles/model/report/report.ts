@@ -4,9 +4,8 @@
 import type { CyclesData } from '../build';
 import { replay, rungLabel, summarize, total } from '../replay';
 import type { Cycle, CycleChange } from '../types';
-import { VERDICT_WORD } from '../words';
+import { signed, VERDICT_WORD } from '../words';
 
-const sign = (n: number): string => (n > 0 ? `+${n}` : String(n));
 const ref = (c: CycleChange): string => c.mr ?? c.gap ?? c.kind;
 const row = (c: CycleChange): string => `| ${ref(c)} | ${c.stage} | ${rungLabel(c.from)} → R${c.to} | ${VERDICT_WORD[c.verdict]} | ${c.why.replace(/\|/g, '/')} |`;
 
@@ -30,7 +29,7 @@ export function cycleReport(c: Cycle, data: CyclesData): string {
     '',
     `${data.project} · day ${c.openedDay} to day ${c.closedDay ?? '?'} · engine ${c.engine}`,
     '',
-    `**${sign(s.net)} rungs.** ${s.credited} credited, ${s.resolved} resolved by a probe, ${s.missed} not earned, ${s.regressed} drift caught. ` +
+    `**${signed(s.net)} rungs.** ${s.credited} credited, ${s.resolved} resolved by a probe, ${s.missed} not earned, ${s.regressed} drift caught. ` +
       `After ${c.id} the project held ${after ? total(after) : '?'} of 36 (day 0: ${total(data.day0)}).`,
     '',
     '| Change | Stage | Move | Verdict | Why |',

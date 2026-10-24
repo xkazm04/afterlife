@@ -6,10 +6,8 @@ import { Stats } from '@/components/inspector/blocks/Stats';
 import { Chip } from '@/components/status/chip/Chip';
 import type { EstateProject } from '../../model/estate/estate';
 import { MAX_TOTAL, summarize } from '../../model/replay';
-import { VERDICT_WORD } from '../../model/words';
+import { signed, VERDICT_WORD } from '../../model/words';
 import styles from './estate.module.css';
-
-const signed = (n: number): string => (n > 0 ? `+${n}` : String(n));
 
 /** One project in cycles: its totals, whether its history adds up, and every closed cycle with what it changed. */
 export function EstateInspector({ project: p, deep }: { project: EstateProject | null; deep: string }) {

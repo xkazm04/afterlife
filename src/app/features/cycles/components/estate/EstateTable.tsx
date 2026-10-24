@@ -1,7 +1,7 @@
 import type { EstateGroup, EstateProject } from '../../model/estate/estate';
+import { signed } from '../../model/words';
 import styles from './estate.module.css';
 
-const signed = (n: number): string => (n > 0 ? `+${n}` : String(n));
 const ago = (d: number | null): string => (d === null ? '—' : d === 0 ? 'today' : `${d} d ago`);
 
 function Cells({ closed, credited, missed, drift, net }: { closed: number; credited: number; missed: number; drift: number; net: number }) {

@@ -2,13 +2,13 @@ import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import { summarize } from '../model/replay';
 import type { Cycle } from '../model/types';
+import { signed } from '../model/words';
 import styles from './chrome.module.css';
 
 const net = (c: Cycle): string => {
   if (c.state === 'running') return 'now';
   if (c.state === 'planned') return 'next';
-  const n = summarize(c).net;
-  return n > 0 ? `+${n}` : String(n);
+  return signed(summarize(c).net);
 };
 
 /** The cycles, newest first: the planned one, the running one, then the closed ones with what each added. */

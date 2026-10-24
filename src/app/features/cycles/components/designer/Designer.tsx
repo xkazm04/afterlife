@@ -1,6 +1,7 @@
 import { Button } from '@/components/controls/Button';
 import { Checkbox } from '@/components/controls/Checkbox';
 import { rungLabel } from '../../model/replay';
+import { signed } from '../../model/words';
 import { designSummary, WIP_CAP, type Candidate, type Problem } from '../../model/design';
 import styles from './design.module.css';
 
@@ -68,7 +69,7 @@ export function Designer({
       ))}
       <footer className={styles.foot}>
         <div className={styles.sum}>
-          <b>{sum.reach > 0 ? `+${sum.reach}` : sum.reach} rungs in reach</b>
+          <b>{signed(sum.reach)} rungs in reach</b>
           <span>
             {sum.mrs} MR{sum.mrs === 1 ? '' : 's'} · {sum.probes} probe{sum.probes === 1 ? '' : 's'}
             {sum.lines ? ` · +${sum.lines} lines drafted` : ''}

@@ -52,6 +52,12 @@ describe('Cycles parts render for every cycle', () => {
     expect(out).toContain('replay = 14:02 scan');
     expect(out).toContain('chain holds');
   });
+  it('a project that lost rungs since day 0 reads as a loss, never "+-"', () => {
+    const lost = { ...data, scanned: Object.fromEntries(Object.keys(data.scanned).map((k) => [k, 0])) as typeof data.scanned };
+    const out = html(createElement(Answer, { data: lost }));
+    expect(out).not.toContain('+-');
+    expect(out).toContain(`-${Object.values(data.day0).reduce<number>((n, r) => n + (r ?? 0), 0)} since day 0`);
+  });
   it('the running cycle sends you to Maturity, and only the running one is amber', () => {
     const running = data.cycles.find((c) => c.state === 'running')!;
     expect(html(createElement(CyclesInspector, { cycle: running, data, designed: false, onDesign: () => {}, onReport: () => {} }))).toContain('Send in Maturity');

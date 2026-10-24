@@ -1,6 +1,7 @@
 import { Chip } from '@/components/status/chip/Chip';
 import type { CyclesData } from '../../model/build';
 import { MAX_TOTAL, summarize, total } from '../../model/replay';
+import { signed } from '../../model/words';
 import styles from './answer.module.css';
 
 /**
@@ -25,7 +26,7 @@ export function Answer({ data }: { data: CyclesData }) {
         <span>
           of {MAX_TOTAL} rungs
           <em>
-            +{gained} since day 0 · {closed.length} cycles
+            {signed(gained)} since day 0 · {closed.length} cycles
           </em>
         </span>
       </div>

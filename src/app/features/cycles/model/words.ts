@@ -2,6 +2,9 @@
 import { summarize } from './replay';
 import type { Cycle, Phase, Verdict } from './types';
 
+/** A rung count with its sign: +2, 0, -1. One spelling for every net and gain the screens show. */
+export const signed = (n: number): string => (n > 0 ? `+${n}` : String(n));
+
 export const PHASE_WORD: Record<Phase, string> = {
   scan: 'Scan',
   pick: 'Pick',
@@ -37,7 +40,7 @@ export function phaseDetail(c: Cycle, p: Phase): string {
     send: `${s.sent} MR${s.sent === 1 ? '' : 's'}`,
     merge: `${s.sent} merged`,
     prove: proveDetail(c),
-    credit: `${s.net >= 0 ? '+' : ''}${s.net} · day ${c.closedDay}`,
+    credit: `${signed(s.net)} · day ${c.closedDay}`,
   }[p];
 }
 

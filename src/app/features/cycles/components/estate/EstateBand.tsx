@@ -1,5 +1,6 @@
 import { Chip } from '@/components/status/chip/Chip';
 import type { EstateData } from '../../model/estate/estate';
+import { signed } from '../../model/words';
 import styles from '../answer/answer.module.css';
 
 /**
@@ -15,8 +16,7 @@ export function EstateBand({ data }: { data: EstateData }) {
         <span>
           projects in cycles
           <em>
-            {data.closed} cycles closed · {data.sum.net >= 0 ? '+' : ''}
-            {data.sum.net} rungs net
+            {data.closed} cycles closed · {signed(data.sum.net)} rungs net
           </em>
         </span>
       </div>
