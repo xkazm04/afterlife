@@ -53,7 +53,7 @@ command the screen spells.
   toasts, timers; p in `usePromoteAction`),
   menus, keys, popovers, sim clock.
 - `components/`: `table/` (class rows, split Revoke button), `inspector/` (the class page's cards, `log/`, `sections/`),
-  `chrome/` (toolbar, tier filter, policy lozenge), `sidebar/`, `dock/` (the line of the shared `CommandDock`), `help/`.
+  `chrome/` (toolbar, tier filter, policy lozenge, the status line's head and poll age shared by the list and the class page: `HeadStatus`), `sidebar/`, `dock/` (the line of the shared `CommandDock`), `help/`.
 
 The toast says what the answer says (`@/server/actions/words`): done (simulated in demo, else naming the commit read back
 from belay-policy), failed (GitLab's answer), changed (the files moved: the new write replaces the old one on screen, nothing
