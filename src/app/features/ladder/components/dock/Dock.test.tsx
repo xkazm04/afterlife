@@ -61,3 +61,19 @@ describe('the other lines', () => {
     expect(line(text({ kind: 'idle', id: 'x', reason: 'never an agent' }))).toBe('x · nothing to revoke: never an agent');
   });
 });
+
+describe("a track header's line", () => {
+  // the third write on the strip says the same three tails as the revoke and the promotion (one Planned, not a copy)
+  const batch = (view: WriteView | undefined): DockModel => ({
+    kind: 'batch', id: 'T1', want: 'quarantine', view,
+    changes: [{ id: 'a', to: 'quarantined' }, { id: 'b', to: 'quarantined' }], skipped: [{ id: 'c', why: 'never an agent' }],
+  });
+  const lead = 'q ▸ Revoke · direct commit · Quarantine track T1 · 2 classes in one commit · leaves c (never an agent) ·';
+  it('asked for, refused and planned, after the same tails as the revoke', () => {
+    expect(line(text(batch(undefined)))).toBe(`${lead} asking Belay for the exact write…`);
+    expect(line(text(batch({ kind: 'refused', reason: 'tier-state.yml moved' })))).toBe(`${lead} Belay refuses this write: tier-state.yml moved`);
+    const tail = (v: WriteView) => line(text(batch(v))).slice(lead.length);
+    const revokeTail = (v: WriteView) => line(text(revoke(v))).slice(line(text(revoke(undefined))).length - 'asking Belay for the exact write…'.length);
+    for (const mode of ['demo', 'live'] as const) expect(tail({ kind: 'preview', preview: preview(mode) }).trim()).toBe(revokeTail({ kind: 'preview', preview: preview(mode) }).trim());
+  });
+});

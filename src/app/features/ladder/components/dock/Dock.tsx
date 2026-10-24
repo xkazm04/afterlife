@@ -59,7 +59,6 @@ function Line({ model }: { model: DockModel }) {
         </>
       );
     case 'batch': {
-      const v = model.view;
       const n = model.changes.length;
       const lead = (
         <>
@@ -67,15 +66,7 @@ function Line({ model }: { model: DockModel }) {
           <b>track {model.id}</b> · {n} {pluralWord(n, 'class', 'classes')} in one commit{model.skipped.length ? ` · leaves ${skippedText(model)}` : ''} ·{' '}
         </>
       );
-      if (!v) return <>{lead}<DockText tone="note">asking Belay for the exact write…</DockText></>;
-      if (v.kind === 'refused') return <>{lead}Belay refuses this write: {v.reason}</>;
-      const note = v.preview.mode === 'demo' ? '(demo: simulated, nothing is sent)' : '(belay-policy, as you)';
-      return (
-        <>
-          {lead}
-          {v.preview.commands.map((c) => commandHead(c.display)).join(' && ')} <DockText tone="note">{note}</DockText>
-        </>
-      );
+      return <Planned lead={lead} view={model.view} />;
     }
     case 'idle':
       return (
