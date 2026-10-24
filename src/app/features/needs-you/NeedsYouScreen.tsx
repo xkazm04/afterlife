@@ -14,7 +14,6 @@ import { NeedsSidebar } from './components/chrome/NeedsSidebar';
 import { NeedsToolbar } from './components/chrome/NeedsToolbar';
 import { OutboxDrawer } from './components/outbox/OutboxDrawer';
 import { DecisionsTable } from './components/table/DecisionsTable';
-import { ClockProvider } from './hooks/ClockProvider';
 import { useNeedsStore } from './hooks/NeedsStore';
 import { useNeedsKeys } from './hooks/useNeedsKeys';
 import { useNeedsMenus } from './hooks/useNeedsMenus';
@@ -59,27 +58,25 @@ export function NeedsYouScreen({ demo, runner = [] }: { demo: NeedsYouDemo; runn
       status={`${plural(counts.all, 'decision')} · ${counts.waiting} waiting · ${ON_A_CLOCK} on a clock · ${s.out.length} in outbox · ledger read ${LEDGER_READ_AT}`}
       help={<NeedsLegend tierMeans={demo.tierMeans} />}
     >
-      <ClockProvider>
-        <div className={styles.content}>
-          <RunnerNeeds needs={runner} />
-          <CraBand s={s} linksResolved={demo.signoff.linksResolved} dispatch={dispatch} />
-          <div className={styles.tw}>
-            <DecisionsTable
-              s={s}
-              demo={demo}
-              groups={groups}
-              menuing={menus.isOpen}
-              tableRef={tableRef}
-              onKeyDown={onKeyDown}
-              dispatch={dispatch}
-              onActivate={open}
-              onRowMenu={menus.onRowMenu}
-              onGroupMenu={menus.onGroupMenu}
-            />
-          </div>
-          <OutboxDrawer s={s} dispatch={dispatch} />
+      <div className={styles.content}>
+        <RunnerNeeds needs={runner} />
+        <CraBand s={s} linksResolved={demo.signoff.linksResolved} dispatch={dispatch} />
+        <div className={styles.tw}>
+          <DecisionsTable
+            s={s}
+            demo={demo}
+            groups={groups}
+            menuing={menus.isOpen}
+            tableRef={tableRef}
+            onKeyDown={onKeyDown}
+            dispatch={dispatch}
+            onActivate={open}
+            onRowMenu={menus.onRowMenu}
+            onGroupMenu={menus.onGroupMenu}
+          />
         </div>
-      </ClockProvider>
+        <OutboxDrawer s={s} dispatch={dispatch} />
+      </div>
       {menus.menu}
     </Window>
   );

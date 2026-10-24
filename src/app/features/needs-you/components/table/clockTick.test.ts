@@ -24,3 +24,15 @@ describe('the 1 s clock tick', () => {
     expect(code('components/table/DecisionRow.tsx')).not.toMatch(/\bleftSec\b/);
   });
 });
+
+describe('the CRA clock across the list and a decision page', () => {
+  it('has one start: the layout-held store owns the provider, and neither page starts a clock of its own on mount', () => {
+    expect(code('hooks/NeedsStore.tsx')).toMatch(/<ClockProvider>/);
+    for (const page of ['NeedsYouScreen.tsx', 'components/detail/NeedsItemPage.tsx']) {
+      expect(code(page)).not.toMatch(/useElapsed\s*\(|<ClockProvider>/);
+    }
+    const callers = ['hooks/ClockProvider.tsx', 'hooks/NeedsStore.tsx', 'NeedsYouScreen.tsx', 'components/detail/NeedsItemPage.tsx']
+      .filter((f) => /useElapsed\s*\(/.test(code(f)));
+    expect(callers).toEqual(['hooks/ClockProvider.tsx']);
+  });
+});

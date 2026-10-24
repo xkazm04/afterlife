@@ -3,12 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { DetailPage } from '@/components/shell/detail/DetailPage';
-import { CRA } from '../../data/cra';
 import type { NeedsYouDemo } from '../../data/types';
 import { useNeedsStore } from '../../hooks/NeedsStore';
-import { useElapsed } from '../../hooks/useElapsed';
+import { useLeftSec } from '../../hooks/ClockProvider';
 import { useReveal } from '../../hooks/useReveal';
-import { secondsLeft } from '../../model/clock/clock';
 import { itemLede } from '../../model/rows/lede';
 import { rowView } from '../../model/rows/rowData';
 import { NeedsLegend } from '../chrome/NeedsLegend';
@@ -22,7 +20,7 @@ import { NeedsInspector } from '../inspector/NeedsInspector';
 export function NeedsItemPage({ demo, id }: { demo: NeedsYouDemo; id: string }) {
   const { s, dispatch } = useNeedsStore();
   const router = useRouter();
-  const leftSec = secondsLeft(CRA.remainingSec, useElapsed());
+  const leftSec = useLeftSec(); // the layout's one clock: it does not restart when this page mounts
   useReveal(s.reveal);
   // Selecting the decision is what asks the server for its exact write; the list keeps it selected on the way back.
   useEffect(() => dispatch({ type: 'select', id }), [id, dispatch]);
