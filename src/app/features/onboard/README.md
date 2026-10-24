@@ -21,7 +21,9 @@ is the estate-wide machine that moves every project along it with as few clicks 
   `OnboardInspector` (how onboarding works, or `ProjectPanel` for a picked project), `OnboardStatus`, `OnboardLegend`.
 - `hooks/useOnboard` the run state, batch size and scope, selection, step filter, sheet; `hooks/useOnboardWrites`
   the writes' server previews (asked once each) and their confirms.
-- `write/write.ts` (tested, actions mocked) `askWrite`, `sendWrite`, `openedOf`: the round trip, as `setup/write/`.
+- `write/write.ts` (tested, actions mocked) `askWrite`, `sendWrite`, `openedOf`: the round trip, as `setup/write/`;
+  `write/send.ts` (tested) `sendEach`, the Run click's loop: a confirm that threw says `noAnswer`, NO_ANSWER plus why
+  (and Next's digest), as Setup's `armFlow` does.
 - `data/loadOnboardData` reads the fleet through the data source.
 
 ## Model (pure, tested)
