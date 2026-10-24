@@ -6,6 +6,7 @@ import type { NeedsYouDemo } from '../data/types';
 import { gapBlock } from '../write/desk';
 import { buildOutItem, stageItem, unstageItem } from './outbox/outbox';
 import { decided } from './rows/history';
+import { isGapId } from './rows/rowState';
 import { ranToast } from './run';
 import { plural } from '@/lib/format/plural';
 import { TIER_META } from '@/lib/tiers';
@@ -28,7 +29,7 @@ const setStatus = (s: NeedsState, key: DecisionKey, v: NeedsState['status'][Deci
 /** Take a staged write back (or remove it): the decision is open again and nothing was sent. */
 export function unstage(s: NeedsState, key: string, text: string): NeedsState {
   const out = unstageItem(s.out, key);
-  if (key.startsWith('g')) {
+  if (isGapId(key)) {
     const gapStatus = Object.fromEntries(Object.entries(s.gapStatus).filter(([k]) => k !== key));
     return notify({ ...s, out, gapStatus }, 'status', text);
   }

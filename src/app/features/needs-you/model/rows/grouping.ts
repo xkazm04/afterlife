@@ -5,7 +5,7 @@ import { POLICY_REPO, PROJECT_REPO, SETTINGS_GROUP } from '../../data/constants'
 import type { NeedsYouDemo } from '../../data/types';
 import { KIND_WORDS } from '../../data/week';
 import type { GroupMode, NeedsState } from '../types';
-import { histRows } from './history';
+import { histRows, isHistId } from './history';
 import { rowView } from './rowData';
 import { isDecided, isInOutbox, isWaiting } from './rowState';
 
@@ -56,7 +56,7 @@ export function groupsFor(mode: GroupMode, s: Pick<NeedsState, 'session' | 'gaps
 /** Does the row pass the sidebar filter and the search box? */
 export function isVisible(s: NeedsState, id: string, demo: NeedsYouDemo): boolean {
   const q = s.query.trim().toLowerCase();
-  if (id.startsWith('h')) {
+  if (isHistId(id)) {
     if (s.show !== 'all' && s.show !== 'sent') return false;
     const r = histRows(s)[Number(id.slice(1))];
     return !!r && (!q || [KIND_WORDS[r.kind] ?? r.kind, r.what, r.result, r.ref].join(' ').toLowerCase().includes(q));
