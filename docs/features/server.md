@@ -43,10 +43,11 @@
   (`endpoint`, `plan`, `version`, `none`) and a reason. 403/404 is unavailable; network, auth or rate-limit failure is
   unknown; a capability with no safe read is decided by plan or stays unknown.
 - **Index** (`index/`): `openIndex` / `getIndex` open PGlite under `$BELAY_DATA_DIR/index` (default `.belay/index`);
-  `migrate()` applies `0001_fleet` (groups, classes, projects, stages, class tiers), `0002_work` (tasks, proofs,
-  proposals, stage cells), `0003_ledger` (`ledger_event` with a no-change trigger), `0004_operator` (pairing, setup
-  steps, poll state, `commands_run`), `0005_cycles` (`cycle_record`), each in a transaction, checksum-guarded, and refuses an index migrated by a
-  newer version. `repositories/` are parameterised SQL per table; `views/` return the `src/lib/demo` shapes with a
+  `migrate()` applies nineteen migrations, each in a transaction, checksum-guarded, and refuses an index migrated by a
+  newer version: `0001_fleet` (groups, classes, projects, stages, class tiers), `0002_work` (tasks, proofs, proposals,
+  stage cells), `0003_ledger` (`ledger_event` with a no-change trigger), `0004_operator` (pairing, setup steps, poll
+  state, `commands_run`), then columns and constraints 0005-0015, `0016_action_runs`, `0017_cycles` (`cycle_record`),
+  `0018_project_live` and `0019_fleet_day` (`fleet_day`, append-only). `src/server/index/README.md` lists each. `repositories/` are parameterised SQL per table; `views/` return the `src/lib/demo` shapes with a
   `now` argument; `seed/` loads the demo anchored at `SEED_NOW`.
 - **Poller** (`poller/cycle.ts`, `project.ts`): group and projects; skip `belay-policy`, `belay-ledger`, `belay-pack`,
   `belay-engine`; read `trust-policy.yml` and `tier-state.yml` with the engine's own parsers; per project, read MRs (7
@@ -59,7 +60,7 @@
 - **Cycle import** (`ledger/importCycles.ts`): `cycles/<project-id>.jsonl`, one hash-chained line per closed
   improvement cycle (`src/schemas/cycle/index.ts`). It must verify, belong to the project and extend what is stored; it then
   replaces the project's `cycle_record` rows (keyed by the index's project id). `getCycles()` serves the deep project's
-  history and `getEstateCycles()` every project's (`views/cycles.ts`); the seed writes the estate projects the demo
+  history and `getEstateCycles()` every project's (`views/cycles/cycles.ts`); the seed writes the estate projects the demo
   GitLab does not hold (`seed/seedCycles.ts`).
 - **Actions** (`actions/`): `previewAction(intent)` validates and plans; `confirmAction(intent, previewId)` plans
   again and runs only if the sha-256 digest of the commands still matches. Intents: `revoke-class`, `promote-class`,
@@ -80,7 +81,7 @@
   A proof for an older head is stale and not indexed.
 - The ledger is append-only (trigger) and verified: a bad chain, fork, rewind or foreign event throws
   `LedgerChainError`, writes nothing, and the poller fails that project's feed while the rest lands.
-- Every index table but `commands_run` can be rebuilt from GitLab.
+- Every index table but `commands_run`, `action_runs` and `fleet_day` (Belay's own records) can be rebuilt from GitLab.
 
 ## Code map
 | Path | Role |
