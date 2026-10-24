@@ -46,7 +46,8 @@ fleet rungs today; the band says how many reconcile. Six projects in the demo (`
 
 ## Model (pure, tested)
 - `model/replay.ts` `applyCycle`, `replay`, `chainBreaks`, `reconcile`, `heatGrid`, `summarize`. Only `credited`,
-  `resolved` and `regressed` move a rung; `nolift` and `rejected` never do; open cycles move nothing.
+  `resolved` and `regressed` move a rung (`moves`); `nolift` and `rejected` never do (`notEarned`); open cycles move
+  nothing. A cycle's net is what its moving changes moved, so it equals the replay's step.
 - `model/plan.ts` `openCycles` (running from picked gaps, planned from the rest plus `carried` misses), `rail`.
 - `model/grid.ts` the grid view (columns, ghost targets, projected totals). `model/words.ts` phase and verdict words.
 - `model/design.ts` `candidates`, `checkDesign`, `designSummary`, `applyDesign` (the designer, tested in `design.test.ts`).

@@ -1,7 +1,7 @@
 /* The cycle report sheet. */
 .md {
   margin: 0;
-  /* leaves room for the post command under it, even at the largest text on a short window */
+  /* leaves room for the how-to-post line under it, even at the largest text on a short window */
   max-height: min(calc(320px * var(--ui-scale)), 34vh);
   overflow: auto;
   padding: 10px 12px;

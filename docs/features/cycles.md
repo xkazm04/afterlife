@@ -14,8 +14,10 @@
   latest scan) and **chain holds** (every change starts at the rung the replay holds for its stage).
 - **Design the next cycle** in the app (toolbar or the planned cycle's inspector, or `/cycles?design=1`). The grid
   previews the design live, and the rules are checked as you pick.
-- **Report a closed cycle**: the hand-back as Markdown, exactly as it would be posted, with the `glab issue create`
-  command that posts it as you. Nothing is posted from the app.
+- **Report a closed cycle**: the hand-back as Markdown, exactly as it would be posted, a copy button, and the issue
+  title to paste it under, as you. Nothing is posted from the app, and the sheet spells no posting command (a screen
+  never hand-writes a write: `src/server/actions/__tests__/handwritten.test.ts`). Copy goes through the shared Copy
+  Command (`src/lib/clipboard/copyCommand.ts`), so a missing clipboard (an insecure origin) says to copy by hand.
 - **Estate scope** (the toolbar's `ledgerline | Estate` switch, or `/cycles?scope=estate`): every project whose
   ledger records a closed cycle, per group. The answer band totals projects in cycles, cycles closed, net rungs,
   credited, not earned and drift caught, and states its proof per project: each history, unwound to its day 0 and
@@ -38,8 +40,8 @@
   ledger and lands on the same screen.
 
 - `model/replay.ts`: `applyCycle`, `replay`, `chainBreaks`, `reconcile`, `heatGrid`, `summarize`, `reach`, `total`.
-  Only `credited`, `resolved` and `regressed` move a rung. `nolift` and `rejected` never do, and open cycles move
-  nothing.
+  Only `credited`, `resolved` and `regressed` move a rung (`moves`). `nolift` and `rejected` never do (`notEarned`),
+  and open cycles move nothing. A cycle's net is what its moving changes moved, so it always equals the replay's step.
 - `model/plan.ts`: `openCycles` derives the running cycle from Maturity's picked gaps and the planned one from the rest.
   `carried` adds anything a closed cycle tried and did not earn, keeping one per stage and target, rebased to where the
   stage stands now. `rail` places a cycle on the six phases. `stageTheme` names a cycle.
@@ -47,7 +49,8 @@
   next rung, or a probe when the rung is unknown. `checkDesign` enforces the rules. `designSummary` sums the MRs,
   probes, lines and rungs in reach. `applyDesign` makes a saved design the planned cycle.
 - `model/grid.ts` builds the grid view (columns, ghost targets, projected totals). `model/words.ts` holds phase and
-  verdict words. `model/report/report.ts` builds the Markdown hand-back and the post command.
+  verdict words and `signed` (+2, 0, -1: every net and gain). `model/report/report.ts` builds the Markdown hand-back and
+  the issue title.
 - `hooks/useCycles.ts`: selection (the running cycle first; ← → Home End walk), the design draft and the saved design.
 
 ## Rules it keeps
@@ -71,13 +74,13 @@
 | `components/changes/` | `ChangesTable`: each change, its move, verdict and why |
 | `components/inspector/` | `CyclesInspector`, `ClosingRule` (✓ / ✗ per check, misses and drift named) |
 | `components/designer/` | `Designer`: candidates, rules, summary, save |
-| `components/report/` | `ReportSheet`: the Markdown, copy, the post command |
+| `components/report/` | `ReportSheet`: the Markdown, the issue title; `copyReport` (copy through Copy Command) |
 | `components/estate/`, `ScopeSwitch.tsx` | The estate scope: `EstateScreen`, `EstateBand`, `EstateTable`, `EstateInspector`; the scope switch |
 | `model/estate/estate.ts`, `data/loadEstateData.ts` | `buildEstate` (per-project replay against fleet rungs, group roll-ups), `unwind`; its loader |
 | `src/lib/demo/cycles/estate.ts` | Five more projects' histories (illustrative), one per group, each reconciling with its fleet rungs |
 | `src/lib/demo/cycles/deep.ts` | Demo history C1–C6 (illustrative, written to reconcile with the demo scan); domain types in `src/lib/demo/cycles/types.ts` |
 | `src/server/ledger/importCycles.ts`, `parseCycles.ts` | The cycle file: parse, verify, import |
-| `src/server/index/views/cycles.ts` | `cycle_record` → the screen's history |
+| `src/server/index/views/cycles/cycles.ts` | `cycle_record` → the screen's history |
 | `model/` | The pure model above |
 
 ## Tests
@@ -85,12 +88,13 @@
   credit-history entry (!17–!23) is a change with the same verdict, carry and rebase, probe reach.
 - `model/design.test.ts`: candidates, blocked stages, every design rule, summary, applying a design, theme naming.
 - `model/report/report.test.ts`: rungs held after that cycle (not today), sections, both proofs stated (and a broken
-  replay reported), the post command.
+  replay reported), the issue title, and no export that posts it.
+- `components/report/copyReport.test.ts`: copied, refused and no clipboard at all each say something.
 - `render.test.ts`: every part renders for every cycle; a closed cycle never shows a ✗ it did not earn; the
   trajectory survives an all-zero history.
 - `model/estate/estate.test.ts`: six projects in five groups, every history replays onto its rungs, group and estate
   roll-ups, a history that does not add up is named, `unwind`.
-- `src/server/data/__tests__/parity.test.ts`: both loaders (project and estate) give the same data in demo and live
+- `src/server/data/__tests__/cycles/parity.test.ts`: both loaders (project and estate) give the same data in demo and live
   mode; the deep project's history comes from its cycle file, the rest of the estate's from the seed.
 
 ## Status and limits
