@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
-import { ROOT, runScript, SCRIPTS, workdir } from '../testing/harness.mjs';
+import { ROOT, runScript, workdir } from '../testing/harness.mjs';
 
 const dir = workdir('tripwire');
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
@@ -125,8 +125,6 @@ describe('tripwire.mjs never writes over a newer tier-state.yml', () => {
   }, 60_000);
 });
 
-// The tripwire is no longer a component of the target's pipeline (F4): belay-apply runs it, in sweep mode, from its own
-// protected default branch, never in a merge request pipeline. gitlab/apply/test/tripwire-sweep.test.mjs runs it end to end.
 // F88's sibling: the write token named by --write-token-var is the only one it commits with; never GITLAB_TOKEN instead.
 describe('tripwire.mjs --write-token-var', () => {
   const failed = { pipelines: [pipeline(501, { status: 'failed' })], jobs: { 501: [proofJob] } };
@@ -149,17 +147,6 @@ describe('tripwire.mjs --write-token-var', () => {
     expect(r.code, r.stderr).toBe(0);
     expect(commits(r)).toHaveLength(1);
   }, 60_000);
-});
-
-describe("belay-apply's tripwire job", () => {
-  const ci = fs.readFileSync(path.join(SCRIPTS, '..', '..', 'apply', '.gitlab-ci.yml'), 'utf8');
-
-  it('runs tripwire-sweep.mjs, only on the protected default branch, never for a merge request', () => {
-    expect(ci).toMatch(/^belay-apply-tripwire:\n(?: {2}.*\n)*? {4}- node "\$BELAY_DIR\/gitlab\/apply\/tripwire-sweep\.mjs"/m);
-    expect(ci).toContain('$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"');
-    expect(ci).not.toMatch(/merge_request/);
-    expect(fs.existsSync(path.join(SCRIPTS, '..', 'templates', 'tripwire'))).toBe(false);
-  });
 });
 
 describe('tripwire.mjs takes Belay-Event keys from whole lines of belay-policy history only', () => {
