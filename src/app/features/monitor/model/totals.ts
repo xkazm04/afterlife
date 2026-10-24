@@ -6,8 +6,10 @@ import { tiersKnown } from '@/lib/tiers';
 import { NO_GOOD_POLL, ageLine } from './mode';
 import type { Lead, MarkKind, Totals } from './types';
 
+/** A watched project's tiers were read (some class has a tier): otherwise its tier counts are unknown, never 0. */
+export const tiersRead = (p: FleetProject): boolean => p.state !== 'not-set-up' && tiersKnown({ classTiers: p.classTiers ?? {} });
 /** Quarantined classes where tiers are known (the door's rule, door/model/words): a stale project keeps its last known count, an unknown tier is never a quarantine. */
-export const quarOf = (p: FleetProject): number => (p.state !== 'not-set-up' && tiersKnown({ classTiers: p.classTiers ?? {} }) ? (p.tiers?.quarantined ?? 0) : 0);
+export const quarOf = (p: FleetProject): number => (tiersRead(p) ? (p.tiers?.quarantined ?? 0) : 0);
 export const isQuarantined = (p: FleetProject): boolean => quarOf(p) > 0;
 /** A live project draws a beat; stale and unwatched ones do not. */
 export const isLive = (p: FleetProject): boolean => p.state === 'watching' || p.state === 'setting-up';

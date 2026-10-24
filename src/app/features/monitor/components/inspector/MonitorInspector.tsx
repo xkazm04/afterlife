@@ -12,7 +12,7 @@ import type { FleetProject, NeedsYouItem } from '@/lib/demo/types';
 import { plural, pluralWord } from '@/lib/format/plural';
 import { stabilityLine, type Stability } from '@/lib/stability/stability';
 import { TIER_DISPLAY_ORDER, TIER_META } from '@/lib/tiers';
-import { liveNeeds, stateLine, topWaiting } from '../../model/totals';
+import { liveNeeds, stateLine, tiersRead, topWaiting } from '../../model/totals';
 import type { Totals } from '../../model/types';
 import { Decisions, fleetHref } from './Decisions';
 import styles from './inspector.module.css';
@@ -93,14 +93,18 @@ export function MonitorInspector(props: {
       {watched ? (
         <InspectorSection title="Signal" aux={<FeedAge ageSec={p.feed.ageSec} ok={p.feed.ok} error={p.feed.error} />}>
           <StageTicks rungs={p.stages} labels={props.stages} />
-          <div className={styles.tiers}>
-            {TIER_DISPLAY_ORDER.map((t) => (
-              <span key={t} className={styles.tier} data-tier={t} title={TIER_META[t].name} aria-label={`${TIER_META[t].name}: ${p.tiers?.[t] ?? 0}`}>
-                <TierMark tier={t} stale={p.state === 'stale'} />
-                {p.tiers?.[t] ?? 0}
-              </span>
-            ))}
-          </div>
+          {tiersRead(p) ? (
+            <div className={styles.tiers}>
+              {TIER_DISPLAY_ORDER.map((t) => (
+                <span key={t} className={styles.tier} data-tier={t} title={TIER_META[t].name} aria-label={`${TIER_META[t].name}: ${p.tiers?.[t] ?? 0}`}>
+                  <TierMark tier={t} stale={p.state === 'stale'} />
+                  {p.tiers?.[t] ?? 0}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.muted}>Tiers unknown, not zero</div>
+          )}
         </InspectorSection>
       ) : null}
       <InspectorSection title="Open">

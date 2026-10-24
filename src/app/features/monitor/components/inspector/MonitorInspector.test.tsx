@@ -50,3 +50,16 @@ describe('MonitorInspector stability line', () => {
   });
   it('not read: no line, never a zero', () => expect(picked()).not.toContain('Agent MRs:'));
 });
+
+describe('MonitorInspector tier counts', () => {
+  it('tiers not read: says so in words, never a row of zeros', () => {
+    const out = html(proj({ classTiers: {} }));
+    expect(out).toContain('Tiers unknown, not zero');
+    expect(out).not.toMatch(/aria-label="[^"]*: 0"/);
+  });
+  it('tiers read: one count per tier', () => {
+    const out = html(proj({ classTiers: { 'dep-bump': 'supervised' }, tiers: { hands_off: 0, supervised: 1, assisted: 0, quarantined: 0, human_only: 0 } }));
+    expect(out).not.toContain('Tiers unknown');
+    expect(out).toMatch(/aria-label="[^"]*: 1"/);
+  });
+});
