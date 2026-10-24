@@ -35,11 +35,13 @@ export async function listAllCycleRecords(db: Queryable): Promise<Map<string, Cy
 /** Replaces the project's stored chain with `records` (already verified by the caller). */
 export async function replaceCycleRecords(db: Queryable, projectId: string, records: readonly CycleRecord[]): Promise<void> {
   await db.query('delete from cycle_record where project_id = $1', [projectId]);
-  for (const r of records) {
-    await db.query(
-      `insert into cycle_record (project_id, seq, gitlab_project_id, theme, engine, opened_at, closed_at, changes, prev_hash, hash)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [projectId, r.seq, r.project_id, r.theme, r.engine, r.opened_at, r.closed_at, JSON.stringify(r.changes), r.prev_hash, r.hash],
-    );
-  }
+  if (records.length === 0) return;
+  // One statement for the whole chain (the rows travel as one jsonb document), not one round trip per cycle.
+  await db.query(
+    `insert into cycle_record (project_id, seq, gitlab_project_id, theme, engine, opened_at, closed_at, changes, prev_hash, hash)
+     select $1, seq, project_id, theme, engine, opened_at, closed_at, changes, prev_hash, hash
+     from jsonb_to_recordset($2::jsonb) as x(seq int, project_id int, theme text, engine text, opened_at timestamptz,
+       closed_at timestamptz, changes jsonb, prev_hash text, hash text)`,
+    [projectId, JSON.stringify(records)],
+  );
 }

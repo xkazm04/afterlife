@@ -31,6 +31,17 @@ describe('cycle_record reads', () => {
     expect(all.get('b')).toEqual(chainOf(2, 3));
   });
 
+  it('replaces a chain in two statements however long it is, and an empty chain clears the project', async () => {
+    const db = await memoryIndex();
+    let statements = 0;
+    const counting = { query: (sql: string, params?: unknown[]) => { statements += 1; return db.query(sql, params); } } as typeof db;
+    await replaceCycleRecords(counting, 'a', chainOf(1, 60));
+    expect(statements).toBe(2); // was 61: the delete, then one insert per cycle
+    expect(await listCycleRecords(db, 'a')).toEqual(chainOf(1, 60));
+    await replaceCycleRecords(db, 'a', []);
+    expect(await listCycleRecords(db, 'a')).toEqual([]);
+  });
+
   it('reads an empty map when no project has a cycle', async () => {
     expect((await listAllCycleRecords(await memoryIndex())).size).toBe(0);
   });
