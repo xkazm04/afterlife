@@ -174,3 +174,15 @@ describe('the selected take follows the playhead', () => {
     expect(s.take).toBe(5);
   });
 });
+
+describe('a tick does not scan the reel', () => {
+  it('600 frames of play on a 40 000-entry reel of 8 takes stay well under a frame budget', () => {
+    const entries = Array.from({ length: 40_000 }, (_, k) => ({ seq: k + 1, t: '00:00:00' }));
+    const takes = Array.from({ length: 8 }, (_, k) => ({ name: `!${k + 1}`, a: k * 5000 + 1, b: (k + 1) * 5000 }));
+    let s = run(initialState({ entries, takes }), { type: 'seek', i: 39_990 }, { type: 'play', on: true });
+    const t0 = performance.now();
+    for (let f = 0; f < 600; f++) s = reduce(s, tick(16));
+    expect(performance.now() - t0).toBeLessThan(200);
+    expect([s.take, s.playing, s.i]).toEqual([7, true, 39_993]);
+  });
+});

@@ -60,7 +60,18 @@ export const initialState = (reel: Reel = ILLUSTRATIVE_REEL): ReplayState => ({
 export const lengthOf = (r: Reel): number => r.entries.length;
 export const dwell = (i: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entries[i]?.d ?? DEFAULT_DWELL_MS;
 export const seqAt = (i: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entries[i]?.seq ?? 0;
-export const indexOfSeq = (seq: number, r: Reel = ILLUSTRATIVE_REEL): number => r.entries.findIndex((e) => e.seq === seq);
+/** Each reel's seq -> first index, built once per entries list: the reducer asks on every tick (settle, takeOfIndex). */
+const SEQ_INDEX = new WeakMap<readonly ClockedEntry[], ReadonlyMap<number, number>>();
+function seqIndex(entries: readonly ClockedEntry[]): ReadonlyMap<number, number> {
+  let m = SEQ_INDEX.get(entries);
+  if (!m) {
+    const built = new Map<number, number>();
+    entries.forEach((e, i) => { if (!built.has(e.seq)) built.set(e.seq, i); });
+    SEQ_INDEX.set(entries, (m = built));
+  }
+  return m;
+}
+export const indexOfSeq = (seq: number, r: Reel = ILLUSTRATIVE_REEL): number => seqIndex(r.entries).get(seq) ?? -1;
 export const takeAt = (k: number, r: Reel = ILLUSTRATIVE_REEL): Take => r.takes[k] ?? r.takes[0] ?? { name: '', a: 0, b: 0 };
 /** A take's entries as reel indexes, first to last (-1 where its seq is not in the reel). The one rule for "which entries are this take's". */
 export const takeSpan = (t: Take, r: Reel): Marks => ({ a: indexOfSeq(t.a, r), b: indexOfSeq(t.b, r) });
