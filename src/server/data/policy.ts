@@ -8,6 +8,7 @@ import { DEMOTION_TRIGGERS, type DemotionTrigger } from '@/schemas/tier';
 import { isTier } from '@/lib/promotion/enroll/enroll';
 import { parsePolicy, type EnginePolicy } from '../../../engine/policy/load';
 import type { PolicyRules } from './types';
+import { messageOf } from '@/lib/format/error';
 
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 const triggers = (v: unknown): DemotionTrigger[] => strs(v).filter((t): t is DemotionTrigger => (DEMOTION_TRIGGERS as readonly string[]).includes(t));
@@ -59,7 +60,7 @@ export function repoPolicy(root: string = process.cwd()): PolicyRules | null {
     rules = rulesOf(parsePolicy(parse(fs.readFileSync(path.join(root, 'policy', 'trust-policy.yml'), 'utf8'))));
   } catch (e) {
     rules = null;
-    console.warn(`belay: no trust policy from ${path.join(root, 'policy', 'trust-policy.yml')}: ${e instanceof Error ? e.message : String(e)}`); // once per root: the cache below
+    console.warn(`belay: no trust policy from ${path.join(root, 'policy', 'trust-policy.yml')}: ${messageOf(e)}`); // once per root: the cache below
   }
   cached = { root, rules };
   return rules;

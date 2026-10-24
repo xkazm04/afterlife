@@ -13,6 +13,7 @@ import { rulesOf } from '../policy';
 import { buildSnapshot, type LiveSnapshot } from './snapshot';
 import { recordFleetDay } from './day';
 import { cycleLine, cycleProblems } from './cycleLog';
+import { messageOf } from '@/lib/format/error';
 
 export interface LiveRuntime {
   cfg: DataConfig;
@@ -112,7 +113,7 @@ export function startRuntime(
     },
     (e: unknown) => {
       delete holder[STARTING];
-      holder[FAILED] = { message: e instanceof Error ? e.message : String(e), at: Date.now() };
+      holder[FAILED] = { message: messageOf(e), at: Date.now() };
       throw e;
     },
   );

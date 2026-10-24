@@ -8,6 +8,7 @@ import { isKind } from '@/server/gitlab/errors';
 import type { CommitFileInput, CreateMrInput, PlannedCommand } from '@/server/gitlab/plan/types';
 import type { GlProject } from '@/server/gitlab/types';
 import { ActionRefused, COMMIT_ID, type PlanContext } from '../context';
+import { messageOf } from '@/lib/format/error';
 
 type Where = Pick<GlProject, 'id' | 'pathWithNamespace'>;
 
@@ -21,7 +22,7 @@ export async function newBranch(ctx: Pick<PlanContext, 'port'>, project: Where, 
     body = await ctx.port.get(`projects/${encodeURIComponent(String(project.id))}/repository/branches/${encodeURIComponent(branch)}`);
   } catch (e) {
     if (isKind(e, 'not-found')) return;
-    throw new ActionRefused(`Belay could not read whether ${branch} exists in ${project.pathWithNamespace} (${e instanceof Error ? e.message : String(e)}): nothing is planned`);
+    throw new ActionRefused(`Belay could not read whether ${branch} exists in ${project.pathWithNamespace} (${messageOf(e)}): nothing is planned`);
   }
   const id = (body as { commit?: { id?: unknown } } | null)?.commit?.id;
   const head = typeof id === 'string' && COMMIT_ID.test(id) ? `its head is ${id.slice(0, 8)}` : 'GitLab did not say its head';

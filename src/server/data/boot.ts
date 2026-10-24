@@ -3,6 +3,7 @@
 import { readDataConfig, type DataConfig } from './config';
 import { pollIntervalMs } from '@/server/poller';
 import { startRuntime, type LiveRuntime } from './live/runtime';
+import { messageOf } from '@/lib/format/error';
 
 export async function bootLive(env: Record<string, string | undefined> = process.env): Promise<void> {
   const cfg = readDataConfig(env);
@@ -12,7 +13,7 @@ export async function bootLive(env: Record<string, string | undefined> = process
     rt = await startRuntime(cfg);
   } catch (e) {
     // Not rethrown: a register() that rejects stops the server from preparing, and the pages are what name a failed start and retry it (select.ts).
-    console.error(`belay: live start failed: ${e instanceof Error ? e.message : String(e)}; the pages name it and the start is retried every ${pollIntervalMs() / 1000}s`);
+    console.error(`belay: live start failed: ${messageOf(e)}; the pages name it and the start is retried every ${pollIntervalMs() / 1000}s`);
     return;
   }
   console.log(liveLine(cfg, rt));

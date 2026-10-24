@@ -7,6 +7,7 @@
 // a page or a script calling in a loop cannot flood GitLab (and the operator's rate limit) or the index.
 import type { LiveRuntime } from '@/server/data/live/runtime';
 import { notReadyReason } from './deps';
+import { messageOf } from '@/lib/format/error';
 
 export type RepollResult =
   /** `ageSec`: the project's feed age in the fresh snapshot (null: the snapshot does not list it). */
@@ -42,7 +43,7 @@ async function cycleOnce(rt: RepollRuntime | null, now: () => number): Promise<{
   try {
     await rt.refresh();
   } catch (e) {
-    return { failed: fail(e instanceof Error ? e.message : String(e)), polled: true };
+    return { failed: fail(messageOf(e)), polled: true };
   }
   const cycle = rt.last;
   if (!cycle || cycle === before) return { failed: fail('the poll cycle did not finish'), polled: true };

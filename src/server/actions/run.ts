@@ -20,6 +20,7 @@ import { ActionRefused, planIntent, type Plan, type PlanContext } from './plans'
 import { COMMIT_ID } from './plans/context';
 import { ledgerReader } from './plans/trial';
 import type { ActionIntent, ActionPreview, ActionResponse, CommandOutcome } from './types';
+import { messageOf } from '@/lib/format/error';
 
 export interface ActionDeps {
   mode: 'demo' | 'live';
@@ -119,7 +120,7 @@ async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promi
     } catch (e) {
       const exit = e instanceof GitLabError && e.status ? e.status : 1;
       await finishCommand(db, id, exit, deps.now());
-      results.push({ display: cmd.display, exit, ok: false, simulated: false, error: e instanceof Error ? e.message : String(e) });
+      results.push({ display: cmd.display, exit, ok: false, simulated: false, error: messageOf(e) });
       break; // later commands depend on earlier ones (a branch, then its MR)
     }
     // It ran. Only GitLab's refusal is a failed command: if the record cannot be finished now, the confirm throws (no
