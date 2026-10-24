@@ -32,6 +32,9 @@ const CASES: Array<[string, ReactElement, string]> = [
   ['StageMeter rung', createElement(StageMeter, { rung: 3 }), 'Rung 3 of 4'],
   ['StageMeter zero', createElement(StageMeter, { rung: 0 }), 'Rung 0 of 4'],
   ['StageMeter unknown', createElement(StageMeter, { rung: null }), 'Rung unknown'],
+  // the same 0..4 rule StageTicks draws by (clampRung): a stray value is never "Rung 5 of 4"
+  ['StageMeter out of range', createElement(StageMeter, { rung: 5 }), 'Rung 4 of 4'],
+  ['StageMeter fraction', createElement(StageMeter, { rung: 2.6 }), 'Rung 3 of 4'],
   ['StageTicks labelled', createElement(StageTicks, { rungs: [1, null], labels: ['plan', 'create'] }), 'plan 1 · create ?'],
   ['StageTicks unlabelled', createElement(StageTicks, { rungs: [0, 4] }), 'stage 1 0 · stage 2 4'],
   ['TrendDelta rise', createElement(TrendDelta, { value: 2, label: 'waiting' }), 'waiting +2 since last week'],
