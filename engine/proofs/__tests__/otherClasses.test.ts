@@ -59,6 +59,12 @@ describe('rerun-stats', () => {
     expect(same.detail).toBe('no runs in the input, so none is on 4be1c0d7a9e2');
   });
 
+  it('keys a run with no job_id by its place in the list, so it never merges with job 0, 1, ... as one job', () => {
+    const sha = '4be1c0d7a9e2';
+    const runs = [{ sha, status: 'failed', failure_reason: 'script_failure' }, { job_id: 0, sha, status: 'success' }];
+    expect(checkOf(run('flake.json', { runs }), 'enough-runs').detail).toMatch(/^2 usable run\(s\), policy/);
+  });
+
   it('classifies at the thresholds: stable at no failures, real failure from the policy rate', () => {
     const t = DEFAULT_THRESHOLDS;
     expect(classify(6, 0, t)).toBe('stable-pass');

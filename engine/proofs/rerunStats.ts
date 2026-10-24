@@ -22,7 +22,8 @@ interface Run {
 
 function parseRun(raw: unknown, i: number): Run {
   const r = rec(raw, `runs[${i}]`);
-  return { job_id: String(r.job_id ?? i), sha: str(r.sha, `runs[${i}].sha`), status: str(r.status, `runs[${i}].status`), failure_reason: optStr(r.failure_reason, `runs[${i}].failure_reason`) };
+  // a run with no job_id is keyed by its place, `runs[2]`: the bare index "2" would merge it with job 2 as one job
+  return { job_id: r.job_id === undefined || r.job_id === null ? `runs[${i}]` : String(r.job_id), sha: str(r.sha, `runs[${i}].sha`), status: str(r.status, `runs[${i}].status`), failure_reason: optStr(r.failure_reason, `runs[${i}].failure_reason`) };
 }
 
 export function thresholdsOf(policy: EnginePolicy): { t: RerunThresholds; source: string } {
