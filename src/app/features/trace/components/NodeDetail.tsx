@@ -1,5 +1,6 @@
 'use client';
 
+import { writeClip } from '@/lib/clipboard/copyCommand';
 import { useState } from 'react';
 import { Button } from '@/components/controls/Button';
 import { CommandBlock, type CommandLine } from '@/components/inspector/CommandBlock';
@@ -31,7 +32,7 @@ export function NodeDetail({ id, node, read, facts, caps, at, checking, onRechec
   const text = plain(lines);
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    navigator.clipboard?.writeText(text).then(() => setCopied(true), () => setCopied(false));
+    void writeClip(text, navigator.clipboard).then((r) => setCopied(r.ok));
   };
   return (
     <section id={id} role="tabpanel" aria-labelledby={`${id}-${node}`} className={styles.panel}>
