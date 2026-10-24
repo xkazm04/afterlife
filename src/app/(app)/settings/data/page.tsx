@@ -1,21 +1,35 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { SettingsSection } from '@/app/features/settings/components/SettingsSection';
 import { SettingsWindow } from '@/app/features/settings/SettingsWindow';
 import { ConnectionSection } from '@/app/features/settings/sections/ConnectionSection';
 import { connection } from 'next/server';
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = { title: 'Belay Settings Data & connection' };
 
-// ConnectionSection reads the server's environment: at request time, never the build's.
-export default async function DataSettings() {
-  await connection();
+// The window, heading and lede paint at once; the Connection card streams in.
+export default function DataSettings() {
   return (
     <SettingsWindow title="Data & connection" lede="Where the numbers come from. Read from the server's environment; no tokens are shown.">
-      <ConnectionSection />
+      <Suspense fallback={<ConnectionPending />}>
+        <Connection />
+      </Suspense>
     </SettingsWindow>
+  );
+}
+
+// ConnectionSection reads the server's environment: at request time, never the build's.
+async function Connection() {
+  await connection();
+  return <ConnectionSection />;
+}
+
+function ConnectionPending() {
+  return (
+    <SettingsSection id="connection" title="Connection">
+      <p role="status" aria-busy="true">
+        Reading the server&apos;s environment…
+      </p>
+    </SettingsSection>
   );
 }

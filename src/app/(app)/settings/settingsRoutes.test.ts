@@ -4,6 +4,7 @@ import { SETTINGS_PAGES } from '@/app/features/settings/model/settingsNav';
 
 const redirect = vi.fn();
 vi.mock('next/navigation', () => ({ redirect: (to: string) => redirect(to), usePathname: () => '/settings/display' }));
+vi.mock('next/server', () => ({ connection: async () => undefined }));
 
 // Ground truth is the route folders on disk, not SETTINGS_PAGES: the sidebar list, the folders and the tab titles agree.
 describe('the Settings routes', () => {
@@ -13,7 +14,9 @@ describe('the Settings routes', () => {
   });
   it('/settings redirects to the first sub-page', async () => {
     const { default: SettingsPage } = await import('./page');
-    SettingsPage();
+    // The page is a <Suspense> around the redirect (it waits for a request); run the child it wraps.
+    const child = (SettingsPage() as { props: { children: { type: () => Promise<never> } } }).props.children;
+    await child.type();
     expect(redirect).toHaveBeenCalledWith(SETTINGS_PAGES[0]?.href);
   });
   // The first import pulls in the whole Window shell (seconds under a parallel run), so it is done once, up front.

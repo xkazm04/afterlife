@@ -1,0 +1,64 @@
+/* The Setup window's skeleton: hairline bars with one slow phosphor pass, in the unlock map's or a node page's shape. */
+.pane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(18px * var(--ui-scale));
+  padding: calc(18px * var(--ui-scale)) calc(16px * var(--ui-scale));
+  overflow: hidden;
+}
+.bar {
+  display: block;
+  height: calc(10px * var(--ui-scale));
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface-1) 0%, color-mix(in oklab, var(--accent) 10%, transparent) 50%, var(--surface-1) 100%) 0 0 / 300% 100%;
+  animation: setup-pass 1.6s linear infinite;
+}
+.strip {
+  height: calc(44px * var(--ui-scale));
+}
+.cols {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 4fr 4.5fr 4fr;
+  gap: calc(36px * var(--ui-scale));
+  align-content: center;
+  width: 100%;
+  max-width: calc(1240px * var(--ui-scale));
+  align-self: center;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ui-scale));
+}
+.node {
+  height: calc(26px * var(--ui-scale));
+}
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: calc(14px * var(--ui-scale));
+  width: 100%;
+  max-width: calc(860px * var(--ui-scale));
+}
+.head {
+  height: calc(20px * var(--ui-scale));
+}
+.card {
+  height: calc(96px * var(--ui-scale));
+}
+@keyframes setup-pass {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+  }
+}
