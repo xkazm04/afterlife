@@ -2,12 +2,14 @@
 // proof verdict, the guardrail verdict, the envelope). Nothing is read from free text. It fails closed:
 // anything unknown, mismatched or unproven is a block or a wait, never a merge.
 import { verdictOf, type ProofBlock } from '../../src/schemas/proof';
+import type { GateDecision } from '../../src/schemas/chain/kinds';
 import type { Tier, TierState } from '../../src/schemas/tier';
 import type { EnvelopeResult } from '../policy/envelope';
 import type { EnginePolicy } from '../policy/load';
 import { standingOf } from './standing';
 
-export type Decision = 'merge' | 'approve' | 'wait' | 'block';
+/** The ledger's GateDecision: a tier_decision's `would` states one, so the two lists are one. */
+export type Decision = GateDecision;
 
 export interface GuardrailVerdict {
   verdict: string; // 'pass' | 'block'; anything else is treated as not yet known
