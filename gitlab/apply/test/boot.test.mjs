@@ -1,4 +1,4 @@
-// The write-token job refuses a malformed pin before git or curl sees it: the boot's shape checks, run as the shell CI runs them.
+// The write-token job refuses a malformed pin, or a glab test hook, before git or curl sees it: the boot's shape checks, run as the shell CI runs them.
 import { expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -15,11 +15,11 @@ const GOOD = {
   glab: { version: '1.120.0', sha256: 'b'.repeat(64) },
 };
 
-function boot(patch = {}) {
+function boot(patch = {}, extraEnv = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-boot-'));
   const cfg = { engine: { ...GOOD.engine, ...patch.engine }, glab: { ...GOOD.glab, ...patch.glab } };
   fs.writeFileSync(path.join(dir, 'apply.json'), JSON.stringify(cfg));
-  const r = spawnSync('bash', ['-c', `${checks}\necho BOOT-OK`], { env: { ...process.env, CI_PROJECT_DIR: dir.split(path.sep).join('/') }, encoding: 'utf8' });
+  const r = spawnSync('bash', ['-c', `${checks}\necho BOOT-OK`], { env: { ...process.env, ...extraEnv, CI_PROJECT_DIR: dir.split(path.sep).join('/') }, encoding: 'utf8' });
   fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   return r;
 }
@@ -49,3 +49,18 @@ for (const [key, patch] of BAD) {
     expect(r.stderr).toContain(key);
   });
 }
+
+for (const hook of [{ BELAY_GLAB: 'sh|-c|id' }, { BELAY_GLAB: '' }, { FAKE_GLAB_ROUTES: '/tmp/routes.json' }]) {
+  it(`refuses the glab test hook in the token-holding job: ${JSON.stringify(hook)}`, () => {
+    const r = boot({}, hook);
+    expect(r.status).toBe(2);
+    expect(r.stdout).not.toContain('BOOT-OK');
+    expect(r.stderr).toContain('BELAY_GLAB or FAKE_GLAB_* is set');
+  });
+}
+
+it('still boots with the glab tuning knobs, which pick no binary', () => {
+  const r = boot({}, { BELAY_GLAB_TIMEOUT_MS: '1000', BELAY_GLAB_BACKOFF_MS: '0' });
+  expect(r.stderr).toBe('');
+  expect(r.stdout).toContain('BOOT-OK');
+});

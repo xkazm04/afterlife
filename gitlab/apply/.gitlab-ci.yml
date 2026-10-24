@@ -22,6 +22,9 @@ stages: [sweep]
     - |
       set -eu
       CFG="$CI_PROJECT_DIR/apply.json"
+      # BELAY_GLAB picks the binary every glab call runs (a test hook) and FAKE_GLAB_* feed the test double: neither is ever
+      # set here, so one that arrives (a pipeline variable the operator setting missed) is refused before any token is used.
+      if [ -n "${BELAY_GLAB+x}" ] || env | grep -q '^FAKE_GLAB_'; then echo "BELAY_GLAB or FAKE_GLAB_* is set: refusing to run glab with the write tokens" >&2; exit 2; fi
       cfg() { node -p "const c=require(process.argv[1]); String($1 ?? '')" "$CFG"; }
       ENGINE_PROJECT="$(cfg c.engine.project)"; ENGINE_REF="$(cfg c.engine.ref)"; ENGINE_COMMIT="$(cfg c.engine.commit)"
       GLAB_VERSION="$(cfg c.glab.version)"; GLAB_SHA256="$(cfg c.glab.sha256)"
