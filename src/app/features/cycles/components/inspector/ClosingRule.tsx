@@ -1,4 +1,5 @@
 import { InspectorSection } from '@/components/inspector/InspectorSection';
+import { rungLabel } from '../../model/replay';
 import type { Cycle, CycleChange } from '../../model/types';
 import styles from './inspector.module.css';
 
@@ -50,7 +51,7 @@ export function ClosingRule({ cycle }: { cycle: Cycle }) {
           ))}
           {drift.map((c, i) => (
             <li key={`d-${i}-${c.stage}`} data-drift>
-              <b>drift</b> {c.stage} R{c.from} → R{c.to}: {c.why} (on record)
+              <b>drift</b> {c.stage} {rungLabel(c.from)} → R{c.to}: {c.why} (on record)
             </li>
           ))}
         </ul>

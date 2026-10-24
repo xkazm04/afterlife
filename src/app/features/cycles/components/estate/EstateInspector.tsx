@@ -5,7 +5,7 @@ import { KeyValue } from '@/components/inspector/KeyValue';
 import { Stats } from '@/components/inspector/blocks/Stats';
 import { Chip } from '@/components/status/chip/Chip';
 import type { EstateProject } from '../../model/estate/estate';
-import { MAX_TOTAL, summarize } from '../../model/replay';
+import { MAX_TOTAL, rungLabel, summarize } from '../../model/replay';
 import { signed, VERDICT_WORD } from '../../model/words';
 import styles from './estate.module.css';
 
@@ -49,7 +49,7 @@ export function EstateInspector({ project: p, deep }: { project: EstateProject |
               <ul>
                 {c.changes.map((x, i) => (
                   <li key={i} data-verdict={x.verdict}>
-                    {x.mr ?? x.kind} · {x.stage} R{x.from ?? '?'}→R{x.to} · {VERDICT_WORD[x.verdict]}
+                    {x.mr ?? x.kind} · {x.stage} {rungLabel(x.from)}→R{x.to} · {VERDICT_WORD[x.verdict]}
                   </li>
                 ))}
               </ul>

@@ -52,6 +52,13 @@ describe('Cycles parts render for every cycle', () => {
     expect(out).toContain('replay = 14:02 scan');
     expect(out).toContain('chain holds');
   });
+  it('drift from an unknown rung reads R?, never Rnull', () => {
+    const c4 = data.cycles.find((c) => c.changes.some((x) => x.verdict === 'regressed'))!;
+    const odd = { ...c4, changes: c4.changes.map((x) => (x.verdict === 'regressed' ? { ...x, from: null } : x)) };
+    const out = html(createElement(CyclesInspector, { cycle: odd, data, designed: false, onDesign: () => {}, onReport: () => {} }));
+    expect(out).not.toContain('Rnull');
+    expect(out).toContain('R? → R');
+  });
   it('a project that lost rungs since day 0 reads as a loss, never "+-"', () => {
     const lost = { ...data, scanned: Object.fromEntries(Object.keys(data.scanned).map((k) => [k, 0])) as typeof data.scanned };
     const out = html(createElement(Answer, { data: lost }));
