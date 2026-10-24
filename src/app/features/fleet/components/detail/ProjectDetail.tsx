@@ -33,7 +33,7 @@ export function ProjectDetail({ project: p, data, view, estate }: FleetProjectVi
     <DetailPage
       parent={{ label: 'Fleet', href: '/fleet' }}
       title={p.name}
-      subtitle={`${data.portfolio}/${p.group}/${p.id}`}
+      subtitle={view.path}
       lede={
         <>
           <StateGlyph state={p.state} /> {projectLede(p)}

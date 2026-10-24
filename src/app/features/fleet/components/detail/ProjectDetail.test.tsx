@@ -53,6 +53,16 @@ describe('ProjectDetail Needs you card', () => {
   });
 });
 
+describe('ProjectDetail subtitle', () => {
+  it('is the path the server decided (view.path), not one the page builds again', () => {
+    setDataSource(demoSource);
+    const project = makeProject({ id: 'x', group: 'core' });
+    const data = { ...loadFleetData(), projects: [project] };
+    const view = { ...projectView(project, null, { portfolio: data.portfolio, deepId: data.deepId, source: loadFleetSource() }), path: 'elsewhere/core/x' };
+    expect(renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, { project, data, view })))).toContain('elsewhere/core/x');
+  });
+});
+
 describe('ProjectDetail status bar', () => {
   it('counts a watching project\'s decisions plainly', () => {
     expect(statusBar(page({ id: 'x', needsYou: 2 }))).toContain('2 decisions waiting');
