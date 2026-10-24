@@ -8,6 +8,7 @@ import type { GlMergeRequest, GlProject } from '@/server/gitlab/types';
 import { isFinal, type PipelineState } from '@/lib/stability/stability';
 import type { TaskDerivation } from '../derive/task';
 import type { PollMemory } from '../state';
+import { messageOf } from '@/lib/format/error';
 
 /**
  * Reads per project per poll. A first poll of a busy project (mrLimit is 200, the task window a day by default) would
@@ -40,8 +41,6 @@ function spend(b: Budget): boolean {
   return true;
 }
 
-const message = (e: unknown): string => (e instanceof Error ? e.message : String(e));
-
 interface Read {
   port: GitLabPort;
   mem: PollMemory;
@@ -61,7 +60,7 @@ async function sizeOf(r: Read, mr: GlMergeRequest, key: string): Promise<number 
     r.mem.mrSizes.set(key, { sha: mr.sha, size });
     return size;
   } catch (e) {
-    r.issues.push(`!${mr.iid} size: diffs not read (${message(e)}); shown as unknown`);
+    r.issues.push(`!${mr.iid} size: diffs not read (${messageOf(e)}); shown as unknown`);
     return null;
   }
 }
@@ -81,7 +80,7 @@ async function pipelineOf(r: Read, mr: GlMergeRequest, key: string): Promise<Pip
     if (isFinal(status)) r.mem.mrPipelines.set(key, { id, status });
     return status;
   } catch (e) {
-    r.issues.push(`!${mr.iid} pipeline ${id}: not read (${message(e)}); shown as unknown`);
+    r.issues.push(`!${mr.iid} pipeline ${id}: not read (${messageOf(e)}); shown as unknown`);
     return null;
   }
 }

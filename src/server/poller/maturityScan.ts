@@ -11,6 +11,7 @@ import { firstStageCells, latestScanAt, upsertStageCells } from '@/server/index/
 import type { Queryable } from '@/server/index/repositories/sql';
 import { writeGaps } from './gaps/write';
 import type { PollMemory } from './state';
+import { messageOf } from '@/lib/format/error';
 
 export const SCAN_JOB = 'belay-maturity-scan';
 export const SCAN_ARTIFACT = '.belay/maturity.json';
@@ -23,8 +24,6 @@ const SCAN_PIPELINES = 3;
 const CLOCK_SKEW_MS = 15 * 60_000;
 
 export type ScanRead = 'none' | 'stored' | 'unchanged' | 'refused';
-
-const message = (e: unknown): string => (e instanceof Error ? e.message : String(e)).split('\n')[0] ?? '';
 
 /** A link where it resolves (dot segments, plain or encoded, and backslashes applied), or null when it is no absolute URL. */
 const resolved = (url: string): string | null => {
@@ -86,7 +85,7 @@ async function read(port: GitLabPort, db: PGlite, mem: PollMemory, gl: GlProject
     raw = await port.get(`projects/${gl.id}/jobs/${job.id}/artifacts/${SCAN_ARTIFACT}`);
   } catch (e) {
     // a missing or unparsable artifact stays that way; a failed read (network, rate limit) is tried again next poll
-    return refuse(`could not be read (${message(e)})`, isKind(e, 'not-found', 'parse', 'forbidden'));
+    return refuse(`could not be read (${messageOf(e, { firstLine: true })})`, isKind(e, 'not-found', 'parse', 'forbidden'));
   }
   const parsed = parseMaturityScan(raw);
   if (!parsed.ok) return refuse(`is not a belay.maturity/0 scan (${parsed.reason})`, true);
@@ -119,7 +118,7 @@ export async function pollMaturityScan(
   try {
     return await read(port, db, mem, gl, projectId, issues, now);
   } catch (e) {
-    issues.push(`maturity scan: not read (${message(e)}); nothing stored`);
+    issues.push(`maturity scan: not read (${messageOf(e, { firstLine: true })}); nothing stored`);
     return 'refused';
   }
 }

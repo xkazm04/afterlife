@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatAge, formatClock, pad2, splitDuration } from './time';
 import { plural, pluralWord } from './plural';
+import { messageOf } from './error';
 
 describe('formatAge', () => {
   it('matches the Fleet prototype', () => {
@@ -43,5 +44,17 @@ describe('plural', () => {
     expect(plural(2, 'query', 'queries')).toBe('2 queries');
     expect(pluralWord(1, 'filter')).toBe('filter');
     expect(pluralWord(2, 'filter')).toBe('filters');
+  });
+});
+
+describe('messageOf', () => {
+  it('reads an Error by its message and anything else as a string', () => {
+    expect(messageOf(new Error('boom'))).toBe('boom');
+    expect(messageOf('plain')).toBe('plain');
+    expect(messageOf(42)).toBe('42');
+  });
+  it('keeps only the first line when asked (a YAML code frame stays out of a one-line issue)', () => {
+    expect(messageOf(new Error('bad map\n  1 | a: [\n    ^'), { firstLine: true })).toBe('bad map');
+    expect(messageOf(new Error('one\ntwo'))).toBe('one\ntwo');
   });
 });

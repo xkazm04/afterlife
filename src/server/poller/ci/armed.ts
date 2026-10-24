@@ -8,6 +8,7 @@ import type { GlProject } from '@/server/gitlab/types';
 import { findBlock } from '@/server/actions/arm/block';
 import { armOf } from '@/server/actions/arm/content';
 import type { PollMemory } from '../state';
+import { messageOf } from '@/lib/format/error';
 
 export const CI_FILE = '.gitlab-ci.yml';
 
@@ -32,8 +33,6 @@ export function countArmed(text: string): number {
   return tracks.size;
 }
 
-const message = (e: unknown): string => (e instanceof Error ? e.message : String(e));
-
 /**
  * The project's armed tracks: 0 when it has no default branch or no CI file (read: none armed), null when the read failed
  * (with an issue saying so; never 0). One listCommits per poll; getFile only when that commit changed.
@@ -50,7 +49,7 @@ export async function readArmed(port: GitLabPort, mem: PollMemory, gl: GlProject
     mem.ciFiles.set(gl.id, { key, armed });
     return armed;
   } catch (e) {
-    issues.push(`armed tracks: ${CI_FILE} on ${ref} not read (${message(e)}); shown as unknown`);
+    issues.push(`armed tracks: ${CI_FILE} on ${ref} not read (${messageOf(e)}); shown as unknown`);
     return null;
   }
 }

@@ -4,6 +4,7 @@ import { parse } from 'yaml';
 import type { TierState } from '@/schemas/tier';
 import type { GitLabPort, GlFile, ProjectRef } from '@/server/gitlab/port';
 import { parsePolicy, parseState, type EnginePolicy } from '../../../../engine/policy/load';
+import { messageOf } from '@/lib/format/error';
 
 export type PolicyRead = { ok: true; policy: EnginePolicy; state: TierState } | { ok: false; reason: string };
 
@@ -13,7 +14,7 @@ async function readYaml(port: GitLabPort, project: ProjectRef, file: string, ref
   try {
     return { ok: true, value: parse(f.content) as unknown };
   } catch (e) {
-    return { ok: false, reason: `${file} is not valid YAML: ${e instanceof Error ? e.message : String(e)}` };
+    return { ok: false, reason: `${file} is not valid YAML: ${messageOf(e)}` };
   }
 }
 
@@ -28,6 +29,6 @@ export async function readPolicy(port: GitLabPort, project: ProjectRef, ref: str
   try {
     return { ok: true, policy: parsePolicy(p.value), state: parseState(s.value) };
   } catch (e) {
-    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+    return { ok: false, reason: messageOf(e) };
   }
 }

@@ -16,6 +16,7 @@ import { trustClassesOf } from './derive/tiers';
 import { groupPathOf, pollProject, type ProjectPoll } from './project';
 import { createMemory, forgetProjects, type PollMemory } from './state';
 import { readStateHistory, type StateHistory } from './stateHistory';
+import { messageOf } from '@/lib/format/error';
 
 export interface CycleResult {
   at: Date;
@@ -70,7 +71,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
     [group, all] = await Promise.all([port.getGroup(cfg.group), port.listProjects(cfg.group)]);
   } catch (e) {
     result.ok = false;
-    result.error = e instanceof Error ? e.message : String(e);
+    result.error = messageOf(e);
     await failGroup(db, source, policySource(cfg.group), result.error);
     return result;
   }
@@ -86,7 +87,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   let policy: PolicyRead | null = null;
   if (!policyProject) result.warnings.push(`no ${cfg.policyProject} project in the group: class tiers are not updated`);
   else {
-    policy = await readPolicy(port, policyProject.id, cfg.policyRef).catch((e: unknown): PolicyRead => ({ ok: false, reason: e instanceof Error ? e.message : String(e) }));
+    policy = await readPolicy(port, policyProject.id, cfg.policyRef).catch((e: unknown): PolicyRead => ({ ok: false, reason: messageOf(e) }));
     if (!policy.ok) result.warnings.push(`policy: ${policy.reason}; class tiers are not updated`);
     else result.policy = policy.policy;
   }
@@ -98,7 +99,7 @@ export async function runPollCycle(port: GitLabPort, db: PGlite, now: Date, opts
   let history: StateHistory | null = null;
   if (policy?.ok && policyProject) {
     history = await readStateHistory(port, policyProject.id, cfg.policyRef, policy.state, mem).catch((e: unknown) => {
-      result.warnings.push(`tier-state.yml history: ${e instanceof Error ? e.message : String(e)}; enforcement receipts are not derived`);
+      result.warnings.push(`tier-state.yml history: ${messageOf(e)}; enforcement receipts are not derived`);
       return null;
     });
   }

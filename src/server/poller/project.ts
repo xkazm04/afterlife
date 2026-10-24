@@ -22,6 +22,7 @@ import { readArmed } from './ci/armed';
 import type { PolicyRead } from './derive/policy';
 import type { PollMemory } from './state';
 import type { StateHistory } from './stateHistory';
+import { messageOf } from '@/lib/format/error';
 
 export interface PollEnv {
   port: GitLabPort;
@@ -136,13 +137,13 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
         out.ledger = (await importLedger(env.ledger, db, gl.id, env.mem.ledger)).status;
       } catch (e) {
         out.ledger = 'rejected';
-        ledgerError = e instanceof Error ? e.message : String(e);
+        ledgerError = messageOf(e);
       }
       try {
         out.cycles = (await importCycles(env.ledger, db, gl.id, id, env.mem.cycles)).status;
       } catch (e) {
         out.cycles = 'rejected';
-        ledgerError ??= e instanceof Error ? e.message : String(e);
+        ledgerError ??= messageOf(e);
       }
     }
     const armed = await readArmed(port, env.mem, gl, out.issues); // null (and an issue) when it could not be read
@@ -170,8 +171,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
       out.tasks = rows.length;
       out.proofs = proofs.filter((x) => x.proof !== null).length;
 
-      // after the tasks: a class's counters count this poll's merges
-      const ledgerRead = out.ledger === 'imported' || out.ledger === 'unchanged';
+      const ledgerRead = out.ledger === 'imported' || out.ledger === 'unchanged'; // pollClasses after the tasks: its counters count this poll's merges
       const demotions = env.policy?.ok ? await pollClasses(tx, env.policy, id, gl.id, now, cfg.rollupWindowMs, ledgerRead, env.history, gl.webUrl || null) : base.demotions7d;
 
       const row: ProjectRow = {
@@ -191,7 +191,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
     await recordPollOk(db, projectSource(id), now);
   } catch (e) {
     out.ok = false;
-    out.error = e instanceof Error ? e.message : String(e);
+    out.error = messageOf(e);
     await recordPollError(db, projectSource(id), out.error);
     if (existing || written.length > 0) await setProjectState(db, id, 'stale'); // a row this poll wrote too
   }
