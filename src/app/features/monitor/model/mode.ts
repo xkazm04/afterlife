@@ -22,7 +22,10 @@ export const rejectedMessage = (name: string, e: unknown): string => repollMessa
 
 /** Demo's simulated re-poll: only a healthy feed answers. Returns the sentence, and whether the feed age resets to 0. */
 export function simulateRepoll(p: FleetProject): { message: string; reset: boolean } {
-  if (!p.feed.ok) return { message: `Re-poll failed · ${p.name} · ${p.feed.error || 'no answer'} · last good ${formatAge(p.feed.ageSec)} ago`, reset: false };
+  if (!p.feed.ok) {
+    const last = p.feed.ageSec === null ? NO_GOOD_POLL : `last good ${formatAge(p.feed.ageSec)} ago`;
+    return { message: `Re-poll failed · ${p.name} · ${p.feed.error || 'no answer'} · ${last}`, reset: false };
+  }
   return { message: repollMessage(p.name, { ok: true }), reset: true };
 }
 

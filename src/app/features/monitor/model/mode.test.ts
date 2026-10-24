@@ -33,6 +33,11 @@ describe('repoll', () => {
     expect(r.reset).toBe(false);
     expect(r.message).toContain('Re-poll failed · ledgerline · token expired');
   });
+  it('demo: a broken feed that never had a good poll says so, never "last good — ago"', () => {
+    const r = simulateRepoll(proj({ feed: { ageSec: null, ok: false, error: 'token expired' } }));
+    expect(r.message).toBe(`Re-poll failed · ledgerline · token expired · ${NO_GOOD_POLL}`);
+    expect(simulateRepoll(proj({ feed: { ageSec: 2820, ok: false, error: 'token expired' } })).message).toBe('Re-poll failed · ledgerline · token expired · last good 47 m ago');
+  });
 });
 
 describe('the age line', () => {
