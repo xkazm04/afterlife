@@ -11,7 +11,8 @@
   the inconclusive answer for a class named before its checker exists; none is today).
 - `gate` decides `merge` / `approve` / `wait` / `block` for an agent MR from tier state, policy, the proof and the
   guardrail verdict. `tripwire` turns a bad-outcome event into a demotion commit of `tier-state.yml`. `ledger append`
-  adds one hash-chained event line; `ledger trial` recomputes a holder's next-rung trial from the chain cut at the seq
+  adds one hash-chained event line (with `--write` under an exclusive `<chain>.lock`: an append racing another waits
+  about a second, then is refused by name rather than forking the chain); `ledger trial` recomputes a holder's next-rung trial from the chain cut at the seq
   a promotion MR states. `pin` prints the engine pin (`{version, sha256, files}`) every Proof Block carries.
 - `scan` rates the nine stages R0–R4, model-free. `--dir <checkout>` reads files only (CI config with local includes
   followed, CODEOWNERS, `.gitlab/`, IaC and alerting files) and credits at most R1 (configured): pipelines and
@@ -131,7 +132,7 @@
   bench-delta, score-delta, ledger-record, `head_sha`. Also `decide/standing.test.ts`, `decide/shadow.test.ts`,
   `parse/*.test.ts`, `policy/envelope.test.ts`, `policy/load.test.ts`, `core/core.test.ts` (args, empty options, isoMs),
   `core/files.test.ts`, `core/pin.test.ts` (the pin is the import closure), `commands/ledger.test.ts`,
-  `commands/audit/trial.test.ts`, `commands/scan.test.ts` (`scan --facts` by the rubric).
+  `__tests__/ledgerLock.test.ts` (a racing append is refused, the lock freed), `commands/audit/trial.test.ts`, `commands/scan.test.ts` (`scan --facts` by the rubric).
 - `engine/usage.test.ts`: every command in `cli.ts`'s COMMANDS table, and every option each one parses, is in the
   usage text and the README table (derived from the code, `ledger trial` included).
 - `engine/scan/scan.test.ts`: the example target project scores secure, verify and govern at R1 and nothing above;

@@ -1,5 +1,6 @@
 // belay ledger append --event event.json --chain events.jsonl [--write]
-// Prints the new hash-chained line. The chain is verified first: a broken chain is never extended.
+// Prints the new hash-chained line. The chain is verified first: a broken chain is never extended. With --write the
+// read, verify and append all run under `<chain>.lock`, so a concurrent append waits or is refused, never forks.
 // `ledger trial` (the auditor's recompute of a promotion's trial) is audit/trial.ts.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -49,18 +50,51 @@ function appendLine(file: string, data: string): void {
   }
 }
 
+export const LOCK_TRIES = 20;
+const LOCK_WAIT_MS = 50;
+const pause = (ms: number): void => void Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+
+/**
+ * Runs `fn` holding `<chain>.lock`, created exclusively (O_EXCL), so two jobs appending at once cannot both extend the
+ * same tail with the same seq. A lock still held after LOCK_TRIES waits is a named refusal, never a fork.
+ */
+export function withChainLock<T>(file: string, fn: () => T): T {
+  const lock = `${file}.lock`;
+  for (let i = 1; ; i++) {
+    try {
+      fs.closeSync(fs.openSync(lock, 'wx'));
+      break;
+    } catch (e) {
+      if (errno(e) !== 'EEXIST') throw new EngineError(`cannot write ${file} (${errno(e)})`);
+      if (i >= LOCK_TRIES) throw new EngineError(`the chain is locked by another writer (${lock}); it is not extended: retry, or remove the lock if no append is running`);
+      pause(LOCK_WAIT_MS);
+    }
+  }
+  try {
+    return fn();
+  } finally {
+    fs.rmSync(lock, { force: true });
+  }
+}
+
 export function ledgerCommand(argv: readonly string[], ctx: Ctx): CommandResult {
   if (argv[0] === 'trial') return trialCommand(argv.slice(1), ctx);
   const args = parseArgs(argv, { values: ['event', 'chain'], switches: ['write'], positional: 1 });
   if (args.positional[0] !== 'append') throw new EngineError(`usage: ledger append --event <event.json> --chain <events.jsonl> [--write] | ${TRIAL_USAGE}`);
   const chainFile = path.resolve(ctx.cwd, args.need('chain'));
-  const text = fs.existsSync(chainFile) ? readText(ctx, chainFile) : ''; // no chain yet is genesis; a directory is an error
-  const chain = readChain(text);
-  const broken = verifyChain(chain);
-  if (broken !== null) throw new EngineError(`the chain is broken at seq ${broken}; it is not extended`);
-  const line = append(chain, parseLedgerEvent(readJson(ctx, args.need('event'))));
-  // a chain fetched from the API may lack its final newline: start a new line rather than glue two events together
-  const lead = text === '' || text.endsWith('\n') ? '' : '\n';
-  if (args.has('write')) appendLine(chainFile, `${lead}${JSON.stringify(line)}\n`);
-  return { json: line, summary: `ledger: appended seq ${line.seq} ${line.kind} ${line.hash.slice(0, 12)} (chain of ${chain.length + 1} verifies)`, code: 0, compact: true };
+  const event = parseLedgerEvent(readJson(ctx, args.need('event')));
+  const write = args.has('write');
+  const extend = () => {
+    const text = fs.existsSync(chainFile) ? readText(ctx, chainFile) : ''; // no chain yet is genesis; a directory is an error
+    const chain = readChain(text);
+    const broken = verifyChain(chain);
+    if (broken !== null) throw new EngineError(`the chain is broken at seq ${broken}; it is not extended`);
+    const line = append(chain, event);
+    // a chain fetched from the API may lack its final newline: start a new line rather than glue two events together
+    const lead = text === '' || text.endsWith('\n') ? '' : '\n';
+    if (write) appendLine(chainFile, `${lead}${JSON.stringify(line)}\n`);
+    return { line, n: chain.length + 1 };
+  };
+  const { line, n } = write ? withChainLock(chainFile, extend) : extend();
+  return { json: line, summary: `ledger: appended seq ${line.seq} ${line.kind} ${line.hash.slice(0, 12)} (chain of ${n} verifies)`, code: 0, compact: true };
 }

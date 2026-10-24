@@ -10,7 +10,7 @@ dependency beyond `yaml`. Every command writes JSON to stdout and a human summar
 | `envelope --policy P --class <id> --diff <file> [--env <name>]...` | Files, lines, denied paths, environments | 0 within, 1 outside |
 | `gate --policy P --state S --class <id> --proof F --guardrail F [--agent A] [--diff F] [--env E] [--now T] [--engine-sha H] [--shadow-next-rung]` | `merge` / `approve` / `wait` / `block` (+ `would`) | 0 / 0 / 2 / 1 |
 | `tripwire --policy P --state S --event F` | `{demote, commit: {path, content, message}}` | 0 (2 on bad input) |
-| `ledger append --event F --chain events.jsonl [--write]` | One hash-chained ledger line | 0 (2 on a broken chain) |
+| `ledger append --event F --chain events.jsonl [--write]` | One hash-chained ledger line | 0 (2 on a broken chain, or a chain another `--write` holds locked) |
 | `ledger trial --chain events.jsonl --agent A --class C --since T [--through N] [--head H]` | `{verifies, head, trial}`: a holder's next-rung trial recomputed from the chain cut at seq N, anchored to head hash H (ledger-record's rule, no input JSON); the line a promotion MR prints | 0, 1 broken or not the named chain, 2 bad input |
 | `scan --facts facts.json \| --dir <checkout> [--propose]` | `belay.maturity/0`. `--facts`: nine stage cells from the facts `collect-facts.mjs` wrote. `--dir`: the Day-0 read of a local checkout (`engine/scan`: its files and CI config, nothing read from GitLab), with the next change per stage under `--propose`; read-only | `--facts`: 0 all determined, 2 any unknown or unreadable input. `--dir`: 0, 2 when every stage is unknown or it is not a directory |
 | `pin` | `{version, sha256, files}`: the engine pin every Proof Block carries and the files it covers | 0 (2 on an import it cannot follow) |
