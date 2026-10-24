@@ -20,7 +20,8 @@ Tests never start a timer.
 5. Per target project (`project.ts`), reads first, one transaction of writes after, so a failed read writes nothing:
    - MRs updated in the last 7 days (`state=all`): the proof roll-up counts `proof::*` labels (`updated_at` stands in for the proof time);
    - MRs updated in the last 24 h (`BELAY_TASK_HOURS`) are read as tasks: description trailers, notes (cached by `updated_at`),
-     deployments (for "merged · in production");
+     the newest 30 deployments (for "merged · in production" and "in staging": a merge whose sha is not among them reads
+     "merged");
    - each such agent MR's facts (`mrFacts/facts.ts`), for the stability view: its size (lines added + removed over
      `listDiffs`, counted from the hunk lines GitLab returns, so a diff GitLab collapses as too large counts short), cached
      by head sha in `PollMemory.mrSizes` (a sha's diff never changes), and its head pipeline's status (one
