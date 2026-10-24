@@ -99,8 +99,12 @@ export function parseStoredLine(raw: unknown): ParseResult<LedgerEvent> {
   });
 }
 
-/** A chain file's text (JSONL). Blank lines and a CRLF ending are skipped; the first bad line stops the read. */
-export function parseChainText(text: string): ChainRead {
+/**
+ * A chain file's text (JSONL). Blank lines and a CRLF ending are skipped; the first bad line stops the read. `also` is a
+ * caller's own refusal of a line's parsed JSON (a reason, or null), run after the shared rules pass on that line, so a
+ * stricter reader judges the same parse instead of parsing every line twice.
+ */
+export function parseChainText(text: string, also?: (json: unknown) => string | null): ChainRead {
   const events: LedgerEvent[] = [];
   for (const [i, raw] of text.split('\n').entries()) {
     const line = raw.replace(/\r$/, '');
@@ -113,6 +117,8 @@ export function parseChainText(text: string): ChainRead {
     }
     const r = parseStoredLine(json);
     if (!r.ok) return { ok: false, line: i + 1, reason: r.reason };
+    const own = also?.(json) ?? null;
+    if (own !== null) return { ok: false, line: i + 1, reason: own };
     events.push(r.event);
   }
   return { ok: true, events };

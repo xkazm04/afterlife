@@ -47,29 +47,13 @@ function stricter(v: unknown): string | null {
   return null;
 }
 
-/** The first line, before `upto` (1-based, exclusive), this reader refuses on its own; lines that are not JSON are the shared parser's. */
-function firstStricter(text: string, upto: number): { line: number; reason: string } | null {
-  for (const [i, raw] of text.split('\n').entries()) {
-    if (i + 1 >= upto) break;
-    const line = raw.replace(/\r$/, '');
-    if (line.trim() === '') continue;
-    let json: unknown;
-    try {
-      json = JSON.parse(line);
-    } catch {
-      continue;
-    }
-    const reason = stricter(json);
-    if (reason !== null) return { line: i + 1, reason };
-  }
-  return null;
-}
-
-/** Parses a whole file. Blank lines are skipped; any other bad line throws LedgerParseError with its number. */
+/**
+ * Parses a whole file. Blank lines are skipped; any other bad line throws LedgerParseError with its number. The stricter
+ * rules judge each line's one parse, after the shared ones pass on it: the first bad line wins, and on one line the shared
+ * reason does.
+ */
 export function parseLedgerJsonl(text: string): LedgerEvent[] {
-  const r = parseChainText(text);
-  const own = firstStricter(text, r.ok ? Infinity : r.line);
-  if (own) throw new LedgerParseError(own.line, own.reason);
+  const r = parseChainText(text, stricter);
   if (!r.ok) throw new LedgerParseError(r.line, r.reason);
   return r.events;
 }

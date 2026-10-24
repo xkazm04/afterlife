@@ -99,4 +99,18 @@ describe('parseStoredLine and parseChainText', () => {
     expect(parseChainText(`${text}{ nope\n`)).toEqual({ ok: false, line: 3, reason: 'not valid JSON' });
     expect(parseChainText(`${text}${JSON.stringify({ ...line, kind: 'bogus' })}\n`)).toMatchObject({ ok: false, line: 3 });
   });
+
+  it("a caller's own rule judges each line's one parse: the first bad line wins, and on one line the shared reason does", () => {
+    const seen: unknown[] = [];
+    const own = (json: unknown) => (seen.push(json), 'extra' in (json as object) ? 'own refusal' : null);
+    const good = JSON.stringify(line);
+    const extra = JSON.stringify({ ...line, extra: 1 });
+    const bogus = JSON.stringify({ ...line, kind: 'bogus' });
+    expect(parseChainText(`${good}\n\n${good}\n`, own)).toMatchObject({ ok: true, events: [line, line] });
+    expect(seen).toHaveLength(2);
+    expect(parseChainText(`${good}\n${extra}\n${bogus}\n`, own)).toEqual({ ok: false, line: 2, reason: 'own refusal' });
+    expect(parseChainText(`${bogus}\n${extra}\n`, own)).toMatchObject({ ok: false, line: 1, reason: expect.stringMatching(/^kind/) });
+    expect(parseChainText(JSON.stringify({ ...line, kind: 'bogus', extra: 1 }), own)).toMatchObject({ line: 1, reason: expect.stringMatching(/^kind/) });
+    expect(() => parseLedgerJsonl(`${good}\n${JSON.stringify({ ...line, quorum: 1 })}\n${bogus}`)).toThrow(/line 2.*quorum/);
+  });
 });
