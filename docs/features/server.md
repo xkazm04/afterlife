@@ -64,7 +64,9 @@
   GitLab does not hold (`seed/seedCycles.ts`).
 - **Actions** (`actions/`): `previewAction(intent)` validates and plans; `confirmAction(intent, previewId)` plans
   again and runs only if the sha-256 digest of the commands still matches. Intents: `revoke-class`, `promote-class`,
-  `mark-cra-ready`, `stage-gap-mr`.
+  `mark-cra-ready`, `stage-gap-mr`, `apply-gap-template`, `arm-track`, `disarm-track`, `enroll-track`. A live confirm is
+  kept under its previewId (`runs/journal.ts`, `action_runs`), so one preview runs once, and `recallAction` answers a
+  confirm that got no answer. Live, every action answers only a request addressed to this machine (`local.ts`).
 
 ## Rules it keeps
 - Writes only on a click, as the operator's own glab login, with the exact command shown first. If GitLab moved
@@ -91,7 +93,7 @@
 | `src/server/index/` | `db.ts`, `migrations/`, `repositories/`, `views/`, `seed/` |
 | `src/server/poller/` | `cycle.ts`, `project.ts`, `classes.ts`, `maturityScan.ts`, `stateHistory.ts`, `state.ts` (memory between cycles), `scheduler.ts`, `config.ts`, `derive/` (policy, tiers, counters, gate, sources, promotion, readmit, receipt, task, rollup), `parse/` (proof block, guardrail, trailers, labels, pushes, blocks), `ci/` (armed tracks), `mrFacts/` (MR size and pipeline), `gaps/` (maturity gap proposals) |
 | `src/server/ledger/` | `parse.ts`, `importLedger.ts`, `parseCycles.ts`, `importCycles.ts` |
-| `src/server/actions/` | `actions.ts` (`'use server'`), `run.ts`, `intents.ts`, `plans/`, `deps.ts`, `types.ts` |
+| `src/server/actions/` | `actions.ts` (`'use server'`), `run.ts`, `intents.ts`, `plans/`, `arm/` (arm, disarm, verify), `gap/` (gap templates), `runs/` (run journal, recall), `local.ts`, `repoll.ts` + `repollAction.ts`, `deps.ts`, `types.ts`, `words.ts` |
 | `src/instrumentation.ts` | Starts the live runtime on Node |
 
 ## Tests
@@ -117,8 +119,8 @@
   empty when recorded (2026-10-06); most read shapes come from documentation fixtures, not recordings.
 - In live mode tracks, loop, event feed, cockpit text, setup phases and doctor rows, tier meanings and stage list are
   still the demo catalogue.
-- Needs you, Ladder and Maturity call `previewAction` / `confirmAction` (see `src/server/actions/README.md`); Onboard
-  and Setup do not yet. Not verified live: every write, the diffs endpoint,
+- Needs you, Ladder, Maturity, Setup and Onboard call `previewAction` / `confirmAction` (see
+  `src/server/actions/README.md`, "Screens that call them"); no screen sends `mark-cra-ready` yet. Not verified live: every write, the diffs endpoint,
   `start_branch`, issue label PUT for work items, the Flows API route. The fake does not model branches, issues or
   protections.
 - The poller reads pipelines only to find the maturity scan job and each agent MR's head pipeline status. Exact flow

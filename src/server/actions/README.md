@@ -36,9 +36,9 @@ only: promotion takes it from there), when trust-policy.yml has no `start_tier`,
 
 `promote-class` decisions (`plans/promote.ts`):
 
-- `planPromote` refuses (`ActionRefused`, naming the date) while the class's record has a `cooldown_until` still ahead (`planPromote`'s `cooling` check, 565e23f). A date-only cooldown lifts at 00:00 UTC on that date (`rules.ts:51-53`).
+- `planPromote` refuses (`ActionRefused`, naming the date) while the class's record has a `cooldown_until` still ahead (`planPromote`'s `cooling` check, 565e23f). A date-only cooldown lifts at 00:00 UTC on that date, and a date-time with no zone is read as UTC (`readInstant`, `src/schemas/instant/readInstant.ts`).
 - Re-admitting a quarantined class to Assisted is not refused during the cooldown (`planPromote`'s `readmit`, 565e23f). The new record keeps `cooldown_until` (the `record` it builds), so the class climbs no further before that date. This is the App Master's decision of 2026-10-09 (wake 1c7f329f), confirming the builder's choice; it matches the re-admit card's "does not lift the promotion cooldown".
-- The preview's summary states the precondition "a person merges this MR; Belay never merges it" (`HUMAN_KEY`, `rules.ts:66`; the `summary` of `planPromote`, 28d308a). It is no longer counted as a met rule row, and no GitLab approval setting is read (28d308a).
+- The preview's summary states the precondition "a person merges this MR; Belay never merges it" (`HUMAN_KEY`, `src/lib/promotion/rules.ts`; the `summary` of `planPromote`, 28d308a). It is no longer counted as a met rule row, and no GitLab approval setting is read (28d308a).
 - When the index's belay-ledger for the project holds the next rung's trial for the holder since its record (`plans/trial.ts`, live only: the context's `ledgerOf` reads the index, demo has none), the MR description names it: the trial MRs' `tier_decision` seq range, the file (`events/<gitlab id>.jsonl`) and its head seq and hash, and the engine command that recomputes it (`npx tsx engine/cli.ts ledger trial --chain events/<gitlab id>.jsonl --through <seq> --head <hash> --agent <a> --class <id> --since <iso>`, every value filled in; a value that is not plain is single-quoted, 7f8e84f). The commit and its diff are the same with or without it.
 
 Arm and disarm (`arm/`): the content is the repo's own, not Belay's idea. `content/` holds a track's include lines as
@@ -168,17 +168,24 @@ screen holds (`{kind: preview}` or `{kind: refused, reason}`).
 - **Ladder** revoke (`app/features/ladder/write/revoke.ts`): `previewAction` as soon as a revoke target is in view
   (the selected class, the highlighted menu target, or a `q` press), the preview in the inspector and the dock;
   `confirmAction(intent, preview.previewId)` on r, the button or the menu item.
+- **Ladder** promote and re-admit (`app/features/ladder/write/promote.ts`): the same `promote-class` round trip as Needs
+  you's, through `needs-you/write/promote.ts`, on p or the click.
 - **Needs you** n1 (promote) and n4 (re-admit, a promote-class to Assisted) (`app/features/needs-you/write/promote.ts`):
   `previewAction` when the decision is selected or staged, the preview in the outbox and the inspector, `confirmAction` on Run.
-
-- Guard (941dcf1, `__tests__/handwritten.test.ts`): `src/app` holds no hand-written gap MR, gap issue, probe or scan. Its two allowances are `src/app/features/kit` and `setup/data/stepDetail.ts` (`NOT_A_SEND`, line 56).
-
+  The live desk (`write/live.ts`) sends those and a live gap's `apply-gap-template` (`write/gapTemplate.ts`); the demo
+  desk (`write/desk.ts`) sends a gap's `stage-gap-mr` through Maturity's `write/gap.ts`.
+- **Maturity** gap sheet (`app/features/maturity/write/gap.ts`): `stage-gap-mr`.
 - **Setup** arm, disarm and verify (`app/features/setup/write/arm.ts`): `previewAction` when the track's Arm or Disarm
-  section is in view, `confirmAction` on its button; "I merged it · verify" calls `verifyArmAction`.
+  section is in view, `confirmAction` on its button; "I merged it · verify" calls `verifyArmAction`. Enroll
+  (`setup/write/enroll.ts`): `enroll-track`, the same round trip.
+- **Onboard** batch (`app/features/onboard/write/write.ts`): each project's `arm-track` and `enroll-track`, as Setup
+  sends them: `previewAction` once the write is on screen, `confirmAction` of that preview on Run.
+
+- Guard (941dcf1, `__tests__/handwritten.test.ts`): `src/app` holds no hand-written gap MR, gap issue, probe or scan. Its
+  one allowance is `src/app/features/kit`, the component gallery's sample text (`NOT_A_SEND` in the test).
 
 Not wired yet: the CRA sign-off (`mark-cra-ready`): no screen sends it, and `needs-you/data/cra.ts` still shows its own
-illustrative commands. The gap MRs (`stage-gap-mr`) are sent by the Maturity sheet (`app/features/maturity/write/gap.ts`). Onboard's
-batch (`app/features/onboard`) still shows commands from its own fixture and calls none of these actions.
+illustrative commands.
 Not verified live: `start_branch` on the repository-files API, `PUT /projects/:id/issues/:iid` for a work item, and the
 policy branch being pushable by the operator (spike S8). The fake does not model branches, issues or protections; it
 models `last_commit_id` (a file write makes a new one, a stale one is refused with GitLab's 400).

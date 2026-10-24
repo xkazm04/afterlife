@@ -59,7 +59,8 @@ A line carrying a key this reader does not know is refused with `LedgerParseErro
 ## Cycles (`parseCycles.ts`, `importCycles.ts`)
 
 `belay-ledger/cycles/<project-id>.jsonl` holds one line per closed improvement cycle (`src/schemas/cycle.ts`): theme,
-engine, `opened_at` and `closed_at` (the rescans), and the changes with their verdicts. Lines are chained with the same
+engine, `opened_at` and `closed_at` (the rescans: ISO instants with a zone, read as an event's `at` is, so the order
+check is the same on every host), and the changes with their verdicts. Lines are chained with the same
 canonical hash as events, numbered 1, 2, 3, and never run backwards in time. `importCycles` skips an unchanged blob,
 then requires the whole file to verify, to hold only this project's cycles and to extend the stored chain (not shorter,
 no stored cycle changed); it replaces the project's `cycle_record` rows in one transaction. A rejected file fails the
