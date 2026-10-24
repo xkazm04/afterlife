@@ -8,6 +8,9 @@ const MOVES: ReadonlySet<CycleChange['verdict']> = new Set(['credited', 'resolve
 
 export const moves = (c: CycleChange): boolean => MOVES.has(c.verdict);
 
+/** A change that was tried and did not earn its rung (rejected or no lift): it is carried into a later cycle. */
+export const notEarned = (c: CycleChange): boolean => c.verdict === 'rejected' || c.verdict === 'nolift';
+
 /** The rungs after one cycle's closing rescan. A running or planned cycle moves nothing yet. */
 export function applyCycle(before: Rungs, cycle: Cycle): Rungs {
   if (cycle.state !== 'closed') return before;
@@ -71,7 +74,7 @@ export function heatGrid(day0: Rungs, cycles: readonly Cycle[]): Record<Stage, H
     grid[s] = cols.map((r, i) => {
       const prev = (cols[i - 1] ?? r)[s];
       const cy = i === 0 ? null : cycles[i - 1];
-      const tried = !!cy?.changes.some((c) => c.stage === s && (c.verdict === 'rejected' || c.verdict === 'nolift'));
+      const tried = !!cy?.changes.some((c) => c.stage === s && notEarned(c));
       return { rung: r[s], move: moveOf(prev, r[s]), tried };
     });
   }
@@ -101,7 +104,7 @@ export function summarize(cycle: Cycle): CycleSummary {
     if (c.verdict === 'credited') {
       s.credited++;
       s.net += c.to - (c.from ?? 0);
-    } else if (c.verdict === 'rejected' || c.verdict === 'nolift') s.missed++;
+    } else if (notEarned(c)) s.missed++;
     else if (c.verdict === 'regressed') {
       s.regressed++;
       s.net -= (c.from ?? 0) - c.to;

@@ -1,5 +1,5 @@
 import { InspectorSection } from '@/components/inspector/InspectorSection';
-import { rungLabel } from '../../model/replay';
+import { notEarned, rungLabel } from '../../model/replay';
 import type { Cycle, CycleChange } from '../../model/types';
 import styles from './inspector.module.css';
 
@@ -23,7 +23,7 @@ const label = (c: CycleChange): string => c.mr ?? c.gap ?? c.kind;
 export function ClosingRule({ cycle }: { cycle: Cycle }) {
   const closed = cycle.state === 'closed';
   const drift = cycle.changes.filter((c) => c.verdict === 'regressed');
-  const missed = cycle.changes.filter((c) => c.verdict === 'rejected' || c.verdict === 'nolift');
+  const missed = cycle.changes.filter(notEarned);
   const failing = RULES.reduce((n, r) => n + (r.fails && cycle.changes.some((c) => c.verdict === r.fails) ? 1 : 0), 0);
   return (
     <InspectorSection title="Closing rule" aux={closed ? (failing ? `${missed.length} change${missed.length === 1 ? '' : 's'} stopped` : 'all held') : 'ahead'}>

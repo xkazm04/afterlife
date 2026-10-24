@@ -2,6 +2,7 @@
 // anything a closed cycle tried and did not earn. Derived from the Maturity proposals, so the two screens never drift.
 import type { MaturityProposal } from '@/lib/demo/types';
 import type { Stage } from '@/schemas/stages';
+import { notEarned } from './replay';
 import { PHASES, type Cycle, type CycleChange, type Phase } from './types';
 
 export interface OpenCycles {
@@ -17,7 +18,7 @@ export function carried(closed: readonly Cycle[], now: Readonly<Record<Stage, nu
   const out = new Map<string, CycleChange & { from_cycle: string }>();
   for (const cy of closed) {
     for (const c of cy.changes) {
-      if ((c.verdict === 'rejected' || c.verdict === 'nolift') && (now[c.stage] ?? -1) < c.to) {
+      if (notEarned(c) && (now[c.stage] ?? -1) < c.to) {
         const key = `${c.stage}:${c.to}`;
         out.delete(key);
         out.set(key, { ...c, from: now[c.stage] ?? null, from_cycle: cy.id });

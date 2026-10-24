@@ -5,7 +5,7 @@ import { CREDIT_HISTORY } from '../../maturity/data/credit';
 import { buildCycles } from './build';
 import { carried, rail } from './plan';
 import { gridView } from './grid';
-import { applyCycle, chainBreaks, heatGrid, MAX_TOTAL, reach, reconcile, replay, summarize, total } from './replay';
+import { applyCycle, chainBreaks, heatGrid, MAX_TOTAL, notEarned, reach, reconcile, replay, summarize, total } from './replay';
 import type { Cycle, Rungs } from './types';
 const { cycles: CLOSED_CYCLES, today: TODAY, cadence: CADENCE_DAYS } = DEMO_CYCLES;
 
@@ -19,6 +19,17 @@ describe('the demo history', () => {
   it('replays from day 0 to exactly the 14:02 scan', () => {
     expect(data.drift).toEqual([]);
     expect(total(replay(data.day0, CLOSED_CYCLES).at(-1)!)).toBe(total(data.scanned));
+  });
+  it('nets, cycle by cycle, exactly what the replay moved: summarize and replay are one rule', () => {
+    const cols = replay(data.day0, CLOSED_CYCLES);
+    CLOSED_CYCLES.forEach((c, i) => expect(summarize(c).net, c.id).toBe(total(cols[i + 1]!) - total(cols[i]!)));
+  });
+  it('counts as not earned exactly what the grid rings and the plan can carry', () => {
+    const grid = heatGrid(data.day0, CLOSED_CYCLES);
+    CLOSED_CYCLES.forEach((c, i) => {
+      expect(summarize(c).missed, c.id).toBe(c.changes.filter(notEarned).length);
+      for (const x of c.changes.filter(notEarned)) expect(grid[x.stage][i + 1]?.tried, `${c.id} ${x.stage}`).toBe(true);
+    });
   });
   it('holds the chain: every change starts where the last one left its stage', () => {
     expect(data.breaks).toEqual([]);

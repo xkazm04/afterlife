@@ -2,7 +2,7 @@
 // caught, the proof that the history adds up, and what runs next. Pure; the screen shows it to copy. It spells no
 // command that posts it: a screen never hand-writes a write (src/server/actions/__tests__/handwritten.test.ts).
 import type { CyclesData } from '../build';
-import { MAX_TOTAL, replay, rungLabel, summarize, total } from '../replay';
+import { MAX_TOTAL, notEarned, replay, rungLabel, summarize, total } from '../replay';
 import type { Cycle, CycleChange } from '../types';
 import { signed, VERDICT_WORD } from '../words';
 
@@ -20,7 +20,7 @@ export function cycleReport(c: Cycle, data: CyclesData): string {
   const s = summarize(c);
   const next = data.cycles.find((x) => x.n === c.n + 1);
   const credited = c.changes.filter((x) => x.verdict === 'credited' || x.verdict === 'resolved');
-  const missed = c.changes.filter((x) => x.verdict === 'rejected' || x.verdict === 'nolift');
+  const missed = c.changes.filter(notEarned);
   const drift = c.changes.filter((x) => x.verdict === 'regressed');
   const closed = data.cycles.filter((x) => x.state === 'closed');
   const after = replay(data.day0, closed)[closed.indexOf(c) + 1];
