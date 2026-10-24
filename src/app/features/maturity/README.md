@@ -27,8 +27,9 @@ mode" below.
 - `model/reducer.ts` the whole screen as one reducer; `state.ts`, `steps.ts` (stepper view), `rungs.ts`, `ctx.ts`.
 - `model/flow/credit.ts` credit rules ("no lift: configured, not exercised" comes first), `commands.ts` the send label, `lede.ts` the line a stage page opens with.
 - `model/crag/` geometry and the per-route view model.
-- `model/keys/keymap.ts` the screen's keys, declared once: `useMaturityKeys` binds them, the legend's key line and
-  Settings > Keyboard read them.
+- `model/keys/keymap.ts` the screen's keys, declared once: `useMaturityKeys` binds them, Settings > Keyboard reads them,
+  and every key the screen names (the legend's key line, the mode and Rescan titles, Pick, the preview's ← →) is
+  `capsFor(id)`, never a typed letter (`keymap.test.ts` scans for one).
 - `model/flow/send.ts` a gap's send, held by the layout's reducer (`state.send`): asking → viewed → sending → done. A done
   answer opens the gap the moment it arrives (also after the sheet closed or the screen remounted); nothing takes the sheet
   down while a send is in flight; closing forgets the previews, never a send. `useGapSheet` only makes the two server calls.
