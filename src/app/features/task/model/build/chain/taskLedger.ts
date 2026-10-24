@@ -13,12 +13,21 @@ function rowOf(e: LedgerEvent): LedgerRow {
 /**
  * The ledger of each task, from the real chain: the whole chain is verified once (the first broken seq, or null), and a
  * task's rows are the events about its merge request, in seq order, with their own sha256 hash and prev_hash. A task with
- * no merge request, or one the chain never names, holds no rows.
+ * no merge request, or one the chain never names, holds no rows. The events are grouped by merge request once, so a docket
+ * of n tasks reads the chain once, not n times.
  */
 export function chainLedgers(events: readonly LedgerEvent[]): (mr: string | null) => TaskLedger {
   const brokenAt = verifyChain(events);
+  const byMr = new Map<string, LedgerEvent[]>();
+  for (const e of events) {
+    const mr = mrOf(e);
+    if (mr === null) continue;
+    const rows = byMr.get(mr);
+    if (rows) rows.push(e);
+    else byMr.set(mr, [e]);
+  }
   return (mr) => ({
-    ledger: mr === null ? [] : events.filter((e) => mrOf(e) === mr).map(rowOf),
+    ledger: mr === null ? [] : (byMr.get(mr) ?? []).map(rowOf),
     ledgerCheck: { hash: 'sha256', brokenAt },
   });
 }
