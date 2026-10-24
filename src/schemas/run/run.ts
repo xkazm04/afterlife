@@ -5,10 +5,13 @@
 
 export const RUN_SCHEMA = 'belay.run/0' as const;
 
-export type RunEventKind = 'wave.start' | 'wave.plan' | 'lane.start' | 'lane.usage' | 'lane.end' | 'wave.tech' | 'wave.end';
+/** Every event kind, at runtime: the reader's allow-list is this, not a copy of it. */
+export const RUN_EVENT_KINDS = ['wave.start', 'wave.plan', 'lane.start', 'lane.usage', 'lane.end', 'wave.tech', 'wave.end'] as const;
+export type RunEventKind = (typeof RUN_EVENT_KINDS)[number];
 
 /** How a lane ended. `budget` = halted at laneCapUsd or waveCapUsd; `timeout` = its process tree was killed. */
-export type LaneOutcome = 'landed' | 'parked' | 'failed' | 'budget' | 'timeout';
+export const LANE_OUTCOMES = ['landed', 'parked', 'failed', 'budget', 'timeout'] as const;
+export type LaneOutcome = (typeof LANE_OUTCOMES)[number];
 
 interface RunEventBase {
   v: typeof RUN_SCHEMA;
@@ -140,6 +143,9 @@ export interface WaveEnd extends RunEventBase {
 }
 
 export type RunEvent = WaveStart | WavePlan | LaneStart | LaneUsage | LaneEnd | WaveTech | WaveEnd;
+// RUN_EVENT_KINDS names exactly the kinds RunEvent has: a kind added to one and not the other is a typecheck error.
+const KINDS_MATCH: [RunEventKind, RunEvent['kind']] extends [RunEvent['kind'], RunEventKind] ? true : never = true;
+void KINDS_MATCH;
 
 export function waveBranch(wave: number): string {
   return `belay/wave-${wave}`;

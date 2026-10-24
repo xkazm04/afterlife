@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { foldRuns, foldWave } from './fold';
+import { emptyCounts, foldRuns, foldWave } from './fold';
 import { WAVE_1, WAVE_2_RUNNING } from './fixture';
 import { DASH, outcomeWords, tokens, usd, wall } from '@/app/features/runs/model/format';
 import { parseRunLine } from './parse';
-import type { RunEvent } from '@/schemas/run/run';
+import { LANE_OUTCOMES, RUN_EVENT_KINDS, type RunEvent } from '@/schemas/run/run';
 
 const events = (lines: string[]) => lines.map(parseRunLine).filter((e): e is RunEvent => e !== null);
 
@@ -13,6 +13,13 @@ describe('parseRunLine', () => {
     expect(WAVE_1.filter((l) => parseRunLine(l) === null)).toHaveLength(3);
     expect(parseRunLine('[]')).toBeNull();
     expect(parseRunLine('')).toBeNull();
+  });
+
+  it("reads every outcome the schema lists, and the fold counts each one", () => {
+    const end = JSON.parse(WAVE_1[4]!) as Record<string, unknown>;
+    for (const outcome of LANE_OUTCOMES) expect(parseRunLine(JSON.stringify({ ...end, outcome }))).toMatchObject({ outcome });
+    expect(Object.keys(emptyCounts())).toEqual([...LANE_OUTCOMES]);
+    expect(RUN_EVENT_KINDS).toContain('wave.tech');
   });
 });
 

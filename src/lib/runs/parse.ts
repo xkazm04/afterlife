@@ -1,9 +1,9 @@
 // One line of a wave's jsonl -> a belay.run/0 event, or null. Malformed means: not JSON, not this schema version, an
 // unknown kind, or a field the fold relies on missing or the wrong type. The caller counts the nulls.
-import { RUN_SCHEMA, type RunEvent } from '@/schemas/run/run';
+import { LANE_OUTCOMES, RUN_EVENT_KINDS, RUN_SCHEMA, type RunEvent } from '@/schemas/run/run';
 
-const KINDS = new Set(['wave.start', 'wave.plan', 'lane.start', 'lane.usage', 'lane.end', 'wave.tech', 'wave.end']);
-const OUTCOMES = new Set(['landed', 'parked', 'failed', 'budget', 'timeout']);
+const KINDS: ReadonlySet<string> = new Set(RUN_EVENT_KINDS);
+const OUTCOMES: ReadonlySet<string> = new Set(LANE_OUTCOMES);
 
 const str = (v: unknown): v is string => typeof v === 'string';
 const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);

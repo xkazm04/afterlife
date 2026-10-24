@@ -1,10 +1,9 @@
 // Pure folds: one wave's events -> a RunWave; the waves -> RunsData. Events are append-only, so a lane's last word wins
 // (lane.end) and usage adds up. Nothing is invented: no usage event, no tokens or cost key.
-import type { LaneOutcome, RunEvent } from '@/schemas/run/run';
+import { LANE_OUTCOMES, type RunEvent } from '@/schemas/run/run';
 import type { OutcomeCounts, RunLane, RunRepo, RunsData, RunTotals, RunWave } from './types';
 
-export const emptyCounts = (): OutcomeCounts => ({ landed: 0, parked: 0, failed: 0, budget: 0, timeout: 0 });
-const OUTCOMES = Object.keys(emptyCounts()) as LaneOutcome[];
+export const emptyCounts = (): OutcomeCounts => Object.fromEntries(LANE_OUTCOMES.map((k) => [k, 0])) as OutcomeCounts;
 const add = (a: number | undefined, b: number): number => (a ?? 0) + b;
 
 export function foldLanes(events: readonly RunEvent[], promptVersion: string): RunLane[] {
@@ -81,11 +80,11 @@ export function totalsOf(waves: readonly RunWave[]): RunTotals {
   let costUsd: number | undefined;
   for (const w of waves) {
     lanes += w.lanes.length;
-    for (const k of OUTCOMES) counts[k] += w.counts[k];
+    for (const k of LANE_OUTCOMES) counts[k] += w.counts[k];
     if (w.tokens !== undefined) tokens = add(tokens, w.tokens);
     if (w.costUsd !== undefined) costUsd = add(costUsd, w.costUsd);
   }
-  const ended = OUTCOMES.reduce((n, k) => n + counts[k], 0);
+  const ended = LANE_OUTCOMES.reduce((n, k) => n + counts[k], 0);
   const t: RunTotals = { waves: waves.length, lanes, counts };
   if (ended > 0) t.landedPct = counts.landed / ended;
   if (tokens !== undefined) t.tokens = tokens;
