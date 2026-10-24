@@ -2,7 +2,7 @@
 
 import type { ReactNode, RefObject } from 'react';
 import { useMenu } from '@/components/overlays/menu/useMenu';
-import { isGroupNavId, rowDomId } from '@/components/table/model/rowNavigation';
+import { groupOfNavId, rowDomId } from '@/components/table/model/rowNavigation';
 import type { FleetProject } from '@/lib/demo/types';
 import { groupMenu, rowMenu } from '../model/menus/contextMenus';
 import { filterMenu, sortMenu } from '../model/menus/toolbarMenus';
@@ -53,8 +53,8 @@ export function useFleetMenus(a: FleetMenusArgs) {
     sortM.close();
     filterM.close();
     const returnTo = a.tableRef.current;
-    if (isGroupNavId(id)) {
-      const g = id.slice(2);
+    const g = groupOfNavId(id);
+    if (g !== null) {
       const items = groupMenu({
         collapsed: list.collapsed.has(g),
         onToggle: () => list.toggleGroup(g),

@@ -6,7 +6,7 @@ import { TIER_DISPLAY_ORDER } from '@/lib/tiers';
 import { firstParam, type ParamValue } from '@/lib/url/searchParams';
 import type { SortDir, SortState } from '@/components/table/model/sort';
 import type { FleetFilters, FleetView, SmartId, SortKey, Source } from '../types';
-import { EMPTY_FILTERS } from './filtering';
+import { EMPTY_FILTERS, isGroupSource } from './filtering';
 import { SMART_FILTERS } from './smartFilters';
 import { INITIAL_SORT, PLAIN_SORT_KEYS, defaultDir, sortFitsView } from './sorting';
 
@@ -82,7 +82,7 @@ export function decodeListState(raw: RawParams | URLSearchParams | null | undefi
  */
 export function fitGroups(s: FleetListState, groups: readonly string[]): FleetListState {
   const src = s.filters.source;
-  const goneSource = src.startsWith('g:') && !groups.includes(src.slice(2));
+  const goneSource = isGroupSource(src) && !groups.includes(src.slice(2));
   const collapsed = [...s.collapsed].filter((g) => groups.includes(g));
   if (!goneSource && collapsed.length === s.collapsed.size) return s;
   return { ...s, collapsed: new Set(collapsed), filters: goneSource ? { ...s.filters, source: 'all' } : s.filters };
