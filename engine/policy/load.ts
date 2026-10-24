@@ -15,6 +15,7 @@ export interface EnginePolicy extends TrustPolicy {
   envelope: TrustPolicy['envelope'] & { production_requires_proof?: string[] };
   classes: Record<string, TrustPolicy['classes'][string] & { allow_paths?: string[] }>;
   rerun_stats?: Partial<RerunThresholds>;
+  bench_delta?: { max_tolerance?: number };
 }
 
 const CEILINGS = [...TIER_ORDER, 'human_only'];
@@ -42,6 +43,14 @@ function rerunThresholds(raw: unknown): void {
   }
 }
 
+/** The widest regression a bench-delta input may claim; a NaN ceiling would let every tolerance through. */
+function benchCeiling(raw: unknown): void {
+  const r = rec(raw, 'trust-policy.bench_delta');
+  if (r.max_tolerance === undefined) return;
+  const max = num(r.max_tolerance, 'bench_delta.max_tolerance');
+  if (!(max >= 0 && max < 1)) throw new EngineError('bench_delta.max_tolerance must be a fraction in [0, 1)');
+}
+
 export function parsePolicy(raw: unknown): EnginePolicy {
   const p = rec(raw, 'trust-policy');
   if (p.version !== 1) throw new EngineError('trust-policy.version must be 1');
@@ -67,6 +76,7 @@ export function parsePolicy(raw: unknown): EnginePolicy {
   // a negative cooldown stamps cooldown_until before the demotion's own day: the hold on re-promotion is off
   if (num(p.cooldown_days, 'trust-policy.cooldown_days') < 0) throw new EngineError('trust-policy.cooldown_days must be 0 or more');
   if (p.rerun_stats !== undefined) rerunThresholds(p.rerun_stats);
+  if (p.bench_delta !== undefined) benchCeiling(p.bench_delta);
   return p as unknown as EnginePolicy;
 }
 

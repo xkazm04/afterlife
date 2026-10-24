@@ -54,7 +54,8 @@
   `linkedEvidence.ts` (links resolve in the results the input carries, allowed hosts, CRA clock arithmetic recomputed;
   legal wording is a `decidedBy: human` check), and in `checkers/`: `repro.ts` (the claimed failure reproduces in 2
   probe runs on the MR head against the target environment), `benchDelta.ts` (no new test failure, benchmarks within
-  the tolerance on one runner tag), `scoreDelta.ts` (no maturity stage lower at head, same engine and project),
+  the tolerance on one runner tag; the input's tolerance may not exceed the policy's `bench_delta.max_tolerance`,
+  default 0.10, or bench-within-tolerance fails naming both), `scoreDelta.ts` (no maturity stage lower at head, same engine and project),
   `ledgerRecord.ts` (the ledger chain verifies and a holder's next-rung trial is recomputed from it). An optional
   `head_sha` is carried through when the input has it.
 - **Verdict**: `verdictOf(checks, envelope.within)` in `src/schemas/proof.ts`: outside the envelope is fail; no

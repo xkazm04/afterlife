@@ -36,7 +36,7 @@ export function prove(cls: ProofClass, rawInput: unknown, env: Env): ProofBlock 
     case 'repro':
       return assemble(cls, base, repro(input, base), env);
     case 'bench-delta':
-      return assemble(cls, base, benchDelta(input), env);
+      return assemble(cls, base, benchDelta(input, env.policy), env);
     case 'score-delta':
       return assemble(cls, base, scoreDelta(input, base.task.project_id), env);
     case 'ledger-record':

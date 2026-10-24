@@ -43,7 +43,8 @@ Only `prove` inlines; `gate`, `tripwire` and `ledger` read their JSON as it is.
 - **bench-delta** - base and head JUnit (or traces): no case fails at head that did not fail at base, and every case
   that ran at base still runs at head; base and head `bench` JSON (`{runner_tag, benchmarks: [{name, value, unit?,
   better?}]}`) from the same runner tag: no benchmark is worse at head by more than `tolerance` (a fraction of base, from
-  the input, else the engine default 0.05; the check says which). Different runner tags are not comparable: inconclusive.
+  the input, else the engine default 0.05; the check says which). A tolerance above the policy's
+  `bench_delta.max_tolerance` (else 0.10) fails the check: the evidence job cannot widen its own limit. Different runner tags are not comparable: inconclusive.
 - **score-delta** - base and head `belay.maturity/0` scans (what `scan` prints, parsed by `src/schemas/maturity.ts`) of
   the task's project by the same engine version: no stage's rung is lower at head. A stage unknown at both ends is
   unchanged; known at one end only, or another engine version, is inconclusive.

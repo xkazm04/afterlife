@@ -31,6 +31,7 @@ export function trustPolicyYaml(): string {
     '  quarantine_on: [guardrail_high, budget_breach_x2]',
     'classes:', ...rows,
     'rerun_stats: { min_runs: 5, real_failure_rate: 0.8 }',
+    'bench_delta: { max_tolerance: 0.1 }',
     'envelope:',
     '  hands_off: { max_files: 6, max_lines: 120, environments: ["review/*", "staging", "production"] }',
     '  production_requires_proof: [exploit-test, rerun-stats]',

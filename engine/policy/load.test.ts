@@ -50,6 +50,15 @@ describe('parsePolicy: rerun_stats thresholds', () => {
   });
 });
 
+describe('parsePolicy: bench_delta ceiling', () => {
+  it('accepts a fraction in [0, 1) or no ceiling, and refuses one that is not: a NaN ceiling lets every tolerance through', () => {
+    for (const bench_delta of [{ max_tolerance: 0.1 }, { max_tolerance: 0 }, {}]) expect(() => parsePolicy(base({ bench_delta })), JSON.stringify(bench_delta)).not.toThrow();
+    for (const max_tolerance of [-0.1, 1, 5]) expect(() => parsePolicy(base({ bench_delta: { max_tolerance } })), String(max_tolerance)).toThrow(/max_tolerance must be a fraction in \[0, 1\)/);
+    expect(() => parsePolicy(base({ bench_delta: { max_tolerance: '0.1' } }))).toThrow(/max_tolerance must be a number/);
+    expect(() => parsePolicy(base({ bench_delta: 0.1 }))).toThrow(/bench_delta must be an object/);
+  });
+});
+
 describe('parsePolicy: cooldown_days', () => {
   it('refuses a negative cooldown: the tripwire would stamp a cooldown_until that ended before the demotion', () => {
     expect(() => parsePolicy(base({ cooldown_days: -7 }))).toThrow(/cooldown_days must be 0 or more/);

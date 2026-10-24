@@ -29,6 +29,9 @@ classes:
 # Pipeline medic (rerun-stats proof): at least min_runs usable reruns of one SHA; a failure rate at or
 # above real_failure_rate is a real failure, below it (and above zero) a flake. Policy numbers, not measurements.
 rerun_stats: { min_runs: 5, real_failure_rate: 0.8 }
+# Gardener (bench-delta proof): the widest regression tolerance an evidence job may state. The job runs in the
+# pipeline the change can edit, so a wider one fails the check; the engine caps at 0.10 when this is unset.
+bench_delta: { max_tolerance: 0.1 }
 envelope:
   # DECISIONS.md D3: the hands-off loop reaches production, only for mechanical proof classes.
   hands_off: { max_files: 6, max_lines: 120, environments: ["review/*", "staging", "production"] }

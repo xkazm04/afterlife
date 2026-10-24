@@ -4,8 +4,10 @@
 // both measured on the same runner tag.
 //
 // Tolerance: the input's `tolerance`, a fraction of the base value (0.05 = 5 %), in [0, 1). When the input sets none the
-// engine uses DEFAULT_TOLERANCE, 0.05, and the check says which one it used. It is not a policy key: the evidence job
-// states it next to the numbers it measured. A benchmark is `{name, value, unit?, better?}`: `better` is 'lower' (the
+// engine uses DEFAULT_TOLERANCE, 0.05, and the check says which one it used. The evidence job states it next to the numbers
+// it measured, but that job runs in the pipeline the change can edit, so it may not exceed the policy's ceiling,
+// trust-policy.yml `bench_delta.max_tolerance` (DEFAULT_MAX_TOLERANCE, 0.10, when the policy sets none): a wider one
+// fails bench-within-tolerance and names both numbers. A benchmark is `{name, value, unit?, better?}`: `better` is 'lower' (the
 // default: a time) or 'higher' (a throughput), so only a move in the worse direction beyond the tolerance regresses.
 //
 // Input: `base` and `head`, each `{junit?, trace?, job_ref?, bench}`; `bench` is `{runner_tag, benchmarks: [...]}` JSON,
@@ -13,10 +15,12 @@
 import type { Check } from '../../../src/schemas/proof';
 import { EngineError, isRecord, num, optStr, rec } from '../../core/types';
 import { caseKey, casesOf, isRed, type JobEvidence } from '../../parse/cases';
+import type { EnginePolicy } from '../../policy/load';
 import type { Draft } from '../common';
 import { checksFor, jobEvidence, jsonEvidence, type At, type Read } from './evidence';
 
 export const DEFAULT_TOLERANCE = 0.05;
+export const DEFAULT_MAX_TOLERANCE = 0.1;
 
 interface Bench {
   name: string;
@@ -53,11 +57,21 @@ function job(raw: unknown, what: string): JobEvidence & { bench: unknown } {
   return { junit: optStr(j.junit, `${what}.junit`), trace: optStr(j.trace, `${what}.trace`), job_ref: optStr(j.job_ref, `${what}.job_ref`), bench: j.bench };
 }
 
+const pctOf = (x: number): string => `${(x * 100).toFixed(1)} %`;
+
 function toleranceOf(input: Record<string, unknown>): { tol: number; source: string } {
   if (input.tolerance === undefined) return { tol: DEFAULT_TOLERANCE, source: 'engine default' };
   const tol = num(input.tolerance, 'tolerance');
   if (tol < 0 || tol >= 1) throw new EngineError('tolerance must be a fraction in [0, 1)');
   return { tol, source: 'the input' };
+}
+
+/** Why a tolerance is wider than the reviewed limit allows, or null when it is inside it. */
+function overCeiling(tol: number, policy: EnginePolicy): string | null {
+  const set = policy.bench_delta?.max_tolerance;
+  const max = set ?? DEFAULT_MAX_TOLERANCE;
+  if (tol <= max) return null;
+  return `tolerance ${pctOf(tol)} is wider than the ${pctOf(max)} ceiling from ${set === undefined ? 'the engine default (no bench_delta.max_tolerance in the policy)' : 'trust-policy.yml bench_delta.max_tolerance'}`;
 }
 
 function testChecks(at: At, base: JobEvidence, head: JobEvidence): Check[] {
@@ -76,8 +90,6 @@ function testChecks(at: At, base: JobEvidence, head: JobEvidence): Check[] {
     at('same-tests', lost.length === 0, lost.length ? `ran at base, missing or skipped at head: ${lost.join(', ')}` : `every one of the ${b.length} base case(s) runs at head`, head.job_ref),
   ];
 }
-
-const pctOf = (x: number): string => `${(x * 100).toFixed(1)} %`;
 
 function benchChecks(at: At, base: Read<BenchRun>, head: Read<BenchRun>, tol: number, source: string): Check[] {
   if (!base.ok || !head.ok) {
@@ -112,11 +124,14 @@ function benchChecks(at: At, base: Read<BenchRun>, head: Read<BenchRun>, tol: nu
   ];
 }
 
-export function benchDelta(input: Record<string, unknown>): Draft {
+export function benchDelta(input: Record<string, unknown>, policy: EnginePolicy): Draft {
   const at = checksFor(input);
   const base = job(input.base, 'base');
   const head = job(input.head, 'head');
   const { tol, source } = toleranceOf(input);
-  const checks = [...testChecks(at, base, head), ...benchChecks(at, readBench(base.bench, 'base.bench'), readBench(head.bench, 'head.bench'), tol, source)];
+  const over = overCeiling(tol, policy);
+  const bench = benchChecks(at, readBench(base.bench, 'base.bench'), readBench(head.bench, 'head.bench'), tol, source)
+    .map((c) => (over && c.name === 'bench-within-tolerance' ? at('bench-within-tolerance', false, over, head.job_ref) : c));
+  const checks = [...testChecks(at, base, head), ...bench];
   return { checks, evidence: jobEvidence(base.job_ref, head.job_ref) };
 }

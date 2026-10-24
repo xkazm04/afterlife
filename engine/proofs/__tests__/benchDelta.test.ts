@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EngineError } from '../../core/types';
 import { checkOf, fixture, NOW, policy } from '../../__tests__/helpers';
-import { DEFAULT_TOLERANCE } from '../checkers/benchDelta';
+import { DEFAULT_MAX_TOLERANCE, DEFAULT_TOLERANCE } from '../checkers/benchDelta';
 import { prove } from '../index';
 
 const env = { policy: policy(), now: NOW };
@@ -39,6 +39,18 @@ describe('bench-delta', () => {
     expect(withBench(bench(R, { name: 'ops', value: 100, better: 'higher' }), bench(R, { name: 'ops', value: 90, better: 'higher' })).verdict).toBe('fail');
     expect(withBench(bench(R, { name: 't', value: 0 }), bench(R, { name: 't', value: 1 })).verdict).toBe('fail');
     for (const tolerance of [-0.1, 1, 'x']) expect(() => run({ tolerance })).toThrow(EngineError);
+  });
+
+  it('fails a tolerance wider than the policy ceiling, naming both numbers, so the evidence job cannot widen its own limit', () => {
+    const slow = [bench(R, { name: 't', value: 100 }), bench(R, { name: 't', value: 104 })] as const;
+    const tight = { policy: { ...policy(), bench_delta: { max_tolerance: 0.05 } }, now: NOW };
+    const wide = prove('bench-delta', { ...input, base: { ...job('base'), bench: slow[0] }, head: { ...job('head'), bench: slow[1] }, tolerance: 0.9 }, tight);
+    expect([wide.verdict, checkOf(wide, 'bench-within-tolerance').detail]).toEqual(['fail', 'tolerance 90.0 % is wider than the 5.0 % ceiling from trust-policy.yml bench_delta.max_tolerance']);
+    expect(prove('bench-delta', { ...input, tolerance: 0.05 }, tight).verdict).toBe('pass'); // at the ceiling is inside it
+    const unset = { policy: { ...policy(), bench_delta: undefined }, now: NOW };
+    expect(checkOf(prove('bench-delta', { ...input, tolerance: 0.5 }, unset), 'bench-within-tolerance').detail).toMatch(/10\.0 % ceiling from the engine default/);
+    expect(DEFAULT_MAX_TOLERANCE).toBe(0.1);
+    expect(policy().bench_delta?.max_tolerance).toBe(0.1);
   });
 
   it('is inconclusive on different runner tags, a benchmark not measured at head, or a changed unit', () => {
