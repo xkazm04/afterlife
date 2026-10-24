@@ -95,7 +95,11 @@ export function totalsOf(waves: readonly RunWave[]): RunTotals {
 /** Waves of every repo -> the screen's data: repos A-Z, each repo's waves newest first. */
 export function foldRuns(waves: readonly RunWave[], skippedLines: number): RunsData {
   const byRepo = new Map<string, RunWave[]>();
-  for (const w of waves) byRepo.set(w.repo, [...(byRepo.get(w.repo) ?? []), w]);
+  for (const w of waves) {
+    const list = byRepo.get(w.repo);
+    if (list) list.push(w);
+    else byRepo.set(w.repo, [w]);
+  }
   const repos: RunRepo[] = [...byRepo.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([repo, ws]) => {
