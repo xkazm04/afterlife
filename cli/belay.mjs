@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// belay - command-line companion of the app: doctor | run | scan | pair | replay.
+// belay - command-line companion of the app: doctor | run | scan | pair | collect | replay.
 // Every write it will ever make prints the exact command first. `doctor` and `scan` only read; `pair` prints what it would
 // add to a checkout and writes only with --write (it never commits, pushes or opens an MR); `run` is the one verb that
-// spends: it prints repo, base, caps and model before anything starts, and --dry-run stops right there.
+// spends: it prints repo, base, caps and model before anything starts, and --dry-run stops right there. `collect` only reads
+// a real project's CI through the person's own az/glab login and appends what is new under the data dir.
 // The logic is TypeScript (src/server/gitlab, engine/scan, src/server/pair, runner/), run here through tsx.
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -11,7 +12,7 @@ import path from 'node:path';
 import { childExit } from './childExit.mjs';
 
 const [, , cmd = 'help', ...rest] = process.argv;
-const USAGE = 'usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--pack-version v] [--engine-ref ref] [--write] | replay <ledger-slice>';
+const USAGE = 'usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--pack-version v] [--engine-ref ref] [--write] | collect --project <slug> | replay <ledger-slice>';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 /** Runs a TypeScript entry through tsx. `cwd` is where it runs (scan and pair read the caller's checkout); the app's
@@ -54,6 +55,9 @@ switch (cmd) {
   }
   case 'pair':
     process.exitCode = viaTsx('pair', '../src/server/pair/pairCli.ts', rest, process.cwd());
+    break;
+  case 'collect':
+    process.exitCode = viaTsx('collect', '../src/server/vitals/collect/collectCli.ts', rest);
     break;
   case 'replay':
     console.error(`belay ${cmd}: not implemented yet`);

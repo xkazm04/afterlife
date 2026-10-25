@@ -1,0 +1,28 @@
+{
+  "_shape": "glab api projects/:id/pipelines and .../pipelines/:id/jobs, cut to the fields the mapper reads (GitLab REST docs shapes)",
+  "pipelines": [
+    { "id": 70005, "status": "running", "source": "push", "ref": "main", "sha": "c0ffee0000000000000000000000000000000005", "created_at": "2026-10-25T09:50:00.000Z", "updated_at": "2026-10-25T09:51:00.000Z" },
+    { "id": 70004, "status": "success", "source": "schedule", "ref": "main", "sha": "c0ffee0000000000000000000000000000000004", "created_at": "2026-10-25T03:00:00.000Z", "updated_at": "2026-10-25T03:20:00.000Z" },
+    { "id": 70003, "status": "success", "source": "push", "ref": "main", "sha": "c0ffee0000000000000000000000000000000003", "created_at": "2026-10-24T09:22:00.000Z", "updated_at": "2026-10-24T09:27:10.000Z" },
+    { "id": 70002, "status": "failed", "source": "merge_request_event", "ref": "refs/heads/feature/login", "sha": "c0ffee0000000000000000000000000000000002", "created_at": "2026-10-24T10:02:00.000Z", "updated_at": "2026-10-24T10:06:40.000Z" },
+    { "id": 70001, "status": "canceled", "source": "web", "ref": "main", "sha": "c0ffee0000000000000000000000000000000001", "created_at": "2026-06-01T09:01:00.000Z", "updated_at": "2026-06-01T09:06:30.000Z" }
+  ],
+  "jobs": {
+    "70004": [
+      { "id": 80045, "name": "deploy-prod", "stage": "deploy", "status": "success", "allow_failure": false, "started_at": "2026-10-25T03:15:00.000Z", "finished_at": "2026-10-25T03:19:30.000Z" },
+      { "id": 80044, "name": "e2e", "stage": "test", "status": "success", "allow_failure": false, "started_at": "2026-10-25T03:06:00.000Z", "finished_at": "2026-10-25T03:14:00.000Z" },
+      { "id": 80043, "name": "sast", "stage": "test", "status": "failed", "allow_failure": true, "started_at": "2026-10-25T03:05:00.000Z", "finished_at": "2026-10-25T03:06:10.000Z" },
+      { "id": 80042, "name": "build", "stage": "build", "status": "success", "allow_failure": false, "started_at": "2026-10-25T03:01:00.000Z", "finished_at": "2026-10-25T03:04:50.000Z" }
+    ],
+    "70003": [
+      { "id": 80032, "name": "manual-release", "stage": "release", "status": "manual", "allow_failure": true, "started_at": null, "finished_at": null },
+      { "id": 80031, "name": "unit-tests", "stage": "test", "status": "success", "allow_failure": false, "started_at": "2026-10-24T09:23:30.000Z", "finished_at": "2026-10-24T09:27:00.000Z" },
+      { "id": 80030, "name": "lint", "stage": "build", "status": "success", "allow_failure": false, "started_at": "2026-10-24T09:22:05.000Z", "finished_at": "2026-10-24T09:22:17.000Z" }
+    ],
+    "70002": [
+      { "id": 80022, "name": "e2e", "stage": "e2e", "status": "skipped", "allow_failure": false, "started_at": null, "finished_at": null },
+      { "id": 80021, "name": "unit-tests", "stage": "test", "status": "failed", "allow_failure": false, "started_at": "2026-10-24T10:02:30.000Z", "finished_at": "2026-10-24T10:03:33.000Z" },
+      { "id": 80020, "name": "lint", "stage": "build", "status": "success", "allow_failure": false, "started_at": "2026-10-24T10:02:05.000Z", "finished_at": "2026-10-24T10:02:17.000Z" }
+    ]
+  }
+}

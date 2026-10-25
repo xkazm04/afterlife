@@ -1,0 +1,118 @@
+[
+ {
+  "id": 920,
+  "definition": {
+   "id": 2,
+   "name": "Grinex Portal"
+  },
+  "status": "inProgress",
+  "result": null,
+  "reason": "individualCI",
+  "sourceBranch": "refs/heads/master",
+  "sourceVersion": "d0329085fbf128fb4335e9fb96cde7f5db9ab186",
+  "queueTime": "2026-10-25T08:59:58.000000+00:00",
+  "startTime": "2026-10-25T09:00:00.000000+00:00",
+  "finishTime": null,
+  "templateParameters": {
+   "ciPool": "selfhosted",
+   "dbShards": "4",
+   "fullSuite": "False"
+  },
+  "parameters": null
+ },
+ {
+  "id": 904,
+  "definition": {
+   "id": 2,
+   "name": "Grinex Portal"
+  },
+  "status": "completed",
+  "result": "failed",
+  "reason": "individualCI",
+  "sourceBranch": "refs/heads/master",
+  "sourceVersion": "d0329085fbf128fb4335e9fb96cde7f5db9ab186",
+  "queueTime": "2026-10-24T21:54:16.692315+00:00",
+  "startTime": "2026-10-24T21:54:20.925207+00:00",
+  "finishTime": "2026-10-25T01:10:29.151783+00:00",
+  "templateParameters": {
+   "ciPool": "selfhosted",
+   "dbShards": "4",
+   "fullSuite": "False"
+  },
+  "parameters": null
+ },
+ {
+  "id": 898,
+  "definition": {
+   "id": 2,
+   "name": "Grinex Portal"
+  },
+  "status": "completed",
+  "result": "partiallySucceeded",
+  "reason": "individualCI",
+  "sourceBranch": "refs/heads/master",
+  "sourceVersion": "cf2374b97ee93725f230134b7ae3e1aab3075cef",
+  "queueTime": "2026-10-14T06:03:00.373006+00:00",
+  "startTime": "2026-10-14T06:03:04.779567+00:00",
+  "finishTime": "2026-10-14T11:46:27.895167+00:00",
+  "templateParameters": {
+   "ciPool": "selfhosted"
+  },
+  "parameters": null
+ },
+ {
+  "id": 913,
+  "definition": {
+   "id": 2,
+   "name": "Grinex Portal"
+  },
+  "status": "completed",
+  "result": "canceled",
+  "reason": "manual",
+  "sourceBranch": "refs/heads/master",
+  "sourceVersion": "f9351f6a37bdccaf7882477314fea447043c7f6a",
+  "queueTime": "2026-10-24T21:59:17.627245+00:00",
+  "startTime": "2026-10-24T22:15:07.396452+00:00",
+  "finishTime": "2026-10-24T22:15:07.396452+00:00",
+  "templateParameters": {
+   "ciPool": "selfhosted",
+   "dbShards": "4",
+   "fullSuite": "False"
+  },
+  "parameters": null
+ },
+ {
+  "id": 910,
+  "definition": {
+   "id": 2,
+   "name": "Grinex Portal"
+  },
+  "status": "completed",
+  "result": "failed",
+  "reason": "individualCI",
+  "sourceBranch": "refs/heads/master",
+  "sourceVersion": "8510e818b658906f0c958db3367b0e39a7e638f2",
+  "queueTime": "2026-10-24T21:54:45.841001+00:00",
+  "startTime": "2026-10-24T21:54:45.809998+00:00",
+  "finishTime": "2026-10-24T21:54:45.809998+00:00",
+  "templateParameters": null,
+  "parameters": null
+ },
+ {
+  "id": 911,
+  "definition": {
+   "id": 8,
+   "name": "Build Android APK (Grix mobile app)"
+  },
+  "status": "completed",
+  "result": "succeeded",
+  "reason": "individualCI",
+  "sourceBranch": "refs/heads/master",
+  "sourceVersion": "8510e818b658906f0c958db3367b0e39a7e638f2",
+  "queueTime": "2026-10-24T21:54:46.013539+00:00",
+  "startTime": "2026-10-24T22:18:01.190601+00:00",
+  "finishTime": "2026-10-24T22:25:27.374922+00:00",
+  "templateParameters": null,
+  "parameters": null
+ }
+]
