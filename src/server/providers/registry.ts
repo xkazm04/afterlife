@@ -2,10 +2,12 @@
 // in discover (WP1).
 import type { CiProviderKind, CloudProviderKind, ProbeKind } from '@/schemas/vitals';
 import type { CiProvider, CloudProvider, Exec } from './types';
+import { azurePipelines } from './azure';
+import { defaultExec } from './exec';
+import { gitlabCi } from './gitlab';
 
 export function ciProvider(kind: Exclude<CiProviderKind, 'none'>, exec?: Exec): CiProvider {
-  void kind; void exec;
-  throw new Error('providers: ciProvider not built (WP2)');
+  return kind === 'azure-pipelines' ? azurePipelines(exec ?? defaultExec) : gitlabCi(exec ?? defaultExec);
 }
 
 export function cloudProvider(kind: Exclude<CloudProviderKind, 'none'>, exec?: Exec): CloudProvider {
