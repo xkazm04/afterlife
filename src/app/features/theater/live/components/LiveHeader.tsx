@@ -17,6 +17,11 @@ export function LiveHeader({ v }: { v: LiveView }) {
   return (
     <header className={styles.head}>
       <LiveBadge v={v} />
+      {v.repo === undefined ? null : v.proposeOnly ? (
+        <Chip tone="accent" title="--mode propose: each wave only plans; no branch, no lane, nothing committed">PROPOSE ONLY</Chip>
+      ) : (
+        <Chip tone="neutral" title="--mode execute: lanes edit, run the gates and commit what passes">EXECUTE</Chip>
+      )}
       <dl className={styles.facts}>
         <div>
           <dt>{running ? 'running' : 'ran'}</dt>
@@ -29,7 +34,7 @@ export function LiveHeader({ v }: { v: LiveView }) {
         <div>
           <dt>going well</dt>
           <dd>
-            {v.landed} landed · {v.parked} parked · {v.failed} failed · {usd(v.costUsd)}
+            {v.proposeOnly ? `${v.proposed?.length ?? 0} proposed · nothing changed` : `${v.landed} landed · ${v.parked} parked · ${v.failed} failed`} · {usd(v.costUsd)}
             {v.capUsd === undefined ? '' : ` of ${usd(v.capUsd)}`}
           </dd>
         </div>

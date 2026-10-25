@@ -69,6 +69,10 @@ export function selectLive(p: LivePayload, now: number, focus?: WaveFocus): Live
     const to = stale ? Date.parse(meta?.lastEventAt ?? '') : now;
     if (Number.isFinite(from) && Number.isFinite(to)) view.elapsedSec = Math.max(0, (to - from) / 1000);
   }
+  if (meta?.proposeOnly) {
+    view.proposeOnly = true;
+    if (meta.planned) view.proposed = meta.planned;
+  }
   if (w.costUsd !== undefined) view.costUsd = w.costUsd;
   if (meta?.waveCapUsd !== undefined) view.capUsd = meta.waveCapUsd;
   return view;

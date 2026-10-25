@@ -50,6 +50,9 @@ const HAND_WRITTEN_GAP: readonly [string, RegExp][] = [
   ['an az pipelines run', /\baz pipelines (run|build queue)\b/],
   ['an App Insights component create', /\bapp-insights component create\b/],
   ['an App Service app setting write', /\bwebapp config appsettings set\b/],
+  // A cycle run is started through the server's preview (runs/start, startRunAction): its exact `belay run` line is the
+  // server's. The Runs screen's empty-state hint names no repo (`--repo <slug>`), so it is not a run anyone could send.
+  ['a belay run command for a named repo', /\bbelay run --repo [A-Za-z0-9]/],
 ];
 
 /**

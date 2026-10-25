@@ -20,6 +20,7 @@ vi.mock('@/server/data/live/runtime', async (orig) => ({ ...(await orig<object>(
 const { confirmAction, previewAction } = await import('../../actions');
 const { repollAction, repollGroupAction } = await import('../../repollAction');
 const { recallAction } = await import('../../runs/recallAction');
+const { startRunAction } = await import('../../runs/start/startRunAction');
 const { verifyArmAction } = await import('../../arm/verifyAction');
 const { rereadSetupAction } = await import('@/server/data/setup/rereadAction');
 const { refreshVitals } = await import('@/app/features/vitals/data/actions');
@@ -68,6 +69,10 @@ describe.each([['replay'], ['demo'], [undefined]])('BELAY_MODE=%s', (mode) => {
       expect(await previewAction(intent)).toMatchObject({ status: 'refused' });
       expect(await confirmAction(intent, 'f'.repeat(64))).toMatchObject({ status: 'refused' });
     }
+    // Starting a cycle run (runs/start) is refused before the fleet, git or a spawn: the replay, or not this machine.
+    const run = { kind: 'start-run', repo: 'grinex-portal', mode: 'execute', waves: 1, lanes: 1, laneCapUsd: 1, waveCapUsd: 1, model: 'sonnet', ideas: ['scan'] };
+    expect(await startRunAction(run)).toMatchObject({ status: 'refused' });
+    expect(await startRunAction(run, 'f'.repeat(64))).toMatchObject({ status: 'refused' });
     expect(await verifyArmAction(arm)).toMatchObject({ status: 'simulated' });
     expect(await rereadSetupAction('doctor')).toMatchObject({ status: 'refused', reason: expect.stringMatching(/^demo mode/) });
     await register();

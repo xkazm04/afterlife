@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Window } from '@/components/shell/Window';
+import type { StartData } from '@/server/actions/runs/start/types';
 import { Stage } from './components/stage/Stage';
 import { StatusLine } from './components/chrome/StatusLine';
 import { TakesSidebar } from './components/chrome/TakesSidebar';
@@ -14,6 +15,7 @@ import { useReplaySlice } from './hooks/useReplaySlice';
 import { useReplayStore } from './hooks/useReplayStore';
 import { useTheaterActions } from './hooks/useTheaterActions';
 import { useTheaterKeys } from './hooks/useTheaterKeys';
+import { useNewRun } from './start/NewRun';
 import { filmSnapshots } from './model/derive/snapshots';
 import { rangeLabel, readoutFrom, viewOf } from './model/replay/state';
 import { shallowEqual } from './model/replay/store';
@@ -35,13 +37,14 @@ export function addressNotice(missingMr: number | undefined, missingSeq: number 
  * An address the film cannot honour (`?mr=` the ledger has no events for, `#seq=` it does not hold) is said in the
  * status bar, never played in silence as another run.
  */
-export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
+export function TheaterScreen({ film, demo, subtitle, start }: TheaterData & { start?: StartData }) {
   const snaps = useMemo(() => filmSnapshots(film, demo?.stages ?? []), [film, demo]);
   const [missingSeq, setMissingSeq] = useState<number | null>(null);
   const store = useReplayStore(film, setMissingSeq);
   const present = usePresent();
   const reduced = useReducedMotion();
   const actions = useTheaterActions(store);
+  const newRun = useNewRun(start); // the toolbar's "New run…": the pre-run panel as a sheet
   useTheaterKeys(actions, present, { takes: film.takes.length, entries: film.entries.length });
 
   // Everything except the film position: the screen re-renders on entry, take, marks and transport changes only.
@@ -67,7 +70,12 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
         <Window
           title="Theater"
           subtitle={subtitle}
-          toolbar={<Transport playing={v.playing} loop={v.loop} readout={readout} actions={actions} onPresent={() => present.set(true)} reduced={reduced} takes={film.takes.length} />}
+          toolbar={
+            <>
+              <Transport playing={v.playing} loop={v.loop} readout={readout} actions={actions} onPresent={() => present.set(true)} reduced={reduced} takes={film.takes.length} />
+              {newRun.button}
+            </>
+          }
           sidebar={<TakesSidebar takes={film.takes} take={v.take} counts={v.counts} range={range} marked={v.mark !== null} actions={actions} />}
           inspector={<BeatInspector snap={snap} film={film} demo={demo} onSeek={actions.seek} />}
           status={
@@ -81,6 +89,7 @@ export function TheaterScreen({ film, demo, subtitle }: TheaterData) {
           helpTitle="Keys and marks"
         >
           {present.on ? null : <Stage snaps={snaps} snap={snap} store={store} film={film} demo={demo} present={false} />}
+          {newRun.sheet}
         </Window>
       </div>
       {present.on ? (
