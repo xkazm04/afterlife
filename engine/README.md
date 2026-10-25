@@ -105,9 +105,11 @@ least one URL built from the facts (`project.web_url`, a job's or the pipeline's
 unreadable fact, a deep project).
 
 `scan --dir <checkout>` reads the same table's R1 from a checkout's files and CI config (`engine/scan/rules.ts`) and stops
-there: a checkout holds no run, protection or approval. It also counts what only a checkout shows (a job's junit or SBOM
-report or script, template and component includes by name, `.tf` and non-empty alerting files): more R1 evidence, never
-another rule. A checkout has no project id and no GitLab URL to cite, so it
+there: a checkout holds no run, protection or approval. It reads `.gitlab-ci.yml`, Azure Pipelines (`azure-pipelines.yml`,
+`.azure-pipelines/`, `pipelines/`, in-repo templates followed) and GitHub Actions workflows into the same jobs
+(`engine/scan/pipelines/`), and in a git checkout takes git's file list. It also counts what only a checkout shows (a
+job's junit or SBOM report or script, a scanner run as a command, a test-results, package or deploy task, template and
+component includes by name, `.tf`, `.bicep` and non-empty alerting files): more R1 evidence, never another rule. A checkout has no project id and no GitLab URL to cite, so it
 prints `belay.maturity.checkout/0` (evidence as paths, `why`, `rung_name`, `counts`), which the server does not read.
 
 ## Gate and tripwire
