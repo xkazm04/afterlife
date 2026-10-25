@@ -1,0 +1,9 @@
+/* Needs you's wrapper adds no box (the screen's Window stays the frame's grid item); while a fresh read is pending the
+   kept rows dim, so an amber row never reads as current. */
+.veil {
+  display: contents;
+}
+.veil[data-veiled] > * {
+  opacity: 0.45;
+  transition: opacity 120ms var(--ease);
+}

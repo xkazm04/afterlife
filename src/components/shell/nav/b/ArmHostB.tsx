@@ -1,0 +1,52 @@
+'use client';
+
+// Arm B's host: the route's page (children) and one <Activity> per visited list screen. A sidebar click on Fleet, Monitor
+// or Needs you pushes the URL and swaps the screen here (no router navigation, no RSC request); leaving hides a screen
+// with its state (selection, filters, scroll), and returning shows it at once while a quiet re-read swaps its props.
+// Detail pages, other tabs, a direct load or a reload stay the route's: the host draws only its own history entries.
+import { usePathname, useRouter } from 'next/navigation';
+import { Activity, useEffect, type ReactNode } from 'react';
+import { DOC_TITLE, listKeyOf } from './model';
+import { HostScreen } from './HostScreen';
+import { HOST_KEYS, keepOrSync, setActive, syncFromHistory, unmarkCurrent, useHostState } from './store';
+
+export function ArmHostB({ children }: { children?: ReactNode }): ReactNode {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { active, entries } = useHostState();
+
+  useEffect(() => {
+    unmarkCurrent();
+    window.addEventListener('popstate', syncFromHistory);
+    return () => window.removeEventListener('popstate', syncFromHistory);
+  }, []);
+  // A router navigation (a row into /fleet/<id>, a non-sample tab) lands on an entry without the host's mark: step aside.
+  // A refresh or an HMR update on the host's own URL rewrites the entry's state without the mark: the host keeps it.
+  useEffect(() => keepOrSync(pathname));
+
+  const activeKey = active ? listKeyOf(active) : null;
+  const entry = activeKey ? entries[activeKey] : undefined;
+  // no props to draw, or a veiled Needs you whose re-read failed: the route draws the truth (or says why it cannot)
+  const fallback = entry?.error !== undefined && (!entry.env || entry.veiled);
+  useEffect(() => {
+    if (!fallback) return;
+    setActive(null, '');
+    router.replace(window.location.pathname + window.location.search);
+  }, [fallback, router]);
+  useEffect(() => {
+    if (activeKey) document.title = DOC_TITLE[activeKey];
+  }, [activeKey]);
+
+  return (
+    <>
+      <Activity mode={activeKey ? 'hidden' : 'visible'}>{children}</Activity>
+      {HOST_KEYS.map((k) =>
+        entries[k] ? (
+          <Activity key={k} mode={k === activeKey ? 'visible' : 'hidden'}>
+            <HostScreen k={k} entries={entries} />
+          </Activity>
+        ) : null,
+      )}
+    </>
+  );
+}
