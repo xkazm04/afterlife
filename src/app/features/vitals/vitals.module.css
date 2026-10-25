@@ -1,0 +1,151 @@
+/* Vitals: a scrolling page of three bands (each a heading over a flow table), a notice above them, an inspector. */
+.bands {
+  display: flex;
+  flex-direction: column;
+  gap: calc(18px * var(--ui-scale));
+  padding-bottom: calc(16px * var(--ui-scale));
+}
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6px * var(--ui-scale));
+}
+.bandHead {
+  display: flex;
+  align-items: baseline;
+  gap: calc(8px * var(--ui-scale));
+  margin: 0;
+  font-size: var(--t-title, var(--t-head));
+  font-weight: 650;
+  color: var(--text-1);
+}
+.aux {
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--text-3);
+}
+.bandEmpty {
+  margin: 0;
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  font-size: var(--t-head);
+  color: var(--text-2);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--r-md);
+}
+.bandEmpty code,
+.empty code {
+  font-family: var(--mono);
+}
+.empty {
+  max-width: 640px;
+  font-size: var(--t-head);
+}
+.empty h2 {
+  margin: 0 0 6px;
+  font-size: var(--t-title, var(--t-head));
+}
+/* the toolbar: back to the list, then when the files were last fetched and Refresh */
+.back {
+  font-size: var(--t-head);
+  color: var(--text-2);
+  text-decoration: none;
+}
+.collected {
+  font-size: var(--t-small);
+  color: var(--text-3);
+  margin-right: calc(8px * var(--ui-scale));
+}
+/* the collect notice: busy, failed (data-tone="bad") or what it added */
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6px * var(--ui-scale));
+  padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  font-size: var(--t-head);
+  color: var(--text-2);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 0 0 1px var(--border-1);
+  background: var(--surface-1);
+}
+.notice[data-tone="bad"] {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fail) 55%, transparent);
+}
+.cmdLine {
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+  flex-wrap: wrap;
+}
+.mono {
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+.note {
+  margin: 4px 0 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.list {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: var(--t-small);
+  color: var(--text-2);
+}
+/* a production trend with its deploy ticks laid over it */
+.marked {
+  position: relative;
+  display: inline-flex;
+}
+.deploy {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: var(--x);
+  width: 2px;
+  margin-left: -1px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+/* the inspector's small tables: stages and last runs */
+.mini {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-small);
+}
+.mini th,
+.mini td {
+  padding: 2px 4px;
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--sep-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(120px * var(--ui-scale));
+}
+.mini thead th {
+  color: var(--text-3);
+}
+/* a run's stages as one bar, each stage's width its share of the stage time */
+.stageBar {
+  display: inline-flex;
+  gap: 1px;
+  width: calc(90px * var(--ui-scale));
+  height: calc(8px * var(--ui-scale));
+}
+.stageBar i {
+  flex: 0 0 var(--w);
+  border-radius: 1px;
+  background: color-mix(in oklab, var(--text-2) 55%, transparent);
+}
+.stageBar i[data-result="failed"] {
+  background: var(--fail);
+}
+.stageBar i[data-result="running"] {
+  background: var(--accent);
+}
+.stageBar i[data-untimed] {
+  background: none;
+  border: 1px dashed var(--unknown);
+}

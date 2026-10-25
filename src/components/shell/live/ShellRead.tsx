@@ -5,6 +5,7 @@ import { connection } from 'next/server';
 import { getDataSource, readDataConfig } from '@/server/data';
 import { readShellInfo } from '@/server/data/shell/read';
 import type { ShellInfo } from '../ShellContext';
+import { readEstate } from './estateRead';
 import { ShellAdopt } from './ShellAdopt';
 
 /**
@@ -13,7 +14,9 @@ import { ShellAdopt } from './ShellAdopt';
  */
 export async function ShellRead() {
   await connection();
-  return <ShellAdopt info={readOrNotReady()} />;
+  const estate = await readEstate();
+  const info = readOrNotReady();
+  return <ShellAdopt info={estate ? { ...info, estate } : info} />;
 }
 
 function readOrNotReady(): ShellInfo {

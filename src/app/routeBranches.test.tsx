@@ -14,6 +14,7 @@ const loaders = vi.hoisted(() => ({
   setupNode: vi.fn(),
   tasks: vi.fn(),
   fleetData: vi.fn(),
+  vitalsProject: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => nav);
@@ -38,6 +39,8 @@ vi.mock('./features/task/TaskScreen', () => ({ TaskScreen: () => null }));
 vi.mock('./features/task/model/build/loadPage', () => ({ loadPageFacts: () => ({}) }));
 vi.mock('./features/task/model/build/loadTasks', () => ({ loadTasks: loaders.tasks }));
 vi.mock('./features/task/model/verdict/reasons', () => ({ selectionFromQuery: () => ({}) }));
+vi.mock('./features/vitals/data/loadVitals', () => ({ loadVitalsProject: loaders.vitalsProject }));
+vi.mock('./features/vitals/VitalsScreen', () => ({ VitalsScreen: () => null }));
 
 const ROUTES = [
   ['fleet/[project]', () => import('./(app)/fleet/[project]/page'), { project: 'p1' }, loaders.fleetProject, { id: 'p1' }],
@@ -45,6 +48,7 @@ const ROUTES = [
   ['maturity/[stage]', () => import('./(app)/maturity/[stage]/page'), { stage: 's1' }, loaders.maturityStage, { key: 's1' }],
   ['needs-you/[item]', () => import('./(app)/needs-you/[item]/page'), { item: 'i1' }, loaders.needsItem, { demo: null, id: 'i1' }],
   ['setup/[node]', () => import('./(app)/setup/[node]/page'), { node: 'n1' }, loaders.setupNode, { id: 'n1' }],
+  ['vitals/[project]', () => import('./(app)/vitals/[project]/page'), { project: 'grinex-portal' }, loaders.vitalsProject, { slug: 'grinex-portal' }],
 ] as const;
 
 describe('dynamic route pages', () => {

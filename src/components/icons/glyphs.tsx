@@ -26,7 +26,9 @@ const panel = (divider: string, lines: string): Glyph => ({
 
 export const GLYPHS = {
   // app navigation (15 box)
-  fleet: nav(<path d="M1.5 3.5h12M1.5 7.5h12M1.5 11.5h12" />),
+  // a gauge: the dial and its needle, what a real project's vitals read
+  vitals: nav(<path d="M1.8 11.5a5.7 5.7 0 0 1 11.4 0M7.5 11.5l3-4.2" strokeLinecap="round" />),
+  fleet:nav(<path d="M1.5 3.5h12M1.5 7.5h12M1.5 11.5h12" />),
   monitor: nav(<path d="M1 8h3l1.6-4 2.6 8.5 2-6.5 1.1 2H14" />),
   needsYou: nav(
     <>

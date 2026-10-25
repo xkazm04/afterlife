@@ -26,3 +26,14 @@
   font-family: var(--mono);
   overflow-wrap: anywhere;
 }
+/* the demo-estate switch: the segmented control and what it does now, on one line */
+.line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.note {
+  font-size: var(--t-head);
+  color: var(--text-3);
+}

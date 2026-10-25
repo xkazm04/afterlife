@@ -1,0 +1,26 @@
+/* A slim dashed strip between the toolbar and the pane: the honesty mark of a demo screen beside real data. */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+  min-height: calc(22px * var(--ui-scale));
+  padding: 0 calc(12px * var(--ui-scale));
+  font-size: var(--t-small);
+  color: var(--unknown);
+  border-bottom: 1px dashed var(--unknown);
+  background: var(--chrome);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.note {
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.link {
+  flex: none;
+  color: var(--text-2);
+}
+.note + .link {
+  margin-left: auto;
+}

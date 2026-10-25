@@ -42,7 +42,7 @@ function Exit({ href, children, enter }: { href: string; children: string; enter
  * The project's page beside its cutaway: state, numbers, then (ledgerline) its decisions and tracks; exits at the foot.
  * The cockpit lines and the tracks are labelled demo when the source still serves them from the demo (live mode).
  */
-export function L2Panel({ p, group, classes, deep, rungs }: { p: FleetProject; group: string; classes: readonly string[]; deep: Deep; rungs: number }) {
+export function L2Panel({ p, group, classes, deep, rungs, enter = '/fleet' }: { p: FleetProject; group: string; classes: readonly string[]; deep: Deep; rungs: number; enter?: string }) {
   const [pick, setPick] = useState(0);
   const nsu = p.state === 'not-set-up';
   const stale = p.state === 'stale';
@@ -183,7 +183,7 @@ export function L2Panel({ p, group, classes, deep, rungs }: { p: FleetProject; g
         )}
       </div>
       <div className={styles.exits}>
-        <Exit href="/fleet" enter>
+        <Exit href={enter} enter>
           Enter Afterlife
         </Exit>
         {n > 0 ? <Exit href="/needs-you">Needs you</Exit> : null}

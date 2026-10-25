@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { useModCap } from '@/lib/keyboard/modKey';
 import { openPalette } from '@/components/palette/CommandPalette';
+import { navShown } from '@/lib/settings/demoEstate';
 import { useShellInfo } from '../ShellContext';
 import { APP_NAV, activeNavKey } from './navItems';
 import { NavLink } from './NavLink';
@@ -13,7 +14,8 @@ import styles from './Sidebar.module.css';
 /**
  * The app screens; the current one comes from the route (usePathname). The ⌘K (Ctrl+K off Apple platforms) chip opens the command palette.
  * Under Cache Components a dynamic route's pathname is request data, so the read sits behind <Suspense>: the prerendered
- * shell draws the same nav with nothing current, and the routed one replaces it.
+ * shell draws the same nav with nothing current, and the routed one replaces it. With the demo estate off (Settings, or
+ * 'auto' once a real project is saved) the demo screens leave the nav; their routes still answer, bannered.
  */
 export function AppNav() {
   return (
@@ -28,7 +30,7 @@ function RoutedNav() {
 }
 
 function NavList({ active }: { active: string | null }) {
-  const { needsYouCount } = useShellInfo();
+  const { needsYouCount, estate } = useShellInfo();
   const mod = useModCap();
   return (
     <nav className={styles.appnav} aria-label="Afterlife">
@@ -40,7 +42,7 @@ function NavList({ active }: { active: string | null }) {
           </button>
         }
       >
-        {APP_NAV.map((e) => (
+        {APP_NAV.filter((e) => navShown(e.key, estate)).map((e) => (
           <NavLink key={e.key} entry={e} current={e.key === active} needsYou={needsYouCount ?? undefined} />
         ))}
       </SidebarSection>

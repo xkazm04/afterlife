@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState, type ReactNode } from 'react';
+import { Suspense, useId, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@/components/icons/Icon';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
@@ -10,6 +10,7 @@ import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { AppFrame } from './frame/AppFrame';
 import { useFrame, type Frame } from './frame/FrameContext';
 import { Motion } from './frame/Motion';
+import { DemoEstateBanner } from './bars/estate/DemoEstateBanner';
 import { Inspector } from './bars/Inspector';
 import { INSPECTOR_HOTKEY } from './bars/inspectorHotkey';
 import { StatusBar } from './bars/StatusBar';
@@ -101,6 +102,12 @@ function WindowColumn(p: WindowProps) {
           <Toolbar title={p.title} subtitle={p.subtitle} lead={sideShow} end={inspToggle}>
             {p.toolbar}
           </Toolbar>
+          {/* a row of its own, empty (0 high) unless this is a demo screen beside real projects */}
+          <div>
+            <Suspense fallback={null}>
+              <DemoEstateBanner />
+            </Suspense>
+          </div>
           <div className={styles.main}>
             <main className={styles.pane}>{p.children}</main>
             {hasInsp ? <Inspector id={inspId} open={inspOpen}>{p.inspector}</Inspector> : null}

@@ -19,7 +19,8 @@ describe('GET /api/shell', () => {
     const res = await GET();
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toEqual(readShellInfo(demoSource));
+    // and the estate beside it (no request scope here, so no cookie: the default setting)
+    expect(body).toEqual({ ...readShellInfo(demoSource), estate: expect.objectContaining({ setting: 'auto' }) });
     expect(body).not.toHaveProperty('projects'); // the palette reads them apart: GET /api/shell/projects
     expect(res.headers.get('cache-control')).toContain('no-store');
   });
