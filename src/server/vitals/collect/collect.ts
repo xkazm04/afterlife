@@ -61,7 +61,8 @@ export async function collectProject(slug: string): Promise<CollectResult> {
   const cfg = loadProjects().find((p) => p.slug === slug);
   if (!cfg) throw new Error(`no onboarded project "${slug}"`);
   const ci = await collectWith(cfg, cfg.ci.provider === 'none' ? undefined : ciProvider(cfg.ci.provider));
-  const prod = await collectProd(cfg, cloudProvider('azure-app-insights'), readProd(slug), new Date());
+  // 'none' still gets a provider so collectProd answers with its own skipped probe; it never calls one it cannot use.
+  const prod = await collectProd(cfg, cloudProvider(cfg.cloud.provider === 'none' ? 'azure-app-insights' : cfg.cloud.provider), readProd(slug), new Date());
   const added = appendProd(slug, prod.points);
   return { ...ci, prod: { added }, probes: [...ci.probes, ...prod.probes] };
 }

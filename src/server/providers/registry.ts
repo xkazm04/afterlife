@@ -1,20 +1,19 @@
-// Which adapter answers which probe kind: Azure Pipelines and GitLab CI for CI, App Insights for the cloud; git and
-// local probes live in discover.
+// Which adapter answers which probe kind: Azure Pipelines and GitLab CI for CI, App Insights or a Log Analytics
+// workspace for the cloud; git and local probes live in discover.
 import type { CiProviderKind, CloudProviderKind, ProbeKind } from '@/schemas/vitals';
 import type { CiProvider, CloudProvider, Exec } from './types';
 import { azurePipelines } from './azure';
 import { defaultExec } from './exec';
 import { gitlabCi } from './gitlab';
 import { azureInsights } from './azure/insights';
+import { azureLogs } from './azure/logs';
 
 export function ciProvider(kind: Exclude<CiProviderKind, 'none'>, exec?: Exec): CiProvider {
   return kind === 'azure-pipelines' ? azurePipelines(exec ?? defaultExec) : gitlabCi(exec ?? defaultExec);
 }
 
 export function cloudProvider(kind: Exclude<CloudProviderKind, 'none'>, exec?: Exec): CloudProvider {
-  // azure-log-analytics is built next (providers/azure/logs); until then it is App Insights' twin that fails its probes.
-  void kind;
-  return azureInsights(exec ?? defaultExec);
+  return kind === 'azure-log-analytics' ? azureLogs(exec ?? defaultExec) : azureInsights(exec ?? defaultExec);
 }
 
 /** The provider family a probe kind belongs to: 'az-devops-*' -> azure-pipelines, 'glab-*' -> gitlab-ci, ... */
