@@ -40,6 +40,17 @@
     flag without its value, an unknown option or a second checkout exits 2 with nothing written; a write that fails
     part-way exits 2 and names the files it already wrote. Added lines take the file's own line ending (CRLF or LF).
     A target that is a symlink or junction, or sits under one, is refused (exit 1): nothing is read or written through a link.
+  - `collect --project <slug>` (`src/server/vitals/collect/collectCli.ts`) reads a real project's CI runs (and its
+    production points) through the person's own az / glab login, read-only, and appends what is new under
+    `<data>/vitals/<slug>/`. Exit 1 when a provider failed, 2 on bad usage.
+  - `report --project <slug> --claim '<json>' | --claim <file>` (`src/server/vitals/report/`) is how a dev agent
+    reports an adjustment (the `afterlife-report` skill, `skills/afterlife-report/SKILL.md`, installed into the
+    project's repo by Onboard's save step). The claim is parsed strictly (`claim.ts`): `title`, `target.kind`
+    (`ci-stage`, `ci-run`, `local-metric`, `prod-signal`) with what it names, `direction`, `ref.branch` or `ref.sha`;
+    unknown keys, an `id` or `at` of its own, a variant the project does not have are refused with exit 2 and the
+    reason. Afterlife fills `id` (26 Crockford characters, sortable by time) and `at`, appends the line to
+    `<data>/vitals/<slug>/adjustments.jsonl` and prints it. A `--claim` file is read from the caller's directory. The
+    agent's `agentValue` is stored and displayed, never used by the verdict (Vitals re-measures it).
   - `replay` prints "not implemented yet" and exits 2.
 - `gitlab/` holds what runs inside GitLab: six CI/CD components (`belay-pack`), six custom flow definitions, their
   output schemas, and example target and policy projects.
@@ -118,7 +129,8 @@
 | `engine/decide/` | `gate.ts`, `standing.ts` (effective tier, holder), `shadow.ts` (`--shadow-next-rung`), `tripwire.ts` |
 | `engine/__fixtures__/` | Inputs per proof class (exploit, cited, rerun, linked, repro, bench, score, ledger), events, maturity facts |
 | `src/schemas/` | Shared Proof Block, tier, ledger, CRA and stage schemas |
-| `cli/belay.mjs` | `belay doctor \| run \| scan \| pair \| replay` (`run` goes to `runner/main.ts`) |
+| `cli/belay.mjs` | `belay doctor \| run \| scan \| pair \| collect \| report \| replay` (`run` goes to `runner/main.ts`) |
+| `src/server/vitals/report/` | `belay report`: the strict claim parser and its CLI |
 | `gitlab/components/` | `belay-pack` CI/CD components and `scripts/` glue |
 | `gitlab/flows/` | Six custom flow definitions and `schemas/` |
 | `gitlab/examples/` | Target project `.gitlab-ci.yml` and agent config; `belay-policy` layout and `CODEOWNERS` |

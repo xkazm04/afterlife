@@ -85,6 +85,15 @@ export interface AdjustmentRow {
   /** The latest measurement of this claim; omitted while none exists. */
   measurement?: Measurement;
   measurements: number;
+  /** How Afterlife can re-measure it here (model/adjustments remeasureOf); omitted when it cannot. */
+  remeasure?: Remeasure;
+}
+
+/** passive: from the variant's natural runs. queue: the pipeline and branch a queue-runs write would use. local: a frontier metric. */
+export interface Remeasure {
+  passive?: true;
+  queue?: { pipelineId: string; branch: string };
+  local?: true;
 }
 
 export interface VitalsView {
@@ -119,3 +128,6 @@ export interface CollectJob {
 
 /** What Refresh (data/actions.ts refreshVitals) answers at once: the job it started (or the one still running), or why not. */
 export type RefreshResult = { ok: true; job: CollectJob } | { ok: false; error: string };
+
+/** What a passive or local re-measure answered: in words, or why it did not run. */
+export type RemeasureResult = { ok: true; message: string } | { ok: false; error: string };

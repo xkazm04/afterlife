@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Measurement } from '@/schemas/vitals';
 import { ADJUSTMENTS } from '../../data/__fixtures__/grinex';
-import { adjustmentRows, measuredPct, stateOf, targetWords } from '../adjustments';
+import { adjustmentRows, measuredPct, remeasureOf, stateOf, targetWords } from '../adjustments';
 
 const rows = adjustmentRows(ADJUSTMENTS);
 const byId = (id: string) => rows.find((r) => r.claim.id === id)!;
@@ -47,5 +47,21 @@ describe('words', () => {
   it('measuredPct is head against base; a zero base has none', () => {
     expect(measuredPct(m('credited', 3))).toBeCloseTo(-10);
     expect(measuredPct({ ...m('credited', 3), base: { n: 3, median: 0, spread: 0 } })).toBeUndefined();
+  });
+});
+
+describe('remeasureOf', () => {
+  const ci = { provider: 'azure-pipelines' as const, pipelines: [], variants: [{ id: 'master-full', pipelineId: '2', match: { branch: 'master' } }] };
+  const claim = byId('adj-1').claim;
+  it('a CI claim: passive, and the queue on its variant pipeline and branch (Azure Pipelines only)', () => {
+    expect(remeasureOf(claim, { ci })).toEqual({ passive: true, queue: { pipelineId: '2', branch: 'belay/split-tests' } });
+    expect(remeasureOf(claim, { ci: { ...ci, provider: 'gitlab-ci' } })).toEqual({ passive: true });
+  });
+  it('a local metric only when it is one of the runner frontier metrics; a prod signal has none', () => {
+    const local = { ...claim, target: { kind: 'local-metric' as const, metric: 'test wall' } };
+    const metric = { name: 'test wall', command: 'npm test', parse: { kind: 'wall' as const }, direction: 'down' as const, threshold: 0.1 };
+    expect(remeasureOf(local, { ci, runner: { gates: ['t'], frontier: { objective: 'o', metrics: [metric] } } })).toEqual({ local: true });
+    expect(remeasureOf(local, { ci })).toBeUndefined();
+    expect(remeasureOf(byId('adj-3').claim, { ci })).toBeUndefined();
   });
 });

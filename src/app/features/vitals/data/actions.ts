@@ -5,12 +5,13 @@
 // minutes - then the route renders again (`refresh` from next/cache) so the page shows the job; it re-reads until the job
 // is done. It only reads the providers, through the person's own az / glab login, so like the live re-poll it answers
 // only a request addressed to this machine (local.ts). The hosted replay (BELAY_MODE=replay) has no real project: it
-// refuses, and a slug no saved project has is refused before anything runs.
+// refuses, and a slug no saved project has is refused before anything runs. Once the runs are in, a claim whose queued
+// runs (queue-runs) are now all stored is measured over exactly them (measureQueuedAll: method queued).
 import { headers } from 'next/headers';
 import { refresh } from 'next/cache';
 import { notLocal } from '@/server/actions/local';
 import { loadProjects } from '@/server/discover';
-import { collectProject } from '@/server/vitals';
+import { collectProject, measureQueuedAll } from '@/server/vitals';
 import { startCollect } from './jobs';
 import type { RefreshResult } from '../model/types';
 
@@ -19,7 +20,13 @@ export async function refreshVitals(slug: unknown): Promise<RefreshResult> {
   if (typeof slug !== 'string' || !loadProjects().some((p) => p.slug === slug)) return { ok: false, error: 'no saved project has that slug' };
   const away = notLocal(await headers());
   if (away) return { ok: false, error: away };
-  const job = startCollect(slug, collectProject);
+  const job = startCollect(slug, collectAndMeasure);
   refresh();
   return { ok: true, job };
+}
+
+async function collectAndMeasure(slug: string) {
+  const r = await collectProject(slug);
+  measureQueuedAll(slug);
+  return r;
 }

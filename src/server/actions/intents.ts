@@ -5,6 +5,7 @@ import { STAGES } from '@/schemas/stages';
 import { TIER_ORDER } from '@/schemas/tier';
 import { CLASS_ID } from '@/server/poller/parse/trailers';
 import { GAP_TEMPLATES, type ActionIntent, type GapFile } from './types';
+import { parseProjectIntent } from './vitals/intents';
 
 export type IntentParse = { ok: true; intent: ActionIntent } | { ok: false; reason: string };
 const no = (reason: string): IntentParse => ({ ok: false, reason });
@@ -126,6 +127,10 @@ export function parseIntent(raw: unknown): IntentParse {
       const track = str(raw.track, TRACK, 2);
       return track ? { ok: true, intent: { kind: raw.kind, ...base, track } } : no('track must be T1 to T8');
     }
+    case 'queue-runs':
+    case 'install-skill':
+    case 'enable-app-insights':
+      return parseProjectIntent(raw, base); // a real project's write (actions/vitals), not the GitLab group's
     default:
       return no('unknown intent kind');
   }

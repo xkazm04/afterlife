@@ -21,9 +21,9 @@ describe('cli/belay.mjs', () => {
     }
   });
 
-  it('names every flag that run, pair and collect print in their own usage (the verbs are the ground truth, not this list)', () => {
+  it('names every flag that run, pair, collect and report print in their own usage (the verbs are the ground truth, not this list)', () => {
     const help = belay('help').stdout;
-    for (const verb of ['run', 'pair', 'collect']) {
+    for (const verb of ['run', 'pair', 'collect', 'report']) {
       const own = belay(verb).stderr.match(/usage: belay (.+)/)?.[1]?.trim();
       expect(own, `belay ${verb} printed no usage`).toBeTruthy();
       for (const flag of own.match(/--[a-z-]+/g)) expect(help, `${verb} ${flag}`).toContain(flag);

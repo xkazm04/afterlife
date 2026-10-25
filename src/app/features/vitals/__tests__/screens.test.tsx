@@ -70,6 +70,15 @@ describe('/vitals/[project]', () => {
     expect(one).toContain('-39%');
     expect(inspect('a:adj-4')).toContain('Afterlife has not measured this yet');
   });
+  it('re-measure: a CI claim offers passive and Queue N runs on its branch; one with no variant or branch says what fits', () => {
+    const one = inspect('a:adj-1');
+    expect(one).toContain('Measure passively');
+    expect(one).toContain('Queue N runs');
+    expect(one).toContain('on belay/split-tests');
+    expect(one).not.toContain('Measure locally');
+    expect(inspect('a:adj-2')).not.toContain('Queue N runs'); // an MR, no branch to queue on
+    expect(inspect('a:adj-3')).toContain('No re-measure fits this claim here');
+  });
   it('a project with no run collected yet reads never, not an epoch or zero', () => {
     expect(body(buildView(PROJECT, [], [], [], [], NOW))).toContain('last collected never');
   });

@@ -3,7 +3,9 @@
 // The operator's writes, as Next server actions. Two calls per write:
 //   previewAction(intent)               -> { status: 'preview', preview }   the exact commands; nothing runs
 //   confirmAction(intent, previewId)    -> { status: 'done' | 'failed' | 'changed' | 'refused', ... }
-// An intent is { kind: ActionKind, project, ... }: the eight kinds and their fields are types.ts's ActionIntent.
+// An intent is { kind: ActionKind, project, ... }: the kinds and their fields are types.ts's ActionIntent. The three
+// project writes (queue-runs, install-skill, enable-app-insights) act on a real project Afterlife watches, as the
+// person's own az login and files, not on the GitLab group: they are routed to actions/vitals before any GitLab deps.
 // Both take `unknown` and validate it: a server action is an endpoint, whatever the type says. In live mode both answer
 // only a request addressed to this machine (local.ts): anyone who can reach the port could otherwise preview and confirm.
 // A live confirm that ran its commands has polled (run.ts); the route then renders again from that snapshot in the same
@@ -14,6 +16,9 @@ import { actionDeps, notReadyReason } from './deps';
 import { notLocal } from './local';
 import { confirmIntent, previewIntent, type ActionDeps } from './run';
 import type { ActionResponse } from './types';
+import { projectDeps } from './vitals/context';
+import { asProjectWrite, projectAway } from './vitals/route';
+import { confirmProjectWrite, previewProjectWrite } from './vitals/run';
 
 const notReady = (): ActionResponse => ({ status: 'refused', reason: notReadyReason() });
 
@@ -25,12 +30,24 @@ async function fromElsewhere(deps: ActionDeps): Promise<ActionResponse | null> {
 }
 
 export async function previewAction(intent: unknown): Promise<ActionResponse> {
+  const project = asProjectWrite(intent);
+  if (project) return projectAway(await headers()) ?? (project.ok ? previewProjectWrite(projectDeps(), project.intent) : project.response);
   const deps = actionDeps();
   if (!deps) return notReady();
   return (await fromElsewhere(deps)) ?? previewIntent(deps, intent);
 }
 
 export async function confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> {
+  const project = asProjectWrite(intent);
+  if (project) {
+    const away = projectAway(await headers());
+    if (away) return away;
+    if (!project.ok) return project.response;
+    if (typeof previewId !== 'string') return { status: 'refused', reason: 'a confirm names the preview id of the preview it confirms: preview first' };
+    const r = await confirmProjectWrite(projectDeps(), project.intent, previewId);
+    if (r.status === 'done' || r.status === 'failed') refresh();
+    return r;
+  }
   const deps = actionDeps();
   if (!deps) return notReady();
   const away = await fromElsewhere(deps);

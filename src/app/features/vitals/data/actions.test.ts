@@ -8,6 +8,7 @@ vi.mock('next/headers', () => ({ headers: async () => new Headers({ host: hit.ho
 vi.mock('next/cache', () => ({ refresh: () => { hit.refresh++; } }));
 vi.mock('@/server/discover', () => ({ loadProjects: () => [{ slug: 'grinex-portal' }] }));
 vi.mock('@/server/vitals', () => ({
+  measureQueuedAll: () => [],
   collectProject: async (slug: string) => {
     hit.collect++;
     if (slug === 'grinex-portal') return { slug, ci: { added: 2, total: 9 }, prod: { added: 48 }, probes: [] };

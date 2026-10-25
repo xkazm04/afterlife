@@ -1,12 +1,16 @@
 import { Button } from '@/components/controls/Button';
 import type { WizardState } from '../hooks/useWizard';
 import { checklist, tally } from '../model/lines';
+import { AfterSave } from './AfterSave';
 import styles from '../wizard.module.css';
 
-/** Step 3: Save keeps only the lines a probe confirmed, then Vitals collects from them. */
+/** Step 3: Save keeps only the lines a probe confirmed, then Vitals collects from them; once saved, the skill install and
+ * (a cloud without a component) Turn on App Insights, each the server's preview first. */
 export function SaveStep({ s, onSave, onRerun }: { s: WizardState; onSave: () => void; onRerun: () => void }) {
   const a = s.answer;
-  const t = a ? tally(checklist(a.proposal, s.results.map((r) => r?.result), s.running, a.ciFiles)) : { saved: 0, total: 0, failed: 0 };
+  const groups = a ? checklist(a.proposal, s.results.map((r) => r?.result), s.running, a.ciFiles) : [];
+  const t = a ? tally(groups) : { saved: 0, total: 0, failed: 0 };
+  const appInsights = groups.some((g) => g.lines.some((l) => l.id === 'person:app-insights'));
   const ready = s.phase === 'review' || s.phase === 'saving';
   return (
     <section className={styles.step} aria-label="Step 3: save and collect">
@@ -37,6 +41,7 @@ export function SaveStep({ s, onSave, onRerun }: { s: WizardState; onSave: () =>
           </Button>
         </div>
       )}
+      {s.phase === 'saved' && s.slug ? <AfterSave slug={s.slug} appInsights={appInsights} /> : null}
       {s.error && a ? (
         <p className={styles.failText} role="alert">
           {s.error.error}
