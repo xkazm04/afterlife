@@ -97,6 +97,8 @@ export interface ProbeResult {
   status: ProbeStatus;
   /** One line a person reads: "6 pipelines", or the stderr's first line and the re-login command on a fail. */
   summary: string;
+  /** What the probe found, for the confirm step to save: `appId`, `resourceGroup`, `pipelineIds` (comma-joined), ... */
+  data?: Record<string, string>;
   /** ISO instant the probe finished. */
   at: string;
   ms: number;
