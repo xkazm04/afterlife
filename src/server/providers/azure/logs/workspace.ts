@@ -5,7 +5,7 @@ import type { Exec } from '../../types';
 import { result, runAz, subArgs } from '../insights/az';
 import { firstTable } from '../insights/kql';
 import { asTable, queryArgs, runLogsQuery } from './az';
-import { count24h } from './kql';
+import { count24h, sites24h } from './kql';
 
 const SHOW_FIELDS = '{customerId:customerId,name:name,resourceGroup:resourceGroup,id:id}';
 const LIST_FIELDS = `[].${SHOW_FIELDS}`;
@@ -23,6 +23,15 @@ function found(v: unknown, subscription?: string): Omit<LogsWorkspace, 'site'> |
 }
 
 type Count = { ok: true; n: number } | { ok: false; summary: string; noTable?: true };
+
+/** `site:n,site:n`, busiest first: which App Services write here, so the follow-up can narrow to production. */
+async function sitesOf(exec: Exec, workspaceId: string, subscription?: string): Promise<string | undefined> {
+  const r = await runLogsQuery(exec, queryArgs(workspaceId, sites24h, 'P1D', subscription));
+  if (!r.ok) return undefined;
+  const rows = firstTable(asTable(r.json, ['site', 'n'], ['site']))?.rows ?? [];
+  const list = rows.filter((x) => typeof x[0] === 'string' && x[0] && typeof x[1] === 'number').map((x) => `${String(x[0])}:${String(x[1])}`);
+  return list.length ? list.join(',') : undefined;
+}
 
 async function count(exec: Exec, workspaceId: string, site?: string, subscription?: string): Promise<Count> {
   const r = await runLogsQuery(exec, queryArgs(workspaceId, count24h(site), 'P1D', subscription));
@@ -48,7 +57,8 @@ export async function probeWorkspace(exec: Exec, spec: ProbeSpec): Promise<Probe
   // Whether the HTTP logs are there decides the source; when the count cannot run, that is unknown and left out.
   const c = await count(exec, ws.workspaceId, undefined, ws.subscription);
   const logs = c.ok ? (c.n > 0 ? `${c.n} HTTP requests in 24h` : 'AppServiceHTTPLogs empty in 24h') : c.noTable ? 'no AppServiceHTTPLogs' : `HTTP logs unknown: ${c.summary}`;
-  const data: Record<string, string> = { ...ws, ...(c.ok ? { httpLogs: 'yes' } : c.noTable ? { httpLogs: 'no' } : {}) };
+  const sites = c.ok && c.n > 0 ? await sitesOf(exec, ws.workspaceId, ws.subscription) : undefined;
+  const data: Record<string, string> = { ...ws, ...(c.ok ? { httpLogs: 'yes' } : c.noTable ? { httpLogs: 'no' } : {}), ...(sites ? { sites } : {}) };
   const which = all.length === 1 ? `${ws.name} in ${ws.resourceGroup}` : `${all.length} found, using ${ws.name}: ${all.map((w) => `${w.name} (${w.resourceGroup})`).join(', ')}`;
   return done('ok', `${which} - ${logs}`, data);
 }

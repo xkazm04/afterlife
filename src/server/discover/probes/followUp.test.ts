@@ -17,6 +17,13 @@ describe('followUpOf', () => {
     expect(followUpOf(ai, res(ai, 'ok', { appId: 'a-1' }))).toEqual({ kind: 'az-appinsights-query', args: { appId: 'a-1' } });
   });
 
+  it('without an asked site, the query narrows to the busiest site that is not a slot', () => {
+    const bare: ProbeSpec = { kind: 'az-loganalytics-workspace', args: { resourceGroup: 'rg' } };
+    const next = followUpOf(bare, res(bare, 'ok', { ...FOUND, sites: 'shop/slots/staging:900,shop:477,admin:12' }));
+    expect(next?.args.site).toBe('shop');
+    expect(followUpOf(bare, res(bare, 'ok', { ...FOUND, sites: 'shop/slots/staging:9' }))?.args.site).toBeUndefined();
+  });
+
   it('a fail, a workspace without HTTP logs and any other kind name nothing', () => {
     expect(followUpOf(WS, res(WS, 'fail'))).toBeUndefined();
     expect(followUpOf(WS, res(WS, 'ok', { ...FOUND, httpLogs: 'no' }))).toBeUndefined();

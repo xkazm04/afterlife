@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { COUNT, EXPIRED, NO_EXTENSION_ERR, NO_TABLE_ERR, SUB, WORKSPACE, WS_ID, fakeAz } from './fixtures';
 import { azureLogs } from './index';
+import { sites24h } from './kql';
 
 const workspace = (args: Record<string, string>) => ({ kind: 'az-loganalytics-workspace' as const, args });
 const SHOW = ['workspace', 'show'];
@@ -22,6 +23,16 @@ describe('az-loganalytics-workspace', () => {
     // The fields are named in --query, so az itself never prints the workspace's shared keys.
     expect(calls[0]).toEqual(expect.arrayContaining(['--query', '{customerId:customerId,name:name,resourceGroup:resourceGroup,id:id}']));
     expect(calls.flat().join(' ')).not.toMatch(/shared-keys|get-shared-keys|primarySharedKey/i);
+  });
+
+  it('names the sites that log here, busiest first, so the follow-up can narrow to production', async () => {
+    const { exec } = fakeAz([
+      { match: [...SHOW, '-g', 'shop-rg', '-n', 'shop-logs'], reply: { stdout: WORKSPACE } },
+      { match: [...QUERY, '--analytics-query', sites24h], reply: { stdout: [{ site: 'shop', n: '477', TableName: 'PrimaryResult' }, { site: 'shop/slots/staging', n: '116', TableName: 'PrimaryResult' }] } },
+      { match: QUERY, reply: { stdout: COUNT(593) } },
+    ]);
+    const r = await azureLogs(exec).probe(workspace({ resourceGroup: 'shop-rg', name: 'shop-logs' }));
+    expect(r.data?.sites).toBe('shop:477,shop/slots/staging:116');
   });
 
   it('without hints it lists, and with several it says how many and which one it uses', async () => {

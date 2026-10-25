@@ -34,15 +34,16 @@ export async function runLogsQuery(exec: Exec, args: readonly string[], timeoutM
  * App Insights' `{tables}`; this turns it into that shape over `columns`, numbers parsed, so toPoints reads either.
  * A value that is empty or not a finite number becomes null (dropped by toPoints, never read as 0).
  */
-export function asTable(json: unknown, columns: readonly string[]): { tables: { columns: { name: string }[]; rows: unknown[][] }[] } {
+/** `text` columns stay strings (a timestamp, a site name); every other column is a number. */
+export function asTable(json: unknown, columns: readonly string[], text: readonly string[] = ['timestamp']): { tables: { columns: { name: string }[]; rows: unknown[][] }[] } {
   const list = Array.isArray(json) ? json : [];
-  const rows = list.map((o) => columns.map((c) => cell((o ?? {}) as Record<string, unknown>, c)));
+  const rows = list.map((o) => columns.map((c) => cell((o ?? {}) as Record<string, unknown>, c, text.includes(c))));
   return { tables: [{ columns: columns.map((name) => ({ name })), rows }] };
 }
 
-function cell(o: Record<string, unknown>, c: string): unknown {
+function cell(o: Record<string, unknown>, c: string, text: boolean): unknown {
   const v = o[c];
-  if (c === 'timestamp') return typeof v === 'string' ? v : null;
+  if (text) return typeof v === 'string' && v ? v : null;
   if (typeof v === 'number') return Number.isFinite(v) ? v : null;
   if (typeof v !== 'string' || v.trim() === '') return null;
   const n = Number(v);

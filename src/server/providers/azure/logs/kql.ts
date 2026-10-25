@@ -26,4 +26,7 @@ export function kql(signal: LogsSignal, since: string, site?: string): string {
 }
 
 /** The probe's question: how many HTTP requests the site served in the last day. */
+/** A day of HTTP requests per site (`grinexportal`, `grinexportal/slots/staging`): the App Services that log here. */
+export const sites24h = 'AppServiceHTTPLogs | where TimeGenerated > ago(1d) | summarize n=count() by site=extract(@"/sites/(.+)$", 1, tolower(_ResourceId)) | order by n desc';
+
 export const count24h = (site?: string): string => `AppServiceHTTPLogs | where TimeGenerated > ago(1d)${siteFilter(site)} | count`;
