@@ -16,15 +16,24 @@ export interface CiJob {
   release: boolean;
   /** An SBOM report (artifacts:reports:cyclonedx). */
   sbom: boolean;
+  /** Azure Pipelines and GitHub Actions only (a GitLab job leaves these out): the file it is defined in, for evidence. */
+  file?: string;
+  /** Other names the job goes by: its display name, and a CamelCase id as words ("BackendTests" -> "Backend Tests"). */
+  aliases?: string[];
+  /** Tasks and actions its steps call (`AzureWebApp@1`, `github/codeql-action/analyze@v3`); a task's `Action` input
+   * follows its name in brackets (`AzureAppServiceManage@0 (Swap Slots)`). */
+  tasks?: string[];
 }
 
 export interface CiConfig {
-  /** Where the config came from, for evidence: ".gitlab-ci.yml" or "CI lint (merged)". */
+  /** Where the GitLab config came from, for evidence: ".gitlab-ci.yml" or "CI lint (merged)". Azure Pipelines and GitHub
+   * Actions jobs are merged in, each naming its own `file`. */
   origin: string;
   jobs: CiJob[];
   /** Template and component includes by name ("Jobs/SAST.gitlab-ci.yml", "acme/belay-pack/tier-gate@1.0.0"). */
   includes: string[];
-  /** Includes this scan could not open (project, remote): a job may come from them. */
+  /** Includes this scan could not open (project, remote, an Azure template in another repository, a pipeline file that
+   * is not valid YAML): a job may come from them. */
   unresolved: string[];
 }
 

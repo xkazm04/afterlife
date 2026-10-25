@@ -19,12 +19,20 @@
   blocks a merge, R4 an agent operates it and a Belay proof job re-derives it. `--facts <facts.json>` scores the
   `belay.facts/0` file the `maturity-scan` component collects and prints `belay.maturity/0`. `--dir <checkout>`
   reads files only (CI config with local includes followed, CODEOWNERS, `.gitlab/`, IaC and alerting files), takes
-  the table's R1 and credits at most that: pipelines and protections are not in a checkout (`engine/scan/`). Beyond the
-  table's job names it counts what only a checkout shows (a job's junit or SBOM report, its script, template and
-  component includes, `.tf` and alerting files), and prints `belay.maturity.checkout/0` (paths, not GitLab URLs). A
-  stage whose lifting facts could not be read is unknown (null), never absent, and an empty alerting file is not
-  monitoring; a checkout walk cut off (20,000 entries, 8 levels) or with a folder it could not read leaves a stage
-  that found none of its files unknown with that reason. `--propose` (with `--dir`) adds the smallest next change per
+  the table's R1 and credits at most that: pipelines and protections are not in a checkout (`engine/scan/`). The CI
+  config is `.gitlab-ci.yml` plus Azure Pipelines (`azure-pipelines.yml`, `.azure-pipelines/`, `pipelines/**` files
+  with `stages:`, `jobs:` or `steps:`, their in-repo `template:` references followed) and GitHub Actions
+  (`.github/workflows/*.yml`), read into the same jobs (`engine/scan/pipelines/`): an Azure or GitHub job is also
+  matched by its display name and its CamelCase id as words (`BackendTests` as "Backend Tests"), and its evidence names
+  its own file. Beyond the table's job names it counts what only a checkout shows (a job's junit or SBOM report, a
+  `PublishTestResults` task or a JUnit action, a scanner run as a command - bandit, gitleaks, pip-audit, npm audit,
+  trivy, semgrep, codeql, CycloneDX, syft, never in a comment, an install line or a display name - a package or deploy
+  task, an ARM/Bicep deployment, template and component includes, `.tf`, `.bicep`, `azuredeploy*.json` and alerting
+  files), and prints `belay.maturity.checkout/0` (paths, not GitLab URLs). A stage whose lifting facts could not be
+  read is unknown (null), never absent, and an empty alerting file is not monitoring. In a git checkout (the work
+  tree's top) the files are git's list (tracked, and untracked but not ignored; fsmonitor off), else the folders are
+  walked to 8 levels; either stops at 200,000, and a list cut off or a folder it could not read leaves a stage that
+  found none of its files unknown with that reason. `--propose` (with `--dir`) adds the smallest next change per
   stage, as text.
 - `cli/belay.mjs` is the `belay` command-line companion, each part run through tsx:
   - `doctor` runs the real capability probes (`src/server/gitlab/doctorCli.ts`).
@@ -120,7 +128,7 @@
 | Path | Role |
 |---|---|
 | `engine/cli.ts`, `engine/commands/` | Entry and the commands (`prove`, `envelope`, `gate`, `tripwire`, `ledger` with `append` and `trial` in `audit/`, `scan` with its rubric, `pin`) |
-| `engine/scan/` | `scan --dir`: checkout facts, CI reader, the nine stage rules, scoring and proposals |
+| `engine/scan/` | `scan --dir`: checkout facts, the file list (`walk.ts`), the GitLab CI reader, the nine stage rules, scoring and proposals; `pipelines/`: the Azure Pipelines and GitHub Actions readers and the script and task signals |
 | `src/server/pair/` | `belay pair`: the bootstrap plan (`plan.ts`, `ciFile.ts`) and its IO (`pair.ts`, `pairCli.ts`) |
 | `engine/core/` | Args, files, types, ULID, engine version and the pin over the import closure (`imports.ts`) |
 | `engine/parse/` | Diff, JUnit, trace parsers, test-case shapes |
@@ -156,8 +164,13 @@
   project rates the same at R1 by `--dir` and by `--facts`;
   local includes, IaC and CODEOWNERS count; an empty alerting file and an unopened include do not; an unparsable CI
   file leaves the CI stages unknown; a cut-off walk or an unreadable folder makes a file stage unknown, not absent or a
-  crash; the command's JSON and refusals. `scan --facts` (the rubric over GitLab facts) is
-  `engine/commands/scan.test.ts`.
+  crash; the command's JSON and refusals. `engine/scan/pipelines/pipelines.test.ts`: an Azure pipeline credits a
+  pytest job (through a steps template), a bandit step, a build archive and an AzureWebApp deploy, naming file and
+  job; a `pipelines/` file is read by shape and a template once; a template in another repository keeps a stage
+  unknown; a pipeline file that does not parse is one reference not opened; a GitHub workflow's test, CodeQL and
+  release jobs; a scanner counts only as a command. `engine/scan/walk.test.ts` (temporary git repos): git's list
+  reaches past the walk's limits, leaves ignored files out, says when it is cut, and a subfolder is walked.
+  `scan --facts` (the rubric over GitLab facts) is `engine/commands/scan.test.ts`.
 - `src/server/pair/__tests__/pair.test.ts` (real temporary git checkouts): no write without `--write`; every line
   of the project's files kept; a second run is a no-op; not a checkout root or no group is refused; a different
   existing file is kept; the include is created, appended, inserted or refused; malformed arguments and a
@@ -173,5 +186,8 @@
   notes, label, approve or merge, hence a bot token.
 - `belay replay` is not implemented. `policy/tier-state.yml` holds illustrative values.
 - `belay scan` on a checkout cannot see pipelines, protections, group-level config or a custom CI config path: those
-  stages read unknown, or at most configured. Template and component job names are matched by pattern, so a
+  stages read unknown, or at most configured. Azure Pipelines template parameters and `${{ if }}` branches are not
+  evaluated (every branch is read), and a GitLab job's `environment:` is not read; an Azure deployment job or a GitHub
+  environment alone is not a release (both also gate data jobs), only a deploy task, an `az webapp` deploy or swap, or a
+  release action is. Template and component job names are matched by pattern, so a
   renamed job is missed. `pair` does not record the pairing in the app's index (the app's doctor and poller do).

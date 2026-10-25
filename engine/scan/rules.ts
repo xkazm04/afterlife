@@ -5,6 +5,7 @@
 import type { Stage } from '../../src/schemas/stages';
 import { RUBRIC } from '../commands/rubric';
 import type { CiJob, Fact, ScanFacts } from './facts';
+import { appliesIac, deploys, namesOf, packages, runsScanner } from './pipelines/signals';
 
 export interface ScanCell {
   stage: Stage;
@@ -45,10 +46,15 @@ const SEEN: Record<Stage, Seen> = {
   plan: { what: 'issue templates', files: (f) => fileHits(f, (p) => /^\.gitlab\/issue_templates\/./.test(p)), elsewhere: `planning lives in GitLab issues and boards, ${NOT_HERE}` },
   create: { what: 'CODEOWNERS', files: (f) => fileHits(f, (p) => /^(\.gitlab\/|docs\/)?CODEOWNERS$/.test(p)), elsewhere: `whether the default branch is protected is a GitLab setting, ${NOT_HERE}` },
   verify: { what: 'test job', job: (j) => j.junit, include: /Jobs\/Test/ },
-  package: { what: 'image or package build', job: (j) => j.sbom || /(docker|podman|buildah)\s+(build|push)|kaniko|jib|npm publish|mvn deploy/.test(j.script), include: /Jobs\/Build|Docker/ },
-  secure: { what: 'security scanner', include: /SAST|Secret-Detection|Dependency-Scanning|Container-Scanning|DAST/ },
-  release: { what: 'release job', job: (j) => j.release || /release-cli|glab release create/.test(j.script), include: /Release/ },
-  configure: { what: 'infrastructure as code', job: (j) => /terraform|tofu|pulumi|helm (upgrade|install)|kubectl apply/.test(j.script), include: /Terraform|OpenTofu/, files: (f) => fileHits(f, (p) => /\.tf$/.test(p)).slice(0, 3) },
+  package: { what: 'image or package build', job: (j) => j.sbom || packages(j) || /(docker|podman|buildah)\s+(build|push)|kaniko|jib|npm publish|mvn deploy/.test(j.script), include: /Jobs\/Build|Docker/ },
+  secure: { what: 'security scanner', job: runsScanner, include: /SAST|Secret-Detection|Dependency-Scanning|Container-Scanning|DAST/ },
+  release: { what: 'release job', job: (j) => j.release || deploys(j) || /release-cli|glab release create|gh release create/.test(j.script), include: /Release/ },
+  configure: {
+    what: 'infrastructure as code',
+    job: (j) => appliesIac(j) || /terraform|tofu|pulumi|helm (upgrade|install)|kubectl apply/.test(j.script),
+    include: /Terraform|OpenTofu/,
+    files: (f) => fileHits(f, (p) => /\.(tf|bicep)$|(^|\/)azuredeploy[^/]*\.json$/.test(p)).slice(0, 3),
+  },
   monitor: {
     what: 'alerting or monitor job',
     files: (f) => alerting(f).filter((p) => !blank(f, p)),
@@ -67,7 +73,7 @@ export function scoreStage(stage: Stage, facts: ScanFacts): ScanCell {
     const ci = val(facts.ci);
     if (!ci) unread.push(facts.ci.ok ? '' : facts.ci.why);
     else {
-      evidence.push(...ci.jobs.filter((j) => r1.names.test(j.name) || seen.job?.(j)).map((j) => `${ci.origin}: job ${j.name}`));
+      evidence.push(...ci.jobs.filter((j) => namesOf(j).some((n) => r1.names.test(n)) || seen.job?.(j)).map((j) => `${j.file ?? ci.origin}: job ${j.name}`));
       evidence.push(...ci.includes.filter((i) => seen.include?.test(i)).map((i) => `${ci.origin}: include ${i}`));
       if (ci.unresolved.length && evidence.length === 0) unread.push(`${ci.unresolved.length} include(s) not opened (${ci.unresolved.join(', ')})`);
     }
