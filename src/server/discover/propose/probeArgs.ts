@@ -19,7 +19,7 @@ export const PROBE_ARGS: Record<ProbeKind, ArgSpec> = {
   'az-appinsights-component': { required: ['resourceGroup'], optional: ['subscription', 'name'] },
   'az-appinsights-query': { required: ['appId'], optional: [] },
   'az-loganalytics-workspace': { required: ['resourceGroup'], optional: ['subscription', 'name'] },
-  'az-loganalytics-query': { required: ['workspaceId'], optional: ['site'] },
+  'az-loganalytics-query': { required: ['workspaceId'], optional: ['site', 'subscription'] },
   'glab-auth': { required: [], optional: [] },
   'glab-pipelines': { required: ['path'], optional: [] },
   'glab-jobs': { required: ['path', 'pipelineId'], optional: [] },

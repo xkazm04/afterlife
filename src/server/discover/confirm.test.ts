@@ -81,4 +81,19 @@ describe('confirmProject', () => {
     expect(cfg.host).toEqual({ kind: 'none' });
     expect(cfg.runner).toBeUndefined();
   });
+  it('without App Insights the cloud is the workspace whose HTTP logs answered, narrowed to the queried site', () => {
+    const ws = { workspaceId: 'w-1', name: 'app-logs', resourceGroup: 'rg', subscription: 's-1', httpLogs: 'yes' };
+    const results = [res('az-appinsights-component', 'fail'), res('az-loganalytics-workspace', 'ok', ws), res('az-loganalytics-query', 'ok', undefined, { workspaceId: 'w-1', site: 'shop' })];
+    const cfg = confirmProject(PROPOSAL, results, fixture(), ENGINE, NOW);
+    expect(cfg.cloud).toEqual({ provider: 'azure-log-analytics', logs: { workspaceId: 'w-1', name: 'app-logs', resourceGroup: 'rg', subscription: 's-1', site: 'shop' } });
+  });
+
+  it('a workspace without HTTP logs is not a cloud, and App Insights wins over the logs, keeping them as metadata', () => {
+    const ws = { workspaceId: 'w-1', name: 'app-logs', resourceGroup: 'rg', subscription: 's-1' };
+    expect(confirmProject(PROPOSAL, [res('az-loganalytics-workspace', 'ok', { ...ws, httpLogs: 'no' })], fixture(), ENGINE, NOW).cloud).toEqual({ provider: 'none' });
+    const ai = res('az-appinsights-component', 'ok', { appId: 'a-1', name: 'ai', resourceGroup: 'rg', subscription: 's-1' });
+    const cfg = confirmProject(PROPOSAL, [ai, res('az-loganalytics-workspace', 'ok', { ...ws, httpLogs: 'yes' })], fixture(), ENGINE, NOW);
+    expect(cfg.cloud.provider).toBe('azure-app-insights');
+    expect(cfg.cloud.logs?.workspaceId).toBe('w-1');
+  });
 });

@@ -46,7 +46,8 @@ const CHECK_LABEL: Record<ProbeKind, string> = {
   'az-loganalytics-workspace': 'Log Analytics workspace', 'az-loganalytics-query': 'HTTP logs query',
 };
 
-export const reloginOf = (summary: string): string | undefined => /\b(az login|glab auth login)\b/.exec(summary)?.[1];
+/** The one command a fail names for the person to run: a re-login, or the az extension a probe needs. */
+export const reloginOf = (summary: string): string | undefined => /\b(az extension add -n [a-z-]+|az login|glab auth login)\b/.exec(summary)?.[1];
 
 /** "branch master · LANE=hotfix · reason schedule": how a variant's runs are told apart. */
 export function matchText(v: VariantRule): string {
