@@ -92,7 +92,7 @@ Target decisions (`plans/context.ts`):
   0.5 MB in, under 15 ms. The seeded gaps (at most 46 lines a file, 18 a hunk) are admitted. A hunk was already bounded
   (400 lines of 500 characters), and so is the whole body (Next's default `serverActions.bodySizeLimit`, 1MB: keep it).
 
-Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran).
+Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran, and only when it is the intent's own project's item: `__tests__/confirm/proposalScope.test.ts`).
 
 ## Responses
 

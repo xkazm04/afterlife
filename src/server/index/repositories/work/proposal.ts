@@ -73,13 +73,16 @@ export async function listActedProposals(db: Queryable, projectId: string | null
   return rows.map(fromDb);
 }
 
-/** Records that the operator acted on (or dismissed) a proposal. Returns false if it was not open. */
+/**
+ * Records that the operator acted on (or dismissed) a proposal. Returns false if it was not open, or, with `projectId`,
+ * not that project's: a write in one project never settles another's inbox item.
+ */
 export async function closeProposal(
-  db: Queryable, id: string, state: Exclude<ProposalState, 'open'>, at: Date, actedAs: string | null,
+  db: Queryable, id: string, state: Exclude<ProposalState, 'open'>, at: Date, actedAs: string | null, projectId: string | null = null,
 ): Promise<boolean> {
   const { rows } = await db.query<{ id: string }>(
-    `update proposal set state = $2, acted_at = $3::timestamptz, acted_as = $4 where id = $1 and state = 'open' returning id`,
-    [id, state, at.toISOString(), actedAs],
+    `update proposal set state = $2, acted_at = $3::timestamptz, acted_as = $4 where id = $1 and state = 'open' and ($5::text is null or project_id = $5) returning id`,
+    [id, state, at.toISOString(), actedAs, projectId],
   );
   return rows.length === 1;
 }

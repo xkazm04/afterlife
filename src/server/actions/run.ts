@@ -133,7 +133,8 @@ async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promi
   }
   await checkHead(deps, b, results, commit, body);
   const ok = results.length === b.plan.commands.length && results.every((r) => r.ok);
-  if (ok && b.intent.proposal) await closeProposal(db, b.intent.proposal, 'acted', deps.now(), b.operator);
+  // only the intent's own project's item: a stale or mistaken id never clears another project's Needs-you
+  if (ok && b.intent.proposal) await closeProposal(db, b.intent.proposal, 'acted', deps.now(), b.operator, b.intent.project);
   // GitLab may have changed even when a later command failed; the answer stands, and the next scheduled poll catches up
   await deps.refresh().catch((e: unknown) => console.error('belay: the poll after a write failed; the screens show the last poll until the next one', e));
   return { status: ok ? 'done' : 'failed', preview: b.preview, results };
