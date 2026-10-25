@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { addWorktree, removeTree, removeWorktree, sweepStaleWorktrees, worktreeDir, worktreesRoot } from '../git/worktree';
+import { addWorktree, claimOwnWorktrees, releaseOwnWorktrees, removeTree, removeWorktree, sweepStaleWorktrees, worktreeDir, worktreesRoot } from '../git/worktree';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-wt-'));
 const repo = path.join(tmp, 'repo');
@@ -79,5 +79,33 @@ describe('sweepStaleWorktrees', () => {
 
   it('is a no-op on a repo with no worktrees dir', async () => {
     expect(await sweepStaleWorktrees(path.join(tmp, 'nowhere'))).toEqual([]);
+  });
+});
+
+describe('claimOwnWorktrees', () => {
+  it("removes what a stopped run left registered at the fixed paths, drops its lane branch, keeps the wave branch", async () => {
+    const head = worktreeDir(repo, 'belay-wave-head');
+    const lane = worktreeDir(repo, 'belay-wave-lane');
+    await addWorktree(repo, head, 'main', 'belay/wave-7');
+    await addWorktree(repo, lane, 'main', 'belay/wave-7-a');
+    const mine = worktreeDir(repo, 'belay-wave-8-plan');
+    await addWorktree(repo, mine, 'main');
+    expect(await claimOwnWorktrees(repo)).toEqual([head, lane]);
+    expect(sh('worktree', 'list')).not.toMatch(/belay-wave-(head|lane)/);
+    expect(sh('branch', '--list', 'belay/wave-7-a')).toBe('');
+    expect(sh('branch', '--list', 'belay/wave-7')).toContain('belay/wave-7');
+    expect(fs.existsSync(path.join(mine, 'a.txt'))).toBe(true);
+    releaseOwnWorktrees(repo);
+    await removeWorktree(repo, mine);
+  });
+
+  it('refuses while another live runner holds them, and ignores a dead one', async () => {
+    const file = path.join(worktreesRoot(repo), 'belay-run.pid');
+    fs.writeFileSync(file, `${process.ppid}\n`);
+    await expect(claimOwnWorktrees(repo)).rejects.toThrow(/another belay run/);
+    fs.writeFileSync(file, '999999999\n');
+    await expect(claimOwnWorktrees(repo)).resolves.toEqual([]);
+    releaseOwnWorktrees(repo);
+    expect(fs.existsSync(file)).toBe(false);
   });
 });

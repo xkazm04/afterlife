@@ -72,6 +72,58 @@ export async function removeWorktree(repoPath: string, dir: string, dropBranch?:
   if (dropBranch) await runProc('git', ['-C', repoPath, 'branch', '-D', dropBranch]);
 }
 
+/** The fixed worktrees a run reuses (wave.ts, lane/run.ts, tech/measure.ts): a run stopped mid-wave leaves them registered. */
+const OWN = ['belay-wave-head', 'belay-wave-lane', 'belay-wave-tech'];
+/** A lane's branch, the runner's own; the wave branch belay/wave-<n> is a person's review target and is kept. */
+const LANE_BRANCH = /^belay\/wave-\d+-[\w.-]+$/;
+const pidFile = (repoPath: string): string => path.join(worktreesRoot(repoPath), 'belay-run.pid');
+
+function alive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (e) {
+    return (e as NodeJS.ErrnoException).code === 'EPERM';
+  }
+}
+
+/**
+ * Takes the repo's fixed worktrees for this process (<root>/belay-run.pid) and removes the ones a stopped run left
+ * registered, dropping a leftover lane branch with its worktree, so an interrupted run never blocks the next one.
+ * Throws when a live runner still holds them: its worktrees are in use. Returns the dirs removed.
+ */
+export async function claimOwnWorktrees(repoPath: string): Promise<string[]> {
+  const file = pidFile(repoPath);
+  const held = fs.existsSync(file) ? Number(fs.readFileSync(file, 'utf8').trim()) : NaN;
+  if (Number.isInteger(held) && held > 0 && held !== process.pid && alive(held)) throw new Error(`another belay run (pid ${held}) holds ${worktreesRoot(repoPath)}; delete ${file} if it is gone`);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `${process.pid}\n`);
+  const list = (await runProc('git', ['-C', repoPath, 'worktree', 'list', '--porcelain'])).stdout;
+  const branchAt = new Map<string, string>();
+  for (const block of list.split(/\r?\n\r?\n/)) {
+    const at = /^worktree (.+)$/m.exec(block)?.[1];
+    if (at) branchAt.set(samePathKey(at), /^branch refs\/heads\/(.+)$/m.exec(block)?.[1] ?? '');
+  }
+  const removed: string[] = [];
+  for (const name of OWN) {
+    const dir = worktreeDir(repoPath, name);
+    const branch = branchAt.get(samePathKey(dir));
+    if (branch === undefined) continue;
+    await removeWorktree(repoPath, dir, LANE_BRANCH.test(branch) ? branch : undefined);
+    removed.push(dir);
+  }
+  return removed;
+}
+
+/** Gives the fixed worktrees back at the end of a run (a killed run's file names a dead pid, which the next run ignores). */
+export function releaseOwnWorktrees(repoPath: string): void {
+  try {
+    if (Number(fs.readFileSync(pidFile(repoPath), 'utf8').trim()) === process.pid) fs.rmSync(pidFile(repoPath));
+  } catch {
+    /* never claimed, or already gone */
+  }
+}
+
 /**
  * Deletes every `belay-wave-*` dir under the worktrees root that git no longer lists as a worktree: what an
  * interrupted run or a half-failed removal left behind. Live worktrees are registered and never touched.

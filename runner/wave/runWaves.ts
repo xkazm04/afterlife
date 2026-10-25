@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { branchExists } from '../git/worktree';
+import { branchExists, releaseOwnWorktrees } from '../git/worktree';
 import { git } from '../proc/proc';
 import { loadFleet } from '../fleet/load';
 import type { RunEvent } from '../../src/schemas/run';
@@ -61,5 +61,7 @@ export async function runWaves(opts: RunOptions, emit: (e: RunEvent) => void): P
   } catch (e) {
     console.error(`runner: wave ${wave} failed: ${e instanceof Error ? e.message : String(e)}`);
     return 1;
+  } finally {
+    releaseOwnWorktrees(repo.path);
   }
 }

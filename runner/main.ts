@@ -6,8 +6,8 @@ import { killAll } from './proc/proc';
 import { defaultFleetFile, runCaps } from './wave/runWaves';
 
 // Lanes run detached (their own process group on POSIX): stopping the runner must stop them too, or claude
-// keeps editing and spending with nobody to gate it. The lane worktrees under <repo>/.claude/worktrees stay
-// behind for a person to remove; nothing was pushed.
+// keeps editing and spending with nobody to gate it. The worktrees under <repo>/.claude/worktrees stay behind
+// until the next run on the repo removes them (git/worktree.ts claimOwnWorktrees); nothing was pushed.
 for (const sig of ['SIGINT', 'SIGTERM'] as const) {
   process.once(sig, () => {
     console.error(`belay run: ${sig}, stopping every lane`);

@@ -4,7 +4,7 @@
 // are green on the wave branch itself. Nothing here pushes or merges: belay/wave-<n> is left for a person.
 import { bashPrefixes } from '../agent/permissions';
 import { callClaude } from '../agent/spawn';
-import { addWorktree, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
+import { addWorktree, claimOwnWorktrees, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
 import { runLane, type FrontierBrief } from '../lane/run';
 import { measureWave } from '../tech/measure';
 import { frontierItem, frontierPrompt, wantsFrontier } from './frontier';
@@ -82,8 +82,10 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
   // One fixed path for every wave's own worktree (waves of a repo run one at a time, and it is removed at wave end):
   // cargo hashes a workspace crate's path into its build, so a path per wave grew a shared target dir every wave.
   const waveDir = worktreeDir(repo.path, 'belay-wave-head');
+  // What a run stopped mid-wave left registered at the fixed paths (its lane branch too) - before wave.start, so a
+  // refusal (another live run) writes no run file - then the dirs left behind unregistered.
+  for (const d of await claimOwnWorktrees(repo.path)) console.error(`runner: removed ${d}, left registered by a stopped run`);
   log({ kind: 'wave.start', base, lanes: c.opts.lanes, laneCapUsd: c.laneCapUsd, waveCapUsd: c.waveCapUsd, model: c.opts.model });
-  // Dirs an interrupted run or a half-failed removal left behind (unregistered, so no live wave's).
   await sweepStaleWorktrees(repo.path);
   await addWorktree(repo.path, waveDir, baseSha, branch);
   let cost = 0;

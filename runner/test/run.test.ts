@@ -145,6 +145,13 @@ describe('runWaves with a fake claude', () => {
     expect(r.ends['ok-a']?.kind === 'lane.end' && r.ends['ok-a'].commits).toEqual([]);
   }, 90_000);
 
+  it('a wave head a stopped run left registered does not block the next run', async () => {
+    sh(repoDir, 'worktree', 'add', '-q', '-b', 'belay/wave-90', path.join(repoDir, '.claude', 'worktrees', 'belay-wave-head'), 'main');
+    const r = await run(['ok-a']);
+    expect(r.ends['ok-a']).toMatchObject({ outcome: 'landed' });
+    sh(repoDir, 'branch', '-D', 'belay/wave-90');
+  }, 90_000);
+
   it('kills a hung lane at the timeout', async () => {
     const r = await run(['hang-a'], { laneTimeoutMs: 4000 });
     expect(r.ends['hang-a']).toMatchObject({ outcome: 'timeout' });
