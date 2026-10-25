@@ -10,7 +10,7 @@ const strs = (v: unknown): boolean => v === undefined || (Array.isArray(v) && v.
 
 const HOSTS = ['azure-devops', 'gitlab', 'github', 'none'];
 const CIS = ['azure-pipelines', 'gitlab-ci', 'none'];
-const CLOUDS = ['azure-app-insights', 'none'];
+const CLOUDS = ['azure-app-insights', 'azure-log-analytics', 'none'];
 const KINDS: readonly string[] = PROBE_KINDS;
 
 const isHost = (h: unknown): boolean => isObj(h) && HOSTS.includes(h.kind as string) && ['org', 'project', 'repo', 'path'].every((k) => optStr(h[k]));
@@ -23,8 +23,12 @@ const isVariant = (v: unknown): boolean =>
 const isCi = (c: unknown): boolean =>
   isObj(c) && CIS.includes(c.provider as string) && Array.isArray(c.pipelines) && c.pipelines.every((p) => isObj(p) && str(p.id) && typeof p.name === 'string' && optStr(p.file)) && Array.isArray(c.variants) && c.variants.every(isVariant);
 
+const fields = (o: unknown, keys: readonly string[]): boolean => isObj(o) && keys.every((k) => str(o[k]));
+
 const isCloud = (c: unknown): boolean =>
-  isObj(c) && CLOUDS.includes(c.provider as string) && (c.resource === undefined || (isObj(c.resource) && ['appId', 'name', 'resourceGroup', 'subscription'].every((k) => str((c.resource as Obj)[k]))));
+  isObj(c) && CLOUDS.includes(c.provider as string) &&
+  (c.resource === undefined || fields(c.resource, ['appId', 'name', 'resourceGroup', 'subscription'])) &&
+  (c.logs === undefined || (fields(c.logs, ['workspaceId', 'name', 'resourceGroup', 'subscription']) && optStr((c.logs as Obj).site)));
 
 const isProbe = (p: unknown): boolean => isObj(p) && KINDS.includes(p.kind as string) && isObj(p.args) && ['ok', 'fail', 'skipped'].includes(p.status as string) && typeof p.summary === 'string' && str(p.at) && typeof p.ms === 'number';
 

@@ -41,6 +41,15 @@ describe('project store', () => {
     expect(loadProjects()).toEqual([CFG]);
   });
 
+  it('reads back a Log Analytics cloud, with and without its site (the end-to-end smoke saved one it then refused)', () => {
+    use();
+    const logs = { workspaceId: 'w', name: 'logs', resourceGroup: 'r', subscription: 's' };
+    saveProject({ ...CFG, cloud: { provider: 'azure-log-analytics', logs: { ...logs, site: 'shop' } } });
+    expect(loadProjects()[0]?.cloud).toEqual({ provider: 'azure-log-analytics', logs: { ...logs, site: 'shop' } });
+    saveProject({ ...CFG, cloud: { provider: 'azure-log-analytics', logs } });
+    expect(loadProjects()[0]?.cloud.logs).toEqual(logs);
+  });
+
   it('a second project of the same name gets the next slug; the same root keeps its own', () => {
     use();
     saveProject(CFG);
