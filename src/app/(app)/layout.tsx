@@ -3,6 +3,7 @@ import { LiveGate } from '@/app/features/trace/LiveGate';
 import { XrayOverlay } from '@/app/features/xray/XrayOverlay';
 import { XraySidebar } from '@/app/features/xray/XraySidebar';
 import { AppFrame } from '@/components/shell/frame/AppFrame';
+import { ArmHost } from '@/components/shell/nav/armSeam';
 
 // Every windowed screen shares one frame: the backdrop, the window box and the sidebar mount here once, so navigating
 // between screens keeps the sidebar (and whether it is hidden); each screen's Window fills the right column. The frame
@@ -23,7 +24,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
       }
     >
-      {children}
+      {/* the tab-switch bake-off's host (dev only; production is arm A, which renders the children as they are) */}
+      <ArmHost>{children}</ArmHost>
       <Suspense fallback={null}>
         <LiveGate />
       </Suspense>

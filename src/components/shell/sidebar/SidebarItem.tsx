@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { ArmLink } from '../nav/armSeam';
 import type { ReactNode } from 'react';
 import styles from './Sidebar.module.css';
 
@@ -33,9 +33,9 @@ export function SidebarItem({
   );
   if (href) {
     return (
-      <Link href={href} className={styles.si} aria-current={current ? 'page' : undefined} title={title} onClick={onClick}>
+      <ArmLink href={href} className={styles.si} aria-current={current ? 'page' : undefined} title={title} onClick={onClick}>
         {body}
-      </Link>
+      </ArmLink>
     );
   }
   return (
