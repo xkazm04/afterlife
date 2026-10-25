@@ -12,14 +12,16 @@ export function ciProvider(kind: Exclude<CiProviderKind, 'none'>, exec?: Exec): 
 }
 
 export function cloudProvider(kind: Exclude<CloudProviderKind, 'none'>, exec?: Exec): CloudProvider {
+  // azure-log-analytics is built next (providers/azure/logs); until then it is App Insights' twin that fails its probes.
   void kind;
   return azureInsights(exec ?? defaultExec);
 }
 
 /** The provider family a probe kind belongs to: 'az-devops-*' -> azure-pipelines, 'glab-*' -> gitlab-ci, ... */
-export function probeOwner(kind: ProbeKind): 'azure-pipelines' | 'gitlab-ci' | 'azure-app-insights' | 'local' {
+export function probeOwner(kind: ProbeKind): 'azure-pipelines' | 'gitlab-ci' | 'azure-app-insights' | 'azure-log-analytics' | 'local' {
   if (kind.startsWith('az-devops') || kind === 'az-login') return 'azure-pipelines';
   if (kind.startsWith('glab')) return 'gitlab-ci';
   if (kind.startsWith('az-appinsights')) return 'azure-app-insights';
+  if (kind.startsWith('az-loganalytics')) return 'azure-log-analytics';
   return 'local';
 }

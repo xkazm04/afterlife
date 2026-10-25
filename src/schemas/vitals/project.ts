@@ -5,7 +5,8 @@ import type { TechMetric } from '../run/tech';
 
 export type HostKind = 'azure-devops' | 'gitlab' | 'github' | 'none';
 export type CiProviderKind = 'azure-pipelines' | 'gitlab-ci' | 'none';
-export type CloudProviderKind = 'azure-app-insights' | 'none';
+/** Where production signals come from: App Insights telemetry, or (an app without it) its Log Analytics HTTP logs. */
+export type CloudProviderKind = 'azure-app-insights' | 'azure-log-analytics' | 'none';
 
 /** Where the code is hosted: an Azure DevOps org/project/repo, or a GitLab path_with_namespace. */
 export interface Host {
@@ -62,9 +63,22 @@ export interface CloudResource {
   subscription: string;
 }
 
+/** A Log Analytics workspace holding the app's AppServiceHTTPLogs. `workspaceId` is the workspace's customerId. */
+export interface LogsWorkspace {
+  workspaceId: string;
+  name: string;
+  resourceGroup: string;
+  subscription: string;
+  /** The App Service the HTTP logs belong to (`_ResourceId` filter); omitted = every app in the workspace. */
+  site?: string;
+}
+
+/** `provider` names the one source collected: App Insights when `resource` is set, else Log Analytics from `logs` -
+ * never both, so a request is never counted twice. */
 export interface CloudConfig {
   provider: CloudProviderKind;
   resource?: CloudResource;
+  logs?: LogsWorkspace;
 }
 
 /** Every probe the wizard may run. Args are validated per kind (providers/probeArgs) - there is no free shell. */
@@ -77,6 +91,8 @@ export const PROBE_KINDS = [
   'az-devops-timeline',
   'az-appinsights-component',
   'az-appinsights-query',
+  'az-loganalytics-workspace',
+  'az-loganalytics-query',
   'glab-auth',
   'glab-pipelines',
   'glab-jobs',
@@ -116,7 +132,7 @@ export interface Proposal {
   host: Host;
   components: Component[];
   ci: CiConfig;
-  cloud: { provider: CloudProviderKind; hint?: { resourceGroup?: string; name?: string } };
+  cloud: { provider: CloudProviderKind; hint?: { resourceGroup?: string; name?: string; workspace?: string; site?: string } };
   metrics: TechMetric[];
   probes: ProbeSpec[];
 }
