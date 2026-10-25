@@ -36,12 +36,14 @@ const GROUP_OF: Record<ProbeKind, GroupName> = {
   'git-root': 'Host', 'git-remote': 'Host', 'az-login': 'Host', 'glab-auth': 'Host', 'local-command': 'Components',
   'az-devops-pipelines': 'Pipelines & variants', 'az-devops-runs': 'Pipelines & variants', 'az-devops-timeline': 'Pipelines & variants',
   'glab-pipelines': 'Pipelines & variants', 'glab-jobs': 'Pipelines & variants', 'az-appinsights-component': 'Cloud', 'az-appinsights-query': 'Cloud',
+  'az-loganalytics-workspace': 'Cloud', 'az-loganalytics-query': 'Cloud',
 };
 
 const CHECK_LABEL: Record<ProbeKind, string> = {
   'git-root': 'Git repository', 'git-remote': 'Remote', 'az-login': 'az login', 'glab-auth': 'glab login', 'local-command': 'Local command',
   'az-devops-pipelines': 'Pipelines list', 'az-devops-runs': 'Recent runs', 'az-devops-timeline': 'Run timeline', 'glab-pipelines': 'Pipelines list',
   'glab-jobs': 'Pipeline jobs', 'az-appinsights-component': 'App Insights component', 'az-appinsights-query': 'App Insights query',
+  'az-loganalytics-workspace': 'Log Analytics workspace', 'az-loganalytics-query': 'HTTP logs query',
 };
 
 export const reloginOf = (summary: string): string | undefined => /\b(az login|glab auth login)\b/.exec(summary)?.[1];

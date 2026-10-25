@@ -71,6 +71,8 @@ never write null, an empty string or 0 for an unknown.
 | `az-devops-timeline` | `org`, `project`, `runId` | one run's stages and jobs |
 | `az-appinsights-component` | `resourceGroup`, `subscription?`, `name?` | the App Insights component |
 | `az-appinsights-query` | `appId` | that the component answers a query |
+| `az-loganalytics-workspace` | `resourceGroup`, `subscription?`, `name?` | the Log Analytics workspace holding the App Service HTTP logs (propose it beside the App Insights component: an app without App Insights is watched through these logs) |
+| `az-loganalytics-query` | `workspaceId`, `site?` | that the workspace holds AppServiceHTTPLogs for the site |
 | `glab-auth` | none | the glab login |
 | `glab-pipelines` | `path` | the GitLab pipelines |
 | `glab-jobs` | `path`, `pipelineId` | one GitLab pipeline's jobs |

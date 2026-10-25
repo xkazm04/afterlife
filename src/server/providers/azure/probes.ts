@@ -2,7 +2,7 @@
 // missing az or a bad arg is a `fail` whose summary says what to do; a probe never throws.
 import type { ProbeResult, ProbeSpec } from '@/schemas/vitals';
 import type { Exec } from '../types';
-import { failSummary, parseJson, probeResult } from '../probeResult';
+import { failSummary, mapLimit, parseJson, probeResult } from '../probeResult';
 import { azArgs, azArgv } from './args';
 import { mapRun, mapTimeline } from './map';
 
@@ -44,6 +44,14 @@ export async function azProbe(exec: Exec, spec: ProbeSpec): Promise<ProbeResult>
     const ps = rows(v).filter((p) => typeof p.id === 'number' || typeof p.id === 'string');
     const data: Record<string, string> = { pipelineIds: ps.map((p) => String(p.id)).join(',') };
     for (const p of ps) if (typeof p.name === 'string') data[`pipeline:${p.id}`] = p.name;
+    // Which YAML each definition runs, so the wizard can tell a CI file that is registered from one that never ran.
+    // A show that fails leaves its key out: the file is then unknown, never guessed.
+    const files = await mapLimit(ps, 4, async (p) => {
+      const one = await azJson(exec, azArgv.pipeline(a, String(p.id)));
+      const y = 'value' in one ? ((one.value as Rec | null)?.process as Rec | undefined)?.yamlFilename : undefined;
+      return typeof y === 'string' && y ? ([String(p.id), y] as const) : undefined;
+    });
+    for (const f of files) if (f) data[`pipelineFile:${f[0]}`] = f[1];
     return done(ps.length ? 'ok' : 'fail', ps.length ? `${ps.length} pipeline${ps.length === 1 ? '' : 's'}` : 'no pipelines in this project', data);
   }
 

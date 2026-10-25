@@ -25,6 +25,8 @@ export function azArgs(args: Record<string, string>, need: { pipelineId?: 'requi
 export const azArgv = {
   account: (): string[] => ['account', 'show', '-o', 'json'],
   pipelines: (a: AzArgs): string[] => ['pipelines', 'list', '--org', a.org, '--project', a.project, '-o', 'json'],
+  /** One definition: `list` leaves `process.yamlFilename` empty, `show` fills it. */
+  pipeline: (a: AzArgs, id: string): string[] => ['pipelines', 'show', '--id', id, '--org', a.org, '--project', a.project, '-o', 'json'],
   runs: (a: AzArgs, top = 50): string[] => [
     'pipelines', 'runs', 'list', '--org', a.org, '--project', a.project, ...(a.pipelineId ? ['--pipeline-ids', a.pipelineId] : []), '--top', String(top), '-o', 'json',
   ],
