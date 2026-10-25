@@ -9,6 +9,7 @@ export function lastWords(r: RunnerRow): string {
   const w = r.last;
   if (!w) return 'no runs yet';
   if (w.running) return `wave ${w.wave} running`;
+  if (w.proposed !== undefined) return `wave ${w.wave} proposed ${w.proposed}, changed nothing`;
   if (!w.mergeable) return `wave ${w.wave} not mergeable`;
   if (w.merged === undefined) return `wave ${w.wave} mergeable`;
   return w.merged ? `wave ${w.wave} merged` : `wave ${w.wave} to merge`;

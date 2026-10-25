@@ -13,6 +13,7 @@ describe('lastWords', () => {
     [beta, 'no runs yet'],
     [{ ...alpha, last: { ...alpha.last!, running: true } }, 'wave 2 running'],
     [{ ...alpha, last: { ...alpha.last!, mergeable: false } }, 'wave 2 not mergeable'],
+    [{ ...alpha, last: { ...alpha.last!, mergeable: false, proposed: 4 } }, 'wave 2 proposed 4, changed nothing'],
     [alpha, 'wave 2 to merge'],
     [{ ...alpha, last: { ...alpha.last!, merged: true } }, 'wave 2 merged'],
     [{ ...alpha, last: { wave: 2, running: false, mergeable: true, counts, open: 0 } }, 'wave 2 mergeable'],
