@@ -1,8 +1,9 @@
 // Two things the probes find that are not lines to save. A CI definition in the repo with no registered pipeline
 // behind it ("defined in the repo, never ran": Grinex's pr-validation.yml and nightly-full.yml are not registered in
-// Azure Pipelines), and a cloud with no App Insights component, which is a person's step: the az commands that turn
-// it on are shown, never run (a later package wires their preview and confirm). Both are said only once a probe
-// answered: unknown is never a finding.
+// Azure Pipelines), and a cloud with no App Insights component, which is a person's step: once the project is saved,
+// the save step's "Turn on App Insights" shows the server's exact az commands (enable-app-insights' preview) and runs
+// them only on the person's click. No command is spelled here. Both are said only once a probe answered: unknown is
+// never a finding.
 import type { ProbeResult, Proposal } from '@/schemas/vitals';
 import type { Line } from './lines';
 
@@ -40,31 +41,19 @@ export function neverRanLines(p: Proposal, never: ReadonlySet<string> | null): L
 
 export const neverRanSummary = NEVER_RAN;
 
-/** The az commands that turn App Insights on for the hinted resource group; shown for the person, never run. */
-export function appInsightsCommands(p: Proposal): string[] {
-  const rg = p.cloud.hint?.resourceGroup ?? '<resource-group>';
-  const name = p.cloud.hint?.name ?? '<component-name>';
-  return [
-    `az monitor app-insights component create --app ${name} --resource-group ${rg} --location <region> --kind web --application-type web`,
-    `az monitor app-insights component show --app ${name} --resource-group ${rg} --query connectionString -o tsv`,
-    `az webapp config appsettings set --name <web-app> --resource-group ${rg} --settings APPLICATIONINSIGHTS_CONNECTION_STRING=<connection-string>`,
-  ];
-}
-
 const NONE = /no App Insights component|was not found|ResourceNotFound|has no appId/i;
 
 /** "Turn on App Insights", when the component probe answered that there is none (not when a login lapsed). */
 export function appInsightsStep(p: Proposal, r: ProbeResult | undefined): Line | null {
-  if (!r) return null;
+  if (!r || p.cloud.provider === 'none') return null;
   const none = (r.status === 'fail' && NONE.test(r.summary)) || (r.status === 'ok' && !r.data?.appId);
   if (!none) return null;
   return {
     id: 'person:app-insights',
     label: 'Turn on App Insights',
-    detail: 'your step: Afterlife never runs these',
+    detail: 'your step: after Save',
     state: 'you',
-    summary: 'No App Insights component, so there is no production signal to read. Create one, point the web app at it, then Re-run.',
-    commands: appInsightsCommands(p),
+    summary: 'No App Insights component: production signals come from the Log Analytics HTTP logs, if any. Save, then Turn on App Insights shows the exact az commands and runs them only on your click.',
     finding: true,
   };
 }

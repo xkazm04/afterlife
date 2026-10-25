@@ -1,0 +1,50 @@
+/* A project write's sheet (queue runs, install the skill, turn on App Insights) and the adjustment's re-measure row. */
+.note {
+  margin: 0 0 8px;
+  font-size: var(--t-body);
+  color: var(--text-2);
+}
+.notes {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: var(--t-small);
+  color: var(--text-2);
+}
+.notes li + li {
+  margin-top: 4px;
+}
+.diff {
+  max-height: 260px;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: var(--t-small);
+  color: var(--text-2);
+  white-space: pre-wrap;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+}
+.outcome {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: var(--t-body);
+  color: var(--text-2);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.said {
+  margin: 6px 0 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}

@@ -1,8 +1,8 @@
 // Adjustments: what an agent or a person claimed a change would move, joined by id with Afterlife's own measurements of
 // it. The claim never decides anything: the state comes from the latest measurement alone (the agent's figure is shown
 // beside it, labelled, never in its place). Pure.
-import type { AdjustmentClaim, AdjustmentLine, Measurement } from '@/schemas/vitals';
-import type { AdjustmentRow, AdjustmentState } from './types';
+import type { AdjustmentClaim, AdjustmentLine, Measurement, ProjectConfig } from '@/schemas/vitals';
+import type { AdjustmentRow, AdjustmentState, Remeasure } from './types';
 
 /** A side needs this many samples before a wall-time verdict counts (bench-delta rules). */
 export const MIN_SAMPLES = 3;
@@ -45,4 +45,17 @@ export function targetWords(t: AdjustmentClaim['target']): string {
 /** The measured change, head against base, as a signed share of the base median; undefined for a zero base. */
 export function measuredPct(m: Measurement): number | undefined {
   return m.base.median ? ((m.head.median - m.base.median) / m.base.median) * 100 : undefined;
+}
+
+/** The re-measures this project can run for a claim: CI ones from its variant, local ones from its runner's metrics. */
+export function remeasureOf(c: AdjustmentClaim, cfg: Pick<ProjectConfig, 'ci' | 'runner'>): Remeasure | undefined {
+  const t = c.target;
+  const r: Remeasure = {};
+  if ((t.kind === 'ci-stage' || t.kind === 'ci-run') && t.variant) {
+    r.passive = true;
+    const rule = cfg.ci.variants.find((v) => v.id === t.variant);
+    if (cfg.ci.provider === 'azure-pipelines' && rule && c.ref.branch) r.queue = { pipelineId: rule.pipelineId, branch: c.ref.branch };
+  }
+  if (t.kind === 'local-metric' && t.metric && cfg.runner?.frontier?.metrics.some((m) => m.name === t.metric)) r.local = true;
+  return Object.keys(r).length ? r : undefined;
 }

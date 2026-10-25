@@ -46,6 +46,10 @@ const HAND_WRITTEN_GAP: readonly [string, RegExp][] = [
   ['a commit through glab api to repository/commits', /repository\/commits/],
   ['a glab issue create', /\bglab issue create\b/],
   ['a belay probe', /\bbelay probe\b/],
+  // A real project's writes are the server's previews (actions/vitals): queue-runs, enable-app-insights.
+  ['an az pipelines run', /\baz pipelines (run|build queue)\b/],
+  ['an App Insights component create', /\bapp-insights component create\b/],
+  ['an App Service app setting write', /\bwebapp config appsettings set\b/],
 ];
 
 /**

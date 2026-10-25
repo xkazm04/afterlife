@@ -26,7 +26,7 @@ export function WizardLegend() {
         ['failed', 'Its probe failed or found something else: it is not saved; a lapsed login names its re-login command'],
         ['skipped', 'A local command: it runs only on your click'],
         ['never ran', 'A CI file in the repo with no registered pipeline behind it: nothing to time until it is registered'],
-        ['your step', 'Only you can do it (turn on App Insights); the commands are shown, never run'],
+        ['your step', 'Only you decide it (turn on App Insights): the exact commands are shown first and run only on your click'],
         ['Save', 'Writes only the confirmed lines to Afterlife’s data folder, never into the repo'],
       ]}
     />

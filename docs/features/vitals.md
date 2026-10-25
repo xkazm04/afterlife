@@ -18,7 +18,25 @@
   - **Adjustments**: every claim an agent (through `belay report`) or a person made, joined by id with Afterlife's own
     measurements: **proposed** (no measurement), **measuring** (the latest is inconclusive with a side under n 3),
     then **credited**, **not-earned** or **inconclusive** from the latest measurement. The agent's figure is shown in a
-    column labelled **Agent's claim**, beside the measurement, never in its place.
+    column labelled **Agent's claim**, beside the measurement, never in its place. A claim's inspector holds its
+    **Re-measure** buttons, each shown only where it fits:
+    - **Measure passively** (a CI claim with a variant): the variant's 5 natural runs before the change against the first
+      5 from it. The change point is the first run whose commit holds `ref.sha` (`git merge-base --is-ancestor` in the
+      project's checkout, binary-searched; else the exact sha), or with no sha the first run on `ref.branch`. Until both
+      sides have 3 runs that time the target it answers "waiting: k of 5 after" and appends nothing.
+    - **Queue N runs…** (a CI claim with a branch, Azure Pipelines): a sheet to pick N (1 to 5) showing the server's
+      exact `queue-runs` preview (`az pipelines run --org … --project … --id <pipeline> --branch <branch> -o json` × N).
+      Confirm queues them as the person and keeps the run ids in `<data>/vitals/<slug>/queued.jsonl`
+      (`{claimId, runIds, at}`, not an adjustment line); the next collect that has stored all of them measures exactly
+      those runs against the variant's runs before them (method `queued`), once per batch.
+    - **Measure locally** (a `local-metric` claim naming one of the project's `runner.frontier` metrics): the runner's
+      own T3 measurement (`runner/tech/measure.ts` `measureTech`) on the default branch (`origin/HEAD`) and on the
+      change, each twice in a throwaway worktree with the project's setup, in the background (minutes).
+  - **The verdict** (`src/server/vitals/measure/judge.ts`, bench-delta's tolerance: 0.05 by default, never above 0.10)
+    compares medians. A wall-time side (ci-stage, ci-run, p95-ms) under 3 samples is **inconclusive**; a side whose
+    spread ((max - min) / median) is above twice the tolerance is **inconclusive** (noisy); better beyond the
+    tolerance in the claimed direction is **credited**; within it or worse is **not-earned**. The claim's
+    `expectedPct` and `agentValue` are never read by the measure step (a test greps for it).
 - The toolbar shows when the project was last collected and **Refresh**. A cold collect takes minutes (about 5 s per az
   call), so Refresh starts a **background job** on the server and answers at once; the page shows "collecting since …"
   and re-reads itself every 5 s while the job runs, then shows what it added or why it failed. Opening a project whose
@@ -64,7 +82,8 @@ client receives rows, never the run history. A slug no saved project has is `not
   a signal with no bin in the last 24 h has no figure; a project never collected reads "never".
 - **No demo number**: every figure on these two routes comes from the files Afterlife collected for a real project.
 - **The claim never decides**: an adjustment's state reads only Afterlife's latest measurement.
-- **Writes are the person's click**: Refresh only reads the providers, through the person's own CLI login.
+- **Writes are the person's click**: Refresh only reads the providers, through the person's own CLI login. Queue N
+  runs is a write as the person: the server's preview first, confirmed on a click (`src/server/actions/README.md`).
 
 ## Code map
 | Path (under `src/app/features/vitals/`) | Role |
@@ -72,7 +91,10 @@ client receives rows, never the run history. A slug no saved project has is `not
 | `VitalsListScreen.tsx` | `/vitals`: the real projects table, or `VitalsEmpty` (the Onboard call) |
 | `VitalsScreen.tsx` | `/vitals/[project]`: `VitalsBody` (window, toolbar, three bands, inspector) with `useCollect` |
 | `components/bands/` | `DeliveryBand`, `ProductionBand` (+ `MarkedTrend`, the kit trend with deploy ticks), `AdjustmentsBand`, `Band` |
-| `components/inspector/` | `VitalsInspector` → `VariantInspector`, `SignalInspector`, `AdjustmentInspector` |
+| `components/inspector/` | `VitalsInspector` → `VariantInspector`, `SignalInspector`, `AdjustmentInspector` (+ `AdjustmentActions`, the re-measures) |
+| `components/write/` | `ProjectWriteSheet` (a project write's preview and confirm, also used by Onboard's save step), `QueueSheet` |
+| `hooks/useProjectWrite.ts` | One project write's round trip: `previewAction` once on screen, `confirmAction` of that preview on the click |
+| `data/remeasure.ts` | `measurePassiveAction`, `measureLocalAction` (background), gated like Refresh |
 | `components/states/CollectNotice.tsx` | Collecting, collected, failed, `LoginExpired` with its copyable command |
 | `components/BandTable.tsx` | One band's flat flow `OutlineTable` with row navigation |
 | `hooks/useCollect.ts` | Refresh, the one collect on open when stale, the 5 s re-read while a job runs |
@@ -89,6 +111,9 @@ client receives rows, never the run history. A slug no saved project has is `not
 - `model/__tests__/view.test.ts`: the list summary, collect-on-open, lapsed-login detection, the words.
 - `__tests__/screens.test.tsx`: every state rendered: no project, the list, the three bands, no runs, no cloud, no
   adjustments, collecting, login expired, collect failed, collected.
+- `src/server/vitals/measure/__tests__/`: judge (credited, not-earned, inconclusive by n and by spread, direction up
+  and down, the tolerance ceiling), passive on ten runs (5 before / 5 after, ancestry, waiting), queued (waiting, once
+  per batch), local with `measureTech` faked at its seam, the agent value never read.
 - `data/actions.test.ts`: `refreshVitals` refuses on the replay, for an unknown slug and off this machine, and answers
   before the collect settles. `data/jobs.test.ts`: background start, one job per slug, a failure recorded, never thrown.
 - `src/lib/settings/demoEstate.test.ts`: the nav with the demo estate on, off and auto, the banner, the door's target.
@@ -96,4 +121,6 @@ client receives rows, never the run history. A slug no saved project has is `not
 ## Status and limits
 - Reads what WP1 (`loadProjects`), WP2 (`readCiRuns`, `collectProject`), WP4 (`readProd`, `deployMarkers`) and WP5
   (`readAdjustments`) store; until they land, the list is empty and Refresh shows the collector's error.
-- Queuing re-measure runs from an adjustment is WP5's write (a preview, then the person's confirm), not here.
+- A queued batch is measured by the next collect started from this server (Refresh or the collect on open), not by
+  `belay collect` from a shell. The local measure's job is in-process and unlisted: a restart forgets it, and its
+  failure goes to the server log only.

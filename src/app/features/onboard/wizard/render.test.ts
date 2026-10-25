@@ -90,7 +90,7 @@ describe('Onboard wizard states', () => {
     expect(html(createElement(WizardStatus, { repos: REPOS, s }))).toContain('2 repos · 1 onboarded · Grinex Portal: 2 of 5 confirmed · sonnet 5.5 · low · 11 s');
   });
 
-  it('findings: CI files that never ran, and a cloud with no component as a person step naming the az commands', () => {
+  it('findings: CI files that never ran, and a cloud with no component as a person step that spells no command', () => {
     const extra = { ...ANSWER, proposal: { ...PROPOSAL, ci: { ...PROPOSAL.ci, pipelines: [...PROPOSAL.ci.pipelines, { id: '9', name: 'Mystery' }] } } };
     const results = [r('git-remote', 'ok', 'x'), r('git-root', 'ok', 'y'), r('az-devops-pipelines', 'ok', '6 pipelines', { pipelineIds: '2,4' }), r('az-appinsights-component', 'fail', 'no App Insights component visible to this login')];
     const s = state({ phase: 'review', answer: extra, results });
@@ -102,8 +102,8 @@ describe('Onboard wizard states', () => {
     expect(out).toContain('not among the pipelines listed (2, 4)');
     expect(out).toContain('Turn on App Insights');
     expect(out).toContain('your step');
-    expect(out).toContain('az monitor app-insights component create --app &lt;component-name&gt; --resource-group grinex-portal-resource-group');
-    expect(out).toContain('az webapp config appsettings set');
+    expect(out).toContain('your step: after Save');
+    expect(out).not.toContain('az monitor app-insights component create'); // the server previews it after Save (enable-app-insights)
     // Findings are not lines to save: host, component, pipeline 2 and its variant confirmed; Mystery and the cloud failed.
     expect(html(createElement(SaveStep, { s, onSave: noop, onRerun: noop }))).toContain('4 of 6 lines confirmed, 2 failed');
   });

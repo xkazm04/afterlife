@@ -1,7 +1,7 @@
 // A project's config and its stored measurements, folded into what the two Vitals screens draw. Pure: the loader
 // (data/loadVitals.ts) reads the files and the clock, this decides nothing about where they came from.
 import type { AdjustmentLine, CiRun, DeployMarker, Host, ProdPoint, ProjectConfig } from '@/schemas/vitals';
-import { adjustmentRows } from './adjustments';
+import { adjustmentRows, remeasureOf } from './adjustments';
 import { deliveryRows } from './delivery';
 import { newestFetch } from './freshness';
 import { productionRows } from './production';
@@ -44,7 +44,10 @@ export function buildView(
     cloud: cfg.cloud,
     runsStored: s.runsStored,
     delivery: deliveryRows(runs, cfg.ci),
-    adjustments: adjustmentRows(lines),
+    adjustments: adjustmentRows(lines).map((row) => {
+      const remeasure = remeasureOf(row.claim, cfg);
+      return remeasure ? { ...row, remeasure } : row;
+    }),
     now,
   };
   if (s.lastCollected) view.lastCollected = s.lastCollected;

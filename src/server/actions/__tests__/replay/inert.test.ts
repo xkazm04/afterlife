@@ -23,6 +23,8 @@ const { recallAction } = await import('../../runs/recallAction');
 const { verifyArmAction } = await import('../../arm/verifyAction');
 const { rereadSetupAction } = await import('@/server/data/setup/rereadAction');
 const { refreshVitals } = await import('@/app/features/vitals/data/actions');
+const { measureLocalAction, measurePassiveAction } = await import('@/app/features/vitals/data/remeasure');
+const { saveWrites } = await import('@/app/features/onboard/wizard/data/writes');
 const { register } = await import('@/instrumentation');
 const { actionDeps } = await import('../../deps');
 
@@ -58,6 +60,14 @@ describe.each([['replay'], ['demo'], [undefined]])('BELAY_MODE=%s', (mode) => {
     expect(await repollGroupAction()).toEqual({ ok: false, reason: 'demo mode has nothing to poll' });
     expect(await recallAction('p-anything')).toEqual({ kind: 'never' });
     expect(await refreshVitals('p-anything')).toMatchObject({ ok: false });
+    expect(await measurePassiveAction('p-anything', 'c1')).toMatchObject({ ok: false });
+    expect(await measureLocalAction('p-anything', 'c1')).toMatchObject({ ok: false });
+    expect(await saveWrites('p-anything')).toEqual({});
+    // A real project's writes (actions/vitals) are refused before anything is planned: no real project, or not this machine.
+    for (const intent of [{ kind: 'queue-runs', project: 'p-anything', claimId: 'c1', pipelineId: '2', branch: 'master', n: 3 }, { kind: 'install-skill', project: 'p-anything' }]) {
+      expect(await previewAction(intent)).toMatchObject({ status: 'refused' });
+      expect(await confirmAction(intent, 'f'.repeat(64))).toMatchObject({ status: 'refused' });
+    }
     expect(await verifyArmAction(arm)).toMatchObject({ status: 'simulated' });
     expect(await rereadSetupAction('doctor')).toMatchObject({ status: 'refused', reason: expect.stringMatching(/^demo mode/) });
     await register();

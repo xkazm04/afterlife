@@ -1,6 +1,6 @@
 import { planArm, planDisarm } from '../arm/plan';
 import type { ActionIntent } from '../types';
-import type { Plan, PlanContext } from './context';
+import { ActionRefused, type Plan, type PlanContext } from './context';
 import { planCraReady } from './cra';
 import { planEnroll } from './enroll/plan';
 import { planGapTemplate } from '../gap/plan';
@@ -21,5 +21,10 @@ export function planIntent(ctx: PlanContext, intent: ActionIntent): Promise<Plan
     case 'arm-track': return planArm(ctx, intent);
     case 'disarm-track': return planDisarm(ctx, intent);
     case 'enroll-track': return planEnroll(ctx, intent);
+    // A real project's writes are planned by actions/vitals, which actions.ts routes them to; never through the GitLab port.
+    case 'queue-runs':
+    case 'install-skill':
+    case 'enable-app-insights':
+      return Promise.reject(new ActionRefused(`${intent.kind} is a project write: it is planned by actions/vitals, not against GitLab`));
   }
 }

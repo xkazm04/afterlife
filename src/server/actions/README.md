@@ -22,6 +22,9 @@ confirmAction(intent: unknown, previewId: string): Promise<ActionResponse> // pl
 | `arm-track` | `project`, `track` (`T1`-`T8`) | one commit of `.gitlab-ci.yml` on a new branch `belay/arm-<key>` (`start_branch` = default, `last_commit_id` as read), then one MR labelled `belay::arm`. Adds the track's include lines between `# belay:arm` markers |
 | `disarm-track` | `project`, `track` | the same on `belay/disarm-<key>`: removes exactly the marked lines the arm added (their digest is in the begin marker), or refuses |
 | `enroll-track` | `project`, `track` (`T1`-`T8`) | a branch `belay/enroll-<track>-<date>` with the first record of each of the track's classes (`start_branch` = default, `last_commit_id` as read), then a policy MR labelled `belay::promotion`. Belay never merges |
+| `queue-runs` | `project` (a saved real project's slug), `claimId`, `pipelineId` (digits), `branch`, `n` (1-5) | `az pipelines run --org <org> --project <project> --id <pipelineId> --branch <branch> -o json`, n times, as the person's own az login (risk `low`). A failure stops the rest. The queued run ids go to `<data>/vitals/<slug>/queued.jsonl` `{claimId, runIds, at}` (not an adjustment line); the next collect from this server measures exactly those runs (method `queued`). Refused: a pipeline the project does not have, a claim it does not hold, a claim that is not ci-stage / ci-run, a CI that is not Azure Pipelines |
+| `install-skill` | `project` | one file write, `<root>/.claude/skills/afterlife-report/SKILL.md` (risk `low`): `skills/afterlife-report/SKILL.md` with this checkout's `cli/belay.mjs` path, the slug, the variants and (when `BELAY_DATA_DIR` is set) the data folder filled in. The preview shows the path and the whole file (`diff`). Written only when absent or byte-identical to an earlier Afterlife install (their sha-256s in `<data>/vitals/<slug>/skill-installs.json`); a copy the repo edited is refused. Never commits |
+| `enable-app-insights` | `project`, `name`, `resourceGroup`, `workspaceId` (the workspace ARM id), `site`, `slot?`, `location?` | the preview first reads the site's region (`az webapp show … --query location`; a `location` given must be it), then shows `az monitor app-insights component create --app <name> -g <rg> --location <region> --workspace <id> --kind web --application-type web -o json`, `az webapp config appsettings set -g <rg> -n <site> [--slot <slot>] --settings APPLICATIONINSIGHTS_CONNECTION_STRING=<from the create output> -o none` (risk `merge`: it RESTARTS the app, a note says so and recommends a slot first) and the component probe. The confirm reads the connection string from the create's JSON and passes it as one argv to the second command; it is never displayed, returned, stored or logged (a failed set's error is redacted). When the probe answers with an appId the project's cloud becomes `azure-app-insights` with `logs` kept |
 
 `enroll-track` decisions (`plans/enroll/`): arming adds CI content only, so an armed track's classes hold no record and the
 gate blocks every one of their MRs (no tier record) until a record exists. `planEnroll` writes, for each class whose role
@@ -91,6 +94,17 @@ Target decisions (`plans/context.ts`):
   (`MAX_FILE_LINES` and the line count in `files()`, `intents.ts`; `__tests__/replay/cost.test.ts`); the worst case left is about 1.6 MB out for
   0.5 MB in, under 15 ms. The seeded gaps (at most 46 lines a file, 18 a hunk) are admitted. A hunk was already bounded
   (400 lines of 500 characters), and so is the whole body (Next's default `serverActions.bodySizeLimit`, 1MB: keep it).
+
+Project writes (`actions/vitals/`, the last three rows): they act on a real project Afterlife watches
+(`<data>/projects/<slug>.yml`), as the person's own az login and files, not on the GitLab group, so `actions.ts` routes
+them (`vitals/route.ts`) before any GitLab deps: every mode runs them for real (`mode: 'live'`), except the hosted replay,
+which refuses, and in every mode they answer only a request addressed to this machine (`local.ts`). There is no index to
+journal into, so `vitals/run.ts` keeps, in this process: the previews it issued (a confirm of an id it did not issue, or
+one older than 15 minutes, is refused as stale and runs nothing), the confirms running now (a second is refused), and
+each answer for 15 minutes (a repeat answers from it). A digest that moved answers `changed` with the new preview. Their
+screens: Vitals' Queue N runs (`app/features/vitals/components/write/QueueSheet.tsx`) and Onboard's save step
+(`onboard/wizard/components/AfterSave.tsx`, its intents built by `wizard/data/writes.ts` from the saved config), both
+through `vitals/hooks/useProjectWrite.ts`. Tests: `vitals/__tests__/` against a fake az.
 
 Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran, and only when it is the intent's own project's item: `__tests__/confirm/proposalScope.test.ts`).
 
@@ -181,7 +195,8 @@ screen holds (`{kind: preview}` or `{kind: refused, reason}`).
 - **Onboard** batch (`app/features/onboard/write/write.ts`): each project's `arm-track` and `enroll-track`, as Setup
   sends them: `previewAction` once the write is on screen, `confirmAction` of that preview on Run.
 
-- Guard (941dcf1, `__tests__/handwritten.test.ts`): `src/app` holds no hand-written gap MR, gap issue, probe or scan. Its
+- Guard (941dcf1, `__tests__/handwritten.test.ts`): `src/app` holds no hand-written gap MR, gap issue, probe or scan,
+  nor an `az pipelines run`, an App Insights component create or an App Service app setting write (the project writes). Its
   one allowance is `src/app/features/kit`, the component gallery's sample text (`NOT_A_SEND` in the test).
 
 Not wired yet: the CRA sign-off (`mark-cra-ready`): no screen sends it, and `needs-you/data/cra.ts` still shows its own

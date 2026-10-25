@@ -86,7 +86,46 @@ export interface EnrollTrack extends Base {
   track: string;
 }
 
-export type ActionIntent = RevokeClass | PromoteClass | MarkCraReady | StageGapMr | ApplyGapTemplate | ArmTrack | DisarmTrack | EnrollTrack;
+/**
+ * Queue N runs of a real project's pipeline on the change's branch, as the person's own az login, to re-measure a claim
+ * (actions/vitals/queue.ts). The queued run ids are kept beside the claim; the next collect measures exactly them.
+ */
+export interface QueueRuns extends Base {
+  kind: 'queue-runs';
+  claimId: string;
+  pipelineId: string;
+  branch: string;
+  /** 1 to 5. */
+  n: number;
+}
+
+/** Write the afterlife-report skill into the project's own repo (.claude/skills/afterlife-report/SKILL.md). Never commits. */
+export interface InstallSkill extends Base {
+  kind: 'install-skill';
+}
+
+/**
+ * Turn App Insights on for an app whose cloud is Log Analytics only: create a workspace-based component, then point the
+ * App Service at it (which restarts the app), then probe it and switch the project's cloud (actions/vitals/insights.ts).
+ */
+export interface EnableAppInsights extends Base {
+  kind: 'enable-app-insights';
+  /** The new component's name. */
+  name: string;
+  resourceGroup: string;
+  /** The App Service's own region; read from the site at preview time, and when given it must be that one. */
+  location?: string;
+  /** The Log Analytics workspace's ARM resource id. */
+  workspaceId: string;
+  site: string;
+  slot?: string;
+}
+
+/** The writes on a real project Afterlife watches (<data>/projects/<slug>.yml), not on the GitLab group. */
+export type ProjectIntent = QueueRuns | InstallSkill | EnableAppInsights;
+export const PROJECT_KINDS: readonly ProjectIntent['kind'][] = ['queue-runs', 'install-skill', 'enable-app-insights'];
+
+export type ActionIntent = RevokeClass | PromoteClass | MarkCraReady | StageGapMr | ApplyGapTemplate | ArmTrack | DisarmTrack | EnrollTrack | ProjectIntent;
 export type ActionKind = ActionIntent['kind'];
 
 export interface PreviewCommand {
@@ -111,7 +150,7 @@ export interface ActionPreview {
   notes?: string[];
   /** Pass this back to confirm. It is a digest of the commands: if the plan changes before confirming, it no longer matches. */
   previewId: string;
-  /** demo: confirming only simulates. live: confirming runs the commands as the operator's own glab login. */
+  /** demo: confirming only simulates. live: confirming runs the commands as the operator's own glab (or, for a project write, az) login. */
   mode: 'demo' | 'live';
 }
 
