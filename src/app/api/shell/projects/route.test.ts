@@ -32,4 +32,13 @@ describe('GET /api/shell/projects', () => {
     expect(res.headers.get('cache-control')).toContain('no-store');
     expect((await res.json()).error).toContain('first poll has not finished');
   });
+
+  it('any other throw: 503 with a fixed body, never the message', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    setDataSource({ ...demoSource, getFleet: () => { throw new Error('EACCES: /srv/belay/index'); } });
+    const res = await GET();
+    expect([res.status, await res.json()]).toEqual([503, { error: 'shell unreadable' }]);
+    expect(log).toHaveBeenCalledTimes(1);
+    log.mockRestore();
+  });
 });

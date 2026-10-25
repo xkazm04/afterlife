@@ -33,4 +33,14 @@ describe('GET /api/shell', () => {
     expect(body.error).toContain('first poll has not finished');
     expect(JSON.stringify(body)).not.toContain('demo');
   });
+
+  it('any other throw: 503 with a fixed body, the message (which may name a path) only in the server log', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    setDataSource({ ...demoSource, getPollHealth: () => { throw new Error("ENOENT: no such file, open 'C:\\\\ops\\\\.belay\\\\index'"); } });
+    const res = await GET();
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: 'shell unreadable' });
+    expect(String(log.mock.calls[0]?.[0])).toContain('ENOENT');
+    log.mockRestore();
+  });
 });

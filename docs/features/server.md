@@ -118,7 +118,7 @@
 | `src/server/actions/` | `actions.ts` (`'use server'`), `run.ts`, `intents.ts`, `plans/`, `arm/` (arm, disarm, verify), `gap/` (gap templates), `runs/` (run journal, recall), `local.ts`, `repoll.ts` + `repollAction.ts`, `deps.ts`, `types.ts`, `words.ts` |
 | `src/server/runs/` | The cycle runner's local files, read in demo and live alike: `readRuns.ts` (`.belay/runs/<repo>/<wave>.jsonl`, each file re-parsed only when its mtime or size changes; `BELAY_DATA_DIR` moves the root), `readFleet.ts` (`.belay/fleet.yml`: slug, path, base, gitlab), `branchState.ts` (git: does the wave branch exist, is it merged), `readDesk.ts` (folds them for Fleet and Needs you) |
 | `src/server/testing/` | `serverOnly.ts`: the `server-only` stand-in vitest aliases |
-| `src/app/api/` | Route handlers, GET only, `await connection()` first, `Cache-Control: no-store`: `runs/` (`readRuns()` plus the live meta; Theater polls it every 2 s), `shell/` (the shell read; 503 with the reason live before the first poll) |
+| `src/app/api/` | Route handlers, GET only, `await connection()` first, `Cache-Control: no-store`: `runs/` (`readRuns()` plus the live meta; Theater polls it every 2 s), `shell/` (the shell read; 503 with the reason live before the first poll, `NotReadyError`; any other throw a fixed `shell unreadable`, its message only in the server log: `shell/answer.ts`) |
 | `src/instrumentation.ts` | Starts the live runtime on Node |
 
 ## Tests

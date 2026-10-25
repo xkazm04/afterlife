@@ -7,7 +7,7 @@ import { messageOf } from '@/lib/format/error';
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
 /**
- * A read that throws is a 503 with a fixed body, as /api/shell answers: never the fs message, which names a path, since
+ * A read that throws is a 503 with a fixed body, as /api/shell answers (its answer.ts): never the fs message, which names a path, since
  * the route is public in the hosted replay. The reason goes to the server log instead. connection() first: the runs are
  * read at request time, never prerendered by the build.
  */
