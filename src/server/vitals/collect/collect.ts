@@ -6,8 +6,9 @@ import type { CiProvider } from '@/server/providers/types';
 import type { CiRun, ProbeResult, ProjectConfig } from '@/schemas/vitals';
 import { loadProjects } from '@/server/discover';
 import { ProviderError, probeResult } from '@/server/providers/probeResult';
-import { ciProvider } from '@/server/providers/registry';
-import { appendCiRuns, readCiRuns } from '../store';
+import { ciProvider, cloudProvider } from '@/server/providers/registry';
+import { collectProd } from '../prod';
+import { appendCiRuns, appendProd, readCiRuns, readProd } from '../store';
 import { classifyVariant } from '../variants';
 import type { CollectResult } from '../index';
 
@@ -54,9 +55,13 @@ export async function collectWith(cfg: ProjectConfig, provider: CiProvider | und
   return { slug: cfg.slug, ci: { added, total: readCiRuns(cfg.slug).length }, probes: [] };
 }
 
-/** Incremental: CI runs newer than the newest stored (prod points join here with WP4). Throws only for an unknown slug. */
+/** Incremental: CI runs newer than the newest stored, then prod points from the newest stored bin. Throws only for an
+ * unknown slug. A cloud that is not connected comes back as a skipped probe (collectProd never calls the provider). */
 export async function collectProject(slug: string): Promise<CollectResult> {
   const cfg = loadProjects().find((p) => p.slug === slug);
   if (!cfg) throw new Error(`no onboarded project "${slug}"`);
-  return collectWith(cfg, cfg.ci.provider === 'none' ? undefined : ciProvider(cfg.ci.provider));
+  const ci = await collectWith(cfg, cfg.ci.provider === 'none' ? undefined : ciProvider(cfg.ci.provider));
+  const prod = await collectProd(cfg, cloudProvider('azure-app-insights'), readProd(slug), new Date());
+  const added = appendProd(slug, prod.points);
+  return { ...ci, prod: { added }, probes: [...ci.probes, ...prod.probes] };
 }

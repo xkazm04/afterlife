@@ -1,18 +1,19 @@
-// Which adapter answers which probe kind. WP2 fills the CI providers, WP4 the cloud one; git and local probes live
-// in discover (WP1).
+// Which adapter answers which probe kind: Azure Pipelines and GitLab CI for CI, App Insights for the cloud; git and
+// local probes live in discover.
 import type { CiProviderKind, CloudProviderKind, ProbeKind } from '@/schemas/vitals';
 import type { CiProvider, CloudProvider, Exec } from './types';
 import { azurePipelines } from './azure';
 import { defaultExec } from './exec';
 import { gitlabCi } from './gitlab';
+import { azureInsights } from './azure/insights';
 
 export function ciProvider(kind: Exclude<CiProviderKind, 'none'>, exec?: Exec): CiProvider {
   return kind === 'azure-pipelines' ? azurePipelines(exec ?? defaultExec) : gitlabCi(exec ?? defaultExec);
 }
 
 export function cloudProvider(kind: Exclude<CloudProviderKind, 'none'>, exec?: Exec): CloudProvider {
-  void kind; void exec;
-  throw new Error('providers: cloudProvider not built (WP4)');
+  void kind;
+  return azureInsights(exec ?? defaultExec);
 }
 
 /** The provider family a probe kind belongs to: 'az-devops-*' -> azure-pipelines, 'glab-*' -> gitlab-ci, ... */
