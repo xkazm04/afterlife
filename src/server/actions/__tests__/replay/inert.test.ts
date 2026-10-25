@@ -22,6 +22,7 @@ const { repollAction, repollGroupAction } = await import('../../repollAction');
 const { recallAction } = await import('../../runs/recallAction');
 const { verifyArmAction } = await import('../../arm/verifyAction');
 const { rereadSetupAction } = await import('@/server/data/setup/rereadAction');
+const { refreshVitals } = await import('@/app/features/vitals/data/actions');
 const { register } = await import('@/instrumentation');
 const { actionDeps } = await import('../../deps');
 
@@ -56,6 +57,7 @@ describe.each([['replay'], ['demo'], [undefined]])('BELAY_MODE=%s', (mode) => {
     expect(await repollAction('ledgerline')).toEqual({ ok: false, reason: 'demo mode has nothing to poll' });
     expect(await repollGroupAction()).toEqual({ ok: false, reason: 'demo mode has nothing to poll' });
     expect(await recallAction('p-anything')).toEqual({ kind: 'never' });
+    expect(await refreshVitals('p-anything')).toMatchObject({ ok: false });
     expect(await verifyArmAction(arm)).toMatchObject({ status: 'simulated' });
     expect(await rereadSetupAction('doctor')).toMatchObject({ status: 'refused', reason: expect.stringMatching(/^demo mode/) });
     await register();

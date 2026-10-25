@@ -53,7 +53,7 @@ export function EstateScreen({ data }: { data: EstateData }) {
         <EstateTable groups={shown} selected={sel} onSelect={setSel} />
         <p className={styles.foot}>
           {data.notCycling} watching {pluralWord(data.notCycling, 'project has', 'projects have')} no cycle yet. A project joins when T6 is armed on it and its first cycle closes.{' '}
-          <Link href="/onboard">Arm the next batch in Onboard ›</Link>
+          <Link href="/onboard/estate">Arm the next batch in Onboard ›</Link>
         </p>
       </div>
     </Window>

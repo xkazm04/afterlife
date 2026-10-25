@@ -26,14 +26,14 @@ export function ImprovementSection({ p, cycle }: { p: FleetProject; cycle: DeepP
       ) : ready ? (
         <div className={styles.imp}>
           <p>Watched, not in a cycle yet: arming T6 opens its cycle C1 (one MR in belay-policy, as you).</p>
-          <Button size="mini" href="/onboard">
+          <Button size="mini" href="/onboard/estate">
             Start in Onboard
           </Button>
         </div>
       ) : (
         <div className={styles.imp}>
           <p>Cycles start once it is watched: scan, pair and poll it first.</p>
-          <Button size="mini" href="/onboard">
+          <Button size="mini" href="/onboard/estate">
             Onboard it
           </Button>
         </div>

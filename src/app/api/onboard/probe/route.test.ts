@@ -9,6 +9,15 @@ import { verifySeal } from '@/server/discover';
 import { POST } from './route';
 
 vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
+// A test never reaches the person's real az: the CI provider answers a lapsed login, as a fresh machine would.
+vi.mock('@/server/providers/registry', async (orig) => ({
+  ...(await orig<typeof import('@/server/providers/registry')>()),
+  ciProvider: () => ({
+    kind: 'azure-pipelines',
+    probe: async (spec: { kind: string; args: Record<string, string> }) => ({ ...spec, status: 'fail', summary: 'not logged in - run `az login`', at: '2026-10-25T00:00:00.000Z', ms: 1 }),
+    listRuns: async () => [],
+  }),
+}));
 
 let root = '';
 afterEach(() => root && rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
@@ -27,7 +36,7 @@ describe('POST /api/onboard/probe', () => {
     expect(verifySeal(body, body.result.data.root)).toBe(true);
 
     const pipelines = await (await post({ root, spec: { kind: 'az-devops-pipelines', args: { org: 'acme', project: 'Shop' } } })).json();
-    expect(pipelines.result).toMatchObject({ status: 'fail', summary: 'providers: ciProvider not built (WP2)' });
+    expect(pipelines.result).toMatchObject({ status: 'fail', summary: 'not logged in - run `az login`' });
   });
 
   it('refuses an unknown kind, an arg the kind does not take, and another host', async () => {

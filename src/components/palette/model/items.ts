@@ -24,7 +24,7 @@ export interface ProjectRef {
 const ACTIONS: readonly Omit<PaletteItem, 'hint'>[] = [
   { id: 'a:design', kind: 'action', label: 'Design the next cycle', href: '/cycles?design=1', keywords: 'plan improve round loop' },
   { id: 'a:estate', kind: 'action', label: 'See cycles across the estate', href: '/cycles?scope=estate', keywords: 'estate groups rollup every project cycles' },
-  { id: 'a:batch', kind: 'action', label: 'Preview the next onboarding batch', href: '/onboard?preview=1', keywords: 'onboard run reads writes' },
+  { id: 'a:batch', kind: 'action', label: 'Preview the next onboarding batch', href: '/onboard/estate?preview=1', keywords: 'onboard run reads writes' },
   { id: 'a:send', kind: 'action', label: 'Send the picked gaps as you', href: '/maturity', keywords: 'gap mr send maturity' },
   { id: 'a:needs', kind: 'action', label: 'See what waits for you', href: '/needs-you', keywords: 'decisions inbox approve' },
   { id: 'a:revoke', kind: 'action', label: 'Take autonomy back', href: '/ladder', keywords: 'revoke quarantine demote tier' },
