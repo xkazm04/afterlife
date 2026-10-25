@@ -21,7 +21,8 @@ project, `ledgerline`. The GitLab flows, the proof engine and the tripwire come 
 
 | Route | Screen | Answers |
 |---|---|---|
-| `/` | Front door | The fleet as a city at night: how many decisions wait, and where? Enter Afterlife goes to Fleet. |
+| `/` | Front door | The fleet as a city at night: how many decisions wait, and where? Enter Afterlife goes to Vitals once a real project is onboarded, else to Fleet. |
+| `/vitals` | Vitals | How is a real production app doing, measured by Afterlife: CI time per variant, production signals with the deploys on them, and which claimed adjustments earned their credit? |
 | `/fleet` | Fleet | Across all projects: who may act alone, what is stale, what needs me? The cycle runner's repos sit in a strip above. |
 | `/monitor` | Monitor | The fleet as seven phosphor leads, every project a beat: pick one and act on what waits. |
 | `/needs-you` | Needs you | What is waiting for me, and what will my click do? Includes the CRA legal clock, the outbox, and the cycle runner's waves to merge and lanes it parked. |
@@ -33,7 +34,7 @@ project, `ledgerline`. The GitLab flows, the proof engine and the tripwire come 
 | `/setup` | Setup | What blocks each track, and what only I can do. |
 | `/runs` | Runs | What did the cycle runner do in each repo, what did it cost, and which wave can I take? |
 | `/theater` | Theater | Deterministic replay for recording, with present mode (`F`); `?live=1` films the running wave. |
-| `/settings` | Settings | Display (text size: Smaller, Standard or Larger; Cmd/Ctrl `=` `-` `0` change it), Keyboard, Data & connection, About. |
+| `/settings` | Settings | Display (text size: Smaller, Standard or Larger; Cmd/Ctrl `=` `-` `0` change it), Keyboard, Data & connection (and Show demo estate: Auto, On, Off), About. |
 
 ## Run
 

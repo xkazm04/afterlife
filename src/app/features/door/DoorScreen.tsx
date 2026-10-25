@@ -36,9 +36,9 @@ export interface DoorData {
 /**
  * The front door (contest winner "Night Shift", ported): the fleet as a city at night. Each group is a district, each
  * project a tower, each waiting decision an amber beam. Click a district to open it, a tower to lift it out; Esc goes
- * back up; Enter Afterlife goes into the app.
+ * back up; Enter Afterlife goes into the app: `enter`, /vitals once a real project is saved, else /fleet.
  */
-export function DoorScreen({ data, entrance = true }: { data: DoorData; entrance?: boolean }) {
+export function DoorScreen({ data, entrance = true, enter = '/fleet' }: { data: DoorData; entrance?: boolean; enter?: string }) {
   useStageFit();
   useQuality();
   // the entrance covers the city until it opens (once a page load: a return from the app goes straight to the city);
@@ -127,9 +127,9 @@ export function DoorScreen({ data, entrance = true }: { data: DoorData; entrance
           <Answer totals={totals} tiers={tiersTop} staleTop={staleTop} cycles={data.cycles} intro={s.intro} tabbable={s.level === 0} locked={s.locked} onMark={s.setMark} onLock={s.lock} onOpen={onOpenTop} />
           <Labels ds={s.ds} hotG={s.hotG} tabbable={s.level === 0} onHover={onLabelHover} onOpen={s.openG} />
           <Readout name={name} line={line} tiers={tiers} holders={holders} />
-          {s.level === 1 && cur ? <Rail key={cur.gi} d={cur} hotId={s.hotId} onHover={s.setHotId} onOpen={s.openP} /> : null}
+          {s.level === 1 && cur ? <Rail key={cur.gi} d={cur} hotId={s.hotId} onHover={s.setHotId} onOpen={s.openP} enter={enter} /> : null}
           {s.level === 2 && open && s.liftFrom ? (
-            <L2View key={open.t.p.id} p={open.t.p} group={open.d.name} classes={data.classes} stages={data.stages} deep={data.deep} from={s.liftFrom} />
+            <L2View key={open.t.p.id} p={open.t.p} group={open.d.name} classes={data.classes} stages={data.stages} deep={data.deep} from={s.liftFrom} enter={enter} />
           ) : null}
           {s.intro ? (
             <button type="button" className={styles.skip} data-lite="off" onClick={s.endIntro}>
@@ -140,7 +140,7 @@ export function DoorScreen({ data, entrance = true }: { data: DoorData; entrance
       </div>
       {/* the hero splash is the intro's mark only without an entrance: the door's lock is the mark then */}
       <Splash on={s.intro && !entrance} />
-      <TopChrome org={data.org} asOf={data.asOf} />
+      <TopChrome org={data.org} asOf={data.asOf} enter={enter} />
       <BottomChrome crumbs={crumbs} onBack={s.level > 0 ? s.up : null} onGo={onGo} />
       <div className={styles.grain} data-lite="off" aria-hidden />
       {door !== 'gone' ? <Entrance onOpen={onDoorOpen} onDone={onDoorDone} /> : null}

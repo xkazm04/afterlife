@@ -39,7 +39,7 @@ function Ico({ kind }: { kind: 'stale' | 'setup' | 'nsu' }) {
  * The open district's list (L1): who needs you, most first; then stale, setting up and not watched, each saying why;
  * then how many are calm. A row lights its tower; a click opens the project. Exits go into the app.
  */
-export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string | null; onHover: (id: string | null) => void; onOpen: (id: string) => void }) {
+export function Rail({ d, hotId, onHover, onOpen, enter = '/fleet' }: { d: District; hotId: string | null; onHover: (id: string | null) => void; onOpen: (id: string) => void; enter?: string }) {
   const ps = d.placed.map((t) => t.p);
   const need = ps.filter((p) => needsOf(p) > 0).sort((a, b) => needsOf(b) - needsOf(a) || byName(a, b));
   const stale = ps.filter((p) => p.state === 'stale');
@@ -97,7 +97,7 @@ export function Rail({ d, hotId, onHover, onOpen }: { d: District; hotId: string
         </p>
       </div>
       <div className={styles.foot}>
-        <Link className={styles.enter} href="/fleet">
+        <Link className={styles.enter} href={enter}>
           Enter Afterlife
         </Link>
         {d.needs ? <Link className={styles.exit} href="/needs-you">Needs you<span aria-hidden>↗</span></Link> : null}

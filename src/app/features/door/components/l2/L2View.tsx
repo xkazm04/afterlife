@@ -29,6 +29,7 @@ export function L2View({
   stages,
   deep,
   from,
+  enter,
 }: {
   p: FleetProject;
   group: string;
@@ -37,6 +38,8 @@ export function L2View({
   deep: Deep;
   /** The tower's footprint on the stage before the lift: where the cutaway starts. */
   from: { x: number; y: number; k0: number };
+  /** Where Enter Afterlife goes (TopChrome's). */
+  enter?: string;
 }) {
   const c = useMemo(() => cutawayOf(p, classes, stages), [p, classes, stages]);
   const [lifted, setLifted] = useState(false);
@@ -72,7 +75,7 @@ export function L2View({
       </div>
       {/* the panel mounts a frame after the cutaway starts to lift: two light frames instead of one heavy one (it fades
           in after 200 ms anyway) */}
-      {lifted ? <L2Panel p={p} group={group} classes={classes} deep={deep} rungs={stages.length} /> : null}
+      {lifted ? <L2Panel p={p} group={group} classes={classes} deep={deep} rungs={stages.length} enter={enter} /> : null}
     </section>
   );
 }

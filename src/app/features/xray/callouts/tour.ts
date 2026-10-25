@@ -8,6 +8,7 @@ import { FLEET } from './screens/watch/fleet';
 import { MONITOR } from './screens/watch/monitor';
 import { ONBOARD } from './screens/watch/onboard';
 import { RUNS } from './screens/watch/runs';
+import { VITALS } from './screens/watch/vitals';
 import { LADDER } from './screens/trust/ladder';
 import { MATURITY } from './screens/trust/maturity';
 import { SETUP } from './screens/trust/setup';
@@ -16,6 +17,7 @@ import { TRACE } from './screens/trust/trace';
 
 /** Keyed by APP_NAV key. A nav entry with no callouts here is simply not on the tour. */
 export const CALLOUTS: Record<string, readonly Callout[]> = {
+  vitals: VITALS,
   fleet: FLEET,
   monitor: MONITOR,
   'needs-you': NEEDS_YOU,

@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
+import type { Estate } from '@/lib/settings/demoEstate';
 import { useShellSync } from './live/useShellSync';
 
 /**
@@ -45,6 +46,8 @@ export interface ShellInfo {
   needsYouCount: number | null;
   /** Null: not read yet; the status bar says the data is unknown, never demo. */
   data: ShellData | null;
+  /** The demo-estate setting and the real projects saved (live/estateRead.ts). Absent: not read, every screen shows. */
+  estate?: Estate;
 }
 
 /** A server read of the shell (readShellInfo, GET /api/shell): every value known. */

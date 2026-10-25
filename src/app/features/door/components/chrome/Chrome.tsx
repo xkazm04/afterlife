@@ -6,8 +6,8 @@ import { memo } from 'react';
 import bottom from './bottom.module.css';
 import styles from './chrome.module.css';
 
-/** Top left: the brand plate, and what this is (About, told from the door). Top right: the way in. */
-export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; asOf: string }) {
+/** Top left: the brand plate, and what this is (About, told from the door). Top right: the way in (`enter`: /vitals once a real project is saved). */
+export const TopChrome = memo(function TopChrome({ org, asOf, enter = '/fleet' }: { org: string; asOf: string; enter?: string }) {
   return (
     <>
       <header className={`${styles.chrome} ${styles.tl}`}>
@@ -23,7 +23,7 @@ export const TopChrome = memo(function TopChrome({ org, asOf }: { org: string; a
         </div>
       </header>
       <div className={`${styles.chrome} ${styles.tr}`}>
-        <Link className={styles.enter} href="/fleet" data-role="door-enter">
+        <Link className={styles.enter} href={enter} data-role="door-enter">
           Enter Afterlife
         </Link>
       </div>

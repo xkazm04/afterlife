@@ -25,6 +25,7 @@ flowchart LR
 | Module | Route | Answers |
 |---|---|---|
 | [Front door](front-door.md) | `/` | How many decisions wait, and where? |
+| [Vitals](vitals.md) | `/vitals` | How is a real production app doing, measured by Afterlife itself? |
 | [About](about.md) | `/about` | What is Afterlife? One change, from finding to production, as a film |
 | [Fleet](fleet.md) | `/fleet` | Across all projects: who may act alone, what is stale, what needs me? |
 | [Monitor](monitor.md) | `/monitor` | The fleet as live leads: pick a beat, act on what waits |
