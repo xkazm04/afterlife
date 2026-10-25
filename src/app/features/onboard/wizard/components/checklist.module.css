@@ -1,0 +1,91 @@
+/* Step 2: the checklist - each line its state chip, what it is and its probe's one line; the proposing skeleton. */
+.lines {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--ui-scale));
+}
+.gh {
+  margin: calc(4px * var(--ui-scale)) 0 0;
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.line {
+  display: grid;
+  grid-template-columns: calc(72px * var(--ui-scale)) minmax(0, 1fr);
+  align-items: start;
+  gap: calc(10px * var(--ui-scale));
+  padding: calc(5px * var(--ui-scale)) 0;
+  border-bottom: 1px solid var(--sep-body);
+}
+.lineBody,
+.problem,
+.proposing {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--ui-scale));
+  min-width: 0;
+}
+.problem {
+  align-items: flex-start;
+  gap: calc(8px * var(--ui-scale));
+}
+.lineHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(8px * var(--ui-scale));
+}
+.check {
+  color: var(--text-2);
+}
+.relogin {
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+}
+.commands {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(6px * var(--ui-scale));
+}
+.relogin code {
+  font-family: var(--mono);
+  color: var(--text-1);
+}
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ui-scale));
+}
+.skeleton span {
+  display: block;
+  height: calc(10px * var(--ui-scale));
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface-1) 0%, color-mix(in oklab, var(--accent) 10%, transparent) 50%, var(--surface-1) 100%) 0 0 / 300% 100%;
+  animation: skeleton-pass 1.6s linear infinite;
+}
+/* The kit skeleton's slow pass (loading/ScreenSkeleton), local to this module. */
+@keyframes skeleton-pass {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton span {
+    animation: none;
+  }
+}

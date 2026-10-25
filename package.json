@@ -29,6 +29,7 @@
     "demo:data": "node scripts/build-demo.mjs",
     "check:structure": "node scripts/check-structure.mjs src && node scripts/check-structure.mjs engine && node scripts/check-structure.mjs runner && node scripts/check-structure.mjs cli && node scripts/check-structure.mjs scripts",
     "engine": "tsx engine/cli.ts",
+    "onboard:ab": "tsx --tsconfig tsconfig.json src/server/discover/ab/abCli.ts",
     "runner": "node cli/belay.mjs run",
     "smoke": "node scripts/smoke.mjs"
   },

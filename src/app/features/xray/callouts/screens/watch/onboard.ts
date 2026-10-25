@@ -1,38 +1,36 @@
-// Onboard: a GitLab estate brought in as a funnel, a batch at a time. Introduces the module, how to read the funnel and
-// the batch table, and what to do; the writes-per-batch switch, the funnel's step filter and the group scope are the
-// screen's own switches and are not introduced.
+// Onboard: a real project in one click, confirmed line by line. Introduces the module, how to read the repo list and
+// the checklist, and what to do; the Engine switch is the screen's own and is not introduced. The demo estate funnel
+// moved to /onboard/estate and is not on the tour.
 import type { Callout, LegendEntry, ScreenRead } from '../../../model/types';
 import { dataLabelCallout, helpCallout, statusLine, statusCallout } from '../../shared';
 
-const FUNNEL = 'ol[aria-label="Onboarding funnel"]';
-const BATCH = '[role="table"][aria-label="Next batch"]';
-const PREVIEW = 'button[title="Preview the exact commands, then run as you"]';
+const REPOS = 'ul[aria-label="Repos with Claude Code history"]';
+const FOUND = 'section[aria-label="Step 2: what Afterlife found"]';
+const SAVE = 'section[aria-label="Step 3: save and collect"]';
 
-/** "184 discovered · 155 watching · 20 wait for you · next batch 9 reads, 5 writes", read into its figures. */
+/** "12 repos · 1 onboarded · ...", read into its figures. */
 const figures = (r: ScreenRead) => {
   const line = statusLine(r);
   const n = (re: RegExp): string => re.exec(line)?.[1] ?? '?';
-  return { discovered: n(/(\d[\d,]*) discovered/), watching: n(/(\d[\d,]*) watching/), yours: n(/(\d[\d,]*) waits? for you/) };
+  return { repos: n(/(\d[\d,]*) repos?/), onboarded: n(/(\d[\d,]*) onboarded/) };
 };
 
-/** The five steps as the funnel draws them; counts are cumulative. */
-const STEPS: readonly LegendEntry[] = [
-  { name: 'Discovered', means: 'Listed by the group API: Afterlife knows the project exists, nothing more.' },
-  { name: 'Baselined', means: 'A read-only day-0 scan rated its nine stages.' },
-  { name: 'Paired', means: 'Its bootstrap MR is merged. A stale feed stays here until its token is renewed.' },
-  { name: 'Watching', means: 'The poller reads it every cycle and its feed is live.' },
-  { name: 'In cycles', means: 'An improvement cycle runs on it (see Cycles).' },
-  { name: 'Bar and %', means: 'The share of everything discovered that has reached the step. A watched project also counts as baselined and paired.' },
+/** A repo row, left to right. */
+const REPO_ROW: readonly LegendEntry[] = [
+  { name: 'Name and path', means: 'The repo’s name (its remote’s, else its folder’s) over its git toplevel.' },
+  { name: 'Branch', means: 'The branch checked out there now.' },
+  { name: 'Host', means: 'Where its origin remote lives: Azure DevOps, GitLab, GitHub, or no remote.' },
+  { name: 'Last used', means: 'When you last ran Claude Code in it; the list is newest first.' },
+  { name: 'Onboarded', means: 'Already saved: open its Vitals, or Re-run to propose again.' },
+  { name: 'Pick', means: 'Propose what to watch in this repo.' },
 ];
 
-/** A batch row, left to right. The table draws no column headers: its header rows are the three parts. */
-const ROW: readonly LegendEntry[] = [
-  { name: 'Only you · Reads · Writes', means: 'The batch’s three parts, with how many rows each. Only you lists the whole estate whatever the scope.' },
-  { name: 'Project', means: 'The project, then its GitLab group. A click shows it in the inspector.' },
-  { name: 'Step', means: 'Where it stands in the funnel now.' },
-  { name: 'Next action', means: 'The one thing that moves it on: a merge, a token, a scan, a bootstrap MR, a first cycle.' },
-  { name: 'Who', means: '“you” or “as you” (amber: waits for a person) or Afterlife, which runs a read on its own.' },
-  { name: 'Re-probe · MR · read', means: 'The last cell: Re-probe on your own steps, else how many MRs a write opens, or read.' },
+/** A checklist line, left to right; the groups are Host, Components, Pipelines & variants, Cloud. */
+const LINE: readonly LegendEntry[] = [
+  { name: 'State', means: 'proposed, then probing, then ok or failed. Only ok lines are saved; a local command is skipped (it runs on your click).' },
+  { name: 'What', means: 'The host, a component, a pipeline and its variants (↳), the cloud resource; or a check such as a login.' },
+  { name: 'Detail', means: 'Its path, file, match rule or the args its probe was given.' },
+  { name: 'Probe line', means: 'What the probe found, or why it failed; a lapsed login shows its re-login command with Copy.' },
 ];
 
 export const ONBOARD: readonly Callout[] = [
@@ -43,51 +41,42 @@ export const ONBOARD: readonly Callout[] = [
     title: 'Onboard',
     body: (r) => {
       const f = figures(r);
-      return `How far is the estate onboarded, what runs in the next batch, and what can only I do? ${f.discovered} projects come in a step at a time; ${f.watching} are watched so far and ${f.yours} wait on you. Reads run on their own; every write is an MR opened as you and merged by a person.`;
+      return `Which real project should Afterlife watch, and what in it can be measured? ${f.repos} repos you work in with Claude Code are listed, ${f.onboarded} already onboarded. A low-effort model proposes; a read-only probe confirms each line; only confirmed lines are saved.`;
     },
   },
   {
-    id: 'funnel',
+    id: 'repos',
     kind: 'columns',
-    sel: FUNNEL,
-    title: 'The funnel',
-    body: () => 'Five steps from discovered to in cycles. Only a probe moves a project on; unknown is never counted as done.',
-    legend: STEPS,
+    sel: `${REPOS} li`,
+    title: 'Your repos',
+    body: () => 'The git toplevels behind your Claude Code sessions, temp and worktree paths left out. A pasted path below works for any other checkout.',
+    legend: REPO_ROW,
   },
   {
-    id: 'batch',
+    id: 'checklist',
     kind: 'columns',
-    sel: `${BATCH} [role="row"]`,
-    title: 'The next batch',
-    body: () => 'Every read runs; the writes are capped per batch. A row is one project and the one action that moves it on.',
-    legend: ROW,
-  },
-  {
-    id: 'preview',
-    kind: 'activity',
-    sel: PREVIEW,
-    title: 'Preview, then run',
-    body: (r) =>
-      `${r.text(PREVIEW) || 'Preview batch'}: shows every read’s exact command and the server’s preview of every MR. Run as you sends only those previews, on your confirmed click; nothing reaches GitLab before it.`,
-    try: 'Click Preview batch',
+    sel: FOUND,
+    title: 'What Afterlife found',
+    body: () => 'The proposal as a checklist, each line tied to the typed probe that confirms it. The footer names the engine and how long the proposal took.',
+    legend: LINE,
   },
   {
     id: 'pick',
     kind: 'activity',
-    sel: `${BATCH} [role="cell"] button`,
-    title: 'Look at one project',
-    body: () => 'Click a project: the inspector shows its step, its baseline stage by stage, and its one next command.',
-    try: 'Click a project name',
+    sel: `${REPOS} button`,
+    title: 'Pick a repo',
+    body: () => 'Pick: the facts are collected, one claude call proposes, then each probe runs in turn and its line turns ok or failed as you watch.',
+    try: 'Click Pick',
   },
   {
-    id: 'reprobe',
+    id: 'save',
     kind: 'activity',
-    sel: `${BATCH} button[title$="re-probe (simulated)"]`,
-    title: 'Done your part',
-    body: () => 'Only you can merge, renew a token or finish a setup. Once you have, Re-probe checks it and moves the project on (simulated here).',
-    try: 'Click Re-probe',
+    sel: `${SAVE} button`,
+    title: 'Save and collect',
+    body: () => 'Save writes only the confirmed lines to Afterlife’s own data folder, never into the repo, then opens the project’s Vitals.',
+    try: 'Click Save and collect',
   },
-  statusCallout('The estate in one line', 'Discovered, watching, waiting on you, and the size of the next batch.'),
+  statusCallout('Repos in one line', 'How many repos, how many onboarded, and for the picked one how many lines a probe confirmed, on which engine.'),
   dataLabelCallout,
   helpCallout,
 ];

@@ -1,6 +1,6 @@
 import { ScreenSkeleton } from '@/components/shell/loading/ScreenSkeleton';
 
-// The funnel's cards over the batch table while the estate streams in.
+// The wizard's three step cards while "Your repos" is read (the first read starts a git per repo; then 60 s cached).
 export default function Loading() {
-  return <ScreenSkeleton title="Onboard" layout="cards" />;
+  return <ScreenSkeleton title="Onboard" layout="sections" />;
 }
