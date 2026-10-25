@@ -1,5 +1,5 @@
 // The /api/onboard/* answers, shared by the routes and the wizard (type only on the client side).
-import type { ClaudeRepo, Engine, ProbeResult, Proposal } from '@/schemas/vitals';
+import type { ClaudeRepo, Engine, ProbeResult, ProbeSpec, Proposal } from '@/schemas/vitals';
 
 /** The two engines the wizard offers; the client names one, never a model string. */
 export type EngineKey = 'sonnet' | 'haiku';
@@ -31,6 +31,8 @@ export interface ProbeAnswer {
   result: ProbeResult;
   /** The server's seal over the result; the save step keeps only sealed results. */
   seal: string;
+  /** The probe this result makes possible (a found resource's query), for the wizard to run next. */
+  next?: ProbeSpec;
 }
 
 export interface SaveAnswer {

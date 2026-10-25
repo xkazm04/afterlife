@@ -17,6 +17,8 @@ export { ClaudeMissingError } from './propose/propose';
 export { ProposalError, parseProposal } from './propose/proposal';
 export { cleanSpec } from './propose/probeArgs';
 export { sealOf, verifySeal, type Sealed } from './probes/seal';
+export { runProbe } from './probes/run';
+export { followUpOf } from './probes/followUp';
 export { toplevelOf } from './repos/repos';
 export { ciFiles } from './facts/ci';
 

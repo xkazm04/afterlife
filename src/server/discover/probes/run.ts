@@ -5,6 +5,7 @@ import type { ProbeResult, ProbeSpec } from '@/schemas/vitals';
 import { ciProvider, cloudProvider, probeOwner } from '@/server/providers/registry';
 import { messageOf } from '@/lib/format/error';
 import { cleanSpec } from '../propose/probeArgs';
+import { nextSpec } from './followUp';
 import { gitRemote, gitRoot } from './git';
 
 export interface ProbeDeps {
@@ -23,7 +24,7 @@ async function answer(spec: ProbeSpec, root: string, deps: ProbeDeps): Promise<D
   if (spec.kind === 'local-command') return { status: 'skipped', summary: 'runs on your click' };
   const owner = probeOwner(spec.kind);
   if (owner === 'azure-pipelines' || owner === 'gitlab-ci') return deps.ci(owner).probe(spec);
-  if (owner === 'azure-app-insights') return deps.cloud(owner).probe(spec);
+  if (owner === 'azure-app-insights' || owner === 'azure-log-analytics') return deps.cloud(owner).probe(spec);
   return { status: 'fail', summary: `no probe answers ${spec.kind}` };
 }
 
@@ -46,7 +47,14 @@ export async function runProbe(raw: ProbeSpec, root: string, deps: ProbeDeps = D
 }
 
 export async function runProbesWith(specs: ProbeSpec[], root: string, deps: ProbeDeps = DEPS): Promise<ProbeResult[]> {
+  // A found resource's query joins the list right behind it (followUp.ts), once.
+  const list = [...specs];
   const out: ProbeResult[] = [];
-  for (const s of specs) out.push(await runProbe(s, root, deps));
+  for (let i = 0; i < list.length; i++) {
+    const r = await runProbe(list[i]!, root, deps);
+    out.push(r);
+    const next = nextSpec(list, list[i]!, r);
+    if (next) list.splice(i + 1, 0, next);
+  }
   return out;
 }

@@ -18,7 +18,7 @@ export const PROBE_ARGS: Record<ProbeKind, ArgSpec> = {
   'az-devops-timeline': { required: ['org', 'project', 'runId'], optional: [] },
   'az-appinsights-component': { required: ['resourceGroup'], optional: ['subscription', 'name'] },
   'az-appinsights-query': { required: ['appId'], optional: [] },
-  'az-loganalytics-workspace': { required: ['resourceGroup'], optional: ['subscription', 'name'] },
+  'az-loganalytics-workspace': { required: ['resourceGroup'], optional: ['subscription', 'name', 'site'] },
   'az-loganalytics-query': { required: ['workspaceId'], optional: ['site', 'subscription'] },
   'glab-auth': { required: [], optional: [] },
   'glab-pipelines': { required: ['path'], optional: [] },

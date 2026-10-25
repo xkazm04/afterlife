@@ -48,14 +48,22 @@ export function useWizard(): WizardApi {
     const p = await propose(root, engine, me.abort.signal);
     if (!live()) return;
     if (!p.ok) return setS((x) => ({ ...x, phase: 'pick', error: p.error }));
-    const specs = p.body.proposal.probes;
+    // A line the server names next (a found resource's query) is inserted right behind the one that found it.
+    const specs = [...p.body.proposal.probes];
     setS((x) => ({ ...x, phase: 'probing', answer: p.body, results: new Array(specs.length).fill(undefined), running: specs.length ? 0 : null }));
     for (let i = 0; i < specs.length; i++) {
       setS((x) => ({ ...x, running: i }));
       const r = await probe(p.body.root, specs[i]!, me.abort.signal);
       if (!live()) return;
       const got: ProbeAnswer = r.ok ? r.body : { result: { kind: specs[i]!.kind, args: specs[i]!.args, status: 'fail', summary: r.error.error, at: new Date().toISOString(), ms: 0 }, seal: '' };
-      setS((x) => ({ ...x, results: x.results.map((v, j) => (j === i ? got : v)) }));
+      const next = got.next && !specs.some((s) => s.kind === got.next!.kind && JSON.stringify(s.args) === JSON.stringify(got.next!.args)) ? got.next : undefined;
+      if (next) specs.splice(i + 1, 0, next);
+      const probes = [...specs];
+      setS((x) => ({
+        ...x,
+        answer: x.answer && { ...x.answer, proposal: { ...x.answer.proposal, probes } },
+        results: next ? [...x.results.slice(0, i), got, undefined, ...x.results.slice(i + 1)] : x.results.map((v, j) => (j === i ? got : v)),
+      }));
     }
     setS((x) => ({ ...x, phase: 'review', running: null }));
   }, []);
