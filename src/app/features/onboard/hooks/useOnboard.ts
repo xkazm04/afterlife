@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { nextAction, planBatch, resolve as resolveRun, runBatch, type OnboardIntent } from '../model/batch';
 import { initialRuns, type OnboardData } from '../model/build';
 import { baseline, byGroup, funnel, type Step } from '../model/funnel';
+import { browserSession, changedRuns, loadSession, mergeSession, saveSession, type SessionStore } from '../model/session';
 import { useOnboardWrites } from './useOnboardWrites';
 
 export const BATCH_SIZES = ['5', '10', '20'] as const;
@@ -14,10 +15,24 @@ export type BatchSize = (typeof BATCH_SIZES)[number];
  * The Onboard screen state: where every project stands (simulated runs move it), the batch size and scope (a
  * group, or the estate), what is selected, the step filter and the preview sheet. Reads are simulated and say so; a write
  * is the server's preview, confirmed on Run (demo mode simulates it server side), and only a confirmed one moves.
+ * What the session moved is kept in the tab (model/session.ts) and laid over the data after mount, so a reload neither
+ * forgets an MR it opened nor offers the same write again; the server and the first client render start from the data.
  */
-export function useOnboard(data: OnboardData, startPreview = false) {
+export function useOnboard(data: OnboardData, startPreview = false, store: SessionStore = browserSession) {
   const { status } = useToast();
-  const [runs, setRuns] = useState(() => initialRuns(data));
+  const start = useMemo(() => initialRuns(data), [data]);
+  const [runs, setRuns] = useState(start);
+  const restored = useRef(false);
+  // declared before the restore, so the first commit saves nothing over what is kept
+  useEffect(() => {
+    if (restored.current) saveSession(store, data.org, changedRuns(start, runs));
+  }, [runs, start, store, data.org]);
+  useEffect(() => {
+    restored.current = true;
+    const kept = loadSession(store, data.org);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- storage is read after mount, so hydration agrees
+    if (Object.keys(kept).length) setRuns(mergeSession(start, kept));
+  }, [start, store, data.org]);
   const writes = useOnboardWrites();
   const [running, setRunning] = useState(false);
   const [size, setSize] = useState<BatchSize>('5');
