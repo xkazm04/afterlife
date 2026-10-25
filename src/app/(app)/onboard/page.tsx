@@ -1,17 +1,28 @@
 import type { Metadata } from 'next';
-import { firstParam } from '@/lib/url/searchParams';
-import { loadOnboardData } from '@/app/features/onboard/data/loadOnboardData';
-import { OnboardScreen } from '@/app/features/onboard/OnboardScreen';
+import { headers } from 'next/headers';
 import { connection } from 'next/server';
+import type { ClaudeRepo } from '@/schemas/vitals';
+import { notLocal } from '@/server/actions/local';
+import { listClaudeRepos } from '@/server/discover';
+import { messageOf } from '@/lib/format/error';
+import { WizardScreen } from '@/app/features/onboard/wizard/WizardScreen';
 
 export const metadata: Metadata = { title: 'Belay Onboard' };
 
-type Search = { searchParams: Promise<{ [key: string]: string | string[] | undefined }> };
-
-// Onboard: the whole estate as the fleet sees it, read on the server; the funnel and the batch run in the client.
-// ?preview=1 opens with the next batch's commands shown.
-export default async function OnboardPage({ searchParams }: Search) {
-  await connection(); // request time: the data source and its data are the running server's, never the build's
-  const preview = firstParam((await searchParams).preview) === '1';
-  return <OnboardScreen key={String(preview)} data={loadOnboardData()} startPreview={preview} />;
+// Onboard: a real project in one click. "Your repos" is read on the server at request time, and only for a request
+// addressed to this machine: the list names local paths, and the hosted replay has no Claude Code history to show. The
+// proposal, the probes and the save run from the client through /api/onboard/*. The demo estate is /onboard/estate.
+export default async function OnboardPage() {
+  await connection(); // request time: the repos are this machine's now, never the build's
+  let repos: ClaudeRepo[] = [];
+  let note: string | undefined;
+  if (notLocal(await headers())) note = 'Onboarding runs on your own machine: open Afterlife on localhost to list your repos and propose.';
+  else {
+    try {
+      repos = await listClaudeRepos();
+    } catch (e) {
+      note = `Your Claude Code repos could not be listed: ${messageOf(e, { firstLine: true })}. Paste a path instead.`;
+    }
+  }
+  return <WizardScreen repos={repos} note={note} />;
 }
