@@ -19,6 +19,12 @@
   lines, needs).
 - Acts as a film transport: eight takes (keys 1-8), roll with pre-roll, loop, in/out marks, step and seek, a takes
   sidebar with roll counts, and a present mode that moves the stage to a full-viewport layer.
+- Starts a run: with no wave running, the live film's entry is the "Start a run" panel, and the toolbar's "New run…"
+  opens it as a sheet on either film. It picks the fleet repo, Propose only (plans the lanes, changes nothing) or Execute
+  (lanes edit, run the gates, commit what passes), a new branch from a base ref or an existing branch (a branch checked
+  out in a worktree is listed disabled), waves, lanes, caps, model and ideas (scan, lens-scan). Preview shows the server's
+  exact `belay run ...` and what it will and will not do; Start run spawns it detached and the screen goes to the live
+  film. A propose-only wave shows its plan's items as "proposed", never landed, parked or failed.
 - Keeps an address: the playhead writes `#seq=NNN`; opening `#seq=NNN` (or `?seq=NNN`) shows that entry's settled
   frame, paused.
 
@@ -77,6 +83,8 @@
 | `.../theater/components/parts/` | `ReplayChip`, `RungSteps`, `PrerollCue` |
 | `.../theater/data/` | `ledger.ts` (REPLAY_LEDGER), `constants.ts`, `loadTheaterData.ts` |
 | `.../theater/live/` | The live film: `LiveScreen`, `model/` (mode, select, meta), `server/livePayload`, `hooks/` |
+| `.../theater/start/` | The pre-run panel: `StartPanel`, `StartFields`, `NewRun` (inline card, toolbar sheet), `useStartRun`, `model/form` |
+| `src/server/actions/runs/start/` | `startRunAction` (preview/confirm), the intent, the command line, the fleet and branch reads, the detached launch |
 
 ## Tests
 The full list (and what each pins) is the feature README's; `data/readme.test.ts` fails when a test file is missing from it.
@@ -96,5 +104,6 @@ The full list (and what each pins) is the feature README's; `data/readme.test.ts
   always plays it. Live, the real film plays whenever the data source's belay-ledger names an MR.
 - The illustrative film never takes a real MR's quote or the index's maturity scan: its parts come from `DEMO` in
   every mode. Its subtitle is the catalogue's group / project; a real film's is the source's group and deep project.
-- No write paths exist on this screen.
+- One write path: starting a run (`startRunAction`), on this machine only, never on the hosted replay. The film itself
+  writes nothing.
 - Full screen in present mode is optional; a browser refusal is ignored.

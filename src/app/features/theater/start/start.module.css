@@ -1,0 +1,121 @@
+/* The pre-run panel ("Start a run"): the live film's inline card and the "New run…" sheet draw the same form. */
+.card {
+  max-width: calc(760px * var(--ui-scale));
+  padding: calc(14px * var(--ui-scale)) calc(16px * var(--ui-scale));
+}
+.card h2 {
+  margin: 0 0 4px;
+  font-size: var(--t-head);
+  color: var(--text-1);
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: var(--t-body);
+  color: var(--text-2);
+}
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.group:disabled,
+.grid:disabled {
+  opacity: 0.55;
+}
+.name {
+  padding: 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.row > span:first-child {
+  color: var(--text-2);
+}
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.grid input {
+  width: calc(72px * var(--ui-scale));
+}
+.says {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.says div {
+  display: flex;
+  gap: 6px;
+}
+.says dt {
+  font-weight: 600;
+}
+.says dd {
+  margin: 0;
+}
+.says div[data-picked] {
+  color: var(--text-1);
+}
+.dim {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.note {
+  margin: 0;
+  color: var(--text-2);
+}
+.refused {
+  margin: 0;
+  color: var(--fail);
+}
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.notes {
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--t-small);
+  color: var(--text-2);
+}
+.notes li + li {
+  margin-top: 4px;
+}
+.foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}

@@ -106,6 +106,29 @@ screens: Vitals' Queue N runs (`app/features/vitals/components/write/QueueSheet.
 (`onboard/wizard/components/AfterSave.tsx`, its intents built by `wizard/data/writes.ts` from the saved config), both
 through `vitals/hooks/useProjectWrite.ts`. Tests: `vitals/__tests__/` against a fake az.
 
+Starting a cycle run (`actions/runs/start/`, Theater's pre-run panel): its own endpoint, `startRunAction(intent, previewId?)`
+(`'use server'`), the same round trip in one call: with no `previewId` it previews, with one it confirms that preview.
+The intent is `{kind: 'start-run', repo, mode: 'execute' | 'propose', base?, onto?, waves (1-10), lanes (1-6), laneCapUsd,
+waveCapUsd, model, ideas: ('scan' | 'lens-scan')[]}` (`runs/start/types.ts`, validated by `runs/start/intent.ts` with the
+runner's own slug, ref and model rules): `base` and `onto` are exclusive, and propose takes neither. It is not an
+`ActionIntent` (no `project`; `ActionPreview.kind` admits `'start-run'`). The preview is one command,
+`belay run --repo <slug> --mode <m> [--base <ref> | --onto <branch>] --waves n --lanes n [--lane-cap usd --wave-cap usd]
+--model m [--ideas scan,lens-scan]` (`runs/start/command.ts`; propose spells no branch or caps flag; a `base` equal to the
+fleet's is not sent), and notes that say what it will and will not do (risk `low` propose, `policy` execute, `merge` onto an
+existing branch). The confirm plans again and, when the digest matches, spawns `node cli/belay.mjs run ...` from the
+Afterlife checkout DETACHED (`windowsHide`, `detached`, unref'd, no stdin), stdout and stderr appended to
+`<data>/runs/<slug>/launch-<yyyymmdd-hhmmss>.log`, and answers at once (`made: 'pid N'`). Refused before anything is read:
+the hosted replay, and a request not addressed to this machine (`vitals/route.ts` `projectAway`). Refused at preview and
+again at confirm: a repo the fleet does not name (the runner's own loader, `runner/fleet/load.ts`, on
+`<afterlife>/.belay/fleet.yml` plus saved projects with a runner block), a live process in
+`<repo>/.claude/worktrees/belay-run.pid`, an `onto` branch that is not local or is checked out in any worktree (the main
+checkout included). Memory, as the project writes': issued previews (15 minutes), the confirm running, the answers (a
+repeat answers from them; a fresh preview of the same run makes the next confirm a new start). The panel's server read is
+`runs/start/read.ts`: `runRepos()`, `listRunBranches(slug)` (local branches, each with the worktree that holds it, and the
+checkout's HEAD branch: `runs/start/git.ts`) and `loadStartData()` (all of it, kept 5 s; closed on the replay). Tests:
+`runs/start/__tests__/` (the validator and every flag combination as a string, the refusals and the round trip on a temp
+git repo with a fake launch, the branch read, the action's guards).
+
 Every intent may carry `proposal`: the inbox item it settles (closed as `acted` once every command ran, and only when it is the intent's own project's item: `__tests__/confirm/proposalScope.test.ts`).
 
 ## Responses
@@ -192,11 +215,14 @@ screen holds (`{kind: preview}` or `{kind: refused, reason}`).
 - **Setup** arm, disarm and verify (`app/features/setup/write/arm.ts`): `previewAction` when the track's Arm or Disarm
   section is in view, `confirmAction` on its button; "I merged it · verify" calls `verifyArmAction`. Enroll
   (`setup/write/enroll.ts`): `enroll-track`, the same round trip.
+- **Theater** pre-run panel (`app/features/theater/start/useStartRun.ts`): `startRunAction(intent)` on Preview,
+  `startRunAction(intent, preview.previewId)` on Start run; a done start goes to `/theater?live=1`.
 - **Onboard** batch (`app/features/onboard/write/write.ts`): each project's `arm-track` and `enroll-track`, as Setup
   sends them: `previewAction` once the write is on screen, `confirmAction` of that preview on Run.
 
 - Guard (941dcf1, `__tests__/handwritten.test.ts`): `src/app` holds no hand-written gap MR, gap issue, probe or scan,
-  nor an `az pipelines run`, an App Insights component create or an App Service app setting write (the project writes). Its
+  nor an `az pipelines run`, an App Insights component create or an App Service app setting write (the project writes),
+  nor a `belay run --repo <a named repo>` (a run is started through `startRunAction`'s preview). Its
   one allowance is `src/app/features/kit`, the component gallery's sample text (`NOT_A_SEND` in the test).
 
 Not wired yet: the CRA sign-off (`mark-cra-ready`): no screen sends it, and `needs-you/data/cra.ts` still shows its own

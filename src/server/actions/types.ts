@@ -136,7 +136,8 @@ export interface PreviewCommand {
 }
 
 export interface ActionPreview {
-  kind: ActionKind;
+  /** `start-run` is runs/start's (startRunAction), not an ActionIntent: it starts a cycle run, not a GitLab or project write. */
+  kind: ActionKind | 'start-run';
   title: string;
   summary: string;
   commands: PreviewCommand[];

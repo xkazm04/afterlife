@@ -9,6 +9,10 @@ export interface WaveMeta {
   /** wave.start's lane count: the m of lane n/m. */
   lanesPlanned?: number;
   laneStartedAt: Record<string, string>;
+  /** A propose-only wave (`--mode propose`): it plans and changes nothing. Absent: execute. */
+  proposeOnly?: true;
+  /** wave.plan's items, the lane ids the plan proposed. Absent before the plan answered. */
+  planned?: string[];
 }
 
 /** Keyed `<repo>/<wave>` (waveKey). Only each repo's newest wave is read. */
@@ -48,4 +52,8 @@ export interface LiveView {
   replayable: { repo: string; wave: number }[];
   /** Ended lanes, newest first. */
   finished: RunLane[];
+  /** The shown wave only proposes: its plan's items are proposed, never landed, parked or failed. Absent: execute. */
+  proposeOnly?: true;
+  /** A propose-only wave's planned items (lane ids), once its plan answered. */
+  proposed?: string[];
 }
