@@ -9,11 +9,12 @@ import type { Exec } from './types';
 const MAX_BUFFER = 64 * 1024 * 1024;
 const WIN_AZ_PYTHON = 'C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\python.exe';
 
-/** The argv that actually starts `bin`: az on Windows becomes its own python with `-IBm azure.cli`. */
+/** The argv that actually starts `bin`: az on Windows becomes its own python with `-IBm azure.cli`. `-X utf8`
+ * because -I ignores PYTHONIOENCODING, and cp1252 drops what it cannot encode ("Swap Staging → Production"). */
 export function resolveBin(bin: string, args: readonly string[], platform = process.platform): { file: string; args: string[] } {
   if (bin === 'az' && platform === 'win32') {
     const py = process.env.BELAY_AZ_PYTHON ?? WIN_AZ_PYTHON;
-    if (existsSync(py)) return { file: py, args: ['-IBm', 'azure.cli', ...args] };
+    if (existsSync(py)) return { file: py, args: ['-X', 'utf8', '-IBm', 'azure.cli', ...args] };
   }
   if (bin === 'glab' && platform === 'win32' && !path.extname(bin)) return { file: 'glab.exe', args: [...args] };
   return { file: bin, args: [...args] };
