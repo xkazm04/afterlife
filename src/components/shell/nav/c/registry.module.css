@@ -1,0 +1,45 @@
+/* Arm C's wrappers draw no box: the route's children and each copy stay direct grid items of the window (AppFrame .win). */
+.contents {
+  display: contents;
+}
+
+/* A stale Needs you copy: dimmed over the screen column (an absolute grid item takes column 2 as its box) and labelled. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  grid-column: 2;
+  grid-row: 1;
+  z-index: 30;
+  pointer-events: none;
+  background: color-mix(in oklab, var(--win) 45%, transparent);
+}
+
+/* a refetch that lands within 150 ms never flashes the affordance */
+.scrim,
+.note {
+  animation: arm-c-appear 120ms ease-out 150ms both;
+}
+
+@keyframes arm-c-appear {
+  from {
+    opacity: 0;
+  }
+}
+
+.note {
+  position: absolute;
+  grid-column: 2;
+  grid-row: 1;
+  top: calc(44px * var(--ui-scale));
+  left: 50%;
+  translate: -50% 0;
+  z-index: 31;
+  padding: calc(4px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border: 1px solid var(--accent);
+  border-radius: calc(12px * var(--ui-scale));
+  background: var(--surface-2);
+  color: var(--text-1);
+  font-size: calc(12px * var(--ui-scale));
+  white-space: nowrap;
+  pointer-events: none;
+}
