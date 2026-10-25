@@ -13,7 +13,7 @@ import path from 'node:path';
 import { childExit } from './childExit.mjs';
 
 const [, , cmd = 'help', ...rest] = process.argv;
-const USAGE = 'usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--pack-version v] [--engine-ref ref] [--write] | collect --project <slug> | report --project <slug> --claim <json|file> | replay <ledger-slice>';
+const USAGE = 'usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--mode execute|propose] [--base ref | --onto branch] [--ideas scan,lens-scan] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--pack-version v] [--engine-ref ref] [--write] | collect --project <slug> | report --project <slug> --claim <json|file> | replay <ledger-slice>';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 /** Runs a TypeScript entry through tsx. `cwd` is where it runs (scan and pair read the caller's checkout); the app's

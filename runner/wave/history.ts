@@ -30,7 +30,27 @@ export function waveHistory(runsDir: string, repo: string, baseSubjects?: Readon
         out.push(`wave ${n}: ${title} -> ${dropped ? 'landed on its wave branch but NOT taken into base (rejected, or not merged yet)' : String(e.outcome)}${why}`);
       }
     }
-    out.push(...reviewNotes(dir, parseInt(f, 10)));
+    out.push(...proposedNotes(dir, parseInt(f, 10)), ...reviewNotes(dir, parseInt(f, 10)));
+  }
+  return out;
+}
+
+/** A propose-only wave's items (`<wave>.proposed.jsonl`, wave/planStep.ts): planned, never run, so not re-proposed as new. */
+function proposedNotes(dir: string, wave: number): string[] {
+  let text = '';
+  try {
+    text = fs.readFileSync(path.join(dir, `${wave}.proposed.jsonl`), 'utf8');
+  } catch {
+    return [];
+  }
+  const out: string[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    try {
+      const o = JSON.parse(line) as { lane?: unknown; title?: unknown };
+      if (typeof o.title === 'string') out.push(`wave ${wave}: ${o.title.slice(0, 120)} -> proposed by a propose-only wave, not run yet`);
+    } catch {
+      /* blank or torn line */
+    }
   }
   return out;
 }

@@ -40,6 +40,12 @@ export interface RunWave {
   model?: string;
   /** `<wave>.proposals.md` sits next to the events. */
   hasProposals: boolean;
+  /** A propose-only wave (`--mode propose`): the plan ran and no lane did. Its `proposed` items are not parked or failed. */
+  proposeOnly?: true;
+  /** A propose-only wave's planned lane ids, from wave.plan (the full items are `<wave>.proposed.jsonl`). */
+  proposed?: string[];
+  /** wave.start's `onto`: `branch` is an existing branch the run landed on, not a `belay/wave-<n>` it made. */
+  onto?: true;
 }
 
 export interface RunTotals {

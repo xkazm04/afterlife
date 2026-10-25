@@ -65,7 +65,14 @@ export function foldWave(events: readonly RunEvent[], hasProposals: boolean): Ru
     w.mergeable = end.mergeable;
     w.endedAt = end.ts;
   } else if (withCost.length) w.costUsd = withCost.reduce((n, l) => n + (l.costUsd ?? 0), 0);
+  // A propose-only wave says so at its start, so a running one is already shown as proposing; its plan is the proposal.
+  if ((start?.kind === 'wave.start' && start.mode === 'propose') || (end?.kind === 'wave.end' && end.proposeOnly)) {
+    w.proposeOnly = true;
+    const plan = events.findLast((e) => e.kind === 'wave.plan');
+    if (plan?.kind === 'wave.plan') w.proposed = plan.items;
+  }
   if (start?.kind === 'wave.start') {
+    if (start.onto) w.onto = true;
     w.startedAt = start.ts;
     w.model = start.model;
     w.promptVersion = start.promptVersion;

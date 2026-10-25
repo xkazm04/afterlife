@@ -94,6 +94,7 @@ export function buildDesk({ runs, fleet, branches }: DeskInput): RunnerDesk {
               counts: w.counts,
               open: w.open,
               ...(w.endedAt !== undefined ? { endedAt: w.endedAt } : {}),
+              ...(w.proposeOnly ? { proposed: w.proposed?.length ?? 0 } : {}),
             },
           }
         : {}),

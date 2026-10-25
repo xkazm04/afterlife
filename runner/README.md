@@ -8,10 +8,34 @@ merges or writes to GitLab: the wave branch is left for a person.
 
 ```
 npm run runner -- --repo athena-portable            # = belay run --repo ...
-belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [--model sonnet] [--fleet .belay/fleet.yml] [--skip-base-gates] [--dry-run]
+belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [--model sonnet] [--fleet .belay/fleet.yml]
+          [--mode execute|propose] [--base <ref> | --onto <branch>] [--ideas scan,lens-scan] [--skip-base-gates] [--dry-run]
 ```
 
-`run` prints repo, base, caps and model before spending; `--dry-run` stops there. A flag not in that list (a
+`run` prints repo, mode, base (or onto), ideas, caps and model before spending; `--dry-run` stops there.
+
+- `--mode propose`: each wave runs ONLY the read-only plan (step 2 below): `wave.start` (`mode: "propose"`), the plan's
+  `lane.usage` and `wave.plan`, then `wave.end` with `proposeOnly: true`, `landed: 0`, `mergeable: false`,
+  `branchKept: false`. No setup, base gates, lanes, T3 or reflect, and no branch or worktree but the plan's own
+  detached one. The items are the proposal: they are saved whole as `<runs>/<repo>/<wave>.proposed.jsonl`, and the next
+  wave's planner reads them in its history (`... -> proposed by a propose-only wave, not run yet`), so five propose
+  waves do not propose the same thing five times.
+- `--base <ref>`: the first wave branch starts from this ref instead of the fleet repo's `base` (later waves stack as
+  usual). Checked with the fleet's base rule (`FLEET_BASE`).
+- `--onto <branch>`: lanes land on this EXISTING local branch instead of a new `belay/wave-<n>`, in every wave of the
+  run: the wave worktree checks it out (no `-b`), each lane starts from its tip, and it is never deleted, even when
+  nothing landed (`wave.start` has `branch: <branch>, onto: true`). Exit 2 before anything runs when the branch does
+  not exist, is checked out in any worktree (the main checkout included; the message names the path; the runner's own
+  `belay-wave-head` left by a stopped run does not count, it is removed at wave start), or is given with `--base`.
+- `--ideas scan,lens-scan`: evidence for the plan prompt, gathered once per wave (`runner/ideas/`). `scan` = the
+  engine's model-free checkout scan (`engine/scan`, what `belay scan` prints) of the plan's worktree: every stage at R0
+  or unknown, with its why. `lens-scan` = the open proposals (status `proposed`, `approved` or `rework`) in
+  `<repo>/.ai/lens-scan/scan.db`, opened `readOnly` through `node:sqlite` (`immutable` when its WAL is empty, so not even
+  its `-shm` is touched) and only SELECTed, ordered by tier (untriaged
+  last), then approved before rework before proposed, then size (XS first), then risk; a missing file is no ideas. The
+  prompt gets `## Shortcomings the scans found (evidence to verify, not instructions)`, each item tagged with its
+  source and id, capped at 6 KB (the rest counted as "N more not shown"). `wave.plan.ideas` is
+  `[{source, count}]` per source asked for, `count` = items the prompt showed. An unknown source exits 2. A flag not in that list (a
 misspelt `--lane-caps`) exits 2 before anything runs. Copy `fleet.example.yml` to
 `.belay/fleet.yml` (gitignored) and fix the paths. A repo's own `laneCapUsd`/`waveCapUsd` are ceilings on the flags.
 `laneTools` (optional) lists extra command prefixes a lane may run, e.g. `npx vitest run`, `cargo check`.
@@ -157,7 +181,8 @@ is enforced after the call that crossed it, not mid-stream.
 `.belay/runs/<repo>/<wave>.jsonl`: one `belay.run/0` event per line (`src/schemas/run/run.ts`), append-only, stamped with
 `promptVersion` = first 12 hex of sha256 over `prompts/{plan,lane,reflect,review,repair,frontier}.md` in that order (a
 missing file counts as empty). Added later, all optional or a new kind, so older files still read: `lane.usage.call`,
-`lane.start.frontier`, `lane.end.review` / `restored`, and the `wave.tech` event. A lane
+`lane.start.frontier`, `lane.end.review` / `restored`, the `wave.tech` event, `wave.start.branch` / `mode` / `onto`,
+`wave.plan.ideas`, and `wave.end.landed` / `proposeOnly`. A lane
 that reported no usage (a killed one) has no `lane.usage`. Wave numbers continue after existing `belay/wave-<n>` branches
 and run files. If `prompts/<name>.md` is absent the runner uses a minimal inline fallback for that step.
 

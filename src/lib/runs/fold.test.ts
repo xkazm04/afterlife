@@ -122,3 +122,28 @@ describe('words', () => {
     expect(outcomeWords({ landed: 2, parked: 0 }, 1)).toBe('2 landed, 1 open');
   });
 });
+
+describe('a propose-only wave', () => {
+  const at = { v: 'belay.run/0', repo: 'alpha', promptVersion: 'abc123def456', wave: 3 };
+  const propose = [
+    { ...at, kind: 'wave.start', ts: '2026-10-25T10:00:00Z', base: 'main', lanes: 2, laneCapUsd: 3, waveCapUsd: 25, model: 'sonnet', branch: 'belay/wave-3', mode: 'propose' },
+    { ...at, kind: 'lane.usage', ts: '2026-10-25T10:02:00Z', lane: 'plan', model: 'sonnet', inputTokens: 10, outputTokens: 5, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd: 0.4 },
+    { ...at, kind: 'wave.plan', ts: '2026-10-25T10:02:01Z', raw: 2, parsed: 2, items: ['split-tab', 'guard-total'], ideas: [{ source: 'lens-scan', count: 12 }] },
+    { ...at, kind: 'wave.end', ts: '2026-10-25T10:02:02Z', branch: 'belay/wave-3', mergeable: false, costUsd: 0.4, branchKept: false, landed: 0, proposeOnly: true },
+  ].map((o) => JSON.stringify(o));
+
+  it('shows its planned items as proposed: no lane, nothing parked or failed, no branch to merge', () => {
+    const w = foldWave(events(propose), false);
+    expect(w).toMatchObject({ proposeOnly: true, proposed: ['split-tab', 'guard-total'], lanes: [], open: 0, mergeable: false, costUsd: 0.4, running: false });
+    expect(w?.counts).toEqual(emptyCounts());
+    expect(w).not.toHaveProperty('branch');
+    expect(w).not.toHaveProperty('onto');
+  });
+
+  it('is proposing while it runs, and an execute wave carries neither key', () => {
+    expect(foldWave(events(propose.slice(0, 1)), false)).toMatchObject({ proposeOnly: true, running: true });
+    expect(foldWave(events(WAVE_1), false)).not.toHaveProperty('proposeOnly');
+    const onto = JSON.stringify({ ...JSON.parse(WAVE_1[0]!), branch: 'work', onto: true });
+    expect(foldWave(events([onto, ...WAVE_1.slice(1)]), false)).toMatchObject({ onto: true });
+  });
+});

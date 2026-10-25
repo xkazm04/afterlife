@@ -58,7 +58,8 @@ export interface RunnerRow {
   gitlab?: string;
   inFleet: boolean;
   waves: number;
-  last?: { wave: number; running: boolean; mergeable?: boolean; merged?: boolean; counts: OutcomeCounts; open: number; endedAt?: string };
+  /** `proposed`: a propose-only wave's planned items (it ran no lane, so its counts are all 0 and nothing parked). */
+  last?: { wave: number; running: boolean; mergeable?: boolean; merged?: boolean; counts: OutcomeCounts; open: number; endedAt?: string; proposed?: number };
   tokens?: number;
   costUsd?: number;
   /** Runner decisions waiting on this repo. */

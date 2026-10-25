@@ -1,10 +1,10 @@
 // One wave: wave.start, the plan step (read-only, in a detached worktree of base), the lanes one after
 // another under the caps (plus one frontier lane when the plan under-filled and the repo has a frontier), the
 // T3 measurement of a frontier repo (wave.tech), then wave.end - mergeable only when something landed AND the gates
-// are green on the wave branch itself. Nothing here pushes or merges: belay/wave-<n> is left for a person.
+// are green on the wave branch itself. Nothing here pushes or merges: belay/wave-<n> (or the --onto branch) is left
+// for a person. A propose-only wave (--mode propose) is wave.start, the plan and wave.end, nothing else.
 import { bashPrefixes } from '../agent/permissions';
-import { callClaude } from '../agent/spawn';
-import { addWorktree, claimOwnWorktrees, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
+import { addWorktree, checkoutWorktree, claimOwnWorktrees, removeWorktree, resolveRef, sweepStaleWorktrees, worktreeDir } from '../git/worktree';
 import { runLane, type FrontierBrief } from '../lane/run';
 import { measureWave } from '../tech/measure';
 import { frontierItem, frontierPrompt, wantsFrontier } from './frontier';
@@ -14,7 +14,8 @@ import { git } from '../proc/proc';
 import { waveBranch } from '../../src/schemas/run';
 import type { FleetRepo, RunOptions } from '../index';
 import type { Log } from './events';
-import { jsonLines, parseEmptyAxes, parsePlan, planPrompt, uncoveredAxes, type PlanItem } from './plan';
+import type { PlanItem } from './plan';
+import { plan } from './planStep';
 import type { Prompts } from './prompts';
 
 export interface WaveCtx {
@@ -52,42 +53,38 @@ async function baseCheck(repo: FleetRepo, waveDir: string, timeoutMs: number): P
   return { red: gates.ok ? null : redReason('base gate', gates), flaky: gates.flaky ?? [], output: gates.output };
 }
 
-/** The plan step: one read-only call. A plan session that changed the worktree voids the plan. */
-async function plan(c: WaveCtx, baseSha: string): Promise<{ items: PlanItem[]; costUsd: number }> {
-  const dir = worktreeDir(c.repo.path, `belay-wave-${c.wave}-plan`);
-  await addWorktree(c.repo.path, dir, baseSha);
-  try {
-    const a = await callClaude({ prompt: planPrompt(c.prompts.text.plan, c.repo, c.opts.lanes, c.history, c.baseRef), cwd: dir, model: c.opts.model, timeoutMs: c.timeoutMs, permissions: { step: 'plan' } });
-    const costUsd = a.costUsd ?? 0;
-    if (a.usage) c.log({ kind: 'lane.usage', lane: 'plan', model: a.model ?? c.opts.model, ...a.usage, costUsd, ...(a.sessionId ? { sessionId: a.sessionId } : {}) });
-    const dirty = (await git(dir, ['status', '--porcelain'])) !== '';
-    const voided = a.timedOut ? 'timeout' : a.isError ? 'error' : dirty ? 'dirty' : undefined;
-    const items = voided ? [] : parsePlan(a.text, c.opts.lanes);
-    const empty = voided ? [] : parseEmptyAxes(a.text);
-    // An axis with neither a lane nor an empty entry was never searched: recorded so reflect and the run file show it.
-    const uncovered = voided ? [] : uncoveredAxes(items, empty);
-    c.log({ kind: 'wave.plan', raw: jsonLines(a.text), parsed: items.length, items: items.map((i) => i.lane), ...(empty.length ? { empty } : {}), ...(uncovered.length ? { uncovered } : {}), ...(voided ? { voided } : {}) });
-    return { items, costUsd };
-  } finally {
-    await removeWorktree(c.repo.path, dir);
-  }
+/** A propose-only wave: wave.start, the plan, wave.end. No setup, gates, lanes or wave branch; the plan's items are the proposal. */
+async function proposeWave(c: WaveCtx, base: string, baseSha: string, branch: string): Promise<WaveResult> {
+  const onto = c.opts.onto ? { onto: true as const } : {};
+  c.log({ kind: 'wave.start', base, lanes: c.opts.lanes, laneCapUsd: c.laneCapUsd, waveCapUsd: c.waveCapUsd, model: c.opts.model, branch, mode: 'propose', ...onto });
+  await sweepStaleWorktrees(c.repo.path);
+  const p = await plan(c, baseSha);
+  c.log({ kind: 'wave.end', branch, mergeable: false, costUsd: p.costUsd, branchKept: false, landed: 0, proposeOnly: true });
+  return { costUsd: p.costUsd, landed: 0, branch, notes: [] };
 }
 
-/** Runs the wave. The wave branch exists only if a lane landed on it. */
+/** Runs the wave. A new wave branch exists only if a lane landed on it; an `--onto` branch is never deleted. */
 export async function runWave(c: WaveCtx): Promise<WaveResult> {
   const { repo, log, wave } = c;
+  const onto = c.opts.onto;
   const base = c.baseRef ?? repo.base;
   const baseSha = await resolveRef(repo.path, base);
-  const branch = waveBranch(wave);
+  const branch = onto ?? waveBranch(wave);
+  if (c.opts.mode === 'propose') {
+    for (const d of await claimOwnWorktrees(repo.path)) console.error(`runner: removed ${d}, left registered by a stopped run`);
+    return proposeWave(c, base, baseSha, branch);
+  }
   // One fixed path for every wave's own worktree (waves of a repo run one at a time, and it is removed at wave end):
   // cargo hashes a workspace crate's path into its build, so a path per wave grew a shared target dir every wave.
   const waveDir = worktreeDir(repo.path, 'belay-wave-head');
   // What a run stopped mid-wave left registered at the fixed paths (its lane branch too) - before wave.start, so a
   // refusal (another live run) writes no run file - then the dirs left behind unregistered.
   for (const d of await claimOwnWorktrees(repo.path)) console.error(`runner: removed ${d}, left registered by a stopped run`);
-  log({ kind: 'wave.start', base, lanes: c.opts.lanes, laneCapUsd: c.laneCapUsd, waveCapUsd: c.waveCapUsd, model: c.opts.model });
+  log({ kind: 'wave.start', base, lanes: c.opts.lanes, laneCapUsd: c.laneCapUsd, waveCapUsd: c.waveCapUsd, model: c.opts.model, branch, ...(onto ? { onto: true as const } : {}) });
   await sweepStaleWorktrees(repo.path);
-  await addWorktree(repo.path, waveDir, baseSha, branch);
+  // --onto: the existing branch itself is checked out (its tip is base), so lanes start from it and land on it.
+  if (onto) await checkoutWorktree(repo.path, waveDir, onto);
+  else await addWorktree(repo.path, waveDir, baseSha, branch);
   let cost = 0;
   let landed = 0;
   const notes: string[] = [];
@@ -99,7 +96,7 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
     const red = base.red;
     if (red) {
       const gateLog = saveGateLog(c.runsDir, { repo: repo.slug, wave, what: 'base' }, base.output);
-      log({ kind: 'wave.end', branch, mergeable: false, costUsd: 0, branchKept: false, baseRed: red, ...(flaky.length ? { flaky } : {}), ...(gateLog ? { gateLog } : {}) });
+      log({ kind: 'wave.end', branch, mergeable: false, costUsd: 0, branchKept: Boolean(onto), landed: 0, baseRed: red, ...(flaky.length ? { flaky } : {}), ...(gateLog ? { gateLog } : {}) });
       return { costUsd: 0, landed: 0, branch, notes: [], baseRed: red };
     }
     const p = await plan(c, baseSha);
@@ -144,9 +141,9 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
     }
     // T3: a frontier repo's metrics on the wave base and on the tip, when the tip holds anything to measure.
     if (repo.frontier && landed > 0) await measureWave({ repo, baseSha, tipSha: await git(waveDir, ['rev-parse', 'HEAD']), timeoutMs: c.timeoutMs, log });
-    log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost, branchKept: landed > 0, ...(flaky.length ? { flaky } : {}), ...(waveLog ? { gateLog: waveLog } : {}) });
+    log({ kind: 'wave.end', branch, mergeable: green, costUsd: cost, branchKept: landed > 0 || Boolean(onto), landed, ...(flaky.length ? { flaky } : {}), ...(waveLog ? { gateLog: waveLog } : {}) });
   } finally {
-    await removeWorktree(repo.path, waveDir, landed > 0 ? undefined : branch);
+    await removeWorktree(repo.path, waveDir, landed > 0 || onto ? undefined : branch);
   }
   return { costUsd: cost, landed, branch, notes };
 }

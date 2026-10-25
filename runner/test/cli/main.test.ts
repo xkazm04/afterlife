@@ -52,4 +52,29 @@ describe('belay run flags', () => {
     expect(r.code).toBe(2);
     expect(r.err).toContain('--model must be a plain model id');
   }, 60_000);
+  it('prints the mode, where the waves start or land, and the idea sources', () => {
+    const plain = run();
+    expect(plain.out).toContain('mode   execute');
+    expect(plain.out).toContain('base   main');
+    expect(plain.out).toContain('ideas  none');
+    const r = run('--mode', 'propose', '--base', 'release/1.2', '--ideas', 'lens-scan,scan');
+    expect(r.code).toBe(0);
+    expect(r.out).toContain('mode   propose (each wave runs only the read-only plan');
+    expect(r.out).toContain("base   release/1.2 (--base; the fleet's is main)");
+    expect(r.out).toContain('ideas  scan, lens-scan');
+  }, 60_000);
+
+  it.each([['--mode', 'yolo'], ['--ideas', 'scan,lint'], ['--onto', 'work', '--base', 'main']])('refuses %s %s with exit 2 before anything runs', (...args) => {
+    const r = run(...args);
+    expect(r.code).toBe(2);
+    expect(r.err).toContain('--mode is execute or propose');
+    expect(r.out).not.toContain('caps');
+  }, 60_000);
+
+  it('refuses an --onto branch that does not exist, with exit 2', () => {
+    spawnSync('git', ['init', '-q', '-b', 'main', tmp]);
+    const r = run('--onto', 'no-such-branch');
+    expect(r.code).toBe(2);
+    expect(r.err).toContain('--onto no-such-branch: no such local branch');
+  }, 60_000);
 });

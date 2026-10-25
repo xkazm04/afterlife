@@ -27,6 +27,25 @@ export async function addWorktree(repoPath: string, dir: string, start: string, 
   await git(repoPath, args);
 }
 
+/** A worktree that checks out an EXISTING branch (`--onto`): no `-b`, so the branch is never created or reset. */
+export async function checkoutWorktree(repoPath: string, dir: string, branch: string): Promise<void> {
+  await git(repoPath, ['worktree', 'add', dir, branch]);
+}
+
+/**
+ * Where `branch` is checked out, the main checkout included, or null when nowhere. The runner's own fixed worktrees
+ * are skipped: one a stopped run left is removed at wave start (claimOwnWorktrees), and a live run refuses there.
+ */
+export async function checkedOutAt(repoPath: string, branch: string): Promise<string | null> {
+  const list = (await runProc('git', ['-C', repoPath, 'worktree', 'list', '--porcelain'])).stdout;
+  const own = new Set(OWN.map((n) => samePathKey(worktreeDir(repoPath, n))));
+  for (const block of list.split(/\r?\n\r?\n/)) {
+    const at = /^worktree (.+)$/m.exec(block)?.[1];
+    if (at && /^branch (.+)$/m.exec(block)?.[1] === `refs/heads/${branch}` && !own.has(samePathKey(at))) return at;
+  }
+  return null;
+}
+
 /** A path as one comparable string: resolved, real when it exists, case-folded on Windows. */
 function samePathKey(p: string): string {
   let r = path.resolve(p);

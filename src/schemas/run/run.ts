@@ -30,7 +30,17 @@ export interface WaveStart extends RunEventBase {
   laneCapUsd: number;
   waveCapUsd: number;
   model: string;
+  /** The branch lanes land on (added later; absent in older files): `belay/wave-<n>`, or the existing `--onto` branch. */
+  branch?: string;
+  /** A propose-only wave (`--mode propose`): the plan ran, nothing else did. Absent = execute. */
+  mode?: 'propose';
+  /** `branch` is an existing branch the run was told to land on (`--onto`): never created, never deleted. */
+  onto?: true;
 }
+
+/** Where a plan's evidence came from: the engine's checkout scan, or the repo's lens-scan store (`--ideas`). */
+export const IDEA_SOURCES = ['scan', 'lens-scan'] as const;
+export type IdeaSource = (typeof IDEA_SOURCES)[number];
 
 /**
  * What the plan step answered, once per wave after wave.start (added later in belay.run/0: older files have none).
@@ -47,6 +57,8 @@ export interface WavePlan extends RunEventBase {
   /** Craft axes with neither a lane nor an empty entry: never searched. Absent when the plan covered all seven. */
   uncovered?: string[];
   voided?: 'timeout' | 'error' | 'dirty';
+  /** The shortcomings the plan prompt was shown, per source (`--ideas`, added later). Absent when none was asked for. */
+  ideas?: { source: IdeaSource; count: number }[];
 }
 
 export interface LaneStart extends RunEventBase {
@@ -140,6 +152,10 @@ export interface WaveEnd extends RunEventBase {
   gateLog?: string;
   /** Gates on base or on the wave branch that went red and then green when rerun once. Absent when none. */
   flaky?: string[];
+  /** A propose-only wave: the plan's items are the proposal; no lane ran, so `landed` is 0 and no branch was made. */
+  proposeOnly?: true;
+  /** How many lanes landed on `branch` (added later; absent in older files). 0 in a propose-only wave. */
+  landed?: number;
 }
 
 export type RunEvent = WaveStart | WavePlan | LaneStart | LaneUsage | LaneEnd | WaveTech | WaveEnd;

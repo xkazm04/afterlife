@@ -24,6 +24,7 @@ export interface FleetRepo {
 
 export type { TechMetric, TechParse } from '../src/schemas/run/tech';
 import type { TechMetric } from '../src/schemas/run/tech';
+import type { IdeaSource } from '../src/schemas/run';
 
 /** A repo's technology objective: worked by a frontier lane when the plan under-fills, judged by its metrics. */
 export interface Frontier {
@@ -46,6 +47,14 @@ export interface RunOptions {
   skipBaseGates?: boolean;
   /** Per-lane wall-clock ceiling; default 20 minutes. */
   laneTimeoutMs?: number;
+  /** `propose`: each wave runs only the read-only plan; its items are the proposal. Default `execute`. */
+  mode?: 'execute' | 'propose';
+  /** The ref the first wave branch starts from, instead of the fleet repo's `base`. Not with `onto`. */
+  base?: string;
+  /** An EXISTING local branch every wave lands on instead of a new `belay/wave-<n>`; never deleted. Not with `base`. */
+  onto?: string;
+  /** Evidence sources for the plan prompt (runner/ideas). */
+  ideas?: IdeaSource[];
 }
 
 export const RUN_DEFAULTS = { waves: 1, lanes: 6, laneCapUsd: 3, waveCapUsd: 25, model: 'sonnet' } as const;

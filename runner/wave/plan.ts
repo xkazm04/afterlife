@@ -13,11 +13,12 @@ export interface PlanItem {
 /** The step marker is for tooling (and the test fake): every prompt the runner sends carries one. */
 export const stepMarker = (step: string, lane = ''): string => `\n<!-- belay:step=${step}${lane ? ` lane=${lane}` : ''} -->`;
 
-export function planPrompt(base: string, repo: FleetRepo, lanes: number, history: readonly string[] = [], baseRef?: string): string {
+/** `extra`: more sections after the wave's facts and history (the propose-mode note, the scans' ideas: wave/planStep.ts). */
+export function planPrompt(base: string, repo: FleetRepo, lanes: number, history: readonly string[] = [], baseRef?: string, extra = ''): string {
   const done = history.length
     ? `\n## Earlier waves on this repo (do not re-plan a landed item; a parked or failed one only with a new approach)\n${history.map((h) => `- ${h}`).join('\n')}\n`
     : '';
-  return `${base}\n\n## This wave\n- repo: ${repo.slug}\n- base: ${baseRef ?? repo.base}\n- plan exactly ${lanes} lane(s), fewer only if fewer real items exist (then just emit fewer lines)\n- gates every lane must pass:\n${repo.gates.map((g) => `  - ${g}`).join('\n')}\n${done}${stepMarker('plan')}`;
+  return `${base}\n\n## This wave\n- repo: ${repo.slug}\n- base: ${baseRef ?? repo.base}\n- plan exactly ${lanes} lane(s), fewer only if fewer real items exist (then just emit fewer lines)\n- gates every lane must pass:\n${repo.gates.map((g) => `  - ${g}`).join('\n')}\n${done}${extra ? `\n${extra}` : ''}${stepMarker('plan')}`;
 }
 
 /** What a lane is checked by: the repo's gates (run by the runner after it) and the Bash prefixes it may run itself. */
