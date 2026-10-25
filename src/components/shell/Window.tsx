@@ -34,6 +34,8 @@ export interface WindowProps {
   onInspectorOpenChange?: (open: boolean) => void;
   /** Status bar text, left. */
   status?: ReactNode;
+  /** A screen that reads only a real project's own files: the status bar says so instead of the data mode. */
+  realData?: boolean;
   /** Legend content: shows the "?" in the status bar, opening it in a popover. */
   help?: ReactNode;
   helpTitle?: string;
@@ -112,7 +114,7 @@ function WindowColumn(p: WindowProps) {
             <main className={styles.pane}>{p.children}</main>
             {hasInsp ? <Inspector id={inspId} open={inspOpen}>{p.inspector}</Inspector> : null}
           </div>
-          <StatusBar help={p.help ? <HelpButton title={p.helpTitle}>{p.help}</HelpButton> : null}>{p.status}</StatusBar>
+          <StatusBar realData={p.realData} help={p.help ? <HelpButton title={p.helpTitle}>{p.help}</HelpButton> : null}>{p.status}</StatusBar>
         </div>
       </Motion>
     </>

@@ -57,6 +57,7 @@ export function VitalsBody({ view, starting = false, refused, onRefresh }: Vital
       inspector={<VitalsInspector view={view} picked={picked} onQueue={setQueueing} />}
       inspectorOpen={open}
       onInspectorOpenChange={setOpen}
+      realData
       status={`${view.delivery.length} variant${view.delivery.length === 1 ? '' : 's'} · ${view.runsStored} run${view.runsStored === 1 ? '' : 's'} stored · ${collected} · ${view.root}`}
     >
       <PaneScroll>

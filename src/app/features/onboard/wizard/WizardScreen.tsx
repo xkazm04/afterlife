@@ -43,6 +43,7 @@ export function WizardScreen({ repos, note }: { repos: readonly ClaudeRepo[]; no
           <Spacer />
         </>
       }
+      realData
       status={<WizardStatus repos={repos} s={w} />}
       help={<WizardLegend />}
       helpTitle="The checklist"

@@ -49,6 +49,7 @@ export function VitalsListScreen({ projects, now }: { projects: readonly Project
     <Window
       title="Vitals"
       subtitle={empty ? 'no real project yet' : `${projects.length} real project${projects.length === 1 ? '' : 's'}`}
+      realData
       status={empty ? 'Onboard a project to start measuring it' : 'Enter or double-click a project to open its vitals'}
     >
       <PaneScroll>

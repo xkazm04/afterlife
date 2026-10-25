@@ -20,6 +20,11 @@ describe('StatusBar data label', () => {
     expect(html).toContain('data —');
     expect(html).not.toMatch(/demo data|live data|live mode|polled/);
   });
+  it('a real project screen says real project data, even in demo mode', () => {
+    const html = renderToString(<ToastProvider><ShellProvider value={DEMO_SHELL}><StatusBar realData>left</StatusBar></ShellProvider></ToastProvider>);
+    expect(html).toContain('real project data');
+    expect(html).not.toContain('illustrative demo data');
+  });
   it('says illustrative demo data in demo mode', () => {
     expect(render(DEMO_SHELL.data)).toContain('illustrative demo data');
   });
