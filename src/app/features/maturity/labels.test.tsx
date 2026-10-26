@@ -55,7 +55,7 @@ function everything(m: DemoData['maturity'], mode: Mode): string {
   const merged = [sent, { type: 'merge', id: 'g1' }, { type: 'merge', id: 'g2' }].reduce((s, x) => reduce(s as MaturityState, x as Action, ctx)) as MaturityState;
   const nolift = reduce(merged, { type: 'rescanGap', id: 'g1' }, ctx);
   const credited = [nolift, { type: 'rescanGap', id: 'g2' }, { type: 'ran', id: 'g1' }, { type: 'rescanGap', id: 'g1' }].reduce((s, x) => reduce(s as MaturityState, x as Action, ctx)) as MaturityState;
-  const parts = [renderToString(createElement(MaturityProvider, { maturity: m, stages: DEMO.stages, project: 'ledgerline', mode }, createElement(MaturityScreen)))];
+  const parts = [renderToString(createElement(MaturityProvider, { initial: { maturity: m, stages: DEMO.stages, project: 'ledgerline', mode } }, createElement(MaturityScreen)))];
   for (const state of [initialState(ctx), sent, merged, nolift, credited]) {
     for (const sel of ctx.stages) {
       parts.push(renderToString(createElement(StageDetail, { api: api(ctx, state), stage: sel })));

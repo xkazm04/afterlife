@@ -7,7 +7,8 @@ and each stage's one-line evidence note are the index's (the poller stores the n
 mode" below.
 
 ## Parts
-- `MaturityProvider.tsx` holds the one `useMaturity` session in the `/maturity` layout, so the list and a stage page share it.
+- `MaturityProvider.tsx` holds the one `useMaturity` session (`MaturitySession`, the screen host's Session), so the list and a
+  stage page share it; `screen/` streams one `core` slice and merges each read in (`model/session/arrive.ts`).
 - `MaturityScreen.tsx` composes the `Window`: toolbar (crag mode, Stepper, ScanMeta, Rescan), sidebar `StageList`,
   content (`Crag` over `GapsTable`), `SendSheet`, status counts. `StageScreen.tsx` is `/maturity/[stage]`: a `DetailPage`
   of `StageDetail`, the legend and the preview picker.
@@ -40,7 +41,7 @@ mode" below.
 ## Data
 `data/` typed fixtures for the prototype's `MAT_EXTRA`: stage evidence, the four proposals (with their diffs),
 credit history, meta. The shared dataset (`getMaturity()`) supplies rungs, engine, scan time and the gap list.
-`data/loadMaturityData.ts` is what the Maturity layout needs, read through the data source. `data/loadMaturityStage.ts` is the `/maturity/[stage]` loader: the stage asked for, or null when the data source has none.
+`data/loadMaturityData.ts` is what the core slice carries, read through the data source. `data/loadMaturityStage.ts` is the `/maturity/[stage]` loader: the stage asked for, or null when the data source has none.
 
 ## On the shared kit
 `Stepper` (controls/toolbar), the verdict chip is `Chip tone="ok"|"neutral"`, the rung meter is `StageMeter deep`, the

@@ -148,3 +148,11 @@
 .toCycles:hover {
   text-decoration: underline;
 }
+/* The stage page's cards as one reveal region (the screen host): a full row of the detail grid, laid out as it is. */
+.cards {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(420px * var(--ui-scale))), 1fr));
+  gap: 12px;
+  align-items: start;
+}

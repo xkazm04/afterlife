@@ -1,7 +1,8 @@
 import type { MaturityCtx } from './ctx';
 import { inFlightIds, pendingIds, type MaturityState, type Step } from './state';
 
-const STEPS: readonly { k: Step; name: string; title: string }[] = [
+/** The four steps' names, the same before the read (the stepper paints at once). */
+export const STEP_NAMES: readonly { k: Step; name: string; title: string }[] = [
   { k: 1, name: 'Pick', title: 'Pick gaps' },
   { k: 2, name: 'Preview', title: 'Preview the diffs' },
   { k: 3, name: 'Send', title: 'Send as you' },
@@ -29,7 +30,7 @@ export function stepsView(s: MaturityState, ctx: MaturityCtx): StepView[] {
   const enabled = [true, pend.length > 0, pend.length > 0, fly > 0];
   // Send's loud badge says "waits for you": it counts the MRs the sheet would open, as Preview does, never a probe it cannot send.
   const counts = [pend.length, mrs, mrs || null, fly];
-  return STEPS.map((st, i) => ({
+  return STEP_NAMES.map((st, i) => ({
     ...st,
     enabled: enabled[i] ?? false,
     current: s.step === st.k,

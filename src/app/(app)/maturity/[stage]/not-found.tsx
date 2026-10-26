@@ -1,13 +1,6 @@
-import { EntityNotFound } from '@/components/shell/fallback/EntityNotFound';
+import { StageNotFound } from '@/app/features/maturity/components/pending/MaturityPending';
 
-/** An unknown /maturity/<stage>: says it is the stage that is missing (not a page) and links back to the crag. */
+/** An unknown /maturity/<stage>: the same card the screen host draws (StageNotFound). */
 export default function MaturityStageNotFound() {
-  return (
-    <EntityNotFound
-      title="Stage not found"
-      note="The crag has no stage with that name. The nine stages are the DevSecOps stages the scan reads."
-      href="/maturity"
-      back="Back to Maturity"
-    />
-  );
+  return <StageNotFound />;
 }

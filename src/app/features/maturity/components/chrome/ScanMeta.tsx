@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react';
 import styles from './ScanMeta.module.css';
 
 /**
  * Engine version and scan time. Credit never crosses engine versions, so the engine is always on screen. `ageMin` is null
  * when the age is not known (live mode: the view carries the scan's clock time only); `scanned` false reads "not scanned".
  */
-export function ScanMeta({ engine, scannedAt, ageMin, cadence, scanned }: { engine: string; scannedAt: string; ageMin: number | null; cadence: string; scanned: boolean }) {
+export function ScanMeta({ engine, scannedAt, ageMin, cadence, scanned }: { engine: ReactNode; scannedAt: ReactNode; ageMin: number | null; cadence: string; scanned: boolean }) {
   return (
     <div className={styles.meta} role="group" aria-label="Scan">
       <span title="Rescans use the same engine; credit never crosses engine versions">

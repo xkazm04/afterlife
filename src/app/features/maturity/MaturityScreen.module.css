@@ -15,3 +15,10 @@
 .rescan:hover {
   background: var(--ctl-hi);
 }
+/* The screen host's reveal regions: the crag's keeps the height the crag takes, so it can draw at its own size. */
+.cragRegion {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(340px * var(--ui-scale));
+}

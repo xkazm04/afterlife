@@ -7,6 +7,7 @@ import type { MoveAction } from '../../model/flow/moves';
 import { cx } from '../cx';
 import { capsFor } from '../../model/keys/keymap';
 import { mrName } from '../../model/rungs';
+import { Unread } from '@/components/shell/host';
 import { GapRow } from './GapRow';
 import styles from './gaps.module.css';
 
@@ -31,6 +32,7 @@ export function GapsTable({
   selected,
   sectionRef,
   live = false,
+  unread = false,
   onPick,
   onSelect,
   onOpen,
@@ -44,6 +46,8 @@ export function GapsTable({
   sectionRef: Ref<HTMLElement>;
   /** Live mode: each gap's invitation and files are demo fixtures, and say so. */
   live?: boolean;
+  /** Not read yet (the screen host's core slice): one row with a dash, never "no gaps". */
+  unread?: boolean;
   onPick: (id: string) => void;
   onSelect: (gap: Gap) => void;
   /** Enter or the gap's name: its stage's page. */
@@ -61,7 +65,13 @@ export function GapsTable({
         ))}
       </div>
       <div role="rowgroup">
-        {gaps.length === 0 ? (
+        {unread ? (
+          <div role="row" aria-busy="true">
+            <div role="cell" className={styles.empty}>
+              <Unread label="gaps not read yet" />
+            </div>
+          </div>
+        ) : gaps.length === 0 ? (
           <div role="row">
             <div role="cell" className={styles.empty}>
               No gaps proposed yet. Rescan to look for rungs worth exploring.
