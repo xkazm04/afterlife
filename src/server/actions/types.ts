@@ -3,6 +3,7 @@
 import type { Stage } from '@/schemas/stages';
 import type { Tier } from '@/schemas/tier';
 import type { Risk } from '@/server/gitlab/plan/types';
+import type { SetupIntent } from '@/server/start/wire';
 
 /** Every intent names the project by its index id (the slug the screens use) and may name the inbox item it settles. */
 interface Base {
@@ -136,8 +137,11 @@ export interface PreviewCommand {
 }
 
 export interface ActionPreview {
-  /** `start-run` is runs/start's (startRunAction), not an ActionIntent: it starts a cycle run, not a GitLab or project write. */
-  kind: ActionKind | 'start-run';
+  /**
+   * `start-run` is runs/start's (startRunAction), not an ActionIntent: it starts a cycle run, not a GitLab or project write.
+   * The setup kinds are /start's writes on this machine (actions/setup, server/start/wire.ts): they name no project.
+   */
+  kind: ActionKind | SetupIntent['kind'] | 'start-run';
   title: string;
   summary: string;
   commands: PreviewCommand[];

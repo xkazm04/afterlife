@@ -1,8 +1,9 @@
-// Which data the app serves. Env only.
-//   BELAY_MODE    demo (default) | live. Anything else (the hosted replay's `replay` included) serves the demo data.
-//   BELAY_GITLAB  glab (default, the operator's own login) | fake (a seeded fake GitLab: live mode without a real group).
-//   BELAY_PROJECT the project the deep screens are about (default: the demo's ledgerline).
+// Which data the app serves. The env (AFTERLIFE_<KEY>, or BELAY_<KEY>), with /start's runtime settings under it (serverEnv).
+//   MODE    demo (default) | live. Anything else (the hosted replay's `replay` included) serves the demo data.
+//   GITLAB  glab (default, the operator's own login) | fake (a seeded fake GitLab: live mode without a real group).
+//   PROJECT the project the deep screens are about (default: the demo's ledgerline).
 import { LEDGERLINE_ID } from '@/lib/demo';
+import { envOf, serverEnv } from '@/server/env/env';
 import type { DataMode } from './types';
 
 export type GitLabKind = 'glab' | 'fake';
@@ -13,10 +14,10 @@ export interface DataConfig {
   deepProject: string;
 }
 
-export function readDataConfig(env: Record<string, string | undefined> = process.env): DataConfig {
+export function readDataConfig(env: Record<string, string | undefined> = serverEnv()): DataConfig {
   return {
-    mode: env.BELAY_MODE === 'live' ? 'live' : 'demo',
-    gitlab: env.BELAY_GITLAB === 'fake' ? 'fake' : 'glab',
-    deepProject: env.BELAY_PROJECT || LEDGERLINE_ID,
+    mode: envOf(env, 'MODE') === 'live' ? 'live' : 'demo',
+    gitlab: envOf(env, 'GITLAB') === 'fake' ? 'fake' : 'glab',
+    deepProject: envOf(env, 'PROJECT') || LEDGERLINE_ID,
   };
 }

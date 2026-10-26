@@ -1,6 +1,7 @@
 // Picks the data source for a request: BELAY_MODE=demo (default) or live. The choice is read per call, so a page rendered
 // for a request always follows the running server's environment, never the one the build ran in.
 import { actionDeps } from '@/server/actions/deps';
+import { serverEnv } from '@/server/env/env';
 import { pollIntervalMs } from '@/server/poller';
 import { liveLine } from './boot';
 import { demoSource } from './demoSource';
@@ -31,7 +32,7 @@ export function setDataSource(ds: DataSource | null): void {
   override = ds;
 }
 
-export function getDataSource(env: Record<string, string | undefined> = process.env): DataSource {
+export function getDataSource(env: Record<string, string | undefined> = serverEnv()): DataSource {
   if (override) return override;
   if (readDataConfig(env).mode === 'demo') return demoSource;
   return liveSource(() => {

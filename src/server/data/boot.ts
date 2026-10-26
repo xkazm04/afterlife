@@ -4,8 +4,9 @@ import { readDataConfig, type DataConfig } from './config';
 import { pollIntervalMs } from '@/server/poller';
 import { startRuntime, type LiveRuntime } from './live/runtime';
 import { messageOf } from '@/lib/format/error';
+import { serverEnv } from '@/server/env/env';
 
-export async function bootLive(env: Record<string, string | undefined> = process.env): Promise<void> {
+export async function bootLive(env: Record<string, string | undefined> = serverEnv()): Promise<void> {
   const cfg = readDataConfig(env);
   if (cfg.mode !== 'live') return;
   let rt: LiveRuntime;

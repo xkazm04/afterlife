@@ -89,7 +89,13 @@ const attempt = async <T>(read: ReadError['read'] | null, errors: ReadError[], f
   }
 };
 
-export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Promise<DoctorReport> {
+/** Watch a probe as it goes (/start streams it): the preflight once it decided, then each row as its verdict settles. */
+export interface ProbeHooks {
+  onPreflight?(seen: Omit<DoctorReport, 'capabilities'>): void;
+  onRow?(row: Capability): void;
+}
+
+export async function probeCapabilities(port: GitLabPort, group: ProjectRef, hooks: ProbeHooks = {}): Promise<DoctorReport> {
   const errors: ReadError[] = [];
   const [me, g0, n0, i0, p0] = await Promise.all([
     attempt(null, errors, () => port.currentUser()), attempt('group', errors, () => port.getGroup(group)),
@@ -102,6 +108,7 @@ export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Pr
     group: grp, plan: ns?.plan ?? null, trial: ns?.trial ?? false, version: inst?.version ?? null,
     projectCount: projects?.length ?? null, blocker, user: me.value?.username ?? null, errors,
   };
+  hooks.onPreflight?.(base);
   const plan = planName(ns?.plan ?? null);
   const project = projects?.[0]?.id ?? null;
   const g = `groups/${encodeURIComponent(String(group))}`;
@@ -130,8 +137,15 @@ export async function probeCapabilities(port: GitLabPort, group: ProjectRef): Pr
   // An unreadable group is named, but the rows still run: its routes say why they cannot be judged (onGroup), the rest answer.
   if (blocker && blocker.kind !== 'group') {
     const blocked: Verdict = { status: 'unknown', basis: 'none', reason: `blocked by: ${blocker.text}` };
-    return { ...base, capabilities: rows.map(([id, label]) => ({ id, label, ...blocked })) };
+    const capabilities = rows.map(([id, label]) => ({ id, label, ...blocked }));
+    capabilities.forEach((c) => hooks.onRow?.(c));
+    return { ...base, capabilities };
   }
-  const verdicts = await Promise.all(rows.map((r) => r[2]()));
-  return { ...base, capabilities: rows.map(([id, label], i) => ({ id, label, ...(verdicts[i] as Verdict) })) };
+  const settled = (id: string, label: string, v: Verdict): Capability => {
+    const c = { id, label, ...v };
+    hooks.onRow?.(c);
+    return c;
+  };
+  const capabilities = await Promise.all(rows.map(async ([id, label, run]) => settled(id, label, await run())));
+  return { ...base, capabilities };
 }

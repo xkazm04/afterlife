@@ -6,13 +6,15 @@ import type { GitLabPort } from '@/server/gitlab/port';
 import { getIndex, openIndex } from '@/server/index/db';
 import { seedDemo } from '@/server/index/seed';
 import { createMemory, pollIntervalMs, runPollCycle, startScheduler, type CycleResult, type PollMemory, type Scheduler } from '@/server/poller';
-import type { DataConfig } from '../config';
+import { serverEnv } from '@/server/env/env';
+import { readDataConfig, type DataConfig } from '../config';
 import type { Clock } from './clock';
 import { createLivePort } from './ports';
 import { rulesOf } from '../policy';
 import { buildSnapshot, type LiveSnapshot } from './snapshot';
 import { recordFleetDay } from './day';
 import { cycleLine, cycleProblems } from './cycleLog';
+import { scopeToGroup } from './scope';
 import { messageOf } from '@/lib/format/error';
 
 export interface LiveRuntime {
@@ -31,7 +33,12 @@ export interface LiveRuntime {
 const STARTING = Symbol.for('belay.liveRuntime.starting');
 const READY = Symbol.for('belay.liveRuntime.ready');
 const FAILED = Symbol.for('belay.liveRuntime.failed');
-type Holder = { [STARTING]?: Promise<LiveRuntime>; [READY]?: LiveRuntime; [FAILED]?: StartFailure };
+const RESTARTING = Symbol.for('belay.liveRuntime.restarting');
+const RESTARTED = Symbol.for('belay.liveRuntime.restarted');
+type Holder = {
+  [STARTING]?: Promise<LiveRuntime>; [READY]?: LiveRuntime; [FAILED]?: StartFailure;
+  [RESTARTING]?: Promise<RestartOutcome>; [RESTARTED]?: true;
+};
 
 /** A live start that threw: what it said and when. Kept until a start succeeds. */
 export interface StartFailure {
@@ -48,7 +55,7 @@ export const lastStartFailure = (): StartFailure | null => (globalThis as Holder
 /** Whether a start is in flight right now: begun, neither ready nor failed. */
 export const startInFlight = (): boolean => (globalThis as Holder)[STARTING] !== undefined && readyRuntime() === null;
 
-async function create(cfg: DataConfig, onError: (e: unknown) => void, log: (line: string) => void): Promise<LiveRuntime> {
+async function create(cfg: DataConfig, onError: (e: unknown) => void, log: (line: string) => void, strict: boolean): Promise<LiveRuntime> {
   const { port, clock, seeded } = await createLivePort(cfg.gitlab);
   const db = seeded ? await openIndex({ memory: true }) : await getIndex();
   if (seeded) await seedDemo(db);
@@ -59,6 +66,7 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void, log: (line
   let inFlight: Promise<void> | null = null;
   let started = false;
   let said: string[] | null = null; // the last cycle's problems, as the last line named them
+  let group: string | null = null; // the watched group's full path, from the pairing row its last good cycle wrote (scope.ts)
   rt.refresh = () => {
     inFlight ??= (async () => {
       try {
@@ -78,7 +86,8 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void, log: (line
       const snap = await buildSnapshot(db, clock.read(), cfg.deepProject, DEMO, policy);
       // The day's trend row is written after the snapshot, not after the cycle: it records what the Fleet shows, and the
       // snapshot is where that is settled (the deep project's needs leave the seed's items out only there).
-      rt.snapshot = await recordFleetDay(db, snap, onError);
+      if (rt.last && !rt.last.error) group = snap.data.pairing?.groupPath ?? group;
+      rt.snapshot = await recordFleetDay(db, await scopeToGroup(db, snap, group, strict), onError);
     })().finally(() => {
       inFlight = null;
     });
@@ -106,7 +115,7 @@ export function startRuntime(
   log: (line: string) => void = (line) => console.warn(line),
 ): Promise<LiveRuntime> {
   const holder = globalThis as Holder;
-  holder[STARTING] ??= create(cfg, onError, log).then(
+  holder[STARTING] ??= create(cfg, onError, log, holder[RESTARTED] === true).then(
     (rt) => {
       delete holder[FAILED];
       return (holder[READY] = rt);
@@ -118,4 +127,35 @@ export function startRuntime(
     },
   );
   return holder[STARTING];
+}
+
+/** What a restart left running: demo (no runtime), or a live start that finished (its first poll's project count) or failed. */
+export type RestartOutcome = { mode: 'demo' } | { mode: 'live'; ok: true; projects: number } | { mode: 'live'; ok: false; reason: string };
+
+/**
+ * Starts the runtime again on the config as it reads now (/start's set-setup wrote the settings): stops the scheduler,
+ * forgets the ready runtime, the failure and the start in flight, and in live mode starts afresh. Demo only drops it.
+ * Concurrent calls share the restart in flight. From then on the snapshot is scoped strictly to the group (scope.ts).
+ */
+export function restartRuntime(env: Record<string, string | undefined> = serverEnv(), onError?: (e: unknown) => void): Promise<RestartOutcome> {
+  const holder = globalThis as Holder;
+  holder[RESTARTING] ??= (async (): Promise<RestartOutcome> => {
+    const before = holder[READY] ?? (await holder[STARTING]?.catch(() => null)) ?? null;
+    before?.scheduler?.stop();
+    delete holder[READY];
+    delete holder[FAILED];
+    delete holder[STARTING];
+    const cfg = readDataConfig(env);
+    if (cfg.mode !== 'live') return { mode: 'demo' };
+    holder[RESTARTED] = true;
+    try {
+      const rt = await startRuntime(cfg, onError);
+      return { mode: 'live', ok: true, projects: rt.snapshot?.data.fleet.projects.length ?? 0 };
+    } catch (e) {
+      return { mode: 'live', ok: false, reason: messageOf(e) };
+    }
+  })().finally(() => {
+    delete holder[RESTARTING];
+  });
+  return holder[RESTARTING];
 }

@@ -1,7 +1,8 @@
-// Where glab lives and which GitLab/group to talk to. Env only; no token is ever read or kept:
-// glab's own keyring login is the credential.
+// Where glab lives and which GitLab/group to talk to. The env (AFTERLIFE_<KEY>, or BELAY_<KEY>) with /start's runtime
+// settings under it (serverEnv); no token is ever read or kept: glab's own keyring login is the credential.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { envOf, serverEnv } from '@/server/env/env';
 import type { ExecFn } from './adapter/exec';
 
 export interface GitLabConfig {
@@ -19,11 +20,11 @@ export const DEFAULT_GROUP_ID = '144060371';
 const hostOf = (raw: string | undefined): string | undefined =>
   (raw ?? '').trim().replace(/^[a-z][a-z0-9+.-]*:\/\//i, '').replace(/\/+$/, '') || undefined;
 
-export function readConfig(env: Record<string, string | undefined> = process.env): GitLabConfig {
+export function readConfig(env: Record<string, string | undefined> = serverEnv()): GitLabConfig {
   return {
-    glab: env.BELAY_GLAB || undefined,
-    host: hostOf(env.BELAY_GITLAB_HOST),
-    groupId: env.BELAY_GROUP_ID || DEFAULT_GROUP_ID,
+    glab: envOf(env, 'GLAB'),
+    host: hostOf(envOf(env, 'GITLAB_HOST')),
+    groupId: envOf(env, 'GROUP_ID') || DEFAULT_GROUP_ID,
   };
 }
 

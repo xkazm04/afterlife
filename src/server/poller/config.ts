@@ -1,5 +1,6 @@
 // What the poller reads and whom it believes. Env only; nothing secret.
 import { readDataConfig } from '@/server/data/config';
+import { envOf, serverEnv } from '@/server/env/env';
 
 export interface AuthorRule {
   /** An account whose username starts with one of these counts. */
@@ -46,15 +47,16 @@ export function liveConfigProblems(env: Record<string, string | undefined>): str
   const data = readDataConfig(env);
   if (data.mode !== 'live' || data.gitlab === 'fake') return [];
   const problems: string[] = [];
-  const group = env.BELAY_GROUP_ID?.trim();
+  // the three /start can set (runtime settings arrive as AFTERLIFE_<key>, serverEnv): read under either name
+  const group = envOf(env, 'GROUP_ID')?.trim();
   if (!group) problems.push('BELAY_GROUP_ID is not set (the group to watch; there is no default in live mode)');
   else if (!GROUP.test(group)) problems.push(`BELAY_GROUP_ID is not a group id or path: ${JSON.stringify(group)}`);
-  const project = env.BELAY_PROJECT?.trim();
+  const project = envOf(env, 'PROJECT')?.trim();
   if (!project) problems.push('BELAY_PROJECT is not set (the target project\'s path, its last segment)');
   else if (!NAME.test(project)) problems.push(`BELAY_PROJECT is not a project path (its last segment, no group): ${JSON.stringify(project)}`);
-  const authors = list(env.BELAY_PROOF_AUTHORS);
+  const authors = list(envOf(env, 'PROOF_AUTHORS'));
   if (!authors.length) problems.push('BELAY_PROOF_AUTHORS is not set (the usernames whose belay-proof notes count, the operator\'s in M1)');
-  else if (!authors.every((a) => NAME.test(a))) problems.push(`BELAY_PROOF_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(env.BELAY_PROOF_AUTHORS)}`);
+  else if (!authors.every((a) => NAME.test(a))) problems.push(`BELAY_PROOF_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(envOf(env, 'PROOF_AUTHORS'))}`);
   // optional; when set, read by the same rule (a name with a space or an @ is nobody's username, so it would believe no one)
   if (!list(env.BELAY_GUARDRAIL_AUTHORS).every((a) => NAME.test(a))) problems.push(`BELAY_GUARDRAIL_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(env.BELAY_GUARDRAIL_AUTHORS)}`);
   // optional too: a prefix with a space admits no agent, a name with a slash is never <group>/<name>
@@ -68,7 +70,7 @@ export function liveConfigProblems(env: Record<string, string | undefined>): str
 }
 
 /** Throws, naming every missing or malformed variable, in live mode on a real group (`liveConfigProblems`). */
-export function readPollerConfig(group: string | number, env: Record<string, string | undefined> = process.env): PollerConfig {
+export function readPollerConfig(group: string | number, env: Record<string, string | undefined> = serverEnv()): PollerConfig {
   const problems = liveConfigProblems(env);
   if (problems.length) throw new Error(`BELAY_MODE=live: ${problems.join('; ')}`);
   // on a real group anyone can register an ai-proof-* name: the proof and guardrail prefixes count there only when the
@@ -82,7 +84,7 @@ export function readPollerConfig(group: string | number, env: Record<string, str
     group, policyProject, ledgerProject, infra: [policyProject, ledgerProject, 'belay-pack', 'belay-engine'],
     policyRef: env.BELAY_POLICY_REF || 'main', ledgerRef: env.BELAY_LEDGER_REF || 'main',
     agents: { prefixes: [env.BELAY_AGENT_PREFIX?.trim() || 'ai-'], names: [] },
-    proof: { prefixes: prefixes ? ['ai-proof-'] : [], names: list(env.BELAY_PROOF_AUTHORS) },
+    proof: { prefixes: prefixes ? ['ai-proof-'] : [], names: list(envOf(env, 'PROOF_AUTHORS')) },
     guardrail: { prefixes: prefixes ? ['ai-guardrail-'] : [], names: list(env.BELAY_GUARDRAIL_AUTHORS) },
     taskWindowMs: (Number.isFinite(hours) && hours > 0 ? hours : 24) * HOUR,
     rollupWindowMs: 7 * 24 * HOUR,

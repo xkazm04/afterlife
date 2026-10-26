@@ -5,18 +5,18 @@ import 'server-only';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
+import { dataDirOf } from '@/server/env/settings';
 import { migrate } from './migrations/migrate';
 
 export interface OpenOptions {
   /** In-memory database (tests, demo-without-disk). */
   memory?: boolean;
-  /** Overrides BELAY_DATA_DIR. */
+  /** Overrides AFTERLIFE_DATA_DIR (or BELAY_DATA_DIR). */
   dataDir?: string;
 }
 
 export function indexDir(dataDir?: string): string {
-  const base = dataDir ?? process.env.BELAY_DATA_DIR ?? path.join(process.cwd(), '.belay');
-  return path.join(base, 'index');
+  return path.join(dataDir ?? dataDirOf(), 'index');
 }
 
 /** Opens a fresh handle and applies migrations. Use `getIndex()` in the app; this is for tests and tools. */

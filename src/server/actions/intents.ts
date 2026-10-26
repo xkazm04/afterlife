@@ -127,6 +127,7 @@ export function parseIntent(raw: unknown): IntentParse {
       const track = str(raw.track, TRACK, 2);
       return track ? { ok: true, intent: { kind: raw.kind, ...base, track } } : no('track must be T1 to T8');
     }
+    // install-glab, glab-login and set-setup never reach here: actions.ts routes them to actions/setup (setup/intents.ts)
     case 'queue-runs':
     case 'install-skill':
     case 'enable-app-insights':
