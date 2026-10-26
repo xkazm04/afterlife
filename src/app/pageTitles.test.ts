@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-// Every windowed screen names its tab: a page.tsx exports `metadata` or `generateMetadata`. The two exceptions have none to give:
+// Every windowed screen names its tab: a page.tsx exports `metadata` or `generateMetadata` (a [param] page: paramTitle). The two exceptions have none to give:
 // the front door is not a windowed screen (it titles itself from the root layout) and /settings only redirects to its first sub-page.
 const EXEMPT = new Set(['(door)/page.tsx', '(app)/settings/page.tsx']);
 
@@ -23,6 +23,6 @@ describe('page titles', () => {
   });
 
   it.each(all.filter((p) => !EXEMPT.has(p)))('%s exports a title', (page) => {
-    expect(readFileSync(path.join(root, page), 'utf8')).toMatch(/export (const metadata|async function generateMetadata|function generateMetadata)/);
+    expect(readFileSync(path.join(root, page), 'utf8')).toMatch(/export (const metadata|async function generateMetadata|function generateMetadata|const generateMetadata = paramTitle\()/);
   });
 });

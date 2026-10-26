@@ -1,28 +1,11 @@
-import type { Metadata } from 'next';
-import { connection } from 'next/server';
-import { Suspense } from 'react';
+import { ParamShell, paramTitle } from '@/app/features/screens/paramPage';
 
-type Params = { params: Promise<{ project: string }> };
+// The route exists for a hard load and its title; it reads nothing. The screen host draws the project's vitals
+// (features/vitals/screen/host.tsx), band by band; an unknown slug is the stream's notFound. Its data streams over GET
+// /api/screen/vitals%2F%5Bproject%5D. The title names the param: features/screens/paramPage.tsx is the one pattern
+// every [param] page uses (an empty request-time marker, so the title is request data on purpose).
+export const generateMetadata = paramTitle('Belay Vitals', 'project');
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { project } = await params;
-  return { title: `Belay Vitals ${project}` };
-}
-
-/** Says the title is read at request time on purpose (it names the slug); renders nothing. */
-async function RequestTime() {
-  await connection();
-  return null;
-}
-
-// The route exists for a hard load (and its title); it reads nothing. The screen host draws the project's vitals
-// (features/vitals/screen/host.tsx) and streams them over GET /api/screen/vitals%2F%5Bproject%5D, band by band; a slug
-// no saved project has answers notFound there and the host draws the project's not-found window. The title names the
-// slug, so it is request data: the empty marker below tells Cache Components that is intended.
 export default function VitalsProjectPage() {
-  return (
-    <Suspense>
-      <RequestTime />
-    </Suspense>
-  );
+  return <ParamShell />;
 }

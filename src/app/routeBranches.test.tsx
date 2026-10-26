@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { isValidElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -46,6 +46,8 @@ const HOST_SHELLS = [
   ['ladder/[class]', () => import('./(app)/ladder/[class]/page')],
   ['maturity/[stage]', () => import('./(app)/maturity/[stage]/page')],
   ['needs-you/[item]', () => import('./(app)/needs-you/[item]/page')],
+  ['task/[id]', () => import('./(app)/task/[id]/page')],
+  ['setup/[node]', () => import('./(app)/setup/[node]/page')],
 ] as const;
 
 describe('dynamic route pages', () => {
@@ -56,20 +58,14 @@ describe('dynamic route pages', () => {
     });
   });
 
-  it('task/[id] is a static shell: the screen host draws the task, and an unknown id is the stream notFound (task/screen/slices.test.ts)', async () => {
-    const page = (await import('./(app)/task/[id]/page')).default as () => unknown;
-    expect(page()).toBeNull();
-    expect(loaders.tasks).not.toHaveBeenCalled();
-    expect(nav.notFound).not.toHaveBeenCalled();
-  });
-
-  // Fleet, Vitals, Ladder, Maturity and Needs you are drawn by the screen host: their pages are static shells, and the id's
-  // branch (an unknown id is notFound, fleet's ?project= redirects only to a project that exists) is the stream's, pinned
-  // in fleet/screen/slices.test.ts, vitals/screen/slices.test.ts and the ladder, maturity and needs-you screen/host.test.tsx.
+  // Every [param] screen is drawn by the screen host: its page is a static shell, and the id's branch (an unknown id is
+  // notFound, fleet's ?project= redirects only to a project that exists) is the stream's, pinned in each module's
+  // screen/slices.test.ts or screen/host.test.tsx.
   it.each(HOST_SHELLS)('%s is a static shell that reads nothing', async (_name, load) => {
     const page = (await load()).default as () => unknown;
-    // nothing, or only the empty request-time marker a title naming the id needs (as setup/[node])
-    expect(page() === null || isValidElement(page())).toBe(true);
+    // only the empty request-time marker a title naming the id needs (features/screens/paramPage.tsx)
+    expect(isValidElement(page())).toBe(true);
+    expect(loaders.tasks).not.toHaveBeenCalled();
     expect(loaders.fleetProject).not.toHaveBeenCalled();
     expect(loaders.vitalsProject).not.toHaveBeenCalled();
     expect(loaders.ladderClass).not.toHaveBeenCalled();
@@ -78,21 +74,26 @@ describe('dynamic route pages', () => {
     expect(nav.notFound).not.toHaveBeenCalled();
   });
 
-  // Setup's node page is a static shell (its title reads the param, marked as request data); an unknown node is the stream's
-  // notFound, pinned in setup/screen/host.test.tsx.
-  it('setup/[node] is a static shell that reads nothing', async () => {
-    const page = (await import('./(app)/setup/[node]/page')).default as () => unknown;
-    expect(page()).toBeTruthy();
-    expect(nav.notFound).not.toHaveBeenCalled();
-  });
-
   // HOST_SHELLS is typed by hand, so it is held to the [param] folders on disk: a new dynamic route without a branch test (or
   // without its own not-found page) fails here instead of going unseen.
   it('covers every dynamic route folder on disk, each with its own not-found page', () => {
-    const covered = ['task/[id]', 'setup/[node]', ...HOST_SHELLS.map((r) => r[0])].sort();
+    const covered = HOST_SHELLS.map((r) => r[0]).sort();
     const onDisk = dynamicRoutes(import.meta.dirname);
     expect(onDisk.map(urlOf).sort()).toEqual(covered);
     for (const r of onDisk) expect(existsSync(path.join(import.meta.dirname, r, 'not-found.tsx')), r).toBe(true);
+  });
+
+  // One rule for a title that names the param (Next 16, Cache Components: "runtime data in generateMetadata()" on an
+  // otherwise static page): every [param] page takes paramTitle and ParamShell from features/screens/paramPage.tsx.
+  it('every dynamic page uses the one param-page pattern', async () => {
+    for (const r of dynamicRoutes(import.meta.dirname)) {
+      const src = readFileSync(path.join(import.meta.dirname, r, 'page.tsx'), 'utf8');
+      expect(src, r).toContain("from '@/app/features/screens/paramPage'");
+      expect(src, r).toMatch(/export const generateMetadata = paramTitle\(/);
+      expect(src, r).not.toMatch(/connection\(|<Suspense/);
+    }
+    const { paramTitle } = await import('./features/screens/paramPage');
+    expect(await paramTitle('Belay Fleet', 'project')({ params: Promise.resolve({ project: 'p1' }) })).toEqual({ title: 'Belay Fleet p1' });
   });
 });
 

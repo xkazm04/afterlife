@@ -1,15 +1,11 @@
-import type { Metadata } from 'next';
+import { ParamShell, paramTitle } from '@/app/features/screens/paramPage';
 
-type Params = { params: Promise<{ id: string }> };
+// The route exists for a hard load and its title; it reads nothing. The screen host draws the task
+// (features/task/screen/host.tsx); an id the docket does not hold is the stream's notFound. Its data streams over GET
+// /api/screen/task%2F%5Bid%5D. The title names the param: features/screens/paramPage.tsx is the one pattern every
+// [param] page uses (an empty request-time marker, so the title is request data on purpose).
+export const generateMetadata = paramTitle('Belay Task', 'id');
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { id } = await params;
-  return { title: `Belay Task ${id}` };
-}
-
-// The route exists for a hard load (and its title); it reads nothing. The screen host in the (app) layout draws the task
-// (features/task/screen/host.tsx): the docket, the task, its ledger and the page's facts stream in over
-// GET /api/screen/task%2F%5Bid%5D?id=<id>, and an id the docket does not hold answers notFound there.
 export default function TaskPage() {
-  return null;
+  return <ParamShell />;
 }
