@@ -49,10 +49,12 @@
   project exists. The front door's Enter Afterlife goes to `/vitals` once a real project is saved, else to `/fleet`.
 
 ## How it works
-`app/(app)/vitals/page.tsx` and `[project]/page.tsx` (after `await connection()`) → `data/loadVitals.ts` reads
-`loadProjects()` (`@/server/discover`) and `readCiRuns` / `readProd` / `readAdjustments` / `deployMarkers`
-(`@/server/vitals`) → `model/view.ts` `buildView()` → `VitalsScreen` (client). The fold runs on the server, so the
-client receives rows, never the run history. A slug no saved project has is `notFound()`.
+The screen host draws both screens (`features/vitals/screen/host.tsx`; the route pages are static shells). Their
+stream (`screen/slices.ts`, loopback only) → `data/loadVitals.ts` reads `loadProjects()` (`@/server/discover`) and
+`readCiRuns` / `readProd` / `readAdjustments` / `deployMarkers` (`@/server/vitals`) → `model/view.ts`, one fold per
+band (`ciFold`, `prodFold`, `adjustmentsFold`; `buildView()` is all of them), one slice each → `VitalsScreen`
+(client). The fold runs on the server, so the client receives rows, never the run history. A slug no saved project has
+is a notFound slice.
 
 - **Durations** are `finishedAt - startedAt`. A run still running, without `finishedAt`, or canceled is listed and not
   counted (a canceled run stopped part way). Median is the middle value; p90 is the nearest rank. A stage's time counts

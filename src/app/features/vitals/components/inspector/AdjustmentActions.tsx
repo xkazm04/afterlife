@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/controls/Button';
+import { useRevalidate } from '@/components/shell/host';
 import { measureLocalAction, measurePassiveAction } from '../../data/remeasure';
 import type { AdjustmentRow, RemeasureResult } from '../../model/types';
 import styles from '../write/write.module.css';
@@ -15,11 +16,14 @@ export function AdjustmentActions({ slug, row, onQueue }: { slug: string; row: A
   const r = row.remeasure;
   const [said, setSaid] = useState<string | undefined>(undefined);
   const [busy, start] = useTransition();
+  const revalidate = useRevalidate();
   if (!r) return <p className={styles.said}>No re-measure fits this claim here: it names no variant Afterlife collects, nor a frontier metric of the project.</p>;
   const ask = (call: (slug: string, id: string) => Promise<RemeasureResult>) =>
     start(async () => {
       const a = await call(slug, row.claim.id).catch((e: unknown) => ({ ok: false as const, error: e instanceof Error ? e.message : String(e) }));
       setSaid(a.ok ? a.message : `Not measured: ${a.error}`);
+      // a passive measure appends its measurement: re-read the screen so the section above shows it
+      if (a.ok) revalidate();
     });
   return (
     <>

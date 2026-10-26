@@ -1,16 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/controls/Button';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { PaneScroll } from '@/components/shell/PaneScroll';
+import { Reveal, Unread, useHostNav } from '@/components/shell/host';
 import { Window } from '@/components/shell/Window';
 import { px, range } from '@/components/table/model/columns';
 import { BandTable, type BandColumn } from './components/BandTable';
+import { Unreadable } from './components/states/Unreadable';
 import { agoWords } from './model/format';
-import type { ProjectSummary } from './model/types';
+import type { ListRow } from './model/slices';
 import styles from './vitals.module.css';
 
 const COLUMNS = [range(160, 240), range(200, 360), range(200, 300), range(170, 240), range(170, 260), px(120), px(90)].join(' ');
@@ -40,23 +41,36 @@ export function VitalsEmpty() {
   );
 }
 
-/** /vitals: the real projects Afterlife watches, from .belay/projects. Enter or a double-click opens one. */
-export function VitalsListScreen({ projects, now }: { projects: readonly ProjectSummary[]; now: string }) {
-  const router = useRouter();
-  const [sel, setSel] = useState<string | null>(projects[0]?.slug ?? null);
-  const empty = projects.length === 0;
+const lastCell = (p: ListRow, now: string | undefined) => {
+  if (!p.runs || !now) return <Unread label="last collect not read yet" />;
+  return p.runs.lastCollected ? agoWords(p.runs.lastCollected, now) : <HonestyChip key="c" kind="unknown" meaning="Nothing collected yet">never</HonestyChip>;
+};
+
+/**
+ * /vitals: the real projects Afterlife watches, from .belay/projects. Enter or a double-click opens one. The screen host
+ * draws it from two slices (screen/host.tsx): `projects` absent: the window and the table's head, nothing listed yet;
+ * a row's `runs` absent: its last collected and runs stored are dashes until the runs are read. `reason`: why the
+ * projects could not be read.
+ */
+export function VitalsListScreen({ projects, now, reason }: { projects?: readonly ListRow[]; now?: string; reason?: string }) {
+  const { navigate } = useHostNav();
+  const [picked, setSel] = useState<string | null>(null);
+  const sel = picked ?? projects?.[0]?.slug ?? null;
+  const empty = projects?.length === 0;
+  const n = projects?.length;
   return (
     <Window
       title="Vitals"
-      subtitle={empty ? 'no real project yet' : `${projects.length} real project${projects.length === 1 ? '' : 's'}`}
+      subtitle={n === undefined ? '— real projects' : empty ? 'no real project yet' : `${n} real project${n === 1 ? '' : 's'}`}
       realData
       status={empty ? 'Onboard a project to start measuring it' : 'Enter or double-click a project to open its vitals'}
     >
       <PaneScroll>
-        {empty ? (
-          <VitalsEmpty />
-        ) : (
-          <div className={styles.bands}>
+        <Reveal order={1} slice="config" className={styles.bands}>
+          {reason ? <Unreadable what="The saved projects" reason={reason} /> : null}
+          {empty ? (
+            <VitalsEmpty />
+          ) : reason ? null : (
             <BandTable
               label="Real projects"
               columns={COLUMNS}
@@ -64,8 +78,8 @@ export function VitalsListScreen({ projects, now }: { projects: readonly Project
               head={HEAD}
               selected={sel}
               onSelect={setSel}
-              onActivate={(slug) => router.push(`/vitals/${encodeURIComponent(slug)}`)}
-              rows={projects.map((p) => ({
+              onActivate={(slug) => navigate(`/vitals/${encodeURIComponent(slug)}`)}
+              rows={(projects ?? []).map((p) => ({
                 id: p.slug,
                 title: p.slug,
                 cells: [
@@ -74,13 +88,13 @@ export function VitalsListScreen({ projects, now }: { projects: readonly Project
                   p.host,
                   p.ci,
                   p.cloud,
-                  p.lastCollected ? agoWords(p.lastCollected, now) : <HonestyChip key="c" kind="unknown" meaning="Nothing collected yet">never</HonestyChip>,
-                  p.runsStored,
+                  lastCell(p, now),
+                  p.runs ? p.runs.runsStored : <Unread key="s" label="runs stored not read yet" />,
                 ],
               }))}
             />
-          </div>
-        )}
+          )}
+        </Reveal>
       </PaneScroll>
     </Window>
   );

@@ -2,8 +2,8 @@
 // client receives rows, never the whole run history. Plain values: they cross from server to client. Absent = omitted.
 import type { AdjustmentClaim, CiResult, CloudConfig, Measurement, ProbeResult, ProdSignal } from '@/schemas/vitals';
 
-/** One row of /vitals: a real project Afterlife watches. */
-export interface ProjectSummary {
+/** One row of /vitals from its config alone (the list's config slice). */
+export interface ProjectRow {
   slug: string;
   name: string;
   root: string;
@@ -11,9 +11,31 @@ export interface ProjectSummary {
   host: string;
   ci: string;
   cloud: string;
+}
+
+/** What a project's stored CI runs say of it (the list's runs slice, per slug). */
+export interface RunsCell {
   /** Newest fetchedAt of the stored runs; omitted when nothing was collected yet. */
   lastCollected?: string;
   runsStored: number;
+}
+
+/** One row of /vitals: a real project Afterlife watches. */
+export type ProjectSummary = ProjectRow & RunsCell;
+
+/** The project page's config part (its config slice). */
+export interface VitalsConfig {
+  slug: string;
+  name: string;
+  root: string;
+  host: string;
+  ci: string;
+  cloud: CloudConfig;
+}
+
+/** The project page's CI part (its ci slice): the Delivery band and the collect's freshness. */
+export interface VitalsCi extends RunsCell {
+  delivery: VariantRow[];
 }
 
 export interface StageStat {
@@ -96,16 +118,7 @@ export interface Remeasure {
   local?: true;
 }
 
-export interface VitalsView {
-  slug: string;
-  name: string;
-  root: string;
-  host: string;
-  ci: string;
-  cloud: CloudConfig;
-  lastCollected?: string;
-  runsStored: number;
-  delivery: VariantRow[];
+export interface VitalsView extends VitalsConfig, VitalsCi {
   /** Omitted when no cloud is connected (cloud.provider 'none'). */
   production?: SignalRow[];
   adjustments: AdjustmentRow[];

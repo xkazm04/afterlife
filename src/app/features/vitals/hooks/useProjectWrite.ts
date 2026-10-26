@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { useRevalidate } from '@/components/shell/host';
 import { confirmAction, previewAction } from '@/server/actions/actions';
 import type { ProjectIntent } from '@/server/actions/types';
 import { noAnswerOf, outcomeOf, unreachable, viewOf, type WriteView } from '@/server/actions/words';
@@ -19,10 +19,11 @@ export interface ProjectWrite {
 /**
  * One project write's round trip (queue-runs, install-skill, enable-app-insights): previewAction as soon as the intent
  * is on screen, confirmAction of exactly that preview on the click. Nothing is spelled here: the commands are the
- * server's. A changed answer shows the new preview to send again; a done one re-reads the route.
+ * server's. A changed answer shows the new preview to send again; a done one re-reads the screen it is on (the host's
+ * revalidate; outside the host, the route).
  */
 export function useProjectWrite(intent: ProjectIntent | null, what: string): ProjectWrite {
-  const router = useRouter();
+  const revalidate = useRevalidate();
   const key = intent ? JSON.stringify(intent) : '';
   // Each answer is kept with the intent it answers, so a new intent reads as unasked without resetting state in an effect.
   const [got, setGot] = useState<{ key: string; view: WriteView } | null>(null);
@@ -53,10 +54,10 @@ export function useProjectWrite(intent: ProjectIntent | null, what: string): Pro
         setSent({ key, outcome: o?.text, done: o?.status === 'done' });
         if (o?.status === 'changed') setGot({ key, view: { kind: 'preview', preview: o.preview } });
         if (o?.status === 'refused' || o?.status === 'failed') setGot({ key, view: { kind: 'refused', reason: o.text } });
-        if (o?.status === 'done') router.refresh();
+        if (o?.status === 'done') revalidate();
       }, (e: unknown) => setSent({ key, outcome: noAnswerOf(e), done: false }))
       .finally(() => setSending(false));
-  }, [key, view, sending, what, router]);
+  }, [key, view, sending, what, revalidate]);
 
   return { view, sending, outcome, done, send };
 }

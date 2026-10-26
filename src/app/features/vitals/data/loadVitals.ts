@@ -1,23 +1,32 @@
-// The Vitals screens' server read: the saved projects (discover's loadProjects) and each one's stored measurements
-// (vitals' readCiRuns / readProd / readAdjustments, deployMarkers over the runs), folded by model/view.ts. Read per
-// request, after connection(): a collect appends to these files while the page is open.
+// The Vitals screens' server reads, one per slice of the screen stream (screen/slices.ts): the saved projects (discover's
+// loadProjects) and each one's stored measurements (vitals' readCiRuns / readProd / readAdjustments, deployMarkers over
+// the runs), folded by model/view.ts band by band. Read per request: a collect appends to these files while the screen
+// is open.
 import 'server-only';
 import { loadProjects } from '@/server/discover';
 import { deployMarkers, readAdjustments, readCiRuns, readProd } from '@/server/vitals';
-import type { ProjectSummary, VitalsView } from '../model/types';
-import { buildView, summarize } from '../model/view';
-import { jobOf } from './jobs';
+import type { ProjectConfig } from '@/schemas/vitals';
+import type { AdjustmentRow, ProjectRow, RunsCell, SignalRow, VitalsCi } from '../model/types';
+import { adjustmentsFold, ciFold, configRow, prodFold, runsCell } from '../model/view';
 
-export function loadVitalsList(): ProjectSummary[] {
-  return loadProjects().map((cfg) => summarize(cfg, readCiRuns(cfg.slug)));
+/** /vitals's config slice: every saved project, from its config alone. */
+export function loadVitalsConfig(): ProjectRow[] {
+  return loadProjects().map(configRow);
 }
 
-/** The project's view, or null for a slug no saved project has (the page answers notFound). */
-export function loadVitalsProject(slug: string, now: Date = new Date()): VitalsView | null {
-  const cfg = loadProjects().find((p) => p.slug === slug);
-  if (!cfg) return null;
-  const runs = readCiRuns(slug);
-  const view = buildView(cfg, runs, cfg.cloud.provider === 'none' ? [] : readProd(slug), readAdjustments(slug), deployMarkers(runs), now.toISOString());
-  const job = jobOf(slug);
-  return job ? { ...view, job } : view;
+/** /vitals's runs slice: per slug, what its stored CI runs say (how many, when last fetched). */
+export function loadVitalsRuns(): Record<string, RunsCell> {
+  return Object.fromEntries(loadProjects().map((cfg) => [cfg.slug, runsCell(readCiRuns(cfg.slug))]));
 }
+
+/** The saved project with this slug, or null (the page answers notFound). */
+export function projectConfig(slug: string): ProjectConfig | null {
+  return loadProjects().find((p) => p.slug === slug) ?? null;
+}
+
+export const loadCi = (cfg: ProjectConfig): VitalsCi => ciFold(cfg, readCiRuns(cfg.slug));
+
+export const loadProd = (cfg: ProjectConfig, now: string): { production?: SignalRow[] } =>
+  cfg.cloud.provider === 'none' ? {} : prodFold(cfg, readProd(cfg.slug), deployMarkers(readCiRuns(cfg.slug)), now);
+
+export const loadAdjustments = (cfg: ProjectConfig): AdjustmentRow[] => adjustmentsFold(cfg, readAdjustments(cfg.slug));

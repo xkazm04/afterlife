@@ -2,9 +2,10 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { ADJUSTMENTS, MARKERS, NO_CLOUD, NOW, PROD, PROJECT, RUNS } from '../data/__fixtures__/grinex';
-import { buildView, summarize } from '../model/view';
+import { listRows } from '../model/slices';
+import { buildView, configRow, runsCell } from '../model/view';
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/vitals/grinex-portal', useRouter: () => ({ push: () => {}, refresh: () => {} }) }));
+vi.mock('next/navigation', () => ({ usePathname: () => '/vitals/grinex-portal', useRouter: () => ({ push: () => {}, replace: () => {}, refresh: () => {} }) }));
 vi.mock('../data/actions', () => ({ refreshVitals: vi.fn(async () => ({ ok: false, error: 'not in tests' })) }));
 const { VitalsListScreen } = await import('../VitalsListScreen');
 const { VitalsBody } = await import('../VitalsScreen');
@@ -19,12 +20,14 @@ const inspect = (picked: string) => renderToStaticMarkup(<VitalsInspector view={
 describe('/vitals, the list', () => {
   it('no project: says so and calls to Onboard', () => {
     const out = renderToStaticMarkup(<VitalsListScreen projects={[]} now={NOW} />);
+    expect(out).not.toContain('—');
     expect(out).toContain('No real project yet');
     expect(out).toContain('href="/onboard"');
     expect(out).not.toContain('Real projects');
   });
   it('lists each real project: name, root, host, CI, cloud, last collected, runs stored', () => {
-    const out = renderToStaticMarkup(<VitalsListScreen projects={[summarize(PROJECT, RUNS), summarize(NO_CLOUD, [])]} now={NOW} />);
+    const rows = listRows([configRow(PROJECT), configRow(NO_CLOUD)], { [PROJECT.slug]: runsCell(RUNS), [NO_CLOUD.slug]: runsCell([]) });
+    const out = renderToStaticMarkup(<VitalsListScreen projects={rows} now={NOW} />);
     for (const t of ['Grinex Portal', 'C:/work/grinex-portal', 'azure-devops · Grinex / Grinex Portal', 'azure-pipelines · 2 pipelines', 'azure-app-insights · grinex-portal-ai', '5 m ago', '>11<', 'not connected', 'never'])
       expect(out).toContain(t);
     expect(out).toContain('href="/vitals/grinex-portal"');
