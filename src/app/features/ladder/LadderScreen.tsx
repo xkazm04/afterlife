@@ -1,11 +1,10 @@
 'use client';
 
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Reveal, useHostNav } from '@/components/shell/host';
 import { isGroupNavId } from '@/components/table/model/rowNavigation';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { Window } from '@/components/shell/Window';
-import { pluralWord } from '@/lib/format/plural';
 import { LadderToolbar } from './components/chrome/LadderToolbar';
 import { PolicyLozenge } from './components/chrome/PolicyLozenge';
 import { Dock } from './components/dock/Dock';
@@ -22,7 +21,7 @@ import { usePromoteWrite } from './hooks/usePromoteWrite';
 import { useReceipts } from './hooks/useReceipts';
 import { useRevokeWrite } from './hooks/useRevokeWrite';
 import { useSimClock } from './hooks/useSimClock';
-import { HeadStatus } from './components/chrome/HeadStatus';
+import { LadderStatus } from './components/chrome/LadderStatus';
 import { dockModel, type DockModel } from './model/rules/dock';
 import { promoteAsk } from './model/rules/promote';
 import type { Tier } from './model/types';
@@ -32,8 +31,18 @@ import styles from './LadderScreen.module.css';
 
 export type { LadderScreenProps } from './props';
 
-/** The Ladder: every action class, its tier and ceiling, the record behind it, and what you can revoke or promote. */
-export function LadderScreen({ project, seed, tracks: trackList, means, policy, tiersStale, illustrative, live, feedAgeSec, subtitle }: LadderScreenProps) {
+/** What the screen host has not read yet: the classes (`core`) and the moves (`ledger`, which the opening order needs). */
+export interface LadderUnread {
+  core: boolean;
+  ledger: boolean;
+}
+
+/**
+ * The Ladder: every action class, its tier and ceiling, the record behind it, and what you can revoke or promote. On the
+ * screen host its state is the session's (screen/session.tsx); `unread` paints the same window with dashes, and the rows
+ * wait for both reads so they never re-order under the eye; `coreError` says why the classes could not be read.
+ */
+export function LadderScreen({ project, seed, tracks: trackList, means, policy, tiersStale, illustrative, live, feedAgeSec, subtitle, unread, coreError }: LadderScreenProps & { unread?: LadderUnread; coreError?: string }) {
   const data = useLadderData(seed, trackList, policy);
   const { state, dispatch, byId, tracks } = data;
   const tableRef = useRef<HTMLDivElement>(null);
@@ -56,16 +65,18 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
   });
   const clock = useSimClock(live);
   const pop = useLadderPopovers();
-  const router = useRouter();
+  const { navigate } = useHostNav();
+  const coreUnread = !!unread?.core;
+  const rowsUnread = coreUnread || !!unread?.ledger;
 
   // Enter / double-click: open the class's own page (the promotion rule and the write). A group row has none.
   const openDetail = useCallback(
     (id?: string) => {
       const target = id ?? data.sel;
       if (!target || isGroupNavId(target)) return;
-      startTransition(() => router.push(`/ladder/${encodeURIComponent(target)}`));
+      navigate(`/ladder/${encodeURIComponent(target)}`);
     },
-    [data.sel, router],
+    [data.sel, navigate],
   );
 
   const resetUi = useCallback(() => {
@@ -112,7 +123,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
     tableRef,
     grouped: state.grouped,
   });
-  useEffect(() => tableRef.current?.focus({ preventScroll: true }), []);
+  useEffect(() => tableRef.current?.focus({ preventScroll: true }), [rowsUnread]);
 
   const onSearchKey = (e: KeyboardEvent) => {
     if (e.key !== 'Enter' && e.key !== 'ArrowDown') return;
@@ -130,8 +141,8 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
       subtitle={subtitle}
       toolbar={
         <LadderToolbar
-          counts={data.counts}
-          total={total}
+          counts={coreUnread ? null : data.counts}
+          total={coreUnread ? null : total}
           filt={state.filt}
           onFilter={actions.setFilter}
           lozenge={<PolicyLozenge head={state.head} history={illustrative.history} onOpen={togglePolicy} anchorRef={policyRef} />}
@@ -144,17 +155,17 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           onSearchKey={onSearchKey}
         />
       }
-      sidebar={<LadderSidebar classes={state.classes} tracks={tracks} trackIds={data.trackIds} src={state.src} policy={policy} onSource={actions.setSource} />}
-      status={
-        <>
-          {shown === total ? total : `${shown} of ${total}`} classes · {filters} {pluralWord(filters, 'filter')} ·{' '}
-          <HeadStatus head={state.head} stale={tiersStale} live={live} elapsed={clock.elapsed} feedAgeSec={feedAgeSec} />
-        </>
+      sidebar={
+        <Reveal order={1} slice="core">
+          <LadderSidebar classes={state.classes} tracks={tracks} trackIds={data.trackIds} src={state.src} policy={policy} onSource={actions.setSource} unread={coreUnread} />
+        </Reveal>
       }
+      status={<LadderStatus shown={shown} total={total} filters={filters} unread={coreUnread} head={state.head} stale={tiersStale} live={live} elapsed={clock.elapsed} feedAgeSec={feedAgeSec} />}
     >
-      <div className={styles.host}>
+      <Reveal order={2} slice="ledger" className={styles.host}>
+        {coreError && coreUnread ? <div className={styles.unreadable} role="status">The classes could not be read: {coreError}</div> : null}
         <ClassTable
-          groups={data.view.groups}
+          groups={rowsUnread ? [] : data.view.groups}
           grouped={state.grouped}
           tracks={tracks}
           sort={state.sort}
@@ -163,7 +174,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           just={state.just}
           promotionOf={data.promotionOf}
           policy={policy}
-          empty={shown === 0 ? { src: state.src, filt: state.filt, q: state.q } : null}
+          empty={shown === 0 && !rowsUnread ? { src: state.src, filt: state.filt, q: state.q } : null}
           live={live}
           menuing={menus.isOpen}
           onSelect={actions.select}
@@ -177,7 +188,7 @@ export function LadderScreen({ project, seed, tracks: trackList, means, policy, 
           onKeyDown={onKeyDown}
           tableRef={tableRef}
         />
-      </div>
+      </Reveal>
       <Dock model={dock} onHelp={toggleHelp} helpRef={helpRef} />
       {menus.menus}
       <PolicyHeadProvider head={state.head}>{pop.popover}</PolicyHeadProvider>

@@ -5,8 +5,8 @@ ceiling, the record behind it, and what you can revoke or promote. Belay writes 
 is always on screen first (the docked strip, the class page's "write behind r"): the server's own preview, never a
 command the screen spells.
 
-- `LadderScreen.tsx`: composes the `Window` (`props.ts`: what the route hands it). The route (`app/(app)/ladder/page.tsx`)
-  reads it on the server through `data/loadLadderData.ts`: the classes from the data source, the promotion thresholds
+- `LadderScreen.tsx`: composes the `Window` (`props.ts`: what the screen takes). The screen host streams it
+  (`screen/slices.ts`: `core`, then `ledger`, and on a class page `humanKey`) from `data/loadLadderData.ts`: the classes from the data source, the promotion thresholds
   from trust-policy.yml (`getPolicy()`: the checkout's in demo, the one the poll read in live), never a constant here.
 - `data/`: the invented ledger the demo opens with, commit ids, the policy's revision, the words for the policy's rules,
   key rows. Plain data. In live mode the data source declares the opening history demo (`illustrative`): the opening
@@ -38,7 +38,10 @@ command the screen spells.
     is the demo's, and 6 s later a simulated tier-gate read settles it, with a simulated withdrawal beside it. Live: the
     commit GitLab made, pending ("Pending read") until a poll's receipt says a gated MR's tier_decision read that commit
     (`state/receipt.ts`: settled at the time the gate read it, so the who-acted rail draws the real gap). While one is
-    pending, `hooks/useReceipts.ts` refreshes the route every 15 s to read a fresher snapshot; nothing is sent.
+    pending, `hooks/useReceipts.ts` re-reads the screen every 15 s (the host's revalidate) for a fresher snapshot; nothing is sent.
+    The list and every class page share ONE store (`screen/session.tsx`, `model/session/store.ts`): a revoke sent on a class
+    page, the demo's simulated one too, is the same move on the list. A later read merges in: a pending row and this
+    session's own ledger lines stay, the frozen order keeps its rows.
   - `enforcement/enforcement.ts` the class page's "Enforced" card (`components/inspector/sections/EnforcementSection.tsx`):
     committed <sha>; read at !N, <delay> after the commit (or "awaiting the next gated MR"); withdrawn approval or
     auto-merge on !N; and an alarm chip when a gate read the commit and still granted the old tier. Live: the poll's

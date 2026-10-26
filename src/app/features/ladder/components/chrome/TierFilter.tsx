@@ -7,16 +7,16 @@ import type { Ceiling } from '../../model/types';
 
 type Value = 'all' | Ceiling;
 
-/** The tier filter: All, then H S A Q P with how many classes sit there. Keys 0-5 drive it too. */
-export function TierFilter({ counts, total, value, onChange }: { counts: Record<Ceiling, number>; total: number; value: Ceiling | null; onChange: (t: Ceiling | null) => void }) {
+/** The tier filter: All, then H S A Q P with how many classes sit there (no count before the read). Keys 0-5 drive it too. */
+export function TierFilter({ counts, total, value, onChange }: { counts: Record<Ceiling, number> | null; total: number | null; value: Ceiling | null; onChange: (t: Ceiling | null) => void }) {
   const options: SegmentOption<Value>[] = [
-    { value: 'all', label: 'All', count: total, title: 'All tiers (0)' },
+    { value: 'all', label: 'All', count: total ?? undefined, title: 'All tiers (0)' },
     ...TIER_DISPLAY_ORDER.map((t, i) => ({
       value: t,
       label: <TierMark tier={t} />,
-      count: counts[t],
+      count: counts?.[t],
       title: `${TIER_META[t].name} (${i + 1})`,
-      ariaLabel: `${TIER_META[t].name}, ${counts[t]}`,
+      ariaLabel: counts ? `${TIER_META[t].name}, ${counts[t]}` : `${TIER_META[t].name}, not read yet`,
     })),
   ];
   return <SegmentedControl label="Filter by tier" options={options} value={value ?? 'all'} onChange={(v) => onChange(v === 'all' ? null : v)} />;

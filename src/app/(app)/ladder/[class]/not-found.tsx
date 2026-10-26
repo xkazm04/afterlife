@@ -1,13 +1,6 @@
-import { EntityNotFound } from '@/components/shell/fallback/EntityNotFound';
+import { ClassNotFound } from '@/app/features/ladder/components/inspector/ClassPending';
 
-/** An unknown /ladder/<class>: says it is the class that is missing (not a page) and links back to the Ladder. */
+/** An unknown /ladder/<class>: the same card the screen host draws (ClassNotFound). */
 export default function LadderClassNotFound() {
-  return (
-    <EntityNotFound
-      title="Class not found"
-      note="No action class with that name is on the Ladder. It may have been removed or the link is mistyped."
-      href="/ladder"
-      back="Back to the Ladder"
-    />
-  );
+  return <ClassNotFound />;
 }

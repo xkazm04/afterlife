@@ -11,8 +11,9 @@ import styles from '../../LadderScreen.module.css';
 
 /** The toolbar: tier filter, the policy lozenge, sort and the name filter. */
 export function LadderToolbar(p: {
-  counts: Record<Ceiling, number>;
-  total: number;
+  /** Null: not read yet (no counts). */
+  counts: Record<Ceiling, number> | null;
+  total: number | null;
   filt: Ceiling | null;
   onFilter: (tier: Ceiling | null) => void;
   lozenge: ReactNode;

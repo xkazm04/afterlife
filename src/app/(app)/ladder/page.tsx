@@ -1,23 +1,10 @@
-import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { ScreenSkeleton } from '@/components/shell/loading/ScreenSkeleton';
-import { loadLadderData } from '@/app/features/ladder/data/loadLadderData';
-import { LadderScreen } from '@/app/features/ladder/LadderScreen';
-import { connection } from 'next/server';
 
 export const metadata: Metadata = { title: 'Belay Ladder' };
 
-// The table skeleton is the page's own boundary, not a ladder/loading.tsx: that one would also wrap /ladder/<class> and
-// paint the list's rows before the class page's sections on a direct load.
+// The route exists for a hard load (and its title); it reads nothing. The screen host in the (app) layout draws the
+// Ladder (features/ladder/screen/host.tsx): its window is in the static shell, and its data streams in over
+// GET /api/screen/ladder on every load, the first one included.
 export default function LadderPage() {
-  return (
-    <Suspense fallback={<ScreenSkeleton title="Ladder" layout="table" />}>
-      <Ladder />
-    </Suspense>
-  );
-}
-
-async function Ladder() {
-  await connection(); // request time: the data source and its data are the running server's, never the build's
-  return <LadderScreen {...loadLadderData()} />;
+  return null;
 }

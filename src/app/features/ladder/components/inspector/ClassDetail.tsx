@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/controls/Button';
+import { Unread } from '@/components/shell/host';
 import type { PolicyRules } from '@/server/data/types';
 import { promoteTitle, type HumanKeyRead, type Promotion } from '@/lib/promotion';
 import { TIER_META } from '@/lib/tiers';
@@ -31,7 +32,8 @@ export interface ClassDetailProps {
   humanKey?: HumanKeyRead;
   /** trust-policy.yml as the server read it: the grant's lease. */
   policy: PolicyRules | null;
-  ledger: readonly LedgerEntry[];
+  /** The moves; null: not read yet (the screen host's ledger slice): who acted and all moves are a dash. */
+  ledger: readonly LedgerEntry[] | null;
   kinds: readonly ActorKind[];
   onToggleKind: (kind: ActorKind) => void;
   writeTo: Tier | null;
@@ -51,7 +53,7 @@ export function ClassDetail(p: ClassDetailProps) {
   const c = p.cls;
   const from = actsFrom(c);
   const first = revokeTargets(from)[0];
-  const mine = entriesFor(p.ledger, c.id);
+  const mine = p.ledger ? entriesFor(p.ledger, c.id) : null;
   const eligible = p.promotion.kind === 'eligible';
   const promotable = !!from && from !== 'human_only' && !isQuarantine(c);
   const acts = !!first || isQuarantine(c) || promotable;
@@ -89,10 +91,23 @@ export function ClassDetail(p: ClassDetailProps) {
       {ask ? <WriteSection head={ask.readmit ? WRITE_HEAD.readmit : WRITE_HEAD.promote} keyName="p" to={ask.to} view={p.promote.view} nothing="" warn={humanKeyWarning(p.humanKey)} /> : null}
       <GrantSection cls={c} policy={p.policy} proofClass={p.track?.proof.cls ?? ''} proofDemo={p.tracksDemo} live={p.live} />
       <EnforcementSection cls={c} live={!!p.live} />
-      <Sec title="Who acted" aux={mine.length || ''} wide>
-        <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />
-      </Sec>
-      <AllMoves ledger={p.ledger} current={c.id} kinds={p.kinds} onToggleKind={p.onToggleKind} />
+      {mine && p.ledger ? (
+        <>
+          <Sec title="Who acted" aux={mine.length || ''} wide>
+            <WhoActed entries={mine} empty={`No moves in the ledger window · ${c.lastMove}`} />
+          </Sec>
+          <AllMoves ledger={p.ledger} current={c.id} kinds={p.kinds} onToggleKind={p.onToggleKind} />
+        </>
+      ) : (
+        <>
+          <Sec title="Who acted" aux={<Unread />} wide>
+            <Unread label="moves not read yet" />
+          </Sec>
+          <Sec title="All moves" aux={<Unread />} wide>
+            <Unread label="moves not read yet" />
+          </Sec>
+        </>
+      )}
     </>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { Icon } from '@/components/icons/Icon';
+import { Unread } from '@/components/shell/host';
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import { ALL_SOURCE, SMART_FILTERS, matchesSource } from '../../model/view/filters';
@@ -17,6 +18,7 @@ export function LadderSidebar({
   src,
   policy,
   onSource,
+  unread = false,
 }: {
   classes: readonly ClassRow[];
   tracks: TrackMap;
@@ -25,15 +27,17 @@ export function LadderSidebar({
   /** trust-policy.yml's thresholds ("Can promote" counts against them). */
   policy: PolicyRules | null;
   onSource: (src: string) => void;
+  /** The classes are not read yet (the screen host's core slice): every count a dash, never 0. */
+  unread?: boolean;
 }) {
-  const count = (s: string) => classes.filter((c) => matchesSource(c, s, tracks, policy)).length;
+  const count = (s: string) => (unread ? <Unread label="count not read yet" /> : classes.filter((c) => matchesSource(c, s, tracks, policy)).length);
   return (
     <>
       <SidebarSection title="Tracks">
         <SidebarItem
           icon={<span className={styles.all}><Icon name="ladder" /></span>}
           label="All classes"
-          count={classes.length}
+          count={unread ? <Unread label="classes not read yet" /> : classes.length}
           current={src === ALL_SOURCE}
           onClick={() => onSource(ALL_SOURCE)}
         />
