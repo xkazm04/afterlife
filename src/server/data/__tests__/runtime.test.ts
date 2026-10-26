@@ -10,7 +10,7 @@ import { getDataSource } from '../select';
 
 vi.mock('../live/ports', async (orig) => ({ ...(await orig<object>()), createLivePort: vi.fn() }));
 
-const KEYS = ['afterlife.liveRuntime.starting', 'afterlife.liveRuntime.ready', 'afterlife.liveRuntime.failed'].map((k) => Symbol.for(k));
+const KEYS = ['starting', 'ready', 'failed', 'restarting', 'restarted'].map((k) => Symbol.for(`afterlife.liveRuntime.${k}`));
 const holder = globalThis as unknown as Record<symbol, unknown>;
 const reset = (): void => {
   (holder[Symbol.for('afterlife.liveRuntime.ready')] as { scheduler?: { stop(): void } } | undefined)?.scheduler?.stop();
@@ -28,9 +28,18 @@ beforeEach(async () => {
   mocked.mockReset();
   mocked.mockRejectedValueOnce(new Error('glab is not logged in')).mockImplementation(real);
 });
-afterEach(() => {
-  reset();
+// A page's retry start runs a whole first poll on the seeded fake group, which can outlast a test under load. Let it
+// settle (and its log line land) before the next test, or it logs into that test and leaves a runtime behind.
+const settle = async (): Promise<void> => {
+  await (holder[Symbol.for('afterlife.liveRuntime.starting')] as Promise<unknown> | undefined)?.catch(() => undefined);
+  await new Promise((r) => setTimeout(r, 0));
+};
+/** A retry start takes a full first poll: wait for it as long as a slow machine needs, not vitest's default second. */
+const SLOW = { timeout: 10_000 };
+afterEach(async () => {
   vi.useRealTimers();
+  await settle();
+  reset();
 });
 
 describe('a failed live start', () => {
@@ -90,7 +99,7 @@ describe('the pages after a failed start', () => {
     expect(read).toThrow();
     expect(read).toThrow();
     expect(mocked).toHaveBeenCalledTimes(2); // one retry, the second read sees it in flight
-    await vi.waitFor(() => expect(readyRuntime()).not.toBeNull());
+    await vi.waitFor(() => expect(readyRuntime()).not.toBeNull(), SLOW);
   });
 
   it("say in the log when a page's retry brings live data up, as bootLive says a first start", async () => {
@@ -99,7 +108,7 @@ describe('the pages after a failed start', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(Date.now() + 31_000);
     expect(read).toThrow();
-    await vi.waitFor(() => expect(log.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^afterlife: live data from the seeded fake GitLab .*after a failed start/)]));
+    await vi.waitFor(() => expect(log.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^afterlife: live data from the seeded fake GitLab .*after a failed start/)]), SLOW);
     log.mockRestore();
   });
 });
