@@ -63,7 +63,8 @@ describe('the palette (source guard: no DOM here)', () => {
     expect(src).toContain('usePaletteProjects(open)');
     expect(src).toContain('Loading projects...');
   });
-  it('navigates in a transition', () => {
-    expect(src).toContain('startTransition(() => router.push(');
+  it('navigates through the screen host (in place for a screen it draws, else the router in a transition)', () => {
+    expect(src).toContain('nav.navigate(it.href)');
+    expect(src).toContain('useHostNav()');
   });
 });

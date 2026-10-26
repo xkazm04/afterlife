@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { startTransition, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { onEscape } from '@/components/overlays/escapeLayers';
+import { useHostNav } from '@/components/shell/host';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
 import { paletteItems, type PaletteItem } from './model/items';
 import { paletteKey } from './model/keys';
@@ -19,6 +20,7 @@ const KIND_WORD: Record<PaletteItem['kind'], string> = { screen: 'Screen', actio
  */
 export function CommandPalette() {
   const router = useRouter();
+  const nav = useHostNav();
   const [open, setOpen] = useState(false);
   const { status, projects } = usePaletteProjects(open);
   const [q, setQ] = useState('');
@@ -66,7 +68,7 @@ export function CommandPalette() {
   const go = (it: PaletteItem | undefined) => {
     if (!it) return;
     setOpen(false);
-    startTransition(() => router.push(it.href));
+    nav.navigate(it.href); // a screen the host draws swaps in place; anything else goes through the router
   };
   const onKey = (e: KeyboardEvent) => {
     const act = paletteKey(e.key, at, hits.length);
