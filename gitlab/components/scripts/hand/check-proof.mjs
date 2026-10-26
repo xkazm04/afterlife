@@ -46,11 +46,11 @@ try {
     if (proof.task?.head_sha !== head) no.push(`the proof is for ${plain(String(proof.task?.head_sha).slice(0, 8))}, not the MR's current head ${head.slice(0, 8)}: stale`);
   }
   if (no.length) {
-    console.error(`belay: post nothing on !${iid}; it waits for a person:\n  - ${no.join('\n  - ')}`);
+    console.error(`afterlife: post nothing on !${iid}; it waits for a person:\n  - ${no.join('\n  - ')}`);
     process.exit(1);
   }
   fs.writeFileSync(out, text);
-  console.error(`belay: !${iid} head ${head}: proof pass, pipeline ${pid} with no variables, no CI change. Written to ${out}: post it (step 2).`);
+  console.error(`afterlife: !${iid} head ${head}: proof pass, pipeline ${pid} with no variables, no CI change. Written to ${out}: post it (step 2).`);
 } catch (e) {
   die(`a read failed, nothing written: ${String(e.message ?? e).split('\n')[0]}`);
 }

@@ -13,7 +13,7 @@ const fixture = path.join(here, '__fixtures__', 'jobs.json');
 const made = [];
 const run = (...args) => spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' });
 const scratch = () => {
-  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-sci-'));
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-sci-'));
   made.push(d);
   return d;
 };

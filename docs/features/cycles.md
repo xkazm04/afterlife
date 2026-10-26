@@ -99,7 +99,7 @@
 
 ## Status and limits
 - The closed history is read from the project's ledger in live mode (the demo's is illustrative). Nothing in the app
-  writes a cycle record yet: the closing rescan is meant to append it (the autopilot, or `belay scan` in CI). A
+  writes a cycle record yet: the closing rescan is meant to append it (the autopilot, or `afterlife scan` in CI). A
   project with no cycle file shows C1 running from day 0, and every stage the scan moved since day 0 as drift.
   Sending, merging and rescanning happen in Maturity.
 - A saved design is screen state: it is kept until you leave or reload the page, and the screen says so.

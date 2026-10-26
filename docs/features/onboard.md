@@ -32,9 +32,9 @@ The estate funnel that used to live here is now the **Demo estate** page, linked
   through `/api/onboard/*`. Those routes are loopback only too: a request from anywhere else gets a 403.
 - `server/discover/` holds the engine, which is hybrid: the model only decides, and deterministic code collects the
   facts and runs the probes.
-  - `repos/`: `listClaudeRepos`. It reads `BELAY_CLAUDE_PROJECTS_DIR` (default `~/.claude/projects`). From each
+  - `repos/`: `listClaudeRepos`. It reads `AFTERLIFE_CLAUDE_PROJECTS_DIR` (default `~/.claude/projects`). From each
     project dir it takes the newest session file and reads at most its first 64 KB, looking for the first `cwd`.
-    - It drops temp, `/tmp/`, build-session, belay-reflect and `.claude/worktrees` paths, and paths that no longer
+    - It drops temp, `/tmp/`, build-session, afterlife-reflect (and the older belay-reflect) and `.claude/worktrees` paths, and paths that no longer
       exist.
     - It folds the rest onto `git rev-parse --show-toplevel` (8 gits at a time) and dedupes, ignoring case on
       Windows.
@@ -69,7 +69,7 @@ The estate funnel that used to live here is now the **Demo estate** page, linked
     - A pipeline is kept only if a pipelines probe listed its id. Variants are kept only with their pipeline.
     - `cloud.resource` comes only from the data of an `az-appinsights-component` ok result.
     - A component is kept only if its path exists. The runner gates come from the kept components' tests.
-  - `store/`: writes `<data>/projects/<slug>.yml`, where `<data>` is `BELAY_DATA_DIR` (default `.belay`, gitignored).
+  - `store/`: writes `<data>/projects/<slug>.yml`, where `<data>` is `AFTERLIFE_DATA_DIR` (default `.afterlife`, or an existing `.belay`; gitignored).
     - The slug is the kebab-cased name, unique among the existing files. A root that is onboarded again keeps its slug.
     - A file that is not a valid project is skipped and counted.
 - Routes:

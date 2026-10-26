@@ -3,7 +3,7 @@
 //   approve -> the gate account approves, a person still merges (glab mr approve --sha)
 //   wait    -> nothing is granted; the MR waits for a person
 //   block   -> nothing is granted and this script exits 1, so the job and the MR pipeline are red
-// Also sets belay::tier::<tier> and, with --guardrail, guardrail::pass|block. Without BELAY_BOT_TOKEN, or with --dry 1, it
+// Also sets belay::tier::<tier> and, with --guardrail, guardrail::pass|block. Without AFTERLIFE_BOT_TOKEN, or with --dry 1, it
 // only reports: a job token cannot approve, merge, write notes or set labels (docs.gitlab.com/ci/jobs/ci_job_token). Only
 // belay-apply (gitlab/apply) runs it with the token; a target pipeline's tier-gate passes --dry 1 (F4).
 // `--force wait|block --reason "..."` stands in for the engine when its inputs are missing: fail closed, no tier known.
@@ -18,7 +18,7 @@
 // stamped on the tier_decision as it is; it is recorded, never applied.
 import fs from 'node:fs';
 import path from 'node:path';
-import { arg, die, glab, need, plain } from '../lib/lib.mjs';
+import { arg, die, envOf, glab, need, plain } from '../lib/lib.mjs';
 
 const TIERS = ['quarantined', 'assisted', 'supervised', 'hands_off'];
 const DECISIONS = ['merge', 'approve', 'wait', 'block'];
@@ -60,7 +60,7 @@ if (verdict) {
   unlabels.push(`guardrail::${verdict === 'pass' ? 'block' : 'pass'}`);
 }
 
-console.error(`belay: gate says ${d.decision} at tier ${d.tier ?? '?'}\n${reasons.join('\n')}`);
+console.error(`afterlife: gate says ${d.decision} at tier ${d.tier ?? '?'}\n${reasons.join('\n')}`);
 const emit = arg('emit-dir');
 const ledgerTier = force ? arg('ledger-tier') ?? null : d.tier;
 if (force && ledgerTier != null && !TIERS.includes(ledgerTier)) die(`unknown --ledger-tier: ${plain(ledgerTier)}`);
@@ -77,7 +77,7 @@ if (emit && ledgerTier && (!force || verdict === 'block')) {
     payload_ref: `${repo}/-/merge_requests/${mr}`,
     observed_by: 'ci_job',
   };
-  if (guardrail && !verdict) console.error(`belay: the guardrail file states no pass or block (${plain(guardrail.verdict)}): no guardrail_verdict event`);
+  if (guardrail && !verdict) console.error(`afterlife: the guardrail file states no pass or block (${plain(guardrail.verdict)}): no guardrail_verdict event`);
   const events = force
     ? [{ kind: 'guardrail_verdict', verdict }]
     : [{ kind: 'proof_verdict' }, ...(verdict ? [{ kind: 'guardrail_verdict', verdict }] : []),
@@ -85,10 +85,10 @@ if (emit && ledgerTier && (!force || verdict === 'block')) {
   events.forEach((e, i) => fs.writeFileSync(path.join(emit, `${i}-${e.kind}.json`), JSON.stringify({ ...base, ...e })));
 }
 
-const bot = arg('dry') === '1' ? undefined : process.env.BELAY_BOT_TOKEN;
-if (!bot) console.error('belay: no write token here (or --dry 1): reporting only, nothing applied');
+const bot = arg('dry') === '1' ? undefined : envOf(process.env, 'BOT_TOKEN');
+if (!bot) console.error('afterlife: no write token here (or --dry 1): reporting only, nothing applied');
 else {
-  const body = `**Belay gate: ${d.decision.toUpperCase()}** | tier \`${d.tier ?? 'unknown'}\`\n${reasons.join('\n')}`;
+  const body = `**Afterlife gate: ${d.decision.toUpperCase()}** | tier \`${d.tier ?? 'unknown'}\`\n${reasons.join('\n')}`;
   glab(['mr', 'note', 'create', mr, '-R', repo, '-m', body]);
   if (labels.length) glab(['mr', 'update', mr, '-R', repo, '--label', labels.join(','), '--unlabel', unlabels.join(',')]);
   if (d.decision === 'approve') glab(['mr', 'approve', mr, '-R', repo, '--sha', sha]);

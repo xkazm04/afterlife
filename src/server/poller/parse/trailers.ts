@@ -1,5 +1,6 @@
 // Trailers on MR descriptions and notes: `Belay-Task: <id>`, `Belay-Class: <class>`, `Belay-Finding: <id>`
-// (gitlab/components/README.md). The last matching line wins, as in the CI glue.
+// (gitlab/components/README.md). The last matching line wins, as in the CI glue. Wire names agents and the CI glue
+// write, so they keep `Belay-`.
 import { withoutBlocks } from './blocks';
 
 /** A task id: a ULID (26 characters, Crockford base32). The seeded demo uses 6-character ids, so 6..26 are accepted. */
@@ -7,7 +8,7 @@ export const TASK_ID = /^[0-9A-HJKMNP-TV-Z]{6,26}$/;
 export const CLASS_ID = /^[a-z][a-z0-9.-]*$/;
 const FINDING_ID = /^\S{1,64}$/;
 
-export interface BelayTrailers {
+export interface ParsedTrailers {
   task: string | null;
   class: string | null;
   finding: string | null;
@@ -24,13 +25,13 @@ export function lastTrailer(text: string, key: string, shape: RegExp): string | 
   return found;
 }
 
-export const parseTrailers = (text: string): BelayTrailers => ({
+export const parseTrailers = (text: string): ParsedTrailers => ({
   task: lastTrailer(text, 'Belay-Task', TASK_ID),
   class: lastTrailer(text, 'Belay-Class', CLASS_ID),
   finding: lastTrailer(text, 'Belay-Finding', FINDING_ID),
 });
 
-/** The human-readable part of a description: no fenced blocks, no Belay trailers. This is the agent's own words. */
+/** The human-readable part of a description: no fenced blocks, no Belay-Task/Class/Finding trailers. This is the agent's own words. */
 export function proseOf(text: string): string {
   return withoutBlocks(text)
     .split(/\r?\n/)

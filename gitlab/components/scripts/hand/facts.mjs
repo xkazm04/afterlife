@@ -1,7 +1,7 @@
 // What both scripts of the M1 hand-run (../../README.md, "M1: report-only, writes by hand") read about one MR, with the
 // operator's own glab login: the MR, its project, its diff from base to head (the compare API, as belay-apply reads it)
 // and whether it changes its own CI configuration, by belay-apply's rule (../../../apply/ci-touch.mjs, F68). Reads only.
-// Needs `yaml` from the Belay checkout's node_modules (ci-touch.mjs parses the CI file), as belay-apply does.
+// Needs `yaml` from the Afterlife checkout's node_modules (ci-touch.mjs parses the CI file), as belay-apply does.
 import { touchesCi } from '../../../apply/ci-touch.mjs';
 import { api, die } from '../lib/lib.mjs';
 import { readFile } from '../lib/repo-write.mjs';

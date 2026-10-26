@@ -11,4 +11,4 @@ const tool = report.scan?.analyzer ?? report.scan?.scanner;
 if (!tool?.name || !tool?.version) die('the report names no analyzer or scanner version');
 const ids = (report.vulnerabilities ?? []).map((v) => String(v.id ?? '')).filter(Boolean);
 fs.writeFileSync(arg('out', 'scan.json'), JSON.stringify({ engine_version: `${tool.name} ${tool.version}`, finding_ids: ids }, null, 2));
-console.error(`belay: ${ids.length} finding(s) from ${tool.name} ${tool.version}`);
+console.error(`afterlife: ${ids.length} finding(s) from ${tool.name} ${tool.version}`);

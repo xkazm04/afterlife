@@ -7,8 +7,8 @@ import type { ProbeResult } from '@/schemas/vitals';
 import { rootKey } from '../repos/git';
 
 // On globalThis: Next may load this module once per route bundle, and the probe and save routes must share one key.
-const g = globalThis as { __belayProbeSealKey?: Buffer };
-const KEY = (g.__belayProbeSealKey ??= randomBytes(32));
+const g = globalThis as { __afterlifeProbeSealKey?: Buffer };
+const KEY = (g.__afterlifeProbeSealKey ??= randomBytes(32));
 
 /** Stable JSON: keys sorted at every level, so the same result always seals the same. */
 const stable = (v: unknown): string =>

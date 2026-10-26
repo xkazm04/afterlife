@@ -34,6 +34,7 @@ const checksum = (m: Migration): string => createHash('sha256').update(m.sql).di
  * migrations (every one; a test passes a prefix to build an older index).
  */
 export async function migrate(db: PGlite, list: readonly Migration[] = MIGRATIONS): Promise<number[]> {
+  // wire name: every operator's on-disk index already holds this table; renaming it would re-run every migration
   await db.exec(
     'create table if not exists belay_migration (version int primary key, name text not null, ' +
       'checksum text not null, applied_at timestamptz not null default now())',
@@ -43,7 +44,7 @@ export async function migrate(db: PGlite, list: readonly Migration[] = MIGRATION
   const applied = new Map(done.rows.map((r) => [r.version, r.checksum]));
 
   for (const v of applied.keys()) {
-    if (!known.has(v)) throw new Error(`index was migrated by a newer Belay (migration ${v} is unknown)`);
+    if (!known.has(v)) throw new Error(`index was migrated by a newer Afterlife (migration ${v} is unknown)`);
   }
   const ran: number[] = [];
   for (const m of [...list].sort((a, b) => a.version - b.version)) {

@@ -60,7 +60,7 @@ async function fingerprint(dir: string, baseSha: string): Promise<string> {
   return createHash('sha256').update(d).digest('hex');
 }
 
-const MARKER = /\n?<!-- belay:step=[^>]*-->\s*$/;
+const MARKER = /\n?<!-- afterlife:step=[^>]*-->\s*$/;
 
 export async function reviewAndRepair(c: ReviewCtx): Promise<ReviewResult> {
   const lane = c.item.lane;

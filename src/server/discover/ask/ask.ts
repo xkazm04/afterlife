@@ -84,7 +84,7 @@ export async function askAfterlife(rawTurns: unknown, rawState: unknown, call: C
     removeScratch(cwd);
   }
   if (out.timedOut) throw new Error(`claude did not answer within ${ASK_TIMEOUT_MS / 1000} s`);
-  if (out.exitCode !== 0 && !out.text && MISSING.test(out.stderr)) throw new ClaudeMissingError('claude is not on PATH: install Claude Code and log in (claude), or set BELAY_CLAUDE_BIN');
+  if (out.exitCode !== 0 && !out.text && MISSING.test(out.stderr)) throw new ClaudeMissingError('claude is not on PATH: install Claude Code and log in (claude), or set AFTERLIFE_CLAUDE_BIN');
   if (out.isError || out.exitCode !== 0) throw new Error(`claude failed (exit ${out.exitCode}): ${(out.stderr || out.text).trim().split('\n')[0] ?? ''}`);
   return { ...answerOf(out.text), ms: Date.now() - t0 };
 }

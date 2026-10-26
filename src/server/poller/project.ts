@@ -111,7 +111,7 @@ export async function pollProject(env: PollEnv, gl: GlProject): Promise<ProjectP
   const out: ProjectPoll = { id, gitlabId: gl.id, ok: true, tasks: 0, proofs: 0, ledger: 'skipped', issues: [] };
   const written: ProjectRow[] = [];
   try {
-    // the tasks come out of this list, so it reaches back over the longer of the two windows (a BELAY_TASK_HOURS past 7
+    // the tasks come out of this list, so it reaches back over the longer of the two windows (a AFTERLIFE_TASK_HOURS past 7
     // days); one reaching past 1970 reads from 1970, never from a date toISOString throws on
     const readBack = Math.max(cfg.rollupWindowMs, cfg.taskWindowMs);
     const mrs = await port.listMergeRequests(gl.id, { state: 'all', updatedAfter: new Date(Math.max(0, now.getTime() - readBack)).toISOString(), limit: cfg.mrLimit });

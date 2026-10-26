@@ -27,24 +27,24 @@ for (const src of sources) {
   if (all.length === 0) continue;
   // One note, one verdict (F67): a second block can be a quote of the MR's own text, so neither is taken.
   if (all.length > 1) {
-    console.error(`belay: ${tag}: note ${src.id} carries ${all.length} blocks of the tag: ambiguous, none is taken`);
+    console.error(`afterlife: ${tag}: note ${src.id} carries ${all.length} blocks of the tag: ambiguous, none is taken`);
     process.exit(4);
   }
   const [found] = all;
   // A bare null, number, string or array is no block: reading found.head_sha off null threw (exit 1), which tier-gate does not ledger.
   if (found === null || typeof found !== 'object' || Array.isArray(found)) {
-    console.error(`belay: ${tag} block in note ${src.id} is not a JSON object`);
+    console.error(`afterlife: ${tag} block in note ${src.id} is not a JSON object`);
     process.exit(4);
   }
   const madeFor = found.head_sha ?? found.task?.head_sha;
   if (headSha && madeFor !== headSha) {
-    console.error(`belay: ${tag} block in ${src.id} is for ${String(madeFor).slice(0, 8)}, not ${headSha.slice(0, 8)}: stale`);
+    console.error(`afterlife: ${tag} block in ${src.id} is for ${String(madeFor).slice(0, 8)}, not ${headSha.slice(0, 8)}: stale`);
     continue;
   }
   if (schemaFile) {
     const problems = validate(found, JSON.parse(fs.readFileSync(schemaFile, 'utf8')));
     if (problems.length) {
-      console.error(`belay: ${tag} block in ${src.id} fails ${schemaFile}:\n  ${problems.slice(0, 10).join('\n  ')}`);
+      console.error(`afterlife: ${tag} block in ${src.id} fails ${schemaFile}:\n  ${problems.slice(0, 10).join('\n  ')}`);
       process.exit(4);
     }
   }
@@ -56,5 +56,5 @@ for (const src of sources) {
   console.log(JSON.stringify({ source: src.id, author: src.author?.username }));
   process.exit(0);
 }
-console.error(`belay: no trusted ${tag} block on this MR`);
+console.error(`afterlife: no trusted ${tag} block on this MR`);
 process.exit(3);

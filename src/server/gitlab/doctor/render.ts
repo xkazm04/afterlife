@@ -1,4 +1,4 @@
-// What `belay doctor` prints and the code it exits with. A blocker comes first, with its fix on the next line, and stands
+// What `afterlife doctor` prints and the code it exits with. A blocker comes first, with its fix on the next line, and stands
 // in for the rows it blocked (an unreadable group blocks none: its rows follow); then the login, the group and one row per
 // capability.
 // Exit codes: 0 the probes answered, 2 every capability unknown with no blocker named, 3 blocked (see doctor/blocker.ts).
@@ -25,7 +25,7 @@ export function renderDoctor(report: DoctorReport, o: RenderOpts): string[] {
     out.push(`BLOCKED  ${b.text}`, `  fix: ${b.fix}`, '');
     // An unreadable group stops only the group's own reads: the capability rows still ran, so they are printed below.
     if (b.kind !== 'group') {
-      out.push(`${report.capabilities.length} capabilities not probed until this is fixed: run belay doctor again after.`);
+      out.push(`${report.capabilities.length} capabilities not probed until this is fixed: run afterlife doctor again after.`);
       return out;
     }
   }

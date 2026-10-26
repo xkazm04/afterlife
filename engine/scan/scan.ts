@@ -39,7 +39,7 @@ const NEXT: Record<Stage, [string, string]> = {
   release: ['configured', 'release from a protected tag with a release: job'],
   configure: ['configured', 'describe the deployment as Terraform or OpenTofu, run by a pipeline'],
   monitor: ['configured', 'connect an alert integration and keep a non-empty .gitlab/alerting.yml'],
-  govern: ['configured', 'run `npx belay pair <checkout>` to add the Belay proof jobs and tier gate'],
+  govern: ['configured', 'run `npx afterlife pair <checkout>` to add the Afterlife proof jobs and tier gate'],
 };
 
 export interface Proposal {

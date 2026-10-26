@@ -1,4 +1,4 @@
-// An arm, a disarm and the verify read pick their target as locate() does (F47, F48, F50): never one of Belay's own
+// An arm, a disarm and the verify read pick their target as locate() does (F47, F48, F50): never one of Afterlife's own
 // projects, never a path that names two projects. Arm's own resolver (targetOf) once kept only the F47 half.
 import { describe, expect, it } from 'vitest';
 import type { GitLabPort } from '@/server/gitlab/port';
@@ -17,18 +17,18 @@ const reason = (r: ActionResponse) => (r.status === 'refused' ? r.reason : `not 
 
 async function rig(wrap?: (p: GitLabPort) => GitLabPort) {
   const r = await liveRig(wrap);
-  for (const p of r.gl.state.projects) if (p.raw.name !== 'ledgerline') p.files['.gitlab-ci.yml'] = CI; // belay's own projects run pipelines too
+  for (const p of r.gl.state.projects) if (p.raw.name !== 'ledgerline') p.files['.gitlab-ci.yml'] = CI; // Afterlife's own projects run pipelines too
   return { ...r, deps: { ...r.deps, arm: { ok: true, pin: DEMO_PIN } } as ActionDeps };
 }
 
-describe('arm, disarm and verify never target Belay\'s own projects (F50)', () => {
+describe('arm, disarm and verify never target Afterlife\'s own projects (F50)', () => {
   for (const project of ['belay-policy', 'belay-ledger']) {
     it(`refuses ${project} for arm and disarm at preview, and for verify, with nothing written`, async () => {
       const { gl, deps } = await rig();
       for (const kind of ['arm-track', 'disarm-track'] as const) {
-        expect(reason(await previewIntent(deps, { kind, project, track: 'T4' }))).toMatch(new RegExp(`${project} is Belay's own project`));
+        expect(reason(await previewIntent(deps, { kind, project, track: 'T4' }))).toMatch(new RegExp(`${project} is Afterlife's own project`));
       }
-      expect(await checkArm(deps, { kind: 'arm-track', project, track: 'T4' }, deps.cfg.infra)).toMatchObject({ status: 'refused', reason: expect.stringMatching(new RegExp(`${project} is Belay's own project`)) });
+      expect(await checkArm(deps, { kind: 'arm-track', project, track: 'T4' }, deps.cfg.infra)).toMatchObject({ status: 'refused', reason: expect.stringMatching(new RegExp(`${project} is Afterlife's own project`)) });
       expect(gl.state.writes).toEqual([]);
     });
   }

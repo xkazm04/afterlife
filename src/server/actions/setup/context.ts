@@ -21,7 +21,7 @@ export interface SetupDeps {
   launch: Launch;
   /** Whether a program of this name is on the PATH (PATHEXT on Windows). */
   onPath: (bin: string) => boolean;
-  /** glab as the app finds it (BELAY_GLAB, PATH, the winget location) and its version line; null when it does not answer. */
+  /** glab as the app finds it (AFTERLIFE_GLAB, PATH, the winget location) and its version line; null when it does not answer. */
   glab: () => Promise<{ bin: string; version: string } | null>;
   /** The process env as it is (sourceOf reads the settings beside it). */
   env: Env;

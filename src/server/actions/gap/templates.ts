@@ -1,5 +1,5 @@
 // The gap template catalogue: the scan's next change for a stage (engine/scan/scan.ts NEXT), where it is mechanical
-// enough for Belay to write. Each template names the one stage and rung it earns; a CI template adds GitLab's own
+// enough for Afterlife to write. Each template names the one stage and rung it earns; a CI template adds GitLab's own
 // include lines, a file template adds one new file. Anything not here is a gap a person writes by hand.
 import type { Stage } from '@/schemas/stages';
 import type { GapTemplateId } from '../types';
@@ -20,7 +20,7 @@ export interface CiTemplate extends Common { kind: 'ci'; templates: readonly str
 export interface FileTemplate extends Common { kind: 'file'; path: string; content: string }
 export type GapTemplate = CiTemplate | FileTemplate;
 
-const ISSUE_TEMPLATE = `<!-- A maturity gap: one stage short of its next rung. Belay opened it from the maturity scan. -->
+const ISSUE_TEMPLATE = `<!-- A maturity gap: one stage short of its next rung. Afterlife opened it from the maturity scan. -->
 ## The gap
 
 Stage, and its rung now and next (for example: secure R0 -> R1).

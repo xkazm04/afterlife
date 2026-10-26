@@ -110,7 +110,7 @@ export function createGlabAdapter(cfg: ClientConfig): GitLabPort {
         body = r.stdout.trim() ? JSON.parse(r.stdout) : null;
       } catch (e) {
         // The write ran; only its answer is unreadable, so the result names nothing it made (no MR link, no commit).
-        console.error(`belay: ${planned.display} succeeded but its answer is not JSON; the result names nothing it made`, e);
+        console.error(`afterlife: ${planned.display} succeeded but its answer is not JSON; the result names nothing it made`, e);
       }
       return { ok: true, stdout: r.stdout, body };
     },

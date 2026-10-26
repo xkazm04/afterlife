@@ -1,5 +1,5 @@
 // post-proof.mjs is the M1 hand-run's step 2 (../../README.md): the operator posts the proof check-proof wrote with their
-// own glab login, run as the README writes it (BELAY_BOT_TOKEN=by-hand). The note must parse back as the belay-proof block,
+// own glab login, run as the README writes it (AFTERLIFE_BOT_TOKEN=by-hand). The note must parse back as the belay-proof block,
 // the label call must be the one the README shows, and a proof file that is not there posts nothing: step 1 removes it
 // when it refuses, so a step 2 run after a refusal must not post an inconclusive note in its place.
 import fs from 'node:fs';
@@ -13,7 +13,7 @@ afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, ret
 
 const URL_ = 'https://gitlab.example/acme/ledgerline';
 const PROOF = { schema: 'belay.proof/1', class: 'exploit-test', verdict: 'pass', task: { head_sha: 'a'.repeat(40), trailer: 'Belay-Task: 01J9ZP6M2Q8E4V7K3N5R1T0XAB' }, checks: [{ ok: true }], engine: { version: '0.1.0' } };
-const post = (proofFile) => runScript(dir, 'proof/post-proof.mjs', ['--proof', proofFile, '--mr', '7'], { env: { CI_PROJECT_URL: URL_, BELAY_BOT_TOKEN: 'by-hand' } });
+const post = (proofFile) => runScript(dir, 'proof/post-proof.mjs', ['--proof', proofFile, '--mr', '7'], { env: { CI_PROJECT_URL: URL_, AFTERLIFE_BOT_TOKEN: 'by-hand' } });
 
 describe('post-proof (M1 hand-run step 2)', () => {
   it('posts the note and the proof label as the README writes them', () => {
@@ -64,7 +64,7 @@ describe('post-proof (M1 hand-run step 2)', () => {
     fs.writeFileSync(f, '');
     const r = post(f);
     expect(r.code, r.stderr).toBe(0);
-    expect(r.writes[0].body.message).toMatch(/^\*\*Belay proof: INCONCLUSIVE\*\*/);
+    expect(r.writes[0].body.message).toMatch(/^\*\*Afterlife proof: INCONCLUSIVE\*\*/);
     expect(r.writes[1].body).toMatchObject({ label: 'proof::inconclusive', unlabel: 'proof::pass,proof::fail' });
   });
 });

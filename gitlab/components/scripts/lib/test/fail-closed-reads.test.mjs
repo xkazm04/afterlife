@@ -39,7 +39,7 @@ describe('readFile', () => {
       try { console.log(JSON.stringify({ value: readFile(${JSON.stringify(LEDGER)}, ${JSON.stringify(FILE)}, 'main') })); } catch (e) { console.log(JSON.stringify({ threw: e.message })); }`;
     const r = spawnSync(process.execPath, ['--input-type=module', '-e', code], {
       encoding: 'utf8',
-      env: { PATH: process.env.PATH, SYSTEMROOT: process.env.SYSTEMROOT, BELAY_GLAB: `${process.execPath}|${path.join(SCRIPTS, 'testing/fake-glab.mjs')}`, FAKE_GLAB_ROUTES: routesFile },
+      env: { PATH: process.env.PATH, SYSTEMROOT: process.env.SYSTEMROOT, AFTERLIFE_GLAB: `${process.execPath}|${path.join(SCRIPTS, 'testing/fake-glab.mjs')}`, FAKE_GLAB_ROUTES: routesFile },
     });
     return JSON.parse(r.stdout.trim());
   };
@@ -84,11 +84,11 @@ describe('ledger-append', () => {
   // F88: the write token named by --write-token-var is the only one it writes with; never the read token instead.
   it('refuses when --write-token-var names an unset variable, and writes nothing', () => {
     const routes = { [FILE_URL]: http(404, '404 File Not Found'), [COMMITS]: { reply: {} } };
-    const r = runScript(dir, 'decide/ledger-append.mjs', [...appendArgs, '--write-token-var', 'BELAY_LEDGER_TOKEN'], { routes, env: { GITLAB_TOKEN: 'read' } });
+    const r = runScript(dir, 'decide/ledger-append.mjs', [...appendArgs, '--write-token-var', 'AFTERLIFE_LEDGER_TOKEN'], { routes, env: { GITLAB_TOKEN: 'read' } });
     expect(r.code).not.toBe(0);
-    expect(r.stderr).toMatch(/BELAY_LEDGER_TOKEN is not set/);
+    expect(r.stderr).toMatch(/AFTERLIFE_LEDGER_TOKEN is not set/);
     expect(r.writes).toEqual([]);
-    const ok = runScript(dir, 'decide/ledger-append.mjs', [...appendArgs, '--write-token-var', 'BELAY_LEDGER_TOKEN'], { routes, env: { GITLAB_TOKEN: 'read', BELAY_LEDGER_TOKEN: 'ledger' } });
+    const ok = runScript(dir, 'decide/ledger-append.mjs', [...appendArgs, '--write-token-var', 'AFTERLIFE_LEDGER_TOKEN'], { routes, env: { GITLAB_TOKEN: 'read', AFTERLIFE_LEDGER_TOKEN: 'ledger' } });
     expect(ok.code, ok.stderr).toBe(0);
     expect(ok.writes).toHaveLength(1);
   });

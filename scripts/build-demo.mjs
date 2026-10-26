@@ -11,7 +11,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 const data = {
   _note: 'ILLUSTRATIVE. Every name, number, id and time is a placeholder for layout, not a measurement. Seeded faults are labelled seeded.',
-  product: { name: 'Belay', claim: 'Agents may act alone only where they can prove it.',
+  product: { name: 'Afterlife', claim: 'Agents may act alone only where they can prove it.',
     sub: 'Eight post-code agents on GitLab. Every action carries a machine-checked Proof Block. Autonomy is earned from those proofs and revoked on the first failure.' },
   portfolio, fleet, stages, tracks, actionClasses, tiers, maturity, loop, tasks, needsYou, setup, events, cockpit,
 };

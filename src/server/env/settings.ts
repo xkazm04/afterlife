@@ -2,7 +2,7 @@
 // kept in <data dir>/settings.json. An absent value is an omitted key, never null or "". The env always wins (env.ts).
 // The file is read fresh on every call (it is a few bytes) and validated field by field: a hand edit that breaks a value
 // drops that value, never the file. Written to a temp file and renamed, so a reader never sees half of it.
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { envOf, type Env } from './env';
 
@@ -23,9 +23,16 @@ export const SETTING_KEYS: readonly (readonly [keyof RuntimeSettings, string])[]
   ['proofAuthors', 'PROOF_AUTHORS'],
 ];
 
-/** The data folder: AFTERLIFE_DATA_DIR (or BELAY_DATA_DIR), else `.belay/` in the app root (the index lives under it too). */
+/** `<root>/.afterlife`, unless only the pre-rename `<root>/.belay` exists: an existing index, runs and vitals are never stranded. */
+export function dotDirAt(root: string): string {
+  const now = path.join(root, '.afterlife');
+  const old = path.join(root, '.belay');
+  return !existsSync(now) && existsSync(old) ? old : now;
+}
+
+/** The data folder: AFTERLIFE_DATA_DIR (through envOf), else dotDirAt(app root) (the index lives under it too). */
 export function dataDirOf(env: Env = process.env): string {
-  return envOf(env, 'DATA_DIR') ?? path.join(process.cwd(), '.belay');
+  return envOf(env, 'DATA_DIR') ?? dotDirAt(process.cwd());
 }
 
 export const settingsFile = (env: Env = process.env): string => path.join(dataDirOf(env), 'settings.json');

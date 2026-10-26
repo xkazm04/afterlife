@@ -10,8 +10,8 @@ import { upsertGroups, listGroups } from '../repositories';
 
 describe('the persistent index', () => {
   it('is created (with its parent folders) on first start and survives a restart', async () => {
-    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-index-'));
-    const dataDir = path.join(base, 'not', 'yet', 'there'); // BELAY_DATA_DIR that does not exist
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-index-'));
+    const dataDir = path.join(base, 'not', 'yet', 'there'); // AFTERLIFE_DATA_DIR that does not exist
     const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     try {
       const first = await openIndex({ dataDir });
@@ -20,7 +20,7 @@ describe('the persistent index', () => {
       expect(fs.existsSync(indexDir(dataDir))).toBe(true);
       // the start that migrated the folder says so, naming every version it applied; the next start has nothing to say
       expect(log.mock.calls.map((c) => String(c[0]))).toEqual([
-        `belay: index ${indexDir(dataDir)} migrated: applied ${MIGRATIONS.map((m) => m.version).join(', ')}`,
+        `afterlife: index ${indexDir(dataDir)} migrated: applied ${MIGRATIONS.map((m) => m.version).join(', ')}`,
       ]);
       const second = await openIndex({ dataDir });
       expect(await listGroups(second)).toEqual(['core-banking']);

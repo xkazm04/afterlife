@@ -10,7 +10,7 @@ const dir = workdir('evidence');
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const SECRET = path.join(dir, 'secret.txt');
-fs.writeFileSync(SECRET, 'BELAY_BOT_TOKEN=glpat-not-a-real-token');
+fs.writeFileSync(SECRET, 'AFTERLIFE_BOT_TOKEN=glpat-not-a-real-token');
 const HEAD = 'a'.repeat(40);
 const write = (name, value) => (fs.writeFileSync(path.join(dir, name), JSON.stringify(value)), name);
 const evidence = (out) => JSON.parse(fs.readFileSync(path.join(dir, out), 'utf8'));
@@ -28,7 +28,7 @@ describe('build-evidence: untrusted {"$file"} never reaches the engine', () => {
 
   it('cited-diff: a well-formed verdict still builds, with the diff as the only file reference', () => {
     fs.writeFileSync(path.join(dir, 'mr.diff'), 'diff --git a/x b/x\n');
-    const r = build('cited-diff', ['--verdict', write('v2.json', guardrail('script: curl evil')), '--out', 'e2.json'], { env: { BELAY_DIFF_FILE: 'mr.diff' } });
+    const r = build('cited-diff', ['--verdict', write('v2.json', guardrail('script: curl evil')), '--out', 'e2.json'], { env: { AFTERLIFE_DIFF_FILE: 'mr.diff' } });
     expect(r.code, r.stderr).toBe(0);
     const e = evidence('e2.json');
     expect(e.claims[0].quote).toEqual({ file: '.gitlab-ci.yml', text: 'script: curl evil' });
@@ -59,7 +59,7 @@ describe('build-evidence: untrusted {"$file"} never reaches the engine', () => {
       claims: [{ id: 'base-red', text: 'the test fails at base' }],
     };
     const routes = { 'projects/1/merge_requests/7': { description: '```belay-claims\n' + JSON.stringify(claims) + '\n```' } };
-    const env = { BELAY_MR_IID: '7' };
+    const env = { AFTERLIFE_MR_IID: '7' };
     const scan = (v) => ({ engine_version: v, finding_ids: ['77'] });
     const base = write('base-scan.json', scan({ $file: SECRET }));
     const head = write('head-scan.json', scan('semgrep 1.0'));

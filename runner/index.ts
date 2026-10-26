@@ -1,6 +1,6 @@
 // The cycle runner: waves of headless `claude -p` lanes in worktrees of fleet repos, gated, committed to
 // belay/wave-<n>, metered. The only place in the repo that touches the Anthropic key (runner/agent/spawn.ts).
-// The wire contract is src/schemas/run (belay.run/0); the implementation is split by concern under runner/.
+// The wire contract is src/schemas/run (belay.run/0, an on-disk schema id that keeps the old name); the implementation is split by concern under runner/.
 export type { RunEvent } from '../src/schemas/run';
 
 export interface FleetRepo {
@@ -39,9 +39,9 @@ export interface RunOptions {
   laneCapUsd: number;
   waveCapUsd: number;
   model: string;
-  /** Fleet file; default <afterlife>/.belay/fleet.yml. */
+  /** Fleet file; default <afterlife>/.afterlife/fleet.yml (or an existing .belay/). */
   fleet?: string;
-  /** Where run files go; default <afterlife>/.belay/runs. */
+  /** Where run files go; default <afterlife>/.afterlife/runs (or an existing .belay/). */
   runsDir?: string;
   /** Skip the check that base's setup and gates are green before the plan (a person knows they are red). */
   skipBaseGates?: boolean;

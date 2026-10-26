@@ -15,7 +15,7 @@ const event = {
 };
 
 describe('ledger append --write under a concurrent writer', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-lock-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-lock-'));
   afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
   const ev = path.join(tmp, 'event.json');
   fs.writeFileSync(ev, JSON.stringify(event));

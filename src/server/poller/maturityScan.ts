@@ -13,9 +13,10 @@ import { writeGaps } from './gaps/write';
 import type { PollMemory } from './state';
 import { messageOf } from '@/lib/format/error';
 
+// wire names: the component's job and artifact path in every armed project's pipelines
 export const SCAN_JOB = 'belay-maturity-scan';
 export const SCAN_ARTIFACT = '.belay/maturity.json';
-/** The component's rules: a schedule, or an API pipeline, with BELAY_SCAN=maturity. */
+/** The component's rules: a schedule, or an API pipeline, with AFTERLIFE_SCAN=maturity. */
 const SCAN_SOURCES: ReadonlySet<string> = new Set(['schedule', 'api']);
 /** Default-branch pipelines looked at, and of those, the scheduled or API ones whose jobs are read. */
 const PIPELINES = 20;

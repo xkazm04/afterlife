@@ -10,7 +10,7 @@ import { callClaude } from '../agent/spawn';
 import { parseFleet } from '../fleet/load';
 import { runGates } from '../lane/verify';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-sec-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-sec-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('child environment', () => {
@@ -44,14 +44,14 @@ describe('child environment', () => {
     for (const k of ['GITLAB_TOKEN', 'AWS_SECRET_ACCESS_KEY', 'NPM_TOKEN', 'DB_PASSWORD']) expect(env[k]).toBeUndefined();
   });
 
-  it('BELAY_PASS_ENV lets the operator hand a named variable through', () => {
-    plant({ ...planted, BELAY_PASS_ENV: 'NPM_TOKEN' });
+  it('AFTERLIFE_PASS_ENV lets the operator hand a named variable through', () => {
+    plant({ ...planted, AFTERLIFE_PASS_ENV: 'NPM_TOKEN' });
     expect(childEnv().NPM_TOKEN).toBe('npm-x');
     expect(childEnv().GITLAB_TOKEN).toBeUndefined();
   });
 
-  it('BELAY_PASS_ENV stops at the runner-spawned children: claude and the Bash commands it runs never get it', () => {
-    plant({ ...planted, BELAY_PASS_ENV: 'NPM_TOKEN' });
+  it('AFTERLIFE_PASS_ENV stops at the runner-spawned children: claude and the Bash commands it runs never get it', () => {
+    plant({ ...planted, AFTERLIFE_PASS_ENV: 'NPM_TOKEN' });
     expect(agentEnv().NPM_TOKEN).toBeUndefined();
   });
 
@@ -68,12 +68,12 @@ describe('child environment', () => {
   // claude itself honours this (checked headless on CLI 2.1.310: a Bash child saw ANTHROPIC_FOUNDRY_API_KEY without
   // it and not with it, and Edit(./**) still wrote in the cwd and refused ../). The runner's part is to always set it.
   it('claude is told to strip its own credentials from every process it starts, whatever the operator set', async () => {
-    plant({ ...planted, CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '0', BELAY_PASS_ENV: 'NPM_TOKEN' });
+    plant({ ...planted, CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '0', AFTERLIFE_PASS_ENV: 'NPM_TOKEN' });
     expect(agentEnv().CLAUDE_CODE_SUBPROCESS_ENV_SCRUB).toBe('1');
     const seen = path.join(tmp, 'seen.json');
     const bin = path.join(tmp, 'envClaude.mjs');
     fs.writeFileSync(bin, `import fs from 'node:fs';\nconst e = process.env;\nfs.writeFileSync(${JSON.stringify(seen)}, JSON.stringify({ scrub: e.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB, key: e.ANTHROPIC_API_KEY, npm: e.NPM_TOKEN ?? null }));\n`);
-    plant({ BELAY_CLAUDE_BIN: bin });
+    plant({ AFTERLIFE_CLAUDE_BIN: bin });
     await callClaude({ prompt: 'x', cwd: tmp, model: 'sonnet', timeoutMs: 20_000, permissions: { step: 'lane', bash: ['npm run test'] } });
     expect(JSON.parse(fs.readFileSync(seen, 'utf8'))).toEqual({ scrub: '1', key: 'sk-ant-x', npm: null });
   });

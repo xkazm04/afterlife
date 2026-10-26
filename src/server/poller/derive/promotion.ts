@@ -1,4 +1,4 @@
-// A class whose counters meet trust-policy.yml's promotion rule waits for a person to promote it: Belay's own ask, as
+// A class whose counters meet trust-policy.yml's promotion rule waits for a person to promote it: Afterlife's own ask, as
 // re-admits are (./readmit.ts). Eligibility is the rule Ladder's Promote reads (promotion() in src/lib/promotion), on the
 // row the poll just wrote, so Ladder's Promote and this ask can never disagree. Proposals are matched by (kind, title): a
 // seeded or earlier one is never duplicated, and only this module's own are refreshed or closed.
@@ -11,7 +11,7 @@ import type { ProposalRow } from '@/server/index/repositories/work/proposal';
 import { shownOf } from '@/server/index/views/standing';
 import { trackLabel } from '@/lib/format/track';
 
-export const PROMOTE_DOES = 'Opens a policy MR in belay-policy that raises the record one tier. You merge it in GitLab; Belay never does.';
+export const PROMOTE_DOES = 'Opens a policy MR in belay-policy that raises the record one tier. You merge it in GitLab; Afterlife never does.';
 
 /** A class one agent holds, as this poll wrote it, with what trust-policy.yml says of it. */
 export interface PromotionCandidate {

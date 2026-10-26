@@ -1,7 +1,7 @@
 // F38 part 2: a branch MR's confirm (plans/mr/branchMr.ts: promote, enroll, a gap, arm, disarm) is done only when the MR
 // GitLab opened is headed by the commit this confirm made.
 // Anything else means someone pushed to the branch between the commit and the MR, and the MR (authored by the operator,
-// "Prepared by Belay") would carry a commit nobody previewed. A write that opens no MR (revoke, a CRA label) is not checked.
+// "Prepared by Afterlife") would carry a commit nobody previewed. A write that opens no MR (revoke, a CRA label) is not checked.
 import type { GitLabPort, ProjectRef } from '@/server/gitlab/port';
 import { COMMIT_ID } from '../plans/context';
 
@@ -31,9 +31,9 @@ export async function headMismatch(port: GitLabPort, project: ProjectRef, branch
   const iid = asRec(mrBody).iid;
   const mr = Number.isSafeInteger(iid) ? `!${iid as number}` : 'the MR';
   const dont = `Do not merge ${mr}: close it, delete ${branch}, then try again.`;
-  if (!commit) return `Belay could not read back the commit it made on ${branch}, so it cannot vouch for what ${mr} carries. ${dont}`;
+  if (!commit) return `Afterlife could not read back the commit it made on ${branch}, so it cannot vouch for what ${mr} carries. ${dont}`;
   const head = await mrHead(port, project, mrBody);
-  if (!head) return `GitLab did not say which commit heads ${mr}, so Belay cannot tell whether it carries only ${commit}, the commit this confirm made. ${dont}`;
+  if (!head) return `GitLab did not say which commit heads ${mr}, so Afterlife cannot tell whether it carries only ${commit}, the commit this confirm made. ${dont}`;
   if (head === commit) return null;
   return `${mr} is headed by ${head}, not ${commit}, the commit this confirm made: someone pushed to ${branch} between the commit and the MR. ${dont}`;
 }

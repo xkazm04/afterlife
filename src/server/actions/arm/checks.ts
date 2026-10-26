@@ -1,5 +1,5 @@
 // What the target's pipeline must already be for an arm block to work in it, read from the file as YAML. Each check that
-// fails is a refusal the screen shows: Belay does not add a stage, rewrite an include or add a component twice.
+// fails is a refusal the screen shows: Afterlife does not add a stage, rewrite an include or add a component twice.
 import { parse } from 'yaml';
 import { classOf, labelOf, placeIn, type ArmPin, type Include, type Placement, type TrackArm } from './content';
 
@@ -33,7 +33,7 @@ function same(have: Rec, want: Include): boolean {
   return cls === undefined || (isRec(have.inputs) && have.inputs.class === cls);
 }
 
-const invalid = (why: string): string => `the default branch's .gitlab-ci.yml is not valid YAML (${why}): Belay will not edit it`;
+const invalid = (why: string): string => `the default branch's .gitlab-ci.yml is not valid YAML (${why}): Afterlife will not edit it`;
 const either = (xs: readonly string[]): string => (xs.length === 1 ? `a ${xs[0]}` : xs.length === 2 ? `either a ${xs[0]} or a ${xs[1]}` : `any of ${xs.join(', ')}`);
 
 /**
@@ -56,7 +56,7 @@ export function blockerOf(text: string, wanted: readonly Include[]): string | nu
   const doc = load(text);
   if (typeof doc === 'string') return invalid(doc);
   const dup = wanted.find((w) => includesOf(doc).some((h) => same(h, w)));
-  return dup ? `the default branch's .gitlab-ci.yml already includes ${labelOf(dup)} by hand: Belay will not add it twice` : null;
+  return dup ? `the default branch's .gitlab-ci.yml already includes ${labelOf(dup)} by hand: Afterlife will not add it twice` : null;
 }
 
 /** After the edit: the file still parses and now includes every component of the block. */

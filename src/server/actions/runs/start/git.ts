@@ -1,6 +1,6 @@
 // Git's word on a fleet repo before a run starts there, read in its own checkout: the local branches, the worktree each
 // one is checked out in (`git worktree list --porcelain`, the main checkout included), and the checkout's HEAD branch.
-// And the runner's own lock: a live process named by <repo>/.claude/worktrees/belay-run.pid (runner/git/worktree.ts).
+// And the runner's own lock: a live process named by <repo>/.claude/worktrees/afterlife-run.pid (runner/git/worktree.ts).
 // Read-only. Git runs off the event loop with a timeout; a git that fails says why, and the panel shows no branches.
 import 'server-only';
 import { execFile } from 'node:child_process';
@@ -54,12 +54,18 @@ function alive(pid: number): boolean {
   }
 }
 
-/** The pid of a live `belay run` that holds the repo's worktrees, or null (no file, a dead pid, an unreadable file). */
+/** The lock file runner/git/worktree.ts writes, then its pre-rename name: a runner started before the rename still holds it. */
+const PID_FILES = ['afterlife-run.pid', 'belay-run.pid'];
+
+/** The pid of a live `afterlife run` that holds the repo's worktrees, or null (no file, a dead pid, an unreadable file). */
 export function liveRunPid(repo: string, self: number = process.pid): number | null {
-  try {
-    const held = Number(fs.readFileSync(path.join(repo, '.claude', 'worktrees', 'belay-run.pid'), 'utf8').trim());
-    return Number.isInteger(held) && held > 0 && held !== self && alive(held) ? held : null;
-  } catch {
-    return null;
+  for (const name of PID_FILES) {
+    try {
+      const held = Number(fs.readFileSync(path.join(repo, '.claude', 'worktrees', name), 'utf8').trim());
+      if (Number.isInteger(held) && held > 0 && held !== self && alive(held)) return held;
+    } catch {
+      /* no such file, or unreadable: not a live run */
+    }
   }
+  return null;
 }

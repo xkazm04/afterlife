@@ -16,7 +16,7 @@
   a promotion MR states. `pin` prints the engine pin (`{version, sha256, files}`) every Proof Block carries.
 - `scan` rates the nine stages R0–R4, model-free, by one rubric table (`commands/rubric.ts`, the table in
   `engine/README.md`): R1 present on the default branch, R2 ran there within 14 days with an artifact, R3 failing it
-  blocks a merge, R4 an agent operates it and a Belay proof job re-derives it. `--facts <facts.json>` scores the
+  blocks a merge, R4 an agent operates it and an Afterlife proof job re-derives it. `--facts <facts.json>` scores the
   `belay.facts/0` file the `maturity-scan` component collects and prints `belay.maturity/0`. `--dir <checkout>`
   reads files only (CI config with local includes followed, CODEOWNERS, `.gitlab/`, IaC and alerting files), takes
   the table's R1 and credits at most that: pipelines and protections are not in a checkout (`engine/scan/`). The CI
@@ -34,13 +34,13 @@
   walked to 8 levels; either stops at 200,000, and a list cut off or a folder it could not read leaves a stage that
   found none of its files unknown with that reason. `--propose` (with `--dir`) adds the smallest next change per
   stage, as text.
-- `cli/belay.mjs` is the `belay` command-line companion, each part run through tsx:
+- `cli/belay.mjs` is the `afterlife` command-line companion (also installed as `belay`), each part run through tsx:
   - `doctor` runs the real capability probes (`src/server/gitlab/doctorCli.ts`).
   - `run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file]
     [--skip-base-gates] [--dry-run]` dispatches to `runner/main.ts`. It prints the repo, base, caps and model (and the
     gate and frontier counts) before anything is spent; `--dry-run` stops there and spawns nothing.
   - `scan [<checkout>] [--propose] [--facts F]` runs `engine scan` (the checkout defaults to the current folder).
-  - `pair <checkout> [--group G] [--pack-version V] [--engine-ref R] [--write]` (`src/server/pair/`) adds the Belay bootstrap to a checkout:
+  - `pair <checkout> [--group G] [--pack-version V] [--engine-ref R] [--write]` (`src/server/pair/`) adds the Afterlife bootstrap to a checkout:
     `.gitlab/belay.gitlab-ci.yml` (the components, pinned to the pack), one `include` line in `.gitlab-ci.yml`,
     `.gitlab/duo/agent-config.yml` and the work folders in `.gitignore`. It prints the plan and writes only with
     `--write`, only ever adds lines, keeps a file it would have to change (exit 1, finish by hand), and never
@@ -121,7 +121,7 @@
 - A broken ledger chain is never extended.
 - The checker is pinned: `engine_ref` has no default and each proof records the engine source hash.
 - Only named accounts count: `fetch-block.mjs` ignores other authors. Write tokens must be masked, protected CI
-  variables; Belay never stores a token; a missing bot token makes jobs report and fail closed.
+  variables; Afterlife never stores a token; a missing bot token makes jobs report and fail closed.
 - `cited-diff` proves a quote exists in the diff, not that the finding reads it right. Diff text is data.
 
 ## Code map
@@ -129,7 +129,7 @@
 |---|---|
 | `engine/cli.ts`, `engine/commands/` | Entry and the commands (`prove`, `envelope`, `gate`, `tripwire`, `ledger` with `append` and `trial` in `audit/`, `scan` with its rubric, `pin`) |
 | `engine/scan/` | `scan --dir`: checkout facts, the file list (`walk.ts`), the GitLab CI reader, the nine stage rules, scoring and proposals; `pipelines/`: the Azure Pipelines and GitHub Actions readers and the script and task signals |
-| `src/server/pair/` | `belay pair`: the bootstrap plan (`plan.ts`, `ciFile.ts`) and its IO (`pair.ts`, `pairCli.ts`) |
+| `src/server/pair/` | `afterlife pair`: the bootstrap plan (`plan.ts`, `ciFile.ts`) and its IO (`pair.ts`, `pairCli.ts`) |
 | `engine/core/` | Args, files, types, ULID, engine version and the pin over the import closure (`imports.ts`) |
 | `engine/parse/` | Diff, JUnit, trace parsers, test-case shapes |
 | `engine/proofs/` | Proof classes (`checkers/` for repro, bench-delta, score-delta, ledger-record), weakening detector, stubs, shared helpers |
@@ -137,8 +137,8 @@
 | `engine/decide/` | `gate.ts`, `standing.ts` (effective tier, holder), `shadow.ts` (`--shadow-next-rung`), `tripwire.ts` |
 | `engine/__fixtures__/` | Inputs per proof class (exploit, cited, rerun, linked, repro, bench, score, ledger), events, maturity facts |
 | `src/schemas/` | Shared Proof Block, tier, ledger, CRA and stage schemas |
-| `cli/belay.mjs` | `belay doctor \| run \| scan \| pair \| collect \| report \| replay` (`run` goes to `runner/main.ts`) |
-| `src/server/vitals/report/` | `belay report`: the strict claim parser and its CLI |
+| `cli/belay.mjs` | `afterlife doctor \| run \| scan \| pair \| collect \| report \| replay` (`run` goes to `runner/main.ts`) |
+| `src/server/vitals/report/` | `afterlife report`: the strict claim parser and its CLI |
 | `gitlab/components/` | `belay-pack` CI/CD components and `scripts/` glue |
 | `gitlab/flows/` | Six custom flow definitions and `schemas/` |
 | `gitlab/examples/` | Target project `.gitlab-ci.yml` and agent config; `belay-policy` layout and `CODEOWNERS` |
@@ -184,8 +184,8 @@
   Exploit fixtures for Gradle JUnit and traces are recalled shapes, not recorded.
 - Flow triggers do not fire on bot or service-account actions, hence `flow-dispatch`; a CI job token cannot post
   notes, label, approve or merge, hence a bot token.
-- `belay replay` is not implemented. `policy/tier-state.yml` holds illustrative values.
-- `belay scan` on a checkout cannot see pipelines, protections, group-level config or a custom CI config path: those
+- `afterlife replay` is not implemented. `policy/tier-state.yml` holds illustrative values.
+- `afterlife scan` on a checkout cannot see pipelines, protections, group-level config or a custom CI config path: those
   stages read unknown, or at most configured. Azure Pipelines template parameters and `${{ if }}` branches are not
   evaluated (every branch is read), and a GitLab job's `environment:` is not read; an Azure deployment job or a GitHub
   environment alone is not a release (both also gate data jobs), only a deploy task, an `az webapp` deploy or swap, or a

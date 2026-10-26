@@ -36,6 +36,6 @@ describe('a policy plan that cannot read belay-policy refuses in one wording', (
     const { deps, gl } = await liveRig();
     delete policyFiles(gl)['tier-state.yml'];
     const r = await previewIntent(deps, INTENTS[k]);
-    expect(r.status === 'refused' ? r.reason : r.status).toMatch(/^Belay could not read belay-policy: tier-state\.yml is not in belay-policy at main$/);
+    expect(r.status === 'refused' ? r.reason : r.status).toMatch(/^Afterlife could not read belay-policy: tier-state\.yml is not in belay-policy at main$/);
   });
 });

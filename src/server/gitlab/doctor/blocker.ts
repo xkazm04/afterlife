@@ -22,14 +22,14 @@ export function findBlocker(pre: Preflight, host: string | undefined, group: Pro
   if (binary) {
     return {
       kind: 'binary', text: `glab cannot be started (${binary.message})`,
-      fix: 'install glab (winget install GLab.GLab, or brew install glab), or set BELAY_GLAB to the glab binary',
+      fix: 'install glab (winget install GLab.GLab, or brew install glab), or set AFTERLIFE_GLAB to the glab binary',
     };
   }
   const network = first(all, 'network');
   if (network) {
     return {
       kind: 'network', text: `GitLab at ${where} cannot be reached (${network.message})`,
-      fix: `check the network, or set BELAY_GITLAB_HOST (now ${host ?? 'unset: gitlab.com'})`,
+      fix: `check the network, or set AFTERLIFE_GITLAB_HOST (now ${host ?? 'unset: gitlab.com'})`,
     };
   }
   if (first(all, 'auth')) {
@@ -39,7 +39,7 @@ export function findBlocker(pre: Preflight, host: string | undefined, group: Pro
   if (pre.user === null && g instanceof GitLabError && (g.kind === 'not-found' || g.kind === 'forbidden')) {
     return {
       kind: 'group', text: `group ${group} cannot be read on ${where} (${g.status ?? g.kind}: ${g.message})`,
-      fix: 'set BELAY_GROUP_ID to the id of a group this login can read',
+      fix: 'set AFTERLIFE_GROUP_ID to the id of a group this login can read',
     };
   }
   return null;

@@ -15,7 +15,7 @@ import { cleanSpec, specKey } from './probeArgs';
 
 export const PROPOSE_TIMEOUT_MS = 4 * 60 * 1000;
 
-/** claude is not on PATH (or BELAY_CLAUDE_BIN names nothing): the wizard says how to install it. */
+/** claude is not on PATH (or AFTERLIFE_CLAUDE_BIN names nothing): the wizard says how to install it. */
 export class ClaudeMissingError extends Error {}
 
 export type Call = (call: AgentCall) => Promise<AgentOutcome>;
@@ -80,7 +80,7 @@ export async function proposeWith(root: string, engine: Engine, call: Call = cal
   const t0 = Date.now();
   const facts = factsJson(await withPipelines(await collectFacts(root), probe));
   const prompt = `${loadPrompt()}\n\n## Facts\n\n\`\`\`json\n${facts}\n\`\`\`\n`;
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-onboard-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-onboard-'));
   let out: AgentOutcome;
   try {
     out = await call({ prompt, cwd, model: engine.model, effort: engine.effort, timeoutMs: PROPOSE_TIMEOUT_MS, permissions: { step: 'reflect' } });
@@ -88,7 +88,7 @@ export async function proposeWith(root: string, engine: Engine, call: Call = cal
     removeScratch(cwd);
   }
   if (out.timedOut) throw new Error(`claude did not answer within ${PROPOSE_TIMEOUT_MS / 60_000} min`);
-  if (out.exitCode !== 0 && !out.text && MISSING.test(out.stderr)) throw new ClaudeMissingError('claude is not on PATH: install Claude Code and log in (claude), or set BELAY_CLAUDE_BIN');
+  if (out.exitCode !== 0 && !out.text && MISSING.test(out.stderr)) throw new ClaudeMissingError('claude is not on PATH: install Claude Code and log in (claude), or set AFTERLIFE_CLAUDE_BIN');
   if (out.isError || out.exitCode !== 0) throw new Error(`claude failed (exit ${out.exitCode}): ${(out.stderr || out.text).trim().split('\n')[0] ?? ''}`);
   const { proposal, dropped } = parseProposal(jsonOf(out.text));
   return { proposal: { ...proposal, probes: completeProbes(proposal) }, ms: Date.now() - t0, engine, dropped };

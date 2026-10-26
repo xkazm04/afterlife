@@ -11,7 +11,7 @@ export const ROOT = path.resolve(SCRIPTS, '..', '..', '..');
 const FAKE = path.join(import.meta.dirname, 'fake-glab.mjs');
 
 export function workdir(prefix) {
-  return fs.mkdtempSync(path.join(os.tmpdir(), `belay-${prefix}-`));
+  return fs.mkdtempSync(path.join(os.tmpdir(), `afterlife-${prefix}-`));
 }
 
 /**
@@ -34,8 +34,8 @@ export function runScript(dir, script, args, { routes = {}, env = {} } = {}) {
       PATH: process.env.PATH,
       SYSTEMROOT: process.env.SYSTEMROOT,
       CI_PROJECT_ID: '1',
-      BELAY_DIR: ROOT,
-      BELAY_GLAB: `${process.execPath}|${FAKE}`,
+      AFTERLIFE_DIR: ROOT,
+      AFTERLIFE_GLAB: `${process.execPath}|${FAKE}`,
       FAKE_GLAB_ROUTES: routesFile,
       FAKE_GLAB_WRITES: writesFile,
       FAKE_GLAB_READS: readsFile,

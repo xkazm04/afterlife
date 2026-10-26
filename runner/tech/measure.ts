@@ -1,5 +1,5 @@
 // T3 measurement (Ascent /infinite SKILL.md): a repo's frontier metrics measured on the wave base and on the wave
-// tip, each in its own throwaway detached worktree (`belay-wave-tech`) with the repo's setup run in it - never a link
+// tip, each in its own throwaway detached worktree (`afterlife-wave-tech`) with the repo's setup run in it - never a link
 // to the main checkout's node_modules, since a test run through a link writes into the real one - and deleted with
 // removeTree, which unlinks a junction a setup made instead of following it. Metrics run in the fleet file's order,
 // through runProc with childEnv (no secret) and a ceiling each; a command that exits non-zero gives that run no
@@ -22,7 +22,7 @@ export interface Measured {
 
 /** Every metric `runs` times on `sha`, in a fresh worktree that is always removed. */
 export async function measureTech(repo: Pick<FleetRepo, 'path' | 'setup'>, sha: string, metrics: readonly TechMetric[], runs: number, setupTimeoutMs: number): Promise<Measured> {
-  const dir = worktreeDir(repo.path, 'belay-wave-tech');
+  const dir = worktreeDir(repo.path, 'afterlife-wave-tech');
   // A run killed mid-measurement left this path behind: it is the runner's own, so it goes first.
   await removeWorktree(repo.path, dir);
   await addWorktree(repo.path, dir, sha);

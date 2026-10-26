@@ -1,4 +1,4 @@
-// The runner's output, read off disk: <root>/runs/<repo>/<wave>.jsonl (belay.run/0, one event per line) and the
+// The runner's output, read off disk: <root>/runs/<repo>/<wave>.jsonl (belay.run/0, one event per line; the schema id is on disk, so it keeps the old name) and the
 // optional <wave>.proposals.md beside it. Real local data in demo and live alike, so it is its own module, not the
 // DataSource. A line that is not a valid event is skipped and COUNTED; a missing directory is simply no runs.
 import 'server-only';
@@ -8,8 +8,9 @@ import { foldRuns, foldWave } from '@/lib/runs/fold';
 import { parseRunLine } from '@/lib/runs/parse';
 import type { RunWave, RunsData } from '@/lib/runs/types';
 import type { RunEvent } from '@/schemas/run/run';
+import { dataDirOf } from '@/server/env/settings';
 
-export const defaultRunsRoot = (): string => process.env.BELAY_DATA_DIR ?? '.belay';
+export const defaultRunsRoot = (): string => dataDirOf();
 
 const dirs = (p: string): string[] => (existsSync(p) ? readdirSync(p, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name) : []);
 

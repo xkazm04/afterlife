@@ -20,17 +20,17 @@ are what belay-apply runs.
 
 ## Projects and the engine checkout
 
-Every job fetches the Belay repository at a pinned ref into `.belay-engine/` and runs `npx tsx engine/cli.ts <cmd>` there
+Every job fetches the Afterlife repository at a pinned ref into `.belay-engine/` and runs `npx tsx engine/cli.ts <cmd>` there
 (the contract in `docs/BACKEND-PLAN.md` section 3). The glue in `scripts/` is read from the same checkout. Add
 `.belay-engine/`, `.belay-policy/` and `.belay/` to the target's `.gitignore`.
 
 | Project | Holds | Who reads it |
 |---|---|---|
 | `belay-pack` | these components (this folder) | every target pipeline, at include time |
-| `belay-engine` | the Belay repo: `engine/`, `src/schemas/`, `gitlab/` | every job, cloned at `engine_ref` |
+| `belay-engine` | the Afterlife repo: `engine/`, `src/schemas/`, `gitlab/` | every job, cloned at `engine_ref` |
 | `belay-policy` | `trust-policy.yml`, `tier-state.yml`, `CODEOWNERS` | proof-engine, tier-gate (read); belay-apply (read; its tripwire writes) |
 | `belay-ledger` | `events/<project-id>.jsonl` | belay-apply (write) |
-| [`belay-apply`](../apply/README.md) | `.gitlab-ci.yml` and `apply.json` (`../apply/`); the four write tokens | its own schedule only. It reads the targets through the API and makes every Belay write |
+| [`belay-apply`](../apply/README.md) | `.gitlab-ci.yml` and `apply.json` (`../apply/`); the four write tokens | its own schedule only. It reads the targets through the API and makes every Afterlife write |
 
 `engine_ref` has no default on purpose: the checker is always pinned. Pass `engine_commit` as well when the ref is a tag or a
 branch, and the job refuses a checkout that resolves anywhere else. Each proof records the engine's own source hash.
@@ -46,13 +46,13 @@ cannot authenticate GraphQL. So the credentials are split by project:
 | Credential | Used for | Where it must be |
 |---|---|---|
 | `CI_JOB_TOKEN` | in target pipelines: clone `belay-engine` and `belay-policy`; read MRs and notes. In belay-apply: clone the same two | both projects' job token allowlists include each target and `belay-apply` |
-| `BELAY_BOT_TOKEN` | read the targets (MRs, notes, pipelines, jobs, artifacts, files); post notes and labels, approve, merge | **belay-apply only**: CI variable, **protected**, **masked and hidden** |
-| `BELAY_POLICY_TOKEN` | the tripwire's commit to `belay-policy` | **belay-apply only**, protected, masked and hidden |
-| `BELAY_LEDGER_TOKEN` (optional) | ledger commits; the default reuses the bot token | **belay-apply only**, protected, masked and hidden |
-| `BELAY_DISPATCH_TOKEN` | starting the guardrail through the Flows API | **belay-apply only**, protected, masked and hidden |
+| `AFTERLIFE_BOT_TOKEN` | read the targets (MRs, notes, pipelines, jobs, artifacts, files); post notes and labels, approve, merge | **belay-apply only**: CI variable, **protected**, **masked and hidden** |
+| `AFTERLIFE_POLICY_TOKEN` | the tripwire's commit to `belay-policy` | **belay-apply only**, protected, masked and hidden |
+| `AFTERLIFE_LEDGER_TOKEN` (optional) | ledger commits; the default reuses the bot token | **belay-apply only**, protected, masked and hidden |
+| `AFTERLIFE_DISPATCH_TOKEN` | starting the guardrail through the Flows API | **belay-apply only**, protected, masked and hidden |
 
-Belay never stores a token. No target project holds any of the four, and no component names one
-(`scripts/target-tokens.test.mjs` checks the example and every template). A missing `BELAY_BOT_TOKEN` on
+Afterlife never stores a token. No target project holds any of the four, and no component names one
+(`scripts/target-tokens.test.mjs` checks the example and every template). A missing `AFTERLIFE_BOT_TOKEN` on
 belay-apply is not an error: belay-apply reports what it would have done and writes nothing, so the MR waits for a person.
 
 **Exposure.** Every job of a pipeline can read the pipeline's CI/CD variables. That includes an agent's own test code, and
@@ -70,13 +70,13 @@ Decided by the operator on 2026-10-07 (asks da7cab11 and 3e69c7b1). For M1, CI r
 label or writes the ledger. Target pipelines hold no write token at all (`apply-gate` runs with `--dry 1`, and the proof
 stays in the job artifact), and belay-apply has none set yet. After V-204's pipeline, the operator makes its three writes by hand with their own `glab`
 login: (1) the `belay-proof` note and the `proof::<verdict>` label, (2) `guardrail::pass`, (3) the ledger line. Their GitLab
-username goes into the app's `BELAY_PROOF_AUTHORS`, so the poller believes the note. Finding F4 (High: once set,
-`BELAY_BOT_TOKEN` was readable by every job in an agent MR pipeline) was accepted for M1 only, to be asked again before M2.
+username goes into the app's `AFTERLIFE_PROOF_AUTHORS`, so the poller believes the note. Finding F4 (High: once set,
+`AFTERLIFE_BOT_TOKEN` was readable by every job in an agent MR pipeline) was accepted for M1 only, to be asked again before M2.
 The operator decided it on 2026-10-07 (ask 6696d24d, "Separate apply project"): every write moves to belay-apply
 (`../apply/README.md`), and the write tokens are set there, never on a target. From M2 belay-apply makes the three writes
 below itself, from evidence it re-derives. Until its tokens are set, these steps make them by hand.
 
-Commands are for Git Bash on Windows, run from the Belay checkout with `glab` signed in as the operator. `<...>` is a placeholder.
+Commands are for Git Bash on Windows, run from the Afterlife checkout with `glab` signed in as the operator. `<...>` is a placeholder.
 On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (the default host is `gitlab.com`, `HOST` in `scripts/lib/core/glab.mjs`).
 
 **Preconditions**
@@ -86,17 +86,17 @@ On a self-managed host also set `CI_SERVER_FQDN=<host>` on the `node` commands (
   (`mr-context.mjs:21-26`).
 - `tier-gate`'s `proof_authors` input (`tier-gate/template.yml:45`) must include the operator's username, or the gate never
   trusts the hand-posted note.
-- `.env.local` for the app: `BELAY_MODE=live`, `BELAY_GROUP_ID=<the group V-204 runs in>` (the default is not that group),
-  `BELAY_PROJECT=<target project's path, its last segment>`, `BELAY_PROOF_AUTHORS=<operator username>`
+- `.env.local` for the app: `AFTERLIFE_MODE=live`, `AFTERLIFE_GROUP_ID=<the group V-204 runs in>` (the default is not that group),
+  `AFTERLIFE_PROJECT=<target project's path, its last segment>`, `AFTERLIFE_PROOF_AUTHORS=<operator username>`
   (`src/server/data/README.md:17-20`, `src/server/poller/config.ts:69`). In live mode on a real group the poller refuses to
-  run when one of the last three is missing or malformed, and logs `belay: poll failed` naming it every poll
+  run when one of the last three is missing or malformed, and logs `afterlife: poll failed` naming it every poll
   (`liveConfigProblems`, `src/server/poller/config.ts:43`): it never falls back to the default group.
 - Every component defaults `engine_project` and `policy_project` to `$CI_PROJECT_NAMESPACE/belay-*`, the namespace the
   target itself sits in (F30; `tier-gate/template.yml:24,28`). For a top-level target that is the group, as before. A target
   whose `belay-*` projects sit elsewhere passes both inputs explicitly. belay-apply names all of them in its `apply.json`.
-- The author defaults (`guardrail_authors`, and the `ai-guardrail-` / `ai-medic-` fallbacks for `BELAY_BLOCK_AUTHORS`) still
+- The author defaults (`guardrail_authors`, and the `ai-guardrail-` / `ai-medic-` fallbacks for `AFTERLIFE_BLOCK_AUTHORS`) still
   use `$CI_PROJECT_ROOT_NAMESPACE`: a namespace path holds slashes and cannot be a username. A subgroup install checks the
-  flow service account's real username and passes `guardrail_authors` (and `BELAY_BLOCK_AUTHORS`) explicitly.
+  flow service account's real username and passes `guardrail_authors` (and `AFTERLIFE_BLOCK_AUTHORS`) explicitly.
 
 **1. Fetch and check the proof** of the `belay-proof-exploit-test` job (its id is in the job's URL, `.../-/jobs/<id>`). This is
 the target's report-only proof, made in the agent's own MR pipeline, so it is posted only where belay-apply would take that
@@ -117,11 +117,11 @@ nothing is written.
 **2. Post it** with the component's own script, so the note is byte-identical to the one CI would post:
 
 ```
-CI_PROJECT_URL=https://gitlab.com/<target path> BELAY_BOT_TOKEN=by-hand node gitlab/components/scripts/proof/post-proof.mjs --proof <dir>/proof.json --mr <iid>
+CI_PROJECT_URL=https://gitlab.com/<target path> AFTERLIFE_BOT_TOKEN=by-hand node gitlab/components/scripts/proof/post-proof.mjs --proof <dir>/proof.json --mr <iid>
 ```
 
 `post-proof` only checks that the variable is set (`post-proof.mjs:47`) and never reads its value: `glab` posts with the
-operator's own login. `by-hand` is not a secret. If `glab` is not on PATH, set `BELAY_GLAB=<path to glab.exe>`. It runs
+operator's own login. `by-hand` is not a secret. If `glab` is not on PATH, set `AFTERLIFE_GLAB=<path to glab.exe>`. It runs
 `glab mr note create <iid> -R <url> -m <note>`, then `glab mr update <iid> -R <url> --label proof::<verdict> --unlabel` the
 other two. If `<dir>/proof.json` is not there (step 1 refused and removed it, or a mistyped path) it exits 2 and posts nothing;
 only an empty file posts an inconclusive note.
@@ -135,18 +135,18 @@ glab mr update <iid> -R <target path> --label guardrail::pass --unlabel guardrai
 
 **4. Derive the events and append the ledger line.** The events are derived on your machine from facts GitLab holds, and
 never fetched from a job: the target's tier-gate job runs in the agent's own MR pipeline, where a pipeline variable outranks
-its `BELAY_GUARDRAIL_AUTHORS` and a CI change rewrites the job (F90).
+its `AFTERLIFE_GUARDRAIL_AUTHORS` and a CI change rewrites the job (F90).
 
 ```
 CI_PROJECT_ID=<project id> node gitlab/components/scripts/hand/derive-gate.mjs --mr <iid> --proof-authors <your username> --guardrail-authors <guardrail service account username> --policy-project <group path>/belay-policy --ledger-project <group path>/belay-ledger --out <new dir>   # [R?]
-BELAY_DIR=<Belay checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/components/scripts/decide/ledger-append.mjs --events <new dir>/events --project <group path>/belay-ledger --branch main --key "$(cat <new dir>/ledger-key)"   # [R?]
+AFTERLIFE_DIR=<Afterlife checkout as a C:/ path> CI_PROJECT_ID=<project id> node gitlab/components/scripts/decide/ledger-append.mjs --events <new dir>/events --project <group path>/belay-ledger --branch main --key "$(cat <new dir>/ledger-key)"   # [R?]
 ```
 
 `derive-gate` runs what belay-apply runs (`../apply/sweep.mjs`), with your own `glab` login: `fetch-block` for the
 `belay-proof` note you posted in step 2 and for the guardrail's `belay-guardrail` note, each for the MR's current head and
 from the account named on the command line only (no variable is read for either); `trust-policy.yml` and `tier-state.yml` as
 the policy project's default branch has them now; the diff from base to head from the compare API; `engine gate` in this
-checkout (`BELAY_DIR`, default the checkout the script is in); then `apply-gate --dry 1 --emit-dir <new dir>/events` with the
+checkout (`AFTERLIFE_DIR`, default the checkout the script is in); then `apply-gate --dry 1 --emit-dir <new dir>/events` with the
 MR's agent and class. It reads no job artifact and writes nothing to GitLab. `<new dir>` must be new or empty, so no earlier
 head's events are appended; it also holds `decision.json` and every input the gate read. Exit 0: the events are written,
 append them. Exit 3: nothing to append, and it says why (no proof note of yours for this head or an ambiguous one, already
@@ -166,7 +166,7 @@ belay-apply (M2) finds the head ledgered and skips it. Once per head is enforced
 `derive-gate` reads the commits of `events/<project id>.jsonl` on `--ledger-branch` (default `main`) since the MR was opened
 (`ledgered.mjs`, the one copy of the rule belay-apply's sweep reads through, same 5-page cap) and, if one carries the key, exits 3 with `already ledgered for this head` and writes no
 `events` directory. A ledger it cannot read, or more commits than the cap, is exit 2: whether the head was appended is not known.
-The command it prints on success is step 4's second line with the key, `BELAY_DIR` and the numeric project id filled in,
+The command it prints on success is step 4's second line with the key, `AFTERLIFE_DIR` and the numeric project id filled in,
 every path single-quoted so Git Bash keeps its backslashes: paste it as printed. Only a head ledgered by hand without `--key`
 (before this) is not recognised.
 
@@ -204,7 +204,7 @@ parses; exit 10, 1, 2 and 3 as stated) and every `file:line` citation against th
 `glab 1.120.0 --help`. No command talked to a host: steps 1, 2 and 4 ran against the fake `glab` and the real engine
 (`hand/*.test.mjs`, `proof/post-proof.test.mjs`), including step 4's printed append command run as printed in Git Bash, and
 the `.env.local` preconditions against `src/server/poller/config.ts` (`poller/__tests__/config.test.ts`). Fixed: a failed
-notes read in `derive-gate` was exit 3, not 2; its printed append command lacked `BELAY_DIR` and lost its paths'
+notes read in `derive-gate` was exit 3, not 2; its printed append command lacked `AFTERLIFE_DIR` and lost its paths'
 backslashes; `post-proof` posted an inconclusive note for a missing proof file; live mode silently watched the default
 group, or believed no proof note, when a variable was missing; eight citations had drifted.
 
@@ -220,11 +220,11 @@ the target's own CI configuration and no variables; belay-apply, from M2, re-der
 
 ## The files the jobs write and read
 
-Notes written by the flows carry a fenced block, so Belay and the engine find them without parsing prose:
+Notes written by the flows carry a fenced block, so Afterlife and the engine find them without parsing prose:
 
 | Fence tag | Written by | Read by | Schema |
 |---|---|---|---|
-| `belay-proof` | belay-apply's bot (`post-proof.mjs`), or the operator by hand in M1 | tier-gate, belay-apply, Belay | `src/schemas/proof.ts` |
+| `belay-proof` | belay-apply's bot (`post-proof.mjs`), or the operator by hand in M1 | tier-gate, belay-apply, Afterlife | `src/schemas/proof.ts` |
 | `belay-guardrail` | guardrail flow | tier-gate, tripwire, proof-engine (cited-diff) | `../flows/schemas/guardrail-verdict.schema.json` |
 | `belay-claims` | patcher, gardener (MR description) | proof-engine | `../flows/schemas/claims.schema.json` (`build-evidence.mjs`); `gardener-claims.schema.json` is checked by nothing yet (gardener is cut) |
 | `belay-medic` | medic flow | proof-engine (rerun-stats) | `../flows/schemas/medic-verdict.schema.json` |
@@ -237,21 +237,21 @@ and tripwire need the class, and `reopened_finding` needs the finding).
 ## Scripts
 
 `scripts/*.mjs` are plain Node 20 with no dependencies, and call `glab` and the engine through `execFileSync` (no shell string).
-`BELAY_GLAB='node|fake-glab.mjs'` swaps in a fake for tests. Tested here against a fake `glab` and the real engine: the cited-diff
+`AFTERLIFE_GLAB='node|fake-glab.mjs'` swaps in a fake for tests. Tested here against a fake `glab` and the real engine: the cited-diff
 and exploit-test chains (`mr-context` to `fetch-block` to `build-evidence` to `prove`), `post-proof`, `apply-gate`, a tripwire sweep
 with its idempotence, and a two-event ledger append. belay-apply's two sweeps (`../apply/*.test.mjs`) run these same
 scripts end to end. `scripts/target-tokens.test.mjs` expands the target example with every component it includes and
 fails on any write token.
 
 Transient GitLab failures (`lib/core/glab.mjs` `glab()`, tested in `lib/test/glab-retry.test.mjs` and `glab-retry.callers.test.mjs`): a read (a GET, a GraphQL query) is
-tried 3 times in all on 429, 502, 503, 504, a dropped connection or a glab that answers nothing in `BELAY_GLAB_TIMEOUT_MS`
+tried 3 times in all on 429, 502, 503, 504, a dropped connection or a glab that answers nothing in `AFTERLIFE_GLAB_TIMEOUT_MS`
 (default 120 s), 0.5 s then 1 s apart, or Retry-After when glab shows it (at most 5 s). Any other failure, and the last one,
 is thrown as it came, so a fail-closed read still fails closed. A write (a POST, PUT or DELETE, `glab mr note`, `update`,
 `approve`, `merge`) runs once: one that failed with a 5xx or no answer says it may or may not have landed. It is made again
 only when a read first shows it did not land; `writeFile` does that for the commits API (the file's last commit unchanged, or
 the file not there). A GraphQL answer that carries `errors` throws.
 `scripts/hand/` holds the M1 hand-run's two operator scripts (`check-proof.mjs`, `derive-gate.mjs`): they read with the
-operator's own `glab` login and write nothing to GitLab. They import `../apply/ci-touch.mjs`, so they need the Belay
+operator's own `glab` login and write nothing to GitLab. They import `../apply/ci-touch.mjs`, so they need the Afterlife
 checkout's `node_modules` (`yaml`), as belay-apply does.
 
 ## Verified against, and not
@@ -272,7 +272,7 @@ committed in these paths (the only token-shaped strings are `glpat-not-a-real-to
 | F127 | Medium | `scripts/hand/facts.mjs:11-21` (before the fix) | `diffOf` rebuilt the compare API's diff with every path bare. A new file named `infra/x<LF>+++ b/ok.txt` put a `+++` line of its own into the text, and the engine read it as `ok.txt`, outside every `deny_paths` rule (F113's fix does not reach this: the name never arrives whole). `.gitlab/` itself is still caught by ci-touch. | **Fixed** 6b22358 here: paths are quoted with git's C escapes. Test: `scripts/hand/facts.test.mjs`. Fixed in `../apply/sweep.mjs` too, which had its own bare copy of `diffOf` and now reads the diff through this one. Test: `../apply/test/sweep-heads.test.mjs` (xxii). |
 | F115 | Medium | `templates/proof-engine/template.yml:146`, `:166` | `prepare_script` runs in the same job and tree as the engine checkout (`.belay-engine/`) and the policy clone. Code it runs (an agent's tests, say) can rewrite the checker or the policy before `prove`, so the job's proof is the agent's, not only its evidence. The example sets no `prepare_script`. | **Open.** The robust fix moves prepare into its own job that hands over only evidence files: a template redesign. Meanwhile `check-proof` (M1) and belay-apply never take a proof from a job with a `prepare_script` that runs MR code; an includer leaves it empty. |
 | F116 | Medium | `scripts/proof/normalize-sast.mjs:12`; `engine/proofs/exploitTest.ts:100-103` | The rescan keys findings by the report's `vulnerabilities[].id`. If that id is per scan (the file's own `[R?]`), the base id the claim names is never at head, so `finding-closed` passes without a fix. `base-red` and `head-green` still have to hold. | **Open.** The stable key (location plus identifiers) is unverified against the report schema; guessing it could make every rescan pass or fail. Verify on a real report, then key by it. |
-| F117 | Medium | every component job; `BELAY_GLAB` in `scripts/lib/core/glab.mjs` | A pipeline variable reaches the whole job environment, not only the job's `variables:`: `NODE_OPTIONS`, `GIT_CONFIG_*`, or `BELAY_GLAB` (the binary every glab call runs) run code beside `CI_JOB_TOKEN`. So F100's per-input fix cannot close the route in any template. | **Open, operator setting.** The target's "Minimum role to use pipeline variables" set to `no_one_allowed` (the example says so) closes it; `check-proof` and belay-apply already refuse a pipeline that carries one (F63), and belay-apply's own boot refuses `BELAY_GLAB` and `FAKE_GLAB_*` before its tokens are used. A merge request pipeline takes no push-option variables. |
+| F117 | Medium | every component job; `AFTERLIFE_GLAB` in `scripts/lib/core/glab.mjs` | A pipeline variable reaches the whole job environment, not only the job's `variables:`: `NODE_OPTIONS`, `GIT_CONFIG_*`, or `AFTERLIFE_GLAB` (the binary every glab call runs) run code beside `CI_JOB_TOKEN`. So F100's per-input fix cannot close the route in any template. | **Open, operator setting.** The target's "Minimum role to use pipeline variables" set to `no_one_allowed` (the example says so) closes it; `check-proof` and belay-apply already refuse a pipeline that carries one (F63), and belay-apply's own boot refuses `AFTERLIFE_GLAB` and `FAKE_GLAB_*` before its tokens are used. A merge request pipeline takes no push-option variables. |
 | F118 | Low | `templates/proof-engine/template.yml:74-80`, `:118-125`; `templates/tier-gate/template.yml:64-70`, `:106-111` | The F100 pattern: the engine project, ref and pin, glab version and checksum, policy, `prepare_script`, `build_args` and the trusted authors are job `variables:`, which a pipeline variable outranks. | **Fixed** 06b10ab (proof-engine), 28ee646 (tier-gate), ef77681 (maturity-scan's policy ref), 702e879 (policy project), a34ddc8 (trusted authors): each is read from its input, with a `regex`, never from a job variable. Test: `scripts/templates-defaults.test.mjs`. F117 still reaches the rest of the environment. |
 | F119 | Low | `templates/proof-engine/template.yml:62` | `glab_sha256` has no `regex`, unlike tier-gate and maturity-scan. An empty value still fails the job before the download, and a wrong one fails `sha256sum -c`. | **Fixed** 06b10ab: `^[0-9a-f]{64}$`, so an empty value is refused at include time. Test: `scripts/templates-defaults.test.mjs` "every ref and checksum input". |
 | F120 | Low | `templates/proof-engine/template.yml:155` | rerun-stats reads the `belay-medic` block with no `--head-sha`, so a verdict about another commit is proven (for its own `sha`). | **Open.** belay-apply derives rerun-stats itself. |

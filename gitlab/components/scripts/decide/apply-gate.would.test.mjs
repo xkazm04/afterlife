@@ -22,7 +22,7 @@ describe("apply-gate: the next rung's shadow decision (would) is stamped, never 
   const run = (name, decision, { dry = false } = {}) => {
     const emit = path.join(dir, `events-would-${name}`);
     const args = ['--mr', '7', '--sha', HEAD, '--decision', write(`decision-${name}.json`, decision), '--agent', 'ai-patcher-acme', '--class', 'code-fix.patch', '--emit-dir', emit, ...(dry ? ['--dry', '1'] : [])];
-    const r = runScript(dir, 'decide/apply-gate.mjs', args, { env: { ...ENV, BELAY_BOT_TOKEN: 'bot' } });
+    const r = runScript(dir, 'decide/apply-gate.mjs', args, { env: { ...ENV, AFTERLIFE_BOT_TOKEN: 'bot' } });
     const events = fs.existsSync(emit) ? fs.readdirSync(emit).sort().map((f) => JSON.parse(fs.readFileSync(path.join(emit, f), 'utf8'))) : [];
     return { r, emit, events };
   };
@@ -61,7 +61,7 @@ describe("apply-gate: the next rung's shadow decision (would) is stamped, never 
       [`${LEDGER}/repository/files/events%2F1.jsonl`]: { __http: 404, message: '404 File Not Found' },
       [`POST ${LEDGER}/repository/commits`]: { reply: { id: 'f'.repeat(40) } },
     };
-    const r = runScript(dir, 'decide/ledger-append.mjs', ['--events', emit, '--project', 'acme/belay-ledger'], { routes, env: { BELAY_BOT_TOKEN: 'bot' } });
+    const r = runScript(dir, 'decide/ledger-append.mjs', ['--events', emit, '--project', 'acme/belay-ledger'], { routes, env: { AFTERLIFE_BOT_TOKEN: 'bot' } });
     expect(r.code, r.stderr).toBe(0);
     const lines = r.writes.find((w) => w.path === `${LEDGER}/repository/commits`).body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
     expect(lines.map((e) => [e.kind, e.tier_at_time, e.would])).toEqual([['proof_verdict', 'assisted', undefined], ['tier_decision', 'assisted', { tier: 'supervised', decision: 'approve' }]]);

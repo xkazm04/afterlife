@@ -53,5 +53,5 @@ export function notLocal(h: Pick<Headers, 'get'>): string | null {
           : forwardedFor(h);
   return named === null
     ? null
-    : `this request names ${JSON.stringify(named)}, not localhost: Belay acts as your glab login only for a page on this machine`;
+    : `this request names ${JSON.stringify(named)}, not localhost: Afterlife acts as your glab login only for a page on this machine`;
 }

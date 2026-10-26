@@ -58,7 +58,7 @@ export interface LiveSnapshot {
 }
 
 /**
- * `group` is the group the poller watches (runPollCycle's own default, BELAY_GROUP_ID): only its `group:` and `policy:`
+ * `group` is the group the poller watches (runPollCycle's own default, AFTERLIFE_GROUP_ID): only its `group:` and `policy:`
  * rows speak for the poll and the class tiers. A group polled before (a mistyped id, a re-pair) keeps its rows in
  * poll_state, and its last failure must not mark today's group failed and its tiers stale forever.
  */

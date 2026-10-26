@@ -1,5 +1,6 @@
 // The poll scheduler: one cycle, then the next one `intervalMs` after it ends (never two at once). It is started by the
 // live runtime on boot (data/live/runtime.ts) and by nothing else: tests call runPollCycle directly and never start a timer.
+import { envOf } from '@/server/env/env';
 
 export interface Scheduler {
   /** Runs one cycle now (or joins the one in flight) and resolves when it is done. */
@@ -10,9 +11,9 @@ export interface Scheduler {
 /** setTimeout runs a longer delay after 1 ms, which would turn "poll rarely" into "poll back to back". */
 const MAX_TIMER_MS = 2 ** 31 - 1;
 
-/** BELAY_POLL_SECONDS, default 30, never below 5 (the rate limit is spike S7), never past the longest timer. */
+/** AFTERLIFE_POLL_SECONDS, default 30, never below 5 (the rate limit is spike S7), never past the longest timer. */
 export function pollIntervalMs(env: Record<string, string | undefined> = process.env): number {
-  const s = Number(env.BELAY_POLL_SECONDS);
+  const s = Number(envOf(env, 'POLL_SECONDS'));
   return Math.min(MAX_TIMER_MS, (Number.isFinite(s) && s > 0 ? Math.max(5, s) : 30) * 1000);
 }
 

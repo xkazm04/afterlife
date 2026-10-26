@@ -1,6 +1,6 @@
 # Afterlife: module documentation
 
-Afterlife (the codebase is still named Belay) sets up AI agents on a company's GitLab projects and watches them
+Afterlife sets up AI agents on a company's GitLab projects and watches them
 through the work that comes after code: security, review, testing, compliance, releases, upgrades. Two ideas run
 through every screen:
 

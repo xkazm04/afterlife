@@ -1,5 +1,5 @@
-// The hosted replay (BELAY_MODE=replay) is demo on every path. Each server action is a public endpoint there,
-// so each is called as an anonymous caller would, in replay, demo and with BELAY_MODE unset, and must spawn nothing (no
+// The hosted replay (AFTERLIFE_MODE=replay) is demo on every path. Each server action is a public endpoint there,
+// so each is called as an anonymous caller would, in replay, demo and with AFTERLIFE_MODE unset, and must spawn nothing (no
 // glab, no git), open no index (PGlite), reach no network, write no file, start no poll and execute nothing. Boot, too:
 // the instrumentation hook starts no runtime. A guard, not a fix: it passes on the code as it was (questions 1 and 4).
 import fs from 'node:fs';
@@ -43,9 +43,9 @@ const revoke = { kind: 'revoke-class', project: 'ledgerline', changes: [{ class:
 const arm = { kind: 'disarm-track', project: 'ledgerline', track: 'T4' }; // the demo's T4 is armed already
 const gap = { kind: 'stage-gap-mr', project: 'ledgerline', gap: 'g9', stage: 'secure', from: 1, to: 2, title: 'x', branch: 'belay/gap-g9', files: [{ path: 'n/x.yml', content: 'a: 1\n' }] };
 
-describe.each([['replay'], ['demo'], [undefined]])('BELAY_MODE=%s', (mode) => {
+describe.each([['replay'], ['demo'], [undefined]])('AFTERLIFE_MODE=%s', (mode) => {
   it('every server action answers as demo and touches nothing', async () => {
-    vi.stubEnv('BELAY_MODE', mode);
+    vi.stubEnv('AFTERLIFE_MODE', mode);
     vi.stubEnv('NEXT_RUNTIME', 'nodejs');
     const port = actionDeps()?.port;
     const execute = vi.spyOn(port!, 'execute');

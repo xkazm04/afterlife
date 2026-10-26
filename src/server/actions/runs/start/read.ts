@@ -1,17 +1,19 @@
-// The server reads the pre-run panel is drawn from, and the start-run plan checks again: the repos `belay run` may work
+// The server reads the pre-run panel is drawn from, and the start-run plan checks again: the repos `afterlife run` may work
 // (the runner's own strict loader, runner/fleet/load.ts, on the file the spawned CLI will read) and each repo's local
 // branches (git.ts). The hosted replay has no fleet and reads nothing. Kept a few seconds, so /theater's renders and a
 // preview right after share one read.
 import 'server-only';
 import path from 'node:path';
 import { loadFleet } from '../../../../../runner/fleet/load';
+import { envOf } from '@/server/env/env';
+import { dotDirAt } from '@/server/env/settings';
 import { branchesAt } from './git';
 import type { RunBranches, StartData, StartRepo } from './types';
 
 export const REPLAY_CLOSED = 'the hosted replay starts no run: it has no fleet and no machine of yours';
 
 /** The fleet file `node cli/belay.mjs run` reads by default when spawned from the Afterlife checkout (`cwd`). */
-export const fleetFileOf = (afterlife: string): string => path.join(afterlife, '.belay', 'fleet.yml');
+export const fleetFileOf = (afterlife: string): string => path.join(dotDirAt(afterlife), 'fleet.yml');
 
 export type ReposRead = { ok: true; repos: StartRepo[] } | { ok: false; reason: string };
 
@@ -50,7 +52,7 @@ async function read(afterlife: string): Promise<StartData> {
 
 /** The panel's data. Replay: closed, nothing read. One read per START_TTL_MS; concurrent renders share the read in flight. */
 export function loadStartData(env: Record<string, string | undefined> = process.env, afterlife: string = process.cwd(), now: number = Date.now()): Promise<StartData> {
-  if (env.BELAY_MODE === 'replay') return Promise.resolve({ repos: [], branches: {}, closed: REPLAY_CLOSED });
+  if (envOf(env, 'MODE') === 'replay') return Promise.resolve({ repos: [], branches: {}, closed: REPLAY_CLOSED });
   if (kept && kept.key === afterlife && now - kept.at < START_TTL_MS) return kept.data;
   const data = read(afterlife);
   kept = { at: now, key: afterlife, data };

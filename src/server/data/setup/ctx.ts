@@ -1,5 +1,5 @@
 // What one load's step reads share: the port, the paired group, and the one listing of its projects that step 4 reads
-// (the target and the belay projects, by GitLab id). A read that cannot be made says why; a project step 4 creates that
+// (the target and the Afterlife projects, by GitLab id). A read that cannot be made says why; a project step 4 creates that
 // is not there makes a step read failed, never unknown.
 import { GitLabError } from '@/server/gitlab/errors';
 import type { GitLabPort, GlProject } from '@/server/gitlab/port';
@@ -15,7 +15,7 @@ export interface StepCtx {
   groupId: string | number;
   /** The paired group's path, for the texts. */
   group: string;
-  /** The target's index id (BELAY_PROJECT). */
+  /** The target's index id (AFTERLIFE_PROJECT). */
   project: string;
   listing: Listing;
   /** Today on this machine, YYYY-MM-DD (a trial's end is a date). */
@@ -41,8 +41,8 @@ export function targetOf(c: StepCtx): GlProject {
   return t;
 }
 
-/** A belay project of the group, by its path. */
-export function belayOf(c: StepCtx, name: string): GlProject {
+/** An Afterlife project of the group, by its path. */
+export function ownProjectOf(c: StepCtx, name: string): GlProject {
   const p = listed(c).all.find((x) => x.path === name);
   if (!p) throw new Missing(`${name} does not exist in ${c.group} (step 4)`);
   return p;

@@ -23,7 +23,7 @@ export type RepollRuntime = Pick<LiveRuntime, 'refresh' | 'last' | 'snapshot'>;
 /** A Fleet project id: a GitLab path slug, or one suffixed with its GitLab id. */
 const PROJECT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,254}$/;
 
-/** The shortest time between two re-polls a screen asks for (the scheduler polls on its own every BELAY_POLL_SECONDS). */
+/** The shortest time between two re-polls a screen asks for (the scheduler polls on its own every AFTERLIFE_POLL_SECONDS). */
 export const REPOLL_GAP_MS = 10_000;
 const lastAsked = new WeakMap<RepollRuntime, number>();
 

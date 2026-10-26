@@ -1,6 +1,6 @@
 // Setup's live reads. The snapshot gives what the index holds (the pairing row, the target project) synchronously; the
 // rest is a read-only port call made when /setup loads or when the screen asks again: each track's arm block on the
-// target's default branch (checkArm), the belay doctor's capability probe (probeCapabilities), the operator's login,
+// target's default branch (checkArm), the afterlife doctor's capability probe (probeCapabilities), the operator's login,
 // the group's projects and the human steps a read can observe (humanSteps.ts). Nothing here writes, and nothing falls
 // back to the demo's catalogue: a read that cannot be made says so.
 import { checkArm } from '@/server/actions/arm/read';
@@ -24,8 +24,10 @@ export interface SetupPort {
   cfg?: { policyProject: string };
 }
 
-/** The belay projects step 4 creates beside the target. */
-export const BELAY_PROJECTS = ['belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine', 'belay-apply'] as const;
+/** Afterlife's projects step 4 creates beside the target. Wire names: armed groups already hold these projects. */
+export const AFTERLIFE_PROJECTS = ['belay-pack', 'belay-policy', 'belay-ledger', 'belay-engine', 'belay-apply'] as const;
+/** @deprecated the old name, kept while src/app/features/setup/data/stepDetail.test.ts imports it. */
+export const BELAY_PROJECTS = AFTERLIFE_PROJECTS;
 
 export const NO_PORT = 'live mode has no GitLab port yet (the first poll has not finished)';
 
@@ -97,7 +99,7 @@ const isoDay = (d: Date): string => `${d.getFullYear()}-${String(d.getMonth() + 
 
 /** Setup's reads for one load, bound to the port and the snapshot's pairing row. `port` null: every read says why not. */
 export function setupReads(port: SetupPort | null, pairing: PairingRow | null, project: string, now: () => Date = () => new Date()): SetupReads {
-  const projects = [project, ...BELAY_PROJECTS];
+  const projects = [project, ...AFTERLIFE_PROJECTS];
   return {
     group: pairing?.groupPath ?? 'not paired',
     host: pairing?.gitlabHost ?? 'gitlab.com',
@@ -117,7 +119,7 @@ export function setupReads(port: SetupPort | null, pairing: PairingRow | null, p
         if (r.blocker) return { ...at, rows: [], error: blockerLine(r.blocker) };
         return { ...at, rows: r.capabilities.map((c) => ({ id: c.id, label: c.label, status: c.status, reason: c.reason })), error: null };
       } catch (e) {
-        return { ...at, rows: [], error: `belay doctor failed: ${why(e)}` };
+        return { ...at, rows: [], error: `afterlife doctor failed: ${why(e)}` };
       }
     },
     async steps() {

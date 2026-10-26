@@ -81,9 +81,10 @@ export function firstCwd(file: string, max = MAX_HEAD): string | undefined {
   }
 }
 
-const SKIP = ['/appdata/local/temp', '/tmp/', 'build-session', 'belay-reflect', '.claude/worktrees'];
+// 'belay-reflect': reflect dirs an older runner left before it named them afterlife-reflect
+const SKIP = ['/appdata/local/temp', '/tmp/', 'build-session', 'afterlife-reflect', 'belay-reflect', '.claude/worktrees'];
 
-/** A cwd that is scratch, not a project: temp dirs, build sessions, belay's reflect calls and agent worktrees. */
+/** A cwd that is scratch, not a project: temp dirs, build sessions, Afterlife's reflect calls and agent worktrees. */
 export function isScratchPath(cwd: string): boolean {
   const p = `${cwd.replace(/\\/g, '/').toLowerCase()}/`;
   return SKIP.some((s) => p.includes(s));

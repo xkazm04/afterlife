@@ -1,7 +1,7 @@
 # Fleet scan cycles: plan and hand-off
 
-State as of 2026-10-21. Belay's Life After Code submission is due **2026-10-27**. This page holds everything needed to
-pick the work up on another machine. The Spark vault (`.spark/`) and `.belay/` are local and not in git; what they held
+State as of 2026-10-21. Afterlife's Life After Code submission is due **2026-10-27**. This page holds everything needed to
+pick the work up on another machine. The Spark vault (`.spark/`) and `.afterlife/` are local and not in git; what they held
 that matters is copied here.
 
 ## Goal
@@ -20,7 +20,7 @@ that matters is copied here.
 
 | Topic | Decision |
 |---|---|
-| Runner | A thin rewrite of Ascent's cycle runner in `runner/`, run as `belay run --repo <slug>` from the CLI (an in-app button comes later). |
+| Runner | A thin rewrite of Ascent's cycle runner in `runner/`, run as `afterlife run --repo <slug>` from the CLI (an in-app button comes later). |
 | Prompts | Vendored from Ascent, with a drift check. |
 | Landing | Each lane is committed to `belay/wave-<n>`, and the person runs the fast-forward merge and the push. The runner never merges or pushes. |
 | Caps | $3 per lane, $25 per wave. |
@@ -34,12 +34,12 @@ that matters is copied here.
 
 - **`runner/`**: plan, then lanes in worktrees (setup, then Claude, then gates, then commit), then the wave gate, then
   cherry-pick onto `belay/wave-<n>`, then reflect.
-  - Events: append-only `belay.run/0` JSONL at `.belay/runs/<repo>/<wave>.jsonl`, defined in `src/schemas/run/run.ts`.
+  - Events: append-only `belay.run/0` JSONL at `.afterlife/runs/<repo>/<wave>.jsonl`, defined in `src/schemas/run/run.ts`.
   - Waves in one run stack on each other and see the history of earlier ones.
   - Hardened on 10-19: no secrets reach gates, setup or hooks; every child process has a lifetime ceiling and capped
     output; stopping the runner stops its lanes; a lane that edits agent or hook config is parked; a fleet base must be
     a git ref.
-- **`.belay/fleet.yml`** (local, copied from `runner/fleet.example.yml`): each repo's path, base, setup and gates.
+- **`.afterlife/fleet.yml`** (local, copied from `runner/fleet.example.yml`): each repo's path, base, setup and gates.
   Athena's setup must be `uv sync --extra dev`, because plain `uv sync` removes ruff, mypy and pytest.
 - **Screens**:
   - `/runs`: repo, then wave, then lanes, with tokens and cost. Its merge commands use the real fleet path.
@@ -65,7 +65,7 @@ GitLab mirrors (private pull mirrors, pipelines off): `kazdanm-group/athena-port
 
 ## Local hardening run, 2026-10-21 00:30 to 08:30
 
-The plan was diverged from: before any cloud or API-key run, waves ran locally through `belay run` on the Claude
+The plan was diverged from: before any cloud or API-key run, waves ran locally through `afterlife run` on the Claude
 Code CLI login (no `ANTHROPIC_API_KEY`), one reviewing agent per repo, all three repos at once, for 8 hours. Each
 agent reviewed every landed lane and fast-forwarded or cherry-picked only the good ones onto its repo's **local**
 main. All three were pushed to GitHub main afterwards, with the operator's approval.
@@ -79,7 +79,7 @@ main. All three were pushed to GitHub main afterwards, with the operator's appro
 Reviewers rejected 7 landed lanes that passed every gate: a clock moved into a crate documented as pure, a token
 change whose premise did not hold, a filter widened past its item onto a money path, a shortcut breaking
 `extract_json`'s longest-span guarantee, a split that made an import cycle, an owner-call lockout policy, and an
-untested timeout. Each repo's verdicts are in `.belay/runs/<repo>/<wave>.review.md`, which the planner reads.
+untested timeout. Each repo's verdicts are in `.afterlife/runs/<repo>/<wave>.review.md`, which the planner reads.
 
 Each repo's own full verify also turned up a red that the fleet gates never ran, now fixed on main and gated:
 gravitone's vitest suite (red since wave 7), paypal's `cargo deny` (RUSTSEC-2026-0381/0382) and athena's desktop
@@ -120,7 +120,7 @@ already gone when the run started.
 
 ## Next steps, in order (from 2026-10-21)
 
-Done since the first list: the gravitone push, the paypal pull, `.belay/fleet.yml` on this machine, wave 1 and the
+Done since the first list: the gravitone push, the paypal pull, `.afterlife/fleet.yml` on this machine, wave 1 and the
 reflect loop (on the CLI login, 8-16 waves a repo, prompts revised about 25 times).
 
 **Done on 2026-10-21: the Ascent experiment-branch port** (branch `worktree-agent-aa9bc00f8c1ca5ca7`, not merged yet).

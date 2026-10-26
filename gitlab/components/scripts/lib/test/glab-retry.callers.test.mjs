@@ -18,10 +18,10 @@ afterAll(cleanup);
 // Only hangs are timed here: a call that must answer in time would turn red on a slow machine, not on a bug.
 describe('a glab that hangs', () => {
   beforeAll(() => {
-    process.env.BELAY_GLAB_TIMEOUT_MS = '3000';
+    process.env.AFTERLIFE_GLAB_TIMEOUT_MS = '3000';
   });
   afterAll(() => {
-    delete process.env.BELAY_GLAB_TIMEOUT_MS;
+    delete process.env.AFTERLIFE_GLAB_TIMEOUT_MS;
   });
 
   it('is killed at the timeout and, on a read, tried again; the third is thrown with code ETIMEDOUT', () => {
@@ -86,14 +86,16 @@ describe('a job', () => {
     diff_refs: { base_sha: 'b'.repeat(40), head_sha: 'c'.repeat(40) },
   };
   const context = (faults) => harness.runScript(dirJob, 'proof/mr-context.mjs', ['--mr', '7', '--out', 'mr.env'], {
-    routes: { [MR]: flaky(faults, mr) }, env: { BELAY_GLAB_BACKOFF_MS: '0' },
+    routes: { [MR]: flaky(faults, mr) }, env: { AFTERLIFE_GLAB_BACKOFF_MS: '0' },
   });
   beforeEach(() => fs.rmSync(path.join(dirJob, 'mr.env'), { force: true }));
 
   it('passes when its read fails twice with 502 and then answers', () => {
     const r = context([502, 502]);
     expect(r.code, r.stderr).toBe(0);
-    expect(fs.readFileSync(path.join(dirJob, 'mr.env'), 'utf8')).toMatch(/^BELAY_HEAD_SHA=c{40}$/m);
+    const env = fs.readFileSync(path.join(dirJob, 'mr.env'), 'utf8');
+    expect(env).toMatch(/^AFTERLIFE_HEAD_SHA=c{40}$/m);
+    expect(env, 'the pre-rename name too, for a template pinned before the rename').toMatch(/^BELAY_HEAD_SHA=c{40}$/m);
     expect(r.stderr).toMatch(/attempt 3 of 3/);
   });
 

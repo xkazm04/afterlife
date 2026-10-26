@@ -95,7 +95,7 @@ describe('the example jobs that clone belay-engine (M6/F100)', () => {
   it('there is one, so the check is not empty', () => expect(cloners.length).toBeGreaterThan(0));
 
   it.each(cloners.map(([n, j]) => [n, j]))('%s: no job variable picks the engine, and the commit is checked', (_, job) => {
-    for (const k of Object.keys(job.variables ?? {})) expect(k, 'job variable').not.toMatch(/^BELAY_ENGINE_/);
+    for (const k of Object.keys(job.variables ?? {})) expect(k, 'job variable').not.toMatch(/^(AFTERLIFE|BELAY)_ENGINE_/);
     expect(job.script.join('\n')).toMatch(/rev-parse HEAD\)" != "?[0-9a-f]{40}|rev-parse HEAD\)" != "\$\{?[A-Z_]*COMMIT/);
   });
 });

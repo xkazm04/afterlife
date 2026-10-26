@@ -7,9 +7,10 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import nodePath from 'node:path';
 import { parse } from 'yaml';
+import { dotDirAt, envOf } from '../proc/env';
 
 export interface ProjectReposOptions {
-  /** Where projects/ lives: BELAY_DATA_DIR, else the fleet file's folder (both are .belay by default). */
+  /** Where projects/ lives: AFTERLIFE_DATA_DIR, else the fleet file's folder (both are the data folder by default). */
   dataDir?: string;
   /** The default branch of a root, or undefined; git's origin/HEAD unless a test fakes it. */
   baseOf?: (root: string) => string | undefined;
@@ -31,7 +32,7 @@ export function gitDefaultBranch(root: string): string | undefined {
 }
 
 export function projectEntries(o: ProjectReposOptions = {}): ProjectEntry[] {
-  const dir = nodePath.join(o.dataDir ?? process.env.BELAY_DATA_DIR ?? '.belay', 'projects');
+  const dir = nodePath.join(o.dataDir ?? envOf(process.env, 'DATA_DIR') ?? dotDirAt(process.cwd()), 'projects');
   if (!fs.existsSync(dir)) return [];
   const warn = o.warn ?? ((m: string) => console.warn(m));
   const baseOf = o.baseOf ?? gitDefaultBranch;

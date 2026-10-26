@@ -1,4 +1,4 @@
-// One shape for every MR Belay opens (promote, enroll, a gap, arm and disarm): commits on a branch the plan creates off the
+// One shape for every MR Afterlife opens (promote, enroll, a gap, arm and disarm): commits on a branch the plan creates off the
 // base, then one MR from it. Built here, each gets the same guarantees, so none can forget one:
 // - the branch is new or the plan refuses at preview, naming it and its head (F38, F85): never committed onto after the click;
 // - the first commit creates the branch (start_branch), force is never set;
@@ -22,11 +22,11 @@ export async function newBranch(ctx: Pick<PlanContext, 'port'>, project: Where, 
     body = await ctx.port.get(`projects/${encodeURIComponent(String(project.id))}/repository/branches/${encodeURIComponent(branch)}`);
   } catch (e) {
     if (isKind(e, 'not-found')) return;
-    throw new ActionRefused(`Belay could not read whether ${branch} exists in ${project.pathWithNamespace} (${messageOf(e)}): nothing is planned`);
+    throw new ActionRefused(`Afterlife could not read whether ${branch} exists in ${project.pathWithNamespace} (${messageOf(e)}): nothing is planned`);
   }
   const id = (body as { commit?: { id?: unknown } } | null)?.commit?.id;
   const head = typeof id === 'string' && COMMIT_ID.test(id) ? `its head is ${id.slice(0, 8)}` : 'GitLab did not say its head';
-  throw new ActionRefused(`${branch} already exists in ${project.pathWithNamespace} (${head}): Belay commits only to a new branch, so delete the branch, or merge or close its MR, then try again`);
+  throw new ActionRefused(`${branch} already exists in ${project.pathWithNamespace} (${head}): Afterlife commits only to a new branch, so delete the branch, or merge or close its MR, then try again`);
 }
 
 export interface BranchMrInput {

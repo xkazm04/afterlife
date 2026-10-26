@@ -14,7 +14,7 @@ describe('touchesCi (F68)', () => {
   it('an include path that carries a variable counts as touching CI', () => {
     for (const ci of [
       'include:\n  - local: /ci/$CI_COMMIT_REF_SLUG.yml\n',
-      'include:\n  - local: "/ci/${BELAY_CI}.yml"\n',
+      'include:\n  - local: "/ci/${TARGET_CI}.yml"\n',
       'include: "ci/$FILE.yml"\n',
       'include:\n  - project: acme/app\n    file: /ci/$FILE.yml\n',
       'include:\n  - project: $CI_PROJECT_PATH\n    file: /ci/replay.yml\n',

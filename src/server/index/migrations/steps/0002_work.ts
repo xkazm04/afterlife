@@ -1,5 +1,5 @@
 // Work: tasks and their proofs, the Needs-you inbox, and the maturity scan.
-// Sources: task + proof <- MR notes (belay-proof blocks) and the ledger; proposal <- GitLab state plus Belay's own
+// Sources: task + proof <- MR notes (belay-proof blocks) and the ledger; proposal <- GitLab state plus Afterlife's own
 // asks (promotion MRs, CRA clocks, gap picks); stage_cell <- the maturity scan of the repository.
 import { CEILINGS, STAGE_LIST, type Migration } from '../parts';
 

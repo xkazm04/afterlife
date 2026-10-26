@@ -1,4 +1,4 @@
-// `belay doctor`: local preflight, then real capability probes against BELAY_GROUP_ID.
+// `afterlife doctor`: local preflight, then real capability probes against AFTERLIFE_GROUP_ID.
 // Run by cli/belay.mjs through tsx. Read-only: it only ever sends GETs. Exit 0, 2 or 3: doctor/render.ts.
 import { messageOf } from '@/lib/format/error';
 import { defaultExec, type ExecFn } from './adapter/exec';

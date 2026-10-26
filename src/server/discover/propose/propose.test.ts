@@ -84,7 +84,7 @@ const outcome = (o: Partial<AgentOutcome>): AgentOutcome => ({ text: '', isError
 
 describe('proposeWith', () => {
   it('asks once, with the engine, no tools and the facts, from a temp dir, and passes the effort through to claude', async () => {
-    root = mkdtempSync(path.join(tmpdir(), 'belay-propose-'));
+    root = mkdtempSync(path.join(tmpdir(), 'afterlife-propose-'));
     const calls: AgentCall[] = [];
     const r = await proposeWith(root, { model: 'claude-haiku-5-5', effort: 'low' }, async (c) => (calls.push(c), outcome({ text: JSON.stringify(RAW) })));
     expect(calls).toHaveLength(1);
@@ -98,7 +98,7 @@ describe('proposeWith', () => {
   });
 
   it('a claude that cannot start is ClaudeMissingError; a failed call says its first stderr line', async () => {
-    root = mkdtempSync(path.join(tmpdir(), 'belay-propose-'));
+    root = mkdtempSync(path.join(tmpdir(), 'afterlife-propose-'));
     const engine = { model: 'claude-sonnet-5-5', effort: 'low' } as const;
     await expect(proposeWith(root, engine, async () => outcome({ exitCode: 1, stderr: "'claude' is not recognized as an internal or external command" }))).rejects.toThrow(ClaudeMissingError);
     await expect(proposeWith(root, engine, async () => outcome({ exitCode: 1, stderr: 'API error 529\nmore' }))).rejects.toThrow('claude failed (exit 1): API error 529');

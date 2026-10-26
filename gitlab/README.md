@@ -1,6 +1,6 @@
-# GitLab side of Belay
+# GitLab side of Afterlife
 
-What runs inside GitLab, and keeps running with Belay's laptop closed. Belay itself only reads these and writes on a person's
+What runs inside GitLab, and keeps running with Afterlife's laptop closed. Afterlife itself only reads these and writes on a person's
 click. Inside GitLab, only belay-apply (`apply/`) writes. Module B4 of `docs/BACKEND-PLAN.md`. Nothing here has run on a live GitLab yet: it is written against the docs (each file's
 header names the page for each construct) and tested against a fake `glab` and the real engine in `engine/`.
 
@@ -30,7 +30,7 @@ belay-apply sweep   ->  engine prove (no model, its own engine)  ->  MR note: be
                     ->  engine gate over tier-state.yml  ->  approve | auto-merge | wait | block, labels
                     ->  engine ledger append  ->  belay-ledger/events/<project>.jsonl
 belay-apply tripwire->  engine tripwire  ->  tier-state.yml commit to belay-policy (down only)
-Belay (local)       ->  polls all of the above; writes only on a click
+Afterlife (local)   ->  polls all of the above; writes only on a click
 ```
 
 The target pipelines hold no write token: any job there, the agent's own tests included, could read one (F4). belay-apply

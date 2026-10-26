@@ -1,9 +1,9 @@
 // The one spelling of a start-run's command line. The confirm spawns `node <argv>` from the Afterlife checkout; the
-// preview shows the same argv as the person would type it (`belay run ...`). Pure: tested as a string.
+// preview shows the same argv as the person would type it (`afterlife run ...`). Pure: tested as a string.
 import { displayOf } from '../../vitals/context';
 import type { StartRepo, StartRun } from './types';
 
-/** `run --repo <slug> --mode <m> ...`: the arguments after `belay` (and after `node cli/belay.mjs`). */
+/** `run --repo <slug> --mode <m> ...`: the arguments after `afterlife` (and after `node cli/belay.mjs`). */
 export function runArgs(i: StartRun): string[] {
   const out = ['run', '--repo', i.repo, '--mode', i.mode];
   if (i.mode === 'execute') {
@@ -20,8 +20,8 @@ export function runArgs(i: StartRun): string[] {
 /** What the node process is handed: the CLI's path, relative to the checkout it runs from, then the arguments. */
 export const nodeArgv = (i: StartRun): string[] => ['cli/belay.mjs', ...runArgs(i)];
 
-/** `belay run --repo grinex-portal --mode propose ...`, as the person would type it. */
-export const runDisplay = (i: StartRun): string => displayOf('belay', runArgs(i));
+/** `afterlife run --repo grinex-portal --mode propose ...`, as the person would type it. */
+export const runDisplay = (i: StartRun): string => displayOf('afterlife', runArgs(i));
 
 const plural = (n: number, one: string): string => `${n} ${one}${n === 1 ? '' : 's'}`;
 

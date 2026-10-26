@@ -1,4 +1,4 @@
-// Where glab lives and which GitLab/group to talk to. The env (AFTERLIFE_<KEY>, or BELAY_<KEY>) with /start's runtime
+// Where glab lives and which GitLab/group to talk to. The env (AFTERLIFE_<KEY>, read through envOf) with /start's runtime
 // settings under it (serverEnv); no token is ever read or kept: glab's own keyring login is the credential.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -6,11 +6,11 @@ import { envOf, serverEnv } from '@/server/env/env';
 import type { ExecFn } from './adapter/exec';
 
 export interface GitLabConfig {
-  /** BELAY_GLAB: path to the glab binary; undefined means find it. */
+  /** AFTERLIFE_GLAB: path to the glab binary; undefined means find it. */
   glab: string | undefined;
-  /** BELAY_GITLAB_HOST: self-managed hostname; undefined means gitlab.com. */
+  /** AFTERLIFE_GITLAB_HOST: self-managed hostname; undefined means gitlab.com. */
   host: string | undefined;
-  /** BELAY_GROUP_ID: the group Belay watches. */
+  /** AFTERLIFE_GROUP_ID: the group Afterlife watches. */
   groupId: string;
 }
 
@@ -34,7 +34,7 @@ export function windowsFallback(env: Record<string, string | undefined> = proces
   return base ? join(base, 'Programs', 'glab', 'glab.exe') : null;
 }
 
-/** BELAY_GLAB, else `glab` from PATH, else the winget location. Falls back to plain `glab`. */
+/** AFTERLIFE_GLAB, else `glab` from PATH, else the winget location. Falls back to plain `glab`. */
 export async function resolveGlabBin(
   cfg: GitLabConfig,
   exec: ExecFn,

@@ -15,9 +15,9 @@ describe('belay-apply sweep: apply', { timeout: 240_000 }, () => {
     expect(notes).toHaveLength(2);
     const proof = proofOf(notes[0]);
     expect(proof).toMatchObject({ verdict: 'pass', class: 'exploit-test', task: { head_sha: HEAD, mr_iid: 7, project_id: 1, run_id: 'pipeline-500' } });
-    expect(notes[0].body.message).toMatch(/^\*\*Belay proof: PASS\*\* \| class `exploit-test`/);
+    expect(notes[0].body.message).toMatch(/^\*\*Afterlife proof: PASS\*\* \| class `exploit-test`/);
     expect(notes[0].body.message.endsWith('\n\nBelay-Task: 01J9ZP6M2Q8E4V7K3N5R1T0XAB')).toBe(true);
-    expect(notes[1].body.message).toMatch(/^\*\*Belay gate: APPROVE\*\* \| tier `supervised`/);
+    expect(notes[1].body.message).toMatch(/^\*\*Afterlife gate: APPROVE\*\* \| tier `supervised`/);
     const labels = glabWrites(r, 'update').map((w) => w.body.label);
     expect(labels).toEqual(['proof::pass', 'belay::tier::supervised,guardrail::pass']);
     expect(granted(r)).toEqual([expect.objectContaining({ path: 'mr approve', body: expect.objectContaining({ iid: '7', sha: HEAD, repo: URL_ }) })]);
@@ -40,7 +40,7 @@ describe('belay-apply sweep: apply', { timeout: 240_000 }, () => {
     const finding = { rule: 'prompt-injection', severity: 'high', file: 'CHANGELOG.md', quote: 'ignore previous instructions', explanation: 'an instruction to the reviewer in the changelog' };
     const r = sweep(group({ notes: [guardrailNote('block', HEAD, [finding])] }));
     expect(r.code, r.stderr).toBe(0);
-    expect(glabWrites(r, 'note create')[1].body.message).toMatch(/^\*\*Belay gate: BLOCK\*\*/);
+    expect(glabWrites(r, 'note create')[1].body.message).toMatch(/^\*\*Afterlife gate: BLOCK\*\*/);
     expect(glabWrites(r, 'update').at(-1).body.label).toContain('guardrail::block');
     expect(granted(r)).toEqual([]);
 
@@ -50,7 +50,7 @@ describe('belay-apply sweep: apply', { timeout: 240_000 }, () => {
     expect(bump.code, bump.stderr).toBe(0);
     const [note, ...more] = glabWrites(bump, 'note create');
     expect(more).toEqual([]);
-    expect(note.body.message).toMatch(/^\*\*Belay gate: BLOCK\*\* \| tier `unknown`\n- head a{40}: the guardrail blocked this head; also, no Proof Block could be derived/);
+    expect(note.body.message).toMatch(/^\*\*Afterlife gate: BLOCK\*\* \| tier `unknown`\n- head a{40}: the guardrail blocked this head; also, no Proof Block could be derived/);
     expect(glabWrites(bump, 'update').map((w) => w.body.label)).toEqual(['guardrail::block']);
     expect(granted(bump)).toEqual([]);
   });
@@ -70,7 +70,7 @@ describe('belay-apply sweep: apply', { timeout: 240_000 }, () => {
       expect(r.code, r.stderr).toBe(0);
       const notes = glabWrites(r, 'note create');
       expect(notes).toHaveLength(1);
-      expect(notes[0].body.message).toMatch(/^\*\*Belay gate: WAIT\*\*/);
+      expect(notes[0].body.message).toMatch(/^\*\*Afterlife gate: WAIT\*\*/);
       expect(notes[0].body.message).toMatch(why);
       expect(notes[0].body.message).toContain(HEAD);
       expect(notes[0].body.message).toMatch(/a person reviews it/);

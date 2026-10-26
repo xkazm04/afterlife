@@ -1,18 +1,19 @@
-# Example .gitlab-ci.yml for the target project (ledgerline) with the Belay components a target runs.
-# Replace: acme (the group), v0.1.0 and the commit (a Belay release).
+# Example .gitlab-ci.yml for the target project (ledgerline) with the Afterlife components a target runs.
+# Replace: acme (the group), v0.1.0 and the commit (an Afterlife release).
 # Syntax: include:component, inputs, workflow:rules, rules, needs - https://docs.gitlab.com/ci/yaml/ and https://docs.gitlab.com/ci/components/ [S]
 #
 # No write token, ever (F4; decided 2026-10-07, ask 6696d24d): every job here uses CI_JOB_TOKEN only, produces artifacts
 # and reports. belay-apply (gitlab/apply) reads this project with its own token, re-derives the proof from the evidence
-# below, runs the gate, starts the guardrail, appends the ledger and runs the tripwire. Set no Belay token on this project.
+# below, runs the gate, starts the guardrail, appends the ledger and runs the tripwire. Set no Afterlife token on this project.
 #
 # Needs in the target project's Settings:
-#   CI/CD variables: none for Belay
+#   CI/CD variables: none for Afterlife
 #   CI/CD > Variables: Minimum role to use pipeline variables = no_one_allowed (belay-apply never reads a pipeline that carries one, F63)
 #   belay-replay runs in merge request pipelines and is never when: manual
 #   CI/CD > Job token permissions: belay-engine and belay-policy allow this project (inbound allowlist)
 #   Repository: protected branches main and belay/*; CODEOWNERS on .gitlab-ci.yml and .gitlab/
-#   Schedules (default branch): "security" (daily, no variable), "maturity" daily with BELAY_SCAN=maturity.
+#   Schedules (default branch): "security" (daily, no variable), "maturity" daily with AFTERLIFE_SCAN=maturity and
+#                               BELAY_SCAN=maturity (both, while a pack pinned before the rename reads only BELAY_SCAN).
 #                               Owners of schedules should be people.
 #   belay-apply's apply.json: this project under targets, with its guardrail consumer id and evidence paths.
 #   .gitignore: .belay-engine/ .belay-policy/ .belay/ evidence/
@@ -77,7 +78,7 @@ belay-replay-vars:
       set -eu
       ENGINE_PROJECT=acme/belay-engine; ENGINE_REF=v0.1.0; ENGINE_COMMIT=0000000000000000000000000000000000000000
       git clone -q --depth 1 --branch "$ENGINE_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${ENGINE_PROJECT}.git" .belay-engine
-      if [ "$(git -C .belay-engine rev-parse HEAD)" != "$ENGINE_COMMIT" ]; then echo "belay engine is not at the pinned $ENGINE_COMMIT" >&2; exit 2; fi
+      if [ "$(git -C .belay-engine rev-parse HEAD)" != "$ENGINE_COMMIT" ]; then echo "the Afterlife engine is not at the pinned $ENGINE_COMMIT" >&2; exit 2; fi
       mkdir -p .belay && node .belay-engine/gitlab/components/scripts/proof/replay-vars.mjs --mr "$CI_MERGE_REQUEST_IID" > .belay/replay.env
   artifacts: { paths: [.belay/replay.env] }
 

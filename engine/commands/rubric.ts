@@ -4,7 +4,7 @@
 //   R1 present on the default branch
 //   R2 ran on the default branch in the last 14 days and produced an artifact
 //   R3 failing it blocks a merge or deploy
-//   R4 an agent operates it and Belay re-derives its proofs
+//   R4 an agent operates it and Afterlife re-derives its proofs
 import type { Stage } from '../../src/schemas/stages';
 
 /** How a stage is present on the default branch (R1). */
@@ -22,7 +22,7 @@ export interface StageRule {
   /** R3: pipelines must succeed before a merge (project.merge_requires_pipeline) and R2's job may not fail
    * (ci_config.jobs[].allow_failure is false). false: not read by this rubric. */
   r3: boolean;
-  /** R4: the project holds an agent config (duo_agent_config) and a Belay proof job matching this ran with an artifact on
+  /** R4: the project holds an agent config (duo_agent_config) and an Afterlife proof job matching this ran with an artifact on
    * the same pipeline within 14 days. null: not read by this rubric. */
   r4: RegExp | null;
 }
@@ -36,6 +36,7 @@ export const NOT_AN_ARTIFACT: ReadonlySet<string> = new Set(['trace', 'metadata'
 const SECURITY_REPORTS = ['sast', 'secret_detection', 'dependency_scanning', 'container_scanning', 'dast', 'cyclonedx'] as const;
 const word = (alternatives: string): RegExp => new RegExp(`(^|[-_:/ ])(${alternatives})($|[-_:/ ])`, 'i');
 
+// The r4 patterns are wire names: CI job names armed pipelines already run (belay-proof-*), so they keep the old name.
 export const RUBRIC: readonly StageRule[] = [
   { stage: 'plan', r1: { kind: 'templates' }, r2: null, r3: false, r4: null },
   { stage: 'create', r1: { kind: 'review' }, r2: null, r3: false, r4: null },

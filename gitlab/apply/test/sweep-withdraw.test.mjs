@@ -27,7 +27,7 @@ describe('belay-apply sweep: withdraw', { timeout: 240_000 }, () => {
       expect(r.writes.filter((w) => w.path === CANCEL)).toEqual([expect.objectContaining({ method: 'POST' })]);
       const notes = glabWrites(r, 'note create');
       expect(notes).toHaveLength(1);
-      expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay: auto-merge cancelled\\*\\* for head \`${HEAD}\`: the gate now says (approve|wait|block) at tier ${tier}`));
+      expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Afterlife: auto-merge cancelled\\*\\* for head \`${HEAD}\`: the gate now says (approve|wait|block) at tier ${tier}`));
       expect(granted(r)).toEqual([]);
     }
     // An auto-merge a person set is theirs: the sweep leaves it, and writes nothing.
@@ -51,7 +51,7 @@ describe('belay-apply sweep: withdraw', { timeout: 240_000 }, () => {
     expect(r.writes.filter((w) => w.path === UNAPPROVE)).toEqual([expect.objectContaining({ method: 'POST' })]);
     const notes = glabWrites(r, 'note create');
     expect(notes).toHaveLength(1);
-    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay: approval withdrawn\\*\\* for head \`${HEAD}\`: the gate now says (wait|block) at tier quarantined`));
+    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Afterlife: approval withdrawn\\*\\* for head \`${HEAD}\`: the gate now says (wait|block) at tier quarantined`));
     expect(granted(r)).toEqual([]);
     // the unapprove, its note, and the one ledger commit of the withdrawal (case xx)
     expect(r.writes).toHaveLength(3);
@@ -77,7 +77,7 @@ describe('belay-apply sweep: withdraw', { timeout: 240_000 }, () => {
     const withdrawn = (r, why) => {
       expect(r.code, r.stderr).toBe(0);
       expect(r.writes.filter((w) => w.path === UNAPPROVE)).toEqual([expect.objectContaining({ method: 'POST' })]);
-      expect(glabWrites(r, 'note create').map((n) => n.body.message)).toContainEqual(expect.stringMatching(new RegExp(`^\\*\\*Belay: approval withdrawn\\*\\* for head \`${HEAD}\`: ${why}`)));
+      expect(glabWrites(r, 'note create').map((n) => n.body.message)).toContainEqual(expect.stringMatching(new RegExp(`^\\*\\*Afterlife: approval withdrawn\\*\\* for head \`${HEAD}\`: ${why}`)));
       expect(granted(r)).toEqual([]);
     };
 

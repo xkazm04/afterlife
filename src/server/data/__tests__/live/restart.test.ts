@@ -21,7 +21,7 @@ vi.mock('../../live/ports', async (orig) => ({ ...(await orig<object>()), create
 vi.mock('@/server/index/db', async (orig) => ({ ...(await orig<object>()), getIndex: vi.fn() }));
 
 const holder = globalThis as unknown as Record<symbol, unknown>;
-const KEYS = ['starting', 'ready', 'failed', 'restarting', 'restarted'].map((k) => Symbol.for(`belay.liveRuntime.${k}`));
+const KEYS = ['starting', 'ready', 'failed', 'restarting', 'restarted'].map((k) => Symbol.for(`afterlife.liveRuntime.${k}`));
 const reset = (): void => {
   readyRuntime()?.scheduler?.stop();
   for (const k of KEYS) delete holder[k];

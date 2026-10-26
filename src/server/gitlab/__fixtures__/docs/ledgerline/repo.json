@@ -2,7 +2,7 @@
   "_shape": "[R] from docs: file contents (served base64 by the fake) and Ultimate vulnerabilities of ledgerline",
   "files": {
     ".gitlab-ci.yml": "stages: [build, test, deploy]\ninclude:\n  - template: Security/SAST.gitlab-ci.yml\nunit-tests:\n  stage: test\n  script: [npm ci, npx vitest run]\n",
-    "README.md": "# ledgerline\n\nDemo bank for Belay.\n"
+    "README.md": "# ledgerline\n\nDemo bank for Afterlife.\n"
   },
   "vulnerabilities": [
     { "id": 6001, "title": "Use of a broken or risky cryptographic algorithm", "severity": "high", "state": "detected", "report_type": "sast", "created_at": "2026-10-08T09:30:00.000Z", "web_url": "https://gitlab.com/afterlife3274741/ledgerline/-/security/vulnerabilities/6001" },

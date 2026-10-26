@@ -56,13 +56,13 @@ describe('readShellInfo', () => {
   });
 
   it('live on the fake GitLab: the mode, the fake flag, the snapshot\'s group, and the illustrative catalogue are named', () => {
-    const info = readShellInfo(liveSource(() => S), { BELAY_MODE: 'live', BELAY_GITLAB: 'fake' });
+    const info = readShellInfo(liveSource(() => S), { AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB: 'fake' });
     expect(info.data).toEqual({ mode: 'live', fakeGitlab: true, group: S.data.portfolio.group, illustrative: true, poll: { ...S.data.poll, intervalSec: 30 } });
   });
 
-  it('live: the poll’s health is the snapshot’s, with the interval the poller keeps (BELAY_POLL_SECONDS)', () => {
+  it('live: the poll’s health is the snapshot’s, with the interval the poller keeps (AFTERLIFE_POLL_SECONDS)', () => {
     expect(S.data.poll).toMatchObject({ error: null, failing: 0 });
-    expect(readShellInfo(liveSource(() => S), { BELAY_POLL_SECONDS: '45' }).data.poll).toEqual({ ...S.data.poll, intervalSec: 45 });
+    expect(readShellInfo(liveSource(() => S), { AFTERLIFE_POLL_SECONDS: '45' }).data.poll).toEqual({ ...S.data.poll, intervalSec: 45 });
   });
 
   it('live: one new decision in the snapshot is one more on the badge; a seeded one is not, as the Needs-you screen lists them', () => {
@@ -80,7 +80,7 @@ describe('readShellInfo', () => {
 
   it('live before the first poll: the read throws the source\'s own reason, it never falls back to a demo shell', () => {
     const notReady = liveSource(() => {
-      throw new Error('BELAY_MODE=live, but the first poll has not finished');
+      throw new Error('AFTERLIFE_MODE=live, but the first poll has not finished');
     });
     expect(() => readShellInfo(notReady, {})).toThrow('first poll has not finished');
   });

@@ -27,13 +27,13 @@ export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise
     const above = holders.filter((h) => TIER_ORDER.indexOf(change.to) < TIER_ORDER.indexOf(h.record.tier));
     if (!above.length) {
       const now = holders.map((h) => (holders.length > 1 ? `${h.agent} ${h.record.tier}` : h.record.tier)).join(', ');
-      throw new ActionRefused(`${change.class} is ${now}: Belay only lowers a tier directly. Raising one is a promotion MR a person merges.`);
+      throw new ActionRefused(`${change.class} is ${now}: Afterlife only lowers a tier directly. Raising one is a promotion MR a person merges.`);
     }
     for (const h of above) {
       edits.push({
         agent: h.agent, class: change.class,
         record: {
-          tier: change.to, since: minuteOf(ctx.now).toISOString(), by: `operator ${ctx.operator} via Belay`, evidence: why,
+          tier: change.to, since: minuteOf(ctx.now).toISOString(), by: `operator ${ctx.operator} via Afterlife`, evidence: why,
           cooldown_until: dateOnly(new Date(ctx.now.getTime() + read.policy.cooldown_days * 86_400_000)),
         },
       });
@@ -47,7 +47,7 @@ export async function planRevoke(ctx: PlanContext, intent: RevokeClass): Promise
   }
 
   const content = editRecords(file.content, edits);
-  const message = [`demote ${moves[0]} (${why})`, '', ...moves.map((m) => `Moved: ${m}`), `Operator: ${ctx.operator}`, 'Lowered by the operator through Belay. Promotion needs a policy MR.'].join('\n');
+  const message = [`demote ${moves[0]} (${why})`, '', ...moves.map((m) => `Moved: ${m}`), `Operator: ${ctx.operator}`, 'Lowered by the operator through Afterlife. Promotion needs a policy MR.'].join('\n');
   return {
     title: intent.changes.length === 1 ? `Revoke ${intent.changes[0]?.class}` : `Revoke ${intent.changes.length} classes`,
     summary: `Commits tier-state.yml to ${repo.pathWithNamespace} on ${branch} as ${ctx.operator}. The next MR pipeline reads the new tier.`,

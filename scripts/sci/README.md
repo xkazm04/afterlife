@@ -21,7 +21,7 @@ P=afterlife3274741%2Fledgerline
 glab api --paginate "projects/$P/pipelines?per_page=100&updated_after=2026-10-01T00:00:00Z" > ledgerline-pipelines.json
 node scripts/sci/measure.mjs --list-ids --input ledgerline-pipelines.json \
   | while read -r id; do glab api --paginate "projects/$P/pipelines/$id/jobs?per_page=100&include_retried=true"; done > ledgerline-jobs.json
-node scripts/sci/measure.mjs --input ledgerline-jobs.json --out ledgerline-sci.json --projects 1 --poll-hours <hours Belay ran>
+node scripts/sci/measure.mjs --input ledgerline-jobs.json --out ledgerline-sci.json --projects 1 --poll-hours <hours Afterlife ran>
 ```
 
 The tripwire and sweep minutes are in the `belay-apply` project's own pipelines: export them the same way with

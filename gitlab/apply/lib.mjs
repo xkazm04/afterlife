@@ -5,6 +5,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { envOf } from '../components/scripts/lib/env.mjs';
 import { apiAll, die, enc } from '../components/scripts/lib/lib.mjs';
 
 export const GLUE = path.resolve(import.meta.dirname, '..', 'components', 'scripts');
@@ -22,7 +23,7 @@ export function loadConfig(file) {
   if (!PATH.test(c.group ?? '')) bad.push('group');
   if (!PATH.test(c.policy?.project ?? '')) bad.push('policy.project');
   if (!PATH.test(c.ledger?.project ?? '')) bad.push('ledger.project');
-  if (!/^[A-Za-z0-9_.-]+$/.test(c.bot ?? '')) bad.push('bot (the username behind BELAY_BOT_TOKEN)');
+  if (!/^[A-Za-z0-9_.-]+$/.test(c.bot ?? '')) bad.push('bot (the username behind AFTERLIFE_BOT_TOKEN)');
   if (!c.targets || typeof c.targets !== 'object') bad.push('targets');
   for (const t of Object.keys(c.targets ?? {})) if (!PATH.test(t)) bad.push(`targets.${t}`);
   if (bad.length) die(`the config ${file} has no valid ${bad.join(', ')}`);
@@ -76,8 +77,8 @@ export function setCloneSleep(fn) {
   return was;
 }
 
-/** The wait before attempt `next`: 0.5 s, 1 s ($BELAY_CLONE_BACKOFF_MS scales it), never over 5 s. */
-const cloneBackoff = (next) => Math.min(Number(process.env.BELAY_CLONE_BACKOFF_MS ?? 500) * 2 ** (next - 2), CLONE_BACKOFF_CAP_MS);
+/** The wait before attempt `next`: 0.5 s, 1 s ($AFTERLIFE_CLONE_BACKOFF_MS scales it), never over 5 s. */
+const cloneBackoff = (next) => Math.min(Number(envOf(process.env, 'CLONE_BACKOFF_MS') ?? 500) * 2 ** (next - 2), CLONE_BACKOFF_CAP_MS);
 
 /**
  * A fresh clone of belay-policy into `dest`. `remote` is a URL or path (tests); in CI it is built here from CI_JOB_TOKEN,
@@ -111,12 +112,17 @@ export function clonePolicy(cfg, remote, dest, depth = 300) {
   }
 }
 
-/** The four write tokens of belay-apply. A child never inherits one: its call hands it the one it writes with (F71). */
-export const TOKENS = ['BELAY_BOT_TOKEN', 'BELAY_POLICY_TOKEN', 'BELAY_LEDGER_TOKEN', 'BELAY_DISPATCH_TOKEN'];
+/** The four write tokens of belay-apply, by key: each is read as AFTERLIFE_<key>, else the pre-rename BELAY_<key>. */
+export const TOKEN_KEYS = ['BOT_TOKEN', 'POLICY_TOKEN', 'LEDGER_TOKEN', 'DISPATCH_TOKEN'];
+/** Every name a write token can arrive under. A child inherits none of them: its call hands it the one it writes with (F71). */
+export const TOKENS = TOKEN_KEYS.flatMap((k) => [`AFTERLIFE_${k}`, `BELAY_${k}`]);
 
-/** `{name: value}` of the named tokens that are set, for a glue call that writes with them. */
-export function tokens(...names) {
-  return Object.fromEntries(names.filter((n) => TOKENS.includes(n) && process.env[n]).map((n) => [n, process.env[n]]));
+/** The value of one write token (`'BOT_TOKEN'` ...), under either name, or undefined. */
+export const token = (key) => envOf(process.env, key);
+
+/** `{AFTERLIFE_<key>: value}` of the named tokens that are set, for a glue call that writes with them. */
+export function tokens(...keys) {
+  return Object.fromEntries(keys.filter((k) => TOKEN_KEYS.includes(k) && token(k)).map((k) => [`AFTERLIFE_${k}`, token(k)]));
 }
 
 /**

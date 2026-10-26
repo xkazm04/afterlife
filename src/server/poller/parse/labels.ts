@@ -1,5 +1,5 @@
-// GitLab labels that Belay's jobs set (gitlab/README.md, "Contracts used"): proof::*, guardrail::*, belay::tier::*.
-// Conflicting labels resolve to the more restrictive reading, so a stray label can only make Belay more careful.
+// GitLab labels that Afterlife's jobs set (gitlab/README.md, "Contracts used"): proof::*, guardrail::*, belay::tier::*.
+// Conflicting labels resolve to the more restrictive reading, so a stray label can only make Afterlife more careful.
 import { TIER_ORDER, type Tier } from '@/schemas/tier';
 import type { Verdict } from '@/schemas/proof';
 
@@ -23,7 +23,7 @@ export function parseLabels(labels: readonly string[]): LabelFacts {
       if (proof === null || PROOF_RANK[value] > PROOF_RANK[proof]) proof = value;
     } else if (scope === 'guardrail' && (value === 'pass' || value === 'block')) {
       if (guardrail !== 'block') guardrail = value;
-    } else if (scope === 'belay' && value.startsWith('tier::')) {
+    } else if (scope === 'belay' && value.startsWith('tier::')) { // wire label: belay::tier::* on every armed MR
       const t = value.slice('tier::'.length);
       const known = TIER_ORDER.find((x) => x === t);
       if (known && (tier === null || TIER_ORDER.indexOf(known) < TIER_ORDER.indexOf(tier))) tier = known;

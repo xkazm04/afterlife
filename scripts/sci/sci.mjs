@@ -83,7 +83,7 @@ export function measure(jobs, book, opts = {}) {
   const readCo = ['pollReads.perCycleFixed', 'pollReads.perProjectSteady', 'pollReads.perChangedMr', 'pollReads.intervalSeconds'];
 
   return {
-    schema: 'belay-sci/1',
+    schema: 'belay-sci/1', // wire name: the schema id of result files already written; it keeps the old name
     region,
     functionalUnit: {
       provenMrs: q(R, 'MR', { rule: opts.proven ? 'the --proven list' : 'an MR pipeline ran a belay-proof-* job to success', mrs: proven }),

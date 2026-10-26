@@ -1,9 +1,10 @@
 // Starts the provider CLIs: execFile, never a shell, so a KQL pipe or a JMESPath quote is never parsed twice.
 // On Windows `az` is az.cmd, which execFile cannot start without a shell; az.cmd only runs
-// `<install>\python.exe -IBm azure.cli %*`, so we run that python directly (BELAY_AZ_PYTHON overrides the path).
+// `<install>\python.exe -IBm azure.cli %*`, so we run that python directly (AFTERLIFE_AZ_PYTHON overrides the path).
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { envOf } from '@/server/env/env';
 import type { Exec } from './types';
 
 const MAX_BUFFER = 64 * 1024 * 1024;
@@ -13,7 +14,7 @@ const WIN_AZ_PYTHON = 'C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\python.ex
  * because -I ignores PYTHONIOENCODING, and cp1252 drops what it cannot encode ("Swap Staging → Production"). */
 export function resolveBin(bin: string, args: readonly string[], platform = process.platform): { file: string; args: string[] } {
   if (bin === 'az' && platform === 'win32') {
-    const py = process.env.BELAY_AZ_PYTHON ?? WIN_AZ_PYTHON;
+    const py = envOf(process.env, 'AZ_PYTHON') ?? WIN_AZ_PYTHON;
     if (existsSync(py)) return { file: py, args: ['-X', 'utf8', '-IBm', 'azure.cli', ...args] };
   }
   if (bin === 'glab' && platform === 'win32' && !path.extname(bin)) return { file: 'glab.exe', args: [...args] };

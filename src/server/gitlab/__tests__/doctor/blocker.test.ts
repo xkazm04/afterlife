@@ -31,11 +31,11 @@ describe('probeCapabilities names the one blocker', () => {
     expect(r.blocker?.fix).toBe('glab auth login --hostname gitlab.example.com');
   });
 
-  it('glab cannot start: binary, the fix names BELAY_GLAB and the install command', async () => {
+  it('glab cannot start: binary, the fix names AFTERLIFE_GLAB and the install command', async () => {
     const exec: ExecFn = async (file) => { throw new GitLabError('binary', `cannot start ${file}: ENOENT`, file); };
     const r = await probeCapabilities(createGlabAdapter({ bin: 'glab', exec }), GROUP);
     expect(r.blocker?.kind).toBe('binary');
-    expect(r.blocker?.fix).toContain('BELAY_GLAB');
+    expect(r.blocker?.fix).toContain('AFTERLIFE_GLAB');
     expect(r.blocker?.fix).toMatch(/winget install GLab\.GLab/);
   });
 
@@ -45,14 +45,14 @@ describe('probeCapabilities names the one blocker', () => {
     expect(r.blocker?.text).toContain('gitlab.example.com');
   });
 
-  it('signed in, but the group answers 404: group, the text names the id, the fix names BELAY_GROUP_ID', async () => {
+  it('signed in, but the group answers 404: group, the text names the id, the fix names AFTERLIFE_GROUP_ID', async () => {
     const fake = createFakeGitLab({ plan: 'free' });
     const exec: ExecFn = async (file, args) =>
       args.some((a) => /^groups\/999(\?|$)/.test(a)) ? { code: 1, stdout: '', stderr: 'glab: 404 Not Found (HTTP 404)' } : fake.exec(file, args);
     const r = await probeCapabilities(createGlabAdapter({ bin: 'glab', exec }), 999);
     expect(r.blocker?.kind).toBe('group');
     expect(r.blocker?.text).toContain('999');
-    expect(r.blocker?.fix).toContain('BELAY_GROUP_ID');
+    expect(r.blocker?.fix).toContain('AFTERLIFE_GROUP_ID');
     // The rows ran past an unreadable group, so the doctor prints them and does not call them unprobed.
     const lines = renderDoctor(r, { local: LOCAL, groupId: 999 });
     expect(lines[LOCAL.length]?.startsWith('BLOCKED  group 999')).toBe(true);

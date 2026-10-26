@@ -29,8 +29,8 @@ const CFG: ProjectConfig = {
 };
 
 const use = () => {
-  data = mkdtempSync(path.join(tmpdir(), 'belay-store-'));
-  vi.stubEnv('BELAY_DATA_DIR', data);
+  data = mkdtempSync(path.join(tmpdir(), 'afterlife-store-'));
+  vi.stubEnv('AFTERLIFE_DATA_DIR', data);
 };
 
 describe('project store', () => {

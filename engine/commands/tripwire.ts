@@ -1,4 +1,4 @@
-// belay tripwire --policy P --state S --event event.json
+// engine/cli.ts tripwire --policy P --state S --event event.json
 // Exit 0 whether it demoted or not (the JSON says which); exit 2 when the input is wrong.
 import { parseArgs } from '../core/args';
 import { readJson, readText } from '../core/files';

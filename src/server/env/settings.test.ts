@@ -1,10 +1,10 @@
 // The runtime settings file: what is written reads back, a hand edit that breaks a value drops that value (never the
 // file), an undefined patch key removes the setting, and the write never leaves a temp file behind.
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { cleanSettings, dataDirOf, readSettings, settingsFile, writeSettings } from './settings';
+import { cleanSettings, dataDirOf, dotDirAt, readSettings, settingsFile, writeSettings } from './settings';
 
 let dir = '';
 let env: Record<string, string | undefined> = {};
@@ -39,9 +39,17 @@ describe('the settings file', () => {
     expect(readSettings(env)).toEqual({ groupId: '7' });
   });
 
-  it('lives in the data folder: AFTERLIFE_DATA_DIR, else BELAY_DATA_DIR, else .belay in the app root', () => {
+  it('lives in the data folder: AFTERLIFE_DATA_DIR, else BELAY_DATA_DIR, else the app root dot folder', () => {
     expect(dataDirOf({ AFTERLIFE_DATA_DIR: '/a', BELAY_DATA_DIR: '/b' })).toBe('/a');
     expect(dataDirOf({ BELAY_DATA_DIR: '/b' })).toBe('/b');
-    expect(dataDirOf({ AFTERLIFE_DATA_DIR: '' })).toBe(path.join(process.cwd(), '.belay'));
+    expect(dataDirOf({ AFTERLIFE_DATA_DIR: '' })).toBe(dotDirAt(process.cwd()));
+  });
+
+  it('is .afterlife, but keeps a pre-rename .belay while no .afterlife exists', () => {
+    expect(dotDirAt(dir)).toBe(path.join(dir, '.afterlife')); // neither
+    mkdirSync(path.join(dir, '.belay'));
+    expect(dotDirAt(dir)).toBe(path.join(dir, '.belay')); // only the old one: keep it
+    mkdirSync(path.join(dir, '.afterlife'));
+    expect(dotDirAt(dir)).toBe(path.join(dir, '.afterlife')); // both: the new one
   });
 });

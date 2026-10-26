@@ -2,9 +2,10 @@
 // Runs and prod points are idempotent by `key`; adjustment lines are appended as they come.
 import { join } from 'node:path';
 import type { AdjustmentLine, CiRun, ProdPoint } from '@/schemas/vitals';
+import { dataDirOf } from '@/server/env/settings';
 import { appendKeyed, appendRow, readJsonl } from './jsonl';
 
-export const vitalsDir = (slug: string): string => `${process.env.BELAY_DATA_DIR ?? '.belay'}/vitals/${slug}`;
+export const vitalsDir = (slug: string): string => `${dataDirOf()}/vitals/${slug}`;
 
 export const VITALS_FILES = { ci: 'ci-runs.jsonl', prod: 'prod.jsonl', adjustments: 'adjustments.jsonl' } as const;
 const file = (slug: string, f: keyof typeof VITALS_FILES): string => join(vitalsDir(slug), VITALS_FILES[f]);

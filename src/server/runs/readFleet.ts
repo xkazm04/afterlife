@@ -1,4 +1,4 @@
-// .belay/fleet.yml as the screens read it: each repo's slug, path, base and (optional) GitLab path. The runner's own
+// <data dir>/fleet.yml as the screens read it: each repo's slug, path, base and (optional) GitLab path. The runner's own
 // loader (runner/fleet) is the strict one and owns the gates and caps; this reader only names the repos, and says why
 // when it cannot.
 import 'server-only';

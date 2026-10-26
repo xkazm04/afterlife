@@ -1,4 +1,4 @@
-// belay ledger trial --chain events.jsonl --agent A --class C --since T [--through N] [--head H]
+// engine/cli.ts ledger trial --chain events.jsonl --agent A --class C --since T [--through N] [--head H]
 // The audit a promotion MR asks for, in one command: the belay-ledger file is cut at the seq the MR states (`--through`;
 // events after it are the chain growing since, not the MR's statement), verified from genesis, anchored to the head hash
 // the MR states (`--head`), and the holder's next-rung trial row is recomputed from it by the ledger-record checker's rule

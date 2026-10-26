@@ -1,4 +1,4 @@
-// The human key, read back, read only. Every promotion Belay prepares states one precondition (HUMAN_KEY,
+// The human key, read back, read only. Every promotion Afterlife prepares states one precondition (HUMAN_KEY,
 // lib/promotion/rules.ts): a person merges the policy MR. GitLab holds it only while three settings stand on belay-policy:
 // push to its default branch is allowed to no one, a merge there needs Code Owner approval (code_owner_approval_required),
 // and an MR's author cannot approve it (merge_requests_author_approval false; Premium and up). belay-policy is the one

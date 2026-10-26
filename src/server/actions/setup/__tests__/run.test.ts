@@ -105,9 +105,9 @@ describe('set-setup', () => {
   });
 
   it('refuses a key the env sets to another value, and leaves one it sets to the same value to it', async () => {
-    rig.deps.env = { ...rig.deps.env, BELAY_GROUP_ID: '42' };
-    expect(await previewSetupWrite(rig.deps, intent)).toMatchObject({ status: 'refused', reason: expect.stringMatching(/BELAY_GROUP_ID\) is set .*"42".*the env wins/) });
-    rig.deps.env = { ...rig.deps.env, BELAY_GROUP_ID: '777' };
+    rig.deps.env = { ...rig.deps.env, AFTERLIFE_GROUP_ID: '42' };
+    expect(await previewSetupWrite(rig.deps, intent)).toMatchObject({ status: 'refused', reason: expect.stringMatching(/^AFTERLIFE_GROUP_ID .*is set .*"42".*the env wins/) });
+    rig.deps.env = { ...rig.deps.env, AFTERLIFE_GROUP_ID: '777' };
     const p = await previewSetupWrite(rig.deps, intent);
     expect(p).toMatchObject({ status: 'preview', preview: { notes: expect.arrayContaining([expect.stringMatching(/groupId is already "777" in the environment/)]) } });
   });

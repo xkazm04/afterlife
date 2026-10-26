@@ -91,25 +91,25 @@ describe('the server actions (demo mode, the default)', () => {
   });
 
   it('live mode before its first poll refuses instead of guessing', async () => {
-    const before = process.env.BELAY_MODE;
-    process.env.BELAY_MODE = 'live';
+    const before = process.env.AFTERLIFE_MODE;
+    process.env.AFTERLIFE_MODE = 'live';
     try {
       expect(await previewAction(revoke)).toMatchObject({ status: 'refused', reason: expect.stringContaining('first poll') });
     } finally {
-      if (before === undefined) delete process.env.BELAY_MODE;
-      else process.env.BELAY_MODE = before;
+      if (before === undefined) delete process.env.AFTERLIFE_MODE;
+      else process.env.AFTERLIFE_MODE = before;
     }
   });
 });
 
 describe('live mode after a failed start', () => {
   // runtime.ts keeps the failure on globalThis under this symbol until a start succeeds; select.ts names it on every page.
-  const FAILED = Symbol.for('belay.liveRuntime.failed');
+  const FAILED = Symbol.for('afterlife.liveRuntime.failed');
   const holder = globalThis as { [FAILED]?: { message: string; at: number } };
 
   it('names the start failure, as the pages do, not a first poll still running', async () => {
-    const before = process.env.BELAY_MODE;
-    process.env.BELAY_MODE = 'live';
+    const before = process.env.AFTERLIFE_MODE;
+    process.env.AFTERLIFE_MODE = 'live';
     holder[FAILED] = { message: 'glab is not logged in', at: Date.now() };
     try {
       const { verifyArmAction } = await import('../arm/verifyAction');
@@ -121,8 +121,8 @@ describe('live mode after a failed start', () => {
       }
     } finally {
       delete holder[FAILED];
-      if (before === undefined) delete process.env.BELAY_MODE;
-      else process.env.BELAY_MODE = before;
+      if (before === undefined) delete process.env.AFTERLIFE_MODE;
+      else process.env.AFTERLIFE_MODE = before;
     }
   });
 });

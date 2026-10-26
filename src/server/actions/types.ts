@@ -12,21 +12,21 @@ interface Base {
   proposal?: string;
 }
 
-/** Lower one or more classes. Belay only restricts directly: raising a tier is a promotion MR a person merges. */
+/** Lower one or more classes. Afterlife only restricts directly: raising a tier is a promotion MR a person merges. */
 export interface RevokeClass extends Base {
   kind: 'revoke-class';
   changes: { class: string; to: Tier }[];
   why?: string;
 }
 
-/** Open a policy MR that raises one class. The operator (the human key) merges it; Belay never does. */
+/** Open a policy MR that raises one class. The operator (the human key) merges it; Afterlife never does. */
 export interface PromoteClass extends Base {
   kind: 'promote-class';
   class: string;
   to: Tier;
 }
 
-/** Mark a CRA clock work item "ready to sign". Belay never submits a report. */
+/** Mark a CRA clock work item "ready to sign". Afterlife never submits a report. */
 export interface MarkCraReady extends Base {
   kind: 'mark-cra-ready';
   /** The clock work item's iid. */

@@ -48,7 +48,7 @@ flow:
 
 prompts:
   - prompt_id: "qa_explore"
-    name: "Belay QA: explore a review app"
+    name: "Afterlife QA: explore a review app"
     unit_primitives: []
     prompt_template:
       system: |

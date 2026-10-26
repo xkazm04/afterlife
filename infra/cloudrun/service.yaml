@@ -1,9 +1,10 @@
-# Cloud Run service for the Belay hosted replay (infra/cloudrun/README.md, "The replay's security contract").
+# Cloud Run service for the Afterlife hosted replay (infra/cloudrun/README.md, "The replay's security contract").
 # Applied by the operator with `gcloud run services replace` (deploy.sh prints the commands; it runs nothing).
 # IMAGE_URL is substituted at deploy time. Public (allUsers invoker) is an IAM binding, not part of this file.
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
+  # The service, label and container keep their first names: the service already runs under them.
   name: belay-replay
   labels:
     app: belay
@@ -29,9 +30,9 @@ spec:
           ports:
             - name: http1
               containerPort: 8080
-          # Contract item 1 and 2: replay, never live; no other BELAY_* and no token of any kind.
+          # Contract item 1 and 2: replay, never live; no other AFTERLIFE_* (or BELAY_*) and no token of any kind.
           env:
-            - name: BELAY_MODE
+            - name: AFTERLIFE_MODE
               value: replay
           resources:
             limits:

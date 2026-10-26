@@ -2,6 +2,7 @@
 // one gate they share: they act on this machine (an installer, a terminal window, the settings file), so only a request
 // addressed to this machine is answered (local.ts), in every mode, demo included: demo is when they are needed. The ask
 // route (discover/ask) validates the assistant's proposal with this same parser, so it can propose nothing else.
+import { envOf } from '@/server/env/env';
 import { notLocal } from '../local';
 import type { ActionResponse } from '../types';
 import { SETUP_KINDS, type SetSetup, type SetupIntent } from '@/server/start/wire';
@@ -65,7 +66,7 @@ export function asSetupWrite(raw: unknown): { ok: true; intent: SetupIntent } | 
 
 /** Why this request may not drive a setup write, or null: the hosted replay never, anything else only from this machine. */
 export function setupAway(h: Pick<Headers, 'get'>, env: Record<string, string | undefined> = process.env): ActionResponse | null {
-  if ((env.AFTERLIFE_MODE || env.BELAY_MODE) === 'replay') return { status: 'refused', reason: 'the hosted replay sets nothing up on its host' };
+  if (envOf(env, 'MODE') === 'replay') return { status: 'refused', reason: 'the hosted replay sets nothing up on its host' };
   const reason = notLocal(h);
   return reason ? { status: 'refused', reason } : null;
 }

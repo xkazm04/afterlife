@@ -10,7 +10,7 @@ import { ENGINE_VERSION, engineInfo, engineSha256 } from './version';
 import { capture, ctx } from '../__tests__/helpers';
 import { main } from '../cli';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-core-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-core-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 describe('parseArgs', () => {
@@ -62,7 +62,7 @@ describe('an optional path given empty is refused, not read as the working direc
       ['diff', ['gate', '--class', 'dep-bump.patch', '--diff', '']],
       ['proof', ['gate', '--class', 'dep-bump.patch', '--proof', '']],
       ['guardrail', ['gate', '--class', 'dep-bump.patch', '--guardrail', '']],
-      // an unset $BELAY_AGENT is not "no agent named" (the sole holder's tier), nor an unset sha "no pin" (the build check skipped)
+      // an unset $AFTERLIFE_AGENT is not "no agent named" (the sole holder's tier), nor an unset sha "no pin" (the build check skipped)
       ['agent', ['gate', '--class', 'dep-bump.patch', '--agent', '']],
       ['engine-sha', ['gate', '--class', 'dep-bump.patch', '--engine-sha', '']],
       ['policy', ['prove', '--class', 'rerun-stats', '--input', 'engine/__fixtures__/rerun/flake.json', '--policy', '']],

@@ -7,11 +7,12 @@
 // rewrite. Bash commands a lane is allowed run as claude's children, and agentEnv() sets CLAUDE_CODE_SUBPROCESS_ENV_SCRUB
 // so claude strips its own credentials from them (and from hooks): they get agentEnv() minus the key. The user-scope
 // settings (~/.claude/settings.json: its hooks, plugins, allow rules) are not loaded: a lane's tool calls must not
-// reach the operator's own hooks, and the operator's allow list must not widen the profile. BELAY_CLAUDE_BIN swaps
+// reach the operator's own hooks, and the operator's allow list must not widen the profile. AFTERLIFE_CLAUDE_BIN swaps
 // the binary (tests).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { envOf } from '../proc/env';
 import { agentEnv, runProc } from '../proc/proc';
 import { permissionArgs, type PermissionProfile } from './permissions';
 import { parseStream, type StreamResult } from './stream';
@@ -69,8 +70,8 @@ export function shellLine(bin: string, args: readonly string[]): string {
 }
 
 export async function callClaude(call: AgentCall): Promise<AgentOutcome> {
-  const bin = process.env.BELAY_CLAUDE_BIN || 'claude';
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-perm-'));
+  const bin = envOf(process.env, 'CLAUDE_BIN') || 'claude';
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-perm-'));
   try {
     const settingsFile = path.join(dir, 'settings.json');
     const args = claudeArgs(call.model, call.permissions, settingsFile, call.resume, call.effort);

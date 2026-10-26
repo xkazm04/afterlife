@@ -47,7 +47,7 @@ describe('check-proof (M1 hand-run step 1, F90)', { timeout: 180_000 }, () => {
   });
 
   it('a pipeline with variables: posts nothing', () => {
-    const { r, written } = check('vars', { variables: [{ key: 'BELAY_GUARDRAIL_AUTHORS', value: 'ai-patcher-acme', variable_type: 'env_var' }] });
+    const { r, written } = check('vars', { variables: [{ key: 'AFTERLIFE_GUARDRAIL_AUTHORS', value: 'ai-patcher-acme', variable_type: 'env_var' }] });
     expect(r.code).toBe(1);
     expect(r.stderr).toMatch(/ran with 1 pipeline variable\(s\)/);
     expect(written).toBeNull();

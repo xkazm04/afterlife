@@ -20,8 +20,8 @@ export async function readTierState(ctx: Pick<PlanContext, 'port'>, repo: GlProj
   const base = repo.defaultBranch ?? 'main';
   const file = await ctx.port.getFile(repo.id, 'tier-state.yml', base);
   const read = await readPolicy(ctx.port, repo.id, base, file);
-  if (!read.ok) throw new ActionRefused(`Belay could not read belay-policy: ${read.reason}`);
-  if (!file) throw new ActionRefused('Belay could not read belay-policy: tier-state.yml is not in it'); // readPolicy refuses a missing file first
+  if (!read.ok) throw new ActionRefused(`Afterlife could not read belay-policy: ${read.reason}`);
+  if (!file) throw new ActionRefused('Afterlife could not read belay-policy: tier-state.yml is not in it'); // readPolicy refuses a missing file first
   return { base, file, read, lastCommitId: lastCommitOf(file) };
 }
 

@@ -130,7 +130,7 @@ export interface DataSource {
   /** Live: the last poll's health (the status bar's poll line). Demo: null, nothing is polled. */
   getPollHealth(): PollHealth | null;
   /**
-   * Setup's live reads (its tracks' arm blocks, the belay doctor, the steps a read can observe), bound to the port and
+   * Setup's live reads (its tracks' arm blocks, the afterlife doctor, the steps a read can observe), bound to the port and
    * the snapshot's pairing row. The getter is synchronous; the reads are port calls the Setup loader awaits. Null in demo
    * mode, where Setup reads nothing.
    */

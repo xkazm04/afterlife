@@ -55,11 +55,11 @@ describe('the command line', () => {
     expect(nodeArgv({ ...ok, ideas: ['scan', 'lens-scan'] })).toEqual(['cli/belay.mjs', 'run', '--repo', 'grinex-portal', '--mode', 'execute', '--waves', '5', '--lanes', '4', '--lane-cap', '3', '--wave-cap', '25', '--model', 'sonnet', '--ideas', 'scan,lens-scan']);
   });
   it('execute from another base names it; onto names the branch and never a base', () => {
-    expect(runDisplay({ ...ok, base: 'initial/refactoring' })).toBe('belay run --repo grinex-portal --mode execute --base initial/refactoring --waves 5 --lanes 4 --lane-cap 3 --wave-cap 25 --model sonnet');
-    expect(runDisplay({ ...ok, onto: 'feature/x', laneCapUsd: 2.5 })).toBe('belay run --repo grinex-portal --mode execute --onto feature/x --waves 5 --lanes 4 --lane-cap 2.5 --wave-cap 25 --model sonnet');
+    expect(runDisplay({ ...ok, base: 'initial/refactoring' })).toBe('afterlife run --repo grinex-portal --mode execute --base initial/refactoring --waves 5 --lanes 4 --lane-cap 3 --wave-cap 25 --model sonnet');
+    expect(runDisplay({ ...ok, onto: 'feature/x', laneCapUsd: 2.5 })).toBe('afterlife run --repo grinex-portal --mode execute --onto feature/x --waves 5 --lanes 4 --lane-cap 2.5 --wave-cap 25 --model sonnet');
   });
   it('propose takes no branch and no caps flag', () => {
-    expect(runDisplay({ ...ok, mode: 'propose', ideas: ['lens-scan'] })).toBe('belay run --repo grinex-portal --mode propose --waves 5 --lanes 4 --model sonnet --ideas lens-scan');
+    expect(runDisplay({ ...ok, mode: 'propose', ideas: ['lens-scan'] })).toBe('afterlife run --repo grinex-portal --mode propose --waves 5 --lanes 4 --model sonnet --ideas lens-scan');
   });
   it('the notes say what it will and will not do', () => {
     expect(runNotes({ ...ok, mode: 'propose' }, repo).join(' ')).toMatch(/will not run setup, base gates, lanes or reflect, create a branch or commit/);

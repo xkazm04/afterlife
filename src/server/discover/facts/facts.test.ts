@@ -41,7 +41,7 @@ stages:
 `;
 
 function fixture(): void {
-  root = mkdtempSync(path.join(tmpdir(), 'belay-facts-'));
+  root = mkdtempSync(path.join(tmpdir(), 'afterlife-facts-'));
   execFileSync('git', ['init', '-q', '-b', 'master', root], { stdio: 'ignore' });
   execFileSync('git', ['-C', root, 'remote', 'add', 'origin', 'https://someone@dev.azure.com/acme/Shop/_git/Shop'], { stdio: 'ignore' });
   write('azure-pipelines.yml', PIPELINE);

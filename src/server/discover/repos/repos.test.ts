@@ -41,7 +41,7 @@ const scratch = (p: string) => isScratchPath(path.relative(base, p));
 
 describe('scanClaudeRepos', () => {
   it('reads the newest session per dir, drops scratch and vanished paths, folds onto the toplevel, newest first', async () => {
-    base = mkdtempSync(path.join(tmpdir(), 'belay-repos-'));
+    base = mkdtempSync(path.join(tmpdir(), 'afterlife-repos-'));
     const a = repo('alpha', 'https://Grinex@dev.azure.com/Grinex/Grinex%20Portal/_git/Grinex%20Portal');
     const b = repo('beta', 'git@gitlab.com:acme/beta.git');
     mkdirSync(path.join(base, 'build-session-1'));
@@ -66,7 +66,7 @@ describe('scanClaudeRepos', () => {
   });
 
   it('a sub-folder session and a root session of one repo are one repo, used when the newer was', async () => {
-    base = mkdtempSync(path.join(tmpdir(), 'belay-repos-'));
+    base = mkdtempSync(path.join(tmpdir(), 'afterlife-repos-'));
     const a = repo('alpha');
     sessions('alpha-sub', [['s.jsonl', line(path.join(a, 'sub')), 5]]);
     sessions('alpha', [['s.jsonl', line(a), 50]]);
@@ -77,21 +77,21 @@ describe('scanClaudeRepos', () => {
   });
 
   it('no projects dir is no repos', async () => {
-    base = mkdtempSync(path.join(tmpdir(), 'belay-repos-'));
+    base = mkdtempSync(path.join(tmpdir(), 'afterlife-repos-'));
     expect(await scanClaudeRepos(path.join(base, 'missing'), [])).toEqual([]);
   });
 });
 
 describe('sessions and remotes', () => {
-  it('drops temp, build-session, belay-reflect and worktree paths with either slash, case-insensitively', () => {
-    for (const p of ['C:\\Users\\a\\AppData\\Local\\Temp\\x', '/tmp/belay-1', '/tmp', 'C:/w/Build-Session-3', 'D:\\belay-reflect-9', 'C:\\r\\.claude\\worktrees\\lane-1', 'C:/r/.CLAUDE/Worktrees/x']) {
+  it('drops temp, build-session, reflect and worktree paths with either slash, case-insensitively', () => {
+    for (const p of ['C:\\Users\\a\\AppData\\Local\\Temp\\x', '/tmp/afterlife-1', '/tmp', 'C:/w/Build-Session-3', 'D:\\belay-reflect-9', 'D:\\afterlife-reflect-9', 'C:\\r\\.claude\\worktrees\\lane-1', 'C:/r/.CLAUDE/Worktrees/x']) {
       expect(isScratchPath(p), p).toBe(true);
     }
     for (const p of ['C:\\Users\\mkdol\\refactoring', '/home/a/tmpfiles', 'C:/r/.claude']) expect(isScratchPath(p), p).toBe(false);
   });
 
   it('finds a cwd past a long first line, and none past the 64 KB cap', () => {
-    base = mkdtempSync(path.join(tmpdir(), 'belay-repos-'));
+    base = mkdtempSync(path.join(tmpdir(), 'afterlife-repos-'));
     const f = path.join(base, 'a.jsonl');
     writeFileSync(f, `${JSON.stringify({ pad: 'x'.repeat(40_000) })}\n${line('C:\\r')}`);
     expect(firstCwd(f)).toBe('C:\\r');

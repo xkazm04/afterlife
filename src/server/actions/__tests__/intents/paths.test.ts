@@ -32,7 +32,7 @@ describe('a gap branch', () => {
   it.each(GOOD)('admits %s', (branch) => expect(ok(gap({ branch }))).toBe(true));
 });
 
-describe("a gap branch never takes a branch Belay's other writes plan", () => {
+describe("a gap branch never takes a branch Afterlife's other writes plan", () => {
   // Derived from the plans themselves: each branch a promote, enroll, arm or disarm preview names is refused as a gap's.
   // A gap on belay/arm-guardrail used to open, and then the operator's arm was refused for the gap's own open MR.
   it('refuses the branch of every other branch MR, as previewed', async () => {

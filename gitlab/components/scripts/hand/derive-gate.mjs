@@ -5,10 +5,10 @@
 // operator's ledger-append.
 //   proof      the belay-proof note --proof-authors posted for the current head (step 2), through fetch-block
 //   guardrail  the belay-guardrail note --guardrail-authors posted for the current head, schema-checked, through fetch-block.
-//              Named on this command line only: BELAY_GUARDRAIL_AUTHORS and every other variable are ignored
+//              Named on this command line only: AFTERLIFE_GUARDRAIL_AUTHORS and every other variable are ignored
 //   policy     trust-policy.yml and tier-state.yml as the default branch of --policy-project has them now
 //   diff       base to head, from the compare API
-// then `engine gate` in the Belay checkout (BELAY_DIR, default the one this script is in), then
+// then `engine gate` in the Afterlife checkout (AFTERLIFE_DIR, default the one this script is in), then
 // `apply-gate --dry 1 --emit-dir <out>/events --agent --class`. An MR belay-apply would give nothing (another target
 // branch, a CI change) or not gate yet (no class, no proof or guardrail verdict for this head) gets no events.
 // A head the ledger already carries (a `Belay-Head: <project id>!<iid>@<head>` commit line, ledgered.mjs) gets no events: belay-apply
@@ -18,7 +18,7 @@
 // Exit 0 = <out>/events written; 3 = nothing to append, the reason on stderr; 2 = a read failed or an input is wrong.
 import fs from 'node:fs';
 import path from 'node:path';
-import { api, arg, die, enc, need } from '../lib/lib.mjs';
+import { api, arg, die, enc, envOf, need } from '../lib/lib.mjs';
 import { engine } from '../lib/engine.mjs';
 import { readFile } from '../lib/repo-write.mjs';
 import { glue as applyGlue } from '../../../apply/lib.mjs';
@@ -39,11 +39,11 @@ if (!/^\d+$/.test(iid)) die('--mr is a number');
 for (const [flag, v] of [['proof-authors', proofAuthors], ['guardrail-authors', guardrailAuthors]]) if (!USERS.test(v)) die(`--${flag} is a comma-separated list of usernames`);
 if (fs.existsSync(out) && fs.readdirSync(out).length) die(`${out} is not empty: give a new directory, so no earlier head's events are appended`);
 fs.mkdirSync(out, { recursive: true });
-process.env.BELAY_DIR ??= path.resolve(SCRIPTS, '..', '..', '..');
+process.env.AFTERLIFE_DIR = envOf(process.env, 'DIR') ?? path.resolve(SCRIPTS, '..', '..', '..');
 
 const at = (f) => path.join(out, f);
 const nothing = (why) => {
-  console.error(`belay: no events for !${iid}: ${why}. Append nothing.`);
+  console.error(`afterlife: no events for !${iid}: ${why}. Append nothing.`);
   process.exit(3);
 };
 /** A glue script of this checkout, with the operator's environment minus any write token: belay-apply's own glue (F71). */
@@ -71,8 +71,10 @@ const ctx = glue('proof/mr-context.mjs', ['--mr', iid, '--agent-prefix', arg('ag
 if (ctx === 10) nothing('it is not an agent MR with a Belay-Task trailer');
 if (ctx !== 0) die(`mr-context exited ${ctx}`);
 const mr = Object.fromEntries(fs.readFileSync(at('mr.env'), 'utf8').split('\n').filter(Boolean).map((l) => l.split(/=(.*)/s).slice(0, 2)));
-if (mr.BELAY_HEAD_SHA !== head || mr.BELAY_BASE_SHA !== base) die('the MR moved while it was being read: run it again');
-if (!mr.BELAY_ACTION_CLASS) nothing('the MR has no Belay-Class trailer');
+if (envOf(mr, 'HEAD_SHA') !== head || envOf(mr, 'BASE_SHA') !== base) die('the MR moved while it was being read: run it again');
+const klass = envOf(mr, 'ACTION_CLASS');
+const agent = envOf(mr, 'AGENT') ?? '';
+if (!klass) nothing('the MR has no Belay-Class trailer');
 
 let policy;
 try {
@@ -99,7 +101,7 @@ if (gr === 4) nothing('the guardrail verdict does not match its schema, or its n
 if (gr !== 0) die(`reading the guardrail verdict failed (fetch-block exited ${gr})`);
 
 fs.writeFileSync(at('diff.patch'), diff);
-const g = engine(['gate', '--policy', policy['trust-policy.yml'], '--state', policy['tier-state.yml'], '--class', mr.BELAY_ACTION_CLASS, '--agent', mr.BELAY_AGENT,
+const g = engine(['gate', '--policy', policy['trust-policy.yml'], '--state', policy['tier-state.yml'], '--class', klass, '--agent', agent,
   '--proof', at('proof.json'), '--guardrail', at('guardrail-gate.json'), '--diff', at('diff.patch')]);
 fs.writeFileSync(at('decision.json'), g.stdout);
 let decided = null;
@@ -111,13 +113,13 @@ try {
 if (typeof decided?.decision !== 'string') die(`engine gate gave no decision (exit ${g.code}): see its message above`);
 
 const applied = glue('decide/apply-gate.mjs', ['--mr', iid, '--sha', head, '--decision', at('decision.json'), '--guardrail', at('guardrail.json'),
-  '--agent', mr.BELAY_AGENT, '--class', mr.BELAY_ACTION_CLASS, '--emit-dir', at('events'), '--dry', '1'], { CI_PROJECT_ID: String(projectId), CI_PROJECT_URL: project.web_url });
+  '--agent', agent, '--class', klass, '--emit-dir', at('events'), '--dry', '1'], { CI_PROJECT_ID: String(projectId), CI_PROJECT_URL: project.web_url });
 if (applied > 1) die(`apply-gate exited ${applied}`);
 if (!fs.existsSync(at('events'))) nothing(`the gate says ${decided.decision} and emits no events`);
 const events = fs.readdirSync(at('events')).sort();
 fs.writeFileSync(at('ledger-key'), `${key}
 `);
-console.error(`belay: !${iid} head ${head}: gate ${decided.decision} at tier ${decided.tier ?? '?'}. ${events.length} event(s) in ${at('events')}: ${events.join(', ')}.`);
-// Single-quoted for Git Bash, where an unquoted C:\ path loses its backslashes. ledger-append runs the engine, so it needs BELAY_DIR.
+console.error(`afterlife: !${iid} head ${head}: gate ${decided.decision} at tier ${decided.tier ?? '?'}. ${events.length} event(s) in ${at('events')}: ${events.join(', ')}.`);
+// Single-quoted for Git Bash, where an unquoted C:\ path loses its backslashes. ledger-append runs the engine, so it needs AFTERLIFE_DIR.
 const q = (s) => `'${String(s).replace(/'/g, "'\\''")}'`;
-console.error(`Append them once: BELAY_DIR=${q(process.env.BELAY_DIR)} CI_PROJECT_ID=${project.id} node ${q(path.join(SCRIPTS, 'decide', 'ledger-append.mjs'))} --events ${q(at('events'))} --project ${q(ledgerProject)} --branch ${q(ledgerBranch)} --key '${key}'`);
+console.error(`Append them once: AFTERLIFE_DIR=${q(process.env.AFTERLIFE_DIR)} CI_PROJECT_ID=${project.id} node ${q(path.join(SCRIPTS, 'decide', 'ledger-append.mjs'))} --events ${q(at('events'))} --project ${q(ledgerProject)} --branch ${q(ledgerBranch)} --key '${key}'`);

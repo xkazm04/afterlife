@@ -6,7 +6,7 @@
   ],
   "notes": {
     "7": [
-      { "id": 910001, "body": "Belay proof (dep-bump.patch): PASS\n\n```belay-proof\n{\"class\":\"dep-bump.patch\",\"verdict\":\"pass\"}\n```\n\nBelay-Task: 01J9ZK3Q7M8E2V4N6R1T5XWABC", "author": { "username": "ai-proof-afterlife3274741" }, "system": false, "created_at": "2026-10-08T09:06:41.000Z" },
+      { "id": 910001, "body": "Afterlife proof (dep-bump.patch): PASS\n\n```belay-proof\n{\"class\":\"dep-bump.patch\",\"verdict\":\"pass\"}\n```\n\nBelay-Task: 01J9ZK3Q7M8E2V4N6R1T5XWABC", "author": { "username": "ai-proof-afterlife3274741" }, "system": false, "created_at": "2026-10-08T09:06:41.000Z" },
       { "id": 910002, "body": "added label ~\"belay::tier::supervised\"", "author": { "username": "ai-proof-afterlife3274741" }, "system": true, "created_at": "2026-10-08T09:06:42.000Z" }
     ],
     "8": []

@@ -11,7 +11,7 @@ export interface PairIo {
   out: (s: string) => void;
   err: (s: string) => void;
   cwd: string;
-  /** The Belay repository root, where the agent-config template lives. */
+  /** The Afterlife repository root, where the agent-config template lives. */
   root: string;
 }
 
@@ -57,12 +57,12 @@ export function linkOn(dir: string, rel: string): string | null {
 function refuseLinks(p: PairPlan, dir: string): PairPlan {
   const actions = p.actions.map((a): PairAction => {
     const link = linkOn(dir, a.path);
-    return link ? { path: a.path, op: 'refuse', added: [], why: `${link} is a symlink: Belay writes only inside the checkout, never through a link` } : a;
+    return link ? { path: a.path, op: 'refuse', added: [], why: `${link} is a symlink: Afterlife writes only inside the checkout, never through a link` } : a;
   });
   return { actions, paired: actions.every((a) => a.op === 'keep'), partial: actions.some((a) => a.op === 'refuse') };
 }
 
-const USAGE ='usage: belay pair <checkout> [--group <path>] [--pack-version 1.0.0] [--engine-ref v0.1.0] [--write]';
+const USAGE ='usage: afterlife pair <checkout> [--group <path>] [--pack-version 1.0.0] [--engine-ref v0.1.0] [--write]';
 const VALUED = ['--group', '--pack-version', '--engine-ref'];
 
 interface PairArgs {
@@ -92,7 +92,7 @@ export function parsePairArgs(argv: readonly string[]): PairArgs | string {
 }
 
 export function pair(argv: readonly string[], io: PairIo): PairResult {
-  const fail = (why: string): PairResult => (io.err(`belay pair: ${why}\n`), { code: 2 });
+  const fail = (why: string): PairResult => (io.err(`afterlife pair: ${why}\n`), { code: 2 });
   const args = parsePairArgs(argv);
   if (typeof args === 'string') return fail(args);
   const { dir: dirArg, flags, write } = args;
@@ -113,7 +113,7 @@ export function pair(argv: readonly string[], io: PairIo): PairResult {
   const ref = { group, packVersion: flags.get('--pack-version') ?? '1.0.0', engineRef: flags.get('--engine-ref') ?? 'v0.1.0' };
   const plan = refuseLinks(planPair(read, ref, agentConfig), dir);
 
-  io.out(`belay pair ${dir} (group ${group})\n\n`);
+  io.out(`afterlife pair ${dir} (group ${group})\n\n`);
   if (write) {
     const done: string[] = [];
     for (const a of plan.actions) {
@@ -134,7 +134,7 @@ export function pair(argv: readonly string[], io: PairIo): PairResult {
   }
   io.out(`${describePlan(plan, write)}\n`);
   if (write && !plan.paired) {
-    io.out(['', 'written. Nothing was committed or pushed; to propose it, as you:', `  git -C ${dirArg} switch -c ${BOOTSTRAP_BRANCH}`, `  git -C ${dirArg} add -A && git -C ${dirArg} commit -m "Belay bootstrap"`, `  git -C ${dirArg} push -u origin ${BOOTSTRAP_BRANCH}`, `  glab mr create --source-branch ${BOOTSTRAP_BRANCH} --title "Belay bootstrap" --draft`, ''].join('\n'));
+    io.out(['', 'written. Nothing was committed or pushed; to propose it, as you:', `  git -C ${dirArg} switch -c ${BOOTSTRAP_BRANCH}`, `  git -C ${dirArg} add -A && git -C ${dirArg} commit -m "Afterlife bootstrap"`, `  git -C ${dirArg} push -u origin ${BOOTSTRAP_BRANCH}`, `  glab mr create --source-branch ${BOOTSTRAP_BRANCH} --title "Afterlife bootstrap" --draft`, ''].join('\n'));
   }
   return { code: plan.partial ? 1 : 0, plan };
 }

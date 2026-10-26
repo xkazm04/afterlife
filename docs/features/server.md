@@ -7,7 +7,7 @@
   plus `mode` and `deepProjectId()`), served either by the demo fixture (`demo`) or by a snapshot of the local index
   (`live`).
 - `gitlab/`: a typed `GitLabPort` for reads and planned writes, implemented by a real adapter over `glab api` and by
-  an in-memory fake GitLab; also the `belay doctor` capability probes.
+  an in-memory fake GitLab; also the `afterlife doctor` capability probes.
 - `index/`: a local cache of GitLab plus the ledger in embedded Postgres (PGlite), with versioned migrations, typed
   repositories and views that return the screens' shapes.
 - `poller/`: one poll cycle reads the group from GitLab and writes the index; a scheduler repeats it.
@@ -16,13 +16,13 @@
 
 ## How it works
 - **Selection** (`data/select.ts`, `config.ts`): `getDataSource()` reads the environment on every call.
-  `BELAY_MODE=live` is live; anything else is demo. `BELAY_GITLAB=fake` uses the fake group instead of the operator's
-  glab login. `BELAY_PROJECT` names the deep project (default ledgerline). Every read waits for a request
+  `AFTERLIFE_MODE=live` is live; anything else is demo. `AFTERLIFE_GITLAB=fake` uses the fake group instead of the operator's
+  glab login. `AFTERLIFE_PROJECT` names the deep project (default ledgerline). Every read waits for a request
   (see Rendering), so nothing is prerendered with the build's environment.
 - **Live runtime** (`data/live/runtime.ts`, `boot.ts`, `src/instrumentation.ts`): on server start in live mode,
   `register()` creates one port, one index, one poller and one snapshot per process, kept on `globalThis`. `refresh()`
   runs `runPollCycle`, then `buildSnapshot`; concurrent callers share the cycle in flight. Pages read the snapshot
-  synchronously. A cycle's group error, warnings and project errors and issues are logged as one `belay: poll cycle`
+  synchronously. A cycle's group error, warnings and project errors and issues are logged as one `afterlife: poll cycle`
   line when they differ from the last cycle's (`live/cycleLog.ts`): a standing problem is named when it starts and
   when it clears, not every interval.
 - **Snapshot** (`data/live/snapshot.ts`): fleet, action classes, maturity, tasks and needs-you from index views; group
@@ -46,7 +46,7 @@
 - **Doctor** (`gitlab/capabilities.ts`): eleven capabilities, each available / unavailable / unknown with a basis
   (`endpoint`, `plan`, `version`, `none`) and a reason. 403/404 is unavailable; network, auth or rate-limit failure is
   unknown; a capability with no safe read is decided by plan or stays unknown.
-- **Index** (`index/`): `openIndex` / `getIndex` open PGlite under `$BELAY_DATA_DIR/index` (default `.belay/index`);
+- **Index** (`index/`): `openIndex` / `getIndex` open PGlite under `$AFTERLIFE_DATA_DIR/index` (default `.afterlife/index`);
   `migrate()` applies nineteen migrations, each in a transaction, checksum-guarded, and refuses an index migrated by a
   newer version: `0001_fleet` (groups, classes, projects, stages, class tiers), `0002_work` (tasks, proofs, proposals,
   stage cells), `0003_ledger` (`ledger_event` with a no-change trigger), `0004_operator` (pairing, setup steps, poll
@@ -58,7 +58,7 @@
   days for proof roll-ups, 24 h for tasks), notes, deployments, each agent MR's size and head pipeline, the CI file's
   arm markers and the ledger, then write in one transaction; then the newest maturity scan artifact and its gap
   proposals; record `poll_state`. tier-state.yml's commit list is read once per cycle for the enforcement receipts. The
-  full cycle, and where each counter comes from, is `src/server/poller/README.md`. `startScheduler` repeats it every `BELAY_POLL_SECONDS` (default 30, minimum 5), never overlapping.
+  full cycle, and where each counter comes from, is `src/server/poller/README.md`. `startScheduler` repeats it every `AFTERLIFE_POLL_SECONDS` (default 30, minimum 5), never overlapping.
 - **Ledger import** (`ledger/importLedger.ts`): list `events/`, skip if the blob id is unchanged, parse each line,
   verify the whole file from genesis, then append from the stored tail in one transaction.
 - **Cycle import** (`ledger/importCycles.ts`): `cycles/<project-id>.jsonl`, one hash-chained line per closed
@@ -77,7 +77,7 @@
   scripts, loading frames) and every data read is a dynamic hole filled per request.
 - Each read sits behind `await connection()`: the root layout's shell read (`components/shell/live/ShellRead.tsx`, inside
   `<Suspense>`), every page or layout that reads the data source, the runner's files or the environment, and both route
-  handlers. A prerender stops at `connection()`, so the build never sees `BELAY_MODE` or the data.
+  handlers. A prerender stops at `connection()`, so the build never sees `AFTERLIFE_MODE` or the data.
 - Until the shell read streams in, the chrome shows `PENDING_SHELL`: no Needs-you badge and a dashed data label, never
   the demo's values or a zero count (`ShellInfo.needsYouCount` and `data` may be `null`).
 - No server cache: no `'use cache'`, `cacheLife` or `cacheTag` anywhere. The data source is picked per request and live
@@ -94,18 +94,18 @@
   a poll follows either way. Demo: planned against the fake group, never executed, no record, every result
   `simulated: true`.
 - Revoke only lowers a tier and may push `tier-state.yml` to the default branch; raising is a promotion MR on a new
-  branch labelled `belay::promotion` that a person merges. Belay never merges. `mark-cra-ready` never submits.
+  branch labelled `belay::promotion` that a person merges. Afterlife never merges. `mark-cra-ready` never submits.
 - Unknown is never zero: NULL in the index means unknown; views keep it `null`; the live source throws before its
   first poll rather than show an empty fleet as real; the doctor never guesses.
-- Who counts: MR description fields only from agent accounts (`ai-`, `BELAY_AGENT_PREFIX`), `belay-proof` blocks only
+- Who counts: MR description fields only from agent accounts (`ai-`, `AFTERLIFE_AGENT_PREFIX`), `belay-proof` blocks only
   from proof accounts (the patcher is not one), guardrail blocks only from guardrail accounts and only for the current
-  head. On a real group the proof and guardrail accounts are exactly `BELAY_PROOF_AUTHORS` / `BELAY_GUARDRAIL_AUTHORS`
+  head. On a real group the proof and guardrail accounts are exactly `AFTERLIFE_PROOF_AUTHORS` / `AFTERLIFE_GUARDRAIL_AUTHORS`
   (anyone can register an `ai-proof-*` name); the `ai-proof-` / `ai-guardrail-` prefixes count in demo, on the fake
-  group, or with `BELAY_TRUST_PREFIXES=1`.
+  group, or with `AFTERLIFE_TRUST_PREFIXES=1`.
   A proof for an older head is stale and not indexed.
 - The ledger is append-only (trigger) and verified: a bad chain, fork, rewind or foreign event throws
   `LedgerChainError`, writes nothing, and the poller fails that project's feed while the rest lands.
-- Every index table but `commands_run`, `action_runs` and `fleet_day` (Belay's own records) can be rebuilt from GitLab.
+- Every index table but `commands_run`, `action_runs` and `fleet_day` (Afterlife's own records) can be rebuilt from GitLab.
 
 ## Code map
 | Path | Role |
@@ -116,7 +116,7 @@
 | `src/server/poller/` | `cycle.ts`, `project.ts`, `classes.ts`, `maturityScan.ts`, `stateHistory.ts`, `state.ts` (memory between cycles), `scheduler.ts`, `config.ts`, `derive/` (policy, tiers, counters, gate, sources, promotion, readmit, receipt, task, rollup), `parse/` (proof block, guardrail, trailers, labels, pushes, blocks), `ci/` (armed tracks), `mrFacts/` (MR size and pipeline), `gaps/` (maturity gap proposals) |
 | `src/server/ledger/` | `parse.ts`, `importLedger.ts`, `parseCycles.ts`, `importCycles.ts` |
 | `src/server/actions/` | `actions.ts` (`'use server'`), `run.ts`, `intents.ts`, `plans/`, `arm/` (arm, disarm, verify), `gap/` (gap templates), `runs/` (run journal, recall), `local.ts`, `repoll.ts` + `repollAction.ts`, `deps.ts`, `types.ts`, `words.ts` |
-| `src/server/runs/` | The cycle runner's local files, read in demo and live alike: `readRuns.ts` (`.belay/runs/<repo>/<wave>.jsonl`, each file re-parsed only when its mtime or size changes; `BELAY_DATA_DIR` moves the root), `readFleet.ts` (`.belay/fleet.yml`: slug, path, base, gitlab), `branchState.ts` (git, async and each answer kept 10 s: does the wave branch exist, is it merged), `readDesk.ts` (folds them for Fleet, Monitor, Needs you and Runs, asking git for every wave at once) |
+| `src/server/runs/` | The cycle runner's local files, read in demo and live alike: `readRuns.ts` (`.afterlife/runs/<repo>/<wave>.jsonl`, each file re-parsed only when its mtime or size changes; `AFTERLIFE_DATA_DIR` moves the root), `readFleet.ts` (`.afterlife/fleet.yml`: slug, path, base, gitlab), `branchState.ts` (git, async and each answer kept 10 s: does the wave branch exist, is it merged), `readDesk.ts` (folds them for Fleet, Monitor, Needs you and Runs, asking git for every wave at once) |
 | `src/server/testing/` | `serverOnly.ts`: the `server-only` stand-in vitest aliases |
 | `src/app/api/` | Route handlers, GET only, `await connection()` first, `Cache-Control: no-store`: `runs/` (`readRuns()` plus the live meta; Theater polls it every 2 s), `shell/` (the shell read; 503 with the reason live before the first poll, `NotReadyError`; any other throw a fixed `shell unreadable`, its message only in the server log: `shell/answer.ts`) |
 | `src/instrumentation.ts` | Starts the live runtime on Node |
@@ -142,7 +142,7 @@
   dropped; the fleet file missing, invalid with its reason (a repeated slug too), or its repos; git's word on a wave
   branch in a real repo; the desk asks git only for mergeable waves of fleet repos.
 - `src/app/api/*/route.test.ts`: both routes answer JSON with `no-store`; `/api/shell` is 503 live before the first
-  poll; `/api/runs` reads `BELAY_DATA_DIR` on each request.
+  poll; `/api/runs` reads `AFTERLIFE_DATA_DIR` on each request.
 
 ## Status and limits
 - Demo mode is the default and what the app shows. Live mode against a real group is wired but the real group was

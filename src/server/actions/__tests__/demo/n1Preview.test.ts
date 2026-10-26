@@ -17,7 +17,7 @@ function thresholds() {
 
 describe('n1, the demo desk\'s headline promotion', () => {
   it('previews through the demo planner: the tier-state.yml commit on a belay/ branch and the belay::promotion MR', async () => {
-    const deps = actionDeps({ BELAY_MODE: 'demo' });
+    const deps = actionDeps({ AFTERLIFE_MODE: 'demo' });
     if (!deps || !n1?.to || !cls) throw new Error('demo deps, n1 or its class are missing');
     const r = await previewIntent(deps, { kind: 'promote-class', project: 'ledgerline', class: cls.id, to: n1.to, proposal: 'n1' });
     if (r.status !== 'preview') throw new Error(`expected a preview, got ${r.status}: ${'reason' in r ? r.reason : ''}`);

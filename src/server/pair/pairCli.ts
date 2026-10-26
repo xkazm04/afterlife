@@ -1,4 +1,4 @@
-// `belay pair <checkout>`: run by cli/belay.mjs through tsx. Prints the plan; writes only with --write.
+// `afterlife pair <checkout>`: run by cli/belay.mjs through tsx. Prints the plan; writes only with --write.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pair } from './pair';

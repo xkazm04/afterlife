@@ -6,7 +6,7 @@ description: Report to Afterlife a change you propose that is meant to move a CI
 # afterlife-report
 
 Afterlife watches this repo as the project `{{PROJECT}}`. When you propose a change that is meant to make something
-measurably faster, smaller or healthier, report it once with `belay report`. Afterlife then measures it itself, by the
+measurably faster, smaller or healthier, report it once with `afterlife report`. Afterlife then measures it itself, by the
 next natural CI runs, by runs a person queues for it, or by a local rerun, and credits only what it measured.
 
 ## When to report

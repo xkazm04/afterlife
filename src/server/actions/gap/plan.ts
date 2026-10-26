@@ -22,7 +22,7 @@ async function ciChange(ctx: PlanContext, t: Target, intent: ApplyGapTemplate, t
   if (blocker) throw new ActionRefused(blocker);
   const ins = insertGapBlock(file.content, b);
   if (!ins.ok) throw new ActionRefused(ins.reason);
-  if (!holdsGapBlock(ins.content, b)) throw new ActionRefused(`Belay could not add the ${intent.template} lines to ${CI_FILE} without breaking it: nothing is planned`);
+  if (!holdsGapBlock(ins.content, b)) throw new ActionRefused(`Afterlife could not add the ${intent.template} lines to ${CI_FILE} without breaking it: nothing is planned`);
   return {
     commit: { path: CI_FILE, content: ins.content, action: 'update', lastCommitId, message },
     diff: [`@@ ${CI_FILE} · after line ${ins.after}`, ...ins.added.map((l) => `+ ${l}`)],
@@ -31,7 +31,7 @@ async function ciChange(ctx: PlanContext, t: Target, intent: ApplyGapTemplate, t
 
 async function fileChange(ctx: PlanContext, t: Target, tpl: FileTemplate, message: string): Promise<Change> {
   if (await ctx.port.getFile(t.project.id, tpl.path, t.base)) {
-    throw new ActionRefused(`${tpl.path} already exists on ${t.base}: Belay adds it only as a new file, never over one the project has`);
+    throw new ActionRefused(`${tpl.path} already exists on ${t.base}: Afterlife adds it only as a new file, never over one the project has`);
   }
   const lines = tpl.content.split('\n');
   return {
@@ -56,9 +56,9 @@ export async function planGapTemplate(ctx: PlanContext, intent: ApplyGapTemplate
     mr: {
       labels: ['maturity::gap'], title,
       description: [
-        `Prepared by Belay for ${ctx.operator}.`,
+        `Prepared by Afterlife for ${ctx.operator}.`,
         `The maturity scan's next change for ${intent.stage} (${from}; this earns R${intent.to}): ${tpl.change}.`,
-        'A person merges this; Belay never does.',
+        'A person merges this; Afterlife never does.',
       ].join('\n\n'),
     },
   });

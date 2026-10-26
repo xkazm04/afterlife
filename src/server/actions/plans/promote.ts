@@ -1,5 +1,5 @@
-// Promote: Belay prepares the policy MR (a branch with the new record, and the MR). The operator, as the human key,
-// merges it in GitLab; Belay never merges and never pushes a higher tier to the default branch. The branch commit carries
+// Promote: Afterlife prepares the policy MR (a branch with the new record, and the MR). The operator, as the human key,
+// merges it in GitLab; Afterlife never merges and never pushes a higher tier to the default branch. The branch commit carries
 // tier-state.yml's last_commit_id on the default branch as it was read, so the MR never starts from a stale copy that
 // would quietly undo a demotion made in between.
 import { HUMAN_KEY } from '@/lib/promotion/rules';
@@ -55,7 +55,7 @@ export async function planPromote(ctx: PlanContext, intent: PromoteClass): Promi
     commits: [{ path: 'tier-state.yml', content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }],
     mr: {
       title, labels: ['belay::promotion'],
-      description: `Prepared by Belay for ${ctx.operator}.\n\nBelay-Class: ${intent.class}\n\n${trial ? `${trial}\n\n` : ''}A person merges this; Belay never does.`,
+      description: `Prepared by Afterlife for ${ctx.operator}.\n\nBelay-Class: ${intent.class}\n\n${trial ? `${trial}\n\n` : ''}A person merges this; Afterlife never does.`,
     },
   });
   return {

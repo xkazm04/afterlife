@@ -92,10 +92,15 @@ export async function removeWorktree(repoPath: string, dir: string, dropBranch?:
 }
 
 /** The fixed worktrees a run reuses (wave.ts, lane/run.ts, tech/measure.ts): a run stopped mid-wave leaves them registered. */
-const OWN = ['belay-wave-head', 'belay-wave-lane', 'belay-wave-tech'];
+const OWN = ['afterlife-wave-head', 'afterlife-wave-lane', 'afterlife-wave-tech'];
+/** The same dirs under their pre-rename names, which a run stopped before the rename may still hold: cleared alike. */
+const OWN_BEFORE = OWN.map((n) => n.replace(/^afterlife-/, 'belay-'));
+/** What sweepStaleWorktrees may delete: the runner's own worktree dirs, under either name. */
+const STALE = /^(afterlife|belay)-wave-/;
 /** A lane's branch, the runner's own; the wave branch belay/wave-<n> is a person's review target and is kept. */
+// wire name: belay/ branches live in fleet repos and their remotes, and people review them; the prefix keeps the old name.
 const LANE_BRANCH = /^belay\/wave-\d+-[\w.-]+$/;
-const pidFile = (repoPath: string): string => path.join(worktreesRoot(repoPath), 'belay-run.pid');
+const pidFile = (repoPath: string): string => path.join(worktreesRoot(repoPath), 'afterlife-run.pid');
 
 function alive(pid: number): boolean {
   try {
@@ -107,14 +112,14 @@ function alive(pid: number): boolean {
 }
 
 /**
- * Takes the repo's fixed worktrees for this process (<root>/belay-run.pid) and removes the ones a stopped run left
+ * Takes the repo's fixed worktrees for this process (<root>/afterlife-run.pid) and removes the ones a stopped run left
  * registered, dropping a leftover lane branch with its worktree, so an interrupted run never blocks the next one.
  * Throws when a live runner still holds them: its worktrees are in use. Returns the dirs removed.
  */
 export async function claimOwnWorktrees(repoPath: string): Promise<string[]> {
   const file = pidFile(repoPath);
   const held = fs.existsSync(file) ? Number(fs.readFileSync(file, 'utf8').trim()) : NaN;
-  if (Number.isInteger(held) && held > 0 && held !== process.pid && alive(held)) throw new Error(`another belay run (pid ${held}) holds ${worktreesRoot(repoPath)}; delete ${file} if it is gone`);
+  if (Number.isInteger(held) && held > 0 && held !== process.pid && alive(held)) throw new Error(`another afterlife run (pid ${held}) holds ${worktreesRoot(repoPath)}; delete ${file} if it is gone`);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${process.pid}\n`);
   const list = (await runProc('git', ['-C', repoPath, 'worktree', 'list', '--porcelain'])).stdout;
@@ -124,7 +129,7 @@ export async function claimOwnWorktrees(repoPath: string): Promise<string[]> {
     if (at) branchAt.set(samePathKey(at), /^branch refs\/heads\/(.+)$/m.exec(block)?.[1] ?? '');
   }
   const removed: string[] = [];
-  for (const name of OWN) {
+  for (const name of [...OWN, ...OWN_BEFORE]) {
     const dir = worktreeDir(repoPath, name);
     const branch = branchAt.get(samePathKey(dir));
     if (branch === undefined) continue;
@@ -144,8 +149,8 @@ export function releaseOwnWorktrees(repoPath: string): void {
 }
 
 /**
- * Deletes every `belay-wave-*` dir under the worktrees root that git no longer lists as a worktree: what an
- * interrupted run or a half-failed removal left behind. Live worktrees are registered and never touched.
+ * Deletes every `afterlife-wave-*` (or pre-rename `belay-wave-*`) dir under the worktrees root that git no longer
+ * lists as a worktree: what an interrupted run or a half-failed removal left behind. Live worktrees are registered and never touched.
  * Returns the dirs removed; a dir that would not go is printed and left.
  */
 export async function sweepStaleWorktrees(repoPath: string): Promise<string[]> {
@@ -155,7 +160,7 @@ export async function sweepStaleWorktrees(repoPath: string): Promise<string[]> {
   const live = await registered(repoPath);
   const removed: string[] = [];
   for (const e of fs.readdirSync(root, { withFileTypes: true })) {
-    if (!e.isDirectory() || !e.name.startsWith('belay-wave-')) continue;
+    if (!e.isDirectory() || !STALE.test(e.name)) continue;
     const dir = path.join(root, e.name);
     if (live.has(samePathKey(dir))) continue;
     const left = await removeTree(repoPath, dir);

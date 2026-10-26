@@ -6,13 +6,13 @@
 # Syntax checked 2026-10-06: see patcher.yml for the URL of each construct. [S]
 #
 # TRIGGER (chosen when the flow is enabled):
-#   Work item, action Created (a clock item labelled cra-clock, opened by Belay or a person) and Status changed (to
+#   Work item, action Created (a clock item labelled cra-clock, opened by Afterlife or a person) and Status changed (to
 #   "Drafting"). Types and actions: docs.gitlab.com/user/duo_agent_platform/triggers/ [S].
 #   [R?] what context:goal holds for a work item event is not documented; the prompt takes only an iid from it, and
 #   falls back to searching for the open item labelled cra-clock. Work items opened by a bot do not fire (person needed).
 #
 # Output: a note on the work item with a fenced block tagged belay-cra (schemas/cra-draft.schema.json).
-# The clock itself is a fenced belay-cra-clock block in the work item description, written by Belay. It is data to copy,
+# The clock itself is a fenced belay-cra-clock block in the work item description, written by Afterlife. It is data to copy,
 # and the engine recomputes the arithmetic from aware_at.
 version: v1
 environment: ambient
@@ -54,7 +54,7 @@ flow:
 
 prompts:
   - prompt_id: "cra_draft"
-    name: "Belay CRA: draft a report stage"
+    name: "Afterlife CRA: draft a report stage"
     unit_primitives: []
     prompt_template:
       system: |

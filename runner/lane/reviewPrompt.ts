@@ -2,7 +2,7 @@
 // lane-review.ts (archive ref refs/hygiene-archive/2026-10-20/experiment/infinite-cycles, cycles personas-web-006
 // and -007): the reviewer reads the lane's change in a FRESH read-only session and answers in one json block; only
 // when it cites findings (or the runner put an existing test back) does the lane get ONE repair turn with them.
-// Belay's lanes can run their own checks, so the reviewer's brief adds a SCOPE check against the item and lane.md.
+// Afterlife's lanes can run their own checks, so the reviewer's brief adds a SCOPE check against the item and lane.md.
 import type { PlanItem } from '../wave/plan';
 import { stepMarker } from '../wave/plan';
 

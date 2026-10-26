@@ -1,4 +1,4 @@
-// belay gate --policy P --state S --class <id> --proof proof.json --guardrail verdict.json
+// engine/cli.ts gate --policy P --state S --class <id> --proof proof.json --guardrail verdict.json
 //   [--agent <service account>] [--diff <file>] [--env <name>]... [--now <iso>] [--engine-sha <sha>] [--shadow-next-rung]
 // --shadow-next-rung adds `would`: {tier, decision}, what the gate would decide with the holder's record one rung up
 // (../decide/shadow.ts); absent when there is no next rung. The decision, the reasons and the exit code are the gate's own.

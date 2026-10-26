@@ -38,7 +38,7 @@ describe('parseSetupIntent', () => {
 describe('setupAway', () => {
   it('answers this machine in demo and live, and refuses another host and the hosted replay', () => {
     expect(setupAway(h('localhost:3000'), {})).toBeNull();
-    expect(setupAway(h('127.0.0.1:3000'), { BELAY_MODE: 'live' })).toBeNull();
+    expect(setupAway(h('127.0.0.1:3000'), { AFTERLIFE_MODE: 'live' })).toBeNull();
     expect(setupAway(h('evil.example'), {})).toMatchObject({ status: 'refused', reason: expect.stringMatching(/not localhost/) });
     expect(setupAway(h('localhost:3000'), { AFTERLIFE_MODE: 'replay' })).toMatchObject({ status: 'refused' });
   });

@@ -108,7 +108,7 @@ flow:
 
 prompts:
   - prompt_id: "medic_classify"
-    name: "Belay medic: classify a failed pipeline"
+    name: "Afterlife medic: classify a failed pipeline"
     unit_primitives: []
     prompt_template:
       system: |
@@ -140,7 +140,7 @@ prompts:
       timeout: 300
 
   - prompt_id: "medic_retry"
-    name: "Belay medic: retry within budget"
+    name: "Afterlife medic: retry within budget"
     unit_primitives: []
     prompt_template:
       system: |
@@ -176,7 +176,7 @@ prompts:
       timeout: 5400
 
   - prompt_id: "medic_quarantine"
-    name: "Belay medic: propose a quarantine"
+    name: "Afterlife medic: propose a quarantine"
     unit_primitives: []
     prompt_template:
       system: |
@@ -212,7 +212,7 @@ prompts:
       timeout: 600
 
   - prompt_id: "medic_report"
-    name: "Belay medic: report a real failure"
+    name: "Afterlife medic: report a real failure"
     unit_primitives: []
     prompt_template:
       system: |

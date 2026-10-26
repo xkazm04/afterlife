@@ -23,7 +23,7 @@ describe('revoke-class', () => {
     expect(p.commands).toHaveLength(1);
     expect(p.commands[0]?.argv.slice(0, 5)).toEqual(['api', '--method', 'PUT', 'projects/90010002/repository/files/tier-state.yml', '-f']);
     expect(p.commands[0]?.display).toMatch(/^glab api --method PUT projects\/90010002\/repository\/files\/tier-state\.yml /);
-    expect(p.diff.join('\n')).toMatch(/- +dep-bump\.patch: \{ tier: hands_off[^\n]*\n\+ +dep-bump\.patch: \{ tier: supervised, since: "2026-10-06T14:22:00\.000Z", by: operator kazdanm via Belay, evidence: manual revoke/);
+    expect(p.diff.join('\n')).toMatch(/- +dep-bump\.patch: \{ tier: hands_off[^\n]*\n\+ +dep-bump\.patch: \{ tier: supervised, since: "2026-10-06T14:22:00\.000Z", by: operator kazdanm via Afterlife, evidence: manual revoke/);
     expect(p.summary).toContain('as kazdanm');
     expect(gl.state.writes).toEqual([]);
   });
@@ -34,7 +34,7 @@ describe('revoke-class', () => {
     const r = await confirmIntent(deps, revoke, p.previewId);
     expect(r).toMatchObject({ status: 'done', results: [{ ok: true, exit: 0, simulated: false }] });
     expect(gl.state.writes.map((w) => [w.method, w.path])).toEqual([['PUT', 'projects/90010002/repository/files/tier-state.yml']]);
-    expect(policyFiles(gl)['tier-state.yml']).toMatch(/dep-bump\.patch: \{ tier: supervised, since: "2026-10-06T14:22:00\.000Z", by: operator kazdanm via Belay/);
+    expect(policyFiles(gl)['tier-state.yml']).toMatch(/dep-bump\.patch: \{ tier: supervised, since: "2026-10-06T14:22:00\.000Z", by: operator kazdanm via Afterlife/);
     const rows = await listCommands(db, 'ledgerline');
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ operator: 'kazdanm', projectId: 'ledgerline', risk: 'policy', outcome: 'ok', exitCode: 0, argv: p.commands[0]?.argv });

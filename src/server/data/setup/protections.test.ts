@@ -4,21 +4,21 @@ import { describe, expect, it } from 'vitest';
 import { stepDetailsFor, type StepNames } from '@/app/features/setup/data/stepDetail';
 import { createDemoGitLab, GROUP_ID } from '@/server/gitlab/fake/demo';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
-import { createBelayProjects, projectNamed } from '@/server/gitlab/fake/setupDone';
+import { createAfterlifeProjects, projectNamed } from '@/server/gitlab/fake/setupDone';
 import type { StepCtx } from './ctx';
 import { covers, protectionsRead } from './protections';
-import { BELAY_PROJECTS } from './read';
+import { AFTERLIFE_PROJECTS } from './read';
 
-const NAMES: StepNames = { host: 'gitlab.com', group: 'acme-lab', project: 'afterlife', projects: ['afterlife', ...BELAY_PROJECTS] };
+const NAMES: StepNames = { host: 'gitlab.com', group: 'acme-lab', project: 'afterlife', projects: ['afterlife', ...AFTERLIFE_PROJECTS] };
 const COMMANDS = stepDetailsFor(NAMES)[9]?.cmd ?? [];
 
 /** A shell line as argv: words split on spaces, single quotes kept together and dropped. */
 const argv = (line: string): string[] => (line.match(/'[^']*'|\S+/g) ?? []).map((w) => w.replace(/^'(.*)'$/, '$1'));
 
-/** The demo group with a root-level target and the belay projects, main protected on each as GitLab does by default. */
+/** The demo group with a root-level target and the Afterlife projects, main protected on each as GitLab does by default. */
 function group(plan: 'ultimate' | 'free' = 'ultimate'): FakeGitLab {
   const gl = createDemoGitLab(undefined, { plan });
-  for (const p of [projectNamed(gl, 'afterlife'), ...createBelayProjects(gl)]) {
+  for (const p of [projectNamed(gl, 'afterlife'), ...createAfterlifeProjects(gl)]) {
     p.protectedBranches = { main: { name: 'main', push_access_levels: [{ access_level: 40 }], merge_access_levels: [{ access_level: 40 }], allow_force_push: false, code_owner_approval_required: false } };
   }
   return gl;
@@ -127,12 +127,12 @@ describe("step 9's and step 5's target commands on a target in a subgroup (craft
   async function subgroupNames(gl: FakeGitLab): Promise<StepNames> {
     const all = await gl.port.listProjects(GROUP_ID);
     const target = all.find((p) => p.path === 'ledgerline');
-    return { host: 'gitlab.com', group: 'acme-lab', project: 'ledgerline', path: target?.pathWithNamespace, projects: ['ledgerline', ...BELAY_PROJECTS] };
+    return { host: 'gitlab.com', group: 'acme-lab', project: 'ledgerline', path: target?.pathWithNamespace, projects: ['ledgerline', ...AFTERLIFE_PROJECTS] };
   }
 
   it('names the full path in the five target lines and the push; the belay-* lines stay at the group’s root', async () => {
     const gl = createDemoGitLab();
-    createBelayProjects(gl);
+    createAfterlifeProjects(gl);
     const names = await subgroupNames(gl);
     expect(names.path).toBe(SUB);
     const d = stepDetailsFor(names);
@@ -145,7 +145,7 @@ describe("step 9's and step 5's target commands on a target in a subgroup (craft
 
   it('the target lines run against the fake: none answers 404', async () => {
     const gl = createDemoGitLab();
-    createBelayProjects(gl);
+    createAfterlifeProjects(gl);
     const rule = { push_access_levels: [{ access_level: 40 }], merge_access_levels: [{ access_level: 40 }], allow_force_push: false, code_owner_approval_required: false };
     projectNamed(gl, 'ledgerline').protectedBranches = { main: { name: 'main', ...rule }, 'belay/*': { name: 'belay/*', ...rule } };
     const lines = (stepDetailsFor(await subgroupNames(gl))[9]?.cmd ?? []).filter((c) => c.includes(encodeURIComponent(SUB)));

@@ -4,7 +4,7 @@
 //   the project's last good poll, and a failed poll after it (newest by definition: its own time is not kept).
 // The index keeps no time for a proof or a state change, so a task's newest row carries its standing now: the state
 // label and, when a proof is indexed, its verdict. Nothing is invented: a task with no time has no row (the Fleet lists
-// it under Tasks). An unclassified task is not a Belay task yet and is left out, as `getTasks` leaves it out.
+// it under Tasks). An unclassified task is not an Afterlife task yet and is left out, as `getTasks` leaves it out.
 import type { DemoData } from '@/lib/demo/types';
 import { getPollState, projectSource } from '../repositories/pollState';
 import type { Queryable } from '../repositories/sql';

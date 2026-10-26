@@ -1,4 +1,4 @@
-// Which data the app serves. The env (AFTERLIFE_<KEY>, or BELAY_<KEY>), with /start's runtime settings under it (serverEnv).
+// Which data the app serves. The env (AFTERLIFE_<KEY>, read through envOf), with /start's runtime settings under it (serverEnv).
 //   MODE    demo (default) | live. Anything else (the hosted replay's `replay` included) serves the demo data.
 //   GITLAB  glab (default, the operator's own login) | fake (a seeded fake GitLab: live mode without a real group).
 //   PROJECT the project the deep screens are about (default: the demo's ledgerline).

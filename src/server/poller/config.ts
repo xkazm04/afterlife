@@ -14,7 +14,7 @@ export const allows = (r: AuthorRule, username: string): boolean => r.names.incl
 export interface PollerConfig {
   /** The group (id or path) whose projects are watched. */
   group: string | number;
-  /** Project names that hold Belay's own files; they are never targets. */
+  /** Project names that hold Afterlife's own files; they are never targets. */
   policyProject: string;
   ledgerProject: string;
   infra: readonly string[];
@@ -39,32 +39,32 @@ const NAME = /^[A-Za-z0-9_.-]+$/;
 const GROUP = /^(\d+|[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)*)$/;
 
 /**
- * Live mode on a real group (BELAY_MODE=live, BELAY_GITLAB not fake) has no defaults to fall back on: the default group is
- * not the operator's, and with no BELAY_PROOF_AUTHORS no hand-posted proof note (M1) is ever believed. What is missing or
+ * Live mode on a real group (AFTERLIFE_MODE=live, AFTERLIFE_GITLAB not fake) has no defaults to fall back on: the default group is
+ * not the operator's, and with no AFTERLIFE_PROOF_AUTHORS no hand-posted proof note (M1) is ever believed. What is missing or
  * malformed, each by its variable's name; [] when nothing is, or in any other mode.
  */
 export function liveConfigProblems(env: Record<string, string | undefined>): string[] {
   const data = readDataConfig(env);
   if (data.mode !== 'live' || data.gitlab === 'fake') return [];
   const problems: string[] = [];
-  // the three /start can set (runtime settings arrive as AFTERLIFE_<key>, serverEnv): read under either name
+  // the three /start can set arrive as AFTERLIFE_<key> (serverEnv); every key is read under either name (envOf)
   const group = envOf(env, 'GROUP_ID')?.trim();
-  if (!group) problems.push('BELAY_GROUP_ID is not set (the group to watch; there is no default in live mode)');
-  else if (!GROUP.test(group)) problems.push(`BELAY_GROUP_ID is not a group id or path: ${JSON.stringify(group)}`);
+  if (!group) problems.push('AFTERLIFE_GROUP_ID is not set (the group to watch; there is no default in live mode)');
+  else if (!GROUP.test(group)) problems.push(`AFTERLIFE_GROUP_ID is not a group id or path: ${JSON.stringify(group)}`);
   const project = envOf(env, 'PROJECT')?.trim();
-  if (!project) problems.push('BELAY_PROJECT is not set (the target project\'s path, its last segment)');
-  else if (!NAME.test(project)) problems.push(`BELAY_PROJECT is not a project path (its last segment, no group): ${JSON.stringify(project)}`);
+  if (!project) problems.push('AFTERLIFE_PROJECT is not set (the target project\'s path, its last segment)');
+  else if (!NAME.test(project)) problems.push(`AFTERLIFE_PROJECT is not a project path (its last segment, no group): ${JSON.stringify(project)}`);
   const authors = list(envOf(env, 'PROOF_AUTHORS'));
-  if (!authors.length) problems.push('BELAY_PROOF_AUTHORS is not set (the usernames whose belay-proof notes count, the operator\'s in M1)');
-  else if (!authors.every((a) => NAME.test(a))) problems.push(`BELAY_PROOF_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(envOf(env, 'PROOF_AUTHORS'))}`);
+  if (!authors.length) problems.push('AFTERLIFE_PROOF_AUTHORS is not set (the usernames whose belay-proof notes count, the operator\'s in M1)');
+  else if (!authors.every((a) => NAME.test(a))) problems.push(`AFTERLIFE_PROOF_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(envOf(env, 'PROOF_AUTHORS'))}`);
   // optional; when set, read by the same rule (a name with a space or an @ is nobody's username, so it would believe no one)
-  if (!list(env.BELAY_GUARDRAIL_AUTHORS).every((a) => NAME.test(a))) problems.push(`BELAY_GUARDRAIL_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(env.BELAY_GUARDRAIL_AUTHORS)}`);
+  if (!list(envOf(env, 'GUARDRAIL_AUTHORS')).every((a) => NAME.test(a))) problems.push(`AFTERLIFE_GUARDRAIL_AUTHORS is not a comma-separated list of usernames: ${JSON.stringify(envOf(env, 'GUARDRAIL_AUTHORS'))}`);
   // optional too: a prefix with a space admits no agent, a name with a slash is never <group>/<name>
-  const prefix = env.BELAY_AGENT_PREFIX?.trim();
-  if (prefix && !NAME.test(prefix)) problems.push(`BELAY_AGENT_PREFIX is not a username prefix: ${JSON.stringify(env.BELAY_AGENT_PREFIX)}`);
-  for (const name of ['BELAY_POLICY_PROJECT', 'BELAY_LEDGER_PROJECT'] as const) {
-    const v = env[name]?.trim();
-    if (v && !NAME.test(v)) problems.push(`${name} is not a project path (its last segment, no group): ${JSON.stringify(env[name])}`);
+  const prefix = envOf(env, 'AGENT_PREFIX')?.trim();
+  if (prefix && !NAME.test(prefix)) problems.push(`AFTERLIFE_AGENT_PREFIX is not a username prefix: ${JSON.stringify(envOf(env, 'AGENT_PREFIX'))}`);
+  for (const key of ['POLICY_PROJECT', 'LEDGER_PROJECT'] as const) {
+    const v = envOf(env, key)?.trim();
+    if (v && !NAME.test(v)) problems.push(`AFTERLIFE_${key} is not a project path (its last segment, no group): ${JSON.stringify(envOf(env, key))}`);
   }
   return problems;
 }
@@ -72,20 +72,21 @@ export function liveConfigProblems(env: Record<string, string | undefined>): str
 /** Throws, naming every missing or malformed variable, in live mode on a real group (`liveConfigProblems`). */
 export function readPollerConfig(group: string | number, env: Record<string, string | undefined> = serverEnv()): PollerConfig {
   const problems = liveConfigProblems(env);
-  if (problems.length) throw new Error(`BELAY_MODE=live: ${problems.join('; ')}`);
+  if (problems.length) throw new Error(`AFTERLIFE_MODE=live: ${problems.join('; ')}`);
   // on a real group anyone can register an ai-proof-* name: the proof and guardrail prefixes count there only when the
-  // operator opts in (BELAY_TRUST_PREFIXES=1); otherwise only the named accounts do. Demo and the fake group keep them.
+  // operator opts in (AFTERLIFE_TRUST_PREFIXES=1); otherwise only the named accounts do. Demo and the fake group keep them.
   const data = readDataConfig(env);
-  const prefixes = data.mode !== 'live' || data.gitlab === 'fake' || env.BELAY_TRUST_PREFIXES?.trim() === '1';
-  const policyProject = env.BELAY_POLICY_PROJECT?.trim() || 'belay-policy';
-  const ledgerProject = env.BELAY_LEDGER_PROJECT?.trim() || 'belay-ledger';
-  const hours = Number(env.BELAY_TASK_HOURS);
+  const prefixes = data.mode !== 'live' || data.gitlab === 'fake' || envOf(env, 'TRUST_PREFIXES')?.trim() === '1';
+  const policyProject = envOf(env, 'POLICY_PROJECT')?.trim() || 'belay-policy';
+  const ledgerProject = envOf(env, 'LEDGER_PROJECT')?.trim() || 'belay-ledger';
+  // wire names: the GitLab projects armed groups already hold; renaming them strands every installed group
+  const hours = Number(envOf(env, 'TASK_HOURS'));
   return {
     group, policyProject, ledgerProject, infra: [policyProject, ledgerProject, 'belay-pack', 'belay-engine'],
-    policyRef: env.BELAY_POLICY_REF || 'main', ledgerRef: env.BELAY_LEDGER_REF || 'main',
-    agents: { prefixes: [env.BELAY_AGENT_PREFIX?.trim() || 'ai-'], names: [] },
+    policyRef: envOf(env, 'POLICY_REF') || 'main', ledgerRef: envOf(env, 'LEDGER_REF') || 'main',
+    agents: { prefixes: [envOf(env, 'AGENT_PREFIX')?.trim() || 'ai-'], names: [] },
     proof: { prefixes: prefixes ? ['ai-proof-'] : [], names: list(envOf(env, 'PROOF_AUTHORS')) },
-    guardrail: { prefixes: prefixes ? ['ai-guardrail-'] : [], names: list(env.BELAY_GUARDRAIL_AUTHORS) },
+    guardrail: { prefixes: prefixes ? ['ai-guardrail-'] : [], names: list(envOf(env, 'GUARDRAIL_AUTHORS')) },
     taskWindowMs: (Number.isFinite(hours) && hours > 0 ? hours : 24) * HOUR,
     rollupWindowMs: 7 * 24 * HOUR,
     mrLimit: 200,

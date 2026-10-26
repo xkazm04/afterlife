@@ -1,4 +1,4 @@
-// A reported claim, parsed strictly: what a dev agent (through `belay report`) says its change will move. Unknown keys,
+// A reported claim, parsed strictly: what a dev agent (through `afterlife report`) says its change will move. Unknown keys,
 // an unknown target kind, a missing title or a target without what it names are refused with the reason, never
 // coerced. Afterlife fills `id` (sortable, ulid-like) and `at`; the agent's own figure is kept as `agentValue` and is
 // only ever displayed: the verdict is Afterlife's re-measure (vitals/measure).

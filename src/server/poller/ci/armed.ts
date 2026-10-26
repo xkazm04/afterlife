@@ -12,6 +12,7 @@ import { messageOf } from '@/lib/format/error';
 
 export const CI_FILE = '.gitlab-ci.yml';
 
+// wire name: the marker arming wrote into every armed project's .gitlab-ci.yml; renaming it un-arms them all
 const BEGIN = /^\s*# belay:arm (T[1-8]) (\S+) begin [0-9a-f]{12}\s*$/;
 
 /** The distinct tracks armed in one .gitlab-ci.yml text. Pure. */

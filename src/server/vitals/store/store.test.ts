@@ -1,4 +1,4 @@
-// The vitals store on a temp BELAY_DATA_DIR: idempotent by key (a re-append adds 0 and leaves no duplicate key),
+// The vitals store on a temp AFTERLIFE_DATA_DIR: idempotent by key (a re-append adds 0 and leaves no duplicate key),
 // adjustments append as they come, unreadable lines are skipped and counted, and a read re-parses only on change.
 import { appendFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -14,11 +14,11 @@ const run = (id: number): CiRun => ({
 const point = (h: number): ProdPoint => ({ key: `requests:2026-10-25T0${h}:00:00.000Z`, signal: 'requests', binStart: `2026-10-25T0${h}:00:00.000Z`, binMin: 60, value: 120 + h, n: 120 + h });
 
 let dir = '';
-const prev = process.env.BELAY_DATA_DIR;
-beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'belay-vitals-')); process.env.BELAY_DATA_DIR = dir; });
+const prev = process.env.AFTERLIFE_DATA_DIR;
+beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'afterlife-vitals-')); process.env.AFTERLIFE_DATA_DIR = dir; });
 afterEach(() => {
-  if (prev === undefined) delete process.env.BELAY_DATA_DIR;
-  else process.env.BELAY_DATA_DIR = prev;
+  if (prev === undefined) delete process.env.AFTERLIFE_DATA_DIR;
+  else process.env.AFTERLIFE_DATA_DIR = prev;
   rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 

@@ -1,4 +1,4 @@
-// Domain types for what Belay reads from GitLab. Camel-cased, only the fields Belay uses;
+// Domain types for what Afterlife reads from GitLab. Camel-cased, only the fields Afterlife uses;
 // adapter/mappers.ts turns the raw REST JSON into these.
 
 export type ProjectRef = number | string; // numeric id, or "group/path"

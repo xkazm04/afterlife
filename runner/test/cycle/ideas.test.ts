@@ -29,7 +29,7 @@ const rows: [string, string, string | null, number | null, string][] = [
 ];
 
 beforeAll(() => {
-  f = makeFleet('belay-ideas-');
+  f = makeFleet('afterlife-ideas-');
   const file = lensScanFile(f.repoDir);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
@@ -37,10 +37,10 @@ beforeAll(() => {
   const put = db.prepare('INSERT INTO proposals VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
   for (const [id, status, size, tier, title] of rows) put.run(id, 'billing', 'security', title, `## Summary\nshort ${id}\n## Description\napp/${id}.py:12 does it wrong\n## Flow\nfix`, size, 3, tier, status, '2026-10-01');
   db.close();
-  process.env.BELAY_CLAUDE_BIN = FAKE;
+  process.env.AFTERLIFE_CLAUDE_BIN = FAKE;
 });
 afterAll(() => {
-  delete process.env.BELAY_CLAUDE_BIN;
+  delete process.env.AFTERLIFE_CLAUDE_BIN;
   fs.rmSync(f.tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 

@@ -54,15 +54,15 @@ describe('cycleLine over a run of fake cycles', () => {
     }
     expect(lines).toEqual([
       null,
-      'belay: poll cycle 1 new: policy: bad yaml; class tiers are not updated (1 standing)',
+      'afterlife: poll cycle 1 new: policy: bad yaml; class tiers are not updated (1 standing)',
       null,
-      'belay: poll cycle 1 new: a: x (2 standing)',
-      'belay: poll cycle 2 cleared: policy: bad yaml; class tiers are not updated; a: x (0 standing)',
+      'afterlife: poll cycle 1 new: a: x (2 standing)',
+      'afterlife: poll cycle 2 cleared: policy: bad yaml; class tiers are not updated; a: x (0 standing)',
       null,
     ]);
   });
 
   it('names every problem of the first cycle as new', () => {
-    expect(cycleLine(null, ['group: HTTP 503'])).toBe('belay: poll cycle 1 new: group: HTTP 503 (1 standing)');
+    expect(cycleLine(null, ['group: HTTP 503'])).toBe('afterlife: poll cycle 1 new: group: HTTP 503 (1 standing)');
   });
 });

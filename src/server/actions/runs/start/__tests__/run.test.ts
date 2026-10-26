@@ -37,7 +37,7 @@ describe('refusals, before anything runs', () => {
   it('a live run on that repo', async () => {
     const f = fakeDeps(repo);
     f.pid.live = 777;
-    expect(await previewStartRun(f.deps, run)).toMatchObject({ status: 'refused', reason: expect.stringMatching(/a belay run \(pid 777\) is running on grinex-portal now/) });
+    expect(await previewStartRun(f.deps, run)).toMatchObject({ status: 'refused', reason: expect.stringMatching(/an afterlife run \(pid 777\) is running on grinex-portal now/) });
   });
   it('a fleet that cannot be read', async () => {
     const f = fakeDeps(repo, { repos: () => ({ ok: false, reason: 'repos[0]: base must be a git ref or sha' }) });
@@ -50,7 +50,7 @@ describe('preview then confirm', () => {
     const f = fakeDeps(repo);
     const p = await previewStartRun(f.deps, { ...run, onto: 'feature/free' });
     if (p.status !== 'preview') throw new Error(p.status);
-    expect(p.preview.commands.map((c) => c.display)).toEqual(['belay run --repo grinex-portal --mode execute --onto feature/free --waves 5 --lanes 4 --lane-cap 3 --wave-cap 25 --model sonnet --ideas scan']);
+    expect(p.preview.commands.map((c) => c.display)).toEqual(['afterlife run --repo grinex-portal --mode execute --onto feature/free --waves 5 --lanes 4 --lane-cap 3 --wave-cap 25 --model sonnet --ideas scan']);
     expect(p.preview).toMatchObject({ kind: 'start-run', mode: 'live', risk: 'merge', branch: 'feature/free' });
     expect(p.preview.notes?.join(' ')).toMatch(/Nothing is pushed and nothing is merged/);
     expect(f.launched).toEqual([]);

@@ -31,7 +31,7 @@ describe('fetch-block --head-sha with Proof Blocks', () => {
   it('the tier gate asks for the proof of the head it acts on', () => {
     const template = fs.readFileSync(path.join(SCRIPTS, '..', 'templates', 'tier-gate', 'template.yml'), 'utf8');
     const line = template.split('\n').find((l) => l.includes('--tag belay-proof'));
-    expect(line).toContain('--head-sha "$BELAY_HEAD_SHA"');
+    expect(line).toContain('--head-sha "$AFTERLIFE_HEAD_SHA"');
   });
 });
 

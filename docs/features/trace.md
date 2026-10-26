@@ -4,7 +4,7 @@
 
 ## What it does
 - Sets up the first project as one wire of six nodes, left to right: **glab installed** and **Signed in** (this machine and
-  GitLab), **Group readable**, **Live, first poll** (Afterlife), **belay doctor**, **Unlock map**. Each lights when the app's
+  GitLab), **Group readable**, **Live, first poll** (Afterlife), **afterlife doctor**, **Unlock map**. Each lights when the app's
   own probe passes; the selected node shows the exact command that clears it, to copy into your terminal.
 - **Re-check all** probes again. The probes only read (GETs as your own glab login); Afterlife runs none of the commands and
   writes nothing, and an environment change needs a server restart. The status line says how many nodes pass and when.

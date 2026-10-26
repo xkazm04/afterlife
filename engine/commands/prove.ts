@@ -1,4 +1,4 @@
-// belay prove --class <ProofClass> --input <file.json> [--policy policy/trust-policy.yml] [--files-root <dir>]
+// engine/cli.ts prove --class <ProofClass> --input <file.json> [--policy policy/trust-policy.yml] [--files-root <dir>]
 import type { ProofBlock } from '../../src/schemas/proof';
 import { parseArgs } from '../core/args';
 import { readInput } from '../core/files';

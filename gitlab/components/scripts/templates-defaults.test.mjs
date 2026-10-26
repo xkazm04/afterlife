@@ -1,6 +1,8 @@
-// F30: a template's belay-* project defaults follow the target's own namespace, never the top-level group.
+// F30: a template's belay-* project defaults (wire names) follow the target's own namespace, never the top-level group.
 import { expect, it } from 'vitest';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { parseAllDocuments } from 'yaml';
 
@@ -23,9 +25,9 @@ for (const name of fs.readdirSync(dir)) {
 // M6 / F100: a pipeline variable (trigger, API, manual run) outranks a job's own `variables:`, so nothing that picks the
 // engine, its pin, glab, the policy (project and ref) or the shell run beside CI_JOB_TOKEN may be a job variable: it is read
 // from `$[[ inputs.x ]]`. Nor may the accounts whose Proof Block, guardrail or medic note a job trusts.
-const PINNED = ['BELAY_ENGINE_PROJECT', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT', 'BELAY_POLICY_PROJECT', 'BELAY_POLICY_REF', 'BELAY_GLAB_VERSION', 'BELAY_GLAB_SHA256', 'BELAY_BUILD_ARGS', 'BELAY_PREPARE',
-  'BELAY_PROOF_AUTHORS', 'BELAY_GUARDRAIL_AUTHORS', 'BELAY_BLOCK_AUTHORS',
-  'BELAY_AGENT_PREFIX', 'BELAY_CLASS', 'BELAY_CLASS_INPUT', 'BELAY_EVIDENCE_MODE', 'BELAY_EVIDENCE_FILE', 'BELAY_POST_MERGE', 'BELAY_EMIT'];
+const PINNED = ['AFTERLIFE_ENGINE_PROJECT', 'AFTERLIFE_ENGINE_REF', 'AFTERLIFE_ENGINE_COMMIT', 'AFTERLIFE_POLICY_PROJECT', 'AFTERLIFE_POLICY_REF', 'AFTERLIFE_GLAB_VERSION', 'AFTERLIFE_GLAB_SHA256', 'AFTERLIFE_BUILD_ARGS', 'AFTERLIFE_PREPARE',
+  'AFTERLIFE_PROOF_AUTHORS', 'AFTERLIFE_GUARDRAIL_AUTHORS', 'AFTERLIFE_BLOCK_AUTHORS',
+  'AFTERLIFE_AGENT_PREFIX', 'AFTERLIFE_CLASS', 'AFTERLIFE_CLASS_INPUT', 'AFTERLIFE_EVIDENCE_MODE', 'AFTERLIFE_EVIDENCE_FILE', 'AFTERLIFE_POST_MERGE', 'AFTERLIFE_EMIT'];
 const GUARDED = ['engine_project', 'engine_ref', 'engine_commit', 'policy_project', 'policy_ref', 'glab_version', 'glab_sha256', 'build_args',
   'proof_authors', 'guardrail_authors', 'block_authors', 'agent_prefix', 'evidence_file'];
 const READ = ['class', 'evidence_mode', 'post_merge', 'emit_events']; // options- or type-guarded: read in the shell, no regex needed
@@ -75,12 +77,54 @@ it('every ref and checksum input refuses shell metacharacters', () => {
   }
 });
 
-// M6: tier-gate's `$(( ... BELAY_WAIT_MINUTES * 60 ))` evaluates the variable's text as an expression, and bash runs a
+// M6: tier-gate's `$(( ... AFTERLIFE_WAIT_MINUTES * 60 ))` evaluates the variable's text as an expression, and bash runs a
 // `$(...)` inside an array subscript there, so the wait is a number input read in the shell, never a job variable.
 it('tier-gate: wait_minutes is a number input, read in the shell, not a job variable the arithmetic would evaluate', () => {
   const docs = parseAllDocuments(fs.readFileSync(path.join(dir, 'tier-gate', 'template.yml'), 'utf8'));
   expect(docs[0].toJS().spec.inputs.wait_minutes.type).toBe('number');
   const job = docs[1].toJS()['belay-tier-gate'];
-  expect(job.variables ?? {}).not.toHaveProperty('BELAY_WAIT_MINUTES');
-  expect(job.script.join('\n')).toMatch(/BELAY_WAIT_MINUTES=\$\[\[ inputs\.wait_minutes \]\]/);
+  expect(job.variables ?? {}).not.toHaveProperty('AFTERLIFE_WAIT_MINUTES');
+  expect(job.script.join('\n')).toMatch(/AFTERLIFE_WAIT_MINUTES=\$\[\[ inputs\.wait_minutes \]\]/);
+});
+
+// The rename's deprecation window: a template's shell names AFTERLIFE_*, and a pre-rename BELAY_* name appears only paired
+// with its AFTERLIFE_* twin on the same line (set both, or read AFTERLIFE first), or in the unset before mr.env is sourced.
+// An engine_ref pinned before the rename reads BELAY_DIR and its siblings, and its mr-context writes only BELAY_* names.
+for (const name of fs.readdirSync(dir)) {
+  const file = path.join(dir, name, 'template.yml');
+  if (!fs.existsSync(file)) continue;
+  const lines = fs.readFileSync(file, 'utf8').split('\n');
+  it(`${name}: every BELAY_ name is paired with its AFTERLIFE_ name`, () => {
+    for (const line of lines.filter((l) => /BELAY_/.test(l) && !/^\s*unset /.test(l))) {
+      for (const [, key] of line.matchAll(/BELAY_([A-Z0-9_]+)/g)) expect(line, `${name}: BELAY_${key}`).toContain(`AFTERLIFE_${key}`);
+    }
+    expect(lines.join('\n')).toMatch(/export BELAY_DIR="\$AFTERLIFE_DIR" BELAY_GLUE="\$AFTERLIFE_GLUE"/);
+  });
+  if (lines.some((l) => l.includes('. ./.belay/mr.env'))) {
+    it(`${name}: reads each mr.env value under AFTERLIFE_, falling back to the BELAY_ an older engine writes`, () => {
+      for (const k of ['MR_IID', 'TASK_ID', 'ACTION_CLASS', 'AGENT', 'BASE_SHA', 'HEAD_SHA']) {
+        expect(lines.join('\n'), k).toContain(`AFTERLIFE_${k}="\${AFTERLIFE_${k}:-$BELAY_${k}}"`);
+      }
+    });
+  }
+}
+
+// The same, run: tier-gate's mr.env lines in sh, against the file an engine before the rename writes (BELAY_* only) and the
+// one mr-context writes now (both), with a pipeline variable of the new name that must not stand in for the file's value.
+it('tier-gate: an mr.env of either engine yields the file\'s values under AFTERLIFE_, never a pipeline variable\'s', () => {
+  const lines = fs.readFileSync(path.join(dir, 'tier-gate', 'template.yml'), 'utf8').split('\n');
+  const from = lines.findIndex((l) => l.includes('unset AFTERLIFE_MR_IID'));
+  const to = lines.findIndex((l) => l.includes('AFTERLIFE_HEAD_SHA="${AFTERLIFE_HEAD_SHA:-$BELAY_HEAD_SHA}"'));
+  expect(from).toBeGreaterThan(-1);
+  const snippet = ['set -eu', ...lines.slice(from, to + 1).map((l) => l.trim()), 'echo "$AFTERLIFE_MR_IID $AFTERLIFE_ACTION_CLASS $AFTERLIFE_HEAD_SHA"'].join('\n');
+  const values = { MR_IID: '7', TASK_ID: 'T', ACTION_CLASS: 'code-fix.patch', AGENT: 'ai-patcher', BASE_SHA: 'b'.repeat(40), HEAD_SHA: 'c'.repeat(40) };
+  for (const names of [['BELAY'], ['AFTERLIFE', 'BELAY']]) {
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-mrenv-'));
+    fs.mkdirSync(path.join(cwd, '.belay'));
+    fs.writeFileSync(path.join(cwd, '.belay', 'mr.env'), names.flatMap((n) => Object.entries(values).map(([k, v]) => `${n}_${k}=${v}\n`)).join(''));
+    const r = spawnSync('sh', ['-c', snippet], { cwd, encoding: 'utf8', env: { PATH: process.env.PATH, AFTERLIFE_HEAD_SHA: 'e'.repeat(40) } });
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout.trim(), names.join('+')).toBe(`7 code-fix.patch ${'c'.repeat(40)}`);
+    fs.rmSync(cwd, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
 });

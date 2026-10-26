@@ -1,9 +1,10 @@
-# CI of belay-apply (this folder is its root): the one project that holds Belay's write tokens and makes every Belay write
+# CI of belay-apply (this folder is its root): the one project that holds Afterlife's write tokens and makes every Afterlife write
 # (F4, decided 2026-10-07, ask 6696d24d). It runs only this file, from its own protected default branch. It never checks out,
 # includes or runs a target's code or CI config: it reads targets through the API and clones only belay-engine (at the
 # pinned ref and commit in apply.json) and belay-policy.
 # It takes no value from a pipeline variable, a trigger or a webhook: every setting is in apply.json, a file of this branch,
-# and no job here reads a variable it does not define, other than GitLab's predefined ones and the four tokens.
+# and no job here reads a variable it does not define, other than GitLab's predefined ones and the four tokens (each read
+# as AFTERLIFE_<X>_TOKEN, else the pre-rename BELAY_<X>_TOKEN, so CI/CD settings that still say BELAY_* keep working).
 # Syntax: workflow:rules, rules, resource_group, before_script ... https://docs.gitlab.com/ci/yaml/ [S]
 #         CI_COMMIT_REF_PROTECTED, CI_PIPELINE_SOURCE ............ https://docs.gitlab.com/ci/variables/predefined_variables/ [R]
 # Settings this project needs: README.md next to this file.
@@ -22,9 +23,10 @@ stages: [sweep]
     - |
       set -eu
       CFG="$CI_PROJECT_DIR/apply.json"
-      # BELAY_GLAB picks the binary every glab call runs (a test hook) and FAKE_GLAB_* feed the test double: neither is ever
-      # set here, so one that arrives (a pipeline variable the operator setting missed) is refused before any token is used.
-      if [ -n "${BELAY_GLAB+x}" ] || env | grep -q '^FAKE_GLAB_'; then echo "BELAY_GLAB or FAKE_GLAB_* is set: refusing to run glab with the write tokens" >&2; exit 2; fi
+      # AFTERLIFE_GLAB (or its pre-rename BELAY_GLAB) picks the binary every glab call runs (a test hook) and FAKE_GLAB_* feed
+      # the test double: none is ever set here, so one that arrives (a pipeline variable the operator setting missed) is
+      # refused before any token is used.
+      if [ -n "${AFTERLIFE_GLAB+x}" ] || [ -n "${BELAY_GLAB+x}" ] || env | grep -q '^FAKE_GLAB_'; then echo "AFTERLIFE_GLAB, BELAY_GLAB or FAKE_GLAB_* is set: refusing to run glab with the write tokens" >&2; exit 2; fi
       cfg() { node -p "const c=require(process.argv[1]); String($1 ?? '')" "$CFG"; }
       ENGINE_PROJECT="$(cfg c.engine.project)"; ENGINE_REF="$(cfg c.engine.ref)"; ENGINE_COMMIT="$(cfg c.engine.commit)"
       GLAB_VERSION="$(cfg c.glab.version)"; GLAB_SHA256="$(cfg c.glab.sha256)"
@@ -38,25 +40,33 @@ stages: [sweep]
       [ "$(printf %s "$GLAB_VERSION" | tr -d '0-9')" = ".." ] || { echo "apply.json glab.version must be N.N.N" >&2; exit 2; }
       case "$GLAB_SHA256" in *[!0-9a-f]*) echo "apply.json glab.sha256 must be 64 lowercase hex digits" >&2; exit 2 ;; esac
       [ "${#GLAB_SHA256}" -eq 64 ] || { echo "apply.json glab.sha256 must be 64 lowercase hex digits" >&2; exit 2; }
-      export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
-      rm -rf "$BELAY_DIR" && git init -q "$BELAY_DIR"
+      # The engine checkout, exported under both names for one deprecation window: the pinned engine may predate the rename.
+      export AFTERLIFE_DIR="$CI_PROJECT_DIR/.belay-engine"
+      export BELAY_DIR="$AFTERLIFE_DIR"
+      rm -rf "$AFTERLIFE_DIR" && git init -q "$AFTERLIFE_DIR"
       BASIC="$(printf 'gitlab-ci-token:%s' "$CI_JOB_TOKEN" | base64 -w0)"
       GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.extraHeader GIT_CONFIG_VALUE_0="Authorization: Basic $BASIC" \
-        git -C "$BELAY_DIR" fetch -q --depth 1 "https://${CI_SERVER_FQDN}/${ENGINE_PROJECT}.git" "$ENGINE_REF"
-      git -C "$BELAY_DIR" checkout -q FETCH_HEAD
-      if [ "$(git -C "$BELAY_DIR" rev-parse HEAD)" != "$ENGINE_COMMIT" ]; then
-        echo "belay engine is at $(git -C "$BELAY_DIR" rev-parse HEAD), not the pinned $ENGINE_COMMIT" >&2; exit 2
+        git -C "$AFTERLIFE_DIR" fetch -q --depth 1 "https://${CI_SERVER_FQDN}/${ENGINE_PROJECT}.git" "$ENGINE_REF"
+      git -C "$AFTERLIFE_DIR" checkout -q FETCH_HEAD
+      if [ "$(git -C "$AFTERLIFE_DIR" rev-parse HEAD)" != "$ENGINE_COMMIT" ]; then
+        echo "the Afterlife engine is at $(git -C "$AFTERLIFE_DIR" rev-parse HEAD), not the pinned $ENGINE_COMMIT" >&2; exit 2
       fi
-      (cd "$BELAY_DIR" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error)
+      (cd "$AFTERLIFE_DIR" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error)
       if ! command -v glab >/dev/null 2>&1; then
         V="$GLAB_VERSION"; T="$(mktemp -d)"
         curl -fsSL -o "$T/glab.tgz" "https://gitlab.com/gitlab-org/cli/-/releases/v${V}/downloads/glab_${V}_linux_amd64.tar.gz" # [R?]
         echo "$GLAB_SHA256  $T/glab.tgz" | sha256sum -c -
         tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
       fi
+      # Each write token under both names for one deprecation window (the pinned engine may read only BELAY_*): the
+      # AFTERLIFE_ name wins when both are set.
+      for K in BOT POLICY LEDGER DISPATCH; do
+        V="$(printenv "AFTERLIFE_${K}_TOKEN" || true)"; [ -n "$V" ] || V="$(printenv "BELAY_${K}_TOKEN" || true)"
+        if [ -n "$V" ]; then export "AFTERLIFE_${K}_TOKEN=$V" "BELAY_${K}_TOKEN=$V"; fi
+      done
       # Reads and the bot's writes use the bot token; the policy, ledger and dispatch tokens are handed to the one script
       # that writes with each. Without the bot token everything only reports.
-      if [ -n "${BELAY_BOT_TOKEN:-}" ]; then export GITLAB_TOKEN="$BELAY_BOT_TOKEN"
+      if [ -n "${AFTERLIFE_BOT_TOKEN:-}" ]; then export GITLAB_TOKEN="$AFTERLIFE_BOT_TOKEN"
       else glab auth login --hostname "$CI_SERVER_FQDN" --job-token "$CI_JOB_TOKEN" --api-protocol "$CI_SERVER_PROTOCOL"; fi
 
 # Every open agent MR of every target: the re-derived proof, the gate, the guardrail's dispatch, the ledger.
@@ -65,12 +75,12 @@ belay-apply-sweep:
   stage: sweep
   resource_group: belay-apply-sweep
   script:
-    - node "$BELAY_DIR/gitlab/apply/sweep.mjs" --config "$CI_PROJECT_DIR/apply.json" --work "$CI_PROJECT_DIR/.belay"
+    - node "$AFTERLIFE_DIR/gitlab/apply/sweep.mjs" --config "$CI_PROJECT_DIR/apply.json" --work "$CI_PROJECT_DIR/.belay"
 
-# The tripwire for every target: demotions committed to belay-policy with BELAY_POLICY_TOKEN.
+# The tripwire for every target: demotions committed to belay-policy with AFTERLIFE_POLICY_TOKEN.
 belay-apply-tripwire:
   extends: .belay-apply-boot
   stage: sweep
   resource_group: belay-policy-tripwire
   script:
-    - node "$BELAY_DIR/gitlab/apply/tripwire-sweep.mjs" --config "$CI_PROJECT_DIR/apply.json" --work "$CI_PROJECT_DIR/.belay-tripwire"
+    - node "$AFTERLIFE_DIR/gitlab/apply/tripwire-sweep.mjs" --config "$CI_PROJECT_DIR/apply.json" --work "$CI_PROJECT_DIR/.belay-tripwire"

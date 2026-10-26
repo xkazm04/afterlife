@@ -13,12 +13,12 @@
   `r`) lowers every class of the track in one commit. Demo: six seconds later a simulated tier-gate read settles it.
   Live: the commit stays "Pending read" until a poll's receipt says a gated MR read it.
 - **Promote** (`p`) is greyed unless the record meets every rule; when eligible, `p` confirms the policy MR the server
-  planned (a person merges it in GitLab; Belay never does). A quarantined class offers **Re-admit** (a policy MR at
+  planned (a person merges it in GitLab; Afterlife never does). A quarantined class offers **Re-admit** (a policy MR at
   Assisted) the same way.
 - The docked command strip always shows the exact write `r` (or `p`) would run, or the write of the menu item under the
   pointer. Enter opens the class page (`/ladder/[class]`): the promotion rule as counts, the write behind `r` and `p`
   (commands and `tier-state.yml` diff, as the server planned them), the grant, where a revoke was enforced, who acted
-  (on a to-scale timeline), and all moves filterable by actor (GitLab jobs, you, policy MRs, Belay polls).
+  (on a to-scale timeline), and all moves filterable by actor (GitLab jobs, you, policy MRs, Afterlife polls).
 - The "?" in the dock shows keys and the tier legend; in demo mode it also has Reset demo.
 
 ## How it works
@@ -63,7 +63,7 @@
 - No record means "No record yet" (`norecord`), not zero; Human only is "never an agent"; Quarantined re-admits at
   Assisted at most.
 - The sort order is frozen until the sort changes, so a revoke never moves rows under the cursor.
-- Honesty chips in the ledger: the guardrail entry is `seeded`, the demo's tier-gate read is `simulated`, and Belay's
+- Honesty chips in the ledger: the guardrail entry is `seeded`, the demo's tier-gate read is `simulated`, and Afterlife's
   own poll shows its lag ("+12 s late"). The guardrail's quoted finding is shown as untrusted text.
 
 ## Code map

@@ -50,7 +50,7 @@ export interface Targeted {
 
 /**
  * The one target rule, for every write (locate) and arm (arm/plan.ts targetOf). Read only. The project is the one the index
- * names, never ambiguous (F48), never one of Belay's own (`infra`, F50), and under the group's path (F37, F47).
+ * names, never ambiguous (F48), never one of Afterlife's own (`infra`, F50), and under the group's path (F37, F47).
  */
 export async function targetIn(ctx: Pick<PlanContext, 'port' | 'groupId' | 'gitlabId'>, indexId: string, infra: readonly string[]): Promise<Targeted> {
   const [all, gid, group] = await Promise.all([ctx.port.listProjects(ctx.groupId), ctx.gitlabId(indexId), ctx.port.getGroup(ctx.groupId)]);
@@ -59,12 +59,12 @@ export async function targetIn(ctx: Pick<PlanContext, 'port' | 'groupId' | 'gitl
     throw new ActionRefused(`${indexId} names ${matches.length} projects (${matches.map((p) => p.pathWithNamespace).join(', ')}) and the index has no GitLab id for it: poll first`);
   }
   const project = matches[0];
-  if (!project) throw new ActionRefused(`${indexId} is not a project Belay has read from GitLab yet`);
+  if (!project) throw new ActionRefused(`${indexId} is not a project Afterlife has read from GitLab yet`);
   if (infra.includes(project.path)) { // as the poller, which never watches them: tier-state.yml moves only by revoke or promote (F50)
-    throw new ActionRefused(`${project.path} is Belay's own project, not one it watches: nothing is planned in it`);
+    throw new ActionRefused(`${project.path} is Afterlife's own project, not one it watches: nothing is planned in it`);
   }
   if (!project.pathWithNamespace.startsWith(`${group.fullPath}/`)) { // F37, F47
-    throw new ActionRefused(`${project.pathWithNamespace} is not in ${group.fullPath} (it is shared into it from elsewhere): Belay writes only in a project of the paired group`);
+    throw new ActionRefused(`${project.pathWithNamespace} is not in ${group.fullPath} (it is shared into it from elsewhere): Afterlife writes only in a project of the paired group`);
   }
   return { project, group: group.fullPath, all };
 }

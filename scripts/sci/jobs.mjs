@@ -50,7 +50,7 @@ export function rawJobs(text) {
   return out;
 }
 
-/** belay-proof-<class>, belay-tier-gate, belay-maturity-scan, belay-apply-*: the proof layer. Anything else is the project's own CI. */
+/** belay-proof-<class>, belay-tier-gate, belay-maturity-scan, belay-apply-* (wire names: the CI job names armed pipelines run): the proof layer. Anything else is the project's own CI. */
 export function kindOf(name) {
   if (name.startsWith('belay-proof-')) return 'proof';
   if (name === 'belay-tier-gate') return 'gate';

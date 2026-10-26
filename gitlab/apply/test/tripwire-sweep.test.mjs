@@ -1,5 +1,5 @@
 // belay-apply's tripwire sweep: the components' tripwire.mjs, run from belay-apply for each target of the paired group,
-// commits the demotion to belay-policy with BELAY_POLICY_TOKEN, a token no target pipeline holds (F4). A fake glab, a real
+// commits the demotion to belay-policy with AFTERLIFE_POLICY_TOKEN, a token no target pipeline holds (F4). A fake glab, a real
 // clone of belay-policy and the real engine.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -62,7 +62,7 @@ const sweep = (env, extra = {}) => runScript(dir, '../../apply/tripwire-sweep.mj
 
 describe('belay-apply tripwire sweep', { timeout: 120_000 }, () => {
   it('(vii) a failed post-merge proof in a target commits the demotion to belay-policy from belay-apply', () => {
-    const r = sweep({ BELAY_BOT_TOKEN: 'bot', BELAY_POLICY_TOKEN: 'policy' });
+    const r = sweep({ AFTERLIFE_BOT_TOKEN: 'bot', AFTERLIFE_POLICY_TOKEN: 'policy' });
     expect(r.code, r.stderr).toBe(0);
     expect(r.writes).toHaveLength(1);
     const [w] = r.writes;
@@ -78,7 +78,7 @@ describe('belay-apply tripwire sweep', { timeout: 120_000 }, () => {
   it('F64: the class demoted is the one the gate decided on, not the Belay-Class the merged MR\'s description says now', () => {
     // After the merge the agent edits its description, so a later event would land on another class, or on none.
     const edited = { ...mr, description: 'Bump x\n\nBelay-Class: code-fix.patch' };
-    const r = sweep({ BELAY_BOT_TOKEN: 'bot', BELAY_POLICY_TOKEN: 'policy' }, {
+    const r = sweep({ AFTERLIFE_BOT_TOKEN: 'bot', AFTERLIFE_POLICY_TOKEN: 'policy' }, {
       [`projects/1/repository/commits/${SHA}/merge_requests`]: [edited],
       'projects/1/merge_requests': [edited],
     });
@@ -88,8 +88,8 @@ describe('belay-apply tripwire sweep', { timeout: 120_000 }, () => {
     expect(r.writes[0].body.commit_message).toMatch(/^Belay-Event: post_merge_proof_fail\|ai-patcher-acme\|dep-bump\.patch\|/m);
   });
 
-  it('without BELAY_POLICY_TOKEN it reports and sweeps nothing', () => {
-    const r = sweep({ BELAY_BOT_TOKEN: 'bot' });
+  it('without AFTERLIFE_POLICY_TOKEN it reports and sweeps nothing', () => {
+    const r = sweep({ AFTERLIFE_BOT_TOKEN: 'bot' });
     expect(r.code).toBe(0);
     expect(r.writes).toEqual([]);
     expect(r.reads).toEqual([]);
@@ -104,7 +104,7 @@ describe('belay-apply tripwire sweep', { timeout: 120_000 }, () => {
     const missing = pathToFileURL(path.join(dir, 'no-such-policy')).href;
     const r = runScript(dir, '../../apply/tripwire-sweep.mjs', ['--config', config, '--policy-remote', missing, '--work', path.join(dir, 'work-two')], {
       routes: { ...routes, 'groups/acme/projects': [{ id: 1, path_with_namespace: 'acme/ledgerline', default_branch: 'main' }, { id: 2, path_with_namespace: 'acme/second', default_branch: 'main' }], 'projects/2': { id: 2, default_branch: 'main' } },
-      env: { BELAY_BOT_TOKEN: 'bot', BELAY_POLICY_TOKEN: 'policy' },
+      env: { AFTERLIFE_BOT_TOKEN: 'bot', AFTERLIFE_POLICY_TOKEN: 'policy' },
     });
     expect(r.stderr).toMatch(/acme\/ledgerline: cannot clone the policy \(cannot clone acme\/belay-policy: .*\): skipped/);
     expect(r.stderr).toMatch(/acme\/second: cannot clone the policy/);

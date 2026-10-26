@@ -10,7 +10,7 @@ const line = (o: object) => JSON.stringify({ v: 'belay.run/0', ts: '2026-10-18T0
 
 describe('earlier waves reach the planner', () => {
   it('reads each lane of each earlier wave, in wave order, with its outcome and park reason', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-hist-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-hist-'));
     fs.mkdirSync(path.join(dir, 'alpha'));
     fs.writeFileSync(path.join(dir, 'alpha', '2.jsonl'), [line({ wave: 2, kind: 'lane.start', lane: 'b', title: 'Fix B' }), line({ wave: 2, kind: 'lane.end', lane: 'b', outcome: 'parked', commits: [], parkReason: 'needs a gate edit', wallSec: 1 })].join('\n'));
     fs.writeFileSync(path.join(dir, 'alpha', '10.jsonl'), [line({ wave: 10, kind: 'lane.start', lane: 'c', title: 'Fix C' }), 'not json', line({ wave: 10, kind: 'lane.end', lane: 'c', outcome: 'landed', commits: ['s'], wallSec: 1 })].join('\n'));

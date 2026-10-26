@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { branchExists, checkedOutAt, releaseOwnWorktrees } from '../git/worktree';
 import { git } from '../proc/proc';
+import { dotDirAt } from '../proc/env';
 import { loadFleet } from '../fleet/load';
 import { FLEET_BASE } from '../fleet/names';
 import type { RunEvent } from '../../src/schemas/run';
@@ -21,10 +22,10 @@ import { runWave } from './wave';
 const AFTERLIFE_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const DEFAULT_LANE_TIMEOUT_MS = 20 * 60_000;
 
-export const defaultFleetFile = (): string => path.join(AFTERLIFE_ROOT, '.belay', 'fleet.yml');
-export const defaultRunsDir = (): string => path.join(AFTERLIFE_ROOT, '.belay', 'runs');
+export const defaultFleetFile = (): string => path.join(dotDirAt(AFTERLIFE_ROOT), 'fleet.yml');
+export const defaultRunsDir = (): string => path.join(dotDirAt(AFTERLIFE_ROOT), 'runs');
 
-/** The caps a run spends under, and what `belay run` prints: a repo's own caps are ceilings on the flags, so a fleet file can only make a run cheaper. */
+/** The caps a run spends under, and what `afterlife run` prints: a repo's own caps are ceilings on the flags, so a fleet file can only make a run cheaper. */
 export const runCaps = (opts: Pick<RunOptions, 'laneCapUsd' | 'waveCapUsd'>, repo: Pick<FleetRepo, 'laneCapUsd' | 'waveCapUsd'>): { laneCapUsd: number; waveCapUsd: number } => ({
   laneCapUsd: Math.min(opts.laneCapUsd, repo.laneCapUsd ?? Infinity),
   waveCapUsd: Math.min(opts.waveCapUsd, repo.waveCapUsd ?? Infinity),

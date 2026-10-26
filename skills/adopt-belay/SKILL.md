@@ -1,11 +1,11 @@
 ---
 name: adopt-belay
-description: Install the Belay package (custom flows, proof engine, trust policy, local app) into a GitLab group and prove it on a target project. Use when asked to set up Belay or the Life After Code agent package.
+description: Install the Afterlife package (custom flows, proof engine, trust policy, local app) into a GitLab group and prove it on a target project. Use when asked to set up Afterlife or the Life After Code agent package.
 ---
 
-# adopt-belay (skeleton: steps are filled in from the commands actually used in week 1)
+# adopt-belay (the skill keeps its first name; skeleton: steps are filled in from the commands actually used in week 1)
 
-This skill does the same steps as Belay's Setup screen, without the screen: the steps are the
+This skill does the same steps as Afterlife's Setup screen, without the screen: the steps are the
 same and so are their numbers. The agent does the `git` and `glab` work. Everything that needs a
 licence, a card, a secret or a legal identity is handed back to a person as a numbered checklist.
 
@@ -14,7 +14,7 @@ licence, a card, a secret or a legal identity is handed back to a person as a nu
 - Print every command before running it. With `--dry-run`, print only.
 - Never write a secret into a file, an issue, a log or a commit. Secrets are typed by the human.
 - Never disable a protection, approval rule or environment gate to make a step pass.
-- A step is done when `belay doctor` says so, not when a command exits 0.
+- A step is done when `afterlife doctor` says so, not when a command exits 0.
 - Stop at the first failed verification, write it into `ONBOARDING-REPORT.md`, and hand back.
 - Re-running is safe: every step checks the current state first.
 - If the target's CI config includes a file through a variable or a wildcard, every agent MR waits for a person until the includes are listed by name (gitlab/apply/README.md, F68).
@@ -26,25 +26,25 @@ licence, a card, a secret or a legal identity is handed back to a person as a nu
 | # | Who | Step |
 |---|---|---|
 | 0 | Agent | Preflight: git, glab, node, `glab auth status`, GitLab version |
-| 1 | Agent | Clone Belay, `npm install`, `npm run dev`. Before it starts, set `BELAY_PACK_VERSION` (the belay-pack release the includes name) and `BELAY_ENGINE_REF` (the engine tag, branch or SHA) and, optionally, `BELAY_ENGINE_COMMIT` (40 hex digits) in its environment: an arm MR refuses without the first two (the example's values are 1.0.0 and v0.1.0, not defaults) |
+| 1 | Agent | Clone Afterlife, `npm install`, `npm run dev`. Before it starts, set `AFTERLIFE_PACK_VERSION` (the belay-pack release the includes name) and `AFTERLIFE_ENGINE_REF` (the engine tag, branch or SHA) and, optionally, `AFTERLIFE_ENGINE_COMMIT` (40 hex digits) in its environment: an arm MR refuses without the first two (the example's values are 1.0.0 and v0.1.0, not defaults) |
 | 2 | Agent | Questions: group, target project, tier ceiling, model route, Google Cloud project, credit cap, CRA drill mode |
 | 3 | **Human** | Licence and access: Ultimate trial, hackathon group |
 | 4 | Agent | Create projects: target, belay-pack, belay-policy, belay-ledger, belay-engine (every component job clones belay-engine at `engine_ref`), belay-apply (the one project that holds the write tokens, F4; its folder is gitlab/apply) |
 | 5 | Agent | Push the demo bank (`ledgerline`) and pair the checkout |
 | 6 | **Human** | Runner and billing on Google Cloud |
 | 7 | **Human** | Google Cloud OIDC, using the Cloud Shell script |
-| 8 | **Human** | Secrets. On belay-apply only, at project level (never on a target, never a group or instance variable: every target pipeline inherits the group's): `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_DISPATCH_TOKEN`, `BELAY_LEDGER_TOKEN`, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created: `glab variable set --hidden`). Set belay-apply's Minimum role to use pipeline variables to `no_one_allowed` and create its variable-free pipeline schedule on `main`. Source: gitlab/apply/README.md. Each token is one command, run on its own (the block under this table; Setup's step 8 shows the four). No other secret is set here. The human types every value; the agent never sees one, and Belay reads none of these variables |
+| 8 | **Human** | Secrets. On belay-apply only, at project level (never on a target, never a group or instance variable: every target pipeline inherits the group's): `AFTERLIFE_BOT_TOKEN`, `AFTERLIFE_POLICY_TOKEN`, `AFTERLIFE_DISPATCH_TOKEN`, `AFTERLIFE_LEDGER_TOKEN`, each Protect variable on and Masked and hidden (hidden is chosen when the variable is created: `glab variable set --hidden`). Set belay-apply's Minimum role to use pipeline variables to `no_one_allowed` and create its variable-free pipeline schedule on `main`. Source: gitlab/apply/README.md. Each token is one command, run on its own (the block under this table; Setup's step 8 shows the four). No other secret is set here. The human types every value; the agent never sees one, and Belay reads none of these variables |
 | 9 | Agent | Protections: approval rules with author-cannot-approve, protected main, `belay/*` a protected branch pattern that only Maintainers and the flow accounts can push to (gitlab/components/README.md, Exposure), a CODEOWNERS that covers `.gitlab-ci.yml` and `.gitlab/`; belay-apply's `main`: push No one, merge Maintainers, Code Owner approval required, force push off; belay-apply on the job token allowlists of belay-engine and belay-policy; the `v*` tags of belay-engine and belay-pack and `main` of belay-ledger protected against Developers (F39 at the settings layer; pinning the pack by commit is proposed, not done). `belay/*` guards no token. Read each project's protections first: GitLab already protects a pushed `main` and a second POST answers 409, so unprotect it and protect it again as listed (DELETE then POST, back to back; Setup's step 9 shows the commands). Done when Setup reads every setting back as listed |
 | 10 | Agent, then **Human** | Bootstrap MR. The human merges it. |
 | 11 | Agent, else **Human** | Enable flows. Skip `qa.yml` (T7) and `gardener.yml` (T8): cut on 19 Oct 2026, the checkpoint failed (no green loop). Do not enable or publish them |
 | 12 | Agent | First scan and the first gap MR |
 | 13 | Agent | Seeded faults (labelled seeded) and the schedule |
-| 14 | Agent | Report, and hand back the issue "Belay: what only you can do" |
+| 14 | Agent | Report, and hand back the issue "Afterlife: what only you can do" |
 
-Step 8's command, for `BELAY_BOT_TOKEN` (change the name for each of the four): the value is pasted at the silent read and handed to glab on stdin.
+Step 8's command, for `AFTERLIFE_BOT_TOKEN` (change the name for each of the four): the value is pasted at the silent read and handed to glab on stdin.
 
 ```sh
-(read -rs v; printf %s "$v") | glab variable set BELAY_BOT_TOKEN -R <group>/belay-apply --masked --protected --hidden
+(read -rs v; printf %s "$v") | glab variable set AFTERLIFE_BOT_TOKEN -R <group>/belay-apply --masked --protected --hidden
 ```
 
 On a host other than gitlab.com, `-R` takes the full URL, `-R https://<host>/<group>/belay-apply`: `glab variable set` has no host flag (docs.gitlab.com/cli/variable/set).

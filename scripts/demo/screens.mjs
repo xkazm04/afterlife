@@ -34,7 +34,7 @@ const loop = [
   { n: 6, key: 'gate', label: 'Tier gate', stage: 'govern', who: 'T3 governor', text: 'dep-bump.patch is HANDS-OFF · merged with no human click' },
   { n: 7, key: 'staging', label: 'Staging', stage: 'release', who: 'Cloud Run', text: 'deployed to staging · QA explored 12 paths · 0 regressions' },
   { n: 8, key: 'prod', label: 'Production', stage: 'configure', who: 'Cloud Run', text: 'promoted to production · protected environment · rule met' },
-  { n: 9, key: 'summary', label: 'Summary', stage: 'monitor', who: 'Belay', text: 'summary on issue #128 · CRA clock not needed (not actively exploited)' },
+  { n: 9, key: 'summary', label: 'Summary', stage: 'monitor', who: 'Afterlife', text: 'summary on issue #128 · CRA clock not needed (not actively exploited)' },
 ];
 
 const tasks = [
@@ -74,10 +74,10 @@ const needsYou = [
     rules: [['accepted outputs ≥ 15', '16', true], ['merged without edits ≥ 90 %', '100 %', true], ['clean days ≥ 14', '14', true], ['mechanical proof class', 'repro', true]],
     does: 'Opens a policy MR as you. You merge it. The next MR pipeline reads the new tier.' },
   { id: 'n2', kind: 'signoff', title: 'CRA early warning · sign-off', dueIn: '19 h 12 m', grade: 'reviewable', linksResolved: '6 / 6',
-    does: 'Marks the packet "ready to sign". A person submits on ENISA\'s platform; Belay never submits.' },
+    does: 'Marks the packet "ready to sign". A person submits on ENISA\'s platform; Afterlife never submits.' },
   { id: 'n3', kind: 'gaps', title: 'Pick the gaps to close · T6 maturity', count: 2, does: 'Opens one MR per picked gap, previewed first.' },
   { id: 'n4', kind: 'readmit', title: 'Re-admit T8 gardener · patch-bump', reason: 'guardrail high severity on !44', does: 'Re-admits at Assisted at most, never at its old tier.' },
-  { id: 'n5', kind: 'setup', title: 'Runner billing on Google Cloud', does: 'Opens the GitLab runner page. Belay verifies when you come back.' },
+  { id: 'n5', kind: 'setup', title: 'Runner billing on Google Cloud', does: 'Opens the GitLab runner page. Afterlife verifies when you come back.' },
 ];
 
 const setup = {
@@ -88,7 +88,7 @@ const setup = {
     ['Vulnerability report via GraphQL / MCP', 'unknown'], ['Flow created by API (not only UI)', 'unknown'], ['AI audit event report', 'unavailable'],
   ] },
   phases: [
-    { name: 'Prepare', steps: [[0, 'glab signed in as you', 'done'], [1, 'Belay running, checkout paired', 'done'], [2, 'Questions answered', 'done'], [3, 'Licence and access', 'human']] },
+    { name: 'Prepare', steps: [[0, 'glab signed in as you', 'done'], [1, 'Afterlife running, checkout paired', 'done'], [2, 'Questions answered', 'done'], [3, 'Licence and access', 'human']] },
     { name: 'Connect', steps: [[4, 'Projects created', 'done'], [5, 'Demo bank pushed, paired', 'todo'], [6, 'Runner and billing', 'human'], [7, 'Google Cloud OIDC', 'human'], [8, 'Secrets', 'human']] },
     { name: 'Install', steps: [[9, 'Protections', 'todo'], [10, 'Bootstrap MR', 'human'], [11, 'Enable flows', 'todo']] },
     { name: 'Prove', steps: [[12, 'First scan and gap MR', 'todo'], [13, 'Seeded faults and schedule', 'todo'], [14, 'Report and hand back', 'todo']] },

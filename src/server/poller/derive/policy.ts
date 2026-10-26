@@ -1,5 +1,5 @@
 // belay-policy: trust-policy.yml and tier-state.yml, read through the port and validated by the engine's own parsers (the
-// same rules the gate applies), so Belay and the gate can never read one file two ways.
+// same rules the gate applies), so Afterlife and the gate can never read one file two ways.
 import { parse } from 'yaml';
 import type { TierState } from '@/schemas/tier';
 import type { GitLabPort, GlFile, ProjectRef } from '@/server/gitlab/port';

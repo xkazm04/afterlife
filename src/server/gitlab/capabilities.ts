@@ -1,4 +1,4 @@
-// `belay doctor` capability probes. Each capability is available, unavailable or unknown, and never
+// `afterlife doctor` capability probes. Each capability is available, unavailable or unknown, and never
 // guessed: an endpoint answering 403/404 is "unavailable" with the reason; a network, auth or
 // rate-limit failure is "unknown"; a capability with no safe read endpoint is decided by the plan
 // (marked basis "plan") or stays unknown. When the preflight reads (user, group, instance) show one cause that stops every
@@ -115,7 +115,7 @@ export async function probeCapabilities(port: GitLabPort, group: ProjectRef, hoo
   const noProject = (): Verdict => ({ status: 'unknown', basis: 'none', reason: 'the group has no project yet to probe' });
   const onProject = (path: string, note?: string): Promise<Verdict> | Verdict =>
     project === null ? noProject() : get(port, `projects/${project}/${path}`, note);
-  // A 403/404 on a group route is a verdict on the plan only when the group itself answered: a wrong BELAY_GROUP_ID or a
+  // A 403/404 on a group route is a verdict on the plan only when the group itself answered: a wrong AFTERLIFE_GROUP_ID or a
   // group the login cannot see answers 404/403 on every route, which says nothing about what the plan has.
   const onGroup = (path: string): Promise<Verdict> | Verdict =>
     grp === null ? { status: 'unknown', basis: 'none', reason: `group ${group} could not be read, so its endpoints cannot be judged` } : get(port, `${g}/${path}`);

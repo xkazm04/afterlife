@@ -14,8 +14,8 @@
 import fs from 'node:fs';
 
 const prompt = fs.readFileSync(0, 'utf8');
-const step = /belay:step=(\w+)/.exec(prompt)?.[1] ?? 'unknown';
-const lane = /belay:step=\w+ lane=([\w-]+)/.exec(prompt)?.[1] ?? '';
+const step = /afterlife:step=(\w+)/.exec(prompt)?.[1] ?? 'unknown';
+const lane = /afterlife:step=\w+ lane=([\w-]+)/.exec(prompt)?.[1] ?? '';
 
 // FAKE_CALLS=<file>: append {step, lane, argv, settings, prompt} per call, the settings file read while it exists.
 if (process.env.FAKE_CALLS) {

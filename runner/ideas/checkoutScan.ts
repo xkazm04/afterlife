@@ -1,4 +1,4 @@
-// The engine's model-free checkout scan (engine/scan, what `belay scan <checkout>` prints) as plan evidence: every
+// The engine's model-free checkout scan (engine/scan, what `afterlife scan <checkout>` prints) as plan evidence: every
 // stage it rated R0 (absent) or could not rate (unknown), each with the scan's own why. Read-only, no network.
 import { checkoutFacts } from '../../engine/scan/local';
 import { scan } from '../../engine/scan/scan';

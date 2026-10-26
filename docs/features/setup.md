@@ -7,10 +7,10 @@ with `skills/adopt-belay`; this page is the overview.
 
 ## What it does
 - Draws the unlock map for one project (`acme-lab / ledgerline` in the demo, the paired group and target in live
-  mode): steps 0-14 in four phases on the left, the eight tracks in arm order in the middle, and the `belay doctor`
+  mode): steps 0-14 in four phases on the left, the eight tracks in arm order in the middle, and the `afterlife doctor`
   capabilities on the right, joined by drawn edges. A strip above the map counts where you stand and lists the gates
   only you can open.
-- Phases: Prepare (0 glab signed in, 1 Belay running and paired, 2 questions answered, 3 licence and access), Connect
+- Phases: Prepare (0 glab signed in, 1 Afterlife running and paired, 2 questions answered, 3 licence and access), Connect
   (4 projects created, 5 demo bank pushed, 6 runner and billing, 7 Google Cloud OIDC, 8 secrets), Install (9
   protections, 10 bootstrap MR, 11 enable flows), Prove (12 first scan and gap MR, 13 seeded faults and schedule, 14
   report and hand back).
@@ -19,17 +19,17 @@ with `skills/adopt-belay`; this page is the overview.
   T5 needs step 6 (a `gitlab--duo` runner); T2 needs step 12 (the SBOM job); T7 needs step 7 (a review-app env).
   Setup arms T4, T3, T6 and T1; the other four read "not defined yet" in live mode.
 - The toolbar holds a GitLab group menu (demo: `acme-lab`, probed, and `acme-sandbox`, never probed; live: the paired
-  group only), the `belay doctor` lozenge (available / unavailable / unknown counts; a click lights that status on the
+  group only), the `afterlife doctor` lozenge (available / unavailable / unknown counts; a click lights that status on the
   map) and Re-probe.
 - A click (or Enter) on a node opens its page, `/setup/step-<n>`, `/setup/track-<id>` or `/setup/cap-<slug>`: a step's
   commands (Copy only), a track's arm or disarm MR as the server planned it and its enrollment, a capability's probe.
-  The status bar reads `<n>/15 steps read done · <n>/8 armed · <n> need you · belay doctor · probed 14:02 · <age>`.
+  The status bar reads `<n>/15 steps read done · <n>/8 armed · <n> need you · afterlife doctor · probed 14:02 · <age>`.
 
 ## How it works
 - `src/app/(app)/setup/layout.tsx` awaits `loadSetupData()` and holds the flow in `SetupProvider`, so a probe or an arm on
   a node's page survives the trip back to the map. `loadSetupData` reads `getSetup()`, `getTracks()`,
   `getActionClasses()` and `getPolicy()` through `getDataSource()` (see `server.md`); in live mode it also awaits
-  `readLiveSetup` (`src/server/data/setup/read.ts`): each track's arm block on the target's main, the belay doctor and
+  `readLiveSetup` (`src/server/data/setup/read.ts`): each track's arm block on the target's main, the afterlife doctor and
   the steps a read can observe. `src/app/(app)/setup/[node]/page.tsx` resolves the segment with `loadSetupNode` (404 for
   any other).
 - `model/flow/state.ts` `createSetupState` turns that into `SetupState`: steps (`todo | human | probing | done` in the
@@ -62,10 +62,10 @@ with `skills/adopt-belay`; this page is the overview.
   the screen: Copy only.
 - Every MR shows its exact plan first and goes out only on a click, confirmed by that preview's id; the MR number and
   address come from the confirm's answer. One MR arms a track, so one revert disarms it.
-- A person merges: the arm section says "Belay never holds a merge token" and waits for "I merged it · verify". A
+- A person merges: the arm section says "Afterlife never holds a merge token" and waits for "I merged it · verify". A
   track arms only when the read of main saw its block there.
-- Human gates (steps 3, 6, 7, 8, 10) stay with you. Step 8 sets the four `BELAY_*` tokens on belay-apply, one command
-  each, the value read silently from the prompt; Belay never reads them and asks for no model key. A step no read can
+- Human gates (steps 3, 6, 7, 8, 10) stay with you. Step 8 sets the four `AFTERLIFE_*` tokens on belay-apply, one command
+  each, the value read silently from the prompt; Afterlife never reads them and asks for no model key. A step no read can
   see done (7, 8) offers "I did it · say so": it stops counting as yours, stays unknown, and is kept only until reload.
 - Unknown is never rounded up: unknown capabilities are listed, drawn dashed, and a never-probed group shows every
   row unknown and "never probed" with no age. A failed probe reads "probe failed HH:MM", never as a fresh one.
@@ -88,13 +88,13 @@ with `skills/adopt-belay`; this page is the overview.
 | `.../setup/data/` | `stepDetail`, `armMeta`, `capabilities`, `timing`, `live/liveCapabilities`, `loadSetupData`, `loadSetupNode` |
 | `.../setup/read/`, `write/` | `rereadSetupAction`; the arm, verify and enroll round trips |
 | `src/server/data/setup/` | The live reads: arm blocks, doctor, observable steps, step 9's protections |
-| `src/server/gitlab/capabilities.ts`, `doctorCli.ts` | The real `belay doctor` (`npm run doctor`, `cli/belay.mjs doctor`) |
+| `src/server/gitlab/capabilities.ts`, `doctorCli.ts` | The real `afterlife doctor` (`npm run doctor`, `cli/belay.mjs doctor`) |
 
 ## Tests
 - `model/flow/reducer.test.ts`: the opening state, step 6 failing then passing and freeing T5, steps 11/12 settling
   doctor rows, arm -> merge -> verify, disarm re-locking dependants, a read taking a step back, group switching and
   Re-probe. `verify.test.ts`, `probeAge.test.ts`, `wording.test.ts`, `model/live/live.test.ts` (live opening states).
-- `model/map/graph.test.ts` (closure, the Belay arm graph, `hotSets`, `litOf`) and `edges.test.ts`.
+- `model/map/graph.test.ts` (closure, the Afterlife arm graph, `hotSets`, `litOf`) and `edges.test.ts`.
 - `data/tables.test.ts` holds the hand-kept tables to the demo catalogue; `stepDetail.test.ts` holds the step commands
   to `skills/adopt-belay` and to the paired host; `liveCapabilities.test.ts` holds the live labels to the doctor's.
 - `hooks/armFlow.test.ts`, `liveFlow.test.ts`; `write/arm.test.ts`, `enroll.test.ts`; the inspector panels' render

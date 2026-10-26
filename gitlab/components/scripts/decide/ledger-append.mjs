@@ -14,14 +14,14 @@ const branch = arg('branch', 'main');
 const file = arg('path') ?? `events/${process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set (or pass --path)')}.jsonl`;
 const dir = arg('events');
 const keys = process.argv.flatMap((a, i) => (a === '--key' && process.argv[i + 1] ? [process.argv[i + 1]] : []));
-// Writes may use a different token from reads (BELAY_LEDGER_TOKEN, named by --write-token-var). A variable named there and
+// Writes may use a different token from reads (AFTERLIFE_LEDGER_TOKEN, named by --write-token-var). A variable named there and
 // not set is refused before any read (F88): the read token never writes in its place.
 const token = writeToken(arg('write-token-var'));
 const files = dir
   ? fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.json')).sort().map((f) => path.join(dir, f)) : []
   : [arg('event') ?? die('missing --event or --events')];
 if (files.length === 0) {
-  console.error('belay: no events to append');
+  console.error('afterlife: no events to append');
   process.exit(0);
 }
 
@@ -34,7 +34,7 @@ try {
 }
 const original = head?.content ?? null;
 let chain = original ? original.replace(/\n*$/, '\n') : '';
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-ledger-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-ledger-'));
 // die() and a failed write call process.exit, which skips a finally: an exit handler removes the scratch dir on every path.
 process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
 const titles = [];
@@ -65,4 +65,4 @@ writeFile({
   message: `ledger: ${titles.join(', ')}\n\n${keys.map((k) => `Belay-Head: ${k}\n`).join('')}${keys.length ? '\n' : ''}[skip ci]`,
   mode: arg('mode', 'commit'),
 });
-console.error(`belay: ${file} now has ${chain.split('\n').filter(Boolean).length} events`);
+console.error(`afterlife: ${file} now has ${chain.split('\n').filter(Boolean).length} events`);

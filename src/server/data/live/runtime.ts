@@ -30,11 +30,11 @@ export interface LiveRuntime {
   refresh(): Promise<void>;
 }
 
-const STARTING = Symbol.for('belay.liveRuntime.starting');
-const READY = Symbol.for('belay.liveRuntime.ready');
-const FAILED = Symbol.for('belay.liveRuntime.failed');
-const RESTARTING = Symbol.for('belay.liveRuntime.restarting');
-const RESTARTED = Symbol.for('belay.liveRuntime.restarted');
+const STARTING = Symbol.for('afterlife.liveRuntime.starting');
+const READY = Symbol.for('afterlife.liveRuntime.ready');
+const FAILED = Symbol.for('afterlife.liveRuntime.failed');
+const RESTARTING = Symbol.for('afterlife.liveRuntime.restarting');
+const RESTARTED = Symbol.for('afterlife.liveRuntime.restarted');
 type Holder = {
   [STARTING]?: Promise<LiveRuntime>; [READY]?: LiveRuntime; [FAILED]?: StartFailure;
   [RESTARTING]?: Promise<RestartOutcome>; [RESTARTED]?: true;
@@ -111,7 +111,7 @@ async function create(cfg: DataConfig, onError: (e: unknown) => void, log: (line
  */
 export function startRuntime(
   cfg: DataConfig,
-  onError: (e: unknown) => void = (e) => console.error('belay: poll failed', e),
+  onError: (e: unknown) => void = (e) => console.error('afterlife: poll failed', e),
   log: (line: string) => void = (line) => console.warn(line),
 ): Promise<LiveRuntime> {
   const holder = globalThis as Holder;

@@ -1,6 +1,6 @@
 // Dev-only Turbopack loader: stamps every host JSX element (<div>, <button>, ...) with
 // data-loc="src/.../File.tsx:LINE:COL" so the DevInspector (Ctrl+Shift+L) can map a DOM node back to its source.
-// Wired in next.config.ts only when BELAY_INSPECTOR=1 (npm run dev:inspect); a build or a plain `npm run dev` never loads it.
+// Wired in next.config.ts only when AFTERLIFE_INSPECTOR=1 (npm run dev:inspect); a build or a plain `npm run dev` never loads it.
 // It splices text instead of printing the AST, so the TSX reaches the compiler byte-for-byte apart from the attribute.
 import ts from 'typescript';
 

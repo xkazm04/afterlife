@@ -17,7 +17,7 @@ describe('defaultExec: failure causes', () => {
   }, 30_000);
 
   it('still reports a binary that cannot start as binary', async () => {
-    await expect(defaultExec('belay-no-such-binary-xyz', [])).rejects.toMatchObject({ kind: 'binary' });
+    await expect(defaultExec('afterlife-no-such-binary-xyz', [])).rejects.toMatchObject({ kind: 'binary' });
   });
 });
 

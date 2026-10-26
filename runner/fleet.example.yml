@@ -1,4 +1,4 @@
-# Copy to .belay/fleet.yml (gitignored) and point `path` at your checkouts.
+# Copy to .afterlife/fleet.yml (gitignored; an existing .belay/fleet.yml is still read) and point `path` at your checkouts.
 # Each gate is its own command, run in the lane worktree, exit code asserted; all green or nothing commits.
 # `setup` runs in every fresh worktree first (a worktree has no node_modules or venv). Prefer real installs
 # over junctions into the main checkout: removing a worktree must never reach the main checkout's files.

@@ -59,7 +59,7 @@ describe('arm-track T4', () => {
   it('never names a token value or sets a CI variable', async () => {
     const { deps } = await rig();
     const p = preview(await previewIntent(deps, arm));
-    for (const c of p.commands) expect(c.argv.join(' ')).not.toMatch(/\/variables\b|BELAY_BOT_TOKEN=|glab variable/);
+    for (const c of p.commands) expect(c.argv.join(' ')).not.toMatch(/\/variables\b|AFTERLIFE_BOT_TOKEN=|glab variable/);
   });
 
   it('confirming opens the MR as the operator; disarm then reverts exactly those lines', async () => {
@@ -127,9 +127,9 @@ describe('arm-track T4', () => {
 
   it('refuses without the per-install values, naming what is missing', async () => {
     expect(reason(await previewIntent((await rig({ deps: { arm: undefined } })).deps, arm))).toMatch(/no arm settings/);
-    expect(reason(await previewIntent((await rig({ deps: { arm: readArmConfig({}) } })).deps, arm))).toMatch(/BELAY_PACK_VERSION.*BELAY_ENGINE_REF/);
+    expect(reason(await previewIntent((await rig({ deps: { arm: readArmConfig({}) } })).deps, arm))).toMatch(/AFTERLIFE_PACK_VERSION.*AFTERLIFE_ENGINE_REF/);
     // T4's include names no consumer id any more (belay-apply's apply.json holds it), so its absence refuses nothing.
-    const noConsumer = readArmConfig({ BELAY_PACK_VERSION: '1.0.0', BELAY_ENGINE_REF: 'v0.1.0' });
+    const noConsumer = readArmConfig({ AFTERLIFE_PACK_VERSION: '1.0.0', AFTERLIFE_ENGINE_REF: 'v0.1.0' });
     expect((await previewIntent((await rig({ deps: { arm: noConsumer } })).deps, arm)).status).toBe('preview');
   });
 

@@ -96,7 +96,7 @@
   as from the demo source.
 
 ## Status and limits
-- Data comes from `getDataSource()` (`src/server/data`): demo fixture by default, live index with `BELAY_MODE=live`.
+- Data comes from `getDataSource()` (`src/server/data`): demo fixture by default, live index with `AFTERLIFE_MODE=live`.
   The deep project's tracks and its cockpit text (webhooks, unattributed) remain the demo catalogue in live mode,
   marked with a "demo" chip; its recent events are read from the index.
 - Only the deep project (default `ledgerline`) has real decisions, class records, events, tracks and a cycle history;

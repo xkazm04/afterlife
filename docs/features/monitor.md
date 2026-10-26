@@ -94,7 +94,7 @@
   `ownDecisions` call by `src/server/data/__tests__/seeded/seededOnce.test.ts`.
 
 ## Status and limits
-- Data comes from `getDataSource()` (`src/server/data`): demo fixture by default, live index with `BELAY_MODE=live`.
+- Data comes from `getDataSource()` (`src/server/data`): demo fixture by default, live index with `AFTERLIFE_MODE=live`.
 - Only the deep project (default `ledgerline`) has real decisions; other projects hand off to Needs you or Fleet.
 - The "polled N s ago" counter in the status bar ticks locally from the deep project's own feed age ("no good poll
   yet" when it has none). Demo loops it at 60 s; live never wraps, and a fresher snapshot (a live re-poll, a reload)

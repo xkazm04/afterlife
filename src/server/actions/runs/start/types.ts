@@ -9,7 +9,7 @@ export const RUN_BOUNDS = { waves: [1, 10], lanes: [1, 6], laneCapUsd: [0.1, 50]
 export const RUN_START_DEFAULTS = { waves: 1, lanes: 6, laneCapUsd: 3, waveCapUsd: 25, model: 'sonnet' } as const;
 
 /**
- * `belay run` for one fleet repo. `propose` runs only each wave's read-only plan: no branch, no lanes, so it takes no
+ * `afterlife run` for one fleet repo. `propose` runs only each wave's read-only plan: no branch, no lanes, so it takes no
  * `base`, `onto` or caps flag. `execute` lands lanes on a new `belay/wave-<n>` from `base` (absent: the fleet's base) or,
  * with `onto`, straight onto that existing local branch; `base` and `onto` are never both given.
  */
@@ -35,7 +35,7 @@ export interface RunBranch {
 
 export type RunBranches = { ok: true; head: string | null; branches: RunBranch[] } | { ok: false; reason: string };
 
-/** A repo the runner may work: `.belay/fleet.yml`'s, then every saved project with a runner block (runner/fleet). */
+/** A repo the runner may work: `.afterlife/fleet.yml`'s, then every saved project with a runner block (runner/fleet). */
 export interface StartRepo {
   slug: string;
   path: string;

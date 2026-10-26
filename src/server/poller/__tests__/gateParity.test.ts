@@ -98,7 +98,7 @@ describe('a class several agents hold: each holder as CI gates its MRs (--agent,
 
 describe('a record rewritten since the row\'s last move', () => {
   const at = (s: string) => st({ 'ai-patcher-acme': { 'dep-bump.patch': rec(s === 'promoted' ? 'supervised' : 'assisted', s === 'promoted'
-    ? { by: 'operator op via promotion MR', since: '2026-10-01T10:00:00Z' } : { by: 'operator op via Belay', since: '2026-10-09T10:00:00Z' }) } });
+    ? { by: 'operator op via promotion MR', since: '2026-10-01T10:00:00Z' } : { by: 'operator op via Afterlife', since: '2026-10-09T10:00:00Z' }) } });
   const row = (state: TierState, prev?: ClassTierRow) =>
     deriveTiers(P, state, 'p', NOW, new Map(prev ? [['dep-bump.patch', prev]] : []), 7 * 86_400_000).rows.find((r) => r.classId === 'dep-bump.patch')!;
 

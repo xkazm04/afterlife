@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ProjectConfig } from '@/schemas/vitals';
+import { envOf } from '@/server/env/env';
 import { vitalsDir } from '@/server/vitals';
 import type { CommandOutcome, InstallSkill } from '../types';
 import { ProjectRefused, type ProjectDeps, type ProjectPlan } from './context';
@@ -26,12 +27,12 @@ function installed(slug: string): string[] {
 }
 
 /** The skill as the project gets it: the repo's template with the command, the data folder and the variants filled in. */
-export function renderSkill(cfg: ProjectConfig, afterlife: string, dataDir = process.env.BELAY_DATA_DIR): string {
+export function renderSkill(cfg: ProjectConfig, afterlife: string, dataDir = envOf(process.env, 'DATA_DIR')): string {
   const template = readFileSync(path.join(afterlife, 'skills', 'afterlife-report', 'SKILL.md'), 'utf8');
   const command = `node "${fwd(path.join(afterlife, 'cli', 'belay.mjs'))}" report --project ${cfg.slug}`;
   const data = dataDir ? fwd(path.resolve(afterlife, dataDir)) : undefined;
   const note = data
-    ? `\nThis Afterlife keeps its data in \`${data}\`: set it first, \`export BELAY_DATA_DIR='${data}'\` (POSIX) or \`$env:BELAY_DATA_DIR = '${data}'\` (PowerShell).\n`
+    ? `\nThis Afterlife keeps its data in \`${data}\`: set it first, \`export AFTERLIFE_DATA_DIR='${data}'\` (POSIX) or \`$env:AFTERLIFE_DATA_DIR = '${data}'\` (PowerShell).\n`
     : '';
   const variants = cfg.ci.variants.map((v) => `\`${v.id}\``).join(', ') || 'none saved yet';
   return template.replaceAll('{{PROJECT}}', cfg.slug).replaceAll('{{COMMAND}}', command).replaceAll('{{DATA_NOTE}}', note).replaceAll('{{VARIANTS}}', variants);
@@ -74,7 +75,7 @@ export function planInstall(deps: ProjectDeps, intent: InstallSkill): ProjectPla
     title: `Install the afterlife-report skill into ${cfg.name}`,
     summary: same
       ? `Already installed and identical at ${fwd(target)}: confirming rewrites nothing.`
-      : `Writes ${fwd(target)} so a dev agent there reports its adjustments with belay report. Afterlife does not commit it.`,
+      : `Writes ${fwd(target)} so a dev agent there reports its adjustments with afterlife report. Afterlife does not commit it.`,
     commands: [{ display, argv: ['write', fwd(target), digest], risk: 'low' }],
     diff: same ? [] : content.replace(/\n$/, '').split('\n').map((l) => `+ ${l}`),
     notes: [

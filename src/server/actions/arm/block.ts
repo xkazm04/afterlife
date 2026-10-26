@@ -6,6 +6,7 @@ import type { ArmPin, Include, Placement, TrackArm } from './content';
 
 const digest = (lines: readonly string[]): string => createHash('sha256').update(lines.join('\n')).digest('hex').slice(0, 12);
 const esc = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// wire name: `# belay:arm` markers sit in armed projects' CI files and a disarm finds them by it; renaming strands them.
 const beginRe = (a: TrackArm) => new RegExp(`^(\\s*)# belay:arm ${esc(a.track)} ${esc(a.key)} begin ([0-9a-f]{12})\\s*$`);
 const endRe = (a: TrackArm) => new RegExp(`^\\s*# belay:arm ${esc(a.track)} ${esc(a.key)} end\\s*$`);
 
@@ -15,7 +16,7 @@ export function scalar(v: string | number): string {
   return /^[A-Za-z][A-Za-z0-9._/-]*$/.test(v) && !/^(true|false|null|yes|no|on|off|y|n)$/i.test(v) ? v : `'${v.replace(/'/g, "''")}'`;
 }
 
-/** The include address of one belay-pack component, as the example writes it. */
+/** The include address of one belay-pack component, as the example writes it (wire name: the pack's GitLab project path). */
 export const componentAddress = (group: string, pin: ArmPin, name: string): string => `$CI_SERVER_FQDN/${group}/belay-pack/${name}@${pin.packVersion}`;
 
 function items(includes: readonly Include[], group: string, pin: ArmPin, ind: string): string[] {
@@ -52,11 +53,11 @@ export function insertBlock(text: string, a: TrackArm, group: string, pin: ArmPi
     return { ok: true, content: out.join('\n'), added, after: tail };
   }
   if (!/^include\s*:\s*(#.*)?$/.test(lines[key] ?? '')) {
-    return { ok: false, reason: "the default branch's .gitlab-ci.yml writes include: on one line; Belay adds to a block list only, so make it a list first" };
+    return { ok: false, reason: "the default branch's .gitlab-ci.yml writes include: on one line; Afterlife adds to a block list only, so make it a list first" };
   }
   const next = lines.slice(key + 1).find(significant);
   const item = next ? /^(\s*)- /.exec(next) : null; // the list may sit at the key's own indent
-  if (next && /^\s/.test(next) && !item) return { ok: false, reason: "the default branch's .gitlab-ci.yml has an include: that is not a list; Belay will not rewrite it" };
+  if (next && /^\s/.test(next) && !item) return { ok: false, reason: "the default branch's .gitlab-ci.yml has an include: that is not a list; Afterlife will not rewrite it" };
   const added = armBlock(a, group, pin, item?.[1] ?? '  ', false, at);
   const out = [...lines.slice(0, key + 1), ...added, ...lines.slice(key + 1)];
   return { ok: true, content: out.join('\n'), added, after: key + 1 };

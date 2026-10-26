@@ -55,7 +55,7 @@ describe('readClaim', () => {
 
 describe('loadFleet', () => {
   const write = (body: string) => {
-    const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'belay-fleet-')), 'fleet.yml');
+    const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-fleet-')), 'fleet.yml');
     fs.writeFileSync(f, body);
     return f;
   };
@@ -103,11 +103,11 @@ describe('parsePlan and prompts', () => {
     expect(p).toContain('  - cargo fmt --all --check\n  - cargo test --workspace');
     expect(p).toContain('  - cargo fmt ...\n  - cargo check ...');
     expect(p).toMatch(/run the cheap ones: the formatter/);
-    expect(p.trimEnd().endsWith('<!-- belay:step=lane lane=a -->')).toBe(true);
+    expect(p.trimEnd().endsWith('<!-- afterlife:step=lane lane=a -->')).toBe(true);
     expect(lanePrompt('BASE', item, 3, { gates: ['make'], commands: [] })).toContain('you cannot run a shell check');
   });
   it('promptVersion is 12 hex, stable, and a missing dir falls back on every prompt', () => {
-    const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-prompts-'));
+    const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-prompts-'));
     const p = loadPrompts(empty);
     expect(p.version).toMatch(/^[0-9a-f]{12}$/);
     expect(p.fallback).toEqual(['plan', 'lane', 'reflect', 'review', 'repair', 'frontier']);

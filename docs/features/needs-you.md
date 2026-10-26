@@ -62,7 +62,7 @@
   submission note) says "ran as @operator"; a policy or gap MR's toast is the server's answer in its own words. The
   exact command (and diff) is shown in the outbox before anything runs. Remove or Take back says "Nothing was sent".
 - Retire, Not yet and the runner check skip the outbox and write nothing. Retire ("Retire (no write)") is recorded
-  here only: Belay has no retire write (tier-state.yml has no retired tier), so the class stays quarantined.
+  here only: Afterlife has no retire write (tier-state.yml has no retired tier), so the class stays quarantined.
 - Read before act: Ready to sign needs the draft read; Re-admit needs the incident note read. Opening those inspector
   sections counts as reading.
 - The legal clock never pauses and never goes below zero; it is first in line in the outbox. Marking ready to sign

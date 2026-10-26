@@ -77,7 +77,7 @@ export class GlabClient {
       if (body.length < perPage || (limit !== undefined && all.length >= limit)) return limit === undefined ? all : all.slice(0, limit);
     }
     // The last page was full: GitLab may hold more rows than the walk read, and the caller cannot tell.
-    console.error(`belay: ${path} stopped at ${maxPages} pages of ${perPage}; the list may be cut at ${all.length} rows`);
+    console.error(`afterlife: ${path} stopped at ${maxPages} pages of ${perPage}; the list may be cut at ${all.length} rows`);
     return limit === undefined ? all : all.slice(0, limit);
   }
 

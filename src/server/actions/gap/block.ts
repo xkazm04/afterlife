@@ -7,6 +7,7 @@ import type { Stage } from '@/schemas/stages';
 import type { GapTemplateId } from '../types';
 
 const digest = (lines: readonly string[]): string => createHash('sha256').update(lines.join('\n')).digest('hex').slice(0, 12);
+// wire name: `# belay:gap` markers sit in projects' CI files already merged; renaming would add a second block.
 const markerRe = /^\s*# belay:gap (\S+) (\S+) begin\b/;
 
 export interface GapBlockOf { stage: Stage; id: GapTemplateId; templates: readonly string[] }
@@ -33,7 +34,7 @@ export function gapBlocker(text: string, b: GapBlockOf): string | null {
   try {
     doc = parse(text);
   } catch (e) {
-    return `the default branch's .gitlab-ci.yml is not valid YAML (${e instanceof Error ? e.message.split('\n')[0] : 'it does not parse'}): Belay will not edit it`;
+    return `the default branch's .gitlab-ci.yml is not valid YAML (${e instanceof Error ? e.message.split('\n')[0] : 'it does not parse'}): Afterlife will not edit it`;
   }
   const inc = isRec(doc) ? doc.include : undefined;
   const have = (Array.isArray(inc) ? inc : inc === undefined ? [] : [inc]).flatMap((i) => (isRec(i) && typeof i.template === 'string' ? [i.template] : []));
@@ -66,11 +67,11 @@ export function insertGapBlock(text: string, b: GapBlockOf): GapInserted {
     return { ok: true, content: [...lines.slice(0, tail), ...added, ''].join('\n'), added, after: tail };
   }
   if (!/^include\s*:\s*(#.*)?$/.test(lines[key] ?? '')) {
-    return { ok: false, reason: "the default branch's .gitlab-ci.yml writes include: on one line; Belay adds to a block list only, so make it a list first" };
+    return { ok: false, reason: "the default branch's .gitlab-ci.yml writes include: on one line; Afterlife adds to a block list only, so make it a list first" };
   }
   const next = lines.slice(key + 1).find(significant);
   const item = next ? /^(\s*)- /.exec(next) : null; // the list may sit at the key's own indent
-  if (next && /^\s/.test(next) && !item) return { ok: false, reason: "the default branch's .gitlab-ci.yml has an include: that is not a list; Belay will not rewrite it" };
+  if (next && /^\s/.test(next) && !item) return { ok: false, reason: "the default branch's .gitlab-ci.yml has an include: that is not a list; Afterlife will not rewrite it" };
   const added = gapBlock(b, item?.[1] ?? '  ', false);
   return { ok: true, content: [...lines.slice(0, key + 1), ...added, ...lines.slice(key + 1)].join('\n'), added, after: key + 1 };
 }

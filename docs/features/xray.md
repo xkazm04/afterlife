@@ -42,7 +42,7 @@ chip. A part whose selector is not drawn (a hidden `<Activity>` copy does not co
 1. Add `callouts/screens/<group>/<screen>.ts` exporting `readonly Callout[]`: a `module` callout on `main`, then columns,
    activities, and `statusCallout`, `dataLabelCallout`, `helpCallout` from `shared.ts`. Keep a folder at 10 files or fewer.
 2. Map it to its `APP_NAV` key in `callouts/tour.ts`; the stop's label and href come from the nav, never copied.
-3. Read the drawn screen first and check every selector resolves in demo and in `BELAY_MODE=live BELAY_GITLAB=fake`.
+3. Read the drawn screen first and check every selector resolves in demo and in `AFTERLIFE_MODE=live AFTERLIFE_GITLAB=fake`.
 
 ## Code map
 | Path (under src/app/features/xray/) | Role |

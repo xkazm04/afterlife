@@ -23,7 +23,7 @@ describe('a new file in a gap MR is bounded by its lines, not only its character
 
   it('refuses one line more, naming the bound, before anything is planned', async () => {
     expect(parseIntent(gap(lines(MAX_FILE_LINES + 1)))).toEqual({ ok: false, reason: `a new file is at most ${MAX_FILE_LINES} lines: .gitlab/belay/f0.yml has ${MAX_FILE_LINES + 1}` });
-    const r = await previewIntent(actionDeps({ BELAY_MODE: 'replay' })!, gap('\n'.repeat(65_536), 8));
+    const r = await previewIntent(actionDeps({ AFTERLIFE_MODE: 'replay' })!, gap('\n'.repeat(65_536), 8));
     expect(r).toMatchObject({ status: 'refused', reason: expect.stringContaining(`at most ${MAX_FILE_LINES} lines`) });
   });
 

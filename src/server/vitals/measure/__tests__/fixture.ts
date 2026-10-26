@@ -1,5 +1,5 @@
 // Ten master-full runs of a Grinex-shaped pipeline: five before the change (Run Tests ~44 min) and five from it (~38
-// min), plus a feature-branch run and a failed one that times nothing. A temp BELAY_DATA_DIR per test.
+// min), plus a feature-branch run and a failed one that times nothing. A temp AFTERLIFE_DATA_DIR per test.
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -42,11 +42,11 @@ export const claim = (o: Partial<AdjustmentClaim> = {}): AdjustmentClaim => ({
 
 export function tempData(): void {
   let dir = '';
-  const prev = process.env.BELAY_DATA_DIR;
-  beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'belay-measure-')); process.env.BELAY_DATA_DIR = dir; });
+  const prev = process.env.AFTERLIFE_DATA_DIR;
+  beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'afterlife-measure-')); process.env.AFTERLIFE_DATA_DIR = dir; });
   afterEach(() => {
-    if (prev === undefined) delete process.env.BELAY_DATA_DIR;
-    else process.env.BELAY_DATA_DIR = prev;
+    if (prev === undefined) delete process.env.AFTERLIFE_DATA_DIR;
+    else process.env.AFTERLIFE_DATA_DIR = prev;
     rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   });
 }

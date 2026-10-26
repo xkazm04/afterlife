@@ -1,18 +1,19 @@
 // glab itself: one run, and the retry rule around it (a read is tried again on a transient failure, a write only when
 // the caller proves it did not land). Re-exported by ../lib.mjs, which every script imports. Nothing here prints a token.
 import { spawnSync } from 'node:child_process';
+import { envOf } from '../env.mjs';
 
 const env = process.env;
-const [GLAB, ...GLAB_PRE] = (env.BELAY_GLAB ?? 'glab').split('|'); // tests: BELAY_GLAB='node|fake-glab.mjs'
+const [GLAB, ...GLAB_PRE] = (envOf(env, 'GLAB') ?? 'glab').split('|'); // tests: AFTERLIFE_GLAB='node|fake-glab.mjs'
 export const HOST = env.CI_SERVER_FQDN ?? 'gitlab.com';
 
 /**
  * One glab run. A failure is thrown with `.stderr` and `.stdout`, as glab() documents. A run that gives no answer within
- * $BELAY_GLAB_TIMEOUT_MS (default 120 s) is killed and thrown with code ETIMEDOUT: a hung connection no longer holds the
+ * $AFTERLIFE_GLAB_TIMEOUT_MS (default 120 s) is killed and thrown with code ETIMEDOUT: a hung connection no longer holds the
  * job until GitLab's own job timeout.
  */
 function glabOnce(args, input) {
-  const timeout = Number(process.env.BELAY_GLAB_TIMEOUT_MS ?? 120_000);
+  const timeout = Number(envOf(process.env, 'GLAB_TIMEOUT_MS') ?? 120_000);
   const r = spawnSync(GLAB, [...GLAB_PRE, ...args], { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'pipe'], maxBuffer: 64 << 20, timeout, killSignal: 'SIGKILL' });
   if (r.stderr) process.stderr.write(r.stderr);
   if (r.error?.code === 'ETIMEDOUT') {
@@ -57,11 +58,11 @@ export function transient(e) {
   return e?.code === 'ETIMEDOUT' || NETWORK.test(`${e?.stderr ?? ''}\n${e?.message ?? ''}`);
 }
 
-/** The wait before attempt `next`: Retry-After when glab shows it (capped), else 0.5 s, 1 s ($BELAY_GLAB_BACKOFF_MS scales it). */
+/** The wait before attempt `next`: Retry-After when glab shows it (capped), else 0.5 s, 1 s ($AFTERLIFE_GLAB_BACKOFF_MS scales it). */
 function backoff(e, next) {
   const after = /Retry-After:\s*(\d+)/i.exec(`${e?.stderr ?? ''}\n${e?.stdout ?? ''}`);
   if (after) return Math.min(Number(after[1]) * 1000, RETRY_AFTER_CAP_MS);
-  return Number(process.env.BELAY_GLAB_BACKOFF_MS ?? 500) * 2 ** (next - 2);
+  return Number(envOf(process.env, 'GLAB_BACKOFF_MS') ?? 500) * 2 ** (next - 2);
 }
 
 /** True only when the caller's read answered true. No probe, a probe that throws, or any other answer: not proven. */
@@ -70,7 +71,7 @@ function provenUnlanded(unlanded) {
   try {
     return unlanded() === true;
   } catch (e) {
-    console.error(`belay: could not read whether the write landed (${String(e?.message ?? e).split('\n')[0]}): not trying it again`);
+    console.error(`afterlife: could not read whether the write landed (${String(e?.message ?? e).split('\n')[0]}): not trying it again`);
     return false;
   }
 }
@@ -103,7 +104,7 @@ export function glab(args, input, { read = false, unlanded } = {}) {
       const again = attempt < ATTEMPTS && transient(e) && (read || provenUnlanded(unlanded));
       if (!again) throw read ? e : unknownIfAmbiguous(e);
       const ms = backoff(e, attempt + 1);
-      console.error(`belay: glab ${what(args)} failed (${httpStatus(e) ?? 'no HTTP answer'}): attempt ${attempt + 1} of ${ATTEMPTS} in ${ms} ms`);
+      console.error(`afterlife: glab ${what(args)} failed (${httpStatus(e) ?? 'no HTTP answer'}): attempt ${attempt + 1} of ${ATTEMPTS} in ${ms} ms`);
       sleep(ms);
     }
   }

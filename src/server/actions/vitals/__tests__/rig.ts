@@ -1,4 +1,4 @@
-// A project-write rig: a Grinex-shaped saved project in memory, a temp BELAY_DATA_DIR, and a fake az that records
+// A project-write rig: a Grinex-shaped saved project in memory, a temp AFTERLIFE_DATA_DIR, and a fake az that records
 // every argv and answers from a script. Nothing here can reach a real CLI.
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -35,11 +35,11 @@ export interface Rig {
 
 export function projectRig(): Rig {
   const rig = { calls: [], saved: [], answers: [], now: { t: Date.parse('2026-10-25T10:00:00Z') } } as unknown as Rig;
-  const prev = process.env.BELAY_DATA_DIR;
+  const prev = process.env.AFTERLIFE_DATA_DIR;
   beforeEach(() => {
     clearProjectWrites();
-    rig.dir = mkdtempSync(path.join(tmpdir(), 'belay-pw-'));
-    process.env.BELAY_DATA_DIR = path.join(rig.dir, 'data');
+    rig.dir = mkdtempSync(path.join(tmpdir(), 'afterlife-pw-'));
+    process.env.AFTERLIFE_DATA_DIR = path.join(rig.dir, 'data');
     rig.calls.length = 0;
     rig.saved.length = 0;
     rig.answers.length = 0;
@@ -54,8 +54,8 @@ export function projectRig(): Rig {
     rig.deps = { exec, now: () => new Date(rig.now.t), project: (s) => (s === rig.cfg.slug ? rig.cfg : undefined), save: (c) => (rig.saved.push(c), c.slug), afterlife: AFTERLIFE };
   });
   afterEach(() => {
-    if (prev === undefined) delete process.env.BELAY_DATA_DIR;
-    else process.env.BELAY_DATA_DIR = prev;
+    if (prev === undefined) delete process.env.AFTERLIFE_DATA_DIR;
+    else process.env.AFTERLIFE_DATA_DIR = prev;
     rmSync(rig.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   });
   return rig;

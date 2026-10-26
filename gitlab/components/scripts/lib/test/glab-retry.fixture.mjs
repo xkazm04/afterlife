@@ -7,10 +7,10 @@ import os from 'node:os';
 
 // lib.mjs picks its glab and host when it is first loaded, and harness.mjs loads it: both are imported (load()) only after
 // the fake is named, so no call here can reach a real glab or a real GitLab.
-export const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-glab-retry-'));
+export const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-glab-retry-'));
 const ROUTES = path.join(dir, 'routes.json');
 const WRITES = path.join(dir, 'writes.jsonl');
-process.env.BELAY_GLAB = `${process.execPath}|${path.resolve(import.meta.dirname, '..', '..', 'testing', 'fake-glab.mjs')}`;
+process.env.AFTERLIFE_GLAB = `${process.execPath}|${path.resolve(import.meta.dirname, '..', '..', 'testing', 'fake-glab.mjs')}`;
 process.env.CI_SERVER_FQDN = 'gitlab.invalid';
 process.env.FAKE_GLAB_ROUTES = ROUTES;
 process.env.FAKE_GLAB_WRITES = WRITES;

@@ -23,7 +23,7 @@ describe('belay-apply sweep: heads', { timeout: 240_000 }, () => {
     expect(r.code, r.stderr).toBe(0);
     const notes = glabWrites(r, 'note create');
     expect(notes).toHaveLength(1);
-    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail blocked this head`));
+    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Afterlife gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail blocked this head`));
     expect(glabWrites(r, 'update').map((w) => w.body.label)).toEqual(['guardrail::block']);
   });
 
@@ -33,7 +33,7 @@ describe('belay-apply sweep: heads', { timeout: 240_000 }, () => {
     const proofFor = (id, head) => bot(id, `**Belay proof: PASS** | class \`exploit-test\`\n\n\`\`\`belay-proof\n${JSON.stringify({ schema: 'belay.proof/1', verdict: 'pass', task: { head_sha: head } })}\n\`\`\``);
     const blocked = (r) => {
       expect(r.code, r.stderr).toBe(0);
-      expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: BLOCK\*\*/);
+      expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Afterlife gate: BLOCK\*\*/);
       expect(glabWrites(r, 'update').at(-1).body.label).toContain('guardrail::block');
       expect(granted(r)).toEqual([]);
     };
@@ -43,7 +43,7 @@ describe('belay-apply sweep: heads', { timeout: 240_000 }, () => {
     // This head's proof, then another head's proof and gate, then back: the proof is posted again, then the gate.
     const r = sweep(group({ notes: [bot(103, '**Belay gate: APPROVE** | tier `supervised`\n- proof pass'), proofFor(102, OLD), proofFor(101, HEAD), guardrailNote('block', HEAD, [finding])] }));
     blocked(r);
-    expect(glabWrites(r, 'note create').map((n) => n.body.message.slice(0, 20))).toEqual(['**Belay proof: PASS*', '**Belay gate: BLOCK*']);
+    expect(glabWrites(r, 'note create').map((n) => n.body.message.slice(0, 23))).toEqual(['**Afterlife proof: PASS', '**Afterlife gate: BLOCK']);
   });
 
   it('(ix) F63: evidence only from a merge request pipeline of the head that ran with no pipeline variables', () => {
@@ -71,7 +71,7 @@ describe('belay-apply sweep: heads', { timeout: 240_000 }, () => {
     expect(vars.reads.some((p) => p.includes('/artifacts/'))).toBe(false);
     const notes = glabWrites(vars, 'note create');
     expect(notes).toHaveLength(1);
-    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Belay gate: WAIT\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: pipeline 500 of this head ran with 1 pipeline variable`));
+    expect(notes[0].body.message).toMatch(new RegExp(`^\\*\\*Afterlife gate: WAIT\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: pipeline 500 of this head ran with 1 pipeline variable`));
     expect(granted(vars)).toEqual([]);
   });
 
@@ -80,7 +80,7 @@ describe('belay-apply sweep: heads', { timeout: 240_000 }, () => {
     const r = sweep(group({ state: STATE.replace('tier: supervised', 'tier: quarantined') }));
     expect(r.code, r.stderr).toBe(0);
     expect(granted(r)).toEqual([]);
-    expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: (WAIT|BLOCK)\*\* \| tier `quarantined`/);
+    expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Afterlife gate: (WAIT|BLOCK)\*\* \| tier `quarantined`/);
   });
 
   it('(xii) F82: open MRs past the page cap end the job red, naming the cap; the MRs that were read are still swept', () => {
@@ -89,7 +89,7 @@ describe('belay-apply sweep: heads', { timeout: 240_000 }, () => {
     const r = sweep(group({ extra: { 'projects/1/merge_requests': { __pages: pages } } }));
     expect(r.code).toBe(1);
     expect(r.stderr).toMatch(/acme\/ledgerline: more than 500 open MRs: the ones past them are not swept/);
-    expect(glabWrites(r, 'note create')[0].body.message).toMatch(/^\*\*Belay proof: PASS\*\*/);
+    expect(glabWrites(r, 'note create')[0].body.message).toMatch(/^\*\*Afterlife proof: PASS\*\*/);
   });
 
   it('(xiii) F76: the ledger is read from the MR\'s creation on, and a history past the page cap stops the MR instead of appending again', () => {
@@ -109,25 +109,25 @@ describe('belay-apply sweep: heads', { timeout: 240_000 }, () => {
     const r = sweep({ ...g, 'projects/1/merge_requests/7': { ...g['projects/1/merge_requests/7'], target_branch: 'agent-work' } });
     expect(r.code, r.stderr).toBe(0);
     expect(r.writes).toEqual([]);
-    expect(r.stderr).toMatch(/acme\/ledgerline!7@a{12}: it targets agent-work, not the default branch main: Belay gates only MRs into main/);
+    expect(r.stderr).toMatch(/acme\/ledgerline!7@a{12}: it targets agent-work, not the default branch main: Afterlife gates only MRs into main/);
   });
 
   it('(xviii) F77: a cited-diff class with no guardrail verdict starts the guardrail; an inconclusive one is a BLOCK', () => {
     const conf = path.join(dir, 'apply-dispatch.json');
     fs.writeFileSync(conf, JSON.stringify({ ...JSON.parse(fs.readFileSync(CONFIG, 'utf8')), targets: { 'acme/ledgerline': { guardrail_consumer_id: 5 }, 'other/shared': {} } }));
-    const run = (routes) => runScript(dir, '../../apply/sweep.mjs', ['--config', conf, '--policy-remote', POLICY, '--work', path.join(dir, 'work')], { routes, env: { ...TOKENS, BELAY_DISPATCH_TOKEN: 'dispatch' } });
+    const run = (routes) => runScript(dir, '../../apply/sweep.mjs', ['--config', conf, '--policy-remote', POLICY, '--work', path.join(dir, 'work')], { routes, env: { ...TOKENS, AFTERLIFE_DISPATCH_TOKEN: 'dispatch' } });
     const cited = description.replace('Belay-Class: code-fix.patch', 'Belay-Class: guard.block');
     const r = run({ ...group({ desc: cited, notes: [] }), 'POST ai/duo_workflows/workflows': { reply: { id: 77 } } });
     expect(r.code, r.stderr).toBe(0);
     expect(r.writes.filter((w) => w.path === 'ai/duo_workflows/workflows')).toHaveLength(1);
-    expect(glabWrites(r, 'note create').map((n) => n.body.message)).toEqual([`**Belay: guardrail review requested** for head \`${HEAD}\` (flow run 77).`]);
+    expect(glabWrites(r, 'note create').map((n) => n.body.message)).toEqual([`**Afterlife: guardrail review requested** for head \`${HEAD}\` (flow run 77).`]);
     expect(granted(r)).toEqual([]);
 
     const blockNote = guardrailNote('block');
     const twice = { ...blockNote, body: `${blockNote.body}\n\n${guardrailNote('pass').body}` };
     const ambiguous = run(group({ desc: cited, notes: [twice] }));
     expect(ambiguous.code, ambiguous.stderr).toBe(0);
-    expect(glabWrites(ambiguous, 'note create').map((n) => n.body.message)).toEqual([expect.stringMatching(new RegExp(`^\\*\\*Belay gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail verdict does not match its schema, or its note carries two`))]);
+    expect(glabWrites(ambiguous, 'note create').map((n) => n.body.message)).toEqual([expect.stringMatching(new RegExp(`^\\*\\*Afterlife gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail verdict does not match its schema, or its note carries two`))]);
     expect(granted(ambiguous)).toEqual([]);
   });
 
@@ -144,19 +144,20 @@ describe('belay-apply sweep: heads', { timeout: 240_000 }, () => {
     expect(parseDiff(patch).map((f) => f.path)).toEqual([name]);
   });
 
-  it('without BELAY_BOT_TOKEN it reports and writes nothing', () => {
+  it('without AFTERLIFE_BOT_TOKEN it reports and writes nothing', () => {
     const r = sweep(group(), { CI_SERVER_FQDN: 'gitlab.example' });
     expect(r.code, r.stderr).toBe(0);
     expect(r.writes).toEqual([]);
     expect(r.stderr).toMatch(/reporting only/);
   });
 
-  // The bot token never writes the ledger (F72): without BELAY_LEDGER_TOKEN the sweep reports only, and names the token.
-  it('without BELAY_LEDGER_TOKEN it reports, names the missing token and writes nothing', () => {
+  // The bot token never writes the ledger (F72): without AFTERLIFE_LEDGER_TOKEN the sweep reports only, and names the token.
+  // The bot token here is the pre-rename BELAY_ name: it still counts, so only the ledger token is named missing.
+  it('without AFTERLIFE_LEDGER_TOKEN it reports, names the missing token and writes nothing', () => {
     const r = sweep(group(), { BELAY_BOT_TOKEN: 'bot', CI_SERVER_FQDN: 'gitlab.example' });
     expect(r.code, r.stderr).toBe(0);
     expect(r.writes).toEqual([]);
-    expect(r.stderr).toMatch(/BELAY_LEDGER_TOKEN is not set: reporting only/);
+    expect(r.stderr).toMatch(/: AFTERLIFE_LEDGER_TOKEN is not set: reporting only/);
   });
 
   it('a failed read stops that MR with GitLab\'s message, and nothing is written for it', () => {

@@ -1,4 +1,4 @@
-// Each track's arm content is the example's, not Belay's own idea: every include it adds is one gitlab/examples/target-project
+// Each track's arm content is the example's, not Afterlife's own idea: every include it adds is one gitlab/examples/target-project
 // writes, with the same inputs, and every input is one the component's template declares (its required ones all given).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -60,7 +60,7 @@ describe("the tracks' arm content", () => {
   it('T3 names the proof authors from the pin, and refuses without them; the others need no more than T4', () => {
     expect(Object.fromEntries(armOf('T3')!.includes(DEMO_PIN)[0]!.inputs).proof_authors).toBe('belay-bot');
     const bare: ArmPin = { packVersion: '1.0.0', engineRef: 'v0.1.0' };
-    expect(armOf('T3')!.refuses?.(bare)).toMatch(/set BELAY_PROOF_AUTHORS/);
+    expect(armOf('T3')!.refuses?.(bare)).toMatch(/set AFTERLIFE_PROOF_AUTHORS/);
     expect(armOf('T3')!.refuses?.(DEMO_PIN)).toBeNull();
     for (const t of ['T4', 'T6', 'T1']) expect(armOf(t)!.refuses?.(bare) ?? null).toBeNull();
   });
@@ -76,9 +76,9 @@ describe("the tracks' arm content", () => {
     expect(armOf('T1')!.notes.join(' ')).toMatch(/belay-replay.*add them yourself/);
   });
 
-  it('says where BELAY_BOT_TOKEN lives (belay-apply, never the target), in order, and names no value', () => {
+  it('says where AFTERLIFE_BOT_TOKEN lives (belay-apply, never the target), in order, and names no value', () => {
     expect(t4.notes).toHaveLength(5);
-    expect(t4.notes[0]).toMatch(/belay-apply, with BELAY_BOT_TOKEN set there as a protected CI variable, never on this project/);
+    expect(t4.notes[0]).toMatch(/belay-apply, with AFTERLIFE_BOT_TOKEN set there as a protected CI variable, never on this project/);
     expect(t4.notes[1]).toMatch(/No job of this project needs a write token, so none can read one \(F4\)/);
     expect(t4.notes[2]).toBe('Afterlife never sets it.');
     expect(t4.notes[3]).toMatch(/fails closed/);

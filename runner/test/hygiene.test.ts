@@ -12,7 +12,7 @@ const sh = (...a: string[]) => spawnSync('git', a, { cwd: repo, encoding: 'utf8'
 const write = (f: string, text: string) => fs.writeFileSync(path.join(repo, f), text);
 
 beforeEach(() => {
-  repo = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-hyg-'));
+  repo = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-hyg-'));
   sh('init', '-q', '-b', 'main');
   sh('config', 'core.autocrlf', 'false');
   // Base already holds one double blank line: a lane keeping it is not a slip.

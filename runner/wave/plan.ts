@@ -11,7 +11,7 @@ export interface PlanItem {
 }
 
 /** The step marker is for tooling (and the test fake): every prompt the runner sends carries one. */
-export const stepMarker = (step: string, lane = ''): string => `\n<!-- belay:step=${step}${lane ? ` lane=${lane}` : ''} -->`;
+export const stepMarker = (step: string, lane = ''): string => `\n<!-- afterlife:step=${step}${lane ? ` lane=${lane}` : ''} -->`;
 
 /** `extra`: more sections after the wave's facts and history (the propose-mode note, the scans' ideas: wave/planStep.ts). */
 export function planPrompt(base: string, repo: FleetRepo, lanes: number, history: readonly string[] = [], baseRef?: string, extra = ''): string {

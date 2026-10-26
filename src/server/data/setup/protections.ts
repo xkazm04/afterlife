@@ -4,7 +4,7 @@
 // /api/merge_request_approvals (Premium and up), and /user/project/codeowners for where GitLab looks for CODEOWNERS.
 import { isKind } from '@/server/gitlab/errors';
 import type { GlProject } from '@/server/gitlab/port';
-import { belayOf, done, failed, Missing, obj, rows, targetOf, unknown, why, type StepCtx } from './ctx';
+import { ownProjectOf, done, failed, Missing, obj, rows, targetOf, unknown, why, type StepCtx } from './ctx';
 import type { StepRead } from './types';
 
 type Rec = Record<string, unknown>;
@@ -87,13 +87,13 @@ export function covers(codeowners: string, path: string): boolean {
 
 function checks(c: StepCtx): Check[] {
   const t = () => targetOf(c);
-  const apply = () => belayOf(c, 'belay-apply');
+  const apply = () => ownProjectOf(c, 'belay-apply');
   const allowlisted = (on: string): Check => ({
     label: `belay-apply on ${on}'s job token allowlist`,
     run: async () => {
       // port.get is one GET: walk the pages until belay-apply shows or a short page ends the list (a group can list > 100).
       for (let page = 1; page <= MAX_PAGES; page++) {
-        const list = rows(await c.port.get(`projects/${belayOf(c, on).id}/job_token_scope/allowlist`, { per_page: PAGE, page }), 'allowlist');
+        const list = rows(await c.port.get(`projects/${ownProjectOf(c, on).id}/job_token_scope/allowlist`, { per_page: PAGE, page }), 'allowlist');
         if (list.some((x) => x.id === apply().id)) return null;
         if (list.length < PAGE) break;
       }
@@ -137,9 +137,9 @@ function checks(c: StepCtx): Check[] {
     },
     allowlisted('belay-engine'),
     allowlisted('belay-policy'),
-    guardedAgainstDevelopers(c, () => belayOf(c, 'belay-engine'), 'protected_tags', 'v*', 'v* tags of belay-engine'),
-    guardedAgainstDevelopers(c, () => belayOf(c, 'belay-pack'), 'protected_tags', 'v*', 'v* tags of belay-pack'),
-    guardedAgainstDevelopers(c, () => belayOf(c, 'belay-ledger'), 'protected_branches', 'main', "belay-ledger's main"),
+    guardedAgainstDevelopers(c, () => ownProjectOf(c, 'belay-engine'), 'protected_tags', 'v*', 'v* tags of belay-engine'),
+    guardedAgainstDevelopers(c, () => ownProjectOf(c, 'belay-pack'), 'protected_tags', 'v*', 'v* tags of belay-pack'),
+    guardedAgainstDevelopers(c, () => ownProjectOf(c, 'belay-ledger'), 'protected_branches', 'main', "belay-ledger's main"),
   ];
 }
 

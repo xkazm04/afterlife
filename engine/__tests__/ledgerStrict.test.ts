@@ -23,7 +23,7 @@ const rehash = (e: Record<string, unknown>): LedgerEvent => {
 };
 
 describe('ledger append refuses to extend a chain the importer refuses', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-strict-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-strict-'));
   afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
   const one = append([], parseLedgerEvent(event));
   const cases: Array<[string, LedgerEvent, RegExp]> = [

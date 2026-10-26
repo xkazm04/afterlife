@@ -6,10 +6,11 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFile
 import path from 'node:path';
 import { parse, stringify } from 'yaml';
 import type { ProjectConfig } from '@/schemas/vitals';
+import { dataDirOf } from '@/server/env/settings';
 import { rootKey } from '../repos/git';
 import { isProjectConfig } from './valid';
 
-export const dataRoot = (): string => process.env.BELAY_DATA_DIR ?? '.belay';
+export const dataRoot = (): string => dataDirOf();
 export const projectsDir = (): string => path.join(dataRoot(), 'projects');
 
 /** "Grinex Portal" -> "grinex-portal"; nothing usable -> "project". */
@@ -50,7 +51,7 @@ export function loadProjectsReport(dir = projectsDir()): LoadReport {
 
 export function loadProjects(): ProjectConfig[] {
   const r = loadProjectsReport();
-  if (r.skipped.length) console.warn(`belay: ${r.skipped.length} project file(s) skipped, not a valid project: ${r.skipped.join(', ')}`);
+  if (r.skipped.length) console.warn(`afterlife: ${r.skipped.length} project file(s) skipped, not a valid project: ${r.skipped.join(', ')}`);
   return r.projects;
 }
 

@@ -8,18 +8,18 @@ describe('config', () => {
     expect(DEFAULT_GROUP_ID).toBe('144060371');
   });
 
-  it('reads BELAY_GLAB, BELAY_GITLAB_HOST and BELAY_GROUP_ID', () => {
-    expect(readConfig({ BELAY_GLAB: 'C:\\x\\glab.exe', BELAY_GITLAB_HOST: 'git.example.com', BELAY_GROUP_ID: '7' })).toEqual({
+  it('reads AFTERLIFE_GLAB, AFTERLIFE_GITLAB_HOST and AFTERLIFE_GROUP_ID', () => {
+    expect(readConfig({ AFTERLIFE_GLAB: 'C:\\x\\glab.exe', AFTERLIFE_GITLAB_HOST: 'git.example.com', AFTERLIFE_GROUP_ID: '7' })).toEqual({
       glab: 'C:\\x\\glab.exe', host: 'git.example.com', groupId: '7',
     });
   });
 
-  it('BELAY_GITLAB_HOST pasted as a URL is read as the hostname glab --hostname and https://<host>/ expect', () => {
+  it('AFTERLIFE_GITLAB_HOST pasted as a URL is read as the hostname glab --hostname and https://<host>/ expect', () => {
     for (const raw of ['https://git.example.com', 'https://git.example.com/', ' git.example.com ', 'http://git.example.com/']) {
-      expect(readConfig({ BELAY_GITLAB_HOST: raw }).host, raw).toBe('git.example.com');
+      expect(readConfig({ AFTERLIFE_GITLAB_HOST: raw }).host, raw).toBe('git.example.com');
     }
-    expect(readConfig({ BELAY_GITLAB_HOST: 'https://git.example.com:8443/' }).host).toBe('git.example.com:8443');
-    expect(readConfig({ BELAY_GITLAB_HOST: ' / ' }).host).toBeUndefined();
+    expect(readConfig({ AFTERLIFE_GITLAB_HOST: 'https://git.example.com:8443/' }).host).toBe('git.example.com:8443');
+    expect(readConfig({ AFTERLIFE_GITLAB_HOST: ' / ' }).host).toBeUndefined();
   });
 });
 
@@ -28,7 +28,7 @@ describe('resolveGlabBin', () => {
   const onPath: ExecFn = async () => ({ code: 0, stdout: 'glab 1.120.0', stderr: '' });
   const notOnPath: ExecFn = async () => { throw new Error('ENOENT'); };
 
-  it('BELAY_GLAB wins without running anything', async () => {
+  it('AFTERLIFE_GLAB wins without running anything', async () => {
     expect(await resolveGlabBin({ ...cfg, glab: 'custom' }, notOnPath, {}, () => false)).toBe('custom');
   });
 

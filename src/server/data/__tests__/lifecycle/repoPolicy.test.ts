@@ -8,7 +8,7 @@ import { repoPolicy } from '../../policy';
 let warn: ReturnType<typeof vi.spyOn>;
 const roots: string[] = [];
 const rootWith = (yml: string | null): string => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-policy-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-policy-'));
   roots.push(root);
   if (yml !== null) {
     fs.mkdirSync(path.join(root, 'policy'));

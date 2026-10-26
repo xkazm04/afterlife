@@ -1,10 +1,10 @@
 // The shape of a track's arm content, and the helpers every track's include lines share. Pure.
 
-/** The values that differ per install: the example's "Replace:" list. Belay reads them, never guesses them. */
+/** The values that differ per install: the example's "Replace:" list. Afterlife reads them, never guesses them. */
 export interface ArmPin {
   /** The belay-pack release the includes name ("1.0.0"). */
   packVersion: string;
-  /** The Belay engine every job checks out. */
+  /** The Afterlife engine every job checks out. */
   engineRef: string;
   /** The commit engineRef must resolve to. Optional in the components: left out when not configured. */
   engineCommit?: string;
