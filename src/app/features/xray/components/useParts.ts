@@ -28,7 +28,9 @@ const TICK_MS = 450;
 
 /**
  * Measures the real elements the callouts name, relative to the window box `layer` is drawn in, and places the active
- * card. It re-measures on a short tick while on (screens stream in, tables scroll, the inspector opens) and on resize.
+ * card. It re-measures on a short tick while on (tables scroll, the inspector opens), on resize, and at the next frame
+ * whenever a screen-host region lands (a `data-reveal` change: a slice read, so a part that was not drawn yet, or held
+ * a dash, is found and read at once instead of on the next tick).
  */
 export function useParts(layer: RefObject<HTMLElement | null>, callouts: readonly Callout[], active: number, on: boolean): Layout {
   const [layout, setLayout] = useState<Layout>(EMPTY);
@@ -59,9 +61,17 @@ export function useParts(layer: RefObject<HTMLElement | null>, callouts: readonl
     measure();
     const t = window.setInterval(measure, TICK_MS);
     window.addEventListener('resize', measure);
+    let frame = 0;
+    const landed = new MutationObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    });
+    landed.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-reveal'] });
     return () => {
       window.clearInterval(t);
       window.removeEventListener('resize', measure);
+      landed.disconnect();
+      cancelAnimationFrame(frame);
     };
   }, [layer, callouts, active, on]);
   return shownLayout(layout, on, callouts.length);

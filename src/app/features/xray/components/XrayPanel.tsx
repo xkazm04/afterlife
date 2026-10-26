@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Fragment, startTransition, useEffect, useRef, type KeyboardEvent } from 'react';
+import { Fragment, useEffect, useRef, type KeyboardEvent } from 'react';
 import { Button } from '@/components/controls/Button';
+import { useHostNav } from '@/components/shell/host';
 import { useShellInfo } from '@/components/shell/ShellContext';
 import { dataLabel } from '@/components/shell/bars/dataLabel';
 import { TOUR, nextStop, tourNote } from '../callouts/tour';
@@ -21,17 +21,18 @@ const HEADING: Record<CalloutKind, string> = {
 
 /**
  * The X-ray's docked panel, bottom right of the window: the parts of this screen as a numbered list (click, or ← → while
- * the panel has focus), the next screen of the tour (it drives the real router), and the way out. It names the data it
+ * the panel has focus), the next screen of the tour (it navigates as a sidebar click does: the screen host draws it in
+ * place), and the way out. It names the data it
  * labels, so demo numbers are never mistaken for yours.
  */
 export function XrayPanel({ stop, parts, active, path }: { stop: TourStop | null; parts: Part[]; active: number; path: string }) {
-  const router = useRouter();
+  const nav = useHostNav();
   const { data } = useShellInfo();
   const panel = useRef<HTMLElement>(null);
   const next = nextStop(stop?.key ?? null);
   const n = stop?.callouts.length ?? 0;
   const go = (i: number) => xrayStore.setStep(path, Math.max(0, Math.min(n - 1, i)));
-  const goScreen = (s: TourStop) => startTransition(() => router.push(`${s.href}?xray=1`));
+  const goScreen = (s: TourStop) => nav.navigate(`${s.href}?xray=1`);
 
   useEffect(() => {
     panel.current?.querySelector<HTMLElement>('[aria-current="step"], button')?.focus({ preventScroll: true });
