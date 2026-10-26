@@ -46,13 +46,15 @@ flowchart LR
 |---|---|---|
 | [Kit](kit.md) | `src/components`, `src/styles`, `src/lib/keyboard` | The shared macOS-style window, controls, tables, overlays, ⌘K palette |
 | Shared contracts | `src/schemas`, `src/lib` | One type and one parser or rule per contract, read alike by the engine, server, poller, runner and screens: the ledger chain (`schemas/chain`), run events (`schemas/run`), tiers, proofs, trials; promotion, runs, trend, stability, text size, the demo fixture |
+| [Screen host](screen-host.md) | `src/components/shell/host`, `src/app/features/screens`, `/api/screen` | In-app navigation: the URL to a screen frame painted in the click's frame, its data streamed in slices, visited screens kept |
 | [Server](server.md) | `src/server` | Data sources (demo / live), GitLab port, local index, poller, ledger, previewed writes |
 | [Engine](engine.md) | `engine/`, `cli/`, `gitlab/`, `policy/` | Model-free proof engine, tier gate, tripwire, CI components |
 | [Quality gates](quality.md) | `scripts/`, tests | `npm run verify`, `npm run smoke`, structure rules |
 
 ## Conventions every module follows
-- A screen is `src/app/<route>/page.tsx` (server: reads data through `getDataSource()`) plus
-  `src/app/features/<screen>/` with `components/`, `hooks/`, `model/` (pure, tested) and `data/`.
+- A screen is `src/app/<route>/page.tsx` plus `src/app/features/<screen>/` with `components/`, `hooks/`, `model/`
+  (pure, tested) and `data/`. A screen the [screen host](screen-host.md) draws adds `screen/host.tsx` and
+  `screen/slices.ts`, and its page.tsx is a static shell; until then the page reads through `getDataSource()`.
 - Unknown is never zero. Simulated or seeded data says so on screen.
 - One loud colour: amber means "waits for a person", nothing else.
 - Sizes scale with the text size (`calc(Npx * var(--ui-scale))`), and colours come from tokens only.

@@ -22,8 +22,12 @@
 - The toolbar's **Sweep** toggle pauses or resumes the sweep animation.
 
 ## How it works
-- `src/app/(app)/monitor/page.tsx` (server) renders `MonitorScreen` with `loadMonitorData()` and, as its own `estate` prop,
-  `loadMonitorEstate(data, await readDesk())`.
+- The screen host draws it (docs/features/screen-host.md; the reference conversion). `src/app/(app)/monitor/page.tsx` is
+  a static shell (its title, nothing else). `screen/slices.ts` streams three slices over `GET /api/screen/monitor`:
+  `core` (`loadMonitorData()`), `estate` (`loadMonitorSignals()`: stability and trend) and `desk` (`monitorCost(data,
+  await readDesk())`); `screen/host.tsx` reads them with `useSlice` into `MonitorScreen`, whose window paints at once
+  with a dash for every unread value (`components/MonitorPending.tsx`) and whose regions enter in the order the file
+  states. A live re-poll re-reads the screen (`useRevalidate`).
 - `data/loadMonitorData.ts` reads the DataSource into `MonitorData`: the mode (demo or live), org and as-of time, groups,
   projects, stages, the deep project id and its own needs-you items (`ownDecisions`).
 - `data/loadMonitorEstate.ts` reads beside the fleet (`MonitorEstate`): the agents' spend summed over the metered
@@ -40,7 +44,8 @@
   - `nav.ts`: arrow-key stepping beat to beat and lead to lead, skipping empty groups.
   - `types.ts`: `MonitorData`, `MonitorEstate`, `Lead`, `Totals`, `MarkKind`.
 - `hooks/useMonitor.ts` holds the client copy of the projects plus selection (defaults to the deep project), open
-  lead, lit mark, hover, `resolve` and `repoll`; a fresh snapshot from the route replaces the copy. `hooks/useSize.ts`
+  lead, lit mark, hover, `resolve` and `repoll`; it starts empty before the fleet is read and takes it (with the deep
+  project as the pick) when it lands; a fresh snapshot replaces the copy. `hooks/useSize.ts`
   measures a strip so its paths are rebuilt only when its size changes.
 - Components draw the model: `Leads` (rows, arrow keys), `LeadStrip` (one lead as about ten SVG paths), `LeadCells`
   (the open lead), `AnswerBand` and `WeekNote`, `MonitorInspector` and `Decisions`, plus the shared kit `Window`,
