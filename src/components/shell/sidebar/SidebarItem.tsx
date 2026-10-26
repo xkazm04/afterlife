@@ -1,11 +1,12 @@
-import { ArmLink } from '../nav/armSeam';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import styles from './Sidebar.module.css';
 
 /**
  * One source-list row: icon, label, optional right-aligned count (or any node, e.g. a NeedsYouBadge). An empty count
  * (undefined, null, false or "") takes no room, so the label gets it. With `href` it is a link (navigation);
- * otherwise a button (a filter). `current` highlights it.
+ * otherwise a button (a filter). `current` highlights it. A link to a screen the screen host draws is taken by the host's
+ * click delegation (components/shell/host): no router navigation.
  */
 export function SidebarItem({
   icon,
@@ -33,9 +34,9 @@ export function SidebarItem({
   );
   if (href) {
     return (
-      <ArmLink href={href} className={styles.si} aria-current={current ? 'page' : undefined} title={title} onClick={onClick}>
+      <Link href={href} className={styles.si} aria-current={current ? 'page' : undefined} title={title} onClick={onClick}>
         {body}
-      </ArmLink>
+      </Link>
     );
   }
   return (

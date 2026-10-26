@@ -4,11 +4,11 @@
 // envelope each visited screen was drawn from, and where each screen was left. Module state behind useSyncExternalStore,
 // so a sidebar click swaps the screen in the same task, before Next's own pathname update renders.
 import { useSyncExternalStore } from 'react';
-import { readScreen, type ScreenEnvelope } from '../screenApi';
-import { ARM_SAMPLE_KEYS, type ArmScreenKey } from '../navArm';
+import { readScreen, type ScreenEnvelope } from './screenApi';
+import { LEGACY_KEYS, type LegacyKey } from './legacyKeys';
 import { ARM_B_MARK, listKeyOf, markedPath, pathOf, targetOf, veilsOnActivate } from './model';
 
-export interface Entry<K extends ArmScreenKey = ArmScreenKey> {
+export interface Entry<K extends LegacyKey = LegacyKey> {
   /** The envelope the screen is drawn from; absent until the first read lands (the skeleton shows). */
   env?: ScreenEnvelope<K>;
   /** Needs you on activation: the kept rows are veiled (inert, dimmed) until the fresh read lands. */
@@ -17,7 +17,7 @@ export interface Entry<K extends ArmScreenKey = ArmScreenKey> {
   error?: string;
 }
 
-export type Entries = { [K in ArmScreenKey]?: Entry<K> };
+export type Entries = { [K in LegacyKey]?: Entry<K> };
 
 export interface HostState {
   /** The list path the host draws, or null when the route's own page shows. */
@@ -29,18 +29,18 @@ const EMPTY: HostState = { active: null, entries: {} };
 let state: HostState = EMPTY;
 const listeners = new Set<() => void>();
 /** Each screen's URL when the viewer left it (fleet's list state lives in its query). */
-const lastUrl: Partial<Record<ArmScreenKey, string>> = {};
+const lastUrl: Partial<Record<LegacyKey, string>> = {};
 /** Each screen's in-flight read: a newer one aborts it. */
-const inflight = new Map<ArmScreenKey, AbortController>();
+const inflight = new Map<LegacyKey, AbortController>();
 /** The props each screen is drawn from, serialised: an identical re-read keeps the old object (no re-render, no reset). */
-const lastJson = new Map<ArmScreenKey, string>();
+const lastJson = new Map<LegacyKey, string>();
 
 function set(next: HostState): void {
   state = next;
   for (const fn of listeners) fn();
 }
 
-function patch<K extends ArmScreenKey>(key: K, entry: Entry<K>): void {
+function patch<K extends LegacyKey>(key: K, entry: Entry<K>): void {
   set({ ...state, entries: { ...state.entries, [key]: entry } });
 }
 
@@ -54,7 +54,7 @@ export function useHostState(): HostState {
 }
 
 /** Read a screen's props; drawn kept props stay until the read lands, and stay as they are when it brings nothing new. */
-function load<K extends ArmScreenKey>(key: K, search: string): void {
+function load<K extends LegacyKey>(key: K, search: string): void {
   inflight.get(key)?.abort();
   const ctl = new AbortController();
   inflight.set(key, ctl);
@@ -131,4 +131,4 @@ export function unmarkCurrent(): void {
 }
 
 /** The host's screens in a fixed order (their Activity boundaries never reorder). */
-export const HOST_KEYS = ARM_SAMPLE_KEYS;
+export const HOST_KEYS = LEGACY_KEYS;

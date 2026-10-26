@@ -1,27 +1,4 @@
-'use client';
-
-// Arm B (a client host renders the sample screens from /api/screen JSON): the sidebar link's click and the host.
-import { useMemo } from 'react';
-import type { SidebarNav } from '../types';
-import { listKeyOf, takesClick } from './model';
-import { navigateTo } from './store';
-
-export { ArmHostB as ArmHost } from './ArmHostB';
-
-/**
- * A list screen's link swaps in place (preventDefault, pushState) and never prefetches the route: the host reads JSON.
- * A detail link (/fleet/<id>, /needs-you/<id>) stays the router's.
- */
-export function useSidebarNav(href: string): SidebarNav {
-  return useMemo<SidebarNav>(() => {
-    if (!listKeyOf(href)) return {};
-    return {
-      prefetch: false,
-      onClick: (e) => {
-        if (!takesClick(e, href)) return;
-        e.preventDefault();
-        navigateTo(href);
-      },
-    };
-  }, [href]);
-}
+// The legacy arm-B host (the Fleet and Needs-you lists from /api/screen/legacy JSON, until W1/W2 convert them to the
+// screen host). The (app) layout mounts it inside ScreenHost; the screen host's click delegation hands it the list
+// links it does not claim itself (ArmHostB registers with setLegacy). The Director deletes nav/b in W5.
+export { ArmHostB as LegacyHost } from './ArmHostB';

@@ -1,0 +1,24 @@
+/* A region's entrance: drawn at once (its frame and dashes paint in the click's frame), then, when its slice lands, it
+   settles in after order x --reveal-step. The from-state is the dimmed, slightly low region (it never vanishes, so
+   nothing blinks), held through the delay. Reduced motion: no animation, the region is simply there. */
+.reveal[data-reveal='in'] {
+  animation: reveal-in var(--reveal-dur) var(--ease) calc(var(--reveal-order, 0) * var(--reveal-step)) backwards;
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0.35;
+    transform: translateY(calc(3px * var(--ui-scale)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal[data-reveal] {
+    animation: none;
+  }
+}
+
+/* An unread value: the em dash, in the quiet text tier (unknown is never zero, and never loud). */
+.unread {
+  color: var(--text-4);
+}

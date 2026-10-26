@@ -8,3 +8,14 @@
   padding: calc(14px * var(--ui-scale)) calc(16px * var(--ui-scale));
   overflow: auto;
 }
+
+/* the screen host's reveal regions (Reveal's wrapper divs): the band keeps its height, the leads fill the rest */
+.bandRegion {
+  flex: none;
+}
+.leadsRegion {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}

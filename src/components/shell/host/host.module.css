@@ -1,0 +1,5 @@
+/* The route's own page under the host: a box of its own for <Activity> to hide (an Activity whose subtree starts with
+   no element of its own hid a neighbour's), and no box for layout: its screen stays the frame's grid item. */
+.route {
+  display: contents;
+}

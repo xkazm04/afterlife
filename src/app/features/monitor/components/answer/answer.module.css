@@ -21,6 +21,10 @@
   font-variant-numeric: tabular-nums;
   text-shadow: 0 0 22px color-mix(in oklab, var(--needs-you) 50%, transparent), 0 0 60px color-mix(in oklab, var(--needs-you) 14%, transparent);
 }
+/* before the fleet is read: a dash in quiet ink (amber is only for what is known to wait) */
+.bigUnread {
+  text-shadow: none;
+}
 .words {
   display: flex;
   flex-direction: column;

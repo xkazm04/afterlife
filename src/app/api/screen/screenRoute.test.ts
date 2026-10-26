@@ -1,9 +1,7 @@
-// GET /api/screen/<key>: a sample screen's props as its page passes them, as plain JSON. Never cached; 404 for an unknown
-// key; live before the first poll a 503 with the reason, never a demo payload.
+// GET /api/screen/<key>: a screen's slices as NDJSON. Never cached; 404 for an unknown or unconverted key; the key one
+// percent-encoded segment; live before the first poll an error line with the reason, never a demo payload.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { demoSource, setDataSource } from '@/server/data';
-import { loadScreenProps } from '@/app/features/shell-arms/data/screenProps';
-import { toWire } from '@/app/features/shell-arms/model/wire';
 import { GET } from './[key]/route';
 
 // Outside Next there is no request scope: connection() (request time, never the build) resolves at once here.
@@ -15,75 +13,43 @@ afterEach(() => {
 });
 
 const call = (key: string, query = '') => GET(new Request(`http://localhost/api/screen/${key}${query}`), { params: Promise.resolve({ key }) });
-
-/** The first value JSON would lose or change: a Map, Set, Date, function, non-finite number or null-prototype trick. */
-function unserialisable(v: unknown, path = 'props'): string | null {
-  if (v === null || typeof v === 'string' || typeof v === 'boolean') return null;
-  if (typeof v === 'number') return Number.isFinite(v) ? null : path;
-  if (v === undefined) return null; // an omitted key: the absent-value convention
-  if (typeof v !== 'object') return path;
-  if (Array.isArray(v)) {
-    for (const [i, x] of v.entries()) { const bad = unserialisable(x, `${path}[${i}]`); if (bad) return bad; }
-    return null;
-  }
-  if (Object.getPrototypeOf(v) !== Object.prototype) return path;
-  for (const [k, x] of Object.entries(v)) { const bad = unserialisable(x, `${path}.${k}`); if (bad) return bad; }
-  return null;
-}
+const lines = async (res: Response) => (await res.text()).trim().split('\n').map((l) => JSON.parse(l) as Record<string, unknown>);
 
 describe('GET /api/screen/[key]', () => {
-  it.each(['monitor', 'fleet', 'needs-you'])('%s: the envelope as JSON, not stored by any cache, its props plain data', async (key) => {
+  it('monitor: its three slices as NDJSON, the fleet first, then _end; not stored by any cache', async () => {
     setDataSource(demoSource);
-    const res = await call(key);
+    const res = await call('monitor');
     expect(res.status).toBe(200);
     expect(res.headers.get('cache-control')).toContain('no-store');
-    const body = await res.json();
-    expect(body.key).toBe(key);
-    expect(new Date(body.asOf).toISOString()).toBe(body.asOf);
-    const props = toWire(key as 'monitor', await loadScreenProps(key as 'monitor', new URLSearchParams()));
-    expect(unserialisable(props)).toBeNull();
-    expect(Object.keys(body.props).sort()).toEqual(Object.keys(props).sort());
+    expect(res.headers.get('content-type')).toContain('application/x-ndjson');
+    const out = await lines(res);
+    expect(out[0]).toMatchObject({ slice: 'core', status: 'ok' });
+    expect(out.map((l) => l.slice).sort()).toEqual(['_end', 'core', 'desk', 'estate']);
+    expect(out.at(-1)).toMatchObject({ slice: '_end', status: 'ok' });
+    expect(Object.keys(out[0]?.data as object).sort()).toEqual(['asOf', 'deepId', 'groups', 'mode', 'needs', 'org', 'projects', 'stages']);
+    expect(Object.keys(out.find((l) => l.slice === 'estate')?.data as object).sort()).toEqual(['stability', 'trend']);
+    expect(Object.keys(out.find((l) => l.slice === 'desk')?.data as object)).toEqual(['cost']);
   });
 
-  it('the props each page passes its screen', async () => {
+  it('an unknown key, or one no module serves yet, is a 404 that does not echo it', async () => {
+    for (const key of ['nope', 'ladder']) {
+      const res = await call(key);
+      expect(res.status).toBe(404);
+      expect(await res.json()).toEqual({ error: 'unknown screen' });
+    }
+  });
+
+  it('decodes a percent-encoded key (a param key is one segment)', async () => {
     setDataSource(demoSource);
-    expect(Object.keys((await (await call('monitor')).json()).props).sort()).toEqual(['data', 'estate']);
-    expect(Object.keys((await (await call('fleet')).json()).props).sort()).toEqual(['data', 'estate', 'runner', 'source', 'start']);
-    const needs = (await (await call('needs-you')).json()).props;
-    expect(Object.keys(needs).sort()).toEqual(['runner', 'view']);
-    expect(needs.view.kind).toBe('desk');
+    expect((await call(encodeURIComponent('monitor'))).status).toBe(200);
+    expect((await call('fleet%2F%5Bproject%5D', '?project=x')).status).toBe(404); // not converted yet: no loader
   });
 
-  it("fleet: the query passes through to the list's start state", async () => {
-    setDataSource(demoSource);
-    const plain = (await (await call('fleet')).json()).props.start;
-    const searched = (await (await call('fleet', '?q=zeta')).json()).props.start;
-    expect(searched).not.toEqual(plain);
-  });
-
-  it('an unknown key is a 404 that does not echo it', async () => {
-    const res = await call('ladder');
-    expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ error: 'unknown screen' });
-  });
-
-  it('live before the first poll: 503 with the reason, never a demo payload', async () => {
+  it('live before the first poll: the slices say why, never a demo payload', async () => {
     vi.stubEnv('BELAY_MODE', 'live');
-    const res = await call('monitor');
-    expect(res.status).toBe(503);
-    expect(res.headers.get('cache-control')).toContain('no-store');
-    const body = await res.json();
-    expect(body.error).toContain('first poll has not finished');
-    expect(JSON.stringify(body)).not.toContain('demo');
-  });
-
-  it('any other throw: 503 with a fixed body, the message only in the server log', async () => {
-    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    setDataSource({ ...demoSource, getFleet: () => { throw new Error("ENOENT: open 'C:\\\\ops\\\\.belay\\\\index'"); } });
-    const res = await call('monitor');
-    expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ error: 'screen unreadable' });
-    expect(String(log.mock.calls[0]?.[0])).toContain('ENOENT');
-    log.mockRestore();
+    const out = await lines(await call('monitor'));
+    expect(out.find((l) => l.slice === 'core')).toMatchObject({ status: 'error' });
+    expect(String(out.find((l) => l.slice === 'core')?.reason)).toContain('first poll has not finished');
+    expect(JSON.stringify(out)).not.toContain('demo');
   });
 });

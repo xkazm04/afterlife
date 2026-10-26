@@ -3,6 +3,7 @@
 import type { FleetProject } from '@/lib/demo/types';
 import type { CostSum } from '@/lib/runs/desk/join';
 import type { TrendFeed } from '@/lib/trend/trend';
+import { Reveal } from '@/components/shell/host';
 import { plural } from '@/lib/format/plural';
 import { leadLine, stateLine, topWaiting } from '../../model/totals';
 import type { Lead, Totals } from '../../model/types';
@@ -20,7 +21,7 @@ export function spendLine(cost: CostSum | null): string | null {
  * The band above the leads: the one loud number on the left, and the readout on the right. The readout names
  * whatever the pointer or the keyboard is on (a beat or a lead), so the leads themselves carry almost no text. With
  * nothing under the pointer, it also says what the agents spent (`cost`, read beside the fleet). `trend`, when read, puts
- * the week's change beside the big number.
+ * the week's change beside the big number. Both enter in place (Reveal) when they land after the fleet.
  */
 export function AnswerBand({
   org,
@@ -70,7 +71,11 @@ export function AnswerBand({
     <div className={styles.band}>
       <div className={styles.answer}>
         <span className={styles.big}>{totals.needs}</span>
-        {trend ? <WeekNote feed={trend} /> : null}
+        {trend ? (
+          <Reveal>
+            <WeekNote feed={trend} />
+          </Reveal>
+        ) : null}
         <span className={styles.words}>
           <span className={styles.head}>{totals.needs === 1 ? 'decision waits for you' : 'decisions wait for you'}</span>
           <span className={styles.who}>
@@ -88,7 +93,8 @@ export function AnswerBand({
       <div className={styles.readout} aria-hidden={echo || undefined} data-tone={tone}>
         <span className={styles.roName}>{name}</span>
         <span className={styles.roLine}>{line}</span>
-        {spend ? <span className={styles.roLine}>{spend}</span> : null}
+        {/* mounted while the spend is read (the pointer only empties it), so it enters once, when the desk lands */}
+        {spendLine(cost) ? <Reveal className={styles.roLine}>{spend}</Reveal> : null}
       </div>
     </div>
   );

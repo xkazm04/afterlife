@@ -7,21 +7,20 @@ describe('listKeyOf', () => {
   it('names the list screens, query ignored', () => {
     expect(listKeyOf('/fleet')).toBe('fleet');
     expect(listKeyOf('/fleet?state=blocked')).toBe('fleet');
-    expect(listKeyOf('/monitor')).toBe('monitor');
     expect(listKeyOf('/needs-you#x')).toBe('needs-you');
   });
   it('detail pages and other tabs are not the host’s', () => {
-    for (const h of ['/fleet/p1', '/needs-you/n1', '/ladder', '/', '/fleetx']) expect(listKeyOf(h), h).toBeNull();
+    for (const h of ['/fleet/p1', '/needs-you/n1', '/monitor', '/ladder', '/', '/fleetx']) expect(listKeyOf(h), h).toBeNull();
   });
 });
 
 describe('markedPath', () => {
   it('the entry’s own mark on the current path', () => {
-    expect(markedPath({ __NA: true, [ARM_B_MARK]: '/monitor' }, '/monitor')).toBe('/monitor');
+    expect(markedPath({ __NA: true, [ARM_B_MARK]: '/fleet' }, '/fleet')).toBe('/fleet');
   });
   it('no mark, a stale mark, a detail mark or no state: the route draws it', () => {
-    expect(markedPath({ __NA: true }, '/monitor')).toBeNull();
-    expect(markedPath({ [ARM_B_MARK]: '/monitor' }, '/needs-you')).toBeNull();
+    expect(markedPath({ __NA: true }, '/fleet')).toBeNull();
+    expect(markedPath({ [ARM_B_MARK]: '/fleet' }, '/needs-you')).toBeNull();
     expect(markedPath({ [ARM_B_MARK]: '/fleet/p1' }, '/fleet/p1')).toBeNull();
     expect(markedPath({ [ARM_B_MARK]: 3 }, '/fleet')).toBeNull();
     expect(markedPath(null, '/fleet')).toBeNull();
@@ -58,6 +57,5 @@ describe('veilsOnActivate', () => {
   it('only Needs you', () => {
     expect(veilsOnActivate('needs-you')).toBe(true);
     expect(veilsOnActivate('fleet')).toBe(false);
-    expect(veilsOnActivate('monitor')).toBe(false);
   });
 });

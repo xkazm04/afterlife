@@ -41,6 +41,21 @@ The rest of the shell works without props:
   With `href` an item is a link; without it, a filter button. An empty `count` (undefined, null, false
   or "") takes no room, so a long label keeps the whole row; a count of 0 still shows.
 
+## Screen host (`shell/host`, client)
+
+`host/ScreenHost` is mounted once by `app/(app)/layout.tsx` around the route's children: it draws every screen a module
+has converted (its `screen/host.tsx` sets `ready`) itself, in place, from one streamed read per screen; see
+`docs/features/screen-host.md` for the contract and the migration playbook. A screen's Frame uses, from
+`@/components/shell/host`:
+
+- `useSlice(name)`: the slice's state, unread, ok (data, asOf) or error (reason); `useScreenRead()`: the read as a whole;
+- `host/Unread({label?})`: the em dash for a value not read yet, never 0;
+- `host/Reveal({order?, slice?, className?, style?})`: a region that paints at once and settles in, in the screen's
+  designed order, when its slice lands (`--reveal-step`, `--reveal-dur`; reduced motion: no animation);
+- `useHostNav()` (`navigate`, `replace`) and `useRevalidate()` instead of `router.push` and `router.refresh`;
+- `host/SliceFixture({slices?, states?})`: pins slices for a test or a specimen. `ScreenScope` is the host's own
+  per-screen context and `host/HostNotFound` its window for a notFound slice when the screen gives no NotFound of its own.
+
 ## The parts
 
 | Folder | Components |

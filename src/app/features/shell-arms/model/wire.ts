@@ -1,4 +1,4 @@
-// The sample screens' props on the wire (GET /api/screen/<key>) and back. JSON has no Set: fleet's list start state holds
+// The sample screens' props on the wire (GET /api/screen/legacy/<key>) and back. JSON has no Set: fleet's list start state holds
 // three (collapsed groups, state and tier filters), sent as arrays and revived here, so the client draws from exactly
 // the props the page passes. Every other prop is plain data already (route.test.ts walks them). Pure, client-safe.
 import type { FleetListState } from '@/app/features/fleet/model/list/urlState';
@@ -16,7 +16,6 @@ export type FleetStartWire = Omit<FleetListState, 'collapsed' | 'filters'> & {
 };
 
 export type ScreenWire = {
-  monitor: ScreenProps['monitor'];
   fleet: Omit<ScreenProps['fleet'], 'start'> & { start: FleetStartWire };
   'needs-you': ScreenProps['needs-you'];
 };

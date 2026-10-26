@@ -1,14 +1,20 @@
 'use client';
 
-// Arm B's host: the route's page (children) and one <Activity> per visited list screen. A sidebar click on Fleet, Monitor
-// or Needs you pushes the URL and swaps the screen here (no router navigation, no RSC request); leaving hides a screen
-// with its state (selection, filters, scroll), and returning shows it at once while a quiet re-read swaps its props.
+// Arm B's host (legacy, until W1/W2): the route's page (children) and one <Activity> per visited list screen. A click on
+// the Fleet or Needs-you list (handed over by the screen host's click delegation) pushes the URL and swaps the screen
+// here (no router navigation, no RSC request); leaving hides a screen with its state (selection, filters, scroll), and returning shows it at once while a quiet re-read swaps its props.
 // Detail pages, other tabs, a direct load or a reload stay the route's: the host draws only its own history entries.
 import { usePathname, useRouter } from 'next/navigation';
 import { Activity, useEffect, type ReactNode } from 'react';
+import { setLegacy } from '@/components/shell/host/hooks/navigation';
 import { DOC_TITLE, listKeyOf } from './model';
 import { HostScreen } from './HostScreen';
-import { HOST_KEYS, keepOrSync, setActive, syncFromHistory, unmarkCurrent, useHostState } from './store';
+import { HOST_KEYS, keepOrSync, navigateTo, setActive, syncFromHistory, unmarkCurrent, useHostState } from './store';
+
+// Registered once, at module load, not in an effect: while the screen host shows one of its own screens this host sits in
+// a hidden <Activity> (its effects cleaned up), and a list link must still reach it. A reload's own mark goes once.
+setLegacy({ takes: (href) => listKeyOf(href) !== null, navigate: navigateTo });
+let unmarked = false;
 
 export function ArmHostB({ children }: { children?: ReactNode }): ReactNode {
   const pathname = usePathname();
@@ -16,7 +22,8 @@ export function ArmHostB({ children }: { children?: ReactNode }): ReactNode {
   const { active, entries } = useHostState();
 
   useEffect(() => {
-    unmarkCurrent();
+    if (!unmarked) unmarkCurrent();
+    unmarked = true;
     window.addEventListener('popstate', syncFromHistory);
     return () => window.removeEventListener('popstate', syncFromHistory);
   }, []);

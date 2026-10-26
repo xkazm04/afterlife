@@ -1,22 +1,20 @@
-// Arm B's pure rules: which sidebar clicks the SPA host takes, which history entries it owns, and what each screen's
+// Arm B's pure rules (the legacy host for the Fleet and Needs-you lists until W1/W2; see legacyKeys.ts): which sidebar clicks the SPA host takes, which history entries it owns, and what each screen's
 // first paint looks like. The host (ArmHostB) and the store (store.ts) hold the state; everything decidable lives here.
 import type { SkeletonLayout } from '@/components/shell/loading/ScreenSkeleton';
-import { sampleKeyOf, type ArmScreenKey } from '../navArm';
+import { legacyKeyOf, type LegacyKey } from './legacyKeys';
 
 /** The key arm B writes into the history entries it pushes: the path the host drew there. */
 export const ARM_B_MARK = '__armB';
 
-/** Each screen's window, as its route's loading skeleton draws it (fleet/page.tsx, monitor/loading.tsx, needs-you/loading.tsx). */
-export const SKELETON: Record<ArmScreenKey, { title: string; layout: SkeletonLayout }> = {
+/** Each screen's window, as its route's loading skeleton draws it (fleet/page.tsx, needs-you/loading.tsx). */
+export const SKELETON: Record<LegacyKey, { title: string; layout: SkeletonLayout }> = {
   fleet: { title: 'Belay', layout: 'table' },
-  monitor: { title: 'Monitor', layout: 'lanes' },
   'needs-you': { title: 'Needs you', layout: 'table' },
 };
 
 /** The tab titles the routes' metadata sets: the host sets them itself, since a pushState renders no metadata. */
-export const DOC_TITLE: Record<ArmScreenKey, string> = {
+export const DOC_TITLE: Record<LegacyKey, string> = {
   fleet: 'Belay Fleet',
-  monitor: 'Belay Monitor',
   'needs-you': 'Belay Needs you',
 };
 
@@ -26,11 +24,11 @@ export function pathOf(href: string): string {
 }
 
 /**
- * The module whose list screen an href lands on: /fleet, /monitor, /needs-you (query ignored). A detail page
+ * The module whose list screen an href lands on: /fleet, /needs-you (query ignored). A detail page
  * (/fleet/<id>, /needs-you/<id>) is null: the envelope carries no detail, so those stay router navigations.
  */
-export function listKeyOf(href: string): ArmScreenKey | null {
-  const key = sampleKeyOf(href);
+export function listKeyOf(href: string): LegacyKey | null {
+  const key = legacyKeyOf(href);
   return key && pathOf(href) === `/${key}` ? key : null;
 }
 
@@ -66,6 +64,6 @@ export function targetOf(href: string, last: string | undefined): string {
 }
 
 /** Needs you's amber rows wait on a person: on every activation they are re-read, and veiled until the read lands. */
-export function veilsOnActivate(key: ArmScreenKey): boolean {
+export function veilsOnActivate(key: LegacyKey): boolean {
   return key === 'needs-you';
 }

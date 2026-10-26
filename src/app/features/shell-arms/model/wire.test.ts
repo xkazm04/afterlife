@@ -24,8 +24,8 @@ describe('screen props on the wire', () => {
   });
 
   it('the other screens pass through untouched', () => {
-    const monitor = { data: { a: 1 }, estate: { b: [2] } } as unknown as ScreenProps['monitor'];
-    expect(toWire('monitor', monitor)).toBe(monitor);
-    expect(fromWire('monitor', monitor)).toBe(monitor);
+    const needs = { view: { a: 1 }, runner: { b: [2] } } as unknown as ScreenProps['needs-you'];
+    expect(toWire('needs-you', needs)).toBe(needs);
+    expect(fromWire('needs-you', needs)).toBe(needs);
   });
 });

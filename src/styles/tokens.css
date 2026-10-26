@@ -57,6 +57,9 @@
   --t-fast: 150ms;
   --t-med: 250ms;
   --t-slow: 400ms;
+  /* the screen host's choreographed reveal: each region enters order x step after its slice lands, over dur */
+  --reveal-step: 60ms;
+  --reveal-dur: 140ms;
 
   /* system fonts (the macOS window look) */
   --sys: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", sans-serif;

@@ -2,6 +2,7 @@
 
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
+import { Unread } from '@/components/shell/host';
 import { MARKS } from '../model/totals';
 import type { Lead, MarkKind, Totals } from '../model/types';
 import { MarkGlyph } from './MarkGlyph';
@@ -15,7 +16,10 @@ const MARK_COUNT: Record<MarkKind, (t: Totals) => number> = {
   watching: (t) => t.watching,
 };
 
-/** The source list: the six signals (each lights its beats on every lead) and the leads, one per group (each opens). */
+/**
+ * The source list: the six signals (each lights its beats on every lead) and the leads, one per group (each opens).
+ * `totals` null: the fleet is not read yet, every count is a dash and no lead is listed.
+ */
 export function MonitorSidebar({
   totals,
   leads,
@@ -24,7 +28,7 @@ export function MonitorSidebar({
   onMark,
   onLead,
 }: {
-  totals: Totals;
+  totals: Totals | null;
   leads: readonly Lead[];
   mark: MarkKind | null;
   openLead: string | null;
@@ -39,7 +43,7 @@ export function MonitorSidebar({
             key={m.kind}
             icon={<MarkGlyph kind={m.kind} icon />}
             label={m.label}
-            count={MARK_COUNT[m.kind](totals)}
+            count={totals ? MARK_COUNT[m.kind](totals) : <Unread />}
             current={mark === m.kind}
             title={mark === m.kind ? `Clear the ${m.label.toLowerCase()} filter` : `Light every ${m.label.toLowerCase()} beat`}
             onClick={() => onMark(m.kind)}

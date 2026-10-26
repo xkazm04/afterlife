@@ -22,7 +22,13 @@ const EXEMPT: Record<string, string> = {
   AdoptedShell: 'holds the root layout shell state for app/Providers: it draws nothing of its own',
   ShellAdopt: 'hands the request-time shell read to AdoptedShell: it draws nothing',
   ScreenSkeleton: 'a Window with a skeleton pane, drawn by every route loading.tsx while its data streams',
-  ...Object.fromEntries(['DevWarmer', 'PendingSkeleton', 'ArmLink', 'ArmHost', 'ArmHostB', 'HostScreen', 'HostC', 'ScreenCopy'].map((n) => [n, 'bake-off prototype, nav arm host/internal'])),
+  ...Object.fromEntries(['ArmHostB', 'HostScreen'].map((n) => [n, 'legacy arm-B host (nav/b) for Fleet and Needs you until W1/W2; deleted in W5'])),
+  ScreenHost: 'mounted once by the (app) layout around every screen, /kit included: it draws the screens, nothing of its own',
+  ScreenScope: "the host's per-screen context provider: it draws nothing",
+  SliceFixture: 'pins slices for a test or a specimen: a context provider, it draws nothing',
+  HostNotFound: "a Window with one note, drawn by the host for a notFound slice; /kit shows Window",
+  Unread: 'the screen-host em dash; specimen lands with the kit conversion (W4)',
+  Reveal: 'the screen-host reveal wrapper (an animation, no look of its own); specimen lands with the kit conversion (W4)',
 };
 
 const exported = walk(COMPONENTS)
