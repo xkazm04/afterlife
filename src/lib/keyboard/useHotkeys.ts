@@ -28,8 +28,9 @@ export function dispatchHotkey(hotkeys: readonly Hotkey[], e: KeyboardEvent): bo
 /**
  * Document-level keyboard shortcuts. Handlers are read through a ref, so passing a fresh array each render is fine.
  * Events already handled (defaultPrevented, e.g. by a Menu) are skipped. Pass `enabled=false` to switch off.
+ * `capture`: heard before the screen's own keys, and a matched key is consumed (a layer over the screen, like the guide).
  */
-export function useHotkeys(hotkeys: readonly Hotkey[], enabled = true): void {
+export function useHotkeys(hotkeys: readonly Hotkey[], enabled = true, capture = false): void {
   const ref = useRef(hotkeys);
   useEffect(() => {
     ref.current = hotkeys;
@@ -38,9 +39,9 @@ export function useHotkeys(hotkeys: readonly Hotkey[], enabled = true): void {
     if (!enabled) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
-      dispatchHotkey(ref.current, e);
+      if (dispatchHotkey(ref.current, e) && capture) e.stopPropagation();
     };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [enabled]);
+    document.addEventListener('keydown', onKey, capture);
+    return () => document.removeEventListener('keydown', onKey, capture);
+  }, [enabled, capture]);
 }

@@ -3,6 +3,7 @@
 import { capsOf, type Keymap } from '@/lib/keyboard/keymap';
 import { ABOUT_KEYMAP } from '../../about/keys/keymap';
 import { FLEET_KEYMAP } from '../../fleet/model/keys/keymap';
+import { GUIDE_KEYMAP } from '../../guide/model/keymap';
 import { LADDER_KEYMAP } from '../../ladder/model/keymap';
 import { MATURITY_KEYMAP, MATURITY_SHEET_KEYMAP } from '../../maturity/model/keys/keymap';
 import { NEEDS_KEYMAP } from '../../needs-you/model/keys/keymap';
@@ -27,4 +28,5 @@ export const SCREEN_KEYS: readonly ScreenKeys[] = [
   [TASK_KEYMAP],
   [THEATER_KEYMAP],
   [ABOUT_KEYMAP],
+  [GUIDE_KEYMAP],
 ].map(toScreenKeys);

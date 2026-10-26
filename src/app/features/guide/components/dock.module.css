@@ -1,0 +1,171 @@
+/* The guide's dock, ported from the contest winner (afterlife-onboarding-v2 A/1). Its text is sized off --t-body, so it
+   matches the winner at Standard (15px: caption 21, chip 16, rail and hints 15) and follows the person's text size. */
+.dock {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 12px;
+  z-index: 3;
+  pointer-events: auto;
+  padding: 12px 20px 10px;
+  border: 1px solid var(--border-3);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  box-shadow:
+    var(--win-halo),
+    0 20px 60px var(--shade-60);
+  color: var(--text-1);
+  font-family: var(--sys);
+  animation: rise 0.35s var(--ease) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.cap {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  min-height: calc(2 * (var(--t-body) + 6px) * 1.38);
+}
+.cpt {
+  flex: none;
+  margin-top: 3px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: calc(var(--t-body) + 1px);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  white-space: nowrap;
+}
+.none {
+  border-color: var(--border-3);
+  color: var(--text-3);
+  background: var(--bg);
+  font-weight: 400;
+}
+.cap p {
+  flex: 1;
+  min-width: 0;
+  font-size: calc(var(--t-body) + 6px);
+  line-height: 1.38;
+  color: var(--text-1);
+  text-wrap: pretty;
+}
+.cnt {
+  margin-top: 4px;
+  font: calc(var(--t-body) + 2px) var(--mono);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.leave {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  border: 1px solid var(--border-3);
+  background: var(--ctl);
+  color: var(--text-2);
+  font-size: calc(var(--t-body) + 5px);
+  line-height: 1;
+  cursor: pointer;
+}
+.leave:hover {
+  background: var(--ctl-hover);
+  color: var(--text-1);
+}
+.ctl {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 4px;
+}
+.tb {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.tb button {
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  border: 1px solid var(--border-3);
+  background: var(--ctl);
+  color: var(--text-1);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.tb button:hover {
+  background: var(--ctl-hover);
+}
+.tb button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tb svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.tb .play {
+  width: auto;
+  min-width: 96px;
+  padding: 0 14px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  font-size: calc(var(--t-body) + 1px);
+  font-weight: 600;
+}
+.dock button:focus-visible,
+.leave:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+.badge {
+  border: 1px dashed var(--text-4);
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.badge b {
+  color: var(--accent);
+  font-weight: 600;
+}
+.hint {
+  font-size: var(--t-body);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.hint kbd {
+  font: var(--t-body) var(--mono);
+  border: 1px solid var(--border-3);
+  border-radius: 4px;
+  padding: 0 5px;
+  color: var(--text-2);
+}
+@media (max-width: 1400px) {
+  .hint {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    animation: none;
+  }
+}

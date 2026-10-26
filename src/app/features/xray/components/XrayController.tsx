@@ -1,33 +1,18 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useHerePath } from '@/components/shell/host';
 import { Suspense, useEffect } from 'react';
 import { onEscape } from '@/components/overlays/escapeLayers';
-import { useShellInfo } from '@/components/shell/ShellContext';
-import { activeNavKey } from '@/components/shell/sidebar/navItems';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
-import { stopOf } from '../callouts/tour';
 import { XRAY_EVENT, useXray, xrayStore } from '../model/store';
 
 /**
- * What switches the X-ray on and off, mounted once in the (app) layout: the first visit to the demo (a per-browser flag),
- * X (not while typing), Escape (as the top overlay layer), the help popover's event, and `?xray=1` (the palette's
- * "Show X-ray" and the sidebar's tour links). A screen it labels is marked seen once it has been shown.
+ * What switches the X-ray on and off, mounted once in the (app) layout: X (not while typing), Escape (as the top overlay
+ * layer), the help popover's event, and `?xray=1` (the palette's "Show X-ray"). It never opens by itself: the first
+ * visit to the demo opens the guide (features/guide).
  */
 export function XrayController() {
   const x = useXray();
-  const pathname = useHerePath();
-  const { data } = useShellInfo();
-  const key = stopOf(activeNavKey(pathname))?.key ?? null;
-
-  useEffect(() => {
-    if (data?.mode === 'demo' && xrayStore.takeFirstVisit()) xrayStore.setOn(true);
-  }, [data?.mode]);
-
-  useEffect(() => {
-    if (x.on && key) xrayStore.markSeen(key);
-  }, [x.on, key]);
 
   useEffect(() => {
     if (!x.on) return;

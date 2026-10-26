@@ -1,0 +1,149 @@
+/* The guide's rail, ported from the contest winner (afterlife-onboarding-v2 A/1): one stop per step, coloured by act. */
+.wrap {
+  flex: 1;
+  min-width: 0;
+}
+.rail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: calc(var(--t-body) + 41px);
+}
+.ln,
+.fill,
+.run {
+  position: absolute;
+  top: 18px;
+  height: 2px;
+}
+.ln {
+  background: var(--border-3);
+}
+.fill {
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  transition: width 0.4s var(--ease);
+}
+.run {
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  transform-origin: left;
+  animation: run var(--step-ms) linear both;
+}
+@keyframes run {
+  from {
+    transform: scaleX(0);
+  }
+}
+.stop {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.stop i {
+  margin-top: 11px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--border-3);
+  transition: all 0.3s var(--ease);
+  display: block;
+}
+.stop:focus-visible {
+  outline: none;
+}
+.stop:focus-visible i {
+  box-shadow: var(--ring);
+}
+.done i {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 40%, var(--bg));
+}
+.now i {
+  width: 22px;
+  height: 22px;
+  margin-top: 8px;
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 20px var(--accent);
+}
+.bad i {
+  border-color: var(--accent-2);
+}
+.bad.now i {
+  background: var(--accent-2);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--accent-2) 22%, transparent),
+    0 0 20px var(--accent-2);
+}
+.you i {
+  border-color: var(--needs-you);
+}
+.you.now i {
+  background: var(--needs-you);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--needs-you) 22%, transparent),
+    0 0 20px var(--needs-you);
+}
+.stop span {
+  position: absolute;
+  top: 34px;
+  font-size: var(--t-body);
+  color: var(--text-2);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s;
+  background: var(--bg);
+  padding: 0 6px;
+  border-radius: 4px;
+  z-index: 2;
+}
+.now span,
+.stop:hover span {
+  opacity: 1;
+}
+.now span {
+  color: var(--text-1);
+  font-weight: 600;
+}
+.stop:first-of-type span {
+  left: 0;
+}
+.stop:last-of-type span {
+  right: 0;
+}
+.acts {
+  display: flex;
+}
+.acts span {
+  font-size: var(--t-body);
+  color: var(--text-3);
+  border-top: 1px solid var(--border-3);
+  padding-top: 3px;
+  margin-right: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fill,
+  .stop i,
+  .stop span {
+    transition: none;
+  }
+  .run {
+    animation: none;
+  }
+}

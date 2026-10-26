@@ -40,7 +40,7 @@ describe('SCREEN_KEYS against the ground truth', () => {
           return [];
         }
       });
-    expect(hooks.length).toBe(7);
+    expect(hooks.length).toBe(8);
     expect(SCREEN_KEYS.length).toBe(hooks.length);
   });
 });

@@ -7,7 +7,7 @@ import styles from './HelpButton.module.css';
 /**
  * The "?" in the status bar. Hover or focus shows the legend (any content) above it after the popover's delay, like a
  * tooltip; a click pins it open (sticky), and click again or Escape closes it. Its foot asks for the X-ray of the screen
- * (the `afterlife:xray` window event, heard by the (app) layout's X-ray). Legends and definitions live here, not inline (the two-layer rule).
+ * (the `afterlife:xray` window event) or the guide (`afterlife:guide`), each heard by the (app) layout's overlay. Legends and definitions live here, not inline (the two-layer rule).
  */
 export function HelpButton({ title = 'Legend', children }: { title?: string; children: ReactNode }) {
   const pop = usePopover();
@@ -18,6 +18,9 @@ export function HelpButton({ title = 'Legend', children }: { title?: string; chi
       {children}
       <button type="button" className={styles.xray} onClick={() => window.dispatchEvent(new Event('afterlife:xray'))}>
         Label every part <kbd>X</kbd>
+      </button>
+      <button type="button" className={styles.xray} onClick={() => window.dispatchEvent(new Event('afterlife:guide'))}>
+        Watch the guide <kbd>G</kbd>
       </button>
     </div>
   );
