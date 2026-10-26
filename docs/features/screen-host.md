@@ -186,3 +186,20 @@ W0 measured on the Monitor in `next dev`, demo data: the frame is in the DOM, vi
 after the click (path and title already set). Regions go `in` when core lands (about 150 to 300 ms on a cold dev
 compile) and finish 60 to 70 ms apart in order. A return re-reads quietly, regions kept. The stream's core line arrives
 about 20 ms before the 780 KB estate line. A production build (static shell from `next build`) was not measured.
+
+## W3 notes (cycles, task, onboard, setup)
+
+- **A Session cannot read slices.** It is mounted outside `ScreenScope`, so `useSlice` there is always unread and
+  `useRevalidate()` needs an explicit key. Setup's pattern: the Session holds the state, and each Frame feeds it its
+  slices in effects, skipping a slice object it already applied (`setup/hooks/session/feed.tsx`).
+- **Query-scoped keys.** Cycles serves both scopes from one key: every slice reads `?scope=` and answers `{}` for the
+  scope it does not draw; the Frame treats `{}` as unread (the other scope's kept answer stays a moment across a switch).
+  A switch back must name its query (`/cycles?scope=project`): a bare `/cycles` returns to the kept `?scope=estate`.
+  The static shell is prerendered with no query, so a hard load of `?scope=estate` paints the project frame first.
+- **Per-param instances.** Every `task/<id>` and `setup/<node>` is a new instance: its slices start unread and its Frame
+  remounts. Task keeps its filters and last docket rows in its Session so a j/k step does not flash the docket; setup's
+  live reads run again on every node visit.
+- **Kept runs.** A hidden screen's effects are cleaned up, so a screen whose work outlives a visit (the onboard
+  wizard's proposal) must not abort it on effect cleanup, and timers should count from a stored start.
+- **Param `generateMetadata`.** A static shell whose title reads the param logs "runtime data in generateMetadata()" in
+  dev; setup/[node] marks the page as request data (`<Suspense>` + `connection()`), task/[id] does not yet.
