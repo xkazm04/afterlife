@@ -49,7 +49,7 @@ export interface LiveDeskProps {
 }
 
 /**
- * Live mode's desk, the demo desk's skeleton over the group's own items: the summary band, the grouped table, the
+ * Live mode's desk, the demo desk's layout over the group's own items: the summary band, the grouped table, the
  * inspector ("The click": the server's commands and diff, Stage and Run) and the outbox with Run all. Nothing the demo
  * seeded is drawn; a row this desk cannot write says where to act.
  */

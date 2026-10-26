@@ -21,11 +21,9 @@ const EXEMPT: Record<string, string> = {
   ShellProvider: 'a context provider: it draws nothing',
   AdoptedShell: 'holds the root layout shell state for app/Providers: it draws nothing of its own',
   ShellAdopt: 'hands the request-time shell read to AdoptedShell: it draws nothing',
-  ScreenSkeleton: 'a Window with a skeleton pane, drawn by every route loading.tsx while its data streams',
   ScreenHost: 'mounted once by the (app) layout around every screen, /kit included: it draws the screens, nothing of its own',
   ScreenScope: "the host's per-screen context provider: it draws nothing",
   HostNotFound: "a Window with one note, drawn by the host for a notFound slice; /kit shows Window",
-  ShellLoading: 'the old loading frame, no longer a pattern: screens paint their own frame with dashes (Unread/Reveal); deleted with the skeletons (W5)',
 };
 
 const exported = walk(COMPONENTS)

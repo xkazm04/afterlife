@@ -1,9 +1,10 @@
 import { Button } from '@/components/controls/Button';
 import { CommandBlock } from '@/components/inspector/CommandBlock';
+import { Unread } from '@/components/shell/host';
 import type { OnboardError } from '@/server/discover/wire';
 import type { WizardState } from '../hooks/useWizard';
 import { ENGINES, engineLine } from '../model/format';
-import { checklist, tally } from '../model/lines';
+import { checklist, GROUPS, tally } from '../model/lines';
 import { ChecklistLine } from './ChecklistLine';
 import styles from '../wizard.module.css';
 import cl from './checklist.module.css';
@@ -15,11 +16,15 @@ function Proposing({ s }: { s: WizardState }) {
       <p className={styles.summary}>
         Proposing what to watch in <code>{s.picked}</code> · {engine} · {s.elapsedS} s
       </p>
-      <div className={cl.skeleton} aria-hidden="true">
-        {[86, 64, 92, 58, 74].map((w) => (
-          <span key={w} style={{ width: `${w}%` }} />
-        ))}
-      </div>
+      {/* the checklist's own groups, each a dash until the proposal names its lines: no skeleton bars */}
+      {GROUPS.map((g) => (
+        <div key={g} className={cl.group}>
+          <h3 className={cl.gh}>{g}</h3>
+          <p className={cl.pendingLine}>
+            <Unread label={`${g}: not proposed yet`} />
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

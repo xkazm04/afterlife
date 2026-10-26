@@ -7,7 +7,7 @@ group's own open items (`NeedsYouLive`, minus any the demo seeded into the index
 seeded ones it does not show.
 
 Live desk (`NeedsYouLive`, `components/live/desk/`, `hooks/useLiveDesk`, `hooks/useLiveActs`, `model/desk/`): the demo
-desk's skeleton over the group's own items. `NeedsYouLive` is the composer: `model/desk` `deskItems` turns the open items
+desk's layout over the group's own items. `NeedsYouLive` is the composer: `model/desk` `deskItems` turns the open items
 and the week's decided list (`getDecided`, passed by `loadNeedsYouView` with `now`, the time the view was read, so every
 age agrees between the server HTML and the hydrated page) into rows; `LiveDesk` draws them in the Window:
 - `LiveBand`: "N decisions · M projects · oldest Xd" (`summarize`); the oldest part is left out when no open row has a

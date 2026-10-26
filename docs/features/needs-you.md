@@ -28,7 +28,7 @@
   `NeedsYouScreen` with the slice, or `NeedsYouEmpty` when the source lacks the items the screen is built around. Live:
   `NeedsYouLive` with the group's own open items (never the demo's seeded ones), the week's decided list and the time
   the view was read, or `NeedsYouEmpty` when no item is open (decided items alone do not fill the desk).
-- Live (`NeedsYouLive`, `components/live/desk/`, `hooks/useLiveDesk.ts`, `model/desk/`): the desk's skeleton with live
+- Live (`NeedsYouLive`, `components/live/desk/`, `hooks/useLiveDesk.ts`, `model/desk/`): the desk's layout with live
   data: a summary band ("N decisions · M projects · oldest Xd", the oldest left out when unknown), the table grouped By
   kind / By project / By deadline with "Decided this week" last, the inspector's "The click" (the server's commands and
   diff from `previewAction`, Stage, Run) and the outbox with Run all, which confirms each staged row's current preview in

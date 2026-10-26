@@ -1,4 +1,4 @@
-/* Step 2: the checklist - each line its state chip, what it is and its probe's one line; the proposing skeleton. */
+/* Step 2: the checklist - each line its state chip, what it is and its probe's one line; while proposing, each group a dash. */
 .lines {
   display: flex;
   flex-direction: column;
@@ -63,29 +63,8 @@
   font-family: var(--mono);
   color: var(--text-1);
 }
-.skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: calc(10px * var(--ui-scale));
-}
-.skeleton span {
-  display: block;
-  height: calc(10px * var(--ui-scale));
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--surface-1) 0%, color-mix(in oklab, var(--accent) 10%, transparent) 50%, var(--surface-1) 100%) 0 0 / 300% 100%;
-  animation: skeleton-pass 1.6s linear infinite;
-}
-/* The kit skeleton's slow pass (loading/ScreenSkeleton), local to this module. */
-@keyframes skeleton-pass {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .skeleton span {
-    animation: none;
-  }
+.pendingLine {
+  margin: 0;
+  padding: calc(5px * var(--ui-scale)) 0;
+  border-bottom: 1px solid var(--sep-body);
 }

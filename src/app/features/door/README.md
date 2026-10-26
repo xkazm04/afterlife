@@ -30,7 +30,8 @@ gates. At about 3.5 s the overlay is gone (`onDone`).
 
 The page loads its data on the server (`data/loadDoorData.ts`, through the DataSource, so it works
 in demo and live mode). An inline script (`model/fit.ts`) fits the 1600 x 1000 stage before first
-paint. `(door)/loading.tsx` shows the night ground and the brand while the city streams in.
+paint. While the city streams in, the page's `<Suspense>` shows `DoorFrame`, a still frame (ground, horizon,
+brand plate, hero mark); there is no `loading.tsx`.
 
 ## Levels
 

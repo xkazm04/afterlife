@@ -32,7 +32,8 @@
 - The root layout's `<head>` renders `DoorFitBoot` (`components/chrome/FitBoot.tsx`): the inline script from
   `model/fit.ts` (`stageFitSource()`), which fits the 1600 x 1000 stage into the viewport and applies the stored render
   tier before first paint. `src/app/(door)/page.tsx` (server) reads `?entrance` and renders `DoorScreen` with
-  `loadDoorData()`. `(door)/loading.tsx` shows `DoorLoading` (night ground and brand) while it streams.
+  `loadDoorData()` inside `<Suspense>`, whose prerendered fallback is `DoorFrame`, a still frame (ground, horizon,
+  brand plate, hero mark), never a skeleton; there is no `loading.tsx`.
 - `data/loadDoorData.ts` reads the DataSource once (`getFleet`, `getPortfolio`, `getCockpit`, `getStages`,
   `getNeedsYou`, `getTracks`, `deepProjectId`) into `DoorData`; live mode lists the group's own decisions only
   (`ownDecisions`), as `/needs-you` does. `cycles` comes from `loadEstateData()`, so it counts what `/cycles` counts:
@@ -84,7 +85,7 @@
 | `components/ui/` | `Answer`, `Labels`, `Readout`, `Parts`, `TierLetter`, `MarkIcon` |
 | `components/rail/` | `Rail` (L1 district list and exits), `LegendHint` (the tier legend beside its title) |
 | `components/l2/` | `L2View`, `L2Tower`, `L2Panel` (project cutaway and panel) |
-| `components/chrome/` | `TopChrome` (brand, What is this?, Enter), `BottomChrome` (crumbs, Back), `Splash`, `DoorLoading`, `DoorFitBoot` |
+| `components/chrome/` | `TopChrome` (brand, What is this?, Enter), `BottomChrome` (crumbs, Back), `Splash`, `DoorFrame` (the still frame), `DoorFitBoot` |
 | `components/entrance/` | `Entrance` and the treasure gates (`gates/`): the overlay a page load opens on |
 
 ## Tests

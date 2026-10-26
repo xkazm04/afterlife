@@ -35,9 +35,10 @@
   (`bars/dataLabel`: "illustrative demo data" in demo only; live says "live data · <group>", or the seeded fake
   GitLab), and the `?` help popover. The shell's numbers come from `ShellContext`, re-read from `/api/shell` on
   navigation and focus (`live/sync.ts`).
-- **Fallbacks and detail** (`shell/fallback/`, `shell/loading/`, `shell/detail/`): `ErrorView` and `NotFoundView`
+- **Fallbacks and detail** (`shell/fallback/`, `shell/detail/`, `shell/host/reveal/`): `ErrorView` and `NotFoundView`
   behind `app/error.tsx`, `global-error.tsx` and `not-found.tsx`; `EntityNotFound` for a dynamic route whose thing is
-  missing; `ShellLoading`, the window frame while a screen streams in; `DetailPage` / `DetailSection`, a nested page
+  missing; `Unread` and `Reveal`, a screen's dash for a value not read yet and its regions settling in order as
+  slices land (the screen host; no loading window or skeleton any more); `DetailPage` / `DetailSection`, a nested page
   with a back link.
 - **OutlineTable** (`table/`): a focusable treegrid with sticky header and sticky group rows, one selection exposed
   via `aria-activedescendant`. `columns` is a grid template of the data columns; a filler track and filler cells are

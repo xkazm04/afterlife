@@ -60,9 +60,11 @@ describe('Onboard wizard states', () => {
     expect(out).toContain('master');
   });
 
-  it('proposing: the skeleton and the elapsed seconds', () => {
+  it('proposing: the checklist groups with a dash each, no skeleton bars, and the elapsed seconds', () => {
     const out = found(state({ phase: 'proposing', picked: 'C:/Users/x/refactoring', elapsedS: 12 }));
     expect(out).toContain('aria-busy="true"');
+    for (const g of ['Host', 'Components', 'Pipelines &amp; variants', 'Cloud']) expect(out).toContain(`aria-label="${g}: not proposed yet"`);
+    expect(out).not.toMatch(/skeleton|shimmer/i);
     expect(out).toContain('sonnet 5.5 · low · 12 s');
   });
 

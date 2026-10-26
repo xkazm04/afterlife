@@ -27,7 +27,7 @@ const NO_ROWS: readonly DeskItem[] = [];
 const NO_EVIDENCE: Readonly<Record<string, LiveEvidence>> = {};
 
 /**
- * Live mode: the open inbox items the poller found in your group, as the index holds them, on the demo desk's skeleton
+ * Live mode: the open inbox items the poller found in your group, as the index holds them, on the demo desk's layout
  * (model/desk builds the rows; components/live/desk draws them). The demo's desk (its five items, the !44 incident, the
  * patch-bump record) is never drawn here, nor any item the demo seeded. A promotion, a re-admit or a templated gap has one
  * write through the server actions; the rest are read-only and say where to act.

@@ -1,6 +1,6 @@
 // How Setup's state arrives on the screen host (screen/slices.ts): the catalogue first (sync), then each live read on
 // its own (the tracks' arm blocks, the belay doctor, the steps), in whatever order they resolve. Pure. The catalogue
-// alone makes the state: the demo's whole opening state, or live's skeleton with every read part marked unread (a dash
+// alone makes the state: the demo's whole opening state, or live's frame state with every read part marked unread (a dash
 // on screen, never a state). Each read then lands through the flow's own actions (tracks-read, doctor-read, steps-read);
 // a read that failed lands as what it is: unknown for every track or step, or a doctor probe that failed, with why.
 import type { ActionClass, Track } from '@/lib/demo/types';
@@ -30,7 +30,7 @@ export interface SetupCatalogue {
 export const projectOf = (c: SetupCatalogue): string => c.live?.project ?? c.setup.project;
 
 /** Live, before any read: the catalogue's steps and tracks with no state yet, the doctor's own labels with no status. */
-function liveSkeleton(setup: SetupDemo, live: NonNullable<SetupCatalogue['live']>, now: number): SetupState {
+function liveFrame(setup: SetupDemo, live: NonNullable<SetupCatalogue['live']>, now: number): SetupState {
   const steps: Record<number, StepState> = {};
   for (const ph of setup.phases) {
     for (const [n, title] of ph.steps) steps[n] = { n, title, phase: ph.name, who: STEP_DETAIL[n]?.who ?? 'agent', st: 'unknown', probe: null };
@@ -47,8 +47,8 @@ function liveSkeleton(setup: SetupDemo, live: NonNullable<SetupCatalogue['live']
   };
 }
 
-/** The state the catalogue alone gives: demo, the whole opening state (as createSetupState); live, the skeleton. */
-export const catalogueState = (c: SetupCatalogue, now: number): SetupState => (c.live ? liveSkeleton(c.setup, c.live, now) : createSetupState(c.setup, now));
+/** The state the catalogue alone gives: demo, the whole opening state (as createSetupState); live, the frame state. */
+export const catalogueState = (c: SetupCatalogue, now: number): SetupState => (c.live ? liveFrame(c.setup, c.live, now) : createSetupState(c.setup, now));
 
 /** What arrives that the flow's own actions do not cover: the catalogue, and a live read that failed as a whole. */
 export type ArriveAction =
