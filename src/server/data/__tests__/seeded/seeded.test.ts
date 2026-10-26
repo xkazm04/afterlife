@@ -3,7 +3,7 @@
 // project's own belay-ledger is empty, so those carry a demo mark; the class records are the poll's counts and carry none. Needs you never draws the seeded desk, only the group's own items or
 // its empty state.
 import type { PGlite } from '@electric-sql/pglite';
-import { createElement } from 'react';
+import { createElement, type ComponentProps } from 'react';
 import { renderToString } from 'react-dom/server';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
@@ -16,7 +16,9 @@ import { LadderScreen } from '@/app/features/ladder/LadderScreen';
 import { loadDoorData } from '@/app/features/door/data/loadDoorData';
 import { loadFleetData } from '@/app/features/fleet/data/loadFleetData';
 import { loadNeedsYouView, SEEDED_ITEMS } from '@/app/features/needs-you/data/pick';
-import NeedsYouPage from '@/app/(app)/needs-you/page';
+import { SliceFixture } from '@/components/shell/host';
+import { screens as needsScreens } from '@/app/features/needs-you/screen/host';
+import { NeedsSession } from '@/app/features/needs-you/hooks/NeedsStore';
 import { createDemoGitLab } from '@/server/gitlab/fake/demo';
 import { memoryIndex } from '@/server/index/__tests__/memoryIndex';
 import { upsertProposals } from '@/server/index/repositories/work/proposal';
@@ -49,6 +51,14 @@ beforeAll(async () => {
 afterAll(() => setDataSource(null));
 
 const html = (el: Parameters<typeof renderToString>[0]) => renderToString(createElement(ToastProvider, null, el));
+/** Needs you as the screen host draws it once its view slice landed (the runner's line read, nothing waiting there). */
+function NeedsYouPage() {
+  const Frame = needsScreens.find((d) => d.key === 'needs-you')?.Frame ?? (() => null);
+  const slices = { view: loadNeedsYouView(), desk: { runner: [] } };
+  const frame = createElement(Frame, { params: {}, search: new URLSearchParams() });
+  const fixture = createElement(SliceFixture, { slices } as unknown as ComponentProps<typeof SliceFixture>, frame);
+  return createElement(NeedsSession, null as unknown as ComponentProps<typeof NeedsSession>, fixture);
+}
 const count = (s: string, part: string) => s.split(part).length - 1;
 /** The DemoChip's title, as renderToString escapes it. */
 const chip = (what: string) => `title="${what.replaceAll("'", '&#x27;')}: live mode does not read this from GitLab yet"`;
@@ -102,7 +112,7 @@ describe('Needs you, live', () => {
     setDataSource(liveSource(() => s));
     const view = loadNeedsYouView();
     expect(view).toEqual({ kind: 'empty', seeded: 5 });
-    const out = html(await NeedsYouPage());
+    const out = html(NeedsYouPage());
     for (const t of SEEDED_TITLES) expect(out).not.toContain(t);
     expect(out).not.toContain('!44');
     expect(out).not.toContain('patch-bump');
@@ -139,7 +149,7 @@ describe('Needs you, live', () => {
     expect(view.kind === 'live' && view.items.map((n) => n.id)).toEqual(['readmit:ledgerline:qa.file-bug']);
     expect(view.kind === 'live' && view.items.some((n) => SEEDED_ITEMS.has(n.id))).toBe(false);
     expect(counts()).toEqual([1, 1, 1, 1]);
-    const out = html(await NeedsYouPage());
+    const out = html(NeedsYouPage());
     expect(out).toContain('Re-admit T7 qa · qa.file-bug');
     for (const t of SEEDED_TITLES) expect(out).not.toContain(t);
   });

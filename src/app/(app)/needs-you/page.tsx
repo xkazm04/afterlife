@@ -1,25 +1,10 @@
 import type { Metadata } from 'next';
-import { loadNeedsYouView } from '@/app/features/needs-you/data/pick';
-import { NeedsYouEmpty } from '@/app/features/needs-you/NeedsYouEmpty';
-import { NeedsYouLive } from '@/app/features/needs-you/NeedsYouLive';
-import { NeedsYouScreen } from '@/app/features/needs-you/NeedsYouScreen';
-import { readDesk } from '@/server/runs/readDesk';
-import { connection } from 'next/server';
 
 export const metadata: Metadata = { title: 'Belay Needs you' };
 
-/**
- * Demo: the desk. Live: the group's own open items, or the empty state (never the demo's seeded desk). In live mode
- * `?item=<id>` opens that item selected (read on the client: Ladder's p sends `promote:<project>:<class>`). In every
- * view, the cycle runner's decisions (readDesk: .belay, real local data) sit beside the group's.
- */
-export default async function NeedsYouPage() {
-  await connection(); // request time: the data source and its data are the running server's, never the build's
-  const view = loadNeedsYouView();
-  const runner = (await readDesk()).needs;
-  if (view.kind === 'desk') return <NeedsYouScreen demo={view.demo} runner={runner} />;
-  if (view.kind === 'live') {
-    return <NeedsYouLive items={view.items} seeded={view.seeded} project={view.project} evidence={view.evidence} decided={view.decided} now={view.now} runner={runner} />;
-  }
-  return <NeedsYouEmpty seeded={view.seeded} demo={view.demo} runner={runner} />;
+// The route exists for a hard load (and its title); it reads nothing. The screen host in the (app) layout draws Needs you
+// (features/needs-you/screen/host.tsx): the demo's desk, the group's live desk or the empty state, its window in the
+// static shell, and its data streamed in over GET /api/screen/needs-you on every load (and every visit).
+export default function NeedsYouPage() {
+  return null;
 }

@@ -5,22 +5,23 @@ import styles from './NeedsYouEmpty.module.css';
 
 /**
  * When the source holds no inbox item to show: live mode with none read from the group yet (`seeded`: how many the demo
- * seeded into the index, which are not shown), or a demo source without the desk's items. Server component. It says what
+ * seeded into the index, which are not shown), or a demo source without the desk's items. It says what
  * is missing rather than drawing an empty inbox as if nothing waited for anyone. The cycle runner's decisions (`runner`,
- * real local data) are drawn when there are any, and then the page does not say that nothing waits.
+ * real local data) are drawn when there are any, and then the page does not say that nothing waits. Drawn in a Window
+ * pane (the screen host: screen/host.tsx).
  */
 export function NeedsYouEmpty({ seeded = 0, demo = false, runner = [] }: { seeded?: number; demo?: boolean; runner?: readonly RunnerNeed[] }) {
   return demo ? (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <h1 className={styles.title}>Needs you</h1>
       <p>
         This demo source lacks the desk&apos;s items (the promotion, CRA sign-off, gap picks and re-admit), so there is nothing to
         show. No group is being read and no poller runs in demo.
       </p>
       <RunnerNeeds needs={runner} />
-    </main>
+    </div>
   ) : (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <h1 className={styles.title}>Needs you</h1>
       <p>
         Belay is reading your GitLab group, and it holds no inbox items yet: no promotion, CRA sign-off, gap pick, re-admit or setup
@@ -34,6 +35,6 @@ export function NeedsYouEmpty({ seeded = 0, demo = false, runner = [] }: { seede
       {seeded ? (
         <p className={styles.note}>{`${plural(seeded, 'demo item')} seeded into this index, not shown: the demo's, not your group's.`}</p>
       ) : null}
-    </main>
+    </div>
   );
 }

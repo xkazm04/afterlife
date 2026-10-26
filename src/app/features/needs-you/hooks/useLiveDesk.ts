@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useReducer, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react';
+import { useCallback, useMemo, useReducer, useRef, useState, type KeyboardEvent } from 'react';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { groupNavId, type NavItem } from '@/components/table/model/rowNavigation';
 import { canStage, groupDesk, OUT_EMPTY, outReduce, type DeskGroup, type DeskItem, type Grouping } from '../model/desk';
@@ -14,9 +14,6 @@ import { useLiveActs } from './useLiveActs';
  * desk's: arrows move, Left/Right shut and open a group, Space stages or unstages the selected row, Enter focuses the
  * inspector.
  */
-const still = () => () => {};
-const itemParam = () => new URLSearchParams(window.location.search).get('item');
-
 /** Every row the keyboard can visit, in order: group rows, then their rows when open. */
 export function navOf(groups: readonly DeskGroup[], shut: readonly string[]): NavItem[] {
   return groups.flatMap((g) => {
@@ -26,7 +23,11 @@ export function navOf(groups: readonly DeskGroup[], shut: readonly string[]): Na
   });
 }
 
-export function useLiveDesk(items: readonly DeskItem[], evidence: Readonly<Record<string, LiveEvidence>>) {
+/**
+ * `wanted`: the URL's `?item=` as the screen host shows it on this visit (Ladder's p sends one). A new one (another visit
+ * with another item) takes the selection over again; the person's own pick holds until then.
+ */
+export function useLiveDesk(items: readonly DeskItem[], evidence: Readonly<Record<string, LiveEvidence>>, wanted: string | null = null) {
   const [grouping, setGrouping] = useState<Grouping>('kind');
   const groups = useMemo(() => groupDesk(items, grouping), [items, grouping]);
   const [shut, setShut] = useState<readonly string[]>([]);
@@ -34,8 +35,12 @@ export function useLiveDesk(items: readonly DeskItem[], evidence: Readonly<Recor
     setShut((s) => ((open ?? s.includes(id)) ? s.filter((x) => x !== id) : s.includes(id) ? s : [...s, id]));
 
   // `?item=<id>` opens that row selected (Ladder's p on an eligible class), when it is listed; else the first waiting row
-  const wanted = useSyncExternalStore(still, itemParam, () => null);
   const [picked, select] = useState<string | null | undefined>(undefined);
+  const [seenWanted, setSeenWanted] = useState(wanted);
+  if (seenWanted !== wanted) {
+    setSeenWanted(wanted);
+    if (wanted) select(undefined);
+  }
   const first = groups.flatMap((g) => g.items).find((n) => n.kind !== 'decided')?.id ?? null;
   const sel = picked !== undefined ? picked : wanted && items.some((n) => n.id === wanted) ? wanted : first;
   const selected = items.find((n) => n.id === sel) ?? null;

@@ -55,7 +55,7 @@ below the page, outside the scroller, when it is open. The runner's sheet sits o
 - `components/band/` the CRA band: live countdown, 24 h rail, grade ladder (attested struck out), one evidence tick per link, resolved only as far as the fixture's count says.
 - `components/table/` decisions grouped By kind / project / deadline, one action per row, "Decided this week".
 - `components/detail/` `/needs-you/[item]`: one decision as short cards (the inspector), opened from a row's title or Enter. It
-  shares the desk's state with the list through the layout's `NeedsStore`, so a write staged there lands in the list's outbox
+  shares the desk's state with the list through `NeedsStore` (the screen host's Session: `screen/host.tsx`), so a write staged there lands in the list's outbox
   and staging sends the viewer back to `/needs-you`. Only the desk has pages (`loadNeedsItem`); the live list decides in place.
 - `components/outbox/` the drawer: staged writes with exact command + diff, Run, Remove, sent this session.
 - `write/promote.ts` the policy MRs, through the server actions: n1 (promote) and n4 (re-admit, a promote-class to
@@ -75,7 +75,11 @@ below the page, outside the scroller, when it is open. The runner's sheet sits o
   `src/lib/runs/desk/`), real local data in demo and live alike. Text only: Belay merges and pushes nothing.
 - `components/chrome/` toolbar, sidebar filters, legend. `components/shared/` marks used by the above.
 - `hooks/` reducer + notices, right-click menus, keyboard map, 1 s clock tick (`ClockProvider`, held by `NeedsStore` in the
-  layout, so the list and a decision's page share one clock).
+  screen host's Session, so the list and a decision's page share one clock).
+- `screen/` the screen host's files: `slices.ts` streams `view` (desk | live | empty) and `desk` (the cycle runner's
+  decisions, readDesk); `host.tsx` paints the right window from the shell's mode before the view lands, re-reads on every
+  visit and, until the fresh read lands, marks each region "as of HH:MM:SS" and makes it inert
+  (`components/shared/StaleRegion.tsx`). `?item=` is read from the host's search on each visit.
 
 ## Logic (`model/`, all pure, vitest tested)
 - `reducer.ts` + `act.ts` + `run.ts`: every button is an `ActionId`. Staging sends nothing; `Run` is the only send.

@@ -1,0 +1,8 @@
+/* The decision's cards as one region (the screen host's reveal, the stale note): a full row of the detail grid. */
+.cards {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(420px * var(--ui-scale))), 1fr));
+  gap: 12px;
+  align-items: start;
+}

@@ -1,0 +1,17 @@
+/* A region read before this visit, re-reading: its own "as of" note in the corner (absolute: nothing moves), and the
+   region itself inert until the fresh read lands. Never a whole-screen dim, never amber: it is a note, not a wait. */
+.region {
+  position: relative;
+}
+.note {
+  position: absolute;
+  top: calc(4px * var(--ui-scale));
+  right: calc(8px * var(--ui-scale));
+  z-index: 1;
+  padding: calc(1px * var(--ui-scale)) calc(6px * var(--ui-scale));
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: var(--t-small);
+  pointer-events: none;
+}

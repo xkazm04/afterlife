@@ -1,13 +1,6 @@
-import { EntityNotFound } from '@/components/shell/fallback/EntityNotFound';
+import { DecisionNotFound } from '@/app/features/needs-you/components/detail/DecisionNotFound';
 
-/** An unknown /needs-you/<item>: says it is the decision that is missing and links back to the desk. */
+/** An unknown /needs-you/<item>: the same card the screen host draws (DecisionNotFound). */
 export default function NeedsItemNotFound() {
-  return (
-    <EntityNotFound
-      title="Decision not found"
-      note="No decision with that id waits on your desk. It may have been decided, or the link is mistyped."
-      href="/needs-you"
-      back="Back to Needs you"
-    />
-  );
+  return <DecisionNotFound />;
 }

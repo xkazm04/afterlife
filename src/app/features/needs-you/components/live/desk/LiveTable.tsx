@@ -1,3 +1,4 @@
+import { Unread } from '@/components/shell/host';
 import type { KeyboardEventHandler, Ref } from 'react';
 import { Button } from '@/components/controls/Button';
 import { NeedsYouBadge } from '@/components/status/NeedsYouBadge';
@@ -62,6 +63,8 @@ function When({ n, waiting, now }: { n: DeskItem; waiting: boolean; now: Date })
 
 export interface LiveTableProps {
   groups: readonly DeskGroup[];
+  /** Not read yet (the screen host's view slice): a dash, never "No decisions". */
+  unread?: boolean;
   shut: readonly string[];
   sel: string | null;
   out: DeskOut;
@@ -93,7 +96,7 @@ export function LiveTable(p: LiveTableProps) {
     >
       {p.groups.length === 0 ? (
         <div className={styles.empty} role="row">
-          <div role="gridcell">No decisions</div>
+          <div role="gridcell">{p.unread ? <Unread label="decisions not read yet" /> : 'No decisions'}</div>
         </div>
       ) : null}
       {p.groups.map((g) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
 import type { Recall } from '@/server/actions/runs/journal';
 import { recallAction } from '@/server/actions/runs/recallAction';
@@ -10,6 +10,7 @@ import { reduce } from '../model/reducer';
 import { isGapId } from '../model/rows/rowState';
 import { keysToAsk, recalledItem } from '../model/run';
 import { beginSend, needsRecall } from '../model/slot/slot';
+import { arriveDemo } from '../model/session/arrive';
 import { initialState } from '../model/state';
 import type { Action, NeedsState } from '../model/types';
 import { askDesk, deskIntent, sendDesk } from '../write/desk';
@@ -21,16 +22,32 @@ import { askDesk, deskIntent, sendDesk } from '../write/desk';
  * the server answered; a confirm with no answer closes Run until the write is asked for again, and Ask again on it first
  * asks the server what its preview did (recallAction, the hook's own 'recalled' step: model/run.ts recalledItem).
  */
-/** The hook's own step: what the server recorded for an unsure write's preview, folded in by recalledItem. */
-type Recalled = { type: 'recalled'; key: string; recall: Recall };
+/** The hook's own steps: what the server recorded for an unsure write's preview (recalledItem); the desk read landing. */
+type Recalled = { type: 'recalled'; key: string; recall: Recall } | { type: 'arrived'; demo: NeedsYouDemo };
 
-export function useNeedsYou(demo: NeedsYouDemo): { s: NeedsState; dispatch: (a: Action) => void } {
+const NO_GAPS = { gaps: [] } as unknown as NeedsYouDemo;
+
+/**
+ * `demo` null: the desk is not read yet (the screen host's Session mounts the store first). The state opens then and
+ * every action waits for the desk; its arrival merges in (model/session/arrive.ts), never wiping what was done.
+ */
+export function useNeedsYou(demo: NeedsYouDemo | null): { s: NeedsState; dispatch: (a: Action) => void } {
   const { toast, status } = useToast();
   const reducer = useCallback(
-    (s: NeedsState, a: Action | Recalled) => (a.type === 'recalled' ? recalledItem(s, a.key, a.recall, demo) : reduce(s, a, demo)),
+    (s: NeedsState, a: Action | Recalled) => {
+      if (a.type === 'arrived') return arriveDemo(s, a.demo);
+      if (!demo) return s;
+      return a.type === 'recalled' ? recalledItem(s, a.key, a.recall, demo) : reduce(s, a, demo);
+    },
     [demo],
   );
-  const [s, dispatchRaw] = useReducer(reducer, demo, initialState);
+  const [s, dispatchRaw] = useReducer(reducer, demo ?? NO_GAPS, initialState);
+  // the desk read landed (or another one did): merged during this render, so no frame shows it unread
+  const [seen, setSeen] = useState(demo);
+  if (seen !== demo) {
+    setSeen(demo);
+    if (demo) dispatchRaw({ type: 'arrived', demo });
+  }
   const sending = useRef(new Set<string>()); // in flight, before the 'sending' render lands
   const { notice } = s;
   useEffect(() => {
@@ -39,11 +56,11 @@ export function useNeedsYou(demo: NeedsYouDemo): { s: NeedsState; dispatch: (a: 
   }, [notice, toast, status]);
 
   // "When the action opens": selected in the table or staged in the outbox; asked again after a refusal or no answer.
-  const toAsk = keysToAsk(s, demo).join(',');
+  const toAsk = demo ? keysToAsk(s, demo).join(',') : '';
   const asking = useRef(new Set<string>()); // in flight only: whether to ask is the slots' (keysToAsk)
   useEffect(() => {
     for (const key of toAsk.split(',')) {
-      const intent = key ? deskIntent(key, demo) : null;
+      const intent = key && demo ? deskIntent(key, demo) : null;
       if (!intent || asking.current.has(key)) continue;
       asking.current.add(key);
       void askDesk(intent).then((view) => {
@@ -60,7 +77,7 @@ export function useNeedsYou(demo: NeedsYouDemo): { s: NeedsState; dispatch: (a: 
   const run = useCallback(
     (key: string) => {
       const slot = latest.current.slots?.[key];
-      const intent = deskIntent(key, demo);
+      const intent = demo ? deskIntent(key, demo) : null;
       if (slot?.phase === 'sending' || sending.current.has(key)) return status('Already sending this write');
       if (!intent || !beginSend(slot)) return status('Nothing sent · there is no write on screen to run');
       sending.current.add(key);

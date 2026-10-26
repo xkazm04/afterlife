@@ -5,6 +5,7 @@ import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/controls/Button';
 import { Spacer } from '@/components/controls/Spacer';
 import { Sheet } from '@/components/overlays/Sheet';
+import { Unread } from '@/components/shell/host';
 import { plural } from '@/lib/format/plural';
 import type { RunnerNeed } from '@/lib/runs/desk/types';
 import { RunnerCards } from './RunnerNeeds';
@@ -27,6 +28,21 @@ export function RunnerStrip({ needs, onOpen }: { needs: readonly RunnerNeed[]; o
       <Button size="mini" aria-haspopup="dialog" title="Read the runner's merges and parked lanes" onClick={onOpen}>
         Open
       </Button>
+    </section>
+  );
+}
+
+/**
+ * The strip's slot while the runner's decisions are not read yet (the screen host's desk slice: local files and git, up
+ * to seconds): the line held, its count a dash, so the band below does not drop when it lands. Nothing to open yet.
+ */
+export function RunnerPending() {
+  return (
+    <section className={styles.line} aria-label="From the cycle runner" aria-busy="true">
+      <b>From the cycle runner</b>
+      <span className={styles.counts}>
+        · <Unread label="the runner's decisions are not read yet" />
+      </span>
     </section>
   );
 }

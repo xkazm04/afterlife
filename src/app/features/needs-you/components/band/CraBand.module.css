@@ -101,3 +101,9 @@
     width: auto;
   }
 }
+/* Before the desk is read: the band's box in quiet ink (no amber: nothing is known to wait yet), at its height. */
+.pending {
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--sep);
+  min-height: calc(92px * var(--ui-scale));
+}

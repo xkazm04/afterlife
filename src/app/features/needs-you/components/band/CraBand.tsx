@@ -1,3 +1,4 @@
+import { Unread } from '@/components/shell/host';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { CRA } from '../../data/cra';
 import { gradeIndex } from '../../model/clock/grades';
@@ -8,6 +9,7 @@ import { EvidenceStrip } from './track/EvidenceStrip';
 import { GradeLadder } from './track/GradeLadder';
 import { Rail24 } from './track/Rail24';
 import styles from './CraBand.module.css';
+import digits from './Countdown.module.css';
 
 /**
  * The CRA legal clock: the one dominant element. Live countdown, the 24 h rail, the grade ladder (attested struck
@@ -36,6 +38,28 @@ export function CraBand({ s, linksResolved, dispatch }: { s: NeedsState; linksRe
         <EvidenceStrip resolved={linksResolved} />
       </div>
       <BandSide s={s} dispatch={dispatch} />
+    </section>
+  );
+}
+
+/**
+ * The band's box before the desk is read (the screen host's view slice): the same place and size, in quiet ink, with a
+ * dash for the clock. Never the amber clock before the desk says there is one.
+ */
+export function CraBandPending() {
+  return (
+    <section className={`${styles.band} ${styles.pending}`} aria-label="CRA legal clock" aria-busy="true">
+      <div>
+        <div className={styles.eb}>
+          <span>CRA early warning · legal clock</span>
+        </div>
+        <div className={digits.digits}>
+          <Unread label="the clock is not read yet" />
+        </div>
+        <div className={styles.bmeta}>
+          <Unread label="the release is not read yet" />
+        </div>
+      </div>
     </section>
   );
 }

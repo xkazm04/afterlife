@@ -17,3 +17,7 @@
   border-top: 1px solid var(--shade-50);
   box-shadow: inset 0 1px 0 var(--sep);
 }
+/* The decisions' box before the desk is read: room for the table, so the band and the outbox do not jump when it lands. */
+.unread {
+  min-height: calc(var(--row-h) * 8);
+}
