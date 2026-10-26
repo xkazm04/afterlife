@@ -32,7 +32,7 @@ describe('GET /api/screen/[key]', () => {
   });
 
   it('an unknown key, or one no module serves yet, is a 404 that does not echo it', async () => {
-    for (const key of ['nope', 'ladder']) {
+    for (const key of ['nope', 'not%2Fa-screen']) {
       const res = await call(key);
       expect(res.status).toBe(404);
       expect(await res.json()).toEqual({ error: 'unknown screen' });

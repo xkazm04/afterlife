@@ -102,3 +102,21 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
   re-login command shows, no collect starts until Refresh.
 - On an adjustment with a queue re-measure: Queue N runs, confirm; after "done" the screen re-reads (the claim shows its
   queued state). Measure passively: the measurement shows in the band without a reload.
+
+## Needs you, Ladder, Maturity (W2)
+
+- Needs you, live with open items: `/needs-you` paints the live desk's window (By kind / By project / By deadline,
+  Outbox) in the click's frame (the shell's mode decides before the view lands), then the band and the table fill. Leave
+  and come back: every region shows "as of HH:MM:SS · re-reading" and is inert until the fresh read lands; a proposal
+  acted on in GitLab meanwhile is gone from the fresh rows. `curl -N "http://127.0.0.1:<port>/api/screen/needs-you"`:
+  `view` first, `desk` (readDesk) after it.
+- Needs you, live with none: the empty state in the same window, the seeded count named. A Ladder `p` on an eligible
+  class opens `/needs-you?item=<id>`; a second visit with another `?item=` selects that one.
+- Needs you, live: `/needs-you/<anything>` is "Decision not found" (only the demo's desk has pages).
+- Ladder, live, a real revoke: the row stays "pending" across list and class page, the 15 s re-read (no route refresh)
+  settles it once a gated MR read the commit; the list and the class page agree throughout.
+- Ladder class page, live: the human key line arrives after the cards (`humanKey`, a GitLab GET); a slow or failing
+  GitLab leaves the promotion rule without the line, never blocking the page.
+- Ladder, live, a long belay-ledger chain: the rows wait for `ledger` (the opening order is by last move); time it.
+- Maturity, live: a new scan between visits (the poller stores a newer artifact): the crag takes the new rungs and scan
+  time on the next visit, the picks and the mode stay.

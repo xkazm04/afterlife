@@ -40,14 +40,12 @@ vi.mock('./features/task/model/verdict/reasons', () => ({ selectionFromQuery: ()
 vi.mock('./features/vitals/data/loadVitals', () => ({ loadVitalsProject: loaders.vitalsProject }));
 vi.mock('./features/vitals/VitalsScreen', () => ({ VitalsScreen: () => null }));
 
-const ROUTES = [
-  ['ladder/[class]', () => import('./(app)/ladder/[class]/page'), { class: 'c1' }, loaders.ladderClass, { id: 'c1' }],
-  ['maturity/[stage]', () => import('./(app)/maturity/[stage]/page'), { stage: 's1' }, loaders.maturityStage, { key: 's1' }],
-  ['needs-you/[item]', () => import('./(app)/needs-you/[item]/page'), { item: 'i1' }, loaders.needsItem, { demo: null, id: 'i1' }],
-] as const;
 const HOST_SHELLS = [
   ['fleet/[project]', () => import('./(app)/fleet/[project]/page')],
   ['vitals/[project]', () => import('./(app)/vitals/[project]/page')],
+  ['ladder/[class]', () => import('./(app)/ladder/[class]/page')],
+  ['maturity/[stage]', () => import('./(app)/maturity/[stage]/page')],
+  ['needs-you/[item]', () => import('./(app)/needs-you/[item]/page')],
 ] as const;
 
 describe('dynamic route pages', () => {
@@ -58,15 +56,6 @@ describe('dynamic route pages', () => {
     });
   });
 
-  it.each(ROUTES)('%s renders a known id and calls notFound for an unknown one', async (_name, load, params, loader, found) => {
-    const page = (await load()).default as (p: { params: Promise<typeof params> }) => Promise<unknown>;
-    loader.mockReturnValue(found);
-    await expect(page({ params: Promise.resolve(params) })).resolves.toBeTruthy();
-    expect(nav.notFound).not.toHaveBeenCalled();
-    loader.mockReturnValue(null);
-    await expect(page({ params: Promise.resolve(params) })).rejects.toBe(NOT_FOUND);
-  });
-
   it('task/[id] is a static shell: the screen host draws the task, and an unknown id is the stream notFound (task/screen/slices.test.ts)', async () => {
     const page = (await import('./(app)/task/[id]/page')).default as () => unknown;
     expect(page()).toBeNull();
@@ -74,15 +63,18 @@ describe('dynamic route pages', () => {
     expect(nav.notFound).not.toHaveBeenCalled();
   });
 
-  // Fleet and Vitals are drawn by the screen host: their pages are static shells, and the id's branch (an unknown id is
-  // notFound, fleet's ?project= redirects only to a project that exists) is the stream's, pinned in
-  // fleet/screen/slices.test.ts and vitals/screen/slices.test.ts.
+  // Fleet, Vitals, Ladder, Maturity and Needs you are drawn by the screen host: their pages are static shells, and the id's
+  // branch (an unknown id is notFound, fleet's ?project= redirects only to a project that exists) is the stream's, pinned
+  // in fleet/screen/slices.test.ts, vitals/screen/slices.test.ts and the ladder, maturity and needs-you screen/host.test.tsx.
   it.each(HOST_SHELLS)('%s is a static shell that reads nothing', async (_name, load) => {
     const page = (await load()).default as () => unknown;
     // nothing, or only the empty request-time marker a title naming the id needs (as setup/[node])
     expect(page() === null || isValidElement(page())).toBe(true);
     expect(loaders.fleetProject).not.toHaveBeenCalled();
     expect(loaders.vitalsProject).not.toHaveBeenCalled();
+    expect(loaders.ladderClass).not.toHaveBeenCalled();
+    expect(loaders.maturityStage).not.toHaveBeenCalled();
+    expect(loaders.needsItem).not.toHaveBeenCalled();
     expect(nav.notFound).not.toHaveBeenCalled();
   });
 
@@ -94,10 +86,10 @@ describe('dynamic route pages', () => {
     expect(nav.notFound).not.toHaveBeenCalled();
   });
 
-  // ROUTES is typed by hand, so it is held to the [param] folders on disk: a new dynamic route without a branch test (or
+  // HOST_SHELLS is typed by hand, so it is held to the [param] folders on disk: a new dynamic route without a branch test (or
   // without its own not-found page) fails here instead of going unseen.
   it('covers every dynamic route folder on disk, each with its own not-found page', () => {
-    const covered = [...ROUTES.map((r) => r[0]), 'task/[id]', 'setup/[node]', ...HOST_SHELLS.map((r) => r[0])].sort();
+    const covered = ['task/[id]', 'setup/[node]', ...HOST_SHELLS.map((r) => r[0])].sort();
     const onDisk = dynamicRoutes(import.meta.dirname);
     expect(onDisk.map(urlOf).sort()).toEqual(covered);
     for (const r of onDisk) expect(existsSync(path.join(import.meta.dirname, r, 'not-found.tsx')), r).toBe(true);
