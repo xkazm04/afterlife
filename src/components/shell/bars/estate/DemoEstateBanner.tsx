@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useHerePath } from '@/components/shell/host';
 import { demoBannerShown } from '@/lib/settings/demoEstate';
 import { useShellInfo } from '../../ShellContext';
 import { activeNavKey } from '../../sidebar/navItems';
@@ -15,7 +15,7 @@ import styles from './DemoEstateBanner.module.css';
  */
 export function DemoEstateBanner() {
   const { estate } = useShellInfo();
-  const key = activeNavKey(usePathname());
+  const key = activeNavKey(useHerePath());
   if (!estate || !demoBannerShown(key, estate)) return null;
   return (
     <div className={styles.banner} role="note" aria-label="Demo data">

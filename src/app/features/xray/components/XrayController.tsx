@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
+import { useHerePath } from '@/components/shell/host';
 import { Suspense, useEffect } from 'react';
 import { onEscape } from '@/components/overlays/escapeLayers';
 import { useShellInfo } from '@/components/shell/ShellContext';
@@ -16,7 +17,7 @@ import { XRAY_EVENT, useXray, xrayStore } from '../model/store';
  */
 export function XrayController() {
   const x = useXray();
-  const pathname = usePathname();
+  const pathname = useHerePath();
   const { data } = useShellInfo();
   const key = stopOf(activeNavKey(pathname))?.key ?? null;
 

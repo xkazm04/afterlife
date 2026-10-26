@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useHerePath } from '@/components/shell/host';
 import { useRef } from 'react';
 import { activeNavKey } from '@/components/shell/sidebar/navItems';
 import { stopOf } from './callouts/tour';
@@ -19,7 +19,7 @@ const NONE: readonly never[] = [];
  */
 export function XrayOverlay() {
   const x = useXray();
-  const path = usePathname();
+  const path = useHerePath();
   const stop = stopOf(activeNavKey(path));
   const active = stepOn(x, path);
   const ref = useRef<HTMLDivElement>(null);

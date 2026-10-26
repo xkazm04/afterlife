@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useHerePath } from '@/components/shell/host';
 import { Icon } from '@/components/icons/Icon';
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
@@ -15,7 +15,7 @@ import { useXray, xrayStore } from './model/store';
  */
 export function XraySidebar() {
   const x = useXray();
-  const here = activeNavKey(usePathname());
+  const here = activeNavKey(useHerePath());
   const done = TOUR.filter((s) => x.seen.includes(s.key)).length;
   const firstRun = done < TOUR.length;
   return (

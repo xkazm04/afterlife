@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { usePathname } from 'next/navigation';
+import { useHerePath } from '@/components/shell/host';
 import { useModCap } from '@/lib/keyboard/modKey';
 import { openPalette } from '@/components/palette/CommandPalette';
 import { navShown } from '@/lib/settings/demoEstate';
@@ -12,7 +12,7 @@ import { SidebarSection } from './SidebarSection';
 import styles from './Sidebar.module.css';
 
 /**
- * The app screens; the current one comes from the route (usePathname). The ⌘K (Ctrl+K off Apple platforms) chip opens the command palette.
+ * The app screens; the current one comes from the route (useHerePath: the host's screen in the click's own frame, else usePathname). The ⌘K (Ctrl+K off Apple platforms) chip opens the command palette.
  * Under Cache Components a dynamic route's pathname is request data, so the read sits behind <Suspense>: the prerendered
  * shell draws the same nav with nothing current, and the routed one replaces it. With the demo estate off (Settings, or
  * 'auto' once a real project is saved) the demo screens leave the nav; their routes still answer, bannered.
@@ -26,7 +26,7 @@ export function AppNav() {
 }
 
 function RoutedNav() {
-  return <NavList active={activeNavKey(usePathname())} />;
+  return <NavList active={activeNavKey(useHerePath())} />;
 }
 
 function NavList({ active }: { active: string | null }) {
