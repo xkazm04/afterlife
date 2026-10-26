@@ -1,9 +1,8 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { parseArm, type NavArm } from './navArm';
+import { NAV_ARM_KEY, parseArm, type NavArm } from './navArm';
 
-const STORAGE_KEY = 'belay.navArm';
 /** Written beside localStorage so server code may read the arm (no server code reads it yet). Dev only, like the arm. */
 export const ARM_COOKIE = 'belay-arm';
 
@@ -11,7 +10,7 @@ const listeners = new Set<() => void>();
 
 function readStored(): NavArm | null {
   try {
-    return parseArm(window.localStorage.getItem(STORAGE_KEY));
+    return parseArm(window.localStorage.getItem(NAV_ARM_KEY));
   } catch {
     return null; // storage blocked (private window, a test): the URL or the default decides
   }
@@ -19,7 +18,7 @@ function readStored(): NavArm | null {
 
 function persist(arm: NavArm): void {
   try {
-    if (window.localStorage.getItem(STORAGE_KEY) !== arm) window.localStorage.setItem(STORAGE_KEY, arm);
+    if (window.localStorage.getItem(NAV_ARM_KEY) !== arm) window.localStorage.setItem(NAV_ARM_KEY, arm);
   } catch {
     // storage blocked: the arm lasts as long as ?arm= stays in the URL
   }

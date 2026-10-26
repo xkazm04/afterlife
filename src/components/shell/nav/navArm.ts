@@ -4,6 +4,9 @@
 
 export type NavArm = 'A' | 'B' | 'C';
 
+/** The localStorage key the chosen arm is remembered under (listed on the About page). */
+export const NAV_ARM_KEY = 'belay.navArm';
+
 /** The modules the arms compete on; every other sidebar tab stays a plain Link. */
 export const ARM_SAMPLE_KEYS = ['fleet', 'monitor', 'needs-you'] as const;
 

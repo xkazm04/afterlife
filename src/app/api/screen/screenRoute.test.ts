@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { demoSource, setDataSource } from '@/server/data';
 import { loadScreenProps } from '@/app/features/shell-arms/data/screenProps';
 import { toWire } from '@/app/features/shell-arms/model/wire';
-import { GET } from './route';
+import { GET } from './[key]/route';
 
 // Outside Next there is no request scope: connection() (request time, never the build) resolves at once here.
 vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));

@@ -22,6 +22,7 @@ const EXEMPT: Record<string, string> = {
   AdoptedShell: 'holds the root layout shell state for app/Providers: it draws nothing of its own',
   ShellAdopt: 'hands the request-time shell read to AdoptedShell: it draws nothing',
   ScreenSkeleton: 'a Window with a skeleton pane, drawn by every route loading.tsx while its data streams',
+  ...Object.fromEntries(['DevWarmer', 'PendingSkeleton', 'ArmLink', 'ArmHost', 'ArmHostB', 'HostScreen', 'HostC', 'ScreenCopy'].map((n) => [n, 'bake-off prototype, nav arm host/internal'])),
 };
 
 const exported = walk(COMPONENTS)
