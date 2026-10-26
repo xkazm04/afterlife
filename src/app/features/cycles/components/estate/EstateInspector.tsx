@@ -4,13 +4,19 @@ import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { Stats } from '@/components/inspector/blocks/Stats';
 import { Chip } from '@/components/status/chip/Chip';
-import type { EstateProject } from '../../model/estate/estate';
+import { Unread } from '@/components/shell/host';
+import type { Cycle } from '../../model/types';
+import type { EstateRow } from '../../model/estate/split';
+import { SCOPE_HREF } from '../ScopeSwitch';
 import { MAX_TOTAL, rungLabel, summarize } from '../../model/replay';
 import { signed, VERDICT_WORD } from '../../model/words';
 import styles from './estate.module.css';
 
-/** One project in cycles: its totals, whether its history adds up, and every closed cycle with what it changed. */
-export function EstateInspector({ project: p, deep }: { project: EstateProject | null; deep: string }) {
+/**
+ * One project in cycles: its totals, whether its history adds up, and every closed cycle with what it changed. `cycles`
+ * comes on its own slice after the rows: absent, the list is a dash.
+ */
+export function EstateInspector({ project: p, cycles, deep }: { project: EstateRow | null; cycles?: readonly Cycle[]; deep: string }) {
   if (!p) return <p className={styles.empty}>Select a project in cycles.</p>;
   const ok = p.drift.length === 0 && p.breaks === 0;
   return (
@@ -42,8 +48,9 @@ export function EstateInspector({ project: p, deep }: { project: EstateProject |
         />
       </InspectorSection>
       <InspectorSection title="Every cycle" aux={`${p.closed} closed`}>
+        {cycles ? null : <Unread label="cycles not read yet" />}
         <ol className={styles.cycles}>
-          {[...p.cycles].reverse().map((c) => (
+          {[...(cycles ?? [])].reverse().map((c) => (
             <li key={c.id}>
               <b>{c.id}</b> {c.theme} <span className={styles.net}>{signed(summarize(c).net)}</span>
               <ul>
@@ -59,7 +66,7 @@ export function EstateInspector({ project: p, deep }: { project: EstateProject |
       </InspectorSection>
       <InspectorSection title="Next">
         {p.id === deep ? (
-          <Button variant="accent" href="/cycles">Open {p.name}’s cycles</Button>
+          <Button variant="accent" href={SCOPE_HREF.project}>Open {p.name}’s cycles</Button>
         ) : (
           <p className={styles.note}>The grid, the designer and the report are {deep}’s in this demo; here the estate reads each project’s ledger.</p>
         )}

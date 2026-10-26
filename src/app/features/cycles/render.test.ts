@@ -13,6 +13,7 @@ import { gridView } from './model/grid';
 import { EstateInspector } from './components/estate/EstateInspector';
 import { EstateTable } from './components/estate/EstateTable';
 import { buildEstate } from './model/estate/estate';
+import { estateCycles, estateSummary } from './model/estate/split';
 import { getEstateCycles } from '@/lib/demo';
 const { cycles: CLOSED_CYCLES, today: TODAY, cadence: CADENCE_DAYS } = DEMO_CYCLES;
 
@@ -103,11 +104,18 @@ describe('the estate scope', () => {
     expect(out).toContain('aria-pressed="true">ledgerline<');
   });
   it('the inspector lists every cycle of a project and links only the deep one to its own cycles', () => {
-    const rows = estate.groups.flatMap((g) => g.projects);
-    const web = html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline-web')!, deep: 'ledgerline' }));
+    const rows = estateSummary(estate).groups.flatMap((g) => g.projects);
+    const cycles = estateCycles(estate);
+    const web = html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline-web')!, cycles: cycles['ledgerline-web'], deep: 'ledgerline' }));
     expect(web).toContain('C3');
-    expect(web).not.toContain('href="/cycles"');
-    expect(html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline')!, deep: 'ledgerline' }))).toContain('href="/cycles"');
+    expect(web).not.toContain('href="/cycles');
+    expect(html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline')!, cycles: cycles.ledgerline, deep: 'ledgerline' }))).toContain('href="/cycles?scope=project"');
+  });
+  it('the inspector says its cycles are not read yet with a dash, never an empty list as if there were none', () => {
+    const row = estateSummary(estate).groups.flatMap((g) => g.projects)[0]!;
+    const out = html(createElement(EstateInspector, { project: row, deep: 'ledgerline' }));
+    expect(out).toContain('cycles not read yet');
+    expect(out).not.toContain('<li');
   });
 });
 

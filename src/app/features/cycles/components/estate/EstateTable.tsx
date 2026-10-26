@@ -1,4 +1,4 @@
-import type { EstateGroup, EstateProject } from '../../model/estate/estate';
+import type { EstateRow, EstateSummary } from '../../model/estate/split';
 import { signed } from '../../model/words';
 import styles from './estate.module.css';
 
@@ -16,7 +16,7 @@ function Cells({ closed, credited, missed, drift, net }: { closed: number; credi
   );
 }
 
-function Row({ r, selected, onSelect }: { r: EstateProject; selected: boolean; onSelect: (id: string) => void }) {
+function Row({ r, selected, onSelect }: { r: EstateRow; selected: boolean; onSelect: (id: string) => void }) {
   const ok = r.drift.length === 0 && r.breaks === 0;
   return (
     <div role="row" className={styles.row} data-selected={selected || undefined} onClick={() => onSelect(r.id)}>
@@ -36,7 +36,7 @@ function Row({ r, selected, onSelect }: { r: EstateProject; selected: boolean; o
 }
 
 /** Every group of the estate, with its projects in cycles; a group none of whose projects cycles says so. */
-export function EstateTable({ groups, selected, onSelect }: { groups: readonly EstateGroup[]; selected: string | null; onSelect: (id: string) => void }) {
+export function EstateTable({ groups, selected, onSelect }: { groups: readonly EstateSummary['groups'][number][]; selected: string | null; onSelect: (id: string) => void }) {
   return (
     <div className={styles.t} role="table" aria-label="Projects in cycles, per group" data-scroll-x>
       <div role="row" className={`${styles.row} ${styles.head}`}>

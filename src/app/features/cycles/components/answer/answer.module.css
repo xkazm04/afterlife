@@ -56,3 +56,8 @@
   gap: 6px;
   margin-left: auto;
 }
+/* Before the stream's slice lands: the big number is a dash in quiet ink, never the accent's glow. */
+.big b[data-unread] {
+  color: var(--text-4);
+  text-shadow: none;
+}

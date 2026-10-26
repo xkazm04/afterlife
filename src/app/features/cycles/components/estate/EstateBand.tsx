@@ -1,6 +1,6 @@
 import { Chip } from '@/components/status/chip/Chip';
 import { plural } from '@/lib/format/plural';
-import type { EstateData } from '../../model/estate/estate';
+import type { EstateSummary } from '../../model/estate/split';
 import { signed } from '../../model/words';
 import styles from '../answer/answer.module.css';
 
@@ -8,7 +8,7 @@ import styles from '../answer/answer.module.css';
  * The estate's answer band: how many projects the cycles have reached and what they earned together. Its proof is
  * per project: each history, unwound to day 0 and replayed, must land on that project's rungs today.
  */
-export function EstateBand({ data }: { data: EstateData }) {
+export function EstateBand({ data }: { data: EstateSummary }) {
   const all = data.reconciled === data.inCycles;
   return (
     <section className={styles.band} aria-label="Where the estate's cycles stand">
