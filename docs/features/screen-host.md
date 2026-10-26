@@ -9,8 +9,7 @@ once and re-reads it quietly. A hard load or a reload prerenders the same frame 
 data always comes by the same stream.
 
 Door (`/`) and About (`/about`) stay real routes outside the host. A key no module has converted yet is not claimed:
-the router and its page.tsx draw it as before. Until W1 and W2 land, the Fleet and Needs-you lists still go through the
-legacy arm-B host (`src/components/shell/nav/b`, `/api/screen/legacy/<key>`); W5 deletes it.
+the router and its page.tsx draw it as before (Fleet and Needs you until W1 and W2 convert them).
 
 ## Files
 

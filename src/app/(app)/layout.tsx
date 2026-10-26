@@ -4,7 +4,6 @@ import { XrayOverlay } from '@/app/features/xray/XrayOverlay';
 import { XraySidebar } from '@/app/features/xray/XraySidebar';
 import { AppFrame } from '@/components/shell/frame/AppFrame';
 import { ScreenHost } from '@/components/shell/host/ScreenHost';
-import { LegacyHost } from '@/components/shell/nav/b';
 
 // Every windowed screen shares one frame: the backdrop, the window box and the sidebar mount here once, so navigating
 // between screens keeps the sidebar (and whether it is hidden); each screen's Window fills the right column. The frame
@@ -26,10 +25,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       }
     >
       {/* the screen host draws every claimed screen itself (components/shell/host); a key it does not claim yet shows the
-          route's page, the Fleet and Needs-you lists through the legacy arm-B host until W1/W2 convert them */}
-      <ScreenHost>
-        <LegacyHost>{children}</LegacyHost>
-      </ScreenHost>
+          route's page */}
+      <ScreenHost>{children}</ScreenHost>
       <Suspense fallback={null}>
         <LiveGate />
       </Suspense>

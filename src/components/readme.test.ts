@@ -14,7 +14,6 @@ const rel = (f: string): string => relative(__dirname, f).split(sep).join('/');
 const BY_WINDOW = ['Backdrop', 'Toolbar', 'Inspector', 'StatusBar', 'Sidebar', 'AppNav', 'NavLink', 'SettingsNav', 'TrafficLights'];
 const EXEMPT: Record<string, string> = {
   ...Object.fromEntries(BY_WINDOW.map((n) => [n, 'drawn inside Window; no screen renders it'])),
-  ...Object.fromEntries(['ArmHostB', 'HostScreen'].map((n) => [n, 'legacy arm-B host (nav/b) for Fleet and Needs you until W1/W2; deleted in W5'])),
 };
 
 const exported = walk(__dirname)

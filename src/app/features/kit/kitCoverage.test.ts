@@ -22,7 +22,6 @@ const EXEMPT: Record<string, string> = {
   AdoptedShell: 'holds the root layout shell state for app/Providers: it draws nothing of its own',
   ShellAdopt: 'hands the request-time shell read to AdoptedShell: it draws nothing',
   ScreenSkeleton: 'a Window with a skeleton pane, drawn by every route loading.tsx while its data streams',
-  ...Object.fromEntries(['ArmHostB', 'HostScreen'].map((n) => [n, 'legacy arm-B host (nav/b) for Fleet and Needs you until W1/W2; deleted in W5'])),
   ScreenHost: 'mounted once by the (app) layout around every screen, /kit included: it draws the screens, nothing of its own',
   ScreenScope: "the host's per-screen context provider: it draws nothing",
   SliceFixture: 'pins slices for a test or a specimen: a context provider, it draws nothing',

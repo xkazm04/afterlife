@@ -12,13 +12,6 @@ export const HOST_MARK = '__host';
 
 let mounted = false;
 
-/** A navigation the legacy arm-B host (nav/b, fleet and needs-you lists until W1/W2) takes; set by ScreenHost. */
-let legacy: { takes: (href: string) => boolean; navigate: (href: string) => void } | null = null;
-
-export function setLegacy(l: typeof legacy): void {
-  legacy = l;
-}
-
 const hereHref = () => window.location.pathname + window.location.search;
 
 /** Follow the URL the browser is on: `reread` for a navigation (back/forward, the router's), not for a query-only change. */
@@ -88,10 +81,6 @@ function onClick(e: MouseEvent): void {
   if (hostClaims(href)) {
     e.preventDefault();
     hostNavigate(href);
-  } else if (legacy?.takes(href)) {
-    e.preventDefault();
-    legacy.navigate(href);
-    syncFromLocation(true); // the host steps aside in the same task: the legacy host draws the list
   }
 }
 
