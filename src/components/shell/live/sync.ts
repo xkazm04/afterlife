@@ -1,6 +1,7 @@
 // The shell's client sync as pure steps. The root layout renders the shell's numbers once (a layout does not re-render on
-// navigation; a server action's refresh() re-renders it with a fresh read), so the client re-reads /api/shell only on
-// regained focus - never per route change: a navigation changes no number the shell shows. Requests are
+// navigation; a server action's refresh() re-renders it with a fresh read), so the client re-reads /api/shell on regained
+// focus, when the screen host shows or re-reads a screen (debounced, hostNav.ts: the host swaps screens without the
+// router, so nothing else would), and when a screen asks (requestShellRead: a setting the shell draws changed). Requests are
 // numbered: the newest answer wins, a late answer to an older request is dropped, and a new server prop (the layout
 // re-rendered by refresh()) is adopted at once and voids every request issued before it. A failed read changes nothing.
 import type { KnownShellInfo, ShellInfo } from '../ShellContext';
@@ -23,8 +24,19 @@ export type SyncAction =
   | { type: 'answer'; id: number; info: ShellInfo | null }
   | { type: 'server'; info: ShellInfo };
 
-/** Why the client might re-read: the window regaining focus (the only trigger; a route change is not one). */
-export type SyncTrigger = { kind: 'focus' };
+/**
+ * Why the client might re-read: the window regaining focus, the host showing or re-reading a screen (`nav`), or a screen
+ * asking after a change the shell draws (`ask`). A router route change is not one.
+ */
+export type SyncTrigger = { kind: 'focus' } | { kind: 'nav' } | { kind: 'ask' };
+
+/** The window event a screen dispatches to have the shell read again (requestShellRead). */
+export const SHELL_READ_EVENT = 'belay:shell-read';
+
+/** Ask the shell to read /api/shell again now (a cookie it draws from changed, Trace saw the live source come up). */
+export function requestShellRead(): void {
+  window.dispatchEvent(new Event(SHELL_READ_EVENT));
+}
 
 export const SHELL_URL = '/api/shell';
 
@@ -46,9 +58,12 @@ export function syncReducer(s: SyncState, a: SyncAction): SyncState {
   }
 }
 
-/** Regained focus reads again; one read at a time is enough. */
+/**
+ * Focus and a host navigation read again when no read is in flight (one at a time is enough). An ask always reads: what it
+ * follows changed after the read in flight began, and the newest answer wins.
+ */
 export function shouldSync(s: SyncState, t: SyncTrigger): boolean {
-  return s.inFlight === null && t.kind === 'focus';
+  return t.kind === 'ask' || s.inFlight === null;
 }
 
 const isShellInfo = (v: unknown): v is KnownShellInfo => {

@@ -1,6 +1,6 @@
-// useShellSync's triggers: a route change reads nothing (the shell's numbers do not change with the route; a server
-// action's refresh() re-renders the layout with a fresh read), regained focus reads /api/shell once, and a new server prop
-// is adopted at once. There is no browser here, so React's hooks are a small harness: state and ref cells, and effects
+// useShellSync's triggers: a router route change reads nothing (a server action's refresh() re-renders the layout with a
+// fresh read), regained focus reads /api/shell once, a screen's ask (requestShellRead) reads, and a new server prop is
+// adopted at once. The screen host's navigations are hostNav.test.ts. There is no browser here, so React's hooks are a small harness: state and ref cells, and effects
 // that run when their deps change between passes, as React runs them.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ShellInfo } from '../ShellContext';
@@ -86,6 +86,13 @@ describe('useShellSync', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch.mock.calls[0]).toEqual(['/api/shell', expect.objectContaining({ cache: 'no-store' })]);
     await vi.waitFor(() => expect(pass(v).needsYouCount).toBe(8));
+  });
+
+  it('a screen asking (a demo-estate cookie changed) reads /api/shell, even with a read in flight', () => {
+    pass(info(3));
+    listeners.focus?.forEach((f) => f());
+    listeners['belay:shell-read']?.forEach((f) => f());
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it('a new server prop (refresh() after a decision) is what the badge shows at once, with no read', () => {

@@ -57,13 +57,19 @@ describe('syncReducer', () => {
 
 describe('shouldSync', () => {
   const idle = initSync(info(1));
-  it('re-reads on regained focus (a route change is no trigger at all: useShellSync.test.ts)', () => {
+  it('re-reads on regained focus and on a host navigation (a router route change is no trigger: useShellSync.test.ts)', () => {
     expect(shouldSync(idle, { kind: 'focus' })).toBe(true);
+    expect(shouldSync(idle, { kind: 'nav' })).toBe(true);
   });
 
-  it('a second trigger while a request is in flight issues no second request', () => {
+  it('a second focus or navigation while a request is in flight issues no second request', () => {
     const busy = run(idle, { type: 'issue' });
     expect(shouldSync(busy, { kind: 'focus' })).toBe(false);
+    expect(shouldSync(busy, { kind: 'nav' })).toBe(false);
+  });
+
+  it('an ask always reads: what it follows changed after the read in flight began (the newest answer wins)', () => {
+    expect(shouldSync(run(idle, { type: 'issue' }), { kind: 'ask' })).toBe(true);
   });
 });
 
