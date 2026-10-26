@@ -8,8 +8,8 @@ Visited screens stay mounted in `<Activity>` (up to 10). Leaving one keeps its s
 once and re-reads it quietly. A hard load or a reload prerenders the same frame (page.tsx is a static shell), and the
 data always comes by the same stream.
 
-Door (`/`) and About (`/about`) stay real routes outside the host. A key no module has converted yet is not claimed:
-the router and its page.tsx draw it as before (Fleet and Needs you until W1 and W2 convert them).
+Door (`/`) and About (`/about`) stay real routes outside the host. Every route-table key is converted (`ready: true`); a
+key a module marks not ready is not claimed, and the router and its page.tsx draw it.
 
 ## Files
 
@@ -17,7 +17,8 @@ the router and its page.tsx draw it as before (Fleet and Needs you until W1 and 
 |---|---|
 | `src/components/shell/host/model/routes.ts` | `SCREEN_KEYS`, `ScreenKey`, `matchRoute(pathname, search)`, `pathFor`, `paramOf`, `moduleOf` (pure, shared with the server) |
 | `src/components/shell/host/model/wire.ts` | the NDJSON line type, `SliceState`, `screenUrl`, `lineSplitter` (pure) |
-| `src/components/shell/host/model/entry.ts` | how a line changes a screen's read state; the LRU (pure) |
+| `src/components/shell/host/model/entry.ts` | how a line changes a screen's read state; `carry` (paramSlices); the LRU (pure) |
+| `src/components/shell/host/model/loc.ts` | `Loc`, and the query rules: `arrivalSearch`, `linkTarget`, `dropQuery` (pure) |
 | `src/components/shell/host/model/click.ts` | which document clicks the host takes (pure) |
 | `src/components/shell/host/model/types.ts` | `ScreenDef`, `ScreenFrameProps` |
 | `src/components/shell/host/hooks/` | `store.ts` (state, reads), `navigation.ts` (push/replace, popstate, click delegation), `useSlice.ts` (screen hooks), `scope.tsx`, `readStream.ts` |
@@ -27,6 +28,7 @@ the router and its page.tsx draw it as before (Fleet and Needs you until W1 and 
 | `src/app/features/screens/registry.ts` | server registry: imports every module's `screen/slices.ts`. Never edited by a module package |
 | `src/app/features/screens/stream.ts` | a `ScreenLoader` as an NDJSON `ReadableStream` |
 | `src/app/features/screens/types.ts` | `ScreenLoader`, `SliceResult`, `SliceCtx`, `ModuleLoaders`, `ok()`, `notFound()`, `redirectTo()` |
+| `src/app/features/screens/paramPage.tsx` | `paramTitle(prefix, param)` and `ParamShell`: the one pattern for a `[param]` page.tsx |
 | `src/app/api/screen/[key]/route.ts` | `GET /api/screen/<key>` |
 | `src/app/features/<module>/screen/host.tsx` | the module's `screens: readonly ScreenDef[]` (client) |
 | `src/app/features/<module>/screen/slices.ts` | the module's `loaders: ModuleLoaders` (server) |
@@ -86,7 +88,16 @@ export const screens: readonly ScreenDef[] = [
   `{state:'error', reason}`. `search` follows the URL, including the screen's own query changes.
 - `Session` (optional) is a provider hoisted out of a route layout. It is mounted once around every visited screen that
   names the same component, for as long as any of them is mounted. Use one module-level component for the whole group
-  (NeedsStore for needs-you and needs-you/[item]).
+  (NeedsStore for needs-you and needs-you/[item]). **A Session cannot read slices**: it sits outside every screen's
+  `ScreenScope`, so `useSlice` in it is always unread and `useRevalidate()` needs an explicit key. The Frame feeds it:
+  each Frame reads its slices and hands each arrival to the Session in an effect, and the Session skips a slice object
+  it already applied (the host keeps the old object when a re-read brings the same text, so a screen shown again feeds
+  nothing new). `setup/hooks/session/feed.tsx` (`useSetupFeed`) is the example.
+- `paramSlices` (optional, a param key only): the slices that depend on the param. Another param then keeps every other
+  slice and reads only these, plus any slice not read ok yet (`?_slices=detail,ledger` on the wire); without it
+  another param is a new screen, every slice unread. The Frame still remounts per param (its UI state is the param's),
+  and a region whose slice was kept is simply there (no entrance). Task: `['detail', 'ledger']`; setup/[node]:
+  `['catalogue']` (the three live reads, the 11-probe doctor included, are kept across node clicks).
 - `title(params, search)` gives the tab title. The host renders it as a React `<title>` and also sets `document.title`.
   Keep the same words as the page's metadata.
 - `NotFound({ params })` is drawn when a slice answers `notFound`. Without it, the host draws a plain not-found window.
@@ -95,8 +106,11 @@ export const screens: readonly ScreenDef[] = [
 Hooks and parts, all from `@/components/shell/host`:
 
 - `useSlice`, and `useScreenRead()` (`{ reading, asOf, notFound }`, for an "as of" note);
-- `useHostNav()` gives `navigate(href)` and `replace(href)`. The host draws a claimed href in place; anything else goes
-  through the router;
+- `useHostNav()` gives `navigate(href)`, `replace(href)` and `replaceQuery(query)`. The host draws a claimed href in
+  place; anything else goes through the router. `replaceQuery` is the quiet one for a screen's own state in its query
+  (fleet's list): no history entry, no read, no remount, and both Next and the host learn the URL;
+- `useHerePath()` is the path the app shows, the host's screen from the click's own frame (usePathname trails a host
+  click by a frame): chrome that names the screen (the sidebar's current mark, the X-ray, the demo banner) reads it;
 - `useRevalidate()` gives `(key?) => void`. It re-reads a screen quietly (default: the screen this component is in),
   keeping the read slices until fresh lines replace them. A visited screen that is not showing re-reads when it next
   shows. Outside the host it calls `router.refresh()`;
@@ -114,7 +128,9 @@ Hooks and parts, all from `@/components/shell/host`:
 link whose own onClick does something else), and the click is not a jump within the page. Modified clicks (new tab)
 stay the browser's. A plain `<Link>` to an in-app screen needs nothing. The host pushes
 `history.pushState({ __host: key }, '', url)`; Next copies its own state in and syncs `usePathname`. The URL, not the
-mark, decides what shows. A link with no query of its own returns to the query the screen was left with.
+mark, decides what shows. A link with no query of its own returns to the query the screen was left with; a bare link
+to the screen that is showing goes to the bare screen (it clears the query); a screen that answered a redirect forgets
+its query. A screen that declares no slice (settings Display, Keyboard, About, the kit) reads nothing.
 
 ## Migration playbook (per module)
 
@@ -135,9 +151,10 @@ mark, decides what shows. A link with no query of its own returns to the query t
    `useRevalidate` (call it after the server action resolves).
 8. `notFound()`/`redirect()` become slice statuses (`notFound()`, `redirectTo(href)` in slices.ts). Client-side
    `notFound()` calls too.
-9. page.tsx becomes a static shell: `metadata` (or `generateMetadata`) and `return null`, with no `connection()` and no
-   data. Keep every page.tsx. Delete the module's `loading.tsx`, Suspense fallbacks and skeletons (not the shared
-   ScreenSkeleton/ShellLoading: W5 does that).
+9. page.tsx becomes a static shell: `metadata` and `return null`, with no `connection()` and no data. A `[param]` page
+   whose title names the param uses `paramTitle` and `ParamShell` (`features/screens/paramPage.tsx`), nothing else.
+   Keep every page.tsx. There is no `loading.tsx`, no Suspense fallback shape and no skeleton anywhere
+   (`src/app/noSkeleton.test.ts` fails on one).
 10. Set `ready: true`. `src/app/features/screens/registry.test.ts` then checks that the slices match the loader.
 11. Tests: pure model tests for the slice reducers, and a render test per Frame with unread then ok slices
     (`monitor/screen/host.test.tsx`: `SliceFixture` plus mocks for `next/navigation` and `next/link`).
@@ -160,8 +177,8 @@ mark, decides what shows. A link with no query of its own returns to the query t
 - **Polls and refresh.** `router.refresh()` re-renders the route's page, which on a claimed route is the static shell:
   nothing changes. Use `useRevalidate`. A server action that calls `refresh()` must be followed by `revalidate(key)`.
 - **notFound / redirect.** Send them as slice statuses. A redirect replaces the URL only while that screen is showing.
-- **Remount keys.** The host remounts the Frame when the matched path changes (another param). A screen whose identity
-  also lives in the query (cycles `?design`) must key its own subtree on it.
+- **Remount keys.** The host remounts the Frame when the matched path changes (another param), with `paramSlices` too.
+  A screen whose identity also lives in the query (cycles `?design`) must key its own subtree on it.
 - **Hard load.** The host's pathname read sits behind `<Suspense fallback={null}>`. On a static route it resolves while
   prerendering, so the frame is in the static shell. On a param route the frame renders at request time.
 - **Loopback.** A key that reads local files declares `local`. The Frame shows the existing "only on this machine" note
@@ -194,21 +211,20 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
   slices in effects, skipping a slice object it already applied (`setup/hooks/session/feed.tsx`).
 - **Query-scoped keys.** Cycles serves both scopes from one key: every slice reads `?scope=` and answers `{}` for the
   scope it does not draw; the Frame treats `{}` as unread (the other scope's kept answer stays a moment across a switch).
-  A switch back must name its query (`/cycles?scope=project`): a bare `/cycles` returns to the kept `?scope=estate`.
+  (W5: the switch back is the bare `/cycles` again; a bare link to the showing screen clears its query.)
   The static shell is prerendered with no query, so a hard load of `?scope=estate` paints the project frame first.
-- **Per-param instances.** Every `task/<id>` and `setup/<node>` is a new instance: its slices start unread and its Frame
-  remounts. Task keeps its filters and last docket rows in its Session so a j/k step does not flash the docket; setup's
-  live reads run again on every node visit.
+- **Per-param instances.** Every `task/<id>` and `setup/<node>` remounts its Frame. Task keeps its filters and last
+  docket rows in its Session. (W5: with `paramSlices` a j/k step reads only detail and ledger, and a node click only the
+  catalogue; the docket, the page facts and setup's three live reads are kept.)
 - **Kept runs.** A hidden screen's effects are cleaned up, so a screen whose work outlives a visit (the onboard
   wizard's proposal) must not abort it on effect cleanup, and timers should count from a stored start.
 - **Param `generateMetadata`.** A static shell whose title reads the param logs "runtime data in generateMetadata()" in
-  dev; setup/[node] marks the page as request data (`<Suspense>` + `connection()`), task/[id] does not yet.
+  dev. (W5: every `[param]` page uses `features/screens/paramPage.tsx`.)
 
 ## W4 notes (trace, theater, runs, settings, kit, the shell, door and about)
 
-- **Static screens.** Settings Display, Keyboard and About and the kit declare no slice and have no loader. The host
-  still reads `/api/screen/<key>` on each visit and gets a 404 (a console error, nothing drawn wrong); the Director's
-  host change skips the read for a screen that declares no slice.
+- **Static screens.** Settings Display, Keyboard and About and the kit declare no slice and have no loader. (W5: the
+  host reads nothing for a screen that declares no slice; there is no 404 any more.)
 - **The live gate is a client component** (`trace/LiveGate.tsx`). It follows the shell's read: live before the first
   poll (the shell's group reads "first poll not finished") covers the column at once; otherwise, in live mode only, it
   reads Trace's own `facts` slice (`components/useGateFacts.ts`) and covers while `facts.gate` names one (an empty
@@ -226,8 +242,8 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
   while `merges` names this machine's checkouts.
 - **/settings** is not a route-table key: the sidebar's Settings link goes through the router to a static page whose
   client constant replaces the URL with `/settings/display` (`settings/screen/ToFront.tsx`), then the host draws it. One
-  RSC round trip; the nav entry pointing at `/settings/display` (with its active match kept for every sub-page) would
-  make it a host click.
+  RSC round trip. (W5: the nav entry points at `/settings/display`, a host click, current on every sub-page; /settings
+  keeps the redirect for deep links.)
 - **View transitions.** `Motion` (`app-enter`/`app-exit`) does not run on a host swap: the swap is a sync store update,
   not a router transition, so `<ViewTransition>` never fires. The choreographed Reveal is the entrance now; the door's
   `door-exit` still runs (the door is a router navigation into the app).
@@ -243,13 +259,14 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
   `listReseed`, `fitList`). The list fits a bookmarked group or class column only once the fleet is read, so an unread
   fleet never drops `src=g:payments`.
 - **Only a person's change writes the URL.** A hard load hydrates with the default state before the host has read the
-  query; writing that default would wipe `?view=stages`. The list writes through `fleet/screen/url.ts` `replaceQuery`:
+  query; writing that default would wipe `?view=stages`. The list writes through `useHostNav().replaceQuery` (W5; it
+  was `fleet/screen/url.ts`):
   the state without Next's private keys, so Next's patched `replaceState` takes the URL as its own (a `router.refresh`
   elsewhere then keeps the query) and the host follows it without a re-read (SearchSync). A spread `history.state`
   (W0's pitfall advice) left Next's canonical URL behind, and the next Next history write put `/fleet` back.
 - **A passing `search`.** On Back from `/fleet/<id>` to `/fleet?view=classes` the Frame gets `search` empty for a render
   (ScreenHost line 57: `st.loc` is still the project when Next's restore renders, so `search` falls to `''`).
-  `useFleetList` ignores a URL state the address bar does not show; the host fix is below.
+  `useFleetList` ignores a URL state the address bar does not show. (W5: fixed in the host, `arrivalSearch`.)
 - **The runner strip's slot** (`components/runner/RunnerSlot.tsx`) holds the strip's summary line from the first frame
   (dashes), so the table never moves when `desk` lands. The table's reveal region is the positioned box the table fills
   (an entrance transform on a plain wrapper would make it the table's containing block and collapse it).
@@ -266,14 +283,14 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
 - **Title metadata on param routes.** `generateMetadata` reading `params` on an otherwise static page is an error under
   Cache Components ("runtime data in generateMetadata()", seen in `next dev` on `/fleet/<id>`); both `[project]` pages
   carry setup/[node]'s empty request-time marker. ladder/[class], maturity/[stage], needs-you/[item] and task/[id]
-  return null with the same metadata, so they likely log the same error.
+  return null with the same metadata, so they likely log the same error. (W5: one pattern for all, `paramPage.tsx`.)
 - **Host changes asked for (Director):** (1) ScreenHost line 57: when Next renders a pathname the store has not seen,
   take `search` from `window.location.search` (or `st.locs[m.key].search`) instead of `''`; (2) on a redirect line,
   drop the redirecting screen's kept query (or its loc): today `/fleet?project=<id>` redirects, the fleet keeps
   `project=<id>` as its query, and the next plain link to `/fleet` (`withKeptQuery`) lands on that project again;
   (3) `hostNavigate` calls `withKeptQuery` before `keepSearch`, so a link to the screen showing uses its stale query;
   (4) a quiet query replace in `useHostNav` (what `fleet/screen/url.ts` does) would serve every screen that keeps
-  state in its query.
+  state in its query. (W5: all four done.)
 - **Measured** (`next dev`, demo, playwright `w1.mjs`): the Fleet frame is in the DOM at the first animation frame after
   the click (title, path, `document.title`, 18 dashes, no skeleton); regions go `in` together when core lands and finish
   in order (sidebar, table, strip about 50 to 80 ms apart). A return shows `done` at once and re-reads quietly.
@@ -281,3 +298,33 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
   core (127 KB) first, then estate (788 KB) and desk. Back/forward between `/fleet?view=..` entries and through a
   project page keeps the list state; a hard load of `/fleet?view=stages` keeps it. Unknown ids draw the projects'
   EntityNotFound. Vitals: only the empty list (no project is onboarded in this worktree) and the unknown slug.
+
+## W5 notes (host fixes, no skeleton anywhere)
+
+- **Query rules** (`model/loc.ts`, pure and tested): Next rendering a path the host has not seen (a hard load, Back
+  across a router navigation) takes the address bar's query, then the kept one, never an empty one while the address
+  bar has one; `hostNavigate` learns the showing screen's own query before it picks a target; a bare link to the showing
+  screen clears its query; a redirect line drops the redirecting screen's query (`/fleet?project=<id>` no longer sends
+  the next plain Fleet link back to the project).
+- **Back/forward reads once.** Next renders the popped pathname synchronously, so `followRouter` had already moved the
+  host and started its read; `popstate` then read the same URL again and aborted the first. `onPop` now skips a read
+  of the URL the host already shows with a read in flight (measured: two `/api/screen/fleet` requests per Back before,
+  one after).
+- **Partial reads** (`paramSlices`, `_slices=` on the wire, `carry` in `model/entry.ts`): measured in `next dev`, a task
+  j/k step requests `task%2F%5Bid%5D?id=<id>&_slices=detail,ledger` and the docket shows at once (0 dashes); a setup
+  node click requests `_slices=catalogue` only, and an unknown node still turns into the not-found card and back.
+- **The one-frame overlap was not two windows.** At the first animation frame after a click exactly one Window header
+  is visible (the target's): `<Activity>` hides the old screen in the same commit. What still named the old screen for
+  a frame was chrome reading `usePathname`, which Next syncs in a transition after the host's `pushState`: the X-ray
+  panel's header and the sidebar's `aria-current`. They read `useHerePath()` now; measured: every header and the
+  current nav mark name the target at the first frame.
+- **Settings** is a host click (`/settings/display`); `navEntryFor` matches an entry by its key's path.
+- **Param pages**: `paramTitle(prefix, param)` + `ParamShell` for all seven; `routeBranches.test.tsx` pins it. The
+  seven detail URLs hard-load with their titles and no console error in `next dev` (the server log itself was not
+  readable from this session).
+- **No skeleton anywhere**: `(app)/loading.tsx`, `ShellLoading` and `ScreenSkeleton` are deleted; the onboard wizard's
+  proposing state draws its four checklist groups with a dash each. `src/app/noSkeleton.test.ts` fails on a loading
+  file, a Skeleton/Loading component, or a Suspense fallback that is not null or a named still frame (DoorFrame,
+  AboutFrame, the sidebar's nav lists with nothing current). Without `(app)/loading.tsx`, a router navigation into the
+  app (the door's Enter) waits for the static shell's RSC instead of drawing a stand-in; every in-app click is the
+  host's and never waits.

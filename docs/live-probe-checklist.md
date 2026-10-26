@@ -33,7 +33,8 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
   read", never a frozen dash.
 - Arm a track, then return to the map: the open MR stays open after the re-read.
 - `/setup/cap-<a label the doctor does not report>` shows the not-found card once the doctor lands.
-- Each node visit re-runs the three live reads (the 11-probe doctor included): note how long a node click takes to fill.
+- A node click (node to node) reads only the catalogue (`_slices=catalogue`): the three live reads, the 11-probe doctor
+  included, stay as read; the map to a node, and back to the map, still read them (another key). Note how long each fills.
 
 ## Task (W3)
 
@@ -120,3 +121,13 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
 - Ladder, live, a long belay-ledger chain: the rows wait for `ledger` (the opening order is by last move); time it.
 - Maturity, live: a new scan between visits (the poller stores a newer artifact): the crag takes the new rungs and scan
   time on the next visit, the picks and the mode stay.
+
+## Screen host (W5)
+
+- Live, a task j/k step: only `detail` and `ledger` are read (`_slices=detail,ledger`); the docket and the poll age stay
+  and are not re-read. After a poll changes the docket, a return to the task (or Re-poll) re-reads it whole.
+- Live, `/fleet?project=<a live id>`: the redirect lands on the project; then Monitor, then the sidebar's Fleet: `/fleet`
+  with no `?project=` (the redirect's query is dropped).
+- Live with a slow GitLab: Back and forward each send one `/api/screen/<key>` request, not two.
+- Door's Enter into the app with no `(app)/loading.tsx`: time the router navigation on a cold server (it waits for the
+  static shell's RSC; nothing draws in between).
