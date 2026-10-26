@@ -11,7 +11,6 @@ const loaders = vi.hoisted(() => ({
   ladderClass: vi.fn(),
   maturityStage: vi.fn(),
   needsItem: vi.fn(),
-  setupNode: vi.fn(),
   tasks: vi.fn(),
   fleetData: vi.fn(),
   vitalsProject: vi.fn(),
@@ -33,8 +32,6 @@ vi.mock('./features/maturity/data/loadMaturityStage', () => ({ loadMaturityStage
 vi.mock('./features/maturity/StageScreen', () => ({ StageScreen: () => null }));
 vi.mock('./features/needs-you/components/detail/NeedsItemPage', () => ({ NeedsItemPage: () => null }));
 vi.mock('./features/needs-you/data/pick', () => ({ loadNeedsItem: loaders.needsItem }));
-vi.mock('./features/setup/data/loadSetupNode', () => ({ loadSetupNode: loaders.setupNode }));
-vi.mock('./features/setup/SetupNodeScreen', () => ({ SetupNodeScreen: () => null }));
 vi.mock('./features/task/TaskScreen', () => ({ TaskScreen: () => null }));
 vi.mock('./features/task/model/build/loadPage', () => ({ loadPageFacts: () => ({}) }));
 vi.mock('./features/task/model/build/loadTasks', () => ({ loadTasks: loaders.tasks }));
@@ -47,7 +44,6 @@ const ROUTES = [
   ['ladder/[class]', () => import('./(app)/ladder/[class]/page'), { class: 'c1' }, loaders.ladderClass, { id: 'c1' }],
   ['maturity/[stage]', () => import('./(app)/maturity/[stage]/page'), { stage: 's1' }, loaders.maturityStage, { key: 's1' }],
   ['needs-you/[item]', () => import('./(app)/needs-you/[item]/page'), { item: 'i1' }, loaders.needsItem, { demo: null, id: 'i1' }],
-  ['setup/[node]', () => import('./(app)/setup/[node]/page'), { node: 'n1' }, loaders.setupNode, { id: 'n1' }],
   ['vitals/[project]', () => import('./(app)/vitals/[project]/page'), { project: 'grinex-portal' }, loaders.vitalsProject, { slug: 'grinex-portal' }],
 ] as const;
 
@@ -90,10 +86,18 @@ describe('dynamic route pages', () => {
     expect(nav.redirect).not.toHaveBeenCalled();
   });
 
+  // Setup's node page is a static shell (its title reads the param, marked as request data); an unknown node is the stream's
+  // notFound, pinned in setup/screen/host.test.tsx.
+  it('setup/[node] is a static shell that reads nothing', async () => {
+    const page = (await import('./(app)/setup/[node]/page')).default as () => unknown;
+    expect(page()).toBeTruthy();
+    expect(nav.notFound).not.toHaveBeenCalled();
+  });
+
   // ROUTES is typed by hand, so it is held to the [param] folders on disk: a new dynamic route without a branch test (or
   // without its own not-found page) fails here instead of going unseen.
   it('covers every dynamic route folder on disk, each with its own not-found page', () => {
-    const covered = [...ROUTES.map((r) => r[0]), 'task/[id]'].sort();
+    const covered = [...ROUTES.map((r) => r[0]), 'task/[id]', 'setup/[node]'].sort();
     const onDisk = dynamicRoutes(import.meta.dirname);
     expect(onDisk.map(urlOf).sort()).toEqual(covered);
     for (const r of onDisk) expect(existsSync(path.join(import.meta.dirname, r, 'not-found.tsx')), r).toBe(true);
