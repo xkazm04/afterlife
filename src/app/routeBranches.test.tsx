@@ -1,5 +1,6 @@
 import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { isValidElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The route-level branches of the dynamic pages: a known id renders its screen, an unknown one calls notFound, the fleet
@@ -40,11 +41,13 @@ vi.mock('./features/vitals/data/loadVitals', () => ({ loadVitalsProject: loaders
 vi.mock('./features/vitals/VitalsScreen', () => ({ VitalsScreen: () => null }));
 
 const ROUTES = [
-  ['fleet/[project]', () => import('./(app)/fleet/[project]/page'), { project: 'p1' }, loaders.fleetProject, { id: 'p1' }],
   ['ladder/[class]', () => import('./(app)/ladder/[class]/page'), { class: 'c1' }, loaders.ladderClass, { id: 'c1' }],
   ['maturity/[stage]', () => import('./(app)/maturity/[stage]/page'), { stage: 's1' }, loaders.maturityStage, { key: 's1' }],
   ['needs-you/[item]', () => import('./(app)/needs-you/[item]/page'), { item: 'i1' }, loaders.needsItem, { demo: null, id: 'i1' }],
-  ['vitals/[project]', () => import('./(app)/vitals/[project]/page'), { project: 'grinex-portal' }, loaders.vitalsProject, { slug: 'grinex-portal' }],
+] as const;
+const HOST_SHELLS = [
+  ['fleet/[project]', () => import('./(app)/fleet/[project]/page')],
+  ['vitals/[project]', () => import('./(app)/vitals/[project]/page')],
 ] as const;
 
 describe('dynamic route pages', () => {
@@ -71,19 +74,16 @@ describe('dynamic route pages', () => {
     expect(nav.notFound).not.toHaveBeenCalled();
   });
 
-  it('fleet ?project= redirects only to a project that exists', async () => {
-    // the page is a <Suspense> around FleetList, its request-time half: the branch is FleetList's
-    const page = (await import('./(app)/fleet/FleetList')).FleetList;
-    nav.redirect.mockImplementation(() => {
-      throw new Error('NEXT_REDIRECT');
-    });
-    loaders.fleetData.mockReturnValue({ projects: [{ id: 'a b' }] });
-    await expect(page({ searchParams: Promise.resolve({ project: 'a b' }) })).rejects.toThrow('NEXT_REDIRECT');
-    expect(nav.redirect).toHaveBeenCalledWith('/fleet/a%20b');
-    nav.redirect.mockClear();
-    await expect(page({ searchParams: Promise.resolve({ project: 'ghost' }) })).resolves.toBeTruthy();
-    await expect(page({ searchParams: Promise.resolve({}) })).resolves.toBeTruthy();
-    expect(nav.redirect).not.toHaveBeenCalled();
+  // Fleet and Vitals are drawn by the screen host: their pages are static shells, and the id's branch (an unknown id is
+  // notFound, fleet's ?project= redirects only to a project that exists) is the stream's, pinned in
+  // fleet/screen/slices.test.ts and vitals/screen/slices.test.ts.
+  it.each(HOST_SHELLS)('%s is a static shell that reads nothing', async (_name, load) => {
+    const page = (await load()).default as () => unknown;
+    // nothing, or only the empty request-time marker a title naming the id needs (as setup/[node])
+    expect(page() === null || isValidElement(page())).toBe(true);
+    expect(loaders.fleetProject).not.toHaveBeenCalled();
+    expect(loaders.vitalsProject).not.toHaveBeenCalled();
+    expect(nav.notFound).not.toHaveBeenCalled();
   });
 
   // Setup's node page is a static shell (its title reads the param, marked as request data); an unknown node is the stream's
@@ -97,7 +97,7 @@ describe('dynamic route pages', () => {
   // ROUTES is typed by hand, so it is held to the [param] folders on disk: a new dynamic route without a branch test (or
   // without its own not-found page) fails here instead of going unseen.
   it('covers every dynamic route folder on disk, each with its own not-found page', () => {
-    const covered = [...ROUTES.map((r) => r[0]), 'task/[id]', 'setup/[node]'].sort();
+    const covered = [...ROUTES.map((r) => r[0]), 'task/[id]', 'setup/[node]', ...HOST_SHELLS.map((r) => r[0])].sort();
     const onDisk = dynamicRoutes(import.meta.dirname);
     expect(onDisk.map(urlOf).sort()).toEqual(covered);
     for (const r of onDisk) expect(existsSync(path.join(import.meta.dirname, r, 'not-found.tsx')), r).toBe(true);
