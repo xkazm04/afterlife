@@ -1,5 +1,8 @@
 # Onboard (`/onboard`)
 
+> The wizard now lives at [`/start`](start.md) (its Pick a repo and Stack steps); `/onboard` redirects there. This page
+> documents the discovery engine those steps use, and the demo estate at `/onboard/estate`.
+
 > Which real project should Afterlife watch, and what in it can be measured?
 
 ## What it does
