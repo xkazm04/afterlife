@@ -9,9 +9,9 @@ export interface StepInput {
   facts: StartFacts;
   probe: { state: ProbeState; running: boolean; sinceS: number };
   repo: { local: boolean; note?: string; picked?: string; name?: string; deriving: boolean; derive?: DeriveAnswer; error?: string; sinceS: number };
-  /** A group id the person typed, when no repo named one. */
+  /** A group id the person typed, when no repo named one. `stack.savedAt`: a saved project's (its lines read from its file). */
   typedGroup?: string;
-  stack: { phase: StackView['phase']; tally: StackView['tally']; running: number | null; total: number; elapsedS: number; error?: OnboardError; slug?: string };
+  stack: { phase: StackView['phase']; tally: StackView['tally']; running: number | null; total: number; elapsedS: number; error?: OnboardError; slug?: string; savedAt?: string };
 }
 
 export type Seen = Pick<StepView, 'state' | 'line' | 'checking' | 'action' | 'input'>;

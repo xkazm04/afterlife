@@ -43,6 +43,7 @@ export function vitalsView(slug: string, s: VitalsSlices): { view: VitalsView; p
     adjustments: s.adjustments.state === 'ok' ? s.adjustments.data.adjustments : [],
     now: config?.now ?? '',
   };
+  if (config?.demo) view.demo = true;
   if (ci?.lastCollected) view.lastCollected = ci.lastCollected;
   if (s.prod.state === 'ok' && s.prod.data.production) view.production = s.prod.data.production;
   if (s.job.state === 'ok' && s.job.data.job) view.job = s.job.data.job;

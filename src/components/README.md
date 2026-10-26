@@ -32,6 +32,12 @@ The rest of the shell works without props:
 - The active navigation item comes from the route.
 - ⌘I (Ctrl+I on Windows and Linux; the tooltip names the key the platform uses) toggles the inspector.
 - Settings is pinned at the bottom of the sidebar.
+- The sidebar has two levels on one sliding track (`sidebar/levels/`). Level one is the app menu, in the four groups of
+  `NAV_GROUPS` (Start, Watch, Govern, Improve; A to Z inside each), then the layout's help section. Level two is the
+  screen in front's own `sidebar` sections under `levels/NestedHead` (the way back, "‹ Menu", and the screen's name). A
+  Window with sections registers them while it is shown (`Frame.registerNested`), which brings the sidebar to level two;
+  a screen without sections leaves it on the menu, and the current screen's menu entry (marked ›) opens its level again.
+  The track slides (a cut under reduced motion) and the level out of view is inert.
 - The status bar's right-hand label follows the data (`ShellInfo.data`, set by the root layout; `bars/dataLabel`). Demo, and any render without a `ShellProvider`: "illustrative demo data". Live: "live data · <group>", plus "some parts still demo, marked" while the source declares illustrative parts. Live on the seeded fake GitLab: "live mode · seeded fake GitLab, not a real group". Live never says "illustrative demo data".
 - Live, the status bar also draws the poll line, `bars/poll/PollStatus({poll})`: the last good poll's age, a failed poll's reason and its Re-poll (one cycle of the whole group). It reads and re-polls through the server; `bars/poll/PollStatusView({poll, repoll, recheck})` is the same line with those two reads injected, which is how `/kit` draws its ok, late and failed tones without polling.
 - Under the toolbar, `bars/estate/DemoEstateBanner` draws the one "Demo data — illustrative" strip on a demo screen (`DEMO_SCREENS` in `src/lib/settings/demoEstate.ts`) whenever a real project is saved or the demo estate is off (`ShellInfo.estate`, read by `live/estateRead`); elsewhere it is a 0-high row. The sidebar nav drops the demo screens while the demo estate is off.

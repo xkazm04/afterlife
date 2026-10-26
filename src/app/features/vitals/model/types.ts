@@ -11,6 +11,8 @@ export interface ProjectRow {
   host: string;
   ci: string;
   cloud: string;
+  /** One of the demo estate's projects (model/demo): its figures are illustrative, generated, never collected. */
+  demo?: true;
 }
 
 /** What a project's stored CI runs say of it (the list's runs slice, per slug). */
@@ -31,6 +33,8 @@ export interface VitalsConfig {
   host: string;
   ci: string;
   cloud: CloudConfig;
+  /** One of the demo estate's projects: nothing to collect or re-measure, and the page says its data is illustrative. */
+  demo?: true;
 }
 
 /** The project page's CI part (its ci slice): the Delivery band and the collect's freshness. */

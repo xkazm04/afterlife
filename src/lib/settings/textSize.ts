@@ -3,7 +3,8 @@
 export const TEXT_SIZES = ['smaller', 'standard', 'larger'] as const;
 export type TextSize = (typeof TEXT_SIZES)[number];
 
-export const DEFAULT_TEXT_SIZE: TextSize = 'standard';
+/** Smaller by default (owner, 2026-10-26): the dense screens read best there; the guide shows where to go bigger. */
+export const DEFAULT_TEXT_SIZE: TextSize = 'smaller';
 export const TEXT_SIZE_STORAGE_KEY = 'afterlife.textSize';
 export const TEXT_SIZE_ATTRIBUTE = 'data-text-size';
 
@@ -31,7 +32,7 @@ export function isTextSize(value: unknown): value is TextSize {
   return typeof value === 'string' && (TEXT_SIZES as readonly string[]).includes(value);
 }
 
-/** Anything unknown, missing or corrupt falls back to Standard. */
+/** Anything unknown, missing or corrupt falls back to the default (Smaller). */
 export function parseTextSize(value: unknown): TextSize {
   return isTextSize(value) ? value : DEFAULT_TEXT_SIZE;
 }

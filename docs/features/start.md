@@ -1,8 +1,22 @@
-# Set up my first project (`/start`)
+# Projects (`/start`)
 
-> From this machine to a watched project: what is done, what is being checked right now, and what is next?
+> Which projects does Afterlife watch on this machine, and for each one (or a new one): what is done, what is being
+> checked right now, and what is next?
 
 ## What it does
+- **Projects** in the menu. The screen's own sidebar sections list the projects saved on this machine
+  (`<data dir>/projects/<slug>.yml`, the files Vitals reads), **Add a project**, and under **Demo estate** a link to
+  `/onboard/estate`, the invented estate's onboarding funnel, marked `demo`.
+- Selection is the URL's: `/start?project=<slug>` is that saved project's orbit; bare `/start` (or `/start?add=1`) is
+  adding a new one, the wizard below. A sidebar row is a host navigation, so back/forward walk the selections and a link
+  deep-links a project. A slug no saved project has says so, with Add a project. Link to `/start?add=1` to mean adding:
+  a bare `/start` link from another screen returns to the query /start was left with (the screen host's rule).
+- A saved project's orbit is the same constellation: its repo is its own root (the remote is read again; no picker, no
+  proposal), glab, the login, the group and live are probed now as for a new one, and **What to watch** and **Save** read
+  its file: the saved lines as the checklist, each with the probe that confirmed it, "confirmed when it was saved, <day>".
+- Demo mode lists the same saved projects (a saved project is the person's own whatever the mode; the demo estate is
+  invented and never written there), so a fresh machine shows "None saved on this machine yet" and Add a project. The
+  demo estate's projects are never listed as yours: only the labelled link to its funnel.
 - One wizard of eight steps, drawn as a constellation: **this machine** glows at the centre, the steps sit on an orbit
   grouped by place (this machine, GitLab, Afterlife): **Pick a repo**, **glab**, **Signed in**, **Group**, **Live**,
   **Stack**, **Save**, **Unlock map**.
@@ -25,8 +39,11 @@
 ## How it works
 - `app/(app)/start/page.tsx` is a static shell: the screen host draws /start (`features/start/screen/host.tsx`, see
   [screen-host.md](screen-host.md)). Its window paints in the click's frame; the facts the server knows without probing
-  (`gate/facts.ts`) and the local repos (this machine only) stream over `GET /api/screen/start` as the `facts` and
-  `repos` slices (`screen/slices.ts`), and "Your repos" is a dash until `repos` lands. The (app) layout's gate
+  (`gate/facts.ts`), the saved projects and the local repos (both this machine only) stream over
+  `GET /api/screen/start` as the `facts`, `projects` and `repos` slices (`screen/slices.ts`); the list and "Your repos"
+  are a dash until their slice lands. `model/projects/saved.ts` holds the slice's shape (`savedOf`), the URL's
+  selection (`selectionOf`) and a saved project's checklist (`savedStack`); `components/projects/ProjectsSidebar.tsx`
+  draws the list into the window's `sidebar`. `useStart` takes the selected `project`; the frame keys the orbit by it. The (app) layout's gate
   (`gate/LiveGate.tsx`) reads the same facts and repos on the server (`gate/repos.ts`). `features/start/hooks/useStart.ts` composes the stream, the repo,
   the stack, the pending action and the chat into one `StartView` (`model/view.ts`); the steps are derived on every
   render (`model/steps/derive.ts`), never stored. `constellation/` draws it (`sky.ts` holds the geometry and the arcs).

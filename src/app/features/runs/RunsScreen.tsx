@@ -6,7 +6,8 @@ import { Window } from '@/components/shell/Window';
 import { MergePanel } from './components/MergePanel';
 import { RunsEmpty } from './components/RunsEmpty';
 import { RunsHeader } from './components/RunsHeader';
-import { RunsTable, waveId } from './components/RunsTable';
+import { LedgerTable } from './components/LedgerTable';
+import { waveOfId } from './model/select';
 import type { MergeNeed } from '@/lib/runs/desk/types';
 import type { RunsData } from '@/lib/runs/types';
 import styles from './RunsScreen.module.css';
@@ -21,6 +22,8 @@ export interface RunsScreenProps {
   fleetError?: string;
 }
 
+const HINT = 'Enter on a lane narrows to its wave, again or Esc shows every lane · click a header to sort';
+
 const subtitleOf = (data: RunsData | undefined): string => {
   if (!data) return '—';
   if (data.repos.length === 0) return 'no runs yet';
@@ -28,16 +31,17 @@ const subtitleOf = (data: RunsData | undefined): string => {
 };
 
 /**
- * Runs: what the runner did, read from .afterlife/runs (real local files, demo and live alike). Repos, their waves, a wave's
- * lanes on Enter. A mergeable wave shows the commands to take it; nothing here writes. `fleetError`: why an invalid
- * .afterlife/fleet.yml did not read (absent when the file is fine or missing). Before the runs are read the window, the
- * totals strip (dashes) and the table's place are drawn, so nothing moves when they land.
+ * Runs: what the runner did, read from .afterlife/runs (real local files, demo and live alike). Every lane of every
+ * wave as one row of a ledger; a selected lane's wave, when the desk says it is mergeable, shows the commands to take
+ * it; nothing here writes. `fleetError`: why an invalid .afterlife/fleet.yml did not read (absent when the file is fine
+ * or missing). Before the runs are read the window, the totals strip (dashes) and the table's place are drawn, so
+ * nothing moves when they land.
  */
 export function RunsScreen({ data, runsError, merges, mergesPending = false, fleetError }: RunsScreenProps) {
   const [selected, setSelected] = useState<string | null>(null);
-  const wave = data?.repos.flatMap((r) => r.waves).find((w) => waveId(w) === selected);
+  const wave = data ? waveOfId(data.repos, selected) : undefined;
   const empty = data !== undefined && data.repos.length === 0;
-  const status = !data ? <Unread label="runs not read yet" /> : empty ? 'No runs in .afterlife/runs' : 'Enter or double-click a wave to open its lanes';
+  const status = !data ? <Unread label="runs not read yet" /> : empty ? 'No runs in .afterlife/runs' : HINT;
   return (
     <Window title="Runs" subtitle={subtitleOf(data)} status={status}>
       <div className={styles.pane}>
@@ -55,7 +59,7 @@ export function RunsScreen({ data, runsError, merges, mergesPending = false, fle
           </Reveal>
         ) : (
           <Reveal order={2} slice="runs" className={styles.table}>
-            {data ? <RunsTable repos={data.repos} selected={selected} onSelect={setSelected} /> : null}
+            {data ? <LedgerTable repos={data.repos} needs={merges} selected={selected} onSelect={setSelected} /> : null}
           </Reveal>
         )}
       </div>

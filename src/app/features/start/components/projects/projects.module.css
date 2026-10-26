@@ -1,0 +1,7 @@
+/* The Projects list's own lines in the sidebar: the note while the list is unread, empty or refused. */
+.note {
+  margin: 2px 8px 4px;
+  font-size: var(--t-small);
+  color: var(--text-3);
+  line-height: 1.4;
+}

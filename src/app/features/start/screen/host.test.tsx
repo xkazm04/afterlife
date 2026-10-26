@@ -3,6 +3,7 @@ import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { SliceFixture } from '@/components/shell/host';
 import { LIVE } from '../model/fixtures/input';
+import { SAVED } from '../model/fixtures/saved';
 import { screens } from './host';
 import { loaders } from './slices';
 
@@ -21,16 +22,18 @@ const render = (slices: Record<string, unknown>, states: Parameters<typeof Slice
 };
 
 describe('/start on the screen host', () => {
-  it('is claimed, its slices in stream order; only "Your repos" is loopback only', () => {
-    expect(def).toMatchObject({ ready: true, slices: ['facts', 'repos'] });
-    expect(Object.keys(loaders.start?.slices ?? {})).toEqual(['facts', 'repos']);
-    expect(loaders.start?.local).toEqual(['repos']);
-    expect(def?.title({}, new URLSearchParams())).toBe('Afterlife · Set up');
+  // the saved projects joined the stream (Projects); they name local roots, so they are loopback only like "Your repos"
+  it('is claimed, its slices in stream order; the saved projects and "Your repos" are loopback only', () => {
+    expect(def).toMatchObject({ ready: true, slices: ['facts', 'projects', 'repos'] });
+    expect(Object.keys(loaders.start?.slices ?? {})).toEqual(['facts', 'projects', 'repos']);
+    expect(loaders.start?.local).toEqual(['projects', 'repos']);
+    expect(def?.title({}, new URLSearchParams())).toBe('Afterlife · Projects');
+    expect(def?.title({}, new URLSearchParams('project=acme-api'))).toBe('Afterlife · Projects · acme-api');
   });
 
   it('unread: the window, its title and Re-check at once; the steps a dash, nothing probed yet', () => {
     const html = render({});
-    expect(html).toContain('Set up my first project');
+    expect(html).toContain('Projects');
     expect(html).toContain('Re-check');
     expect(html).toContain('steps not read yet');
     expect(html).not.toContain('No Claude Code history');
@@ -38,7 +41,7 @@ describe('/start on the screen host', () => {
 
   it('facts read, repos not: the wizard, with "Your repos" a dash and never an empty history', () => {
     const html = render({ facts: LIVE });
-    expect(html).toContain('Set up my first project');
+    expect(html).toContain('Add a project');
     expect(html).toContain('data-reveal');
     expect(html).not.toContain('steps not read yet');
   });
@@ -46,6 +49,14 @@ describe('/start on the screen host', () => {
   it('facts that stand in for the app (live, not ready) draw nothing: the layout gate covers the column', () => {
     expect(render({ facts: { ...LIVE, gate: 'not-ready', projects: null } })).toBe('');
     expect(render({ facts: { ...LIVE, gate: 'not-ready', rehearsal: true } })).toContain('rehearsal');
+  });
+
+  it('?project=<slug>: that saved project’s orbit once the list is read; a dash before; a missing one says so', () => {
+    const saved = render({ facts: LIVE, projects: { projects: [SAVED] } }, {}, 'project=acme-api');
+    expect(saved).toContain('Acme API');
+    expect(saved).toContain('C:/Users/x/acme-api · saved 2026-10-21');
+    expect(render({ facts: LIVE }, {}, 'project=acme-api')).toContain('steps not read yet');
+    expect(render({ facts: LIVE, projects: { projects: [SAVED] } }, {}, 'project=gone')).toContain('No project “gone” is saved on this machine');
   });
 
   it('a facts error says why, in the window', () => {

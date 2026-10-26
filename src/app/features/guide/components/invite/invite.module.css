@@ -1,0 +1,100 @@
+/* The guide's invitation: one quiet bar, top centre of the window, under the toolbar. The dock's tokens and type, so the
+   invitation and the tour it opens read as one thing. */
+.invite {
+  position: absolute;
+  top: calc(var(--tb-h) + 12px);
+  left: 50%;
+  z-index: 46;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 48px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border-3));
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  box-shadow:
+    var(--win-halo),
+    0 0 24px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 16px 40px var(--shade-60);
+  color: var(--text-1);
+  font-family: var(--sys);
+  font-size: calc(var(--t-body) + 1px);
+  line-height: 1.45;
+  animation: drop 0.4s var(--ease) both;
+}
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+}
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 14px var(--accent);
+}
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.text > span {
+  color: var(--text-2);
+}
+.chapter {
+  white-space: nowrap;
+  color: var(--text-1);
+}
+.chapter + .chapter::before {
+  content: ' · ';
+  color: var(--text-3);
+}
+.start,
+.skip {
+  flex: none;
+  font: inherit;
+  font-weight: 600;
+  border-radius: 7px;
+  padding: 7px 14px;
+  border: 1px solid var(--border-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.start {
+  background: var(--accent);
+  color: var(--ink-accent);
+  border-color: var(--accent);
+}
+.start kbd {
+  margin-left: 6px;
+  font: var(--t-small) var(--mono);
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--ink-accent) 40%, transparent);
+}
+.skip {
+  background: none;
+  color: var(--text-2);
+}
+.skip:hover {
+  color: var(--text-1);
+  background: var(--ctl-hover);
+}
+.start:focus-visible,
+.skip:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+@media (prefers-reduced-motion: reduce) {
+  .invite {
+    animation: none;
+  }
+}

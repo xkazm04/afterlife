@@ -10,6 +10,6 @@ export interface ShortcutRow {
 export const SHORTCUTS: readonly ShortcutRow[] = [
   { label: 'Larger text', mac: ['⌘', '='], other: ['Ctrl', '='] },
   { label: 'Smaller text', mac: ['⌘', '-'], other: ['Ctrl', '-'] },
-  { label: 'Standard size', mac: ['⌘', '0'], other: ['Ctrl', '0'] },
+  { label: 'Default size (Smaller)', mac: ['⌘', '0'], other: ['Ctrl', '0'] },
   { label: 'Toggle the inspector, on a screen that has one', mac: ['⌘', 'I'], other: ['Ctrl', 'I'] },
 ];

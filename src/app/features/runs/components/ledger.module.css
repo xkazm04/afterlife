@@ -1,0 +1,52 @@
+/* Ledger: a band (the outcome filter, the wave it is narrowed to) over a flat table that takes the height left. */
+.root {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+.band {
+  flex: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: calc(14px * var(--ui-scale));
+  padding: calc(4px * var(--ui-scale)) calc(16px * var(--ui-scale)) calc(8px * var(--ui-scale));
+}
+.only {
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+  font-size: var(--t-body);
+  color: var(--text-2);
+}
+.body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.title,
+.why {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.title {
+  color: var(--text-1);
+}
+.why {
+  color: var(--text-2);
+}
+.dim {
+  color: var(--text-3);
+}
+.repo {
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wave {
+  flex: none;
+  margin-left: calc(6px * var(--ui-scale));
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}

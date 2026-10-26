@@ -32,12 +32,13 @@ function stackStep(i: StepInput): Seen {
   }
   if (s.phase === 'pick') return s.error ? { state: 'blocked', line: s.error.error } : { state: 'todo', line: 'waits for the proposal' };
   if (!s.tally.saved) return { state: 'blocked', line: 'no line was confirmed: fix a login, then Re-run' };
+  if (s.savedAt) return { state: 'done', line: `${s.tally.saved} of ${s.tally.total} lines confirmed when it was saved, ${s.savedAt}` };
   return { state: 'done', line: `${s.tally.saved} of ${s.tally.total} lines confirmed${s.tally.failed ? `, ${s.tally.failed} failed` : ''}` };
 }
 
 function saveStep(i: StepInput): Seen {
   const s = i.stack;
-  if (s.phase === 'saved') return { state: 'done', line: `saved as ${s.slug ?? 'the project'}: Vitals collects from it` };
+  if (s.phase === 'saved') return { state: 'done', line: `saved as ${s.slug ?? 'the project'}${s.savedAt ? ` on ${s.savedAt}` : ''}: Vitals collects from it` };
   if (s.phase === 'saving') return { state: 'checking', line: 'saving the confirmed lines…', checking: { what: 'the save', on: 'Afterlife', sinceS: 0 } };
   if (s.phase === 'review' && s.error) return { state: 'blocked', line: s.error.error };
   if (s.phase === 'review' && s.tally.saved) return { state: 'you', line: `save the ${s.tally.saved} confirmed lines`, action: { kind: 'save-project' } };

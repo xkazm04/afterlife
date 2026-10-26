@@ -6,8 +6,9 @@
 // Reveal order:
 //   0  window chrome                                   at once
 //   1  totals strip (dashes until read)                runs
-//   2  the waves table, or the empty note              runs
-//   -  a selected mergeable wave's card fills its commands in place when `merges` lands
+//   2  the lane ledger, or the empty note              runs
+//   -  a selected lane's mergeable wave: its card fills its commands in place, and the wave state chips say whether
+//      there is anything to take, when `merges` lands
 import type { MergeNeed } from '@/lib/runs/desk/types';
 import type { RunsData } from '@/lib/runs/types';
 import { useSlice, type ScreenDef } from '@/components/shell/host';

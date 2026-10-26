@@ -9,37 +9,41 @@
 //                     ci          - Delivery (the variants), runs stored, last collected (the ci-runs jsonl);
 //                     prod        - Production (the signals with deploys marked), omitted with no cloud;
 //                     adjustments - each claim beside Afterlife's measurements.
+// While the demo estate is on (the Settings cookie, read per request) both keys also show the demo projects
+// (model/demo), marked `demo`, after the saved ones; theirs are generated, never read from disk.
 import { notFound, ok, type ModuleLoaders, type SliceResult } from '@/app/features/screens/types';
-import type { ProjectConfig } from '@/schemas/vitals';
+import { readEstate } from '@/components/shell/live/estateRead';
 import { jobOf } from '../data/jobs';
-import { loadAdjustments, loadCi, loadProd, loadVitalsConfig, loadVitalsRuns, projectConfig } from '../data/loadVitals';
-import { configView } from '../model/view';
+import { loadAdjustments, loadCi, loadConfig, loadProd, loadVitalsConfig, loadVitalsRuns, projectConfig, type Shown } from '../data/loadVitals';
 
-/** A slice of one project: notFound when no saved project has the slug. */
-const of = (read: (cfg: ProjectConfig) => unknown) => ({ params }: { params: Readonly<Record<string, string>> }): SliceResult => {
-  const cfg = projectConfig(params.project ?? '');
-  return cfg ? ok(read(cfg)) : notFound();
+/** Whether the demo estate shows: unreadable is off (only the saved projects, as before the demo estate). */
+const demoOn = async (): Promise<boolean> => (await readEstate())?.demo ?? false;
+
+/** A slice of one project: notFound when no shown project (saved, or demo while it is on) has the slug. */
+const of = (read: (p: Shown) => unknown) => async ({ params }: { params: Readonly<Record<string, string>> }): Promise<SliceResult> => {
+  const p = projectConfig(params.project ?? '', await demoOn());
+  return p ? ok(read(p)) : notFound();
 };
 
 export const loaders: ModuleLoaders = {
   vitals: {
     local: true,
     slices: {
-      config: () => ok({ projects: loadVitalsConfig() }),
-      runs: () => ok({ now: new Date().toISOString(), bySlug: loadVitalsRuns() }),
+      config: async () => ok({ projects: loadVitalsConfig(await demoOn()) }),
+      runs: async () => ok({ now: new Date().toISOString(), bySlug: loadVitalsRuns(await demoOn()) }),
     },
   },
   'vitals/[project]': {
     local: true,
     slices: {
-      config: of((cfg) => ({ ...configView(cfg), now: new Date().toISOString() })),
-      job: of((cfg) => {
-        const job = jobOf(cfg.slug);
+      config: of((p) => ({ ...loadConfig(p), now: new Date().toISOString() })),
+      job: of((p) => {
+        const job = p.demo ? undefined : jobOf(p.cfg.slug);
         return job ? { job } : {};
       }),
       ci: of(loadCi),
-      prod: of((cfg) => loadProd(cfg, new Date().toISOString())),
-      adjustments: of((cfg) => ({ adjustments: loadAdjustments(cfg) })),
+      prod: of((p) => loadProd(p, new Date().toISOString())),
+      adjustments: of((p) => ({ adjustments: loadAdjustments(p) })),
     },
   },
 };

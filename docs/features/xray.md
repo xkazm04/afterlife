@@ -14,13 +14,12 @@
   tour the layer draws no part (never the last screen's), and the panel says "not labelled" and lists the tour from `TOUR`.
 
 ## When it opens
-- First visit to the demo (a per-browser flag, `takeFirstVisit`), on Fleet.
-- `?xray=1` on any screen: the palette's "Show X-ray" (to Fleet), and the sidebar's First run links, one per screen.
+- Only when asked: it never opens by itself. First run belongs to the guide (`features/guide`), which turns the X-ray
+  off while it plays.
+- `?xray=1` on any screen: the palette's "Show X-ray" (to Fleet).
 - X (not while typing), the sidebar's "X-ray this screen", or the help popover's "?" (the `afterlife:xray` window event).
-- Live mode with nothing to show (before the first poll, or an empty group): the (app) layout's gate covers the column
-  with /start; the sidebar's "Set up my first project" and the end of the tour lead there too.
-- Escape closes it (as the top overlay layer). Screens seen are kept per browser (Settings lists the two browser keys it keeps);
-  a browser that refuses storage keeps them for the page only, and never counts as a first visit.
+- The end of the tour offers "Add your own project" (`/start?add=1`, Projects).
+- Escape closes it (as the top overlay layer). It keeps nothing in the browser.
 
 ## The content contract
 Each screen is one `readonly Callout[]` in `callouts/screens/<group>/<screen>.ts`, exported by wire name (`FLEET`,

@@ -42,14 +42,17 @@ export const helpCallout: Callout = {
   try: 'Click ?',
 };
 
+/** The sidebar level in view: the menu, or the screen's own sections under the way back (the other level is inert). */
+const SIDEBAR = '[data-sidebar-pane]:not([inert])';
+
 /** The sidebar, on any screen: the way to every other screen, with what waits on Needs you. */
 export const navCallout = (here: string): Callout => ({
   id: 'nav',
   kind: 'shell',
-  sel: NAV,
+  sel: SIDEBAR,
   title: 'The screens',
   body: (r) => {
     const badge = r.text(`${NAV} [role="img"]`);
-    return `Every screen is one click here; you are on ${here}.${badge ? ` The amber ${badge} on Needs you is what waits for you now.` : ''}`;
+    return `Every screen is in the menu, in four groups: Start, Watch, Govern, Improve; you are on ${here}. A screen with lists of its own opens them here, with ‹ Menu to go back.${badge ? ` The amber ${badge} on Needs you is what waits for you now.` : ''}`;
   },
 });

@@ -30,7 +30,7 @@ const ACTIONS: readonly Omit<PaletteItem, 'hint'>[] = [
   { id: 'a:revoke', kind: 'action', label: 'Take autonomy back', href: '/ladder', keywords: 'revoke quarantine demote tier' },
   { id: 'a:guide', kind: 'action', label: 'Watch the guide', href: '/fleet?guide=1', keywords: 'onboarding tour help first run replay concepts proof tier tripwire' },
   { id: 'a:xray', kind: 'action', label: 'Show X-ray', href: '/fleet?xray=1', keywords: 'help label parts columns legend' },
-  { id: 'a:first', kind: 'action', label: 'Set up my first project', href: '/start', keywords: 'onboarding onboard trace repo glab login group live doctor setup connect' },
+  { id: 'a:first', kind: 'action', label: 'Add a project', href: '/start?add=1', keywords: 'projects set up first onboarding onboard trace repo glab login group live doctor setup connect' },
   { id: 'a:text', kind: 'action', label: 'Change the text size', href: '/settings/display', keywords: 'font larger smaller zoom' },
 ];
 

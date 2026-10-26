@@ -1,7 +1,7 @@
 /* D10: three text-size scales. ONE attribute switches them: html[data-text-size="smaller" | "standard" | "larger"].
    Every component sizes itself from these variables, never from literal px. Standard is the default; the inline
-   boot script (lib/settings/TextSizeBoot) sets the attribute before first paint. */
-:root,
+   boot script (lib/settings/TextSizeBoot) sets the attribute before first paint. Smaller is the default (DEFAULT_TEXT_SIZE),
+   so it is also what :root falls back to. */
 html[data-text-size="standard"] {
   --t-body: 15px; /* table, sidebar, inspector body */
   --t-head: 14px; /* column headers, captions */
@@ -14,6 +14,7 @@ html[data-text-size="standard"] {
   --iw: clamp(340px, 24vw, 430px);
   --ui-scale: 1.15;
 }
+html:not([data-text-size]),
 html[data-text-size="smaller"] {
   --t-body: 13px;
   --t-head: 12px;

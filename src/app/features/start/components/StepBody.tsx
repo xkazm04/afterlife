@@ -59,7 +59,9 @@ export function StepBody({ view, step }: { view: StartView; step: StepView }) {
       {/* a check's own line says only what CheckingLine says with its seconds: then CheckingLine stands in for it */}
       {step.checking && step.line === `checking ${step.checking.what}…` ? null : <p className={styles.line}>{step.line}</p>}
       {step.checking ? <CheckingLine checking={step.checking} /> : null}
-      {step.key === 'repo' && step.state !== 'blocked' ?<RepoPicker repo={view.repo} /> : null}
+      {/* a saved project's repo is its own: picking another is adding a project (the Projects list's Add a project) */}
+      {step.key === 'repo' && step.state !== 'blocked' && !view.project ? <RepoPicker repo={view.repo} /> : null}
+      {step.key === 'repo' && view.project ? <p className={styles.dim}>{view.project.root}</p> : null}
       {step.key === 'stack' && view.repo.picked ? <StackList stack={view.stack} onCopy={(c) => void writeClip(c, navigator.clipboard)} /> : null}
       {step.input === 'group-id' ? <GroupInput onUse={view.setGroup} /> : null}
       {step.commands.length ? <CommandBlock commands={step.commands} label={`Command for ${step.title}`} /> : null}

@@ -22,6 +22,7 @@ const EXEMPT: Record<string, string> = {
   AdoptedShell: 'holds the root layout shell state for app/Providers: it draws nothing of its own',
   ShellAdopt: 'hands the request-time shell read to AdoptedShell: it draws nothing',
   ScreenHost: 'mounted once by the (app) layout around every screen, /kit included: it draws the screens, nothing of its own',
+  NestedHead: 'part of the sidebar every screen draws, /kit included: the second level’s head, shown whenever a screen has sections',
   ScreenScope: "the host's per-screen context provider: it draws nothing",
   HostNotFound: "a Window with one note, drawn by the host for a notFound slice; /kit shows Window",
 };

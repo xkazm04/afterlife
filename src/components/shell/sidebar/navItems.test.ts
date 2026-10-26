@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ALL_NAV, APP_NAV, SETTINGS_NAV, activeNavKey, navEntryFor } from './navItems';
+import { ALL_NAV, APP_NAV, NAV_GROUPS, SETTINGS_NAV, activeNavKey, navEntryFor } from './navItems';
 
 // The routes are the ground truth: a top-level route folder that holds a page.tsx is a screen. Route groups add no URL
 // segment, so their folders are searched as top level (the windowed screens live in "(app)"). The screens the nav leaves out
@@ -52,8 +52,15 @@ describe('activeNavKey', () => {
 });
 
 describe('nav data', () => {
-  it('lists the twelve screens in order, Vitals first, Settings apart', () => {
-    expect(APP_NAV.map((e) => e.label)).toEqual(['Vitals', 'Fleet', 'Monitor', 'Needs you', 'Ladder', 'Maturity', 'Cycles', 'Task', 'Set up', 'Setup', 'Theater', 'Runs']);
+  it('groups the twelve screens in the order a person meets them, A to Z inside a group, Settings apart', () => {
+    expect(NAV_GROUPS.map((g) => [g.label, g.entries.map((e) => e.label)])).toEqual([
+      ['Start', ['Projects', 'Setup']],
+      ['Watch', ['Fleet', 'Monitor', 'Theater', 'Vitals']],
+      ['Govern', ['Ladder', 'Needs you', 'Task']],
+      ['Improve', ['Cycles', 'Maturity', 'Runs']],
+    ]);
+    for (const g of NAV_GROUPS) expect(g.entries.map((e) => e.label)).toEqual(g.entries.map((e) => e.label).sort((a, b) => a.localeCompare(b)));
+    expect(APP_NAV).toEqual(NAV_GROUPS.flatMap((g) => g.entries));
     expect(SETTINGS_NAV.href).toBe('/settings/display');
     expect(APP_NAV.filter((e) => e.needsYouBadge).map((e) => e.key)).toEqual(['needs-you']);
   });

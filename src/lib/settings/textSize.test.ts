@@ -13,10 +13,10 @@ import {
 
 describe('text size parsing', () => {
   it('defaults to Standard', () => {
-    expect(DEFAULT_TEXT_SIZE).toBe('standard');
-    expect(parseTextSize(null)).toBe('standard');
-    expect(parseTextSize('huge')).toBe('standard');
-    expect(parseTextSize(42)).toBe('standard');
+    expect(DEFAULT_TEXT_SIZE).toBe('smaller');
+    expect(parseTextSize(null)).toBe('smaller');
+    expect(parseTextSize('huge')).toBe('smaller');
+    expect(parseTextSize(42)).toBe('smaller');
   });
   it('accepts the three sizes', () => {
     for (const s of ['smaller', 'standard', 'larger']) {
@@ -41,7 +41,7 @@ describe('keyboard intent', () => {
   });
   it('applies an intent', () => {
     expect(applyIntent('smaller', 'bigger')).toBe('standard');
-    expect(applyIntent('larger', 'reset')).toBe('standard');
+    expect(applyIntent('larger', 'reset')).toBe('smaller');
     expect(applyIntent('smaller', 'smaller')).toBe('smaller');
   });
 });

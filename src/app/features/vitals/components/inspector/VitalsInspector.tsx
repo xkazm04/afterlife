@@ -14,6 +14,6 @@ export function VitalsInspector({ view, picked, onQueue }: { view: VitalsView; p
   const signal = view.production?.find((r) => signalId(r.signal) === picked);
   if (signal) return <SignalInspector row={signal} />;
   const adj = view.adjustments.find((r) => adjustmentId(r.claim.id) === picked);
-  if (adj) return <AdjustmentInspector row={adj} slug={view.slug} onQueue={onQueue ?? (() => {})} />;
+  if (adj) return <AdjustmentInspector row={adj} slug={view.slug} onQueue={onQueue ?? (() => {})} demo={!!view.demo} />;
   return <p className={styles.note}>Select a variant, a signal or an adjustment.</p>;
 }

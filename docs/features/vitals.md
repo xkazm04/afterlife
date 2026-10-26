@@ -47,6 +47,10 @@
   the demo screens (Fleet, Monitor, Needs you, Ladder, Maturity, Cycles, Task, Setup, Theater). Their routes still
   answer and wear the **Demo data — illustrative** strip, which every demo screen also wears while it is on and a real
   project exists. The front door's Enter Afterlife goes to `/vitals` once a real project is saved, else to `/fleet`.
+  While it is on, Vitals also lists three of the demo estate's projects (ledgerline, ledgerline-web, payments-gateway
+  of acme-lab) after the real ones, each marked **demo**, with every band drawn from illustrative figures
+  (`features/vitals/model/demo/`). Their pages say "illustrative demo data", offer no Refresh or re-measure and never
+  collect. A real project with the same slug hides the demo one.
 
 ## How it works
 The screen host draws both screens (`features/vitals/screen/host.tsx`; the route pages are static shells). Their
@@ -82,7 +86,8 @@ is a notFound slice.
 ## Rules it keeps
 - **Unknown is never zero**: an absent figure is an omitted key and draws a dash; a variant with no run says "no runs";
   a signal with no bin in the last 24 h has no figure; a project never collected reads "never".
-- **No demo number**: every figure on these two routes comes from the files Afterlife collected for a real project.
+- **No demo number on a real project**: every figure of a real project comes from the files Afterlife collected for it;
+  a demo project's are generated, and its row, page and status line say so.
 - **The claim never decides**: an adjustment's state reads only Afterlife's latest measurement.
 - **Writes are the person's click**: Refresh only reads the providers, through the person's own CLI login. Queue N
   runs is a write as the person: the server's preview first, confirmed on a click (`src/server/actions/README.md`).

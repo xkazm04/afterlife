@@ -149,3 +149,9 @@
   background: none;
   border: 1px dashed var(--unknown);
 }
+/* a list row's name, with the demo mark after it for a demo estate project */
+.name {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6px * var(--ui-scale));
+}

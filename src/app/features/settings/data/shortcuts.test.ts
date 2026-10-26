@@ -11,7 +11,7 @@ import { TEXT_SIZE_HOTKEYS } from '@/lib/settings/TextSizeShortcuts';
 import { SHORTCUTS } from './shortcuts';
 
 /** Each label's press from a size, and the size it must leave on screen. */
-const MOVES: Record<string, readonly [from: TextSize, to: TextSize]> = { 'Larger text': ['standard', 'larger'], 'Smaller text': ['standard', 'smaller'], 'Standard size': ['larger', 'standard'] };
+const MOVES: Record<string, readonly [from: TextSize, to: TextSize]> = { 'Larger text': ['standard', 'larger'], 'Smaller text': ['standard', 'smaller'], 'Default size (Smaller)': ['larger', 'smaller'] };
 const INSPECTOR = 'Toggle the inspector, on a screen that has one';
 
 let attrs: Record<string, string>;
@@ -47,7 +47,7 @@ describe('SHORTCUTS', () => {
     expect(press('standard', 'a', { ctrlKey: true })).toBeNull();
   });
   it('lists all three text-size actions and the inspector toggle, nothing else', () => {
-    expect(SHORTCUTS.map((s) => s.label)).toEqual(['Larger text', 'Smaller text', 'Standard size', INSPECTOR]);
+    expect(SHORTCUTS.map((s) => s.label)).toEqual(['Larger text', 'Smaller text', 'Default size (Smaller)', INSPECTOR]);
   });
 });
 

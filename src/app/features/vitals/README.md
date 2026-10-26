@@ -23,4 +23,9 @@ the person's own az / glab login. Full description: `docs/features/vitals.md`.
   `LoginExpired` with Copy Command).
 - `hooks/useCollect.ts`: Refresh, the one collect on open (`collectOnOpen`, decided once per showing of the screen, on
   that showing's fresh read), the 5 s re-read (the host's revalidate) while a job runs.
+- `model/demo/`: the demo estate's projects (ledgerline, ledgerline-web, payments-gateway of acme-lab, from
+  belay-demo.json). While the demo estate is on (`estate.demo`, read per request from the Settings cookie) both slices
+  list them after the saved projects, marked `demo` (a saved project wins its slug). Their runs, production bins and
+  adjustments are generated from the clock (`ci.ts`, `signals.ts`), never read from disk; the pages say "illustrative
+  demo data", Refresh is off, nothing collects on open and no re-measure is offered.
 - `data/__fixtures__/grinex.ts`: the Grinex-shaped fixture every test renders from.

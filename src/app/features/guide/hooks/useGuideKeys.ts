@@ -11,7 +11,7 @@ import { guideStore } from '../model/store';
 const close = () => guideStore.close();
 
 // Built once: every handler goes through the store, so none closes over render state. Escape is the overlay stack's
-// (onEscape), so a popover opened over the guide closes first; G only opens.
+// (onEscape), so a popover opened over the guide closes first; Shift+G only opens.
 const KEYS = bindKeymap(GUIDE_KEYMAP, {
   open: () => guideStore.open(),
   prev: () => guideStore.send({ type: 'prev' }),
@@ -24,15 +24,15 @@ const KEYS = bindKeymap(GUIDE_KEYMAP, {
   },
   leave: close,
 });
-const OPEN = KEYS.filter((k) => k.key === 'g');
-const PLAYING = KEYS.filter((k) => k.key !== 'g' && k.key !== 'Escape');
+const OPEN = KEYS.filter((k) => k.key === 'G');
+const PLAYING = KEYS.filter((k) => k.key !== 'G' && k.key !== 'Escape');
 
 /**
- * G opens the guide from any screen while it can play (`available`: the demo estate). While it is on, its keys are heard
- * before the screen's own, and Escape leaves it.
+ * Shift+G opens the guide from any screen while it can play (`available`: the demo estate), heard before the screen so a
+ * focused table's type-ahead cannot take it. While it is on, its keys are heard first too, and Escape leaves it.
  */
 export function useGuideKeys(on: boolean, available: boolean): void {
-  useHotkeys(OPEN, available && !on);
+  useHotkeys(OPEN, available && !on, true);
   useHotkeys(PLAYING, on, true);
   useEffect(() => (on ? onEscape(close) : undefined), [on]);
 }

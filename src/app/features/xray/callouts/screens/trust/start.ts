@@ -1,4 +1,4 @@
-// Set up my first project (/start): one wizard from this machine through GitLab to Afterlife. Introduces the module,
+// Projects (/start): the saved projects and the one wizard that adds one, from this machine through GitLab to Afterlife. Introduces the module,
 // the steps (one legend: the rail is the screen), the two ways through a step, and checking again. Replaces the Trace and
 // Onboard tours (both screens redirect here).
 import type { Callout, LegendEntry } from '../../../model/types';
@@ -25,10 +25,10 @@ export const START: readonly Callout[] = [
     id: 'module',
     kind: 'module',
     sel: 'main',
-    title: 'Set up my first project',
+    title: 'Projects',
     body: (r) => {
       const [done = '', of = ''] = /(\d+) of (\d+) done/.exec(r.text(STATUS))?.slice(1) ?? [];
-      return `Is this machine, my GitLab login and my group ready, and what in my repo can be watched?${of ? ` ${done} of ${of} steps are done now.` : ''} Each step is read from the app’s own probes as they stream.`;
+      return `Which projects does Afterlife know here, and for the one in front: is this machine, my GitLab login and my group ready, and what in it can be watched?${of ? ` ${done} of ${of} steps are done now.` : ''} Each step is read from the app’s own probes as they stream.`;
     },
   },
   {

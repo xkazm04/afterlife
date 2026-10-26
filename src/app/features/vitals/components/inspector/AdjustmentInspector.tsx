@@ -11,9 +11,9 @@ import { AdjustmentActions } from './AdjustmentActions';
 
 /**
  * A picked adjustment: the claim as made (the agent's figures, labelled as theirs) and, beside it, Afterlife's own
- * latest measurement and its verdict. The verdict reads the measurement alone.
+ * latest measurement and its verdict. The verdict reads the measurement alone. A demo project's (`demo`) offers no re-measure.
  */
-export function AdjustmentInspector({ row, slug, onQueue }: { row: AdjustmentRow; slug: string; onQueue: (row: AdjustmentRow) => void }) {
+export function AdjustmentInspector({ row, slug, onQueue, demo = false }: { row: AdjustmentRow; slug: string; onQueue: (row: AdjustmentRow) => void; demo?: boolean }) {
   const c = row.claim;
   const m = row.measurement;
   const ref = [c.ref.branch, c.ref.mr, c.ref.sha].filter(Boolean).join(' · ');
@@ -54,7 +54,11 @@ export function AdjustmentInspector({ row, slug, onQueue }: { row: AdjustmentRow
         )}
       </InspectorSection>
       <InspectorSection title="Re-measure">
-        <AdjustmentActions slug={slug} row={row} onQueue={onQueue} />
+        {demo ? (
+          <p className={styles.note}>A demo project: its measurements are illustrative and nothing was collected, so there is nothing to re-measure.</p>
+        ) : (
+          <AdjustmentActions slug={slug} row={row} onQueue={onQueue} />
+        )}
       </InspectorSection>
     </>
   );

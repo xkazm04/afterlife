@@ -13,6 +13,7 @@ import { DeliveryBand, variantId } from './components/bands/DeliveryBand';
 import { ProductionBand } from './components/bands/ProductionBand';
 import { VitalsInspector } from './components/inspector/VitalsInspector';
 import { CollectNotice } from './components/states/CollectNotice';
+import { DemoLabel, DemoNotice } from './components/states/DemoNote';
 import { Unreadable } from './components/states/Unreadable';
 import { QueueSheet } from './components/write/QueueSheet';
 import { useCollect } from './hooks/useCollect';
@@ -46,7 +47,8 @@ export function VitalsBody({ view, pending = {}, starting = false, refused, onRe
     setPicked(id);
     setOpen(true);
   };
-  const busy = starting || (!!view.job && !view.job.done) || !!pending.job || !!pending.config;
+  // a demo project has nothing to collect: Refresh stays off
+  const busy = !!view.demo || starting || (!!view.job && !view.job.done) || !!pending.job || !!pending.config;
   const collecting = view.job && !view.job.done;
   const collected = pending.ci || pending.config ? (
     <>
@@ -76,7 +78,7 @@ export function VitalsBody({ view, pending = {}, starting = false, refused, onRe
           </Link>
           <Spacer />
           <span className={styles.collected} data-xray="collected">{collected}</span>
-          <Button size="mini" onClick={onRefresh} disabled={busy} title="Collect CI runs and production points since the newest stored">
+          <Button size="mini" onClick={onRefresh} disabled={busy} title={view.demo ? 'A demo project: nothing to collect' : 'Collect CI runs and production points since the newest stored'}>
             Refresh
           </Button>
         </>
@@ -88,9 +90,10 @@ export function VitalsBody({ view, pending = {}, starting = false, refused, onRe
       }
       inspectorOpen={open}
       onInspectorOpenChange={setOpen}
-      realData
+      realData={!view.demo}
       status={
         <>
+          {view.demo ? <DemoLabel realData={false} /> : null}
           {counts} · {collected} · {pending.config ? <Unread label="root not read yet" /> : view.root}
         </>
       }
@@ -98,7 +101,8 @@ export function VitalsBody({ view, pending = {}, starting = false, refused, onRe
       <PaneScroll>
         <div className={styles.bands}>
           {unreadable ? <Unreadable what="This project's vitals" reason={unreadable} /> : null}
-          {pending.config || pending.job ? null : <CollectNotice job={view.job} refused={refused} starting={starting} now={view.now} />}
+          {view.demo ? <DemoNotice name={view.name} /> : null}
+          {pending.config || pending.job || view.demo ? null : <CollectNotice job={view.job} refused={refused} starting={starting} now={view.now} />}
           <Reveal order={1} slice="ci">
             {pending.ci ? <BandPending id="delivery" title="Delivery" reason={reasonOf(pending.ci)} /> : <DeliveryBand rows={view.delivery} selected={picked} onSelect={setPicked} onActivate={activate} />}
           </Reveal>
@@ -128,9 +132,11 @@ export function VitalsBody({ view, pending = {}, starting = false, refused, onRe
  * Adjustments (claims beside Afterlife's measurements). A picked row opens in the inspector. Read-only, except
  * Refresh, which collects through the person's own az / glab login, and an adjustment's re-measures (Queue N runs is
  * a write as the person: its sheet shows the server's exact commands first). The screen host draws it from five slices
- * (screen/host.tsx); `pending` marks the parts not read yet.
+ * (screen/host.tsx); `pending` marks the parts not read yet. A demo estate project (`view.demo`) draws the same bands
+ * from illustrative figures, says so, and offers neither Refresh nor a re-measure.
  */
 export function VitalsScreen({ view, pending = {} }: { view: VitalsView; pending?: VitalsPending }) {
-  const c = useCollect(view, !pending.config && !pending.ci && !pending.job);
+  // a demo project never collects on open: nothing behind it to collect from
+  const c = useCollect(view, !pending.config && !pending.ci && !pending.job && !view.demo);
   return <VitalsBody view={view} pending={pending} starting={c.starting} refused={c.refused} onRefresh={c.refresh} />;
 }

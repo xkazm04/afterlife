@@ -1,13 +1,13 @@
 'use client';
 
 import { useHostNav } from '@/components/shell/host';
-import { CLAIM, RECAP } from '../model/recap';
+import { CLAIM, MOMENTS, RECAP_CHAPTERS } from '../model/recap';
 import { guideStore } from '../model/store';
 import styles from './recap.module.css';
 
 /**
- * The last step: the six ideas the story showed, each with the step that replays it and the real screen it lives on.
- * Opening a screen ends the guide there; the way on is setting up a first project of your own.
+ * The last step: the path as a map. The four chapters are the sidebar's groups, each with its screens (opening one ends
+ * the guide there), then the moments the story can replay, and the way on: setting up a first project of your own.
  */
 export function Recap() {
   const nav = useHostNav();
@@ -22,25 +22,34 @@ export function Recap() {
           {CLAIM.lead}
           <em>{CLAIM.mark}</em>.
         </h2>
-        <div className={styles.grid}>
-          {RECAP.map((r) => (
-            <div key={r.name} className={styles.it}>
-              <b>{r.name}</b>
-              <span>{r.line}</span>
+        <ol className={styles.grid}>
+          {RECAP_CHAPTERS.map((c, i) => (
+            <li key={c.key} className={styles.it}>
+              <b>
+                {i + 1} · {c.label}
+              </b>
+              <span>{c.line}</span>
               <div className={styles.links}>
-                <button type="button" onClick={() => guideStore.send({ type: 'go', to: r.step })}>
-                  Replay it
-                </button>
-                <button type="button" onClick={() => leave(r.href)}>
-                  See it on {r.href}
-                </button>
+                {c.screens.map((s) => (
+                  <button key={s.key} type="button" onClick={() => leave(s.href)}>
+                    {s.label}
+                  </button>
+                ))}
               </div>
-            </div>
+            </li>
+          ))}
+        </ol>
+        <div className={styles.moments}>
+          <span>Replay a moment</span>
+          {MOMENTS.map((m) => (
+            <button key={m.name} type="button" onClick={() => guideStore.send({ type: 'go', to: m.step })}>
+              {m.name}
+            </button>
           ))}
         </div>
         <div className={styles.cta}>
-          <button type="button" className={styles.primary} onClick={() => leave('/start')}>
-            Set up your first project: /start
+          <button type="button" className={styles.primary} onClick={() => leave('/start?add=1')}>
+            Add your first project
           </button>
           <button type="button" onClick={() => leave('/needs-you')}>
             Open Needs you

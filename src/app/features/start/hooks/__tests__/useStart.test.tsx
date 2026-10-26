@@ -3,6 +3,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { installFakeDom } from '@/components/shell/frame/fakeDom';
 import { LIVE } from '../../model/fixtures/input';
+import { SAVED } from '../../model/fixtures/saved';
 import type { StartView } from '../../model/view';
 
 const router = vi.hoisted(() => ({ refresh: vi.fn(), replace: vi.fn() }));
@@ -29,8 +30,8 @@ vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
 });
 
 const got: { view: StartView | null } = { view: null };
-function Probe() {
-  const v = useStart({ facts: LIVE, repos: [], local: true });
+function Probe({ project }: { project?: typeof SAVED }) {
+  const v = useStart({ facts: LIVE, repos: [], local: true, project });
   useEffect(() => {
     got.view = v;
   });
@@ -87,6 +88,18 @@ describe('useStart over the probe stream', () => {
     expect(step('glab').state).toBe('checking');
     await send({ t: 'node', key: 'glab', read: pass('new stream') }, second);
     expect(step('glab')).toMatchObject({ state: 'done', line: 'new stream' });
+    await act(async () => root.unmount());
+  });
+
+  it('a saved project: its root is derived on mount and nothing is proposed; its lines and save read from its file', async () => {
+    const root = createRoot(container as unknown as HTMLElement);
+    const before = runs.length;
+    await act(async () => root.render(createElement(Probe, { project: SAVED })));
+    expect(runs.slice(before).map((r) => r.url).sort()).toEqual(['/api/start/derive', '/api/start/probe']);
+    expect(view().project).toEqual({ slug: 'acme-api', name: 'Acme API', root: SAVED.root, savedAt: '2026-10-21' });
+    expect(view().repo.picked).toBe(SAVED.root);
+    expect(step('stack')).toMatchObject({ state: 'done', line: '3 of 3 lines confirmed when it was saved, 2026-10-21' });
+    expect(step('save')).toMatchObject({ state: 'done', line: 'saved as acme-api on 2026-10-21: Vitals collects from it' });
     await act(async () => root.unmount());
   });
 });

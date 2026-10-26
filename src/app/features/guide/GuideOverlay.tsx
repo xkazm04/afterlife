@@ -5,7 +5,9 @@ import { xrayStore } from '@/app/features/xray/model/store';
 import { Dock } from './components/Dock';
 import { GuideController } from './components/GuideController';
 import { GuideLayer } from './components/GuideLayer';
+import { Invite } from './components/invite/Invite';
 import { Recap } from './components/Recap';
+import { useDemo } from './hooks/useDemo';
 import { useStage } from './hooks/useStage';
 import { STEPS } from './model/steps';
 import { entryOf, useGuide } from './model/store';
@@ -13,8 +15,8 @@ import styles from './components/layer.module.css';
 
 /**
  * The guide, as the (app) layout hands it to AppFrame: drawn inside the window box, over the real screens it plays the
- * story on. Off, it draws nothing but its controller (first visit, G, the help event, the autoplay timer). On, it turns
- * the X-ray off: one layer explains the screen at a time.
+ * story on. Off, it draws its controller (Shift+G, the help event, the autoplay timer) and, on the demo until the guide was
+ * watched or skipped, the invitation to start it. On, it turns the X-ray off: one layer explains the screen at a time.
  */
 export function GuideOverlay() {
   const g = useGuide();
@@ -22,6 +24,7 @@ export function GuideOverlay() {
   const entry = entryOf(g);
   const ref = useRef<HTMLDivElement>(null);
   const stage = useStage(ref, step, entry);
+  const demo = useDemo();
 
   useEffect(() => {
     if (g.on) xrayStore.setOn(false);
@@ -35,6 +38,8 @@ export function GuideOverlay() {
           {step.target ? <GuideLayer step={step} box={stage.box} live={stage.live} entry={entry} /> : <Recap />}
           <Dock g={g} />
         </div>
+      ) : demo && !g.done && !g.skipped ? (
+        <Invite />
       ) : null}
     </>
   );

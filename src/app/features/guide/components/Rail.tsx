@@ -1,17 +1,17 @@
 import type { CSSProperties } from 'react';
-import { ACTS, STEPS, type Act } from '../model/steps';
+import { CHAPTERS, STEPS, type Tone } from '../model/steps';
 import { STEP_MS } from '../model/playback';
 import styles from './rail.module.css';
 
 const N = STEPS.length;
-const ACT_CLASS: Record<Act, string> = { travel: '', wrong: styles.bad ?? '', you: styles.you ?? '' };
+const TONE: Record<Tone, string> = { wrong: styles.bad ?? '', you: styles.you ?? '' };
 /** Where step k's stop sits along the rail, as a share of its width: stops are equal columns, so a centre is (k + ½) / N. */
 const at = (k: number): string => `${((k + 0.5) / N) * 100}%`;
 
 /**
- * The rail: one stop per step in its act's light (cyan, the pink of things going wrong, amber where it is yours), the
- * travelled line, and while autoplay runs a bar that fills toward the next stop over the step's hold. The acts sit under
- * it on the same columns, so they line up without measuring.
+ * The rail: one stop per step in its light (cyan, the pink of things going wrong, amber where it is yours), the travelled
+ * line, and while autoplay runs a bar that fills toward the next stop over the step's hold. The chapters (the sidebar's
+ * groups) sit under it on the same columns, so they line up without measuring; a click starts that chapter.
  */
 export function Rail({ i, running, entry, onGo }: { i: number; running: boolean; entry: string; onGo: (k: number) => void }) {
   return (
@@ -26,7 +26,7 @@ export function Rail({ i, running, entry, onGo }: { i: number; running: boolean;
           <button
             key={s.key}
             type="button"
-            className={`${styles.stop} ${ACT_CLASS[s.act]} ${k < i ? styles.done : ''} ${k === i ? styles.now : ''}`}
+            className={`${styles.stop} ${s.tone ? TONE[s.tone] : ''} ${k < i ? styles.done : ''} ${k === i ? styles.now : ''}`}
             aria-label={`Step ${k + 1}: ${s.label}`}
             aria-current={k === i ? 'step' : undefined}
             onClick={() => onGo(k)}
@@ -36,11 +36,18 @@ export function Rail({ i, running, entry, onGo }: { i: number; running: boolean;
           </button>
         ))}
       </div>
-      <div className={styles.acts} aria-hidden="true">
-        {ACTS.map((a) => (
-          <span key={a.act} style={{ flex: `${a.steps} 1 0` }}>
-            {a.label}
-          </span>
+      <div className={styles.acts}>
+        {CHAPTERS.map((c, n) => (
+          <button
+            key={c.key}
+            type="button"
+            className={i >= c.first && i < c.first + c.steps ? styles.here : undefined}
+            style={{ flex: `${c.steps} 1 0` }}
+            title={c.line}
+            onClick={() => onGo(c.first)}
+          >
+            {n + 1} · {c.label}
+          </button>
         ))}
       </div>
     </div>

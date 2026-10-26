@@ -22,16 +22,35 @@ describe('RunsScreen', () => {
     expect(out).not.toContain('skipped line');
   });
 
-  it('draws the totals, the skipped badge, the waves and their chips', () => {
+  it('draws the totals, the skipped badge, and every lane with its wave, costliest first', () => {
     const out = renderToStaticMarkup(<RunsScreen data={data} />);
     expect(out).toContain('3 skipped lines');
-    expect(out).toContain('alpha');
-    expect(out).toContain('Wave 2');
-    expect(out).toContain('running');
-    expect(out).toContain('mergeable');
-    expect(out).toContain('belay/wave-1');
+    expect(out).toContain('Every lane of every wave');
     expect(out).toContain('50%');
-    expect(out).toContain('6m 0s'); // wave 1's wall: wave.start 10:00:00 to wave.end 10:06:00
+    expect(out).toContain('alpha, wave 1, belay/wave-1');
+    const order = ['Fix the flaky retry', 'Trim the changelog', 'Bump the lockfile'].map((t) => out.indexOf(t));
+    expect(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1]!))).toBe(true); // $0.25, $0.01, then no cost
+    expect(out).toContain('needs a person to pick a version');
+    expect(out).toContain('3m 0s'); // lane a's own wall
+  });
+
+  it('the wave goes first, then the lane; the outcome filter counts each kind', () => {
+    const out = renderToStaticMarkup(<RunsScreen data={data} />);
+    expect(out.indexOf('>Wave<')).toBeLessThan(out.indexOf('>Lane<'));
+    expect(out).toContain('Lane outcome');
+    for (const l of ['All', 'Landed', 'Parked', 'Running']) expect(out).toContain(`>${l}<`);
+    expect(out).not.toContain('>Failed<'); // no lane failed: no option for it
+  });
+
+  it("a wave is mergeable only when the desk says there is something to take; before that, git was not asked", () => {
+    const need = { kind: 'merge-wave' as const, id: 'merge:alpha:1', repo: 'alpha', wave: 1, branch: 'belay/wave-1', base: 'main', landed: 1, checked: true, commands: [] };
+    const unread = renderToStaticMarkup(<RunsScreen data={data} />);
+    expect(unread).toContain('mergeable, git not asked yet');
+    expect(unread).toContain('running');
+    expect(renderToStaticMarkup(<RunsScreen data={data} merges={[need]} />)).toMatch(/>mergeable</);
+    const none = renderToStaticMarkup(<RunsScreen data={data} merges={[]} />);
+    expect(none).toContain('in its base, or branch gone');
+    expect(none).not.toMatch(/>mergeable</);
   });
 
   it('shows the exact merge commands for a mergeable wave, and nothing for a running one', () => {

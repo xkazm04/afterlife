@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useId, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useId, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@/components/icons/Icon';
 import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
@@ -94,7 +94,12 @@ function WindowColumn(p: WindowProps) {
   );
 
   // The screen's sections join the frame's sidebar and leave with the screen; a hidden route's portal is hidden with it.
-  const sections = p.sidebar !== undefined && frame.slot ? createPortal(<div>{p.sidebar}</div>, frame.slot) : null;
+  // While shown they are the sidebar's second level: registering brings the sidebar there (an effect, so a route hidden
+  // in <Activity> lets go of it).
+  const hasSections = p.sidebar !== undefined;
+  const { registerNested } = frame;
+  useEffect(() => (hasSections ? registerNested() : undefined), [hasSections, registerNested]);
+  const sections = hasSections && frame.slot ? createPortal(<div>{p.sidebar}</div>, frame.slot) : null;
 
   return (
     <>

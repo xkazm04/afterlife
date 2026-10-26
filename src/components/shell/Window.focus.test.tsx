@@ -31,6 +31,7 @@ vi.mock('react', async (orig) => ({
   useEffect: (fn: Fn) => void effects.push(fn),
   useContext: (c: { _currentValue: unknown }) => c._currentValue, // the default: no provider in a bare call
   useMemo: (f: () => unknown) => f(),
+  useCallback: (f: unknown) => f,
   useId: () => ':r0:',
   ViewTransition: undefined, // plain React has none; frame/Motion then renders its children as they are
   useSyncExternalStore: (subscribe: (n: () => void) => () => void, get: () => unknown) => {

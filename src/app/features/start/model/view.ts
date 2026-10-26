@@ -136,4 +136,6 @@ export interface StartView {
   chat: ChatView;
   path: Path;
   setPath: (p: Path) => void;
+  /** The saved project this orbit is for (selected in the Projects list); absent while adding a new one. */
+  project?: { slug: string; name: string; root: string; savedAt: string };
 }

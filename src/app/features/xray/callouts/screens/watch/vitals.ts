@@ -4,7 +4,8 @@
 import type { Callout, LegendEntry, ScreenRead } from '../../../model/types';
 import { DATA_LABEL, statusCallout } from '../../shared';
 
-const LIST = '[role="treegrid"][aria-label="Real projects"]';
+// "Projects" while demo projects are listed beside (or instead of) real ones, "Real projects" otherwise.
+const LIST = '[role="treegrid"]:is([aria-label="Projects"], [aria-label="Real projects"])';
 const DELIVERY = '[role="treegrid"][aria-label="Delivery by variant"]';
 const ROW = (t: string): string => `${t} [role="row"][aria-level="1"]`;
 
@@ -56,7 +57,7 @@ export const VITALS: readonly Callout[] = [
   {
     id: 'onboard',
     kind: 'activity',
-    sel: 'main a[href="/start"]',
+    sel: 'main a[href^="/start"]',
     title: 'Onboard a project',
     body: () => 'Pick a repo you work in with Claude Code; Afterlife proposes what to watch and saves only what its probes confirm.',
     try: 'Click it',

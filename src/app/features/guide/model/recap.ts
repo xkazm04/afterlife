@@ -1,25 +1,25 @@
-// The recap's six ideas: what each means in one line, the step that replays it, and the real screen it lives on.
+// The recap: the four chapters as the sidebar groups them, each with its screens to open, and the moments of the story
+// a person can replay. Screens and their labels come from the nav, never copied.
+import { NAV_GROUPS, type NavEntry } from '@/components/shell/sidebar/navItems';
 import { stepIndex } from './steps';
 
-export interface RecapIdea {
-  name: string;
+export interface RecapChapter {
+  key: string;
+  label: string;
   line: string;
-  /** The step "Replay it" goes back to. */
-  step: number;
-  /** The screen "See it" opens, ending the guide. */
-  href: string;
+  screens: readonly NavEntry[];
 }
 
-const idea = (name: string, line: string, key: string, href: string): RecapIdea => ({ name, line, step: stepIndex(key), href });
+export const RECAP_CHAPTERS: readonly RecapChapter[] = NAV_GROUPS.map((g) => ({ key: g.key, label: g.label, line: g.line, screens: g.entries }));
 
-export const RECAP: readonly RecapIdea[] = [
-  idea('Proof Block', 'The engine’s checks decide. The agent’s words never count.', 'proof', '/task'),
-  idea('Earned autonomy', 'Held per action class, five tiers, earned from the record.', 'gate', '/ladder'),
-  idea('Guardrail', 'Reads agent MRs for hidden instructions. Blocks before any gate.', 'blocked', '/task'),
-  idea('Tripwire', 'The first failure takes a class down. Only a person brings it back.', 'tripwire', '/ladder'),
-  idea('Needs you', 'Amber means a person decides. Nothing else is amber.', 'needs', '/needs-you'),
-  idea('Outbox', 'A write happens only when you press Run, as you.', 'run', '/needs-you'),
-];
+/** The moments worth seeing again: the ideas the story introduces in a situation, each with the step that shows it. */
+export const MOMENTS: readonly { name: string; step: number }[] = [
+  ['Proof Block', 'proof'],
+  ['Earned autonomy', 'gate'],
+  ['Guardrail', 'blocked'],
+  ['Tripwire', 'tripwire'],
+  ['Your write', 'run'],
+].map(([name, key]) => ({ name: name ?? '', step: stepIndex(key ?? '') }));
 
 /** The recap's headline, the product's claim. */
 export const CLAIM = { lead: 'Agents may act alone only where they can ', mark: 'prove it' } as const;

@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { Button } from '@/components/controls/Button';
 import { Spacer } from '@/components/controls/Spacer';
 import { SegmentedControl } from '@/components/controls/toolbar/SegmentedControl';
@@ -24,24 +25,37 @@ const PATHS: { value: Path; label: string; title: string }[] = [
 const GATE = { 'not-ready': 'Afterlife is live and waiting for its first look at the group', empty: 'Afterlife is watching a group with no project yet' } as const;
 
 function subtitleOf(v: StartView): string {
-  if (v.source.fake) return 'acme-lab · seeded fake GitLab';
-  return v.source.mode === 'demo' ? 'demo server' : `group ${v.source.group} on ${v.source.host}`;
+  const source = v.source.fake ? 'acme-lab · seeded fake GitLab' : v.source.mode === 'demo' ? 'demo server' : `group ${v.source.group} on ${v.source.host}`;
+  return `${v.project?.name ?? 'a new project'} · ${source}`;
+}
+
+/** Whose orbit this is: the saved project (its root, the day it was saved) or a new one being added. */
+function Heading({ view }: { view: StartView }) {
+  const p = view.project;
+  return (
+    <header className={styles.head}>
+      <h2 className={styles.h2}>{p ? p.name : 'Add a project'}</h2>
+      <p className={styles.sub}>{p ? `${p.root} · saved ${p.savedAt}` : 'Pick a repo you work in with Claude Code; each step lights when its check passes.'}</p>
+    </header>
+  );
 }
 
 /**
- * Set up my first project: one wizard from this machine through GitLab to Afterlife (repo, glab, login, group, live,
+ * Projects: the orbit of one project, a saved one (picked in the sidebar's list, `sidebar`) or a new one being added.
+ * Adding is one wizard from this machine through GitLab to Afterlife (repo, glab, login, group, live,
  * stack, save, unlock map). Each step is derived from what the probes see now; every step can be done by hand (copy
  * the command, or Run it after the server's preview) or with "Ask Afterlife". The steps are drawn as a constellation
  * around this machine; the (app) layout's gate shows this same screen while live mode has nothing to show. The screen
  * host mounts it once the facts are read (screen/host.tsx), so the page enters on mount; "Your repos" may still be a dash.
  */
-export function StartScreen(props: StartProps) {
+export function StartScreen({ sidebar, ...props }: StartProps & { sidebar?: ReactNode }) {
   const view = useStart(props);
   const done = view.steps.filter((s) => s.state === 'done').length;
   return (
     <Window
-      title="Set up my first project"
+      title="Projects"
       subtitle={subtitleOf(view)}
+      sidebar={sidebar}
       toolbar={
         <>
           <Spacer />
@@ -61,6 +75,7 @@ export function StartScreen(props: StartProps) {
               <h1 className={styles.h1}>{GATE[view.gate]}</h1>
             </header>
           ) : null}
+          {view.gate ? null : <Heading view={view} />}
           <SourceChips source={view.source} />
           {view.refused ? (
             <p className={styles.refused} role="alert">

@@ -20,7 +20,7 @@ export function HelpButton({ title = 'Legend', children }: { title?: string; chi
         Label every part <kbd>X</kbd>
       </button>
       <button type="button" className={styles.xray} onClick={() => window.dispatchEvent(new Event('afterlife:guide'))}>
-        Watch the guide <kbd>G</kbd>
+        Watch the guide <kbd>⇧G</kbd>
       </button>
     </div>
   );

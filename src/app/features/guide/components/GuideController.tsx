@@ -8,16 +8,12 @@ import { STEP_MS, autoAdvances } from '../model/playback';
 import { GUIDE_EVENT, guideStore, type GuideState } from '../model/store';
 
 /**
- * What starts, stops and paces the guide, mounted once in the (app) layout: the first visit to the demo (a per-browser
- * flag), G, the help popover's event, `?guide=1` (the palette's "Watch the guide"), and the autoplay timer, which holds
- * while the tab is hidden. The guide replays the demo estate, so it only opens on demo data.
+ * What starts, stops and paces the guide, mounted once in the (app) layout: Shift+G, the help popover's event, `?guide=1` (the
+ * palette's "Watch the guide"), and the autoplay timer, which holds while the tab is hidden. It never opens by itself:
+ * the invitation at the top of the window asks. The guide replays the demo estate, so it only opens on demo data.
  */
 export function GuideController({ g }: { g: GuideState }) {
   const demo = useDemo();
-
-  useEffect(() => {
-    if (demo && guideStore.takeFirstVisit()) guideStore.open();
-  }, [demo]);
 
   useEffect(() => {
     if (!demo) return;

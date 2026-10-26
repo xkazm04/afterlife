@@ -21,7 +21,7 @@ export function Dock({ g }: { g: GuideState }) {
   return (
     <section className={styles.dock} aria-label="Guide" data-guide-dock>
       <div className={styles.cap}>
-        <span className={`${styles.cpt} ${step.concept ? '' : styles.none}`}>{step.concept ?? 'Watch'}</span>
+        <span className={`${styles.cpt} ${step.concept ? '' : styles.none}`}>{step.concept ?? 'Recap'}</span>
         <p aria-live="polite">{step.caption}</p>
         <span className={styles.cnt}>
           {g.i + 1} / {N}

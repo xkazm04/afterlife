@@ -1,6 +1,6 @@
 // The store follows the attribute, and another tab's storage changes reach it (the storage event).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TEXT_SIZE_ATTRIBUTE, TEXT_SIZE_STORAGE_KEY } from './textSize';
+import { DEFAULT_TEXT_SIZE, TEXT_SIZE_ATTRIBUTE, TEXT_SIZE_STORAGE_KEY } from './textSize';
 import { applyTextSize, getTextSizeSnapshot, subscribeTextSize } from './textSizeStore';
 
 let attrs: Record<string, string>;
@@ -30,7 +30,7 @@ describe("another tab's storage", () => {
     const seen = vi.fn();
     const off = subscribeTextSize(seen);
     onStorage?.({ key: null, newValue: null });
-    expect([getTextSizeSnapshot(), seen.mock.calls.length]).toEqual(['standard', 1]);
+    expect([getTextSizeSnapshot(), seen.mock.calls.length]).toEqual([DEFAULT_TEXT_SIZE, 1]);
     off();
   });
   it('another key changing leaves the size alone', () => {
@@ -72,7 +72,7 @@ describe('the store keeps whether the browser kept the size', () => {
     attrs[TEXT_SIZE_ATTRIBUTE] = 'larger';
     store(() => 'larger');
     expect((await fresh()).getTextSizeSavedSnapshot()).toBe(true);
-    attrs[TEXT_SIZE_ATTRIBUTE] = 'standard';
+    attrs[TEXT_SIZE_ATTRIBUTE] = DEFAULT_TEXT_SIZE;
     store(() => null);
     expect((await fresh()).getTextSizeSavedSnapshot()).toBe(true);
   });

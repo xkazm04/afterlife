@@ -9,6 +9,7 @@ import { Reveal, Unread, useHostNav } from '@/components/shell/host';
 import { Window } from '@/components/shell/Window';
 import { px, range } from '@/components/table/model/columns';
 import { BandTable, type BandColumn } from './components/BandTable';
+import { DemoChip, DemoLabel } from './components/states/DemoNote';
 import { Unreadable } from './components/states/Unreadable';
 import { agoWords } from './model/format';
 import type { ListRow } from './model/slices';
@@ -34,12 +35,35 @@ export function VitalsEmpty() {
         Vitals measures a real production app: its CI stage times per variant, its production signals and every adjustment an agent claims. Pick a repo you already
         work in with Claude Code; Afterlife proposes what to watch and saves only what its probes confirm.
       </p>
-      <Button variant="primary" href="/start">
+      <Button variant="primary" href="/start?add=1">
         Onboard a project
       </Button>
     </div>
   );
 }
+
+/** No real project, but the demo estate's are listed: say what they are and the one thing to do. */
+function DemoOnly() {
+  return (
+    <div className={styles.notice} role="note">
+      <span>
+        <b>No real project yet.</b> The projects below are the demo estate&apos;s, illustrative demo data: generated for layout, never collected. Onboard a
+        repo you work in to measure a real one.
+      </span>
+      <span>
+        <Button size="mini" variant="primary" href="/start?add=1">
+          Onboard a project
+        </Button>
+      </span>
+    </div>
+  );
+}
+
+const subtitleOf = (real: number | undefined, demo: number): string => {
+  if (real === undefined) return '— real projects';
+  const head = real === 0 ? 'no real project yet' : `${real} real project${real === 1 ? '' : 's'}`;
+  return demo ? `${head} · ${demo} demo` : head;
+};
 
 const lastCell = (p: ListRow, now: string | undefined) => {
   if (!p.runs || !now) return <Unread label="last collect not read yet" />;
@@ -47,7 +71,8 @@ const lastCell = (p: ListRow, now: string | undefined) => {
 };
 
 /**
- * /vitals: the real projects Afterlife watches, from .afterlife/projects. Enter or a double-click opens one. The screen host
+ * /vitals: the real projects Afterlife watches, from .afterlife/projects, then (demo estate on) the demo ones, each
+ * marked demo, and the status line says their data is illustrative. Enter or a double-click opens one. The screen host
  * draws it from two slices (screen/host.tsx): `projects` absent: the window and the table's head, nothing listed yet;
  * a row's `runs` absent: its last collected and runs stored are dashes until the runs are read. `reason`: why the
  * projects could not be read.
@@ -57,22 +82,29 @@ export function VitalsListScreen({ projects, now, reason }: { projects?: readonl
   const [picked, setSel] = useState<string | null>(null);
   const sel = picked ?? projects?.[0]?.slug ?? null;
   const empty = projects?.length === 0;
-  const n = projects?.length;
+  const demo = projects?.filter((p) => p.demo).length ?? 0;
+  const real = projects === undefined ? undefined : projects.length - demo;
   return (
     <Window
       title="Vitals"
-      subtitle={n === undefined ? '— real projects' : empty ? 'no real project yet' : `${n} real project${n === 1 ? '' : 's'}`}
-      realData
-      status={empty ? 'Onboard a project to start measuring it' : 'Enter or double-click a project to open its vitals'}
+      subtitle={subtitleOf(real, demo)}
+      realData={real !== 0}
+      status={
+        <>
+          {demo ? <DemoLabel realData={real !== 0} /> : null}
+          {empty ? 'Onboard a project to start measuring it' : 'Enter or double-click a project to open its vitals'}
+        </>
+      }
     >
       <PaneScroll>
         <Reveal order={1} slice="config" className={styles.bands}>
           {reason ? <Unreadable what="The saved projects" reason={reason} /> : null}
+          {real === 0 && demo ? <DemoOnly /> : null}
           {empty ? (
             <VitalsEmpty />
           ) : reason ? null : (
             <BandTable
-              label="Real projects"
+              label={demo ? 'Projects' : 'Real projects'}
               columns={COLUMNS}
               min={1000}
               head={HEAD}
@@ -83,7 +115,10 @@ export function VitalsListScreen({ projects, now, reason }: { projects?: readonl
                 id: p.slug,
                 title: p.slug,
                 cells: [
-                  <Link key="n" href={`/vitals/${encodeURIComponent(p.slug)}`}>{p.name}</Link>,
+                  <span key="n" className={styles.name}>
+                    <Link href={`/vitals/${encodeURIComponent(p.slug)}`}>{p.name}</Link>
+                    {p.demo ? <DemoChip /> : null}
+                  </span>,
                   <span key="r" className={styles.mono} title={p.root}>{p.root}</span>,
                   p.host,
                   p.ci,

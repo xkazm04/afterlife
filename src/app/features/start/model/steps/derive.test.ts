@@ -69,6 +69,12 @@ describe('derived steps', () => {
     expect(currentOf(s)).toBe('unlock');
   });
 
+  it('a saved project: its lines are read from its file, and both steps say when it was saved', () => {
+    const s = deriveSteps(through('saved', { slug: 'acme-api', savedAt: '2026-10-21' }));
+    expect(s.find((x) => x.key === 'stack')?.line).toBe('5 of 6 lines confirmed when it was saved, 2026-10-21');
+    expect(s.find((x) => x.key === 'save')?.line).toBe('saved as acme-api on 2026-10-21: Vitals collects from it');
+  });
+
   it('demo vs live: demo asks the person to switch to live; live before the first poll is checking', () => {
     const demo = { ...through('pick'), facts: { ...DEMO, groupSet: true } };
     expect(step(demo, 'live')).toMatchObject({ state: 'you', action: { kind: 'set-setup', mode: 'live', groupId: '144060371' } });

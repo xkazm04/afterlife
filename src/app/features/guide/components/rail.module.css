@@ -127,15 +127,32 @@
 .acts {
   display: flex;
 }
-.acts span {
+.acts button {
+  min-width: 0;
+  border: 0;
+  border-top: 1px solid var(--border-3);
+  background: none;
+  font: inherit;
   font-size: var(--t-body);
   color: var(--text-3);
-  border-top: 1px solid var(--border-3);
-  padding-top: 3px;
+  text-align: left;
+  padding: 3px 0 0;
   margin-right: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
+}
+.acts button:hover {
+  color: var(--text-1);
+}
+.acts .here {
+  color: var(--text-1);
+  border-top-color: var(--accent);
+}
+.acts button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
 }
 @media (prefers-reduced-motion: reduce) {
   .fill,

@@ -24,3 +24,21 @@
   color: var(--fail);
   font-size: var(--t-body);
 }
+/* Whose orbit: the saved project's name and root, or "Add a project". */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2px * var(--ui-scale));
+}
+.h2 {
+  margin: 0;
+  font-size: calc(var(--t-title) + 2px);
+  font-weight: 650;
+  color: var(--text-1);
+}
+.sub {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}

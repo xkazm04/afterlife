@@ -41,9 +41,10 @@ describe('Runs on the screen host', () => {
     expect(html).not.toContain('No runs yet');
   });
 
-  it('runs read: the totals and the waves fill in; an empty folder says how to start one', () => {
+  it('runs read: the totals and the lane ledger fill in; an empty folder says how to start one', () => {
     const html = render({ runs: data });
     expect(html).toContain('alpha');
+    expect(html).toContain('Every lane of every wave');
     expect(html).toContain('data-reveal="in"');
     expect(render({ runs: foldRuns([], 0) })).toContain('No runs yet');
   });
