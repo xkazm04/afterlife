@@ -15,6 +15,9 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
   { key: 'about', href: '/settings/about', label: 'About', status: 'Read only: nothing on this page is saved' },
 ];
 
+/** Where /settings goes: the first sub-page (a client constant; the page replaces the URL with it, no read). */
+export const SETTINGS_FRONT: string = SETTINGS_PAGES[0]?.href ?? '/settings/display';
+
 /** Which sub-page a pathname is on (a trailing slash or a deeper path still counts); null for anything else. */
 export function activeSettingsKey(pathname: string): string | null {
   const hit = SETTINGS_PAGES.find((p) => pathname === p.href || pathname.startsWith(`${p.href}/`));

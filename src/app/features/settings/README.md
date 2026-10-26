@@ -1,7 +1,10 @@
 # Settings (D10)
 
-Routes `/settings/display`, `/keyboard`, `/data`, `/about`. `/settings` redirects to `/settings/display`; any other
-`/settings/x` is the not-found page. Each page renders `SettingsWindow` (heading, one-line lede, content).
+Routes `/settings/display`, `/keyboard`, `/data`, `/about`, drawn by the screen host (`screen/host.tsx`; each page.tsx
+is a static shell with its tab title). `/settings` replaces its URL with `/settings/display` on the client
+(`screen/ToFront.tsx`, the constant `SETTINGS_FRONT`); any other `/settings/x` is the not-found page. Each sub-page
+renders `SettingsWindow` (heading, one-line lede, content). Display, Keyboard and About read nothing; Data & connection
+reads one slice, `connection` (`screen/slices.ts`).
 
 ## Parts
 - `SettingsWindow.tsx` the Window with the sidebar sub-navigation (section "Settings", current from the route via
@@ -12,8 +15,9 @@ Routes `/settings/display`, `/keyboard`, `/data`, `/about`. `/settings` redirect
   `sections/ScreenKeysSection.tsx` the per-screen keys from `data/screenKeys.ts`, derived from the keymaps the screens'
   hooks bind (`lib/keyboard/keymap.ts`; each screen's `model/.../keymap.ts`, Task's beside `actionFor`). A new key goes
   in its screen's keymap, never in this list; a new screen adds its keymap to `SCREEN_KEYS`.
-- `sections/ConnectionSection.tsx` (Data & connection) a server component: mode, fake or real GitLab, host and group id
-  from `readDataConfig` / `readConfig`, and the status bar's own label (`StatusLine`). Never reads or shows a token.
+- `sections/ConnectionSection.tsx` (Data & connection): mode, fake or real GitLab, host and group id as the server read
+  them (`data/connection.ts`, from `readDataConfig` / `readConfig`, the `connection` slice), a dash in each row until
+  then, and the status bar's own label (`StatusLine`). Never reads or shows a token.
 - `components/AboutSection.tsx` (About) version (`lib/version.ts`) and every localStorage key from `data/browserKeys.ts`
   (`data/browserKeys.test.ts` fails when a module stores under a key the list does not show).
 
@@ -28,8 +32,9 @@ Routes `/settings/display`, `/keyboard`, `/data`, `/about`. `/settings` redirect
 `data/screenKeys.test.ts` holds the derived rows, the Task keymap to `actionFor`, and the server-safety of the import
 closure (no `'use client'` module). `sections/ScreenKeysSection.test.tsx` pins one rowgroup header per screen (no empty
 `<th>`); `sections/ConnectionSection.test.tsx` the Mode row ("the default" only when `BELAY_MODE` is unset).
-`app/(app)/settings/settingsRoutes.test.ts` checks the route folders against `SETTINGS_PAGES`, the `/settings` redirect, and
-each page's tab title ("Belay Settings <label>").
+`app/(app)/settings/settingsRoutes.test.ts` checks the route folders against `SETTINGS_PAGES`, the `/settings` replace, and
+each page's tab title ("Belay Settings <label>"); `screen/host.test.tsx` the host's sub-pages (titles, the Connection card
+unread then read).
 `model/specCss.test.ts` reads `src/styles/text-size.css` against `TEXT_SIZE_SPEC` (all 27 measures);
 `model/sizeTitles.test.tsx` the size buttons' tooltips from the spec and the default; `model/saveNote.test.ts` the
 Display note (saved, or this visit only when the browser refuses to store the size); `data/shortcuts.test.ts` presses

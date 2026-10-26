@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { readConnection } from '../data/connection';
 import { ConnectionSection } from './ConnectionSection';
 
 // The rows after Mode: which GitLab, which host and group, for each of the three ways the server can run. The section
@@ -9,11 +10,11 @@ vi.mock('./StatusLine', () => ({ StatusLine: () => 'status' }));
 const TOKEN = 'glpat-not-for-the-page';
 const cells = () =>
   Object.fromEntries(
-    [...renderToStaticMarkup(createElement(ConnectionSection)).matchAll(/<th scope="row">([^<]*)<\/th><td[^>]*>([^<]*)<\/td>/g)].map((m) => [m[1], m[2]]),
+    [...renderToStaticMarkup(createElement(ConnectionSection, { read: readConnection(process.env) })).matchAll(/<th scope="row">([^<]*)<\/th><td[^>]*>([^<]*)<\/td>/g)].map((m) => [m[1], m[2]]),
   );
 const run = (env: Record<string, string | undefined>) => {
   for (const [k, v] of Object.entries({ GITLAB_TOKEN: TOKEN, GLAB_TOKEN: TOKEN, ...env })) vi.stubEnv(k, v);
-  return renderToStaticMarkup(createElement(ConnectionSection));
+  return renderToStaticMarkup(createElement(ConnectionSection, { read: readConnection(process.env) }));
 };
 
 afterEach(() => vi.unstubAllEnvs());

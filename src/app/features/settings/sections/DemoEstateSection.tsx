@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { SegmentedControl, type SegmentOption } from '@/components/controls/toolbar/SegmentedControl';
+import { useRevalidate } from '@/components/shell/host';
+import { requestShellRead } from '@/components/shell/live/sync';
 import { useShellInfo } from '@/components/shell/ShellContext';
 import { plural } from '@/lib/format/plural';
 import { DEFAULT_DEMO_ESTATE, DEMO_ESTATES, DEMO_ESTATE_LABEL, demoEstateCookie, estateOf, type DemoEstate, type Estate } from '@/lib/settings/demoEstate';
@@ -23,12 +24,13 @@ export function estateNote(e: Estate): string {
 }
 
 /**
- * "Show demo estate": Auto, On or Off, kept in a cookie (the server draws the nav and the door's way in), then the
- * route renders again so the sidebar follows at once. Before the shell's read lands it shows the default.
+ * "Show demo estate": Auto, On or Off, kept in a cookie (the shell's read draws the nav from it, the door its way in),
+ * then the shell reads again so the sidebar follows at once, and this screen re-reads quietly. Before the shell's read
+ * lands it shows the default.
  */
 export function DemoEstateSection() {
   const { estate } = useShellInfo();
-  const router = useRouter();
+  const revalidate = useRevalidate();
   const [picked, setPicked] = useState<DemoEstate | null>(null);
   const value = picked ?? estate?.setting ?? DEFAULT_DEMO_ESTATE;
   const choose = (v: DemoEstate) => {
@@ -38,7 +40,8 @@ export function DemoEstateSection() {
     } catch {
       return; // a blocked cookie store must never break the page
     }
-    router.refresh();
+    requestShellRead();
+    revalidate();
   };
   return (
     <SettingsSection id="demo-estate" title="Show demo estate">

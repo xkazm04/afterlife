@@ -1,19 +1,7 @@
-import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { connection } from 'next/server';
-import { ShellLoading } from '@/components/shell/loading/ShellLoading';
+import { ToSettingsFront } from '@/app/features/settings/screen/ToFront';
 
-// /settings has no page of its own: the first sub-page is the front of it. The redirect waits for a request inside
-// <Suspense>, so a navigation here paints the Settings window at once and the prerender never meets a thrown redirect.
+// /settings has no page of its own: the first sub-page is the front of it. Static: the replace is a client constant
+// (features/settings/screen/ToFront.tsx), so a hard load prerenders and nothing waits for a request.
 export default function SettingsPage() {
-  return (
-    <Suspense fallback={<ShellLoading />}>
-      <ToFirstPage />
-    </Suspense>
-  );
-}
-
-async function ToFirstPage(): Promise<never> {
-  await connection();
-  redirect('/settings/display');
+  return <ToSettingsFront />;
 }

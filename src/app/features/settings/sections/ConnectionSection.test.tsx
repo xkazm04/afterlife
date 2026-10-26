@@ -1,9 +1,10 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { readConnection } from '../data/connection';
 import { ConnectionSection } from './ConnectionSection';
 
-const modeCell = () => renderToStaticMarkup(createElement(ConnectionSection)).match(/<th scope="row">Mode<\/th><td>([^<]*)<\/td>/)?.[1];
+const modeCell = () => renderToStaticMarkup(createElement(ConnectionSection, { read: readConnection(process.env) })).match(/<th scope="row">Mode<\/th><td>([^<]*)<\/td>/)?.[1];
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -21,5 +22,13 @@ describe('ConnectionSection, the Mode row', () => {
   it.each(['replay', 'Live'])('BELAY_MODE=%s: demo, and says that value is not live', (v) => {
     vi.stubEnv('BELAY_MODE', v);
     expect(modeCell()).toBe(`demo (BELAY_MODE=${v} is not live)`);
+  });
+});
+
+describe('ConnectionSection before the read lands', () => {
+  it('draws the same rows with a dash in each value, never a guess', () => {
+    const html = renderToStaticMarkup(createElement(ConnectionSection));
+    for (const row of ['Mode', 'GitLab', 'Host', 'Group id']) expect(html).toMatch(new RegExp(`<th scope="row">${row}</th><td[^>]*><span[^>]*>—</span>`));
+    expect(html).not.toContain('demo (the default)');
   });
 });

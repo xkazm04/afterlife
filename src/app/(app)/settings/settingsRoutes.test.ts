@@ -1,10 +1,8 @@
 import { readdirSync } from 'node:fs';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { SETTINGS_PAGES } from '@/app/features/settings/model/settingsNav';
+import { SETTINGS_FRONT, SETTINGS_PAGES } from '@/app/features/settings/model/settingsNav';
 
-const redirect = vi.fn();
-vi.mock('next/navigation', () => ({ redirect: (to: string) => redirect(to), usePathname: () => '/settings/display' }));
-vi.mock('next/server', () => ({ connection: async () => undefined }));
+vi.mock('next/navigation', () => ({ usePathname: () => '/settings/display', useRouter: () => ({}) }));
 
 // Ground truth is the route folders on disk, not SETTINGS_PAGES: the sidebar list, the folders and the tab titles agree.
 describe('the Settings routes', () => {
@@ -12,12 +10,11 @@ describe('the Settings routes', () => {
     const dirs = readdirSync(__dirname, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
     expect(dirs.sort()).toEqual(SETTINGS_PAGES.map((p) => p.key).sort());
   });
-  it('/settings redirects to the first sub-page', async () => {
+  it('/settings replaces itself with the first sub-page (a client constant: the page waits for no request)', async () => {
     const { default: SettingsPage } = await import('./page');
-    // The page is a <Suspense> around the redirect (it waits for a request); run the child it wraps.
-    const child = (SettingsPage() as { props: { children: { type: () => Promise<never> } } }).props.children;
-    await child.type();
-    expect(redirect).toHaveBeenCalledWith(SETTINGS_PAGES[0]?.href);
+    const { ToSettingsFront } = await import('@/app/features/settings/screen/ToFront');
+    expect((SettingsPage() as { type: unknown }).type).toBe(ToSettingsFront);
+    expect(SETTINGS_FRONT).toBe(SETTINGS_PAGES[0]?.href);
   });
   // The first import pulls in the whole Window shell (seconds under a parallel run), so it is done once, up front.
   const titles = new Map<string, unknown>();
