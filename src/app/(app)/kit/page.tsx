@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { KitScreen } from '@/app/features/kit/KitScreen';
 
 export const metadata: Metadata = { title: 'Belay kit', robots: { index: false } };
 
-/** Dev gallery of the shared components. Not linked from the navigation. */
+/** Dev gallery of the shared components, not linked from the navigation. A static shell: the screen host draws it. */
 export default function KitPage() {
-  return <KitScreen />;
+  return null;
 }

@@ -21,3 +21,26 @@
   display: flex;
   gap: 8px;
 }
+/* The Reveal / Unread specimen: three regions, each with its real size whether read or not. */
+.reveal {
+  display: grid;
+  gap: 8px;
+  width: calc(520px * var(--ui-scale));
+}
+.regions {
+  display: grid;
+  gap: 6px;
+}
+.region {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: baseline;
+  min-height: calc(28px * var(--ui-scale));
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+.row {
+  color: var(--text-2);
+}

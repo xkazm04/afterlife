@@ -1,7 +1,9 @@
-// kit's screens for the screen host (docs/features/screen-host.md). A stub until W4 converts the module: ready is
-// false, so the host never claims these keys and the route's page.tsx draws them through the router as before.
-import { pendingScreen, type ScreenDef } from '@/components/shell/host';
+'use client';
 
-export const screens: readonly ScreenDef[] = [
-  pendingScreen('kit', () => 'Belay kit'),
-];
+// The kit on the screen host (docs/features/screen-host.md): static, no slice. The whole gallery paints in the click's
+// frame; its Unread/Reveal specimen (components/fallback/RevealSpecimen.tsx) shows the frame-first look on demand.
+// Reveal order: 0 the window and every gallery, at once (a dev gallery has nothing to wait for).
+import type { ScreenDef } from '@/components/shell/host';
+import { KitScreen } from '../KitScreen';
+
+export const screens: readonly ScreenDef[] = [{ key: 'kit', ready: true, slices: [], Frame: KitScreen, title: () => 'Belay kit' }];

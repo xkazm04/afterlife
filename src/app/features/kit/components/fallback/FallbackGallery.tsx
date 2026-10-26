@@ -10,12 +10,12 @@ import { DetailPage, DetailSection } from '@/components/shell/detail/DetailPage'
 import { EntityNotFound } from '@/components/shell/fallback/EntityNotFound';
 import { ErrorView } from '@/components/shell/fallback/ErrorView';
 import { NotFoundView } from '@/components/shell/fallback/NotFoundView';
-import { ShellLoading } from '@/components/shell/loading/ShellLoading';
 import { GallerySection } from '../GallerySection';
 import { Specimen } from '../Specimen';
+import { RevealSpecimen } from './RevealSpecimen';
 import styles from './FallbackGallery.module.css';
 
-/** The states a screen falls back to (not found, error, loading), the nested detail page, and the toolbar and help buttons. */
+/** The states a screen falls back to (not found, error), the screen host's unread dash and reveal, the nested detail page, and the toolbar and help buttons. */
 export function FallbackGallery() {
   const hintRef = useRef<HTMLInputElement>(null);
   const filledRef = useRef<HTMLInputElement>(null);
@@ -37,10 +37,8 @@ export function FallbackGallery() {
           <NotFoundView />
         </div>
       </Specimen>
-      <Specimen label="ShellLoading: the window frame while a screen streams in">
-        <div className={`${styles.frame} ${styles.tall}`}>
-          <ShellLoading />
-        </div>
+      <Specimen label="Unread and Reveal: a screen's regions drawn at once, a dash for each value not read, settling in order as slices land">
+        <RevealSpecimen />
       </Specimen>
       <Specimen label="DetailPage and DetailSection: back link, title, lede, a wide card">
         <div className={`${styles.frame} ${styles.tall}`}>
