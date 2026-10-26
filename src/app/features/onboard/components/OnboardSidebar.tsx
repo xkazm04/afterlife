@@ -1,12 +1,14 @@
+import { Unread } from '@/components/shell/host';
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
 import type { GroupProgress } from '../model/funnel';
 
 /** The estate's groups with how many of their projects are watched; picking one scopes the batch to it. */
-export function OnboardSidebar({ groups, total, group, onGroup }: { groups: readonly GroupProgress[]; total: number; group: string | null; onGroup: (g: string | null) => void }) {
+/** `total` absent: the estate is not read yet (a dash). */
+export function OnboardSidebar({ groups, total, group, onGroup }: { groups: readonly GroupProgress[]; total?: number; group: string | null; onGroup: (g: string | null) => void }) {
   return (
     <SidebarSection title="Scope">
-      <SidebarItem label="Whole estate" count={total} current={group == null} onClick={() => onGroup(null)} />
+      <SidebarItem label="Whole estate" count={total ?? <Unread />} current={group == null} onClick={() => onGroup(null)} />
       {groups.map((g) => (
         <SidebarItem
           key={g.group}

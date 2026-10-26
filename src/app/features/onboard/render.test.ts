@@ -42,9 +42,19 @@ describe('Onboard parts render', () => {
   });
   it('the status bar counts in words that agree with their number', () => {
     const o = (yours: number, reads: number, writes: number) =>
-      ({ counts: funnel(steps), group: null, batch: { yours: Array(yours).fill('x'), reads: Array(reads).fill('x'), writes: Array(writes).fill('x') } }) as unknown as OnboardApi;
+      ({ read: true, counts: funnel(steps), group: null, batch: { yours: Array(yours).fill('x'), reads: Array(reads).fill('x'), writes: Array(writes).fill('x') } }) as unknown as OnboardApi;
     expect(html(createElement(OnboardStatus, { o: o(1, 1, 1) }))).toContain('1 waits for you · next batch 1 read, 1 write');
     expect(html(createElement(OnboardStatus, { o: o(12, 9, 0) }))).toContain('12 wait for you · next batch 9 reads, 0 writes');
+  });
+  it('before the estate is read: every count a dash, never a zero and never an empty batch', () => {
+    const unread = { read: false, counts: funnel({}), group: null, batch: { yours: [], reads: [], writes: [] } } as unknown as OnboardApi;
+    expect(html(createElement(OnboardStatus, { o: unread }))).not.toMatch(/0/);
+    const f = html(createElement(Funnel, { counts: funnel({}), filter: null, onFilter: () => {}, unread: true }));
+    expect(f).toContain('Discovered');
+    expect(f).not.toMatch(/>0</);
+    const t = html(createElement(BatchTable, { batch: { yours: [], reads: [], writes: [] }, runs: {}, byId: new Map(), org: '', filter: null, selected: null, onSelect: () => {}, onResolve: () => {}, unread: true }));
+    expect(t).not.toContain('Nothing here');
+    expect(html(createElement(Baseline, { rows: baseline([]), unread: true }))).not.toContain('R?');
   });
   it('every project panel renders, unknown baselines included', () => {
     for (const p of data.projects) {

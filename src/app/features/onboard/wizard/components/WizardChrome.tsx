@@ -5,9 +5,10 @@ import { engineLine } from '../model/format';
 import { checklist, tally } from '../model/lines';
 
 /** The status bar: "12 repos · 1 onboarded · Grinex Portal: 9 of 14 confirmed · sonnet 5.5 · low · 11 s". */
-export function WizardStatus({ repos, s }: { repos: readonly ClaudeRepo[]; s: WizardState }) {
-  const onboarded = repos.filter((r) => r.onboarded).length;
-  const head = `${repos.length} repo${repos.length === 1 ? '' : 's'} · ${onboarded} onboarded`;
+export function WizardStatus({ repos, s }: { repos?: readonly ClaudeRepo[]; s: WizardState }) {
+  const onboarded = repos?.filter((r) => r.onboarded).length;
+  // repos absent: not read yet, a dash (never "0 repos")
+  const head = repos ? `${repos.length} repo${repos.length === 1 ? '' : 's'} · ${onboarded} onboarded` : '— repos · — onboarded';
   const a = s.answer;
   if (s.phase === 'proposing') return <>{`${head} · proposing · ${s.elapsedS} s`}</>;
   if (!a) return <>{head}</>;

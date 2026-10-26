@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Spacer } from '@/components/controls/Spacer';
 import { SegmentedControl } from '@/components/controls/toolbar/SegmentedControl';
 import { useToast } from '@/components/overlays/toast/useToast';
+import { Reveal } from '@/components/shell/host';
 import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
 import { copyCommand } from '@/lib/clipboard/copyCommand';
@@ -21,9 +22,11 @@ import styles from './wizard.module.css';
  * Onboard: a real project in one click. Pick a repo you already work in with Claude Code; a low-effort model proposes
  * its host, components, pipelines and variants and cloud resource; a typed read-only probe checks each line as you
  * watch; Save keeps only the lines a probe confirmed. The demo estate funnel lives at /onboard/estate.
+ * The screen host draws it from the repos slice (screen/host.tsx): `repos` absent, the engine control, the three steps
+ * and the footer paint at once and only the repo rows and counts wait. `onSaved` re-reads them after a save.
  */
-export function WizardScreen({ repos, note }: { repos: readonly ClaudeRepo[]; note?: string }) {
-  const w = useWizard();
+export function WizardScreen({ repos, note, onSaved }: { repos?: readonly ClaudeRepo[]; note?: string; onSaved?: () => void }) {
+  const w = useWizard(onSaved);
   const { status } = useToast();
   // Ages read the wall clock once mounted, so the server's render and the client's first one agree.
   const now = useNow(60_000);
@@ -50,7 +53,9 @@ export function WizardScreen({ repos, note }: { repos: readonly ClaudeRepo[]; no
     >
       <PaneScroll>
         <div className={styles.page}>
-          <RepoStep repos={repos} note={note} picked={w.picked} busy={busy} now={now} onPick={w.pick} />
+          <Reveal order={1} slice="repos">
+            <RepoStep repos={repos} note={note} picked={w.picked} busy={busy} now={now} onPick={w.pick} />
+          </Reveal>
           <FoundStep s={w} onRerun={w.rerun} onCopy={(c) => copyCommand(c, navigator.clipboard, status, `Copied ${c}`)} />
           <SaveStep s={w} onSave={w.saveIt} onRerun={w.rerun} />
           <p className={styles.pageFoot}>

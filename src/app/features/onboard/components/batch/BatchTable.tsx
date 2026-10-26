@@ -1,4 +1,5 @@
 import { Button } from '@/components/controls/Button';
+import { Unread } from '@/components/shell/host';
 import type { FleetProject } from '@/lib/demo/types';
 import { nextAction, resolveWord, type Batch, type ProjectRun } from '../../model/batch';
 import { STEP_WORD, type Step } from '../../model/funnel';
@@ -13,6 +14,8 @@ interface Props {
   selected: string | null;
   onSelect: (id: string) => void;
   onResolve: (id: string) => void;
+  /** The estate is not read yet: each section's count is a dash and no section claims to be empty. */
+  unread?: boolean;
 }
 
 const SECTIONS = [
@@ -34,10 +37,10 @@ export function BatchTable(p: Props) {
           <div key={sec.key} role="rowgroup" className={styles.sec}>
             <div role="row" className={styles.sh}>
               <span role="columnheader" aria-colspan={5}>
-                <b>{sec.title}</b> {ids.length} <span className={styles.aux}>· {sec.aux}</span>
+                <b>{sec.title}</b> {p.unread ? <Unread /> : ids.length} <span className={styles.aux}>· {sec.aux}</span>
               </span>
             </div>
-            {ids.length === 0 ? (
+            {ids.length === 0 && !p.unread ? (
               <div role="row" className={styles.none}>
                 <span role="cell" aria-colspan={5}>
                   {p.filter ? `Nothing sitting at ${STEP_WORD[p.filter].toLowerCase()} here.` : 'Nothing here.'}

@@ -80,3 +80,12 @@ export function saveSession(store: SessionStore, org: string, changed: Readonly<
     return false;
   }
 }
+
+/**
+ * The data changed under the session (it landed late, or a re-read brought it fresh): what the session moved from the old
+ * start is laid over the new one, and nothing else. The data landing late yields the new start itself (nothing was
+ * moved), so no "change" is invented and kept; a project the data now shows further along takes the data's run.
+ */
+export function rebase(from: Readonly<Record<string, ProjectRun>>, to: Readonly<Record<string, ProjectRun>>, runs: Readonly<Record<string, ProjectRun>>): Record<string, ProjectRun> {
+  return mergeSession(to, changedRuns(from, runs));
+}

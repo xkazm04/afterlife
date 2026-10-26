@@ -2,7 +2,9 @@
 
 // The wizard's run: pick a repo, propose (one call), then probe each spec in order with its own request so the
 // checklist streams, then save on the person's click. A new pick or a re-run aborts the run before it, and a result
-// that lands for an older run is dropped (the run token).
+// that lands for an older run is dropped (the run token). The screen host keeps the wizard mounted (hidden) when the
+// person leaves it, and a hidden screen's effects are cleaned up: so leaving never aborts a run (a proposal takes about a
+// minute), and the proposing clock counts from when it was asked, not from when the step was last shown.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ClaudeRepo } from '@/schemas/vitals';
 import type { EngineKey, OnboardError, ProbeAnswer, ProposeAnswer } from '@/server/discover/wire';
@@ -22,6 +24,8 @@ export interface WizardState {
   error?: OnboardError;
   /** Seconds since the proposal was asked, while it is being made. */
   elapsedS: number;
+  /** When the proposal was asked (ms), while it is being made. */
+  askedAt?: number;
   slug?: string;
 }
 
@@ -35,7 +39,8 @@ export interface WizardApi extends WizardState {
 
 const START: WizardState = { phase: 'pick', engine: 'sonnet', results: [], running: null, elapsedS: 0 };
 
-export function useWizard(): WizardApi {
+/** `onSaved`: the save landed (the screen re-reads its repos, so the saved one reads Onboarded). */
+export function useWizard(onSaved?: () => void): WizardApi {
   const [s, setS] = useState<WizardState>(START);
   const run = useRef<{ id: number; abort: AbortController } | null>(null);
 
@@ -44,7 +49,7 @@ export function useWizard(): WizardApi {
     const me = { id: (run.current?.id ?? 0) + 1, abort: new AbortController() };
     run.current = me;
     const live = () => run.current === me;
-    setS({ ...START, engine, phase: 'proposing', picked: root });
+    setS({ ...START, engine, phase: 'proposing', picked: root, askedAt: Date.now() });
     const p = await propose(root, engine, me.abort.signal);
     if (!live()) return;
     if (!p.ok) return setS((x) => ({ ...x, phase: 'pick', error: p.error }));
@@ -68,15 +73,13 @@ export function useWizard(): WizardApi {
     setS((x) => ({ ...x, phase: 'review', running: null }));
   }, []);
 
-  // The proposing step's elapsed seconds, ticking only while a proposal is being made.
+  // The proposing step's elapsed seconds, ticking only while a proposal is being made (and the step is shown).
   useEffect(() => {
     if (s.phase !== 'proposing') return;
-    const t0 = Date.now();
+    const t0 = s.askedAt ?? Date.now();
     const t = setInterval(() => setS((x) => ({ ...x, elapsedS: Math.round((Date.now() - t0) / 1000) })), 1000);
     return () => clearInterval(t);
-  }, [s.phase, s.picked]);
-
-  useEffect(() => () => run.current?.abort.abort(), []);
+  }, [s.phase, s.askedAt]);
 
   const saveIt = useCallback(async () => {
     const a = s.answer;
@@ -84,7 +87,8 @@ export function useWizard(): WizardApi {
     setS((x) => ({ ...x, phase: 'saving', error: undefined }));
     const r = await save(a.root, s.engine, a.proposal, s.results.filter((x): x is ProbeAnswer => !!x && !!x.seal));
     setS((x) => (r.ok ? { ...x, phase: 'saved', slug: r.body.slug } : { ...x, phase: 'review', error: r.error }));
-  }, [s.answer, s.engine, s.phase, s.results]);
+    if (r.ok) onSaved?.();
+  }, [s.answer, s.engine, s.phase, s.results, onSaved]);
 
   return {
     ...s,

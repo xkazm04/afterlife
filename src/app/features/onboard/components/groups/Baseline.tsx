@@ -1,13 +1,15 @@
 import type { BaselineRow } from '../../model/funnel';
 import { weakest } from '../../model/funnel';
+import { Unread } from '@/components/shell/host';
 import styles from './groups.module.css';
 
 /**
  * The estate's day-0 picture: per stage, how many baselined projects stand on each rung (R0 dim to R4 bright), the
  * unrated hatched, and the median. The weakest stage is named: it is the natural theme of the estate's first cycles.
  */
-export function Baseline({ rows }: { rows: readonly BaselineRow[] }) {
-  const weak = weakest(rows);
+/** `unread`: the estate is not read yet; every stage's median is a dash, never "R?" (unrated) and never a weakest stage. */
+export function Baseline({ rows, unread = false }: { rows: readonly BaselineRow[]; unread?: boolean }) {
+  const weak = unread ? undefined : weakest(rows);
   return (
     <section className={styles.card} aria-label="Estate baseline">
       <h3 className={styles.h}>
@@ -24,7 +26,7 @@ export function Baseline({ rows }: { rows: readonly BaselineRow[] }) {
                 {r.unknown ? <i data-r="q" style={{ flexGrow: r.unknown }} /> : null}
               </span>
               <span className={styles.n} aria-label={`median ${r.median == null ? 'unknown' : `R${r.median}`} over ${n} projects`}>
-                {r.median == null ? 'R?' : `R${r.median}`}
+                {unread ? <Unread /> : r.median == null ? 'R?' : `R${r.median}`}
               </span>
             </div>
           );

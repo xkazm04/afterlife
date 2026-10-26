@@ -4,6 +4,7 @@ const n = (k: number, one: string, many = `${one}s`): string => `${k} ${k === 1 
 
 /** The status bar: "184 discovered · 155 watching · 12 wait for you · next batch 9 reads, 5 writes". */
 export function OnboardStatus({ o }: { o: OnboardApi }) {
+  if (!o.read) return <>— discovered · — watching · — wait for you · next batch —</>;
   const yours = o.batch.yours.length;
   return (
     <>

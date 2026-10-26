@@ -5,34 +5,49 @@ import { useToast } from '@/components/overlays/toast/useToast';
 import { nextAction, planBatch, resolve as resolveRun, runBatch, type OnboardIntent } from '../model/batch';
 import { initialRuns, type OnboardData } from '../model/build';
 import { baseline, byGroup, funnel, type Step } from '../model/funnel';
-import { browserSession, changedRuns, loadSession, mergeSession, saveSession, type SessionStore } from '../model/session';
+import { browserSession, changedRuns, loadSession, mergeSession, rebase, saveSession, type SessionStore } from '../model/session';
 import { useOnboardWrites } from './useOnboardWrites';
 
 export const BATCH_SIZES = ['5', '10', '20'] as const;
 export type BatchSize = (typeof BATCH_SIZES)[number];
 
+/** Before the estate is read (the screen stream's core slice): no group, no project, nothing to move. */
+const NO_DATA: OnboardData = { org: '', host: '', groups: [], projects: [], cycling: [], asOf: '' };
+
 /**
  * The Onboard screen state: where every project stands (simulated runs move it), the batch size and scope (a
  * group, or the estate), what is selected, the step filter and the preview sheet. Reads are simulated and say so; a write
  * is the server's preview, confirmed on Run (demo mode simulates it server side), and only a confirmed one moves.
- * What the session moved is kept in the tab (model/session.ts) and laid over the data after mount, so a reload neither
+ * What the session moved is kept in the tab (model/session.ts) and laid over the data once it is read, so a reload neither
  * forgets an MR it opened nor offers the same write again; the server and the first client render start from the data.
+ * `given` is absent until the estate is read; when it lands, or a re-read brings it fresh, what the session moved is laid
+ * over the new start (rebase), never wiped and never saved as a change it did not make. `onWritten`: a batch confirmed
+ * writes (the server refreshed its data): the screen re-reads the estate.
  */
-export function useOnboard(data: OnboardData, startPreview = false, store: SessionStore = browserSession) {
+export function useOnboard(given: OnboardData | undefined, startPreview = false, store: SessionStore = browserSession, onWritten?: () => void) {
   const { status } = useToast();
+  const data = given ?? NO_DATA;
+  const read = given !== undefined;
   const start = useMemo(() => initialRuns(data), [data]);
   const [runs, setRuns] = useState(start);
-  const restored = useRef(false);
-  // declared before the restore, so the first commit saves nothing over what is kept
+  const [seen, setSeen] = useState(start);
+  if (seen !== start) {
+    setSeen(start);
+    setRuns(rebase(seen, start, runs));
+  }
+  // the org whose kept session is laid over the runs: until then nothing is saved over what is kept
+  const restored = useRef<string | null>(null);
+  // declared before the restore, so the commit that restores saves nothing over what is kept
   useEffect(() => {
-    if (restored.current) saveSession(store, data.org, changedRuns(start, runs));
+    if (restored.current === data.org) saveSession(store, data.org, changedRuns(start, runs));
   }, [runs, start, store, data.org]);
   useEffect(() => {
-    restored.current = true;
+    if (!read || restored.current === data.org) return;
+    restored.current = data.org;
     const kept = loadSession(store, data.org);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- storage is read after mount, so hydration agrees
     if (Object.keys(kept).length) setRuns(mergeSession(start, kept));
-  }, [start, store, data.org]);
+  }, [read, start, store, data.org]);
   const writes = useOnboardWrites();
   const [running, setRunning] = useState(false);
   const [size, setSize] = useState<BatchSize>('5');
@@ -64,6 +79,7 @@ export function useOnboard(data: OnboardData, startPreview = false, store: Sessi
     });
     try {
       const { opened, notSent } = await writes.sendAll(intents);
+      if (intents.length) onWritten?.();
       setRuns((cur) => runBatch(cur, batch, data.projects, data.org, opened));
       setSheet(false);
       const mrs = Object.keys(opened).length;
@@ -83,7 +99,7 @@ export function useOnboard(data: OnboardData, startPreview = false, store: Sessi
     status(`Simulated probe: ${p.name} moves on`);
   };
 
-  return { runs, writes, running, steps, counts, groups, base, batch, byId, size, setSize, selected, setSelected, filter, setFilter, group, setGroup, sheet, setSheet, run, resolve };
+  return { read, org: data.org, runs, writes, running, steps, counts, groups, base, batch, byId, size, setSize, selected, setSelected, filter, setFilter, group, setGroup, sheet, setSheet, run, resolve };
 }
 
 export type OnboardApi = ReturnType<typeof useOnboard>;

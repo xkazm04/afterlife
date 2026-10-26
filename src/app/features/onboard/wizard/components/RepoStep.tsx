@@ -3,12 +3,14 @@
 import { useId, useState } from 'react';
 import { Button } from '@/components/controls/Button';
 import { Chip } from '@/components/status/chip/Chip';
+import { Unread } from '@/components/shell/host';
 import type { ClaudeRepo } from '@/schemas/vitals';
 import { ago, HOST_LABEL } from '../model/format';
 import styles from '../wizard.module.css';
 
 interface Props {
-  repos: readonly ClaudeRepo[];
+  /** Absent: not read yet (the screen stream's repos slice); the rows and the count are a dash, never "no history". */
+  repos?: readonly ClaudeRepo[];
   /** Why the list is empty or partial (not this machine, the listing failed). */
   note?: string;
   picked?: string;
@@ -61,10 +63,12 @@ export function RepoStep({ repos, note, picked, busy, now, onPick }: Props) {
   return (
     <section className={styles.step} aria-label="Step 1: your repos">
       <h2 className={styles.h}>
-        <span className={styles.n}>1</span> Your repos <span className={styles.aux}>{repos.length ? `${repos.length} with Claude Code history` : ''}</span>
+        <span className={styles.n}>1</span> Your repos <span className={styles.aux}>{!repos ? <Unread label="repos not read yet" /> : repos.length ? `${repos.length} with Claude Code history` : ''}</span>
       </h2>
       {note ? <p className={styles.note}>{note}</p> : null}
-      {repos.length ? (
+      {!repos ? (
+        <ul className={styles.repos} aria-label="Repos with Claude Code history" aria-busy="true" />
+      ) : repos.length ? (
         <ul className={styles.repos} aria-label="Repos with Claude Code history">
           {repos.map((r) => (
             <RepoRow key={r.root} r={r} picked={picked} busy={busy} now={now} onPick={onPick} />
@@ -81,7 +85,7 @@ export function RepoStep({ repos, note, picked, busy, now, onPick }: Props) {
         }}
       >
         <label className={styles.detail} htmlFor={field}>
-          {repos.length ? 'Or a path' : 'Path'}
+          {!repos || repos.length ? 'Or a path' : 'Path'}
         </label>
         <input id={field} className={styles.input} value={path} onChange={(e) => setPath(e.target.value)} placeholder="C:\path\to\checkout" spellCheck={false} autoComplete="off" />
         <Button type="submit" disabled={busy || !path.trim()}>

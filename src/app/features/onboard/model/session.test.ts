@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEMO } from '@/lib/demo';
 import { planBatch, runBatch } from './batch';
 import { initialRuns, type OnboardData } from './build';
-import { changedRuns, decodeSession, loadSession, mergeSession, saveSession, sessionKey, type SessionStore } from './session';
+import { changedRuns, decodeSession, loadSession, mergeSession, rebase, saveSession, sessionKey, type SessionStore } from './session';
 
 const data: OnboardData = {
   org: 'acme-lab', host: 'gitlab.com', groups: DEMO.fleet.groups, projects: DEMO.fleet.projects, cycling: ['ledgerline'], asOf: '14:22',
@@ -56,5 +56,25 @@ describe('the Onboard session across a reload', () => {
     expect(decodeSession(JSON.stringify({ v: 2, runs: {} }))).toEqual({});
     const mixed = { v: 1, runs: { a: { step: 'paired', waiting: null, mr: null }, b: { step: 'nowhere', waiting: null, mr: null } } };
     expect(decodeSession(JSON.stringify(mixed))).toEqual({ a: { step: 'paired', waiting: null, mr: null } });
+  });
+});
+
+describe('the Onboard session when the data lands late or is read again (the screen stream)', () => {
+  const none = initialRuns({ ...data, org: '', groups: [], projects: [], cycling: [] });
+
+  it('the data landing late invents no change: nothing to keep, so a kept session is never overwritten with bogus runs', () => {
+    const landed = rebase(none, start, none);
+    expect(landed).toEqual(start);
+    expect(changedRuns(start, landed)).toEqual({});
+  });
+
+  it('a re-read keeps what the session moved and lets the data win where it is further along', () => {
+    const { runs } = afterOneBatch();
+    const [moved, overtaken] = Object.keys(changedRuns(start, runs));
+    const fresh = { ...start, [overtaken!]: { step: 'cycling' as const, waiting: null, mr: null } };
+    const out = rebase(start, fresh, runs);
+    expect(out[moved!]).toEqual(runs[moved!]);
+    expect(out[overtaken!]).toEqual(fresh[overtaken!]);
+    expect(Object.keys(changedRuns(fresh, out))).not.toContain(overtaken);
   });
 });
