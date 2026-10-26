@@ -37,7 +37,7 @@ export async function planGapMr(ctx: PlanContext, intent: StageGapMr): Promise<P
     project, base, branch: intent.branch, commits,
     mr: {
       labels: ['maturity::gap'], title: `Draft: Maturity gap ${intent.gap}: ${intent.title}`,
-      description: `${intent.stage} R${intent.from} -> R${intent.to}. Prepared by Belay for ${ctx.operator}.${intent.workItem ? `\n\nRelated to #${intent.workItem}` : ''}`,
+      description: `${intent.stage} R${intent.from} -> R${intent.to}. Prepared by Afterlife for ${ctx.operator}.${intent.workItem ? `\n\nRelated to #${intent.workItem}` : ''}`,
     },
   });
   return {

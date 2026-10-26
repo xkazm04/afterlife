@@ -18,7 +18,7 @@ export function ErrorView({ error, retry }: { error: Error & { digest?: string }
           <dd>{error.digest ?? 'none'}</dd>
         </dl>
         <p className={styles.note}>
-          In live mode, the server log line starting &quot;belay:&quot; names the failed read. Nothing here is demo data.
+          In live mode, the server log line starting &quot;afterlife:&quot; names the failed read. Nothing here is demo data.
         </p>
         <div className={styles.actions}>
           <button type="button" className={styles.btn} onClick={() => retry()}>

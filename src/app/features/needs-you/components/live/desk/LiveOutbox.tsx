@@ -64,7 +64,7 @@ export function LiveOutbox(p: LiveOutboxProps) {
               <Button variant="primary" disabled={p.out.running} onClick={p.onRunAll} title="Confirms each staged write's current preview, in this order; a refused or failed one does not stop the rest">
                 {p.out.running ? 'Running…' : `Run all · ${staged.length}`}
               </Button>
-              <span className={styles.note}>A person merges each MR in GitLab; Belay never does.</span>
+              <span className={styles.note}>A person merges each MR in GitLab; Afterlife never does.</span>
             </div>
             {staged.map((n) => <OutboxItem key={n.id} item={outItemOf(n, p.views[n.id], p.out)} open={!shut.includes(n.id)} selected={p.sel === n.id} dispatch={dispatch} />)}
           </>

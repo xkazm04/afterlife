@@ -20,13 +20,13 @@ describe('RunnerNeeds', () => {
     expect(out).toContain('git -C /w/alpha merge --ff-only belay/wave-2');
     expect(out).toContain('Bump the lockfile');
     expect(out).toContain('needs a person to pick a version');
-    expect(out).not.toContain('not in .belay/fleet.yml');
+    expect(out).not.toContain('not in .afterlife/fleet.yml');
   });
   it('says when the repo is not in the fleet file or git could not be asked, and writes nothing', () => {
     const bare = { ...merge, checked: false } as Extract<RunnerNeed, { kind: 'merge-wave' }>;
     delete bare.path;
     const out = renderToStaticMarkup(<RunnerNeeds needs={[bare]} />);
-    expect(out).toContain('not in .belay/fleet.yml');
+    expect(out).toContain('not in .afterlife/fleet.yml');
     expect(out).toContain('Git could not be asked');
     expect(out).not.toContain('<button');
   });

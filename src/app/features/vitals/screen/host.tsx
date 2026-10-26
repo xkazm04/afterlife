@@ -58,13 +58,13 @@ function ProjectNotFound() {
 }
 
 export const screens: readonly ScreenDef[] = [
-  { key: 'vitals', ready: true, slices: ['config', 'runs'], Frame: ListFrame, title: () => 'Belay Vitals' },
+  { key: 'vitals', ready: true, slices: ['config', 'runs'], Frame: ListFrame, title: () => 'Afterlife · Vitals' },
   {
     key: 'vitals/[project]',
     ready: true,
     slices: ['config', 'job', 'ci', 'prod', 'adjustments'],
     Frame: ProjectFrame,
-    title: (p) => `Belay Vitals ${p.project}`,
+    title: (p) => `Afterlife · Vitals · ${p.project}`,
     NotFound: ProjectNotFound,
   },
 ];

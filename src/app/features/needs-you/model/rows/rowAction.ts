@@ -12,7 +12,7 @@ export interface RowAction {
 }
 const a = (label: string, action: ActionId, variant: ActionVariant = 'default'): RowAction => ({ label, action, variant });
 
-/** A gap Belay has no door for (write/desk.ts gapBlock) is never offered as Stage, as the inspector already hides it. */
+/** A gap Afterlife has no door for (write/desk.ts gapBlock) is never offered as Stage, as the inspector already hides it. */
 export function rowAction(s: NeedsState, id: string, demo: NeedsYouDemo): RowAction | null {
   if (isGapId(id)) {
     const gs = s.gapStatus[id];

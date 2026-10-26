@@ -12,14 +12,14 @@ import { screens as onboard } from '@/app/features/onboard/screen/host';
 import { screens as runs } from '@/app/features/runs/screen/host';
 import { screens as settings } from '@/app/features/settings/screen/host';
 import { screens as setup } from '@/app/features/setup/screen/host';
+import { screens as start } from '@/app/features/start/screen/host';
 import { screens as task } from '@/app/features/task/screen/host';
 import { screens as theater } from '@/app/features/theater/screen/host';
-import { screens as trace } from '@/app/features/trace/screen/host';
 import { screens as vitals } from '@/app/features/vitals/screen/host';
 import { SCREEN_KEYS, type ScreenKey } from './model/routes';
 import type { ScreenDef } from './model/types';
 
-const ALL: readonly ScreenDef[] = [vitals, fleet, monitor, needsYou, ladder, maturity, cycles, task, onboard, setup, trace, theater, runs, settings, kit].flat();
+const ALL: readonly ScreenDef[] = [vitals, fleet, monitor, needsYou, ladder, maturity, cycles, task, start, onboard, setup, theater, runs, settings, kit].flat();
 
 /** Each key's definition (the first one a module gives, should two name it: registry.test.ts forbids that). */
 export const SCREENS: Readonly<Partial<Record<ScreenKey, ScreenDef>>> = Object.fromEntries(

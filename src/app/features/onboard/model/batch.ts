@@ -61,23 +61,23 @@ export function nextAction(p: FleetProject, run: ProjectRun, org: string): NextA
   if (run.waiting === 'token') {
     return {
       kind: 'token', who: 'you', writes: 0, label: 'Renew the project token',
-      cmd: [`glab token create belay-reader -R ${path} --scope read_api --duration 30d`, '# keep it in .belay/ (local, never committed), then', 'npx belay doctor'],
+      cmd: [`glab token create afterlife-reader -R ${path} --scope read_api --duration 30d`, '# keep it in .afterlife/ (local, never committed), then', 'npx afterlife doctor'],
       to: 'watching',
     };
   }
   if (run.waiting === 'setup') {
-    return { kind: 'setup', who: 'you', writes: 0, label: 'Finish its setup (step not recorded)', cmd: ['npx belay doctor'], to: 'paired' };
+    return { kind: 'setup', who: 'you', writes: 0, label: 'Finish its setup (step not recorded)', cmd: ['npx afterlife doctor'], to: 'paired' };
   }
   switch (run.step) {
     case 'discovered':
-      return { kind: 'scan', who: 'afterlife', writes: 0, label: 'Day-0 scan (read-only)', cmd: [`glab repo clone ${path}`, `(cd ${n} && npx belay scan)`], to: 'baselined' };
+      return { kind: 'scan', who: 'afterlife', writes: 0, label: 'Day-0 scan (read-only)', cmd: [`glab repo clone ${path}`, `(cd ${n} && npx afterlife scan)`], to: 'baselined' };
     case 'baselined':
       return {
         kind: 'bootstrap', who: 'you', writes: 1, label: `Arm ${ONBOARD_TRACK}: open the bootstrap MR`, cmd: [],
         intent: { kind: 'arm-track', project: p.id, track: ONBOARD_TRACK }, to: 'paired',
       };
     case 'paired':
-      return { kind: 'poll', who: 'afterlife', writes: 0, label: 'First poll', cmd: ['npx belay doctor'], to: 'watching' };
+      return { kind: 'poll', who: 'afterlife', writes: 0, label: 'First poll', cmd: ['npx afterlife doctor'], to: 'watching' };
     case 'watching':
       return {
         kind: 'cycle', who: 'you', writes: 1, label: `Enroll ${ONBOARD_TRACK}: open cycle C1`, cmd: [],

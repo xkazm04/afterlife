@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const yml = fs.readFileSync(path.resolve(import.meta.dirname, '..', '.gitlab-ci.yml'), 'utf8').split('\n');
 const start = yml.findIndex((l) => l.startsWith('    - |')) + 1;
-const end = yml.findIndex((l) => l.includes('export BELAY_DIR='));
+const end = yml.findIndex((l) => l.includes('export AFTERLIFE_DIR='));
 const checks = yml.slice(start, end).map((l) => l.slice(6)).join('\n');
 
 const GOOD = {
@@ -16,7 +16,7 @@ const GOOD = {
 };
 
 function boot(patch = {}, extraEnv = {}) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-boot-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-boot-'));
   const cfg = { engine: { ...GOOD.engine, ...patch.engine }, glab: { ...GOOD.glab, ...patch.glab } };
   fs.writeFileSync(path.join(dir, 'apply.json'), JSON.stringify(cfg));
   const r = spawnSync('bash', ['-c', `${checks}\necho BOOT-OK`], { env: { ...process.env, ...extraEnv, CI_PROJECT_DIR: dir.split(path.sep).join('/') }, encoding: 'utf8' });
@@ -50,17 +50,18 @@ for (const [key, patch] of BAD) {
   });
 }
 
-for (const hook of [{ BELAY_GLAB: 'sh|-c|id' }, { BELAY_GLAB: '' }, { FAKE_GLAB_ROUTES: '/tmp/routes.json' }]) {
+// The pre-rename BELAY_GLAB is refused as surely as AFTERLIFE_GLAB: either name picks the binary.
+for (const hook of [{ AFTERLIFE_GLAB: 'sh|-c|id' }, { AFTERLIFE_GLAB: '' }, { BELAY_GLAB: 'sh|-c|id' }, { FAKE_GLAB_ROUTES: '/tmp/routes.json' }]) {
   it(`refuses the glab test hook in the token-holding job: ${JSON.stringify(hook)}`, () => {
     const r = boot({}, hook);
     expect(r.status).toBe(2);
     expect(r.stdout).not.toContain('BOOT-OK');
-    expect(r.stderr).toContain('BELAY_GLAB or FAKE_GLAB_* is set');
+    expect(r.stderr).toContain('AFTERLIFE_GLAB, BELAY_GLAB or FAKE_GLAB_* is set');
   });
 }
 
 it('still boots with the glab tuning knobs, which pick no binary', () => {
-  const r = boot({}, { BELAY_GLAB_TIMEOUT_MS: '1000', BELAY_GLAB_BACKOFF_MS: '0' });
+  const r = boot({}, { AFTERLIFE_GLAB_TIMEOUT_MS: '1000', AFTERLIFE_GLAB_BACKOFF_MS: '0' });
   expect(r.stderr).toBe('');
   expect(r.stdout).toContain('BOOT-OK');
 });

@@ -12,7 +12,7 @@ import { main } from '../cli';
 import { ENGINE_VERSION } from '../core/version';
 import { RUBRIC } from './rubric';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-scan-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 function scan(file: string) {
@@ -88,7 +88,7 @@ describe('scan: the rubric', () => {
     expect(of('stale').cell('secure')).toMatchObject({ rung: 1, note: expect.stringMatching(/no artifact/) });
   });
 
-  it('R4 needs an agent config and the stage\'s Belay proof job to have run; a stage the rubric reads no further stops below', () => {
+  it('R4 needs an agent config and the stage\'s Afterlife proof job to have run; a stage the rubric reads no further stops below', () => {
     const r = of('full');
     expect(r.cell('verify')).toMatchObject({ rung: 4, next_rung: null });
     expect(r.cell('verify').evidence.map((e) => e.label)).toContain('job belay-proof-rerun-stats #805');

@@ -13,9 +13,9 @@ import type { DiffFile, ProposalExtra } from '../data/types';
 export type DataMode = 'demo' | 'live';
 
 /** The reasons a gap is not sent from the screen. Each is shown where the gap is. */
-export const NOT_BUILT = 'Not built yet: the server has no probe door, so Belay sends nothing for a probe. Nothing is sent.';
+export const NOT_BUILT = 'Not built yet: the server has no probe door, so Afterlife sends nothing for a probe. Nothing is sent.';
 export const NO_FILES = 'This gap has no proposal files to send, so there is no MR to open.';
-export const DEMO_CONTENT = 'Demo content: these files are a demo fixture, not read from your repo. Belay will not send them to a real project.';
+export const DEMO_CONTENT = 'Demo content: these files are a demo fixture, not read from your repo. Afterlife will not send them to a real project.';
 
 /** A proposal file as the gap door takes it: a new file is its '+' lines, an existing file's change is the hunk. */
 export function gapFile(f: DiffFile): GapFile {

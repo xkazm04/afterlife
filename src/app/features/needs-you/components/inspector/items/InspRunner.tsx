@@ -12,7 +12,7 @@ function RunnerChip({ check }: { check: 'ok' | 'none' | null }) {
   return <HonestyChip kind="unknown">{check === 'none' ? '? not seen yet' : `? unknown · ${RUNNER.checkedAgo}`}</HonestyChip>;
 }
 
-/** n5: finish the runner setup step. Belay opens the page and checks again; it writes nothing. */
+/** n5: finish the runner setup step. Afterlife opens the page and checks again; it writes nothing. */
 export function InspRunner(p: InspProps) {
   const { s, dispatch } = p;
   const { check } = s.runner;
@@ -34,7 +34,7 @@ export function InspRunner(p: InspProps) {
           rows={[
             ['Runner', <RunnerChip key="r" check={check} />],
             ['Checked', check ? 'just now · simulated' : `${RUNNER.openedAt} · ${RUNNER.checkedAgo}`],
-            ['Billing', 'Belay cannot see it'],
+            ['Billing', 'Afterlife cannot see it'],
           ]}
         />
       </Sec>

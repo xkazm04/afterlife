@@ -21,7 +21,7 @@ describe('InspRunner', () => {
       expect(out).not.toContain('job #');
       expect(out).not.toContain('--only');
       expect(out).not.toContain('--json');
-      expect(out).toContain('npx belay doctor');
+      expect(out).toContain('afterlife doctor');
     }
     expect(html('ok')).toContain('simulated');
   });

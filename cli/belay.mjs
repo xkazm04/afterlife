@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// belay - command-line companion of the app: doctor | run | scan | pair | collect | report | replay.
+// afterlife (also installed as `belay`; this file keeps its name, callers and installed skills point at it) - command-line
+// companion of the app: doctor | run | scan | pair | collect | report | replay.
 // Every write it will ever make prints the exact command first. `doctor` and `scan` only read; `pair` prints what it would
 // add to a checkout and writes only with --write (it never commits, pushes or opens an MR); `run` is the one verb that
 // spends: it prints repo, base, caps and model before anything starts, and --dry-run stops right there. `collect` only reads
@@ -13,7 +14,7 @@ import path from 'node:path';
 import { childExit } from './childExit.mjs';
 
 const [, , cmd = 'help', ...rest] = process.argv;
-const USAGE = 'usage: belay doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--mode execute|propose] [--base ref | --onto branch] [--ideas scan,lens-scan] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--pack-version v] [--engine-ref ref] [--write] | collect --project <slug> | report --project <slug> --claim <json|file> | replay <ledger-slice>';
+const USAGE = 'usage: afterlife doctor | run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--mode execute|propose] [--base ref | --onto branch] [--ideas scan,lens-scan] [--skip-base-gates] [--dry-run] | scan [<checkout>] [--propose] | scan --facts <facts.json> | pair <checkout> [--group <path>] [--pack-version v] [--engine-ref ref] [--write] | collect --project <slug> | report --project <slug> --claim <json|file> | replay <ledger-slice>';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 /** Runs a TypeScript entry through tsx. `cwd` is where it runs (scan and pair read the caller's checkout); the app's
@@ -23,7 +24,7 @@ function viaTsx(verb, entryUrl, args = [], cwd = root) {
   try {
     tsx = createRequire(import.meta.url).resolve('tsx/cli');
   } catch {
-    console.error(`belay ${verb} needs tsx (a dev dependency): run \`npm install\` first.`);
+    console.error(`afterlife ${verb} needs tsx (a dev dependency): run \`npm install\` first.`);
     return 2;
   }
   const entry = fileURLToPath(new URL(entryUrl, import.meta.url));
@@ -45,7 +46,7 @@ switch (cmd) {
     break;
   }
   case 'scan': {
-    // belay scan [<checkout>] [--propose] | belay scan --dir <checkout> | belay scan --facts <facts.json>: the checkout
+    // afterlife scan [<checkout>] [--propose] | afterlife scan --dir <checkout> | afterlife scan --facts <facts.json>: the checkout
     // defaults to the current directory. An explicit --dir or --facts passes through; only a bare positional is wrapped.
     const valued = ['--facts', '--dir'];
     const at = rest.findIndex((a, i) => !a.startsWith('--') && !valued.includes(rest[i - 1]));
@@ -62,11 +63,11 @@ switch (cmd) {
     break;
   case 'report':
     // A --claim file is the caller's: report runs from the app root, so it is told where the caller stood.
-    process.env.BELAY_CALLER_CWD = process.cwd();
+    process.env.AFTERLIFE_CALLER_CWD = process.cwd();
     process.exitCode = viaTsx('report', '../src/server/vitals/report/reportCli.ts', rest);
     break;
   case 'replay':
-    console.error(`belay ${cmd}: not implemented yet`);
+    console.error(`afterlife ${cmd}: not implemented yet`);
     process.exitCode = 2;
     break;
   case 'help':
@@ -75,7 +76,7 @@ switch (cmd) {
     console.log(USAGE);
     break;
   default:
-    // A typo is a failure, as in engine/cli.ts: a script that calls `belay doctr` must not read a pass.
-    console.error(`belay: unknown command "${cmd}"\n${USAGE}`);
+    // A typo is a failure, as in engine/cli.ts: a script that calls `afterlife doctr` must not read a pass.
+    console.error(`afterlife: unknown command "${cmd}"\n${USAGE}`);
     process.exitCode = 2;
 }

@@ -78,7 +78,7 @@ function ClassFrame({ params }: ScreenFrameProps) {
 }
 
 export const screens: readonly ScreenDef[] = [
-  { key: 'ladder', ready: true, slices: ['core', 'ledger'], Frame: LadderFrame, Session: LadderSession, title: () => 'Belay Ladder' },
+  { key: 'ladder', ready: true, slices: ['core', 'ledger'], Frame: LadderFrame, Session: LadderSession, title: () => 'Afterlife · Ladder' },
   {
     key: 'ladder/[class]',
     ready: true,
@@ -86,6 +86,6 @@ export const screens: readonly ScreenDef[] = [
     Frame: ClassFrame,
     Session: LadderSession,
     NotFound: ClassNotFound,
-    title: (p) => `Belay Ladder ${p.class}`,
+    title: (p) => `Afterlife · Ladder · ${p.class}`,
   },
 ];

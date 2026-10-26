@@ -7,7 +7,7 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { addWorktree, claimOwnWorktrees, releaseOwnWorktrees, removeTree, removeWorktree, sweepStaleWorktrees, worktreeDir, worktreesRoot } from '../git/worktree';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-wt-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-wt-'));
 const repo = path.join(tmp, 'repo');
 const sh = (...a: string[]) => spawnSync('git', a, { cwd: repo, encoding: 'utf8' }).stdout.trim();
 
@@ -35,14 +35,14 @@ afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, ret
 describe('removeWorktree', () => {
   it('removes a registered worktree and its branch without emptying a junction target inside it', async () => {
     const store = outside('store-1');
-    const dir = worktreeDir(repo, 'belay-wave-1-a');
+    const dir = worktreeDir(repo, 'afterlife-wave-1-a');
     await addWorktree(repo, dir, 'main', 'belay/wave-1-a');
     link(store, path.join(dir, 'node_modules', '.pnpm-store'));
     fs.writeFileSync(path.join(dir, 'node_modules', 'x.js'), 'x');
     await removeWorktree(repo, dir, 'belay/wave-1-a');
     expect(fs.existsSync(dir)).toBe(false);
     expect(fs.readFileSync(path.join(store, 'keep.txt'), 'utf8')).toBe('shared');
-    expect(sh('worktree', 'list')).not.toContain('belay-wave-1-a');
+    expect(sh('worktree', 'list')).not.toContain('afterlife-wave-1-a');
     expect(sh('branch', '--list', 'belay/wave-1-a')).toBe('');
   });
 
@@ -55,25 +55,27 @@ describe('removeWorktree', () => {
 });
 
 describe('sweepStaleWorktrees', () => {
-  it('deletes unregistered belay-wave-* dirs, links unlinked not followed, and leaves live worktrees and other dirs', async () => {
+  it('deletes unregistered afterlife-wave-* dirs, links unlinked not followed, and leaves live worktrees and other dirs', async () => {
     const store = outside('store-3');
     // What paypal wave 1 left: the dir is there, its .git link and its registration are gone.
-    const stale = worktreeDir(repo, 'belay-wave-2-b');
+    const stale = worktreeDir(repo, 'afterlife-wave-2-b');
     await addWorktree(repo, stale, 'main', 'belay/wave-2-b');
     fs.rmSync(path.join(stale, '.git'));
     link(store, path.join(stale, 'node_modules'));
-    const live = worktreeDir(repo, 'belay-wave-3');
+    const live = worktreeDir(repo, 'afterlife-wave-3');
     await addWorktree(repo, live, 'main', 'belay/wave-3');
+    const before = worktreeDir(repo, 'belay-wave-4-c'); // left by a run from before the rename: still the runner's own
+    fs.mkdirSync(before, { recursive: true });
     const other = worktreeDir(repo, 'someone-elses');
     fs.mkdirSync(other, { recursive: true });
 
     const removed = await sweepStaleWorktrees(repo);
-    expect(removed).toEqual([stale]);
+    expect(removed.sort()).toEqual([stale, before].sort());
     expect(fs.existsSync(stale)).toBe(false);
     expect(fs.readFileSync(path.join(store, 'keep.txt'), 'utf8')).toBe('shared');
     expect(fs.existsSync(path.join(live, 'a.txt'))).toBe(true);
     expect(fs.existsSync(other)).toBe(true);
-    expect(sh('worktree', 'list')).not.toContain('belay-wave-2-b');
+    expect(sh('worktree', 'list')).not.toContain('afterlife-wave-2-b');
     await removeWorktree(repo, live, 'belay/wave-3');
   });
 
@@ -84,14 +86,14 @@ describe('sweepStaleWorktrees', () => {
 
 describe('claimOwnWorktrees', () => {
   it("removes what a stopped run left registered at the fixed paths, drops its lane branch, keeps the wave branch", async () => {
-    const head = worktreeDir(repo, 'belay-wave-head');
-    const lane = worktreeDir(repo, 'belay-wave-lane');
+    const head = worktreeDir(repo, 'afterlife-wave-head');
+    const lane = worktreeDir(repo, 'belay-wave-lane'); // its pre-rename name: a run stopped before the rename is cleared too
     await addWorktree(repo, head, 'main', 'belay/wave-7');
     await addWorktree(repo, lane, 'main', 'belay/wave-7-a');
-    const mine = worktreeDir(repo, 'belay-wave-8-plan');
+    const mine = worktreeDir(repo, 'afterlife-wave-8-plan');
     await addWorktree(repo, mine, 'main');
     expect(await claimOwnWorktrees(repo)).toEqual([head, lane]);
-    expect(sh('worktree', 'list')).not.toMatch(/belay-wave-(head|lane)/);
+    expect(sh('worktree', 'list')).not.toMatch(/(afterlife|belay)-wave-(head|lane)/);
     expect(sh('branch', '--list', 'belay/wave-7-a')).toBe('');
     expect(sh('branch', '--list', 'belay/wave-7')).toContain('belay/wave-7');
     expect(fs.existsSync(path.join(mine, 'a.txt'))).toBe(true);
@@ -100,9 +102,9 @@ describe('claimOwnWorktrees', () => {
   });
 
   it('refuses while another live runner holds them, and ignores a dead one', async () => {
-    const file = path.join(worktreesRoot(repo), 'belay-run.pid');
+    const file = path.join(worktreesRoot(repo), 'afterlife-run.pid');
     fs.writeFileSync(file, `${process.ppid}\n`);
-    await expect(claimOwnWorktrees(repo)).rejects.toThrow(/another belay run/);
+    await expect(claimOwnWorktrees(repo)).rejects.toThrow(/another afterlife run/);
     fs.writeFileSync(file, '999999999\n');
     await expect(claimOwnWorktrees(repo)).resolves.toEqual([]);
     releaseOwnWorktrees(repo);

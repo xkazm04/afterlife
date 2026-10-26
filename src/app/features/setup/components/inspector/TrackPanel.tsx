@@ -23,7 +23,7 @@ import { TrackDep } from './parts/TrackDep';
 import { EnrollSection } from './EnrollSection';
 import { TrackArmSection } from './TrackArmSection';
 
-/** What arming is not: Belay's arm MR adds the track's CI content, nothing in belay-policy. */
+/** What arming is not: Afterlife's arm MR adds the track's CI content, nothing in belay-policy. */
 const ARM_IS_NOT = 'Arming does not grant a tier and does not write tier-state.yml: a tier is earned on the record, by a policy MR a person merges.';
 
 const CHIP: Record<ArmStatus, { tone: ChipTone; word: (a: ArmState) => string }> = {
@@ -38,7 +38,7 @@ const CHIP: Record<ArmStatus, { tone: ChipTone; word: (a: ArmState) => string }>
 
 /**
  * A picked track: arm, merge, disarm or why it is locked; where each of its classes stands now (the Ladder's own action
- * classes, with the gate last seen deciding for each); what it needs, relies on and frees. Whether Belay has the track's
+ * classes, with the gate last seen deciding for each); what it needs, relies on and frees. Whether Afterlife has the track's
  * arm content is the arm section's fact, apart from this one.
  */
 export function TrackPanel({ id }: { id: string }) {
@@ -96,7 +96,7 @@ export function TrackPanel({ id }: { id: string }) {
         {needs.length ? needs.map((k) => (isStepKey(k) ? <StepDep key={k} n={stepOf(k)} /> : <TrackDep key={k} id={k} />)) : <div className={styles.muted}>No prerequisite</div>}
       </DetailSection>
       <DetailSection title="Relies on in GitLab">
-        {caps.length ? caps.map((c) => <CapDep key={c} name={c} />) : <div className={styles.muted}>{state.live ? 'Not mapped: Belay does not tie a track to the live capabilities yet' : 'No GitLab capability'}</div>}
+        {caps.length ? caps.map((c) => <CapDep key={c} name={c} />) : <div className={styles.muted}>{state.live ? 'Not mapped: Afterlife does not tie a track to the live capabilities yet' : 'No GitLab capability'}</div>}
       </DetailSection>
       {frees.length ? (
         <DetailSection title="Frees" aux={plural(frees.length, 'track')}>

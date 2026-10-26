@@ -1,6 +1,6 @@
 // fleet_day: one row per project per UTC day, written after the day's first poll cycle (data/live/day.ts) from the
 // numbers the Fleet showed: the history the week-over-week trend reads. Append-only like ledger_event: a day once
-// written is never rewritten, so update and delete raise. Additive: older Belay refuses an index that ran it (migrate.ts).
+// written is never rewritten, so update and delete raise. Additive: older Afterlife refuses an index that ran it (migrate.ts).
 import { type Migration } from '../parts';
 
 export const m0019: Migration = {

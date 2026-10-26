@@ -1,4 +1,4 @@
-// The credit rules, as pure functions. Belay credits a rung only when ALL hold on the rescan:
+// The credit rules, as pure functions. Afterlife credits a rung only when ALL hold on the rescan:
 //   same engine before and after, not detector-only, exercised (not just configured), outside the noise band.
 // "No lift: configured, not exercised" comes first: merging a job that has not run earns nothing. Nothing here compares the
 // engines of two scans or reads the diff, so "same engine" and "not detector-only" are listed as not checked, never passed.

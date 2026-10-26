@@ -59,7 +59,7 @@ flow:
 
 prompts:
   - prompt_id: "gardener_upgrade"
-    name: "Belay gardener: upgrade with migrations"
+    name: "Afterlife gardener: upgrade with migrations"
     unit_primitives: []
     prompt_template:
       system: |

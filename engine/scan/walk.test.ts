@@ -5,7 +5,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { listFiles } from './walk';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-walk-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-walk-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 const git = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, stdio: 'ignore', windowsHide: true });

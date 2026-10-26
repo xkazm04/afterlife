@@ -73,13 +73,13 @@ All slices start at once, in declared order (a sync core is the first line), and
 resolves. A loader gets `{ params, search, signal }`; pass `signal` to a slow read that can stop. `local: true` makes the
 whole screen loopback-only (a refused request gets one `_end` line with `reason: 'not-local'`, and the client fails
 every slice with it); `local: ['start']` does that for the named slices only. Use it for keys that read local files or
-act as the person's own logins (onboard, vitals, runs, theater start), as `src/app/api/onboard/answer.ts` does.
+act as the person's own logins (start's repos, vitals, runs' merges, theater start), as `src/app/api/onboard/answer.ts` does.
 
 **Client side**, in `screen/host.tsx`:
 
 ```ts
 export const screens: readonly ScreenDef[] = [
-  { key: 'monitor', ready: true, slices: ['core', 'estate', 'desk'], Frame: MonitorFrame, title: () => 'Belay Monitor' },
+  { key: 'monitor', ready: true, slices: ['core', 'estate', 'desk'], Frame: MonitorFrame, title: () => 'Afterlife · Monitor' },
 ];
 ```
 
@@ -158,7 +158,7 @@ its query. A screen that declares no slice (settings Display, Keyboard, About, t
 10. Set `ready: true`. `src/app/features/screens/registry.test.ts` then checks that the slices match the loader.
 11. Tests: pure model tests for the slice reducers, and a render test per Frame with unread then ok slices
     (`monitor/screen/host.test.tsx`: `SliceFixture` plus mocks for `next/navigation` and `next/link`).
-12. Verify in the browser (below), demo and `BELAY_GITLAB=fake` where relevant. Live-only paths go to
+12. Verify in the browser (below), demo and `AFTERLIFE_GITLAB=fake` where relevant. Live-only paths go to
     `docs/live-probe-checklist.md`.
 
 ## Pitfalls the scouts found
@@ -217,7 +217,8 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
   docket rows in its Session. (W5: with `paramSlices` a j/k step reads only detail and ledger, and a node click only the
   catalogue; the docket, the page facts and setup's three live reads are kept.)
 - **Kept runs.** A hidden screen's effects are cleaned up, so a screen whose work outlives a visit (the onboard
-  wizard's proposal) must not abort it on effect cleanup, and timers should count from a stored start.
+  wizard's proposal; since the merge of main, /start's stack run, `start/hooks/useStack.ts`) must not abort it on effect
+  cleanup, and timers should count from a stored start.
 - **Param `generateMetadata`.** A static shell whose title reads the param logs "runtime data in generateMetadata()" in
   dev. (W5: every `[param]` page uses `features/screens/paramPage.tsx`.)
 
@@ -225,14 +226,10 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
 
 - **Static screens.** Settings Display, Keyboard and About and the kit declare no slice and have no loader. (W5: the
   host reads nothing for a screen that declares no slice; there is no 404 any more.)
-- **The live gate is a client component** (`trace/LiveGate.tsx`). It follows the shell's read: live before the first
-  poll (the shell's group reads "first poll not finished") covers the column at once; otherwise, in live mode only, it
-  reads Trace's own `facts` slice (`components/useGateFacts.ts`) and covers while `facts.gate` names one (an empty
-  group). Demo reads nothing. On `/trace` itself it draws nothing: the screen shows the gate's copy. When the cover
-  lifts it re-reads the screen under it (`hostRevalidate()`, and `router.refresh()` for a route the host does not draw).
+- **The live gate** (W4: a client component in `trace/`; removed with Trace by the merge of main, see the merge notes).
 - **The shell re-reads with the host** (`components/shell/live/hostNav.ts`): another screen showing, or a read of the
   one showing starting (a return, a poll, a write's revalidate), is one `/api/shell` read 300 ms later; a burst is one
-  read. `requestShellRead()` (`live/sync.ts`) asks at once (the demo-estate cookie, Trace's live node passing).
+  read. `requestShellRead()` (`live/sync.ts`) asks at once (the demo-estate cookie, /start's live node passing under the gate).
 - **One pick rule, both sides.** Theater's film is `live/model/pick.ts` on the client and on the server: the server
   sends the replay film only when the address and the live payload pick it; the client draws what the same rule picks,
   `TheaterPending` (title, toolbar, a dash in the stage) until then. `live` and `film` share one runs read per request
@@ -322,9 +319,31 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
 - **Param pages**: `paramTitle(prefix, param)` + `ParamShell` for all seven; `routeBranches.test.tsx` pins it. The
   seven detail URLs hard-load with their titles and no console error in `next dev` (the server log itself was not
   readable from this session).
-- **No skeleton anywhere**: `(app)/loading.tsx`, `ShellLoading` and `ScreenSkeleton` are deleted; the onboard wizard's
-  proposing state draws its four checklist groups with a dash each. `src/app/noSkeleton.test.ts` fails on a loading
+- **No skeleton anywhere**: `(app)/loading.tsx`, `ShellLoading` and `ScreenSkeleton` are deleted (the merge of main
+  also dropped `(app)/start/loading.tsx` and /start's Suspense fallback). `src/app/noSkeleton.test.ts` fails on a loading
   file, a Skeleton/Loading component, or a Suspense fallback that is not null or a named still frame (DoorFrame,
   AboutFrame, the sidebar's nav lists with nothing current). Without `(app)/loading.tsx`, a router navigation into the
   app (the door's Enter) waits for the static shell's RSC instead of drawing a stand-in; every in-app click is the
   host's and never waits.
+
+## Merge of main (Afterlife, /start)
+
+Main renamed the app Belay -> Afterlife and replaced the Trace page and the Onboard wizard with one wizard at `/start`.
+The merge keeps main's product and the host's mechanism:
+
+- **Titles** are main's form everywhere: `Afterlife · <Screen>` (`ScreenDef.title` and the page metadata), a param page
+  `Afterlife · <Screen> · <param>` (`paramTitle('Afterlife · Fleet', 'project')`), settings `Afterlife · Settings · <label>`.
+  Env names are `AFTERLIFE_*` (main reads a `BELAY_*` fallback), the shell's event is `afterlife:shell-read`, the stream
+  logs `afterlife:`.
+- **Trace is gone** (key, route, screen, slices, the client gate). `/trace` and `/onboard` redirect to `/start`
+  (next.config.ts). The Onboard module keeps one key, `onboard/estate`.
+- **/start** is a host screen (`start/screen/{host.tsx,slices.ts}`): `facts` (gate/facts.ts `loadTraceFacts`, sync, reads
+  `?rehearse=`) then `repos` (`local: ['repos']`, `listClaudeRepos`). `StartPending` (title, a disabled Re-check, dashes)
+  until the facts land; then `StartScreen` mounts, its page a `<Reveal order={1}>`, and its probes stream from the client
+  as main wrote them (`/api/start/probe`, `useProbe`: one run per showing). "Your repos" is a dash until `repos` lands
+  (`model/stack/repos.ts` `reposOf`). The stack run is never aborted by leaving (`useStack`).
+- **The live gate is main's**: a server component in the (app) layout (`start/gate/LiveGate.tsx`, behind Suspense and
+  `connection()`) that covers the column with /start. It is read per request, so a host click does not re-read it; the
+  host's own /start draws nothing while the facts name a gate (one wizard, one probe). When the cover's probe sees the
+  live node pass, `useProbe` refreshes the router (the gate), re-reads the host's screen under it (`hostRevalidate()`)
+  and asks the shell (`requestShellRead()`); a done action does the first two (`useStart`).

@@ -6,7 +6,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { AZURE, GITHUB } from './pipelines/read';
 
-const SKIP = new Set(['.git', 'node_modules', '.belay', '.belay-engine', '.belay-policy', 'vendor', 'dist', 'build', '.next']);
+// .belay/, .belay-engine/, .belay-policy/: wire names, the CI jobs' work dirs that targets gitignore; .afterlife/ is the data dir.
+const SKIP = new Set(['.git', 'node_modules', '.afterlife', '.belay', '.belay-engine', '.belay-policy', 'vendor', 'dist', 'build', '.next']);
 const WANT = /^(\.gitlab\/.+|(docs\/)?CODEOWNERS|.+\.(tf|bicep)|(.+\/)?azuredeploy[^/]*\.json|(.+\/)?prometheus[^/]*\.ya?ml|alerts?\/.+\.ya?ml)$/;
 const CONTENT = /alerting|prometheus|^alerts?\//;
 const wanted = (rel: string): boolean => WANT.test(rel) || AZURE.test(rel) || GITHUB.test(rel);

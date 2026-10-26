@@ -9,7 +9,7 @@ export interface CommandLineParts {
 export type CommandLine = string | CommandLineParts;
 
 /**
- * The exact command Belay will run, shown before anything runs (writes only on a click). One line per entry. A plain
+ * The exact command Afterlife will run, shown before anything runs (writes only on a click). One line per entry. A plain
  * string is a command, with a dim "$" prompt. `{ code, note }` adds a dim note after the command; `{ note }` alone is a
  * dim comment line ("# runs as @you"). `prompt={false}` drops the "$" (a script, or lines continued with "\").
  */

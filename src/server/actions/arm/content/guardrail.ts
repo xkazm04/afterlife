@@ -17,7 +17,7 @@ export const T4: TrackArm = {
     { component: 'proof-engine', inputs: [['class', 'cited-diff'], ...enginePin(pin), ['stage', at['proof-engine'] ?? 'review']] },
   ],
   notes: [
-    "The track's writes (the proof note, the labels, the approve or merge) are made by belay-apply, with BELAY_BOT_TOKEN set there as a protected CI variable, never on this project.",
+    "The track's writes (the proof note, the labels, the approve or merge) are made by belay-apply, with AFTERLIFE_BOT_TOKEN set there as a protected CI variable, never on this project.",
     NO_WRITE_TOKEN,
     'Afterlife never sets it.',
     'Without it, belay-apply only reports and fails closed; this include only ever reports.',

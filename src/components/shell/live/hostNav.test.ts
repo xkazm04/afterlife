@@ -34,7 +34,7 @@ describe('onHostNav over the host store', () => {
     configureHost({ isReady: () => true, declared: () => [], redirect: () => undefined });
     const read = vi.fn();
     const off = onHostNav(read, 300);
-    for (const p of ['/runs', '/trace', '/theater']) activate(matchRoute(p), true);
+    for (const p of ['/runs', '/start', '/theater']) activate(matchRoute(p), true);
     expect(markOf(getState()).path).toBe('/theater');
     expect(read).not.toHaveBeenCalled();
     vi.advanceTimersByTime(300);

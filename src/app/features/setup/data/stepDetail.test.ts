@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
-import { BELAY_PROJECTS } from '@/server/data/setup/read';
+import { AFTERLIFE_PROJECTS } from '@/server/data/setup/read';
 import { DEMO_NAMES, STDIN, STEP_DETAIL, stepDetailsFor } from './stepDetail';
 
 const SKILL = readFileSync(join(process.cwd(), 'skills/adopt-belay/SKILL.md'), 'utf8');
@@ -23,23 +23,23 @@ describe('step 9 protects the agents’ branches (F38 part 4)', () => {
 
 describe('step 4 creates the same projects in Setup and the skill', () => {
   it('the skill creates every project Setup’s step 4 does, belay-engine included (components clone it at engine_ref)', () => {
-    // Live Setup's step 4 names the target and BELAY_PROJECTS (the paired read), which include belay-engine.
-    expect(BELAY_PROJECTS).toContain('belay-engine');
-    expect(BELAY_PROJECTS).toContain('belay-apply');
-    for (const p of ['target', ...BELAY_PROJECTS]) expect(skillStep(4)).toContain(p);
+    // Live Setup's step 4 names the target and AFTERLIFE_PROJECTS (the paired read), which include belay-engine.
+    expect(AFTERLIFE_PROJECTS).toContain('belay-engine');
+    expect(AFTERLIFE_PROJECTS).toContain('belay-apply');
+    for (const p of ['target', ...AFTERLIFE_PROJECTS]) expect(skillStep(4)).toContain(p);
   });
 });
 
 describe('the demo names every project step 4 creates', () => {
-  it('DEMO_NAMES.projects holds the target and every one of BELAY_PROJECTS', () => {
+  it('DEMO_NAMES.projects holds the target and every one of AFTERLIFE_PROJECTS', () => {
     expect(DEMO_NAMES.projects).toContain(DEMO_NAMES.project);
-    for (const p of BELAY_PROJECTS) expect(DEMO_NAMES.projects).toContain(p);
-    expect(DEMO_NAMES.projects).toHaveLength(BELAY_PROJECTS.length + 1);
+    for (const p of AFTERLIFE_PROJECTS) expect(DEMO_NAMES.projects).toContain(p);
+    expect(DEMO_NAMES.projects).toHaveLength(AFTERLIFE_PROJECTS.length + 1);
     expect(STEP_DETAIL[4]!.probe).toBe(`${DEMO_NAMES.projects.length} of ${DEMO_NAMES.projects.length} projects exist`);
   });
 });
 
-const TOKENS = ['BELAY_BOT_TOKEN', 'BELAY_POLICY_TOKEN', 'BELAY_DISPATCH_TOKEN', 'BELAY_LEDGER_TOKEN'];
+const TOKENS = ['AFTERLIFE_BOT_TOKEN', 'AFTERLIFE_POLICY_TOKEN', 'AFTERLIFE_DISPATCH_TOKEN', 'AFTERLIFE_LEDGER_TOKEN'];
 
 describe('step 8 sets the four tokens on belay-apply, and only there (F4 b)', () => {
   it('Setup and the skill name all four, on belay-apply, never a group variable, with the pipeline-variable role', () => {
@@ -84,11 +84,12 @@ describe('step 9 protects belay-apply, the job token allowlists, the v* tags and
 });
 
 describe('every command a step shows runs (F4 f)', () => {
-  it('shows no belay command but doctor, no placeholder and no && chain', () => {
+  it('shows no CLI command but doctor, no placeholder and no && chain', () => {
     for (const d of Object.values(STEP_DETAIL)) {
       for (const c of d.cmd ?? []) {
         const run = c.startsWith(`${STDIN} | `) ? c.slice(STDIN.length + 3) : c;
-        if (/\bbelay\b/.test(run) && !run.startsWith('glab')) expect(run).toBe('npx belay doctor');
+        // step 0's `npm install` and `npm run dev` start the app; any other npm script or the CLI file is the doctor or nothing
+        if (/\bnpx\b|cli\/\w+\.mjs|npm run (?!dev$)/.test(run) && !run.startsWith('glab')) expect(run).toBe('npx afterlife doctor');
         expect(c).not.toMatch(/…|[.]{3}|&&/);
       }
     }
@@ -128,7 +129,7 @@ describe('every glab command reaches the paired host when it is not gitlab.com (
 });
 
 describe('step 1 names the settings an arm MR refuses without (value-4)', () => {
-  const VARS = ['BELAY_PACK_VERSION', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT'];
+  const VARS = ['AFTERLIFE_PACK_VERSION', 'AFTERLIFE_ENGINE_REF', 'AFTERLIFE_ENGINE_COMMIT'];
   it('Setup’s step 1 names the three, what each is, that an arm MR refuses without them, and the values as the example’s', () => {
     const d = STEP_DETAIL[1]!;
     const text = `${d.does} ${d.note ?? ''}`;

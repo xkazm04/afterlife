@@ -1,4 +1,4 @@
-// The GitLab port: everything Belay reads, as typed calls, and every write as a PlannedCommand.
+// The GitLab port: everything Afterlife reads, as typed calls, and every write as a PlannedCommand.
 // Implemented by the glab adapter (live) and the fake (tests, live-mode demo).
 import type {
   Availability, CommitFilter, DeploymentFilter, GlDeployment, GlCommit, GlDiff, GlEnvironment, GlFile, GlGroup, GlInstance, GlJob,

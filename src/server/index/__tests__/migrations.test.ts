@@ -44,14 +44,14 @@ describe('migrations', () => {
     expect(await migrate(db)).toEqual([4]);
   });
 
-  it('refuse a migration edited after it was applied, and a database from a newer Belay', async () => {
+  it('refuse a migration edited after it was applied, and a database from a newer Afterlife', async () => {
     const edited = await memoryIndex();
     await edited.query(`update belay_migration set checksum = 'x' where version = 1`);
     await expect(migrate(edited)).rejects.toThrow(/changed after it was applied/);
 
     const newer = await memoryIndex();
     await newer.query(`insert into belay_migration (version, name, checksum) values (99, 'future', 'x')`);
-    await expect(migrate(newer)).rejects.toThrow(/newer Belay/);
+    await expect(migrate(newer)).rejects.toThrow(/newer Afterlife/);
   });
 });
 
@@ -60,14 +60,14 @@ describe('db.ts', () => {
   afterEach(async () => {
     const { closeIndex } = await import('../db');
     await closeIndex();
-    delete process.env.BELAY_DATA_DIR;
+    delete process.env.AFTERLIFE_DATA_DIR;
     for (const d of dirs.splice(0)) fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   });
 
-  it('opens one shared instance at BELAY_DATA_DIR and keeps data across a restart', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-index-'));
+  it('opens one shared instance at AFTERLIFE_DATA_DIR and keeps data across a restart', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-index-'));
     dirs.push(dir);
-    process.env.BELAY_DATA_DIR = dir;
+    process.env.AFTERLIFE_DATA_DIR = dir;
     const { getIndex, closeIndex, indexDir } = await import('../db');
     expect(indexDir()).toBe(path.join(dir, 'index'));
 
@@ -83,21 +83,21 @@ describe('db.ts', () => {
   });
 
   it('retries after a failed open instead of replaying the rejection until restart', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-index-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-index-'));
     dirs.push(dir);
     const blocker = path.join(dir, 'blocked');
     fs.writeFileSync(blocker, 'a file where the data folder should be');
-    process.env.BELAY_DATA_DIR = blocker;
+    process.env.AFTERLIFE_DATA_DIR = blocker;
     const { getIndex } = await import('../db');
     await expect(getIndex()).rejects.toThrow();
 
-    process.env.BELAY_DATA_DIR = path.join(dir, 'fixed');
+    process.env.AFTERLIFE_DATA_DIR = path.join(dir, 'fixed');
     const db = await getIndex();
     expect((await db.query('select 1 as one')).rows).toEqual([{ one: 1 }]);
   });
 
   it('closes the handle when the migrations refuse the folder, so a retry does not open it twice', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-index-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-index-'));
     dirs.push(dir);
     const { openIndex, indexDir } = await import('../db');
     const first = await openIndex({ dataDir: dir });
@@ -106,7 +106,7 @@ describe('db.ts', () => {
 
     const close = vi.spyOn(PGlite.prototype, 'close');
     try {
-      await expect(openIndex({ dataDir: dir })).rejects.toThrow(/newer Belay/);
+      await expect(openIndex({ dataDir: dir })).rejects.toThrow(/newer Afterlife/);
       expect(close).toHaveBeenCalledTimes(1);
     } finally {
       close.mockRestore();

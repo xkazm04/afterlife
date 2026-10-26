@@ -7,7 +7,7 @@ import type { ProofBlock } from '../src/schemas/proof';
 import { capture, fx, ROOT } from './__tests__/helpers';
 import { main } from './cli';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-engine-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-engine-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 function cli(...argv: string[]) {

@@ -29,7 +29,7 @@ export function LiveScreen({ initial, focus, start }: { initial: LivePayload; fo
   const present = usePresent();
   useHotkeys(bindKeymap(LIVE_KEYMAP, { present: [present.toggle, () => present.set(false)] }));
   const newRun = useNewRun(start);
-  const status = v.stale ? 'STALE: the runner has been quiet for over 30 s; the frame is frozen' : 'Live from .belay/runs · F presents';
+  const status = v.stale ? 'STALE: the runner has been quiet for over 30 s; the frame is frozen' : 'Live from .afterlife/runs · F presents';
   return (
     <>
       <div className={present.on ? outer.hidden : outer.window}>

@@ -41,7 +41,7 @@ describe('the Task screens on the screen host', () => {
   it('are claimed, with their slices in stream order and the route titles', () => {
     expect(def('task')).toMatchObject({ ready: true, slices: ['docket'] });
     expect(def('task/[id]')).toMatchObject({ ready: true, slices: ['docket', 'detail', 'ledger', 'page'] });
-    expect(def('task/[id]')?.title({ id: 'Q8' }, new URLSearchParams())).toBe('Belay Task Q8');
+    expect(def('task/[id]')?.title({ id: 'Q8' }, new URLSearchParams())).toBe('Afterlife · Task · Q8');
     expect(def('task')?.Session).toBe(def('task/[id]')?.Session);
   });
 
@@ -81,8 +81,8 @@ describe('the Task screens on the screen host', () => {
   });
 
   it('the task could not be read: says why in the pane', () => {
-    const html = render('task/[id]', {}, '', { detail: { state: 'error', reason: 'BELAY_MODE=live, but the first poll has not finished' } });
-    expect(html).toContain('The task could not be read: BELAY_MODE=live, but the first poll has not finished');
+    const html = render('task/[id]', {}, '', { detail: { state: 'error', reason: 'AFTERLIFE_MODE=live, but the first poll has not finished' } });
+    expect(html).toContain('The task could not be read: AFTERLIFE_MODE=live, but the first poll has not finished');
   });
 
   it('/task: the Task window while the docket is read, then the empty docket inside it', () => {

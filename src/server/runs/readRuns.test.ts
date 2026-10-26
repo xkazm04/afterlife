@@ -10,12 +10,12 @@ afterEach(() => root && rmSync(root, { recursive: true, force: true, maxRetries:
 
 describe('readRuns', () => {
   it('no runs directory is no runs', () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-runs-'));
+    root = mkdtempSync(join(tmpdir(), 'afterlife-runs-'));
     expect(readRuns(root)).toMatchObject({ repos: [], skippedLines: 0, totals: { waves: 0 } });
   });
 
   it('reads <repo>/<wave>.jsonl, counts the lines it skips and sees the proposals file', () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-runs-'));
+    root = mkdtempSync(join(tmpdir(), 'afterlife-runs-'));
     const dir = join(root, 'runs', 'alpha');
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, '1.jsonl'), `${WAVE_1.join('\n')}\n`);

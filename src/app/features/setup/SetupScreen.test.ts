@@ -32,7 +32,7 @@ describe('SetupScreen (server render)', () => {
   });
   it('names each column of nodes as a group, so Tab into a column says which one it is', () => {
     const map = html.slice(html.indexOf('aria-label="Unlock map"'));
-    expect([...map.matchAll(/role="group" aria-label="([^"]*)"/g)].map((m) => m[1])).toEqual(['Path · steps 0–14', 'Tracks · arm order', 'GitLab · belay doctor']);
+    expect([...map.matchAll(/role="group" aria-label="([^"]*)"/g)].map((m) => m[1])).toEqual(['Path · steps 0–14', 'Tracks · arm order', 'GitLab · afterlife doctor']);
   });
   it('is honest: unknown capabilities are listed, the demo data is labelled', () => {
     expect(has('never rounded up')).toBe(true);

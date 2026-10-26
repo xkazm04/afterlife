@@ -69,4 +69,4 @@ take('latest_pipeline_jobs', () => {
 });
 
 fs.writeFileSync(arg('out', 'facts.json'), JSON.stringify({ schema: 'belay.facts/0', project_id: Number(id), at: new Date().toISOString(), facts }, null, 2));
-console.error(`belay: ${Object.keys(facts).length} facts, ${Object.values(facts).filter((v) => v?.error).length} unreadable`);
+console.error(`afterlife: ${Object.keys(facts).length} facts, ${Object.values(facts).filter((v) => v?.error).length} unreadable`);

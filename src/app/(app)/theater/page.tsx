@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'Belay Theater' };
+export const metadata: Metadata = { title: 'Afterlife · Theater' };
 
 // Theater: a static shell. The screen host draws the window at once and reads the film over the screen stream
 // (features/theater/screen/slices.ts: the live payload, the pre-run panel's data, and the replay film when it is the one

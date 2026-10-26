@@ -1,7 +1,7 @@
 // The cross-project fixtures for scripts/build-demo.mjs: the named portfolio and the seeded ~180-project fleet.
 import { RANK, actionClasses } from './classes.mjs';
 
-// Cross-project state (L0): every project Belay watches in the group. The detailed fields above
+// Cross-project state (L0): every project Afterlife watches in the group. The detailed fields above
 // (tracks, actionClasses, tasks, ...) describe the first project, ledgerline, at its deepest level.
 // tiers = number of action classes at each tier; stages = rung per stage in `stages` order (null = unknown).
 const portfolio = {

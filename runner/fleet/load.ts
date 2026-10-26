@@ -1,9 +1,10 @@
-// .belay/fleet.yml -> FleetRepo[]: the repos the runner may work, each with the gates that must be green
+// <data>/fleet.yml (.afterlife, or an existing .belay) -> FleetRepo[]: the repos the runner may work, each with the gates that must be green
 // before anything is committed. Strict on purpose - a typo in a gate list must stop the run, not skip a gate.
 // Saved projects (<data>/projects/*.yml) with a runner block join them (projects.ts), through the same checks.
 import fs from 'node:fs';
 import nodePath from 'node:path';
 import { parse } from 'yaml';
+import { envOf } from '../proc/env';
 import type { FleetRepo } from '../index';
 import { parseFrontier } from './frontier';
 import { FLEET_BASE, FLEET_SLUG } from './names';
@@ -85,7 +86,7 @@ export function loadFleet(file: string, o: ProjectReposOptions = {}): FleetRepo[
   }
   const taken = new Set(fleet.map((r) => r.slug));
   const warn = o.warn ?? ((m: string) => console.warn(m));
-  const extra = projectEntries({ dataDir: process.env.BELAY_DATA_DIR ?? nodePath.dirname(file), ...o, warn }).map((p) => parseRepo(p.entry, `${p.file}: runner`, p.file)).filter((r) => {
+  const extra = projectEntries({ dataDir: envOf(process.env, 'DATA_DIR') ?? nodePath.dirname(file), ...o, warn }).map((p) => parseRepo(p.entry, `${p.file}: runner`, p.file)).filter((r) => {
     if (!taken.has(r.slug)) return true;
     warn(`runner: ${r.slug} is in ${file} and is a saved project; ${file} wins`);
     return false;

@@ -1,9 +1,10 @@
-// The Belay CI file the bootstrap adds, and the one include line that wires it into the project's own .gitlab-ci.yml.
+// The Afterlife CI file the bootstrap adds, and the one include line that wires it into the project's own .gitlab-ci.yml.
 // The project's file is only ever added to: a line is inserted or appended, never changed or removed.
 import { parse as parseYaml } from 'yaml';
 
-export const BELAY_CI = '.gitlab/belay.gitlab-ci.yml';
-export const INCLUDE_LINE = `local: ${BELAY_CI}`;
+// wire name: paired projects already hold this file and include it by this path; renaming it re-pairs every one
+export const CI_FILE = '.gitlab/belay.gitlab-ci.yml';
+export const INCLUDE_LINE = `local: ${CI_FILE}`;
 
 export interface PackRef {
   /** The group's root namespace, where belay-pack and belay-engine live. */
@@ -13,12 +14,12 @@ export interface PackRef {
 }
 
 /** The components every paired project runs: the proofs, the gate, the tripwire, the ledger and the weekly scan. */
-export function belayCi({ group, packVersion, engineRef }: PackRef): string {
+export function componentsCi({ group, packVersion, engineRef }: PackRef): string {
   const c = (name: string) => `$CI_SERVER_FQDN/${group}/belay-pack/${name}@${packVersion}`;
   const proof = (cls: string) => [`  - component: ${c('proof-engine')}`, `    inputs: { class: ${cls}, engine_ref: ${engineRef}, stage: test }`];
   return [
-    '# Belay: the proof jobs, the tier gate, the tripwire, the ledger and the maturity scan (written by `belay pair`).',
-    '# Belay holds no merge token: these jobs approve, wait or block; a person merges. Pin engine_commit for a release.',
+    '# Afterlife: the proof jobs, the tier gate, the tripwire, the ledger and the maturity scan (written by `afterlife pair`).',
+    '# Afterlife holds no merge token: these jobs approve, wait or block; a person merges. Pin engine_commit for a release.',
     'include:',
     ...proof('exploit-test'),
     ...proof('cited-diff'),
@@ -45,7 +46,7 @@ const parse = (text: string): Doc | null => {
   }
 };
 const includes = (d: Doc): unknown[] => (Array.isArray(d.include) ? d.include : d.include === undefined ? [] : [d.include]);
-const wired = (d: Doc): boolean => includes(d).some((i) => i === BELAY_CI || (typeof i === 'object' && i !== null && (i as Doc).local === BELAY_CI));
+const wired = (d: Doc): boolean => includes(d).some((i) => i === CI_FILE || (typeof i === 'object' && i !== null && (i as Doc).local === CI_FILE));
 
 /** The file's own line ending, so an added line matches the lines around it. */
 export const eolOf = (text: string): '\r\n' | '\n' => (text.includes('\r\n') ? '\r\n' : '\n');
@@ -53,9 +54,9 @@ export const eolOf = (text: string): '\r\n' | '\n' => (text.includes('\r\n') ? '
 export type CiEdit = { op: 'create' | 'insert' | 'append'; text: string } | { op: 'keep' } | { op: 'refuse'; why: string };
 
 /**
- * Wires the Belay file into `.gitlab-ci.yml` by adding one include entry: a new file; a new `include:` block at the end;
+ * Wires the Afterlife file into `.gitlab-ci.yml` by adding one include entry: a new file; a new `include:` block at the end;
  * or one list item inserted under an existing block-style `include:`. The result must parse, keep every other key as it
- * was, and include the Belay file; otherwise it is refused and the operator adds the line by hand.
+ * was, and include the Afterlife file; otherwise it is refused and the operator adds the line by hand.
  */
 export function wireCi(current: string | null): CiEdit {
   if (current === null) return { op: 'create', text: `include:\n  - ${INCLUDE_LINE}\n` };

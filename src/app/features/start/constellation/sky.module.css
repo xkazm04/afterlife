@@ -1,0 +1,161 @@
+/* Constellation's sky: this machine glowing at the centre, the steps on a dashed orbit, a link per step whose stroke
+   says its state. One coordinate space: the SVG is stretched over the stage, the nodes sit at the same points in %. */
+.constellation {
+  display: flex;
+  flex-direction: column;
+  gap: calc(14px * var(--ui-scale));
+  max-width: calc(1080px * var(--ui-scale));
+  width: 100%;
+  margin: 0 auto;
+}
+.stage {
+  container: sky / inline-size;
+  --sky-h: 64cqw;
+  display: grid;
+  min-width: 0;
+}
+.stage > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+.sky {
+  --node: clamp(calc(38px * var(--ui-scale)), 5.6cqw, calc(54px * var(--ui-scale)));
+  position: relative;
+  aspect-ratio: 1000 / 640;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-2);
+  background:
+    radial-gradient(closest-side at 50% 50%, var(--accent-soft), transparent),
+    var(--surface-1);
+  overflow: hidden;
+  transition: opacity var(--t-slow) var(--ease), transform var(--t-slow) var(--ease);
+}
+.sky[data-dim] {
+  opacity: 0.2;
+  transform: scale(0.97);
+}
+.lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.orbit {
+  fill: none;
+  stroke: var(--border-3);
+  stroke-width: 1;
+  stroke-dasharray: 2 7;
+}
+.link line {
+  stroke: var(--unknown);
+  stroke-width: 1;
+  stroke-dasharray: 3 6;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+.link[data-link="solid"] line {
+  stroke: var(--accent);
+  stroke-width: 1.75;
+  stroke-dasharray: none;
+  opacity: 1;
+}
+.link[data-link="flow"] line {
+  stroke: color-mix(in oklab, var(--accent) 35%, transparent);
+  stroke-dasharray: none;
+  opacity: 1;
+}
+.link[data-link="flow"] .flow {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-dasharray: 2 16;
+  animation: flow 1.6s linear infinite;
+}
+.link[data-link="broken"] line {
+  stroke: color-mix(in oklab, var(--fail) 70%, transparent);
+  stroke-dasharray: 5 6;
+  opacity: 1;
+}
+.link[data-link="you"] line {
+  stroke: var(--needs-you);
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+  opacity: 0.85;
+}
+@keyframes flow {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+.centre {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  justify-items: center;
+  gap: calc(6px * var(--ui-scale));
+  transform: translate(-50%, calc(var(--node) * -0.75));
+  pointer-events: none;
+}
+.core {
+  width: calc(var(--node) * 1.5);
+  height: calc(var(--node) * 1.5);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--accent);
+  background: radial-gradient(circle at 50% 40%, color-mix(in oklab, var(--accent) 45%, transparent), var(--accent-soft) 70%), var(--surface-1);
+  box-shadow: 0 0 calc(28px * var(--ui-scale)) color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.centreName,
+.place {
+  font: 600 var(--t-small) var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.centreName {
+  color: var(--text-2);
+}
+.place {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  color: var(--text-4);
+  pointer-events: none;
+}
+.caption {
+  display: grid;
+  justify-items: center;
+  gap: calc(4px * var(--ui-scale));
+  text-align: center;
+}
+.next {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--text-2);
+}
+.next strong {
+  font-weight: 600;
+  color: var(--text-1);
+}
+.dim {
+  color: var(--text-3);
+}
+@container sky (max-width: 560px) {
+  .stage {
+    --sky-h: 100cqw;
+  }
+  .sky {
+    --node: calc(34px * var(--ui-scale));
+    aspect-ratio: 1 / 1;
+  }
+  .place {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sky {
+    transition: none;
+  }
+  .link[data-link="flow"] .flow {
+    animation: none;
+    stroke-dasharray: 2 6;
+  }
+}

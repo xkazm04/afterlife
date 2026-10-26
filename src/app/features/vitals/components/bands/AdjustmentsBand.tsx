@@ -41,7 +41,7 @@ export function AdjustmentsBand({ rows, selected, onSelect, onActivate }: { rows
     <Band id="adjustments" title="Adjustments" aux={rows.length ? `${rows.length} claimed · ${credited} credited` : 'none yet'}>
       {rows.length === 0 ? (
         <BandEmpty>
-          No adjustment reported yet. A dev agent reports one with <code>belay report</code> (the afterlife-report skill); Afterlife then measures it itself.
+          No adjustment reported yet. A dev agent reports one with <code>afterlife report</code> (the afterlife-report skill); Afterlife then measures it itself.
         </BandEmpty>
       ) : (
         <BandTable

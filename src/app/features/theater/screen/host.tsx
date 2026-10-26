@@ -52,5 +52,5 @@ function TheaterFrame({ search }: ScreenFrameProps) {
 }
 
 export const screens: readonly ScreenDef[] = [
-  { key: 'theater', ready: true, slices: ['live', 'start', 'film'], Frame: TheaterFrame, title: () => 'Belay Theater' },
+  { key: 'theater', ready: true, slices: ['live', 'start', 'film'], Frame: TheaterFrame, title: () => 'Afterlife · Theater' },
 ];

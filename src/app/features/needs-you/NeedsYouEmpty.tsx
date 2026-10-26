@@ -24,12 +24,12 @@ export function NeedsYouEmpty({ seeded = 0, demo = false, runner = [] }: { seede
     <div className={styles.page}>
       <h1 className={styles.title}>Needs you</h1>
       <p>
-        Belay is reading your GitLab group, and it holds no inbox items yet: no promotion, CRA sign-off, gap pick, re-admit or setup
+        Afterlife is reading your GitLab group, and it holds no inbox items yet: no promotion, CRA sign-off, gap pick, re-admit or setup
         step has been opened for this project.
       </p>
       <p className={styles.note}>
         The inbox fills as the poller finds quarantined classes and as setup and scans run.
-        {runner.length ? " Nothing from the group waits yet; the cycle runner's decisions are below." : ' Nothing is waiting that Belay knows of.'}
+        {runner.length ? " Nothing from the group waits yet; the cycle runner's decisions are below." : ' Nothing is waiting that Afterlife knows of.'}
       </p>
       <RunnerNeeds needs={runner} />
       {seeded ? (

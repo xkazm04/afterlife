@@ -38,6 +38,6 @@ export const screens: readonly ScreenDef[] = [
     ready: true,
     slices: ['core', 'estate', 'desk'],
     Frame: MonitorFrame,
-    title: () => 'Belay Monitor',
+    title: () => 'Afterlife · Monitor',
   },
 ];

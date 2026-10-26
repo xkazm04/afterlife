@@ -1,5 +1,5 @@
 // The merge route of the fake (PUT merge_requests/:iid/merge): the only way a branch's commits reach its target branch.
-// Belay never calls it - a person merges - so tests and the live-fake demo call it through `mergeMr`.
+// Afterlife never calls it - a person merges - so tests and the live-fake demo call it through `mergeMr`.
 import type { ProjectRef } from '../types';
 import type { BranchTree, ProjectData, Tree } from './dataset';
 import type { FakeGitLab } from './fakeGitLab';

@@ -35,7 +35,7 @@ export interface MaturityCtx {
   /** The demo's evidence objects per rung, what the next rung lacks, the Day 0 note; null in live mode. */
   evidence: Readonly<Record<Stage, StageEvidence>> | null;
   gaps: readonly Gap[];
-  /** The demo's past autopilot cycles; empty in live mode (Belay records no credit history yet). */
+  /** The demo's past autopilot cycles; empty in live mode (Afterlife records no credit history yet). */
   credit: readonly CreditEntry[];
   gap: (id: string) => Gap | undefined;
   gapByStage: (stage: Stage) => Gap | undefined;

@@ -10,9 +10,14 @@ import { Suspense } from 'react';
 
 type ParamProps = { params: Promise<Record<string, string>> };
 
-/** `generateMetadata` for a [param] page: "<prefix> <param>" ('Belay Fleet' + project). */
+/** `generateMetadata` for a [param] page: "<prefix> · <param>" ('Afterlife · Fleet' + project). */
 export function paramTitle(prefix: string, name: string): (props: ParamProps) => Promise<Metadata> {
-  return async ({ params }) => ({ title: `${prefix} ${(await params)[name] ?? ''}`.trim() });
+  return async ({ params }) => ({ title: paramTitleOf(prefix, (await params)[name]) });
+}
+
+/** "<prefix> · <param>", or the prefix alone without one: the page's title and the host's (ScreenDef.title) alike. */
+export function paramTitleOf(prefix: string, param: string | undefined): string {
+  return param ? `${prefix} · ${param}` : prefix;
 }
 
 /** Says the title is read at request time on purpose; renders nothing. */

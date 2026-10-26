@@ -17,8 +17,8 @@ import type { WriteView } from '../../write/revoke';
 
 /** What follows a write's head: still being asked for, refused, the MR a promotion opened, or the commands as planned. */
 function Planned({ lead, view: v }: { lead: ReactNode; view: WriteView | PromoteView | undefined }) {
-  if (!v) return <>{lead}<DockText tone="note">asking Belay for the exact write…</DockText></>;
-  if (v.kind === 'refused') return <>{lead}Belay refuses this write: {v.reason}</>;
+  if (!v) return <>{lead}<DockText tone="note">asking Afterlife for the exact write…</DockText></>;
+  if (v.kind === 'refused') return <>{lead}Afterlife refuses this write: {v.reason}</>;
   if (v.kind === 'sent') {
     return (
       <>

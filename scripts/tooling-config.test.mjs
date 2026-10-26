@@ -16,7 +16,7 @@ vi.mock('eslint-config-next/core-web-vitals', () => linted);
 vi.mock('eslint-config-next/typescript', () => linted);
 
 describe('eslint.config.mjs', () => {
-  // belay run (runner/git/worktree.ts:14) and agent worktree isolation both check out whole copies of the repo under
+  // afterlife run (runner/git/worktree.ts:14) and agent worktree isolation both check out whole copies of the repo under
   // .claude/worktrees/<name>; `npm run lint` (eslint, no args) would lint every copy and report a lane's in-flight edits.
   it('ignores the worktree copies under .claude/, and still lints the app', async () => {
     const { default: config } = await import('../eslint.config.mjs');

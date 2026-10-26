@@ -13,11 +13,11 @@ import styles from './SendSheet.module.css';
 
 function Write({ row, onRetry }: { row: SheetRow; onRetry: (id: string) => void }) {
   if (!row.send.ok) return <div className={styles.note}>{row.send.reason}</div>;
-  if (!row.view) return <div className={styles.note}>Asking Belay for the exact write…</div>;
+  if (!row.view) return <div className={styles.note}>Asking Afterlife for the exact write…</div>;
   if (row.view.kind === 'refused') {
     return (
       <div className={styles.note}>
-        Belay refuses this write: {row.view.reason}. Nothing can run.{' '}
+        Afterlife refuses this write: {row.view.reason}. Nothing can run.{' '}
         <Button onClick={() => onRetry(row.id)}>Ask again</Button>
       </div>
     );
@@ -34,7 +34,7 @@ function Write({ row, onRetry }: { row: SheetRow; onRetry: (id: string) => void 
 
 /**
  * "Send as you": each picked gap's exact write as the server planned it (commands and diff), shown before anything is
- * written. The button confirms each preview on screen by its id; each gap's answer is only what the response says. Belay
+ * written. The button confirms each preview on screen by its id; each gap's answer is only what the response says. Afterlife
  * holds no merge token; you merge each MR in GitLab. A probe has no server door yet and says so. Escape or Close closes it,
  * except while a send is in flight (Cancel is disabled and the reducer refuses).
  */
@@ -45,7 +45,7 @@ export function SendSheet({ api, onClose }: { api: GapSheetApi; onClose: () => v
   return (
     <Sheet
       title={ready ? sendLabel(ready) : done ? sentLabel(doneCount) : 'Nothing to send yet'}
-      subtitle="your glab login · Belay holds no merge token · you merge each MR in GitLab"
+      subtitle="your glab login · Afterlife holds no merge token · you merge each MR in GitLab"
       onClose={onClose}
       footer={
         <>

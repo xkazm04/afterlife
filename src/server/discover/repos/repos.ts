@@ -6,6 +6,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { ClaudeRepo, ProjectConfig } from '@/schemas/vitals';
+import { envOf } from '@/server/env/env';
 import { gitOut, mapLimit, rootKey } from './git';
 import { parseRemote } from './remote';
 import { firstCwd, isScratchPath, newestJsonl } from './sessions';
@@ -13,7 +14,7 @@ import { firstCwd, isScratchPath, newestJsonl } from './sessions';
 const TTL_MS = 60_000;
 const GIT_CONCURRENCY = 8;
 
-export const claudeProjectsDir = (): string => process.env.BELAY_CLAUDE_PROJECTS_DIR ?? path.join(os.homedir(), '.claude', 'projects');
+export const claudeProjectsDir = (): string => envOf(process.env, 'CLAUDE_PROJECTS_DIR') ?? path.join(os.homedir(), '.claude', 'projects');
 
 /** One live cwd per project dir, with when its newest session was written. */
 function sessionCwds(dir: string, scratch: (p: string) => boolean): { cwd: string; mtimeMs: number }[] {

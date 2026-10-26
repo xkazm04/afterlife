@@ -1,13 +1,13 @@
 # belay-apply: the one project that writes
 
-This folder is the root of the `belay-apply` project in the paired group. It holds every Belay write token and makes every
-Belay write: the `belay-proof` note and `proof::*` label, the gate's note, labels, approve and auto-merge, the
+This folder is the root of the `belay-apply` project in the paired group. It holds every Afterlife write token and makes every
+Afterlife write: the `belay-proof` note and `proof::*` label, the gate's note, labels, approve and auto-merge, the
 `belay-ledger` lines, the guardrail's dispatch and the tripwire's `tier-state.yml` commit. No write token enters a target
 pipeline. Target pipelines (`../examples/target-project/.gitlab-ci.yml`) produce evidence and report-only output with
 `CI_JOB_TOKEN`, and nothing else.
 
 Decided by the operator on 2026-10-07 (ask 6696d24d, "Separate apply project") as the remedy for F4 (High). F4: once set,
-`BELAY_BOT_TOKEN` could be read by every job of an agent MR pipeline, including the agent's own tests and any
+`AFTERLIFE_BOT_TOKEN` could be read by every job of an agent MR pipeline, including the agent's own tests and any
 `.gitlab-ci.yml` the agent edits on its branch.
 
 ```
@@ -19,7 +19,7 @@ belay-apply/
 
 The scripts are not copied here. Each job clones `belay-engine` at `engine.ref` and checks that it resolves to
 `engine.commit` (both required), then runs `gitlab/apply/sweep.mjs` and `gitlab/apply/tripwire-sweep.mjs` from that
-checkout. The other files in this folder of the Belay repo (`*.mjs`) are those scripts; their tests are in `test/`. They
+checkout. The other files in this folder of the Afterlife repo (`*.mjs`) are those scripts; their tests are in `test/`. They
 are not part of the project.
 
 ## What it promises
@@ -33,7 +33,7 @@ are not part of the project.
 | 5 | Takes no value from pipeline variables, trigger variables or a webhook. A schedule is the baseline | `apply.json` holds every setting, including the engine pin; the settings below |
 | 6 | Acts only on projects of the paired group (a shared-in project is skipped, F37) and only on agent MRs (`agent_prefix` and the `Belay-Task` trailer, `mr-context.mjs`) into the project's default branch (F78) | `lib.mjs` `targetsOf`; tests (vi), (xiv) |
 | 7 | Each write once per project, MR and head; a second sweep writes nothing | read-back below; test (i) |
-| 8 | Fails closed: a failed read stops that MR's writes and prints GitLab's message (the job ends red). No `BELAY_BOT_TOKEN` or no `BELAY_LEDGER_TOKEN`: report-only | tests "a failed read", "without BELAY_BOT_TOKEN", "without BELAY_LEDGER_TOKEN" |
+| 8 | Fails closed: a failed read stops that MR's writes and prints GitLab's message (the job ends red). No `AFTERLIFE_BOT_TOKEN` or no `AFTERLIFE_LEDGER_TOKEN`: report-only | tests "a failed read", "without AFTERLIFE_BOT_TOKEN", "without AFTERLIFE_LEDGER_TOKEN" |
 | 9 | Reuses the existing write scripts, so every note is byte-identical | `post-proof.mjs`, `apply-gate.mjs`, `ledger-append.mjs`, `dispatch.mjs`, `tripwire.mjs` |
 
 The sweep's tests, by numeral, are split four ways so they run side by side (`test/rig.mjs` holds the shared fixture):
@@ -62,7 +62,7 @@ fail-closed cases; `test/sweep-withdraw.test.mjs` (xi), (xv), (xix); `test/sweep
 6. `build-evidence.mjs`, then `engine prove` with this job's engine. The Proof Block must name this head. Posts it with
    `post-proof.mjs` unless the bot already posted one for this head.
 7. No guardrail verdict for the head yet: dispatches the guardrail (`dispatch.mjs`, the target's `guardrail_consumer_id`,
-   `BELAY_DISPATCH_TOKEN`) once, marks it with the note `**Belay: guardrail review requested** for head <sha>`, and the gate
+   `AFTERLIFE_DISPATCH_TOKEN`) once, marks it with the note `**Afterlife: guardrail review requested** for head <sha>`, and the gate
    waits.
 8. `engine gate` over `tier-state.yml` as belay-policy has it when this MR is read, not as cloned when the sweep began, so
    a revoke made during a sweep is seen before anything is granted (F66). Then `apply-gate.mjs`: note, `belay::tier::*`, `guardrail::*`, approve or
@@ -80,7 +80,7 @@ nobody to count it against, and nothing is ledgered. A forced wait or block for 
 | Write | Already done when |
 |---|---|
 | proof note and label | the bot's newest `belay-proof` note has `task.head_sha` = head (after a push and a return to an earlier head, it is posted again, F62) |
-| gate note, labels, approve or merge | a bot `**Belay gate:` note is newer than that proof note and is not a forced one for another head, or a forced one of the same decision names the head in its first reason (`- head <sha>:`; a sha quoted further on does not count, F61) |
+| gate note, labels, approve or merge | a bot `**Afterlife gate:` note (or its pre-rename `**Belay gate:` form) is newer than that proof note and is not a forced one for another head, or a forced one of the same decision names the head in its first reason (`- head <sha>:`; a sha quoted further on does not count, F61) |
 | ledger lines | a commit of `events/<project-id>.jsonl` in `belay-ledger` carries `Belay-Head: <project-id>!<iid>@<head>` |
 | the guardrail's block for the head (a forced path, or a block after the gate, F81) | such a commit carries `Belay-Head: <project-id>!<iid>@<head>/guardrail-block` (the gate's own events carry both keys when the guardrail blocked) |
 | a block after the gate (F81) | the MR has `guardrail::block` |
@@ -91,7 +91,7 @@ A ledger commit that failed is retried by the next sweep, from the gate's events
 ## The tripwire
 
 `tripwire-sweep.mjs` runs `tripwire.mjs --mode sweep` for each target, from a fresh clone of `belay-policy`, reading the
-target with `BELAY_BOT_TOKEN` and committing with `BELAY_POLICY_TOKEN`. The detection is unchanged
+target with `AFTERLIFE_BOT_TOKEN` and committing with `AFTERLIFE_POLICY_TOKEN`. The detection is unchanged
 (`../components/scripts/lib/detect.mjs`, `pipelines.mjs`). It covers revert, reopened finding, a post-merge proof that
 failed, a default branch red for an hour, and a high guardrail block. The class an event demotes is the one the gate
 decided on, from the bot's own `belay-ledger` lines for that MR, not the `Belay-Class` trailer, which the agent can edit
@@ -107,8 +107,8 @@ Checked on docs.gitlab.com on 2026-10-07 unless marked `[R?]`.
 |---|---|---|
 | Group | Create project `belay-apply`; push this folder to its `main` | |
 | Settings > Repository > Protected branches | `main`: allowed to merge Maintainers, allowed to push and merge **No one**; **Allowed to force push** off; **Require approval from code owners** on, with a `CODEOWNERS` that covers `.gitlab-ci.yml` and `apply.json` (this folder ships no `CODEOWNERS`; the operator adds it) | Only a reviewed merge changes what runs with the tokens, and one Maintainer alone cannot change it [R?] |
-| Settings > CI/CD > Variables | `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_DISPATCH_TOKEN`, `BELAY_LEDGER_TOKEN`: each **Protect variable** on, **Masked and hidden**. Set them on belay-apply at **project level only**, never as group or instance variables of the paired group | Protected: "only available in pipelines that run on protected branches or protected tags" [S]. Hidden can only be chosen when the variable is created [S]. Every target pipeline inherits the group's variables, so a group-level token would reach the agents' jobs [R?] |
-| Settings > CI/CD > Variables | **Minimum role to use pipeline variables**: `no_one_allowed` (API `ci_pipeline_variables_minimum_override_role`) | Pipeline variables (Run pipeline form, schedules, the pipelines API, the triggers API) outrank project variables [S], so one could override a token, `NODE_OPTIONS` or a `GIT_*` variable. The boot refuses `BELAY_GLAB` and `FAKE_GLAB_*` (the glab test hooks, which pick the binary every glab call runs) whatever this setting says; `test/boot.test.mjs` |
+| Settings > CI/CD > Variables | `AFTERLIFE_BOT_TOKEN`, `AFTERLIFE_POLICY_TOKEN`, `AFTERLIFE_DISPATCH_TOKEN`, `AFTERLIFE_LEDGER_TOKEN`: each **Protect variable** on, **Masked and hidden**. Set them on belay-apply at **project level only**, never as group or instance variables of the paired group | Protected: "only available in pipelines that run on protected branches or protected tags" [S]. Hidden can only be chosen when the variable is created [S]. Every target pipeline inherits the group's variables, so a group-level token would reach the agents' jobs [R?] |
+| Settings > CI/CD > Variables | **Minimum role to use pipeline variables**: `no_one_allowed` (API `ci_pipeline_variables_minimum_override_role`) | Pipeline variables (Run pipeline form, schedules, the pipelines API, the triggers API) outrank project variables [S], so one could override a token, `NODE_OPTIONS` or a `GIT_*` variable. The boot refuses `AFTERLIFE_GLAB` and `FAKE_GLAB_*` (the glab test hooks, which pick the binary every glab call runs) whatever this setting says; `test/boot.test.mjs` |
 | Build > Pipeline schedules | One schedule on `main`, every 10 minutes, **with no variables**, owned by a Maintainer of belay-apply | A schedule runs with its owner's permissions, and on a protected branch the owner needs merge rights [S] |
 | belay-engine and belay-policy: Settings > CI/CD > Job token permissions | add `belay-apply` to the allowlist | the jobs clone both with `CI_JOB_TOKEN` [S] |
 | Membership | no agent service account is a member of belay-apply, belay-engine, belay-policy, belay-ledger or belay-pack, directly or through the group. Agents get project-level membership on the targets only | a member with push could open a pipeline on another branch. It would get no protected variable, but it is still noise. Membership of the others lets an agent change what the jobs run or read [R?] |
@@ -121,10 +121,10 @@ Tokens:
 
 | Token | Kind | Needs |
 |---|---|---|
-| `BELAY_BOT_TOKEN` (F72, proposed) | a bot user's or service account's token, scope `api`. The account is Developer on the target projects only and Reporter on belay-policy and belay-ledger, and never a member of belay-apply or belay-engine. Not a group access token of the paired group: that reaches every project in the group and defeats the separate `BELAY_POLICY_TOKEN` | read every target (MRs, notes, pipelines, jobs, artifacts, files, compare); post notes and labels, approve, merge; read the ledger and policy history. Its username goes in `apply.json` `bot` and in the app's `BELAY_PROOF_AUTHORS` |
-| `BELAY_POLICY_TOKEN` | project access token of `belay-policy`, `write_repository` or `api`, allowed to push to its `main` (spike S8) | the tripwire's commit |
-| `BELAY_LEDGER_TOKEN` (required) | project access token of `belay-ledger`, `api` | ledger commits. Required so the bot token never writes the ledger: with it unset the sweep only reports, as without `BELAY_BOT_TOKEN`, and its log names the missing token |
-| `BELAY_DISPATCH_TOKEN` | a token that may create flow runs in the targets (spike S1) | `POST /ai/duo_workflows/workflows` |
+| `AFTERLIFE_BOT_TOKEN` (F72, proposed) | a bot user's or service account's token, scope `api`. The account is Developer on the target projects only and Reporter on belay-policy and belay-ledger, and never a member of belay-apply or belay-engine. Not a group access token of the paired group: that reaches every project in the group and defeats the separate `AFTERLIFE_POLICY_TOKEN` | read every target (MRs, notes, pipelines, jobs, artifacts, files, compare); post notes and labels, approve, merge; read the ledger and policy history. Its username goes in `apply.json` `bot` and in the app's `AFTERLIFE_PROOF_AUTHORS` |
+| `AFTERLIFE_POLICY_TOKEN` | project access token of `belay-policy`, `write_repository` or `api`, allowed to push to its `main` (spike S8) | the tripwire's commit |
+| `AFTERLIFE_LEDGER_TOKEN` (required) | project access token of `belay-ledger`, `api` | ledger commits. Required so the bot token never writes the ledger: with it unset the sweep only reports, as without `AFTERLIFE_BOT_TOKEN`, and its log names the missing token |
+| `AFTERLIFE_DISPATCH_TOKEN` | a token that may create flow runs in the targets (spike S1) | `POST /ai/duo_workflows/workflows` |
 
 **Optional wake-up.** A pipeline trigger token (Settings > CI/CD > Pipeline trigger tokens) can start a sweep sooner, for
 example from a webhook relay. It carries nothing the sweep uses: every value comes from `apply.json` and GitLab's API.
@@ -161,7 +161,7 @@ trigger token only after checking that on the instance. The schedule alone is en
   a schema failure, so a block the note quotes never wins.
 - F88: closed (b85b78c). `ledger-append.mjs` refuses a `--write-token-var` that names an unset variable, before any read;
   without the flag (a person running it by hand) it keeps its fallback. Its sibling in `tripwire.mjs` is closed the same
-  way: `tripwire-sweep.mjs` names `BELAY_POLICY_TOKEN`, and an unset one is refused before any read, so `GITLAB_TOKEN` (the
+  way: `tripwire-sweep.mjs` names `AFTERLIFE_POLICY_TOKEN`, and an unset one is refused before any read, so `GITLAB_TOKEN` (the
   bot token) never commits `tier-state.yml`.
 - F71: closed (b123ef5). `glue()` hands a child none of the four tokens it inherits; each call that writes adds its own
   (`tokens()` in `lib.mjs`): post-proof and apply-gate the bot token, ledger-append the ledger token, tripwire the policy
@@ -179,8 +179,8 @@ trigger token only after checking that on the instance. The schedule alone is en
 
 ## What the operator removes from each target
 
-- Settings > CI/CD > Variables: delete `BELAY_BOT_TOKEN`, `BELAY_POLICY_TOKEN`, `BELAY_LEDGER_TOKEN` and
-  `BELAY_DISPATCH_TOKEN`. Then revoke and re-create each token that was ever stored there: any job of an agent MR pipeline
+- Settings > CI/CD > Variables: delete `AFTERLIFE_BOT_TOKEN`, `AFTERLIFE_POLICY_TOKEN`, `AFTERLIFE_LEDGER_TOKEN` and
+  `AFTERLIFE_DISPATCH_TOKEN`. Then revoke and re-create each token that was ever stored there: any job of an agent MR pipeline
   could have read it.
 - Build > Pipeline schedules: delete the `tripwire` schedule (`BELAY_TRIPWIRE=sweep`). Its job is no longer in the target.
 - `.gitlab-ci.yml`: drop the `tripwire`, `ledger-append` and `flow-dispatch` includes and the `rerun-stats` proof include,
@@ -194,8 +194,8 @@ trigger token only after checking that on the instance. The schedule alone is en
 (step 7) for the MR's head, and posts its `belay-guardrail` block with verdict `block` and the quoted changelog hunk. The
 next sweep reads it as a trusted note for the current head and applies it. With a proof, `engine gate` blocks
 ("guardrail blocked"). Without one, for example when the MR's class has no evidence builder, the forced note is a BLOCK.
-Either way `apply-gate.mjs` sets `guardrail::block`, writes the BLOCK note, and grants nothing. Needs: `BELAY_BOT_TOKEN`
-and `BELAY_DISPATCH_TOKEN` on belay-apply, the guardrail's consumer id in `apply.json`, and the guardrail account in
+Either way `apply-gate.mjs` sets `guardrail::block`, writes the BLOCK note, and grants nothing. Needs: `AFTERLIFE_BOT_TOKEN`
+and `AFTERLIFE_DISPATCH_TOKEN` on belay-apply, the guardrail's consumer id in `apply.json`, and the guardrail account in
 `guardrail_authors`. If the MR changes CI configuration, it is a BLOCK all the same, and the note also says why nothing
 else was granted. Test: `test/sweep-apply.test.mjs` (ii).
 
@@ -233,4 +233,4 @@ push after the sweep read the head is never merged. The ledger records the proof
 
 ## Cloning belay-policy
 
-`clonePolicy` tries a clone 3 times in all when git failed on the network or the server (timeout, DNS, connection reset, early EOF, RPC failed, HTTP 429/5xx), waiting 0.5 s then 1 s (`BELAY_CLONE_BACKOFF_MS` scales it; never over 5 s). An auth failure, 401/403/404, a missing repository or a missing branch is never retried, and neither is a failure git did not describe as transient. After the last failure it removes the destination and throws an Error carrying git's first stderr line; it never ends the process. `sweep.mjs` prints that and exits 2, writing nothing. `tripwire-sweep.mjs` skips the one target whose clone failed, raises its exit to 2 and sweeps the rest.
+`clonePolicy` tries a clone 3 times in all when git failed on the network or the server (timeout, DNS, connection reset, early EOF, RPC failed, HTTP 429/5xx), waiting 0.5 s then 1 s (`AFTERLIFE_CLONE_BACKOFF_MS` scales it; never over 5 s). An auth failure, 401/403/404, a missing repository or a missing branch is never retried, and neither is a failure git did not describe as transient. After the last failure it removes the destination and throws an Error carrying git's first stderr line; it never ends the process. `sweep.mjs` prints that and exits 2, writing nothing. `tripwire-sweep.mjs` skips the one target whose clone failed, raises its exit to 2 and sweeps the rest.

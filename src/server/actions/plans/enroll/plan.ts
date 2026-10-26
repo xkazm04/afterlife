@@ -1,7 +1,7 @@
 // Enroll: an armed track's classes get their first record, at trust-policy.yml's start_tier and never above a class's
 // ceiling. Arming adds CI content only; until a class holds a record the gate blocks every one of its MRs (no tier
-// record). Enrollment is a raise from nothing, so it is never a direct commit: Belay prepares a branch with the records
-// and a policy MR labelled belay::promotion, as a promotion is, and a person merges it. Belay never does. The branch
+// record). Enrollment is a raise from nothing, so it is never a direct commit: Afterlife prepares a branch with the records
+// and a policy MR labelled belay::promotion, as a promotion is, and a person merges it. Afterlife never does. The branch
 // commit carries tier-state.yml's last_commit_id as it was read. First rung only: a class that already holds a record
 // is refused here (promotion takes it from there), and a human_only class is never given one.
 import { enrollTier, isTier } from '@/lib/promotion/enroll/enroll';
@@ -42,17 +42,17 @@ export async function planEnroll(ctx: PlanContext, intent: EnrollTrack): Promise
   const moves = edits.map((e) => `${e.class} -> ${e.record.tier}`);
   const title = `Enroll ${intent.track} ${role}: ${moves.join(', ')}`;
   const notes = [
-    `The account, ${found.account}, is read from ${found.from}: Belay never invents one.`,
+    `The account, ${found.account}, is read from ${found.from}: Afterlife never invents one.`,
     `start_tier in trust-policy.yml is ${start}; a class's record never starts above its ceiling.`,
     ...(skipped.length ? [`${skipped.join(', ')}: human only, so no record is written.`] : []),
-    'A person merges this MR; Belay never does. The gate reads the new records on the next MR pipeline after the merge.',
+    'A person merges this MR; Afterlife never does. The gate reads the new records on the next MR pipeline after the merge.',
   ];
   const mr = await branchMr(ctx, {
     project: repo, base, branch,
     commits: [{ path: 'tier-state.yml', content, message: `${title}\n\nOperator: ${ctx.operator}`, action: 'update', lastCommitId }],
     mr: {
       title, labels: ['belay::promotion'],
-      description: `Prepared by Belay for ${ctx.operator}: the first records of ${intent.track}'s classes, at start_tier.\n\n${edits.map((e) => `Belay-Class: ${e.class}`).join('\n')}\n\nA person merges this; Belay never does.`,
+      description: `Prepared by Afterlife for ${ctx.operator}: the first records of ${intent.track}'s classes, at start_tier.\n\n${edits.map((e) => `Belay-Class: ${e.class}`).join('\n')}\n\nA person merges this; Afterlife never does.`,
     },
   });
   return {

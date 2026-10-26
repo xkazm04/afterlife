@@ -108,7 +108,7 @@ describe('fleet frontier', () => {
 });
 
 describe('T3 parse kinds and the delta', () => {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-tech-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-tech-'));
   fs.writeFileSync(path.join(cwd, 'stats.json'), JSON.stringify({ a: { bytes: 10 }, b: { bytes: 32 }, c: {} }));
   const run = { output: 'Tests  41 passed\n', wallS: 2.5, cwd };
   it('reads wall time, a json sum and a regex capture', () => {

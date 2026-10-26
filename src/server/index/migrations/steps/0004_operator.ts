@@ -1,6 +1,6 @@
-// The operator's side: where Belay is paired, setup progress, feed health, and every confirmed write.
-// Sources: pairing + setup_step <- belay doctor probes; poll_state <- the poller; commands_run <- Belay itself
-// (the only table with no outside copy: it is the local audit of what the operator clicked).
+// The operator's side: where Afterlife is paired, setup progress, feed health, and every confirmed write.
+// Sources: pairing + setup_step <- afterlife doctor probes; poll_state <- the poller; commands_run <- Afterlife itself
+// (the only table with no outside copy: it is the local audit of what the operator clicked). The SQL is frozen (its checksum is in every shipped index), so its comment keeps `Belay`.
 import { type Migration } from '../parts';
 
 export const m0004: Migration = {

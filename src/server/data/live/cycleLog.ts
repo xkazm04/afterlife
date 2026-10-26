@@ -1,6 +1,6 @@
 // What a poll cycle said without throwing: the group read's error, the cycle's warnings, a policy the screens cannot
 // show, each project's error and issues.
-// The runtime logs one `belay:` line when that set differs from the last cycle's, so a standing problem is named once,
+// The runtime logs one `afterlife:` line when that set differs from the last cycle's, so a standing problem is named once,
 // when it starts and when it clears, not every poll interval.
 import type { CycleResult } from '@/server/poller';
 import { rulesOf } from '../policy';
@@ -29,5 +29,5 @@ export function cycleLine(prev: readonly string[] | null, next: readonly string[
     added.length ? `${added.length} new: ${added.join('; ')}` : '',
     cleared.length ? `${cleared.length} cleared: ${cleared.join('; ')}` : '',
   ].filter(Boolean);
-  return `belay: poll cycle ${parts.join('. ')} (${next.length} standing)`;
+  return `afterlife: poll cycle ${parts.join('. ')} (${next.length} standing)`;
 }

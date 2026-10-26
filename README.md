@@ -1,8 +1,8 @@
-# Belay - proof-carrying agents for the post-code lifecycle
+# Afterlife - proof-carrying agents for the post-code lifecycle
 
 > Agents may act alone only where they can prove it.
 
-Belay is our entry for GitLab's **Life After Code** hackathon. It is a local app that sets up
+Afterlife is our entry for GitLab's **Life After Code** hackathon. It is a local app that sets up
 eight AI agents on GitLab projects and watches them. The agents handle what comes after code:
 security, review, testing, compliance, releases and upgrades.
 
@@ -11,7 +11,7 @@ security, review, testing, compliance, releases and upgrades.
   decide.
 - **Earned autonomy.** Autonomy is earned per action class from those proofs, through Assisted,
   Supervised and Hands-off. A tripwire removes it on the first failure.
-- **Writes are always yours.** Belay writes only when a person clicks, as that person, and shows
+- **Writes are always yours.** Afterlife writes only when a person clicks, as that person, and shows
   the exact command first.
 
 **Status.** The UI runs end to end on illustrative demo data: 184 projects and one deep demo
@@ -48,6 +48,10 @@ npm run demo:data  # regenerate src/lib/demo/data/belay-demo.json
 npm run smoke      # with the app running: every route x 3 widths x 3 text sizes, no errors, nothing clipped
 ```
 
+Settings come from `AFTERLIFE_*` environment variables (or, for a few, the runtime settings `/start` saves), and the
+local data lives in `.afterlife/`. Renamed from Belay: every BELAY_* variable is still read when its AFTERLIFE_* name is
+unset; set the AFTERLIFE_* name. An existing `.belay/` data folder keeps being used while no `.afterlife/` exists.
+
 ## Code layout
 
 ```
@@ -58,8 +62,8 @@ src/lib/                      demo data access, settings (text size), keyboard, 
 src/styles/                   palette tokens, text-size scales, base styles
 src/schemas/                  domain types: Proof Block, tiers and trust policy, ledger, CRA clock, stages
 policy/                       trust-policy.yml and tier-state.yml templates
-gitlab/  infra/  skills/      GitLab flows and components, Cloud Run deployment, the adopt-belay skill
-cli/belay.mjs                 belay doctor | run | scan | pair | replay (not built)
+gitlab/  infra/  skills/      GitLab flows and components, Cloud Run deployment, the adopt-belay skill (its folder keeps the old name)
+cli/belay.mjs                 afterlife doctor | run | scan | pair | collect | report | replay (not built)
 ```
 
 The shared components are documented in `src/components/README.md`, and each screen has a

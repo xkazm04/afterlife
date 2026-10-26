@@ -16,7 +16,7 @@ import { confirmIntent, previewIntent, type ActionDeps } from '@/server/actions/
 import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
 import { mergeMr } from '@/server/gitlab/fake/merge';
-import { createBelayProjects } from '@/server/gitlab/fake/setupDone';
+import { createAfterlifeProjects } from '@/server/gitlab/fake/setupDone';
 import { getPairing } from '@/server/index/repositories/pairing';
 import { readLiveSetup, setupReads } from '../setup/read';
 
@@ -29,7 +29,7 @@ async function opening() {
   const plain = removeBlock(LEDGERLINE_CI, armOf('T4')!);
   if (!plain.ok) throw new Error('the demo file has no T4 block');
   ledgerline(r.gl).files['.gitlab-ci.yml'] = plain.content;
-  createBelayProjects(r.gl); // step 4 reads done: T4 needs the projects it creates
+  createAfterlifeProjects(r.gl); // step 4 reads done: T4 needs the projects it creates
   const deps = { ...r.deps, arm: { ok: true, pin: DEMO_PIN } } as ActionDeps;
   const reads = setupReads({ port: deps.port, groupId: deps.groupId, gitlabId: deps.gitlabId }, await getPairing(r.db, 'default'), 'ledgerline', () => AT);
   return { gl: r.gl, deps, s: createSetupState(DEMO.setup, 0, await readLiveSetup(reads, IDS)) };

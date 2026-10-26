@@ -9,7 +9,7 @@ describe("belay-apply's tripwire job", () => {
   const ci = fs.readFileSync(path.join(SCRIPTS, '..', '..', 'apply', '.gitlab-ci.yml'), 'utf8');
 
   it('runs tripwire-sweep.mjs, only on the protected default branch, never for a merge request', () => {
-    expect(ci).toMatch(/^belay-apply-tripwire:\n(?: {2}.*\n)*? {4}- node "\$BELAY_DIR\/gitlab\/apply\/tripwire-sweep\.mjs"/m);
+    expect(ci).toMatch(/^belay-apply-tripwire:\n(?: {2}.*\n)*? {4}- node "\$AFTERLIFE_DIR\/gitlab\/apply\/tripwire-sweep\.mjs"/m);
     expect(ci).toContain('$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"');
     expect(ci).not.toMatch(/merge_request/);
     expect(fs.existsSync(path.join(SCRIPTS, '..', 'templates', 'tripwire'))).toBe(false);

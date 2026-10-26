@@ -6,4 +6,4 @@
 import type { ScreenDef } from '@/components/shell/host';
 import { KitScreen } from '../KitScreen';
 
-export const screens: readonly ScreenDef[] = [{ key: 'kit', ready: true, slices: [], Frame: KitScreen, title: () => 'Belay kit' }];
+export const screens: readonly ScreenDef[] = [{ key: 'kit', ready: true, slices: [], Frame: KitScreen, title: () => 'Afterlife · Kit' }];

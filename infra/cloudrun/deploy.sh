@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Prints the commands that build, push and deploy the Belay hosted replay. It runs none of them:
+# Prints the commands that build, push and deploy the Afterlife hosted replay. It runs none of them:
 # deploying is the operator's step. Review the output, then run it yourself from the repo root.
 #
 #   PROJECT_ID=my-project sh infra/cloudrun/deploy.sh            # print
@@ -10,6 +10,8 @@ set -eu
 
 : "${PROJECT_ID:?set PROJECT_ID to the Google Cloud project}"
 REGION="${REGION:-europe-west1}"
+# The registry repository and the service keep their first names: they already exist in Google Cloud, and a new name
+# would deploy a second service beside the live one.
 REPOSITORY="${REPOSITORY:-belay}"
 TAG="${TAG:-$(git rev-parse --short HEAD 2>/dev/null || echo latest)}"
 SERVICE=belay-replay
@@ -20,14 +22,14 @@ cat <<EOF
 docker build --platform linux/amd64 -f infra/cloudrun/Dockerfile -t ${IMAGE} .
 
 # 2. Check the image before it leaves this machine (contract items 1-3).
-docker run --rm ${IMAGE} env | grep -E '^BELAY_|TOKEN'   # expect only BELAY_MODE=replay
+docker run --rm ${IMAGE} env | grep -E '^(AFTERLIFE|BELAY)_|TOKEN'   # expect only AFTERLIFE_MODE=replay
 
 # 3. Push to Artifact Registry (create the repository once).
 gcloud artifacts repositories create ${REPOSITORY} --project=${PROJECT_ID} --location=${REGION} --repository-format=docker
 gcloud auth configure-docker ${REGION}-docker.pkg.dev
 docker push ${IMAGE}
 
-# 4. Deploy the service definition (maxScale 2, concurrency 20, env BELAY_MODE=replay only).
+# 4. Deploy the service definition (maxScale 2, concurrency 20, env AFTERLIFE_MODE=replay only).
 sed 's#IMAGE_URL#${IMAGE}#' infra/cloudrun/service.yaml > service.rendered.yaml
 gcloud run services replace service.rendered.yaml --project=${PROJECT_ID} --region=${REGION}
 

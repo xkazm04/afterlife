@@ -96,7 +96,7 @@ describe('engine', () => {
   it('runs the checkout’s own tsx with this node, and falls back to npx when there is none', () => {
     expect(tsxCommand(ROOT)).toMatchObject({ cmd: process.execPath, shell: false });
     expect(tsxCommand(ROOT).args[0]).toMatch(/node_modules[\\/]tsx[\\/]dist[\\/]cli\.mjs$/);
-    const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-engine-'));
+    const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-engine-'));
     try {
       expect(tsxCommand(bare)).toMatchObject({ cmd: 'npx', args: ['tsx'] });
     } finally {
@@ -105,15 +105,15 @@ describe('engine', () => {
   });
 
   it('answers as npx tsx does: same exit code and stdout for an unknown command', () => {
-    const env = { ...process.env, BELAY_DIR: ROOT, npm_config_offline: 'true', npm_config_cache: path.join(os.tmpdir(), 'belay-npmcache') };
+    const env = { ...process.env, AFTERLIFE_DIR: ROOT, npm_config_offline: 'true', npm_config_cache: path.join(os.tmpdir(), 'afterlife-npmcache') };
     const viaNpx = spawnSync('npx', ['tsx', 'engine/cli.ts', 'no-such-command'], { cwd: ROOT, encoding: 'utf8', env, shell: process.platform === 'win32' });
-    const saved = process.env.BELAY_DIR;
-    process.env.BELAY_DIR = ROOT;
+    const saved = process.env.AFTERLIFE_DIR;
+    process.env.AFTERLIFE_DIR = ROOT;
     try {
       expect(engine(['no-such-command'])).toEqual({ code: viaNpx.status, stdout: viaNpx.stdout });
     } finally {
-      if (saved === undefined) delete process.env.BELAY_DIR;
-      else process.env.BELAY_DIR = saved;
+      if (saved === undefined) delete process.env.AFTERLIFE_DIR;
+      else process.env.AFTERLIFE_DIR = saved;
     }
   }, 60_000);
 

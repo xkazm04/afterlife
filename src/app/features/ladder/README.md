@@ -1,7 +1,7 @@
 # Ladder (`/ladder`)
 
 Port of the approved "Policy ledger" prototype: every action class by track, with its tier, the rung inside its
-ceiling, the record behind it, and what you can revoke or promote. Belay writes on a click or a key, and the exact write
+ceiling, the record behind it, and what you can revoke or promote. Afterlife writes on a click or a key, and the exact write
 is always on screen first (the docked strip, the class page's "write behind r"): the server's own preview, never a
 command the screen spells.
 
@@ -89,7 +89,7 @@ a track's group header shows the freshest of its classes (`model/view/rows.ts`).
 (illustrative: the demo has no ledger), read against the demo's clock (`DEMO_NOW`) and chipped "demo". Live, a class's track and proof class come from the demo catalogue's tracks (`illustrative.tracks`): the
 Grant section, the track's header and the mechanical row computed here chip the proof class "demo"; a rule read from the
 poll's ask (the policy's own proof class) does not. The human key is not a row: under the rows the rule states the promote write's precondition, "a person merges
-this MR; Belay never merges it" (`HUMAN_KEY`), as the promote preview does. The class page reads it back from GitLab, read only, on each load
+this MR; Afterlife never merges it" (`HUMAN_KEY`), as the promote preview does. The class page reads it back from GitLab, read only, on each load
 (`loadHumanKey`, the data source's `humanKey()`, `server/data/setup/humanKey.ts`): push to belay-policy's default branch allowed to no one,
 Code Owner approval required there, an MR's author unable to approve it. Under the precondition it says "Human key verified on
 belay-policy main", "Human key failed: <the settings not in place>" or "Human key not read: <why>" (demo: verified, chipped
@@ -114,7 +114,7 @@ merges" (the revoke beside it under "Revoke · direct commit"); on the list the 
 an eligible class puts the promotion on the dock and sends nothing (a quarantine, with nothing to revoke, shows its
 re-admission at once), and r there puts the revoke back first. Its diff is tier-state.yml's new record, `lease_expires`
 from `grant_ttl_days` for Hands-off. Done names the MR from the server's answer, with "Open !iid ↗"; a demo answer is
-simulated and says so. A person merges it in GitLab; Belay never does. A greyed Promote names the first rule that is
+simulated and says so. A person merges it in GitLab; Afterlife never does. A greyed Promote names the first rule that is
 unmet or not recorded, in its tooltip and on p, and asks the server for nothing.
 
 Keys: j k move, r revoke one step, q quarantine, p promote (or re-admit), Enter rule and write, 1-5 / 0 tier filter, / search,

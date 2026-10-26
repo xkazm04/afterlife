@@ -1,6 +1,6 @@
 # Afterlife: module documentation
 
-Afterlife (the codebase is still named Belay) sets up AI agents on a company's GitLab projects and watches them
+Afterlife sets up AI agents on a company's GitLab projects and watches them
 through the work that comes after code: security, review, testing, compliance, releases, upgrades. Two ideas run
 through every screen:
 
@@ -34,9 +34,9 @@ flowchart LR
 | [Maturity](maturity.md) | `/maturity` | Which stages are real, and which gap do we close next? |
 | [Cycles](cycles.md) | `/cycles` | What has each improvement round earned, and what runs next? |
 | [Task](task.md) | `/task/[id]` | What did this agent do, and why may I believe it? |
-| [Onboard](onboard.md) | `/onboard` | How far is the estate onboarded, and what runs in the next batch? |
+| [Onboard](onboard.md) | `/onboard/estate`, engine of `/start` | How far is the estate onboarded, and what runs in the next batch? |
 | [Setup](setup.md) | `/setup` | What blocks each track on one project, and what can only I do? |
-| [Trace](trace.md) | `/trace` | Is this machine, my GitLab login and my group ready? |
+| [Set up](start.md) | `/start` | From this machine to a watched project: what is done, being checked, and next? |
 | [Theater](theater.md) | `/theater` | A deterministic replay for recording |
 | [X-ray](xray.md) | `?xray=1` | What is this screen for, what do its columns mean, what do I do? |
 | [Settings](settings.md) | `/settings` | How large is the interface, which keys work, and where does the data come from? |

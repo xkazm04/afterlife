@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-notes-'));
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-notes-'));
 let trustedNotes;
 
 // A glab double that serves `total` notes, 100 a page, newest first; notes.json marks which ids the bot wrote.
@@ -32,7 +32,7 @@ const pagesFetched = () => fs.readFileSync(path.join(dir, 'calls.log'), 'utf8').
 
 beforeAll(async () => {
   fs.writeFileSync(path.join(dir, 'fake.mjs'), FAKE);
-  process.env.BELAY_GLAB = `${process.execPath}|${path.join(dir, 'fake.mjs')}`;
+  process.env.AFTERLIFE_GLAB = `${process.execPath}|${path.join(dir, 'fake.mjs')}`;
   ({ trustedNotes } = await import('../lib.mjs'));
 });
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));

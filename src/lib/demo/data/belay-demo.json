@@ -1,7 +1,7 @@
 {
   "_note": "ILLUSTRATIVE. Every name, number, id and time is a placeholder for layout, not a measurement. Seeded faults are labelled seeded.",
   "product": {
-    "name": "Belay",
+    "name": "Afterlife",
     "claim": "Agents may act alone only where they can prove it.",
     "sub": "Eight post-code agents on GitLab. Every action carries a machine-checked Proof Block. Autonomy is earned from those proofs and revoked on the first failure."
   },
@@ -11585,7 +11585,7 @@
       "key": "summary",
       "label": "Summary",
       "stage": "monitor",
-      "who": "Belay",
+      "who": "Afterlife",
       "text": "summary on issue #128 · CRA clock not needed (not actively exploited)"
     }
   ],
@@ -11763,7 +11763,7 @@
       "dueIn": "19 h 12 m",
       "grade": "reviewable",
       "linksResolved": "6 / 6",
-      "does": "Marks the packet \"ready to sign\". A person submits on ENISA's platform; Belay never submits."
+      "does": "Marks the packet \"ready to sign\". A person submits on ENISA's platform; Afterlife never submits."
     },
     {
       "id": "n3",
@@ -11783,7 +11783,7 @@
       "id": "n5",
       "kind": "setup",
       "title": "Runner billing on Google Cloud",
-      "does": "Opens the GitLab runner page. Belay verifies when you come back."
+      "does": "Opens the GitLab runner page. Afterlife verifies when you come back."
     }
   ],
   "setup": {
@@ -11843,7 +11843,7 @@
           ],
           [
             1,
-            "Belay running, checkout paired",
+            "Afterlife running, checkout paired",
             "done"
           ],
           [

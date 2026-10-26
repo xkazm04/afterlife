@@ -17,7 +17,7 @@ const dir = need('policy-dir'); // a clone of belay-policy, depth >= 300
 const project = need('policy-project');
 const branch = process.env.CI_DEFAULT_BRANCH ?? 'main';
 const STATE = 'tier-state.yml';
-// Writes may use a different token from reads (BELAY_POLICY_TOKEN, named by --write-token-var). A variable named there and
+// Writes may use a different token from reads (AFTERLIFE_POLICY_TOKEN, named by --write-token-var). A variable named there and
 // not set is refused before any read (F88's sibling): the read token never commits in its place.
 const token = writeToken(arg('write-token-var'));
 
@@ -73,7 +73,7 @@ const events = detect({
   // Never read as a finished pipeline: a sweep's own is the schedule's, still running; event mode reads its proof jobs.
   ownPipelineId: process.env.CI_PIPELINE_ID ?? null,
 }).filter((e) => !seen.has(eventKey(e)));
-console.error(`belay: ${events.length} new demotion event(s)`);
+console.error(`afterlife: ${events.length} new demotion event(s)`);
 
 const keys = [];
 const messages = [];
@@ -99,10 +99,10 @@ for (const [i, e] of events.entries()) {
   fs.writeFileSync(path.join(dir, STATE), out.commit.content);
   messages.push(String(out.commit.message).split('\n')[0]);
 }
-if (skipped.length) console.error(`belay: ${skipped.length} event(s) skipped:\n  ${skipped.join('\n  ')}`);
+if (skipped.length) console.error(`afterlife: ${skipped.length} event(s) skipped:\n  ${skipped.join('\n  ')}`);
 if (messages.length === 0) {
   // An event that moves no tier leaves no commit, so it is simply re-evaluated (harmlessly) on the next sweep.
-  console.error('belay: no tier moved; nothing to commit');
+  console.error('afterlife: no tier moved; nothing to commit');
   process.exit(skipped.length ? 2 : 0);
 }
 const message = [`tripwire: ${messages.length} demotion(s)`, '', ...messages.map((m) => `- ${m}`), '', ...keys.map((k) => `Belay-Event: ${k}`)].join('\n');
@@ -136,5 +136,5 @@ try {
   // glab printed GitLab's answer above: a 400 here is the file moving since it was read (last_commit_id).
   die(`${project} refused the commit of ${STATE} (see GitLab's answer above): nothing committed; the next run tries again.`, 3);
 }
-console.error(`belay: committed ${STATE} to ${project}`);
+console.error(`afterlife: committed ${STATE} to ${project}`);
 if (skipped.length) process.exit(2);

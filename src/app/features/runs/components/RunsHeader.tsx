@@ -53,7 +53,7 @@ export function RunsHeader({ data }: { data?: RunsData }) {
         <div><dt>spent</dt><dd>{usd(t.costUsd)}</dd></div>
       </dl>
       {data.skippedLines > 0 ? (
-        <Chip tone="lag" title="Lines in .belay/runs that were not a belay.run/0 event. They are counted here and drawn nowhere.">
+        <Chip tone="lag" title="Lines in .afterlife/runs that were not a belay.run/0 event. They are counted here and drawn nowhere.">
           {data.skippedLines} skipped line{data.skippedLines === 1 ? '' : 's'}
         </Chip>
       ) : null}

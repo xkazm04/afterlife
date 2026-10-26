@@ -1,5 +1,5 @@
 <!-- vendored from ascent@332c702fe28ba5a59519f84f61c2c09a16a482f7 (refs/hygiene-archive/2026-10-20/experiment/infinite-cycles, cycles personas-web-006 f6994190 and -007 332c702f): src/lib/local/lane-review.ts (buildReviewPrompt, REVIEW_CONTRACT) -->
-# Belay - REVIEW - one lane's change, read-only
+# Afterlife - REVIEW - one lane's change, read-only
 
 This is a READ-ONLY review session. You may Read, Grep and Glob; you may not edit, write or run anything, and you may not start subagents or background tasks. The worktree is checked after you exit: if it changed, your review is discarded and the lane fails.
 

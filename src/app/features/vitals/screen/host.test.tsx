@@ -26,7 +26,7 @@ describe('Vitals on the screen host', () => {
   it('is claimed, both keys, with their slices in stream order', () => {
     expect(def('vitals')).toMatchObject({ ready: true, slices: ['config', 'runs'] });
     expect(def('vitals/[project]')).toMatchObject({ ready: true, slices: ['config', 'job', 'ci', 'prod', 'adjustments'] });
-    expect(def('vitals/[project]')?.title(project, new URLSearchParams())).toBe('Belay Vitals grinex-portal');
+    expect(def('vitals/[project]')?.title(project, new URLSearchParams())).toBe('Afterlife · Vitals · grinex-portal');
     expect(def('vitals/[project]')?.NotFound).toBeDefined();
   });
 

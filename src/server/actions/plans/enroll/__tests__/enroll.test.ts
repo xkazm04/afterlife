@@ -68,19 +68,19 @@ describe('enroll-track T4', () => {
     const p = preview(await previewIntent(r.deps, ENROLL));
     expect(p).toMatchObject({ kind: 'enroll-track', branch: 'belay/enroll-T4-2026-10-06', title: "Enroll T4's classes at assisted" });
     expect(p.diff).toEqual([`+   ${GUARDRAIL}:`, expect.stringMatching(/^\+ {5}guard\.block: \{ tier: assisted, since: "2026-10-06T\d\d:\d\d:00\.000Z", by: operator \S+ via enrollment MR \}$/)]);
-    expect(p.notes?.[0]).toBe(`The account, ${GUARDRAIL}, is read from ledgerline's merge requests: Belay never invents one.`);
+    expect(p.notes?.[0]).toBe(`The account, ${GUARDRAIL}, is read from ledgerline's merge requests: Afterlife never invents one.`);
     const [commit, mr] = p.commands.map((c) => c.argv.join(' '));
     expect(commit).toContain('-f branch=belay/enroll-T4-2026-10-06');
     expect(commit).toContain('-f start_branch=main');
     expect(commit).toMatch(/-f last_commit_id=[0-9a-f]{40}/);
     expect(mr).toContain('-f labels=belay::promotion');
-    expect(mr).toContain('A person merges this; Belay never does.');
+    expect(mr).toContain('A person merges this; Afterlife never does.');
     expect(r.gl.state.writes).toHaveLength(3); // the arm's two and the person's merge; the preview wrote nothing
 
     const done = await confirmIntent(r.deps, ENROLL, p.previewId);
     expect(done.status === 'done' && done.results.map((x) => x.made)).toEqual([expect.stringMatching(/^commit [0-9a-f]{8}$/), expect.stringMatching(/^!\d+$/)]);
     const opened = policyMrs(r).find((m) => m.source_branch === p.branch)!;
-    expect(opened).toMatchObject({ state: 'opened', labels: ['belay::promotion'] }); // Belay never merges
+    expect(opened).toMatchObject({ state: 'opened', labels: ['belay::promotion'] }); // Afterlife never merges
 
     expect(gateNow(r)).toMatchObject({ decision: 'block' }); // the record is on the branch: main has none until the merge
     await mergeMr(r.gl, r.gl.state.projects.find((x) => x.raw.name === 'belay-policy')!.raw.id as number, Number(opened.iid));
@@ -104,8 +104,8 @@ describe('enroll-track T4', () => {
     const r = await armedT4();
     for (const k of Object.keys(ledgerline(r).notes)) ledgerline(r).notes[k] = []; // no guardrail note acted here
     const why = reason(await previewIntent(r.deps, ENROLL));
-    expect(why).toMatch(/^Belay could not find the guardrail agent's account: tier-state\.yml names no account with "guardrail" in it/);
-    expect(why).toContain('BELAY_GUARDRAIL_AUTHORS');
+    expect(why).toMatch(/^Afterlife could not find the guardrail agent's account: tier-state\.yml names no account with "guardrail" in it/);
+    expect(why).toContain('AFTERLIFE_GUARDRAIL_AUTHORS');
   });
 
   it('a configured guardrail author is the account; two of them is a refusal, never a pick', async () => {
@@ -133,6 +133,6 @@ describe('enroll-track T4', () => {
     expect(reason(await previewIntent(r.deps, ENROLL))).toMatch(/^trust-policy\.yml has no start_tier/);
     files['trust-policy.yml'] = policy;
     delete files['tier-state.yml'];
-    expect(reason(await previewIntent(r.deps, ENROLL))).toMatch(/^Belay could not read belay-policy: tier-state\.yml is not in belay-policy/);
+    expect(reason(await previewIntent(r.deps, ENROLL))).toMatch(/^Afterlife could not read belay-policy: tier-state\.yml is not in belay-policy/);
   });
 });

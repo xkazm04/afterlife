@@ -90,7 +90,7 @@
         "engine-core-cli"
       ],
       "db_tables": [],
-      "description": "Project-level build and development tooling: Next.js config, TypeScript config, ESLint config, Vitest config, demo-data build script, structure-check script, infra Cloud Run README, the Belay CLI wrapper, trust policy YAML files, and the adopt-belay skill instructions.",
+      "description": "Project-level build and development tooling: Next.js config, TypeScript config, ESLint config, Vitest config, demo-data build script, structure-check script, infra Cloud Run README, the Afterlife CLI wrapper (cli/belay.mjs), trust policy YAML files, and the adopt-belay skill instructions.",
       "entry_points": [
         "next.config.ts",
         "cli/belay.mjs"
@@ -150,7 +150,7 @@
         "commands_run",
         "poll_state"
       ],
-      "description": "The embedded PGlite database: schema migrations, repositories (fleet, work, ledger, pairing, pollState), views that project fleet/maturity/needsYou/tasks from raw tables, seed loaders, and the index entry point. This is the single source of truth for all persisted Belay state within a running instance.",
+      "description": "The embedded PGlite database: schema migrations, repositories (fleet, work, ledger, pairing, pollState), views that project fleet/maturity/needsYou/tasks from raw tables, seed loaders, and the index entry point. This is the single source of truth for all persisted Afterlife state within a running instance.",
       "entry_points": [
         "src/server/index/index.ts",
         "src/server/index/db.ts"
@@ -317,7 +317,7 @@
         "app-routing"
       ],
       "db_tables": [],
-      "description": "The animated cyberpunk landing screen ('Afterlife front door') that greets users when they first open Belay. It renders an SVG city scene with camera, district, beam, and ground layers driven by CSS animations and React. It depends on door model geometry and the door data loader.",
+      "description": "The animated cyberpunk landing screen ('Afterlife front door') that greets users when they first open Afterlife. It renders an SVG city scene with camera, district, beam, and ground layers driven by CSS animations and React. It depends on door model geometry and the door data loader.",
       "entry_points": [
         "src/app/features/door/DoorScreen.tsx",
         "src/app/(door)/page.tsx"
@@ -410,7 +410,7 @@
         "gitlab-ci-flows"
       ],
       "db_tables": [],
-      "description": "The Belay engine CLI entry point and its five commands (envelope, gate, ledger, prove, tripwire). Core utilities cover argument parsing, ULID generation, file I/O, type definitions, and version. This is the local binary invoked by CI pipelines to evaluate proofs and emit gate decisions.",
+      "description": "The Afterlife engine CLI entry point and its five commands (envelope, gate, ledger, prove, tripwire). Core utilities cover argument parsing, ULID generation, file I/O, type definitions, and version. This is the local binary invoked by CI pipelines to evaluate proofs and emit gate decisions.",
       "entry_points": [
         "engine/cli.ts",
         "engine/core/types.ts"
@@ -750,7 +750,7 @@
         "gitlab-server-adapter"
       ],
       "db_tables": [],
-      "description": "GitLab CI pipeline definitions for the eight Belay agent flows (guardrail, cra, qa, medic, patcher, gardener) plus reusable CI component templates (proof-engine, tier-gate, ledger-append, maturity-scan, tripwire, flow-dispatch) and their supporting shell scripts. Together these wired into a target project's .gitlab-ci.yml to activate proof-carrying agents.",
+      "description": "GitLab CI pipeline definitions for the eight Afterlife agent flows (guardrail, cra, qa, medic, patcher, gardener) plus reusable CI component templates (proof-engine, tier-gate, ledger-append, maturity-scan, tripwire, flow-dispatch) and their supporting shell scripts. Together these wired into a target project's .gitlab-ci.yml to activate proof-carrying agents.",
       "entry_points": [
         "gitlab/flows/guardrail.yml",
         "gitlab/components/templates/proof-engine/template.yml"

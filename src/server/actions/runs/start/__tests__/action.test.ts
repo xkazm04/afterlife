@@ -19,7 +19,7 @@ afterEach(() => {
 
 describe('startRunAction', () => {
   it('refuses on the hosted replay, preview and confirm', async () => {
-    vi.stubEnv('BELAY_MODE', 'replay');
+    vi.stubEnv('AFTERLIFE_MODE', 'replay');
     expect(await startRunAction(intent)).toMatchObject({ status: 'refused', reason: expect.stringMatching(/hosted replay starts no run/) });
     expect(await startRunAction(intent, 'f'.repeat(64))).toMatchObject({ status: 'refused' });
   });

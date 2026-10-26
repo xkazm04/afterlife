@@ -6,7 +6,7 @@
 - Draws the fleet as a city at night: each GitLab group is a district plate, each project a tower whose height grows
   with its armed tracks and whose class windows are coloured by tier, and each project with waiting decisions sends up
   an amber beam.
-- A page load opens on the entrance: treasure gates over the city whose lock is the Belay knot (`components/entrance/`).
+- A page load opens on the entrance: treasure gates over the city whose lock is the knot mark (`components/entrance/`).
   They open by themselves after about 2.2 s, or at once on any key or click; `?entrance=off`, reduced motion and a
   client-side return from the app go straight to the city.
 - L0 (fleet): the answer block on the left reads in one order. First the one loud number (decisions waiting) and its
@@ -102,8 +102,8 @@
   readout); `components/ui/labels/Labels.test.tsx` beside the labels.
 
 ## Status and limits
-- Data comes from `getDataSource()` (`src/server/data`): the demo fixture by default (`BELAY_MODE=demo`), or the live
-  index snapshot (`BELAY_MODE=live`). In live mode the cockpit text and tracks are still the demo catalogue.
+- Data comes from `getDataSource()` (`src/server/data`): the demo fixture by default (`AFTERLIFE_MODE=demo`), or the live
+  index snapshot (`AFTERLIFE_MODE=live`). In live mode the cockpit text and tracks are still the demo catalogue.
 - The deep-project panel (cockpit, decisions, tracks) exists only for `deepProjectId()` (default `ledgerline`).
 - Two deliberate departures from the contest winner for render cost: the city at L2 is dimmed, not blurred, and the
   beams breathe as one layer-wide pulse.

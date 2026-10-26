@@ -14,7 +14,7 @@ import { useEdgeGeometry } from './useEdgeGeometry';
 import styles from './UnlockMap.module.css';
 
 /**
- * The unlock map: steps 0-14 by phase, the eight tracks in arm order, the belay doctor capabilities, and the drawn
+ * The unlock map: steps 0-14 by phase, the eight tracks in arm order, the doctor capabilities, and the drawn
  * edges between them. Hover a node and what it needs and frees lights up; the rest dims. A click opens the node's page.
  */
 export function UnlockMap() {

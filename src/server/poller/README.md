@@ -2,7 +2,7 @@
 
 `runPollCycle(port, db, now, {cfg?, mem?})` is one poll of the group. `now` is an argument: a test, or the fake group's
 replay clock, decides what time it is. `startScheduler(tick, intervalMs)` repeats a cycle (one at a time, never overlapping);
-`BELAY_POLL_SECONDS` sets the interval (default 30, never below 5). The only caller is `data/live/runtime.ts`, on server boot.
+`AFTERLIFE_POLL_SECONDS` sets the interval (default 30, never below 5). The only caller is `data/live/runtime.ts`, on server boot.
 Tests never start a timer.
 
 ## One cycle
@@ -19,7 +19,7 @@ Tests never start a timer.
 4. Index plumbing: groups (existing order kept), trust classes (existing order kept, new ones appended), the pairing row.
 5. Per target project (`project.ts`), reads first, one transaction of writes after, so a failed read writes nothing:
    - MRs updated in the last 7 days (`state=all`): the proof roll-up counts `proof::*` labels (`updated_at` stands in for the proof time);
-   - MRs updated in the last 24 h (`BELAY_TASK_HOURS`) are read as tasks: description trailers, notes (cached by `updated_at`),
+   - MRs updated in the last 24 h (`AFTERLIFE_TASK_HOURS`) are read as tasks: description trailers, notes (cached by `updated_at`),
      the newest 30 deployments (for "merged · in production" and "in staging": a merge whose sha is not among them reads
      "merged");
    - each such agent MR's facts (`mrFacts/facts.ts`), for the stability view: its size (lines added + removed over
@@ -66,19 +66,19 @@ Tests never start a timer.
 
 | Source | Counts only from | Default |
 |---|---|---|
-| MR description (`Belay-Task`, `Belay-Class`, claims prose) | agent accounts | prefix `ai-` (`BELAY_AGENT_PREFIX`) |
-| `belay-proof` block in a note | proof accounts. The patcher is **not** one | `BELAY_PROOF_AUTHORS`, plus prefix `ai-proof-` (demo, fake group, or `BELAY_TRUST_PREFIXES=1`) |
-| `belay-guardrail` block | guardrail accounts, and only for the MR's current head | `BELAY_GUARDRAIL_AUTHORS`, plus prefix `ai-guardrail-` (as above) |
+| MR description (`Belay-Task`, `Belay-Class`, claims prose) | agent accounts | prefix `ai-` (`AFTERLIFE_AGENT_PREFIX`) |
+| `belay-proof` block in a note | proof accounts. The patcher is **not** one | `AFTERLIFE_PROOF_AUTHORS`, plus prefix `ai-proof-` (demo, fake group, or `AFTERLIFE_TRUST_PREFIXES=1`) |
+| `belay-guardrail` block | guardrail accounts, and only for the MR's current head | `AFTERLIFE_GUARDRAIL_AUTHORS`, plus prefix `ai-guardrail-` (as above) |
 
 On a real group anyone can register an `ai-proof-*` or `ai-guardrail-*` username, so there the prefixes are off and only the
-named accounts count; `BELAY_TRUST_PREFIXES=1` turns them back on for a group whose usernames the operator controls.
+named accounts count; `AFTERLIFE_TRUST_PREFIXES=1` turns them back on for a group whose usernames the operator controls.
 
-Live mode on a real group (`BELAY_MODE=live`, `BELAY_GITLAB` not `fake`) has no defaults: `readPollerConfig` throws, naming
-each variable, when `BELAY_GROUP_ID` (a group id or path), `BELAY_PROJECT` (a project's path, its last segment) or
-`BELAY_PROOF_AUTHORS` (usernames: the operator's, in M1) is missing or malformed, or `BELAY_GUARDRAIL_AUTHORS`,
-`BELAY_AGENT_PREFIX`, `BELAY_POLICY_PROJECT` or `BELAY_LEDGER_PROJECT` is set and malformed (`liveConfigProblems`; each
+Live mode on a real group (`AFTERLIFE_MODE=live`, `AFTERLIFE_GITLAB` not `fake`) has no defaults: `readPollerConfig` throws, naming
+each variable, when `AFTERLIFE_GROUP_ID` (a group id or path), `AFTERLIFE_PROJECT` (a project's path, its last segment) or
+`AFTERLIFE_PROOF_AUTHORS` (usernames: the operator's, in M1) is missing or malformed, or `AFTERLIFE_GUARDRAIL_AUTHORS`,
+`AFTERLIFE_AGENT_PREFIX`, `AFTERLIFE_POLICY_PROJECT` or `AFTERLIFE_LEDGER_PROJECT` is set and malformed (`liveConfigProblems`; each
 is read trimmed). The cycle then reads
-nothing, so it never polls the default group, and the runtime logs `belay: poll failed` with the message every poll.
+nothing, so it never polls the default group, and the runtime logs `afterlife: poll failed` with the message every poll.
 
 Where it reads from: F49 (e2079f8) reads belay-policy and belay-ledger at `<group>/<name>` by full path and polls only projects under the group's own path (`own` in `runPollCycle`, `cycle.ts`). F51 (8a534c8) reads a tier record whose `by` is not text as the gate does, by its tier alone (`derive/tiers.ts`), so a hand-written `{ tier: quarantined }` no longer aborts the poll.
 
@@ -124,9 +124,9 @@ reads it "not recorded", never met. Mapped to trust-policy.yml's `promotion` blo
 | trial (`trial` jsonb column, migration 0014, `trialOf` in `derive/gate.ts`, the rule in `src/schemas/trial.ts`) | the next rung, run as a trial: each MR with a `tier_decision` for the same agent and class at or after `since` whose `would` acts alone (`merge` at hands_off; `approve` at supervised), resolved against the MR's stated outcome. Merged with the edit fact false: agreed. Merged with edits, closed by a person, or reverted: a catch. Unresolved, left out of the count: no outcome stated (still open, or not read), merged with no edit fact, closed by an agent account (the agent withdrew it: no person turned it down), closed by an account not stated. `{ n, catches }`: n resolved, catches among them. Over every output since `since` (not the window). Null when this poll did not read the ledger | `trial: { min, catches }` on either step (absent: no row; the repo's policy sets none yet). The row "next-rung trial n of min, c caught" is met only when n >= min and catches <= the step's `catches` |
 
 `human_key` (`supervised_to_hands_off`) is neither counted nor a met row: it is the promote write's precondition
-(`HUMAN_KEY` in `src/lib/promotion/rules.ts`, "a person merges this MR; Belay never merges it"), stated beside the rule on
-Ladder and in the promote preview. Belay's only write that raises a tier is the promotion's policy MR, which `planPromote`
-opens and never merges; Belay reads no GitLab approval setting, so the precondition is stated, not checked. Live, the poller never writes a task
+(`HUMAN_KEY` in `src/lib/promotion/rules.ts`, "a person merges this MR; Afterlife never merges it"), stated beside the rule on
+Ladder and in the promote preview. Afterlife's only write that raises a tier is the promotion's policy MR, which `planPromote`
+opens and never merges; Afterlife reads no GitLab approval setting, so the precondition is stated, not checked. Live, the poller never writes a task
 `reverted` (it reads no revert MR), so reverts rests on the tripwire. A stated guardrail block is a lower bound when other
 verdicts are unresolved: enough to read the rule unmet, never met.
 
@@ -217,7 +217,7 @@ A failed commit-list read only leaves the receipts null, with a warning. Ladder 
    `pollClasses` in `classes.ts`, id `promote:<project>:<class>` from `promotionId` in `src/lib/promotion/promotion.ts`): a class whose holder works
    in two projects is counted, and asked about, once in each. Kept because the demo group holds one delivery project.
 4. **No-edit is stated only for a merge the poll read as a task.** The poll reads an MR's notes only while it is in the
-   task window (`BELAY_TASK_HOURS`, 24 h by default), so a merge first seen later, or one known only from the ledger,
+   task window (`AFTERLIFE_TASK_HOURS`, 24 h by default), so a merge first seen later, or one known only from the ledger,
    has no edited fact and the ratio reads "not recorded" until it leaves the counts. Tasks indexed before the fact was
    read carry none either. The push note's shape is `[R?]` (docs, not a run): if GitLab words a push differently and the
    note still mentions a commit or a push, the merge has no stated fact and the ratio reads "not recorded" (fails

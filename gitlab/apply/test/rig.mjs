@@ -83,7 +83,7 @@ export function group({ desc = description, notes = [guardrailNote('pass')], pip
   };
 }
 
-export const TOKENS = { BELAY_BOT_TOKEN: 'bot', BELAY_LEDGER_TOKEN: 'ledger', CI_SERVER_FQDN: 'gitlab.example' };
+export const TOKENS = { AFTERLIFE_BOT_TOKEN: 'bot', AFTERLIFE_LEDGER_TOKEN: 'ledger', CI_SERVER_FQDN: 'gitlab.example' };
 export const glabWrites = (r, cmd) => r.writes.filter((w) => w.method === 'GLAB' && w.path === `mr ${cmd}`);
 export const proofOf = (note) => JSON.parse(/```belay-proof\n([\s\S]*?)\n```/.exec(note.body.message)[1]);
 export const granted = (r) => r.writes.filter((w) => w.path === 'mr approve' || w.path === 'mr merge');

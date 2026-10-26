@@ -1,6 +1,7 @@
-// Picks the data source for a request: BELAY_MODE=demo (default) or live. The choice is read per call, so a page rendered
+// Picks the data source for a request: AFTERLIFE_MODE=demo (default) or live. The choice is read per call, so a page rendered
 // for a request always follows the running server's environment, never the one the build ran in.
 import { actionDeps } from '@/server/actions/deps';
+import { serverEnv } from '@/server/env/env';
 import { pollIntervalMs } from '@/server/poller';
 import { liveLine } from './boot';
 import { demoSource } from './demoSource';
@@ -17,13 +18,13 @@ export class NotReadyError extends Error {}
 /** No runtime is ready: say why. A failed start is named and retried (once, not awaited, no oftener than a poll interval). */
 function notReady(env: Record<string, string | undefined>): NotReadyError {
   const failed = lastStartFailure();
-  if (!failed) return new NotReadyError('BELAY_MODE=live, but the first poll has not finished: the server starts it in instrumentation.ts');
+  if (!failed) return new NotReadyError('AFTERLIFE_MODE=live, but the first poll has not finished: the server starts it in instrumentation.ts');
   if (!startInFlight() && Date.now() - failed.at >= pollIntervalMs()) {
     const cfg = readDataConfig(env);
     // A failure is kept by startRuntime and the next read names it; a success is said once, as bootLive says a first start.
     startRuntime(cfg).then((rt) => console.log(liveLine(cfg, rt, ' after a failed start')), () => undefined);
   }
-  return new NotReadyError(`BELAY_MODE=live, but the live start failed: ${failed.message}. It is retried every ${pollIntervalMs() / 1000}s.`);
+  return new NotReadyError(`AFTERLIFE_MODE=live, but the live start failed: ${failed.message}. It is retried every ${pollIntervalMs() / 1000}s.`);
 }
 
 /** Tests pin a source (and clear it with null). Never called by the app. */
@@ -31,7 +32,7 @@ export function setDataSource(ds: DataSource | null): void {
   override = ds;
 }
 
-export function getDataSource(env: Record<string, string | undefined> = process.env): DataSource {
+export function getDataSource(env: Record<string, string | undefined> = serverEnv()): DataSource {
   if (override) return override;
   if (readDataConfig(env).mode === 'demo') return demoSource;
   return liveSource(() => {

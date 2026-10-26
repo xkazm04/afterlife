@@ -12,16 +12,16 @@ import { loaders as onboard } from '@/app/features/onboard/screen/slices';
 import { loaders as runs } from '@/app/features/runs/screen/slices';
 import { loaders as settings } from '@/app/features/settings/screen/slices';
 import { loaders as setup } from '@/app/features/setup/screen/slices';
+import { loaders as start } from '@/app/features/start/screen/slices';
 import { loaders as task } from '@/app/features/task/screen/slices';
 import { loaders as theater } from '@/app/features/theater/screen/slices';
-import { loaders as trace } from '@/app/features/trace/screen/slices';
 import { loaders as vitals } from '@/app/features/vitals/screen/slices';
 import { isScreenKey, paramOf, type ScreenKey } from '@/components/shell/host/model/routes';
 import type { ModuleLoaders, ScreenLoader } from './types';
 
 /** Per module, so a test can check each module names only its own keys. */
 export const MODULE_LOADERS: Readonly<Record<string, ModuleLoaders>> = {
-  vitals, fleet, monitor, 'needs-you': needsYou, ladder, maturity, cycles, task, onboard, setup, trace, theater, runs, settings, kit,
+  vitals, fleet, monitor, 'needs-you': needsYou, ladder, maturity, cycles, task, start, onboard, setup, theater, runs, settings, kit,
 };
 
 const LOADERS: ModuleLoaders = Object.assign({}, ...Object.values(MODULE_LOADERS)) as ModuleLoaders;

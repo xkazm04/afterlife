@@ -34,7 +34,7 @@ export function VitalsEmpty() {
         Vitals measures a real production app: its CI stage times per variant, its production signals and every adjustment an agent claims. Pick a repo you already
         work in with Claude Code; Afterlife proposes what to watch and saves only what its probes confirm.
       </p>
-      <Button variant="primary" href="/onboard">
+      <Button variant="primary" href="/start">
         Onboard a project
       </Button>
     </div>
@@ -47,7 +47,7 @@ const lastCell = (p: ListRow, now: string | undefined) => {
 };
 
 /**
- * /vitals: the real projects Afterlife watches, from .belay/projects. Enter or a double-click opens one. The screen host
+ * /vitals: the real projects Afterlife watches, from .afterlife/projects. Enter or a double-click opens one. The screen host
  * draws it from two slices (screen/host.tsx): `projects` absent: the window and the table's head, nothing listed yet;
  * a row's `runs` absent: its last collected and runs stored are dashes until the runs are read. `reason`: why the
  * projects could not be read.

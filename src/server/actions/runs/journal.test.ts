@@ -82,7 +82,7 @@ describe('recallAction, the endpoint', () => {
     const { recallAction } = await import('./recallAction');
     const { deps } = await liveRig();
     at.deps = deps;
-    vi.stubEnv('BELAY_MODE', 'live');
+    vi.stubEnv('AFTERLIFE_MODE', 'live');
     const id = idOf(await previewIntent(deps, promote));
     await confirmIntent(deps, promote, id);
     expect(await recallAction(id)).toMatchObject({ kind: 'ran', response: { status: 'done' } });

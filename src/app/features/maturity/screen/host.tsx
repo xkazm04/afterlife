@@ -46,7 +46,7 @@ function StageFrame({ params }: ScreenFrameProps) {
 }
 
 export const screens: readonly ScreenDef[] = [
-  { key: 'maturity', ready: true, slices: ['core'], Frame: MaturityFrame, Session: MaturitySession, title: () => 'Belay Maturity' },
+  { key: 'maturity', ready: true, slices: ['core'], Frame: MaturityFrame, Session: MaturitySession, title: () => 'Afterlife · Maturity' },
   {
     key: 'maturity/[stage]',
     ready: true,
@@ -54,6 +54,6 @@ export const screens: readonly ScreenDef[] = [
     Frame: StageFrame,
     Session: MaturitySession,
     NotFound: StageNotFound,
-    title: (p) => `Belay Maturity ${p.stage}`,
+    title: (p) => `Afterlife · Maturity · ${p.stage}`,
   },
 ];

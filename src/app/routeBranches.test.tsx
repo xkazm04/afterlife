@@ -93,7 +93,7 @@ describe('dynamic route pages', () => {
       expect(src, r).not.toMatch(/connection\(|<Suspense/);
     }
     const { paramTitle } = await import('./features/screens/paramPage');
-    expect(await paramTitle('Belay Fleet', 'project')({ params: Promise.resolve({ project: 'p1' }) })).toEqual({ title: 'Belay Fleet p1' });
+    expect(await paramTitle('Afterlife · Fleet', 'project')({ params: Promise.resolve({ project: 'p1' }) })).toEqual({ title: 'Afterlife · Fleet · p1' });
   });
 });
 

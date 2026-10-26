@@ -17,7 +17,7 @@ export interface StartDeps {
   /** Whether the repo's checkout is on this disk: the runner refuses a fleet path that is not. */
   exists: (repoPath: string) => boolean;
   branches: (repoPath: string) => Promise<RunBranches>;
-  /** A live `belay run`'s pid on that repo (its belay-run.pid), or null. */
+  /** A live `afterlife run`'s pid on that repo (its afterlife-run.pid, or a pre-rename belay-run.pid), or null. */
   liveRun: (repoPath: string) => number | null;
   /** Spawns `node <argv>` detached from `cwd`, stdout and stderr to `log`; resolves once it has a pid. */
   launch: (argv: string[], cwd: string, log: string) => Promise<{ pid: number }>;
@@ -41,10 +41,10 @@ export async function planStartRun(deps: StartDeps, i: StartRun): Promise<StartP
   const read = deps.repos();
   if (!read.ok) throw new StartRefused(`the fleet cannot be read: ${read.reason}`);
   const repo = read.repos.find((r) => r.slug === i.repo);
-  if (!repo) throw new StartRefused(`${i.repo} is not a fleet repo (.belay/fleet.yml or a saved project with a runner block)`);
+  if (!repo) throw new StartRefused(`${i.repo} is not a fleet repo (.afterlife/fleet.yml or a saved project with a runner block)`);
   if (!deps.exists(repo.path)) throw new StartRefused(`${repo.slug}'s checkout is not on this machine: ${repo.path} does not exist`);
   const pid = deps.liveRun(repo.path);
-  if (pid !== null) throw new StartRefused(`a belay run (pid ${pid}) is running on ${repo.slug} now; it holds ${path.join(repo.path, '.claude', 'worktrees')}: wait for it to end`);
+  if (pid !== null) throw new StartRefused(`an afterlife run (pid ${pid}) is running on ${repo.slug} now; it holds ${path.join(repo.path, '.claude', 'worktrees')}: wait for it to end`);
   if (i.mode === 'execute' && i.onto !== undefined) {
     const b = await deps.branches(repo.path);
     if (!b.ok) throw new StartRefused(`the branches of ${repo.slug} cannot be read: ${b.reason}`);

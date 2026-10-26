@@ -29,7 +29,7 @@ const ACTIONS: readonly Omit<PaletteItem, 'hint'>[] = [
   { id: 'a:needs', kind: 'action', label: 'See what waits for you', href: '/needs-you', keywords: 'decisions inbox approve' },
   { id: 'a:revoke', kind: 'action', label: 'Take autonomy back', href: '/ladder', keywords: 'revoke quarantine demote tier' },
   { id: 'a:xray', kind: 'action', label: 'Show X-ray', href: '/fleet?xray=1', keywords: 'onboarding tour help label parts first run guide' },
-  { id: 'a:first', kind: 'action', label: 'Set up my first project', href: '/trace', keywords: 'onboarding glab login group live doctor setup connect' },
+  { id: 'a:first', kind: 'action', label: 'Set up my first project', href: '/start', keywords: 'onboarding onboard trace repo glab login group live doctor setup connect' },
   { id: 'a:text', kind: 'action', label: 'Change the text size', href: '/settings/display', keywords: 'font larger smaller zoom' },
 ];
 

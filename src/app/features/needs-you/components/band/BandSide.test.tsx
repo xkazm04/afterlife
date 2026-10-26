@@ -1,5 +1,5 @@
 // The band's buttons follow the sign-off's status. "Ready to sign" means a person read the draft, so the button is off
-// until they did (the reducer refuses the stage too: model/act.ts stage-n2); Belay never submits, a person says so.
+// until they did (the reducer refuses the stage too: model/act.ts stage-n2); Afterlife never submits, a person says so.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { pickNeedsYouDemo } from '../../data/pick';

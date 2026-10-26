@@ -1,0 +1,67 @@
+/* A step on the orbit: a real button whose disc holds the step's pulse, its title under it; the current one has a halo. */
+.node {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: calc(6px * var(--ui-scale));
+  width: max-content;
+  max-width: calc(var(--node) * 2.6);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-3);
+  font: var(--t-small) var(--sys);
+  transform: translate(-50%, calc(var(--node) * -0.5));
+  cursor: pointer;
+}
+.disc {
+  display: grid;
+  place-items: center;
+  width: var(--node);
+  height: var(--node);
+  border-radius: var(--r-pill);
+  border: 1px dashed var(--unknown);
+  background: var(--surface-1);
+  transition: transform var(--t-med) var(--ease), border-color var(--t-med) var(--ease);
+}
+.node[data-state="done"] .disc,
+.node[data-state="checking"] .disc {
+  border: 1px solid color-mix(in oklab, var(--accent) 60%, transparent);
+}
+.node[data-state="blocked"] .disc {
+  border: 1px solid color-mix(in oklab, var(--fail) 60%, transparent);
+}
+.node[data-state="you"] .disc {
+  border: 1px solid var(--needs-you);
+}
+.node[data-current] {
+  color: var(--text-1);
+}
+/* the current step: a soft halo, so the person knows where to press */
+.node[data-current] .disc {
+  box-shadow: 0 0 0 calc(4px * var(--ui-scale)) var(--accent-soft), 0 0 calc(18px * var(--ui-scale)) color-mix(in oklab, var(--accent) 35%, transparent);
+}
+.node:hover .disc {
+  transform: scale(1.06);
+}
+.node:focus-visible {
+  outline: none;
+}
+.node:focus-visible .disc {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.name {
+  text-align: center;
+  line-height: 1.2;
+}
+@container sky (max-width: 380px) {
+  .name {
+    font-size: calc(var(--t-small) - 2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .disc {
+    transition: none;
+  }
+}

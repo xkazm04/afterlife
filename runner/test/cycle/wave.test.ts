@@ -8,14 +8,14 @@ import { FAKE, makeFleet, runOne, sh, type TempFleet } from './repo';
 let f: TempFleet;
 beforeAll(() => {
   // setup.mjs is red once ok-a.txt exists: never in a lane's worktree (setup runs before claude), always on the tip.
-  f = makeFleet('belay-wave-', '    setup: [node setup.mjs]\n');
+  f = makeFleet('afterlife-wave-', '    setup: [node setup.mjs]\n');
   fs.writeFileSync(path.join(f.repoDir, 'setup.mjs'), "import fs from 'node:fs'; if (fs.existsSync('ok-a.txt')) { console.error('SETUP broke on ok-a.txt'); process.exit(3); }\n");
   sh(f.repoDir, 'add', 'setup.mjs');
   sh(f.repoDir, 'commit', '-q', '-m', 'setup');
-  process.env.BELAY_CLAUDE_BIN = FAKE;
+  process.env.AFTERLIFE_CLAUDE_BIN = FAKE;
 });
 afterAll(() => {
-  delete process.env.BELAY_CLAUDE_BIN;
+  delete process.env.AFTERLIFE_CLAUDE_BIN;
   fs.rmSync(f.tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 

@@ -3,15 +3,15 @@
 // that hold no secret. 10: the bootstrap MR merged and the agent config on the target's default branch.
 // Step 7 is not read: GitLab's integrations API documents its GET path two ways (integration/ and integrations/), and a
 // saved integration does not show that the Cloud Shell script ran (docs.gitlab.com/api/project_integrations).
-// Step 8 never reads a CI/CD variable: the variables API returns values, and the step promises Belay never sees one.
+// Step 8 never reads a CI/CD variable: the variables API returns values, and the step promises Afterlife never sees one.
 import { BOOTSTRAP_BRANCH } from '@/lib/setup/branches';
-import { belayOf, done, failed, guarded, obj, rows, targetOf, unknown, type StepCtx } from './ctx';
+import { ownProjectOf, done, failed, guarded, obj, rows, targetOf, unknown, type StepCtx } from './ctx';
 import type { StepRead } from './types';
 
 export const RUNNER_TAG = 'gitlab--duo';
 export const AGENT_CONFIG = '.gitlab/duo/agent-config.yml';
 /** Why step 8 can never read done: said on every read of it. */
-export const TOKENS_UNREAD = 'the four BELAY_* tokens are not read, by design: the variables API returns values';
+export const TOKENS_UNREAD = 'the four AFTERLIFE_* tokens are not read, by design: the variables API returns values';
 
 /** Step 3: an Ultimate plan or trial on the group (GET /namespaces/:id, `plan`, `trial`, `trial_ends_on`). */
 export function licenceRead(c: StepCtx): Promise<StepRead> {
@@ -39,7 +39,7 @@ export function runnerRead(c: StepCtx): Promise<StepRead> {
 /** Step 8, its parts that hold no secret: belay-apply's minimum role for pipeline variables and its schedule on main. */
 export function secretsRead(c: StepCtx): Promise<StepRead> {
   return guarded('reading belay-apply’s settings', async () => {
-    const apply = belayOf(c, 'belay-apply');
+    const apply = ownProjectOf(c, 'belay-apply');
     const [p, schedules] = await Promise.all([c.port.get(`projects/${apply.id}`), c.port.listSchedules(apply.id)]);
     const role = obj(p, 'project').ci_pipeline_variables_minimum_override_role;
     const differ: string[] = [];

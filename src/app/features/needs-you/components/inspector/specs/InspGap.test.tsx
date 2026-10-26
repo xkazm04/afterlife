@@ -40,7 +40,7 @@ describe('InspGap Command card on an unsure write', () => {
     const s = { ...initialState(demo), sel: g.id, gapStatus: { [g.id]: 'staged' as const }, writes: { [g.id]: UNSURE_VIEW }, slots: { [g.id]: { phase: 'unsure' as const, answer: { status: 'unsure' as const, text: NO_ANSWER, simulated: false, mr: null } } } };
     const out = renderToStaticMarkup(<InspGap id={g.id} s={s} demo={demo} leftSec={0} dispatch={() => {}} />);
     expect(out).toContain(UNSURE_NOTE);
-    expect(out).not.toContain('Belay refuses this write');
+    expect(out).not.toContain('Afterlife refuses this write');
     expect(out).toContain('Ask again');
   });
 });

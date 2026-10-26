@@ -1,4 +1,4 @@
-# engine - Belay's model-free proof engine, tier gate and tripwire
+# engine - Afterlife's model-free proof engine, tier gate and tripwire
 
 Runs in GitLab CI as `npx tsx engine/cli.ts <cmd>` (or `npm run engine -- <cmd>`). No network, no LLM, no
 dependency beyond `yaml`. Every command writes JSON to stdout and a human summary to stderr. Exit codes:
@@ -75,7 +75,7 @@ The block's `verdict` is `verdictOf(checks, envelope.within)`: claims never deci
 clock, and "the last 14 days" count back from it. Each of the nine cells, in `STAGES` order, is `{stage, rung, evidence:
 [{label, url}], note, next_rung}`, `rung` an index into `RUNGS` or null. The table is data (`commands/rubric.ts`):
 
-| Stage | R1 present on the default branch | R2 ran in 14 days with an artifact | R3 failing it blocks a merge | R4 an agent operates it, Belay re-derives it |
+| Stage | R1 present on the default branch | R2 ran in 14 days with an artifact | R3 failing it blocks a merge | R4 an agent operates it, Afterlife re-derives it |
 |---|---|---|---|---|
 | plan | `issue_templates`: a file under `.gitlab/issue_templates` | not read | not read | not read |
 | create | `codeowners` has a file, or `protected_branches` holds the default branch | not read | not read | not read |
@@ -93,7 +93,7 @@ clock, and "the last 14 days" count back from it. Each of the nine cells, in `ST
 - **Rule R3**: `project.merge_requires_pipeline` is true and that job is not `allow_failure` in `ci_config.jobs`. Evidence:
   the project's merge-request settings. `[R?]` the job must also run in merge request pipelines to block one; the facts do
   not say which pipelines it runs in.
-- **Rule R4**: `duo_agent_config` is true and the stage's Belay proof job ran on the same pipeline (as R2, any artifact).
+- **Rule R4**: `duo_agent_config` is true and the stage's Afterlife proof job ran on the same pipeline (as R2, any artifact).
   Evidence: `.gitlab/duo/agent-config.yml` and the proof job.
 
 A rung counts only when every rung below it does, so R2 and up always rest on a run: presence is not behaviour. A rung marked

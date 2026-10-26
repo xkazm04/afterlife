@@ -1,5 +1,5 @@
 <!-- vendored from ascent@332c702fe28ba5a59519f84f61c2c09a16a482f7 (refs/hygiene-archive/2026-10-20/experiment/infinite-cycles, cycles personas-web-006 f6994190 and -007 332c702f): src/lib/local/lane-review.ts (buildReviewRepairPrompt, integrityFinding) -->
-# Belay - REPAIR - one turn after the review
+# Afterlife - REPAIR - one turn after the review
 
 An independent read-only reviewer read your uncommitted change against the checks this repository runs and the rules of your brief, and reports the defects below. Nothing has been committed or run by the runner yet.
 

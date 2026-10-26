@@ -76,7 +76,7 @@ function ItemFrame({ params }: ScreenFrameProps) {
 }
 
 export const screens: readonly ScreenDef[] = [
-  { key: 'needs-you', ready: true, slices: ['view', 'desk'], Frame: NeedsFrame, Session: NeedsSession, title: () => 'Belay Needs you' },
+  { key: 'needs-you', ready: true, slices: ['view', 'desk'], Frame: NeedsFrame, Session: NeedsSession, title: () => 'Afterlife · Needs you' },
   {
     key: 'needs-you/[item]',
     ready: true,
@@ -84,6 +84,6 @@ export const screens: readonly ScreenDef[] = [
     Frame: ItemFrame,
     Session: NeedsSession,
     NotFound: DecisionNotFound,
-    title: (p) => `Belay Needs you ${p.item}`,
+    title: (p) => `Afterlife · Needs you · ${p.item}`,
   },
 ];

@@ -6,7 +6,7 @@ import { cx } from '../cx';
 import styles from './inspector.module.css';
 
 /**
- * Earlier autopilot cycles on this stage (the demo's: live mode has none, Belay records no credit history yet), and the ones
+ * Earlier autopilot cycles on this stage (the demo's: live mode has none, Afterlife records no credit history yet), and the ones
  * this session's simulated rescan credited, marked simulated.
  */
 export function CreditHistory({
@@ -36,7 +36,7 @@ export function CreditHistory({
           </div>
         ))
       ) : (
-        <div className={styles.muted}>{live ? 'No credit recorded: Belay keeps no credit history for this project yet.' : 'No earlier cycles on this stage.'}</div>
+        <div className={styles.muted}>{live ? 'No credit recorded: Afterlife keeps no credit history for this project yet.' : 'No earlier cycles on this stage.'}</div>
       )}
       <Link href="/cycles" className={styles.toCycles}>
         Every cycle, every stage ›

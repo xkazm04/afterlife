@@ -9,7 +9,7 @@ export function AboutSection() {
     <SettingsSection id="about" title="About">
       <KeyValue
         rows={[
-          ['Belay', `v${APP_VERSION}`],
+          ['Afterlife', `v${APP_VERSION}`],
           ...BROWSER_KEYS.map(({ what, key }) => [`${what} is stored as`, <code key={key}>{key}</code>] as const),
           ['Stored where', 'localStorage, in this browser only'],
         ]}

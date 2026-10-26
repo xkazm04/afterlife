@@ -21,7 +21,7 @@ const thrower: ProbeDeps = {
 };
 
 function repo(): string {
-  root = mkdtempSync(path.join(tmpdir(), 'belay-probes-'));
+  root = mkdtempSync(path.join(tmpdir(), 'afterlife-probes-'));
   execFileSync('git', ['init', '-q', root], { stdio: 'ignore' });
   execFileSync('git', ['-C', root, 'remote', 'add', 'origin', 'https://someone@dev.azure.com/acme/Shop/_git/Shop%20Web'], { stdio: 'ignore' });
   mkdirSync(path.join(root, 'release-log'));

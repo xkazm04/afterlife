@@ -1,4 +1,4 @@
-// The capability names live mode's unlock map renders: the belay doctor's own row labels (probeCapabilities in
+// The capability names live mode's unlock map renders: the afterlife doctor's own row labels (probeCapabilities in
 // src/server/gitlab/capabilities.ts), in its order. The doctor read is a network call and may fail, so /setup/[node]
 // matches a slug against this list instead (fail-open: a slug the live map could render never 404s because a probe
 // failed). liveCapabilities.test.ts holds it to probeCapabilities' real labels.

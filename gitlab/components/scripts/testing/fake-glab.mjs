@@ -1,4 +1,4 @@
-// Test double for `glab api` (BELAY_GLAB='<node>|fake-glab.mjs'). Answers GET requests from the JSON map in
+// Test double for `glab api` (AFTERLIFE_GLAB='<node>|fake-glab.mjs'). Answers GET requests from the JSON map in
 // $FAKE_GLAB_ROUTES, keyed by the path without its query string; page 2 and later of a list are empty. A write
 // (-X POST, PUT...) is answered only when the map has "<METHOD> <path>": its `reply`, and the request (with its JSON body
 // from stdin) is appended as one line to $FAKE_GLAB_WRITES, so a test reads what was written. Its optional `current`

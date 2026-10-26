@@ -75,7 +75,7 @@ describe('Setup arriving on the screen host', () => {
     expect(s.unread).toBeUndefined();
     expect(s.arm.T1).toMatchObject({ st: 'unknown', found: 'the read failed: unreadable' });
     expect(s.steps[3]).toMatchObject({ st: 'unknown', probe: { ok: false, text: 'unknown · the read failed: unreadable' } });
-    expect(s.doctorError).toBe('belay doctor could not be read: unreadable');
+    expect(s.doctorError).toBe('afterlife doctor could not be read: unreadable');
     expect(humanGates(s).every((x) => x.st === 'unknown')).toBe(true);
   });
 });

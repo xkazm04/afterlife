@@ -1,9 +1,10 @@
-// `belay pair`: what the bootstrap adds to a checkout. Pure: the caller reads the files and writes the plan. Every
-// action only adds: a new file, appended lines, one inserted include line. A file Belay would have to change is kept
+// `afterlife pair`: what the bootstrap adds to a checkout. Pure: the caller reads the files and writes the plan. Every
+// action only adds: a new file, appended lines, one inserted include line. A file Afterlife would have to change is kept
 // as it is, and the operator is told what to add.
-import { BELAY_CI, belayCi, eolOf, wireCi, type PackRef } from './ciFile';
+import { CI_FILE, componentsCi, eolOf, wireCi, type PackRef } from './ciFile';
 
 export const AGENT_CONFIG = '.gitlab/duo/agent-config.yml';
+// wire names: the CI jobs' work folders (.belay/ inside a job, the fetched engine and policy), as targets ignore them
 const IGNORE = ['.belay-engine/', '.belay-policy/', '.belay/', 'evidence/'];
 
 export type PairOp = 'create' | 'append' | 'insert' | 'keep' | 'refuse';
@@ -32,29 +33,29 @@ const linesOf = (t: string): string[] => t.split('\n').filter((l, i, a) => !(i =
 export function planPair(read: (path: string) => string | null, ref: PackRef, agentConfig: string): PairPlan {
   const actions: PairAction[] = [];
 
-  const ci = belayCi(ref);
-  const have = read(BELAY_CI);
-  if (have === null) actions.push({ path: BELAY_CI, op: 'create', text: ci, added: linesOf(ci), why: 'the Belay components, pinned to the pack' });
-  else if (have === ci) actions.push({ path: BELAY_CI, op: 'keep', added: [], why: 'already the Belay components' });
-  else actions.push({ path: BELAY_CI, op: 'refuse', added: [], why: 'exists and differs: kept as it is (compare it with `belay pair` output, or remove it to re-pair)' });
+  const ci = componentsCi(ref);
+  const have = read(CI_FILE);
+  if (have === null) actions.push({ path: CI_FILE, op: 'create', text: ci, added: linesOf(ci), why: 'the Afterlife components, pinned to the pack' });
+  else if (have === ci) actions.push({ path: CI_FILE, op: 'keep', added: [], why: 'already the Afterlife components' });
+  else actions.push({ path: CI_FILE, op: 'refuse', added: [], why: 'exists and differs: kept as it is (compare it with `afterlife pair` output, or remove it to re-pair)' });
 
   const wire = wireCi(read('.gitlab-ci.yml'));
-  if (wire.op === 'keep') actions.push({ path: '.gitlab-ci.yml', op: 'keep', added: [], why: 'already includes the Belay file' });
+  if (wire.op === 'keep') actions.push({ path: '.gitlab-ci.yml', op: 'keep', added: [], why: 'already includes the Afterlife file' });
   else if (wire.op === 'refuse') actions.push({ path: '.gitlab-ci.yml', op: 'refuse', added: [], why: wire.why });
-  else actions.push({ path: '.gitlab-ci.yml', op: wire.op, text: wire.text, added: [`- local: ${BELAY_CI}`], why: 'one include line; nothing else changes' });
+  else actions.push({ path: '.gitlab-ci.yml', op: wire.op, text: wire.text, added: [`- local: ${CI_FILE}`], why: 'one include line; nothing else changes' });
 
   const agent = read(AGENT_CONFIG);
   if (agent === null) actions.push({ path: AGENT_CONFIG, op: 'create', text: agentConfig, added: linesOf(agentConfig), why: 'how the custom flows run (read from the default branch only)' });
-  else actions.push({ path: AGENT_CONFIG, op: 'keep', added: [], why: agent === agentConfig ? 'already the Belay template' : 'yours is kept as it is' });
+  else actions.push({ path: AGENT_CONFIG, op: 'keep', added: [], why: agent === agentConfig ? 'already the Afterlife template' : 'yours is kept as it is' });
 
   const ignore = read('.gitignore');
   const missing = IGNORE.filter((l) => !(ignore ?? '').split('\n').some((x) => x.trim() === l));
-  if (missing.length === 0) actions.push({ path: '.gitignore', op: 'keep', added: [], why: 'already ignores the Belay work folders' });
+  if (missing.length === 0) actions.push({ path: '.gitignore', op: 'keep', added: [], why: 'already ignores the Afterlife work folders' });
   else {
     const base = ignore ?? '';
     const eol = eolOf(base);
-    const text = `${base}${base === '' || base.endsWith('\n') ? '' : eol}${base === '' ? '' : eol}# Belay work folders (never committed)${eol}${missing.join(eol)}${eol}`;
-    actions.push({ path: '.gitignore', op: ignore === null ? 'create' : 'append', text, added: missing, why: 'Belay work folders stay out of git' });
+    const text = `${base}${base === '' || base.endsWith('\n') ? '' : eol}${base === '' ? '' : eol}# Afterlife work folders (never committed)${eol}${missing.join(eol)}${eol}`;
+    actions.push({ path: '.gitignore', op: ignore === null ? 'create' : 'append', text, added: missing, why: 'Afterlife work folders stay out of git' });
   }
 
   return {

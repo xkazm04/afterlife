@@ -1,6 +1,6 @@
 'use client';
 
-// Runs on the screen host (docs/features/screen-host.md). Two slices: `runs` (the runner's .belay/runs files, fast)
+// Runs on the screen host (docs/features/screen-host.md). Two slices: `runs` (the runner's .afterlife/runs files, fast)
 // and `merges` (the desk's merge decisions and fleet.yml's error: git, up to seconds; loopback only, since its commands
 // name this machine's checkouts). The window, its title and the table's place paint in the click's frame.
 // Reveal order:
@@ -32,4 +32,4 @@ function RunsFrame() {
   );
 }
 
-export const screens: readonly ScreenDef[] = [{ key: 'runs', ready: true, slices: ['runs', 'merges'], Frame: RunsFrame, title: () => 'Belay Runs' }];
+export const screens: readonly ScreenDef[] = [{ key: 'runs', ready: true, slices: ['runs', 'merges'], Frame: RunsFrame, title: () => 'Afterlife · Runs' }];

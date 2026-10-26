@@ -24,9 +24,9 @@ export const T1: TrackArm = {
     { component: 'proof-engine', inputs: [['class', 'exploit-test'], ...enginePin(pin), ['stage', at['proof-engine'] ?? 'review'], ['build_args', EXPLOIT_TEST_ARGS]] },
   ],
   notes: [
-    "This include only reports the proof. belay-apply re-derives it from the same evidence and posts it, with BELAY_BOT_TOKEN set there as a protected CI variable, never on this project.",
+    "This include only reports the proof. belay-apply re-derives it from the same evidence and posts it, with AFTERLIFE_BOT_TOKEN set there as a protected CI variable, never on this project.",
     NO_WRITE_TOKEN,
-    "It reads evidence/ from the project's own belay-replay jobs (the example's belay-replay-vars and belay-replay, with your build image): add them yourself. Belay does not write a project's build jobs.",
+    "It reads evidence/ from the project's own belay-replay jobs (the example's belay-replay-vars and belay-replay, with your build image): add them yourself. Afterlife does not write a project's build jobs.",
     "belay-replay runs only the test id and path from the MR's belay-claims block, after a strict pattern check, never the agent's own command.",
   ],
 };

@@ -6,7 +6,7 @@ import type { CollectResult } from '@/server/vitals';
 import { messageOf } from '@/lib/format/error';
 import type { CollectJob } from '../model/types';
 
-const KEY = Symbol.for('belay.vitals.collectJobs');
+const KEY = Symbol.for('afterlife.vitals.collectJobs');
 const holder = globalThis as unknown as Record<symbol, Map<string, CollectJob> | undefined>;
 const jobs = (): Map<string, CollectJob> => (holder[KEY] ??= new Map());
 

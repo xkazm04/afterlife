@@ -22,7 +22,7 @@ afterEach(() => {
 
 describe('re-measure actions', () => {
   it('refuse on the replay, for an unknown slug or a bad claim id, and off this machine; nothing is measured', async () => {
-    vi.stubEnv('BELAY_MODE', 'replay');
+    vi.stubEnv('AFTERLIFE_MODE', 'replay');
     expect(await measurePassiveAction('grinex-portal', 'c1')).toEqual({ ok: false, error: 'the hosted replay has no real project to measure' });
     vi.unstubAllEnvs();
     expect((await measurePassiveAction('ghost', 'c1')).ok).toBe(false);

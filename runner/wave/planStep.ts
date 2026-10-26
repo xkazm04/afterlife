@@ -17,7 +17,7 @@ export const proposedFile = (runsDir: string, repo: string, wave: number): strin
 export const PROPOSE_NOTE = '## Propose-only wave\nNothing you plan runs in this wave: your lines are the proposal a person reads. Keep the output contract exactly. Do not propose again an item an earlier wave already proposed (listed above); find the next one.\n';
 
 export async function plan(c: WaveCtx, baseSha: string): Promise<{ items: PlanItem[]; costUsd: number }> {
-  const dir = worktreeDir(c.repo.path, `belay-wave-${c.wave}-plan`);
+  const dir = worktreeDir(c.repo.path, `afterlife-wave-${c.wave}-plan`);
   await addWorktree(c.repo.path, dir, baseSha);
   try {
     const ideas = c.opts.ideas?.length ? renderIdeas(gatherIdeas(c.opts.ideas, { checkout: dir, repoPath: c.repo.path })) : null;

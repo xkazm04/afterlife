@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
-import { BELAY_CI, wireCi } from '../ciFile';
+import { CI_FILE, wireCi } from '../ciFile';
 import { pair, rootNamespace } from '../pair';
 import { planPair } from '../plan';
 
@@ -20,7 +20,7 @@ const temp = (prefix: string): string => {
 afterEach(() => made.splice(0).forEach((d) => fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })));
 
 function repo(files: Record<string, string> = {}, remote = 'git@gitlab.com:acme-lab/core-banking/ledgerline.git'): string {
-  const dir = temp('belay-pair-');
+  const dir = temp('afterlife-pair-');
   execFileSync('git', ['init', '-q', dir]);
   if (remote) execFileSync('git', ['-C', dir, 'remote', 'add', 'origin', remote]);
   for (const [p, t] of Object.entries(files)) {
@@ -36,15 +36,15 @@ function run(argv: string[]) {
   return { ...r, out, err };
 }
 
-describe('belay pair', () => {
+describe('afterlife pair', () => {
   it('prints the plan and writes nothing without --write', () => {
     const dir = repo({ '.gitlab-ci.yml': 'test:\n  script: [npm test]\n' });
     const r = run([dir]);
     expect(r.code).toBe(0);
-    expect(r.out).toContain(`create  ${BELAY_CI}`);
+    expect(r.out).toContain(`create  ${CI_FILE}`);
     expect(r.out).toContain('$CI_SERVER_FQDN/acme-lab/belay-pack/tier-gate@1.0.0');
     expect(r.out).toMatch(/nothing was written/);
-    expect(fs.existsSync(path.join(dir, BELAY_CI))).toBe(false);
+    expect(fs.existsSync(path.join(dir, CI_FILE))).toBe(false);
     expect(fs.readFileSync(path.join(dir, '.gitlab-ci.yml'), 'utf8')).toBe('test:\n  script: [npm test]\n');
   });
 
@@ -54,8 +54,8 @@ describe('belay pair', () => {
     expect(run([dir, '--write']).code).toBe(0);
     const after = fs.readFileSync(path.join(dir, '.gitlab-ci.yml'), 'utf8');
     for (const line of ci.split('\n')) expect(after.split('\n')).toContain(line);
-    expect(parse(after).include).toEqual([{ local: BELAY_CI }, { template: 'Jobs/SAST.gitlab-ci.yml' }]);
-    expect(fs.readFileSync(path.join(dir, '.gitignore'), 'utf8')).toMatch(/^node_modules\/\n\n# Belay work folders.*\n\.belay-engine\//s);
+    expect(parse(after).include).toEqual([{ local: CI_FILE }, { template: 'Jobs/SAST.gitlab-ci.yml' }]);
+    expect(fs.readFileSync(path.join(dir, '.gitignore'), 'utf8')).toMatch(/^node_modules\/\n\n# Afterlife work folders.*\n\.belay-engine\//s);
     expect(fs.existsSync(path.join(dir, '.gitlab/duo/agent-config.yml'))).toBe(true);
     const again = run([dir, '--write']);
     expect(again.plan?.paired).toBe(true);
@@ -63,7 +63,7 @@ describe('belay pair', () => {
   });
 
   it('refuses what is not the root of a git checkout, or has no group', () => {
-    const plain = temp('belay-plain-');
+    const plain = temp('afterlife-plain-');
     expect(run([plain]).err).toMatch(/not the root of a git checkout/);
     const sub = repo({ 'app/x.txt': '' });
     expect(run([path.join(sub, 'app')]).code).toBe(2);
@@ -78,7 +78,7 @@ describe('belay pair', () => {
       expect(r.code, argv.join(' ')).toBe(2);
       expect(r.err).toMatch(/needs a value|unknown option|one checkout/);
     }
-    expect(fs.existsSync(path.join(dir, BELAY_CI))).toBe(false);
+    expect(fs.existsSync(path.join(dir, CI_FILE))).toBe(false);
     expect(run([dir, '--group', 'other', '--engine-ref', 'v9']).out).toContain('$CI_SERVER_FQDN/other/belay-pack/tier-gate@1.0.0');
   });
 
@@ -89,17 +89,17 @@ describe('belay pair', () => {
     expect(r.err).toMatch(/writing \.gitlab\/duo\/agent-config\.yml failed .*already written: \.gitlab\/belay\.gitlab-ci\.yml, \.gitlab-ci\.yml\./);
   });
 
-  it('keeps an existing, different Belay file and agent config as they are, and says so (exit 1)', () => {
-    const dir = repo({ [BELAY_CI]: 'include: []\n', '.gitlab/duo/agent-config.yml': 'image: ours\n' });
+  it('keeps an existing, different Afterlife file and agent config as they are, and says so (exit 1)', () => {
+    const dir = repo({ [CI_FILE]: 'include: []\n', '.gitlab/duo/agent-config.yml': 'image: ours\n' });
     const r = run([dir, '--write']);
     expect(r.code).toBe(1);
     expect(r.out).toMatch(/refuse .*exists and differs/);
-    expect(fs.readFileSync(path.join(dir, BELAY_CI), 'utf8')).toBe('include: []\n');
+    expect(fs.readFileSync(path.join(dir, CI_FILE), 'utf8')).toBe('include: []\n');
     expect(fs.readFileSync(path.join(dir, '.gitlab/duo/agent-config.yml'), 'utf8')).toBe('image: ours\n');
   });
 
   it('refuses to read or write through a link: a linked .gitlab folder or .gitignore stays untouched, exit 1', () => {
-    const outside = temp('belay-outside-');
+    const outside = temp('afterlife-outside-');
     fs.writeFileSync(path.join(outside, 'secret'), 'keep\n');
     const dir = repo({ '.gitlab-ci.yml': 'test:\n  script: [npm test]\n' });
     fs.symlinkSync(outside, path.join(dir, '.gitlab'), 'junction'); // a junction needs no symlink privilege on Windows
@@ -121,10 +121,10 @@ describe('belay pair', () => {
 
 describe('wiring .gitlab-ci.yml', () => {
   it('creates, appends, inserts under a block include, and keeps an already wired file', () => {
-    expect(wireCi(null)).toEqual({ op: 'create', text: `include:\n  - local: ${BELAY_CI}\n` });
+    expect(wireCi(null)).toEqual({ op: 'create', text: `include:\n  - local: ${CI_FILE}\n` });
     expect(wireCi('a:\n  script: [x]')).toMatchObject({ op: 'append' });
-    expect(wireCi('include:\n- template: A.yml\n')).toEqual({ op: 'insert', text: `include:\n- local: ${BELAY_CI}\n- template: A.yml\n` });
-    expect(wireCi(`include:\n  - local: ${BELAY_CI}\n`)).toEqual({ op: 'keep' });
+    expect(wireCi('include:\n- template: A.yml\n')).toEqual({ op: 'insert', text: `include:\n- local: ${CI_FILE}\n- template: A.yml\n` });
+    expect(wireCi(`include:\n  - local: ${CI_FILE}\n`)).toEqual({ op: 'keep' });
   });
   it('refuses a flow-style or single include, and a file that does not parse', () => {
     expect(wireCi('include: [{ template: A.yml }]\n')).toMatchObject({ op: 'refuse' });

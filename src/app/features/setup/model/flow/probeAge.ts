@@ -22,8 +22,8 @@ export const isStale = (s: SetupState, nowMs: number): boolean => nowMs - s.doct
  * time and age, and is drawn amber like a stale one: it is never shown as a fresh probe.
  */
 export function probeAgeText(s: SetupState, nowMs: number): { text: string; stale: boolean } {
-  if (s.doctorNever) return { text: `belay doctor · ${s.group} · never probed`, stale: false };
-  if (s.doctorError) return { text: `belay doctor · probe failed ${s.doctorProbedAt} · ${formatAgo(nowMs - s.doctorAt)}`, stale: true };
+  if (s.doctorNever) return { text: `afterlife doctor · ${s.group} · never probed`, stale: false };
+  if (s.doctorError) return { text: `afterlife doctor · probe failed ${s.doctorProbedAt} · ${formatAgo(nowMs - s.doctorAt)}`, stale: true };
   const stale = isStale(s, nowMs);
-  return { text: `belay doctor · ${stale ? 'stale · ' : ''}probed ${s.doctorProbedAt} · ${formatAgo(nowMs - s.doctorAt)}`, stale };
+  return { text: `afterlife doctor · ${stale ? 'stale · ' : ''}probed ${s.doctorProbedAt} · ${formatAgo(nowMs - s.doctorAt)}`, stale };
 }

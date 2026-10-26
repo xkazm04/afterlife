@@ -31,7 +31,7 @@ export type SyncAction =
 export type SyncTrigger = { kind: 'focus' } | { kind: 'nav' } | { kind: 'ask' };
 
 /** The window event a screen dispatches to have the shell read again (requestShellRead). */
-export const SHELL_READ_EVENT = 'belay:shell-read';
+export const SHELL_READ_EVENT = 'afterlife:shell-read';
 
 /** Ask the shell to read /api/shell again now (a cookie it draws from changed, Trace saw the live source come up). */
 export function requestShellRead(): void {

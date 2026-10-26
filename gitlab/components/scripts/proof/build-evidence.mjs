@@ -1,7 +1,8 @@
 // Builds the `engine prove --input` file for one proof class from facts GitLab holds. The input shapes follow
 // engine/proofs/* as of 2026-10-06 (exploitTest.ts, citedDiff.ts, rerunStats.ts); the engine owns them, so a change
 // there needs a change here. Other classes are engine stubs today and are refused.
-// Environment (set by the proof-engine component): BELAY_MR_IID BELAY_TASK_ID BELAY_ACTION_CLASS BELAY_DIFF_FILE.
+// Environment (set by the proof-engine component): AFTERLIFE_MR_IID AFTERLIFE_TASK_ID AFTERLIFE_ACTION_CLASS AFTERLIFE_DIFF_FILE
+// (or their pre-rename names, set by a template pinned before the rename).
 //   exploit-test : --base-junit f --head-junit f [--base-ref url --head-ref url] [--rescan-base f --rescan-head f]
 //                  (claims come from the belay-claims block in the MR description; rescan files are
 //                  {"engine_version": "...", "finding_ids": [...]})
@@ -11,14 +12,14 @@
 // written input are the ones made here: the engine inlines such a file's text, which then ends up in a public note.
 import fs from 'node:fs';
 import path from 'node:path';
-import { api, apiAll, arg, blocks, die, need } from '../lib/lib.mjs';
+import { api, apiAll, arg, blocks, die, envOf, need } from '../lib/lib.mjs';
 import { validate } from '../lib/validate.mjs';
 
 const env = process.env;
 const cls = need('class');
 const out = arg('out', 'belay-evidence.json');
 const projectId = env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set');
-const task = (flow) => ({ flow, run_id: `pipeline-${env.CI_PIPELINE_ID}`, project_id: Number(projectId), mr_iid: Number(env.BELAY_MR_IID), ...(env.BELAY_HEAD_SHA ? { head_sha: env.BELAY_HEAD_SHA } : {}), trailer: `Belay-Task: ${env.BELAY_TASK_ID}` });
+const task = (flow) => ({ flow, run_id: `pipeline-${env.CI_PIPELINE_ID}`, project_id: Number(projectId), mr_iid: Number(envOf(env, 'MR_IID')), ...(envOf(env, 'HEAD_SHA') ? { head_sha: envOf(env, 'HEAD_SHA') } : {}), trailer: `Belay-Task: ${envOf(env, 'TASK_ID')}` });
 const own = new WeakSet();
 const file = (f) => {
   const ref = { $file: path.resolve(f) }; // the engine inlines the file's text
@@ -27,7 +28,7 @@ const file = (f) => {
 };
 const json = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
 const checked = (value, schema, what) => {
-  const problems = validate(value, json(path.join(env.BELAY_DIR ?? '.', 'gitlab/flows/schemas', schema)));
+  const problems = validate(value, json(path.join(envOf(env, 'DIR') ?? '.', 'gitlab/flows/schemas', schema)));
   if (problems.length) die(`${what} is invalid: ${problems.slice(0, 5).join('; ')}`, 2);
   return value;
 };
@@ -38,11 +39,11 @@ function foreignFile(v) {
   return (Object.hasOwn(v, '$file') && !own.has(v)) || Object.values(v).some(foreignFile);
 }
 const optFile = (flag) => (arg(flag) && fs.existsSync(arg(flag)) ? file(arg(flag)) : undefined);
-const diff = env.BELAY_DIFF_FILE ? file(env.BELAY_DIFF_FILE) : undefined;
+const diff = envOf(env, 'DIFF_FILE') ? file(envOf(env, 'DIFF_FILE')) : undefined;
 
 let input;
 if (cls === 'exploit-test') {
-  const m = api(`projects/${projectId}/merge_requests/${env.BELAY_MR_IID}`);
+  const m = api(`projects/${projectId}/merge_requests/${envOf(env, 'MR_IID')}`);
   const block = blocks(m.description, 'belay-claims').at(-1);
   if (!block) die('the MR description has no belay-claims block', 2);
   checked(block, 'claims.schema.json', 'belay-claims block');
@@ -55,7 +56,7 @@ if (cls === 'exploit-test') {
   const rescan = optFile('rescan-base') && optFile('rescan-head')
     ? { finding_id: String(block.finding?.id ?? ''), base: json(arg('rescan-base')), head: json(arg('rescan-head')) }
     : undefined;
-  input = { task: task('patcher'), action_class: env.BELAY_ACTION_CLASS, claims: block.claims, claim_ids, test_id: block.test?.id, vector: block.test?.markers, base: side('base'), head: side('head'), diff, rescan };
+  input = { task: task('patcher'), action_class: envOf(env, 'ACTION_CLASS'), claims: block.claims, claim_ids, test_id: block.test?.id, vector: block.test?.markers, base: side('base'), head: side('head'), diff, rescan };
 } else if (cls === 'cited-diff') {
   const v = checked(json(need('verdict')), 'guardrail-verdict.schema.json', 'belay-guardrail block');
   const claims = (v.findings ?? []).map((f, i) => ({ id: `f${i + 1}`, text: `${f.rule} (${f.severity}): ${f.explanation}`, quote: { file: f.file, text: f.quote } }));
@@ -76,4 +77,4 @@ if (cls === 'exploit-test') {
 }
 if (foreignFile(input)) die('the evidence carries a {"$file"} reference from untrusted data: refused', 2);
 fs.writeFileSync(out, JSON.stringify(input, null, 2));
-console.error(`belay: wrote ${out} for ${cls}`);
+console.error(`afterlife: wrote ${out} for ${cls}`);

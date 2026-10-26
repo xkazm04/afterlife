@@ -6,7 +6,7 @@ import { useRevalidate } from '@/components/shell/host';
 import { requestShellRead } from '@/components/shell/live/sync';
 import { useShellInfo } from '@/components/shell/ShellContext';
 import { plural } from '@/lib/format/plural';
-import { DEFAULT_DEMO_ESTATE, DEMO_ESTATES, DEMO_ESTATE_LABEL, demoEstateCookie, estateOf, type DemoEstate, type Estate } from '@/lib/settings/demoEstate';
+import { DEFAULT_DEMO_ESTATE, DEMO_ESTATES, DEMO_ESTATE_LABEL, demoEstateCookie, estateOf, expiredOldDemoEstateCookie, type DemoEstate, type Estate } from '@/lib/settings/demoEstate';
 import { SettingsSection } from '../components/SettingsSection';
 import styles from './Table.module.css';
 
@@ -37,6 +37,7 @@ export function DemoEstateSection() {
     setPicked(v);
     try {
       document.cookie = demoEstateCookie(v);
+      document.cookie = expiredOldDemoEstateCookie();
     } catch {
       return; // a blocked cookie store must never break the page
     }

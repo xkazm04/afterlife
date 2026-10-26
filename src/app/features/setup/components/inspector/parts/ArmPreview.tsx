@@ -13,8 +13,8 @@ import styles from '../inspector.module.css';
  * GitLab names the MR when the confirm runs.
  */
 export function ArmPreview({ view }: { view: WriteView | undefined }) {
-  if (!view) return <div className={styles.muted}>Asking Belay for the exact MR…</div>;
-  if (view.kind === 'refused') return <div className={styles.muted}>Belay will not plan this MR: {view.reason}</div>;
+  if (!view) return <div className={styles.muted}>Asking Afterlife for the exact MR…</div>;
+  if (view.kind === 'refused') return <div className={styles.muted}>Afterlife will not plan this MR: {view.reason}</div>;
   const p = view.preview;
   const [head, ...rest] = p.diff;
   const file = head?.startsWith('@@ ') ? head.slice(3) : undefined;

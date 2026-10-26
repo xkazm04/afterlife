@@ -1,7 +1,7 @@
 # Local index (PGlite)
-Belay's cache of GitLab plus the ledger, in embedded Postgres (`@electric-sql/pglite`). Data lives in
-`$BELAY_DATA_DIR/index` (default `.belay/index`, gitignored); tests use `memoryIndex()`. Delete the folder and every
-table is rebuilt from the source in the last column, except the three marked **not rebuildable** (Belay's own records).
+Afterlife's cache of GitLab plus the ledger, in embedded Postgres (`@electric-sql/pglite`). Data lives in
+`$AFTERLIFE_DATA_DIR/index` (default `.afterlife/index`, or `.belay/index` when only `.belay/` exists; gitignored); tests use `memoryIndex()`. Delete the folder and every
+table is rebuilt from the source in the last column, except the three marked **not rebuildable** (Afterlife's own records).
 
 | Table | Holds | Rebuilt from |
 |---|---|---|
@@ -12,11 +12,11 @@ table is rebuilt from the source in the last column, except the three marked **n
 | `task`, `proof` | tasks and Proof Blocks | MR notes (`belay-proof`, `Belay-Task:` trailer) + ledger |
 | `proposal` | Needs-you inbox; gap picks are children of one `gap` item | GitLab state, CRA clocks, maturity scan |
 | `stage_cell` | every maturity scan, latest read | repository scan (`engine_version` pinned) |
-| `pairing`, `setup_step` | where Belay is paired, what each step measured | `belay doctor` probes |
+| `pairing`, `setup_step` | where Afterlife is paired, what each step measured | `afterlife doctor` probes |
 | `poll_state` | last good poll and last error per source (`project:<id>`, `group:<group>`, and `policy:<group>` for belay-policy's files) | the poller |
-| `commands_run` | every write the operator confirmed, recorded before it runs | **not rebuildable**: Belay's own audit |
+| `commands_run` | every write the operator confirmed, recorded before it runs | **not rebuildable**: Afterlife's own audit |
 | `action_runs` | per previewId a live confirm claimed: running, done, failed or cut, with the response sent (`server/actions/runs/journal.ts`) | **not rebuildable**: lost, a confirm with no answer recalls as never run |
-| `fleet_day` | one row per project per UTC day, written after the day's first poll from the numbers the Fleet showed (needs, stale, hands-off, proofs, red rate, cost; `server/data/live/day.ts`), append-only trigger | **not rebuildable**: Belay's own record, lost, the week-over-week trend starts again |
+| `fleet_day` | one row per project per UTC day, written after the day's first poll from the numbers the Fleet showed (needs, stale, hands-off, proofs, red rate, cost; `server/data/live/day.ts`), append-only trigger | **not rebuildable**: Afterlife's own record, lost, the week-over-week trend starts again |
 
 Project columns `proofs_*_7d`, `demotions_7d`, `needs_you`, `cra_open` are roll-ups the poller recomputes from the
 tables above. NULL means unknown, never zero.
@@ -86,4 +86,4 @@ The stored standing key `refused` stays (no migration renames it; 0005 admitted 
 
 ## Added by B6
 `setProjectState` (the poller marks a failed feed `stale`), `deleteProofs` (a proof for an older head is removed), and `openIndex`
-now creates the data folder and its parents (PGlite only made the last one, so a first start with no `.belay/` failed).
+now creates the data folder and its parents (PGlite only made the last one, so a first start with no data folder failed).

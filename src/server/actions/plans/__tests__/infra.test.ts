@@ -1,4 +1,4 @@
-// A plan's target is a watched project, never one of Belay's own (belay-policy, belay-ledger, belay-pack, belay-engine):
+// A plan's target is a watched project, never one of Afterlife's own (belay-policy, belay-ledger, belay-pack, belay-engine):
 // tier-state.yml changes only through revoke (lower) or a promotion MR, never as a gap MR's files or a label (F50).
 import { describe, expect, it } from 'vitest';
 import { previewIntent } from '../../run';
@@ -15,7 +15,7 @@ describe('locate: never a target among the infra projects', () => {
       const { gl, deps } = await liveRig();
       for (const intent of [gap(project), { kind: 'mark-cra-ready', project, issue: 1 }]) {
         const r = await previewIntent(deps, intent);
-        expect(r.status === 'refused' ? r.reason : `${r.status}: ${r.status === 'preview' ? r.preview.summary : ''}`).toMatch(new RegExp(`${project} is Belay's own project`));
+        expect(r.status === 'refused' ? r.reason : `${r.status}: ${r.status === 'preview' ? r.preview.summary : ''}`).toMatch(new RegExp(`${project} is Afterlife's own project`));
       }
       expect(gl.state.writes).toEqual([]);
     });

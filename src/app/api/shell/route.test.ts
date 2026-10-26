@@ -26,7 +26,7 @@ describe('GET /api/shell', () => {
   });
 
   it('live before the first poll: 503 with the reason, never a demo payload', async () => {
-    vi.stubEnv('BELAY_MODE', 'live');
+    vi.stubEnv('AFTERLIFE_MODE', 'live');
     const res = await GET();
     expect(res.status).toBe(503);
     expect(res.headers.get('cache-control')).toContain('no-store');
@@ -37,7 +37,7 @@ describe('GET /api/shell', () => {
 
   it('any other throw: 503 with a fixed body, the message (which may name a path) only in the server log', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    setDataSource({ ...demoSource, getPollHealth: () => { throw new Error("ENOENT: no such file, open 'C:\\\\ops\\\\.belay\\\\index'"); } });
+    setDataSource({ ...demoSource, getPollHealth: () => { throw new Error("ENOENT: no such file, open 'C:\\\\ops\\\\.afterlife\\\\index'"); } });
     const res = await GET();
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ error: 'shell unreadable' });

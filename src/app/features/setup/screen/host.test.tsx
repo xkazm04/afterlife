@@ -31,7 +31,7 @@ describe('Setup on the screen host', () => {
   it('claims both keys with one Session, the four slices in stream order', () => {
     for (const d of [map, node]) expect(d).toMatchObject({ ready: true, slices: ['catalogue', 'tracks', 'doctor', 'steps'] });
     expect(map?.Session).toBe(node?.Session);
-    expect(node?.title({ node: 'step-6' }, new URLSearchParams())).toBe('Belay Setup step-6');
+    expect(node?.title({ node: 'step-6' }, new URLSearchParams())).toBe('Afterlife · Setup · step-6');
     expect(node?.NotFound).toBeDefined();
   });
 

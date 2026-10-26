@@ -21,7 +21,7 @@ const post = (body: unknown, host = 'localhost:3101') =>
   POST(new Request('http://localhost:3101/api/onboard/propose', { method: 'POST', headers: { host, 'content-type': 'application/json' }, body: JSON.stringify(body) }));
 
 function repo(): string {
-  root = mkdtempSync(join(tmpdir(), 'belay-api-propose-'));
+  root = mkdtempSync(join(tmpdir(), 'afterlife-api-propose-'));
   execFileSync('git', ['init', '-q', root], { stdio: 'ignore' });
   mkdirSync(join(root, 'sub'));
   return root;

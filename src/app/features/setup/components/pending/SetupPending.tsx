@@ -27,16 +27,16 @@ export function ToolbarPending() {
         <Unread label="group not read yet" />
       </PopupButton>
       <Spacer />
-      <Lozenge label="belay doctor">
+      <Lozenge label="afterlife doctor">
         {WORDS.map((w, i) => (
           <span key={w} className={bar.cell}>
             {i > 0 ? <LozengeDivider /> : null}
-            <LozengeButton count={<Unread label={`${w}: not read yet`} />} word={w} title="belay doctor not read yet" />
+            <LozengeButton count={<Unread label={`${w}: not read yet`} />} word={w} title="afterlife doctor not read yet" />
           </span>
         ))}
       </Lozenge>
       <Spacer />
-      <ToolbarButton className={bar.probe} disabled title="Re-probe the group with belay doctor">
+      <ToolbarButton className={bar.probe} disabled title="Re-probe the group with afterlife doctor">
         <Icon name="probe" />
         <span>Re-probe</span>
       </ToolbarButton>
@@ -75,7 +75,7 @@ export function MapPending({ reason }: { reason?: string }) {
         </div>
         <div />
         <div className={`${cols.col} ${cols.caps}`}>
-          <ColumnHead name="GitLab" sub="belay doctor" aux={<Unread label="belay doctor not read yet" />} />
+          <ColumnHead name="GitLab" sub="afterlife doctor" aux={<Unread label="afterlife doctor not read yet" />} />
         </div>
       </div>
     </section>
@@ -85,7 +85,7 @@ export function MapPending({ reason }: { reason?: string }) {
 export function StatusPending() {
   return (
     <>
-      <Unread />/<Unread /> steps read done · <Unread />/<Unread /> armed · <Unread label="need you not read yet" /> need you · belay doctor · not read yet
+      <Unread />/<Unread /> steps read done · <Unread />/<Unread /> armed · <Unread label="need you not read yet" /> need you · afterlife doctor · not read yet
     </>
   );
 }

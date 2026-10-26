@@ -10,7 +10,7 @@ import { replayClock, systemClock, type Clock } from './clock';
 export interface LivePort {
   port: GitLabPort;
   clock: Clock;
-  /** Fake: a throwaway in-memory index seeded with the demo. Real: the persistent index under BELAY_DATA_DIR. */
+  /** Fake: a throwaway in-memory index seeded with the demo. Real: the persistent index under AFTERLIFE_DATA_DIR. */
   seeded: boolean;
 }
 

@@ -49,7 +49,7 @@ describe('nodeHead: step and capability', () => {
   it('a step the operator said they did is worded as not read, never as probed', () => {
     const n = Object.values(state.steps).find((s) => s.st === 'unknown' || s.st === 'human')!.n;
     const s: SetupState = { ...state, steps: { ...state.steps, [n]: { ...state.steps[n]!, st: 'unknown', said: '14:30' } } };
-    expect(nodeHead(s, tracks, { k: 'step', id: n })?.lede).toBe('you said done 14:30 · not read. Belay cannot see it done.');
+    expect(nodeHead(s, tracks, { k: 'step', id: n })?.lede).toBe('you said done 14:30 · not read. Afterlife cannot see it done.');
   });
 
   it('a capability says its status in the group; live carries the doctor reason in the tip', () => {

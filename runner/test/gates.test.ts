@@ -7,7 +7,7 @@ import { failureLines, runGates } from '../lane/verify';
 describe('runGates retries', () => {
   let tmp: string;
   beforeEach(() => {
-    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-gates-'));
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-gates-'));
     // Red on its first run, green after: what a load flake looks like from outside.
     fs.writeFileSync(path.join(tmp, 'flake.mjs'), "import fs from 'node:fs';\nif (fs.existsSync('ran')) process.exit(0);\nfs.writeFileSync('ran', '');\nconsole.log('socket aborted');\nprocess.exit(1);\n");
     fs.writeFileSync(path.join(tmp, 'red.mjs'), "console.log('1 failed');\nprocess.exit(1);\n");

@@ -1,8 +1,9 @@
-// Runs the model-free Belay engine CLI (docs/BACKEND-PLAN.md section 3): `tsx engine/cli.ts <cmd>` inside the
+// Runs the model-free Afterlife engine CLI (docs/BACKEND-PLAN.md section 3): `tsx engine/cli.ts <cmd>` inside the
 // engine checkout. stdout is JSON, stderr is for humans, exit 0 pass / 1 fail / 2 inconclusive or error.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { envOf } from './env.mjs';
 
 /**
  * How to start tsx in `dir`. The checkout's own tsx is run with this node: `npx` resolves the same binary but costs about a
@@ -15,8 +16,8 @@ export function tsxCommand(dir) {
 }
 
 export function engine(args) {
-  const dir = process.env.BELAY_DIR;
-  if (!dir) throw new Error('BELAY_DIR is not set (the engine checkout)');
+  const dir = envOf(process.env, 'DIR');
+  if (!dir) throw new Error('AFTERLIFE_DIR is not set (the engine checkout)');
   const { cmd, args: pre, shell } = tsxCommand(dir);
   const r = spawnSync(cmd, [...pre, 'engine/cli.ts', ...args], { cwd: dir, encoding: 'utf8', maxBuffer: 64 << 20, shell });
   if (r.stderr) process.stderr.write(r.stderr);

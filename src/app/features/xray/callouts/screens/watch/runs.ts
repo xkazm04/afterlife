@@ -1,4 +1,4 @@
-// Runs: what the runner did, from its own files in .belay/runs. Introduces the module, the table's columns and what to
+// Runs: what the runner did, from its own files in .afterlife/runs. Introduces the module, the table's columns and what to
 // do; with no run files yet the table is not drawn and the empty state's command is the one thing to do. The screen
 // has no "?" legend, so no help part.
 import type { Callout, LegendEntry, ScreenRead } from '../../../model/types';
@@ -65,7 +65,7 @@ export const RUNS: readonly Callout[] = [
     kind: 'activity',
     sel: 'pre[aria-label="Start a run"]',
     title: 'Start a run',
-    body: () => 'No runs yet. This command starts the runner on a repo; its events land in .belay/runs/<repo>/<wave>.jsonl and show up here.',
+    body: () => 'No runs yet. This command starts the runner on a repo; its events land in .afterlife/runs/<repo>/<wave>.jsonl and show up here.',
     try: 'Run it in a terminal',
   },
   statusCallout('The runs in one line', 'How to open a wave, or where the run files are looked for.'),
@@ -74,6 +74,6 @@ export const RUNS: readonly Callout[] = [
     kind: 'shell',
     sel: DATA_LABEL,
     title: 'Where the data comes from',
-    body: (r) => `"${r.text(DATA_LABEL)}" speaks for the rest of the app. This screen reads the runner’s own files in .belay/runs, real local data in demo and live alike.`,
+    body: (r) => `"${r.text(DATA_LABEL)}" speaks for the rest of the app. This screen reads the runner’s own files in .afterlife/runs, real local data in demo and live alike.`,
   },
 ];

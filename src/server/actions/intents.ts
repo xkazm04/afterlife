@@ -18,6 +18,7 @@ const tier = (v: unknown) => TIER_ORDER.find((t) => t === v) ?? null;
 
 const PROJECT = /^[a-z0-9][a-z0-9._-]*$/i;
 const ONE_LINE = /^[^\r\n]+$/;
+// wire name: belay/* is the protected branch pattern (Setup step 9) every Afterlife MR branch sits under.
 const BRANCH = /^belay\/[A-Za-z0-9._/-]+$/;
 const FILE_PATH = /^[A-Za-z0-9._][A-Za-z0-9._/-]*$/;
 const MAX_FILE = 64 * 1024;
@@ -29,7 +30,7 @@ export const MAX_GAP_FILES = 8;
 /** A revoke-class intent lowers at most this many classes. Ladder's track write (ladder model/rules/batch) imports it. */
 export const MAX_REVOKE_CHANGES = 12;
 const TRACK = /^T[1-8]$/;
-/** The branches Belay's other MRs plan (promote, enroll, arm, disarm): a gap never takes one (intents/paths.test.ts derives them). */
+/** The branches Afterlife's other MRs plan (promote, enroll, arm, disarm): a gap never takes one (intents/paths.test.ts derives them). */
 const OTHER_WRITES = /^belay\/(?:promote|enroll|arm|disarm)-/;
 
 /** A repository path as the preview spells it: no empty, dot or .git segment, so one file has one spelling and none is inside .git. */
@@ -107,7 +108,7 @@ export function parseIntent(raw: unknown): IntentParse {
       if (!stage || !gap || !title || !branch || from === null || to === null || !fs || workItem === null || !refOk(branch)) {
         return no('gap, stage, title, branch (belay/...), from/to (0-4) and 1 to 8 files are required');
       }
-      if (OTHER_WRITES.test(branch)) return no(`${branch} is a branch Belay's promote, enroll, arm or disarm MRs use: a gap names its own (belay/gap-...)`);
+      if (OTHER_WRITES.test(branch)) return no(`${branch} is a branch Afterlife's promote, enroll, arm or disarm MRs use: a gap names its own (belay/gap-...)`);
       if (to <= from) return no(`${stage} R${from} -> R${to} raises nothing: to must be above from`);
       return { ok: true, intent: { kind: 'stage-gap-mr', ...base, gap, stage, from, to, title, branch, files: fs, ...(workItem ? { workItem } : {}) } };
     }
@@ -127,6 +128,7 @@ export function parseIntent(raw: unknown): IntentParse {
       const track = str(raw.track, TRACK, 2);
       return track ? { ok: true, intent: { kind: raw.kind, ...base, track } } : no('track must be T1 to T8');
     }
+    // install-glab, glab-login and set-setup never reach here: actions.ts routes them to actions/setup (setup/intents.ts)
     case 'queue-runs':
     case 'install-skill':
     case 'enable-app-insights':

@@ -19,8 +19,8 @@ function Merge({ n }: { n: MergeNeed }) {
         </span>
       </div>
       <div className={styles.does}>
-        Every lane on the branch passed the repo&apos;s gates. Read it, then take it yourself: Belay merges and pushes nothing.
-        {n.path ? '' : ' The repo is not in .belay/fleet.yml, so run these from its checkout.'}
+        Every lane on the branch passed the repo&apos;s gates. Read it, then take it yourself: Afterlife merges and pushes nothing.
+        {n.path ? '' : ' The repo is not in .afterlife/fleet.yml, so run these from its checkout.'}
         {n.checked ? '' : ' Git could not be asked whether it is in already.'}
       </div>
       <CommandBlock commands={n.commands} label={`Merge ${n.branch}`} />
@@ -54,7 +54,7 @@ export function RunnerCards({ needs }: { needs: readonly RunnerNeed[] }) {
 
 /**
  * The decisions the cycle runner left: a mergeable wave not yet in its base, and the lanes its newest wave parked. Read
- * from .belay (real local data in demo and live alike); nothing here writes. Draws nothing when nothing waits. The empty
+ * from .afterlife (real local data in demo and live alike); nothing here writes. Draws nothing when nothing waits. The empty
  * pages draw the cards in place; the desks fold them into a one-line `RunnerStrip` that opens them in a sheet.
  */
 export function RunnerNeeds({ needs }: { needs: readonly RunnerNeed[] }) {

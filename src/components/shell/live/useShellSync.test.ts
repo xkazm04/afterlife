@@ -91,7 +91,7 @@ describe('useShellSync', () => {
   it('a screen asking (a demo-estate cookie changed) reads /api/shell, even with a read in flight', () => {
     pass(info(3));
     listeners.focus?.forEach((f) => f());
-    listeners['belay:shell-read']?.forEach((f) => f());
+    listeners['afterlife:shell-read']?.forEach((f) => f());
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 

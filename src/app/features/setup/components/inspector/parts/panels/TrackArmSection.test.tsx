@@ -22,7 +22,7 @@ describe('TrackArmSection: ready asks for an Arm, nothing sent', () => {
   });
   it('a refused plan keeps Arm disabled and says why', () => {
     const html = panel({ st: 'ready' }, { kind: 'refused', reason: 'main moved' }).html;
-    expect(html).toContain('Belay will not plan this MR: main moved');
+    expect(html).toContain('Afterlife will not plan this MR: main moved');
     expect(isDisabled(buttonTag(html, 'Arm · send as you'))).toBe(true);
   });
 });
@@ -42,7 +42,7 @@ describe('TrackArmSection: open is the person\'s merge', () => {
   it('names the MR, offers Open and verify, and a revert says so', () => {
     const html = panel({ st: 'open', mr: '!5', url: 'https://gitlab.test/mr/5', revert: true, simulated: true, found: 'not on main yet' }).html;
     expect(html).toContain('Merge !5 (revert)');
-    expect(html).toContain('Belay never holds a merge token');
+    expect(html).toContain('Afterlife never holds a merge token');
     expect(html).toContain('demo mode: nothing was sent to GitLab');
     expect(html).toContain('not on main yet');
     expect(isDisabled(buttonTag(html, 'Open !5'))).toBe(false);

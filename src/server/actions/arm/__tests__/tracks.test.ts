@@ -49,7 +49,7 @@ describe.each(CASES)('arm-track %s', (track, key, component, stage) => {
     const p = await land(gl, deps, 'arm-track', track);
     expect(p).toMatchObject({ kind: 'arm-track', mode: 'live', branch: `belay/arm-${key}`, title: armOf(track)!.title, notes: armOf(track)!.notes });
     expect(p.diff).toContain(`+   - component: $CI_SERVER_FQDN/acme-lab/belay-pack/${component}@1.0.0`);
-    expect(p.diff.join('\n')).not.toMatch(/BELAY_BOT_TOKEN|flow-dispatch|\/variables\b/);
+    expect(p.diff.join('\n')).not.toMatch(/AFTERLIFE_BOT_TOKEN|flow-dispatch|\/variables\b/);
     expect(p.commands[1]?.argv.join(' ')).toContain(`(${component} in ${stage})`);
     expect(await checkArm(deps, intent('arm-track', track))).toMatchObject({ status: 'read', armed: true, text: expect.stringMatching(new RegExp(`${track}'s arm block is in`)) });
     expect(findBlock(files(gl)['.gitlab-ci.yml']!, armOf('T4')!).state).toBe('armed'); // T4's block is untouched
@@ -65,7 +65,7 @@ describe.each(CASES)('arm-track %s', (track, key, component, stage) => {
     const { gl, deps } = await rig();
     files(gl)['.gitlab-ci.yml'] = EXAMPLE;
     const label = track === 'T1' ? 'proof-engine \\(exploit-test\\)' : component;
-    expect(reason(await previewIntent(deps, intent('arm-track', track)))).toMatch(new RegExp(`already includes ${label} by hand: Belay will not add it twice`));
+    expect(reason(await previewIntent(deps, intent('arm-track', track)))).toMatch(new RegExp(`already includes ${label} by hand: Afterlife will not add it twice`));
   });
 });
 
@@ -88,7 +88,7 @@ describe('what T1 and T3 refuse', () => {
     expect((await previewIntent(deps, intent('arm-track', 'T1'))).status).toBe('preview');
     const byHand = '  - component: $CI_SERVER_FQDN/acme-lab/belay-pack/proof-engine@1.0.0\n    inputs: { class: exploit-test, engine_ref: v0.1.0 }\n';
     files(gl)['.gitlab-ci.yml'] = LEDGERLINE_CI.replace('  - template: Jobs/SAST', `${byHand}  - template: Jobs/SAST`);
-    expect(reason(await previewIntent(deps, intent('arm-track', 'T1')))).toBe("the default branch's .gitlab-ci.yml already includes proof-engine (exploit-test) by hand: Belay will not add it twice");
+    expect(reason(await previewIntent(deps, intent('arm-track', 'T1')))).toBe("the default branch's .gitlab-ci.yml already includes proof-engine (exploit-test) by hand: Afterlife will not add it twice");
   });
 
   it('T1 needs a review stage (exploit-test reads what test kept); T3 and T6 run in .post, which every pipeline has', async () => {
@@ -101,7 +101,7 @@ describe('what T1 and T3 refuse', () => {
   it("T3 refuses without the proof authors, before reading anything; T4's arm does not need them", async () => {
     const bare = { ok: true as const, pin: { packVersion: '1.0.0', engineRef: 'v0.1.0' } };
     const { gl, deps } = await rig({ arm: bare });
-    expect(reason(await previewIntent(deps, intent('arm-track', 'T3')))).toMatch(/set BELAY_PROOF_AUTHORS/);
+    expect(reason(await previewIntent(deps, intent('arm-track', 'T3')))).toMatch(/set AFTERLIFE_PROOF_AUTHORS/);
     expect(gl.state.writes).toEqual([]);
     expect(reason(await previewIntent(deps, intent('arm-track', 'T4')))).toMatch(/T4 is already armed/);
   });

@@ -1,4 +1,4 @@
-// `belay report`: a valid claim is filled (id, at) and appended, and the line is printed; an invalid one exits 2 with
+// `afterlife report`: a valid claim is filled (id, at) and appended, and the line is printed; an invalid one exits 2 with
 // the reason and appends nothing. The agent's figure is stored as agentValue (the measure step never reads it:
 // measure/__tests__/agentValue.test.ts).
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -20,11 +20,11 @@ const CFG: ProjectConfig = {
 const GOOD = { title: 'cache the npm install on package-lock.json', target: { kind: 'ci-stage', variant: 'master-full', stage: 'Run Tests' }, direction: 'down', expectedPct: 20, ref: { branch: 'feature/cache', sha: 'CAFE0906' }, agentValue: 35.5 };
 
 let dir = '';
-const prev = process.env.BELAY_DATA_DIR;
-beforeEach(() => { dir = mkdtempSync(path.join(tmpdir(), 'belay-report-')); process.env.BELAY_DATA_DIR = dir; saveProject(CFG); });
+const prev = process.env.AFTERLIFE_DATA_DIR;
+beforeEach(() => { dir = mkdtempSync(path.join(tmpdir(), 'afterlife-report-')); process.env.AFTERLIFE_DATA_DIR = dir; saveProject(CFG); });
 afterEach(() => {
-  if (prev === undefined) delete process.env.BELAY_DATA_DIR;
-  else process.env.BELAY_DATA_DIR = prev;
+  if (prev === undefined) delete process.env.AFTERLIFE_DATA_DIR;
+  else process.env.AFTERLIFE_DATA_DIR = prev;
   rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
@@ -35,7 +35,7 @@ const call = (...argv: string[]) => {
   return { code, out, err };
 };
 
-describe('belay report', () => {
+describe('afterlife report', () => {
   it('appends a valid claim with id and at filled, and prints the line', () => {
     const r = call('--project', 'grinex-portal', '--claim', JSON.stringify(GOOD));
     expect(r.code, r.err).toBe(0);
@@ -49,11 +49,11 @@ describe('belay report', () => {
     const at = path.join(dir, 'caller');
     mkdirSync(at);
     writeFileSync(path.join(at, 'claim.json'), JSON.stringify({ ...GOOD, target: { kind: 'local-metric', metric: 'test wall' } }));
-    process.env.BELAY_CALLER_CWD = at;
+    process.env.AFTERLIFE_CALLER_CWD = at;
     try {
       expect(call('--project', 'grinex-portal', '--claim', 'claim.json').code).toBe(0);
     } finally {
-      delete process.env.BELAY_CALLER_CWD;
+      delete process.env.AFTERLIFE_CALLER_CWD;
     }
     expect(readAdjustments('grinex-portal')[0]).toMatchObject({ target: { kind: 'local-metric', metric: 'test wall' } });
   });

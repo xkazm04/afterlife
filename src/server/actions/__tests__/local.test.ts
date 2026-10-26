@@ -23,7 +23,7 @@ const idOf = (r: ActionResponse) => (r.status === 'preview' ? r.preview.previewI
 
 let rig: ActionRig;
 beforeEach(async () => {
-  vi.stubEnv('BELAY_MODE', 'live');
+  vi.stubEnv('AFTERLIFE_MODE', 'live');
   rig = await liveRig();
   at.deps = rig.deps;
 });
@@ -82,9 +82,9 @@ describe('live server actions answer only a request addressed to this machine', 
   });
 
   it('demo mode is not held to it: the hosted replay is served under its own name, and demo never runs anything', async () => {
-    vi.stubEnv('BELAY_MODE', 'demo');
+    vi.stubEnv('AFTERLIFE_MODE', 'demo');
     at.deps = { ...rig.deps, mode: 'demo', db: null };
-    from({ host: 'belay-replay.example.run.app', origin: 'https://belay-replay.example.run.app' });
+    from({ host: 'afterlife-replay.example.run.app', origin: 'https://afterlife-replay.example.run.app' });
     const r = await previewAction(revoke);
     expect(r.status).toBe('preview');
     expect(await confirmAction(revoke, idOf(r))).toMatchObject({ status: 'done', results: [{ simulated: true }] });

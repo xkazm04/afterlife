@@ -1,5 +1,5 @@
 {
-  "_about": "Price and coefficient book for scripts/sci (DECISIONS.md D6). Every figure names its source and the date it was read. [S] = read in the source on that date; [E] = Belay's own estimate, stated as one, with its range. SCI = ((E * I) + M) per R, R = one proven merge request (https://sci.greensoftware.foundation/, read 2026-10-18).",
+  "_about": "Price and coefficient book for scripts/sci (DECISIONS.md D6). Every figure names its source and the date it was read. [S] = read in the source on that date; [E] = Afterlife's own estimate, stated as one, with its range. SCI = ((E * I) + M) per R, R = one proven merge request (https://sci.greensoftware.foundation/, read 2026-10-18).",
   "runner": {
     "default": "small",
     "sizes": {
@@ -69,7 +69,7 @@
     "perCycleFixed": 5,
     "perProjectSteady": 5,
     "perChangedMr": 1,
-    "source": "[S] read from the poller (2026-10-18). Fixed per cycle: getGroup + listProjects (src/server/poller/cycle.ts), getFile trust-policy.yml + tier-state.yml (src/server/poller/derive/policy.ts), listCommits tier-state.yml (src/server/poller/stateHistory.ts). Per watched project, warm memory: listMergeRequests and listDeployments (src/server/poller/project.ts), listTree of the ledger (src/server/ledger/importLedger.ts), listPipelines and listJobs of the scan (src/server/poller/maturityScan.ts). Per MR updated since the last cycle: listNotes (project.ts). Interval: BELAY_POLL_SECONDS default 30 (src/server/poller/scheduler.ts).",
+    "source": "[S] read from the poller (2026-10-18). Fixed per cycle: getGroup + listProjects (src/server/poller/cycle.ts), getFile trust-policy.yml + tier-state.yml (src/server/poller/derive/policy.ts), listCommits tier-state.yml (src/server/poller/stateHistory.ts). Per watched project, warm memory: listMergeRequests and listDeployments (src/server/poller/project.ts), listTree of the ledger (src/server/ledger/importLedger.ts), listPipelines and listJobs of the scan (src/server/poller/maturityScan.ts). Per MR updated since the last cycle: listNotes (project.ts). Interval: AFTERLIFE_POLL_SECONDS default 30 (src/server/poller/scheduler.ts).",
     "date": "2026-10-18",
     "note": "One read is one port call (one glab api command); a list longer than a page costs more than one HTTP request. A changed ledger, a new scan job or a new tier-state commit adds one read each. The reads the CI jobs make (mr-context, fetch-block) are not counted here."
   }

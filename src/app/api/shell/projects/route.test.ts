@@ -26,7 +26,7 @@ describe('GET /api/shell/projects', () => {
   });
 
   it('live before the first poll: 503 with the reason, never a demo list', async () => {
-    vi.stubEnv('BELAY_MODE', 'live');
+    vi.stubEnv('AFTERLIFE_MODE', 'live');
     const res = await GET();
     expect(res.status).toBe(503);
     expect(res.headers.get('cache-control')).toContain('no-store');
@@ -35,7 +35,7 @@ describe('GET /api/shell/projects', () => {
 
   it('any other throw: 503 with a fixed body, never the message', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    setDataSource({ ...demoSource, getFleet: () => { throw new Error('EACCES: /srv/belay/index'); } });
+    setDataSource({ ...demoSource, getFleet: () => { throw new Error('EACCES: /srv/afterlife/index'); } });
     const res = await GET();
     expect([res.status, await res.json()]).toEqual([503, { error: 'shell unreadable' }]);
     expect(log).toHaveBeenCalledTimes(1);

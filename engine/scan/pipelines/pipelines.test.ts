@@ -7,7 +7,7 @@ import { checkoutFacts } from '../local';
 import { scan } from '../scan';
 import { runsScanner } from './signals';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-pipelines-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-pipelines-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 function checkout(files: Record<string, string>): string {

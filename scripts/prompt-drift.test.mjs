@@ -15,7 +15,7 @@ let tmp;
 let ascent;
 let sources;
 beforeEach(() => {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-drift-'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-drift-'));
   ascent = path.join(tmp, 'ascent');
   fs.mkdirSync(path.join(ascent, 'src'), { recursive: true });
   fs.writeFileSync(path.join(ascent, 'src/a.ts'), 'export const a = 1;\n');

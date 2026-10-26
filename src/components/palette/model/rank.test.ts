@@ -43,6 +43,6 @@ describe('palette ranking', () => {
   });
   it('sends a project to Fleet with it selected, and every screen to its route', () => {
     expect(rank(items, 'fx-rates')[0]?.href).toBe('/fleet?project=fx-rates');
-    expect(rank(items, 'onboard')[0]).toMatchObject({ kind: 'screen', href: '/onboard' });
+    expect(rank(items, 'set up')[0]).toMatchObject({ kind: 'screen', href: '/start' });
   });
 });

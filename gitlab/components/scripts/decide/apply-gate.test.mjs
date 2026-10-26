@@ -76,7 +76,7 @@ describe('apply-gate: the guardrail_verdict event', () => {
       [`${LEDGER}/repository/files/events%2F1.jsonl`]: { __http: 404, message: '404 File Not Found' },
       [`POST ${LEDGER}/repository/commits`]: { reply: { id: 'f'.repeat(40) } },
     };
-    const r = runScript(dir, 'decide/ledger-append.mjs', ['--events', g.emit, '--project', 'acme/belay-ledger'], { routes, env: { BELAY_BOT_TOKEN: 'bot' } });
+    const r = runScript(dir, 'decide/ledger-append.mjs', ['--events', g.emit, '--project', 'acme/belay-ledger'], { routes, env: { AFTERLIFE_BOT_TOKEN: 'bot' } });
     expect(r.code, r.stderr).toBe(0);
     const [commit] = r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`);
     const lines = commit.body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
@@ -100,7 +100,7 @@ describe('apply-gate: the tier-state.yml revision and the withdrawal on the tier
       [`${LEDGER}/repository/files/events%2F1.jsonl`]: { __http: 404, message: '404 File Not Found' },
       [`POST ${LEDGER}/repository/commits`]: { reply: { id: 'f'.repeat(40) } },
     };
-    const r = runScript(dir, 'decide/ledger-append.mjs', ['--events', g.emit, '--project', 'acme/belay-ledger'], { routes, env: { BELAY_BOT_TOKEN: 'bot' } });
+    const r = runScript(dir, 'decide/ledger-append.mjs', ['--events', g.emit, '--project', 'acme/belay-ledger'], { routes, env: { AFTERLIFE_BOT_TOKEN: 'bot' } });
     expect(r.code, r.stderr).toBe(0);
     const lines = r.writes.find((w) => w.path === `${LEDGER}/repository/commits`).body.actions[0].content.trim().split('\n').map((l) => JSON.parse(l));
     expect(lines.map((e) => [e.kind, e.state_rev, e.withdrew])).toEqual([['proof_verdict', undefined, undefined], ['tier_decision', REV, ['approval', 'auto_merge']]]);
@@ -118,7 +118,7 @@ describe('apply-gate: the tier-state.yml revision and the withdrawal on the tier
 
 describe('apply-gate: --force stands in for the engine only to withhold (wait or block), never to grant', () => {
   const forced = (decision, extra = []) =>
-    runScript(dir, 'decide/apply-gate.mjs', ['--mr', '7', '--sha', HEAD, '--force', decision, '--reason', 'x', ...extra], { env: { ...ENV, BELAY_BOT_TOKEN: 'bot' } });
+    runScript(dir, 'decide/apply-gate.mjs', ['--mr', '7', '--sha', HEAD, '--force', decision, '--reason', 'x', ...extra], { env: { ...ENV, AFTERLIFE_BOT_TOKEN: 'bot' } });
   it.each(['merge', 'approve', 'allow'])('refuses --force %j and applies nothing', (decision) => {
     const r = forced(decision);
     expect(r.code, r.stderr).toBe(2);

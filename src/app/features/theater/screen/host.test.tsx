@@ -28,7 +28,7 @@ const film = { film: { source: 'illustrative', entries: REPLAY_LEDGER, takes: TA
 describe('the Theater on the screen host', () => {
   it('is claimed, with its slices in stream order', () => {
     expect(def).toMatchObject({ ready: true, slices: ['live', 'start', 'film'] });
-    expect(def?.title({}, new URLSearchParams())).toBe('Belay Theater');
+    expect(def?.title({}, new URLSearchParams())).toBe('Afterlife · Theater');
   });
 
   it('unread: the real window at once, a dash for the subtitle and the stage, no bars, no "New run…" yet', () => {
@@ -57,7 +57,7 @@ describe('the Theater on the screen host', () => {
 
   it('?live=1 with the payload read: the live film, polled; no replay film is needed', () => {
     const html = render('live=1', { live: empty });
-    expect(html).toContain('Live from .belay/runs');
+    expect(html).toContain('Live from .afterlife/runs');
   });
 
   it('the film could not be read: says why in the stage', () => {

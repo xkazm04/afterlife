@@ -16,7 +16,7 @@ afterEach(() => root && rmSync(root, { recursive: true, force: true, maxRetries:
 
 describe('readRuns cache', () => {
   it('an unchanged file is not re-parsed, its skipped lines still count, and an appended line is seen', () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-runs-'));
+    root = mkdtempSync(join(tmpdir(), 'afterlife-runs-'));
     const dir = join(root, 'runs', 'cache-alpha');
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, '1.jsonl'), `${WAVE_1.join('\n')}\n`);
@@ -37,7 +37,7 @@ describe('readRuns cache', () => {
   });
 
   it('a deleted file drops out of the next read', () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-runs-'));
+    root = mkdtempSync(join(tmpdir(), 'afterlife-runs-'));
     const dir = join(root, 'runs', 'cache-beta');
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, '1.jsonl'), `${WAVE_1.join('\n')}\n`);

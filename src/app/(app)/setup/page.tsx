@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'Belay Setup' };
+export const metadata: Metadata = { title: 'Afterlife · Setup' };
 
 // The route exists for a hard load (and its title); it reads nothing. The screen host in the (app) layout draws the
 // unlock map (features/setup/screen/host.tsx): its window is in the static shell, and the catalogue and the live reads

@@ -33,13 +33,13 @@ is the estate-wide machine that moves every project along it with as few clicks 
   a write), `planBatch` (yours / reads / capped writes: bootstraps for the best-baselined first, first cycles for the
   weakest first), `runBatch` (a write moves only when the server confirmed it, under the MR GitLab named), `resolve`.
 - `model/session.ts` what this tab's session moved (reads landed, writes confirmed and their MRs), kept per org in
-  sessionStorage (`belay.onboard.session.<org>`, try/catch: blocked or garbled storage is no session) and laid over
+  sessionStorage (`afterlife.onboard.session.<org>`, try/catch: blocked or garbled storage is no session) and laid over
   `initialRuns` after mount, so a reload keeps the MRs it opened and never plans the same write twice; a project the
   data now shows further along takes the data.
 - `model/build.ts` `initialRuns`: fx-rates already waits for the merge of its bootstrap MR (looked up by branch: its
   number is not in the data); setups under way at an unrecorded step wait for you (never a second bootstrap); stale
   projects wait for a renewed token. Ordering uses the mean of rated stages only; unrated projects go last.
-- Read commands follow the `belay` CLI's usage (`scan`, `doctor`); a write has no command of its own.
+- Read commands follow the `afterlife` CLI's usage (`scan`, `doctor`); a write has no command of its own.
 
 ## Not wired
 Reads and re-probes are simulated and say so; live mode reads the same fleet. Writes go through the server actions:

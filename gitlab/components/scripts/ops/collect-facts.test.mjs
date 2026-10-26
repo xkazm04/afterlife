@@ -88,7 +88,7 @@ describe('the maturity-scan template', () => {
   const shell = [...jobs['.belay-boot-maturity-scan'].before_script, ...jobs['belay-maturity-scan'].script].join('\n');
 
   it('no job variable a pipeline variable could override picks the engine, its pin, the glab checksum or the command', () => {
-    for (const k of ['BELAY_ENGINE_PROJECT', 'BELAY_ENGINE_REF', 'BELAY_ENGINE_COMMIT', 'BELAY_GLAB_VERSION', 'BELAY_GLAB_SHA256', 'BELAY_SCAN_COMMAND']) {
+    for (const k of ['AFTERLIFE_ENGINE_PROJECT', 'AFTERLIFE_ENGINE_REF', 'AFTERLIFE_ENGINE_COMMIT', 'AFTERLIFE_GLAB_VERSION', 'AFTERLIFE_GLAB_SHA256', 'AFTERLIFE_SCAN_COMMAND']) {
       expect(vars, k).not.toHaveProperty(k);
     }
     for (const k of ['engine_project', 'engine_ref', 'engine_commit', 'glab_version', 'glab_sha256', 'scan_command']) {
@@ -124,10 +124,10 @@ describe.each(GLAB_TEMPLATES)('the %s template verifies glab', (name) => {
   });
 
   it('refuses an empty checksum with exit 2 before the download, and always checks the tarball', () => {
-    const refuse = shell.search(/if \[ -z "\$BELAY_GLAB_SHA256" \]; then[^\n]*exit 2/);
+    const refuse = shell.search(/if \[ -z "\$AFTERLIFE_GLAB_SHA256" \]; then[^\n]*exit 2/);
     expect(refuse, 'empty-checksum refusal').toBeGreaterThan(-1);
     expect(refuse).toBeLessThan(shell.indexOf('curl -fsSL -o "$T/glab.tgz"'));
-    expect(shell).not.toMatch(/if \[ -n "\$BELAY_GLAB_SHA256" \]/);
+    expect(shell).not.toMatch(/if \[ -n "\$AFTERLIFE_GLAB_SHA256" \]/);
     expect(shell).toContain('sha256sum -c -');
   });
 });

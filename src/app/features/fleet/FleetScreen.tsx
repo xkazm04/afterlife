@@ -151,7 +151,7 @@ export function FleetScreen({ data, source, start, baseline, desk, estate, coreE
 
   return (
     <Window
-      title="Belay"
+      title="Afterlife"
       subtitle={`${read ? fleet.portfolio : '—'} · ${sourceLabel(list.filters.source)}`}
       toolbar={
         <FleetToolbar

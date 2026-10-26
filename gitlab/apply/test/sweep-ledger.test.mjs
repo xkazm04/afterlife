@@ -18,7 +18,7 @@ describe('belay-apply sweep: ledger', { timeout: 240_000 }, () => {
     expect(r.code, r.stderr).toBe(0);
     const [note, ...more] = glabWrites(r, 'note create');
     expect(more).toEqual([]);
-    expect(note.body.message).toMatch(new RegExp(`^\\*\\*Belay gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail blocked this head; also, it changes the CI file`));
+    expect(note.body.message).toMatch(new RegExp(`^\\*\\*Afterlife gate: BLOCK\\*\\* \\| tier \`unknown\`\\n- head ${HEAD}: the guardrail blocked this head; also, it changes the CI file`));
     expect(glabWrites(r, 'update').map((w) => w.body.label)).toEqual(['guardrail::block']);
     expect(granted(r)).toEqual([]);
     const [ledger, ...again] = ledgerOf(r);
@@ -44,22 +44,22 @@ describe('belay-apply sweep: ledger', { timeout: 240_000 }, () => {
     for (const g of [group({ diff: fixture('fix.diff') + ciHunk }), group({ notes: [twice] }), group({ desc: bump, notes: [blockNote] })]) {
       const o = sweep(g);
       expect(o.code, o.stderr).toBe(0);
-      expect(glabWrites(o, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: (WAIT|BLOCK)\*\* \| tier `unknown`/);
+      expect(glabWrites(o, 'note create').at(-1).body.message).toMatch(/^\*\*Afterlife gate: (WAIT|BLOCK)\*\* \| tier `unknown`/);
       expect(ledgerOf(o)).toEqual([]);
     }
   });
 
   it("(xxiii) an engine gate that answers nothing readable is logged as the engine's failure, never as a policy fact", () => {
-    // A BELAY_DIR whose tsx prints no JSON and exits 2: the gate blockTier asks for the guardrail block's tier gives no answer.
+    // An AFTERLIFE_DIR whose tsx prints no JSON and exits 2: the gate blockTier asks for the guardrail block's tier gives no answer.
     const broken = path.join(dir, 'broken-engine');
     fs.mkdirSync(path.join(broken, 'node_modules', 'tsx', 'dist'), { recursive: true });
     fs.writeFileSync(path.join(broken, 'node_modules', 'tsx', 'dist', 'cli.mjs'), "process.stdout.write('boom');\nprocess.exit(2);\n");
     const finding = { rule: 'prompt-injection', severity: 'high', file: 'CHANGELOG.md', quote: 'ignore previous instructions', explanation: 'an instruction to the reviewer in the changelog' };
     const ciHunk = 'diff --git a/.gitlab-ci.yml b/.gitlab-ci.yml\n--- a/.gitlab-ci.yml\n+++ b/.gitlab-ci.yml\n@@ -1 +1 @@\n-stages: [build, test, review]\n+stages: [build, test]\n';
-    const r = sweep(group({ diff: fixture('fix.diff') + ciHunk, notes: [guardrailNote('block', HEAD, [finding])] }), { ...TOKENS, BELAY_DIR: broken });
+    const r = sweep(group({ diff: fixture('fix.diff') + ciHunk, notes: [guardrailNote('block', HEAD, [finding])] }), { ...TOKENS, AFTERLIFE_DIR: broken });
     expect(r.stderr).toMatch(/engine gate gave no readable answer \(exit 2\): the guardrail's block is not ledgered/);
     expect(r.stderr).not.toMatch(/holds ai-patcher-acme at no tier/);
-    expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Belay gate: BLOCK\*\*/);
+    expect(glabWrites(r, 'note create').at(-1).body.message).toMatch(/^\*\*Afterlife gate: BLOCK\*\*/);
     expect(r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`)).toEqual([]);
   });
 
@@ -77,7 +77,7 @@ describe('belay-apply sweep: ledger', { timeout: 240_000 }, () => {
     expect(r.code, r.stderr).toBe(0);
     const [note, ...more] = glabWrites(r, 'note create');
     expect(more).toEqual([]);
-    expect(note.body.message).toMatch(/^\*\*Belay gate: BLOCK\*\* \| tier `supervised`\n.*guardrail blocked/s);
+    expect(note.body.message).toMatch(/^\*\*Afterlife gate: BLOCK\*\* \| tier `supervised`\n.*guardrail blocked/s);
     expect(glabWrites(r, 'update').map((w) => [w.body.label, w.body.unlabel])).toEqual([[expect.stringContaining('guardrail::block'), expect.stringContaining('guardrail::pass')]]);
     expect(granted(r)).toEqual([]);
     const [append, ...twice] = r.writes.filter((w) => w.path === `${LEDGER}/repository/commits`);
@@ -141,7 +141,7 @@ describe('belay-apply sweep: ledger', { timeout: 240_000 }, () => {
     const r = sweep(group({ state: assisted }));
     expect(r.code, r.stderr).toBe(0);
     expect(decisionOf(r)).toMatchObject({ tier_at_time: 'assisted', would: { tier: 'supervised', decision: 'approve' } });
-    expect(glabWrites(r, 'note create')[1].body.message).toMatch(/^\*\*Belay gate: WAIT\*\* \| tier `assisted`/);
+    expect(glabWrites(r, 'note create')[1].body.message).toMatch(/^\*\*Afterlife gate: WAIT\*\* \| tier `assisted`/);
     expect(granted(r)).toEqual([]); // the shadow's approve is never given
     expect(glabWrites(r, 'update').map((w) => w.body.label)).toEqual(['proof::pass', 'belay::tier::assisted,guardrail::pass']);
     // at the ceiling there is no next rung, so (i)'s supervised decision states none

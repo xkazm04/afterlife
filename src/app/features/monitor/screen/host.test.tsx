@@ -27,7 +27,7 @@ const render = (fixture: Parameters<typeof SliceFixture>[0]['slices'], states = 
 describe('the Monitor on the screen host', () => {
   it('is claimed, with its slices in stream order', () => {
     expect(def).toMatchObject({ ready: true, slices: ['core', 'estate', 'desk'] });
-    expect(def?.title({}, new URLSearchParams())).toBe('Belay Monitor');
+    expect(def?.title({}, new URLSearchParams())).toBe('Afterlife · Monitor');
   });
 
   it('unread: the real window at once, a dash for every value, never a zero, no amber number', () => {
@@ -57,7 +57,7 @@ describe('the Monitor on the screen host', () => {
   });
 
   it('the fleet could not be read: says why in the pane', () => {
-    const html = render({}, { core: { state: 'error', reason: 'BELAY_MODE=live, but the first poll has not finished' } });
-    expect(html.replace(/<!-- -->/g, '')).toContain('The fleet could not be read: BELAY_MODE=live, but the first poll has not finished');
+    const html = render({}, { core: { state: 'error', reason: 'AFTERLIFE_MODE=live, but the first poll has not finished' } });
+    expect(html.replace(/<!-- -->/g, '')).toContain('The fleet could not be read: AFTERLIFE_MODE=live, but the first poll has not finished');
   });
 });

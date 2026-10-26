@@ -1,19 +1,23 @@
 // Reads and writes one file in another project through the API, as a bot with its own token.
-// Used for belay-policy (tier-state.yml) and belay-ledger (events JSONL). The API call is
+// Used for belay-policy (tier-state.yml) and belay-ledger (events JSONL), the projects' wire names. The API call is
 // POST /projects/:id/repository/commits with actions[] (docs.gitlab.com/api/commits). An update action may carry
 // last_commit_id, "Last known file commit ID. Only considered in update, move, and delete actions." [R]: GitLab then
 // refuses the commit (400, "...has changed since you started editing it") if the file moved since that commit, on the
 // branch the commit starts from. Callers also serialise with resource_group.
+import { envOf } from './env.mjs';
 import { api, die, enc, httpStatus } from './lib.mjs';
 
 /**
  * The token a script writes with (F88): the variable `--write-token-var` names. A variable named and not set dies before any
- * read, so the read token never writes in its place. Without the flag: BELAY_BOT_TOKEN when set, else undefined (the caller's
- * own glab login, a person running it by hand). The caller sets GITLAB_TOKEN to it just before its write, not earlier.
+ * read, so the read token never writes in its place. Without the flag: AFTERLIFE_BOT_TOKEN when set, else undefined (the
+ * caller's own glab login, a person running it by hand). The caller sets GITLAB_TOKEN to it just before its write, not earlier.
+ * A named AFTERLIFE_X is read through envOf, so a project whose CI/CD variable still has the pre-rename name keeps writing.
  */
 export function writeToken(named) {
-  if (named && !process.env[named]) die(`${named} is not set (named by --write-token-var): nothing committed`);
-  return process.env[named ?? 'BELAY_BOT_TOKEN'];
+  const value = !named ? envOf(process.env, 'BOT_TOKEN')
+    : named.startsWith('AFTERLIFE_') ? envOf(process.env, named.slice('AFTERLIFE_'.length)) : process.env[named] || undefined;
+  if (named && !value) die(`${named} is not set (named by --write-token-var): nothing committed`);
+  return value;
 }
 
 /**
@@ -71,6 +75,7 @@ export function writeFile({ project, branch, path, content, message, mode = 'com
       unlanded: unlandedOn(branch, !exists),
     });
   }
+  // wire name: Afterlife branches keep the belay/ prefix, the one projects already armed protect and read back.
   const work = `belay/${path.replace(/[^A-Za-z0-9]+/g, '-')}-${Date.now()}`;
   api(`projects/${enc(project)}/repository/commits`, {
     method: 'POST',

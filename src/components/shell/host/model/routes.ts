@@ -18,11 +18,10 @@ export const SCREEN_KEYS = [
   'cycles',
   'task',
   'task/[id]',
-  'onboard',
+  'start',
   'onboard/estate',
   'setup',
   'setup/[node]',
-  'trace',
   'theater',
   'runs',
   'settings/display',
@@ -37,7 +36,7 @@ export type ScreenKey = (typeof SCREEN_KEYS)[number];
 /** The feature module (src/app/features/<module>) that owns a key: its first segment, every settings page in 'settings'. */
 export type ScreenModule =
   | 'vitals' | 'fleet' | 'monitor' | 'needs-you' | 'ladder' | 'maturity' | 'cycles' | 'task'
-  | 'onboard' | 'setup' | 'trace' | 'theater' | 'runs' | 'settings' | 'kit';
+  | 'start' | 'onboard' | 'setup' | 'theater' | 'runs' | 'settings' | 'kit';
 
 export function moduleOf(key: ScreenKey): ScreenModule {
   return key.split('/', 1)[0] as ScreenModule;

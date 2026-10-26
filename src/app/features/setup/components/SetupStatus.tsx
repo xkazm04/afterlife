@@ -8,7 +8,7 @@ import { armList, armedCount, doneCount, isUnread, needYouCount, stepList } from
 import { probeAgeText } from '../model/flow/probeAge';
 import styles from './SetupStatus.module.css';
 
-/** Status bar: progress, then how old the belay doctor probe is. Stale or failed is amber and says so, with its age. */
+/** Status bar: progress, then how old the doctor probe is. Stale or failed is amber and says so, with its age. */
 export function SetupStatus() {
   const { state } = useSetup();
   const now = useNow();
@@ -17,7 +17,7 @@ export function SetupStatus() {
   // Live, before a read lands: a dash for what it would count (never a zero, never an amber need you nobody has read).
   const steps = isUnread(state, 'steps');
   const arms = steps || isUnread(state, 'tracks');
-  const probe = isUnread(state, 'doctor') ? <span>belay doctor · not read yet</span> : <span className={age.stale ? styles.stale : undefined}>{age.text}</span>;
+  const probe = isUnread(state, 'doctor') ? <span>afterlife doctor · not read yet</span> : <span className={age.stale ? styles.stale : undefined}>{age.text}</span>;
   if (!arms) {
     return (
       <>

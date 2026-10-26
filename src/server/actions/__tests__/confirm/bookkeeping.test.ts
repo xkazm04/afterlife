@@ -1,4 +1,4 @@
-// A command GitLab ran is never reported as one that failed. If Belay's own record of it (commands_run) cannot be
+// A command GitLab ran is never reported as one that failed. If Afterlife's own record of it (commands_run) cannot be
 // finished after GitLab answered, the confirm has no answer to give, and says so as no answer ("may or may not have run"),
 // never as "Failed · command 1: <the index's error>. Nothing before it ran.", which reads as safe to send again.
 import type { PGlite } from '@electric-sql/pglite';
@@ -59,8 +59,8 @@ describe('a write whose poll or read-back failed after GitLab answered', () => {
       const r = await confirmIntent({ ...deps, refresh: () => Promise.reject(new Error('poll 502')) }, revoke, p.preview.previewId);
       expect(r.status).toBe('done');
       const said = log.mock.calls.map((c) => c.map((x) => (x instanceof Error ? x.message : String(x))).join(' '));
-      expect(said.filter((l) => l.startsWith('belay:') && l.includes('poll 502'))).toHaveLength(1);
-      expect(said.filter((l) => l.startsWith('belay:') && l.includes('read-back 503'))).toHaveLength(1);
+      expect(said.filter((l) => l.startsWith('afterlife:') && l.includes('poll 502'))).toHaveLength(1);
+      expect(said.filter((l) => l.startsWith('afterlife:') && l.includes('read-back 503'))).toHaveLength(1);
     } finally {
       log.mockRestore();
     }

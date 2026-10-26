@@ -37,7 +37,7 @@ const PROPOSAL: Proposal = {
 const res = (kind: ProbeResult['kind'], status: ProbeResult['status'], data?: Record<string, string>, args: Record<string, string> = {}): ProbeResult => ({ kind, args, status, summary: '', at: NOW.toISOString(), ms: 1, ...(data ? { data } : {}) });
 
 function fixture(): string {
-  root = mkdtempSync(path.join(tmpdir(), 'belay-confirm-'));
+  root = mkdtempSync(path.join(tmpdir(), 'afterlife-confirm-'));
   mkdirSync(path.join(root, 'release-log'));
   return root;
 }

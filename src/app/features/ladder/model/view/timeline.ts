@@ -23,7 +23,7 @@ export interface AxisGap {
   width: number;
   /** Where the caption sits. */
   mid: number;
-  /** "Belay 12 s late", "Belay 1 h late". */
+  /** "Afterlife 12 s late", "Afterlife 1 h late". */
   label: string;
 }
 
@@ -38,7 +38,7 @@ export interface Axis {
 const clock = (t: string, span: number): string => (span > 3600 ? t.slice(0, 5) : t.slice(3));
 
 /**
- * Lay out timed events (at least two) on the axis, oldest first whatever order they came in. The first Belay poll after
+ * Lay out timed events (at least two) on the axis, oldest first whatever order they came in. The first Afterlife poll after
  * another event draws the gap.
  */
 export function layoutAxis(entries: readonly LedgerEntry[]): Axis {
@@ -58,13 +58,13 @@ export function layoutAxis(entries: readonly LedgerEntry[]): Axis {
   }));
 
   let gap: AxisGap | null = null;
-  const bi = events.findIndex((e) => e.kind === 'belay');
+  const bi = events.findIndex((e) => e.kind === 'afterlife');
   if (bi > 0) {
     const from = secs[bi - 1] ?? lo;
     const to = secs[bi] ?? hi;
     const a = x(from);
     const b = x(to);
-    gap = { left: a, width: b - a, mid: (a + b) / 2, label: `Belay ${formatAge(to - from)} late` };
+    gap = { left: a, width: b - a, mid: (a + b) / 2, label: `Afterlife ${formatAge(to - from)} late` };
   }
   return { points, gap, span };
 }

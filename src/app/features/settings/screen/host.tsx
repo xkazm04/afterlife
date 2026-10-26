@@ -87,7 +87,7 @@ function AboutFrame() {
 }
 
 const label = (page: Page): string => SETTINGS_PAGES.find((p) => p.key === page)?.label ?? SETTINGS_COPY[page].title;
-const title = (page: Page) => () => `Belay Settings ${label(page)}`;
+const title = (page: Page) => () => `Afterlife · Settings · ${label(page)}`;
 
 export const screens: readonly ScreenDef[] = [
   { key: 'settings/display', ready: true, slices: [], Frame: DisplayFrame, title: title('display') },

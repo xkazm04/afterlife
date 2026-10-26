@@ -50,6 +50,6 @@ export const screens: readonly ScreenDef[] = [
     ready: true,
     slices: ['core', 'estate', 'estateCycles'],
     Frame: CyclesFrame,
-    title: () => 'Belay Cycles',
+    title: () => 'Afterlife · Cycles',
   },
 ];

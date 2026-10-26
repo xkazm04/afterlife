@@ -1,4 +1,4 @@
-// `belay run` lands here (cli/belay.mjs runs this through tsx): parse flags, print what is about to be
+// `afterlife run` lands here (cli/belay.mjs runs this through tsx): parse flags, print what is about to be
 // spent, stop there on --dry-run, otherwise run the waves and narrate each event. Exit 2 = bad usage.
 import { RUN_DEFAULTS, loadFleet, runWaves, type RunOptions } from './index';
 import { MODEL_TOKEN } from './agent/spawn';
@@ -11,12 +11,12 @@ import { defaultFleetFile, refRefusal, runCaps } from './wave/runWaves';
 // until the next run on the repo removes them (git/worktree.ts claimOwnWorktrees); nothing was pushed.
 for (const sig of ['SIGINT', 'SIGTERM'] as const) {
   process.once(sig, () => {
-    console.error(`belay run: ${sig}, stopping every lane`);
+    console.error(`afterlife run: ${sig}, stopping every lane`);
     void killAll().finally(() => process.exit(130));
   });
 }
 
-const USAGE = 'usage: belay run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--mode execute|propose] [--base ref | --onto branch] [--ideas scan,lens-scan] [--skip-base-gates] [--dry-run]';
+const USAGE = 'usage: afterlife run --repo <slug> [--waves n] [--lanes n] [--lane-cap usd] [--wave-cap usd] [--model m] [--fleet file] [--mode execute|propose] [--base ref | --onto branch] [--ideas scan,lens-scan] [--skip-base-gates] [--dry-run]';
 
 /** The flags USAGE names. Anything else is bad usage: a misspelt cap (`--lane-caps 1`) must not run at the default. */
 const SWITCHES = new Set(['--dry-run', '--skip-base-gates']);
@@ -59,7 +59,7 @@ async function main(argv: string[]): Promise<number> {
   const mode = f.get('--mode') ?? 'execute';
   const ideas = f.has('--ideas') ? parseIdeaSources(f.get('--ideas') ?? '') : [];
   if ((mode !== 'execute' && mode !== 'propose') || !ideas || (f.has('--onto') && f.has('--base'))) {
-    console.error(`${USAGE}\nbelay run: --mode is execute or propose, --ideas a comma list of scan and lens-scan, and --onto is never given with --base`);
+    console.error(`${USAGE}\nafterlife run: --mode is execute or propose, --ideas a comma list of scan and lens-scan, and --onto is never given with --base`);
     return 2;
   }
   const opts: RunOptions = {
@@ -77,29 +77,29 @@ async function main(argv: string[]): Promise<number> {
     ...(ideas.length ? { ideas } : {}),
   };
   if ([opts.waves, opts.lanes, opts.laneCapUsd, opts.waveCapUsd].some(Number.isNaN)) {
-    console.error(`${USAGE}\nbelay run: --waves and --lanes must be whole numbers above 0, caps positive numbers`);
+    console.error(`${USAGE}\nafterlife run: --waves and --lanes must be whole numbers above 0, caps positive numbers`);
     return 2;
   }
   // claudeArgs refuses it too, but only at the plan call: after the base gates, minutes in.
   if (!MODEL_TOKEN.test(opts.model)) {
-    console.error(`${USAGE}\nbelay run: --model must be a plain model id (sonnet, claude-sonnet-5-5)`);
+    console.error(`${USAGE}\nafterlife run: --model must be a plain model id (sonnet, claude-sonnet-5-5)`);
     return 2;
   }
   let fleetRepo;
   try {
     fleetRepo = loadFleet(opts.fleet as string).find((r) => r.slug === repo);
   } catch (e) {
-    console.error(`belay run: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`afterlife run: ${e instanceof Error ? e.message : String(e)}`);
     return 2;
   }
   if (!fleetRepo) {
-    console.error(`belay run: repo "${repo}" is not in ${opts.fleet}`);
+    console.error(`afterlife run: repo "${repo}" is not in ${opts.fleet}`);
     return 2;
   }
   // A bad --base, or an --onto branch that is missing or checked out somewhere, stops here: nothing has run yet.
   const refused = await refRefusal(fleetRepo.path, opts);
   if (refused) {
-    console.error(`belay run: ${refused}`);
+    console.error(`afterlife run: ${refused}`);
     return 2;
   }
   const { laneCapUsd: laneCap, waveCapUsd: waveCap } = runCaps(opts, fleetRepo);
@@ -118,7 +118,7 @@ main(process.argv.slice(2)).then(
     process.exitCode = code;
   },
   (e) => {
-    console.error(`belay run: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`afterlife run: ${e instanceof Error ? e.message : String(e)}`);
     process.exitCode = 1;
   },
 );

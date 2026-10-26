@@ -14,7 +14,7 @@ import { armOf, NOT_DEFINED, type ArmPin, type TrackArm } from './content';
 
 export const CI_FILE = '.gitlab-ci.yml';
 
-const MR_LABEL = 'belay::arm';
+const MR_LABEL = 'belay::arm'; // wire name: the label scope on arm MRs already open in GitLab
 
 export function trackArm(track: string): TrackArm {
   const a = armOf(track);
@@ -31,7 +31,7 @@ export interface Target {
 
 /**
  * The paired target project, by its index id: plans/context.ts targetIn, the rule every write uses (never ambiguous, never
- * one of Belay's own `infra`, never a project shared in from outside the group). Read only.
+ * one of Afterlife's own `infra`, never a project shared in from outside the group). Read only.
  */
 export async function targetOf(ctx: Pick<PlanContext, 'port' | 'groupId' | 'gitlabId'>, indexId: string, infra: readonly string[]): Promise<Target> {
   const { project, group } = await targetIn(ctx, indexId, infra);
@@ -39,7 +39,7 @@ export async function targetOf(ctx: Pick<PlanContext, 'port' | 'groupId' | 'gitl
 }
 
 function pinFor(ctx: PlanContext): ArmPin {
-  if (!ctx.arm) throw new ActionRefused("Belay's environment gives no arm settings: nothing is planned");
+  if (!ctx.arm) throw new ActionRefused("Afterlife's environment gives no arm settings: nothing is planned");
   if (!ctx.arm.ok) throw new ActionRefused(ctx.arm.reason);
   return ctx.arm.pin;
 }
@@ -56,7 +56,7 @@ async function noOpenMr(ctx: PlanContext, t: Target, branch: string): Promise<vo
 }
 
 const description = (ctx: PlanContext, what: string, notes: readonly string[]): string =>
-  [`Prepared by Belay for ${ctx.operator}.`, what, ...(notes.length ? [notes.map((n) => `- ${n}`).join('\n')] : []), 'A person merges this; Belay never does.'].join('\n\n');
+  [`Prepared by Afterlife for ${ctx.operator}.`, what, ...(notes.length ? [notes.map((n) => `- ${n}`).join('\n')] : []), 'A person merges this; Afterlife never does.'].join('\n\n');
 
 export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan> {
   const a = trackArm(intent.track);
@@ -77,7 +77,7 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   await noOpenMr(ctx, t, branch);
   const ins = insertBlock(file.content, a, t.group, pin, at);
   if (!ins.ok) throw new ActionRefused(ins.reason);
-  if (!holdsBlock(ins.content, wanted)) throw new ActionRefused(`Belay could not add ${a.track}'s lines to ${CI_FILE} without breaking it: nothing is planned`);
+  if (!holdsBlock(ins.content, wanted)) throw new ActionRefused(`Afterlife could not add ${a.track}'s lines to ${CI_FILE} without breaking it: nothing is planned`);
 
   const stages = wanted.map((w) => `${w.component} in ${at[w.component] ?? '?'}`).join(', ');
   const what = `Adds ${a.track}'s include lines (${stages}) to ${CI_FILE}, between belay:arm markers. Disarm opens an MR that removes exactly these lines.`;
@@ -94,7 +94,7 @@ export async function planArm(ctx: PlanContext, intent: ArmTrack): Promise<Plan>
   };
 }
 
-const DISARM_NOTE = "Disarm removes the include lines only. BELAY_BOT_TOKEN lives on belay-apply, never on this project: to stop Belay writing here, remove the project from belay-apply's apply.json yourself.";
+const DISARM_NOTE = "Disarm removes the include lines only. AFTERLIFE_BOT_TOKEN lives on belay-apply, never on this project: to stop Afterlife writing here, remove the project from belay-apply's apply.json yourself.";
 
 export async function planDisarm(ctx: PlanContext, intent: DisarmTrack): Promise<Plan> {
   const a = trackArm(intent.track);
@@ -102,7 +102,7 @@ export async function planDisarm(ctx: PlanContext, intent: DisarmTrack): Promise
   const file = await ciFile(ctx, t, `there is no ${a.track} block to revert`);
   const rm = removeBlock(file.content, a);
   if (!rm.ok && rm.found.state === 'absent') throw new ActionRefused(`${a.track} is not armed on ${t.base}: ${CI_FILE} has no ${a.track} block, so there is nothing to revert`);
-  if (!rm.ok) throw new ActionRefused(`the ${a.track} block on ${t.base} was edited after it was added: Belay removes only exactly what it added, so revert it by hand`);
+  if (!rm.ok) throw new ActionRefused(`the ${a.track} block on ${t.base} was edited after it was added: Afterlife removes only exactly what it added, so revert it by hand`);
   const branch = `belay/disarm-${a.key}`;
   await noOpenMr(ctx, t, branch);
   const title = `Disarm ${a.track} ${a.key}: revert its arm block`;

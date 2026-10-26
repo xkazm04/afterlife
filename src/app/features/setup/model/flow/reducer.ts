@@ -6,7 +6,7 @@ import type { ArmState, DoctorRow, SetupState, StepState } from '../types';
 import { markRead, toCapStatus, recomputeLocks } from './state';
 import type { Verdict } from './verify';
 
-/** Every change to the setup. Probes are the only thing that moves a step to done; Belay writes only on a click. */
+/** Every change to the setup. Probes are the only thing that moves a step to done; Afterlife writes only on a click. */
 export type SetupAction =
   | { t: 'probe-start'; n: number }
   | { t: 'probe-end'; n: number; at: string }
@@ -17,7 +17,7 @@ export type SetupAction =
   | { t: 'verify-end'; id: string; verdict: Verdict }
   | { t: 'doctor-start' }
   | { t: 'doctor-end'; now: number; at: string }
-  /** Live: what the belay doctor's probe read (or, `doctor: null`, that the re-probe was refused or unanswered, and why). */
+  /** Live: what the doctor's probe read (or, `doctor: null`, that the re-probe was refused or unanswered, and why). */
   | { t: 'doctor-read'; doctor: DoctorRead | null; reason?: string; at?: ReadStamp }
   /** Live: what the read of the target's main saw for each track (the screen host's tracks slice, or a re-read). */
   | { t: 'tracks-read'; tracks: Readonly<Record<string, TrackRead>> }

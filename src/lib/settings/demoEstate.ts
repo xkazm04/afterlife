@@ -6,7 +6,9 @@ export const DEMO_ESTATES = ['auto', 'on', 'off'] as const;
 export type DemoEstate = (typeof DEMO_ESTATES)[number];
 
 export const DEFAULT_DEMO_ESTATE: DemoEstate = 'auto';
-export const DEMO_ESTATE_COOKIE = 'belay.demoEstate';
+export const DEMO_ESTATE_COOKIE = 'afterlife.demoEstate';
+/** The cookie's pre-rename name, kept so a saved switch survives the rename: read when the new one is unset, then expired. */
+export const OLD_DEMO_ESTATE_COOKIE = 'belay.demoEstate';
 const YEAR_SEC = 365 * 24 * 3600;
 
 export const DEMO_ESTATE_LABEL: Record<DemoEstate, string> = { auto: 'Auto', on: 'On', off: 'Off' };
@@ -47,3 +49,9 @@ export const enterHref = (real: number): string => (real > 0 ? '/vitals' : '/fle
 export function demoEstateCookie(setting: DemoEstate): string {
   return `${DEMO_ESTATE_COOKIE}=${setting}; path=/; max-age=${YEAR_SEC}; samesite=lax`;
 }
+
+/** The cookie value the switch writes beside the new one: the pre-rename cookie, expired (written once, read never again). */
+export const expiredOldDemoEstateCookie = (): string => `${OLD_DEMO_ESTATE_COOKIE}=; path=/; max-age=0; samesite=lax`;
+
+/** The setting from a cookie jar: the new name, else the pre-rename one (a switch saved before the rename). */
+export const demoEstateFrom = (get: (name: string) => string | undefined): string | undefined => get(DEMO_ESTATE_COOKIE) ?? get(OLD_DEMO_ESTATE_COOKIE);

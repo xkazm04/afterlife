@@ -40,12 +40,12 @@ describe('Setup, a capability page: the probe section', () => {
   it('a doctor read that failed says "probe failed" with the reason, never the bare time of a fresh probe', () => {
     const html = page('glab: 401 Unauthorized');
     expect(html).toContain('probe failed 11:30');
-    expect(html).toContain('belay doctor: glab: 401 Unauthorized');
+    expect(html).toContain('afterlife doctor: glab: 401 Unauthorized');
     expect(html).toContain('available · last good read');
   });
 
   it('a probe that failed with no rows has no last good read to show: the status is unknown, said plainly', () => {
-    const html = page('belay doctor failed: glab not found', []);
+    const html = page('afterlife doctor failed: glab not found', []);
     expect(html).toContain('probe failed 11:30');
     expect(html).not.toContain('last good read');
     expect(html).toContain('>unknown<');

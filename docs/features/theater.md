@@ -6,7 +6,7 @@
 - Plays one of three films (precedence and details: `src/app/features/theater/README.md`): the **live film** of a
   running runner wave (`live/`, polled from `GET /api/runs`), the **real film** of the deep project's own
   belay-ledger (one take per MR, the 8 newest; `?mr=N` films MR N first), or, with no MR in the ledger and always in
-  demo mode, the **illustrative film** below. The submission film is shot from the illustrative one (`BELAY_MODE=demo`).
+  demo mode, the **illustrative film** below. The submission film is shot from the illustrative one (`AFTERLIFE_MODE=demo`).
 - The illustrative film is an invented ledger slice (seq 480-520, 41 entries; no run recorded it) played as the `!41`
   patch climbing nine holds:
   finding, red test, patch and Proof Block, guardrail and merge, staging and QA, production and summary, then the
@@ -23,7 +23,7 @@
   opens it as a sheet on either film. It picks the fleet repo, Propose only (plans the lanes, changes nothing) or Execute
   (lanes edit, run the gates, commit what passes), a new branch from a base ref or an existing branch (a branch checked
   out in a worktree is listed disabled), waves, lanes, caps, model and ideas (scan, lens-scan). Preview shows the server's
-  exact `belay run ...` and what it will and will not do; Start run spawns it detached and the screen goes to the live
+  exact `afterlife run ...` and what it will and will not do; Start run spawns it detached and the screen goes to the live
   film. A propose-only wave shows its plan's items as "proposed", never landed, parked or failed.
 - Keeps an address: the playhead writes `#seq=NNN`; opening `#seq=NNN` (or `?seq=NNN`) shows that entry's settled
   frame, paused.
@@ -35,7 +35,7 @@
   illustrative film's stages, tracks, loop, rungs and `!44` quote come from the catalogue (`DEMO`) only, in every mode,
   as `TheaterDemo`.
 - `data/ledger.ts` holds `REPLAY_LEDGER`: entries with `seq`, clock time, actor (`T1`-`T8`, `scanner`, `engine`,
-  `deploy`, `belay`), text, scene, dwell, and optional effects (`beat`, `rung`, `check`, `pass`, `fail`, `dem`,
+  `deploy`, `afterlife`), text, scene, dwell, and optional effects (`beat`, `rung`, `check`, `pass`, `fail`, `dem`,
   `tier`, `need`, `board`, `seeded`, `quote`). `data/constants.ts` holds takes, actor names, the five checks of `!41`,
   the initial tiers and rungs, the CRA anchor and the key list.
 - `model/derive/snapshots.ts` `buildSnapshots` is one pure fold over the slice that produces a snapshot per entry

@@ -16,7 +16,7 @@ Cut on 19 Oct 2026: `qa.yml` (T7) and `gardener.yml` (T8). The checkpoint failed
 | `cra.yml` | T2 | Work item, actions Created and Status changed (clock items) | work item note with a `belay-cra` block: statements with evidence links, `awaiting_signoff: true` | drafts hands-off, **submit is human only**; `linked-evidence` |
 | `gardener.yml` (cut 19 Oct 2026) | T8 | mention or assign by a person on an upgrade MR (no dispatch from belay-apply yet, so a bot's MR waits for a person) | its own MR (trailers, `belay-claims` block with quoted changelog claims) | supervised; `bench-delta` (engine stub today) |
 
-Flow results are ordinary GitLab objects, so Belay reads them by polling. No flow has a tool that merges, approves, labels, or
+Flow results are ordinary GitLab objects, so Afterlife reads them by polling. No flow has a tool that merges, approves, labels, or
 edits `tier-state.yml`; the toolsets are listed in each file and checked against the documented tool names.
 
 ## Output checking
@@ -29,7 +29,7 @@ JSON is not schema-enforced by the platform. It is checked afterwards, in CI, ag
 | `guardrail-verdict.schema.json` | `tier-gate` (via `fetch-block.mjs --schema`); the cited-diff proof then checks each quote against the diff |
 | `claims.schema.json` | `build-evidence.mjs` (patcher) |
 | `medic-verdict.schema.json` | `build-evidence.mjs` (rerun-stats) |
-| `qa-report.schema.json`, `cra-draft.schema.json`, `gardener-claims.schema.json` | nothing yet: no script or Belay reader reads a `belay-qa` or `belay-cra` block or the gardener's claims (`qa` and `gardener` are cut). They are design records of the shape a reader must check |
+| `qa-report.schema.json`, `cra-draft.schema.json`, `gardener-claims.schema.json` | nothing yet: no script or Afterlife reader reads a `belay-qa` or `belay-cra` block or the gardener's claims (`qa` and `gardener` are cut). They are design records of the shape a reader must check |
 
 A block that fails its schema is treated as inconclusive: a guardrail block like that **blocks**. A trusted note that carries two blocks of the tag is treated the same way: `fetch-block` exits 4 (F67, 9e56d7f).
 

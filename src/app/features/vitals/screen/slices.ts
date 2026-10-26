@@ -1,5 +1,5 @@
 // Vitals' slices for the screen stream (GET /api/screen/<key>, docs/features/screen-host.md). Both keys read this
-// machine's files (.belay/projects and the collected jsonl), so they answer only a request addressed to this machine
+// machine's files (.afterlife/projects and the collected jsonl), so they answer only a request addressed to this machine
 // (`local`); a refused one fails every slice with 'not-local' and the screen says so.
 //   vitals            config      - the saved projects from their configs (cheap: one yaml each), the first line;
 //                     runs        - per project, the stored CI runs' count and newest fetch (the ci-runs jsonl), and

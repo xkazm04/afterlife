@@ -12,7 +12,7 @@ export function Unreadable({ what, reason }: { what: string; reason: string }) {
     <div className={styles.notice} data-tone="bad" role="alert">
       {reason === NOT_LOCAL ? (
         <>
-          <b>Only on this machine.</b> Vitals reads the projects saved on the machine Belay runs on and collects through your own az and glab logins, so
+          <b>Only on this machine.</b> Vitals reads the projects saved on the machine Afterlife runs on and collects through your own az and glab logins, so
           it answers only a page opened there (localhost).
         </>
       ) : (

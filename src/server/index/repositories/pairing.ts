@@ -1,4 +1,4 @@
-// pairing: where Belay is paired. setup_step: what each setup step measured (by Belay's probes, never an agent's say-so).
+// pairing: where Afterlife is paired. setup_step: what each setup step measured (by Afterlife's probes, never an agent's say-so).
 import { asDate, toIso, upsertRows, type Queryable, registerSpec, type TableSpec } from './sql';
 
 export interface PairingRow {

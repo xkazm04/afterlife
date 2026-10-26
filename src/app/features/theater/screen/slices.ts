@@ -1,5 +1,5 @@
 // The Theater's slices for the screen stream (GET /api/screen/theater), in the order the window fills:
-//   live  - the runner's .belay/runs files as the live film's payload (readRuns: sync fs, fast); GET /api/runs serves the
+//   live  - the runner's .afterlife/runs files as the live film's payload (readRuns: sync fs, fast); GET /api/runs serves the
 //           same and the live film keeps polling it;
 //   start - the pre-run panel's data (the fleet's repos and their branches: git, kept 5 s; slow). Loopback only: it
 //           reads this machine's checkouts;

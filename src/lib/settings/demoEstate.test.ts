@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { APP_NAV } from '@/components/shell/sidebar/navItems';
-import { demoBannerShown, demoEstateCookie, enterHref, estateOf, navShown, parseDemoEstate } from './demoEstate';
+import { demoBannerShown, demoEstateCookie, demoEstateFrom, enterHref, estateOf, expiredOldDemoEstateCookie, navShown, parseDemoEstate } from './demoEstate';
 
 const shown = (setting: 'auto' | 'on' | 'off', real: number) => APP_NAV.filter((e) => navShown(e.key, estateOf(setting, real))).map((e) => e.key);
 
@@ -11,9 +11,9 @@ describe('demo estate', () => {
   it('auto is on with no real project and off once one exists; on and off force it', () => {
     expect([estateOf('auto', 0).demo, estateOf('auto', 1).demo, estateOf('on', 3).demo, estateOf('off', 0).demo]).toEqual([true, false, true, false]);
   });
-  it('off: the nav keeps the real tools (Vitals, Onboard, Trace, Runs) and hides every demo screen', () => {
-    expect(shown('auto', 1)).toEqual(['vitals', 'onboard', 'trace', 'runs']);
-    expect(shown('off', 0)).toEqual(['vitals', 'onboard', 'trace', 'runs']);
+  it('off: the nav keeps the real tools (Vitals, Set up, Runs) and hides every demo screen', () => {
+    expect(shown('auto', 1)).toEqual(['vitals', 'start', 'runs']);
+    expect(shown('off', 0)).toEqual(['vitals', 'start', 'runs']);
   });
   it('on, or not read yet: every screen', () => {
     expect(shown('on', 2)).toEqual(APP_NAV.map((e) => e.key));
@@ -32,6 +32,13 @@ describe('demo estate', () => {
     expect([enterHref(0), enterHref(1)]).toEqual(['/fleet', '/vitals']);
   });
   it('the cookie is app-wide and long-lived', () => {
-    expect(demoEstateCookie('off')).toBe('belay.demoEstate=off; path=/; max-age=31536000; samesite=lax');
+    expect(demoEstateCookie('off')).toBe('afterlife.demoEstate=off; path=/; max-age=31536000; samesite=lax');
+  });
+  it('a switch saved before the rename still reads, the new name wins, and the switch expires the old cookie', () => {
+    const jar = (c: Record<string, string>) => (name: string) => c[name];
+    expect(demoEstateFrom(jar({ 'belay.demoEstate': 'off' }))).toBe('off');
+    expect(demoEstateFrom(jar({ 'belay.demoEstate': 'off', 'afterlife.demoEstate': 'on' }))).toBe('on');
+    expect(demoEstateFrom(jar({}))).toBeUndefined();
+    expect(expiredOldDemoEstateCookie()).toBe('belay.demoEstate=; path=/; max-age=0; samesite=lax');
   });
 });

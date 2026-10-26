@@ -39,20 +39,20 @@ describe('src/app holds no hand-written write to belay-policy', () => {
 
 // A gap is opened through the server's gap door (stage-gap-mr): one commit per file, a draft MR labelled maturity::gap. A screen
 // that spelled `glab mr create` or a commit to repository/commits drifted from it in commit shape, base branch, title and
-// work-item link, and `belay probe` is a command that does not exist. `belay scan` is not listed: cli/belay.mjs has it now,
+// work-item link, and `afterlife probe` (or the old `belay probe`) is a command that does not exist. `afterlife scan` is not listed: cli/belay.mjs has it now,
 // and it only reads (a day-0 scan of a checkout), so a screen may show it as the read it is.
 const HAND_WRITTEN_GAP: readonly [string, RegExp][] = [
   ['a glab mr create', /\bglab mr create\b/],
   ['a commit through glab api to repository/commits', /repository\/commits/],
   ['a glab issue create', /\bglab issue create\b/],
-  ['a belay probe', /\bbelay probe\b/],
+  ['a probe command', /\b(?:afterlife|belay) probe\b/],
   // A real project's writes are the server's previews (actions/vitals): queue-runs, enable-app-insights.
   ['an az pipelines run', /\baz pipelines (run|build queue)\b/],
   ['an App Insights component create', /\bapp-insights component create\b/],
   ['an App Service app setting write', /\bwebapp config appsettings set\b/],
-  // A cycle run is started through the server's preview (runs/start, startRunAction): its exact `belay run` line is the
+  // A cycle run is started through the server's preview (runs/start, startRunAction): its exact `afterlife run` line is the
   // server's. The Runs screen's empty-state hint names no repo (`--repo <slug>`), so it is not a run anyone could send.
-  ['a belay run command for a named repo', /\bbelay run --repo [A-Za-z0-9]/],
+  ['an afterlife run command for a named repo', /\b(?:afterlife|belay) run --repo [A-Za-z0-9]/],
 ];
 
 /**

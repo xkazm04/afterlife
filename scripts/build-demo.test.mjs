@@ -15,7 +15,7 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 
 /** Runs the script in a scratch tree, each source first passed through `edit(rel, text)`; returns the JSON text. */
 function build(edit = (_rel, text) => text) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-demo-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-demo-'));
   try {
     fs.mkdirSync(path.join(tmp, 'scripts/demo'), { recursive: true });
     fs.mkdirSync(path.join(tmp, 'src/lib/demo/data'), { recursive: true });

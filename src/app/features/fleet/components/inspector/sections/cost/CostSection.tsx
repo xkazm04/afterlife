@@ -21,7 +21,7 @@ export function CostSection({ id, cost }: { id: string; cost: CostJoin | null | 
   else if (!c) {
     body = (
       <div className={styles.imp}>
-        <p>Not metered: no repo in .belay/fleet.yml names this project (a gitlab: path, or a slug equal to {id}).</p>
+        <p>Not metered: no repo in .afterlife/fleet.yml names this project (a gitlab: path, or a slug equal to {id}).</p>
         <NotInFleet unmatched={cost.unmatched} />
       </div>
     );

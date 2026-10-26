@@ -26,7 +26,7 @@ function SetupNodeFrame({ params }: { params: Readonly<Record<string, string>> }
 }
 
 export const screens: readonly ScreenDef[] = [
-  { key: 'setup', ready: true, slices: SETUP_SLICES, Frame: SetupFrame, Session: SetupSession, title: () => 'Belay Setup' },
+  { key: 'setup', ready: true, slices: SETUP_SLICES, Frame: SetupFrame, Session: SetupSession, title: () => 'Afterlife · Setup' },
   {
     key: 'setup/[node]',
     ready: true,
@@ -35,7 +35,7 @@ export const screens: readonly ScreenDef[] = [
     paramSlices: ['catalogue'],
     Frame: SetupNodeFrame,
     Session: SetupSession,
-    title: (p) => `Belay Setup ${p.node ?? ''}`,
+    title: (p) => (p.node ? `Afterlife · Setup · ${p.node}` : 'Afterlife · Setup'),
     NotFound: SetupNodeNotFound,
   },
 ];

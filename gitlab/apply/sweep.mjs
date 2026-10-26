@@ -1,4 +1,4 @@
-// belay-apply's MR sweep: the only place a Belay write to an agent MR happens (F4, decided 2026-10-07, ask 6696d24d).
+// belay-apply's MR sweep: the only place an Afterlife write to an agent MR happens (F4, decided 2026-10-07, ask 6696d24d).
 // For each open agent MR of each target of the paired group, it reads everything from GitLab with its own token, re-derives
 // the Proof Block with its own pinned engine, runs the gate itself, and applies the result with the components' own write
 // scripts (post-proof, apply-gate, ledger-append, dispatch), so every note is byte-identical to the one CI used to post.
@@ -8,10 +8,11 @@
 //
 // Once per project, MR and head (a second sweep writes nothing), by reading back what the bot already wrote:
 //   proof    the bot's newest belay-proof note, if its task.head_sha = head (else it is posted again, F62)
-//   gate     a bot "**Belay gate:" note newer than that proof note and not forced for another head, or a forced wait or
-//            block whose first reason names the head (F61)
+//   gate     a bot "**Afterlife gate:" note (or its pre-rename "**Belay gate:" form) newer than that proof note and not
+//            forced for another head, or a forced wait or block whose first reason names the head (F61)
 //   ledger   a belay-ledger commit of events/<project>.jsonl carrying `Belay-Head: <project>!<iid>@<head>`
-//   dispatch a bot note "**Belay: guardrail review requested** for head `<head>`" (the Flows API lists no runs)
+//   dispatch a bot note "**Afterlife: guardrail review requested** for head `<head>`", or its pre-rename Belay form (the
+//            Flows API lists no runs)
 // One write is not once per head: an auto-merge the bot set is cancelled whenever the gate, re-run against the live
 // tier-state.yml, no longer says merge (F74), and an approval the bot gave is withdrawn whenever it says neither approve
 // nor merge (F89), so a revoke or a tripwire demotion reaches an MR the gate already approved or set. Every tier_decision
@@ -19,7 +20,7 @@
 // (`Belay-Head: <key>/withdrawn@<rev>`), as a tier_decision stating what was withdrawn: the poller reads both to say where
 // a revoke was enforced. A forced gate decides no tier, so a withdrawal on a forced path is not ledgered.
 // Fails closed: a failed read stops that MR's writes with GitLab's message, the other MRs go on, and the job ends red.
-// Without BELAY_BOT_TOKEN, or without BELAY_LEDGER_TOKEN, it only reports, as M1 did: the bot token never writes the ledger.
+// Without AFTERLIFE_BOT_TOKEN, or without AFTERLIFE_LEDGER_TOKEN, it only reports, as M1 did: the bot token never writes the ledger.
 //
 // Usage: node sweep.mjs --config apply.json [--policy-remote <url|path>] [--work .belay]
 import fs from 'node:fs';
@@ -30,12 +31,13 @@ import { engine } from '../components/scripts/lib/engine.mjs';
 import { fileHead, readFile } from '../components/scripts/lib/repo-write.mjs';
 import { diffOf } from '../components/scripts/hand/facts.mjs';
 import { ledgerHeads } from '../components/scripts/hand/ledgered.mjs';
+import { envOf } from '../components/scripts/lib/env.mjs';
 import { touchesCi } from './ci-touch.mjs';
-import { clonePolicy, glue, loadConfig, targetsOf, tokens } from './lib.mjs';
+import { clonePolicy, glue, loadConfig, targetsOf, token, tokens } from './lib.mjs';
 
 const cfg = loadConfig(need('config'));
 const work = path.resolve(arg('work', '.belay'));
-const MISSING = ['BELAY_BOT_TOKEN', 'BELAY_LEDGER_TOKEN'].filter((v) => !process.env[v]);
+const MISSING = ['BOT_TOKEN', 'LEDGER_TOKEN'].filter((k) => !token(k)).map((k) => `AFTERLIFE_${k}`);
 const WRITE = MISSING.length === 0;
 const SCHEMAS = path.resolve(import.meta.dirname, '..', 'flows', 'schemas');
 const FINISHED = new Set(['success', 'failed', 'canceled', 'skipped']);
@@ -64,18 +66,20 @@ function raw(p) {
   }
 }
 
-const GATE = '**Belay gate: ';
+// The bot's gate notes, read back so each is written once: the pre-rename Belay form still counts (notes on open MRs).
+const GATE = /^\*\*(?:Afterlife|Belay) gate: /;
+const isGate = (body, decision = '') => GATE.test(body) && body.replace(GATE, '').startsWith(decision);
 /**
  * A forced gate note as apply-gate writes it: its first reason starts with the head it was forced for. Matched at that
  * place only: a reason further on can quote any sha (an agent can name a file after its next head, F61).
  */
-const FORCED = /^\*\*Belay gate: ([A-Z]+)\*\* \| tier `unknown`\n- head ([0-9a-f]{40}): /;
+const FORCED = /^\*\*(?:Afterlife|Belay) gate: ([A-Z]+)\*\* \| tier `unknown`\n- head ([0-9a-f]{40}): /;
 const forcedFor = (n) => {
   const m = FORCED.exec(n.body);
   return m ? { decision: m[1], head: m[2] } : null;
 };
 const INCONCLUSIVE = 'the guardrail verdict does not match its schema, or its note carries two of them: treated as inconclusive';
-const dispatchMark = (head) => `**Belay: guardrail review requested** for head \`${head}\``;
+const dispatchMark = (head, product = 'Afterlife') => `**${product}: guardrail review requested** for head \`${head}\``;
 
 /** One agent MR. Returns nothing; throws on a failed read (no write follows it). */
 function sweepMr(t, iid) {
@@ -86,19 +90,21 @@ function sweepMr(t, iid) {
   const ctx = glue('proof/mr-context.mjs', ['--mr', String(iid), '--agent-prefix', cfg.agentPrefix, '--out', path.join(dir, 'mr.env')], base);
   if (ctx.code === 10) return; // not an agent MR with a Belay-Task trailer: the existing rule (mr-context.mjs)
   if (ctx.code !== 0) throw new Error(`mr-context exited ${ctx.code}`);
-  const mr = Object.fromEntries(fs.readFileSync(path.join(dir, 'mr.env'), 'utf8').split('\n').filter(Boolean).map((l) => l.split(/=(.*)/s).slice(0, 2)));
-  const head = mr.BELAY_HEAD_SHA;
+  const file = Object.fromEntries(fs.readFileSync(path.join(dir, 'mr.env'), 'utf8').split('\n').filter(Boolean).map((l) => l.split(/=(.*)/s).slice(0, 2)));
+  // mr-context writes each fact as AFTERLIFE_<key> (and BELAY_<key> for an older reader): read under either name.
+  const mr = Object.fromEntries(['TASK_ID', 'ACTION_CLASS', 'AGENT', 'BASE_SHA', 'HEAD_SHA'].map((k) => [k, envOf(file, k)]));
+  const head = mr.HEAD_SHA;
   const tag = `${t.path_with_namespace}!${iid}@${head.slice(0, 12)}`;
-  const env = { ...base, BELAY_MR_IID: String(iid), BELAY_TASK_ID: mr.BELAY_TASK_ID, BELAY_ACTION_CLASS: mr.BELAY_ACTION_CLASS, BELAY_AGENT: mr.BELAY_AGENT, BELAY_HEAD_SHA: head, BELAY_BASE_SHA: mr.BELAY_BASE_SHA };
+  const env = { ...base, AFTERLIFE_MR_IID: String(iid), AFTERLIFE_TASK_ID: mr.TASK_ID, AFTERLIFE_ACTION_CLASS: mr.ACTION_CLASS, AFTERLIFE_AGENT: mr.AGENT, AFTERLIFE_HEAD_SHA: head, AFTERLIFE_BASE_SHA: mr.BASE_SHA };
 
   // Reads first, all of them; a write follows only when every read answered.
   const m = api(`projects/${t.id}/merge_requests/${iid}`);
   if (String(m.diff_refs?.head_sha ?? m.sha) !== head) throw new Error('the MR moved while it was being read');
   // Only an MR into the default branch (F78): into any other branch its base may be the agent's own code, so base-red
   // would be the agent's to make, and the tier says nothing about that branch.
-  if (!t.default_branch || m.target_branch !== t.default_branch) return say(`${tag}: it targets ${m.target_branch}, not the default branch ${t.default_branch ?? '(unknown)'}: Belay gates only MRs into ${t.default_branch ?? 'the default branch'}`);
+  if (!t.default_branch || m.target_branch !== t.default_branch) return say(`${tag}: it targets ${m.target_branch}, not the default branch ${t.default_branch ?? '(unknown)'}: Afterlife gates only MRs into ${t.default_branch ?? 'the default branch'}`);
   const notes = [...trustedNotes(t.id, iid, cfg.bot)];
-  const { text: diff, changed } = diffOf(t.id, mr.BELAY_BASE_SHA, head); // paths quoted as git quotes them (F127)
+  const { text: diff, changed } = diffOf(t.id, mr.BASE_SHA, head); // paths quoted as git quotes them (F127)
   const diffFile = path.join(dir, 'diff.patch');
   fs.writeFileSync(diffFile, diff);
   const ci = touchesCi({ changed, project: t, readAt: (p) => readFile(t.id, p, head) });
@@ -109,7 +115,7 @@ function sweepMr(t, iid) {
     '--schema', path.join(SCHEMAS, 'guardrail-verdict.schema.json'), '--out', guardrailFile, '--gate-out', path.join(dir, 'guardrail-gate.json')], env, dir);
   if (![0, 3, 4].includes(gr.code)) throw new Error(`reading the guardrail verdict failed (exit ${gr.code})`);
   const guardBlocked = gr.code === 0 && JSON.parse(fs.readFileSync(guardrailFile, 'utf8')).verdict === 'block';
-  const actionClass = mr.BELAY_ACTION_CLASS;
+  const actionClass = mr.ACTION_CLASS;
 
   // The ledger's record of this head, read once when first asked: like every other read, before the first write.
   const ledgerKey = `${t.id}!${iid}@${head}`;
@@ -120,7 +126,7 @@ function sweepMr(t, iid) {
   const ledgered = (key) => (heads ??= ledgerHeads({ ledgerProject: cfg.ledger.project, branch: cfg.ledger.branch, projectId: t.id, mr: m }))(key);
   const appendLedger = (events, keys) => {
     const l = glue('decide/ledger-append.mjs', ['--events', events, '--project', cfg.ledger.project, '--branch', cfg.ledger.branch, '--path', ledgerFile,
-      ...keys.flatMap((k) => ['--key', k]), '--write-token-var', 'BELAY_LEDGER_TOKEN'], { ...env, ...tokens('BELAY_LEDGER_TOKEN') }, dir);
+      ...keys.flatMap((k) => ['--key', k]), '--write-token-var', 'AFTERLIFE_LEDGER_TOKEN'], { ...env, ...tokens('LEDGER_TOKEN') }, dir);
     if (l.code !== 0) throw new Error(`ledger-append exited ${l.code}`);
   };
 
@@ -146,7 +152,7 @@ function sweepMr(t, iid) {
   // names its head itself. A gate note made for another head never stands for this one (F62).
   const lastProof = notes.find((n) => blocks(n.body, 'belay-proof').length > 0);
   const proofNote = lastProof && blocks(lastProof.body, 'belay-proof').some((b) => b?.task?.head_sha === head) ? lastProof : undefined;
-  const gateDone = Boolean(proofNote) && notes.some((n) => n.id > proofNote.id && n.body.startsWith(GATE) && (forcedFor(n)?.head ?? head) === head);
+  const gateDone = Boolean(proofNote) && notes.some((n) => n.id > proofNote.id && isGate(n.body) && (forcedFor(n)?.head ?? head) === head);
   /**
    * A gate the engine did not decide: a note that names the head, applied once per decision and head. A guardrail block for
    * this head makes it a block and sets guardrail::block, whatever else is missing (M2's 12 Oct bar); guardrail::pass is set
@@ -170,7 +176,7 @@ function sweepMr(t, iid) {
     for (const n of [...notes].sort((a, b) => a.id - b.id)) {
       const p = blocks(n.body, 'belay-proof').find((b) => typeof b?.task?.head_sha === 'string');
       if (p) proofHead = p.task.head_sha;
-      else if (n.body.startsWith(`${GATE}APPROVE**`) && proofHead && proofHead !== head) return true;
+      else if (isGate(n.body, 'APPROVE**') && proofHead && proofHead !== head) return true;
     }
     return false;
   })();
@@ -181,7 +187,7 @@ function sweepMr(t, iid) {
     if (!WRITE) return;
     api(`projects/${t.id}/merge_requests/${iid}/cancel_merge_when_pipeline_succeeds`, { method: 'POST' });
     withdrawn.push('auto_merge');
-    glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Belay: auto-merge cancelled** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
+    glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Afterlife: auto-merge cancelled** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
   };
   let approvedByBot;
   const botApproved = () => {
@@ -199,7 +205,7 @@ function sweepMr(t, iid) {
     if (!WRITE) return;
     api(`projects/${t.id}/merge_requests/${iid}/unapprove`, { method: 'POST' });
     withdrawn.push('approval');
-    glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Belay: approval withdrawn** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
+    glab(['mr', 'note', 'create', String(iid), '-R', t.web_url, '-m', `**Afterlife: approval withdrawn** for head \`${head}\`: ${why}. A person decides whether it merges.`]);
   };
   /** This head is not gated yet, so it says nothing more this sweep; an approval the bot gave an earlier head goes now. */
   const notYet = (msg) => {
@@ -214,8 +220,8 @@ function sweepMr(t, iid) {
    * A forced wait or block with any other cause (CI change, an ambiguous or missing verdict) ledgers nothing.
    */
   const blockTier = () => {
-    if (!guardBlocked || !actionClass || !mr.BELAY_AGENT || ledgered(blockKey)) return null;
-    const g = engine(['gate', '--policy', policyFile, '--state', states(), '--class', actionClass, '--agent', mr.BELAY_AGENT, '--guardrail', path.join(dir, 'guardrail-gate.json')]);
+    if (!guardBlocked || !actionClass || !mr.AGENT || ledgered(blockKey)) return null;
+    const g = engine(['gate', '--policy', policyFile, '--state', states(), '--class', actionClass, '--agent', mr.AGENT, '--guardrail', path.join(dir, 'guardrail-gate.json')]);
     let out = null;
     try {
       out = JSON.parse(g.stdout);
@@ -229,7 +235,7 @@ function sweepMr(t, iid) {
       return null;
     }
     const tier = out.tier ?? null;
-    if (!tier) say(`${tag}: the gate holds ${mr.BELAY_AGENT} at no tier for ${actionClass}: the guardrail's block is not ledgered`);
+    if (!tier) say(`${tag}: the gate holds ${mr.AGENT} at no tier for ${actionClass}: the guardrail's block is not ledgered`);
     return tier;
   };
   const force = (decision, reason) => {
@@ -244,8 +250,8 @@ function sweepMr(t, iid) {
     const events = path.join(dir, 'events');
     const r = glue('decide/apply-gate.mjs', ['--mr', String(iid), '--sha', head, '--force', d, '--reason', `head ${head}: ${why}`,
       ...(guardBlocked ? ['--guardrail', guardrailFile] : []),
-      ...(tier ? ['--agent', mr.BELAY_AGENT, '--class', actionClass, '--ledger-tier', tier, '--emit-dir', events] : []),
-      ...(WRITE && !said ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
+      ...(tier ? ['--agent', mr.AGENT, '--class', actionClass, '--ledger-tier', tier, '--emit-dir', events] : []),
+      ...(WRITE && !said ? [] : ['--dry', '1'])], { ...env, ...tokens('BOT_TOKEN') }, dir);
     if (r.code > 1) throw new Error(`apply-gate exited ${r.code}`);
     if (!tier || !fs.existsSync(events)) return;
     if (!WRITE) return say(`${tag}: the guardrail's block is not ledgered (reporting only)`);
@@ -257,9 +263,9 @@ function sweepMr(t, iid) {
     notYet(`no guardrail verdict for this head yet: ${what}`);
     const consumer = Number(t.conf.guardrail_consumer_id);
     if (!Number.isSafeInteger(consumer) || consumer <= 0) return;
-    if (notes.some((n) => n.body.startsWith(dispatchMark(head)))) return say(`${tag}: guardrail review already requested`);
-    if (!process.env.BELAY_DISPATCH_TOKEN || !WRITE) return say(`${tag}: BELAY_DISPATCH_TOKEN is not set: the guardrail is not started`);
-    const d = glue('ops/dispatch.mjs', ['--goal', String(iid), '--consumer-id', String(consumer)], { ...env, GITLAB_TOKEN: process.env.BELAY_DISPATCH_TOKEN });
+    if (notes.some((n) => [dispatchMark(head), dispatchMark(head, 'Belay')].some((d) => n.body.startsWith(d)))) return say(`${tag}: guardrail review already requested`);
+    if (!token('DISPATCH_TOKEN') || !WRITE) return say(`${tag}: AFTERLIFE_DISPATCH_TOKEN is not set: the guardrail is not started`);
+    const d = glue('ops/dispatch.mjs', ['--goal', String(iid), '--consumer-id', String(consumer)], { ...env, GITLAB_TOKEN: token('DISPATCH_TOKEN') });
     if (d.code !== 0) throw new Error(`dispatch exited ${d.code}`);
     const run = (() => {
       try {
@@ -272,7 +278,7 @@ function sweepMr(t, iid) {
   };
 
   if (ci) {
-    force('wait', `${ci}. This MR controls which jobs made its evidence, so Belay grants nothing and gives no proof; a person reviews it.`);
+    force('wait', `${ci}. This MR controls which jobs made its evidence, so Afterlife grants nothing and gives no proof; a person reviews it.`);
     if (WRITE && (m.labels ?? []).includes('proof::pass')) glab(['mr', 'update', String(iid), '-R', t.web_url, '--unlabel', 'proof::pass']);
     return;
   }
@@ -294,7 +300,7 @@ function sweepMr(t, iid) {
     if (!p || p.sha !== head || p.source !== EVIDENCE_SOURCE || !FINISHED.has(p.status)) return notYet('no finished merge request pipeline for this head yet: nothing to prove');
     const vars = api(`projects/${t.id}/pipelines/${p.id}/variables`);
     if (!Array.isArray(vars)) throw new Error(`the variables of pipeline ${p.id} could not be read`);
-    if (vars.length) return force('wait', `pipeline ${p.id} of this head ran with ${vars.length} pipeline variable(s), which can change what its evidence job ran, so Belay gives it no proof; a person reviews it.`);
+    if (vars.length) return force('wait', `pipeline ${p.id} of this head ran with ${vars.length} pipeline variable(s), which can change what its evidence job ran, so Afterlife gives it no proof; a person reviews it.`);
     pipelineId = String(p.id);
     const job = apiAll(`projects/${t.id}/pipelines/${p.id}/jobs`, 5).find((j) => j.name === ev.job);
     if (job) {
@@ -327,7 +333,7 @@ function sweepMr(t, iid) {
 
   // The Proof Block, re-derived here. Never one a target pipeline made.
   const evidence = path.join(dir, 'evidence.json');
-  const be = glue('proof/build-evidence.mjs', ['--class', proofClass, '--out', evidence, ...args], { ...env, CI_PIPELINE_ID: pipelineId, BELAY_DIFF_FILE: diffFile }, dir);
+  const be = glue('proof/build-evidence.mjs', ['--class', proofClass, '--out', evidence, ...args], { ...env, CI_PIPELINE_ID: pipelineId, AFTERLIFE_DIFF_FILE: diffFile }, dir);
   let proof = null;
   if (be.code === 0) {
     const r = engine(['prove', '--class', proofClass, '--input', evidence, '--policy', policyFile, '--files-root', dir]);
@@ -343,7 +349,7 @@ function sweepMr(t, iid) {
   fs.writeFileSync(proofFile, JSON.stringify(proof));
   say(`${tag}: proof ${proof.verdict}`);
   if (!proofNote) {
-    const r = glue('proof/post-proof.mjs', ['--proof', proofFile, '--mr', String(iid), ...(WRITE ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
+    const r = glue('proof/post-proof.mjs', ['--proof', proofFile, '--mr', String(iid), ...(WRITE ? [] : ['--dry', '1'])], { ...env, ...tokens('BOT_TOKEN') }, dir);
     if (r.code !== 0) throw new Error(`post-proof exited ${r.code}`);
   }
 
@@ -360,7 +366,7 @@ function sweepMr(t, iid) {
   if (settled && !botAutoMerge && !botApproved()) return say(`${tag}: gate and ledger already applied for this head`);
   // --shadow-next-rung: the same gate one rung up, in the same call (`would`), which apply-gate stamps on the tier_decision
   // as the next rung's trial (the poller resolves it against what people did). It decides nothing and is applied nowhere.
-  const g = engine(['gate', '--policy', policyFile, '--state', statesFile, '--class', actionClass, '--agent', mr.BELAY_AGENT,
+  const g = engine(['gate', '--policy', policyFile, '--state', statesFile, '--class', actionClass, '--agent', mr.AGENT,
     '--proof', proofFile, '--guardrail', path.join(dir, 'guardrail-gate.json'), '--diff', diffFile, '--shadow-next-rung']);
   const decisionFile = path.join(dir, 'decision.json');
   fs.writeFileSync(decisionFile, g.stdout);
@@ -381,7 +387,7 @@ function sweepMr(t, iid) {
   const withdrawOwed = withdrawn.length > 0 && stateRev !== null && nowTier !== null && !ledgered(withdrawKey);
   const stamp = [...(stateRev ? ['--state-rev', stateRev] : []), ...(withdrawn.length ? ['--withdrew', withdrawn.join(',')] : [])];
   const gateArgs = (emit) => ['--mr', String(iid), '--sha', head, '--decision', decisionFile, '--guardrail', guardrailFile,
-    '--agent', mr.BELAY_AGENT, '--class', actionClass, '--emit-dir', emit, ...stamp];
+    '--agent', mr.AGENT, '--class', actionClass, '--emit-dir', emit, ...stamp];
   /** Appends only the events of these kinds apply-gate emitted, under `keys` (one per kind found, in the same order). */
   const appendKinds = (events, owed) => {
     const found = owed.filter(([kind]) => fs.readdirSync(events).some((f) => f.endsWith(`-${kind}.json`)));
@@ -401,7 +407,7 @@ function sweepMr(t, iid) {
     return say(`${tag}: gate and ledger already applied for this head${withdrawOwed ? `; the withdrawal is ledgered at tier-state.yml ${stateRev.slice(0, 12)}` : ''}`);
   }
   const events = path.join(dir, 'events');
-  const applied = glue('decide/apply-gate.mjs', [...gateArgs(events), ...(WRITE && (!gateDone || relabel) ? [] : ['--dry', '1'])], { ...env, ...tokens('BELAY_BOT_TOKEN') }, dir);
+  const applied = glue('decide/apply-gate.mjs', [...gateArgs(events), ...(WRITE && (!gateDone || relabel) ? [] : ['--dry', '1'])], { ...env, ...tokens('BOT_TOKEN') }, dir);
   if (applied.code > 1) throw new Error(`apply-gate exited ${applied.code}`);
   if (!fs.existsSync(events) || (ledgerDone && !blockOwed && !withdrawOwed)) return;
   if (!WRITE) return say(`${tag}: ledger events not appended (reporting only)`);

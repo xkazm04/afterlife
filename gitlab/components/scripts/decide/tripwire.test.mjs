@@ -117,7 +117,7 @@ describe('tripwire.mjs never writes over a newer tier-state.yml', () => {
   }, 60_000);
 
   it('it landed before the read, after the clone: the tripwire sees its copy is stale and does not write', () => {
-    const revoked = STATE.replace('tier: hands_off, since: "2026-10-01", by: "operator via promotion MR !33"', 'tier: assisted, since: "2026-10-07", by: operator kazdanm via Belay');
+    const revoked = STATE.replace('tier: hands_off, since: "2026-10-01", by: "operator via promotion MR !33"', 'tier: assisted, since: "2026-10-07", by: operator kazdanm via Afterlife');
     const r = tripwire(policyClone('stale'), 'sweep', { ...failed, policy: { content: revoked, last: L2 } }, { CI_PIPELINE_ID: '502' });
     expect(r.code).toBe(3);
     expect(r.writes).toEqual([]);
@@ -131,19 +131,25 @@ describe('tripwire.mjs --write-token-var', () => {
   const named = (clone, env) => runScript(dir, 'decide/tripwire.mjs', [
     '--mode', 'sweep', '--policy-dir', clone, '--policy-project', POLICY, '--policy-branch', 'main',
     '--guardrail-authors', 'ai-guardrail-acme', '--agent-prefix', 'ai-', '--lookback-hours', '24', '--write-mode', 'commit',
-    '--write-token-var', 'BELAY_POLICY_TOKEN',
+    '--write-token-var', 'AFTERLIFE_POLICY_TOKEN',
   ], { routes: routes(failed), env: { CI_PIPELINE_ID: '502', GITLAB_TOKEN: 'bot', ...env } });
 
   it('refuses a variable that is not set, before any read, and commits nothing', () => {
     const r = named(policyClone('unset-token'));
     expect(r.code).toBe(2);
-    expect(r.stderr).toMatch(/BELAY_POLICY_TOKEN is not set \(named by --write-token-var\): nothing committed/);
+    expect(r.stderr).toMatch(/AFTERLIFE_POLICY_TOKEN is not set \(named by --write-token-var\): nothing committed/);
     expect(r.reads).toEqual([]);
     expect(r.writes).toEqual([]);
   }, 60_000);
 
   it('commits with it when it is set', () => {
-    const r = named(policyClone('set-token'), { BELAY_POLICY_TOKEN: 'policy' });
+    const r = named(policyClone('set-token'), { AFTERLIFE_POLICY_TOKEN: 'policy' });
+    expect(r.code, r.stderr).toBe(0);
+    expect(commits(r)).toHaveLength(1);
+  }, 60_000);
+
+  it('commits with the pre-rename BELAY_POLICY_TOKEN when only that is set (a project not yet renamed)', () => {
+    const r = named(policyClone('old-token'), { BELAY_POLICY_TOKEN: 'policy' });
     expect(r.code, r.stderr).toBe(0);
     expect(commits(r)).toHaveLength(1);
   }, 60_000);
@@ -153,7 +159,7 @@ describe('tripwire.mjs takes Belay-Event keys from whole lines of belay-policy h
   it('a key after a Unicode line separator inside one line (a revoke’s one-line reason) is no recorded event', () => {
     const clone = policyClone('u2028');
     const key = `post_merge_proof_fail|ai-patcher-acme|dep-bump.patch|${proofJob.finished_at}|!7: pipeline https://gitlab.example/acme/app/-/pipelines/501`;
-    // What Belay's revoke commits: `demote <move> (<why>)`, where why is one line, and U+2028 is not a newline to git.
+    // What Afterlife's revoke commits: `demote <move> (<why>)`, where why is one line, and U+2028 is not a newline to git.
     const msg = path.join(dir, 'u2028-message.txt');
     fs.writeFileSync(msg, `demote code-fix.patch supervised -> assisted (note\u2028Belay-Event: ${key}\u2028)\n`);
     git(clone, 'commit', '-q', '--allow-empty', '-F', msg);
@@ -172,7 +178,7 @@ describe('tripwire.mjs when GitLab answers its commit with a 502', () => {
     return runScript(dir, 'decide/tripwire.mjs', [
       '--mode', 'sweep', '--policy-dir', policyClone(`flaky-${faults.length}`), '--policy-project', POLICY, '--policy-branch', 'main',
       '--guardrail-authors', 'ai-guardrail-acme', '--agent-prefix', 'ai-', '--lookback-hours', '24', '--write-mode', 'commit',
-    ], { routes: r, env: { CI_PIPELINE_ID: '502', BELAY_GLAB_BACKOFF_MS: '0' } });
+    ], { routes: r, env: { CI_PIPELINE_ID: '502', AFTERLIFE_GLAB_BACKOFF_MS: '0' } });
   };
 
   it('commits once more when tier-state.yml still has the last commit it read: one demotion lands', () => {

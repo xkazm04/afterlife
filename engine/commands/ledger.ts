@@ -1,4 +1,4 @@
-// belay ledger append --event event.json --chain events.jsonl [--write]
+// engine/cli.ts ledger append --event event.json --chain events.jsonl [--write]
 // Prints the new hash-chained line. The chain is verified first: a broken chain is never extended. With --write the
 // read, verify and append all run under `<chain>.lock`, so a concurrent append waits or is refused, never forks.
 // `ledger trial` (the auditor's recompute of a promotion's trial) is audit/trial.ts.

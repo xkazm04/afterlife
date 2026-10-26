@@ -39,7 +39,7 @@ describe('the Ladder on the screen host', () => {
     expect(def('ladder')).toMatchObject({ ready: true, slices: ['core', 'ledger'] });
     expect(def('ladder/[class]')).toMatchObject({ ready: true, slices: ['core', 'ledger', 'humanKey'] });
     expect(def('ladder')?.Session).toBe(def('ladder/[class]')?.Session);
-    expect(def('ladder/[class]')?.title({ class: 'patch-bump' }, new URLSearchParams())).toBe('Belay Ladder patch-bump');
+    expect(def('ladder/[class]')?.title({ class: 'patch-bump' }, new URLSearchParams())).toBe('Afterlife · Ladder · patch-bump');
   });
 
   it('the slices: core without the moves, the moves on their own, the human key on the class page, notFound for an unknown class', async () => {

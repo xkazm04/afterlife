@@ -56,7 +56,7 @@ describe("the reducer's verify path", () => {
   });
   it('demo mode keeps the simulated flow, and the track says it was simulated', () => {
     const demo = run(fresh(), { t: 'arm-sent', id: 'T3', revert: false, mr: null, url: null, simulated: true });
-    const s = verify(demo, 'T3', { status: 'simulated', text: 'Simulated · demo mode: Belay read nothing from GitLab' });
+    const s = verify(demo, 'T3', { status: 'simulated', text: 'Simulated · demo mode: Afterlife read nothing from GitLab' });
     expect(s.arm.T3).toMatchObject({ st: 'armed', simulated: true, mr: null });
   });
   it('a verify-end without a verify-start does nothing', () => {

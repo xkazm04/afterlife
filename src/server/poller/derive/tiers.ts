@@ -6,7 +6,7 @@
 // tier is the most restrictive holder's. views/standing.ts writes and reads both standings.
 // A class one agent holds gets its counters counted from the project's tasks and ledger (./counters.ts) when the caller
 // passes them: stored on its row (each counter null where nothing states it) and returned beside the rows, for the
-// promotion asks, with the gate last seen deciding for its holder (./gate.ts) and the outputs behind the counts (./sources.ts). What GitLab cannot tell Belay (a split or
+// promotion asks, with the gate last seen deciding for its holder (./gate.ts) and the outputs behind the counts (./sources.ts). What GitLab cannot tell Afterlife (a split or
 // unheld class's stored counters, a moves note) is kept from the row already in the index. With tier-state.yml's history
 // (../stateHistory.ts), a class one agent holds also gets the receipt of its record (./receipt.ts): where it was enforced.
 // Without one, or for any other class, the receipt is null.

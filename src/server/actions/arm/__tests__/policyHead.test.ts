@@ -1,6 +1,6 @@
 // F38 part 2 for the policy MRs: a promotion or an enrollment is a branch commit to tier-state.yml, then an MR a person
 // merges as the human key. Someone who can push to belay/* (an agent's account the tripwire runs as, another maintainer)
-// pushing between the commit and the MR would have the operator's "Prepared by Belay" MR carry a tier nobody previewed.
+// pushing between the commit and the MR would have the operator's "Prepared by Afterlife" MR carry a tier nobody previewed.
 // So, as for arm and disarm, the confirm is done only when the MR GitLab opened is headed by the commit this confirm made.
 import { parseDocument } from 'yaml';
 import { describe, expect, it } from 'vitest';
@@ -21,7 +21,7 @@ function previewId(r: ActionResponse): string {
   return r.preview.previewId;
 }
 
-/** Someone pushes to the MR's source branch between Belay's commit and its MR. */
+/** Someone pushes to the MR's source branch between Afterlife's commit and its MR. */
 const pushedBetween = (gl: () => FakeGitLab) => (port: GitLabPort): GitLabPort => new Proxy(port, {
   get: (t, k, r) => (k === 'execute'
     ? async (c: PlannedCommand) => {

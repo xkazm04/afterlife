@@ -5,17 +5,17 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 describe('scheduler', () => {
-  it('BELAY_POLL_SECONDS: default 30, never below 5, garbage falls back', () => {
+  it('AFTERLIFE_POLL_SECONDS: default 30, never below 5, garbage falls back', () => {
     expect(pollIntervalMs({})).toBe(30_000);
-    expect(pollIntervalMs({ BELAY_POLL_SECONDS: '60' })).toBe(60_000);
-    expect(pollIntervalMs({ BELAY_POLL_SECONDS: '1' })).toBe(5_000);
-    expect(pollIntervalMs({ BELAY_POLL_SECONDS: 'soon' })).toBe(30_000);
-    expect(pollIntervalMs({ BELAY_POLL_SECONDS: '-4' })).toBe(30_000);
+    expect(pollIntervalMs({ AFTERLIFE_POLL_SECONDS: '60' })).toBe(60_000);
+    expect(pollIntervalMs({ AFTERLIFE_POLL_SECONDS: '1' })).toBe(5_000);
+    expect(pollIntervalMs({ AFTERLIFE_POLL_SECONDS: 'soon' })).toBe(30_000);
+    expect(pollIntervalMs({ AFTERLIFE_POLL_SECONDS: '-4' })).toBe(30_000);
   });
 
   it('an interval past the timer ceiling waits that long, it does not fire at once (a timer past 2^31-1 ms runs after 1 ms)', async () => {
     const MAX_TIMER_MS = 2 ** 31 - 1;
-    expect(pollIntervalMs({ BELAY_POLL_SECONDS: '3000000' })).toBeLessThanOrEqual(MAX_TIMER_MS);
+    expect(pollIntervalMs({ AFTERLIFE_POLL_SECONDS: '3000000' })).toBeLessThanOrEqual(MAX_TIMER_MS);
     let ticks = 0;
     const s = startScheduler(async () => void ticks++, 3_000_000_000);
     await vi.advanceTimersByTimeAsync(60_000);

@@ -34,12 +34,12 @@ const FRONTIER = `    setup:
 let f: TempFleet;
 let plain: TempFleet;
 beforeAll(() => {
-  f = makeFleet('belay-frontier-', FRONTIER);
-  plain = makeFleet('belay-nofrontier-');
-  process.env.BELAY_CLAUDE_BIN = FAKE;
+  f = makeFleet('afterlife-frontier-', FRONTIER);
+  plain = makeFleet('afterlife-nofrontier-');
+  process.env.AFTERLIFE_CLAUDE_BIN = FAKE;
 });
 afterAll(() => {
-  delete process.env.BELAY_CLAUDE_BIN;
+  delete process.env.AFTERLIFE_CLAUDE_BIN;
   for (const t of [f, plain]) fs.rmSync(t.tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
@@ -50,8 +50,8 @@ describe('the frontier lane and wave.tech', () => {
     expect(r.lines.filter((e) => e.kind === 'lane.start').map((e) => (e.kind === 'lane.start' ? [e.lane, e.frontier ?? false] : []))).toEqual([['ok-a', false], ['frontier', true]]);
     expect(r.ends.frontier).toMatchObject({ outcome: 'landed', review: 'clean', done: 'size.txt halved (mechanism: dedupe)' });
     const lane = r.calls.find((c) => c.step === 'lane' && c.lane === 'frontier')!;
-    expect(lane.prompt).toContain('# Belay - LANE');
-    expect(lane.prompt).toContain('# Belay - FRONTIER');
+    expect(lane.prompt).toContain('# Afterlife - LANE');
+    expect(lane.prompt).toContain('# Afterlife - FRONTIER');
     expect(lane.prompt).toContain('Shrink size.txt');
     expect(lane.prompt).toContain('  - size (lower is better, a 10% gain is a breakthrough): node size.mjs');
     expect(r.calls.find((c) => c.step === 'review' && c.lane === 'frontier')?.prompt).toContain('- why: [frontier] Shrink size.txt');
@@ -68,9 +68,9 @@ describe('the frontier lane and wave.tech', () => {
     // The third metric is red unless setup ran in the measurement worktree: a value means it did.
     expect(tech.metrics[2]).toHaveProperty('before');
     expect(tech.metrics[2]).toHaveProperty('after');
-    expect(fs.existsSync(path.join(f.repoDir, '.claude', 'worktrees', 'belay-wave-tech'))).toBe(false);
+    expect(fs.existsSync(path.join(f.repoDir, '.claude', 'worktrees', 'afterlife-wave-tech'))).toBe(false);
     expect(fs.existsSync(path.join(f.repoDir, 'setup.ran'))).toBe(false);
-    expect(sh(f.repoDir, 'worktree', 'list')).not.toContain('belay-wave-tech');
+    expect(sh(f.repoDir, 'worktree', 'list')).not.toContain('afterlife-wave-tech');
     // Reflect reads the T3 line first, and the frontier brief it may sharpen.
     const reflect = r.calls.find((c) => c.step === 'reflect')!;
     expect(reflect.prompt).toMatch(/## Technology metrics \(wave\.tech: read this first\)\n\{.*"kind":"wave\.tech"/);

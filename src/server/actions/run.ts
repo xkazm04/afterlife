@@ -93,7 +93,7 @@ async function madeBy(deps: ActionDeps, cmd: PlannedCommand, body: unknown): Pro
     return { named: { made: `!${b.iid as number}`, ...(url ? { url } : {}) } };
   }
   if (!cmd.file) return { named: {} };
-  const f = await deps.port.getFile(cmd.file.project, cmd.file.path, cmd.file.branch).catch((e: unknown) => (console.error(`belay: the read-back of ${cmd.file?.path} after a write failed; the result names no commit`, e), null));
+  const f = await deps.port.getFile(cmd.file.project, cmd.file.path, cmd.file.branch).catch((e: unknown) => (console.error(`afterlife: the read-back of ${cmd.file?.path} after a write failed; the result names no commit`, e), null));
   return f?.lastCommitId && COMMIT_ID.test(f.lastCommitId) ? { named: { made: `commit ${f.lastCommitId.slice(0, 8)}` }, commit: f.lastCommitId } : { named: {} };
 }
 
@@ -136,7 +136,7 @@ async function execute(deps: ActionDeps, b: Extract<Built, { ok: true }>): Promi
   // only the intent's own project's item: a stale or mistaken id never clears another project's Needs-you
   if (ok && b.intent.proposal) await closeProposal(db, b.intent.proposal, 'acted', deps.now(), b.operator, b.intent.project);
   // GitLab may have changed even when a later command failed; the answer stands, and the next scheduled poll catches up
-  await deps.refresh().catch((e: unknown) => console.error('belay: the poll after a write failed; the screens show the last poll until the next one', e));
+  await deps.refresh().catch((e: unknown) => console.error('afterlife: the poll after a write failed; the screens show the last poll until the next one', e));
   return { status: ok ? 'done' : 'failed', preview: b.preview, results };
 }
 

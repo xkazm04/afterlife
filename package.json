@@ -1,7 +1,7 @@
 {
-  "name": "belay",
+  "name": "afterlife",
   "version": "0.1.0",
-  "description": "Belay - proof-carrying agents for the post-code lifecycle on GitLab. Set up eight agents, watch every one, and take autonomy back with one click.",
+  "description": "Afterlife - proof-carrying agents for the post-code lifecycle on GitLab. Set up eight agents, watch every one, and take autonomy back with one click.",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -9,11 +9,12 @@
     "node": "^20.17.0 || ^22.5.0 || >=24.0.0"
   },
   "bin": {
+    "afterlife": "./cli/belay.mjs",
     "belay": "./cli/belay.mjs"
   },
   "scripts": {
     "dev": "next dev -H 127.0.0.1",
-    "dev:inspect": "cross-env BELAY_INSPECTOR=1 next dev -H 127.0.0.1",
+    "dev:inspect": "cross-env AFTERLIFE_INSPECTOR=1 next dev -H 127.0.0.1",
     "build": "next build",
     "start": "next start -H 127.0.0.1",
     "lint": "eslint",

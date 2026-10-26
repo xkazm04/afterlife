@@ -29,7 +29,7 @@ const data = foldRuns(wave ? [wave] : [], 0);
 describe('Runs on the screen host', () => {
   it('is claimed, with its slices in stream order', () => {
     expect(def).toMatchObject({ ready: true, slices: ['runs', 'merges'] });
-    expect(def?.title({}, new URLSearchParams())).toBe('Belay Runs');
+    expect(def?.title({}, new URLSearchParams())).toBe('Afterlife · Runs');
   });
 
   it('unread: the window and the totals strip with a dash in every figure, never a 0, no empty note', () => {

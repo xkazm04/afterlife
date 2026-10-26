@@ -44,16 +44,16 @@ describe('what each decision stages', () => {
     expect(buildOutItem('n4', demo, { n4: { kind: 'preview', preview } })?.title).toBe('Re-admit patch-bump as Assisted');
   });
   it('before the server answered, or when it refused, there is nothing to run and the note says why', () => {
-    expect(buildOutItem('n1', demo)).toMatchObject({ commands: [], note: 'Asking Belay for the exact write…' });
+    expect(buildOutItem('n1', demo)).toMatchObject({ commands: [], note: 'Asking Afterlife for the exact write…' });
     expect(buildOutItem('n1', demo)?.diff).toBeUndefined();
     const refused = buildOutItem('n1', demo, { n1: { kind: 'refused', reason: 'qa.file-bug is already hands_off: a promotion goes up' } });
-    expect(refused).toMatchObject({ commands: [], note: 'Belay refuses this write: qa.file-bug is already hands_off: a promotion goes up. Nothing can run.' });
+    expect(refused).toMatchObject({ commands: [], note: 'Afterlife refuses this write: qa.file-bug is already hands_off: a promotion goes up. Nothing can run.' });
   });
   it('a demo preview says Run only simulates', () => {
     expect(buildOutItem('n4', demo, { n4: { kind: 'preview', preview: { ...preview, mode: 'demo' } } })?.note).toBe('Demo: Run simulates this write; nothing is sent to GitLab.');
   });
   it('a gap stages its draft MR with no command of its own, and the probe stages nothing', () => {
-    expect(buildOutItem('g1', demo)).toMatchObject({ kind: 'gap MR', commands: [], note: 'Asking Belay for the exact write…' });
+    expect(buildOutItem('g1', demo)).toMatchObject({ kind: 'gap MR', commands: [], note: 'Asking Afterlife for the exact write…' });
     expect(buildOutItem('g4', demo)).toBeNull();
   });
   it('stages nothing for a row that has no write', () => {

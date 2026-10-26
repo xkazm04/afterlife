@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Belay hosted replay (infra/cloudrun/README.md, "The replay's security contract").
-# Build from the repo root:  docker build -f infra/cloudrun/Dockerfile -t belay-replay .
+# Afterlife hosted replay (infra/cloudrun/README.md, "The replay's security contract").
+# Build from the repo root:  docker build -f infra/cloudrun/Dockerfile -t afterlife-replay .
 # The build context is filtered by infra/cloudrun/Dockerfile.dockerignore.
 
 ARG NODE_IMAGE=node:24-bookworm-slim
@@ -22,13 +22,13 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# 3. Runtime: the standalone server only. No glab, no token, no BELAY_* but BELAY_MODE, no volume,
-#    BELAY_DATA_DIR unset (contract items 1, 2, 4). The files stay root-owned: the node user can read, not rewrite them.
+# 3. Runtime: the standalone server only. No glab, no token, no AFTERLIFE_* but AFTERLIFE_MODE, no volume,
+#    AFTERLIFE_DATA_DIR unset (contract items 1, 2, 4). The files stay root-owned: the node user can read, not rewrite them.
 FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    BELAY_MODE=replay \
+    AFTERLIFE_MODE=replay \
     HOSTNAME=0.0.0.0 \
     PORT=8080
 COPY --from=build /app/.next/standalone ./

@@ -28,7 +28,7 @@ describe('Settings on the screen host', () => {
   });
 
   it.each(SETTINGS_PAGES.map((p) => [p.key, p.label] as const))('settings/%s names its tab after its sidebar label', (key, label) => {
-    expect(screens.find((d) => d.key === `settings/${key}`)?.title({}, new URLSearchParams())).toBe(`Belay Settings ${label}`);
+    expect(screens.find((d) => d.key === `settings/${key}`)?.title({}, new URLSearchParams())).toBe(`Afterlife · Settings · ${label}`);
   });
 
   it('a static sub-page paints whole at once', () => {

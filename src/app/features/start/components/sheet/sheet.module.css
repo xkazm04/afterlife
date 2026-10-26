@@ -1,0 +1,36 @@
+/* ActionSheet: a setup action's preview, its notes and settings diff, and the answer in the footer. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ui-scale));
+}
+.note {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--text-2);
+}
+.refused {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--fail);
+}
+.notes {
+  margin: 0;
+  padding-left: calc(18px * var(--ui-scale));
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.diff {
+  margin: 0;
+  padding: calc(8px * var(--ui-scale)) calc(10px * var(--ui-scale));
+  border-radius: var(--r-sm);
+  background: var(--surface-sunk);
+  font: var(--t-small) / 1.5 var(--mono);
+  color: var(--text-2);
+  white-space: pre-wrap;
+}
+.result {
+  min-width: 0;
+  font-size: var(--t-small);
+  color: var(--text-2);
+}

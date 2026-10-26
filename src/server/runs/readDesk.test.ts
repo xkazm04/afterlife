@@ -19,7 +19,7 @@ afterEach(() => roots.splice(0).forEach((d) => rmSync(d, { recursive: true, forc
 const git = (cwd: string, ...a: string[]) => execFileSync('git', ['-C', cwd, '-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { stdio: 'ignore' });
 
 function repoWithWave(): string {
-  const r = temp('belay-git-');
+  const r = temp('afterlife-git-');
   git(r, 'init', '-q', '-b', 'main');
   writeFileSync(join(r, 'a.txt'), 'a\n');
   git(r, 'add', '.');
@@ -34,7 +34,7 @@ function repoWithWave(): string {
 
 describe('readFleet', () => {
   it('missing, invalid with its reason, or the repos', () => {
-    const root = temp('belay-fleet-');
+    const root = temp('afterlife-fleet-');
     expect(readFleet(root)).toEqual({ file: 'missing', refs: [] });
     writeFileSync(join(root, 'fleet.yml'), 'repos:\n  - {slug: a, path: /x}\n');
     expect(readFleet(root)).toEqual({ file: 'invalid', refs: [], error: 'repos[0] needs slug, path and base' });
@@ -79,7 +79,7 @@ describe('branchState', () => {
 describe('readDesk', () => {
   it('asks git once per mergeable wave of repos the fleet file names, and folds the runs it read', async () => {
     const r = repoWithWave();
-    const root = temp('belay-desk-');
+    const root = temp('afterlife-desk-');
     mkdirSync(join(root, 'runs', 'alpha'), { recursive: true });
     writeFileSync(join(root, 'runs', 'alpha', '1.jsonl'), WAVE_1.join('\n'));
     writeFileSync(join(root, 'fleet.yml'), `repos:\n  - {slug: alpha, path: '${r.replace(/\\/g, '/')}', base: main, gates: [t]}\n`);

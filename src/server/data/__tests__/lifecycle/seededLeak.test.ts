@@ -20,9 +20,9 @@ vi.mock('@/server/index/db', async (orig) => {
 });
 vi.mock('../../live/snapshot', () => ({ buildSnapshot: vi.fn(() => Promise.reject(new Error('snapshot is broken'))) }));
 
-const cfg = readDataConfig({ BELAY_MODE: 'live', BELAY_GITLAB: 'fake' });
+const cfg = readDataConfig({ AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB: 'fake' });
 afterEach(() => {
-  for (const k of ['starting', 'ready', 'failed']) delete (globalThis as unknown as Record<symbol, unknown>)[Symbol.for(`belay.liveRuntime.${k}`)];
+  for (const k of ['starting', 'ready', 'failed']) delete (globalThis as unknown as Record<symbol, unknown>)[Symbol.for(`afterlife.liveRuntime.${k}`)];
 });
 
 describe('a failed first refresh on the fake group', () => {

@@ -23,12 +23,12 @@ describe('streamScreen', () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const loader: ScreenLoader = {
       slices: {
-        core: () => { throw new NotReadyError('BELAY_MODE=live, but the first poll has not finished'); },
+        core: () => { throw new NotReadyError('AFTERLIFE_MODE=live, but the first poll has not finished'); },
         desk: () => Promise.reject(new Error("ENOENT: open 'C:\\ops\\runs'")),
       },
     };
     const out = await lines(streamScreen('monitor', loader, ctx()));
-    expect(out[0]).toMatchObject({ slice: 'core', status: 'error', reason: 'BELAY_MODE=live, but the first poll has not finished' });
+    expect(out[0]).toMatchObject({ slice: 'core', status: 'error', reason: 'AFTERLIFE_MODE=live, but the first poll has not finished' });
     expect(out[1]).toMatchObject({ slice: 'desk', status: 'error', reason: 'unreadable' });
     expect(JSON.stringify(out)).not.toContain('ENOENT');
     expect(String(log.mock.calls[0]?.[0])).toContain('ENOENT');

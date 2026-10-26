@@ -76,7 +76,7 @@ export async function runWave(c: WaveCtx): Promise<WaveResult> {
   }
   // One fixed path for every wave's own worktree (waves of a repo run one at a time, and it is removed at wave end):
   // cargo hashes a workspace crate's path into its build, so a path per wave grew a shared target dir every wave.
-  const waveDir = worktreeDir(repo.path, 'belay-wave-head');
+  const waveDir = worktreeDir(repo.path, 'afterlife-wave-head');
   // What a run stopped mid-wave left registered at the fixed paths (its lane branch too) - before wave.start, so a
   // refusal (another live run) writes no run file - then the dirs left behind unregistered.
   for (const d of await claimOwnWorktrees(repo.path)) console.error(`runner: removed ${d}, left registered by a stopped run`);

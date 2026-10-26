@@ -25,15 +25,15 @@ reads one slice, `connection` (`screen/slices.ts`).
 - `html[data-text-size]` switches the variables in `src/styles/text-size.css`.
 - `lib/settings/` holds the pure helpers (`textSize.ts`), the store, `useTextSize()`, the inline
   boot script for `<head>` and `TextSizeShortcuts` (mounted once by `app/Providers.tsx`).
-- Saved in `localStorage` under `belay.textSize`, always inside try/catch. Default: Standard.
+- Saved in `localStorage` under `afterlife.textSize` (a value saved under the pre-rename prefix is moved there once, before first paint: `src/lib/storage`), always inside try/catch. Default: Standard.
 
 ## Tests
 `model/specRows.test.ts`, `model/settingsNav.test.ts`; the pure size logic is tested in `lib/settings/textSize.test.ts`.
 `data/screenKeys.test.ts` holds the derived rows, the Task keymap to `actionFor`, and the server-safety of the import
 closure (no `'use client'` module). `sections/ScreenKeysSection.test.tsx` pins one rowgroup header per screen (no empty
-`<th>`); `sections/ConnectionSection.test.tsx` the Mode row ("the default" only when `BELAY_MODE` is unset).
+`<th>`); `sections/ConnectionSection.test.tsx` the Mode row ("the default" only when `AFTERLIFE_MODE` is unset).
 `app/(app)/settings/settingsRoutes.test.ts` checks the route folders against `SETTINGS_PAGES`, the `/settings` replace, and
-each page's tab title ("Belay Settings <label>"); `screen/host.test.tsx` the host's sub-pages (titles, the Connection card
+each page's tab title ("Afterlife · Settings · <label>"); `screen/host.test.tsx` the host's sub-pages (titles, the Connection card
 unread then read).
 `model/specCss.test.ts` reads `src/styles/text-size.css` against `TEXT_SIZE_SPEC` (all 27 measures);
 `model/sizeTitles.test.tsx` the size buttons' tooltips from the spec and the default; `model/saveNote.test.ts` the

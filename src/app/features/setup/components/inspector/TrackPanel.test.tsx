@@ -35,7 +35,7 @@ describe('Setup, a track page: its classes where they stand now', () => {
     expect(html).not.toContain('not enforced');
   });
 
-  it('live: a class the gate has not decided for since its since says so; arm content Belay lacks prints no "not enforced"', () => {
+  it('live: a class the gate has not decided for since its since says so; arm content Afterlife lacks prints no "not enforced"', () => {
     const at = { at: '2026-10-07T09:30:00.000Z', label: '11:30' };
     const steps = Object.fromEntries(Array.from({ length: 15 }, (_, n) => [n, { state: 'unknown' as const, reason: 'not probed' }]));
     const live: LiveSetupRead = {
@@ -66,7 +66,7 @@ describe('Setup, a track page: its classes where they stand now', () => {
     const section = html.slice(html.indexOf('Relies on in GitLab'));
     expect(section).not.toContain('Service accounts for flows');
     expect(section).not.toContain('Pipelines, MRs, releases');
-    expect(section).toContain('Not mapped: Belay does not tie a track to the live capabilities yet');
+    expect(section).toContain('Not mapped: Afterlife does not tie a track to the live capabilities yet');
   });
 
   it('T4 with no record yet: Standing shows what the enrollment MR would write (start_tier), not a grant and no Supervised', () => {
@@ -77,7 +77,7 @@ describe('Setup, a track page: its classes where they stand now', () => {
     expect(standing).toContain('The enrollment MR would write Assisted (start_tier Assisted, ceiling Hands-off): not granted until a person merges it');
     expect(standing).not.toContain('Supervised');
     expect(html).not.toContain('Already enrolled'); // the demo's T4 reads armed: the Enroll write is asked for
-    expect(html).toContain('Asking Belay for the exact MR');
+    expect(html).toContain('Asking Afterlife for the exact MR');
   });
 
   it('demo T4 holds its record: Enroll says it is already enrolled and asks for nothing', () => {

@@ -17,7 +17,7 @@ import { parseChainText, parseEventBody, parseStoredLine } from './parse';
 const DECISIONS_MATCH: [Decision, GateDecision] extends [GateDecision, Decision] ? true : never = true;
 void DECISIONS_MATCH;
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-chain-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-chain-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 type Body = Parameters<typeof append>[1];

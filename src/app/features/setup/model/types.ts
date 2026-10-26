@@ -92,7 +92,7 @@ export interface SetupState {
   unread?: Partial<Record<UnreadPart, true>>;
 }
 
-/** The live reads that stream in after the catalogue: the tracks' arm blocks, the belay doctor, the steps. */
+/** The live reads that stream in after the catalogue: the tracks' arm blocks, the doctor, the steps. */
 export type UnreadPart = 'tracks' | 'doctor' | 'steps';
 
 /** What the map is lit around: a hover, a pick, or null. */

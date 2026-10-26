@@ -11,7 +11,7 @@ import { scoreFacts } from '../commands/scan';
 import { checkoutFacts } from './local';
 import { propose, scan } from './scan';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-scan-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-scan-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 function checkout(files: Record<string, string>): string {
@@ -24,7 +24,7 @@ function checkout(files: Record<string, string>): string {
 }
 const rungs = (dir: string) => Object.fromEntries(scan(checkoutFacts(dir), NOW).cells.map((c) => [c.stage, c.rung]));
 
-describe('belay scan of a checkout (files only)', () => {
+describe('afterlife scan of a checkout (files only)', () => {
   it('scores the example target project: scanners and the tier gate configured; nothing above R1', () => {
     const s = scan(checkoutFacts(path.join(ROOT, 'gitlab/examples/target-project')), NOW);
     const r = Object.fromEntries(s.cells.map((c) => [c.stage, c.rung]));

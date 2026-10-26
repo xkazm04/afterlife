@@ -22,7 +22,7 @@ describe('the gap intent', () => {
     const [ci, job] = r.intent.files;
     expect(ci).toMatchObject({ path: '.gitlab-ci.yml', hunk: expect.arrayContaining(['+  - local: .gitlab/belay/sbom-rederive.yml']) });
     expect(ci).not.toHaveProperty('content');
-    expect(job).toMatchObject({ path: '.gitlab/belay/sbom-rederive.yml', content: expect.stringMatching(/^# Belay T6 .*maturity gap g1/) });
+    expect(job).toMatchObject({ path: '.gitlab/belay/sbom-rederive.yml', content: expect.stringMatching(/^# Afterlife T6 .*maturity gap g1/) });
     const content = (job as { content: string }).content;
     expect(content).not.toMatch(/^\+/m);
     expect(content.endsWith('\n')).toBe(true);

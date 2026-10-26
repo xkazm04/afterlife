@@ -46,7 +46,7 @@ with exit 2. It never writes.
 
 ## Needs
 
-- No Belay token: `CI_JOB_TOKEN` reads the MR and its notes. The bot that approves is belay-apply's (spike S2: a service
+- No Afterlife token: `CI_JOB_TOKEN` reads the MR and its notes. The bot that approves is belay-apply's (spike S2: a service
   account may not satisfy an approval rule; the fallback is the gate merging with a scoped token).
 - `belay-policy` allowlists this project's job token.
 - Protected branch `main` with at least one human approval rule for `assisted` and `supervised`, so `wait` and `approve` hold.
@@ -56,9 +56,9 @@ with exit 2. It never writes.
 | Input | Type | Default | Meaning |
 |---|---|---|---|
 | `stage` | string | `".post"` |  |
-| `engine_ref` | string | **required** | Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned. |
+| `engine_ref` | string | **required** | Tag, branch or full SHA of the Afterlife engine to run. Required, so the checker is always pinned. |
 | `engine_commit` | string | `""` | Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch. |
-| `engine_project` | string | `"$CI_PROJECT_NAMESPACE/belay-engine"` | Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
+| `engine_project` | string | `"$CI_PROJECT_NAMESPACE/belay-engine"` | Project path holding the Afterlife repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
 | `policy_project` | string | `"$CI_PROJECT_NAMESPACE/belay-policy"` |  |
 | `policy_ref` | string | `"main"` |  |
 | `node_image` | string | `"node:22-bookworm"` |  |

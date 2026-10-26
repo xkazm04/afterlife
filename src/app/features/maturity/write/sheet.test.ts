@@ -56,7 +56,7 @@ describe("the commands on screen are the preview's", () => {
     expect(out).toContain('glab api --method PUT projects/90010001/repository/files/g1');
     expect(out).toContain('added line');
     expect(out).toContain('Open 1 MR as you');
-    expect(out).not.toMatch(/glab mr create|repository\/commits|belay probe|belay scan/);
+    expect(out).not.toMatch(/glab mr create|repository\/commits|afterlife (probe|scan)/);
   });
   it('says plainly that the probe is not built, and offers no button for it', () => {
     const out = html([row('g4')]);

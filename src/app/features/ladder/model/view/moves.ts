@@ -9,9 +9,9 @@ export const KIND_LABELS: Readonly<Record<ActorKind, string>> = {
   gitlab: 'GitLab jobs',
   you: 'you',
   person: 'policy MRs',
-  belay: 'Belay polls',
+  afterlife: 'Afterlife polls',
 };
-export const ALL_KINDS: readonly ActorKind[] = ['gitlab', 'you', 'person', 'belay'];
+export const ALL_KINDS: readonly ActorKind[] = ['gitlab', 'you', 'person', 'afterlife'];
 
 /** Index of the newest ledger entry that mentions the class, or -1 when it never moved. */
 export function lastMoveIndex(ledger: readonly LedgerEntry[], id: string): number {

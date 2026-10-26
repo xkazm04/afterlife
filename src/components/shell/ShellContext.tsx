@@ -16,14 +16,14 @@ export interface ShellPoll {
   /** Polled projects whose last poll failed, of all the polled projects. */
   failing: number;
   of: number;
-  /** BELAY_POLL_SECONDS: how often the poller runs. */
+  /** AFTERLIFE_POLL_SECONDS: how often the poller runs. */
   intervalSec: number;
 }
 
 /** What the status bar needs to say about the data the screens show. Plain values: it crosses from server to client. */
 export interface ShellData {
   mode: 'demo' | 'live';
-  /** Live mode on the seeded fake GitLab (BELAY_GITLAB=fake): not a real group. */
+  /** Live mode on the seeded fake GitLab (AFTERLIFE_GITLAB=fake): not a real group. */
   fakeGitlab: boolean;
   /** The group being watched; 'not paired' when there is none. */
   group: string;

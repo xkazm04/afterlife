@@ -1,7 +1,7 @@
 // A track's enrollment, round trip with the server, as the arm is (./arm.ts). When the Enroll section is in view,
 // previewAction plans the exact policy MR from belay-policy's tier-state.yml and trust-policy.yml as they are (nothing
 // runs). On the click, confirmAction runs that preview and only that one. The MR's number is GitLab's answer; a person
-// merges it in belay-policy, and Belay never does.
+// merges it in belay-policy, and Afterlife never does.
 import { confirmAction, previewAction } from '@/server/actions/actions';
 import type { ActionResponse, EnrollTrack } from '@/server/actions/types';
 import { unreachable, viewOf, type WriteView } from '@/server/actions/words';

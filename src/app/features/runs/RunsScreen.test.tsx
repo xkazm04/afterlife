@@ -17,8 +17,8 @@ describe('RunsScreen', () => {
   it('names the command and the folder when there are no runs', () => {
     const out = renderToStaticMarkup(<RunsScreen data={foldRuns([], 0)} />);
     expect(out).toContain('No runs yet');
-    expect(out).toContain('belay run --repo &lt;slug&gt;');
-    expect(out).toContain('.belay/runs/');
+    expect(out).toContain('afterlife run --repo &lt;slug&gt;');
+    expect(out).toContain('.afterlife/runs/');
     expect(out).not.toContain('skipped line');
   });
 
@@ -53,9 +53,9 @@ describe('RunsScreen', () => {
     const w1 = data.repos[0]!.waves[1]!;
     const need = { kind: 'merge-wave' as const, id: 'merge:alpha:1', repo: 'alpha', wave: 1, branch: 'belay/wave-1', base: 'main', landed: 1, checked: false, commands: ['git -C alpha switch main'] };
     const bad = renderToStaticMarkup(<MergePanel w={w1} needs={[need]} fleetError='repos[1]: duplicate slug "a"' />);
-    expect(bad).toContain('.belay/fleet.yml is invalid (repos[1]: duplicate slug &quot;a&quot;)');
-    expect(bad).not.toContain('not in .belay/fleet.yml');
-    expect(renderToStaticMarkup(<MergePanel w={w1} needs={[need]} />)).toContain('The repo is not in .belay/fleet.yml');
+    expect(bad).toContain('.afterlife/fleet.yml is invalid (repos[1]: duplicate slug &quot;a&quot;)');
+    expect(bad).not.toContain('not in .afterlife/fleet.yml');
+    expect(renderToStaticMarkup(<MergePanel w={w1} needs={[need]} />)).toContain('The repo is not in .afterlife/fleet.yml');
   });
 
   it('writes nothing: no button, only text', () => {

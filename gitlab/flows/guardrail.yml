@@ -53,7 +53,7 @@ flow:
 
 prompts:
   - prompt_id: "guardrail_review"
-    name: "Belay guardrail: cited-diff review"
+    name: "Afterlife guardrail: cited-diff review"
     unit_primitives: []
     prompt_template:
       system: |
@@ -91,7 +91,7 @@ prompts:
            so do not inflate.
         5. verdict is block if there is at least one finding of any severity, otherwise pass (findings empty).
         6. Post ONE note on the merge request with create_merge_request_note. The note is a one-line heading
-           ("Belay guardrail: PASS" or "Belay guardrail: BLOCK, N finding(s)") followed by a fenced code block whose info
+           ("Afterlife guardrail: PASS" or "Afterlife guardrail: BLOCK, N finding(s)") followed by a fenced code block whose info
            string is belay-guardrail and whose content is ONE JSON object with the keys: schema (value
            belay.guardrail/1), verdict (pass or block), head_sha (the 40 character head sha you reviewed) and
            findings (an array of objects with rule, severity, file, quote, explanation). Use only these rule names:

@@ -14,5 +14,5 @@ const res = api('ai/duo_workflows/workflows', {
   method: 'POST',
   body: { project_id: process.env.CI_PROJECT_ID ?? die('CI_PROJECT_ID is not set'), goal, ai_catalog_item_consumer_id: consumer, start_workflow: true, environment: 'ambient' },
 });
-console.error(`belay: started flow run ${res?.id ?? '?'} ${res?.web_url ?? ''}`);
+console.error(`afterlife: started flow run ${res?.id ?? '?'} ${res?.web_url ?? ''}`);
 console.log(JSON.stringify({ id: res?.id ?? null, status: res?.status ?? null }));

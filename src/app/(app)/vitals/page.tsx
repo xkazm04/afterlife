@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'Belay Vitals' };
+export const metadata: Metadata = { title: 'Afterlife · Vitals' };
 
 // The route exists for a hard load (and its title); it reads nothing. The screen host draws Vitals
 // (features/vitals/screen/host.tsx): its window is in the static shell, and the saved projects stream in over

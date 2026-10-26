@@ -1,5 +1,8 @@
 # Onboard (`/onboard`)
 
+> The wizard now lives at [`/start`](start.md) (its Pick a repo and Stack steps); `/onboard` redirects there. This page
+> documents the discovery engine those steps use, and the demo estate at `/onboard/estate`.
+
 > Which real project should Afterlife watch, and what in it can be measured?
 
 ## What it does
@@ -32,9 +35,9 @@ The estate funnel that used to live here is now the **Demo estate** page, linked
   through `/api/onboard/*`. Those routes are loopback only too: a request from anywhere else gets a 403.
 - `server/discover/` holds the engine, which is hybrid: the model only decides, and deterministic code collects the
   facts and runs the probes.
-  - `repos/`: `listClaudeRepos`. It reads `BELAY_CLAUDE_PROJECTS_DIR` (default `~/.claude/projects`). From each
+  - `repos/`: `listClaudeRepos`. It reads `AFTERLIFE_CLAUDE_PROJECTS_DIR` (default `~/.claude/projects`). From each
     project dir it takes the newest session file and reads at most its first 64 KB, looking for the first `cwd`.
-    - It drops temp, `/tmp/`, build-session, belay-reflect and `.claude/worktrees` paths, and paths that no longer
+    - It drops temp, `/tmp/`, build-session, afterlife-reflect (and the older belay-reflect) and `.claude/worktrees` paths, and paths that no longer
       exist.
     - It folds the rest onto `git rev-parse --show-toplevel` (8 gits at a time) and dedupes, ignoring case on
       Windows.
@@ -69,7 +72,7 @@ The estate funnel that used to live here is now the **Demo estate** page, linked
     - A pipeline is kept only if a pipelines probe listed its id. Variants are kept only with their pipeline.
     - `cloud.resource` comes only from the data of an `az-appinsights-component` ok result.
     - A component is kept only if its path exists. The runner gates come from the kept components' tests.
-  - `store/`: writes `<data>/projects/<slug>.yml`, where `<data>` is `BELAY_DATA_DIR` (default `.belay`, gitignored).
+  - `store/`: writes `<data>/projects/<slug>.yml`, where `<data>` is `AFTERLIFE_DATA_DIR` (default `.afterlife`, or an existing `.belay`; gitignored).
     - The slug is the kebab-cased name, unique among the existing files. A root that is onboarded again keeps its slug.
     - A file that is not a valid project is skipped and counted.
 - Routes:
@@ -77,9 +80,9 @@ The estate funnel that used to live here is now the **Demo estate** page, linked
   - `POST /api/onboard/propose {root, engine: 'sonnet'|'haiku'}`. The answer also carries the repo's `ciFiles`.
   - `POST /api/onboard/probe {root, spec}`: returns `{result, seal}`.
   - `POST /api/onboard/save {root, engine, proposal, results}`: keeps only the sealed results.
-- `features/onboard/wizard/`: `WizardScreen`, `hooks/useWizard` (propose, then one probe request per spec so the
-  checklist streams; a new pick aborts the previous run), and `model/lines.ts` (the checklist).
-  `model/findings.ts` produces the never-ran and Turn-on-App-Insights lines.
+- The wizard's stack step lives in `features/start/` now: `hooks/useStack` (propose, then one probe request per spec so
+  the checklist streams; a new pick aborts the previous run, leaving the screen never does), and `model/stack/lines.ts`
+  (the checklist). `model/stack/findings.ts` produces the never-ran and Turn-on-App-Insights lines.
 
 ## Rules it keeps
 - **Every saved line has an ok probe.** A failed probe is shown with its summary and is never saved. A client cannot
@@ -104,8 +107,7 @@ cloud hint). It writes the report to `<data>/onboard-ab/<ts>.json`.
 - `probes/probes.test.ts`: git probes, a provider that throws, seals.
 - `confirm.test.ts`: every drop. `store/store.test.ts`: the round trip, unique slugs, skipped files.
 - `app/api/onboard/*/route.test.ts`: each route, loopback refusal, and a forged `ok` that saves nothing.
-- `features/onboard/wizard/render.test.ts`: every state. These are: no history, onboarded, proposing, claude missing,
-  invalid, a probe fail with re-login, findings, a lapsed login on the cloud probe, review, and saved.
+- `features/start/components/stack/stack.test.ts`: the stack step's states (it replaced the wizard's render test).
 
 ## Demo estate (`/onboard/estate`)
 Illustrative demo data: a made-up GitLab estate (184 projects) brought in as a **funnel**, unchanged from the

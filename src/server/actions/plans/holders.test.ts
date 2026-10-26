@@ -49,7 +49,7 @@ describe('revoke when several agents hold the class', () => {
 
   it('refuses when no holder is above the target, naming each holder', async () => {
     const { gl, deps } = await twoHolders('assisted');
-    expect(reason(await previewIntent(deps, revokeTo('supervised')))).toMatch(/qa\.file-bug is ai-qa-second assisted, ai-qa-acme-lab supervised: Belay only lowers/);
+    expect(reason(await previewIntent(deps, revokeTo('supervised')))).toMatch(/qa\.file-bug is ai-qa-second assisted, ai-qa-acme-lab supervised: Afterlife only lowers/);
     expect(gl.state.writes).toEqual([]);
   });
 });

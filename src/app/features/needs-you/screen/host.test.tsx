@@ -45,7 +45,7 @@ describe('Needs you on the screen host', () => {
     expect(def('needs-you')).toMatchObject({ ready: true, slices: ['view', 'desk'] });
     expect(def('needs-you/[item]')).toMatchObject({ ready: true, slices: ['view'] });
     expect(def('needs-you')?.Session).toBe(def('needs-you/[item]')?.Session);
-    expect(def('needs-you/[item]')?.title({ item: 'n1' }, new URLSearchParams())).toBe('Belay Needs you n1');
+    expect(def('needs-you/[item]')?.title({ item: 'n1' }, new URLSearchParams())).toBe('Afterlife · Needs you · n1');
   });
 
   it('the slices are plain JSON; a decision the desk does not hold is notFound', async () => {
@@ -82,7 +82,7 @@ describe('Needs you on the screen host', () => {
   it('live, nothing from the group: the empty state in the live desk\'s window', () => {
     const html = render('needs-you', {}, { view: { kind: 'empty', seeded: 5 }, desk: { runner: [] } }, { shell: LIVE_SHELL });
     expect(html).toContain('<b>Needs you</b>');
-    expect(html).toContain('Belay is reading your GitLab group');
+    expect(html).toContain('Afterlife is reading your GitLab group');
     expect(html).toContain('5 demo items seeded into this index, not shown');
   });
 

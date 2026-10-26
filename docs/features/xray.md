@@ -10,7 +10,7 @@
   activities, and the shell around it. Tabs, view switchers, filters and search boxes are not introduced; the user sees
   what they are looking at.
 - Covers every windowed module, in sidebar order (`APP_NAV`): Fleet, Monitor, Needs you, Ladder, Maturity, Cycles, Task,
-  Onboard, Setup, Trace, Theater, Runs. The panel's "Next screen" button drives the real router. On a screen off the
+  Set up, Setup, Theater, Runs. The panel's "Next screen" button drives the real router. On a screen off the
   tour the layer draws no part (never the last screen's), and the panel says "not labelled" and lists the tour from `TOUR`.
 
 ## When it opens
@@ -18,7 +18,7 @@
 - `?xray=1` on any screen: the palette's "Show X-ray" (to Fleet), and the sidebar's First run links, one per screen.
 - X (not while typing), the sidebar's "X-ray this screen", or the help popover's "?" (the `afterlife:xray` window event).
 - Live mode with nothing to show (before the first poll, or an empty group): the (app) layout's gate covers the column
-  with Trace; the sidebar's "Set up my first project" and the end of the tour lead there too.
+  with /start; the sidebar's "Set up my first project" and the end of the tour lead there too.
 - Escape closes it (as the top overlay layer). Screens seen are kept per browser (Settings lists the two browser keys it keeps);
   a browser that refuses storage keeps them for the page only, and never counts as a first visit.
 
@@ -42,7 +42,7 @@ chip. A part whose selector is not drawn (a hidden `<Activity>` copy does not co
 1. Add `callouts/screens/<group>/<screen>.ts` exporting `readonly Callout[]`: a `module` callout on `main`, then columns,
    activities, and `statusCallout`, `dataLabelCallout`, `helpCallout` from `shared.ts`. Keep a folder at 10 files or fewer.
 2. Map it to its `APP_NAV` key in `callouts/tour.ts`; the stop's label and href come from the nav, never copied.
-3. Read the drawn screen first and check every selector resolves in demo and in `BELAY_MODE=live BELAY_GITLAB=fake`.
+3. Read the drawn screen first and check every selector resolves in demo and in `AFTERLIFE_MODE=live AFTERLIFE_GITLAB=fake`.
 
 ## Code map
 | Path (under src/app/features/xray/) | Role |

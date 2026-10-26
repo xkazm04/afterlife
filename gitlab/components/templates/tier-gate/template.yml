@@ -15,7 +15,7 @@ spec:
     engine_ref:
       type: string
       regex: '^[A-Za-z0-9][A-Za-z0-9._/-]*$'
-      description: Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned.
+      description: Tag, branch or full SHA of the Afterlife engine to run. Required, so the checker is always pinned.
     engine_commit:
       default: ''
       regex: '^([0-9a-f]{40})?$'
@@ -23,7 +23,7 @@ spec:
     engine_project:
       default: '$CI_PROJECT_NAMESPACE/belay-engine'
       regex: '^[A-Za-z0-9$_./-]+$'
-      description: Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token.
+      description: Project path holding the Afterlife repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token.
     policy_project:
       default: '$CI_PROJECT_NAMESPACE/belay-policy'
       regex: '^[A-Za-z0-9$_./-]+$'
@@ -66,6 +66,8 @@ spec:
       default: true
       description: Write ledger event bodies to .belay/events, as a report-only artifact (belay-apply emits and appends its own).
 ---
+# The belay- job names and the .belay* workspace dirs keep the pre-rename name: they are wire names (consumers extend the
+# boot job, the poller and belay-apply read jobs and artifact paths back by name, and armed targets .gitignore the dirs).
 .belay-boot-tier-gate:
   image: $[[ inputs.node_image ]]
   tags: $[[ inputs.runner_tags ]]
@@ -79,25 +81,28 @@ spec:
       set -eu
       # M6/F100: what picks the code run beside CI_JOB_TOKEN comes from the inputs, fixed at include time, never a job
       # variable: a pipeline variable (trigger, API, manual run) outranks the job's variables and would choose it instead.
-      BELAY_ENGINE_PROJECT="$[[ inputs.engine_project ]]"; BELAY_ENGINE_REF='$[[ inputs.engine_ref ]]'
-      BELAY_ENGINE_COMMIT='$[[ inputs.engine_commit ]]'; BELAY_GLAB_VERSION='$[[ inputs.glab_version ]]'
-      BELAY_GLAB_SHA256='$[[ inputs.glab_sha256 ]]'; BELAY_POLICY_REF='$[[ inputs.policy_ref ]]'
-      BELAY_POLICY_PROJECT="$[[ inputs.policy_project ]]"; export BELAY_POLICY_PROJECT BELAY_POLICY_REF
+      AFTERLIFE_ENGINE_PROJECT="$[[ inputs.engine_project ]]"; AFTERLIFE_ENGINE_REF='$[[ inputs.engine_ref ]]'
+      AFTERLIFE_ENGINE_COMMIT='$[[ inputs.engine_commit ]]'; AFTERLIFE_GLAB_VERSION='$[[ inputs.glab_version ]]'
+      AFTERLIFE_GLAB_SHA256='$[[ inputs.glab_sha256 ]]'; AFTERLIFE_POLICY_REF='$[[ inputs.policy_ref ]]'
+      AFTERLIFE_POLICY_PROJECT="$[[ inputs.policy_project ]]"; export AFTERLIFE_POLICY_PROJECT AFTERLIFE_POLICY_REF
       HOSTURL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}"
-      export BELAY_DIR="$CI_PROJECT_DIR/.belay-engine"
-      export BELAY_GLUE="$BELAY_DIR/gitlab/components/scripts"
-      git init -q "$BELAY_DIR"
-      git -C "$BELAY_DIR" fetch -q --depth 1 "$HOSTURL/${BELAY_ENGINE_PROJECT}.git" "$BELAY_ENGINE_REF"
-      git -C "$BELAY_DIR" checkout -q FETCH_HEAD
-      if [ -n "$BELAY_ENGINE_COMMIT" ] && [ "$(git -C "$BELAY_DIR" rev-parse HEAD)" != "$BELAY_ENGINE_COMMIT" ]; then
-        echo "belay engine is at $(git -C "$BELAY_DIR" rev-parse HEAD), not the pinned $BELAY_ENGINE_COMMIT" >&2; exit 2
+      export AFTERLIFE_DIR="$CI_PROJECT_DIR/.belay-engine"
+      export AFTERLIFE_GLUE="$AFTERLIFE_DIR/gitlab/components/scripts"
+      # Each export under its pre-rename name too, for one deprecation window: an engine_ref pinned before the rename reads those.
+      export BELAY_POLICY_PROJECT="$AFTERLIFE_POLICY_PROJECT" BELAY_POLICY_REF="$AFTERLIFE_POLICY_REF"
+      export BELAY_DIR="$AFTERLIFE_DIR" BELAY_GLUE="$AFTERLIFE_GLUE"
+      git init -q "$AFTERLIFE_DIR"
+      git -C "$AFTERLIFE_DIR" fetch -q --depth 1 "$HOSTURL/${AFTERLIFE_ENGINE_PROJECT}.git" "$AFTERLIFE_ENGINE_REF"
+      git -C "$AFTERLIFE_DIR" checkout -q FETCH_HEAD
+      if [ -n "$AFTERLIFE_ENGINE_COMMIT" ] && [ "$(git -C "$AFTERLIFE_DIR" rev-parse HEAD)" != "$AFTERLIFE_ENGINE_COMMIT" ]; then
+        echo "the Afterlife engine is at $(git -C "$AFTERLIFE_DIR" rev-parse HEAD), not the pinned $AFTERLIFE_ENGINE_COMMIT" >&2; exit 2
       fi
-      (cd "$BELAY_DIR" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error)
+      (cd "$AFTERLIFE_DIR" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error)
       if ! command -v glab >/dev/null 2>&1; then
-        V="$BELAY_GLAB_VERSION"; T="$(mktemp -d)"
-        if [ -z "$BELAY_GLAB_SHA256" ]; then echo "glab $V has no glab_sha256: refusing to install it unverified" >&2; exit 2; fi
+        V="$AFTERLIFE_GLAB_VERSION"; T="$(mktemp -d)"
+        if [ -z "$AFTERLIFE_GLAB_SHA256" ]; then echo "glab $V has no glab_sha256: refusing to install it unverified" >&2; exit 2; fi
         curl -fsSL -o "$T/glab.tgz" "https://gitlab.com/gitlab-org/cli/-/releases/v${V}/downloads/glab_${V}_linux_amd64.tar.gz" # [R?]
-        echo "$BELAY_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -
+        echo "$AFTERLIFE_GLAB_SHA256  $T/glab.tgz" | sha256sum -c -
         tar -xzf "$T/glab.tgz" -C "$T" && install "$(find "$T" -name glab -type f | head -n1)" /usr/local/bin/glab
       fi
       # The job token only, whatever this project's variables say (F4): a target pipeline never holds a write token, and
@@ -115,35 +120,42 @@ belay-tier-gate:
     - |
       set -eu
       # The agent prefix, the class override and the emit switch are inputs, never job variables a pipeline one outranks.
-      BELAY_AGENT_PREFIX='$[[ inputs.agent_prefix ]]'; BELAY_CLASS_INPUT='$[[ inputs.class ]]'; BELAY_EMIT='$[[ inputs.emit_events ]]'
+      AFTERLIFE_AGENT_PREFIX='$[[ inputs.agent_prefix ]]'; AFTERLIFE_CLASS_INPUT='$[[ inputs.class ]]'; AFTERLIFE_EMIT='$[[ inputs.emit_events ]]'
       # M6: whose notes count, and the wait (a number: $(( )) below would evaluate a variable's text, $(...) and all), are fixed
       # at include time, never a job variable a pipeline one outranks.
-      BELAY_PROOF_AUTHORS="$[[ inputs.proof_authors ]]"; BELAY_GUARDRAIL_AUTHORS="$[[ inputs.guardrail_authors ]]"
-      BELAY_WAIT_MINUTES=$[[ inputs.wait_minutes ]]
+      AFTERLIFE_PROOF_AUTHORS="$[[ inputs.proof_authors ]]"; AFTERLIFE_GUARDRAIL_AUTHORS="$[[ inputs.guardrail_authors ]]"
+      AFTERLIFE_WAIT_MINUTES=$[[ inputs.wait_minutes ]]
       mkdir -p .belay/events
       rc=0
-      node "$BELAY_GLUE/proof/mr-context.mjs" --mr "$CI_MERGE_REQUEST_IID" --agent-prefix "$BELAY_AGENT_PREFIX" || rc=$?
+      node "$AFTERLIFE_GLUE/proof/mr-context.mjs" --mr "$CI_MERGE_REQUEST_IID" --agent-prefix "$AFTERLIFE_AGENT_PREFIX" || rc=$?
       if [ "$rc" -eq 10 ]; then exit 0; fi   # a person's MR: the gate has nothing to say
       if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+      # mr.env names each value twice, AFTERLIFE_X and BELAY_X (one deprecation window); an engine_ref pinned before the
+      # rename writes only the second. All are unset first, so a pipeline variable of either name never stands in for a line.
+      unset AFTERLIFE_MR_IID AFTERLIFE_TASK_ID AFTERLIFE_ACTION_CLASS AFTERLIFE_AGENT AFTERLIFE_BASE_SHA AFTERLIFE_HEAD_SHA
+      unset BELAY_MR_IID BELAY_TASK_ID BELAY_ACTION_CLASS BELAY_AGENT BELAY_BASE_SHA BELAY_HEAD_SHA
       . ./.belay/mr.env
-      CLASS="${BELAY_CLASS_INPUT:-$BELAY_ACTION_CLASS}"
-      EMIT=""; if [ "$BELAY_EMIT" = "true" ]; then EMIT="--emit-dir .belay/events"; fi
-      apply() { node "$BELAY_GLUE/decide/apply-gate.mjs" --mr "$BELAY_MR_IID" --sha "$BELAY_HEAD_SHA" --dry 1 "$@"; }   # never writes
+      AFTERLIFE_MR_IID="${AFTERLIFE_MR_IID:-$BELAY_MR_IID}"; AFTERLIFE_TASK_ID="${AFTERLIFE_TASK_ID:-$BELAY_TASK_ID}"
+      AFTERLIFE_ACTION_CLASS="${AFTERLIFE_ACTION_CLASS:-$BELAY_ACTION_CLASS}"; AFTERLIFE_AGENT="${AFTERLIFE_AGENT:-$BELAY_AGENT}"
+      AFTERLIFE_BASE_SHA="${AFTERLIFE_BASE_SHA:-$BELAY_BASE_SHA}"; AFTERLIFE_HEAD_SHA="${AFTERLIFE_HEAD_SHA:-$BELAY_HEAD_SHA}"
+      CLASS="${AFTERLIFE_CLASS_INPUT:-$AFTERLIFE_ACTION_CLASS}"
+      EMIT=""; if [ "$AFTERLIFE_EMIT" = "true" ]; then EMIT="--emit-dir .belay/events"; fi
+      apply() { node "$AFTERLIFE_GLUE/decide/apply-gate.mjs" --mr "$AFTERLIFE_MR_IID" --sha "$AFTERLIFE_HEAD_SHA" --dry 1 "$@"; }   # never writes
       if [ -z "$CLASS" ]; then apply --force wait --reason "this MR has no Belay-Class trailer"; exit 0; fi
 
-      git clone -q --depth 1 --branch "$BELAY_POLICY_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${BELAY_POLICY_PROJECT}.git" .belay-policy
+      git clone -q --depth 1 --branch "$AFTERLIFE_POLICY_REF" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_FQDN}/${AFTERLIFE_POLICY_PROJECT}.git" .belay-policy
       P="$CI_PROJECT_DIR/.belay-policy"
 
       rc=0
-      node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag belay-proof --authors "$BELAY_PROOF_AUTHORS" --head-sha "$BELAY_HEAD_SHA" --out .belay/proof.json || rc=$?
+      node "$AFTERLIFE_GLUE/proof/fetch-block.mjs" --mr "$AFTERLIFE_MR_IID" --tag belay-proof --authors "$AFTERLIFE_PROOF_AUTHORS" --head-sha "$AFTERLIFE_HEAD_SHA" --out .belay/proof.json || rc=$?
       if [ "$rc" -eq 3 ]; then apply --force wait --reason "no trusted Proof Block for this head yet"; exit 0; fi
       if [ "$rc" -ne 0 ]; then exit "$rc"; fi
 
-      deadline=$(( $(date +%s) + BELAY_WAIT_MINUTES * 60 ))
+      deadline=$(( $(date +%s) + AFTERLIFE_WAIT_MINUTES * 60 ))
       while :; do
         rc=0
-        node "$BELAY_GLUE/proof/fetch-block.mjs" --mr "$BELAY_MR_IID" --tag belay-guardrail --authors "$BELAY_GUARDRAIL_AUTHORS" --head-sha "$BELAY_HEAD_SHA" \
-          --schema "$BELAY_DIR/gitlab/flows/schemas/guardrail-verdict.schema.json" --out .belay/guardrail.json --gate-out .belay/guardrail-gate.json || rc=$?
+        node "$AFTERLIFE_GLUE/proof/fetch-block.mjs" --mr "$AFTERLIFE_MR_IID" --tag belay-guardrail --authors "$AFTERLIFE_GUARDRAIL_AUTHORS" --head-sha "$AFTERLIFE_HEAD_SHA" \
+          --schema "$AFTERLIFE_DIR/gitlab/flows/schemas/guardrail-verdict.schema.json" --out .belay/guardrail.json --gate-out .belay/guardrail-gate.json || rc=$?
         if [ "$rc" -ne 3 ] || [ "$(date +%s)" -ge "$deadline" ]; then break; fi
         sleep 30
       done
@@ -151,13 +163,13 @@ belay-tier-gate:
       if [ "$rc" -eq 4 ]; then apply --force block --reason "the guardrail verdict does not match its schema, or its note carries two of them: treated as inconclusive"; fi
       if [ "$rc" -ne 0 ]; then exit "$rc"; fi
 
-      git diff "$BELAY_BASE_SHA" "$BELAY_HEAD_SHA" > .belay/diff.patch
+      git diff "$AFTERLIFE_BASE_SHA" "$AFTERLIFE_HEAD_SHA" > .belay/diff.patch
       grc=0
       # exit 0 merge or approve, 1 block, 2 wait or an error: the JSON says which (an error prints {"error": ...}); apply-gate refuses anything else
-      (cd "$BELAY_DIR" && npx tsx engine/cli.ts gate --policy "$P/trust-policy.yml" --state "$P/tier-state.yml" --class "$CLASS" --agent "$BELAY_AGENT" \
+      (cd "$AFTERLIFE_DIR" && npx tsx engine/cli.ts gate --policy "$P/trust-policy.yml" --state "$P/tier-state.yml" --class "$CLASS" --agent "$AFTERLIFE_AGENT" \
         --proof "$CI_PROJECT_DIR/.belay/proof.json" --guardrail "$CI_PROJECT_DIR/.belay/guardrail-gate.json" --diff "$CI_PROJECT_DIR/.belay/diff.patch") > .belay/decision.json || grc=$?
       echo "engine gate exited $grc" >&2
-      apply --decision .belay/decision.json --guardrail .belay/guardrail.json --agent "$BELAY_AGENT" --class "$CLASS" $EMIT
+      apply --decision .belay/decision.json --guardrail .belay/guardrail.json --agent "$AFTERLIFE_AGENT" --class "$CLASS" $EMIT
   artifacts:
     when: always
     expire_in: 30 days

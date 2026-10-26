@@ -69,7 +69,7 @@ export async function runLane(ctx: LaneCtx, item: PlanItem, frontier?: FrontierB
   const branch = `belay/wave-${wave}-${item.lane}`;
   // One fixed path for every lane (they run one at a time): cargo hashes a workspace crate's path into its build,
   // so a path per lane made a shared CARGO_TARGET_DIR grow by a whole workspace build per lane.
-  const dir = worktreeDir(ctx.repoPath, 'belay-wave-lane');
+  const dir = worktreeDir(ctx.repoPath, 'afterlife-wave-lane');
   let costUsd = 0;
   let outcome: LaneOutcome = 'failed';
   let parkReason: string | undefined;

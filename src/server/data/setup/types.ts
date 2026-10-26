@@ -20,7 +20,7 @@ export type StepRead = { state: 'done' | 'failed'; text: string } | { state: 'un
 
 export type CapState = 'available' | 'unavailable' | 'unknown';
 
-/** One belay doctor row (src/server/gitlab/capabilities.ts), with its reason. */
+/** One afterlife doctor row (src/server/gitlab/capabilities.ts), with its reason. */
 export interface CapRead {
   id: string;
   label: string;
@@ -52,11 +52,11 @@ export interface StepsRead extends ReadStamp {
 }
 
 export interface LiveSetupRead {
-  /** The paired group (the pairing row's path), its host, and the target project (BELAY_PROJECT). */
+  /** The paired group (the pairing row's path), its host, and the target project (AFTERLIFE_PROJECT). */
   group: string;
   host: string;
   project: string;
-  /** The projects step 4 creates: the target and the five belay projects. */
+  /** The projects step 4 creates: the target and the five Afterlife projects. */
   projects: readonly string[];
   tracks: Record<string, TrackRead>;
   /** When the tracks were read. */

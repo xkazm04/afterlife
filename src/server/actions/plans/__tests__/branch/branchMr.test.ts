@@ -1,6 +1,6 @@
-// Every MR Belay opens comes from a branch the plan creates (plans/mr/branchMr.ts): promote, enroll, a gap and arm/disarm
+// Every MR Afterlife opens comes from a branch the plan creates (plans/mr/branchMr.ts): promote, enroll, a gap and arm/disarm
 // alike refuse a branch already there at preview, ask GitLab to remove it on merge, and are done only when the MR is
-// headed by the commit the confirm made (F38). Arm finds its target by locate's rule: never Belay's own, never ambiguous.
+// headed by the commit the confirm made (F38). Arm finds its target by locate's rule: never Afterlife's own, never ambiguous.
 import { parseDocument } from 'yaml';
 import { describe, expect, it } from 'vitest';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
@@ -84,10 +84,10 @@ describe('every branch MR asks GitLab to remove its branch on merge', () => {
 });
 
 describe("arm's target is found by locate's rule", () => {
-  it("refuses Belay's own project", async () => {
+  it("refuses Afterlife's own project", async () => {
     const { gl, deps } = await rig();
     named(gl, 'belay-ledger').files['.gitlab-ci.yml'] = UNARMED;
-    expect(reason(await previewIntent(deps, arm('belay-ledger')))).toMatch(/belay-ledger is Belay's own project/);
+    expect(reason(await previewIntent(deps, arm('belay-ledger')))).toMatch(/belay-ledger is Afterlife's own project/);
     expect(gl.state.writes).toEqual([]);
   });
 

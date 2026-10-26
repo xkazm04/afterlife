@@ -30,7 +30,7 @@ const render = (fixture: Parameters<typeof SliceFixture>[0]['slices'], query = '
 describe('Cycles on the screen host', () => {
   it('is claimed, with its slices in stream order', () => {
     expect(def).toMatchObject({ ready: true, slices: ['core', 'estate', 'estateCycles'] });
-    expect(def?.title({}, new URLSearchParams())).toBe('Belay Cycles');
+    expect(def?.title({}, new URLSearchParams())).toBe('Afterlife · Cycles');
     expect(Object.keys(loaders.cycles?.slices ?? {})).toEqual(def?.slices);
   });
 

@@ -73,7 +73,7 @@ function TaskIndexFrame() {
 }
 
 export const screens: readonly ScreenDef[] = [
-  { key: 'task', ready: true, slices: ['docket'], Frame: TaskIndexFrame, Session: TaskSession, title: () => 'Belay Task' },
+  { key: 'task', ready: true, slices: ['docket'], Frame: TaskIndexFrame, Session: TaskSession, title: () => 'Afterlife · Task' },
   {
     key: 'task/[id]',
     ready: true,
@@ -82,7 +82,7 @@ export const screens: readonly ScreenDef[] = [
     paramSlices: ['detail', 'ledger'],
     Frame: TaskFrame,
     Session: TaskSession,
-    title: (p) => `Belay Task ${p.id}`,
+    title: (p) => `Afterlife · Task · ${p.id}`,
     NotFound: TaskNotFound,
   },
 ];

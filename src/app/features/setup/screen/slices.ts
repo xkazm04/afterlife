@@ -2,7 +2,7 @@
 //   catalogue - the steps, the tracks and their arm order, the classes, start_tier (in memory, the first line); live
 //               adds who the reads are for. A /setup/<node> the catalogue does not hold answers notFound here.
 //   tracks    - live: each track's arm block on the target's main (checkArm, a GitLab read per track);
-//   doctor    - live: the belay doctor's capability probe (eleven GitLab reads);
+//   doctor    - live: the doctor's capability probe (eleven GitLab reads);
 //   steps     - live: the observable steps (glab login, the projects, the runner, the protections, ...).
 // The three live reads are independent: each is written the moment it resolves. The demo makes none of them: its
 // catalogue is the whole state, and each read slice answers an empty object (the screen applies nothing).

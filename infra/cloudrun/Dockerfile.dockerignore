@@ -8,6 +8,7 @@ coverage
 next-env.d.ts
 
 # Local runtime data and secrets.
+.afterlife
 .belay
 **/.env*
 *.log

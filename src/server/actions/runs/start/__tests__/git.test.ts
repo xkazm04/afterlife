@@ -33,7 +33,7 @@ describe('checkedOut', () => {
 });
 
 describe('liveRunPid', () => {
-  const file = path.join(rig.repo, '.claude', 'worktrees', 'belay-run.pid');
+  const file = path.join(rig.repo, '.claude', 'worktrees', 'afterlife-run.pid');
   it('is null with no file, a dead pid or this process', () => {
     expect(liveRunPid(rig.repo)).toBeNull();
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -45,5 +45,13 @@ describe('liveRunPid', () => {
   it('names a live pid that is not this process', () => {
     fs.writeFileSync(file, `${process.pid}\n`);
     expect(liveRunPid(rig.repo, process.pid + 1)).toBe(process.pid);
+  });
+  it('reads a runner from before the rename, whose lock is belay-run.pid', () => {
+    fs.rmSync(file);
+    const before = path.join(path.dirname(file), 'belay-run.pid');
+    fs.writeFileSync(before, `${process.pid}
+`);
+    expect(liveRunPid(rig.repo, process.pid + 1)).toBe(process.pid);
+    fs.rmSync(before);
   });
 });

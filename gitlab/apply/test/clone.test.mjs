@@ -18,13 +18,13 @@ describe('clonePolicy retry', () => {
     spawn.mockReset();
     sleeps.length = 0;
     was = setCloneSleep((ms) => sleeps.push(ms));
-    backoff = process.env.BELAY_CLONE_BACKOFF_MS;
-    delete process.env.BELAY_CLONE_BACKOFF_MS;
+    backoff = process.env.AFTERLIFE_CLONE_BACKOFF_MS;
+    delete process.env.AFTERLIFE_CLONE_BACKOFF_MS;
   });
   afterEach(() => {
     setCloneSleep(was);
-    if (backoff === undefined) delete process.env.BELAY_CLONE_BACKOFF_MS;
-    else process.env.BELAY_CLONE_BACKOFF_MS = backoff;
+    if (backoff === undefined) delete process.env.AFTERLIFE_CLONE_BACKOFF_MS;
+    else process.env.AFTERLIFE_CLONE_BACKOFF_MS = backoff;
   });
   const run = () => clonePolicy(cfg, 'file:///x', 'dest-never-created');
 
@@ -59,7 +59,7 @@ describe('clonePolicy retry', () => {
   });
 
   it('an HTTP 503 is retried and the backoff is capped at 5 s', () => {
-    process.env.BELAY_CLONE_BACKOFF_MS = '4000';
+    process.env.AFTERLIFE_CLONE_BACKOFF_MS = '4000';
     spawn.mockReturnValueOnce(fail('fatal: unable to access: The requested URL returned error: 503')).mockReturnValueOnce(fail('fatal: unable to access: The requested URL returned error: 503')).mockReturnValueOnce(ok);
     run();
     expect(sleeps).toEqual([4000, 5000]);

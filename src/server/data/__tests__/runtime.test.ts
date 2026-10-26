@@ -10,13 +10,13 @@ import { getDataSource } from '../select';
 
 vi.mock('../live/ports', async (orig) => ({ ...(await orig<object>()), createLivePort: vi.fn() }));
 
-const KEYS = ['belay.liveRuntime.starting', 'belay.liveRuntime.ready', 'belay.liveRuntime.failed'].map((k) => Symbol.for(k));
+const KEYS = ['afterlife.liveRuntime.starting', 'afterlife.liveRuntime.ready', 'afterlife.liveRuntime.failed'].map((k) => Symbol.for(k));
 const holder = globalThis as unknown as Record<symbol, unknown>;
 const reset = (): void => {
-  (holder[Symbol.for('belay.liveRuntime.ready')] as { scheduler?: { stop(): void } } | undefined)?.scheduler?.stop();
+  (holder[Symbol.for('afterlife.liveRuntime.ready')] as { scheduler?: { stop(): void } } | undefined)?.scheduler?.stop();
   for (const k of KEYS) delete holder[k];
 };
-const ENV = { BELAY_MODE: 'live', BELAY_GITLAB: 'fake' };
+const ENV = { AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB: 'fake' };
 const cfg = readDataConfig(ENV);
 const quiet = (): void => undefined;
 const mocked = vi.mocked(createLivePort);
@@ -55,14 +55,14 @@ describe('a first poll cycle that throws', () => {
     mocked.mockReset();
     mocked.mockImplementation(real);
     const onError = vi.fn();
-    vi.stubEnv('BELAY_MODE', 'live'); // the poller reads a real group's config, and none is set: runPollCycle throws
+    vi.stubEnv('AFTERLIFE_MODE', 'live'); // the poller reads a real group's config, and none is set: runPollCycle throws
     try {
-      await expect(startRuntime(cfg, onError)).rejects.toThrow(/BELAY_GROUP_ID is not set/);
+      await expect(startRuntime(cfg, onError)).rejects.toThrow(/AFTERLIFE_GROUP_ID is not set/);
     } finally {
       vi.unstubAllEnvs();
     }
     expect([readyRuntime(), onError.mock.calls.length]).toEqual([null, 0]);
-    expect(lastStartFailure()?.message).toMatch(/BELAY_GROUP_ID is not set/);
+    expect(lastStartFailure()?.message).toMatch(/AFTERLIFE_GROUP_ID is not set/);
   });
 });
 
@@ -99,7 +99,7 @@ describe('the pages after a failed start', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(Date.now() + 31_000);
     expect(read).toThrow();
-    await vi.waitFor(() => expect(log.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^belay: live data from the seeded fake GitLab .*after a failed start/)]));
+    await vi.waitFor(() => expect(log.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^afterlife: live data from the seeded fake GitLab .*after a failed start/)]));
     log.mockRestore();
   });
 });
@@ -125,22 +125,22 @@ describe('bootLive', () => {
   it('live on the fake group names the replay clock and the polled projects', async () => {
     mocked.mockImplementation(() => fake());
     await bootLive(ENV);
-    expect(lines).toEqual([expect.stringMatching(/^belay: live data from the seeded fake GitLab \(replay clock\); \d+ project\(s\) polled$/)]);
+    expect(lines).toEqual([expect.stringMatching(/^afterlife: live data from the seeded fake GitLab \(replay clock\); \d+ project\(s\) polled$/)]);
   });
 
   it('a failed start does not reject: the server must come up so its pages can name the failure and retry', async () => {
     const err = vi.spyOn(console, 'error').mockImplementation(quiet);
     mocked.mockRejectedValue(new Error('glab is not logged in'));
     await expect(bootLive(ENV)).resolves.toBeUndefined();
-    expect(err.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^belay: live start failed: glab is not logged in; .*retried every 30s/)]);
+    expect(err.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^afterlife: live start failed: glab is not logged in; .*retried every 30s/)]);
     expect(lastStartFailure()?.message).toBe('glab is not logged in');
     err.mockRestore();
   });
 
   it('live on glab names glab, and a group that cannot be read is named', async () => {
     mocked.mockImplementation(() => fake(true));
-    await bootLive({ BELAY_MODE: 'live', BELAY_GITLAB: 'glab' });
-    expect(lines).toEqual(['belay: live data from glab; 0 project(s) polled, group error: group is gone']);
+    await bootLive({ AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB: 'glab' });
+    expect(lines).toEqual(['afterlife: live data from glab; 0 project(s) polled, group error: group is gone']);
   });
 });
 
@@ -159,8 +159,8 @@ describe('the cycle log', () => {
     await rt.refresh();
     await rt.refresh();
     expect(lines.filter((l) => l.includes('group is gone'))).toEqual([
-      'belay: poll cycle 1 new: group: group is gone (1 standing)',
-      expect.stringMatching(/^belay: poll cycle .*cleared: group: group is gone/),
+      'afterlife: poll cycle 1 new: group: group is gone (1 standing)',
+      expect.stringMatching(/^afterlife: poll cycle .*cleared: group: group is gone/),
     ]);
   });
 });

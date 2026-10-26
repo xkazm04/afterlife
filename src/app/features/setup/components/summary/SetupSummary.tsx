@@ -51,7 +51,7 @@ export function SetupSummary() {
             )}
             {unknown.length ? ` · ${unknown.length} ${pluralWord(unknown.length, 'capability', 'capabilities')} unknown, never rounded up` : ''}
           </span>
-          {state.doctorError ? <span className={styles.err}>{`belay doctor: ${state.doctorError}`}</span> : null}
+          {state.doctorError ? <span className={styles.err}>{`afterlife doctor: ${state.doctorError}`}</span> : null}
         </div>
         <div className={styles.gates} aria-label="Only you can do these">
           {open.map((a) => (

@@ -2,6 +2,7 @@
 // Everything the runner spawns - git, gates, claude - goes through here, so "exit code asserted, never
 // piped" and "kill the tree, not the shell" each live in exactly one place. Ported from ascent's kill-tree.
 import { spawn, execFile } from 'node:child_process';
+import { envOf } from './env';
 
 export interface ProcResult {
   code: number | null;
@@ -74,17 +75,17 @@ function scrubbed(keep: (name: string) => boolean): NodeJS.ProcessEnv {
 
 /**
  * The env of every child but claude: gates, setup and git (whose hooks may live in the worktree, e.g. husky).
- * A lane agent edits the files those children run, so they get no secret at all; BELAY_PASS_ENV=A,B names
+ * A lane agent edits the files those children run, so they get no secret at all; AFTERLIFE_PASS_ENV=A,B names
  * variables the operator hands through anyway (a private registry token for setup) - to these children only.
  */
 export function childEnv(): NodeJS.ProcessEnv {
-  const pass = new Set((process.env.BELAY_PASS_ENV ?? '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean));
+  const pass = new Set((envOf(process.env, 'PASS_ENV') ?? '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean));
   return scrubbed((k) => pass.has(k.toUpperCase()));
 }
 
 /**
  * claude's env: the scrubbed env plus its own credentials (and AWS / Google ones when it runs on Bedrock / Vertex),
- * never a BELAY_PASS_ENV variable. CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 makes claude strip those credentials again from
+ * never an AFTERLIFE_PASS_ENV variable. CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 makes claude strip those credentials again from
  * every process it starts (Bash, hooks), so a lane's allowed command - a gate script the lane rewrote - never sees
  * the key. Under it claude forces --permission-mode default, so the lane profile allows its edits by rule.
  */

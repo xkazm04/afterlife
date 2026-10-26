@@ -35,7 +35,7 @@ describe('fleet.yml repo path', () => {
 });
 
 describe('saved projects join the fleet', () => {
-  const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'belay-fleet-proj-'));
+  const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-fleet-proj-'));
   const project = (slug: string, extra = '') => `slug: ${slug}\nname: X\nroot: ${JSON.stringify(path.resolve('/work', slug))}\n${extra}`;
   const RUNNER = 'runner:\n  gates: [pytest release-log]\n  setup: [pip install -r requirements.txt]\n  frontier:\n    objective: faster tests\n    metrics:\n      - {name: test wall, command: pytest -q, parse: {kind: wall}, direction: down, threshold: 0.1}\n';
 

@@ -9,7 +9,7 @@ import { RUN_SCHEMA, type RunEvent } from '../../src/schemas/run';
 import { runWaves, type RunOptions } from '../index';
 
 const FAKE = path.resolve(import.meta.dirname, 'fakeClaude.mjs');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-run-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-run-'));
 const repoDir = path.join(tmp, 'repo');
 /** A repo whose base is red on its own: red.flag is committed. */
 const redDir = path.join(tmp, 'red');
@@ -34,10 +34,10 @@ beforeAll(() => {
   initRepo(redDir, true);
   const entry = (slug: string, dir: string) => `  - slug: ${slug}\n    path: ${JSON.stringify(dir)}\n    base: main\n    gates: [node gate.mjs]\n`;
   fs.writeFileSync(fleet, `repos:\n${entry('temp', repoDir)}${entry('temp-red', redDir)}`);
-  process.env.BELAY_CLAUDE_BIN = FAKE;
+  process.env.AFTERLIFE_CLAUDE_BIN = FAKE;
 });
 afterAll(() => {
-  delete process.env.BELAY_CLAUDE_BIN;
+  delete process.env.AFTERLIFE_CLAUDE_BIN;
   fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
@@ -146,7 +146,7 @@ describe('runWaves with a fake claude', () => {
   }, 90_000);
 
   it('a wave head a stopped run left registered does not block the next run', async () => {
-    sh(repoDir, 'worktree', 'add', '-q', '-b', 'belay/wave-90', path.join(repoDir, '.claude', 'worktrees', 'belay-wave-head'), 'main');
+    sh(repoDir, 'worktree', 'add', '-q', '-b', 'belay/wave-90', path.join(repoDir, '.claude', 'worktrees', 'afterlife-wave-head'), 'main');
     const r = await run(['ok-a']);
     expect(r.ends['ok-a']).toMatchObject({ outcome: 'landed' });
     sh(repoDir, 'branch', '-D', 'belay/wave-90');

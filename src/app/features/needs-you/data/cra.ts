@@ -12,13 +12,13 @@ export interface EvidenceLink {
 }
 const ev = (what: string, detail: string, ref: string): EvidenceLink => ({ what, detail, ref });
 
-/** The packet grades in order. "attested" is deliberately absent: Belay never says it. */
+/** The packet grades in order. "attested" is deliberately absent: Afterlife never says it. */
 export const GRADES: readonly Grade[] = [
   { name: 'draft', why: 'a link is unresolved' },
   { name: 'reviewable', why: 'every link resolves' },
   { name: 'ready to sign', why: 'a person read it' },
 ];
-export const GRADE_NEVER: Grade = { name: 'attested', why: 'Belay never says this' };
+export const GRADE_NEVER: Grade = { name: 'attested', why: 'Afterlife never says this' };
 
 export const EVIDENCE: readonly EvidenceLink[] = [
   ev('release v1.8.0', 'protected tag', 'glab release view'),
@@ -36,7 +36,7 @@ Aware at:    09:10, the time the exploited label was set
              (a person confirms the start event)
 Available in Member States: [a person completes this line]
 Exploitation: reported by the seeded feed; no impact seen in
-             Belay's data, which is not the same as none
+             Afterlife's data, which is not the same as none
 Mitigation:  none shipped yet · tracked in issue #131
 Evidence:    6 links, every one resolves (see list)`;
 

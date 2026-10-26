@@ -9,11 +9,11 @@ import { FAKE, makeFleet, runOne, sh, type TempFleet } from './repo';
 
 let f: TempFleet;
 beforeAll(() => {
-  f = makeFleet('belay-propose-');
-  process.env.BELAY_CLAUDE_BIN = FAKE;
+  f = makeFleet('afterlife-propose-');
+  process.env.AFTERLIFE_CLAUDE_BIN = FAKE;
 });
 afterAll(() => {
-  delete process.env.BELAY_CLAUDE_BIN;
+  delete process.env.AFTERLIFE_CLAUDE_BIN;
   fs.rmSync(f.tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 

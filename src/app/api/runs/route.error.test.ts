@@ -7,7 +7,7 @@ vi.mock('next/server', () => ({ connection: () => Promise.resolve() }));
 
 vi.mock('@/app/features/theater/live/server/livePayload', () => ({
   loadLivePayload: () => {
-    throw new Error("EACCES: permission denied, scandir 'C:/secret/.belay/runs'");
+    throw new Error("EACCES: permission denied, scandir 'C:/secret/.afterlife/runs'");
   },
 }));
 

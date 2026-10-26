@@ -54,7 +54,7 @@ describe('GET /api/screen/[key]', () => {
   });
 
   it('live before the first poll: the slices say why, never a demo payload', async () => {
-    vi.stubEnv('BELAY_MODE', 'live');
+    vi.stubEnv('AFTERLIFE_MODE', 'live');
     const out = await lines(await call('monitor'));
     expect(out.find((l) => l.slice === 'core')).toMatchObject({ status: 'error' });
     expect(String(out.find((l) => l.slice === 'core')?.reason)).toContain('first poll has not finished');

@@ -19,11 +19,11 @@ describe('derive-gate and the ledger (M1 hand-run step 4, F90)', { timeout: 120_
     noArtifactNoWrite(got.r);
   });
 
-  it('prints an append command that runs as printed in bash: BELAY_DIR set, C:\\ paths kept, the key on the commit', () => {
+  it('prints an append command that runs as printed in bash: AFTERLIFE_DIR set, C:\\ paths kept, the key on the commit', () => {
     const got = derive('printed');
     expect(got.r.code, got.r.stderr).toBe(0);
     const printed = /^Append them once: (.*)$/m.exec(got.r.stderr)?.[1];
-    expect(printed).toContain(`BELAY_DIR='${ROOT}'`);
+    expect(printed).toContain(`AFTERLIFE_DIR='${ROOT}'`);
     const ledgerApi = `projects/${encodeURIComponent(LEDGER)}`;
     const routesFile = path.join(dir, 'printed-routes.json');
     const writesFile = path.join(dir, 'printed-writes.jsonl');
@@ -32,9 +32,9 @@ describe('derive-gate and the ledger (M1 hand-run step 4, F90)', { timeout: 120_
       [`POST ${ledgerApi}/repository/commits`]: { reply: { id: 'f'.repeat(40) } },
     }));
     fs.writeFileSync(writesFile, '');
-    // The operator's shell: no BELAY_DIR and no CI_PROJECT_ID of its own, so the command must carry both.
+    // The operator's shell: no AFTERLIFE_DIR and no CI_PROJECT_ID of its own, so the command must carry both.
     const r = spawnSync('bash', ['-c', printed], { cwd: dir, encoding: 'utf8', env: { PATH: process.env.PATH, SYSTEMROOT: process.env.SYSTEMROOT,
-      BELAY_GLAB: `${process.execPath}|${path.join(ROOT, 'gitlab/components/scripts/testing/fake-glab.mjs')}`, FAKE_GLAB_ROUTES: routesFile, FAKE_GLAB_WRITES: writesFile } });
+      AFTERLIFE_GLAB: `${process.execPath}|${path.join(ROOT, 'gitlab/components/scripts/testing/fake-glab.mjs')}`, FAKE_GLAB_ROUTES: routesFile, FAKE_GLAB_WRITES: writesFile } });
     expect(r.status, r.stderr).toBe(0);
     const [write] = fs.readFileSync(writesFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
     expect(write.body.actions.map((a) => a.file_path)).toEqual(['events/1.jsonl']);

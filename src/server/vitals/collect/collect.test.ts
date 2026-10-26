@@ -37,11 +37,11 @@ function fake(batches: CiRun[][] | Error): CiProvider & { asked: (string | undef
 }
 
 let dir = '';
-const prev = process.env.BELAY_DATA_DIR;
-beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'belay-collect-')); process.env.BELAY_DATA_DIR = dir; });
+const prev = process.env.AFTERLIFE_DATA_DIR;
+beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'afterlife-collect-')); process.env.AFTERLIFE_DATA_DIR = dir; });
 afterEach(() => {
-  if (prev === undefined) delete process.env.BELAY_DATA_DIR;
-  else process.env.BELAY_DATA_DIR = prev;
+  if (prev === undefined) delete process.env.AFTERLIFE_DATA_DIR;
+  else process.env.AFTERLIFE_DATA_DIR = prev;
   rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 

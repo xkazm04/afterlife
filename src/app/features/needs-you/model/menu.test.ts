@@ -31,7 +31,7 @@ describe('row menu', () => {
   });
   it('the runner row has a read-only command to copy and no staged write', () => {
     const plan = rowMenuPlan(initialState(demo), 'n5', demo);
-    expect(plan).toContainEqual({ label: 'Copy Command', intent: { kind: 'copy', text: 'npx belay doctor' } });
+    expect(plan).toContainEqual({ label: 'Copy Command', intent: { kind: 'copy', text: 'npx afterlife doctor' } });
   });
   it('names the group of the current mode', () => {
     const s = { ...initialState(demo), group: 'project' as const };

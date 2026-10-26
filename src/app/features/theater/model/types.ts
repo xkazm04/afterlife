@@ -4,7 +4,7 @@ import type { Ceiling, Stage } from '@/schemas';
 import type { Fact } from '@/schemas/chain/facts';
 import type { GuardrailVerdict, LedgerEnvironment, LedgerKind } from '@/schemas/ledger';
 
-export type Actor = 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7' | 'T8' | 'scanner' | 'engine' | 'deploy' | 'belay';
+export type Actor = 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7' | 'T8' | 'scanner' | 'engine' | 'deploy' | 'afterlife';
 
 /** The scene an entry belongs to: a beat number 1..9, the seeded !44 line, or the closing board. */
 export type Scene = number | 'm44' | 'board';

@@ -1,5 +1,5 @@
 <!-- vendored from ascent@3c304182d51e0f6dd54e51e784fbf3458b49c033: .claude/skills/infinite/references/reflect.md, .claude/skills/infinite/SKILL.md; the T3 section re-ported from ascent@d90aed85 (reflect.md "read tech first", SKILL.md "T3 and the frontier lane") -->
-# Belay - REFLECT - after a wave
+# Afterlife - REFLECT - after a wave
 
 You are given a wave's `belay.run/0` events (jsonl: wave.start, wave.plan, lane.start, lane.usage, lane.end, wave.tech, wave.end), the lanes' result texts, and the current `plan.md` and `lane.md` (and `frontier.md` when a frontier lane ran). Your aim: make the NEXT wave land more lanes per dollar, by changing how the planner and lanes are briefed. You change what is asked, never how the result is measured.
 

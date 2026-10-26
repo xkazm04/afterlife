@@ -3,7 +3,7 @@ import { gradeState } from '../../../model/clock/grades';
 import { GradeChip } from '../../shared/GradeChip';
 import styles from './track.module.css';
 
-/** draft -> reviewable -> ready to sign, with "attested" struck out: Belay never says it. */
+/** draft -> reviewable -> ready to sign, with "attested" struck out: Afterlife never says it. */
 export function GradeLadder({ current }: { current: number }) {
   return (
     <div className={styles.bl}>

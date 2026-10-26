@@ -14,9 +14,9 @@ import { useSetupFeed } from './hooks/session/feed';
 import styles from './SetupScreen.module.css';
 
 /**
- * Setup: the unlock map. Steps 0-14, the eight tracks in arm order and the belay doctor capabilities, joined by
+ * Setup: the unlock map. Steps 0-14, the eight tracks in arm order and the doctor capabilities, joined by
  * drawn edges, under a strip of where you stand. A click (or Enter) on a node opens its page, /setup/[node].
- * Probes move steps, MRs arm tracks, and Belay writes only on a click, after showing the server's plan.
+ * Probes move steps, MRs arm tracks, and Afterlife writes only on a click, after showing the server's plan.
  * Esc clears the hover and the filter; Tab walks the map. The state lives in the Setup session (SetupProvider.tsx),
  * shared with the node pages; this screen feeds it its slices. Until the catalogue lands: the same window, dashes.
  */

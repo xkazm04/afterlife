@@ -1,7 +1,7 @@
 // A promotion's (or a re-admission's) round trip with the server, from the Ladder. It is the same promote-class intent
 // Needs you sends (needs-you/write/promote.ts), so the same round trip: previewAction when the class is eligible and in
 // view (the server plans the branch commit and the MR from belay-policy as it is; nothing runs), confirmAction with that
-// preview's id on p or the click. A person merges the MR in GitLab; Belay never does. The screen never spells a command.
+// preview's id on p or the click. A person merges the MR in GitLab; Afterlife never does. The screen never spells a command.
 import { askPolicyMr, sendPolicyMr } from '@/app/features/needs-you/write/promote';
 import type { ActionResponse, PromoteClass } from '@/server/actions/types';
 import type { WriteView } from '@/server/actions/words';

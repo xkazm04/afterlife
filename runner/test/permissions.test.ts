@@ -66,7 +66,7 @@ describe('permissionArgs', () => {
 
 describe('claudeArgs', () => {
   it('every argument is one plain token, so cmd.exe passes it through unchanged', () => {
-    const args = claudeArgs('sonnet', { step: 'lane', bash: ['uv run pytest'] }, 'C:\\Users\\a\\AppData\\Local\\Temp\\belay-perm-x\\settings.json');
+    const args = claudeArgs('sonnet', { step: 'lane', bash: ['uv run pytest'] }, 'C:\\Users\\a\\AppData\\Local\\Temp\\afterlife-perm-x\\settings.json');
     for (const a of args) expect(a).toMatch(/^[A-Za-z0-9_:\\/.,=~-]+$/);
     expect(args).toContain('--tools=Bash,Read,Edit,Write,Glob,Grep,NotebookEdit');
     expect(claudeArgs('sonnet', { step: 'reflect' }, '/tmp/s.json')).toContain('--tools=');
@@ -92,22 +92,22 @@ describe('shellLine (the one cmd.exe line for claude.cmd, instead of argv with s
 });
 
 describe('callClaude writes a settings file per call and removes it after', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-perm-test-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-perm-test-'));
   const calls = path.join(tmp, 'calls.jsonl');
   beforeAll(() => {
-    process.env.BELAY_CLAUDE_BIN = path.resolve(import.meta.dirname, 'fakeClaude.mjs');
+    process.env.AFTERLIFE_CLAUDE_BIN = path.resolve(import.meta.dirname, 'fakeClaude.mjs');
     process.env.FAKE_CALLS = calls;
   });
   afterAll(() => {
-    delete process.env.BELAY_CLAUDE_BIN;
+    delete process.env.AFTERLIFE_CLAUDE_BIN;
     delete process.env.FAKE_CALLS;
     fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   });
 
   it.each<[string, PermissionProfile, string]>([
-    ['plan', { step: 'plan' }, '<!-- belay:step=plan -->'],
-    ['lane', { step: 'lane', bash: ['cargo fmt'] }, '<!-- belay:step=lane lane=park-x -->'],
-    ['reflect', { step: 'reflect' }, '<!-- belay:step=reflect -->'],
+    ['plan', { step: 'plan' }, '<!-- afterlife:step=plan -->'],
+    ['lane', { step: 'lane', bash: ['cargo fmt'] }, '<!-- afterlife:step=lane lane=park-x -->'],
+    ['reflect', { step: 'reflect' }, '<!-- afterlife:step=reflect -->'],
   ])('%s', async (step, permissions, marker) => {
     process.env.FAKE_PLAN = '[]';
     await callClaude({ prompt: `x\n${marker}`, cwd: tmp, model: 'sonnet', timeoutMs: 20_000, permissions });
@@ -123,7 +123,7 @@ describe('callClaude writes a settings file per call and removes it after', () =
 
   // Windows: a child just killed can still hold its temp dir, and rmSync throws EPERM. That must not replace the
   // call's result (and the cost the caps count), nor turn a best-effort reflect into a failed wave.
-  it.each(['belay-perm-', 'belay-reflect-'])('a %s dir that will not go is printed, never thrown', async (prefix) => {
+  it.each(['afterlife-perm-', 'afterlife-reflect-'])('a %s dir that will not go is printed, never thrown', async (prefix) => {
     const real = fs.rmSync;
     const held: string[] = [];
     const rm = vi.spyOn(fs, 'rmSync').mockImplementation(((p: fs.PathLike, o?: fs.RmOptions) => {
@@ -135,8 +135,8 @@ describe('callClaude writes a settings file per call and removes it after', () =
     }) as typeof fs.rmSync);
     const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     try {
-      if (prefix === 'belay-perm-') {
-        const r = await callClaude({ prompt: 'x\n<!-- belay:step=plan -->', cwd: tmp, model: 'sonnet', timeoutMs: 20_000, permissions: { step: 'plan' } });
+      if (prefix === 'afterlife-perm-') {
+        const r = await callClaude({ prompt: 'x\n<!-- afterlife:step=plan -->', cwd: tmp, model: 'sonnet', timeoutMs: 20_000, permissions: { step: 'plan' } });
         expect(r.costUsd).toBe(0.25);
       } else {
         const runFile = path.join(tmp, '1.jsonl');

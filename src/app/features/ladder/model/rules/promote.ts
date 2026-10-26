@@ -41,7 +41,7 @@ export type SentView = Extract<PromoteView, { kind: 'sent' }>;
 /** What the screen says once the server answered done: the MR GitLab opened, or that the demo only simulated it. */
 export function sentWords(v: SentView): string {
   if (v.simulated) return 'Simulated · demo mode: no MR was opened, nothing was sent to GitLab';
-  return v.mr ? `Opened ${v.mr} · a person merges it in GitLab; Belay never does` : 'MR opened · GitLab named none';
+  return v.mr ? `Opened ${v.mr} · a person merges it in GitLab; Afterlife never does` : 'MR opened · GitLab named none';
 }
 
 /** The precondition's read-back, under the promotion rule: verified where, failed naming each missing setting, or not read. */
@@ -53,7 +53,7 @@ export function humanKeyLine(k: HumanKeyRead): string {
 
 /**
  * The one line the promote preview adds when the key failed: the MR is still opened (the server decides the write, and
- * Belay never merges), but GitLab would not hold its merge for a person. Null otherwise.
+ * Afterlife never merges), but GitLab would not hold its merge for a person. Null otherwise.
  */
 export function humanKeyWarning(k: HumanKeyRead | undefined): string | null {
   if (k?.state !== 'failed') return null;

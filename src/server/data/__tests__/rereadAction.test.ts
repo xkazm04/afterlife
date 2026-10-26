@@ -40,15 +40,15 @@ describe('rereadSetupAction', () => {
 
   it('demo mode reads nothing; a part it does not know, or a source with no snapshot yet, is refused', async () => {
     setDataSource(demoSource);
-    expect(await rereadSetupAction('doctor')).toEqual({ status: 'refused', reason: 'demo mode: Belay reads nothing from GitLab' });
+    expect(await rereadSetupAction('doctor')).toEqual({ status: 'refused', reason: 'demo mode: Afterlife reads nothing from GitLab' });
     setDataSource(live);
     expect(await rereadSetupAction('tracks')).toMatchObject({ status: 'refused' });
-    setDataSource({ ...live, setupReads: () => { throw new Error('BELAY_MODE=live, but the first poll has not finished'); } });
+    setDataSource({ ...live, setupReads: () => { throw new Error('AFTERLIFE_MODE=live, but the first poll has not finished'); } });
     expect(await rereadSetupAction('steps')).toEqual({ status: 'refused', reason: expect.stringMatching(/first poll/) });
   });
 
   it('a live start that failed is named as the pages name it (select.ts), not as a first poll still running', async () => {
-    const failed = 'BELAY_MODE=live, but the live start failed: glab is not logged in. It is retried every 30s.';
+    const failed = 'AFTERLIFE_MODE=live, but the live start failed: glab is not logged in. It is retried every 30s.';
     setDataSource({ ...live, setupReads: () => { throw new Error(failed); } });
     expect(await rereadSetupAction('doctor')).toEqual({ status: 'refused', reason: failed });
   });

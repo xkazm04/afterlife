@@ -8,9 +8,9 @@ const SEEDS = [
 
 describe('ledger chain', () => {
   it('hashes deterministically to 8 hex digits', () => {
-    expect(fnv('belay')).toBe(fnv('belay'));
-    expect(fnv('belay')).toMatch(/^[0-9a-f]{8}$/);
-    expect(fnv('belay')).not.toBe(fnv('belaz'));
+    expect(fnv('afterlife')).toBe(fnv('afterlife'));
+    expect(fnv('afterlife')).toMatch(/^[0-9a-f]{8}$/);
+    expect(fnv('afterlife')).not.toBe(fnv('afterlifz'));
   });
 
   it('links each row to the previous hash, starting at the genesis', () => {

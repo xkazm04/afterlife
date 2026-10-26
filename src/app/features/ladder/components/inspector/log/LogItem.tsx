@@ -25,7 +25,7 @@ export function LogItem({ entry, dim }: { entry: LedgerEntry; dim?: boolean }) {
           <b>{entry.actor}</b>· {entry.where}
           {entry.lag ? (
             <span className={styles.chip}>
-              <Chip compact tone="lag" title="Belay polls; it was not in the loop">
+              <Chip compact tone="lag" title="Afterlife polls; it was not in the loop">
                 {entry.lag}
               </Chip>
             </span>

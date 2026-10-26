@@ -69,9 +69,9 @@ describe('human_key: a precondition of the promote write, never a met eligibilit
     if (p.kind !== 'eligible') return;
     expect(p.rules.filter((r) => /human key|person merges/.test(r.name))).toEqual([]);
     expect(p.precondition).toBe(HUMAN_KEY);
-    expect(HUMAN_KEY).toBe('a person merges this MR; Belay never merges it');
+    expect(HUMAN_KEY).toBe('a person merges this MR; Afterlife never merges it');
   });
-  it('the same precondition whatever the policy says of human_key: Belay never merges a promotion', () => {
+  it('the same precondition whatever the policy says of human_key: Afterlife never merges a promotion', () => {
     const p = toHandsOff({ ...RULES, toHandsOff: { ...RULES.toHandsOff, humanKey: false } });
     expect(p.kind === 'eligible' && p.precondition).toBe(HUMAN_KEY);
     expect(toSupervised({}).kind === 'eligible' && (toSupervised({}) as { precondition?: string }).precondition).toBe(HUMAN_KEY);

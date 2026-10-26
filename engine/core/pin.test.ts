@@ -9,7 +9,7 @@ import { main } from '../cli';
 import { EngineError } from './types';
 import { ENGINE_VERSION, engineFiles, engineInfo, engineSha256 } from './version';
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-pin-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-pin-'));
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
 
 let n = 0;

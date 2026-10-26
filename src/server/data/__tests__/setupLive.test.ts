@@ -1,5 +1,5 @@
 // Setup in live mode reads its states from the fake GitLab (the demo group) and the index, never from the catalogue:
-// each track's arm block (checkArm), the belay doctor (probeCapabilities) and the steps a read can observe.
+// each track's arm block (checkArm), the afterlife doctor (probeCapabilities) and the steps a read can observe.
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadSetupData } from '@/app/features/setup/data/loadSetupData';
 import { setupReducer } from '@/app/features/setup/model/flow/reducer';
@@ -13,7 +13,7 @@ import { GitLabError } from '@/server/gitlab/errors';
 import { createDemoGitLab } from '@/server/gitlab/fake/demo';
 import { LEDGERLINE_CI } from '@/server/gitlab/fake/demo/ciFile';
 import type { FakeGitLab } from '@/server/gitlab/fake/fakeGitLab';
-import { addBootstrap, addRunner, createBelayProjects, finishHumanSteps, setApplySettings } from '@/server/gitlab/fake/setupDone';
+import { addBootstrap, addRunner, createAfterlifeProjects, finishHumanSteps, setApplySettings } from '@/server/gitlab/fake/setupDone';
 import type { GitLabPort } from '@/server/gitlab/port';
 import { getPairing } from '@/server/index/repositories/pairing';
 import { demoSource } from '../demoSource';
@@ -21,7 +21,7 @@ import { replayClock } from '../live/clock';
 import { liveSource } from '../live/liveSource';
 import { buildSnapshot } from '../live/snapshot';
 import { setDataSource } from '../select';
-import { BELAY_PROJECTS, OBSERVED_STEPS, readLiveSetup, setupReads, type SetupPort } from '../setup/read';
+import { AFTERLIFE_PROJECTS, OBSERVED_STEPS, readLiveSetup, setupReads, type SetupPort } from '../setup/read';
 
 const IDS = DEMO.setup.arm.map(([id]) => id);
 const AT = new Date('2026-10-07T09:30:00Z');
@@ -59,7 +59,7 @@ describe("a track's live state is the read of the target's main (checkArm), neve
 
   it('refused or failed: unknown, with the reason', async () => {
     const away = await reads({ project: 'not-in-the-group' });
-    expect((await away.reads.tracks(['T4'])).tracks.T4).toEqual({ state: 'unknown', reason: 'not-in-the-group is not a project Belay has read from GitLab yet' });
+    expect((await away.reads.tracks(['T4'])).tracks.T4).toEqual({ state: 'unknown', reason: 'not-in-the-group is not a project Afterlife has read from GitLab yet' });
     const failing = await reads({ wrap: fileFails });
     expect((await failing.reads.tracks(['T4'])).tracks.T4).toEqual({ state: 'unknown', reason: expect.stringMatching(/GitLab said no while reading: 403 Forbidden/) });
   });
@@ -117,7 +117,7 @@ describe('the live steps show what a read saw, and unknown for every other', () 
       gl.state.projects.push({ ...base, raw: { ...base.raw, id: 777 + i, name, path: name, path_with_namespace: `acme-lab/${name}` }, files: {} });
     }
     expect((await r.steps()).steps[4]).toEqual({ state: 'done', text: '6 of 6 projects exist' });
-    expect(r.projects).toEqual(['ledgerline', ...BELAY_PROJECTS]);
+    expect(r.projects).toEqual(['ledgerline', ...AFTERLIFE_PROJECTS]);
   });
 
   it('readLiveSetup: the paired group, its host and the target, with every part read', async () => {
@@ -156,12 +156,12 @@ describe('the human steps a read can see (3, 6, 10): done, not done, or unknown 
   it('step 8 reads only what holds no secret, never done: the tokens are not read, by design', async () => {
     const a = await reads();
     finishHumanSteps(a.gl, 'ledgerline');
-    expect((await a.reads.steps()).steps[8]).toEqual({ state: 'unknown', reason: expect.stringMatching(/^belay-apply: minimum role no_one_allowed · a schedule on main .* the four BELAY_\* tokens are not read, by design/) });
+    expect((await a.reads.steps()).steps[8]).toEqual({ state: 'unknown', reason: expect.stringMatching(/^belay-apply: minimum role no_one_allowed · a schedule on main .* the four AFTERLIFE_\* tokens are not read, by design/) });
     const b = await reads();
     setApplySettings(b.gl, { role: 'developer', schedule: false });
     expect((await b.reads.steps()).steps[8]).toEqual({ state: 'failed', text: expect.stringMatching(/is developer, not no_one_allowed · no active pipeline schedule on main · the four/) });
     const c = await reads({ wrap: callFails('listSchedules') });
-    expect((createBelayProjects(c.gl), await c.reads.steps()).steps[8]).toEqual({ state: 'unknown', reason: expect.stringMatching(/belay-apply.s settings failed: network: timeout$/) });
+    expect((createAfterlifeProjects(c.gl), await c.reads.steps()).steps[8]).toEqual({ state: 'unknown', reason: expect.stringMatching(/belay-apply.s settings failed: network: timeout$/) });
     expect(c.gl.state.writes).toEqual([]);
   });
 

@@ -1,6 +1,6 @@
 // A real project's writes, preview then confirm, as the GitLab writes do (actions/run.ts): the preview plans the exact
 // commands and their digest; the confirm plans again and runs only when the digest still matches. They act on the
-// person's own machine and az login whatever BELAY_MODE is (a real project is not demo data), so the mode is always
+// person's own machine and az login whatever AFTERLIFE_MODE is (a real project is not demo data), so the mode is always
 // live, and there is no index to journal into. Instead this process keeps:
 //   issued   the previews it answered, for PREVIEW_TTL_MS: a confirm of an id it did not issue, or issued too long
 //            ago, is refused as stale, and nothing runs ("preview again")
@@ -19,7 +19,7 @@ export const STALE_REASON = 'this preview is stale (older than 15 minutes, or fr
 const RUNNING_REASON = 'this write is being sent now: wait for its answer';
 
 interface Memory { issued: Map<string, number>; running: Set<string>; answered: Map<string, { at: number; r: ActionResponse }> }
-const KEY = Symbol.for('belay.actions.projectWrites');
+const KEY = Symbol.for('afterlife.actions.projectWrites');
 const holder = globalThis as unknown as Record<symbol, Memory | undefined>;
 const memory = (): Memory => (holder[KEY] ??= { issued: new Map(), running: new Set(), answered: new Map() });
 

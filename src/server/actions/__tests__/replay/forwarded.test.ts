@@ -1,4 +1,4 @@
-// F91: a misconfigured public container (BELAY_MODE=live behind Cloud Run's proxy, or any load balancer whose default
+// F91: a misconfigured public container (AFTERLIFE_MODE=live behind Cloud Run's proxy, or any load balancer whose default
 // route reaches it) receives a request whose Host the caller chose. Host, X-Forwarded-Host and Origin can then all say
 // localhost. The proxy still appends the caller's address to X-Forwarded-For (Next itself sets it, when absent, to the
 // socket's address: 127.0.0.1 for the operator's own page), so a live action refuses a request forwarded for anyone else.

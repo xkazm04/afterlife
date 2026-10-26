@@ -3,7 +3,7 @@
 // an omitted key, never 0.
 import type { OutcomeCounts } from '../types';
 
-/** One repo of .belay/fleet.yml, as far as the screens need it (the gates and caps are the runner's). */
+/** One repo of .afterlife/fleet.yml, as far as the screens need it (the gates and caps are the runner's). */
 export interface FleetRef {
   slug: string;
   path: string;

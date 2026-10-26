@@ -31,7 +31,7 @@ describe('GET /api/onboard/repos', () => {
   });
 
   it('refuses a request that names another host, and lists nothing for it', async () => {
-    const res = await GET(req('belay.example.com'));
+    const res = await GET(req('afterlife.example.com'));
     expect(res.status).toBe(403);
     expect(await res.json()).toMatchObject({ code: 'not-local' });
     expect(listClaudeRepos).not.toHaveBeenCalled();

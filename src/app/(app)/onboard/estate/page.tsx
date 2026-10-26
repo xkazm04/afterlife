@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'Belay Onboard' };
+export const metadata: Metadata = { title: 'Afterlife · Onboard' };
 
 // Onboard's estate funnel. The route exists for a hard load (and its title); it reads nothing. The screen host draws it
 // (features/onboard/screen/host.tsx; ?preview=1 opens with the next batch's commands shown): its window is in the static

@@ -74,6 +74,7 @@ export async function verifyAndLand(ctx: LandCtx, dir: string, item: PlanItem, d
   if (!gates.ok) return { outcome: 'failed', parkReason: redReason('gate', gates), ...flaky };
   await git(dir, ['reset', '--soft', ctx.baseSha]);
   await git(dir, ['add', '-A']);
+  // wire name: history.ts finds landed lanes in base by this subject, and fleet repos already hold belay(...) commits.
   await git(dir, ['commit', '-m', `belay(wave-${ctx.wave}): ${item.title}`, '-m', commitBody(item, done, model)]);
   const sha = await git(dir, ['rev-parse', 'HEAD']);
   const pick = await runProc('git', ['-C', ctx.waveDir, 'cherry-pick', sha]);

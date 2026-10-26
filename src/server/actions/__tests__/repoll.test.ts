@@ -75,7 +75,7 @@ describe('re-poll on the live runtime', () => {
   });
 
   it('after a failed live start, names the failure, not a first poll still running', async () => {
-    const FAILED = Symbol.for('belay.liveRuntime.failed'); // runtime.ts keeps it here until a start succeeds
+    const FAILED = Symbol.for('afterlife.liveRuntime.failed'); // runtime.ts keeps it here until a start succeeds
     const holder = globalThis as { [FAILED]?: { message: string; at: number } };
     holder[FAILED] = { message: 'glab is not logged in', at: Date.now() };
     try {

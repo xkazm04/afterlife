@@ -61,7 +61,8 @@ const SEEN: Record<Stage, Seen> = {
     elsewhere: `alert integrations live in GitLab, ${NOT_HERE}`,
     aside: (f) => { const empty = alerting(f).filter((p) => blank(f, p)); return empty.length ? `${empty.join(', ')} is empty: a detector surface, not monitoring; ` : ''; },
   },
-  govern: { what: 'Belay tier gate', include: /belay-pack\/tier-gate@/ },
+  // wire name: belay-pack is the catalog project armed pipelines include; the identifier keeps the old name.
+  govern: { what: 'Afterlife tier gate', include: /belay-pack\/tier-gate@/ },
 };
 
 export function scoreStage(stage: Stage, facts: ScanFacts): ScanCell {

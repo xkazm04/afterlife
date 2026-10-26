@@ -93,8 +93,8 @@ export function XrayPanel({ stop, parts, active, path }: { stop: TourStop | null
             {stop ? `Next screen: ${next.label}` : `Start at ${next.label}`}
           </Button>
         ) : (
-          <Button variant="accent" href="/trace">
-            Trace my own group
+          <Button variant="accent" href="/start">
+            Set up my own project
           </Button>
         )}
       </div>

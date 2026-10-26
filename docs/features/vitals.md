@@ -4,7 +4,7 @@
 > behaves around each deploy, and did the adjustments agents claimed actually move anything?
 
 ## What it does
-- `/vitals` lists the **real projects** Afterlife watches (saved by Onboard to `.belay/projects/<slug>.yml`): name,
+- `/vitals` lists the **real projects** Afterlife watches (saved by Onboard to `.afterlife/projects/<slug>.yml`): name,
   root, host, CI provider, cloud, when it was last collected and how many runs are stored. With none it says so and
   calls to **Onboard a project**. Enter or a double-click opens one.
 - `/vitals/[project]` draws three bands on one scrolling page. Picking a row in any band shows it in the inspector.
@@ -15,7 +15,7 @@
     per-stage median / p90 table and the last 20 runs (id, branch, result, duration, a bar of their stages).
   - **Production**: one row per App Insights signal (requests, failed rate, p95 duration, exceptions, availability):
     the last 24 h figure, its sample, and a 7-day trend of 6-hour cells with a tick for every deploy seen in CI.
-  - **Adjustments**: every claim an agent (through `belay report`) or a person made, joined by id with Afterlife's own
+  - **Adjustments**: every claim an agent (through `afterlife report`) or a person made, joined by id with Afterlife's own
     measurements: **proposed** (no measurement), **measuring** (the latest is inconclusive with a side under n 3),
     then **credited**, **not-earned** or **inconclusive** from the latest measurement. The agent's figure is shown in a
     column labelled **Agent's claim**, beside the measurement, never in its place. A claim's inspector holds its
@@ -43,7 +43,7 @@
   newest stored run was fetched more than 15 minutes ago starts the same job, unless one is running or finished in the
   last 15 minutes. There is no daemon: nothing polls once the job is done.
 - **Show demo estate** (Settings > Data & connection): Auto (default), On or Off. Auto shows the invented estate only
-  while no real project is saved. With it off, the sidebar keeps the real tools (Vitals, Onboard, Trace, Runs) and hides
+  while no real project is saved. With it off, the sidebar keeps the real tools (Vitals, Set up, Runs) and hides
   the demo screens (Fleet, Monitor, Needs you, Ladder, Maturity, Cycles, Task, Setup, Theater). Their routes still
   answer and wear the **Demo data — illustrative** strip, which every demo screen also wears while it is on and a real
   project exists. The front door's Enter Afterlife goes to `/vitals` once a real project is saved, else to `/fleet`.
@@ -66,7 +66,7 @@ is a notFound slice.
   wrote it. A deploy marker
   sits at `(at - windowStart) / 7 days`; one outside the window is not drawn.
 - **Refresh** is the server action `refreshVitals(slug)` (`data/actions.ts`). It refuses on the hosted replay
-  (`BELAY_MODE=replay`), for a slug no saved project has, and for a request not addressed to this machine
+  (`AFTERLIFE_MODE=replay`), for a slug no saved project has, and for a request not addressed to this machine
   (`src/server/actions/local.ts`); otherwise it starts `collectProject(slug)` as an in-process job (`data/jobs.ts`, one per
   slug: `{startedAt, done?, error?, added?, total?, prodAdded?, probes?}`; a second start while one runs returns it),
   re-renders the route (`refresh` from next/cache) and returns. The loader puts the job on the view (`view.job`), and
@@ -74,7 +74,7 @@ is a notFound slice.
   are the record. A lapsed login (a
   failed probe naming `az login` or `glab auth login`, or `az-login` / `glab-auth` failing) shows the line that said so
   and the exact re-login command, copied through Copy Command (`src/lib/clipboard/copyCommand.ts`).
-- **Demo estate**: the cookie `belay.demoEstate` (`src/lib/settings/demoEstate.ts`). The shell reads it with the number
+- **Demo estate**: the cookie `afterlife.demoEstate` (`src/lib/settings/demoEstate.ts`; an old `belay.demoEstate` is still read). The shell reads it with the number
   of saved projects (`src/components/shell/live/estateRead.ts`) into `ShellInfo.estate`, in the root layout's request-time
   read and in `GET /api/shell`. The nav filters by `navShown`, and `bars/estate/DemoEstateBanner` draws the strip by
   `demoBannerShown`.
@@ -124,5 +124,5 @@ is a notFound slice.
 - Reads what WP1 (`loadProjects`), WP2 (`readCiRuns`, `collectProject`), WP4 (`readProd`, `deployMarkers`) and WP5
   (`readAdjustments`) store; until they land, the list is empty and Refresh shows the collector's error.
 - A queued batch is measured by the next collect started from this server (Refresh or the collect on open), not by
-  `belay collect` from a shell. The local measure's job is in-process and unlisted: a restart forgets it, and its
+  `afterlife collect` from a shell. The local measure's job is in-process and unlisted: a restart forgets it, and its
   failure goes to the server log only.

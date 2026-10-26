@@ -34,7 +34,7 @@ export function nodeHead(state: SetupState, tracks: Readonly<Record<string, Trac
     const tip = d.does;
     if (isUnread(state, 'steps')) return { title: s.title, lede: 'Not read yet: the steps are being read.', tip };
     if (s.st === 'done') return { title: s.title, lede: 'Probed: a read saw it done.', tip };
-    if (isSaid(s)) return { title: s.title, lede: `${saidText(s.said ?? '')}. Belay cannot see it done.`, tip };
+    if (isSaid(s)) return { title: s.title, lede: `${saidText(s.said ?? '')}. Afterlife cannot see it done.`, tip };
     const who = d.who === 'human' ? 'Only you can do this' : 'An agent or you can do this';
     return { title: s.title, lede: `${who}${frees ? ` · frees ${frees}` : ''}${s.st === 'unknown' ? ' · unread' : ''}`, tip };
   }
@@ -47,6 +47,6 @@ export function nodeHead(state: SetupState, tracks: Readonly<Record<string, Trac
   }
   const row = state.doctor.find((r) => r.name === f.id);
   const note = state.live ? row?.reason : CAP_NOTE[f.id];
-  if (isUnread(state, 'doctor')) return row ? { title: CAP_SHORT[f.id] ?? f.id, lede: `Not probed yet in ${state.group}: belay doctor is reading.`, tip: f.id } : null;
+  if (isUnread(state, 'doctor')) return row ? { title: CAP_SHORT[f.id] ?? f.id, lede: `Not probed yet in ${state.group}: afterlife doctor is reading.`, tip: f.id } : null;
   return { title: CAP_SHORT[f.id] ?? f.id, lede: `${state.doctorError && !state.doctorNever && row ? 'last seen ' : ''}${capSt(state, f.id)} in ${state.group}`, tip: note ? `${f.id}. ${note}` : f.id };
 }

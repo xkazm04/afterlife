@@ -26,8 +26,8 @@ describe('the onboard write round trip', () => {
     actions.previewAction.mockResolvedValueOnce({ status: 'preview', preview } satisfies ActionResponse);
     expect(await askWrite(intent)).toEqual({ kind: 'preview', preview });
     expect(actions.previewAction).toHaveBeenCalledExactlyOnceWith(intent);
-    actions.previewAction.mockResolvedValueOnce({ status: 'refused', reason: 'fx-rates is not a project Belay has read from GitLab yet' });
-    expect(await askWrite(intent)).toEqual({ kind: 'refused', reason: 'fx-rates is not a project Belay has read from GitLab yet' });
+    actions.previewAction.mockResolvedValueOnce({ status: 'refused', reason: 'fx-rates is not a project Afterlife has read from GitLab yet' });
+    expect(await askWrite(intent)).toEqual({ kind: 'refused', reason: 'fx-rates is not a project Afterlife has read from GitLab yet' });
     actions.previewAction.mockRejectedValueOnce(new Error('fetch failed'));
     expect(await askWrite(intent)).toEqual({ kind: 'refused', reason: 'fetch failed' });
     expect(actions.confirmAction).not.toHaveBeenCalled();

@@ -1,4 +1,4 @@
-// belay scan --facts facts.json   |   belay scan --dir <checkout> [--propose]
+// engine/cli.ts scan --facts facts.json   |   engine/cli.ts scan --dir <checkout> [--propose]
 // --facts: scores the facts collect-facts.mjs wrote into nine cells (belay.maturity/0), by the rubric table in rubric.ts. No
 // network, no model, no clock: scanned_at is the facts' `at`, and "the last 14 days" are counted back from it. Exit 0 when
 // every cell is determined, 2 when any is unknown (the document is printed either way) or the facts file cannot be read.
@@ -107,7 +107,7 @@ function climb(rule: StageRule, f: Facts, ev: ScanEvidence[]): Stop {
   const proofRe = rule.r4;
   const proof = ran(r.v, f, `a job matching ${proofRe.source}`, (n) => proofRe.test(n), 'any');
   if (!proof.ok) return unknown(proof.why, 3);
-  if (typeof proof.v === 'string') return { rung: 3, note: `R3 holds; no Belay proof job re-derives it: ${proof.v}` };
+  if (typeof proof.v === 'string') return { rung: 3, note: `R3 holds; no Afterlife proof job re-derives it: ${proof.v}` };
   ev.push({ label: '.gitlab/duo/agent-config.yml', url: blob(p.v, '.gitlab/duo/agent-config.yml') });
   if (proof.v.id !== run.id) ev.push({ label: `job ${proof.v.name} #${proof.v.id}`, url: proof.v.webUrl });
   return { rung: TOP, note: `an agent operates it and ${proof.v.name} re-derived its proof on pipeline #${r.v.pipeline?.id ?? '?'}` };

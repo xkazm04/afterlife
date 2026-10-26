@@ -24,25 +24,25 @@ import { setupReads, type SetupPort } from '../setup/read';
 afterEach(() => setDataSource(null));
 
 describe('which source serves the request', () => {
-  it('BELAY_MODE defaults to demo; only "live" is live; BELAY_GITLAB defaults to glab', () => {
+  it('AFTERLIFE_MODE defaults to demo; only "live" is live; AFTERLIFE_GITLAB defaults to glab', () => {
     expect(readDataConfig({})).toEqual({ mode: 'demo', gitlab: 'glab', deepProject: 'ledgerline' });
-    expect(readDataConfig({ BELAY_MODE: 'live', BELAY_GITLAB: 'fake', BELAY_PROJECT: 'billing' })).toEqual({ mode: 'live', gitlab: 'fake', deepProject: 'billing' });
-    expect(readDataConfig({ BELAY_MODE: 'replay' }).mode).toBe('demo'); // the hosted replay serves the demo data
-    expect(readDataConfig({ BELAY_MODE: 'LIVE' }).mode).toBe('demo'); // not a typo-tolerant switch
+    expect(readDataConfig({ AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB: 'fake', AFTERLIFE_PROJECT: 'billing' })).toEqual({ mode: 'live', gitlab: 'fake', deepProject: 'billing' });
+    expect(readDataConfig({ AFTERLIFE_MODE: 'replay' }).mode).toBe('demo'); // the hosted replay serves the demo data
+    expect(readDataConfig({ AFTERLIFE_MODE: 'LIVE' }).mode).toBe('demo'); // not a typo-tolerant switch
   });
 
   it('demo mode is the demo source, chosen per call from the environment it is given', () => {
     expect(getDataSource({})).toBe(demoSource);
-    expect(getDataSource({ BELAY_MODE: 'demo' }).mode).toBe('demo');
+    expect(getDataSource({ AFTERLIFE_MODE: 'demo' }).mode).toBe('demo');
   });
 
   it('live mode before the first poll throws rather than showing an empty fleet as real', () => {
-    expect(() => getDataSource({ BELAY_MODE: 'live' }).getFleet()).toThrow(/first poll has not finished/);
+    expect(() => getDataSource({ AFTERLIFE_MODE: 'live' }).getFleet()).toThrow(/first poll has not finished/);
   });
 
   it('a test can pin a source', () => {
     setDataSource(demoSource);
-    expect(getDataSource({ BELAY_MODE: 'live' })).toBe(demoSource);
+    expect(getDataSource({ AFTERLIFE_MODE: 'live' })).toBe(demoSource);
   });
 
   it('the demo source is exactly the demo accessors', () => {
@@ -132,7 +132,7 @@ describe("the policy's window_last", () => {
 });
 
 describe('the poll health and the tier mark read the group the poller watches', () => {
-  it('a group polled before (a mistyped BELAY_GROUP_ID) does not keep the bar failed and the tiers stale', async () => {
+  it('a group polled before (a mistyped AFTERLIFE_GROUP_ID) does not keep the bar failed and the tiers stale', async () => {
     const db = await memoryIndex();
     const at = new Date('2026-10-06T14:22:00Z');
     await recordPollError(db, 'group:typo', 'glab: 404 Not Found');

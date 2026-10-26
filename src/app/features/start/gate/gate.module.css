@@ -1,0 +1,10 @@
+/* The gate: /start over the screen's column (grid column 2 of the window box), the screen's failed read hidden under it */
+.cover {
+  position: absolute;
+  inset: 0 0 0 var(--sbw);
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 0 minmax(0, 1fr); /* the window box's two columns, the sidebar's at zero: Window's column is the 2nd */
+  grid-template-rows: minmax(0, 1fr);
+  background: var(--win-content);
+}

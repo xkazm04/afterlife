@@ -35,7 +35,7 @@ export async function reflect(o: ReflectInput): Promise<void> {
     // The frontier brief only when a frontier lane ran: the reflection may sharpen it as its one change.
     ...(o.current.frontier && events.includes('"frontier":true') ? [`## frontier.md as run\n${o.current.frontier}`] : []),
   ].join('\n\n');
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-reflect-'));
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-reflect-'));
   try {
     const a = await callClaude({ prompt: `${o.prompt}\n\n${context}\n${stepMarker('reflect')}`, cwd: scratch, model: o.model, timeoutMs: o.timeoutMs, permissions: { step: 'reflect' } });
     if (a.usage) o.log({ kind: 'lane.usage', lane: 'reflect', model: a.model ?? o.model, ...a.usage, costUsd: a.costUsd ?? 0, ...(a.sessionId ? { sessionId: a.sessionId } : {}) });

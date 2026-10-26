@@ -77,7 +77,7 @@ describe('an arm or disarm branch that already exists (F38 part 1)', () => {
 });
 
 describe('a confirm is done only when its own commit heads the MR (F38 part 2)', () => {
-  /** Someone pushes to the branch between Belay's commit and its MR: the MR GitLab opens is headed by their commit. */
+  /** Someone pushes to the branch between Afterlife's commit and its MR: the MR GitLab opens is headed by their commit. */
   const pushedBetween = (gl: () => FakeGitLab) => (port: GitLabPort): GitLabPort => new Proxy(port, {
     get: (t, k, r) => (k === 'execute'
       ? async (c: PlannedCommand) => {

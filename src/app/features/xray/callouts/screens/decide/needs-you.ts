@@ -40,7 +40,7 @@ export const NEEDS_YOU: readonly Callout[] = [
     title: 'Needs you',
     body: (r) => {
       if (!r.count(DECISIONS)) {
-        return 'What waits for a person, and what will each click write? Nothing waits that Belay knows of yet: the desk fills as the poller finds quarantined classes, gaps to pick and setup steps in your group.';
+        return 'What waits for a person, and what will each click write? Nothing waits that Afterlife knows of yet: the desk fills as the poller finds quarantined classes, gaps to pick and setup steps in your group.';
       }
       const waiting = said(r, 'waiting');
       const clock = said(r, 'on a clock');
@@ -62,7 +62,7 @@ export const NEEDS_YOU: readonly Callout[] = [
     title: 'The decision on a clock',
     body: (r) => {
       const left = r.text('section[aria-label="CRA legal clock"] [role="timer"]');
-      return `The CRA early warning, the loudest thing here${left ? `: ${left} left` : ''}, and the clock never pauses. Read the draft first; only then does Ready to sign stage the mark. A person submits on ENISA, never Belay. In the demo it is a seeded drill.`;
+      return `The CRA early warning, the loudest thing here${left ? `: ${left} left` : ''}, and the clock never pauses. Read the draft first; only then does Ready to sign stage the mark. A person submits on ENISA, never Afterlife. In the demo it is a seeded drill.`;
     },
     try: 'Click Read the draft',
   },

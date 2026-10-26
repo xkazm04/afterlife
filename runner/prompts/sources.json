@@ -100,6 +100,6 @@
   },
   "notes": [
     "Sources with \"ref\": \"archive\" are read from the archive ref's blob, not the working tree: that experiment branch was never merged to Ascent master.",
-    "2026-10-21: ladder.md, reflect.md and SKILL.md re-pinned at ascent@d90aed85. What moved in them (40ec3038, e3aceaac) is T3 measurement and the frontier lane; it was ported as Belay's P4 (prompts/frontier.md, runner/tech/, wave.tech) and reflect.md's 'read tech first' section, not into plan.md."
+    "2026-10-21: ladder.md, reflect.md and SKILL.md re-pinned at ascent@d90aed85. What moved in them (40ec3038, e3aceaac) is T3 measurement and the frontier lane; it was ported as Afterlife's P4 (prompts/frontier.md, runner/tech/, wave.tech) and reflect.md's 'read tech first' section, not into plan.md."
   ]
 }

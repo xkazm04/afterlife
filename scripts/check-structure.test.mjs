@@ -11,7 +11,7 @@ const script = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'check
 const made = [];
 
 function tree(files) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-structure-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-structure-'));
   made.push(dir);
   for (const [rel, body] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
@@ -60,7 +60,7 @@ describe('scripts/check-structure.mjs', () => {
   });
 
   it('refuses a root that is not a directory with one line and exit 2, not a stack trace', () => {
-    const r = run(path.join(os.tmpdir(), 'belay-structure-missing-root'));
+    const r = run(path.join(os.tmpdir(), 'afterlife-structure-missing-root'));
     expect(r.status).toBe(2);
     expect(r.stderr).toContain('is not a directory');
     expect(r.stderr).not.toContain('node:fs');

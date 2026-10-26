@@ -1,0 +1,39 @@
+/* The constellation's shape: the orbit's arc between two connected steps draws itself in (pathLength 1, dashoffset
+   1 -> 0) the moment its second end is done, so the ring builds up node by node; the closing arc completes it, and the
+   whole picture then glows once and settles. Unlit arcs draw nothing: the dashed orbit underneath stays the guide. */
+.bond {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0;
+  stroke-linecap: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+.bond[data-lit] {
+  stroke-width: 2.5;
+  stroke-dashoffset: 0;
+  filter: drop-shadow(0 0 calc(5px * var(--ui-scale)) color-mix(in oklab, var(--accent) 60%, transparent));
+  animation: bond-draw 700ms var(--ease) both;
+}
+@keyframes bond-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+[data-complete] .bond[data-lit] {
+  stroke-width: 3;
+  animation:
+    bond-draw 700ms var(--ease) both,
+    bond-complete 1400ms var(--ease) 700ms both;
+}
+@keyframes bond-complete {
+  40% {
+    filter: drop-shadow(0 0 calc(14px * var(--ui-scale)) var(--accent));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bond[data-lit],
+  [data-complete] .bond[data-lit] {
+    animation: none;
+  }
+}

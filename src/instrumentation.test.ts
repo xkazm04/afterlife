@@ -15,11 +15,11 @@ const ctx = (routePath: string, routeType: Context['routeType'] = 'render'): Con
 describe('onRequestError', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('logs one belay: line naming the request, the route, the digest and the message', () => {
+  it('logs one afterlife: line naming the request, the route, the digest and the message', () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => {});
     onRequestError(Object.assign(new Error('bad snapshot'), { digest: '123' }), req('/fleet'), ctx('/fleet'));
     expect(log).toHaveBeenCalledTimes(1);
-    expect(log).toHaveBeenCalledWith('belay: GET /fleet (route /fleet, render) failed (digest 123): bad snapshot');
+    expect(log).toHaveBeenCalledWith('afterlife: GET /fleet (route /fleet, render) failed (digest 123): bad snapshot');
   });
 
   // The route path is the file pattern; only the request names which project, item or task failed, and only the route
@@ -27,12 +27,12 @@ describe('onRequestError', () => {
   it('names the concrete path and the action, never the query string', () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => {});
     onRequestError(new Error('stage refused'), req('/needs-you/n1?item=promote%3Aledgerline', 'POST'), ctx('/needs-you/[item]', 'action'));
-    expect(log).toHaveBeenCalledWith('belay: POST /needs-you/n1 (route /needs-you/[item], action) failed (digest none): stage refused');
+    expect(log).toHaveBeenCalledWith('afterlife: POST /needs-you/n1 (route /needs-you/[item], action) failed (digest none): stage refused');
   });
 
   it('copes with a thrown non-error and no digest', () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => {});
     onRequestError('nope', req('/x'), ctx('/x'));
-    expect(log).toHaveBeenCalledWith('belay: GET /x (route /x, render) failed (digest none): nope');
+    expect(log).toHaveBeenCalledWith('afterlife: GET /x (route /x, render) failed (digest none): nope');
   });
 });

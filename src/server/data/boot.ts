@@ -4,8 +4,9 @@ import { readDataConfig, type DataConfig } from './config';
 import { pollIntervalMs } from '@/server/poller';
 import { startRuntime, type LiveRuntime } from './live/runtime';
 import { messageOf } from '@/lib/format/error';
+import { serverEnv } from '@/server/env/env';
 
-export async function bootLive(env: Record<string, string | undefined> = process.env): Promise<void> {
+export async function bootLive(env: Record<string, string | undefined> = serverEnv()): Promise<void> {
   const cfg = readDataConfig(env);
   if (cfg.mode !== 'live') return;
   let rt: LiveRuntime;
@@ -13,7 +14,7 @@ export async function bootLive(env: Record<string, string | undefined> = process
     rt = await startRuntime(cfg);
   } catch (e) {
     // Not rethrown: a register() that rejects stops the server from preparing, and the pages are what name a failed start and retry it (select.ts).
-    console.error(`belay: live start failed: ${messageOf(e)}; the pages name it and the start is retried every ${pollIntervalMs() / 1000}s`);
+    console.error(`afterlife: live start failed: ${messageOf(e)}; the pages name it and the start is retried every ${pollIntervalMs() / 1000}s`);
     return;
   }
   console.log(liveLine(cfg, rt));
@@ -22,5 +23,5 @@ export async function bootLive(env: Record<string, string | undefined> = process
 /** The one line a live start that succeeded says: bootLive's at server start, select.ts's when a page's retry succeeds. */
 export function liveLine(cfg: DataConfig, rt: LiveRuntime, after = ''): string {
   const failed = rt.last?.projects.filter((p) => !p.ok).length ?? 0;
-  return `belay: live data from ${cfg.gitlab === 'fake' ? 'the seeded fake GitLab (replay clock)' : 'glab'}${after}; ${rt.last?.projects.length ?? 0} project(s) polled${rt.last?.error ? `, group error: ${rt.last.error}` : failed ? `, ${failed} failed` : ''}`;
+  return `afterlife: live data from ${cfg.gitlab === 'fake' ? 'the seeded fake GitLab (replay clock)' : 'glab'}${after}; ${rt.last?.projects.length ?? 0} project(s) polled${rt.last?.error ? `, group error: ${rt.last.error}` : failed ? `, ${failed} failed` : ''}`;
 }

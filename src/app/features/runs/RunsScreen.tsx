@@ -28,16 +28,16 @@ const subtitleOf = (data: RunsData | undefined): string => {
 };
 
 /**
- * Runs: what the runner did, read from .belay/runs (real local files, demo and live alike). Repos, their waves, a wave's
+ * Runs: what the runner did, read from .afterlife/runs (real local files, demo and live alike). Repos, their waves, a wave's
  * lanes on Enter. A mergeable wave shows the commands to take it; nothing here writes. `fleetError`: why an invalid
- * .belay/fleet.yml did not read (absent when the file is fine or missing). Before the runs are read the window, the
+ * .afterlife/fleet.yml did not read (absent when the file is fine or missing). Before the runs are read the window, the
  * totals strip (dashes) and the table's place are drawn, so nothing moves when they land.
  */
 export function RunsScreen({ data, runsError, merges, mergesPending = false, fleetError }: RunsScreenProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const wave = data?.repos.flatMap((r) => r.waves).find((w) => waveId(w) === selected);
   const empty = data !== undefined && data.repos.length === 0;
-  const status = !data ? <Unread label="runs not read yet" /> : empty ? 'No runs in .belay/runs' : 'Enter or double-click a wave to open its lanes';
+  const status = !data ? <Unread label="runs not read yet" /> : empty ? 'No runs in .afterlife/runs' : 'Enter or double-click a wave to open its lanes';
   return (
     <Window title="Runs" subtitle={subtitleOf(data)} status={status}>
       <div className={styles.pane}>

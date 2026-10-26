@@ -27,7 +27,7 @@ describe('graph closure', () => {
   });
 });
 
-describe('the Belay arm graph', () => {
+describe('the Afterlife arm graph', () => {
   it('step 6 frees only T5; step 12 frees T2', () => {
     expect(stepFrees(GRAPH, 6)).toEqual(['T5']);
     expect(stepFrees(GRAPH, 12)).toEqual(['T2']);

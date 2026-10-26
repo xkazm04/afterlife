@@ -1,4 +1,4 @@
-// Validates a `belay-guardrail` block (gitlab/flows/schemas/guardrail-verdict.schema.json). Only the fields Belay reads.
+// Validates a `belay-guardrail` block (gitlab/flows/schemas/guardrail-verdict.schema.json). Only the fields Afterlife reads.
 import { field, isRec, isStr } from './guards';
 
 export interface GuardrailFinding {

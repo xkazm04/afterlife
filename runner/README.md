@@ -7,8 +7,8 @@ merges or writes to GitLab: the wave branch is left for a person.
 ## Run it
 
 ```
-npm run runner -- --repo athena-portable            # = belay run --repo ...
-belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [--model sonnet] [--fleet .belay/fleet.yml]
+npm run runner -- --repo athena-portable            # = afterlife run --repo ...
+afterlife run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [--model sonnet] [--fleet .afterlife/fleet.yml]
           [--mode execute|propose] [--base <ref> | --onto <branch>] [--ideas scan,lens-scan] [--skip-base-gates] [--dry-run]
 ```
 
@@ -26,9 +26,9 @@ belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [
   run: the wave worktree checks it out (no `-b`), each lane starts from its tip, and it is never deleted, even when
   nothing landed (`wave.start` has `branch: <branch>, onto: true`). Exit 2 before anything runs when the branch does
   not exist, is checked out in any worktree (the main checkout included; the message names the path; the runner's own
-  `belay-wave-head` left by a stopped run does not count, it is removed at wave start), or is given with `--base`.
+  `afterlife-wave-head` left by a stopped run does not count, it is removed at wave start), or is given with `--base`.
 - `--ideas scan,lens-scan`: evidence for the plan prompt, gathered once per wave (`runner/ideas/`). `scan` = the
-  engine's model-free checkout scan (`engine/scan`, what `belay scan` prints) of the plan's worktree: every stage at R0
+  engine's model-free checkout scan (`engine/scan`, what `afterlife scan` prints) of the plan's worktree: every stage at R0
   or unknown, with its why. `lens-scan` = the open proposals (status `proposed`, `approved` or `rework`) in
   `<repo>/.ai/lens-scan/scan.db`, opened `readOnly` through `node:sqlite` (`immutable` when its WAL is empty, so not even
   its `-shm` is touched) and only SELECTed, ordered by tier (untriaged
@@ -37,7 +37,7 @@ belay run --repo <slug> [--waves 1] [--lanes 6] [--lane-cap 3] [--wave-cap 25] [
   source and id, capped at 6 KB (the rest counted as "N more not shown"). `wave.plan.ideas` is
   `[{source, count}]` per source asked for, `count` = items the prompt showed. An unknown source exits 2. A flag not in that list (a
 misspelt `--lane-caps`) exits 2 before anything runs. Copy `fleet.example.yml` to
-`.belay/fleet.yml` (gitignored) and fix the paths. A repo's own `laneCapUsd`/`waveCapUsd` are ceilings on the flags.
+`.afterlife/fleet.yml` (gitignored; an existing `.belay/` is still used while no `.afterlife/` exists) and fix the paths. A repo's own `laneCapUsd`/`waveCapUsd` are ceilings on the flags.
 `laneTools` (optional) lists extra command prefixes a lane may run, e.g. `npx vitest run`, `cargo check`.
 
 ## What each call may do
@@ -58,9 +58,9 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
 
 ## A wave
 
-1. `wave.start`. Branch `belay/wave-<n>` is created from `base` in its own worktree (`<repo>/.claude/worktrees/belay-wave-head`, one fixed path so a shared build cache is reused; lanes use `belay-wave-lane`).
+1. `wave.start`. Branch `belay/wave-<n>` is created from `base` in its own worktree (`<repo>/.claude/worktrees/afterlife-wave-head`, one fixed path so a shared build cache is reused; lanes use `afterlife-wave-lane`).
    A run stopped mid-wave (Ctrl-C) leaves those fixed worktrees registered: the next run removes them first, with a
-   leftover lane branch (`belay/wave-<n>-<lane>`; the wave branch is kept). `<worktrees>/belay-run.pid` names the
+   leftover lane branch (`belay/wave-<n>-<lane>`; the wave branch is kept). `<worktrees>/afterlife-run.pid` names the
    run holding them, and a second run on the same repo while that pid is alive refuses to start.
    Setup and the gates run there once, on base: if any is red, every lane would fail for a reason not its own, so the
    wave ends at once (`wave.end` with `baseRed` = the reason and output tail, nothing spent, no reflect) and the run
@@ -91,7 +91,7 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
    the same review, repair, gates and landing, under the same caps.
 4. T3, for a repo with a `frontier` whose wave landed something: each metric is measured on the wave base (twice)
    and on the wave tip (twice when a metric is a wall time or its base runs differed, else once), each side in a
-   throwaway detached worktree `belay-wave-tech` with `setup` run in it (never a link to the main checkout's
+   throwaway detached worktree `afterlife-wave-tech` with `setup` run in it (never a link to the main checkout's
    `node_modules`), deleted with `removeTree` (junctions unlinked, not followed). Commands run through `runProc`
    with `childEnv()` and `timeoutMin` (default 20); a red command gives that run no value. Then `wave.tech`
    `{from, to, metrics: [{name, unit, before?, after?, gain?, threshold, breakthrough, noisy}]}`: `gain` is signed
@@ -102,7 +102,7 @@ Windows claude.cmd runs through cmd.exe with unescaped argv; the path must be a 
    is false when nothing landed and the branch was deleted (`branch` still names it; older files have no key).
 6. Reflect: one claude call (`prompts/reflect.md` + the wave's events, a `wave.tech` line first under its own
    heading, and `frontier.md` when a frontier lane ran) in an empty scratch dir; its text is written to
-   `.belay/runs/<repo>/<wave>.proposals.md`, its usage is emitted as `lane.usage` with lane `reflect` (after `wave.end`).
+   `.afterlife/runs/<repo>/<wave>.proposals.md`, its usage is emitted as `lane.usage` with lane `reflect` (after `wave.end`).
 
 ## Review and one repair turn
 
@@ -155,7 +155,7 @@ The runner deletes a worktree's dir itself (`fs.rm`, `rmdir /s /q` as the Window
 `git worktree remove --force`: git for Windows (2.43) follows a junction inside the worktree and empties its target,
 e.g. a pnpm store a `setup` install linked in, and a removal that fails partway leaves an unregistered dir behind.
 `fs.rm` unlinks a junction or symlink without entering it. Then `git worktree prune` drops the record; a dir that
-would not go is printed to stderr. Each wave starts by deleting any `belay-wave-*` dir under `.claude/worktrees`
+would not go is printed to stderr. Each wave starts by deleting any `afterlife-wave-*` (or pre-rename `belay-wave-*`) dir under `.claude/worktrees`
 that git no longer lists as a worktree. Only paths under `<repo>/.claude/worktrees` are ever deleted.
 
 ## Outcomes and caps
@@ -178,7 +178,7 @@ is enforced after the call that crossed it, not mid-stream.
 
 ## Run file
 
-`.belay/runs/<repo>/<wave>.jsonl`: one `belay.run/0` event per line (`src/schemas/run/run.ts`), append-only, stamped with
+`.afterlife/runs/<repo>/<wave>.jsonl`: one `belay.run/0` event per line (`src/schemas/run/run.ts`), append-only, stamped with
 `promptVersion` = first 12 hex of sha256 over `prompts/{plan,lane,reflect,review,repair,frontier}.md` in that order (a
 missing file counts as empty). Added later, all optional or a new kind, so older files still read: `lane.usage.call`,
 `lane.start.frontier`, `lane.end.review` / `restored`, the `wave.tech` event, `wave.start.branch` / `mode` / `onto`,
@@ -196,7 +196,7 @@ Vertex), with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`. That makes claude strip its 
 process it starts, so the Bash commands a lane is allowed (claude's children, running scripts the lane can rewrite)
 and its hooks get no secret at all; claude then forces `--permission-mode default`, hence the lane's `Edit(./**)`
 rule. Every other child - setup, gates, git and its hooks - gets `childEnv()`, with no secret at all:
-a lane agent edits the files those children run, so anything they inherit is the agent's. `BELAY_PASS_ENV=NPM_TOKEN,...`
+a lane agent edits the files those children run, so anything they inherit is the agent's. `AFTERLIFE_PASS_ENV=NPM_TOKEN,...`
 hands named variables through anyway (a private registry for `setup`), to those children only, never to claude.
 
 What is NOT enforced: a lane's commands and the gates have the network and the user's filesystem. The Bash allow
@@ -208,8 +208,8 @@ turned on. Until then, run the runner as a user that holds only what it needs. N
 
 ## Tests
 
-`npx vitest run runner`. `test/fakeClaude.mjs` stands in for claude (set `BELAY_CLAUDE_BIN` to a `.mjs`/`.js` script to
-swap the binary; behaviour is picked by the `<!-- belay:step=... -->` marker every prompt ends with: plan, lane,
+`npx vitest run runner`. `test/fakeClaude.mjs` stands in for claude (set `AFTERLIFE_CLAUDE_BIN` to a `.mjs`/`.js` script to
+swap the binary; behaviour is picked by the `<!-- afterlife:step=... -->` marker every prompt ends with: plan, lane,
 review, repair, reflect); the run tests use a temp git repo with a real worktree per lane. `test/cycle/` covers the
 review and repair turns, the integrity restore, the trailer, the frontier lane and `wave.tech`.
 

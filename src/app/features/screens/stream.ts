@@ -33,7 +33,7 @@ function lineOf(slice: string, r: SliceResult, asOf: string, where: string): Wir
   if (r.status === 'ok') {
     const bad = unserialisable(r.data);
     if (!bad) return r.data === undefined ? { slice, status: 'ok', asOf } : { slice, status: 'ok', data: r.data as WireLine['data'], asOf };
-    console.error(`belay: ${where} slice ${slice}: ${bad} is not plain JSON`);
+    console.error(`afterlife: ${where} slice ${slice}: ${bad} is not plain JSON`);
     return { slice, status: 'error', reason: 'unreadable', asOf };
   }
   if (r.status === 'redirect') return { slice, status: 'redirect', to: r.to, asOf };
@@ -44,7 +44,7 @@ function lineOf(slice: string, r: SliceResult, asOf: string, where: string): Wir
 function failed(slice: string, e: unknown, where: string): WireLine {
   const asOf = new Date().toISOString();
   if (e instanceof NotReadyError) return { slice, status: 'error', reason: e.message, asOf };
-  console.error(`belay: ${where} slice ${slice} could not be read: ${messageOf(e)}`);
+  console.error(`afterlife: ${where} slice ${slice} could not be read: ${messageOf(e)}`);
   return { slice, status: 'error', reason: 'unreadable', asOf };
 }
 

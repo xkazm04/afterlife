@@ -19,11 +19,11 @@ export const T3: TrackArm = {
   refuses: (pin) =>
     pin.proofAuthors
       ? null
-      : "set BELAY_PROOF_AUTHORS in Belay's environment (belay-apply's bot account, its \"bot\" in apply.json): T3's tier-gate trusts only the proof notes those accounts post, and Belay will not guess them",
+      : "set AFTERLIFE_PROOF_AUTHORS in Afterlife's environment (belay-apply's bot account, its \"bot\" in apply.json): T3's tier-gate trusts only the proof notes those accounts post, and Afterlife will not guess them",
   notes: [
-    "This include only reports what the gate will decide. The gate that counts runs in belay-apply, which applies it with BELAY_BOT_TOKEN set there as a protected CI variable, never on this project; the tripwire runs there too.",
+    "This include only reports what the gate will decide. The gate that counts runs in belay-apply, which applies it with AFTERLIFE_BOT_TOKEN set there as a protected CI variable, never on this project; the tripwire runs there too.",
     NO_WRITE_TOKEN,
-    'proof_authors is BELAY_PROOF_AUTHORS: the gate reads the proof note only from those accounts, and ignores one by anyone else.',
+    'proof_authors is AFTERLIFE_PROOF_AUTHORS: the gate reads the proof note only from those accounts, and ignores one by anyone else.',
     'tier-gate reads belay-engine and belay-policy with the job token: both must allow this project (step 9).',
     "It runs in .post and waits up to 10 minutes for the guardrail's verdict; after that the MR waits for a person.",
   ],

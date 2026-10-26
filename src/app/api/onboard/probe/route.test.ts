@@ -27,7 +27,7 @@ const post = (body: unknown, host = 'localhost:3101') =>
 
 describe('POST /api/onboard/probe', () => {
   it('runs the probe and seals its result', async () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-api-probe-'));
+    root = mkdtempSync(join(tmpdir(), 'afterlife-api-probe-'));
     execFileSync('git', ['init', '-q', root], { stdio: 'ignore' });
     const res = await post({ root, spec: { kind: 'git-root', args: {} } });
     expect(res.status).toBe(200);
@@ -40,7 +40,7 @@ describe('POST /api/onboard/probe', () => {
   });
 
   it('refuses an unknown kind, an arg the kind does not take, and another host', async () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-api-probe-'));
+    root = mkdtempSync(join(tmpdir(), 'afterlife-api-probe-'));
     execFileSync('git', ['init', '-q', root], { stdio: 'ignore' });
     expect((await post({ root, spec: { kind: 'shell', args: { cmd: 'rm -rf /' } } })).status).toBe(400);
     expect((await post({ root, spec: { kind: 'git-root', args: { cmd: 'x' } } })).status).toBe(400);

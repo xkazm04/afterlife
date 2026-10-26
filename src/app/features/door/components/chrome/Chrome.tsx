@@ -12,7 +12,7 @@ export const TopChrome = memo(function TopChrome({ org, asOf, enter = '/fleet' }
     <>
       <header className={`${styles.chrome} ${styles.tl}`}>
         <div className={styles.brand} data-role="door-brand">
-          <Image src="/brand/belay-b-knot.svg" alt="" width={22} height={22} unoptimized style={{ verticalAlign: '-5px', marginRight: 8 }} />
+          <Image src="/brand/afterlife-b-knot.svg" alt="" width={22} height={22} unoptimized style={{ verticalAlign: '-5px', marginRight: 8 }} />
           Afterlife
           <small>
             {org} · as of {asOf}

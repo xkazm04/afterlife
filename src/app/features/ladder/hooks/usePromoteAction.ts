@@ -23,7 +23,7 @@ export interface PromoteScreen {
  * p, Promote or Re-admit: confirm the policy MR the server planned for the class (on screen on the class page and the
  * dock), and only that one. Without it on screen nothing is sent and the status line says so. A class the rule does not
  * call eligible (or a quarantine) sends nothing and names why. Done names the MR from the server's answer; a demo answer
- * is simulated and says so. Belay never merges it: a person does, in GitLab.
+ * is simulated and says so. Afterlife never merges it: a person does, in GitLab.
  */
 export function usePromoteAction(project: string, data: LadderData, promos: PromoteWrites, screen: PromoteScreen) {
   const { toast, status } = useToast();

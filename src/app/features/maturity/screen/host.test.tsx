@@ -42,7 +42,7 @@ describe('Maturity on the screen host', () => {
     expect(def('maturity')).toMatchObject({ ready: true, slices: ['core'] });
     expect(def('maturity/[stage]')).toMatchObject({ ready: true, slices: ['core'] });
     expect(def('maturity')?.Session).toBe(def('maturity/[stage]')?.Session);
-    expect(def('maturity/[stage]')?.title({ stage: 'secure' }, new URLSearchParams())).toBe('Belay Maturity secure');
+    expect(def('maturity/[stage]')?.title({ stage: 'secure' }, new URLSearchParams())).toBe('Afterlife · Maturity · secure');
   });
 
   it('the core slice carries the dataset, the project and the mode; an unknown stage is notFound', async () => {

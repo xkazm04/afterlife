@@ -64,13 +64,13 @@ function ProjectNotFound() {
 }
 
 export const screens: readonly ScreenDef[] = [
-  { key: 'fleet', ready: true, slices: ['core', 'estate', 'desk'], Frame: FleetFrame, title: () => 'Belay Fleet' },
+  { key: 'fleet', ready: true, slices: ['core', 'estate', 'desk'], Frame: FleetFrame, title: () => 'Afterlife · Fleet' },
   {
     key: 'fleet/[project]',
     ready: true,
     slices: ['core', 'estate', 'desk'],
     Frame: ProjectFrame,
-    title: (p) => `Belay Fleet ${p.project}`,
+    title: (p) => `Afterlife · Fleet · ${p.project}`,
     NotFound: ProjectNotFound,
   },
 ];

@@ -1,5 +1,5 @@
 <!-- vendored from ascent@424b6d38aa7ea7f994ee13e67fae15c9922759a0 (refs/hygiene-archive/2026-10-20/experiment/infinite-cycles, cycle personas-web-009): src/lib/local/lane-frontier.ts (buildFrontierPrompt, frontierReportContract) -->
-# Belay - FRONTIER - past the planner's edge
+# Afterlife - FRONTIER - past the planner's edge
 
 This wave's planner found fewer items than it was asked for: what is left in this repository that a planned lane can reach is thin. You are not here to close a planned item. You are here to move this repository's technology past where it is today, toward the objective below. The lane rules above still bind you, word for word; this brief replaces only the item.
 

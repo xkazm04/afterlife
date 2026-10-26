@@ -1,4 +1,4 @@
-// Which GitLab account an enrollment writes its records under. Belay never invents one: it reads it, in order, from
+// Which GitLab account an enrollment writes its records under. Afterlife never invents one: it reads it, in order, from
 // tier-state.yml (an account named for the role, as the gate's findHolder reads a holder), from the poller's own
 // config (the names it believes for the role), and from what the poller reads acting for the role in the project
 // within its task window: an agent MR whose Belay-Class is one of the role's classes (tasks.agent), or, for the
@@ -43,15 +43,15 @@ async function seenActing(ctx: PlanContext, project: GlProject, role: string, cl
 
 function one(found: readonly string[], from: string, role: string): AccountFind | null {
   if (found.length === 1) return { ok: true, account: found[0]!, from };
-  if (found.length > 1) return { ok: false, reason: `${from} names several accounts for the ${role} role (${found.join(', ')}): Belay never picks one. Leave one, then preview again` };
+  if (found.length > 1) return { ok: false, reason: `${from} names several accounts for the ${role} role (${found.join(', ')}): Afterlife never picks one. Leave one, then preview again` };
   return null;
 }
 
-/** Where a person sets the account Belay could not find. */
+/** Where a person sets the account Afterlife could not find. */
 const whereToSet = (role: string): string =>
   role === 'guardrail'
-    ? 'Set BELAY_GUARDRAIL_AUTHORS to the guardrail account in Belay\'s environment, then preview again'
-    : `Belay reads it from the agent's own merge requests: once the ${role} agent opens one here (the gate blocks it until it is enrolled) and Belay polls, preview again`;
+    ? 'Set AFTERLIFE_GUARDRAIL_AUTHORS to the guardrail account in Afterlife\'s environment, then preview again'
+    : `Afterlife reads it from the agent's own merge requests: once the ${role} agent opens one here (the gate blocks it until it is enrolled) and Afterlife polls, preview again`;
 
 export async function accountFor(
   ctx: PlanContext, project: GlProject, role: string, classes: readonly string[], state: TierState,
@@ -67,7 +67,7 @@ export async function accountFor(
   const acted = role === 'guardrail' ? 'no guardrail note with a belay-guardrail block' : `no agent merge request for ${classes.join(', ')}`;
   return {
     ok: false,
-    reason: `Belay could not find the ${role} agent's account: tier-state.yml names no account with "${role}" in it, ` +
-      `the poller's config names none${role === 'guardrail' ? ' (BELAY_GUARDRAIL_AUTHORS is empty)' : ''}, and ${project.path} has ${acted} in the last ${hours} h. ${whereToSet(role)}`,
+    reason: `Afterlife could not find the ${role} agent's account: tier-state.yml names no account with "${role}" in it, ` +
+      `the poller's config names none${role === 'guardrail' ? ' (AFTERLIFE_GUARDRAIL_AUTHORS is empty)' : ''}, and ${project.path} has ${acted} in the last ${hours} h. ${whereToSet(role)}`,
   };
 }

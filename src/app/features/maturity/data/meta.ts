@@ -13,7 +13,7 @@ export const MAT_META = {
     'present on the default branch',
     'ran on the default branch in the last 14 days and produced an artifact',
     'failing it blocks a merge or deploy',
-    'an agent operates it and Belay re-derives its proofs',
+    'an agent operates it and Afterlife re-derives its proofs',
   ],
 } as const;
 

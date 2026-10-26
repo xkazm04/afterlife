@@ -32,14 +32,14 @@ describe('Fleet on the screen host', () => {
   it('is claimed, both keys, with their slices in stream order and their titles', () => {
     expect(def('fleet')).toMatchObject({ ready: true, slices: ['core', 'estate', 'desk'] });
     expect(def('fleet/[project]')).toMatchObject({ ready: true, slices: ['core', 'estate', 'desk'] });
-    expect(def('fleet')?.title({}, new URLSearchParams())).toBe('Belay Fleet');
-    expect(def('fleet/[project]')?.title({ project: 'p1' }, new URLSearchParams())).toBe('Belay Fleet p1');
+    expect(def('fleet')?.title({}, new URLSearchParams())).toBe('Afterlife · Fleet');
+    expect(def('fleet/[project]')?.title({ project: 'p1' }, new URLSearchParams())).toBe('Afterlife · Fleet · p1');
     expect(def('fleet/[project]')?.NotFound).toBeDefined();
   });
 
   it('unread: the window, toolbar, sidebar and the runner slot at once, a dash for every count, never a zero', () => {
     const html = render('fleet', {});
-    expect(html).toContain('Belay');
+    expect(html).toContain('Afterlife');
     expect(html).toContain('Filter');
     expect(html).toContain('Cycle runner');
     expect(html).toContain('—');
@@ -72,8 +72,8 @@ describe('Fleet on the screen host', () => {
   });
 
   it('the fleet could not be read: says why in the table', () => {
-    const html = render('fleet', {}, {}, { core: { state: 'error', reason: 'BELAY_MODE=live, but the first poll has not finished' } });
-    expect(html).toContain('The fleet could not be read: BELAY_MODE=live, but the first poll has not finished');
+    const html = render('fleet', {}, {}, { core: { state: 'error', reason: 'AFTERLIFE_MODE=live, but the first poll has not finished' } });
+    expect(html).toContain('The fleet could not be read: AFTERLIFE_MODE=live, but the first poll has not finished');
   });
 
   it('a project, unread: its id as the title, every card a dash, no "nothing waiting"', () => {

@@ -1,4 +1,4 @@
-// Belay proof engine: `npx tsx engine/cli.ts <cmd>`. Model-free by construction: no network, no LLM, no
+// Afterlife proof engine: `npx tsx engine/cli.ts <cmd>`. Model-free by construction: no network, no LLM, no
 // clock except where a command takes one. JSON on stdout, a human summary on stderr, and the exit code:
 // 0 pass, 1 fail, 2 inconclusive or error.
 import path from 'node:path';

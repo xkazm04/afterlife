@@ -1,7 +1,7 @@
 // Before the review (Ascent cycle personas-web-007): an EXISTING test file or fixture the lane changed beyond what
 // lane.md allows is put back to its base text, and the repair turn is told so. lane.md allows two edits to an existing
 // test: a mechanical call-site update (arguments, names, imports - no assertion, expected value or case removed or
-// changed) and ONE appended registry entry. Ascent decided it with the guard's own classifier; Belay has no guard, so
+// changed) and ONE appended registry entry. Ascent decided it with the guard's own classifier; Afterlife has no guard, so
 // the rule is a normalised diff: per file, the assertion words on the removed lines must be the ones on the added
 // lines (none removed, none added), and every literal a removed assertion line held must still be on an added line.
 // A deleted test file or a changed fixture is always put back. Only files that exist at base are ever touched.

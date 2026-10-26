@@ -76,7 +76,7 @@ describe('poll cycle against the demo GitLab, from an empty index', () => {
     }]);
   });
 
-  it('imports the ledger and records where Belay is paired', async () => {
+  it('imports the ledger and records where Afterlife is paired', async () => {
     expect((await readLedger(r.db, 90010001)).length).toBe(7);
     expect(await getPairing(r.db, 'default')).toMatchObject({ groupPath: 'acme-lab', gitlabHost: 'gitlab.com' });
     expect((await getPollState(r.db, 'project:ledgerline'))?.lastOk?.toISOString()).toBe(NOW.toISOString());
@@ -138,11 +138,11 @@ describe('a failed poll looks stale, and keeps the last good time', () => {
       get: (t, k, rcv) => (k === 'listMergeRequests' ? (p: number, f: { updatedAfter?: string; limit?: number }) => (asked.push(f), t.listMergeRequests(p, f)) : Reflect.get(t, k, rcv)),
     });
     const day = 86_400_000;
-    await runPollCycle(spy, x.db, NOW, { cfg: { ...cfg(), taskWindowMs: 10 * day }, mem: x.mem }); // BELAY_TASK_HOURS=240
+    await runPollCycle(spy, x.db, NOW, { cfg: { ...cfg(), taskWindowMs: 10 * day }, mem: x.mem }); // AFTERLIFE_TASK_HOURS=240
     expect(asked.map((f) => Date.parse(f.updatedAfter ?? ''))).toEqual([NOW.getTime() - 10 * day]);
     // a window reaching back past 1970 reads every MR, instead of a date that is no date failing every project
     asked.length = 0;
-    const res = await runPollCycle(spy, x.db, NOW, { cfg: readPollerConfig(144060371, { BELAY_TASK_HOURS: '1e10' }), mem: x.mem });
+    const res = await runPollCycle(spy, x.db, NOW, { cfg: readPollerConfig(144060371, { AFTERLIFE_TASK_HOURS: '1e10' }), mem: x.mem });
     expect(res.projects.map((p) => p.error)).toEqual([undefined]);
     expect(asked.map((f) => f.updatedAfter)).toEqual([new Date(0).toISOString()]);
   }, 60_000);

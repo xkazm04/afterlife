@@ -53,7 +53,7 @@ gap badge is `NeedsYouBadge label`, and Send as you uses `CommandBlock prompt={f
   `scannedAt` (no minutes age: the view carries a clock time only), or "not scanned"; the per-rung evidence objects and
   what the next rung lacks (`data/stageEvidence.ts`) give way to the scan's own note; the Day 0 note gives way to the rung of
   the first stored scan; a simulated rescan stamps no demo clock (`data/meta.ts` `nowClock`, `scanAgeMin`, `rescanEvery`);
-- hidden, nothing real to stand in: the credit history (`data/credit.ts`); Belay records none yet, and the section says so;
+- hidden, nothing real to stand in: the credit history (`data/credit.ts`); Afterlife records none yet, and the section says so;
 - marked `demo` (`components/chrome/DemoChip.tsx`, as the Ladder's): a gap's invitation, files and what it earns
   (`data/proposals.ts`, `proposalG1.ts`, `proposalG3.ts`), in the gaps table and the gap section. The live source serves
   the index's gap proposals, which only the demo seed writes today.

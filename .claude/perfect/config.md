@@ -1,5 +1,5 @@
 ---
-product: "Belay - proof-carrying agents for the post-code lifecycle"
+product: "Afterlife - proof-carrying agents for the post-code lifecycle"
 stack: "Next.js (breaking-change version, read node_modules/next/dist/docs/), React, TypeScript, CSS modules, vitest, SQLite index; GitLab flows + model-free proof engine in engine/"
 vault: ["C:/Users/kazda/kiro/devsecops/.perfect"]
 vault_subdir: Perfect
@@ -15,7 +15,7 @@ active_runs_ledger: ""
 locale_count: 1
 ---
 
-# Perfect overlay - Belay (devsecops)
+# Perfect overlay - Afterlife (devsecops)
 
 ## Gates
 - always: `npm run typecheck && npm run lint && npm run check:structure && npm run test`
@@ -46,11 +46,11 @@ locale_count: 1
 - Docs per area: feature `README.md` files; `src/components/README.md`.
 
 ## Smoke
-- `npm run dev` -> http://127.0.0.1:3000 (probe `<title>` Belay). Routes: `/`, `/needs-you`, `/ladder`, `/maturity`, `/task/[id]`, `/setup`, `/theater`, `/settings`. Demo project `ledgerline`.
+- `npm run dev` -> http://127.0.0.1:3000 (probe `<title>` Afterlife). Routes: `/`, `/needs-you`, `/ladder`, `/maturity`, `/task/[id]`, `/setup`, `/start`, `/theater`, `/settings`. Demo project `ledgerline`.
 
 ## Opportunity arcs
 - Hackathon submission (GitLab "Life After Code", Oct 2026): a recorded demo video; judged on the three tiers visible and a demotion shown. Theater (deterministic replay, present mode) is the recording surface.
-- Active: nested detail pages replaced the inspector (fleet, needs-you, setup, ladder, maturity); DevInspector; Belay brand.
+- Active: nested detail pages replaced the inspector (fleet, needs-you, setup, ladder, maturity); DevInspector; Afterlife brand (renamed from Belay; wire names such as belay-policy, belay::* labels and cli/belay.mjs keep the old name).
 
 ## Vetoes
 - Do not reintroduce the old right-hand inspector pattern (replaced by nested detail pages).

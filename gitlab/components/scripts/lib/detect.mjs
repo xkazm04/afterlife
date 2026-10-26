@@ -56,7 +56,7 @@ export function detect({ api, apiAll, gql, projectId, branch, now, lookbackHours
     if (!mr) continue;
     const carrier = agentMrFor(api, projectId, c.id, prefix);
     if (carrier && carrier.author.username !== mr.author.username) {
-      console.error(`belay: ${c.id.slice(0, 8)} reverts !${mr.iid} but came in through ${carrier.author.username}'s !${carrier.iid}: no demotion`);
+      console.error(`afterlife: ${c.id.slice(0, 8)} reverts !${mr.iid} but came in through ${carrier.author.username}'s !${carrier.iid}: no demotion`);
       continue;
     }
     add(eventFor('revert', mr, c.committed_date ?? c.created_at, `commit ${c.id}`));

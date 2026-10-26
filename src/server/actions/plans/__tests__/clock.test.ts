@@ -1,6 +1,6 @@
 // A revoke or a promotion runs only if confirm plans exactly what the preview showed (previewId). Live, the clock moves
 // between the two clicks: a record stamped to the millisecond made every confirm 'changed', so a person could never
-// lower a tier from Belay (F52). What the click writes must not depend on the second it is clicked in.
+// lower a tier from Afterlife (F52). What the click writes must not depend on the second it is clicked in.
 import { describe, expect, it } from 'vitest';
 import { SEED_NOW } from '@/server/index/seed';
 import { confirmIntent, previewIntent } from '../../run';

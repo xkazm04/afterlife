@@ -36,7 +36,7 @@ export function parseNodeKey(key: string, u: NodeUniverse): Focus | null {
 
 /**
  * The universe a /setup/<node> may name: the catalogue's steps and tracks, and the capability names the map renders
- * (the belay doctor's own labels in live mode, the demo's names otherwise). Pure: the server's notFound and the
+ * (the doctor's own labels in live mode, the demo's names otherwise). Pure: the server's notFound and the
  * screen's own check resolve against the same.
  */
 export const universeOf = (steps: readonly number[], tracks: readonly string[], live: boolean): NodeUniverse => ({

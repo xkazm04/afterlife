@@ -14,7 +14,7 @@
   from the keymaps the screens bind).
 - Data & connection: the data mode, fake or real GitLab, host and group id, read from the server's environment, and
   what the status bar says about the data (`sections/StatusLine.tsx`, the status bar's own `dataLabel`).
-- About: the app version (`lib/version.ts`) and every key Belay keeps in this browser's localStorage
+- About: the app version (`lib/version.ts`) and every key Afterlife keeps in this browser's localStorage
   (`data/browserKeys.ts`). What the data is lives on Data & connection.
 - The subtitle is the sub-page's name; the status bar says where that page's values live (`status` in
   `SETTINGS_PAGES`: saved in this browser, read only, or read from the server's environment).

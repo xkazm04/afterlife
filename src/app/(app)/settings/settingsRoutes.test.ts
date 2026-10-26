@@ -22,6 +22,6 @@ describe('the Settings routes', () => {
     for (const p of SETTINGS_PAGES) titles.set(p.key, ((await import(`./${p.key}/page.tsx`)) as { metadata?: { title?: unknown } }).metadata?.title);
   });
   it.each(SETTINGS_PAGES.map((p) => [p.key, p.label] as const))('/settings/%s names its tab after its sidebar label', (key, label) => {
-    expect(titles.get(key)).toBe(`Belay Settings ${label}`);
+    expect(titles.get(key)).toBe(`Afterlife · Settings · ${label}`);
   });
 });

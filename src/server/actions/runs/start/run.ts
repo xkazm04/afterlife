@@ -13,7 +13,7 @@ import type { StartRun } from './types';
 const RUNNING_REASON = 'this run is being started now: wait for its answer';
 
 interface Memory { issued: Map<string, number>; running: Set<string>; answered: Map<string, { at: number; r: ActionResponse }> }
-const KEY = Symbol.for('belay.actions.startRun');
+const KEY = Symbol.for('afterlife.actions.startRun');
 const holder = globalThis as unknown as Record<symbol, Memory | undefined>;
 const memory = (): Memory => (holder[KEY] ??= { issued: new Map(), running: new Set(), answered: new Map() });
 
@@ -77,7 +77,7 @@ export async function confirmStartRun(deps: StartDeps, i: StartRun, previewId: s
     try {
       results = await b.plan.run();
     } catch (e) {
-      results = [{ display: b.preview.commands[0]?.display ?? 'belay run', exit: 1, ok: false, simulated: false, error: messageOf(e) }];
+      results = [{ display: b.preview.commands[0]?.display ?? 'afterlife run', exit: 1, ok: false, simulated: false, error: messageOf(e) }];
     }
     const r: ActionResponse = { status: results.every((x) => x.ok) ? 'done' : 'failed', preview: b.preview, results };
     m.answered.set(previewId, { at: now, r });

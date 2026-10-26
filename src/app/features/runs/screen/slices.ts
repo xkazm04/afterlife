@@ -1,5 +1,5 @@
 // Runs' slices for the screen stream (GET /api/screen/runs), in the order the screen fills:
-//   runs   - readRuns over .belay/runs (fs, fast): the same data GET /api/runs serves;
+//   runs   - readRuns over .afterlife/runs (fs, fast): the same data GET /api/runs serves;
 //   merges - the desk's merge-wave decisions and fleet.yml's error (readDeskAndRuns: git per mergeable wave, up to
 //            seconds). Loopback only: its commands name this machine's checkouts.
 import { ok, type ModuleLoaders } from '@/app/features/screens/types';

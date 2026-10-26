@@ -1,5 +1,5 @@
 // Where an action class stands for the gate: which agent holds it and at what effective tier. The gate decides from
-// this, and Belay's screens show it, so both read one rule: the lower of the tier-state record and the class ceiling,
+// this, and Afterlife's screens show it, so both read one rule: the lower of the tier-state record and the class ceiling,
 // a lapsed hands-off lease reads supervised, no record reads quarantined, and no agent ever holds a human_only class.
 // It fails closed: several holders with none named for the role is a refusal, never a guess. CI names the agent (the MR
 // author, --agent), so a class several agents hold stands per holder: holderStandings reads each one as CI would.

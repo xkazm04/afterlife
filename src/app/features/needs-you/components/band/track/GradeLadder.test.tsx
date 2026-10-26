@@ -13,13 +13,13 @@ describe('the grade ladder chips', () => {
   it('each carry their state in text or aria-current', () => {
     const rungs = chips(1);
     expect(rungs).toHaveLength(4);
-    const named = rungs.filter((c) => /aria-current|\((current|done|not reached|never said by Belay)\)/.test(c));
+    const named = rungs.filter((c) => /aria-current|\((current|done|not reached|never said by Afterlife)\)/.test(c));
     expect(named).toHaveLength(4);
   });
 
   it('name the current rung once and the struck-out rung as never said', () => {
     const joined = chips(1).join('');
     expect(joined.match(/aria-current|\(current\)/g)).toHaveLength(1);
-    expect(joined).toContain('never said by Belay');
+    expect(joined).toContain('never said by Afterlife');
   });
 });

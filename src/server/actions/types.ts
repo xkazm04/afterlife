@@ -3,6 +3,7 @@
 import type { Stage } from '@/schemas/stages';
 import type { Tier } from '@/schemas/tier';
 import type { Risk } from '@/server/gitlab/plan/types';
+import type { SetupIntent } from '@/server/start/wire';
 
 /** Every intent names the project by its index id (the slug the screens use) and may name the inbox item it settles. */
 interface Base {
@@ -11,21 +12,21 @@ interface Base {
   proposal?: string;
 }
 
-/** Lower one or more classes. Belay only restricts directly: raising a tier is a promotion MR a person merges. */
+/** Lower one or more classes. Afterlife only restricts directly: raising a tier is a promotion MR a person merges. */
 export interface RevokeClass extends Base {
   kind: 'revoke-class';
   changes: { class: string; to: Tier }[];
   why?: string;
 }
 
-/** Open a policy MR that raises one class. The operator (the human key) merges it; Belay never does. */
+/** Open a policy MR that raises one class. The operator (the human key) merges it; Afterlife never does. */
 export interface PromoteClass extends Base {
   kind: 'promote-class';
   class: string;
   to: Tier;
 }
 
-/** Mark a CRA clock work item "ready to sign". Belay never submits a report. */
+/** Mark a CRA clock work item "ready to sign". Afterlife never submits a report. */
 export interface MarkCraReady extends Base {
   kind: 'mark-cra-ready';
   /** The clock work item's iid. */
@@ -136,8 +137,11 @@ export interface PreviewCommand {
 }
 
 export interface ActionPreview {
-  /** `start-run` is runs/start's (startRunAction), not an ActionIntent: it starts a cycle run, not a GitLab or project write. */
-  kind: ActionKind | 'start-run';
+  /**
+   * `start-run` is runs/start's (startRunAction), not an ActionIntent: it starts a cycle run, not a GitLab or project write.
+   * The setup kinds are /start's writes on this machine (actions/setup, server/start/wire.ts): they name no project.
+   */
+  kind: ActionKind | SetupIntent['kind'] | 'start-run';
   title: string;
   summary: string;
   commands: PreviewCommand[];

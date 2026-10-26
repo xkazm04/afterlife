@@ -61,7 +61,7 @@ export function routes({ notes = [note(50, 'ai-guardrail-acme', 'belay-guardrail
 export function derive(name, opts) {
   const out = path.join(dir, `out-${name}`);
   const r = runScript(dir, 'hand/derive-gate.mjs', ['--mr', '7', '--proof-authors', OP, '--guardrail-authors', 'ai-guardrail-acme', '--policy-project', 'acme/belay-policy', '--ledger-project', LEDGER, '--out', out],
-    { routes: routes(opts), env: { BELAY_GUARDRAIL_AUTHORS: 'ai-patcher-acme', BELAY_PROOF_AUTHORS: 'ai-patcher-acme' } });
+    { routes: routes(opts), env: { AFTERLIFE_GUARDRAIL_AUTHORS: 'ai-patcher-acme', AFTERLIFE_PROOF_AUTHORS: 'ai-patcher-acme' } });
   const events = path.join(out, 'events');
   const files = fs.existsSync(events) ? fs.readdirSync(events).sort() : [];
   return { r, out, files, read: (f) => JSON.parse(fs.readFileSync(path.join(events, f), 'utf8')) };

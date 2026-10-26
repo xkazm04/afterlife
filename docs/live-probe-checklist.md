@@ -1,7 +1,7 @@
 # Live probe checklist
 
-What the screen-host rollout could not verify on demo data or `BELAY_GITLAB=fake`: run each item against a real GitLab
-group (`BELAY_MODE=live`) and check what it says. One section per module; append yours, do not rewrite another's.
+What the screen-host rollout could not verify on demo data or `AFTERLIFE_GITLAB=fake`: run each item against a real
+GitLab group (`AFTERLIFE_MODE=live`) and check what it says. One section per module; append yours, do not rewrite another's.
 
 ## Cycles (W3)
 
@@ -12,16 +12,11 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
   `estate`, then `estateCycles`, then `_end`.
 - Live before the first poll: the pane says "The cycles could not be read: ..." and every value stays a dash.
 
-## Onboard (W3)
+## Onboard estate (W3)
 
-- `/onboard` on localhost with a cold process: the window, engine control and steps paint at once; "Your repos" fills
-  when `listClaudeRepos` answers (a git per repo on the first call, then 60 s cached).
-- `/onboard` through a non-local address (a tunnel, the hosted replay): step 1 says "Onboarding runs on your own
-  machine ..." and lists nothing; `/api/screen/onboard` answers one `_end` line with `reason: not-local`.
-- Start a proposal, leave for another screen for a minute, come back: the run is still going (or done), the proposing
-  clock counts from the ask, nothing was aborted. Save, then the saved repo reads Onboarded (the repos re-read).
 - `/onboard/estate` live: confirm a batch's writes; the screen re-reads the estate and the session's moved projects stay
   where the session put them unless the data shows them further along.
+- (The W3 wizard at `/onboard` is gone: it is `/start` now, see "/start and the live gate" below.)
 
 ## Setup (W3)
 
@@ -29,8 +24,8 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
   doctor lozenge, and no amber "need you" before the steps are read.
 - Tracks, doctor and steps fill independently as each GitLab read resolves; once all three land the counts equal the
   old whole-read page (same "N need you", same armed and ready).
-- Kill the network or log out of glab: each failed read shows unknown with its reason, or "belay doctor could not be
-  read", never a frozen dash.
+- Kill the network or log out of glab: each failed read shows unknown with its reason, or "afterlife doctor could not
+  be read", never a frozen dash.
 - Arm a track, then return to the map: the open MR stays open after the re-read.
 - `/setup/cap-<a label the doctor does not report>` shows the not-found card once the doctor lands.
 - A node click (node to node) reads only the catalogue (`_slices=catalogue`): the three live reads, the 11-probe doctor
@@ -38,7 +33,7 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
 
 ## Task (W3)
 
-- `BELAY_MODE=live` before the first poll: `/task/<id>` shows "The task could not be read: ..." in the pane; the docket
+- `AFTERLIFE_MODE=live` before the first poll: `/task/<id>` shows "The task could not be read: ..." in the pane; the docket
   and status stay dashes; the window is not blank.
 - Live, after a poll: `/task` redirects to the first task of the group's docket; a group with no tasks shows "No task is
   held in the docket yet" inside the Task window.
@@ -48,23 +43,29 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
 - `curl -N "http://127.0.0.1:<port>/api/screen/task%2F%5Bid%5D?id=<id>"` returns docket, detail, ledger and page lines,
   then `_end`; an unknown id answers a notFound line.
 
-## Trace and the live gate (W4)
+## /start and the live gate (merge of main: Trace and the Onboard wizard became /start)
 
-- Start with `BELAY_MODE=live` and a slow or failing first poll. Open `/monitor`: the Trace cover is over the column as
-  soon as the shell's read lands, with "Live · first poll not finished" and the live source's reason (no failed
-  Monitor). Switch screens in the sidebar: the cover stays, and on `/trace` itself the screen shows the same gate copy
-  once, with no second cover.
-- Let the first poll finish, then press Re-check on the cover: when the live node passes, `/api/shell` is read again,
-  the cover lifts, and the screen under it re-reads and fills (no reload). Also check that a plain screen switch after the
-  poll finished lifts it (the shell re-reads on host navigation).
-- A live group with no project: the cover says "Afterlife is watching a group with no project" (from Trace's `facts`
-  slice); adding a project and polling lifts it.
-- `/trace` live on a real group: the subtitle names `group <id> on <host>`, the source chip "live · glab on <host>", the
-  six nodes probe in place; `?rehearse=not-ready` on a ready server shows the rehearsal chip and the gate copy.
+- `/start` on localhost with a cold process: the window, its title and Re-check paint in the click's frame (dashes);
+  the wizard mounts when `facts` lands and its probes stream as before (`/api/start/probe`); "Your repos" is a dash in
+  the picker until `repos` lands (`listClaudeRepos`: a git per repo on the first call, then 60 s cached).
+  `curl -N "http://127.0.0.1:<port>/api/screen/start"` shows `facts` first, then `repos`, then `_end`.
+- `/start` through a non-local address (a tunnel, the hosted replay): the repo step says "Setup runs on your own
+  machine ..." and lists nothing; `/api/screen/start` answers `repos` with `reason: not-local`, `facts` as usual.
+- Pick a repo, leave for another screen while the stack is proposed (about a minute), come back: the run is still going
+  (or done), the clock counts from the ask, nothing was aborted. The probe runs again on each return.
+- Save the stack: the probe re-checks and the screen re-reads (the saved repo reads Onboarded).
+- Start with `AFTERLIFE_MODE=live` and a slow or failing first poll, hard load `/monitor`: the gate (a server read in the
+  (app) layout, `start/gate/LiveGate.tsx`, main's) covers the column with /start. Host clicks in the sidebar keep the
+  cover (the layout is not re-read on a host click); on `/start` itself the host's copy draws nothing under the cover.
+- Let the first poll finish, then Re-check on the cover: when the live node passes, the router refreshes the layout (the
+  cover lifts), the host's screen under it re-reads (`hostRevalidate`) and the shell re-reads (`requestShellRead`), with
+  no reload. Not verified: whether a host-only session (no router navigation) ever lifts the cover without that Re-check.
+- `/start?rehearse=not-ready` on a ready server: the rehearsal chip and the gate copy; `/trace` and `/onboard` redirect
+  to `/start` (next.config.ts).
 
 ## Theater and Runs (W4)
 
-- With a real `.belay/fleet.yml` and checkouts: `/theater` paints the window at once; "New run…" joins the toolbar when
+- With a real `.afterlife/fleet.yml` and checkouts: `/theater` paints the window at once; "New run…" joins the toolbar when
   the `start` line lands (git, kept 5 s). Start a run: the screen moves to `/theater?live=1` in place (no reload) and the
   live film polls `/api/runs` every 2 s; switching away stops the poll, coming back resumes it.
 - `/theater` with a wave running opens the live film; with none, the ledger film (one take per MR on a live ledger).
@@ -77,7 +78,7 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
 
 ## Settings and the shell (W4)
 
-- Live: `/settings/data` paints the Connection card with dashes, then `live (BELAY_MODE=live)`, the real host and group.
+- Live: `/settings/data` paints the Connection card with dashes, then `live (AFTERLIFE_MODE=live)`, the real host and group.
 - Change "Show demo estate" with a real project saved: the sidebar follows at once (an `/api/shell` read, no reload).
 - On the live server, decide an item on Needs you, then switch screens: the badge follows within about 300 ms of the
   switch (the shell re-reads on host navigation), not only on window focus.
@@ -85,16 +86,16 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
 ## Fleet and Vitals (W1)
 
 - Live before the first poll: `/fleet` paints the window, toolbar and runner slot with dashes; the table says "The fleet
-  could not be read: BELAY_MODE=live, but the first poll has not finished" and no count is a zero.
+  could not be read: AFTERLIFE_MODE=live, but the first poll has not finished" and no count is a zero.
 - Live, after a poll: right-click a watched project, Re-poll. The status says "Re-polling …", then "Re-polled …", and the
   row's feed age and the status bar's "polled … ago" restart from the fresh snapshot (the screen re-reads through the
   host's revalidate, `/api/screen/fleet` in the network panel, no `?_rsc`).
-- A real runner checkout (`.belay/fleet.yml` with repos and runs, git branches to ask): the strip's slot shows dashes,
+- A real runner checkout (`.afterlife/fleet.yml` with repos and runs, git branches to ask): the strip's slot shows dashes,
   then fills after `readDesk` (seconds on a cold git) without moving the table; `curl -N /api/screen/fleet` shows `core`
   first, `desk` last.
 - `/fleet/<a live project id>`: the cards fill from `core`; Stability and Trend from the live index; Agent cost from the
   runner. An id the group does not have shows "Project not found".
-- `/vitals` with real onboarded projects (`.belay/projects`): the rows paint from their configs, then Last collected and
+- `/vitals` with real onboarded projects (`.afterlife/projects`): the rows paint from their configs, then Last collected and
   Runs stored fill per row (the ci-runs jsonl). Open it through a tunnel or another host: "Only on this machine." and no
   project names.
 - `/vitals/<slug>` with runs older than 15 minutes: one collect starts on open (Refresh disabled, "collecting, started

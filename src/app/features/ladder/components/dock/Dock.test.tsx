@@ -24,14 +24,14 @@ const promote = (view: PromoteView | undefined, readmit = false): DockModel => (
 const line = (t: string): string => t.slice(0, t.indexOf(HEAD_END)).trim();
 
 describe('the revoke line', () => {
-  it('asked for: names the write and says it is waiting for Belay', () => {
-    expect(line(text(revoke(undefined)))).toBe('r ▸ Revoke · direct commit · dep-bump.patch → Supervised · asking Belay for the exact write…');
+  it('asked for: names the write and says it is waiting for Afterlife', () => {
+    expect(line(text(revoke(undefined)))).toBe('r ▸ Revoke · direct commit · dep-bump.patch → Supervised · asking Afterlife for the exact write…');
   });
   it('previewing a hovered target leads with Enter, not r', () => {
     expect(line(text(revoke(undefined, true)))).toMatch(/^↵ ▸ Revoke/);
   });
   it('refused: gives the reason', () => {
-    expect(line(text(revoke({ kind: 'refused', reason: 'no' })))).toBe('r ▸ Revoke · direct commit · dep-bump.patch → Supervised · Belay refuses this write: no');
+    expect(line(text(revoke({ kind: 'refused', reason: 'no' })))).toBe('r ▸ Revoke · direct commit · dep-bump.patch → Supervised · Afterlife refuses this write: no');
   });
   it('planned: the commands cut at their first field, joined by &&, with the mode note', () => {
     expect(line(text(revoke({ kind: 'preview', preview: preview('live') })))).toBe(
@@ -43,8 +43,8 @@ describe('the revoke line', () => {
 
 describe('the promote line', () => {
   it('asked for, refused, planned: the same three words after the promotion head', () => {
-    expect(line(text(promote(undefined)))).toBe('p ▸ Promote · policy MR a person merges · dep-bump.patch → Hands-off · asking Belay for the exact write…');
-    expect(line(text(promote({ kind: 'refused', reason: 'no' }, true)))).toBe('p ▸ Re-admit · policy MR a person merges · dep-bump.patch → Hands-off · Belay refuses this write: no');
+    expect(line(text(promote(undefined)))).toBe('p ▸ Promote · policy MR a person merges · dep-bump.patch → Hands-off · asking Afterlife for the exact write…');
+    expect(line(text(promote({ kind: 'refused', reason: 'no' }, true)))).toBe('p ▸ Re-admit · policy MR a person merges · dep-bump.patch → Hands-off · Afterlife refuses this write: no');
     expect(line(text(promote({ kind: 'preview', preview: preview('demo') })))).toMatch(/Hands-off · glab api .* \(demo: simulated, nothing is sent\)$/);
   });
   it('sent: the MR it opened, with a link', () => {
@@ -70,10 +70,10 @@ describe("a track header's line", () => {
   });
   const lead = 'q ▸ Revoke · direct commit · Quarantine track T1 · 2 classes in one commit · leaves c (never an agent) ·';
   it('asked for, refused and planned, after the same tails as the revoke', () => {
-    expect(line(text(batch(undefined)))).toBe(`${lead} asking Belay for the exact write…`);
-    expect(line(text(batch({ kind: 'refused', reason: 'tier-state.yml moved' })))).toBe(`${lead} Belay refuses this write: tier-state.yml moved`);
+    expect(line(text(batch(undefined)))).toBe(`${lead} asking Afterlife for the exact write…`);
+    expect(line(text(batch({ kind: 'refused', reason: 'tier-state.yml moved' })))).toBe(`${lead} Afterlife refuses this write: tier-state.yml moved`);
     const tail = (v: WriteView) => line(text(batch(v))).slice(lead.length);
-    const revokeTail = (v: WriteView) => line(text(revoke(v))).slice(line(text(revoke(undefined))).length - 'asking Belay for the exact write…'.length);
+    const revokeTail = (v: WriteView) => line(text(revoke(v))).slice(line(text(revoke(undefined))).length - 'asking Afterlife for the exact write…'.length);
     for (const mode of ['demo', 'live'] as const) expect(tail({ kind: 'preview', preview: preview(mode) }).trim()).toBe(revokeTail({ kind: 'preview', preview: preview(mode) }).trim());
   });
 });

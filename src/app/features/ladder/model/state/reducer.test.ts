@@ -42,8 +42,8 @@ describe('initial state', () => {
     const s = open();
     expect(s.ledger.map((e) => e.t)).toEqual(['11 d ago', '9 d ago', '5 d ago', '3 d ago', '14:20:03', '14:20:05', '14:20:17']);
     const axis = layoutAxis(timedEntries(s.ledger));
-    expect(axis.gap?.label).toBe('Belay 12 s late');
-    expect(axis.points.map((p) => p.label)).toEqual(['20:03 guardrail', '20:05 tripwire', '20:17 Belay']);
+    expect(axis.gap?.label).toBe('Afterlife 12 s late');
+    expect(axis.points.map((p) => p.label)).toEqual(['20:03 guardrail', '20:05 tripwire', '20:17 Afterlife']);
   });
 });
 

@@ -1,5 +1,5 @@
 // How Setup's state arrives on the screen host (screen/slices.ts): the catalogue first (sync), then each live read on
-// its own (the tracks' arm blocks, the belay doctor, the steps), in whatever order they resolve. Pure. The catalogue
+// its own (the tracks' arm blocks, the doctor, the steps), in whatever order they resolve. Pure. The catalogue
 // alone makes the state: the demo's whole opening state, or live's frame state with every read part marked unread (a dash
 // on screen, never a state). Each read then lands through the flow's own actions (tracks-read, doctor-read, steps-read);
 // a read that failed lands as what it is: unknown for every track or step, or a doctor probe that failed, with why.
@@ -60,7 +60,7 @@ function failed(s: SetupState, part: UnreadPart, reason: string, at: ReadStamp):
   const why = `the read failed: ${reason}`;
   if (part === 'tracks') return { t: 'tracks-read', tracks: Object.fromEntries(Object.keys(s.arm).map((id): [string, TrackRead] => [id, { state: 'unknown', reason: why }])) };
   if (part === 'steps') return { t: 'steps-read', steps: { ...at, steps: Object.fromEntries(Object.keys(s.steps).map((n): [string, StepRead] => [n, { state: 'unknown', reason: why }])) } };
-  return { t: 'doctor-read', doctor: { ...at, rows: [], error: `belay doctor could not be read: ${reason}` } };
+  return { t: 'doctor-read', doctor: { ...at, rows: [], error: `afterlife doctor could not be read: ${reason}` } };
 }
 
 const LIVE_READS: ReadonlySet<string> = new Set(['tracks-read', 'doctor-read', 'steps-read', 'part-failed']);

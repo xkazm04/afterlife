@@ -1,6 +1,6 @@
 # proof-engine
 
-Re-derives a Proof Block with the model-free Belay engine, in the target's own pipeline, report-only: the proof is the job's
+Re-derives a Proof Block with the model-free Afterlife engine, in the target's own pipeline, report-only: the proof is the job's
 artifact and its exit code. The note on the MR comes from [belay-apply](../../../apply/README.md). It re-derives the proof
 with its own pinned engine from the same evidence and never posts this job's `proof.json`, because a target pipeline holds
 no write token (F4, decided 2026-10-07, ask 6696d24d). This is the job that makes "the agent says it works" into "a checker
@@ -16,7 +16,7 @@ include:
   - component: $CI_SERVER_FQDN/acme/belay-pack/proof-engine@1.0.0
     inputs:
       class: exploit-test
-      engine_ref: v0.1.0                       # required: tag, branch or SHA of the Belay repo
+      engine_ref: v0.1.0                       # required: tag, branch or SHA of the Afterlife repo
       engine_commit: '<40-char sha of that tag>'
       build_args: >-
         --base-junit evidence/base/junit.xml --head-junit evidence/head/junit.xml
@@ -25,7 +25,7 @@ include:
 
 ## What it does
 
-1. Fetches the Belay repo at `engine_ref` (and checks `engine_commit` if set), runs `npm ci`, installs `glab`.
+1. Fetches the Afterlife repo at `engine_ref` (and checks `engine_commit` if set), runs `npm ci`, installs `glab`.
 2. `mr-context.mjs` reads the MR. It continues only if the author starts with `agent_prefix` and the description has a
    valid `Belay-Task: <ulid>` trailer. Otherwise it exits 0 with a message: a person's MR is not proven.
 3. Clones `belay-policy` at `policy_ref` (read through the job token) and takes the MR diff.
@@ -47,7 +47,7 @@ does `post_merge`: finding the merged MR of a commit (`repository/commits/:sha/m
 
 ## Needs
 
-- No Belay token. The job logs `glab` in with `CI_JOB_TOKEN` and unsets `GITLAB_TOKEN` first, whatever the project's
+- No Afterlife token. The job logs `glab` in with `CI_JOB_TOKEN` and unsets `GITLAB_TOKEN` first, whatever the project's
   variables say.
 - The `belay-engine` and `belay-policy` projects must allowlist this project in their job token settings.
 - `GIT_DEPTH: 0` is set for the job so the base commit is present.
@@ -58,9 +58,9 @@ does `post_merge`: finding the merged MR of a commit (`repository/commits/:sha/m
 |---|---|---|---|
 | `stage` | string | `"test"` | Run after the jobs that produce the evidence (their artifacts are passed on by stage order). |
 | `class` | string | **required** | The proof class to derive (src/schemas/proof.ts). One include per class. One of `exploit-test`, `cited-diff`, `rerun-stats`, `repro`, `bench-delta`, `linked-evidence`, `score-delta`, `ledger-record`. |
-| `engine_ref` | string | **required** | Tag, branch or full SHA of the Belay engine to run. Required, so the checker is always pinned. |
+| `engine_ref` | string | **required** | Tag, branch or full SHA of the Afterlife engine to run. Required, so the checker is always pinned. |
 | `engine_commit` | string | `""` | Optional 40-char SHA the checkout must resolve to. Set it when engine_ref is a tag or branch. |
-| `engine_project` | string | `"$CI_PROJECT_NAMESPACE/belay-engine"` | Project path holding the Belay repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
+| `engine_project` | string | `"$CI_PROJECT_NAMESPACE/belay-engine"` | Project path holding the Afterlife repo (engine/, src/schemas, gitlab/). Must allowlist this project's job token. |
 | `policy_project` | string | `"$CI_PROJECT_NAMESPACE/belay-policy"` |  |
 | `policy_ref` | string | `"main"` |  |
 | `agent_prefix` | string | `"ai-"` | Only MRs from accounts with this prefix and a Belay-Task trailer are proven; others are skipped. |
@@ -68,7 +68,7 @@ does `post_merge`: finding the merged MR of a commit (`repository/commits/:sha/m
 | `evidence_file` | string | `"belay-evidence.json"` | Only for evidence_mode provided. The `prove --input` file, relative to the project root. |
 | `build_args` | string | `""` | Extra arguments for build-evidence.mjs, e.g. for exploit-test "--base-junit base/junit.xml --head-junit head/junit.xml --base-ref URL --head-ref URL --rescan-base base/scan.json --rescan-head head/scan.json". |
 | `block_authors` | string | `""` | Accounts whose belay-guardrail / belay-medic block counts. Empty means ai-guardrail-<group> or ai-medic-<group>. [R?] the exact ai-<flow>-<group> username form. |
-| `prepare_script` | string | `""` | Optional shell run before the evidence is built. Sees BELAY_MR_IID, BELAY_TASK_ID, BELAY_ACTION_CLASS, BELAY_AGENT, BELAY_BASE_SHA, BELAY_HEAD_SHA, BELAY_DIFF_FILE, BELAY_POLICY_FILE, BELAY_PHASE. |
+| `prepare_script` | string | `""` | Optional shell run before the evidence is built. Sees AFTERLIFE_MR_IID, AFTERLIFE_TASK_ID, AFTERLIFE_ACTION_CLASS, AFTERLIFE_AGENT, AFTERLIFE_BASE_SHA, AFTERLIFE_HEAD_SHA, AFTERLIFE_DIFF_FILE, AFTERLIFE_POLICY_FILE, AFTERLIFE_PHASE (and, for one deprecation window, each under its pre-rename name). |
 | `post_merge` | boolean | `false` | Also re-derive on the default branch after merge; a red result is the tripwire's post_merge_proof_fail. Turn it on only when the evidence jobs also run on the default branch, or the missing evidence reads as a failure and demotes the agent. |
 | `node_image` | string | `"node:22-bookworm"` | Needs git, curl and node 20+. The -slim image has no git. |
 | `glab_version` | string | `"1.120.0"` |  |
@@ -79,4 +79,4 @@ does `post_merge`: finding the merged MR of a commit (`repository/commits/:sha/m
 
 - `[R?]` the glab release asset URL and archive layout used to install `glab`; if your runner image already has `glab`,
   the install step is skipped.
-- `[R?]` `rules:variables` per matching rule is used to set `BELAY_PHASE` ([R]: docs.gitlab.com/ci/yaml/#rulesvariables).
+- `[R?]` `rules:variables` per matching rule is used to set `AFTERLIFE_PHASE` ([R]: docs.gitlab.com/ci/yaml/#rulesvariables).

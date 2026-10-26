@@ -13,9 +13,9 @@ export type ArmCheck =
   | { status: 'simulated'; text: string }
   | { status: 'refused'; reason: string };
 
-export const SIMULATED_VERIFY = 'Simulated · demo mode: Belay read nothing from GitLab';
+export const SIMULATED_VERIFY = 'Simulated · demo mode: Afterlife read nothing from GitLab';
 
-/** `infra`: Belay's own projects (cfg.infra), refused as a target as a plan refuses them; Setup's read of its target names none. */
+/** `infra`: Afterlife's own projects (cfg.infra), refused as a target as a plan refuses them; Setup's read of its target names none. */
 export async function checkArm(deps: Pick<ActionDeps, 'port' | 'groupId' | 'gitlabId'>, intent: ArmTrack | DisarmTrack, infra: readonly string[] = []): Promise<ArmCheck> {
   try {
     const a = trackArm(intent.track);

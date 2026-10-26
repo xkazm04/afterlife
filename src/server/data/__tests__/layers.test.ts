@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { demoSource } from '../demoSource';
-import { BELAY_PROJECTS } from '../setup/read';
+import { AFTERLIFE_PROJECTS } from '../setup/read';
 
 const SERVER = path.resolve('src/server');
 const APP = path.resolve('src/app');
@@ -43,9 +43,9 @@ describe('the READMEs', () => {
     expect(members.filter((m) => !readme.includes(`\`${m}`))).toEqual([]);
   });
 
-  it('data/README.md names every belay project the Setup reads', () => {
+  it('data/README.md names every Afterlife project the Setup reads', () => {
     const readme = read('data/README.md');
-    expect(BELAY_PROJECTS.filter((p) => !readme.includes(p))).toEqual([]);
+    expect(AFTERLIFE_PROJECTS.filter((p) => !readme.includes(p))).toEqual([]);
   });
 
   it('ledger/README.md names every source file and every test of ledger/', () => {

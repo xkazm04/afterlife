@@ -23,8 +23,8 @@ export function WriteSection({ head, keyName, to, view, nothing, warn }: { head:
     <Sec title={head} aux={to ? `${keyName} → ${TIER_META[to].name}` : ''} wide>
       {!to ? <div className={styles.note}>{nothing}</div> : null}
       {to && warn ? <div className={styles.note}>{warn}</div> : null}
-      {to && !view ? <div className={styles.note}>Asking Belay for the exact write…</div> : null}
-      {view?.kind === 'refused' ? <div className={styles.note}>Belay refuses this write: {view.reason}</div> : null}
+      {to && !view ? <div className={styles.note}>Asking Afterlife for the exact write…</div> : null}
+      {view?.kind === 'refused' ? <div className={styles.note}>Afterlife refuses this write: {view.reason}</div> : null}
       {view?.kind === 'sent' ? (
         <div className={styles.foot}>
           <span className={styles.note}>{sentWords(view)}</span>

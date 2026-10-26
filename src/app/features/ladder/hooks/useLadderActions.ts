@@ -13,7 +13,7 @@ import type { RevokeWrites } from './useRevokeWrite';
 /**
  * Everything the screen does: select, filter, sort, and the writes. A revoke, of one class or of a whole track, confirms
  * the write the server planned (./revoke/useRevokeActions). A promotion confirms the policy MR the server planned
- * (usePromoteAction). Belay writes only on a click or a key.
+ * (usePromoteAction). Afterlife writes only on a click or a key.
  */
 export function useLadderActions({
   project,

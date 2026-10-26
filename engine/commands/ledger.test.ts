@@ -115,7 +115,7 @@ describe('parseLedgerEvent: what the next rung would have decided, on a tier_dec
 });
 
 describe('ledger append through the CLI: the shared parser guards the writer', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-ledger-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-ledger-'));
   afterAll(() => fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
   const cli = (raw: unknown, chain: string) => {
     const e = path.join(tmp, 'event.json');
@@ -168,7 +168,7 @@ describe('parseLedgerEvent: only lines the reader accepts are written', () => {
 
 describe('ledger append --write', () => {
   it('starts a new line when the chain file does not end in a newline, so the chain still verifies and reads back', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'belay-ledger-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'afterlife-ledger-'));
     try {
       const chain = path.join(dir, 'events.jsonl');
       const ev = path.join(dir, 'event.json');

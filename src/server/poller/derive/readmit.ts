@@ -1,4 +1,4 @@
-// A class the tripwire quarantined waits for a person to re-admit it: Belay's own ask, derived from tier-state.yml.
+// A class the tripwire quarantined waits for a person to re-admit it: Afterlife's own ask, derived from tier-state.yml.
 // Proposals are matched by (kind, title), so one that is already in the inbox (seeded, or opened by an earlier poll)
 // is never duplicated, and only the proposals this module opened are closed when the quarantine ends. One a person acted on
 // (or dismissed) at or after the quarantine's since is not opened again: the re-admit MR is theirs to merge.

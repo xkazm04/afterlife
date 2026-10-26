@@ -1,0 +1,92 @@
+/* The step card, grown out of its node. Its transform origin is the node's spot, in the stage's container units (the
+   stage is the `sky` container; --nx/--ny are the node's percent, set inline), so the grow lands on the node at any
+   width. It grows and folds on the slow clock; under reduced motion it simply appears and goes. */
+.card {
+  --m: calc(12px * var(--ui-scale));
+  z-index: 1;
+  align-self: start;
+  justify-self: center;
+  display: grid;
+  gap: calc(10px * var(--ui-scale));
+  width: min(calc(100% - var(--m) * 2), calc(640px * var(--ui-scale)));
+  margin: var(--m);
+  padding: calc(18px * var(--ui-scale)) calc(22px * var(--ui-scale));
+  box-sizing: border-box;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-3);
+  background: linear-gradient(var(--surface-2), var(--surface-2)), var(--bg);
+  box-shadow: 0 calc(18px * var(--ui-scale)) calc(48px * var(--ui-scale)) calc(-12px * var(--ui-scale)) var(--shade-45);
+  /* the node's spot, measured from the card's own top-left (the card is centred in the stage, --m from its top) */
+  transform-origin: calc(var(--nx) * 1cqw - (100cqw - 100%) / 2) calc(var(--ny) * var(--sky-h) / 100 - var(--m));
+  animation: grow var(--t-slow) var(--ease) both;
+}
+.card[data-state="you"] {
+  border-color: color-mix(in oklab, var(--needs-you) 55%, transparent);
+}
+.card[data-closing] {
+  animation: fold var(--t-med) var(--ease) both;
+}
+@keyframes grow {
+  from {
+    opacity: 0;
+    transform: scale(0.06);
+  }
+}
+@keyframes fold {
+  to {
+    opacity: 0;
+    transform: scale(0.06);
+  }
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(12px * var(--ui-scale));
+}
+.where {
+  font: 600 var(--t-small) var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: calc(28px * var(--ui-scale));
+  height: calc(28px * var(--ui-scale));
+  padding: 0;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--text-2);
+  font: var(--t-small) var(--sys);
+  cursor: pointer;
+}
+.close:hover {
+  color: var(--text-1);
+  border-color: var(--border-3);
+}
+.close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: calc(10px * var(--ui-scale));
+  margin: 0;
+  font-size: calc(var(--t-title) + 6px);
+  font-weight: 650;
+  color: var(--text-1);
+}
+.title:focus {
+  outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card[data-closing] {
+    animation: none;
+  }
+}

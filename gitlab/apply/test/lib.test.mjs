@@ -1,12 +1,13 @@
 // glue() runs the components' scripts for belay-apply's sweeps. Each child gets only the write token its call names (F71):
-// the four Belay tokens are never inherited, so a script that writes with one cannot read another.
+// the four Afterlife tokens are never inherited, under either name, so a script that writes with one cannot read another.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { glue } from '../lib.mjs';
+import { glue, tokens } from '../lib.mjs';
 
-const TOKENS = { BELAY_BOT_TOKEN: 'bot', BELAY_POLICY_TOKEN: 'policy', BELAY_LEDGER_TOKEN: 'ledger', BELAY_DISPATCH_TOKEN: 'dispatch' };
+// Two under the product's name, two under the pre-rename BELAY_ name a project's CI/CD settings may still carry.
+const SET = { AFTERLIFE_BOT_TOKEN: 'bot', AFTERLIFE_LEDGER_TOKEN: 'ledger', BELAY_POLICY_TOKEN: 'policy', BELAY_DISPATCH_TOKEN: 'dispatch' };
 const saved = {};
 beforeAll(() => {
-  for (const [k, v] of Object.entries({ ...TOKENS, GITLAB_TOKEN: 'read' })) {
+  for (const [k, v] of Object.entries({ ...SET, GITLAB_TOKEN: 'read' })) {
     saved[k] = process.env[k];
     process.env[k] = v;
   }
@@ -25,9 +26,14 @@ const seen = (env) => {
 };
 
 describe('glue (F71)', () => {
-  it('a child sees none of the four Belay tokens unless its call names one, and then only that one', () => {
+  it('a child sees none of the four tokens, under either name, unless its call names one, and then only that one', () => {
     expect(seen({})).toEqual({ GITLAB_TOKEN: 'read' });
-    expect(seen({ BELAY_LEDGER_TOKEN: process.env.BELAY_LEDGER_TOKEN })).toEqual({ GITLAB_TOKEN: 'read', BELAY_LEDGER_TOKEN: 'ledger' });
-    expect(seen({ GITLAB_TOKEN: process.env.BELAY_DISPATCH_TOKEN })).toEqual({ GITLAB_TOKEN: 'dispatch' });
+    expect(seen(tokens('LEDGER_TOKEN'))).toEqual({ GITLAB_TOKEN: 'read', AFTERLIFE_LEDGER_TOKEN: 'ledger' });
+    expect(seen({ GITLAB_TOKEN: 'dispatch' })).toEqual({ GITLAB_TOKEN: 'dispatch' });
+  });
+
+  it('hands a token set only under its BELAY_ name to the child as AFTERLIFE_', () => {
+    expect(tokens('POLICY_TOKEN', 'BOT_TOKEN')).toEqual({ AFTERLIFE_POLICY_TOKEN: 'policy', AFTERLIFE_BOT_TOKEN: 'bot' });
+    expect(tokens('NOT_A_TOKEN')).toEqual({});
   });
 });
