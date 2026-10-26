@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { usePathname } from 'next/navigation';
+import { useHerePath } from '@/components/shell/host';
 import { SETTINGS_NAV, activeNavKey } from './navItems';
 import { NavLink } from './NavLink';
 import styles from './Sidebar.module.css';
@@ -16,7 +16,7 @@ export function SettingsNav() {
 }
 
 function RoutedSettings() {
-  return <SettingsLink active={activeNavKey(usePathname())} />;
+  return <SettingsLink active={activeNavKey(useHerePath())} />;
 }
 
 function SettingsLink({ active }: { active: string | null }) {

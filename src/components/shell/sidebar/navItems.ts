@@ -26,14 +26,18 @@ export const APP_NAV: readonly NavEntry[] = [
   { key: 'runs', href: '/runs', label: 'Runs', icon: 'runs' },
 ];
 
-export const SETTINGS_NAV: NavEntry = { key: 'settings', href: '/settings', label: 'Settings', icon: 'settings' };
+/** Settings opens on its first page, so the click is the screen host's (/settings itself only redirects deep links). */
+export const SETTINGS_NAV: NavEntry = { key: 'settings', href: '/settings/display', label: 'Settings', icon: 'settings' };
 
 /** Every screen, the pinned footer entry last: the one list the palette, the door menu and the loading title read. */
 export const ALL_NAV: readonly NavEntry[] = [...APP_NAV, SETTINGS_NAV];
 
-/** The nav entry a pathname is in: every entry owns its sub-paths; "/" (the front door) is none of them. */
+/**
+ * The nav entry a pathname is in: every entry owns its key's path and its sub-paths (Settings links to its first page
+ * and is current on every one of them); "/" (the front door) is none of them.
+ */
 export function navEntryFor(pathname: string): NavEntry | null {
-  return ALL_NAV.find((e) => pathname === e.href || pathname.startsWith(`${e.href}/`)) ?? null;
+  return ALL_NAV.find((e) => pathname === `/${e.key}` || pathname.startsWith(`/${e.key}/`)) ?? null;
 }
 
 /** Which nav item is current for a pathname. */

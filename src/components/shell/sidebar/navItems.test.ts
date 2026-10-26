@@ -20,8 +20,10 @@ describe('nav entries against the routes', () => {
     const inNav = [...APP_NAV, SETTINGS_NAV].map((e) => e.key).sort();
     expect(screenFolders()).toEqual([...inNav, ...NAV_EXEMPT].sort());
   });
-  it('each entry links to its own key', () => {
-    for (const e of [...APP_NAV, SETTINGS_NAV]) expect(e.href).toBe(`/${e.key}`);
+  it('each entry links to its own key (Settings to its first page, so the click is the screen host’s)', () => {
+    for (const e of APP_NAV) expect(e.href).toBe(`/${e.key}`);
+    expect(SETTINGS_NAV.href).toBe('/settings/display');
+    expect(navEntryFor(SETTINGS_NAV.href)).toBe(SETTINGS_NAV);
   });
 });
 
@@ -40,6 +42,8 @@ describe('activeNavKey', () => {
     expect(activeNavKey('/vitals/grinex-portal')).toBe('vitals');
     expect(activeNavKey('/task/01J8Q4')).toBe('task');
     expect(activeNavKey('/settings')).toBe('settings');
+    for (const p of ['/settings/display', '/settings/data', '/settings/keyboard', '/settings/about']) expect(activeNavKey(p)).toBe('settings');
+    expect(activeNavKey('/settingsx')).toBeNull();
   });
   it('matches nothing for routes outside the nav', () => {
     expect(activeNavKey('/kit')).toBeNull();
@@ -50,7 +54,7 @@ describe('activeNavKey', () => {
 describe('nav data', () => {
   it('lists the thirteen screens in order, Vitals first, Settings apart', () => {
     expect(APP_NAV.map((e) => e.label)).toEqual(['Vitals', 'Fleet', 'Monitor', 'Needs you', 'Ladder', 'Maturity', 'Cycles', 'Task', 'Onboard', 'Setup', 'Trace', 'Theater', 'Runs']);
-    expect(SETTINGS_NAV.href).toBe('/settings');
+    expect(SETTINGS_NAV.href).toBe('/settings/display');
     expect(APP_NAV.filter((e) => e.needsYouBadge).map((e) => e.key)).toEqual(['needs-you']);
   });
 });
