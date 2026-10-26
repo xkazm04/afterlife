@@ -115,8 +115,8 @@ which refuses, and in every mode they answer only a request addressed to this ma
 journal into, so `vitals/run.ts` keeps, in this process: the previews it issued (a confirm of an id it did not issue, or
 one older than 15 minutes, is refused as stale and runs nothing), the confirms running now (a second is refused), and
 each answer for 15 minutes (a repeat answers from it). A digest that moved answers `changed` with the new preview. Their
-screens: Vitals' Queue N runs (`app/features/vitals/components/write/QueueSheet.tsx`) and Onboard's save step
-(`onboard/wizard/components/AfterSave.tsx`, its intents built by `wizard/data/writes.ts` from the saved config), both
+screens: Vitals' Queue N runs (`app/features/vitals/components/write/QueueSheet.tsx`) and Set up's save step
+(`start/components/stack/AfterSave.tsx`, its intents built by `start/actions/writes.ts` from the saved config), both
 through `vitals/hooks/useProjectWrite.ts`. Tests: `vitals/__tests__/` against a fake az.
 
 Starting a cycle run (`actions/runs/start/`, Theater's pre-run panel): its own endpoint, `startRunAction(intent, previewId?)`
