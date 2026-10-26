@@ -1,4 +1,4 @@
-// GET /api/screen/<key>: a screen's slices as NDJSON. Never cached; 404 for an unknown or unconverted key; the key one
+// GET /api/screen/<key>: a screen's slices as NDJSON. Never cached; 404 for a key no module serves; the key one
 // percent-encoded segment; live before the first poll an error line with the reason, never a demo payload.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { demoSource, setDataSource } from '@/server/data';
@@ -42,7 +42,15 @@ describe('GET /api/screen/[key]', () => {
   it('decodes a percent-encoded key (a param key is one segment)', async () => {
     setDataSource(demoSource);
     expect((await call(encodeURIComponent('monitor'))).status).toBe(200);
-    expect((await call('fleet%2F%5Bproject%5D', '?project=x')).status).toBe(404); // not converted yet: no loader
+    const res = await call('fleet%2F%5Bproject%5D', '?project=no-such-project');
+    expect(res.status).toBe(200); // fleet/[project] is served; an unknown id is the stream's notFound, not a 404
+    expect((await lines(res)).some((l) => l.status === 'notFound')).toBe(true);
+  });
+
+  it('a partial read (_slices) answers only the named slices, and the loaders never see the name', async () => {
+    setDataSource(demoSource);
+    const out = await lines(await call('monitor', '?_slices=desk,nope'));
+    expect(out.map((l) => l.slice)).toEqual(['desk', '_end']);
   });
 
   it('live before the first poll: the slices say why, never a demo payload', async () => {

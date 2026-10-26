@@ -37,5 +37,10 @@ export function declaredSlices(key: ScreenKey): readonly string[] {
   return SCREENS[key]?.slices ?? [];
 }
 
+/** The slices that depend on the key's param (ScreenDef.paramSlices): another param re-reads only these. */
+export function paramSlices(key: ScreenKey): readonly string[] {
+  return SCREENS[key]?.paramSlices ?? [];
+}
+
 /** Every definition as the modules list them (tests: one per key, keys in the route table). */
 export const ALL_SCREENS = ALL;

@@ -4,6 +4,7 @@
 // paints at once and settles in, in its screen's designed order, when its slice lands). Tokens --reveal-step and
 // --reveal-dur set the beat; prefers-reduced-motion drops the animation.
 import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useScope } from '../hooks/scope';
 import { useSlice } from '../hooks/useSlice';
 import styles from './reveal.module.css';
 
@@ -18,13 +19,16 @@ export function Unread({ label = 'not read yet' }: { label?: string }) {
 
 /**
  * A region of a screen. Without `slice` it enters on mount at `order`; with one it waits (drawn, dashes inside) until
- * that slice is read (ok or error), then enters at `order`. It enters once: a kept screen shown again does not replay.
+ * that slice is read (ok or error), then enters at `order`. It enters once: a kept screen shown again does not replay,
+ * and in the host a region whose slice is already read when it mounts (kept across a param change) is simply there.
  * The wrapper is a plain block: give it the region's layout through className / style.
  */
 export function Reveal({ order = 0, slice, className, style, children }: { order?: number; slice?: string; className?: string; style?: CSSProperties; children?: ReactNode }) {
   const s = useSlice<unknown>(slice ?? '');
   const landed = slice === undefined || s.state !== 'unread';
-  const [settled, setSettled] = useState(false);
+  const scope = useScope();
+  const inHost = scope !== null && 'key' in scope;
+  const [settled, setSettled] = useState(() => inHost && slice !== undefined && landed);
   const phase = !landed ? 'wait' : settled ? 'done' : 'in';
   return (
     <div

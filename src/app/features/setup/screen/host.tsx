@@ -31,6 +31,8 @@ export const screens: readonly ScreenDef[] = [
     key: 'setup/[node]',
     ready: true,
     slices: SETUP_SLICES,
+    // another node re-reads only the catalogue (in memory: its notFound is the node's); the three live reads are kept
+    paramSlices: ['catalogue'],
     Frame: SetupNodeFrame,
     Session: SetupSession,
     title: (p) => `Belay Setup ${p.node ?? ''}`,

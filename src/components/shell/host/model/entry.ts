@@ -22,6 +22,23 @@ export function freshEntry(instance: string): ScreenEntry {
   return { instance, slices: {}, texts: {}, notFound: false, reading: false };
 }
 
+/**
+ * Another instance of a key that keeps its slices across params (ScreenDef.paramSlices): the param's own slices start
+ * unread, every other slice is kept. `only` is what to read: the param's slices, and any other declared slice not read
+ * ok yet (a read the param change cut short, or one that failed). Null when the key keeps nothing (start fresh).
+ */
+export function carry(kept: ScreenEntry, instance: string, paramSlices: readonly string[], declared: readonly string[]): { entry: ScreenEntry; only: string[] } | null {
+  if (!paramSlices.length) return null;
+  const slices = { ...kept.slices };
+  const texts = { ...kept.texts };
+  for (const s of paramSlices) {
+    delete slices[s];
+    delete texts[s];
+  }
+  const only = declared.filter((s) => paramSlices.includes(s) || kept.slices[s]?.state !== 'ok');
+  return { entry: { ...kept, instance, slices, texts, notFound: false, reading: false }, only };
+}
+
 /** What a line asks of the host beyond the entry: a redirect replaces the URL. */
 export type LineEffect = { redirect: string } | null;
 

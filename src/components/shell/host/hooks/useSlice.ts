@@ -2,12 +2,12 @@
 
 // The hooks a screen uses: its slices, the host's navigation, a quiet re-read. Outside the host (a test, the kit) a
 // slice is unread unless a SliceFixture pins it, and navigation falls back to the router.
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { startTransition, useCallback, useMemo } from 'react';
 import { UNREAD } from '../model/entry';
 import type { ScreenKey } from '../model/routes';
 import type { SliceState } from '../model/wire';
-import { hostNavigate, hostReplace, hostRevalidate } from './navigation';
+import { hostNavigate, hostReplace, hostReplaceQuery, hostRevalidate } from './navigation';
 import { useScope } from './scope';
 import { useHostSelect } from './store';
 
@@ -28,11 +28,21 @@ export function useScreenRead(): { reading: boolean; asOf?: string; notFound: bo
   return useMemo(() => ({ reading: entry?.reading ?? false, asOf: entry?.asOf, notFound: entry?.notFound ?? false }), [entry]);
 }
 
+export interface HostNav {
+  /** Push `href`: the host draws a claimed href in place; anything else goes through the router. */
+  navigate: (href: string) => void;
+  /** Replace the current entry with `href`, the same way. */
+  replace: (href: string) => void;
+  /** Replace the showing screen's query quietly (a list's filters): no read, no remount; Next and the host both learn it. */
+  replaceQuery: (query: string | URLSearchParams) => void;
+}
+
 /** Navigate in-app: the host draws a claimed href in place; anything else goes through the router. */
-export function useHostNav(): { navigate: (href: string) => void; replace: (href: string) => void } {
+export function useHostNav(): HostNav {
   const router = useRouter();
   return useMemo(
     () => ({
+      replaceQuery: hostReplaceQuery,
       navigate: (href: string) => {
         if (!hostNavigate(href)) startTransition(() => router.push(href));
       },
@@ -60,4 +70,16 @@ export function useRevalidate(): (key?: ScreenKey) => void {
     },
     [own, router],
   );
+}
+
+/**
+ * The pathname the app is showing: the host's screen as soon as the host swaps it (in the click's own frame), else
+ * Next's. usePathname alone trails a host click by a frame (Next syncs it in a transition after the host's pushState),
+ * so the sidebar's current mark and the X-ray named the screen being left for that frame. Same rule as ScreenHost: a
+ * pathname Next renders that the host has not seen decides.
+ */
+export function useHerePath(): string {
+  const pathname = usePathname();
+  const host = useHostSelect((s) => (s.seenPath === pathname && s.loc ? s.loc.path : null), null);
+  return host ?? pathname;
 }

@@ -1,10 +1,10 @@
 'use client';
 
 // The Task screens' session (ScreenDef.Session for 'task' and 'task/[id]'): what outlives one task's page. The screen host
-// draws each /task/<id> as its own instance (a new Frame, its slices unread), so what belonged to the screen as a whole
-// when the route kept one TaskScreen mounted lives here: the docket filters, the inspector's open panels, and the last
-// docket rows read. A new task's window shows those rows while its own docket line is on its way (the same docket a
-// moment ago, nothing amber in it), and takes the fresh rows when they land.
+// draws each /task/<id> as its own Frame (remounted; the docket and page slices are kept and only detail and ledger
+// are read again: paramSlices), so what belonged to the screen as a whole when the route kept one TaskScreen mounted
+// lives here: the docket filters, the inspector's open panels, and the last docket rows read (the docket a moment ago,
+// nothing amber in it, until a read brings fresh rows).
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { Panel } from '../components/inspector/TaskInspector';
 import { NO_FILTERS, type Filters } from '../model/docket/filters';

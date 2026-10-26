@@ -5,14 +5,15 @@
 // one request. Visited screens stay mounted, hidden (LRU, cap 10) and keep their state; a key no module claims yet
 // shows the route's page (children) as before. A hard load renders the same Frame on the server, every slice unread.
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Activity, Fragment, Suspense, useEffect, useMemo, type ComponentType, type ReactNode } from 'react';
+import { Activity, Fragment, Suspense, useEffect, useMemo, useSyncExternalStore, type ComponentType, type ReactNode } from 'react';
 import { followRouter, followSearch, hostReplace, installHost } from './hooks/navigation';
 import { ScreenScope } from './hooks/scope';
-import { configureHost, useHostSelect, useHostState, type Loc } from './hooks/store';
+import { configureHost, subscribe, useHostSelect, useHostState, type Loc } from './hooks/store';
+import { arrivalSearch } from './model/loc';
 import { matchRoute } from './model/routes';
 import type { ScreenDef } from './model/types';
 import { HostNotFound } from './HostNotFound';
-import { declaredSlices, isReady, SCREEN_ORDER, SCREENS } from './registry';
+import { declaredSlices, isReady, paramSlices, SCREEN_ORDER, SCREENS } from './registry';
 import styles from './host.module.css';
 
 const sessionIds = new WeakMap<ComponentType<{ children: ReactNode }>, string>();
@@ -22,6 +23,10 @@ const sessionKey = (s: ComponentType<{ children: ReactNode }>): string => {
   if (!sessionIds.has(s)) sessionIds.set(s, `session-${++sessionCount}`);
   return sessionIds.get(s) ?? 'session';
 };
+
+/** The address bar as the browser has it now (read while rendering); null on the server and while hydrating. */
+const hereNow = () => window.location.pathname + window.location.search;
+const hereServer = () => null;
 
 function ScreenBody({ def, loc }: { def: ScreenDef; loc: Loc }) {
   const notFound = useHostSelect((s) => s.entries[def.key]?.notFound === true, false);
@@ -42,19 +47,23 @@ function HostBody({ children }: { children?: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const st = useHostState();
+  const href = useSyncExternalStore<string | null>(subscribe, hereNow, hereServer);
 
   useEffect(() => {
-    configureHost({ isReady, declared: declaredSlices, redirect: (to) => void (hostReplace(to) || router.replace(to)) });
+    configureHost({ isReady, declared: declaredSlices, paramSlices, redirect: (to) => void (hostReplace(to) || router.replace(to)) });
     return installHost();
   }, [router]);
   useEffect(() => followRouter(pathname), [pathname]);
 
-  // Next has rendered a pathname the store has not seen yet (the first render, a router navigation): the pathname
-  // decides; otherwise the store does (it is ahead of Next right after the host's own pushState).
+  // Next has rendered a pathname the store has not seen yet (the first render, a router navigation, Back across one):
+  // the pathname decides, with the query the address bar already has (model/loc.ts arrivalSearch); otherwise the store
+  // does (it is ahead of Next right after the host's own pushState).
   let active: Loc | null = st.loc;
   if (pathname !== st.seenPath) {
     const m = matchRoute(pathname);
-    active = m && isReady(m.key) ? { key: m.key, params: m.params, path: m.path, search: st.loc?.path === m.path ? st.loc.search : '' } : null;
+    const q = href?.indexOf('?') ?? -1;
+    const here = href === null ? null : { pathname: q < 0 ? href : href.slice(0, q), search: q < 0 ? '' : href.slice(q) };
+    active = m && isReady(m.key) ? { key: m.key, params: m.params, path: m.path, search: arrivalSearch(m.path, here, st.loc, st.locs[m.key]) } : null;
   }
   const activeDef = active ? SCREENS[active.key] : undefined;
   const title = activeDef && active ? activeDef.title(active.params, new URLSearchParams(active.search)) : null;

@@ -20,6 +20,13 @@ export interface ScreenDef {
   ready?: boolean;
   /** The slices the server streams, in its declared order (core first). A slice not listed is never read. */
   slices: readonly string[];
+  /**
+   * A param key whose other slices hold for every param (task's docket, setup's live reads): the slices that depend on
+   * the param. Another param then keeps the rest and re-reads only these (and any slice not read yet). The Frame still
+   * remounts per param (its own UI state is the param's); kept slices are there at its first render. Absent: another
+   * param is a new screen, every slice read again.
+   */
+  paramSlices?: readonly string[];
   /** The screen: paints its real frame at once from useSlice states (an em dash for what is unread). */
   Frame: ComponentType<ScreenFrameProps>;
   /**

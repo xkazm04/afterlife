@@ -4,6 +4,7 @@
 // back/forward, and take plain clicks on in-app links anywhere in the document. Next's patched pushState/replaceState
 // copy its own history state (__NA, its tree) into ours and sync usePathname, and its HistoryUpdater preserves our mark.
 import { inAppHref, plainClick } from '../model/click';
+import { linkTarget } from '../model/loc';
 import { matchRoute } from '../model/routes';
 import { activate, getState, hostConfig, keepSearch, markSeen, read } from './store';
 
@@ -19,12 +20,11 @@ export function syncFromLocation(reread: boolean): void {
   activate(matchRoute(window.location.pathname, window.location.search), reread);
 }
 
-/** Where a link with no query of its own goes: back to the query the screen was left with (fleet's filters live there). */
+/** Where a link goes (model/loc.ts linkTarget): a bare link back to a screen left earlier returns to its query. */
 function withKeptQuery(url: URL): string {
   const m = matchRoute(url.pathname);
-  const kept = m ? getState().locs[m.key] : undefined;
-  if (url.search || !kept || kept.path !== m?.path || !kept.search) return url.pathname + url.search + url.hash;
-  return `${url.pathname}?${kept.search}${url.hash}`;
+  const st = getState();
+  return linkTarget(url, m?.path ?? null, m ? st.locs[m.key] : undefined, st.loc?.path ?? null);
 }
 
 /** True when the host draws `href` (mounted, and its key is claimed). */
@@ -39,10 +39,10 @@ export function hostClaims(href: string): boolean {
 /** Push `href` and draw it here. False (nothing done) when the host does not claim it: the caller uses the router. */
 export function hostNavigate(href: string): boolean {
   if (!hostClaims(href)) return false;
+  keepSearch(window.location.pathname, window.location.search); // a screen's own replaceState told nobody: learn it first
   const target = withKeptQuery(new URL(href, window.location.href));
   const url = new URL(target, window.location.href);
   if (url.pathname + url.search === hereHref()) return true; // already here: a click on the current tab does nothing
-  keepSearch(window.location.pathname, window.location.search); // a screen's own replaceState (fleet's filters) told nobody
   const m = matchRoute(url.pathname, url.search);
   window.history.pushState({ [HOST_MARK]: m?.key }, '', target);
   syncFromLocation(true);
@@ -57,6 +57,23 @@ export function hostReplace(href: string): boolean {
   window.history.replaceState({ [HOST_MARK]: m?.key }, '', url.pathname + url.search + url.hash);
   syncFromLocation(true);
   return true;
+}
+
+/** Next's private history keys: a state without them makes Next's patched replaceState take the URL as its own. */
+const NEXT_KEYS = ['__NA', '_N', '__PRIVATE_NEXTJS_INTERNALS_TREE'];
+
+/**
+ * Replace the showing screen's query in place, quietly: no read, no remount, no history entry. Next learns the URL as
+ * its own (its patched replaceState copies its keys back in, so a router refresh elsewhere keeps the query) and the
+ * host follows at once. Before Next has patched history (an effect while the page hydrates) its state is kept as is.
+ */
+export function hostReplaceQuery(query: string | URLSearchParams): void {
+  const q = new URLSearchParams(query).toString();
+  const url = `${window.location.pathname}${q ? `?${q}` : ''}${window.location.hash}`;
+  const state: Record<string, unknown> = { ...(window.history.state ?? {}) };
+  if (Object.hasOwn(window.history, 'replaceState')) for (const k of NEXT_KEYS) delete state[k];
+  window.history.replaceState(state, '', url);
+  if (mounted) followSearch();
 }
 
 /** Re-read a screen's stream quietly (default: the one showing). A visited screen not showing re-reads when it next shows. */
@@ -84,7 +101,17 @@ function onClick(e: MouseEvent): void {
   }
 }
 
-const onPop = () => syncFromLocation(true);
+/**
+ * Back/forward. Next handles popstate first and renders the new pathname at once, so followRouter may already have
+ * moved the host there and started its read: a second read of the same URL would only abort the first.
+ */
+function onPop(): void {
+  const st = getState();
+  const m = matchRoute(window.location.pathname, window.location.search);
+  const loc = st.loc;
+  if (loc && m && loc.path === m.path && loc.search === m.search.toString() && st.entries[loc.key]?.reading) return;
+  syncFromLocation(true);
+}
 
 /** The query changed under the same screen (router.replace('?..'), a pushState of the screen's own): no re-read. */
 export function followSearch(): void {

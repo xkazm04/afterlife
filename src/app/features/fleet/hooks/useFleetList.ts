@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useHostNav } from '@/components/shell/host';
 import { nextSort, type SortState } from '@/components/table/model/sort';
 import type { FleetProject, ProjectState, TierKey } from '@/lib/demo/types';
 import { EMPTY_FILTERS, filterCount, filterProjects, toggleIn } from '../model/list/filtering';
@@ -8,7 +9,6 @@ import { INITIAL_SORT, defaultDir, sortAfterViewChange, sortProjects } from '../
 import { DEFAULT_LIST_STATE, decodeListState, encodeListState, type FleetListState } from '../model/list/urlState';
 import { groupBlocks, navItems } from '../model/groups';
 import { listReseed } from '../model/screen/unread';
-import { replaceQuery } from '../screen/url';
 import type { FleetFilters, FleetView, SortKey, Source } from '../model/types';
 
 const same = (s: FleetListState): FleetListState => s;
@@ -54,11 +54,13 @@ export function useFleetList(
   }, []);
 
   // The state lives in the URL (replace, never push) so Back from a project and a reload restore it; the default is a clean URL.
+  // The host's quiet query replace: Next and the host both learn it, nothing is read again.
   const query = encodeListState(st);
+  const { replaceQuery } = useHostNav();
   useEffect(() => {
     if (!touched.current || window.location.search.replace(/^\?/, '') === query) return;
     replaceQuery(query);
-  }, [query]);
+  }, [query, replaceQuery]);
 
   const visible = useMemo(() => sortProjects(filterProjects(projects, filters, changed), sort), [projects, filters, sort, changed]);
   const blocks = useMemo(() => groupBlocks(groups, visible), [groups, visible]);

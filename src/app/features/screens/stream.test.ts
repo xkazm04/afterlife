@@ -73,3 +73,16 @@ describe('unserialisable', () => {
     expect(unserialisable({ f: () => 1 })).toBe('data.f');
   });
 });
+
+describe('a partial read', () => {
+  it('only the named slices are run and written, then _end; a name the loader lacks is ignored', async () => {
+    const ran: string[] = [];
+    const slice = (name: string) => () => {
+      ran.push(name);
+      return ok(name);
+    };
+    const out = await lines(streamScreen('x', { slices: { a: slice('a'), b: slice('b'), c: slice('c') } }, ctx(), false, ['c', 'zz']));
+    expect(out.map((l) => l.slice)).toEqual(['c', '_end']);
+    expect(ran).toEqual(['c']);
+  });
+});

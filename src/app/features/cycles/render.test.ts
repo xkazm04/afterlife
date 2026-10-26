@@ -109,7 +109,7 @@ describe('the estate scope', () => {
     const web = html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline-web')!, cycles: cycles['ledgerline-web'], deep: 'ledgerline' }));
     expect(web).toContain('C3');
     expect(web).not.toContain('href="/cycles');
-    expect(html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline')!, cycles: cycles.ledgerline, deep: 'ledgerline' }))).toContain('href="/cycles?scope=project"');
+    expect(html(createElement(EstateInspector, { project: rows.find((r) => r.id === 'ledgerline')!, cycles: cycles.ledgerline, deep: 'ledgerline' }))).toContain('href="/cycles"');
   });
   it('the inspector says its cycles are not read yet with a dash, never an empty list as if there were none', () => {
     const row = estateSummary(estate).groups.flatMap((g) => g.projects)[0]!;

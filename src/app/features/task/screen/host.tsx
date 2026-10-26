@@ -78,6 +78,8 @@ export const screens: readonly ScreenDef[] = [
     key: 'task/[id]',
     ready: true,
     slices: ['docket', 'detail', 'ledger', 'page'],
+    // a j/k step to another task re-reads only the task: the docket and the page's facts are every task's
+    paramSlices: ['detail', 'ledger'],
     Frame: TaskFrame,
     Session: TaskSession,
     title: (p) => `Belay Task ${p.id}`,

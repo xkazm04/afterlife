@@ -50,9 +50,10 @@ function failed(slice: string, e: unknown, where: string): WireLine {
 
 /**
  * The stream for `key`'s loader. `refused`: the request is not this machine's and the loader is `local`; a
- * whole-screen refusal is one `_end` error line, a per-slice one answers those slices 'not-local'.
+ * whole-screen refusal is one `_end` error line, a per-slice one answers those slices 'not-local'. `only`: answer just
+ * those slices (a partial read, the client's `_slices`); a name the loader lacks is ignored.
  */
-export function streamScreen(key: string, loader: ScreenLoader, ctx: SliceCtx, refused = false): ReadableStream<Uint8Array> {
+export function streamScreen(key: string, loader: ScreenLoader, ctx: SliceCtx, refused = false, only?: readonly string[]): ReadableStream<Uint8Array> {
   const enc = new TextEncoder();
   const where = `/api/screen/${key}`;
   let open = true;
@@ -73,7 +74,7 @@ export function streamScreen(key: string, loader: ScreenLoader, ctx: SliceCtx, r
         return close();
       }
       const blocked = new Set(refused && Array.isArray(loader.local) ? (loader.local as readonly string[]) : []);
-      const runs = Object.entries(loader.slices).map(async ([slice, load]) => {
+      const runs = Object.entries(loader.slices).filter(([slice]) => !only || only.includes(slice)).map(async ([slice, load]) => {
         try {
           const r = await (blocked.has(slice) ? ({ status: 'error', reason: NOT_LOCAL } as const) : load(ctx));
           write(lineOf(slice, r, new Date().toISOString(), where));

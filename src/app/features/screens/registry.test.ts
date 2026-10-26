@@ -27,6 +27,16 @@ describe('the screen registries', () => {
     }
   });
 
+  it('paramSlices name declared slices of a param key (task and setup keep the rest across a param change)', () => {
+    for (const def of ALL_SCREENS) {
+      if (!def.paramSlices) continue;
+      expect(def.key, `${def.key}: paramSlices on a key without a param`).toMatch(/\/\[\w+\]$/);
+      for (const s of def.paramSlices) expect(def.slices, `${def.key} paramSlices ${s}`).toContain(s);
+    }
+    expect(SCREENS['task/[id]']?.paramSlices).toEqual(['detail', 'ledger']);
+    expect(SCREENS['setup/[node]']?.paramSlices).toEqual(['catalogue']);
+  });
+
   it('the Monitor is converted (the reference); unknown keys have no loader', () => {
     expect(SCREENS.monitor?.ready).toBe(true);
     expect(loaderFor('monitor')).not.toBeNull();

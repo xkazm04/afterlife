@@ -6,11 +6,11 @@ import { useHostNav } from '@/components/shell/host';
 export type Scope = 'project' | 'estate';
 
 /**
- * Where each scope lives. The project scope names itself (?scope=project) rather than dropping the query: the screen
- * host sends a link with no query of its own back to the query the screen was left with, which from the estate is the
- * estate again.
+ * Where each scope lives: the project scope is the bare screen. A bare link to the screen that is showing clears its
+ * query in the screen host, so from the estate it is the project scope (and from elsewhere it returns to the scope
+ * Cycles was left in).
  */
-export const SCOPE_HREF: Record<Scope, string> = { project: '/cycles?scope=project', estate: '/cycles?scope=estate' };
+export const SCOPE_HREF: Record<Scope, string> = { project: '/cycles', estate: '/cycles?scope=estate' };
 
 /**
  * One project's cycles, or every project in cycles rolled up per group. The scope is in the URL (?scope=estate). It paints

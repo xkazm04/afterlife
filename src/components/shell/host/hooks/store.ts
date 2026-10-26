@@ -5,18 +5,13 @@
 // useSyncExternalStore, so a click swaps the screen in the same task, before Next's own pathname update renders.
 // Which keys are claimed and what each declares is configured by ScreenHost (configureHost): this file imports no screen.
 import { useSyncExternalStore } from 'react';
-import { applyLine, failUnread, freshEntry, visit, VISITED_CAP, type ScreenEntry } from '../model/entry';
+import { applyLine, carry, failUnread, freshEntry, visit, VISITED_CAP, type ScreenEntry } from '../model/entry';
+import { dropQuery, type Loc } from '../model/loc';
 import type { RouteMatch, ScreenKey } from '../model/routes';
 import { NOT_LOCAL, screenUrl } from '../model/wire';
 import { readStream, ScreenStreamError } from './readStream';
 
-/** A screen's place: its key, params, raw query and matched path (the instance). */
-export interface Loc {
-  key: ScreenKey;
-  params: Readonly<Record<string, string>>;
-  search: string;
-  path: string;
-}
+export type { Loc } from '../model/loc';
 
 export interface HostState {
   /** The pathname the host last saw Next render (null before the first effect): see ScreenHost's render rule. */
@@ -30,6 +25,8 @@ export interface HostState {
 export interface HostConfig {
   isReady: (key: ScreenKey) => boolean;
   declared: (key: ScreenKey) => readonly string[];
+  /** The slices that depend on the key's param (ScreenDef.paramSlices): another param re-reads only these. */
+  paramSlices?: (key: ScreenKey) => readonly string[];
   /** A redirect line: replace the URL (the navigation module's replace). */
   redirect: (href: string) => void;
 }
@@ -83,16 +80,25 @@ function abort(key: ScreenKey): void {
   if (e?.reading) setEntry(key, { ...e, reading: false });
 }
 
-/** Read `key`'s stream for its current loc: kept slices stay until each fresh line replaces them (stale-while-revalidate). */
-export function read(key: ScreenKey): void {
+/**
+ * Read `key`'s stream for its current loc: kept slices stay until each fresh line replaces them (stale-while-revalidate).
+ * `only`: read just those slices (a param change on a screen that keeps the rest). A screen that declares no slice
+ * reads nothing (settings, the kit: there is no loader to ask).
+ */
+export function read(key: ScreenKey, only?: readonly string[]): void {
   const loc = state.locs[key];
   const start = state.entries[key];
   if (!loc || !start) return;
   inflight.get(key)?.abort();
+  const all = config.declared(key);
+  const declared = only ?? all;
+  if (!declared.length) {
+    if (start.reading) setEntry(key, { ...start, reading: false });
+    return;
+  }
   const ctl = new AbortController();
   inflight.set(key, ctl);
   const instance = start.instance;
-  const declared = config.declared(key);
   const current = (): ScreenEntry | null => {
     const e = state.entries[key];
     return !ctl.signal.aborted && e && e.instance === instance ? e : null;
@@ -102,12 +108,17 @@ export function read(key: ScreenKey): void {
     const e = current();
     if (e) setEntry(key, failUnread(e, declared, reason));
   };
-  readStream(screenUrl(key, loc.params, loc.search), ctl.signal, (line) => {
+  const part = only && only.length < all.length ? only : undefined;
+  readStream(screenUrl(key, loc.params, loc.search, part), ctl.signal, (line) => {
     const e = current();
     if (!e) return;
     const { entry, effect } = applyLine(e, line, declared);
     setEntry(key, entry);
-    if (effect && state.loc?.key === key) config.redirect(effect.redirect);
+    if (!effect) return;
+    // the query that led here led to the redirect: a link back with no query must not land on it again
+    const showing = state.loc?.key === key;
+    set({ ...state, locs: dropQuery(state.locs, key), loc: showing && state.loc ? { ...state.loc, search: '' } : state.loc });
+    if (showing) config.redirect(effect.redirect);
   })
     .then(
       (ended) => (ended ? undefined : fail('unreadable')),
@@ -135,8 +146,10 @@ export function activate(m: RouteMatch | null, reread: boolean): void {
   const loc = locOf(m);
   const kept = state.entries[m.key];
   const fresh = !kept || kept.instance !== loc.path;
+  // another param on a screen that keeps its other slices: only the param's own are read again
+  const carried = kept && fresh ? carry(kept, loc.path, config.paramSlices?.(m.key) ?? [], config.declared(m.key)) : null;
   const { order, evicted } = visit(state.order, m.key, VISITED_CAP);
-  const entries = { ...state.entries, [m.key]: fresh ? freshEntry(loc.path) : kept };
+  const entries = { ...state.entries, [m.key]: carried ? carried.entry : fresh ? freshEntry(loc.path) : kept };
   const locs = { ...state.locs, [m.key]: loc };
   for (const k of evicted) {
     abort(k);
@@ -146,7 +159,7 @@ export function activate(m: RouteMatch | null, reread: boolean): void {
   if (prev && prev.key !== m.key) abort(prev.key);
   const moved = !prev || prev.key !== loc.key || prev.path !== loc.path;
   set({ ...state, loc, order, entries, locs });
-  if (fresh || reread || moved) read(m.key);
+  if (fresh || reread || moved) read(m.key, carried?.only);
 }
 
 /** The query a visited screen was left with (read off the URL as it leaves): a link back with no query returns to it. */

@@ -47,14 +47,20 @@ export function lineText(line: WireLine): string {
   return `${JSON.stringify(line)}\n`;
 }
 
+/** The stream query's reserved name for a partial read: the slices to answer, comma-separated (absent: every slice). */
+export const ONLY = '_slices';
+
 /**
  * The stream's URL for a key: its param under the param's name, beside the page's own query (the param wins a clash).
- * The key is one path segment, percent-encoded ('fleet/[project]' -> 'fleet%2F%5Bproject%5D').
+ * The key is one path segment, percent-encoded ('fleet/[project]' -> 'fleet%2F%5Bproject%5D'). `only` asks for those
+ * slices alone (a param change on a screen that keeps the rest).
  */
-export function screenUrl(key: ScreenKey, params: Readonly<Record<string, string>>, search: URLSearchParams | string = ''): string {
+export function screenUrl(key: ScreenKey, params: Readonly<Record<string, string>>, search: URLSearchParams | string = '', only?: readonly string[]): string {
   const q = new URLSearchParams(search);
+  q.delete(ONLY);
   const name = paramOf(key);
   if (name && params[name] !== undefined) q.set(name, params[name]);
+  if (only) q.set(ONLY, only.join(','));
   const qs = q.toString();
   return `/api/screen/${encodeURIComponent(key)}${qs ? `?${qs}` : ''}`;
 }
