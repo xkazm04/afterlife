@@ -80,3 +80,25 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
 - Change "Show demo estate" with a real project saved: the sidebar follows at once (an `/api/shell` read, no reload).
 - On the live server, decide an item on Needs you, then switch screens: the badge follows within about 300 ms of the
   switch (the shell re-reads on host navigation), not only on window focus.
+
+## Fleet and Vitals (W1)
+
+- Live before the first poll: `/fleet` paints the window, toolbar and runner slot with dashes; the table says "The fleet
+  could not be read: BELAY_MODE=live, but the first poll has not finished" and no count is a zero.
+- Live, after a poll: right-click a watched project, Re-poll. The status says "Re-polling …", then "Re-polled …", and the
+  row's feed age and the status bar's "polled … ago" restart from the fresh snapshot (the screen re-reads through the
+  host's revalidate, `/api/screen/fleet` in the network panel, no `?_rsc`).
+- A real runner checkout (`.belay/fleet.yml` with repos and runs, git branches to ask): the strip's slot shows dashes,
+  then fills after `readDesk` (seconds on a cold git) without moving the table; `curl -N /api/screen/fleet` shows `core`
+  first, `desk` last.
+- `/fleet/<a live project id>`: the cards fill from `core`; Stability and Trend from the live index; Agent cost from the
+  runner. An id the group does not have shows "Project not found".
+- `/vitals` with real onboarded projects (`.belay/projects`): the rows paint from their configs, then Last collected and
+  Runs stored fill per row (the ci-runs jsonl). Open it through a tunnel or another host: "Only on this machine." and no
+  project names.
+- `/vitals/<slug>` with runs older than 15 minutes: one collect starts on open (Refresh disabled, "collecting, started
+  …"), the screen re-reads every 5 s until the job is done, then the bands show the new runs. Leave for another screen
+  and come back within 15 minutes: no second collect. Return after the job failed (an expired `az login`): the
+  re-login command shows, no collect starts until Refresh.
+- On an adjustment with a queue re-measure: Queue N runs, confirm; after "done" the screen re-reads (the claim shows its
+  queued state). Measure passively: the measurement shows in the band without a reload.

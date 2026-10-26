@@ -234,3 +234,50 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
 - **Door.** `(door)/loading.tsx` and `DoorLoading` are gone. The page keeps its server render inside `<Suspense>` with
   a still `DoorFrame` (ground, horizon, brand plate, hero mark) as the prerendered fallback; DoorData stays monolithic.
   In `next dev` the frame and the city arrive within a few ms of each other in one response (in-memory demo reads).
+
+## W1 notes (fleet, fleet/[project], vitals, vitals/[project])
+
+- **Fleet's list state is the client's.** The stream sends no list state: `FleetFrame` decodes it from `search`
+  (`decodeListState`), and `useFleetList` follows it: a new URL state the list does not already show is taken (back or
+  forward between `/fleet?..` entries), a new fleet shape refits the state as it is (`model/screen/unread.ts`
+  `listReseed`, `fitList`). The list fits a bookmarked group or class column only once the fleet is read, so an unread
+  fleet never drops `src=g:payments`.
+- **Only a person's change writes the URL.** A hard load hydrates with the default state before the host has read the
+  query; writing that default would wipe `?view=stages`. The list writes through `fleet/screen/url.ts` `replaceQuery`:
+  the state without Next's private keys, so Next's patched `replaceState` takes the URL as its own (a `router.refresh`
+  elsewhere then keeps the query) and the host follows it without a re-read (SearchSync). A spread `history.state`
+  (W0's pitfall advice) left Next's canonical URL behind, and the next Next history write put `/fleet` back.
+- **A passing `search`.** On Back from `/fleet/<id>` to `/fleet?view=classes` the Frame gets `search` empty for a render
+  (ScreenHost line 57: `st.loc` is still the project when Next's restore renders, so `search` falls to `''`).
+  `useFleetList` ignores a URL state the address bar does not show; the host fix is below.
+- **The runner strip's slot** (`components/runner/RunnerSlot.tsx`) holds the strip's summary line from the first frame
+  (dashes), so the table never moves when `desk` lands. The table's reveal region is the positioned box the table fills
+  (an entrance transform on a plain wrapper would make it the table's containing block and collapse it).
+- **The first look.** `useFleetChanges` takes the first *read* fleet as a first visit's baseline, never the empty
+  unread one (that would mark every project as moved).
+- **fleet/[project]** sends `projectCore` (the project, its view, the column names, the fleet's size), not the whole
+  fleet; `estate` is that project's stability and its own trend rows only.
+- **Vitals** is loopback only (`local: true`): a refused request shows "Only on this machine." (`Unreadable`). The project
+  page's bands are separate slices (`config | job | ci | prod | adjustments`, `model/view.ts` folds, `model/slices.ts`
+  `vitalsView`); an unread band is `BandPending` (a dash), never its empty state. The default pick is the first
+  variant once `ci` lands, never over a person's pick. Collect on open is decided once per activation, on that showing's
+  own fresh read (`useCollect`: config, ci and job read and no read in flight), so a kept copy never starts a collect.
+  The job poll, Refresh, a passive measure and a confirmed write re-read through `useRevalidate`.
+- **Title metadata on param routes.** `generateMetadata` reading `params` on an otherwise static page is an error under
+  Cache Components ("runtime data in generateMetadata()", seen in `next dev` on `/fleet/<id>`); both `[project]` pages
+  carry setup/[node]'s empty request-time marker. ladder/[class], maturity/[stage], needs-you/[item] and task/[id]
+  return null with the same metadata, so they likely log the same error.
+- **Host changes asked for (Director):** (1) ScreenHost line 57: when Next renders a pathname the store has not seen,
+  take `search` from `window.location.search` (or `st.locs[m.key].search`) instead of `''`; (2) on a redirect line,
+  drop the redirecting screen's kept query (or its loc): today `/fleet?project=<id>` redirects, the fleet keeps
+  `project=<id>` as its query, and the next plain link to `/fleet` (`withKeptQuery`) lands on that project again;
+  (3) `hostNavigate` calls `withKeptQuery` before `keepSearch`, so a link to the screen showing uses its stale query;
+  (4) a quiet query replace in `useHostNav` (what `fleet/screen/url.ts` does) would serve every screen that keeps
+  state in its query.
+- **Measured** (`next dev`, demo, playwright `w1.mjs`): the Fleet frame is in the DOM at the first animation frame after
+  the click (title, path, `document.title`, 18 dashes, no skeleton); regions go `in` together when core lands and finish
+  in order (sidebar, table, strip about 50 to 80 ms apart). A return shows `done` at once and re-reads quietly.
+  `/fleet/<id>`: 11 dashes at the first frame, cards finish by grid row 1 to 6, about 60 ms apart. The stream sends
+  core (127 KB) first, then estate (788 KB) and desk. Back/forward between `/fleet?view=..` entries and through a
+  project page keeps the list state; a hard load of `/fleet?view=stages` keeps it. Unknown ids draw the projects'
+  EntityNotFound. Vitals: only the empty list (no project is onboarded in this worktree) and the unknown slug.
