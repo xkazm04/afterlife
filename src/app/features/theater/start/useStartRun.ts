@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
+import { useHostNav } from '@/components/shell/host';
 import { startRunAction } from '@/server/actions/runs/start/startRunAction';
 import type { StartRun } from '@/server/actions/runs/start/types';
 import { noAnswerOf, outcomeOf, unreachable, viewOf, type WriteView } from '@/server/actions/words';
@@ -27,7 +27,7 @@ export const LIVE_HREF = '/theater?live=1';
  * reads as unasked. A done start goes to the live film; a changed one shows the new preview to start again.
  */
 export function useStartRun(intent: StartRun | null): StartRound {
-  const router = useRouter();
+  const nav = useHostNav();
   const key = intent ? JSON.stringify(intent) : '';
   const [got, setGot] = useState<{ key: string; view: WriteView } | null>(null);
   const [sent, setSent] = useState<{ key: string; outcome: string; started: boolean } | null>(null);
@@ -54,10 +54,10 @@ export function useStartRun(intent: StartRun | null): StartRound {
         setSent({ key, outcome: o?.status === 'done' ? `Started · ${view.preview.title} · ${o.made.join(' · ')}` : (o?.text ?? ''), started: o?.status === 'done' });
         if (o?.status === 'changed') setGot({ key, view: { kind: 'preview', preview: o.preview } });
         if (o?.status === 'refused' || o?.status === 'failed') setGot({ key, view: { kind: 'refused', reason: o.text } });
-        if (o?.status === 'done') router.push(LIVE_HREF);
+        if (o?.status === 'done') nav.navigate(LIVE_HREF);
       }, (e: unknown) => setSent({ key, outcome: noAnswerOf(e), started: false }))
       .finally(() => setSending(false));
-  }, [key, view, sending, router]);
+  }, [key, view, sending, nav]);
 
   return { view, asking, sending, outcome, started, ask, send };
 }

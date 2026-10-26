@@ -1,0 +1,21 @@
+/* The Theater window before its film is read: the stage's whole place, a quiet dash in the middle (no bars, no pulse).
+   The film replaces it in the same place. */
+.pane {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: calc(18px * var(--ui-scale)) calc(16px * var(--ui-scale));
+  font-size: var(--t-title);
+}
+.note {
+  max-width: 62ch;
+  font-size: var(--t-body);
+  line-height: 1.5;
+  color: var(--text-3);
+}
+/* A stage wrapped in its reveal region: the region takes the pane's place, as the stage did. */
+.fill {
+  position: absolute;
+  inset: 0;
+}

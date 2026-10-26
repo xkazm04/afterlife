@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Reveal } from '@/components/shell/host';
 import { Window } from '@/components/shell/Window';
 import type { StartData } from '@/server/actions/runs/start/types';
 import { Stage } from './components/stage/Stage';
@@ -20,6 +21,7 @@ import { filmSnapshots } from './model/derive/snapshots';
 import { rangeLabel, readoutFrom, viewOf } from './model/replay/state';
 import { shallowEqual } from './model/replay/store';
 import type { TheaterData } from './model/types';
+import pending from './components/TheaterPending.module.css';
 import styles from './TheaterScreen.module.css';
 
 /** What the status bar says of the address: every part the film cannot honour (both can miss at once), else null. */
@@ -76,8 +78,16 @@ export function TheaterScreen({ film, demo, subtitle, start }: TheaterData & { s
               {newRun.button}
             </>
           }
-          sidebar={<TakesSidebar takes={film.takes} take={v.take} counts={v.counts} range={range} marked={v.mark !== null} actions={actions} />}
-          inspector={<BeatInspector snap={snap} film={film} demo={demo} onSeek={actions.seek} />}
+          sidebar={
+            <Reveal order={2} slice="film">
+              <TakesSidebar takes={film.takes} take={v.take} counts={v.counts} range={range} marked={v.mark !== null} actions={actions} />
+            </Reveal>
+          }
+          inspector={
+            <Reveal order={3} slice="film">
+              <BeatInspector snap={snap} film={film} demo={demo} onSeek={actions.seek} />
+            </Reveal>
+          }
           status={
             <>
               {/* drawn on every film, so a notice that arrives after mount (a #seq= miss) is announced */}
@@ -88,7 +98,11 @@ export function TheaterScreen({ film, demo, subtitle, start }: TheaterData & { s
           help={<TheaterHelp film={film} />}
           helpTitle="Keys and marks"
         >
-          {present.on ? null : <Stage snaps={snaps} snap={snap} store={store} film={film} demo={demo} present={false} />}
+          {present.on ? null : (
+            <Reveal order={1} slice="film" className={pending.fill}>
+              <Stage snaps={snaps} snap={snap} store={store} film={film} demo={demo} present={false} />
+            </Reveal>
+          )}
           {newRun.sheet}
         </Window>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Reveal } from '@/components/shell/host';
 import { Window } from '@/components/shell/Window';
 import { bindKeymap } from '@/lib/keyboard/keymap';
 import { useHotkeys } from '@/lib/keyboard/useHotkeys';
@@ -8,6 +9,7 @@ import type { StartData } from '@/server/actions/runs/start/types';
 import { usePresent } from '../hooks/usePresent';
 import { LIVE_KEYMAP } from '../model/keymap';
 import { StartCard, useNewRun } from '../start/NewRun';
+import pending from '../components/TheaterPending.module.css';
 import outer from '../TheaterScreen.module.css';
 import { LiveStage } from './components/LiveStage';
 import { useLivePayload } from './hooks/useLivePayload';
@@ -33,9 +35,11 @@ export function LiveScreen({ initial, focus, start }: { initial: LivePayload; fo
       <div className={present.on ? outer.hidden : outer.window}>
         <Window title="Theater" subtitle={v.repo === undefined ? 'live' : `live · ${v.repo}`} toolbar={newRun.button} status={<span role="status">{status}</span>}>
           {present.on ? null : (
-            <LiveStage v={v} present={false}>
-              {start && v.phase !== 'running' && focus === undefined ? <StartCard data={start} /> : null}
-            </LiveStage>
+            <Reveal order={1} slice="live" className={pending.fill}>
+              <LiveStage v={v} present={false}>
+                {start && v.phase !== 'running' && focus === undefined ? <StartCard data={start} /> : null}
+              </LiveStage>
+            </Reveal>
           )}
           {newRun.sheet}
         </Window>
