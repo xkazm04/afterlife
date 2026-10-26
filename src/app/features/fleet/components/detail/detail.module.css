@@ -1,0 +1,4 @@
+/* A card's reveal region on the project page: the grid item in the card's place (the card fills it). */
+.cell {
+  min-width: 0;
+}

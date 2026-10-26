@@ -1,18 +1,11 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
-import type { RawParams } from '@/app/features/fleet/model/list/urlState';
-import { ScreenSkeleton } from '@/components/shell/loading/ScreenSkeleton';
-import { FleetList } from './FleetList';
 
 export const metadata: Metadata = { title: 'Belay Fleet' };
 
-// Fleet: the window and its table skeleton paint at once; the fleet itself (FleetList) streams in behind connection().
-// The skeleton is this page's own boundary, not a fleet/loading.tsx: a segment loading would also wrap /fleet/<id>, and a
-// direct visit to a project would show the fleet's table before the project's own detail skeleton.
-export default function FleetPage({ searchParams }: { searchParams: Promise<RawParams> }) {
-  return (
-    <Suspense fallback={<ScreenSkeleton title="Belay" layout="table" />}>
-      <FleetList searchParams={searchParams} />
-    </Suspense>
-  );
+// The route exists for a hard load (and its title); it reads nothing. The screen host in the (app) layout draws Fleet
+// (features/fleet/screen/host.tsx): its window is in the static shell, the list state comes from the URL on the client,
+// and the fleet streams in over GET /api/screen/fleet on every load, the first one included (`?project=<id>` of a
+// project the fleet has is a redirect there, to /fleet/<id>).
+export default function FleetPage() {
+  return null;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import type { FleetProject } from '@/lib/demo/types';
 import { browserStore, decodeBaseline, readRaw, saveBaseline, seen, type Baseline, type BaselineStore } from '../../model/changes/baseline';
 import { changesFrom } from '../../model/changes/diff';
@@ -19,10 +19,11 @@ const subscribe = (l: () => void) => {
 
 /**
  * What moved since the viewer's last look: the baseline is read after mount (the server and the first client render
- * have none, so they agree: no marks), and every fresh snapshot is diffed against it. A first visit takes this look as
- * the baseline. `markSeen` makes the current projects the baseline. `initial` replaces the stored baseline (a test seam).
+ * have none, so they agree: no marks), and every fresh snapshot is diffed against it. A first visit takes the first read
+ * fleet as the baseline (`read`: the fleet is read; an unread one is no look at all, so it is never the baseline).
+ * `markSeen` makes the current projects the baseline. `initial` replaces the stored baseline (a test seam).
  */
-export function useFleetChanges(projects: readonly FleetProject[], initial?: Baseline | null, store: BaselineStore = browserStore) {
+export function useFleetChanges(projects: readonly FleetProject[], initial?: Baseline | null, store: BaselineStore = browserStore, read = true) {
   const raw = useSyncExternalStore(
     subscribe,
     () => (initial === undefined ? readRaw(store) : null),
@@ -31,11 +32,14 @@ export function useFleetChanges(projects: readonly FleetProject[], initial?: Bas
   const base = useMemo(() => (initial !== undefined ? initial : decodeBaseline(raw)), [initial, raw]);
   const out = useMemo(() => changesFrom(base, projects), [base, projects]);
 
+  const first = useRef(true);
   useEffect(() => {
+    if (!read || !first.current) return;
+    first.current = false;
     if (initial === undefined && readRaw(store) === null) saveBaseline(store, seen(projects, Date.now()));
-    // a first visit only: later snapshots are diffed, never taken as the baseline by themselves
+    // the first read fleet only: later snapshots are diffed, never taken as the baseline by themselves
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [read]);
 
   const markSeen = useCallback(() => {
     if (saveBaseline(store, seen(projects, Date.now()))) notify();

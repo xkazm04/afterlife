@@ -1,6 +1,6 @@
 'use client';
 
-import type { KeyboardEventHandler, RefObject } from 'react';
+import type { KeyboardEventHandler, ReactNode, RefObject } from 'react';
 import { OutlineTable } from '@/components/table/OutlineTable';
 import { RowGroup } from '@/components/table/RowGroup';
 import type { SortState } from '@/components/table/model/sort';
@@ -38,6 +38,8 @@ export interface FleetTableProps {
   nothingChanged?: boolean;
   /** Read beside the fleet (cost, stability): the group rows sum it. */
   estate?: FleetEstate;
+  /** The fleet is not read (yet, or it could not be): this one line instead of the rows, never "no projects". */
+  pending?: ReactNode;
 }
 
 const emptyLine = (p: FleetTableProps) =>
@@ -52,11 +54,11 @@ export function FleetTable(props: FleetTableProps) {
     <ProjectRow key={p.id} p={p} view={view} ranked={ranked} narrow={narrow} meta={meta} selected={selected === p.id} alt={i % 2 === 1} grouped={grouped} h={h} mark={props.marks?.[p.id]} />
   );
   let body;
-  if (!visible.length) {
+  if (props.pending !== undefined || !visible.length) {
     body = (
-      <div role="row">
+      <div role="row" aria-busy={props.pending !== undefined || undefined}>
         <div role="gridcell" className={styles.empty}>
-          {emptyLine(props)}
+          {props.pending ?? emptyLine(props)}
         </div>
       </div>
     );

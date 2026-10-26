@@ -1,8 +1,10 @@
 # Fleet (F1)
 
-Route `/fleet`, port of the approved Fleet prototype. `src/app/(app)/fleet/page.tsx` reads the data source on the server
-(`data/loadFleetData.ts`, plus `data/loadFleetSource.ts`: the mode and the deep project's recent events) and renders the
-client `FleetScreen`.
+Route `/fleet`, port of the approved Fleet prototype. The screen host draws it (`screen/host.tsx`; the route's page.tsx
+is a static shell) and `screen/slices.ts` streams it: `core` (`data/loadFleetData.ts`, plus `data/loadFleetSource.ts`:
+the mode and the deep project's recent events), `estate` (stability and the trend) and `desk` (the runner strip and its
+spend). The client `FleetScreen` paints its window at once with a dash for every count until `core` lands
+(`model/screen/`), and decodes the list state from the URL itself.
 
 ## Parts
 - `FleetScreen.tsx` composes the Window: toolbar, sidebar, table, status bar, legend. A row opens its page, `/fleet/[project]` (`components/detail/ProjectDetail.tsx`).
@@ -17,7 +19,7 @@ client `FleetScreen`.
 - `components/runner/` the cycle runner's strip above the table (`RunnerFleet`, collapsed `<details>`): every repo of
   `.belay/fleet.yml` and any repo that still has runs, with its checkout and base, its newest wave in words (running, to
   merge, merged, not mergeable), its lanes' outcomes, tokens, spend, and the decisions it left (a link to `/needs-you`).
-  `app/(app)/fleet/page.tsx` reads it with `readDesk()` (`src/server/runs/`), real local data in demo and live alike; the trust
+  the `desk` slice reads it with `readDesk()` (`src/server/runs/`), real local data in demo and live alike; the trust
   table below is the data source's, untouched. Read-only. The repos whose spend matched no Fleet project are counted
   "not in Fleet" in its summary and named under it.
 - Agent cost (`data/loadFleetEstate.ts`, `src/lib/runs/desk/join.ts`): the routes join the runner desk's rows onto the
@@ -43,7 +45,7 @@ client `FleetScreen`.
   handlers, narrow / compact measuring, and `useRepoll` (simulated in demo, the server in live).
 
 ## Model (pure, tested)
-- `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank). `model/list/urlState.ts` encodes view, sort, filters, search, grouping and folded groups as search params (default = clean URL); `/fleet` decodes them on the server and the list replaces the URL as they change, so Back from a project restores the screen.
+- `model/list/` smart filters, filtering, sorting (attention rank, unknowns sink, tier re-rank). `model/list/urlState.ts` encodes view, sort, filters, search, grouping and folded groups as search params (default = clean URL); `/fleet` decodes them on the client and the list replaces the URL as a person changes them (`screen/url.ts`), so Back from a project restores the screen.
 - `model/columns.ts` columns and grid tracks per view. `model/groups.ts` group totals, keyboard rows.
 - `model/menus/` the Sort, Filter and context menus. `model/needs.ts` the
   re-poll and status line. `model/inspector.ts` the project page's wording.
@@ -66,7 +68,7 @@ of the decisions are shared, by the item's kind, in `@/lib/demo/needsActions` (l
 ## Behaviour to know
 - Demo mode: re-polling only changes this screen's state; nothing is written.
 - Live mode: Re-poll calls the `repollAction` server action (`src/server/actions/repollAction.ts`), which runs one poll
-  cycle of the live runtime (a read) and renders the route again from the fresh snapshot; the status bar says
+  cycle of the live runtime (a read), then the screen re-reads its stream (the host's revalidate); the status bar says
   "Re-polled" only after that resolved, and says it failed otherwise. A decision's button opens Needs you instead of
   resolving it here. Open in GitLab is a link to the project's GitLab page (new tab, no opener) once a poll stored its
   address (`webUrl`), and disabled with "the index stores no GitLab address yet" before; a row's Reveal in GitLab

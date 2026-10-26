@@ -35,6 +35,7 @@ export function FleetToolbar({
   query,
   onQuery,
   searchRef,
+  unread = false,
 }: {
   view: FleetView;
   onView: (v: FleetView) => void;
@@ -54,12 +55,14 @@ export function FleetToolbar({
   query: string;
   onQuery: (q: string) => void;
   searchRef: Ref<HTMLInputElement>;
+  /** The fleet is not read yet: the lozenge's counts are dashes. */
+  unread?: boolean;
 }) {
   return (
     <>
       <SegmentedControl label="Columns" options={VIEWS} value={view} onChange={onView} />
       <Spacer />
-      <StatusLozenge projects={projects} waiting={waiting} compact={compact} source={source} onSource={onSource} />
+      <StatusLozenge projects={projects} waiting={waiting} compact={compact} source={source} onSource={onSource} unread={unread} />
       <Spacer />
       <PopupButton icon="sort" title={`Sort by ${sortLabel}`} expanded={sortOpen} onClick={(e) => onSortMenu(e.currentTarget)}>
         {sortLabel}

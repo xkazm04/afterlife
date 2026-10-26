@@ -1,18 +1,18 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePopover } from '@/components/overlays/popover/usePopover';
 import { useToast } from '@/components/overlays/toast/useToast';
+import { Reveal, useHostNav, type SliceState } from '@/components/shell/host';
 import { Window } from '@/components/shell/Window';
 import { useRowNavigation } from '@/components/table/useRowNavigation';
 import { FleetLegend } from './components/legend/FleetLegend';
 import { FleetSidebar } from './components/sidebar/FleetSidebar';
 import { FleetStatus } from './components/FleetStatus';
+import { FleetStatusPending, TablePending } from './components/FleetPending';
 import { FleetTable } from './components/table/FleetTable';
 import { FleetToolbar } from './components/toolbar/FleetToolbar';
-import { RunnerFleet } from './components/runner/RunnerFleet';
-import runnerStyles from './components/runner/runner.module.css';
+import { FleetPane } from './components/runner/RunnerSlot';
 import { useFleetChanges } from './hooks/changes/useFleetChanges';
 import { useEvent } from './hooks/useEvent';
 import { useFleetKeys } from './hooks/useFleetKeys';
@@ -24,65 +24,72 @@ import { useRepoll } from './hooks/useRepoll';
 import { useRowHandlers } from './hooks/useRowHandlers';
 import { useToolbarCompact } from './hooks/useToolbarCompact';
 import type { Baseline } from './model/changes/baseline';
-import { fleetColumns } from './model/columns';
 import { menuFilterCount, sourceLabel } from './model/list/filtering';
-import { INITIAL_SORT, sortLabel } from './model/list/sorting';
+import { sortLabel } from './model/list/sorting';
 import { DEFAULT_LIST_STATE, type FleetListState } from './model/list/urlState';
+import type { FleetDesk } from './model/screen/slices';
+import { fitKey, fitList, UNREAD_FLEET } from './model/screen/unread';
 import type { FleetData, FleetEstate, FleetMeta, FleetSource, Source } from './model/types';
-import type { RunnerDesk } from '@/lib/runs/desk/types';
 import { fleetHref } from '@/lib/url/fleetHref';
 
-/** A bookmarked sort on a class or stage this fleet does not draw (renamed, dropped) would rank by no column: the default instead. */
-function fitColumns(s: FleetListState, meta: FleetMeta): FleetListState {
-  const k = s.sort.key;
-  if (!/^(class|stage):/.test(k) || fleetColumns(s.view, meta).some((c) => c.key === k)) return s;
-  return { ...s, sort: INITIAL_SORT };
+export interface FleetScreenProps {
+  /** The fleet; absent until read (the screen host's core slice): the same window, a dash for every count. */
+  data?: FleetData;
+  source?: FleetSource;
+  /** The list state the URL asks for; a new one (back, forward, a link) is taken when the list does not show it already. */
+  start?: FleetListState;
+  baseline?: Baseline | null;
+  /** The cycle runner's strip (its slice); absent: no strip at all. */
+  desk?: SliceState<FleetDesk>;
+  /** Read beside the projects (spend, stability, trend), one object the table's group rows sum; each part null until read. */
+  estate?: FleetEstate;
+  /** Why the fleet could not be read. */
+  coreError?: string;
+  /** A live re-poll resolved: re-read the screen. */
+  onPolled?: () => void;
 }
 
 /**
  * Fleet: every project as one row, by tier counts, by action class or by stage. Open a row (click its name, Enter) for the project's page,
  * right-click for actions, press a tier header to rank by it. `source` says which data source drew it and carries the
  * deep project's recent events. Nothing here writes, but the viewer's last look (model/changes; `baseline` replaces the
- * stored one, for tests). `runner`, when given, is the cycle runner's strip above the table (real local repos and runs);
- * `estate`, what is read beside the projects (their agent spend), is one object the table's group rows sum.
+ * stored one, for tests). The screen host draws it from three slices (screen/host.tsx) and it paints before any of them.
  */
-export function FleetScreen({ data, source, start, baseline, runner, estate }: { data: FleetData; source: FleetSource; start?: FleetListState; baseline?: Baseline | null; runner?: RunnerDesk; estate?: FleetEstate }) {
+export function FleetScreen({ data, source, start, baseline, desk, estate, coreError, onPolled }: FleetScreenProps) {
   const { status } = useToast();
   const tableRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  const meta = useMemo<FleetMeta>(() => ({ classes: data.classes, stages: data.stages, tiers: data.tiers }), [data]);
-  const proj = useFleetProjects(data.projects);
-  const changes = useFleetChanges(proj.projects, baseline);
-  const list = useFleetList(proj.projects, data.groups, fitColumns(start ?? DEFAULT_LIST_STATE, meta), changes.ids);
+  const fleet = data ?? UNREAD_FLEET;
+  const read = data !== undefined;
+  const meta = useMemo<FleetMeta>(() => ({ classes: fleet.classes, stages: fleet.stages, tiers: fleet.tiers }), [fleet]);
+  const proj = useFleetProjects(fleet.projects);
+  const changes = useFleetChanges(proj.projects, baseline, undefined, read);
+  const list = useFleetList(proj.projects, fleet.groups, start ?? DEFAULT_LIST_STATE, changes.ids, (s) => fitList(s, data), fitKey(data));
   const pop = usePopover(380);
   const narrow = useNarrow(tableRef);
   const compact = useToolbarCompact(searchRef);
-  const [sel, setSel] = useState<string | null>(data.deepId);
-  const repoll = useRepoll(source.mode, proj.byId, proj.poll, status);
-  // A fresh snapshot (live mode, after a re-poll) restarts the poll counter from its age.
+  const mode = source?.mode ?? 'demo';
+  const [sel, setSel] = useState<string | null>(data?.deepId ?? null);
+  const repoll = useRepoll(mode, proj.byId, proj.poll, status, onPolled);
+  // A fresh snapshot (the first read, a live re-poll, a re-read on return) restarts the poll counter from its age; the
+  // first one also picks the deep project, unless a row was picked meanwhile.
   const [snap, setSnap] = useState({ data, n: 0 });
-  if (snap.data !== data) setSnap({ data, n: snap.n + 1 });
+  if (snap.data !== data) {
+    if (!snap.data && data) setSel((s) => s ?? data.deepId);
+    setSnap({ data, n: snap.n + 1 });
+  }
 
   useEffect(() => tableRef.current?.focus({ preventScroll: true }), []);
 
-  const router = useRouter();
+  const { navigate } = useHostNav();
   // A project opens its page; a group row only takes the selection (its expand and collapse is the arrows').
   const open = useEvent((id: string) => {
     setSel(id);
-    if (!id.startsWith('g:')) startTransition(() => router.push(fleetHref(id)));
+    if (!id.startsWith('g:')) navigate(fleetHref(id));
   });
-  const menus = useFleetMenus({
-    data,
-    mode: source.mode,
-    list,
-    byId: proj.byId,
-    tableRef,
-    onOpen: open,
-    onRepoll: repoll,
-    onFlash: status,
-  });
+  const menus = useFleetMenus({ data: fleet, mode, list, byId: proj.byId, tableRef, onOpen: open, onRepoll: repoll, onFlash: status });
 
-  const handlers = useRowHandlers({ data, list, menus, pop, onSelect: setSel, onActivate: open });
+  const handlers = useRowHandlers({ data: fleet, list, menus, pop, onSelect: setSel, onActivate: open });
 
   const onKeyDown = useRowNavigation({
     items: list.nav,
@@ -103,13 +110,7 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
   });
 
   useFleetKeys({
-    enabled: !menus.isOpen,
-    searchRef,
-    tableRef,
-    query: list.filters.q,
-    onQuery: list.setQuery,
-    popoverOpen: pop.isOpen,
-    closePopover: pop.close,
+    enabled: !menus.isOpen, searchRef, tableRef, query: list.filters.q, onQuery: list.setQuery, popoverOpen: pop.isOpen, closePopover: pop.close,
     onSelectFirst: () => {
       if (!list.nav.some((i) => i.id === sel)) setSel(list.nav.find((i) => i.kind === 'row')?.id ?? null);
     },
@@ -144,13 +145,14 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
       fleetEmpty={proj.projects.length === 0}
       nothingChanged={list.filters.source === 'changed' && changes.count === 0}
       estate={estate}
+      pending={read ? undefined : <TablePending reason={coreError} />}
     />
   );
 
   return (
     <Window
       title="Belay"
-      subtitle={`${data.portfolio} · ${sourceLabel(list.filters.source)}`}
+      subtitle={`${read ? fleet.portfolio : '—'} · ${sourceLabel(list.filters.source)}`}
       toolbar={
         <FleetToolbar
           view={list.view}
@@ -160,38 +162,34 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
           compact={compact}
           source={list.filters.source}
           onSource={pickSource}
-          sortLabel={sortLabel(list.sort.key, data.stages)}
-          onSortMenu={(el) => {
-            pop.close();
-            menus.openSort(el);
-          }}
+          sortLabel={sortLabel(list.sort.key, fleet.stages)}
+          onSortMenu={(el) => (pop.close(), menus.openSort(el))}
           sortOpen={menus.sortOpen}
           filterOpen={menus.filterOpen}
           filterCount={menuFilterCount(list.filters)}
-          onFilterMenu={(el) => {
-            pop.close();
-            menus.openFilter(el);
-          }}
+          onFilterMenu={(el) => (pop.close(), menus.openFilter(el))}
           query={list.filters.q}
           onQuery={list.setQuery}
           searchRef={searchRef}
+          unread={!read}
         />
       }
-      sidebar={<FleetSidebar projects={proj.projects} groups={data.groups} source={list.filters.source} onSource={pickSource} changed={changes.count} onMarkSeen={markSeen} />}
-      status={
-        <FleetStatus key={snap.n} shown={list.visible.length} total={proj.projects.length} filters={list.filterTotal} startSec={data.lastPollSec} live={source.mode === 'live'} trend={estate?.trend} />
+      sidebar={
+        <Reveal order={1} slice="core">
+          <FleetSidebar projects={proj.projects} groups={fleet.groups} source={list.filters.source} onSource={pickSource} changed={changes.count} onMarkSeen={markSeen} unread={!read} />
+        </Reveal>
       }
-      help={<FleetLegend tiers={data.tiers} />}
+      status={
+        read ? (
+          <FleetStatus key={snap.n} shown={list.visible.length} total={proj.projects.length} filters={list.filterTotal} startSec={fleet.lastPollSec} live={mode === 'live'} trend={estate?.trend} />
+        ) : (
+          <FleetStatusPending filters={list.filterTotal} />
+        )
+      }
+      help={<FleetLegend tiers={fleet.tiers} />}
       helpTitle="Legend"
     >
-      {runner ? (
-        <div className={runnerStyles.stack}>
-          <RunnerFleet desk={runner} unmatched={estate?.cost?.unmatched} />
-          <div className={runnerStyles.tableBox}>{table}</div>
-        </div>
-      ) : (
-        table
-      )}
+      <FleetPane desk={desk}>{table}</FleetPane>
       {menus.node}
       {pop.popover}
     </Window>

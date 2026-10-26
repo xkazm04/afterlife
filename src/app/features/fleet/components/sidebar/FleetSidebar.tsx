@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Icon } from '@/components/icons/Icon';
 import { SidebarItem } from '@/components/shell/sidebar/SidebarItem';
 import { SidebarSection } from '@/components/shell/sidebar/SidebarSection';
+import { Unread } from '@/components/shell/host';
 import { StateGlyph } from '@/components/status/StateGlyph';
 import { TierMark } from '@/components/status/TierMark';
 import type { FleetProject } from '@/lib/demo/types';
@@ -41,7 +42,8 @@ const SMART_ICONS: Record<SmartId, ReactNode> = {
 
 /**
  * The source list: all projects, what changed since the last look (with Mark seen once something did), one entry per
- * group, and the six smart filters, each with its count.
+ * group, and the six smart filters, each with its count. `unread`: the fleet is not read yet, every count is a dash and
+ * the groups are not known (a bookmarked group source keeps its row, a dash beside it).
  */
 export function FleetSidebar({
   projects,
@@ -50,6 +52,7 @@ export function FleetSidebar({
   onSource,
   changed,
   onMarkSeen,
+  unread = false,
 }: {
   projects: readonly FleetProject[];
   groups: readonly string[];
@@ -57,22 +60,25 @@ export function FleetSidebar({
   onSource: (s: Source) => void;
   changed: number;
   onMarkSeen: () => void;
+  unread?: boolean;
 }) {
+  const n = (count: number) => (unread ? <Unread /> : count);
+  const shown = unread && source.startsWith('g:') ? [source.slice(2)] : groups;
   return (
     <>
       <SidebarSection title="Fleet">
-        <SidebarItem icon={folder} label={sourceLabel('all')} count={projects.length} current={source === 'all'} onClick={() => onSource('all')} />
-        <SidebarItem icon={changeIcon} label={sourceLabel('changed')} count={changed} current={source === 'changed'} onClick={() => onSource('changed')} />
-        {changed ? <SidebarItem icon={seenIcon} label="Mark seen" title="Take this look as the one the marks compare with" onClick={onMarkSeen} /> : null}
+        <SidebarItem icon={folder} label={sourceLabel('all')} count={n(projects.length)} current={source === 'all'} onClick={() => onSource('all')} />
+        <SidebarItem icon={changeIcon} label={sourceLabel('changed')} count={n(changed)} current={source === 'changed'} onClick={() => onSource('changed')} />
+        {changed && !unread ? <SidebarItem icon={seenIcon} label="Mark seen" title="Take this look as the one the marks compare with" onClick={onMarkSeen} /> : null}
       </SidebarSection>
       <SidebarSection title="Groups">
-        {groups.map((g) => (
-          <SidebarItem key={g} icon={folder} label={sourceLabel(`g:${g}`)} count={projects.filter((p) => p.group === g).length} current={source === `g:${g}`} onClick={() => onSource(`g:${g}`)} />
+        {shown.map((g) => (
+          <SidebarItem key={g} icon={folder} label={sourceLabel(`g:${g}`)} count={n(projects.filter((p) => p.group === g).length)} current={source === `g:${g}`} onClick={() => onSource(`g:${g}`)} />
         ))}
       </SidebarSection>
       <SidebarSection title="Smart filters">
         {SMART_FILTERS.map((s) => (
-          <SidebarItem key={s.id} icon={SMART_ICONS[s.id]} label={s.label} count={projects.filter(s.test).length} current={source === s.id} onClick={() => onSource(s.id)} />
+          <SidebarItem key={s.id} icon={SMART_ICONS[s.id]} label={s.label} count={n(projects.filter(s.test).length)} current={source === s.id} onClick={() => onSource(s.id)} />
         ))}
       </SidebarSection>
     </>

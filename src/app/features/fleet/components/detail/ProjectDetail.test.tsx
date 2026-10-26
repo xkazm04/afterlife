@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/overlays/toast/ToastProvider';
 import { demoSource, setDataSource } from '@/server/data';
 import { loadFleetData } from '../../data/loadFleetData';
-import { loadFleetProject } from '../../data/loadFleetProject';
+import { loadFleetProject, projectCore, type FleetProjectView } from '../../data/loadFleetProject';
 import { loadFleetSource } from '../../data/loadFleetSource';
 import { projectView } from '../../model/project/view';
 import { makeProject } from '../../model/testProject';
@@ -16,12 +16,15 @@ vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown })
 
 afterEach(() => setDataSource(null));
 
+/** The page as the screen host draws it once the core slice is read (the stream sends projectCore, not the fleet). */
+const detail = (pv: FleetProjectView) => createElement(ProjectDetail, { id: pv.project.id, core: projectCore(pv) });
+
 const page = (over: Parameters<typeof makeProject>[0]) => {
   setDataSource(demoSource);
   const project = makeProject(over);
   const data = { ...loadFleetData(), projects: [project] };
   const view = projectView(project, null, { portfolio: data.portfolio, deepId: data.deepId, source: loadFleetSource() });
-  return renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, { project, data, view })));
+  return renderToStaticMarkup(createElement(ToastProvider, null, detail({ project, data, view })));
 };
 const statusBar = (html: string) => html.match(/<footer[^>]*>(.*?)<\/footer>/s)?.[1] ?? '';
 
@@ -29,7 +32,7 @@ describe('ProjectDetail Needs you card', () => {
   it('lists the deep project\'s own decisions', () => {
     setDataSource(demoSource);
     const pv = loadFleetProject(loadFleetData().deepId)!;
-    const html = renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, pv)));
+    const html = renderToStaticMarkup(createElement(ToastProvider, null, detail(pv)));
     const needs = pv.view.depth.needs.kind === 'decisions' ? pv.view.depth.needs.items : [];
     expect(needs.length).toBeGreaterThan(0);
     for (const n of needs) expect(html).toContain(n.title.replaceAll("'", '&#x27;'));
@@ -59,7 +62,7 @@ describe('ProjectDetail subtitle', () => {
     const project = makeProject({ id: 'x', group: 'core' });
     const data = { ...loadFleetData(), projects: [project] };
     const view = { ...projectView(project, null, { portfolio: data.portfolio, deepId: data.deepId, source: loadFleetSource() }), path: 'elsewhere/core/x' };
-    expect(renderToStaticMarkup(createElement(ToastProvider, null, createElement(ProjectDetail, { project, data, view })))).toContain('elsewhere/core/x');
+    expect(renderToStaticMarkup(createElement(ToastProvider, null, detail({ project, data, view })))).toContain('elsewhere/core/x');
   });
 });
 

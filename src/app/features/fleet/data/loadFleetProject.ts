@@ -8,7 +8,7 @@ import { ownDecisions } from '@/server/data/live/seeded';
 import type { FleetProject } from '@/lib/demo/types';
 import { fleetTask } from '../model/inspector';
 import { projectView, type ProjectView } from '../model/project/view';
-import type { DeepProject, FleetData } from '../model/types';
+import type { DeepProject, FleetData, FleetMeta } from '../model/types';
 import { loadFleetData } from './loadFleetData';
 import { loadFleetSource } from './loadFleetSource';
 
@@ -47,4 +47,20 @@ export function loadFleetProject(id: string): FleetProjectView | null {
   if (!project) return null;
   const deep = id === data.deepId ? readDeep(getDataSource()) : null;
   return { project, data, view: projectView(project, deep, { portfolio: data.portfolio, deepId: data.deepId, source: loadFleetSource() }) };
+}
+
+/**
+ * What the project's page draws of the fleet besides the project (its core slice): the column names and tiers, and how
+ * many projects the fleet has. Never the other projects themselves.
+ */
+export interface ProjectCore {
+  project: FleetProject;
+  view: ProjectView;
+  meta: FleetMeta;
+  fleetSize: number;
+}
+
+/** A project view cut to its page's core slice (the stream sends this, not the whole fleet). */
+export function projectCore({ project, data, view }: FleetProjectView): ProjectCore {
+  return { project, view, meta: { classes: data.classes, stages: data.stages, tiers: data.tiers }, fleetSize: data.projects.length };
 }

@@ -1,10 +1,6 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { ProjectDetail } from '@/app/features/fleet/components/detail/ProjectDetail';
-import { loadFleetEstate } from '@/app/features/fleet/data/loadFleetEstate';
-import { loadFleetProject } from '@/app/features/fleet/data/loadFleetProject';
-import { readDesk } from '@/server/runs/readDesk';
 import { connection } from 'next/server';
+import { Suspense } from 'react';
 
 type Params = { params: Promise<{ project: string }> };
 
@@ -13,11 +9,20 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: `Belay Fleet ${project}` };
 }
 
-export default async function FleetProjectPage({ params }: Params) {
-  await connection(); // request time: the data source and its data are the running server's, never the build's
-  const { project } = await params;
-  const view = loadFleetProject(project);
-  if (!view) notFound();
-  // the agent cost is read beside the project (the runner's local files), never in FleetProject
-  return <ProjectDetail {...view} estate={loadFleetEstate(view.data, await readDesk())} />;
+/** Says the title is read at request time on purpose (it names the id); renders nothing. */
+async function RequestTime() {
+  await connection();
+  return null;
+}
+
+// The route exists for a hard load (and its title); it reads nothing. The screen host draws the project's page
+// (features/fleet/screen/host.tsx) and streams it over GET /api/screen/fleet%2F%5Bproject%5D; an id the fleet does not
+// have answers notFound there and the host draws the project's not-found window. The title names the id, so it is
+// request data: the empty marker below tells Cache Components that is intended, and the rest stays in the static shell.
+export default function FleetProjectPage() {
+  return (
+    <Suspense>
+      <RequestTime />
+    </Suspense>
+  );
 }

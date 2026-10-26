@@ -26,9 +26,11 @@
   group: Expand/Collapse, Collapse All, Expand All, Show Only This Group.
 
 ## How it works
-- `src/app/(app)/fleet/page.tsx` (server) calls `loadFleetData()`, redirects a known `?project=` to `/fleet/<id>`, decodes
-  the list state from the URL (`decodeListState`) and renders `FleetScreen`. `src/app/(app)/fleet/[project]/page.tsx` renders
-  `ProjectDetail` from `loadFleetProject(id)` (not found for an unknown id).
+- The screen host draws both screens (`features/fleet/screen/host.tsx`; the route pages are static shells, see
+  `docs/features/screen-host.md`). `screen/slices.ts` streams `/fleet` as `core` (`loadFleetData()`; a known
+  `?project=` is a redirect to `/fleet/<id>`), `estate` and `desk`; the client decodes the list state from the URL
+  (`decodeListState`) and renders `FleetScreen`. `/fleet/<id>` streams `projectCore(loadFleetProject(id))` (notFound for an
+  unknown id), the project's own estate and the desk, drawn by `ProjectDetail`.
 - `data/loadFleetData.ts` reads the DataSource (fleet, portfolio, stages, tiers, cockpit, needs-you, action classes,
   events, tracks, `deepProjectId`) and the Cycles loader (`loadCyclesData`) to build `deep.cycle`: the running cycle
   id, closed cycle count, rungs held now (`total(scanned)`) and gained since day 0 (`total(scanned) - total(day0)`).
