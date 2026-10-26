@@ -141,3 +141,8 @@
   font-variant-ligatures: none;
   font-feature-settings: "calt" 0, "liga" 0;
 }
+
+/* The open tab's box before the task is read: it holds the pane's height, so the cards that land do not push the page. */
+.panelPending {
+  min-height: calc(240px * var(--ui-scale));
+}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadTasks } from '../build/loadTasks';
 import { NO_FILTERS, classCount, docketCount, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdictCounts, visibleTasks } from './filters';
 import { TASK_KEYMAP, actionFor } from './keys';
+import { docketRow } from './row';
 import { PROOF_CLASSES as ENGINE_CLASSES } from '../../../../../../engine/proofs';
 import { PROOF_CLASSES as SCHEMA_CLASSES } from '@/schemas/proof';
 import { PROOF_CLASSES } from '../../data/pageFacts';
@@ -13,7 +14,8 @@ describe('class menu', () => {
   });
 });
 
-const tasks = loadTasks();
+const full = loadTasks();
+const tasks = full.map(docketRow);
 const idle = { inDocket: false, inChrome: false, replaying: false };
 
 describe('filters', () => {
@@ -64,6 +66,29 @@ describe('filters', () => {
     expect(docketCount(2, 7)).toBe('2 / 7');
     expect(statusLine(tasks, 12, '14:22')).toBe('7 tasks · 1 fail · ledger read 12 s ago · 14:22 · reads only');
     expect(statusLine(visibleTasks(tasks, { verdict: 'FAIL', cls: 'all' }), 12, '14:22')).toContain('1 task · 1 fail');
+  });
+});
+
+describe('docket rows', () => {
+  it('carry what the docket and the filters read, and no chain, proof checks or ledger', () => {
+    const q8 = tasks.find((t) => t.id === '01J8Q8');
+    expect(q8).toMatchObject({ id: '01J8Q8', verdict: 'FAIL', opening: { side: 'check', id: 'envelope' } });
+    for (const r of tasks) {
+      expect(Object.keys(r)).not.toContain('ledger');
+      expect(Object.keys(r)).not.toContain('chain');
+      expect(Object.values(r)).not.toContain(null);
+      expect(Object.values(r)).not.toContain(undefined);
+    }
+    // a PASS has no reason to open on: the key is omitted, never null
+    expect(tasks.find((t) => t.id === '01J8Q4')).not.toHaveProperty('opening');
+  });
+
+  it('the first chain time is the chain’s first link, omitted when there is none', () => {
+    for (const [i, t] of full.entries()) expect(tasks[i]?.firstAt).toBe(t.chain[0]?.at ?? undefined);
+  });
+
+  it('survive JSON (the stream sends them as plain JSON)', () => {
+    expect(JSON.parse(JSON.stringify(tasks))).toEqual(tasks);
   });
 });
 

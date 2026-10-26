@@ -6,6 +6,7 @@ import { setDataSource } from '@/server/data/select';
 import type { DataSource } from '@/server/data/types';
 import { TASK_ORDER } from '../../data/details';
 import { verdictCounts, statusLine } from '../docket/filters';
+import { docketRow } from '../docket/row';
 import { REPLAY_NOTHING, replayMessage } from '../verdict/replay';
 import { firstTaskId, loadTasks } from './loadTasks';
 import { loadPageFacts } from './loadPage';
@@ -26,7 +27,7 @@ describe('the docket in live mode', () => {
     setDataSource(live());
     const tasks = loadTasks();
     expect(tasks.map((t) => t.id)).toEqual(['01J8Q4']);
-    expect(verdictCounts(tasks)).toEqual({ all: 1, pass: 1, fail: 0, open: 0 });
+    expect(verdictCounts(tasks.map(docketRow))).toEqual({ all: 1, pass: 1, fail: 0, open: 0 });
     for (const id of FIXTURE_ONLY) expect(tasks.find((t) => t.id === id)).toBeUndefined();
     expect(firstTaskId()).toBe('01J8Q4');
   });

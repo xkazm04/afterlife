@@ -68,13 +68,11 @@ describe('dynamic route pages', () => {
     await expect(page({ params: Promise.resolve(params) })).rejects.toBe(NOT_FOUND);
   });
 
-  it('task/[id] renders a held task and calls notFound for an unknown one', async () => {
-    const page = (await import('./(app)/task/[id]/page')).default;
-    loaders.tasks.mockReturnValue([{ id: 't1' }]);
-    const props = (id: string) => ({ params: Promise.resolve({ id }), searchParams: Promise.resolve({}) });
-    await expect(page(props('t1'))).resolves.toBeTruthy();
+  it('task/[id] is a static shell: the screen host draws the task, and an unknown id is the stream notFound (task/screen/slices.test.ts)', async () => {
+    const page = (await import('./(app)/task/[id]/page')).default as () => unknown;
+    expect(page()).toBeNull();
+    expect(loaders.tasks).not.toHaveBeenCalled();
     expect(nav.notFound).not.toHaveBeenCalled();
-    await expect(page(props('nope'))).rejects.toBe(NOT_FOUND);
   });
 
   it('fleet ?project= redirects only to a project that exists', async () => {

@@ -1,142 +1,142 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { startTransition, useEffect, useState } from 'react';
-import { flushSync } from 'react-dom';
+import { useEffect } from 'react';
 import { Spacer } from '@/components/controls/Spacer';
+import { Reveal, Unread } from '@/components/shell/host';
 import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
 import { ReceiptChain } from './components/chain/ReceiptChain';
 import { Court } from './components/court/Court';
-import { Docket } from './components/docket/Docket';
-import { taskHref } from './components/docket/taskHref';
+import { Docket, DocketPending } from './components/docket/Docket';
 import { VerdictEquation } from './components/equation/VerdictEquation';
 import { TaskHeader } from './components/header/TaskHeader';
 import { TaskLegend } from './components/help/TaskLegend';
-import { TaskInspector, type Panel } from './components/inspector/TaskInspector';
+import { TaskInspector } from './components/inspector/TaskInspector';
+import { DetailUnreadable, EquationPending, HeaderPending, InspectorPending, LedgerPending, PanePending, StatusPending } from './components/pending/TaskPending';
 import { LedgerPanel } from './components/tabs/LedgerPanel';
 import { TaskTabs } from './components/tabs/TaskTabs';
 import { useTaskTab } from './components/tabs/useTaskTab';
 import { ClassMenuButton } from './components/toolbar/ClassMenuButton';
 import { ReplayButton } from './components/toolbar/ReplayButton';
 import { VerdictLozenge } from './components/toolbar/VerdictLozenge';
-import { cardSelector } from './hooks/useTieGeometry';
 import { usePageClock } from './hooks/usePageClock';
 import { useReplay } from './hooks/useReplay';
 import { useSelection } from './hooks/useSelection';
+import { useTaskActions } from './hooks/useTaskActions';
 import { useTaskKeys } from './hooks/useTaskKeys';
-import { arrowSelection, litLink, type Selection, type Side } from './model/court/selection';
-import { NO_FILTERS, idAfterFilter, statusLine, stepTask, toggleFailOnly, verdictCounts, visibleTasks, type Filters } from './model/docket/filters';
-import type { TaskAction } from './model/docket/keys';
+import { useTaskSession } from './hooks/TaskSession';
+import { litLink, type Side } from './model/court/selection';
+import { NO_FILTERS, statusLine, verdictCounts } from './model/docket/filters';
+import type { DocketRow } from './model/docket/row';
 import type { PageFacts } from './model/build/loadPage';
-import { withTab, type TaskTab } from './model/tab';
+import { tabFromQuery, withTab } from './model/tab';
 import type { TaskView } from './model/types';
-import { keepForeignKeys, nextReason, selectionHref } from './model/verdict/reasons';
+import { keepForeignKeys, queryOf, selectionFromQuery, selectionHref } from './model/verdict/reasons';
 import styles from './TaskScreen.module.css';
+
+export interface TaskScreenProps {
+  /** The task the address names. */
+  id: string;
+  /** The docket's rows; absent until read (the window draws dashes). */
+  rows?: readonly DocketRow[];
+  /** The open task whole; its ledger is empty until `ledgerRead`. Absent until read. */
+  task?: TaskView;
+  ledgerRead: boolean;
+  page?: PageFacts;
+  /** The URL's query: the selection (?check= / ?claim=) and tab (?tab=) the task opens on, once it is read. */
+  search: URLSearchParams;
+  /** Why the task could not be read (a fixed reason from the server). */
+  detailError?: string;
+}
 
 /**
  * /task/[id]: one task's proof, cross-examined. The header and the verdict equation stay on top of the pane; under them one
  * tab at a time: the claims-against-checks Court, the Receipt chain, the Ledger (rows and trace). Everything about the
  * selection lives in the inspector; the docket is in the sidebar. This screen reads only: nothing on it writes. It opens
- * on `initial` (the URL's ?check= / ?claim=, else the verdict's first deciding check) and `initialTab` (?tab=, else the
- * Court), and keeps both in the URL, so a reason has an address.
+ * on the URL's ?check= / ?claim= (else the verdict's first deciding check) and ?tab= (else the Court), and keeps both in
+ * the URL, so a reason has an address. The screen host draws it from four slices (screen/host.tsx): each part absent
+ * until read draws the same box with dashes.
  */
-export function TaskScreen({ tasks, task, page, initial, initialTab = 'court' }: { tasks: readonly TaskView[]; task: TaskView; page: PageFacts; initial: Selection; initialTab?: TaskTab }) {
-  const router = useRouter();
+export function TaskScreen({ id, rows, task, ledgerRead, page, search, detailError }: TaskScreenProps) {
+  const session = useTaskSession();
   const clock = usePageClock(page);
-  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
-  const [inspOpen, setInspOpen] = useState(true);
-  const [panels, setPanels] = useState<Record<Panel, boolean>>({ words: false });
-  const { sel, pick, set, clear } = useSelection(task.id, initial);
-  const { tab, setTab } = useTaskTab(task.id, initialTab);
+  const q = queryOf(search);
+  // the selection belongs to the task once it is read: until then the hook holds nothing, and the URL's pick waits
+  const { sel, pick, set, clear } = useSelection(task?.id ?? '', task ? selectionFromQuery(task, q) : null);
+  const { tab, setTab } = useTaskTab(id, tabFromQuery(q));
   const replay = useReplay(task, { onStart: clear });
-  const visible = visibleTasks(tasks, filters);
-  // The selection is the address: replaceState keeps useSearchParams in step without a server render.
-  // The open tab rides along; keys it does not own (the X-ray's ?xray=1, read behind Suspense after this runs) are kept.
+  const { visible, applyFilters, run } = useTaskActions({ id, task, rows, session, sel, set, clear, tab, setTab, replay });
+  // The selection is the address: a query-only replaceState the screen tracks itself, keeping the history entry's state
+  // (Next's tree and the host's mark: never null). The open tab rides along; keys it does not own (the X-ray's ?xray=1)
+  // are kept. Not before the task is read: the URL's own pick must survive until it can be applied. And only while the URL
+  // is this task's own: a render on the way out (back to another task) must never write this task's address over it.
   useEffect(() => {
+    if (!task || location.pathname !== selectionHref(task.id, null)) return;
     const href = keepForeignKeys(withTab(selectionHref(task.id, sel), tab), location.search);
-    if (`${location.pathname}${location.search}` !== href) window.history.replaceState(null, '', href);
-  }, [task.id, sel, tab]);
-
-  const applyFilters = (next: Filters) => {
-    setFilters(next);
-    const id = idAfterFilter(visibleTasks(tasks, next), task.id);
-    if (id) startTransition(() => router.replace(taskHref(id)));
-  };
-  const onPick = (side: Side, id: string) => {
-    if (!replay.running) pick(side, id);
-  };
-  /** A check card is a container whose select button takes the focus; a claim card or a docket link is focused itself. */
-  const focus = (selector: string) => {
-    const el = document.querySelector<HTMLElement>(selector);
-    (el?.querySelector<HTMLElement>('button[aria-pressed]') ?? el)?.focus();
-  };
-  /** The cards live on the Court: a key that selects one opens it first, flushed so the card is mounted to be focused. */
-  const toCourt = () => {
-    if (tab !== 'court') flushSync(() => setTab('court'));
-  };
-
-  const run = (a: TaskAction) => {
-    if (a.type === 'step') {
-      const id = stepTask(visible, task.id, a.delta);
-      if (!id) return;
-      const fromDocket = !!document.activeElement?.closest('[data-docket]');
-      startTransition(() => router.replace(taskHref(id)));
-      if (fromDocket) requestAnimationFrame(() => focus(`[data-docket] a[href="${taskHref(id)}"]`));
-    } else if (a.type === 'replay') replay.start();
-    else if (a.type === 'words') {
-      setInspOpen(true);
-      setPanels((p) => ({ ...p, words: !p.words }));
-    } else if (a.type === 'failOnly') applyFilters(toggleFailOnly(filters));
-    else if (a.type === 'escape') clear();
-    else if (a.type === 'reason') {
-      const next = nextReason(visible, task.id, sel);
-      if (!next) return;
-      if (next.id !== task.id) return startTransition(() => router.replace(selectionHref(next.id, next.sel)));
-      if (next.sel) toCourt();
-      set(next.sel);
-      if (next.sel) focus(cardSelector(next.sel.side, next.sel.id));
-    } else {
-      const next = arrowSelection(task, sel, a.key);
-      if (next) toCourt();
-      set(next);
-      if (next) focus(cardSelector(next.side, next.id));
-    }
-  };
+    if (`${location.pathname}${location.search}` !== href) window.history.replaceState(window.history.state, '', href);
+  }, [task, sel, tab]);
   useTaskKeys(run, replay.running);
 
+  const onPick = (side: Side, pickId: string) => {
+    if (!replay.running) pick(side, pickId);
+  };
+  const rowsOf = task?.ledger.length ?? 0;
   return (
     <Window
       title="Task"
-      subtitle={page.subtitle}
+      subtitle={page ? page.subtitle : '—'}
       toolbar={
         <>
-          <VerdictLozenge counts={verdictCounts(tasks)} value={filters.verdict} onChange={(verdict) => applyFilters({ ...filters, verdict })} />
-          <ClassMenuButton tasks={tasks} value={filters.cls} onChange={(cls) => applyFilters({ ...filters, cls })} />
+          <VerdictLozenge counts={rows ? verdictCounts(rows) : undefined} value={session.filters.verdict} onChange={(verdict) => applyFilters({ ...session.filters, verdict })} />
+          <ClassMenuButton tasks={rows} value={session.filters.cls} onChange={(cls) => applyFilters({ ...session.filters, cls })} />
           <Spacer />
-          <ReplayButton running={replay.running} disabled={!task.ledger.length} onClick={replay.start} />
+          <ReplayButton running={replay.running} unread={!ledgerRead} disabled={!rowsOf} onClick={replay.start} />
         </>
       }
-      sidebar={<Docket tasks={tasks} visible={visible} currentId={task.id} onClear={() => applyFilters(NO_FILTERS)} />}
-      inspector={<TaskInspector task={task} clock={clock} sel={sel} open={panels} onOpen={(panel, open) => setPanels((p) => ({ ...p, [panel]: open }))} />}
-      inspectorOpen={inspOpen}
-      onInspectorOpenChange={setInspOpen}
-      status={statusLine(visible, clock.ageSec, clock.now)}
+      sidebar={
+        <Reveal order={1} slice="docket">
+          {rows && visible ? <Docket tasks={rows} visible={visible} currentId={id} onClear={() => applyFilters(NO_FILTERS)} /> : <DocketPending />}
+        </Reveal>
+      }
+      inspector={
+        <Reveal order={5} slice="detail">
+          {task ? (
+            <TaskInspector task={task} clock={clock} ledgerRead={ledgerRead} sel={sel} open={session.panels} onOpen={(panel, open) => session.setPanels((p) => ({ ...p, [panel]: open }))} />
+          ) : (
+            <InspectorPending />
+          )}
+        </Reveal>
+      }
+      inspectorOpen={session.inspOpen}
+      onInspectorOpenChange={session.setInspOpen}
+      status={visible && page ? statusLine(visible, clock.ageSec, clock.now) : <StatusPending />}
       help={<TaskLegend />}
       helpTitle="Legend"
     >
       <PaneScroll>
         <div className={styles.tk}>
-          <TaskHeader task={task} />
-          <VerdictEquation task={task} sel={sel} rv={replay.rv} onSelect={(id) => onPick('check', id)} />
-          <TaskTabs tab={tab} onTab={setTab} aux={{ ledger: replay.row !== null ? `#${task.ledger[replay.row]?.seq ?? ''}` : task.ledger.length }}>
-            {tab === 'chain' ? (
-              <ReceiptChain task={task} lit={litLink(task, sel)} />
-            ) : tab === 'ledger' ? (
-              <LedgerPanel task={task} row={replay.row} />
-            ) : (
-              <Court task={task} sel={sel} rv={replay.rv} onPick={onPick} />
-            )}
+          <Reveal order={2} slice="detail">
+            {task ? <TaskHeader task={task} /> : <HeaderPending />}
+          </Reveal>
+          <Reveal order={3} slice="detail">
+            {task ? <VerdictEquation task={task} sel={sel} rv={replay.rv} onSelect={(c) => onPick('check', c)} /> : detailError ? <DetailUnreadable reason={detailError} /> : <EquationPending />}
+          </Reveal>
+          <TaskTabs
+            tab={tab}
+            onTab={setTab}
+            aux={{ ledger: !ledgerRead ? <Unread label="ledger rows not read yet" /> : replay.row !== null ? `#${task?.ledger[replay.row]?.seq ?? ''}` : rowsOf }}
+          >
+            <Reveal order={4} slice={tab === 'ledger' ? 'ledger' : 'detail'}>
+              {!task ? (
+                tab === 'ledger' ? <LedgerPending /> : <PanePending />
+              ) : tab === 'chain' ? (
+                <ReceiptChain task={task} lit={litLink(task, sel)} />
+              ) : tab === 'ledger' ? (
+                ledgerRead ? <LedgerPanel task={task} row={replay.row} /> : <LedgerPending />
+              ) : (
+                <Court task={task} sel={sel} rv={replay.rv} onPick={onPick} />
+              )}
+            </Reveal>
           </TaskTabs>
         </div>
       </PaneScroll>

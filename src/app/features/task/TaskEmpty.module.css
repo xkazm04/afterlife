@@ -7,12 +7,6 @@
   line-height: 1.5;
 }
 
-.title {
-  margin: 0 0 var(--row-h);
-  font-size: var(--t-title);
-  color: var(--text-1);
-}
-
 .note {
   color: var(--text-3);
 }

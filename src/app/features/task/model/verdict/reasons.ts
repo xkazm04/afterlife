@@ -72,14 +72,14 @@ export function keepForeignKeys(href: string, search: string): string {
 }
 
 /**
- * The next deciding check after the current one: the next in this task, then the first of the next visible task that has
- * one, wrapping round to this task. A selection that is not a reason starts at this task's first. Null when no visible
- * task has a reason.
+ * The next deciding check after the current one: the next in this task (`here`, the open task whole), then the opening
+ * check of the next visible docket row that has one, wrapping round to this task. A selection that is not a reason starts
+ * at this task's first. Null when no visible task has a reason. The docket rows carry each task's opening check, so the
+ * other tasks need not be held whole.
  */
-export function nextReason(visible: readonly Task[], currentId: string, sel: Selection): { id: string; sel: Selection } | null {
-  const at = visible.findIndex((t) => t.id === currentId);
-  const here = at >= 0 ? visible[at] : undefined;
-  if (here) {
+export function nextReason(visible: readonly { id: string; opening?: Selection }[], here: Task, sel: Selection): { id: string; sel: Selection } | null {
+  const at = visible.findIndex((t) => t.id === here.id);
+  if (at >= 0) {
     const own = reasonSelections(here);
     const i = sel ? own.findIndex((s) => s?.side === sel.side && s.id === sel.id) : -1;
     const next = own[i + 1];
@@ -87,11 +87,21 @@ export function nextReason(visible: readonly Task[], currentId: string, sel: Sel
   }
   for (let step = 1; step <= visible.length; step += 1) {
     const t = visible[(at + step) % visible.length];
-    const open = t && openingSelection(t);
+    const open = t && (t.id === here.id ? openingSelection(here) : t.opening);
     if (t && open) return { id: t.id, sel: open };
   }
   return null;
 }
+
+/** The selection and tab query of a URL (the screen's `search`), as the route's searchParams once read them. */
+export const queryOf = (search: URLSearchParams): SelectionQuery & { tab?: string } => {
+  const q: SelectionQuery & { tab?: string } = {};
+  for (const k of ['check', 'claim', TAB_KEY] as const) {
+    const v = search.get(k);
+    if (v !== null) q[k] = v;
+  }
+  return q;
+};
 
 /**
  * "FAIL because envelope · envelope breached", "… · stored PASS" when the stored word disagrees; null for a PASS or UNKNOWN.

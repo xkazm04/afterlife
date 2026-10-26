@@ -28,17 +28,17 @@ const IDLE: Run = { taskId: '', rv: null, row: null };
 /**
  * Replay the verdict from the ledger: claims first, then one check every step, the ledger rows lighting up as it goes.
  * Nothing is re-run. With reduced motion there is no animation: the result is announced at once. A replay belongs to one
- * task; opening another task ends it.
+ * task; opening another task ends it. `task` absent (not read yet): nothing runs, and start does nothing.
  */
-export function useReplay(task: TaskView, opts: { onStart: () => void }) {
+export function useReplay(task: TaskView | undefined, opts: { onStart: () => void }) {
   const { toast, status } = useToast();
   const [run, setRun] = useState<Run>(IDLE);
-  const live = run.taskId === task.id ? run : IDLE;
-  const n = task.proof.checks.length;
-  const rows = task.ledger.length;
+  const live = task && run.taskId === task.id ? run : IDLE;
+  const n = task?.proof.checks.length ?? 0;
+  const rows = task?.ledger.length ?? 0;
 
   useEffect(() => {
-    if (live.rv === null) return;
+    if (live.rv === null || !task) return;
     const rv = live.rv;
     const timer = setTimeout(() => {
       const next = nextReplay(rv, n);
@@ -63,6 +63,7 @@ export function useReplay(task: TaskView, opts: { onStart: () => void }) {
 
   const { onStart } = opts;
   const start = useCallback(() => {
+    if (!task) return;
     if (!task.ledger.length) {
       toast(REPLAY_NOTHING);
       return;

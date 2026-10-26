@@ -5,6 +5,7 @@ import { equationTerms, verdictWord } from './equation';
 import { verdictOf } from '@/schemas';
 import { claimStatus, derivedVerdict, tally, verdictLabel } from './verdict';
 import { NO_FILTERS, verdictCounts, visibleTasks } from '../docket/filters';
+import { docketRow } from '../docket/row';
 
 const tasks = loadTasks();
 const get = (id: string): TaskView => {
@@ -94,8 +95,8 @@ describe('derivedVerdict', () => {
     expect(derivedVerdict(t)).toEqual({ verdict: 'FAIL', stored: 'PASS', mismatch: true });
     expect(verdictWord(t, null)).toMatchObject({ word: 'FAIL', fail: true, mismatch: true, stored: 'PASS' });
     expect(verdictWord(t, 0)).toMatchObject({ word: 'checking…', mismatch: false });
-    expect(verdictCounts([t])).toEqual({ all: 1, pass: 0, fail: 1, open: 0 });
-    expect(visibleTasks([t], { ...NO_FILTERS, verdict: 'FAIL' })).toHaveLength(1);
+    expect(verdictCounts([docketRow(t)])).toEqual({ all: 1, pass: 0, fail: 1, open: 0 });
+    expect(visibleTasks([docketRow(t)], { ...NO_FILTERS, verdict: 'FAIL' })).toHaveLength(1);
   });
 
   it('ignores a check a person decides, and never flags an honest task', () => {

@@ -4,6 +4,7 @@ import { InspectorHeader } from '@/components/inspector/InspectorHeader';
 import { InspectorSection } from '@/components/inspector/InspectorSection';
 import { KeyValue } from '@/components/inspector/KeyValue';
 import { UntrustedText } from '@/components/inspector/UntrustedText';
+import { Unread } from '@/components/shell/host';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { TierChip } from '@/components/status/TierChip';
 import { Chip } from '@/components/status/chip/Chip';
@@ -26,6 +27,7 @@ export type Panel = 'words';
 export function TaskInspector({
   task,
   clock,
+  ledgerRead = true,
   sel,
   open,
   onOpen,
@@ -33,6 +35,8 @@ export function TaskInspector({
   task: TaskView;
   /** The page's poll age and wall time; the age is null when no poll has happened. */
   clock: { ageSec: number | null; now: string | null };
+  /** False until the task's ledger slice lands: its pin is a dash, never "no rows". */
+  ledgerRead?: boolean;
   sel: Selection;
   open: Record<Panel, boolean>;
   onOpen: (panel: Panel, open: boolean) => void;
@@ -40,7 +44,9 @@ export function TaskInspector({
   const verdict = derivedVerdict(task).verdict;
   const kind = verdictKind(verdict);
   // Any task with no rows says so, fixture or not: a live fixture task's rows are its MR's slice of the chain, maybe empty.
-  const ledgerRead = !task.ledger.length ? (
+  const ledgerPin = !ledgerRead ? (
+    <Unread key="l" label="ledger not read yet" />
+  ) : !task.ledger.length ? (
     <HonestyChip key="l" kind="unknown">no rows</HonestyChip>
   ) : clock.ageSec === null ? (
     <HonestyChip key="l" kind="unknown">no poll yet</HonestyChip>
@@ -65,7 +71,7 @@ export function TaskInspector({
       <InspectorSection title="Selection">
         <SelectionRuling task={task} sel={sel} />
       </InspectorSection>
-      <ProofBlock task={task} ledgerRead={ledgerRead} />
+      <ProofBlock task={task} ledgerRead={ledgerPin} />
       <InspectorSection
         title="Agent's words"
         aux={

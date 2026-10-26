@@ -5,10 +5,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { Docket } from '../components/docket/Docket';
 import { taskHref } from '../components/docket/taskHref';
 import { loadTasks } from '../model/build/loadTasks';
+import { docketRow } from '../model/docket/row';
 
 vi.mock('next/link', () => ({ default: (p: { href: string; children?: unknown }) => createElement('a', { href: p.href }, p.children as never) }));
 
-const odd = { ...loadTasks()[0]!, id: 'a/b?c#d e' };
+const odd = { ...docketRow(loadTasks()[0]!), id: 'a/b?c#d e' };
 
 describe('taskHref', () => {
   it('encodes the id as one path segment', () => {

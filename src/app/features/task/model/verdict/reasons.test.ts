@@ -10,7 +10,8 @@ import pass from '../build/engineBlock.pass.json';
 import { buildTasks } from '../build/buildTasks';
 import { loadTasks } from '../build/loadTasks';
 import type { TaskView } from '../types';
-import { becauseLine, keepForeignKeys, nextReason, openingSelection, selectionFromQuery, selectionHref, verdictReasons } from './reasons';
+import { docketRow } from '../docket/row';
+import { becauseLine, keepForeignKeys, nextReason, openingSelection, queryOf, selectionFromQuery, selectionHref, verdictReasons } from './reasons';
 
 const tasks = loadTasks();
 const get = (id: string): TaskView => {
@@ -99,10 +100,24 @@ describe('selectionFromQuery', () => {
 describe('nextReason', () => {
   const envelope = { side: 'check', id: 'envelope' } as const;
   it('walks the reasons of the visible tasks and wraps', () => {
-    expect(nextReason(tasks, '01J8Q8', envelope)).toEqual({ id: '01J8Q8', sel: envelope });
-    expect(nextReason(tasks, '01J8Q4', null)).toEqual({ id: '01J8Q8', sel: envelope });
-    expect(nextReason([q4, lie], '01J8Q4', null)).toEqual({ id: '01J8Q4', sel: { side: 'check', id: 'base-red' } });
-    expect(nextReason([q4], '01J8Q4', null)).toBeNull();
+    const rows = tasks.map(docketRow);
+    expect(nextReason(rows, q8, envelope)).toEqual({ id: '01J8Q8', sel: envelope });
+    expect(nextReason(rows, q4, null)).toEqual({ id: '01J8Q8', sel: envelope });
+    // the open task's own reasons come from the task itself (here the lie), not from its row
+    expect(nextReason([docketRow(q4)], lie, null)).toEqual({ id: '01J8Q4', sel: { side: 'check', id: 'base-red' } });
+    expect(nextReason([docketRow(q4)], q4, null)).toBeNull();
+  });
+
+  it('a task filtered out of the docket starts at the first visible row with a reason', () => {
+    expect(nextReason([docketRow(q8)], q4, null)).toEqual({ id: '01J8Q8', sel: envelope });
+  });
+});
+
+describe('queryOf', () => {
+  it('reads the selection and tab keys off the URL, and nothing else', () => {
+    expect(queryOf(new URLSearchParams('check=envelope&tab=ledger&xray=1'))).toEqual({ check: 'envelope', tab: 'ledger' });
+    expect(queryOf(new URLSearchParams(''))).toEqual({});
+    expect(selectionFromQuery(q8, queryOf(new URLSearchParams('claim=c3')))).toEqual({ side: 'claim', id: 'c3' });
   });
 });
 
