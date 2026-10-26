@@ -5,8 +5,8 @@ import path from 'node:path';
 import { createElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { VIEWS } from '../../../model/fixtures/views';
-import type { StartView } from '../../../model/view';
+import { VIEWS } from '../../model/fixtures/views';
+import type { StartView } from '../../model/view';
 import { starsOf } from '../sky';
 
 vi.mock('next/link', () => ({ default: (p: { href: string; children: ReactNode }) => createElement('a', { href: p.href }, p.children) }));

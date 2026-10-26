@@ -2,7 +2,7 @@
 // Enter grows its card (the orbit goes inert, the heading takes focus), Esc folds it back and the node has focus again.
 import { describe, expect, it, vi } from 'vitest';
 import { FakeElement, installFakeDom } from '@/components/shell/frame/fakeDom';
-import { VIEWS } from '../../../model/fixtures/views';
+import { VIEWS } from '../../model/fixtures/views';
 
 vi.mock('next/link', () => ({ default: () => null }));
 

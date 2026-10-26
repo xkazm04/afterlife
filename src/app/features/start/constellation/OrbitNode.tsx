@@ -1,5 +1,5 @@
 import type { CSSProperties, KeyboardEvent, Ref } from 'react';
-import { StepPulse } from '../../components/StepPulse';
+import { StepPulse } from '../components/StepPulse';
 import { nameOf, type Star } from './sky';
 import styles from './node.module.css';
 

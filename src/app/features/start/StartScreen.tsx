@@ -7,14 +7,11 @@ import { PaneScroll } from '@/components/shell/PaneScroll';
 import { Window } from '@/components/shell/Window';
 import { HonestyChip } from '@/components/status/chip/HonestyChip';
 import { ChatDrawer } from './components/chat/ChatDrawer';
+import { ConstellationVariant } from './constellation/ConstellationVariant';
 import { ActionSheet } from './components/sheet/ActionSheet';
 import { SourceChips } from './components/SourceChips';
-import { VariantSwitch } from './components/VariantSwitch';
 import { useStart, type StartProps } from './hooks/useStart';
 import type { Path, StartView } from './model/view';
-import { FocusVariant } from './variants/focus/FocusVariant';
-import type { VariantKey } from './variants/keys';
-import { VARIANTS } from './variants/registry';
 import styles from './start.module.css';
 
 const PATHS: { value: Path; label: string; title: string }[] = [
@@ -33,12 +30,11 @@ function subtitleOf(v: StartView): string {
 /**
  * Set up my first project: one wizard from this machine through GitLab to Afterlife (repo, glab, login, group, live,
  * stack, save, unlock map). Each step is derived from what the probes see now; every step can be done by hand (copy
- * the command, or Run it after the server's preview) or with "Ask Afterlife". `variant` picks the presentation (a
- * prototype choice); the (app) layout's gate shows this same screen while live mode has nothing to show.
+ * the command, or Run it after the server's preview) or with "Ask Afterlife". The steps are drawn as a constellation
+ * around this machine; the (app) layout's gate shows this same screen while live mode has nothing to show.
  */
-export function StartScreen({ variant = 'focus', switchable = true, ...props }: StartProps & { variant?: VariantKey; switchable?: boolean }) {
+export function StartScreen(props: StartProps) {
   const view = useStart(props);
-  const Variant = VARIANTS[variant] ?? FocusVariant;
   const done = view.steps.filter((s) => s.state === 'done').length;
   return (
     <Window
@@ -46,8 +42,6 @@ export function StartScreen({ variant = 'focus', switchable = true, ...props }: 
       subtitle={subtitleOf(view)}
       toolbar={
         <>
-          {switchable ? <VariantSwitch value={variant} /> : null}
-          {!VARIANTS[variant] ? <HonestyChip kind="unknown" meaning="this presentation is not built yet">showing Focus</HonestyChip> : null}
           <Spacer />
           {view.rehearsal ? <HonestyChip kind="simulated" meaning="the not-ready state, shown on purpose">rehearsal</HonestyChip> : null}
           <SegmentedControl label="Path" value={view.path} onChange={view.setPath} options={PATHS} />
@@ -71,7 +65,7 @@ export function StartScreen({ variant = 'focus', switchable = true, ...props }: 
               Re-check refused: {view.refused}
             </p>
           ) : null}
-          <Variant view={view} />
+          <ConstellationVariant view={view} />
         </div>
       </PaneScroll>
       <ChatDrawer chat={view.chat} />

@@ -1,7 +1,7 @@
 // Constellation's geometry, pure: one coordinate space (SKY) shared by the SVG lines and the HTML nodes placed in
 // percent, so the stage can change aspect at a narrow width and every node stays on the end of its link.
-import type { StepKey, StepState } from '../../model/types';
-import type { Place, StepView } from '../../model/view';
+import type { StepKey, StepState } from '../model/types';
+import type { Place, StepView } from '../model/view';
 
 /** The stage's units: its size, the centre (this machine), the orbit's radii. */
 export const SKY = { w: 1000, h: 640, cx: 500, cy: 320, rx: 372, ry: 236 } as const;
@@ -63,6 +63,31 @@ export function placeLabels(stars: readonly Star[]): { place: Place; pct: Spot }
     return { place: mine[0]!.step.place, pct: percentOf(onOrbit(angle, 0.62)) };
   });
 }
+
+/**
+ * The orbit's arc from one step to the next, clockwise along the ellipse. `lit` once both ends are done, so the shape
+ * builds up as steps connect; the last arc closes the ring back to the first and lights only when every step is done.
+ */
+export interface Bond {
+  key: string;
+  d: string;
+  lit: boolean;
+  closing: boolean;
+}
+
+export function bondsOf(stars: readonly Star[]): Bond[] {
+  return stars.map((a, i) => {
+    const closing = i === stars.length - 1;
+    const b = stars[closing ? 0 : i + 1]!;
+    const sweep = (b.angle - a.angle + 360) % 360;
+    const lit = closing ? stars.every((s) => s.step.state === 'done') : a.step.state === 'done' && b.step.state === 'done';
+    const d = `M ${a.at.x} ${a.at.y} A ${SKY.rx} ${SKY.ry} 0 ${sweep > 180 ? 1 : 0} 1 ${b.at.x} ${b.at.y}`;
+    return { key: `${a.step.key}-${b.step.key}`, d, lit, closing };
+  });
+}
+
+/** Every step done: the ring is closed and the whole picture completes. */
+export const completeOf = (stars: readonly Star[]): boolean => stars.length > 0 && stars.every((s) => s.step.state === 'done');
 
 /** A link's look, by its step's state: flowing while checking, solid when done, broken when blocked, amber for you. */
 export type LinkKind = 'flow' | 'solid' | 'muted' | 'broken' | 'you';

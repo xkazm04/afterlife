@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useId, useRef, type CSSProperties, type KeyboardEvent } from 'react';
-import { StepBody } from '../../components/StepBody';
-import { StepPulse } from '../../components/StepPulse';
-import type { StartView, StepView } from '../../model/view';
+import { StepBody } from '../components/StepBody';
+import { StepPulse } from '../components/StepPulse';
+import type { StartView, StepView } from '../model/view';
 import type { Spot } from './sky';
 import styles from './card.module.css';
 

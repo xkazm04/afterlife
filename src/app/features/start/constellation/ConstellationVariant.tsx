@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { CheckingLine } from '../../components/CheckingLine';
-import type { StartView } from '../../model/view';
+import { CheckingLine } from '../components/CheckingLine';
+import type { StartView } from '../model/view';
 import { OrbitNode } from './OrbitNode';
 import { SkyLines } from './SkyLines';
 import { StepCard } from './StepCard';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { StepKey } from '../../model/types';
+import type { StepKey } from '../model/types';
 
 /** Longest the fold may take before the card goes anyway (no animationend when animations are off). */
 const FOLD_MS = 600;

@@ -1,8 +1,8 @@
 // The orbit's geometry: every step on the ellipse in step order clockwise from twelve, the places grouped with a gap
 // between them, a link per state, and the arrow keys wrapping round the orbit.
 import { describe, expect, it } from 'vitest';
-import { VIEWS } from '../../../model/fixtures/views';
-import { SKY, linkOf, moveOf, placeLabels, starsOf } from '../sky';
+import { VIEWS } from '../../model/fixtures/views';
+import { SKY, bondsOf, completeOf, linkOf, moveOf, placeLabels, starsOf } from '../sky';
 
 const stars = starsOf(VIEWS.nothing.steps);
 
@@ -42,5 +42,34 @@ describe('linkOf and moveOf', () => {
     expect(moveOf(k, 'repo', 'ArrowUp')).toBe('unlock');
     expect(moveOf(k, 'login', 'End')).toBe('unlock');
     expect(moveOf(k, 'login', 'a')).toBeNull();
+  });
+});
+
+describe('bondsOf', () => {
+  const lit = (v: keyof typeof VIEWS) => bondsOf(starsOf(VIEWS[v].steps)).filter((b) => b.lit).map((b) => b.key);
+
+  it('lights the arc between two steps only once both ends are done, so the shape builds up', () => {
+    expect(lit('nothing')).toEqual([]);
+    const steps = VIEWS.probing.steps;
+    const done = new Set(steps.filter((s) => s.state === 'done').map((s) => s.key));
+    for (const key of lit('probing')) {
+      const [a, b] = key.split('-');
+      expect(done.has(a as never) && done.has(b as never)).toBe(true);
+    }
+    expect(bondsOf(starsOf(steps)).find((b) => b.closing)?.lit).toBe(false);
+  });
+
+  it('closes the ring and completes the picture when every step is done', () => {
+    const stars = starsOf(VIEWS.done.steps);
+    expect(completeOf(stars)).toBe(true);
+    expect(lit('done')).toHaveLength(stars.length);
+    expect(completeOf(starsOf(VIEWS.probing.steps))).toBe(false);
+  });
+
+  it('draws each arc clockwise along the orbit, from one node to the next', () => {
+    const stars = starsOf(VIEWS.done.steps);
+    const b = bondsOf(stars);
+    expect(b[0]!.d).toBe(`M ${stars[0]!.at.x} ${stars[0]!.at.y} A ${SKY.rx} ${SKY.ry} 0 0 1 ${stars[1]!.at.x} ${stars[1]!.at.y}`);
+    expect(b.at(-1)!.key).toBe('unlock-repo');
   });
 });

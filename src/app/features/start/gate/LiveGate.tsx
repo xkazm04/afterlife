@@ -15,7 +15,7 @@ export async function LiveGate() {
   if (liveGate().gate === null) return null;
   return (
     <div className={styles.cover}>
-      <StartScreen facts={loadTraceFacts(false)} {...await loadRepos(await headers())} switchable={false} />
+      <StartScreen facts={loadTraceFacts(false)} {...await loadRepos(await headers())} />
     </div>
   );
 }
