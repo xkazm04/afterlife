@@ -9,7 +9,8 @@ import { ToolbarButton } from '@/components/controls/toolbar/ToolbarButton';
 import { useMenu } from '@/components/overlays/menu/useMenu';
 import { OTHER_GROUP } from '../../data/capabilities';
 import { useSetup } from '../../hooks/SetupContext';
-import { doctorCounts } from '../../model/flow/state';
+import { Unread } from '@/components/shell/host';
+import { doctorCounts, isUnread } from '../../model/flow/state';
 import type { CapStatus, SetupState } from '../../model/types';
 import { Spinner } from '../shared/Spinner';
 import { Icon } from '@/components/icons/Icon';
@@ -33,6 +34,7 @@ export function SetupToolbar() {
   const { state, view, actions } = useSetup();
   const menu = useMenu();
   const counts = doctorCounts(state);
+  const unread = isUnread(state, 'doctor');
   // Live: the paired group only. The demo's second group is a fixture, never offered against a real one.
   const groups = state.live ? [state.homeGroup] : [state.homeGroup, OTHER_GROUP.name];
   return (
@@ -71,7 +73,7 @@ export function SetupToolbar() {
             {i > 0 ? <LozengeDivider /> : null}
             <LozengeButton
               lead={<span className={`${styles.glyph} ${styles[c.st] ?? ''}`}>{c.glyph}</span>}
-              count={counts[c.st]}
+              count={unread ? <Unread label={`${c.word}: not probed yet`} /> : counts[c.st]}
               word={c.word}
               pressed={view.capFilter === c.st}
               title={`Light ${c.word} capabilities and what they reach`}
@@ -81,7 +83,7 @@ export function SetupToolbar() {
         ))}
       </Lozenge>
       <Spacer />
-      <ToolbarButton className={styles.probe} disabled={state.doctorBusy} title="Re-probe the group with belay doctor" onClick={() => void actions.reprobe()}>
+      <ToolbarButton className={styles.probe} disabled={state.doctorBusy || unread} title="Re-probe the group with belay doctor" onClick={() => void actions.reprobe()}>
         {state.doctorBusy ? (
           <Spinner />
         ) : (

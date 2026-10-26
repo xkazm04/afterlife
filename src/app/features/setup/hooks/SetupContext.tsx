@@ -33,3 +33,8 @@ export function useSetup(): SetupApi {
   if (!api) throw new Error('useSetup needs a SetupContext above it');
   return api;
 }
+
+/** The flow, or null before the catalogue has landed (the screen host's Frame draws its pending window then). */
+export function useSetupMaybe(): SetupApi | null {
+  return useContext(SetupContext);
+}

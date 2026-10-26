@@ -1,9 +1,9 @@
 import { CAP_FLOW_API, CAP_VULN, OTHER_GROUP } from '../../data/capabilities';
-import type { DoctorRead, ReadStamp, StepsRead } from '@/server/data/setup/types';
+import type { DoctorRead, ReadStamp, StepsRead, TrackRead } from '@/server/data/setup/types';
 import { STEP_DETAIL } from '../../data/stepDetail';
-import { doctorRowsOf, stepFromRead } from '../live/live';
+import { armFromRead, doctorRowsOf, stepFromRead } from '../live/live';
 import type { ArmState, DoctorRow, SetupState, StepState } from '../types';
-import { toCapStatus, recomputeLocks } from './state';
+import { markRead, toCapStatus, recomputeLocks } from './state';
 import type { Verdict } from './verify';
 
 /** Every change to the setup. Probes are the only thing that moves a step to done; Belay writes only on a click. */
@@ -19,6 +19,8 @@ export type SetupAction =
   | { t: 'doctor-end'; now: number; at: string }
   /** Live: what the belay doctor's probe read (or, `doctor: null`, that the re-probe was refused or unanswered, and why). */
   | { t: 'doctor-read'; doctor: DoctorRead | null; reason?: string; at?: ReadStamp }
+  /** Live: what the read of the target's main saw for each track (the screen host's tracks slice, or a re-read). */
+  | { t: 'tracks-read'; tracks: Readonly<Record<string, TrackRead>> }
   /** Live: what the step reads saw; `asked`, the step whose verify asked for this read. */
   | { t: 'steps-read'; steps: StepsRead; asked?: number }
   /** Live: the operator says they did a human step no read can observe (at `at`), or takes it back. Writes nothing. */
@@ -92,7 +94,17 @@ function stepsRead(s: SetupState, r: StepsRead, asked?: number): SetupState {
     const cur = steps[Number(k)];
     if (cur && (cur.st !== 'probing' || Number(k) === asked)) steps[Number(k)] = { ...cur, ...stepFromRead(read, r.label) };
   }
-  return recomputeLocks({ ...s, steps });
+  return recomputeLocks(markRead({ ...s, steps, ...(r.targetPath ? { projectPath: r.targetPath } : {}) }, 'steps'));
+}
+
+/** Live: each track as the read of main saw it; a track with an MR in flight (open, verifying) keeps its state. */
+function tracksRead(s: SetupState, tracks: Readonly<Record<string, TrackRead>>): SetupState {
+  const arm = { ...s.arm };
+  for (const [id, read] of Object.entries(tracks)) {
+    const cur = arm[id];
+    if (cur && cur.st !== 'open' && cur.st !== 'probing') arm[id] = { ...cur, ...armFromRead(read) };
+  }
+  return recomputeLocks(markRead({ ...s, arm }, 'tracks'));
 }
 
 /** The operator may say they did step `n`: a live human step whose detail says no read can see it, while it reads unknown. */
@@ -119,7 +131,7 @@ function doctorRead(s: SetupState, d: DoctorRead | null, reason = 'the re-probe 
     return { ...s, doctorBusy: false, doctorError: reason, ...(at ? { doctorAt: Date.parse(at.at), doctorProbedAt: at.label } : {}) };
   }
   const rows = doctorRowsOf(d);
-  return { ...s, doctor: rows, homeDoctor: rows, doctorBusy: false, doctorAt: Date.parse(d.at), doctorProbedAt: d.label, doctorNever: false, doctorError: d.error };
+  return { ...markRead(s, 'doctor'), doctor: rows, homeDoctor: rows, doctorBusy: false, doctorAt: Date.parse(d.at), doctorProbedAt: d.label, doctorNever: false, doctorError: d.error };
 }
 
 export function setupReducer(s: SetupState, a: SetupAction): SetupState {
@@ -147,6 +159,8 @@ export function setupReducer(s: SetupState, a: SetupAction): SetupState {
     }
     case 'doctor-read':
       return doctorRead(s, a.doctor, a.reason, a.at);
+    case 'tracks-read':
+      return tracksRead(s, a.tracks);
     case 'steps-read':
       return stepsRead(s, a.steps, a.asked);
     case 'say-done':

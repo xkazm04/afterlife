@@ -6,9 +6,11 @@ tracks, and Belay writes only on a click, after showing the exact command. Arm a
 plan and preview door (`src/server/actions`). Demo mode simulates the steps and the doctor; live mode reads them.
 
 - `SetupScreen.tsx` composes `Window` (toolbar, summary strip, map, status bar, legend); a node click opens
-  `/setup/[node]` (`SetupNodeScreen`, a `DetailPage`; keys `step-<n>`, `track-<id>`, `cap-<slug>`, `loadSetupNode` 404s
-  the rest). `app/(app)/setup/layout.tsx` awaits
-  `loadSetupData` and holds the flow in `SetupProvider`, so it survives map to node and back: the data source's setup, tracks and classes, and in live mode `live`, what the server read now
+  `/setup/[node]` (`SetupNodeScreen`, a `DetailPage`; keys `step-<n>`, `track-<id>`, `cap-<slug>`; any other is the
+  not-found card). The screen host draws both (`screen/host.tsx`); the flow lives in `SetupSession`
+  (`hooks/SetupProvider.tsx`), the host's Session for both keys, so it survives map to node and back. Each screen feeds
+  it its slices (`screen/slices.ts`, `hooks/session/feed.tsx`, `model/arrive`): the catalogue (setup, tracks, classes)
+  makes the state at once, and in live mode each read lands on its own as it resolves, every value a dash until then
   (`src/server/data/setup`): each track's arm block on the target's main (`checkArm`), the belay doctor
   (`probeCapabilities` on the paired group, with each row's reason and the real probe time), and the steps a read can
   observe (`OBSERVED_STEPS`): 0 (glab's login), 1 (the pairing row), 4 (the target and the five belay projects, one

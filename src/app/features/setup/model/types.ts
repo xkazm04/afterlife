@@ -85,7 +85,15 @@ export interface SetupState {
   doctorProbedAt: string;
   doctorNever: boolean;
   doctorBusy: boolean;
+  /**
+   * Live, on the screen host: the reads not landed yet (the catalogue came first). Each value of an unread part is a
+   * dash, never a state: a step is not "unknown" and a gate is not counted before the steps are read. Absent: all read.
+   */
+  unread?: Partial<Record<UnreadPart, true>>;
 }
+
+/** The live reads that stream in after the catalogue: the tracks' arm blocks, the belay doctor, the steps. */
+export type UnreadPart = 'tracks' | 'doctor' | 'steps';
 
 /** What the map is lit around: a hover, a pick, or null. */
 export type Focus = { k: 'step'; id: number } | { k: 'track'; id: string } | { k: 'cap'; id: string };

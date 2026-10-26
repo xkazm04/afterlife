@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, type Dispatch } from 'react';
 import { useToast } from '@/components/overlays/toast/useToast';
 import { commandLines } from '@/server/actions/words';
 import { BASE_MIN, DOCTOR_MS, PROBE_MS, REDUCED_MAX_MS } from '../data/timing';
 import { copyText } from '../model/clipboard/copy';
 import { clockLabel } from '../model/flow/probeAge';
-import { probeWillPass, setupReducer } from '../model/flow/reducer';
+import { flowReducer, type ArriveAction } from '../model/arrive/arrive';
+import { probeWillPass, type SetupAction } from '../model/flow/reducer';
 import { stepDetail } from '../model/flow/state';
 import { verdictOf } from '../model/flow/verify';
 import { mrName, noMrAddress } from '../model/flow/wording';
@@ -49,14 +50,18 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, reduced() ? 
  * verify and Re-probe ask the server to read again (liveFlow.ts), and a step's write is never sent from here. Messages
  * go to a toast and the status bar.
  */
-export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: SetupState; actions: FlowActions } {
-  const [state, dispatch] = useReducer(setupReducer, initial);
-  const ref = useRef(state);
+export function useSetupFlow(
+  initial: SetupState | null,
+  writes: ArmWrites,
+): { state: SetupState | null; actions: FlowActions; dispatch: Dispatch<SetupAction | ArriveAction> } {
+  const [state, dispatch] = useReducer(flowReducer, initial);
+  // Null until the catalogue lands (the screen host): no action runs before then, since no node is drawn to click.
+  const ref = useRef(state as SetupState);
   const start = useRef(0);
   const sending = useRef(new Set<string>());
   const { toast, status } = useToast();
   useEffect(() => {
-    ref.current = state;
+    if (state) ref.current = state;
     if (!start.current) start.current = Date.now();
   });
   const clock = useCallback(() => clockLabel(BASE_MIN, start.current || Date.now(), Date.now()), []);
@@ -162,5 +167,5 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
     };
   }, [clock, say, toast, writes]);
 
-  return { state, actions };
+  return { state, actions, dispatch };
 }

@@ -1,3 +1,5 @@
+import { CAP_SHORT } from '../data/capabilities';
+import { LIVE_CAP_LABELS } from '../data/live/liveCapabilities';
 import type { Focus } from './types';
 
 /** URL-safe slug of a capability name: "Pipelines, MRs, releases" -> "pipelines-mrs-releases". */
@@ -31,3 +33,14 @@ export function parseNodeKey(key: string, u: NodeUniverse): Focus | null {
   const cap = u.caps.find((c) => capSlug(c) === rest);
   return cap ? { k: 'cap', id: cap } : null;
 }
+
+/**
+ * The universe a /setup/<node> may name: the catalogue's steps and tracks, and the capability names the map renders
+ * (the belay doctor's own labels in live mode, the demo's names otherwise). Pure: the server's notFound and the
+ * screen's own check resolve against the same.
+ */
+export const universeOf = (steps: readonly number[], tracks: readonly string[], live: boolean): NodeUniverse => ({
+  steps,
+  tracks,
+  caps: live ? LIVE_CAP_LABELS : Object.keys(CAP_SHORT),
+});

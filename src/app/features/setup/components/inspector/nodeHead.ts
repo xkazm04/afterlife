@@ -1,6 +1,6 @@
 import { CAP_NOTE, CAP_SHORT } from '../../data/capabilities';
 import { GATE_FREES } from '../../data/armMeta';
-import { isSaid, stepDetail, unmet, needLabel, capSt } from '../../model/flow/state';
+import { isSaid, isUnread, stepDetail, unmet, needLabel, capSt } from '../../model/flow/state';
 import { mergeLabel, saidText } from '../../model/flow/wording';
 import type { ArmState, ArmStatus, Focus, SetupState } from '../../model/types';
 import type { Track } from '@/lib/demo/types';
@@ -32,6 +32,7 @@ export function nodeHead(state: SetupState, tracks: Readonly<Record<string, Trac
     if (!s || !d) return null;
     const frees = GATE_FREES[f.id];
     const tip = d.does;
+    if (isUnread(state, 'steps')) return { title: s.title, lede: 'Not read yet: the steps are being read.', tip };
     if (s.st === 'done') return { title: s.title, lede: 'Probed: a read saw it done.', tip };
     if (isSaid(s)) return { title: s.title, lede: `${saidText(s.said ?? '')}. Belay cannot see it done.`, tip };
     const who = d.who === 'human' ? 'Only you can do this' : 'An agent or you can do this';
@@ -41,9 +42,11 @@ export function nodeHead(state: SetupState, tracks: Readonly<Record<string, Trac
     const a = state.arm[f.id];
     const t = tracks[f.id];
     if (!a || !t) return null;
+    if (isUnread(state, 'tracks')) return { title: t.name, lede: 'Not read yet: the read of main is on its way.', tip: t.verb };
     return { title: t.name, lede: TRACK_LEDE[a.st](a, state), tip: t.verb };
   }
   const row = state.doctor.find((r) => r.name === f.id);
   const note = state.live ? row?.reason : CAP_NOTE[f.id];
+  if (isUnread(state, 'doctor')) return row ? { title: CAP_SHORT[f.id] ?? f.id, lede: `Not probed yet in ${state.group}: belay doctor is reading.`, tip: f.id } : null;
   return { title: CAP_SHORT[f.id] ?? f.id, lede: `${state.doctorError && !state.doctorNever && row ? 'last seen ' : ''}${capSt(state, f.id)} in ${state.group}`, tip: note ? `${f.id}. ${note}` : f.id };
 }

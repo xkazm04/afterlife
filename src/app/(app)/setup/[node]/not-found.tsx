@@ -1,13 +1,6 @@
-import { EntityNotFound } from '@/components/shell/fallback/EntityNotFound';
+import { SetupNodeNotFound } from '@/app/features/setup/components/SetupNodeNotFound';
 
-/** An unknown /setup/<node>: says it is the step, track or capability that is missing and links back to the map. */
-export default function SetupNodeNotFound() {
-  return (
-    <EntityNotFound
-      title="Setup node not found"
-      note="The unlock map holds no step, track or capability by that name. The link may be mistyped."
-      href="/setup"
-      back="Open the unlock map"
-    />
-  );
+/** An unknown /setup/<node>: the same card the screen host draws (SetupNodeNotFound). */
+export default function SetupNodeNotFoundPage() {
+  return <SetupNodeNotFound />;
 }

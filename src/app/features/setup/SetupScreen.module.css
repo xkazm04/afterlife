@@ -1,0 +1,18 @@
+/* The map's region fills the pane below the strip (the canvas's own min-height: 100% needs a definite parent, which a
+   Reveal wrapper is not): a flex column at least the pane's height, the canvas growing into it. */
+.mapRegion {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.mapRegion > section {
+  flex: 1 0 auto;
+}
+/* A node page's cards settle in as one region, still laid out on the detail page's own columns (a subgrid). */
+.bodyRegion {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  gap: 12px;
+  align-items: start;
+}

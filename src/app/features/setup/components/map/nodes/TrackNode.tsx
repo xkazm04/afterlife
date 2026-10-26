@@ -1,3 +1,4 @@
+import { Unread } from '@/components/shell/host';
 import { Spinner } from '../../shared/Spinner';
 import type { Lit } from '../../../model/map/hot';
 import type { ArmState, SetupState } from '../../../model/types';
@@ -32,14 +33,15 @@ function Status({ a }: { a: ArmState }) {
   );
 }
 
-export function TrackNode({ arm, name, state, lit, events }: { arm: ArmState; name: string; state: SetupState; lit: Lit; events: NodeEvents }) {
-  const tip = `#${arm.order + 1} · ${trackWhy(state, arm)}`;
+/** `unread` (live, before the read of main): a dash for its state. */
+export function TrackNode({ arm, name, state, lit, events, unread = false }: { arm: ArmState; name: string; state: SetupState; lit: Lit; events: NodeEvents; unread?: boolean }) {
+  const tip = `#${arm.order + 1} · ${unread ? 'not read yet' : trackWhy(state, arm)}`;
   return (
-    <MapNode focus={{ k: 'track', id: arm.id }} lit={lit} tip={tip} events={events} className={`${styles.tn} ${styles[arm.st] ?? ''}`}>
+    <MapNode focus={{ k: 'track', id: arm.id }} lit={lit} tip={tip} events={events} className={`${styles.tn} ${unread ? '' : (styles[arm.st] ?? '')}`}>
       <span className={styles.id}>{arm.id}</span>
       <span className={styles.lb}>{name}</span>
       <span className={styles.st}>
-        <Status a={arm} />
+        {unread ? <Unread label={`${arm.id} not read yet`} /> : <Status a={arm} />}
       </span>
     </MapNode>
   );

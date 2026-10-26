@@ -5,7 +5,7 @@ import { DEMO_NAMES, STEP_DETAIL, stepDetailsFor, type StepNames } from '../../d
 import type { StepDetail } from '../../data/types';
 import { armFromRead, doctorRowsOf, stepFromRead } from '../live/live';
 import { isStepKey, stepOf } from '../map/graph';
-import type { ArmState, ArmStatus, CapStatus, DoctorRow, SetupState, StepState, StepStatus } from '../types';
+import type { ArmState, ArmStatus, CapStatus, DoctorRow, SetupState, StepState, StepStatus, UnreadPart } from '../types';
 
 export type SetupDemo = DemoData['setup'];
 
@@ -71,6 +71,19 @@ function liveSetupState(setup: SetupDemo, live: LiveSetupRead): SetupState {
 export const namesOf = (s: SetupState): StepNames => ({ host: s.host, group: s.homeGroup, project: s.project, path: s.projectPath, projects: s.projects });
 /** A step's detail, its commands naming this setup's group and project. */
 export const stepDetail = (s: SetupState, n: number): StepDetail | undefined => stepDetailsFor(namesOf(s))[n];
+
+/** Live: the part's read has not landed yet (its values are dashes). */
+export const isUnread = (s: SetupState, part: UnreadPart): boolean => s.unread?.[part] === true;
+
+/** The state with `part` read: the marker drops, and with nothing left unread it goes. */
+export function markRead(s: SetupState, part: UnreadPart): SetupState {
+  if (!s.unread?.[part]) return s;
+  const rest = { ...s.unread };
+  delete rest[part];
+  const next: SetupState = { ...s, unread: rest };
+  if (!Object.keys(rest).length) delete next.unread;
+  return next;
+}
 
 export const stepList = (s: SetupState): StepState[] => Object.values(s.steps).sort((a, b) => a.n - b.n);
 export const armList = (s: SetupState): ArmState[] => Object.values(s.arm).sort((a, b) => a.order - b.order);

@@ -1,11 +1,12 @@
 'use client';
 
-import { Stats } from '@/components/inspector/blocks/Stats';
+import { Unread } from '@/components/shell/host';
 import { pluralWord } from '@/lib/format/plural';
 import { GATE_FREES } from '../../data/armMeta';
 import { useSetup } from '../../hooks/SetupContext';
-import { armList, doneCount, humanGates, needYouCount, openArms, stepDetail, stepList } from '../../model/flow/state';
+import { armList, doneCount, humanGates, isUnread, needYouCount, openArms, stepDetail, stepList } from '../../model/flow/state';
 import { mergeLabel } from '../../model/flow/wording';
+import { UnreadStats } from '../pending/UnreadStats';
 import { GateRow } from '../shared/GateRow';
 import styles from './SetupSummary.module.css';
 
@@ -20,21 +21,34 @@ export function SetupSummary() {
   const gates = humanGates(state);
   const open = openArms(state);
   const need = needYouCount(state);
-  const unknown = state.doctor.filter((r) => r.st === 'unknown');
+  // Live, before a read lands: its counts are dashes, and no gate is counted or listed from steps nobody has read.
+  const noSteps = isUnread(state, 'steps');
+  const noArms = noSteps || isUnread(state, 'tracks');
+  const noDoctor = isUnread(state, 'doctor');
+  const unknown = noDoctor ? [] : state.doctor.filter((r) => r.st === 'unknown');
+  const arm = (st: string) => (noArms ? null : arms.filter((a) => a.st === st).length);
   return (
     <section className={styles.strip} aria-label="Where you stand">
       <div className={styles.panel}>
         <div className={styles.top}>
-          <Stats
+          <UnreadStats
             cells={[
-              { n: arms.filter((a) => a.st === 'armed').length, label: 'armed', tone: 'ok' },
-              { n: arms.filter((a) => a.st === 'ready').length, label: 'ready', tone: 'accent' },
-              { n: arms.filter((a) => a.st === 'locked').length, label: 'locked', tone: 'plain' },
-              { n: need, label: 'need you', tone: 'you' },
+              { n: arm('armed'), label: 'armed', tone: 'ok' },
+              { n: arm('ready'), label: 'ready', tone: 'accent' },
+              { n: arm('locked'), label: 'locked', tone: 'plain' },
+              { n: noSteps ? null : need, label: 'need you', tone: 'you' },
             ]}
           />
           <span className={styles.note} title={unknown.length ? unknown.map((r) => r.name).join(' · ') : undefined}>
-            {`${state.group} / ${state.project} · ${doneCount(state)} of ${stepList(state).length} steps read done`}
+            {noSteps ? (
+              <>
+                {`${state.group} / ${state.project} · `}
+                <Unread label="steps not read yet" />
+                {` of ${stepList(state).length} steps read done`}
+              </>
+            ) : (
+              `${state.group} / ${state.project} · ${doneCount(state)} of ${stepList(state).length} steps read done`
+            )}
             {unknown.length ? ` · ${unknown.length} ${pluralWord(unknown.length, 'capability', 'capabilities')} unknown, never rounded up` : ''}
           </span>
           {state.doctorError ? <span className={styles.err}>{`belay doctor: ${state.doctorError}`}</span> : null}
@@ -43,7 +57,7 @@ export function SetupSummary() {
           {open.map((a) => (
             <GateRow key={a.id} glyph="!" title={`Merge ${mergeLabel(a)}`} tag={a.id} sub="then verify" onGo={() => view.go({ k: 'track', id: a.id })} />
           ))}
-          {gates.map((s) => (
+          {(noSteps ? [] : gates).map((s) => (
             <GateRow
               key={s.n}
               glyph={s.n}
@@ -53,7 +67,7 @@ export function SetupSummary() {
               onGo={() => view.go({ k: 'step', id: s.n })}
             />
           ))}
-          {need ? null : <span className={styles.note}>Nothing waits for you</span>}
+          {noSteps ? <span className={styles.note}>Reading the steps</span> : need ? null : <span className={styles.note}>Nothing waits for you</span>}
         </div>
       </div>
     </section>
