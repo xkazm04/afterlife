@@ -66,7 +66,7 @@ export const LADDER: readonly Callout[] = [
     kind: 'activity',
     sel: `${ROWS} button[aria-disabled]`,
     title: 'Grant the next tier',
-    body: () => 'Promote stays greyed until the record meets every rule. When it does, p sends the policy MR the server planned, on your confirmed click; a person merges it in GitLab, Belay never does.',
+    body: () => 'Promote stays greyed until the record meets every rule. When it does, p sends the policy MR the server planned, on your confirmed click; a person merges it in GitLab, Afterlife never does.',
   },
   {
     id: 'dock',

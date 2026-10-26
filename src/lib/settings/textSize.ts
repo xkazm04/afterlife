@@ -4,7 +4,7 @@ export const TEXT_SIZES = ['smaller', 'standard', 'larger'] as const;
 export type TextSize = (typeof TEXT_SIZES)[number];
 
 export const DEFAULT_TEXT_SIZE: TextSize = 'standard';
-export const TEXT_SIZE_STORAGE_KEY = 'belay.textSize';
+export const TEXT_SIZE_STORAGE_KEY = 'afterlife.textSize';
 export const TEXT_SIZE_ATTRIBUTE = 'data-text-size';
 
 export const TEXT_SIZE_LABEL: Record<TextSize, string> = { smaller: 'Smaller', standard: 'Standard', larger: 'Larger' };

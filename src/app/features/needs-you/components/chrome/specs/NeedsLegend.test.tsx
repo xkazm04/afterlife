@@ -10,7 +10,7 @@ import { GLYPH_MEANS, NeedsLegend } from '../NeedsLegend';
 const text = () => renderToStaticMarkup(<NeedsLegend tierMeans={pickNeedsYouDemo().tierMeans} />).replace(/<[^>]+>/g, '').replace(/&quot;/g, '"');
 
 describe('NeedsLegend grade line', () => {
-  it('names every grade with its reason, and the one Belay never says', () => {
+  it('names every grade with its reason, and the one Afterlife never says', () => {
     const out = text();
     for (const g of [...GRADES, GRADE_NEVER]) expect(out).toContain(g.name);
     for (const g of GRADES) expect(out).toContain(`${g.name} (${g.why})`);

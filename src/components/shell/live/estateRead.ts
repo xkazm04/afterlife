@@ -3,13 +3,14 @@
 // screens show), the banner and the Settings switch all hear the same answer. Call it after connection().
 import { cookies } from 'next/headers';
 import { loadProjects } from '@/server/discover';
-import { DEMO_ESTATE_COOKIE, estateOf, parseDemoEstate, type Estate } from '@/lib/settings/demoEstate';
+import { demoEstateFrom, estateOf, parseDemoEstate, type Estate } from '@/lib/settings/demoEstate';
 
 /** The estate, or undefined when the projects could not be read (the nav then shows every screen, as before). */
 export async function readEstate(): Promise<Estate | undefined> {
   let raw: string | undefined;
   try {
-    raw = (await cookies()).get(DEMO_ESTATE_COOKIE)?.value;
+    const jar = await cookies();
+    raw = demoEstateFrom((name) => jar.get(name)?.value);
   } catch {
     raw = undefined; // no request scope (a test, a prerender): the default setting
   }

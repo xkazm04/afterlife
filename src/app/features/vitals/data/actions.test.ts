@@ -28,14 +28,14 @@ afterEach(() => {
 });
 
 describe('refreshVitals', () => {
-  it.each([['replay'], ['demo'], [undefined]])('BELAY_MODE=%s, an unknown slug: refused, nothing collected or re-rendered', async (mode) => {
-    vi.stubEnv('BELAY_MODE', mode);
+  it.each([['replay'], ['demo'], [undefined]])('AFTERLIFE_MODE=%s, an unknown slug: refused, nothing collected or re-rendered', async (mode) => {
+    vi.stubEnv('AFTERLIFE_MODE', mode);
     expect(await refreshVitals('p-anything')).toMatchObject({ ok: false });
     expect(await refreshVitals(42)).toMatchObject({ ok: false });
     expect(hit).toMatchObject({ refresh: 0, collect: 0 });
   });
   it('the hosted replay refuses even a saved slug', async () => {
-    vi.stubEnv('BELAY_MODE', 'replay');
+    vi.stubEnv('AFTERLIFE_MODE', 'replay');
     expect(await refreshVitals('grinex-portal')).toEqual({ ok: false, error: 'the hosted replay has no real project to collect' });
     expect(hit.collect).toBe(0);
   });

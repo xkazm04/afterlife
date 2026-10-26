@@ -11,8 +11,8 @@ import { readDesk } from '@/server/runs/readDesk';
 
 // The fleet list's request-time half, streamed into page.tsx's <Suspense>. The fleet is read from the data source and drawn
 // by one client screen. The view state (filters, sort, view, search) comes from the URL, so the server render and the first
-// client render agree and Back restores the screen. The cycle runner's strip is read beside it (readDesk: .belay/fleet.yml,
-// .belay/runs and git), real local data in both modes, and joined onto the projects as their agent cost (loadFleetEstate),
+// client render agree and Back restores the screen. The cycle runner's strip is read beside it (readDesk: .afterlife/fleet.yml,
+// .afterlife/runs and git), real local data in both modes, and joined onto the projects as their agent cost (loadFleetEstate),
 // passed as its own prop. `?project=<id>` (the command palette's project links) opens that project's page, /fleet/<id>.
 export async function FleetList({ searchParams }: { searchParams: Promise<RawParams> }) {
   await connection(); // request time: the data source and its data are the running server's, never the build's

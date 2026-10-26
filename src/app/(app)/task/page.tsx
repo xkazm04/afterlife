@@ -4,7 +4,7 @@ import { TaskEmpty } from '@/app/features/task/TaskEmpty';
 import { firstTaskId } from '@/app/features/task/model/build/loadTasks';
 import { connection } from 'next/server';
 
-export const metadata: Metadata = { title: 'Belay Task' };
+export const metadata: Metadata = { title: 'Afterlife · Task' };
 
 type Search = Record<string, string | string[] | undefined>;
 

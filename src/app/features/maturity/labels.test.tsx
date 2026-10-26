@@ -33,7 +33,7 @@ const SCANNED: DemoData['maturity'] = narrow({
   engine: '1.0.0', scannedAt: '14:19', rungNames: [...RUNGS], proposals: [],
   rungs: STAGES.map((stage, i) => ({ stage, day0: i % 3 === 0 ? null : 1, now: i % 4 === 0 ? null : 2, next: i % 4 === 0 ? null : 3, evidence: `scan says ${stage}` })),
 });
-/** BELAY_GITLAB=fake: the seeded scan and the seeded gap ids, served as the index's. */
+/** AFTERLIFE_GITLAB=fake: the seeded scan and the seeded gap ids, served as the index's. */
 const SEEDED: DemoData['maturity'] = DEMO.maturity;
 
 /** The fixtures' own text; a word as short as "active" is left out, since the product's own words use it too. */

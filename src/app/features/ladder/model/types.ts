@@ -24,8 +24,8 @@ export interface ClassRow extends Omit<ActionClass, 'record'> {
   pending: string | null;
 }
 
-/** Who made a move: a GitLab job, you (on your key), a person (policy MR), or Belay noticing on a poll. */
-export type ActorKind = 'gitlab' | 'you' | 'person' | 'belay';
+/** Who made a move: a GitLab job, you (on your key), a person (policy MR), or Afterlife noticing on a poll. */
+export type ActorKind = 'gitlab' | 'you' | 'person' | 'afterlife';
 
 export interface LedgerEntry {
   /** When it happened (epoch ms): the ground truth. The rail orders and scales by it. */
@@ -44,7 +44,7 @@ export interface LedgerEntry {
   text: string;
   /** Untrusted text quoted by the guardrail. */
   quote?: string;
-  /** "+12 s late": Belay noticing after the fact. */
+  /** "+12 s late": Afterlife noticing after the fact. */
   lag?: string;
   /** Appended just now: plays the highlight once. */
   isNew?: boolean;

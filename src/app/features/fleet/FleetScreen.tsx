@@ -149,7 +149,7 @@ export function FleetScreen({ data, source, start, baseline, runner, estate }: {
 
   return (
     <Window
-      title="Belay"
+      title="Afterlife"
       subtitle={`${data.portfolio} · ${sourceLabel(list.filters.source)}`}
       toolbar={
         <FleetToolbar

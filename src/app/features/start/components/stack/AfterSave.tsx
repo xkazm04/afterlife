@@ -9,7 +9,7 @@ import { saveWrites, type SaveWrites } from '../../actions/writes';
 import styles from './stack.module.css';
 
 const COPY = {
-  'install-skill': { label: 'Install the report skill', title: 'Install the afterlife-report skill', sub: 'a file in the repo · never committed · a dev agent reports with belay report', confirm: 'Write the file' },
+  'install-skill': { label: 'Install the report skill', title: 'Install the afterlife-report skill', sub: 'a file in the repo · never committed · a dev agent reports with afterlife report', confirm: 'Write the file' },
   'enable-app-insights': { label: 'Turn on App Insights', title: 'Turn on App Insights', sub: 'your az login · restarts the app · the connection string is never shown', confirm: 'Run as you' },
 } as const;
 

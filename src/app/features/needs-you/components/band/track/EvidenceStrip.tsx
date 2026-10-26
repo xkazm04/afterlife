@@ -21,7 +21,7 @@ export function EvidenceStrip({ resolved }: { resolved: string }) {
             );
           })}
         </span>
-        <span className={styles.sub} title="report.submit is Human only: Belay never submits">
+        <span className={styles.sub} title="report.submit is Human only: Afterlife never submits">
           <TierChip tier="human_only">submit</TierChip>
         </span>
       </span>

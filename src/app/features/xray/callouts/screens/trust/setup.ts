@@ -12,7 +12,7 @@ const LANES: readonly LegendEntry[] = [
   { name: 'Path (steps 0–14)', means: 'Fifteen steps in four phases: Prepare, Connect, Install, Prove. ✓ is read done; a number is still to do.' },
   { name: 'you', means: 'A step only you can do (a licence, a token, a merge), in amber: it waits for a person.' },
   { name: 'Tracks (arm order)', means: 'The eight agents, in the order they arm: locked (a need is missing), ready, merge !N (an arm MR open), ✓ armed.' },
-  { name: 'GitLab (belay doctor)', means: 'What your GitLab offers, one capability per row: ✓ available, ✕ unavailable, ? unknown (never counted as available).' },
+  { name: 'GitLab (afterlife doctor)', means: 'What your GitLab offers, one capability per row: ✓ available, ✕ unavailable, ? unknown (never counted as available).' },
   { name: 'Lines', means: 'Which steps and capabilities a track hangs on. Hover a node to light what it frees and what it needs.' },
 ];
 
@@ -69,8 +69,8 @@ export const SETUP: readonly Callout[] = [
     title: 'Read GitLab again',
     body: (r) =>
       r.text('[data-xray="data-label"]') === 'illustrative demo data'
-        ? 'Re-probe runs belay doctor against the group again. Here it is simulated on the demo’s acme-lab; it only ever reads.'
-        : 'Re-probe runs belay doctor against your group again and re-reads the steps. It only reads; it writes nothing.',
+        ? 'Re-probe runs afterlife doctor against the group again. Here it is simulated on the demo’s acme-lab; it only ever reads.'
+        : 'Re-probe runs afterlife doctor against your group again and re-reads the steps. It only reads; it writes nothing.',
   },
   statusCallout('The project in one line', 'Steps read done, tracks armed, what needs you, and how old the doctor’s probe is.'),
   dataLabelCallout,

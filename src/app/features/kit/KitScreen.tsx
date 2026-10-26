@@ -110,7 +110,7 @@ export function KitScreen() {
       {sheet ? (
         <Sheet
           title="Send 2 gaps"
-          subtitle="Belay writes only when you press Run"
+          subtitle="Afterlife writes only when you press Run"
           onClose={() => setSheet(false)}
           footer={
             <>

@@ -1,4 +1,4 @@
-// GET /api/runs: the runner's files under BELAY_DATA_DIR as JSON, read on each request and never stored by a cache,
+// GET /api/runs: the runner's files under AFTERLIFE_DATA_DIR as JSON, read on each request and never stored by a cache,
 // since Theater's live film polls it every 2 s.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -17,9 +17,9 @@ afterEach(() => {
 });
 
 describe('GET /api/runs', () => {
-  it('answers the runs under BELAY_DATA_DIR with the live meta, not stored by any cache, and sees a new wave on the next call', async () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-api-runs-'));
-    vi.stubEnv('BELAY_DATA_DIR', root);
+  it('answers the runs under AFTERLIFE_DATA_DIR with the live meta, not stored by any cache, and sees a new wave on the next call', async () => {
+    root = mkdtempSync(join(tmpdir(), 'afterlife-api-runs-'));
+    vi.stubEnv('AFTERLIFE_DATA_DIR', root);
     const empty = await GET();
     expect(empty.status).toBe(200);
     expect(empty.headers.get('cache-control')).toContain('no-store');

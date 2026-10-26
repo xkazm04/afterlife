@@ -8,7 +8,7 @@ type Params = { params: Promise<{ class: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { class: id } = await params;
-  return { title: `Belay Ladder ${id}` };
+  return { title: `Afterlife · Ladder · ${id}` };
 }
 
 export default async function LadderClassPage({ params }: Params) {

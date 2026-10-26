@@ -57,7 +57,7 @@ export function LiveAct({ item, intent, view, answer, evidence, sending, onRun, 
                 title={closed ? 'Closed: the class moved since this was proposed' : 'Confirms this exact write by its preview id'}>
                 {sending ? 'Sending…' : runLabel(item.kind)}
               </Button>
-              <span className={styles.note}>A person merges the MR in GitLab; Belay never does.</span>
+              <span className={styles.note}>A person merges the MR in GitLab; Afterlife never does.</span>
             </div>
           )}
         </>

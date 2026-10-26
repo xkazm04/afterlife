@@ -30,7 +30,7 @@ export function EnrollSection({ id }: { id: string }) {
   const sent = enroll.sentOf(id);
   if (sent) {
     const mr = mrName(sent);
-    const rows: [string, string][] = [['Do', `Merge ${mr} in belay-policy`], ['Why you', 'Raising a tier is a policy MR a person merges; Belay never does']];
+    const rows: [string, string][] = [['Do', `Merge ${mr} in belay-policy`], ['Why you', 'Raising a tier is a policy MR a person merges; Afterlife never does']];
     if (sent.simulated) rows.push(['Simulated', 'demo mode: nothing was sent to GitLab']);
     return (
       <DetailSection title={`Merge ${mr}`} aux={<NeedYouAux />}>

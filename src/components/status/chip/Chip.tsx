@@ -9,7 +9,7 @@ export type ChipTone =
   | 'bad' // fails
   | 'accent' // cyan
   | 'pending' // a commit waits for the tier-gate read (cyan)
-  | 'lag' // Belay noticed late (amber, stale)
+  | 'lag' // Afterlife noticed late (amber, stale)
   | 'you' // solid amber: only a person can
   | 'unknown'; // dashed: never zero, never absent
 

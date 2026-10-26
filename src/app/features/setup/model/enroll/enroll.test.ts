@@ -26,7 +26,7 @@ describe('the Enroll write on a track page', () => {
     const [guard] = unrecorded('T4');
     expect(wouldWrite(guard!, 'assisted')).toBe('The enrollment MR would write Assisted (start_tier Assisted, ceiling Hands-off): not granted until a person merges it');
     expect(wouldWrite({ ...guard!, ceiling: 'quarantined' }, 'assisted')).toMatch(/^The enrollment MR would write Quarantined/);
-    expect(wouldWrite(guard!, null)).toBe('start_tier was not read: Belay cannot say what an enrollment would write');
+    expect(wouldWrite(guard!, null)).toBe('start_tier was not read: Afterlife cannot say what an enrollment would write');
     expect(wouldWrite(of('T4')[0]!, 'assisted')).toBeNull(); // it holds a record
   });
 });

@@ -27,6 +27,6 @@ describe('dynamic-route not-found pages', () => {
     expect(html).toContain(`href="${href}"`);
     expect(html).toContain(`>${label}</a>`);
     expect(html).toContain('<div class="fallback-scroll"><main');
-    expect(html).toContain(`<title>Belay ${title}</title>`);
+    expect(html).toContain(`<title>Afterlife · ${title}</title>`);
   });
 });

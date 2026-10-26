@@ -7,7 +7,7 @@ import { armList, armedCount, doneCount, needYouCount, stepList } from '../model
 import { probeAgeText } from '../model/flow/probeAge';
 import styles from './SetupStatus.module.css';
 
-/** Status bar: progress, then how old the belay doctor probe is. Stale or failed is amber and says so, with its age. */
+/** Status bar: progress, then how old the doctor probe is. Stale or failed is amber and says so, with its age. */
 export function SetupStatus() {
   const { state } = useSetup();
   const now = useNow();

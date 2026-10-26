@@ -29,7 +29,7 @@ export function PromotionRule({ promotion, uncounted, proofDemo, humanKey, sourc
           {promotion.rules.map((r) => (
             <RuleRow key={r.name} rule={r} sources={sources} extra={r.name === 'mechanical proof class' ? <DemoChip on={proofDemo} what="The proof class (the demo's tracks)" /> : null} />
           ))}
-          <div className={styles.note} title="Belay opens the policy MR and stops; GitLab's settings on belay-policy keep the merge a person's">
+          <div className={styles.note} title="Afterlife opens the policy MR and stops; GitLab's settings on belay-policy keep the merge a person's">
             Precondition: {promotion.precondition}.
           </div>
           {humanKey ? (

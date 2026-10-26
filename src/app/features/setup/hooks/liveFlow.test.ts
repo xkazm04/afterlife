@@ -52,10 +52,10 @@ describe('live probes', () => {
     const r = rig();
     answer.next = { status: 'steps', steps: { ...AT, steps: { 9: { state: 'unknown', reason: 'not probed' } } } };
     await r.probes.probe(9);
-    expect([r.ref.current.steps[9]?.st, r.told[0]]).toEqual(['unknown', 'step 9 · Belay has no probe for this step yet: it stays unknown']);
-    answer.next = { status: 'refused', reason: 'demo mode: Belay reads nothing from GitLab' };
+    expect([r.ref.current.steps[9]?.st, r.told[0]]).toEqual(['unknown', 'step 9 · Afterlife has no probe for this step yet: it stays unknown']);
+    answer.next = { status: 'refused', reason: 'demo mode: Afterlife reads nothing from GitLab' };
     await r.probes.probe(9);
-    expect(r.ref.current.steps[9]).toMatchObject({ st: 'unknown', probe: { ok: false, text: 'unknown · demo mode: Belay reads nothing from GitLab' } });
+    expect(r.ref.current.steps[9]).toMatchObject({ st: 'unknown', probe: { ok: false, text: 'unknown · demo mode: Afterlife reads nothing from GitLab' } });
   });
 
   it('a read that answers without the asked step settles it unknown, never leaves it probing', async () => {
@@ -63,7 +63,7 @@ describe('live probes', () => {
     answer.next = { status: 'steps', steps: { ...AT, steps: { 1: { state: 'done', text: 'paired' } } } };
     await r.probes.probe(2);
     expect(r.ref.current.steps[2]).toMatchObject({ st: 'unknown', probe: null });
-    expect(r.told).toEqual(['step 2 · Belay has no probe for this step yet: it stays unknown']);
+    expect(r.told).toEqual(['step 2 · Afterlife has no probe for this step yet: it stays unknown']);
   });
 
   it("'I did it · verify' on a step no read can see says why; 'say so' marks it said, sends nothing, and can be taken back", async () => {
@@ -87,7 +87,7 @@ describe('live probes', () => {
     expect([asked, vi.getTimerCount(), r.ref.current.doctorProbedAt, r.ref.current.doctorBusy]).toEqual([['doctor'], 0, '11:41', false]);
     answer.next = { status: 'refused', reason: 'this request names "evil.test", not localhost' };
     await r.probes.reprobe();
-    expect([r.ref.current.doctor.length, r.ref.current.doctorBusy, r.told.at(-1)]).toEqual([1, false, 'belay doctor · not probed: this request names "evil.test", not localhost']);
+    expect([r.ref.current.doctor.length, r.ref.current.doctorBusy, r.told.at(-1)]).toEqual([1, false, 'afterlife doctor · not probed: this request names "evil.test", not localhost']);
   });
 
   it('a refused Re-probe reads "probe failed" at the attempt, amber, with the reason kept for the toast', async () => {
@@ -97,7 +97,7 @@ describe('live probes', () => {
     answer.next = { status: 'refused', reason: 'this request names "evil.test", not localhost' };
     await r.probes.reprobe();
     const bar = probeAgeText(r.ref.current, t0.getTime() + 5000);
-    expect(bar).toEqual({ text: `belay doctor · probe failed ${stampOf(t0).label} · 5 s ago`, stale: true });
+    expect(bar).toEqual({ text: `afterlife doctor · probe failed ${stampOf(t0).label} · 5 s ago`, stale: true });
     expect(r.told.at(-1)).toContain('this request names "evil.test", not localhost');
     expect(r.ref.current.doctorBusy).toBe(false);
   });

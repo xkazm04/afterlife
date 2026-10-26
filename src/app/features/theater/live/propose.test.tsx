@@ -1,4 +1,4 @@
-// A propose-only wave (`belay run --mode propose`) on the live film: its plan's items are "proposed", never a landed,
+// A propose-only wave (`afterlife run --mode propose`) on the live film: its plan's items are "proposed", never a landed,
 // parked or failed colour, and the header names the mode. An execute wave says EXECUTE and keeps its outcome words.
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';

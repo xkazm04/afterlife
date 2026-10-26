@@ -19,7 +19,7 @@ export interface LiveProbes {
 function unreadText(s: SetupState, n: number, reason: string | null): string {
   if (reason && reason !== NOT_PROBED) return `step ${n} · unknown · ${reason}`;
   const why = stepDetail(s, n)?.unread;
-  return why ? `step ${n} · no read can see it: ${why}` : `step ${n} · Belay has no probe for this step yet: it stays unknown`;
+  return why ? `step ${n} · no read can see it: ${why}` : `step ${n} · Afterlife has no probe for this step yet: it stays unknown`;
 }
 
 /** `now()` is the state as it is when a probe is asked for (the hook's ref, read only in its handlers). */
@@ -58,7 +58,7 @@ export function liveProbes(now: () => SetupState, dispatch: Dispatch<SetupAction
       const r = await reread('doctor');
       const why = r.status === 'refused' ? r.reason : 'no answer';
       dispatch({ t: 'doctor-read', doctor: r.status === 'doctor' ? r.doctor : null, reason: why, at: stampOf(new Date()) });
-      tell(r.status === 'doctor' ? (r.doctor.error ? `belay doctor · ${r.doctor.error}` : `belay doctor · ${now().group} probed at ${r.doctor.label}`) : `belay doctor · not probed: ${why}`);
+      tell(r.status === 'doctor' ? (r.doctor.error ? `afterlife doctor · ${r.doctor.error}` : `afterlife doctor · ${now().group} probed at ${r.doctor.label}`) : `afterlife doctor · not probed: ${why}`);
     },
   };
 }

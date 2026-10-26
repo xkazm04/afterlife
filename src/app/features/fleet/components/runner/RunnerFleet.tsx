@@ -16,13 +16,13 @@ export function lastWords(r: RunnerRow): string {
 }
 
 function fleetNote(d: RunnerDesk): string | null {
-  if (d.fleet === 'missing') return 'No .belay/fleet.yml: copy runner/fleet.example.yml there and point each path at its checkout.';
-  if (d.fleet === 'invalid') return `.belay/fleet.yml does not read: ${d.fleetError ?? 'unknown reason'}.`;
+  if (d.fleet === 'missing') return 'No .afterlife/fleet.yml: copy runner/fleet.example.yml there and point each path at its checkout.';
+  if (d.fleet === 'invalid') return `.afterlife/fleet.yml does not read: ${d.fleetError ?? 'unknown reason'}.`;
   return null;
 }
 
 /**
- * Fleet's strip for the cycle runner: every repo of .belay/fleet.yml (and any repo that still has runs) with its newest
+ * Fleet's strip for the cycle runner: every repo of .afterlife/fleet.yml (and any repo that still has runs) with its newest
  * wave, what its waves spent and the decisions they left. Real local data in demo and live alike, read on the server.
  * Read-only: the runs are on /runs, the decisions on /needs-you. `unmatched`: the repos whose spend matched no Fleet
  * project (src/lib/runs/desk/join.ts), said "not in Fleet" rather than dropped.
@@ -51,7 +51,7 @@ export function RunnerFleet({ desk, unmatched = [] }: { desk: RunnerDesk; unmatc
       {note ? <p className={styles.note}>{note}</p> : null}
       {unmatched.length ? (
         <p className={styles.note}>
-          Not in Fleet: {unmatched.join(', ')}. Their spend is on no project: give each a <code>gitlab:</code> path in .belay/fleet.yml, or a slug equal to its Fleet id.
+          Not in Fleet: {unmatched.join(', ')}. Their spend is on no project: give each a <code>gitlab:</code> path in .afterlife/fleet.yml, or a slug equal to its Fleet id.
         </p>
       ) : null}
       {desk.rows.length ? (

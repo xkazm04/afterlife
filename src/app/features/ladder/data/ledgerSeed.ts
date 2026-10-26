@@ -1,5 +1,5 @@
 // The invented ledger the demo opens with (the prototype's LEDGER). Old moves are policy MRs a person merged; the
-// last three are the patch-bump story: guardrail, tripwire, and Belay noticing 12 s later. Each move has its instant on
+// last three are the patch-bump story: guardrail, tripwire, and Afterlife noticing 12 s later. Each move has its instant on
 // the demo's clock, labelled in the demo's zone (UTC) as of the moment the demo opens.
 import { clockLabel, demoInstant } from '../model/clock';
 import type { LedgerEntry } from '../model/types';
@@ -26,7 +26,7 @@ export const LEDGER_SEED: readonly LedgerSeedEntry[] = [
     text: 'commit c3d4 in belay-policy: patch-bump Supervised → Quarantined',
   },
   {
-    ...when(-235), ids: ['patch-bump'], actor: 'Belay', where: 'next poll', kind: 'belay', lag: '+12 s late',
+    ...when(-235), ids: ['patch-bump'], actor: 'Afterlife', where: 'next poll', kind: 'afterlife', lag: '+12 s late',
     text: 'sees c3d4; the chip flips. Not in the loop, it only noticed.',
   },
 ];

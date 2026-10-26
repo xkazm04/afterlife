@@ -5,7 +5,7 @@ import { MonitorScreen } from '@/app/features/monitor/MonitorScreen';
 import { readDesk } from '@/server/runs/readDesk';
 import { connection } from 'next/server';
 
-export const metadata: Metadata = { title: 'Belay Monitor' };
+export const metadata: Metadata = { title: 'Afterlife · Monitor' };
 
 // The fleet from the data source, and beside it (its own prop, never in FleetProject) the agents' spend read off the
 // cycle runner's local files.

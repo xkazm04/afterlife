@@ -92,7 +92,7 @@ describe('the live opening state is what the server read, never the demo’s', (
     expect(JSON.stringify(s)).not.toMatch(/acme-sandbox|acme-lab|14:02/);
   });
 
-  it('the step commands name the paired group, its host and BELAY_PROJECT, never acme-lab or ledgerline', () => {
+  it('the step commands name the paired group, its host and AFTERLIFE_PROJECT, never acme-lab or ledgerline', () => {
     const s = createSetupState(getSetup(), 0, read());
     const all = stepList(s).map((x) => JSON.stringify(stepDetail(s, x.n)));
     for (const d of all) expect(d).not.toMatch(/acme-lab|ledgerline/);

@@ -66,7 +66,7 @@ export interface DeployMarker {
 
 export type AdjustmentTargetKind = 'ci-stage' | 'ci-run' | 'local-metric' | 'prod-signal';
 
-/** What a dev agent (through `belay report`) or a person says a change will move. Never itself evidence. */
+/** What a dev agent (through `afterlife report`) or a person says a change will move. Never itself evidence. */
 export interface AdjustmentClaim {
   type: 'claim';
   id: string;

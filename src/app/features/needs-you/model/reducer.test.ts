@@ -155,7 +155,7 @@ describe('the actions that skip the outbox', () => {
     expect(ok.status.n5).toBe('done');
     expect(ok.notice).toMatchObject({ channel: 'status', text: expect.stringMatching(/runner online \(simulated\)/) });
     expect(ok.notice?.text).not.toMatch(/verified/);
-    expect(ok.session[0]).toMatchObject({ kind: 'setup', result: 'simulated', ref: 'belay doctor (simulated)' });
+    expect(ok.session[0]).toMatchObject({ kind: 'setup', result: 'simulated', ref: 'afterlife doctor (simulated)' });
     expect(JSON.stringify(ok.session[0])).not.toMatch(/verified/);
     expect(rowState(ok, 'n5').label).not.toMatch(/verified/);
   });

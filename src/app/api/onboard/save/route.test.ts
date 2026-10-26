@@ -30,8 +30,8 @@ const PROPOSAL = {
 
 describe('POST /api/onboard/save', () => {
   it('saves what the sealed probes confirmed, drops a forged ok, and answers the slug', async () => {
-    base = mkdtempSync(join(tmpdir(), 'belay-api-save-'));
-    vi.stubEnv('BELAY_DATA_DIR', join(base, 'data'));
+    base = mkdtempSync(join(tmpdir(), 'afterlife-api-save-'));
+    vi.stubEnv('AFTERLIFE_DATA_DIR', join(base, 'data'));
     const root = join(base, 'repo');
     execFileSync('git', ['init', '-q', root], { stdio: 'ignore' });
     execFileSync('git', ['-C', root, 'remote', 'add', 'origin', 'https://dev.azure.com/acme/Shop/_git/Shop%20Web'], { stdio: 'ignore' });
@@ -52,7 +52,7 @@ describe('POST /api/onboard/save', () => {
   });
 
   it('refuses a body with no results and an invalid proposal', async () => {
-    base = mkdtempSync(join(tmpdir(), 'belay-api-save-'));
+    base = mkdtempSync(join(tmpdir(), 'afterlife-api-save-'));
     execFileSync('git', ['init', '-q', base], { stdio: 'ignore' });
     expect((await POST(req('/api/onboard/save', { root: base }))).status).toBe(400);
     const res = await POST(req('/api/onboard/save', { root: base, proposal: { host: {} }, results: [] }));

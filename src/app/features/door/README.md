@@ -17,7 +17,7 @@ It sits outside the app window. **Enter Afterlife** goes to `/fleet`, and **What
 ## Entrance
 
 A page load opens on the treasure gates (`components/entrance/`, the winner, B, of a three-way prototype
-contest on 2026-10-15). Two graphite leaves inlaid with cyan circuit traces meet at a seam. The Belay knot is the lock
+contest on 2026-10-15). Two graphite leaves inlaid with cyan circuit traces meet at a seam. The Afterlife knot is the lock
 on the seam: its pin slides in, the knot turns, the bolts draw back and an amber crack runs along the seam. At about
 2.2 s the leaves swing outward. That is `onOpen`: the city's intro (`useDoor`'s held intro) starts under the opening
 gates. At about 3.5 s the overlay is gone (`onDone`).

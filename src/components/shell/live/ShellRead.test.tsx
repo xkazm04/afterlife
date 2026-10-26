@@ -11,43 +11,43 @@ vi.mock('next/server', () => ({ connection: vi.fn(() => new Promise<void>((r) =>
 
 const { ShellRead } = await import('./ShellRead');
 
-const READY = Symbol.for('belay.liveRuntime.ready');
+const READY = Symbol.for('afterlife.liveRuntime.ready');
 const holder = globalThis as unknown as Record<symbol, { scheduler?: { stop(): void } } | undefined>;
 const reset = (): void => {
   holder[READY]?.scheduler?.stop();
-  for (const k of ['starting', 'ready', 'failed']) delete holder[Symbol.for(`belay.liveRuntime.${k}`)];
+  for (const k of ['starting', 'ready', 'failed']) delete holder[Symbol.for(`afterlife.liveRuntime.${k}`)];
 };
 const modeOf = async (el: Promise<ReactElement<{ info: KnownShellInfo }>>) => (await el).props.info.data;
 
 beforeAll(async () => {
   reset();
-  // The live runtime a `BELAY_MODE=live BELAY_GITLAB=fake` server starts in instrumentation.ts: the seeded fake group.
-  await startRuntime(readDataConfig({ BELAY_MODE: 'live', BELAY_GITLAB: 'fake' }), () => undefined, () => undefined);
+  // The live runtime a `AFTERLIFE_MODE=live AFTERLIFE_GITLAB=fake` server starts in instrumentation.ts: the seeded fake group.
+  await startRuntime(readDataConfig({ AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB: 'fake' }), () => undefined, () => undefined);
 }, 60_000);
 afterAll(reset);
 afterEach(() => vi.unstubAllEnvs());
 
 describe('ShellRead (the root layout shell read)', () => {
   it('reads the mode after connection(): begun under the build env (demo), resumed for a live request, it says live', async () => {
-    vi.stubEnv('BELAY_MODE', 'demo'); // the environment `next build` ran with
+    vi.stubEnv('AFTERLIFE_MODE', 'demo'); // the environment `next build` ran with
     const pending = ShellRead();
-    vi.stubEnv('BELAY_MODE', 'live'); // the running server's environment, when the request arrives
-    vi.stubEnv('BELAY_GITLAB', 'fake');
+    vi.stubEnv('AFTERLIFE_MODE', 'live'); // the running server's environment, when the request arrives
+    vi.stubEnv('AFTERLIFE_GITLAB', 'fake');
     release();
     expect(await modeOf(pending)).toMatchObject({ mode: 'live', fakeGitlab: true });
   });
 
   it('and the other way round: a live build env never leaks into a demo request', async () => {
-    vi.stubEnv('BELAY_MODE', 'live');
+    vi.stubEnv('AFTERLIFE_MODE', 'live');
     const pending = ShellRead();
-    vi.stubEnv('BELAY_MODE', 'demo');
+    vi.stubEnv('AFTERLIFE_MODE', 'demo');
     release();
     expect(await modeOf(pending)).toMatchObject({ mode: 'demo', poll: null });
   });
 
   it('reads nothing while connection() is pending (a prerender): the source is not touched', async () => {
-    vi.stubEnv('BELAY_MODE', 'live');
-    vi.stubEnv('BELAY_GITLAB', 'fake');
+    vi.stubEnv('AFTERLIFE_MODE', 'live');
+    vi.stubEnv('AFTERLIFE_GITLAB', 'fake');
     reset(); // live with no runtime: any read would throw "first poll has not finished"
     const settled = vi.fn();
     const pending = ShellRead().then(settled, settled);

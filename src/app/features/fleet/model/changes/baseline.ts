@@ -15,7 +15,7 @@ export interface BaselineStore {
   write(value: string): void;
 }
 
-export const BASELINE_KEY = 'belay.fleet.lastLook';
+export const BASELINE_KEY = 'afterlife.fleet.lastLook';
 
 export const browserStore: BaselineStore = {
   read: () => localStorage.getItem(BASELINE_KEY),

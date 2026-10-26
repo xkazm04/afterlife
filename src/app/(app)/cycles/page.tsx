@@ -6,7 +6,7 @@ import { CyclesScreen } from '@/app/features/cycles/CyclesScreen';
 import { EstateScreen } from '@/app/features/cycles/components/estate/EstateScreen';
 import { connection } from 'next/server';
 
-export const metadata: Metadata = { title: 'Belay Cycles' };
+export const metadata: Metadata = { title: 'Afterlife · Cycles' };
 
 type Search = { searchParams: Promise<{ [key: string]: string | string[] | undefined }> };
 

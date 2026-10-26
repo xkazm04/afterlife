@@ -33,7 +33,7 @@ export function nodeHead(state: SetupState, tracks: Readonly<Record<string, Trac
     const frees = GATE_FREES[f.id];
     const tip = d.does;
     if (s.st === 'done') return { title: s.title, lede: 'Probed: a read saw it done.', tip };
-    if (isSaid(s)) return { title: s.title, lede: `${saidText(s.said ?? '')}. Belay cannot see it done.`, tip };
+    if (isSaid(s)) return { title: s.title, lede: `${saidText(s.said ?? '')}. Afterlife cannot see it done.`, tip };
     const who = d.who === 'human' ? 'Only you can do this' : 'An agent or you can do this';
     return { title: s.title, lede: `${who}${frees ? ` · frees ${frees}` : ''}${s.st === 'unknown' ? ' · unread' : ''}`, tip };
   }

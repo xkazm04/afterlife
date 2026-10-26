@@ -11,7 +11,7 @@ import { Spinner } from '../shared/Spinner';
 import styles from './inspector.module.css';
 import { TrackDep } from './parts/TrackDep';
 
-/** A picked GitLab capability: its belay doctor status, a Re-probe, and the tracks that rely on it (illustrative). */
+/** A picked GitLab capability: its doctor status, a Re-probe, and the tracks that rely on it (illustrative). */
 export function CapPanel({ name }: { name: string }) {
   const { state, actions } = useSetup();
   const st = capSt(state, name);
@@ -24,11 +24,11 @@ export function CapPanel({ name }: { name: string }) {
       <DetailSection title="State" aux={<CapGlyph st={st} size={14} />}>
         <div className={styles.chips}>
           <Chip tone={st === 'available' ? 'ok' : st === 'unknown' ? 'unknown' : 'bad'}>{lastGood ? `${st} · last good read` : st}</Chip>
-          <Chip>belay doctor · {state.group}</Chip>
+          <Chip>afterlife doctor · {state.group}</Chip>
         </div>
       </DetailSection>
       <DetailSection title="Probe" aux={state.doctorNever ? 'never probed' : state.doctorError ? `probe failed ${state.doctorProbedAt}` : state.doctorProbedAt}>
-        {state.doctorError ? <div className={styles.err}>{`belay doctor: ${state.doctorError}`}</div> : null}
+        {state.doctorError ? <div className={styles.err}>{`afterlife doctor: ${state.doctorError}`}</div> : null}
         <Button disabled={state.doctorBusy} onClick={() => void actions.reprobe()}>
           {state.doctorBusy ? (
             <>
@@ -43,7 +43,7 @@ export function CapPanel({ name }: { name: string }) {
         {uses.length ? (
           uses.map((id) => <TrackDep key={id} id={id} />)
         ) : (
-          <div className={styles.muted}>{state.live ? 'Not mapped: Belay does not tie a live probe to the tracks yet' : 'No track relies on it'}</div>
+          <div className={styles.muted}>{state.live ? 'Not mapped: Afterlife does not tie a live probe to the tracks yet' : 'No track relies on it'}</div>
         )}
       </DetailSection>
     </>

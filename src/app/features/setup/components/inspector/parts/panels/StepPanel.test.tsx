@@ -42,7 +42,7 @@ describe('StepPanel: a human step', () => {
   });
   it('a secret step shows the command to copy, never an Open button', () => {
     const out = html(withStep(demo, secret, { st: 'human' }), secret);
-    expect(out).toContain('Belay never sees it');
+    expect(out).toContain('Afterlife never sees it');
     expect(buttonTag(out, 'Open in GitLab')).toBeNull();
     expect(out).toMatch(/Copy( command| 1)/);
   });
@@ -68,7 +68,7 @@ describe('StepPanel: an agent step', () => {
   });
   it('live: never Send as you; Copy and Read again instead', () => {
     const out = html(live(withStep(demo, agent, { st: 'failed' })), agent);
-    expect(out).toContain('copy · Belay does not send it');
+    expect(out).toContain('copy · Afterlife does not send it');
     expect(buttonTag(out, 'Send as you')).toBeNull();
     expect(buttonTag(out, 'Skip')).toBeNull();
     expect(buttonTag(out, 'Copy')).not.toBeNull();

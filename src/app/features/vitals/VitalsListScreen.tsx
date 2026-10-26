@@ -40,7 +40,7 @@ export function VitalsEmpty() {
   );
 }
 
-/** /vitals: the real projects Afterlife watches, from .belay/projects. Enter or a double-click opens one. */
+/** /vitals: the real projects Afterlife watches, from .afterlife/projects. Enter or a double-click opens one. */
 export function VitalsListScreen({ projects, now }: { projects: readonly ProjectSummary[]; now: string }) {
   const router = useRouter();
   const [sel, setSel] = useState<string | null>(projects[0]?.slug ?? null);

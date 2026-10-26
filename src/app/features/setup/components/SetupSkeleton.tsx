@@ -24,7 +24,7 @@ export function SetupSkeleton({ shape }: { shape: 'map' | 'node' }) {
 }
 
 /**
- * The /setup layout's fallback while it reads the flow (live mode: GitLab's arm blocks, the belay doctor, the steps): the
+ * The /setup layout's fallback while it reads the flow (live mode: GitLab's arm blocks, the doctor, the steps): the
  * shape of whichever page was asked for. It reads the path, so it sits only under the (app) loading boundary.
  */
 export function SetupLayoutSkeleton() {

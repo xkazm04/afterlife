@@ -28,13 +28,13 @@ const day0 = (m: DemoData['maturity'], stage: 'plan' | 'verify'): string => {
 };
 
 describe('StageDetail Day 0 in live mode', () => {
-  it('before any scan, says day 0 is the first scan Belay stores', () => {
-    expect(day0(narrow(null), 'verify')).toContain('Not scanned yet: day 0 is the first scan Belay stores.');
+  it('before any scan, says day 0 is the first scan Afterlife stores', () => {
+    expect(day0(narrow(null), 'verify')).toContain('Not scanned yet: day 0 is the first scan Afterlife stores.');
   });
   it('a stage unknown at the first stored scan says unknown, never R0', () => {
-    expect(day0(SCANNED, 'plan')).toContain('Unknown at the first scan Belay stored.');
+    expect(day0(SCANNED, 'plan')).toContain('Unknown at the first scan Afterlife stored.');
   });
   it('a known stage names the rung of the first stored scan', () => {
-    expect(day0(SCANNED, 'verify')).toContain(`R1 ${RUNGS[1]} at the first scan Belay stored.`);
+    expect(day0(SCANNED, 'verify')).toContain(`R1 ${RUNGS[1]} at the first scan Afterlife stored.`);
   });
 });

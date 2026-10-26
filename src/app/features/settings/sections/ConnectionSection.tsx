@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { readDataConfig } from '@/server/data/config';
 import { readConfig } from '@/server/gitlab/config';
+import { envOf } from '@/server/env/env';
 import { SettingsSection } from '../components/SettingsSection';
 import { StatusLine } from './StatusLine';
 import styles from './Table.module.css';
@@ -12,8 +13,8 @@ export function ConnectionSection() {
   const live = data.mode === 'live';
   const fake = live && data.gitlab === 'fake';
   // Any value but `live` serves the demo (the hosted replay sets `replay`); only an unset variable is "the default".
-  const set = process.env.BELAY_MODE;
-  const mode = live ? 'live (BELAY_MODE=live)' : set ? `demo (BELAY_MODE=${set} is not live)` : 'demo (the default)';
+  const set = envOf(process.env, 'MODE');
+  const mode = live ? 'live (AFTERLIFE_MODE=live)' : set ? `demo (AFTERLIFE_MODE=${set} is not live)` : 'demo (the default)';
   const rows: [string, ReactNode][] = [
     ['Mode', mode],
     ['GitLab', !live ? 'not used in demo' : fake ? 'seeded fake, not a real group' : 'real, through the glab login'],

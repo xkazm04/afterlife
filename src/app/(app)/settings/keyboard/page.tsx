@@ -3,7 +3,7 @@ import { SettingsWindow } from '@/app/features/settings/SettingsWindow';
 import { KeyboardSection } from '@/app/features/settings/components/KeyboardSection';
 import { ScreenKeysSection } from '@/app/features/settings/sections/ScreenKeysSection';
 
-export const metadata: Metadata = { title: 'Belay Settings Keyboard' };
+export const metadata: Metadata = { title: 'Afterlife · Settings · Keyboard' };
 
 export default function KeyboardSettings() {
   return (

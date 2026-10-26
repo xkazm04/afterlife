@@ -41,7 +41,7 @@ export function rowView(s: NeedsState, id: string, demo: NeedsYouDemo): RowView 
     return {
       title: `${g.stage} · ${g.title}`,
       move: { kind: 'rungs', from: g.from, to: g.to },
-      // a gap Belay has no door for (the probe, a gap with no files) sends nothing: write/desk.ts gapBlock
+      // a gap Afterlife has no door for (the probe, a gap with no files) sends nothing: write/desk.ts gapBlock
       writes: gapBlock(id, demo) ? { kind: 'none' } : g.diffLines ? { kind: 'text', text: `draft MR · ${g.diffLines} l` } : { kind: 'issue' },
       track: 'T6',
       when: GAP_DETAIL.openedAt,

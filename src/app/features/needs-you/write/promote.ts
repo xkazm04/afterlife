@@ -1,7 +1,7 @@
 // The policy MRs this desk opens, through the server actions. A promotion (n1) and a re-admission (n4, quarantined ->
 // assisted) are both a promote-class intent: the server plans the branch commit and the MR from belay-policy as it is,
 // and refuses what trust-policy.yml does not allow. previewAction when the decision is in view (nothing runs);
-// confirmAction with that preview's id on Run. Belay never merges: a person does, in GitLab.
+// confirmAction with that preview's id on Run. Afterlife never merges: a person does, in GitLab.
 import { confirmAction, previewAction } from '@/server/actions/actions';
 import type { ActionResponse, PromoteClass } from '@/server/actions/types';
 import { unreachable, viewOf, type WriteView } from '@/server/actions/words';

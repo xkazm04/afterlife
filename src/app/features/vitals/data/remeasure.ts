@@ -9,18 +9,19 @@
 import { headers } from 'next/headers';
 import { refresh } from 'next/cache';
 import { notLocal } from '@/server/actions/local';
+import { envOf } from '@/server/env/env';
 import { loadProjects } from '@/server/discover';
 import { localMeasure, passiveMeasure, type MeasureAnswer } from '@/server/vitals';
 import { messageOf } from '@/lib/format/error';
 import type { RemeasureResult } from '../model/types';
 
 const ID = /^[A-Za-z0-9_-]{1,64}$/;
-const KEY = Symbol.for('belay.vitals.localMeasures');
+const KEY = Symbol.for('afterlife.vitals.localMeasures');
 const holder = globalThis as unknown as Record<symbol, Set<string> | undefined>;
 const running = (): Set<string> => (holder[KEY] ??= new Set());
 
 async function gate(slug: unknown, claimId: unknown): Promise<string | null> {
-  if (process.env.BELAY_MODE === 'replay') return 'the hosted replay has no real project to measure';
+  if (envOf(process.env, 'MODE') === 'replay') return 'the hosted replay has no real project to measure';
   if (typeof slug !== 'string' || !loadProjects().some((p) => p.slug === slug)) return 'no saved project has that slug';
   if (typeof claimId !== 'string' || !ID.test(claimId)) return 'that is not a claim id';
   return notLocal(await headers());
@@ -44,7 +45,7 @@ export async function measureLocalAction(slug: unknown, claimId: unknown): Promi
   if (running().has(key)) return { ok: true, message: 'Already measuring locally: its result shows here when it is done' };
   running().add(key);
   void localMeasure(slug as string, claimId as string)
-    .then((a) => a.status !== 'measured' && console.error(`belay: local measure of ${key}: ${a.status === 'refused' ? a.reason : a.message}`), (e: unknown) => console.error(`belay: local measure of ${key} failed: ${messageOf(e)}`))
+    .then((a) => a.status !== 'measured' && console.error(`afterlife: local measure of ${key}: ${a.status === 'refused' ? a.reason : a.message}`), (e: unknown) => console.error(`afterlife: local measure of ${key} failed: ${messageOf(e)}`))
     .finally(() => running().delete(key));
   return { ok: true, message: 'Measuring locally: base and the change, each in a throwaway worktree. Minutes; the result shows here when it is done' };
 }

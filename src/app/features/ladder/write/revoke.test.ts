@@ -44,8 +44,8 @@ describe('the revoke round trip', () => {
   });
 
   it('a refused preview, or a server that does not answer, is shown as the reason there is no write', async () => {
-    actions.previewAction.mockResolvedValueOnce({ status: 'refused', reason: 'patch-bump is quarantined: Belay only lowers' });
-    expect(await askRevoke('ledgerline', 'patch-bump', 'quarantined')).toEqual({ kind: 'refused', reason: 'patch-bump is quarantined: Belay only lowers' });
+    actions.previewAction.mockResolvedValueOnce({ status: 'refused', reason: 'patch-bump is quarantined: Afterlife only lowers' });
+    expect(await askRevoke('ledgerline', 'patch-bump', 'quarantined')).toEqual({ kind: 'refused', reason: 'patch-bump is quarantined: Afterlife only lowers' });
     actions.previewAction.mockRejectedValueOnce(new Error('fetch failed'));
     expect(await askRevoke('ledgerline', 'patch-bump', 'quarantined')).toEqual({ kind: 'refused', reason: 'fetch failed' });
   });

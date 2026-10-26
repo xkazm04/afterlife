@@ -18,7 +18,7 @@ import { ProbeLine } from './parts/ProbeLine';
 import { TrackDep } from './parts/TrackDep';
 
 function StateChip({ st, gate, said }: { st: string; gate: boolean; said: string | null }) {
-  if (said) return <Chip tone="unknown" title="Not a read: Belay cannot see this step done">{saidText(said)}</Chip>;
+  if (said) return <Chip tone="unknown" title="Not a read: Afterlife cannot see this step done">{saidText(said)}</Chip>;
   if (st === 'done') return <Chip tone="ok">probed</Chip>;
   if (st === 'unknown') return <Chip tone="unknown">unknown</Chip>;
   if (st === 'failed') return <Chip tone="bad">probed · not yet</Chip>;
@@ -60,7 +60,7 @@ export function StepPanel({ n }: { n: number }) {
           {d.secret ? (
             <>
               <div className={styles.cmdh}>
-                you type the value<span>Belay never sees it</span>
+                you type the value<span>Afterlife never sees it</span>
               </div>
               <CommandBlock commands={d.cmd ?? []} />
             </>
@@ -79,14 +79,14 @@ export function StepPanel({ n }: { n: number }) {
               I did it · verify
             </Button>
             {canSay ? (
-              <Button disabled={busy} title="Belay writes nothing and still reads this step unknown; it stops counting it as yours" onClick={() => (said ? actions.unsay(n) : actions.sayDone(n))}>
+              <Button disabled={busy} title="Afterlife writes nothing and still reads this step unknown; it stops counting it as yours" onClick={() => (said ? actions.unsay(n) : actions.sayDone(n))}>
                 {said ? 'Take it back' : 'I did it · say so'}
               </Button>
             ) : null}
           </div>
         </DetailSection>
       ) : (
-        <DetailSection title="Next write" aux={state.live ? 'copy · Belay does not send it' : 'preview · nothing sent'}>
+        <DetailSection title="Next write" aux={state.live ? 'copy · Afterlife does not send it' : 'preview · nothing sent'}>
           <CommandBlock commands={[...(d.cmd ?? []), { note: state.live ? '# run it as you, or your agent via adopt-belay' : '# runs as @you via glab' }]} />
           <div className={styles.acts}>
             {state.live ? null : (

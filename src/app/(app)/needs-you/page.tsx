@@ -6,12 +6,12 @@ import { NeedsYouScreen } from '@/app/features/needs-you/NeedsYouScreen';
 import { readDesk } from '@/server/runs/readDesk';
 import { connection } from 'next/server';
 
-export const metadata: Metadata = { title: 'Belay Needs you' };
+export const metadata: Metadata = { title: 'Afterlife · Needs you' };
 
 /**
  * Demo: the desk. Live: the group's own open items, or the empty state (never the demo's seeded desk). In live mode
  * `?item=<id>` opens that item selected (read on the client: Ladder's p sends `promote:<project>:<class>`). In every
- * view, the cycle runner's decisions (readDesk: .belay, real local data) sit beside the group's.
+ * view, the cycle runner's decisions (readDesk: .afterlife, real local data) sit beside the group's.
  */
 export default async function NeedsYouPage() {
   await connection(); // request time: the data source and its data are the running server's, never the build's

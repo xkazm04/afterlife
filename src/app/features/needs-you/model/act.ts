@@ -15,7 +15,7 @@ import type { ActionId, DecisionKey, NeedsState } from './types';
 
 /** What Retire says: it is decided here only, and the class stays quarantined in belay-policy. */
 export const retireText = (cls: string): string =>
-  `Retired here only · Belay has no retire write (tier-state.yml has no retired tier), so ${cls} stays quarantined in belay-policy. Nothing was sent.`;
+  `Retired here only · Afterlife has no retire write (tier-state.yml has no retired tier), so ${cls} stays quarantined in belay-policy. Nothing was sent.`;
 
 /** Gaps that are ticked and not yet staged. */
 export const pickedGaps = (s: NeedsState, demo: NeedsYouDemo) => demo.gaps.filter((g) => s.gaps[g.id] && !s.gapStatus[g.id]);
@@ -79,7 +79,7 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
     case 'merge-n1':
       return notify(setStatus(s, 'n1', 'merged'), 'toast', `The policy MR merged (simulated) · the next MR pipeline reads ${TIER_META[demo.promote.to].name}`);
     case 'retire-n4': {
-      // Belay has no retire write: tier-state.yml has no "retired" tier. The decision is recorded here, nothing is sent.
+      // Afterlife has no retire write: tier-state.yml has no "retired" tier. The decision is recorded here, nothing is sent.
       const next = setStatus({ ...s, out: unstageItem(s.out, 'n4') }, 'n4', 'retired');
       return notify(decided(next, 'readmit', `${demo.readmit.cls} · T8 gardener`, 'retired · no write', 'nothing sent'), 'toast', retireText(demo.readmit.cls));
     }
@@ -89,7 +89,7 @@ export function act(s: NeedsState, action: ActionId, demo: NeedsYouDemo): NeedsS
       // The demo runs no doctor: the answer is the simulation's, and says so (as merge-n1 does). Nothing is "verified".
       const seen = s.runner.opened;
       const next = notify({ ...s, runner: { ...s.runner, check: seen ? 'ok' : 'none' } }, 'status', `$ ${RUNNER.command} → ${seen ? 'runner online' : 'runner not seen yet'} (simulated)`);
-      return seen ? decided(setStatus(next, 'n5', 'done'), 'setup', 'Runner billing on Google Cloud', 'simulated', 'belay doctor (simulated)') : next;
+      return seen ? decided(setStatus(next, 'n5', 'done'), 'setup', 'Runner billing on Google Cloud', 'simulated', 'afterlife doctor (simulated)') : next;
     }
     case 'submitted':
       return ranToast({ ...s, submitted: true }, CRA.submitCommand);

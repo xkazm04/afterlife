@@ -10,7 +10,7 @@ import { TheaterScreen } from '@/app/features/theater/TheaterScreen';
 import { loadStartData } from '@/server/actions/runs/start/read';
 import { connection } from 'next/server';
 
-export const metadata: Metadata = { title: 'Belay Theater' };
+export const metadata: Metadata = { title: 'Afterlife · Theater' };
 
 type Props = { searchParams: Promise<TheaterParams> };
 

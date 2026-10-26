@@ -1,5 +1,5 @@
 // A cycle run, as the runner (runner/) appends it: one belay.run/0 event per line of
-// .belay/runs/<repo>/<wave>.jsonl, append-only, never rewritten - so an event's ts is when it happened.
+// .afterlife/runs/<repo>/<wave>.jsonl, append-only, never rewritten - so an event's ts is when it happened.
 // Plain data, client-safe: /runs, Theater's live mode, Fleet and Needs-you read it through the DataSource.
 // Absent values are OMITTED keys, never null or 0: a lane that never reported usage has no lane.usage event.
 
@@ -16,7 +16,7 @@ export type LaneOutcome = (typeof LANE_OUTCOMES)[number];
 interface RunEventBase {
   v: typeof RUN_SCHEMA;
   ts: string;
-  /** The fleet slug from .belay/fleet.yml. */
+  /** The fleet slug from .afterlife/fleet.yml. */
   repo: string;
   wave: number;
   /** First 12 hex of sha256 over runner/prompts/{plan,lane,reflect,review,repair,frontier}.md (older files: the first three). */

@@ -72,7 +72,7 @@ describe('arm, merge, verify, disarm', () => {
   const sent = (id: string, revert = false, mr: string | null = '!22'): SetupAction => ({ t: 'arm-sent', id, revert, mr, url: mr ? `https://gitlab.example/mr/${mr.slice(1)}` : null, simulated: mr === null });
   const seen = { ok: true, simulated: false, text: 'on main' };
   const arm = (s: SetupState, id: string) => run(s, sent(id), { t: 'verify-start', id }, { t: 'verify-end', id, verdict: seen });
-  it('arm sends an MR as you, then a person merges, then Belay verifies', () => {
+  it('arm sends an MR as you, then a person merges, then Afterlife verifies', () => {
     let s = run(fresh(), sent('T3'));
     expect(s.arm.T3).toMatchObject({ st: 'open', mr: '!22', url: 'https://gitlab.example/mr/22', revert: false, simulated: false });
     expect(needYouCount(s)).toBe(6);
@@ -116,7 +116,7 @@ describe('a read that takes a step back', () => {
   const at = { at: '2026-10-15T09:00:00.000Z', label: '09:00' };
   const reread = (n: number, read: StepRead): SetupAction => ({ t: 'steps-read', steps: { ...at, steps: { [n]: read } } });
   it('a failed step 4 locks the ready tracks that need it, as a merged revert does; an armed track stays armed', () => {
-    const s = run(fresh(), reread(4, { state: 'failed', text: 'the belay projects are gone' }));
+    const s = run(fresh(), reread(4, { state: 'failed', text: 'the policy projects are gone' }));
     expect(s.steps[4]?.st).toBe('failed');
     expect(armList(s).map((a) => a.st)).toEqual(['armed', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked']);
   });

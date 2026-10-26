@@ -25,10 +25,10 @@ export const UNSURE_NOTE = 'Run is closed: the last send got no answer, so the w
 
 /** The line above a write's commands: what Run does with it, or why there is nothing to run. */
 export function policyNote(view: WriteView | undefined): string {
-  if (!view) return 'Asking Belay for the exact write…';
+  if (!view) return 'Asking Afterlife for the exact write…';
   // the slot's unsure write (slot/slot.ts UNSURE_VIEW): the last confirm got no answer
   if (view.kind === 'refused' && view.reason === NO_ANSWER) return UNSURE_NOTE;
-  if (view.kind === 'refused') return `Belay refuses this write: ${view.reason}. Nothing can run.`;
+  if (view.kind === 'refused') return `Afterlife refuses this write: ${view.reason}. Nothing can run.`;
   return view.preview.mode === 'demo' ? 'Demo: Run simulates this write; nothing is sent to GitLab.' : view.preview.summary;
 }
 

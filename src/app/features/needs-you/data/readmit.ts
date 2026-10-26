@@ -25,7 +25,7 @@ export const READMIT: Pick<ClickCopy, 'does'> & {
     ['14:21', 'T4', 'guardrail blocked !44 · hidden instruction quoted'],
     ['14:22', '—', 'flow disabled for write classes'],
   ],
-  does: ['Re-admit: opens a re-admission MR as you, at Assisted', 'Retire: records the decision here; Belay has no retire write'],
+  does: ['Re-admit: opens a re-admission MR as you, at Assisted', 'Retire: records the decision here; Afterlife has no retire write'],
 };
 
 /**

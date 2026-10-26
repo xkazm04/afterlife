@@ -20,20 +20,20 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe('ConnectionSection, the GitLab rows', () => {
   it('demo: no GitLab, no host, no group', () => {
-    run({ BELAY_MODE: undefined });
+    run({ AFTERLIFE_MODE: undefined });
     expect(cells()).toMatchObject({ GitLab: 'not used in demo', Host: 'none', 'Group id': 'none' });
   });
   it('live on the seeded fake: says it is not a real group, and names no host or group', () => {
-    run({ BELAY_MODE: 'live', BELAY_GITLAB: 'fake', BELAY_GITLAB_HOST: 'git.example.com', BELAY_GROUP_ID: '77' });
+    run({ AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB: 'fake', AFTERLIFE_GITLAB_HOST: 'git.example.com', AFTERLIFE_GROUP_ID: '77' });
     expect(cells()).toMatchObject({ GitLab: 'seeded fake, not a real group', Host: 'none', 'Group id': 'none' });
   });
   it('live on a real GitLab: the host (gitlab.com when unset, a pasted URL as its hostname) and the group id', () => {
-    run({ BELAY_MODE: 'live', BELAY_GITLAB: undefined, BELAY_GITLAB_HOST: undefined, BELAY_GROUP_ID: '42' });
+    run({ AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB: undefined, AFTERLIFE_GITLAB_HOST: undefined, AFTERLIFE_GROUP_ID: '42' });
     expect(cells()).toMatchObject({ GitLab: 'real, through the glab login', Host: 'gitlab.com', 'Group id': '42' });
-    run({ BELAY_MODE: 'live', BELAY_GITLAB_HOST: 'https://git.example.com/', BELAY_GROUP_ID: '42' });
+    run({ AFTERLIFE_MODE: 'live', AFTERLIFE_GITLAB_HOST: 'https://git.example.com/', AFTERLIFE_GROUP_ID: '42' });
     expect(cells().Host).toBe('git.example.com');
   });
-  it.each([undefined, 'live'])('never puts a token from the environment in the page (BELAY_MODE=%s)', (mode) => {
-    expect(run({ BELAY_MODE: mode, BELAY_GROUP_ID: '42' })).not.toContain(TOKEN);
+  it.each([undefined, 'live'])('never puts a token from the environment in the page (AFTERLIFE_MODE=%s)', (mode) => {
+    expect(run({ AFTERLIFE_MODE: mode, AFTERLIFE_GROUP_ID: '42' })).not.toContain(TOKEN);
   });
 });

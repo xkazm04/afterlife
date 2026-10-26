@@ -8,7 +8,7 @@ type Params = { params: Promise<{ project: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { project } = await params;
-  return { title: `Belay Vitals ${project}` };
+  return { title: `Afterlife · Vitals · ${project}` };
 }
 
 // One real project's vitals: its config and stored measurements, folded on the server, so the client gets rows and not

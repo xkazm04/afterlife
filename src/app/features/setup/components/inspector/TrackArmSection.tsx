@@ -60,7 +60,7 @@ export function TrackArmSection({ id }: { id: string }) {
   }
   const mr = mrName(a);
   if (a.st === 'open') {
-    const rows: [string, string][] = [['Do', `Merge ${mr} in GitLab`], ['Why you', 'Belay never holds a merge token']];
+    const rows: [string, string][] = [['Do', `Merge ${mr} in GitLab`], ['Why you', 'Afterlife never holds a merge token']];
     if (a.simulated) rows.push(['Simulated', 'demo mode: nothing was sent to GitLab']);
     if (a.found) rows.push(['Last verify', a.found]);
     return (

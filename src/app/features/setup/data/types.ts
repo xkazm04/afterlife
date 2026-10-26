@@ -22,7 +22,7 @@ export interface StepDetail {
   before?: string;
   /** The first probe reports this instead (the demo's honest "not yet"). */
   failFirst?: string;
-  /** The value is typed by the person: Belay never sees it. */
+  /** The value is typed by the person: Afterlife never sees it. */
   secret?: boolean;
   /** Why no read can ever see this step done: the operator may say they did it instead (live). */
   unread?: string;

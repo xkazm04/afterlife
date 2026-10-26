@@ -1,4 +1,4 @@
-/** belay doctor capabilities: short labels, which track relies on which (illustrative), notes, the other group. */
+/** doctor capabilities: short labels, which track relies on which (illustrative), notes, the other group. */
 export const CAP_SHORT: Readonly<Record<string, string>> = {
   'Pipelines, MRs, releases': 'Pipelines, MRs, releases',
   'CI/CD components, pinned include': 'CI/CD components',

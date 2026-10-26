@@ -107,15 +107,15 @@ export function cooldownRule(until: string | null | undefined, now: Date): Promo
 }
 
 /**
- * The precondition of every promotion Belay prepares, stated beside the rule rather than counted as a met row: Belay's
+ * The precondition of every promotion Afterlife prepares, stated beside the rule rather than counted as a met row: Afterlife's
  * only write that raises a tier is the promotion's policy MR, which planPromote (src/server/actions/plans/promote.ts)
- * opens and never merges; nothing else in Belay raises a tier (the tripwire only lowers one). trust-policy.yml's
- * human_key asks exactly this. It stays a stated precondition, never a row; GitLab holds it, and Belay reads that back
+ * opens and never merges; nothing else in Afterlife raises a tier (the tripwire only lowers one). trust-policy.yml's
+ * human_key asks exactly this. It stays a stated precondition, never a row; GitLab holds it, and Afterlife reads that back
  * read only on the class page (server/data/setup/humanKey.ts): on belay-policy's default branch push is allowed to no
  * one and a merge needs Code Owner approval, and an MR's author cannot approve it. Verified, failed naming each setting
  * not in place, or unknown with why it was not read; the promote write is never blocked by it (the server decides).
  */
-export const HUMAN_KEY = 'a person merges this MR; Belay never merges it';
+export const HUMAN_KEY = 'a person merges this MR; Afterlife never merges it';
 
 /** Supervised to Hands-off: the counts, the mechanical proof class, and the gated outputs and the trial when the policy sets them. */
 export function toHandsOffRules(r: Counters, t: PromotionRules['toHandsOff'], proofClass: string): PromotionRule[] {

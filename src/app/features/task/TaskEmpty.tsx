@@ -6,7 +6,7 @@ export function TaskEmpty() {
   return (
     <main className={styles.page}>
       <h1 className={styles.title}>Task</h1>
-      <p>No task is held in the docket yet: the group has opened none for Belay to prove.</p>
+      <p>No task is held in the docket yet: the group has opened none for Afterlife to prove.</p>
       <p className={styles.note}>
         The docket fills as the poller reads tasks from the group. <Link href="/fleet">Back to Fleet</Link>
       </p>

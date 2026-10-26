@@ -71,15 +71,15 @@ below the page, outside the scroller, when it is open. The runner's sheet sits o
   line, "From the cycle runner · N merges · M parked" (a zero part left out) and Open, which opens `RunnerSheet`, the
   cards in a `Sheet` with the counts and the `/runs` link (Escape or the veil closes it; focus goes back to Open). The
   empty pages draw the cards in place (`RunnerNeeds`, a short page with nothing else to push down). The cards: a mergeable wave not yet in its base (the exact `git -C <path> switch / merge --ff-only / push`, from
-  `.belay/fleet.yml`'s path) and the lanes its repo's newest wave parked. Read by `readDesk()` (`src/server/runs/`, folded by
-  `src/lib/runs/desk/`), real local data in demo and live alike. Text only: Belay merges and pushes nothing.
+  `.afterlife/fleet.yml`'s path) and the lanes its repo's newest wave parked. Read by `readDesk()` (`src/server/runs/`, folded by
+  `src/lib/runs/desk/`), real local data in demo and live alike. Text only: Afterlife merges and pushes nothing.
 - `components/chrome/` toolbar, sidebar filters, legend. `components/shared/` marks used by the above.
 - `hooks/` reducer + notices, right-click menus, keyboard map, 1 s clock tick (`ClockProvider`, held by `NeedsStore` in the
   layout, so the list and a decision's page share one clock).
 
 ## Logic (`model/`, all pure, vitest tested)
 - `reducer.ts` + `act.ts` + `run.ts`: every button is an `ActionId`. Staging sends nothing; `Run` is the only send.
-  Retire, Not yet and the runner check skip the outbox and write nothing (Belay has no retire write: tier-state.yml has
+  Retire, Not yet and the runner check skip the outbox and write nothing (Afterlife has no retire write: tier-state.yml has
   no retired tier). Reading the draft or note opens the gate.
 - `rows/`: row state, the one action per row, grouping, filters, keyboard order. `outbox/`: list rules, commands.
 - `clock/`: countdown math and the grade ladder. `menu.ts`: right-click entries as data.
@@ -94,7 +94,7 @@ below the page, outside the scroller, when it is open. The runner's sheet sits o
   with `run.ts` `recalledItem` (the hook's own step, `useNeedsYou`); the live list with liveActs' `recalled` action.
 
 ## Data
-`data/*.ts` are the prototype's invented constants (CRA detail, week ledger, the runner step: `npx belay doctor`, which takes no arguments; its check result is the demo's simulation and says so, with no job number). n1's accepted proofs are
+`data/*.ts` are the prototype's invented constants (CRA detail, week ledger, the runner step: `npx afterlife doctor`, which takes no arguments; its check result is the demo's simulation and says so, with no job number). n1's accepted proofs are
 qa.file-bug's own illustrative bug filings; their count, the edited share and the section's aux text come from that class's
 record in the demo fixture (`pick.ts` reads it, `proofsAux` words it, `data/promote.test.ts` pins them). The policy MRs' commands and
 diffs are not among them: the server plans those. Titles, rungs, rules and

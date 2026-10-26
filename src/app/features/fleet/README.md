@@ -15,7 +15,7 @@ client `FleetScreen`.
   tracks. `ImprovementSection` places the project in the loop: in cycles (what they earned, link to Cycles), ready to
   start one, or to be onboarded first. `/fleet?project=<id>` (the command palette's links) redirects to `/fleet/<id>`.
 - `components/runner/` the cycle runner's strip above the table (`RunnerFleet`, collapsed `<details>`): every repo of
-  `.belay/fleet.yml` and any repo that still has runs, with its checkout and base, its newest wave in words (running, to
+  `.afterlife/fleet.yml` and any repo that still has runs, with its checkout and base, its newest wave in words (running, to
   merge, merged, not mergeable), its lanes' outcomes, tokens, spend, and the decisions it left (a link to `/needs-you`).
   `app/(app)/fleet/page.tsx` reads it with `readDesk()` (`src/server/runs/`), real local data in demo and live alike; the trust
   table below is the data source's, untouched. Read-only. The repos whose spend matched no Fleet project are counted
@@ -52,7 +52,7 @@ client `FleetScreen`.
   with the reason, or a flash in demo mode only). `/fleet` itself gets only `deepId` and the tier card's accepted counts.
 - `model/changes/` what moved since the viewer's last look: `diff.ts` digests each project (tier counts, needs you,
   failing proofs, demotions, state) and returns typed changes, never from unknown (tiers unknown then read are a first
-  read; null proofs say nothing); `baseline.ts` keeps the last look in localStorage (`belay.fleet.lastLook`) and never
+  read; null proofs say nothing); `baseline.ts` keeps the last look in localStorage (`afterlife.fleet.lastLook`) and never
   throws. `hooks/changes/useFleetChanges.ts` reads it after mount (no marks in server HTML), re-diffs each snapshot and
   takes Mark seen; a first visit takes that look as the baseline.
 

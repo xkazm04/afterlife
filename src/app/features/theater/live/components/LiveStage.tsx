@@ -9,7 +9,7 @@ import styles from '../Live.module.css';
 /** The hero: the running lane (title, elapsed, cost so far). With no wave running there is no hero, only the summary. */
 function Hero({ v }: { v: LiveView }) {
   if (v.phase === 'none') {
-    return <p className={styles.empty}>No runs yet. A wave appears here the moment the runner writes its first event to .belay/runs.</p>;
+    return <p className={styles.empty}>No runs yet. A wave appears here the moment the runner writes its first event to .afterlife/runs.</p>;
   }
   if (v.proposeOnly) {
     const n = v.proposed?.length;

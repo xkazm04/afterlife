@@ -8,7 +8,7 @@ type Params = { params: Promise<{ node: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { node } = await params;
-  return { title: `Belay Setup ${node}` };
+  return { title: `Afterlife · Setup · ${node}` };
 }
 
 export default async function SetupNodePage({ params }: Params) {

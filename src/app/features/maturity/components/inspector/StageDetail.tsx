@@ -11,8 +11,8 @@ import styles from './inspector.module.css';
 
 /** Live mode's Day 0: the rung of the first scan the index stored for the stage (no demo note stands in for it). */
 function day0Live(ctx: MaturityApi['ctx'], day0: number | null): string {
-  if (!ctx.scanned) return 'Not scanned yet: day 0 is the first scan Belay stores.';
-  return day0 == null ? 'Unknown at the first scan Belay stored.' : `${rungLabel(day0, ctx.rungNames)} at the first scan Belay stored.`;
+  if (!ctx.scanned) return 'Not scanned yet: day 0 is the first scan Afterlife stores.';
+  return day0 == null ? 'Unknown at the first scan Afterlife stored.' : `${rungLabel(day0, ctx.rungNames)} at the first scan Afterlife stored.`;
 }
 
 /** The cards of a stage page: evidence per rung, its gap (diff, then the after-merge checks), day 0, credit history. */

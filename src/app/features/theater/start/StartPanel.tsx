@@ -13,7 +13,7 @@ import styles from './start.module.css';
 
 /**
  * "Start a run": pick the repo, the mode, the branch, the size and the ideas; Preview shows the server's exact
- * `belay run ...` and what it will and will not do; Start run confirms exactly that preview, as you, and the screen goes
+ * `afterlife run ...` and what it will and will not do; Start run confirms exactly that preview, as you, and the screen goes
  * to the live film. Nothing is spelled here and nothing runs before the click. A refusal is shown with its reason.
  */
 export function StartPanel({ data }: { data: StartData }) {
@@ -32,7 +32,7 @@ export function StartPanel({ data }: { data: StartData }) {
   if (data.repos.length === 0) {
     return (
       <p className={styles.note}>
-        No fleet repo to run on{data.fleetError ? `: ${data.fleetError}` : ''}. Add one to .belay/fleet.yml, or onboard a project and save its runner block.
+        No fleet repo to run on{data.fleetError ? `: ${data.fleetError}` : ''}. Add one to .afterlife/fleet.yml, or onboard a project and save its runner block.
       </p>
     );
   }

@@ -17,7 +17,7 @@ import { liveProbes } from './liveFlow';
 import type { ArmWrites } from './useArmWrite';
 
 export interface FlowActions {
-  /** Ask GitLab through Belay's probe: the only thing that moves a step to done. */
+  /** Ask GitLab through Afterlife's probe: the only thing that moves a step to done. */
   probe: (n: number) => Promise<void>;
   /** Send the step's write as you, then probe. */
   send: (n: number) => Promise<void>;
@@ -83,7 +83,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
       const d = stepDetail(ref.current, n);
       if (pass) {
         say(`step ${n} · ${d?.probe ?? ''}`);
-        toast(`Step ${n} · verified by Belay`);
+        toast(`Step ${n} · verified by Afterlife`);
       } else {
         say(`step ${n} not yet: ${d?.failFirst ?? ''}`);
         toast(`Step ${n} · not yet. Nothing changed in GitLab.`);
@@ -97,7 +97,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
     return {
       probe,
       send: async (n) => {
-        if (ref.current.live) return tell(`Nothing sent · step ${n}: Belay does not run this step for you yet. Copy it and run it as you.`);
+        if (ref.current.live) return tell(`Nothing sent · step ${n}: Afterlife does not run this step for you yet. Copy it and run it as you.`);
         say(`sent as @you: step ${n}`);
         toast(`Sent as you · step ${n} · probing`);
         await probe(n);
@@ -115,7 +115,7 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
         const d = stepDetail(ref.current, n);
         if (!ref.current.live) toast(`Would open: ${d?.where ?? 'GitLab'}`);
         else if (d?.url) window.open(d.url, '_blank', 'noopener,noreferrer');
-        else toast(`Belay has no address for this page on ${ref.current.host}: ${d?.where ?? 'GitLab'}`);
+        else toast(`Afterlife has no address for this page on ${ref.current.host}: ${d?.where ?? 'GitLab'}`);
       },
       armSend: (id) => send(id, false),
       armCopy: (id, revert) => {
@@ -149,8 +149,8 @@ export function useSetupFlow(initial: SetupState, writes: ArmWrites): { state: S
         dispatch({ t: 'doctor-start' });
         await wait(DOCTOR_MS);
         dispatch({ t: 'doctor-end', now: Date.now(), at: clock() });
-        say(`belay doctor · ${ref.current.group} re-probed`);
-        toast(`belay doctor · ${ref.current.group} probed`);
+        say(`afterlife doctor · ${ref.current.group} re-probed`);
+        toast(`afterlife doctor · ${ref.current.group} probed`);
       },
       sayDone: (n) => live().sayDone(n),
       unsay: (n) => live().unsay(n),

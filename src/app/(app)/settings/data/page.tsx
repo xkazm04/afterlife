@@ -6,7 +6,7 @@ import { ConnectionSection } from '@/app/features/settings/sections/ConnectionSe
 import { DemoEstateSection } from '@/app/features/settings/sections/DemoEstateSection';
 import { connection } from 'next/server';
 
-export const metadata: Metadata = { title: 'Belay Settings Data & connection' };
+export const metadata: Metadata = { title: 'Afterlife · Settings · Data & connection' };
 
 // The window, heading and lede paint at once; the Connection card streams in. The demo-estate switch reads the shell.
 export default function DataSettings() {

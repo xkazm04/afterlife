@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { SettingsWindow } from '@/app/features/settings/SettingsWindow';
 import { AboutSection } from '@/app/features/settings/components/AboutSection';
 
-export const metadata: Metadata = { title: 'Belay Settings About' };
+export const metadata: Metadata = { title: 'Afterlife · Settings · About' };
 
 export default function AboutSettings() {
   return (

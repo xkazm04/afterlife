@@ -47,6 +47,6 @@ export function enrollWhyNot(g: EnrollGate, track: string): string | null {
 export function wouldWrite(c: ActionClass, start: Tier | null): string | null {
   if (cellOf(c) !== 'no_record') return null;
   const t = enrollProjection(start, c.ceiling);
-  if (t === null) return start === null ? 'start_tier was not read: Belay cannot say what an enrollment would write' : null;
+  if (t === null) return start === null ? 'start_tier was not read: Afterlife cannot say what an enrollment would write' : null;
   return `The enrollment MR would write ${TIER_META[t].name} (start_tier ${TIER_META[start!].name}, ceiling ${TIER_META[c.ceiling].name}): not granted until a person merges it`;
 }

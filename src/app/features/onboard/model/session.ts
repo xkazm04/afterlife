@@ -11,7 +11,7 @@ export interface SessionStore {
   write(key: string, value: string): void;
 }
 
-export const SESSION_KEY_PREFIX = 'belay.onboard.session.';
+export const SESSION_KEY_PREFIX = 'afterlife.onboard.session.';
 export const sessionKey = (org: string): string => `${SESSION_KEY_PREFIX}${org}`;
 
 export const browserSession: SessionStore = {

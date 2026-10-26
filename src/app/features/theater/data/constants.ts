@@ -16,11 +16,11 @@ export const WHO: Record<Actor, string> = {
   scanner: 'scanner',
   engine: 'proof engine · no model',
   deploy: 'deploy',
-  belay: 'Belay',
+  afterlife: 'Afterlife',
 };
 
 /** The short tag in the inspector's ledger list. */
-export const BY_SHORT: Partial<Record<Actor, string>> = { scanner: 'scan', engine: 'PE', deploy: 'deploy', belay: 'Belay' };
+export const BY_SHORT: Partial<Record<Actor, string>> = { scanner: 'scan', engine: 'PE', deploy: 'deploy', afterlife: 'Afterlife' };
 
 /** The storyboard cut into takes 1-8 (keys 1-8). Take 6 is the seeded !44 line. */
 export const TAKES: readonly Take[] = [

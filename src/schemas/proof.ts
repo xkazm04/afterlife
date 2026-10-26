@@ -42,7 +42,7 @@ export interface ProofBlock {
   id: string; // ULID
   class: ProofClass;
   /**
-   * head_sha: the MR head the engine read (optional for blocks written before B6). Belay compares it with the MR's head;
+   * head_sha: the MR head the engine read (optional for blocks written before B6). Afterlife compares it with the MR's head;
    * a proof for an older head is stale and is not shown as the MR's proof.
    */
   task: { flow: string; run_id: string; project_id: number; mr_iid?: number; head_sha?: string; trailer: string }; // "Belay-Task: <id>"

@@ -4,7 +4,7 @@ import type { MergeNeed } from '@/lib/runs/desk/types';
 import { readDeskAndRuns } from '@/server/runs/readDesk';
 import { connection } from 'next/server';
 
-export const metadata: Metadata = { title: 'Belay Runs' };
+export const metadata: Metadata = { title: 'Afterlife · Runs' };
 
 // Runs: read on every request, because the runner appends to these files while the page is open. The run files are
 // read once, for the desk and the screen alike.

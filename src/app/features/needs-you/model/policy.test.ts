@@ -65,7 +65,7 @@ describe('the answer to Run', () => {
 
   it('refused puts the reason where the write was, so Run has nothing to send', () => {
     const s = run(staged(), ran({ status: 'refused', reason: 'patch-bump has a supervised ceiling' }));
-    expect(s.out[0]).toMatchObject({ commands: [], note: 'Belay refuses this write: patch-bump has a supervised ceiling. Nothing can run.' });
+    expect(s.out[0]).toMatchObject({ commands: [], note: 'Afterlife refuses this write: patch-bump has a supervised ceiling. Nothing can run.' });
     expect(s.notice?.text).toBe('Refused · Re-admit patch-bump as Assisted · patch-bump has a supervised ceiling. Nothing ran.');
   });
 });

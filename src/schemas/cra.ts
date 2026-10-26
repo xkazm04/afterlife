@@ -1,4 +1,4 @@
-// EU Cyber Resilience Act reporting clock. Belay drafts; a person submits on ENISA's platform.
+// EU Cyber Resilience Act reporting clock. Afterlife drafts; a person submits on ENISA's platform.
 // Figures (24 h, 72 h, 14 days after a fix, one month after notification) come from
 // the European Commission CRA reporting guidance; reconcile against the regulation text before the video.
 // The clock starting at awareness is an assumption [A].

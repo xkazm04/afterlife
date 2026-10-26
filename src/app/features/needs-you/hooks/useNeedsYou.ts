@@ -78,7 +78,7 @@ export function useNeedsYou(demo: NeedsYouDemo): { s: NeedsState; dispatch: (a: 
     const view = latest.current.slots?.[key]?.view;
     if (view?.kind !== 'preview' || recalling.current.has(key)) return;
     recalling.current.add(key);
-    status('Asking Belay whether it ran…');
+    status('Asking Afterlife whether it ran…');
     recallAction(view.preview.previewId)
       .catch((): Recall => ({ kind: 'unknown' }))
       .then((r) => dispatchRaw({ type: 'recalled', key, recall: r }))

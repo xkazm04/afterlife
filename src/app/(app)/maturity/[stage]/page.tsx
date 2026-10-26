@@ -8,7 +8,7 @@ type Params = { params: Promise<{ stage: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { stage } = await params;
-  return { title: `Belay Maturity ${stage}` };
+  return { title: `Afterlife · Maturity · ${stage}` };
 }
 
 export default async function MaturityStagePage({ params }: Params) {

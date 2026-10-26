@@ -6,7 +6,7 @@ import { TIER_ORDER, type Tier } from '../tier';
 export const LEDGER_KINDS = ['task_started', 'proof_verdict', 'guardrail_verdict', 'tier_decision', 'merged', 'deployed', 'outcome', 'clock_event'] as const;
 export type LedgerKind = (typeof LEDGER_KINDS)[number];
 
-/** Who saw the event; ci_job: written by a Belay CI component (gate, tripwire). */
+/** Who saw the event; ci_job: written by a Afterlife CI component (gate, tripwire). */
 export const OBSERVERS = ['poll', 'flows_api', 'govern_hook', 'webhook', 'ci_job'] as const;
 export type LedgerObserver = (typeof OBSERVERS)[number];
 

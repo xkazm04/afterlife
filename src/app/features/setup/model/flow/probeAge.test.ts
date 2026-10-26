@@ -24,16 +24,16 @@ describe('probe age', () => {
     expect(isStale(s0, STALE_AFTER_MS + 1)).toBe(true);
   });
   it('says "stale" with the age once stale, and shows the probe time', () => {
-    expect(probeAgeText(s0, 5000)).toEqual({ text: 'belay doctor · probed 14:02 · 5 s ago', stale: false });
-    expect(probeAgeText(s0, 130_000)).toEqual({ text: 'belay doctor · stale · probed 14:02 · 2 m 10 s ago', stale: true });
+    expect(probeAgeText(s0, 5000)).toEqual({ text: 'afterlife doctor · probed 14:02 · 5 s ago', stale: false });
+    expect(probeAgeText(s0, 130_000)).toEqual({ text: 'afterlife doctor · stale · probed 14:02 · 2 m 10 s ago', stale: true });
   });
   it('a failed probe reads as failed, with its time and age, never as a fresh probe, and is drawn amber', () => {
-    const failed = { ...s0, doctorAt: 0, doctorProbedAt: '11:30', doctorError: 'belay doctor could not reach GitLab: network: timeout' };
-    expect(probeAgeText(failed, 5000)).toEqual({ text: 'belay doctor · probe failed 11:30 · 5 s ago', stale: true });
+    const failed = { ...s0, doctorAt: 0, doctorProbedAt: '11:30', doctorError: 'afterlife doctor could not reach GitLab: network: timeout' };
+    expect(probeAgeText(failed, 5000)).toEqual({ text: 'afterlife doctor · probe failed 11:30 · 5 s ago', stale: true });
     expect(probeAgeText(failed, 5000).text).not.toMatch(/probed 11:30/);
   });
   it('a never-probed group has no age and is not "stale"', () => {
     const s = setupReducer(s0, { t: 'pick-group', group: 'acme-sandbox' });
-    expect(probeAgeText(s, 999_999)).toEqual({ text: 'belay doctor · acme-sandbox · never probed', stale: false });
+    expect(probeAgeText(s, 999_999)).toEqual({ text: 'afterlife doctor · acme-sandbox · never probed', stale: false });
   });
 });

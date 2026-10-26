@@ -28,7 +28,7 @@ const CELLS: readonly { st: CapStatus; glyph: string; word: string }[] = [
 export const groupNote = (s: SetupState, g: string): 'probed' | 'never probed' =>
   (g === s.group ? !s.doctorNever : g === s.homeGroup) ? 'probed' : 'never probed';
 
-/** Toolbar: the GitLab group menu, the belay doctor lozenge (it lights matching capabilities), Re-probe. */
+/** Toolbar: the GitLab group menu, the doctor lozenge (it lights matching capabilities), Re-probe. */
 export function SetupToolbar() {
   const { state, view, actions } = useSetup();
   const menu = useMenu();
@@ -65,7 +65,7 @@ export function SetupToolbar() {
       </PopupButton>
       {menu.menu}
       <Spacer />
-      <Lozenge label="belay doctor">
+      <Lozenge label="afterlife doctor">
         {CELLS.map((c, i) => (
           <span key={c.st} className={styles.cell}>
             {i > 0 ? <LozengeDivider /> : null}
@@ -81,7 +81,7 @@ export function SetupToolbar() {
         ))}
       </Lozenge>
       <Spacer />
-      <ToolbarButton className={styles.probe} disabled={state.doctorBusy} title="Re-probe the group with belay doctor" onClick={() => void actions.reprobe()}>
+      <ToolbarButton className={styles.probe} disabled={state.doctorBusy} title="Re-probe the group with afterlife doctor" onClick={() => void actions.reprobe()}>
         {state.doctorBusy ? (
           <Spinner />
         ) : (

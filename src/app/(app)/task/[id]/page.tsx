@@ -12,7 +12,7 @@ type Props = Params & { searchParams: Promise<SelectionQuery & TabQuery> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Belay Task ${id}` };
+  return { title: `Afterlife · Task · ${id}` };
 }
 
 // The task opens on ?check= / ?claim= when the task holds that id, else on its verdict's first deciding check; and on the

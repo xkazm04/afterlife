@@ -10,7 +10,7 @@ describe('commandsFor (Copy Command)', () => {
     expect(commandsFor('n1', demo)).toBeNull(); // the server has not planned it yet
     const preview = { commands: [{ display: 'a' }, { display: 'b' }] } as unknown as ActionPreview;
     expect(commandsFor('n4', demo, { n4: { kind: 'preview', preview } })).toEqual(['a', 'b']);
-    expect(commandsFor('n5', demo)).toEqual(['npx belay doctor']);
+    expect(commandsFor('n5', demo)).toEqual(['npx afterlife doctor']);
   });
   it("a gap has the server's commands once planned, never a hand-written one", () => {
     expect(commandsFor('g1', demo)).toBeNull();

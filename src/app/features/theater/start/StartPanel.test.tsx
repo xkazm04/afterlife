@@ -43,14 +43,14 @@ describe('StartPanel', () => {
     expect(out).toContain('nothing runs until Start run');
   });
   it('a refusal is shown with its reason', () => {
-    round.current = { ...round.current, view: { kind: 'refused', reason: 'a belay run (pid 7) is running on grinex-portal now' } };
-    expect(renderToStaticMarkup(<StartPanel data={data} />)).toContain('Not started: a belay run (pid 7) is running on grinex-portal now. Nothing ran.');
+    round.current = { ...round.current, view: { kind: 'refused', reason: 'an afterlife run (pid 7) is running on grinex-portal now' } };
+    expect(renderToStaticMarkup(<StartPanel data={data} />)).toContain('Not started: an afterlife run (pid 7) is running on grinex-portal now. Nothing ran.');
   });
   it("a preview shows the server's exact command and its notes, and Start run is on", () => {
-    const preview = { kind: 'start-run', title: 'Propose · grinex-portal', summary: 'Plans the lanes and changes nothing.', risk: 'low', diff: [], previewId: 'p'.repeat(64), mode: 'live', notes: ['It will not run setup.'], commands: [{ display: 'belay run --repo grinex-portal --mode propose --waves 1 --lanes 6 --model sonnet', argv: [], risk: 'low' }] } as ActionPreview;
+    const preview = { kind: 'start-run', title: 'Propose · grinex-portal', summary: 'Plans the lanes and changes nothing.', risk: 'low', diff: [], previewId: 'p'.repeat(64), mode: 'live', notes: ['It will not run setup.'], commands: [{ display: 'afterlife run --repo grinex-portal --mode propose --waves 1 --lanes 6 --model sonnet', argv: [], risk: 'low' }] } as ActionPreview;
     round.current = { ...round.current, view: { kind: 'preview', preview } };
     const out = renderToStaticMarkup(<StartPanel data={data} />);
-    expect(out).toContain('belay run --repo grinex-portal --mode propose --waves 1 --lanes 6 --model sonnet');
+    expect(out).toContain('afterlife run --repo grinex-portal --mode propose --waves 1 --lanes 6 --model sonnet');
     expect(out).toContain('It will not run setup.');
     expect(out).not.toMatch(/<button[^>]*disabled=""[^>]*>Start run<\/button>/);
   });

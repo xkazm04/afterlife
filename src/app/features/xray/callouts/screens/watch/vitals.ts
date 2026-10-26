@@ -1,4 +1,4 @@
-// Vitals: a real project's measured health, from the files Afterlife collected for it (.belay/vitals/<slug>). On /vitals
+// Vitals: a real project's measured health, from the files Afterlife collected for it (.afterlife/vitals/<slug>). On /vitals
 // the parts are the list of real projects (or the Onboard call when there is none); on /vitals/<slug> the Delivery
 // table, the Refresh button and the inspector. A part that is not drawn on the page shown is skipped.
 import type { Callout, LegendEntry, ScreenRead } from '../../../model/types';
@@ -83,6 +83,6 @@ export const VITALS: readonly Callout[] = [
     kind: 'shell',
     sel: DATA_LABEL,
     title: 'Where the data comes from',
-    body: (r) => `"${r.text(DATA_LABEL)}" speaks for the demo screens. Vitals reads only what Afterlife collected for a real project, in .belay/vitals: no demo number appears here.`,
+    body: (r) => `"${r.text(DATA_LABEL)}" speaks for the demo screens. Vitals reads only what Afterlife collected for a real project, in .afterlife/vitals: no demo number appears here.`,
   },
 ];

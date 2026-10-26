@@ -25,7 +25,7 @@ function elapsed(el: Element | null): number {
 }
 
 /**
- * Entrance B, the treasure gates: two graphite leaves meet on a seam, the Belay knot their lock. The gates emerge from
+ * Entrance B, the treasure gates: two graphite leaves meet on a seam, the Afterlife knot their lock. The gates emerge from
  * the dark (0-800 ms), current runs through the filigree to the lock (300-1250), the pin is drawn in and the knot turns
  * (900-1950), the treasure's amber cracks the seam (1750-2150); at 2200 they swing out toward the viewer and the city
  * shows through (onOpen), and when they have left the frame the overlay is done (onDone, 3500). A key or a click

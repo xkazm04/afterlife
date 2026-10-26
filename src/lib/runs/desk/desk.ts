@@ -9,7 +9,8 @@ import type { BranchState, FleetFile, FleetRef, MergeNeed, ParkNeed, RunnerDesk,
 
 export const branchKey = (repo: string, branch: string): string => `${repo}\u0000${branch}`;
 
-/** The runner's wave branch (runner/git/worktree.ts). A run file naming anything else is not a wave to merge. */
+/** The runner's wave branch (runner/git/worktree.ts). A run file naming anything else is not a wave to merge.
+ *  Keeps the pre-rename `belay/` prefix: it is a branch name in every target repo already run, and run files name it. */
 export const WAVE_BRANCH = /^belay\/wave-\d+$/;
 
 /**

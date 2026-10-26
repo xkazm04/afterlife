@@ -34,7 +34,7 @@ export const STAGE_EVIDENCE: Readonly<Record<Stage, StageEvidence>> = {
         { kind: 'track', label: 'T5 medic armed by !11', ref: 'pipeline.retry · HANDS-OFF', path: '/-/merge_requests/11' },
       ],
     },
-    missing: 'Belay does not yet re-derive the test totals from the job API. Nothing in this batch would earn it.',
+    missing: 'Afterlife does not yet re-derive the test totals from the job API. Nothing in this batch would earn it.',
     day0: 'Test job on main, no run in 14 days.',
   },
   package: {
@@ -89,7 +89,7 @@ export const STAGE_EVIDENCE: Readonly<Record<Stage, StageEvidence>> = {
       2: [{ kind: 'audit event', label: 'tier.demote patch-bump', ref: '14:20 · audit events present', path: '/-/audit_events' }],
       3: [{ kind: 'pipeline', label: 'tier-gate job required on every MR', ref: 'armed by !4 · tier record per class', path: '/-/merge_requests/4' }],
     },
-    missing: 'The AI audit event report is unavailable on this instance (setup doctor), so Belay cannot re-derive agent actions from GitLab’s own record yet.',
+    missing: 'The AI audit event report is unavailable on this instance (setup doctor), so Afterlife cannot re-derive agent actions from GitLab’s own record yet.',
     day0: 'No framework, no audit retention.',
   },
 };

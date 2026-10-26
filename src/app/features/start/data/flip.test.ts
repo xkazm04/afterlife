@@ -14,7 +14,7 @@ import { probeDeps } from './probe';
 const holder = globalThis as unknown as Record<symbol, unknown>;
 const reset = (): void => {
   readyRuntime()?.scheduler?.stop();
-  for (const k of ['starting', 'ready', 'failed', 'restarting', 'restarted']) delete holder[Symbol.for(`belay.liveRuntime.${k}`)];
+  for (const k of ['starting', 'ready', 'failed', 'restarting', 'restarted']) delete holder[Symbol.for(`afterlife.liveRuntime.${k}`)];
 };
 
 let dir = '';
@@ -23,8 +23,8 @@ beforeEach(() => {
   clearSetupWrites();
   dir = mkdtempSync(path.join(tmpdir(), 'afterlife-flip-'));
   vi.stubEnv('AFTERLIFE_DATA_DIR', dir);
-  vi.stubEnv('BELAY_GITLAB', 'fake');
-  vi.stubEnv('BELAY_MODE', '');
+  vi.stubEnv('AFTERLIFE_GITLAB', 'fake');
+  vi.stubEnv('AFTERLIFE_MODE', '');
   vi.stubEnv('AFTERLIFE_MODE', '');
   vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 });

@@ -34,7 +34,7 @@ export interface TraceFacts {
   mode: 'demo' | 'live';
   fake: boolean;
   groupId: string;
-  /** AFTERLIFE_GROUP_ID (or BELAY_GROUP_ID) was set (otherwise the default group id is in use). */
+  /** AFTERLIFE_GROUP_ID (or its pre-rename name, read by envOf) was set (otherwise the default group id is in use). */
   groupSet: boolean;
   host: string;
   /** Why Trace stands in for the app: live before the first poll, or a group with no project. */

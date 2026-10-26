@@ -16,7 +16,7 @@ export async function GET(): Promise<Response> {
   try {
     return Response.json(loadLivePayload(), { headers: NO_STORE });
   } catch (e) {
-    console.error(`belay: /api/runs could not read the runs: ${messageOf(e)}`);
+    console.error(`afterlife: /api/runs could not read the runs: ${messageOf(e)}`);
     return Response.json({ error: 'runs unreadable' }, { status: 503, headers: NO_STORE });
   }
 }

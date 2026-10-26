@@ -27,7 +27,7 @@ describe('the exact-text blocks render no hidden control character', () => {
     ['UntrustedText', <UntrustedText key="u" source="agent">{`Mark it ${RLO}dessap`}</UntrustedText>],
     ['DiffBlock', <DiffBlock key="d" lines={[['+', `tier: ${RLO}desivrepus`]]} />],
     // the header names the file or branch the write lands on (a live MR's branch is agent-chosen text)
-    ['DiffBlock file', <DiffBlock key="f" file={`belay/${RLO}lmy.ic`} lines={[[' ', 'x']]} />],
+    ['DiffBlock file', <DiffBlock key="f" file={`afterlife/${RLO}lmy.ic`} lines={[[' ', 'x']]} />],
     ['CommandBlock code', <CommandBlock key="c" commands={[`glab mr merge${ZWSP} 12`]} />],
     ['CommandBlock note', <CommandBlock key="n" commands={[{ code: 'x', note: `# as ${RLO}you` }]} />],
   ])('%s', (_name, el) => {

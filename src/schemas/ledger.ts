@@ -1,4 +1,4 @@
-// Append-only, hash-chained ledger: tamper-evident, not third-party anchored. Every Belay screen
+// Append-only, hash-chained ledger: tamper-evident, not third-party anchored. Every Afterlife screen
 // is a view over it, which is also what makes a demo take replayable.
 import { createHash } from 'node:crypto';
 import type { EnvironmentTier, GuardrailVerdict, LedgerKind, LedgerObserver, LedgerSubjectType, LedgerWould, WithdrawnGrant } from './chain/kinds';
@@ -25,7 +25,7 @@ export interface LedgerEvent {
   tier_at_time: Tier;
   subject: { project_id: number; type: LedgerSubjectType; iid: number };
   payload_ref: string; // path to the Proof Block / trace in belay-ledger
-  observed_by: LedgerObserver; // ci_job: written by a Belay CI component (gate, tripwire)
+  observed_by: LedgerObserver; // ci_job: written by a Afterlife CI component (gate, tripwire)
   /**
    * guardrail_verdict only: the verdict, pass or block. Absent on every other kind and on an event written before the gate
    * stated it. When absent the key is absent, never null: canonical() would hash a null, and an event without a verdict

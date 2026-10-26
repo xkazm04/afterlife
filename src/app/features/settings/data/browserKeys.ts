@@ -1,4 +1,4 @@
-// What Belay keeps in this browser's localStorage, for the About page. Plain data; each key is the constant its module
+// What Afterlife keeps in this browser's localStorage, for the About page. Plain data; each key is the constant its module
 // stores under, and browserKeys.test.ts fails when a module stores under a key this list does not show.
 import { QUALITY_KEY } from '../../door/model/fit';
 import { BASELINE_KEY } from '../../fleet/model/changes/baseline';

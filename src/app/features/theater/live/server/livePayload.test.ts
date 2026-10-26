@@ -10,7 +10,7 @@ afterEach(() => root && rmSync(root, { recursive: true, force: true, maxRetries:
 
 describe('loadLivePayload', () => {
   it('is readRuns()\'s data plus the newest wave\'s meta', () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-live-'));
+    root = mkdtempSync(join(tmpdir(), 'afterlife-live-'));
     const dir = join(root, 'runs', 'alpha');
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, '1.jsonl'), WAVE_1.join('\n'));
@@ -22,7 +22,7 @@ describe('loadLivePayload', () => {
   });
 
   it('no runs directory: empty, with a clock', () => {
-    root = mkdtempSync(join(tmpdir(), 'belay-live-'));
+    root = mkdtempSync(join(tmpdir(), 'afterlife-live-'));
     expect(loadLivePayload(root)).toMatchObject({ repos: [], meta: {} });
   });
 });

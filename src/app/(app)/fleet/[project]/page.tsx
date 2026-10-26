@@ -10,7 +10,7 @@ type Params = { params: Promise<{ project: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { project } = await params;
-  return { title: `Belay Fleet ${project}` };
+  return { title: `Afterlife · Fleet · ${project}` };
 }
 
 export default async function FleetProjectPage({ params }: Params) {

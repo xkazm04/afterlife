@@ -4,7 +4,7 @@ import { loadOnboardData } from '@/app/features/onboard/data/loadOnboardData';
 import { OnboardScreen } from '@/app/features/onboard/OnboardScreen';
 import { connection } from 'next/server';
 
-export const metadata: Metadata = { title: 'Belay Onboard' };
+export const metadata: Metadata = { title: 'Afterlife · Onboard' };
 
 type Search = { searchParams: Promise<{ [key: string]: string | string[] | undefined }> };
 

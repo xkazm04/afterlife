@@ -38,7 +38,7 @@ export function InspectorGallery() {
           commands={[
             { note: '# 1 · one commit, as you' },
             { code: 'glab api --method POST "projects/acme/repository/commits" \\' },
-            { code: '  --input belay-gap-G-12.commit.json', note: '# branch belay/gap-12' },
+            { code: '  --input gap-G-12.commit.json', note: '# branch belay/gap-12' },
           ]}
           prompt={false}
         />

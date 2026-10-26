@@ -62,7 +62,7 @@ export function commitChanges(classes: readonly ClassRow[], ledger: readonly Led
     }),
     ledger: [
       ...ledger,
-      { at, t, ids: [...to.keys()], actor: 'you', where: 'Belay, on your key', kind: 'you', isNew: true, text: commitText(sha, rows), ...(sent.simulated ? { chip: 'simulated' as const } : {}) },
+      { at, t, ids: [...to.keys()], actor: 'you', where: 'Afterlife, on your key', kind: 'you', isNew: true, text: commitText(sha, rows), ...(sent.simulated ? { chip: 'simulated' as const } : {}) },
     ],
     head: { sha: sha ?? '?', by: 'you' },
   };

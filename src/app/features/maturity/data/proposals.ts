@@ -39,7 +39,7 @@ const PROPOSAL_G2: ProposalExtra = {
 };
 
 const PROPOSAL_G4: ProposalExtra = {
-  invite: 'Worth exploring first: Belay could probe the alert integration before proposing anything, because nothing here can tell a quiet service from a broken pipe.',
+  invite: 'Worth exploring first: Afterlife could probe the alert integration before proposing anything, because nothing here can tell a quiet service from a broken pipe.',
   workItem: '#134',
   branch: null,
   kind: 'probe',
