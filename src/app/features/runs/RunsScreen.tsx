@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Reveal, Unread } from '@/components/shell/host';
 import { Window } from '@/components/shell/Window';
 import { MergePanel } from './components/MergePanel';
 import { RunsEmpty } from './components/RunsEmpty';
@@ -10,26 +11,52 @@ import type { MergeNeed } from '@/lib/runs/desk/types';
 import type { RunsData } from '@/lib/runs/types';
 import styles from './RunsScreen.module.css';
 
+export interface RunsScreenProps {
+  /** The runs; absent until read (the frame paints with dashes), or when `runsError` says why it could not be. */
+  data?: RunsData;
+  runsError?: string;
+  merges?: readonly MergeNeed[];
+  /** The desk's merges are still being read: a mergeable wave's card says so instead of guessing commands. */
+  mergesPending?: boolean;
+  fleetError?: string;
+}
+
+const subtitleOf = (data: RunsData | undefined): string => {
+  if (!data) return '—';
+  if (data.repos.length === 0) return 'no runs yet';
+  return `${data.totals.waves} wave${data.totals.waves === 1 ? '' : 's'}`;
+};
+
 /**
  * Runs: what the runner did, read from .belay/runs (real local files, demo and live alike). Repos, their waves, a wave's
  * lanes on Enter. A mergeable wave shows the commands to take it; nothing here writes. `fleetError`: why an invalid
- * .belay/fleet.yml did not read (absent when the file is fine or missing).
+ * .belay/fleet.yml did not read (absent when the file is fine or missing). Before the runs are read the window, the
+ * totals strip (dashes) and the table's place are drawn, so nothing moves when they land.
  */
-export function RunsScreen({ data, merges, fleetError }: { data: RunsData; merges?: readonly MergeNeed[]; fleetError?: string }) {
+export function RunsScreen({ data, runsError, merges, mergesPending = false, fleetError }: RunsScreenProps) {
   const [selected, setSelected] = useState<string | null>(null);
-  const wave = data.repos.flatMap((r) => r.waves).find((w) => waveId(w) === selected);
-  const empty = data.repos.length === 0;
+  const wave = data?.repos.flatMap((r) => r.waves).find((w) => waveId(w) === selected);
+  const empty = data !== undefined && data.repos.length === 0;
+  const status = !data ? <Unread label="runs not read yet" /> : empty ? 'No runs in .belay/runs' : 'Enter or double-click a wave to open its lanes';
   return (
-    <Window title="Runs" subtitle={empty ? 'no runs yet' : `${data.totals.waves} wave${data.totals.waves === 1 ? '' : 's'}`} status={empty ? 'No runs in .belay/runs' : 'Enter or double-click a wave to open its lanes'}>
+    <Window title="Runs" subtitle={subtitleOf(data)} status={status}>
       <div className={styles.pane}>
-        <RunsHeader data={data} />
-        {wave ? <MergePanel w={wave} needs={merges} fleetError={fleetError} /> : null}
-        {empty ? (
-          <RunsEmpty skippedLines={data.skippedLines} />
+        <Reveal order={1} slice="runs">
+          <RunsHeader data={data} />
+        </Reveal>
+        {wave ? <MergePanel w={wave} needs={merges} fleetError={fleetError} pending={mergesPending} /> : null}
+        {runsError ? (
+          <p className={styles.empty} role="alert">
+            The runs could not be read: {runsError}.
+          </p>
+        ) : empty ? (
+          <Reveal order={2} slice="runs">
+            <RunsEmpty skippedLines={data.skippedLines} />
+          </Reveal>
         ) : (
-          <div className={styles.table}>
-            <RunsTable repos={data.repos} selected={selected} onSelect={setSelected} />
-          </div>
+          <Reveal order={2} slice="runs" className={styles.table}>
+            {data ? <RunsTable repos={data.repos} selected={selected} onSelect={setSelected} /> : null}
+          </Reveal>
         )}
       </div>
     </Window>

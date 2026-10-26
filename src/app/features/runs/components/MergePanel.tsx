@@ -1,4 +1,5 @@
 import { CommandBlock } from '@/components/inspector/CommandBlock';
+import { Unread } from '@/components/shell/host';
 import { mergeCommands } from '@/lib/runs/desk/desk';
 import type { MergeNeed } from '@/lib/runs/desk/types';
 import type { RunWave } from '@/lib/runs/types';
@@ -9,9 +10,23 @@ import styles from './MergePanel.module.css';
  * Belay merges and pushes nothing. `needs` is the desk's merge decisions; given, a mergeable wave without one is
  * already in its base (or its branch is gone), a quiet note in the same frame. Without it, the commands name the slug.
  * `fleetError`: .belay/fleet.yml is there but invalid (in its own words), said instead of "not in fleet.yml".
+ * `pending`: the desk is still being read (git, up to seconds): the card and its title, a dash where the commands go.
  */
-export function MergePanel({ w, needs, fleetError }: { w: RunWave; needs?: readonly MergeNeed[]; fleetError?: string }) {
+export function MergePanel({ w, needs, fleetError, pending = false }: { w: RunWave; needs?: readonly MergeNeed[]; fleetError?: string; pending?: boolean }) {
   if (!w.mergeable || !w.branch) return null;
+  if (pending) {
+    return (
+      <section className={styles.card} aria-label={`Wave ${w.wave} of ${w.repo} is mergeable`} aria-busy="true">
+        <h2 className={styles.title}>
+          Wave {w.wave} of {w.repo} is mergeable
+        </h2>
+        <p className={styles.lead}>Run these yourself to take it. Belay merges and pushes nothing.</p>
+        <p className={styles.note}>
+          Asking git whether it is in already: <Unread label="merge commands not read yet" />
+        </p>
+      </section>
+    );
+  }
   const need = needs?.find((n) => n.repo === w.repo && n.wave === w.wave);
   if (needs && !need) {
     return (
