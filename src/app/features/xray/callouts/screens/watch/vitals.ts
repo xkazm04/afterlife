@@ -56,7 +56,7 @@ export const VITALS: readonly Callout[] = [
   {
     id: 'onboard',
     kind: 'activity',
-    sel: 'main a[href="/onboard"]',
+    sel: 'main a[href="/start"]',
     title: 'Onboard a project',
     body: () => 'Pick a repo you work in with Claude Code; Afterlife proposes what to watch and saves only what its probes confirm.',
     try: 'Click it',

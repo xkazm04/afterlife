@@ -1,0 +1,126 @@
+/* ChatDrawer: the right side of the content pane, over the stage; turns, the thinking state, the composer. */
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: min(calc(380px * var(--ui-scale)), 92%);
+  border-left: 1px solid var(--border-2);
+  background: var(--chrome);
+  box-shadow: calc(-12px * var(--ui-scale)) 0 calc(24px * var(--ui-scale)) var(--shade-35);
+  animation: slide-in var(--t-med) var(--ease) both;
+}
+@keyframes slide-in {
+  from {
+    transform: translateX(calc(24px * var(--ui-scale)));
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer {
+    animation: none;
+  }
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border-bottom: 1px solid var(--sep);
+}
+.h {
+  margin: 0;
+  font-size: var(--t-body);
+  font-weight: 650;
+  color: var(--text-1);
+}
+.turns {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ui-scale));
+  margin: 0;
+  padding: calc(12px * var(--ui-scale));
+  overflow-y: auto;
+  list-style: none;
+}
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6px * var(--ui-scale));
+}
+.you {
+  align-self: flex-end;
+  max-width: 85%;
+  margin: 0;
+  padding: calc(6px * var(--ui-scale)) calc(10px * var(--ui-scale));
+  border-radius: var(--r-md);
+  background: var(--sel-dim);
+  color: var(--text-1);
+  font-size: var(--t-body);
+}
+.thinking {
+  font: var(--t-small) var(--mono);
+  color: var(--accent);
+}
+.error {
+  margin: 0 calc(12px * var(--ui-scale));
+  font-size: var(--t-small);
+  color: var(--fail);
+}
+.card {
+  display: flex;
+  align-items: center;
+  gap: calc(10px * var(--ui-scale));
+  padding: calc(8px * var(--ui-scale)) calc(10px * var(--ui-scale));
+  border: 1px solid var(--border-3);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+.cardMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.cardTitle {
+  font-weight: 600;
+  color: var(--text-1);
+}
+.cardFields {
+  font: var(--t-small) var(--mono);
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(8px * var(--ui-scale));
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border-top: 1px solid var(--sep);
+}
+.input {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  padding: calc(6px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--surface-sunk);
+  color: var(--text-1);
+  font: var(--t-body) var(--sys);
+}
+.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

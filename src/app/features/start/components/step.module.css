@@ -1,0 +1,91 @@
+/* StepBody and CheckingLine: a step's one line, what checks now, its controls, Run it / Copy, and the folded detail. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ui-scale));
+  min-width: 0;
+}
+.line {
+  margin: 0;
+  font-size: calc(var(--t-body) + 1px);
+  line-height: 1.45;
+  color: var(--text-1);
+}
+.body[data-state="blocked"] .line {
+  color: var(--fail);
+}
+.body[data-state="todo"] .line {
+  color: var(--text-3);
+}
+.checking {
+  margin: 0;
+  font: var(--t-small) var(--mono);
+  color: var(--accent);
+}
+.slow {
+  color: var(--text-2);
+}
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+}
+.acts:empty {
+  display: none;
+}
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--ui-scale));
+}
+.input {
+  width: calc(180px * var(--ui-scale));
+  height: var(--ctl-h);
+  padding: 0 calc(8px * var(--ui-scale));
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--surface-sunk);
+  color: var(--text-1);
+  font: var(--t-small) var(--mono);
+}
+.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.dim {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.what {
+  font-size: var(--t-small);
+  color: var(--text-3);
+}
+.what summary {
+  cursor: pointer;
+  color: var(--text-2);
+}
+.what[open] summary {
+  margin-bottom: calc(6px * var(--ui-scale));
+}
+.caps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(220px * var(--ui-scale)), 1fr));
+  gap: calc(4px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  margin: calc(6px * var(--ui-scale)) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-2);
+}
+.caps li[data-status="available"] > span:first-child {
+  color: var(--ok);
+}
+.caps li[data-status="unavailable"] > span:first-child {
+  color: var(--fail);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(6px * var(--ui-scale));
+}

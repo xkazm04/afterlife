@@ -33,7 +33,7 @@ export function VitalsEmpty() {
         Vitals measures a real production app: its CI stage times per variant, its production signals and every adjustment an agent claims. Pick a repo you already
         work in with Claude Code; Afterlife proposes what to watch and saves only what its probes confirm.
       </p>
-      <Button variant="primary" href="/onboard">
+      <Button variant="primary" href="/start">
         Onboard a project
       </Button>
     </div>

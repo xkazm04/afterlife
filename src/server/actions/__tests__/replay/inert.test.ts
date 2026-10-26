@@ -25,7 +25,7 @@ const { verifyArmAction } = await import('../../arm/verifyAction');
 const { rereadSetupAction } = await import('@/server/data/setup/rereadAction');
 const { refreshVitals } = await import('@/app/features/vitals/data/actions');
 const { measureLocalAction, measurePassiveAction } = await import('@/app/features/vitals/data/remeasure');
-const { saveWrites } = await import('@/app/features/onboard/wizard/data/writes');
+const { saveWrites } = await import('@/app/features/start/actions/writes');
 const { register } = await import('@/instrumentation');
 const { actionDeps } = await import('../../deps');
 

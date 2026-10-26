@@ -47,7 +47,13 @@ export interface TraceFacts {
   projects: number | null;
 }
 
-export type ProbeAnswer = { status: 'read'; read: TraceRead } | { status: 'refused'; reason: string };
+/** /start's facts: Trace's, which name set each value (src/server/env sourceOf), and the server's platform (the install). */
+export interface StartFacts extends TraceFacts {
+  sources: Record<'group' | 'mode' | 'host', 'env' | 'setting' | 'unset'>;
+  platform: 'windows' | 'macos' | 'linux';
+}
+
+export type ProbeAnswer ={ status: 'read'; read: TraceRead } | { status: 'refused'; reason: string };
 
 /** GET /api/start/probe streams these, one JSON object per line (application/x-ndjson), in order. */
 export type ProbeEvent =

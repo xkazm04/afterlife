@@ -32,7 +32,7 @@ export function ProductionBand({ rows, cloud, selected, onSelect, onActivate }: 
     return (
       <Band id="production" title="Production" aux="not connected">
         <BandEmpty>
-          No cloud telemetry is connected for this project, so Afterlife has no production signal to show. <Link href="/onboard">Connect App Insights in Onboard ›</Link>
+          No cloud telemetry is connected for this project, so Afterlife has no production signal to show. <Link href="/start">Connect App Insights in Set up ›</Link>
         </BandEmpty>
       </Band>
     );

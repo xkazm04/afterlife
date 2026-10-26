@@ -11,9 +11,9 @@ describe('demo estate', () => {
   it('auto is on with no real project and off once one exists; on and off force it', () => {
     expect([estateOf('auto', 0).demo, estateOf('auto', 1).demo, estateOf('on', 3).demo, estateOf('off', 0).demo]).toEqual([true, false, true, false]);
   });
-  it('off: the nav keeps the real tools (Vitals, Onboard, Trace, Runs) and hides every demo screen', () => {
-    expect(shown('auto', 1)).toEqual(['vitals', 'onboard', 'trace', 'runs']);
-    expect(shown('off', 0)).toEqual(['vitals', 'onboard', 'trace', 'runs']);
+  it('off: the nav keeps the real tools (Vitals, Set up, Runs) and hides every demo screen', () => {
+    expect(shown('auto', 1)).toEqual(['vitals', 'start', 'runs']);
+    expect(shown('off', 0)).toEqual(['vitals', 'start', 'runs']);
   });
   it('on, or not read yet: every screen', () => {
     expect(shown('on', 2)).toEqual(APP_NAV.map((e) => e.key));

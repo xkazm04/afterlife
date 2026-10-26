@@ -1,4 +1,4 @@
-// The app navigation: thirteen screens plus Settings at the bottom. Pure data and one pure matcher.
+// The app navigation: twelve screens plus Settings at the bottom. Pure data and one pure matcher.
 import type { IconName } from '@/components/icons/glyphs';
 
 export interface NavEntry {
@@ -8,6 +8,8 @@ export interface NavEntry {
   icon: IconName;
   /** Show the number of decisions waiting for the operator as a badge. */
   needsYouBadge?: boolean;
+  /** Older paths whose sub-paths still live under this entry (/onboard/estate is Set up's demo estate). */
+  also?: readonly string[];
 }
 
 export const APP_NAV: readonly NavEntry[] = [
@@ -19,9 +21,8 @@ export const APP_NAV: readonly NavEntry[] = [
   { key: 'maturity', href: '/maturity', label: 'Maturity', icon: 'maturity' },
   { key: 'cycles', href: '/cycles', label: 'Cycles', icon: 'cycles' },
   { key: 'task', href: '/task', label: 'Task', icon: 'task' },
-  { key: 'onboard', href: '/onboard', label: 'Onboard', icon: 'onboard' },
+  { key: 'start', href: '/start', label: 'Set up', icon: 'onboard', also: ['/onboard'] },
   { key: 'setup', href: '/setup', label: 'Setup', icon: 'setup' },
-  { key: 'trace', href: '/trace', label: 'Trace', icon: 'probe' },
   { key: 'theater', href: '/theater', label: 'Theater', icon: 'theater' },
   { key: 'runs', href: '/runs', label: 'Runs', icon: 'runs' },
 ];
@@ -33,7 +34,8 @@ export const ALL_NAV: readonly NavEntry[] = [...APP_NAV, SETTINGS_NAV];
 
 /** The nav entry a pathname is in: every entry owns its sub-paths; "/" (the front door) is none of them. */
 export function navEntryFor(pathname: string): NavEntry | null {
-  return ALL_NAV.find((e) => pathname === e.href || pathname.startsWith(`${e.href}/`)) ?? null;
+  const under = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  return ALL_NAV.find((e) => under(e.href) || e.also?.some(under)) ?? null;
 }
 
 /** Which nav item is current for a pathname. */

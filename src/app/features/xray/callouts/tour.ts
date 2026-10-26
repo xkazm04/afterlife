@@ -6,14 +6,13 @@ import { CYCLES } from './screens/decide/cycles';
 import { TASK } from './screens/decide/task';
 import { FLEET } from './screens/watch/fleet';
 import { MONITOR } from './screens/watch/monitor';
-import { ONBOARD } from './screens/watch/onboard';
 import { RUNS } from './screens/watch/runs';
 import { VITALS } from './screens/watch/vitals';
 import { LADDER } from './screens/trust/ladder';
 import { MATURITY } from './screens/trust/maturity';
 import { SETUP } from './screens/trust/setup';
+import { START } from './screens/trust/start';
 import { THEATER } from './screens/trust/theater';
-import { TRACE } from './screens/trust/trace';
 
 /** Keyed by APP_NAV key. A nav entry with no callouts here is simply not on the tour. */
 export const CALLOUTS: Record<string, readonly Callout[]> = {
@@ -25,9 +24,8 @@ export const CALLOUTS: Record<string, readonly Callout[]> = {
   maturity: MATURITY,
   cycles: CYCLES,
   task: TASK,
-  onboard: ONBOARD,
+  start: START,
   setup: SETUP,
-  trace: TRACE,
   theater: THEATER,
   runs: RUNS,
 };

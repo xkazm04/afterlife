@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // The submission film is recorded from the running app (npm run dev), so no Next badge may sit on screen.
   devIndicators: false,
+  // /trace and /onboard became /start (the one setup wizard); old links and bookmarks land there, the query kept
+  // (?rehearse=not-ready). Exact paths only: /onboard/estate stays the demo estate.
+  async redirects() {
+    return [
+      { source: '/trace', destination: '/start', permanent: true },
+      { source: '/onboard', destination: '/start', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

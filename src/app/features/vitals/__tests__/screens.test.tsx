@@ -20,7 +20,7 @@ describe('/vitals, the list', () => {
   it('no project: says so and calls to Onboard', () => {
     const out = renderToStaticMarkup(<VitalsListScreen projects={[]} now={NOW} />);
     expect(out).toContain('No real project yet');
-    expect(out).toContain('href="/onboard"');
+    expect(out).toContain('href="/start"');
     expect(out).not.toContain('Real projects');
   });
   it('lists each real project: name, root, host, CI, cloud, last collected, runs stored', () => {
@@ -52,7 +52,7 @@ describe('/vitals/[project]', () => {
   it('no cloud: the production band says it is not connected and links to Onboard', () => {
     const out = body(buildView(NO_CLOUD, RUNS, [], ADJUSTMENTS, MARKERS, NOW));
     expect(out).toContain('No cloud telemetry is connected');
-    expect(out).toContain('href="/onboard"');
+    expect(out).toContain('href="/start"');
     expect(out).not.toContain('aria-label="Production signals"');
   });
   it('no adjustments: the band names belay report', () => {

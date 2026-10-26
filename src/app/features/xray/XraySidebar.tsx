@@ -21,7 +21,7 @@ export function XraySidebar() {
   return (
     <SidebarSection title={firstRun ? 'First run' : 'Help'} aux={firstRun ? `${done} / ${TOUR.length} seen` : undefined}>
       <SidebarItem icon={<Icon name="search" />} label={x.on ? 'Hide the X-ray' : 'X-ray this screen'} count="X" onClick={() => xrayStore.toggle()} />
-      <SidebarItem icon={<Icon name="probe" />} label="Set up my first project" href="/trace" current={here === 'trace'} />
+      <SidebarItem icon={<Icon name="probe" />} label="Set up my first project" href="/start" current={here === 'start'} />
     </SidebarSection>
   );
 }

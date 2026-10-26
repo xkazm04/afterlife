@@ -2,7 +2,7 @@
 // `?rehearse=not-ready` judges the live node as the rehearsal shows it. connection() first: the environment is the
 // running server's, never the build's.
 import { connection } from 'next/server';
-import { runTraceProbe } from '@/app/features/trace/data/probe';
+import { runTraceProbe } from '@/app/features/start/gate/traceProbe';
 
 export async function GET(req: Request): Promise<Response> {
   await connection();
