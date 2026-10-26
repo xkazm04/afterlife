@@ -1,5 +1,9 @@
-// trace's slices for the screen stream (GET /api/screen/<key>, docs/features/screen-host.md). Empty until W4 converts the
-// module: a key with no loader answers 404, and the host does not claim it.
-import type { ModuleLoaders } from '@/app/features/screens/types';
+// Trace's slice for the screen stream (GET /api/screen/trace): `facts`, what the server knows without probing GitLab
+// (its environment and the live gate: in memory). `?rehearse=not-ready` rides in the query. The probe itself stays
+// GET /api/trace, run by the screen.
+import { ok, type ModuleLoaders } from '@/app/features/screens/types';
+import { loadTraceFacts } from '../data/facts';
 
-export const loaders: ModuleLoaders = {};
+export const loaders: ModuleLoaders = {
+  trace: { slices: { facts: ({ search }) => ok(loadTraceFacts(search.get('rehearse') === 'not-ready')) } },
+};

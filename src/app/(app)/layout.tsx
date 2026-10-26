@@ -7,8 +7,9 @@ import { ScreenHost } from '@/components/shell/host/ScreenHost';
 
 // Every windowed screen shares one frame: the backdrop, the window box and the sidebar mount here once, so navigating
 // between screens keeps the sidebar (and whether it is hidden); each screen's Window fills the right column. The frame
-// carries the onboarding: the X-ray over the window and the sidebar's first-run section. The gate covers the column with
-// Trace while live mode has nothing to show (before the first poll, or an empty group); otherwise it draws nothing.
+// carries the onboarding: the X-ray over the window and the sidebar's first-run section. The gate (a client component
+// that follows the shell's read) covers the column with Trace while live mode has nothing to show (before the first poll,
+// or an empty group); otherwise it draws nothing.
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     // The X-ray reads the pathname (request data): behind Suspense, so the frame itself stays in the static shell.

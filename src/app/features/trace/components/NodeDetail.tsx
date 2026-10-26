@@ -3,6 +3,7 @@
 import { writeClip } from '@/lib/clipboard/copyCommand';
 import { useState } from 'react';
 import { Button } from '@/components/controls/Button';
+import { Unread } from '@/components/shell/host';
 import { CommandBlock, type CommandLine } from '@/components/inspector/CommandBlock';
 import { nodeOf } from '../model/nodes';
 import type { CapRow, NodeKey, NodeRead, TraceFacts } from '../model/types';
@@ -15,20 +16,21 @@ const plain = (lines: readonly CommandLine[]): string =>
 
 /**
  * The selected node, as the wire's tab panel: what the re-check reads, what it saw and when, the exact command to copy
- * (Afterlife never runs it), and whether the server must restart. The doctor's node lists its eleven rows.
+ * (Afterlife never runs it), and whether the server must restart. The doctor's node lists its eleven rows. Before the
+ * server's facts are read (`facts` absent) the command, which names the host and group, is a dash.
  */
 export function NodeDetail({ id, node, read, facts, caps, at, checking, onRecheck }: {
   id: string;
   node: NodeKey;
   read: NodeRead;
-  facts: TraceFacts;
+  facts?: TraceFacts;
   caps: CapRow[] | null;
   at: string | null;
   checking: boolean;
   onRecheck: () => void;
 }) {
   const n = nodeOf(node);
-  const lines = n.commands({ host: facts.host, groupId: facts.groupId });
+  const lines = facts ? n.commands({ host: facts.host, groupId: facts.groupId }) : [];
   const text = plain(lines);
   const [copied, setCopied] = useState(false);
   const copy = () => {
@@ -43,7 +45,13 @@ export function NodeDetail({ id, node, read, facts, caps, at, checking, onRechec
           {at ? <span className={styles.at}> · probed {at}</span> : null}
         </p>
         <p className={styles.probe}>Re-check reads: {n.probe}.</p>
-        <CommandBlock commands={lines} label={`Command for ${n.title}`} />
+        {facts ? (
+          <CommandBlock commands={lines} label={`Command for ${n.title}`} />
+        ) : (
+          <p className={styles.probe}>
+            Command: <Unread label="the server's host and group not read yet" />
+          </p>
+        )}
         <div className={styles.row}>
           {text ? (
             <Button variant="ghost" onClick={copy} onBlur={() => setCopied(false)}>

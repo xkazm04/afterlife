@@ -63,8 +63,12 @@ export function firstOpen(nodes: Record<NodeKey, NodeRead>, order: readonly Node
   return order.find((k) => nodes[k].state !== 'pass') ?? order[order.length - 1] ?? 'glab';
 }
 
-/** Before any probe: what the server knows alone (the live node), the rest not probed yet. */
-export function unprobed(f: TraceFacts): Record<NodeKey, NodeRead> {
+/**
+ * Before any probe: what the server knows alone (the live node), the rest not probed yet. Before the server's facts are
+ * read (`f` absent) the live node is unknown too, its line a dash.
+ */
+export function unprobed(f?: TraceFacts): Record<NodeKey, NodeRead> {
   const u: NodeRead = { state: 'unknown', line: 'not probed yet: press Re-check' };
-  return { glab: u, login: u, group: u, live: liveNode(f), doctor: u, setup: wait('waits for every node before it') };
+  const live: NodeRead = f ? liveNode(f) : { state: 'unknown', line: '—' };
+  return { glab: u, login: u, group: u, live, doctor: u, setup: wait('waits for every node before it') };
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { firstOpen, unprobed } from '../model/judge';
 import { NODES } from '../model/nodes';
@@ -23,12 +22,16 @@ export interface TraceView {
 }
 
 /**
- * The wire's state: the server's facts first (only the live node is known without a probe), then each Re-check's answer.
- * The probe runs once on arrival, as the doctor does when Setup loads. When Trace stands in for the app (live, not
- * ready) and the live node passes, the page is refreshed so the app it stood in for comes back.
+ * The wire's state: the server's facts first (only the live node is known without a probe; a dash until they are read),
+ * then each Re-check's answer. The probe runs once on arrival, as the doctor does when Setup loads, without waiting for
+ * the facts (`rehearse` comes from the URL). When Trace stands in for the app (live, not ready) and the live node
+ * passes, `onLive` brings the app back (the screen re-reads, and so does the shell its gate follows).
  */
-export function useTrace(facts: TraceFacts): TraceView {
-  const router = useRouter();
+export function useTrace(facts: TraceFacts | undefined, rehearse: boolean, onLive?: () => void): TraceView {
+  const latest = useRef({ facts, onLive });
+  useEffect(() => {
+    latest.current = { facts, onLive };
+  });
   const [read, setRead] = useState<TraceRead | null>(null);
   const [refused, setRefused] = useState<string | null>(null);
   const [round, setRound] = useState(0);
@@ -38,7 +41,7 @@ export function useTrace(facts: TraceFacts): TraceView {
 
   const recheck = useCallback(() => {
     setChecking(true);
-    fetch(`/api/trace${facts.rehearsal ? '?rehearse=not-ready' : ''}`, { cache: 'no-store' })
+    fetch(`/api/trace${rehearse ? '?rehearse=not-ready' : ''}`, { cache: 'no-store' })
       .then((r) => r.json() as Promise<ProbeAnswer>)
       .then((a) => {
         if (a.status === 'refused') {
@@ -49,11 +52,12 @@ export function useTrace(facts: TraceFacts): TraceView {
         setRead(a.read);
         setRound((r) => r + 1);
         setPicked(null);
-        if (facts.gate && !facts.rehearsal && a.read.nodes.live.state === 'pass') router.refresh();
+        const f = latest.current.facts;
+        if (f?.gate && !f.rehearsal && a.read.nodes.live.state === 'pass') latest.current.onLive?.();
       })
       .catch((e: unknown) => setRefused(`the server did not answer: ${e instanceof Error ? e.message : String(e)}`))
       .finally(() => setChecking(false));
-  }, [facts.gate, facts.rehearsal, router]);
+  }, [rehearse]);
 
   useEffect(() => {
     if (ran.current) return;
