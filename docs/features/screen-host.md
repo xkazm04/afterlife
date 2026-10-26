@@ -203,3 +203,34 @@ about 20 ms before the 780 KB estate line. A production build (static shell from
   wizard's proposal) must not abort it on effect cleanup, and timers should count from a stored start.
 - **Param `generateMetadata`.** A static shell whose title reads the param logs "runtime data in generateMetadata()" in
   dev; setup/[node] marks the page as request data (`<Suspense>` + `connection()`), task/[id] does not yet.
+
+## W4 notes (trace, theater, runs, settings, kit, the shell, door and about)
+
+- **Static screens.** Settings Display, Keyboard and About and the kit declare no slice and have no loader. The host
+  still reads `/api/screen/<key>` on each visit and gets a 404 (a console error, nothing drawn wrong); the Director's
+  host change skips the read for a screen that declares no slice.
+- **The live gate is a client component** (`trace/LiveGate.tsx`). It follows the shell's read: live before the first
+  poll (the shell's group reads "first poll not finished") covers the column at once; otherwise, in live mode only, it
+  reads Trace's own `facts` slice (`components/useGateFacts.ts`) and covers while `facts.gate` names one (an empty
+  group). Demo reads nothing. On `/trace` itself it draws nothing: the screen shows the gate's copy. When the cover
+  lifts it re-reads the screen under it (`hostRevalidate()`, and `router.refresh()` for a route the host does not draw).
+- **The shell re-reads with the host** (`components/shell/live/hostNav.ts`): another screen showing, or a read of the
+  one showing starting (a return, a poll, a write's revalidate), is one `/api/shell` read 300 ms later; a burst is one
+  read. `requestShellRead()` (`live/sync.ts`) asks at once (the demo-estate cookie, Trace's live node passing).
+- **One pick rule, both sides.** Theater's film is `live/model/pick.ts` on the client and on the server: the server
+  sends the replay film only when the address and the live payload pick it; the client draws what the same rule picks,
+  `TheaterPending` (title, toolbar, a dash in the stage) until then. `live` and `film` share one runs read per request
+  (memoised by the request's `signal`).
+- **Loopback.** `theater` declares `local: ['start']` (off this machine "New run…" stays and says why); `runs` declares
+  `local: ['merges']` only: its `runs` slice is the data `GET /api/runs` already serves publicly on the hosted replay,
+  while `merges` names this machine's checkouts.
+- **/settings** is not a route-table key: the sidebar's Settings link goes through the router to a static page whose
+  client constant replaces the URL with `/settings/display` (`settings/screen/ToFront.tsx`), then the host draws it. One
+  RSC round trip; the nav entry pointing at `/settings/display` (with its active match kept for every sub-page) would
+  make it a host click.
+- **View transitions.** `Motion` (`app-enter`/`app-exit`) does not run on a host swap: the swap is a sync store update,
+  not a router transition, so `<ViewTransition>` never fires. The choreographed Reveal is the entrance now; the door's
+  `door-exit` still runs (the door is a router navigation into the app).
+- **Door.** `(door)/loading.tsx` and `DoorLoading` are gone. The page keeps its server render inside `<Suspense>` with
+  a still `DoorFrame` (ground, horizon, brand plate, hero mark) as the prerendered fallback; DoorData stays monolithic.
+  In `next dev` the frame and the city arrive within a few ms of each other in one response (in-memory demo reads).

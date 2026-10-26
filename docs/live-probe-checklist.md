@@ -46,3 +46,37 @@ group (`BELAY_MODE=live`) and check what it says. One section per module; append
 - The subtitle names the group / project, and the poll age counts up from the page's value.
 - `curl -N "http://127.0.0.1:<port>/api/screen/task%2F%5Bid%5D?id=<id>"` returns docket, detail, ledger and page lines,
   then `_end`; an unknown id answers a notFound line.
+
+## Trace and the live gate (W4)
+
+- Start with `BELAY_MODE=live` and a slow or failing first poll. Open `/monitor`: the Trace cover is over the column as
+  soon as the shell's read lands, with "Live · first poll not finished" and the live source's reason (no failed
+  Monitor). Switch screens in the sidebar: the cover stays, and on `/trace` itself the screen shows the same gate copy
+  once, with no second cover.
+- Let the first poll finish, then press Re-check on the cover: when the live node passes, `/api/shell` is read again,
+  the cover lifts, and the screen under it re-reads and fills (no reload). Also check that a plain screen switch after the
+  poll finished lifts it (the shell re-reads on host navigation).
+- A live group with no project: the cover says "Afterlife is watching a group with no project" (from Trace's `facts`
+  slice); adding a project and polling lifts it.
+- `/trace` live on a real group: the subtitle names `group <id> on <host>`, the source chip "live · glab on <host>", the
+  six nodes probe in place; `?rehearse=not-ready` on a ready server shows the rehearsal chip and the gate copy.
+
+## Theater and Runs (W4)
+
+- With a real `.belay/fleet.yml` and checkouts: `/theater` paints the window at once; "New run…" joins the toolbar when
+  the `start` line lands (git, kept 5 s). Start a run: the screen moves to `/theater?live=1` in place (no reload) and the
+  live film polls `/api/runs` every 2 s; switching away stops the poll, coming back resumes it.
+- `/theater` with a wave running opens the live film; with none, the ledger film (one take per MR on a live ledger).
+  `?mr=<n>` films that MR first; `?repo=<r>&wave=<n>` a finished wave on the live screen.
+- From a non-local address (a tunnel, the hosted replay): "New run…" is there and says a run starts only from this
+  machine; `/api/screen/theater` answers `start` with `reason: not-local`.
+- `/runs` with mergeable waves: select one; its card says "Asking git whether it is in already: —" until `merges`
+  lands, then the fleet path's commands (or "nothing to merge"). From a non-local address the card shows the slug
+  commands and `merges` answers `not-local`.
+
+## Settings and the shell (W4)
+
+- Live: `/settings/data` paints the Connection card with dashes, then `live (BELAY_MODE=live)`, the real host and group.
+- Change "Show demo estate" with a real project saved: the sidebar follows at once (an `/api/shell` read, no reload).
+- On the live server, decide an item on Needs you, then switch screens: the badge follows within about 300 ms of the
+  switch (the shell re-reads on host navigation), not only on window focus.
