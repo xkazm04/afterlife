@@ -1,4 +1,4 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Belay logo prototypes</title>
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Afterlife logo prototypes</title>
 <style>
 :root{--bg:#030405;--fg:#e2e8f0;--mut:#7b8794;--ac:#7df9ff;--line:#1a2128}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;padding:32px 16px}
@@ -13,13 +13,13 @@ main{max-width:1100px;margin:auto}h1{font-size:20px;margin:0 0 4px}p.s{color:var
 .light{background:#f4f6f8}.app{width:64px;height:64px}.app img{width:70%}
 .f img{display:block}
 </style>
-<main><h1>Belay - logo prototypes</h1><p class="s">Three marks on a 64 grid, drawn from the product: a rope you can trust (belay), proofs that gate autonomy, a tripwire. Icy phosphor + tier colours from tokens.css.</p>
+<main><h1>Afterlife - logo prototypes</h1><p class="s">Three marks on a 64 grid, drawn from the product: a rope you can trust (belay), proofs that gate autonomy, a tripwire. Icy phosphor + tier colours from tokens.css.</p>
 <script>
-const V=[['A','Rungs','belay-a-rungs.svg','A rope from an anchor ring. The rungs widen and take the tier colours: Assisted, Supervised, Hands-off. Earned autonomy as a ladder.'],
-['B','Knot','belay-b-knot.svg','A figure-eight (the climber’s belay knot, and an afterlife loop) inside a Proof Block hexagon. The pink node is the tripwire in the seal.'],
-['C','Horizon','belay-c-horizon.svg','The post-code horizon: solid above, scan-lines of the machine layer below. One rope drops through it to a green safe anchor.']];
+const V=[['A','Rungs','afterlife-a-rungs.svg','A rope from an anchor ring. The rungs widen and take the tier colours: Assisted, Supervised, Hands-off. Earned autonomy as a ladder.'],
+['B','Knot','afterlife-b-knot.svg','A figure-eight (the climber’s belay knot, and an afterlife loop) inside a Proof Block hexagon. The pink node is the tripwire in the seal.'],
+['C','Horizon','afterlife-c-horizon.svg','The post-code horizon: solid above, scan-lines of the machine layer below. One rope drops through it to a green safe anchor.']];
 document.write(V.map(([k,n,f,d])=>`<section class="v"><div><h2>${k} · ${n}</h2><div class="d">${d}</div></div>
-<div class="hero"><img src="${f}" alt=""><div><div class="word">BELAY</div><div class="tag">PROOF-CARRYING AGENTS</div></div></div>
+<div class="hero"><img src="${f}" alt=""><div><div class="word">AFTERLIFE</div><div class="tag">PROOF-CARRYING AGENTS</div></div></div>
 <div class="row"><div class="tile app"><img src="${f}" alt=""></div><div class="tile app light"><img src="${f}" alt="" style="filter:brightness(.35) saturate(2)"></div>
 <div class="f"><img src="${f}" width="32" height="32" alt=""><br><img src="${f}" width="16" height="16" alt="" style="margin-top:8px"></div></div></section>`).join(''))
 </script></main>

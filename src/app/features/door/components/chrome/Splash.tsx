@@ -8,7 +8,7 @@ import styles from './splash.module.css';
 export function Splash({ on }: { on: boolean }) {
   return (
     <div className={styles.splash} data-on={on || undefined} aria-hidden>
-      <Image src="/brand/belay-hero-1024.webp" alt="" width={1024} height={1024} preload sizes="560px" />
+      <Image src="/brand/afterlife-hero-1024.webp" alt="" width={1024} height={1024} preload sizes="560px" />
     </div>
   );
 }

@@ -20,7 +20,7 @@ export function Sidebar({ onToggle, children }: { onToggle: () => void; children
       <div className={styles.top}>
         <TrafficLights />
         <Link href="/" className={styles.brand} aria-label="Afterlife, back to the landing page">
-          <Image src="/brand/belay-b-knot.svg" alt="" width={18} height={18} unoptimized />
+          <Image src="/brand/afterlife-b-knot.svg" alt="" width={18} height={18} unoptimized />
           <span>Afterlife</span>
         </Link>
         <span className={styles.push}>

@@ -1,6 +1,6 @@
 import styles from './knot.module.css';
 
-/** The Afterlife knot's three parts (public/brand/belay-b-knot.svg, 64 x 64): the hexagon open at the top right, the loop, the pin. */
+/** The Afterlife knot's three parts (public/brand/afterlife-b-knot.svg, 64 x 64): the hexagon open at the top right, the loop, the pin. */
 const HEX = 'M50.2 14.5 56.2 18V46L32 60 7.8 46V18L32 4l6 3.5';
 const LOOP = 'M32 32C32 19 15 19 15 32S32 45 32 32 49 19 49 32 32 45 32 32Z';
 
