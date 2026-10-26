@@ -1,4 +1,5 @@
-/* The door's loading frame: the same ground and horizon the city stands on, so the city fades in, not pops in. */
+/* The door's static frame (the prerendered shell, before the city's data streams in): the same ground and horizon the
+   city stands on, the brand plate and the hero mark. Still: no scan, no pulse; the city arrives over it. */
 .root {
   position: fixed;
   inset: 0;
@@ -26,20 +27,4 @@
   color: var(--text-1);
   text-shadow: var(--title-glow);
   box-shadow: var(--edge-glow);
-}
-.scan {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 34vh;
-  background: linear-gradient(transparent, color-mix(in oklab, var(--accent) 5%, transparent) 50%, transparent);
-  animation: scan 2.4s linear infinite;
-}
-@keyframes scan {
-  from {
-    transform: translateY(-40vh);
-  }
-  to {
-    transform: translateY(120vh);
-  }
 }
