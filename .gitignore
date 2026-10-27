@@ -21,6 +21,7 @@ design/
 !/docs/concepts/
 !/docs/features/
 !/docs/report/
+!/docs/readme/
 DECISIONS.md
 scratch/
 
