@@ -14,7 +14,7 @@ REGION="${REGION:-europe-west1}"
 # would deploy a second service beside the live one.
 REPOSITORY="${REPOSITORY:-belay}"
 TAG="${TAG:-$(git rev-parse --short HEAD 2>/dev/null || echo latest)}"
-SERVICE=belay-replay
+SERVICE=afterlife-replay
 IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE}:${TAG}"
 
 cat <<EOF

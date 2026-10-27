@@ -5,7 +5,7 @@ apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   # The service, label and container keep their first names: the service already runs under them.
-  name: belay-replay
+  name: afterlife-replay
   labels:
     app: belay
     mode: replay

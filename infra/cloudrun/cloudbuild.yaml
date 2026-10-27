@@ -1,0 +1,12 @@
+# Cloud Build for the Afterlife hosted replay (no local Docker needed). From the repo root:
+#   gcloud builds submit --project=PROJECT --region=europe-west1 --config=infra/cloudrun/cloudbuild.yaml \
+#     --ignore-file=infra/cloudrun/replay.gcloudignore --substitutions=_IMAGE=REGION-docker.pkg.dev/PROJECT/belay/afterlife-replay:TAG .
+# The upload is filtered by replay.gcloudignore (the Dockerfile.dockerignore set, anchored for gitignore syntax).
+steps:
+  - name: gcr.io/cloud-builders/docker
+    env: ["DOCKER_BUILDKIT=1"]
+    args: ["build", "--platform", "linux/amd64", "-f", "infra/cloudrun/Dockerfile", "-t", "${_IMAGE}", "."]
+images: ["${_IMAGE}"]
+options:
+  machineType: E2_HIGHCPU_8
+timeout: 1800s

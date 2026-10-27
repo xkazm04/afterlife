@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.3",
-    "next": "^16.3.3",
+    "next": "^16.4.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "server-only": "^0.0.1",
@@ -48,7 +48,7 @@
     "@types/react-dom": "^19",
     "cross-env": "^10.1.0",
     "eslint": "^9",
-    "eslint-config-next": "^16.3.3",
+    "eslint-config-next": "^16.4.3",
     "playwright": "^1.56.1",
     "tsx": "^4.23.15",
     "typescript": "^5",

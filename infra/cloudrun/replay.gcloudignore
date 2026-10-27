@@ -1,0 +1,30 @@
+# Upload filter for `gcloud builds submit` (infra/cloudrun/cloudbuild.yaml). Same set as Dockerfile.dockerignore, but in
+# gitignore syntax, where an unanchored name matches at any depth: root-only entries carry a leading slash, or `docs`
+# would also drop src/server/gitlab/__fixtures__/docs/ and break the build.
+**/node_modules/
+/.next/
+/out/
+/coverage/
+*.tsbuildinfo
+/next-env.d.ts
+
+/.afterlife/
+/.belay/
+**/.env*
+*.log
+
+/docs/
+/design/
+/.contest/
+/.claude/
+/DECISIONS.md
+/scratch/
+/.personas/
+/.perfect/
+/.spark/
+/.ai/
+/tiger/
+
+/.git/
+/.vscode/
+/.idea/

@@ -15,6 +15,20 @@ The deployment code must be in the public repo for the +0.2 bonus. The hosted re
 | `Dockerfile.dockerignore` | The build context filter (BuildKit reads it beside the Dockerfile): no `node_modules`, `.next`, `.afterlife`, `.belay`, `.env*`, `docs/`, `design/`, `.contest/`, `.claude/`, `DECISIONS.md`, `scratch/`, `.git` or the local vaults. The context sent was 125 kB. |
 | `service.yaml` | The Cloud Run (Knative) service: `maxScale` 2, `minScale` 0, `containerConcurrency` 20, 30 s timeout, 1 CPU throttled outside requests, 512Mi, no volume, env `AFTERLIFE_MODE=replay` only. |
 | `deploy.sh` | Prints the operator's commands (build, image check, push, `services replace`, `allUsers` invoker binding, `curl -I`). It runs none of them. |
+| `cloudbuild.yaml` | Builds the same Dockerfile on Cloud Build (no local Docker) and pushes the image. |
+| `replay.gcloudignore` | The upload filter for `gcloud builds submit`: the `Dockerfile.dockerignore` set with root-only entries anchored (gitignore syntax would otherwise drop `src/server/gitlab/__fixtures__/docs/` and fail the build). |
+
+### Live service (deployed 2026-10-26)
+
+**https://afterlife-replay-731858830008.europe-west1.run.app** - project `gen-lang-client-0334944767`, region `europe-west1`,
+service `afterlife-replay`, image in Artifact Registry `europe-west1-docker.pkg.dev/gen-lang-client-0334944767/belay/afterlife-replay`.
+Public through the `allUsers` invoker binding; env `AFTERLIFE_MODE=replay` only; `maxScale` 2, `minScale` 0, concurrency 20.
+
+Redeploy after a commit (from the repo root, Git Bash; builds on Cloud Build, then applies `service.yaml`):
+
+```sh
+P=gen-lang-client-0334944767 R=europe-west1 IMG=europe-west1-docker.pkg.dev/gen-lang-client-0334944767/belay/afterlife-replay:$(git rev-parse --short HEAD) && gcloud builds submit --project=$P --region=$R --config=infra/cloudrun/cloudbuild.yaml --ignore-file=infra/cloudrun/replay.gcloudignore --substitutions=_IMAGE=$IMG . && sed "s#IMAGE_URL#$IMG#" infra/cloudrun/service.yaml > /tmp/service.rendered.yaml && gcloud run services replace /tmp/service.rendered.yaml --project=$P --region=$R
+```
 
 ### Build and deploy (operator)
 
@@ -27,7 +41,7 @@ docker run --rm afterlife-replay env | grep -E '^(AFTERLIFE|BELAY)_|TOKEN'   # o
 ```
 
 Deploy: `PROJECT_ID=<project> sh infra/cloudrun/deploy.sh` prints the commands (optional `REGION`, default
-`europe-west1`, `REPOSITORY`, default `belay` (the registry repository and the `belay-replay` service keep the names they were created
+`europe-west1`, `REPOSITORY`, default `belay` (the registry repository keeps the name it was created
 under), and `TAG`, default the short commit). Read them, then run them yourself.
 The service is public through the `allUsers` `roles/run.invoker` binding: there is no login (see the contract).
 

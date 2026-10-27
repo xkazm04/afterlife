@@ -1,4 +1,4 @@
-# Flow: guardrail (track T4). Reviews a merge request written by an agent and posts a cited-diff verdict.
+# Flow: guardrail (track T4). Registered on gitlab.com 26 Oct 2026 (catalog item 1019958); adaptations in README.md. Reviews a merge request written by an agent and posts a cited-diff verdict.
 # It can block at every tier and can never merge or approve: its toolset has no approve, merge or label tool.
 # Every finding quotes a hunk verbatim; the engine (proof class cited-diff) checks that each quote exists in the diff.
 #
@@ -37,7 +37,6 @@ components:
       - get_repository_file
       - get_issue
       - create_merge_request_note
-    max_cycles: 40
     ui_log_events: [on_agent_final_answer, on_tool_execution_failed]
 
 routers:
